@@ -10,18 +10,15 @@ import 'type_test_helper.dart';
 
 main() {
   asyncTest(() async {
-    TypeEnvironment env = await TypeEnvironment.create(
-        r"""
+    TypeEnvironment env = await TypeEnvironment.create(r"""
       class A {}
       class B {}
-      """,
-        mainSource: r"""
+      """, mainSource: r"""
       main() {
         new A();
         new B();
       }
-      """,
-        useMockCompiler: false);
+      """, useMockCompiler: false);
     ClosedWorld world = env.closedWorld;
     FlatTypeMask mask1 = new FlatTypeMask.exact(env.getClass('A'));
     FlatTypeMask mask2 = new FlatTypeMask.exact(env.getClass('B'));

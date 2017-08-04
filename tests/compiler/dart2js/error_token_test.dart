@@ -32,27 +32,21 @@ Future runTest(String code,
 
 void main() {
   asyncTest(() async {
-    await runTest(
-        '''
+    await runTest('''
 main() {Foo.bar();}
 class Foo {
 	static void bar() {
 		baz());
 	}
 }
-''',
-        error: MessageKind.MISSING_TOKEN_AFTER_THIS,
-        expectedWarningCount: 1);
+''', error: MessageKind.MISSING_TOKEN_AFTER_THIS, expectedWarningCount: 1);
 
-    await runTest(
-        '''
+    await runTest('''
 main() {new C(v);}
 class C {
   C(v) {
     throw '');
   }
-}''',
-        error: MessageKind.MISSING_TOKEN_AFTER_THIS,
-        expectedWarningCount: 1);
+}''', error: MessageKind.MISSING_TOKEN_AFTER_THIS, expectedWarningCount: 1);
   });
 }

@@ -189,26 +189,23 @@ class ClassStubGenerator {
 
     assert(_interceptorData.isInterceptedName(Identifiers.noSuchMethod_));
     bool isIntercepted = _interceptorData.isInterceptedName(selector.name);
-    jsAst.Expression expression = js(
-        '''this.#noSuchMethodName(#receiver,
+    jsAst.Expression expression = js('''this.#noSuchMethodName(#receiver,
                     #createInvocationMirror(#methodName,
                                             #internalName,
                                             #type,
                                             #arguments,
-                                            #namedArguments))''',
-        {
-          'receiver': isIntercepted ? r'$receiver' : 'this',
-          'noSuchMethodName': _namer.noSuchMethodName,
-          'createInvocationMirror': _emitter
-              .staticFunctionAccess(_commonElements.createInvocationMirror),
-          'methodName':
-              js.quoteName(enableMinification ? internalName : methodName),
-          'internalName': js.quoteName(internalName),
-          'type': js.number(type),
-          'arguments':
-              new jsAst.ArrayInitializer(parameterNames.map(js).toList()),
-          'namedArguments': new jsAst.ArrayInitializer(argNames)
-        });
+                                            #namedArguments))''', {
+      'receiver': isIntercepted ? r'$receiver' : 'this',
+      'noSuchMethodName': _namer.noSuchMethodName,
+      'createInvocationMirror':
+          _emitter.staticFunctionAccess(_commonElements.createInvocationMirror),
+      'methodName':
+          js.quoteName(enableMinification ? internalName : methodName),
+      'internalName': js.quoteName(internalName),
+      'type': js.number(type),
+      'arguments': new jsAst.ArrayInitializer(parameterNames.map(js).toList()),
+      'namedArguments': new jsAst.ArrayInitializer(argNames)
+    });
 
     jsAst.Expression function;
     if (isIntercepted) {
@@ -260,8 +257,7 @@ List<jsAst.Statement> buildTearOffCode(CompilerOptions options, Emitter emitter,
   if (!options.useContentSecurityPolicy) {
     jsAst.Expression tearOffAccessText =
         new jsAst.UnparsedNode(tearOffAccessExpression, options, false);
-    tearOffGetter = js.statement(
-        '''
+    tearOffGetter = js.statement('''
 function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
   return isIntercepted
       ? new Function("funcs", "reflectionInfo", "name",
@@ -278,15 +274,13 @@ function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
                 "this, funcs, reflectionInfo, false, [], name);" +
                 "return new c(this, funcs[0], null, name);" +
                 "}")(funcs, reflectionInfo, name, #tearOffGlobalObject, null);
-}''',
-        {
-          'tearOffAccessText': tearOffAccessText,
-          'tearOffGlobalObject': tearOffGlobalObject,
-          'tearOffGlobalObjectString': tearOffGlobalObjectString
-        });
+}''', {
+      'tearOffAccessText': tearOffAccessText,
+      'tearOffGlobalObject': tearOffGlobalObject,
+      'tearOffGlobalObjectString': tearOffGlobalObjectString
+    });
   } else {
-    tearOffGetter = js.statement(
-        '''
+    tearOffGetter = js.statement('''
       function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
         var cache = null;
         return isIntercepted
@@ -300,12 +294,10 @@ function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
                     this, funcs, reflectionInfo, false, [], name);
                 return new cache(this, funcs[0], null, name);
               };
-      }''',
-        [tearOffAccessExpression, tearOffAccessExpression]);
+      }''', [tearOffAccessExpression, tearOffAccessExpression]);
   }
 
-  jsAst.Statement tearOff = js.statement(
-      '''
+  jsAst.Statement tearOff = js.statement('''
     function tearOff(funcs, reflectionInfo, isStatic, name, isIntercepted) {
       var cache;
       return isStatic
@@ -315,8 +307,7 @@ function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
               return cache;
             }
           : tearOffGetter(funcs, reflectionInfo, name, isIntercepted);
-    }''',
-      {'tearOff': tearOffAccessExpression});
+    }''', {'tearOff': tearOffAccessExpression});
 
   return <jsAst.Statement>[tearOffGetter, tearOff];
 }

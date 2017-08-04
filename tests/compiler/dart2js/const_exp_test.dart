@@ -11,9 +11,7 @@ test(String constantInitializer, [String expectedOutput]) {
   if (expectedOutput == null) {
     expectedOutput = constantInitializer;
   }
-  return () => TypeEnvironment
-          .create(
-              """
+  return () => TypeEnvironment.create("""
     class Class<T, S> {
       final a;
       final b;
@@ -29,9 +27,7 @@ test(String constantInitializer, [String expectedOutput]) {
     const toplevelConstant = 0;
     toplevelFunction() {}
     const constant = $constantInitializer;
-""",
-              expectNoWarningsOrErrors: true)
-          .then((env) {
+""", expectNoWarningsOrErrors: true).then((env) {
         dynamic element = env.getElement('constant');
         Expect.isNotNull(element, "Element 'constant' not found.");
         var constant = element.constant;

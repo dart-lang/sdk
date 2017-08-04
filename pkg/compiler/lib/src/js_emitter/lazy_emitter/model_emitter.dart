@@ -438,16 +438,14 @@ class ModelEmitter {
 
     /// See [emitEmbeddedGlobalsForDeferredLoading] for the format of the
     /// deferred hunk.
-    js.Expression initializeLoadedHunkFunction = js.js(
-        """
+    js.Expression initializeLoadedHunkFunction = js.js("""
           function(hash) {
             var hunk = $deferredInitializersGlobal[hash];
             $setupProgramName(hunk[0], #typesAccess.length);
             eval(hunk[1]);
             var deferredTypes = eval(hunk[2]);
             #typesAccess.push.apply(#typesAccess, deferredTypes);
-          }""",
-        {'typesAccess': typesAccess});
+          }""", {'typesAccess': typesAccess});
 
     globals.add(new js.Property(
         js.string(INITIALIZE_LOADED_HUNK), initializeLoadedHunkFunction));
@@ -468,16 +466,14 @@ class ModelEmitter {
     // Types are non-evaluated and must be compiled at first use.
     // Compiled strings are guaranteed not to be strings, and it's thus safe
     // to use a type-test to determine if a type has already been compiled.
-    return js.js.statement(
-        '''function $readMetadataTypeName(index) {
+    return js.js.statement('''function $readMetadataTypeName(index) {
       var type = #typesAccess[index];
       if (typeof type == 'string') {
         type = expressionCompile(type);
         #typesAccess[index] = type;
       }
       return type;
-    }''',
-        {"typesAccess": generateEmbeddedGlobalAccess(TYPES)});
+    }''', {"typesAccess": generateEmbeddedGlobalAccess(TYPES)});
   }
 
   js.Template get templateForReadType {
@@ -493,19 +489,17 @@ class ModelEmitter {
     // Types are non-evaluated and must be compiled at first use.
     // Compiled strings are guaranteed not to be strings, and it's thus safe
     // to use a type-test to determine if a type has already been compiled.
-    return js.js.statement(
-        '''function $readMetadataName(index) {
+    return js.js.statement('''function $readMetadataName(index) {
       var lazyMetadata = #lazyMetadataAccess[index];
       if (typeof lazyMetadata == 'string') {
         #metadataAccess[index] = expressionCompile(lazyMetadata);
         #lazyMetadataAccess[index] = null;
       }
       return #metadataAccess[index];
-    }''',
-        {
-          "lazyMetadataAccess": generateEmbeddedGlobalAccess(lazyMetadataName),
-          "metadataAccess": generateEmbeddedGlobalAccess(METADATA)
-        });
+    }''', {
+      "lazyMetadataAccess": generateEmbeddedGlobalAccess(lazyMetadataName),
+      "metadataAccess": generateEmbeddedGlobalAccess(METADATA)
+    });
   }
 
   js.Template get templateForReadMetadata {

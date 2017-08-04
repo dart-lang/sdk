@@ -148,9 +148,7 @@ ${jsTraceHtml}
 
 /// Outputs [html] with customized [css] in [uri].
 void outputInTemplate(Uri uri, String html, String css) {
-  output(
-      uri,
-      '''
+  output(uri, '''
 <html>
 <head>
 <style>

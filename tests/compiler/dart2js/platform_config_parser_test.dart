@@ -35,11 +35,9 @@ test(String input, [Map<String, Map<String, String>> expectedOutput]) {
 
 main() {
   // Empty file.
-  test(
-      """
+  test("""
 # Nothing here
-""",
-      {});
+""", {});
 
   // Text outside section.
   test("""
@@ -82,36 +80,30 @@ name:value
 """);
 
   // Ok.
-  test(
-      """
+  test("""
 [AA]
 name:value
 [BB]
 name:value
 name2:value2
-""",
-      {
-        "AA": {"name": "value"},
-        "BB": {"name": "value", "name2": "value2"}
-      });
+""", {
+    "AA": {"name": "value"},
+    "BB": {"name": "value", "name2": "value2"}
+  });
 
   // Ok, file not ending in newline.
-  test(
-      """
+  test("""
 [AA]
-name:value""",
-      {
-        "A": {"name": "value"}
-      });
+name:value""", {
+    "A": {"name": "value"}
+  });
 
   // Ok, whitespace is trimmed away.
-  test(
-      """
+  test("""
 [ AA ]
- name\t:  value """,
-      {
-        "A": {"name": "value"}
-      });
+ name\t:  value """, {
+    "A": {"name": "value"}
+  });
 
   // Duplicate property name.
   test("""

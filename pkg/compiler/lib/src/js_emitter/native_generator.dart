@@ -34,8 +34,7 @@ class NativeGenerator {
     jsAst.Expression dispatchPropertyNameAccess =
         generateEmbeddedGlobalAccess(embeddedNames.DISPATCH_PROPERTY_NAME);
 
-    return js.statement(
-        '''
+    return js.statement('''
       !function() {
         var intern = #internStringFunction;
 
@@ -63,15 +62,14 @@ class NativeGenerator {
           #dispatchPropertyName = #getIsolateTag("dispatch_record");
         }
       }();
-    ''',
-        {
-          'initializeDispatchProperty':
-              backendUsage.needToInitializeDispatchProperty,
-          'internStringFunction': internStringFunction,
-          'getIsolateTag': getIsolateTagAccess,
-          'isolateTag': isolateTagAccess,
-          'dispatchPropertyName': dispatchPropertyNameAccess
-        });
+    ''', {
+      'initializeDispatchProperty':
+          backendUsage.needToInitializeDispatchProperty,
+      'internStringFunction': internStringFunction,
+      'getIsolateTag': getIsolateTagAccess,
+      'isolateTag': isolateTagAccess,
+      'dispatchPropertyName': dispatchPropertyNameAccess
+    });
   }
 
   static String generateIsolateTagRoot() {
@@ -155,8 +153,7 @@ class NativeGenerator {
       jsAst.Expression leafTagsAccess) {
     jsAst.Expression subclassRead =
         subclassReadGenerator(js('subclasses[i]', []));
-    return js.statement(
-        '''
+    return js.statement('''
           // The native info looks like this:
           //
           // HtmlElement: {
@@ -204,15 +201,14 @@ class NativeGenerator {
               }
             }
           }
-    ''',
-        {
-          'info': infoAccess,
-          'constructor': constructorAccess,
-          'subclassRead': subclassRead,
-          'interceptorsByTagAccess': interceptorsByTagAccess,
-          'leafTagsAccess': leafTagsAccess,
-          'nativeSuperclassTagName': embeddedNames.NATIVE_SUPERCLASS_TAG_NAME,
-          'allowNativesSubclassing': true
-        });
+    ''', {
+      'info': infoAccess,
+      'constructor': constructorAccess,
+      'subclassRead': subclassRead,
+      'interceptorsByTagAccess': interceptorsByTagAccess,
+      'leafTagsAccess': leafTagsAccess,
+      'nativeSuperclassTagName': embeddedNames.NATIVE_SUPERCLASS_TAG_NAME,
+      'allowNativesSubclassing': true
+    });
   }
 }

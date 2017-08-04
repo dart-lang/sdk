@@ -23,8 +23,7 @@ testClasses() async {
       {List<String> directlyInstantiated: const <String>[],
       List<String> abstractlyInstantiated: const <String>[],
       List<String> indirectlyInstantiated: const <String>[]}) async {
-    TypeEnvironment env = await TypeEnvironment.create(
-        r"""
+    TypeEnvironment env = await TypeEnvironment.create(r"""
 @JS()
 class A {
   get foo;
@@ -73,13 +72,11 @@ newC() => new C(foo: 2);
 newD() => new D(foo: 3);
 newE() => new E(4);
 newF() => new F(5);
-""",
-        mainSource: """
+""", mainSource: """
 import 'package:js/js.dart';
 
 $mainSource
-""",
-        useMockCompiler: false);
+""", useMockCompiler: false);
     Map<String, ClassElement> classEnvironment = <String, ClassElement>{};
 
     ClassElement registerClass(ClassElement cls) {

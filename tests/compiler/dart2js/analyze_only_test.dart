@@ -113,22 +113,18 @@ main() {
     Expect.equals("${template.message({'main': 'main'})}", warnings.single);
   });
 
-  runCompiler(
-      """main() {
+  runCompiler("""main() {
          Foo foo; // Unresolved and analyzed.
-       }""",
-      [Flags.analyzeOnly], (String code, List errors, List warnings) {
+       }""", [Flags.analyzeOnly], (String code, List errors, List warnings) {
     Expect.isNull(code);
     Expect.isTrue(errors.isEmpty);
     Expect.equals(1, warnings.length);
     Expect.equals("Cannot resolve type 'Foo'.", warnings[0].toString());
   });
 
-  runCompiler(
-      """main() {
+  runCompiler("""main() {
          Foo foo; // Unresolved and analyzed.
-       }""",
-      [Flags.analyzeOnly, Flags.analyzeSignaturesOnly],
+       }""", [Flags.analyzeOnly, Flags.analyzeSignaturesOnly],
       (String code, List errors, List warnings) {
     Expect.isNull(code);
     Expect.isTrue(errors.isEmpty);
@@ -144,10 +140,8 @@ main() {
     Expect.equals("Cannot resolve type 'Foo'.", warnings[0].toString());
   });
 
-  runCompiler(
-      """Foo foo; // Unresolved and analyzed.
-       main() {}""",
-      [Flags.analyzeOnly, Flags.analyzeAll],
+  runCompiler("""Foo foo; // Unresolved and analyzed.
+       main() {}""", [Flags.analyzeOnly, Flags.analyzeAll],
       (String code, List errors, List warnings) {
     Expect.isNull(code);
     Expect.isTrue(errors.isEmpty, 'Unexpected errors: $errors.');
@@ -171,19 +165,16 @@ main() {
   });
 
   // Test that --allow-native-extensions works.
-  runCompiler(
-      """main() {}
-      foo() native 'foo';""",
-      [Flags.analyzeOnly, Flags.allowNativeExtensions],
+  runCompiler("""main() {}
+      foo() native 'foo';""", [Flags.analyzeOnly, Flags.allowNativeExtensions],
       (String code, List errors, List warnings) {
     Expect.isNull(code);
     Expect.isTrue(errors.isEmpty);
     Expect.isTrue(warnings.isEmpty);
   });
-  runCompiler(
-      """main() {}
-      foo() native 'foo';""",
-      [Flags.analyzeOnly], (String code, List errors, List warnings) {
+  runCompiler("""main() {}
+      foo() native 'foo';""", [Flags.analyzeOnly],
+      (String code, List errors, List warnings) {
     Expect.isNull(code);
     Expect.isTrue(
         errors.single.startsWith("'native' modifier is not supported."));

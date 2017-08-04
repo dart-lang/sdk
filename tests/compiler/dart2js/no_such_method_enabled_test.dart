@@ -46,8 +46,7 @@ class NoSuchMethodTest {
 }
 
 const List<NoSuchMethodTest> TESTS = const <NoSuchMethodTest>[
-  const NoSuchMethodTest(
-      """
+  const NoSuchMethodTest("""
 class A {
   foo() => 3;
   noSuchMethod(x) => super.noSuchMethod(x);
@@ -55,12 +54,10 @@ class A {
 main() {
   print(new A().foo());
 }
-""",
-      const <NoSuchMethodInfo>[
-        const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
-      ]),
-  const NoSuchMethodTest(
-      """
+""", const <NoSuchMethodInfo>[
+    const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
+  ]),
+  const NoSuchMethodTest("""
 class A extends B {
   foo() => 3;
   noSuchMethod(x) => super.noSuchMethod(x);
@@ -69,12 +66,10 @@ class B {}
 main() {
   print(new A().foo());
 }
-""",
-      const <NoSuchMethodInfo>[
-        const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
-      ]),
-  const NoSuchMethodTest(
-      """
+""", const <NoSuchMethodInfo>[
+    const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
+  ]),
+  const NoSuchMethodTest("""
 class A extends B {
   foo() => 3;
   noSuchMethod(x) {
@@ -85,12 +80,10 @@ class B {}
 main() {
   print(new A().foo());
 }
-""",
-      const <NoSuchMethodInfo>[
-        const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
-      ]),
-  const NoSuchMethodTest(
-      """
+""", const <NoSuchMethodInfo>[
+    const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
+  ]),
+  const NoSuchMethodTest("""
 class A extends B {
   foo() => 3;
   noSuchMethod(x) => super.noSuchMethod(x);
@@ -101,14 +94,12 @@ class B {
 main() {
   print(new A().foo());
 }
-""",
-      const <NoSuchMethodInfo>[
-        const NoSuchMethodInfo('A',
-            superClassName: 'B', hasForwardingSyntax: true, isDefault: true),
-        const NoSuchMethodInfo('B', hasForwardingSyntax: true, isDefault: true),
-      ]),
-  const NoSuchMethodTest(
-      """
+""", const <NoSuchMethodInfo>[
+    const NoSuchMethodInfo('A',
+        superClassName: 'B', hasForwardingSyntax: true, isDefault: true),
+    const NoSuchMethodInfo('B', hasForwardingSyntax: true, isDefault: true),
+  ]),
+  const NoSuchMethodTest("""
 class A extends B {
   foo() => 3;
   noSuchMethod(x) => super.noSuchMethod(x);
@@ -119,66 +110,53 @@ class B {
 main() {
   print(new A().foo());
 }
-""",
-      const <NoSuchMethodInfo>[
-        const NoSuchMethodInfo('A',
-            superClassName: 'B', hasForwardingSyntax: true, isThrowing: true),
-        const NoSuchMethodInfo('B', hasThrowingSyntax: true, isThrowing: true),
-      ],
-      isNoSuchMethodUsed: true),
-  const NoSuchMethodTest(
-      """
+""", const <NoSuchMethodInfo>[
+    const NoSuchMethodInfo('A',
+        superClassName: 'B', hasForwardingSyntax: true, isThrowing: true),
+    const NoSuchMethodInfo('B', hasThrowingSyntax: true, isThrowing: true),
+  ], isNoSuchMethodUsed: true),
+  const NoSuchMethodTest("""
 class A {
   noSuchMethod(x) => 3;
 }
 main() {
   print(new A().foo());
 }
-""",
-      const <NoSuchMethodInfo>[
-        const NoSuchMethodInfo('A', isOther: true, isComplexReturn: true),
-      ],
-      isNoSuchMethodUsed: true),
-  const NoSuchMethodTest(
-      """
+""", const <NoSuchMethodInfo>[
+    const NoSuchMethodInfo('A', isOther: true, isComplexReturn: true),
+  ], isNoSuchMethodUsed: true),
+  const NoSuchMethodTest("""
 class A {
   noSuchMethod(x, [y]) => super.noSuchMethod(x);
 }
 main() {
   print(new A().foo());
 }
-""",
-      const <NoSuchMethodInfo>[
-        const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
-      ]),
-  const NoSuchMethodTest(
-      """
+""", const <NoSuchMethodInfo>[
+    const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
+  ]),
+  const NoSuchMethodTest("""
 class A {
   noSuchMethod(x, [y]) => super.noSuchMethod(x, y);
 }
 main() {
   print(new A().foo());
 }
-""",
-      const <NoSuchMethodInfo>[
-        const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
-      ],
-      isNoSuchMethodUsed: true),
-  const NoSuchMethodTest(
-      """
+""", const <NoSuchMethodInfo>[
+    const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
+  ], isNoSuchMethodUsed: true),
+  const NoSuchMethodTest("""
 class A {
   noSuchMethod(x, y) => super.noSuchMethod(x);
 }
 main() {
   print(new A().foo());
 }
-""",
-      const <NoSuchMethodInfo>[
-        const NoSuchMethodInfo('A',
-            hasForwardingSyntax: true, isNotApplicable: true),
-      ]),
-  const NoSuchMethodTest(
-      """
+""", const <NoSuchMethodInfo>[
+    const NoSuchMethodInfo('A',
+        hasForwardingSyntax: true, isNotApplicable: true),
+  ]),
+  const NoSuchMethodTest("""
 class A {
   noSuchMethod(Invocation x) {
     throw new UnsupportedException();
@@ -187,13 +165,10 @@ class A {
 main() {
   print(new A().foo());
 }
-""",
-      const <NoSuchMethodInfo>[
-        const NoSuchMethodInfo('A', hasThrowingSyntax: true, isThrowing: true),
-      ],
-      isNoSuchMethodUsed: true),
-  const NoSuchMethodTest(
-      """
+""", const <NoSuchMethodInfo>[
+    const NoSuchMethodInfo('A', hasThrowingSyntax: true, isThrowing: true),
+  ], isNoSuchMethodUsed: true),
+  const NoSuchMethodTest("""
 class A {
   noSuchMethod(Invocation x) {
     print('foo');
@@ -203,13 +178,10 @@ class A {
 main() {
   print(new A().foo());
 }
-""",
-      const <NoSuchMethodInfo>[
-        const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
-      ],
-      isNoSuchMethodUsed: true),
-  const NoSuchMethodTest(
-      """
+""", const <NoSuchMethodInfo>[
+    const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
+  ], isNoSuchMethodUsed: true),
+  const NoSuchMethodTest("""
 class A {
   noSuchMethod(Invocation x) {
     return toString();
@@ -218,23 +190,19 @@ class A {
 main() {
   print(new A().foo());
 }
-""",
-      const <NoSuchMethodInfo>[
-        const NoSuchMethodInfo('A', isOther: true, isComplexReturn: true),
-      ],
-      isNoSuchMethodUsed: true),
-  const NoSuchMethodTest(
-      """
+""", const <NoSuchMethodInfo>[
+    const NoSuchMethodInfo('A', isOther: true, isComplexReturn: true),
+  ], isNoSuchMethodUsed: true),
+  const NoSuchMethodTest("""
 class A {
   noSuchMethod(x) => super.noSuchMethod(x) as dynamic;
 }
 main() {
   print(new A().foo());
 }
-""",
-      const <NoSuchMethodInfo>[
-        const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
-      ]),
+""", const <NoSuchMethodInfo>[
+    const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
+  ]),
 ];
 
 main() {
