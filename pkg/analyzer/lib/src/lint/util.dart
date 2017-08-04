@@ -50,7 +50,6 @@ String createLibraryNamePrefix(
 }
 
 /// Returns `true` if this [fileName] is a Dart file.
-@deprecated // Never intended for public use.
 bool isDartFileName(String fileName) => fileName.endsWith('.dart');
 
 /// Returns `true` if this [name] is a legal Dart identifier.
@@ -78,7 +77,6 @@ bool isLowerCaseUnderScoreWithDots(String id) =>
     _lowerCaseUnderScoreWithDots.hasMatch(id);
 
 /// Returns `true` if this [fileName] is a Pubspec file.
-@deprecated // Never intended for public use.
 bool isPubspecFileName(String fileName) => _pubspec.hasMatch(fileName);
 
 /// Returns `true` if the given code unit [c] is upper case.
