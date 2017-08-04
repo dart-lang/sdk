@@ -183,10 +183,11 @@ regress/4562_test/01: Crash # Issue 27394
 22776_test: Crash
 22868_test: Crash
 22917_test: Crash
-23056_test: Crash
+23056_test: RuntimeError
 23264_test: Crash
 23404_test: Crash
 23432_test: Crash
+23432b_test: Crash # type 'KMethod' is not a subtype of type 'MemberElement' of 'member' where
 23804_test: Crash
 23828_test: Crash
 26243_test: Crash
@@ -263,6 +264,7 @@ invalid_annotation2_test/none: Crash
 is_check_instanceof_test: Crash
 js_array_index_error_test: Crash
 js_array_removeLast_error_test: Crash
+js_dispatch_property_test: RuntimeError
 label_test/06: Crash
 locate_single_element_1_test: Crash
 lookup_map/dead_entry_single_nested_pairs_test: Crash
@@ -351,10 +353,10 @@ useful_error_message_1_test: Crash
 22776_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
 22868_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 22917_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
-23056_test: Crash # NoSuchMethodError: The getter 'uri' was called on null.
 23264_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
 23404_test: RuntimeError
 23432_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
+23432b_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
 23828_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
 26243_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
 28919_test: Crash # Assertion failure: Cannot find value local(foo_closure.call#i) in (local(foo_closure.call#x), local(foo#)) for j:closure_call(foo_closure.call).
@@ -429,6 +431,7 @@ invalid_annotation2_test/none: Crash # NoSuchMethodError: Class 'DynamicType' ha
 is_check_instanceof_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 js_array_index_error_test: Crash # Assertion failure: Cannot find value local(variableIndexSetNonempty_closure.call#index) in (local(variableIndexSetNonempty#fault3), local(variableIndexSetNonempty_closure.call#a)) for j:closure_call(variableIndexSetNonempty_closure.call).
 js_array_removeLast_error_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+js_dispatch_property_test: RuntimeError
 label_test/06: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 locate_single_element_1_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
 lookup_map/dead_entry_single_nested_pairs_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
