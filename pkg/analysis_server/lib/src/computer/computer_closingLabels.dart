@@ -38,6 +38,7 @@ class _DartUnitClosingLabelsComputerVisitor
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (_spansManyLines(node)) {
+      // TODO(dantup) Is it right to read constructorName to get nameless constructors types?
       final name = node.constructorName.type.name;
       final label = name is PrefixedIdentifier ? name.prefix.name : name.name;
       _addLabel(node, label);

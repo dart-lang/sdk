@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../mocks.dart';
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -90,7 +89,7 @@ Widget build(BuildContext context) {
     _compareLastResultsWithTestFileComments(2);
   }
 
-  test_multiple_nested() async {
+  test_multipleNested() async {
     addTestFile('''
 Widget build(BuildContext context) {
   return /*1*/new Row(
@@ -119,6 +118,128 @@ Widget build(BuildContext context) {
     _compareLastResultsWithTestFileComments(5);
   }
 
+  test_newConstructor() async {
+    await _testCode(
+        1,
+        '''
+void myMethod() {
+  return /*1*/new Class(
+    1,
+    2
+  )/*1:Class*/;
+}
+    ''');
+  }
+
+  test_newNamedConstructor() async {
+    await _testCode(
+        1,
+        '''
+void myMethod() {
+  return /*1*/new Class.fromThing(
+    1,
+    2
+  )/*1:Class*/;
+}
+    ''');
+  }
+
+  test_constConstructor() async {
+    await _testCode(
+        1,
+        '''
+void myMethod() {
+  return /*1*/const Class(
+    1,
+    2
+  )/*1:Class*/;
+}
+    ''');
+  }
+
+  test_constNamedConstructor() async {
+    await _testCode(
+        1,
+        '''
+void myMethod() {
+  return /*1*/const Class.fromThing(
+    1,
+    2
+  )/*1:Class*/;
+}
+    ''');
+  }
+
+  test_instanceMethod() async {
+    await _testCode(
+        1,
+        '''
+void myMethod() {
+  return /*1*/createWidget(
+    1,
+    2
+  )/*1:createWidget*/;
+}
+    ''');
+  }
+
+  test_staticMethod() async {
+    await _testCode(
+        1,
+        '''
+void myMethod() {
+  return /*1*/Widget.createWidget(
+    1,
+    2
+  )/*1:createWidget*/;
+}
+    ''');
+  }
+
+  test_sameLineExcluded() async {
+    await _testCode(
+        0,
+        '''
+void myMethod() {
+  return new Thing();
+}
+    ''');
+  }
+
+  test_adjacentLinesExcluded() async {
+    await _testCode(
+        0,
+        '''
+void myMethod() {
+  return new Thing(1,
+    2);
+}
+    ''');
+  }
+
+  test_listLiterals() async {
+    await _testCode(
+        2,
+        '''
+void myMethod() {
+  return /*1*/Widget.createWidget(/*2*/<Widget>[
+    1,
+    2
+  ]/*2:List<Widget>*/)/*1:createWidget*/;
+}
+    ''');
+  }
+
+  /// Helper that updates files and waits for server notifications before performing checks.
+  _testCode(int labelCount, String code) async {
+    addTestFile(code);
+    await waitForTasksFinished();
+    expect(lastLabels, isNull);
+
+    await waitForLabels(() => subscribeForLabels());
+    _compareLastResultsWithTestFileComments(labelCount);
+  }
+
   /// Compares the latest received closing labels with expected
   /// labels extracted from the comments in the test file.
   _compareLastResultsWithTestFileComments(int expectedLabelCount) {
@@ -140,7 +261,7 @@ Widget build(BuildContext context) {
     expectedLabels.forEach((m) {
       var i = m.group(1);
       // Find the end marker.
-      var endMatch = new RegExp("/\\*$i:(.+)\\*/").firstMatch(testCode);
+      var endMatch = new RegExp("/\\*$i:(.+?)\\*/").firstMatch(testCode);
 
       var expectedStart = m.end;
       var expectedLength = endMatch.start - expectedStart;
