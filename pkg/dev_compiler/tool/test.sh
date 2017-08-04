@@ -38,10 +38,4 @@ fi
 unset COVERALLS_TOKEN
 dart test/all_tests.dart || fail
 
-{
-  fc=`find test -name "*.dart" |\
-      xargs grep "/\*\S* should be \S*\*/" | wc -l`
-  echo "There are" $fc "tests marked as known failures."
-}
-
 echo -e "[32mAll tests built - run tool/browser_test.sh to run tests[0m"
