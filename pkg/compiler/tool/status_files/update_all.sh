@@ -6,8 +6,6 @@
 # Script to update the dart2js status lines for all tests running with the
 # $dart2js_with_kernel test configuration.
 
-set -e
-
 repodir=$(cd $(dirname ${BASH_SOURCE[0]})/../../../../; pwd)
 dart="out/ReleaseX64/dart"
 update_script=$(dirname ${BASH_SOURCE[0]})/update_from_log.dart
@@ -22,6 +20,7 @@ function update_suite {
       --use-sdk --minified --dart2js-with-kernel \
       $suite > $tmp/$suite-minified.txt
 
+  echo "processing '$suite' minified tests status changes"
   $dart $update_script minified $tmp/$suite-minified.txt
 
   echo "running '$suite' host-checked tests"
@@ -29,6 +28,7 @@ function update_suite {
     --dart2js-options="--library-root=$sdk" --dart2js-with-kernel \
     $suite > $tmp/$suite-checked.txt
 
+  echo "processing '$suite' checked tests status changes"
   $dart $update_script checked $tmp/$suite-checked.txt
 }
 

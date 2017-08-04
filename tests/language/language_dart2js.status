@@ -2471,7 +2471,6 @@ enum_test: Crash
 enum_test: RuntimeError
 equality_test: Crash
 error_stacktrace_test: Crash
-evaluation_redirecting_constructor_test: Crash
 example_constructor_test: Crash
 exception_identity_test: Crash
 exception_in_increment_test: Crash
@@ -2779,7 +2778,6 @@ inferrer_constructor4_test: Crash
 inferrer_constructor5_test/01: Crash
 inferrer_constructor_test: Crash
 inferrer_synthesized_constructor_test: Crash
-inferrer_synthesized_super_constructor_test: Crash
 inferrer_this_access_test: Crash
 infinite_switch_label_test: Crash
 infinity_test: Crash
@@ -2823,7 +2821,6 @@ issue11724_test: Crash
 issue12284_test: Crash
 issue13474_test: Crash
 issue1363_test: Crash
-issue14014_2_test: Crash
 issue14014_3_test: Crash
 issue14242_test: Crash
 issue15720_test: Crash
@@ -2832,7 +2829,6 @@ issue21079_test: Crash
 issue21159_test: Crash
 issue22800_test: Crash
 issue23244_test: Crash
-issue4295001_test: Crash
 issue9602_test: Crash
 issue9664_test: Crash
 issue9939_test: Crash
@@ -3611,3 +3607,4 @@ value_range_test: Crash
 variable_declaration_metadata_test/none: Crash
 void_type_test: Crash
 yieldstar_pause_test: Crash
+

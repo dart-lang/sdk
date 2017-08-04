@@ -147,6 +147,10 @@ iterable_to_list_test/none: Crash
 iterable_to_set_test: Crash
 iterable_tostring_test: Crash
 json_map_test: Crash
+linked_hash_map_from_iterable_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
+list_fill_range_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+list_get_range_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+list_insert_all_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 regexp/parentheses_test: Crash
 regress_11099_test: Crash
 regress_r21715_test: RuntimeError
@@ -286,6 +290,10 @@ iterable_to_list_test/none: Crash
 iterable_to_set_test: Crash
 iterable_tostring_test: Crash
 json_map_test: Crash
+linked_hash_map_from_iterable_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
+list_fill_range_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+list_get_range_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+list_insert_all_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 reg_exp1_test: Crash
 reg_exp_first_match_test: Crash
 reg_exp_group_test: Crash
@@ -368,3 +376,4 @@ symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/09: Crash
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_reserved_word_test/12: Crash
+
