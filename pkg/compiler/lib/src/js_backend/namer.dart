@@ -19,7 +19,6 @@ import '../elements/elements.dart'
         ClassElement,
         Element,
         Elements,
-        FieldElement,
         MemberElement,
         MixinApplicationElement;
 import '../elements/entities.dart';
@@ -29,6 +28,7 @@ import '../elements/names.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
+import '../js_model/closure.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector, SelectorKind;
 import '../universe/world_builder.dart' show CodegenWorldBuilder;

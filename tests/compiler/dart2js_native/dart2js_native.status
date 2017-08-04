@@ -140,7 +140,6 @@ browser_compat_1_prepatched_test: Crash
 browser_compat_1_unpatched_test: Crash
 browser_compat_2_test: Crash
 catch_javascript_null_stack_trace_test: Crash
-compute_this_script_test: Crash
 core_type_check_native_test: Crash
 dispatch_property_initialization_test: Crash
 downcast_test: Crash
@@ -151,14 +150,11 @@ fake_thing_test: Crash
 field_type2_test: Crash
 field_type_test: Crash
 fixup_get_tag_test: Crash
-foreign_test: Crash
 hash_code_test: Crash
 inference_of_helper_methods_test: Crash
 internal_library_test: Crash
 is_check_test: CompileTimeError
 issue9182_test: Crash
-js_const_test: Crash
-js_constant_test: Crash
 jsobject_test: Crash
 load_elim_refinement_test: CompileTimeError
 mirror_intercepted_field_test: CompileTimeError
@@ -245,8 +241,8 @@ subclassing_type_test: Crash
 super_call_test: Crash
 super_property_test: Crash
 type_error_decode_test: Crash
-undefined_bailout_test: Crash
-uninstantiated_type_parameter_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+compute_this_script_test: Crash
+js_constant_test: Crash
 native_exceptions1_frog_test: Crash

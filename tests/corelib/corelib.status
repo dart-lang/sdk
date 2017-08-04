@@ -78,6 +78,7 @@ http_resource_test: Skip # Resolve URI not supported yet in product mode.
 
 [ $compiler == dart2js && $dart2js_with_kernel ]
 error_stack_trace1_test: Pass # Issue 27394
+integer_to_string_test/01: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked && $dart2js_with_kernel ]
 regress/4562_test/01: Crash # Issue 27394
@@ -130,8 +131,6 @@ int_parse_radix_test/01: Crash
 int_parse_radix_test/02: Crash
 int_parse_radix_test/none: Crash
 integer_to_radix_string_test: Crash
-integer_to_string_test/01: Crash
-integer_to_string_test/none: Crash
 is_operator_basic_types_test: Crash
 iterable_contains2_test: Crash
 iterable_contains_test: Crash
@@ -246,15 +245,7 @@ double_round_to_double3_test: Crash
 double_round_to_double_test: Crash
 double_truncate_test: Crash
 double_truncate_to_double_test: Crash
-errors_test: Crash
-int_round_test: Crash
-int_round_to_double_test: Crash
-int_to_int_test: Crash
-int_truncate_test: Crash
-int_truncate_to_double_test: Crash
-list_filled_type_argument_test: Crash
 list_index_of2_test: Crash
-list_index_of_test: Crash
 reg_exp1_test: Crash
 reg_exp_first_match_test: Crash
 reg_exp_group_test: Crash
