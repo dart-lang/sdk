@@ -12,7 +12,6 @@ library dev_compiler.test.codegen_test;
 // compiles stuff. This should be changed to not use unittest and just be a
 // regular program that outputs files.
 
-import 'dart:convert';
 import 'dart:io' show Directory, File, Platform;
 import 'package:analyzer/analyzer.dart'
     show
@@ -32,7 +31,7 @@ import 'package:dev_compiler/src/compiler/compiler.dart'
 import 'package:dev_compiler/src/compiler/module_builder.dart'
     show ModuleFormat, addModuleFormatOptions, parseModuleFormatOption;
 import 'package:path/path.dart' as path;
-import 'package:test/test.dart' show expect, isFalse, isTrue, test;
+import 'package:test/test.dart' show expect, test;
 import '../tool/build_sdk.dart' as build_sdk;
 import 'testing.dart' show repoDirectory, testDirectory;
 
@@ -234,6 +233,7 @@ List<String> _setUpTests() {
     var relativePath = path.relative(file, from: codegenDir);
     var outputPath = path.join(codegenTestDir, relativePath);
 
+    _ensureDirectory(path.dirname(outputPath));
     new File(file).copySync(outputPath);
     if (file.endsWith(".dart")) {
       testFiles.add(outputPath);

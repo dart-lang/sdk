@@ -19,8 +19,8 @@ if [ -d test/codegen/expect ]; then
   rm -r test/codegen/expect || fail
 fi
 
-if [ -d gen/codegen_input ]; then
-  rm -r gen/codegen_input || fail
+if [ -d gen/codegen_tests ]; then
+  rm -r gen/codegen_tests || fail
 fi
 
 if [ -d gen/codegen_output ]; then
