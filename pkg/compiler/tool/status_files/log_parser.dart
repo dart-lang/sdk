@@ -14,6 +14,7 @@ List<Record> parse(String log) {
   var config;
   var expected;
   var actual;
+  var reason;
   bool reproIsNext = false;
   for (var line in log.split('\n')) {
     if (line.startsWith("FAILED: ")) {
@@ -36,10 +37,13 @@ List<Record> parse(String log) {
     if (line.startsWith("Actual: ")) {
       actual = line.substring("Actual: ".length).trim();
     }
+    if (line.startsWith("The compiler crashed:")) {
+      reason = line.substring("The compiler crashed:".length).trim();
+    }
     if (reproIsNext) {
-      records
-          .add(new Record(suite, test, config, expected, actual, line.trim()));
-      suite = test = config = expected = actual = null;
+      records.add(new Record(
+          suite, test, config, expected, actual, reason, line.trim()));
+      suite = test = config = expected = actual = reason = null;
       reproIsNext = false;
     }
     if (line.startsWith("Short reproduction command (experimental):")) {

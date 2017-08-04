@@ -83,8 +83,9 @@ void updateLogs(String mode, String log) {
 class ExistingEntry {
   final String test;
   final String status;
+  final bool hasComment;
 
-  ExistingEntry(this.test, this.status);
+  ExistingEntry(this.test, this.status, this.hasComment);
 
   static parse(String line) {
     var colonIndex = line.indexOf(':');
@@ -94,7 +95,7 @@ class ExistingEntry {
     if (commentIndex != -1) {
       status = status.substring(0, commentIndex);
     }
-    return new ExistingEntry(test, status);
+    return new ExistingEntry(test, status, commentIndex != -1);
   }
 }
 
@@ -133,7 +134,8 @@ class ConfigurationInSuiteSection {
     var newContents = new StringBuffer();
     newContents.write(_contents.substring(0, _begin));
     addFromRecord(Record record) {
-      newContents.writeln('${record.test}: ${record.actual}');
+      var comment = record.reason != null ? ' # ${record.reason}' : '';
+      newContents.writeln('${record.test}: ${record.actual}$comment');
     }
 
     int i = 0, j = 0;
@@ -162,9 +164,14 @@ class ConfigurationInSuiteSection {
         }
         j++;
       } else if (existing.status == record.actual) {
-        // This also should only happen if the patching has already been done.
-        // We don't complain to make this script idempotent.
-        newContents.writeln(existingLine);
+        if (!existing.hasComment && record.reason != null) {
+          addFromRecord(record);
+          changes++;
+        } else {
+          // This also should only happen if the patching has already been done.
+          // We don't complain to make this script idempotent.
+          newContents.writeln(existingLine);
+        }
         ignored++;
         i++;
         j++;

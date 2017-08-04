@@ -14,6 +14,7 @@ class Record implements Comparable<Record> {
   final String expected;
   final String actual;
   final String repro;
+  final String reason;
 
   // TODO(sigmund): extract also a failure reason if any (e.g. a stack trace or
   // error message for crashes).
@@ -21,7 +22,7 @@ class Record implements Comparable<Record> {
   bool get isPassing => actual == 'Pass';
 
   Record(this.suite, this.test, this.config, this.expected, this.actual,
-      this.repro);
+      this.reason, this.repro);
 
   int compareTo(Record other) {
     if (suite == null && other.suite != null) return -1;
