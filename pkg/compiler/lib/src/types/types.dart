@@ -145,7 +145,32 @@ class GlobalTypeInferenceParameterResult
 
 /// Internal data used during type-inference to store intermediate results about
 /// a single element.
-class GlobalTypeInferenceElementData {
+abstract class GlobalTypeInferenceElementData<T> {
+  TypeMask typeOfSend(T node);
+  TypeMask typeOfGetter(T node);
+  TypeMask typeOfOperator(T node);
+
+  void setTypeMask(T node, TypeMask mask);
+
+  void setGetterTypeMaskInComplexSendSet(T node, TypeMask mask);
+
+  void setOperatorTypeMaskInComplexSendSet(T node, TypeMask mask);
+
+  TypeMask typeOfIterator(T node);
+
+  TypeMask typeOfIteratorMoveNext(T node);
+
+  TypeMask typeOfIteratorCurrent(T node);
+
+  void setIteratorTypeMask(T node, TypeMask mask);
+
+  void setMoveNextTypeMask(T node, TypeMask mask);
+
+  void setCurrentTypeMask(T node, TypeMask mask);
+}
+
+class AstGlobalTypeInferenceElementData
+    extends GlobalTypeInferenceElementData<Node> {
   Map<Object, TypeMask> _typeMasks;
 
   TypeMask _get(Object node) => _typeMasks != null ? _typeMasks[node] : null;
@@ -154,19 +179,22 @@ class GlobalTypeInferenceElementData {
     _typeMasks[node] = mask;
   }
 
-  TypeMask typeOfSend(Send node) => _get(node);
-  TypeMask typeOfGetter(SendSet node) => _get(node.selector);
-  TypeMask typeOfOperator(SendSet node) => _get(node.assignmentOperator);
+  TypeMask typeOfSend(covariant Send node) => _get(node);
+  TypeMask typeOfGetter(covariant SendSet node) => _get(node.selector);
+  TypeMask typeOfOperator(covariant SendSet node) =>
+      _get(node.assignmentOperator);
 
-  void setTypeMask(Send node, TypeMask mask) {
+  void setTypeMask(covariant Send node, TypeMask mask) {
     _set(node, mask);
   }
 
-  void setGetterTypeMaskInComplexSendSet(SendSet node, TypeMask mask) {
+  void setGetterTypeMaskInComplexSendSet(
+      covariant SendSet node, TypeMask mask) {
     _set(node.selector, mask);
   }
 
-  void setOperatorTypeMaskInComplexSendSet(SendSet node, TypeMask mask) {
+  void setOperatorTypeMaskInComplexSendSet(
+      covariant SendSet node, TypeMask mask) {
     _set(node.assignmentOperator, mask);
   }
 
@@ -176,21 +204,21 @@ class GlobalTypeInferenceElementData {
   // separate. The current implementation does this by using
   // children of the for-in node (these children were picked arbitrarily).
 
-  TypeMask typeOfIterator(ForIn node) => _get(node);
+  TypeMask typeOfIterator(covariant ForIn node) => _get(node);
 
-  TypeMask typeOfIteratorMoveNext(ForIn node) => _get(node.forToken);
+  TypeMask typeOfIteratorMoveNext(covariant ForIn node) => _get(node.forToken);
 
-  TypeMask typeOfIteratorCurrent(ForIn node) => _get(node.inToken);
+  TypeMask typeOfIteratorCurrent(covariant ForIn node) => _get(node.inToken);
 
-  void setIteratorTypeMask(ForIn node, TypeMask mask) {
+  void setIteratorTypeMask(covariant ForIn node, TypeMask mask) {
     _set(node, mask);
   }
 
-  void setMoveNextTypeMask(ForIn node, TypeMask mask) {
+  void setMoveNextTypeMask(covariant ForIn node, TypeMask mask) {
     _set(node.forToken, mask);
   }
 
-  void setCurrentTypeMask(ForIn node, TypeMask mask) {
+  void setCurrentTypeMask(covariant ForIn node, TypeMask mask) {
     _set(node.inToken, mask);
   }
 }

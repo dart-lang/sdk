@@ -15,6 +15,7 @@ import '../types/masks.dart'
 import '../types/types.dart' show TypesInferrer;
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
+import 'ast_inferrer_engine.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
 
@@ -65,7 +66,7 @@ class TypeGraphInferrer implements TypesInferrer {
 
   void analyzeMain(FunctionEntity main) {
     inferrer =
-        new InferrerEngineImpl(compiler, closedWorld, closedWorldRefiner, main);
+        new AstInferrerEngine(compiler, closedWorld, closedWorldRefiner, main);
     inferrer.runOverAllElements();
   }
 

@@ -104,10 +104,11 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         new LocalsHandler(inferrer, types, compiler.options, node, fieldScope);
   }
 
-  ElementGraphBuilder(MemberElement element, ResolvedAst resolvedAst,
-      Compiler compiler, InferrerEngine inferrer, [LocalsHandler handler])
-      : this.internal(element, resolvedAst, element.memberContext.declaration,
-            inferrer, compiler, handler);
+  ElementGraphBuilder(
+      MemberElement element, Compiler compiler, InferrerEngine inferrer,
+      [LocalsHandler handler])
+      : this.internal(element, element.resolvedAst,
+            element.memberContext.declaration, inferrer, compiler, handler);
 
   TreeElements get elements => resolvedAst.elements;
 
@@ -892,8 +893,13 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
   void analyzeSuperConstructorCall(
       ConstructorElement target, ArgumentsTypes arguments) {
+    assert(target.isDeclaration);
     ResolvedAst resolvedAst = target.resolvedAst;
-    inferrer.analyze(resolvedAst, arguments);
+    ast.Node body;
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      body = resolvedAst.node;
+    }
+    inferrer.analyze(target, body, arguments);
     isThisExposed = isThisExposed || inferrer.checkIfExposesThis(target);
   }
 
@@ -956,8 +962,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
                 parameter,
                 "Unexpected function declaration "
                 "${declarationMethod}, expected ${analyzedElement}."));
-        visitor = new ElementGraphBuilder(declarationMethod,
-            parameter.functionDeclaration.resolvedAst, compiler, inferrer);
+        visitor =
+            new ElementGraphBuilder(declarationMethod, compiler, inferrer);
       }
       TypeInformation type =
           (defaultValue == null) ? types.nullType : visitor.visit(defaultValue);
@@ -1104,8 +1110,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // method, like for example the types of local variables.
     LocalsHandler closureLocals =
         new LocalsHandler.from(locals, node, useOtherTryBlock: false);
-    ElementGraphBuilder visitor = new ElementGraphBuilder(element.callMethod,
-        element.resolvedAst, compiler, inferrer, closureLocals);
+    ElementGraphBuilder visitor = new ElementGraphBuilder(
+        element.callMethod, compiler, inferrer, closureLocals);
     visitor.run();
     inferrer.recordReturnType(element.callMethod, visitor.returnType);
 

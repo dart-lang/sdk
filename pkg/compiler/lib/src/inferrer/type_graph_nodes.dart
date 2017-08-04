@@ -831,7 +831,7 @@ enum CallType {
   forIn,
 }
 
-bool validCallType(CallType callType, Spannable call) {
+bool validCallType(CallType callType, Object call) {
   switch (callType) {
     case CallType.complex:
       return call is ast.SendSet;
@@ -855,7 +855,7 @@ bool validCallType(CallType callType, Spannable call) {
  */
 abstract class CallSiteTypeInformation extends TypeInformation
     with ApplyableTypeInformation {
-  final Spannable _call;
+  final Object _call;
   final MemberEntity caller;
   final Selector selector;
   final TypeMask mask;
@@ -966,7 +966,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 }
 
-class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
+class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
   final CallType _callType;
   final TypeInformation receiver;
   final bool isConditional;
@@ -977,7 +977,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   DynamicCallSiteTypeInformation(
       MemberTypeInformation context,
       this._callType,
-      ast.Node call,
+      T call,
       MemberEntity enclosing,
       Selector selector,
       TypeMask mask,
@@ -1296,7 +1296,7 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
 
   ClosureCallSiteTypeInformation(
       MemberTypeInformation context,
-      Spannable call,
+      Object call,
       MemberEntity enclosing,
       Selector selector,
       TypeMask mask,
