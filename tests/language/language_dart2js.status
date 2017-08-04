@@ -235,7 +235,6 @@ list_literal4_test: RuntimeError # Issue 12890
 scope_variable_test/01: MissingCompileTimeError # Issue 13016
 
 numbers_test: RuntimeError, OK # Issue 1533
-canonical_const2_test: RuntimeError, OK # Issue 1533
 expect_test: RuntimeError, OK # Issue 13080
 
 [ $compiler == dart2js && $runtime == none ]
@@ -567,20 +566,6 @@ call_through_getter_test: Crash
 call_through_null_getter_test: Crash
 call_type_literal_test/01: Crash
 call_with_no_such_method_test: Crash
-canonical_const2_test: RuntimeError
-canonical_const3_test: Crash
-canonical_const_test: Crash
-cascade2_test: Crash
-cascade_in_expression_function_test: Crash
-cascade_precedence_test: Crash
-cascade_test/none: Crash
-cast_test/04: RuntimeError
-cast_test/05: RuntimeError
-cast_test/none: RuntimeError
-catch_liveness_test: Crash
-cha_deopt1_test: CompileTimeError
-cha_deopt2_test: CompileTimeError
-cha_deopt3_test: CompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 checked_null_test/01: Crash
 checked_setter2_test: Crash
@@ -2166,24 +2151,6 @@ call_through_getter_test: Crash
 call_through_null_getter_test: Crash
 call_type_literal_test/01: Crash
 call_with_no_such_method_test: Crash
-canonical_const2_test: Crash
-canonical_const2_test: RuntimeError
-canonical_const3_test: Crash
-canonical_const_test: Crash
-cascade2_test: Crash
-cascade_in_expression_function_test: Crash
-cascade_precedence_test: Crash
-cascade_test/none: Crash
-cast_test/04: Crash
-cast_test/04: RuntimeError
-cast_test/05: Crash
-cast_test/05: RuntimeError
-cast_test/none: Crash
-cast_test/none: RuntimeError
-catch_liveness_test: Crash
-cha_deopt1_test: CompileTimeError
-cha_deopt2_test: CompileTimeError
-cha_deopt3_test: CompileTimeError
 check_member_static_test/02: Crash
 check_member_static_test/02: MissingCompileTimeError
 checked_null_test/01: Crash

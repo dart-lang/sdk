@@ -24,7 +24,7 @@ main() {
   C oc = new C();
   D od = new D();
 
-  Expect.throws(() => (oc as dynamic).bar, (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => (oc as dynamic).bar);
 
   // Casts should always evaluate the left-hand side, if only for its effects.
   oc.inc() as dynamic;

@@ -11,9 +11,6 @@ deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeE
 [ $compiler == dartk || $compiler == dartkp ]
 method_override_test: RuntimeError # Not triaged.
 
-cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-cha_deopt2_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-cha_deopt3_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 conditional_import_string_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 conditional_import_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_call_empty_before_load_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.

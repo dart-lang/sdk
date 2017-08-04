@@ -22,8 +22,6 @@ class CanonicalConstTest {
     Expect.identical(A, const C1());
     Expect.isFalse(identical(const C1(), const C2()));
     Expect.identical(B, const C2());
-    // TODO(johnlenz): these two values don't currently have the same type
-    // Expect.identical(const [1,2], const List[1,2]);
     Expect.isFalse(identical(const [2, 1], const [1, 2]));
     Expect.identical(const <int>[1, 2], const <int>[1, 2]);
     Expect.identical(const <Object>[1, 2], const <Object>[1, 2]);

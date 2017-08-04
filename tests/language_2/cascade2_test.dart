@@ -20,9 +20,9 @@ class A {
 }
 
 main() {
-  var foo = [42, 0];
+  var foo = <dynamic>[42, 0];
   var a = new A();
   var bar = a..add(foo)('WHAT');
   a..foo[0] = new Object();
-  Expect.throws(() => foo[0] + 2, (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => foo[0] + 2);
 }

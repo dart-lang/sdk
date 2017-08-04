@@ -199,9 +199,6 @@ library_env_test/has_mirror_support: RuntimeError, OK
 issue21159_test: Pass, Crash # Issue 29094
 issue_22780_test/01: Pass, Crash # Issue 29094
 static_closure_identical_test: Pass, Fail # Closure identity
-cha_deopt1_test: Crash # Requires deferred libraries
-cha_deopt2_test: Crash # Requires deferred libraries
-cha_deopt3_test: Crash # Requires deferred libraries
 deferred_call_empty_before_load_test: Crash # Requires deferred libraries
 deferred_closurize_load_library_test: Crash # Requires deferred libraries
 deferred_constant_list_test: Crash # Requires deferred libraries

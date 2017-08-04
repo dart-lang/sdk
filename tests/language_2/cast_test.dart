@@ -39,8 +39,8 @@ main() {
   (on as D).toString();
   (on as D).foo; // //# 02: runtime error
   (on as C).foo; // //# 03: runtime error
-  oc.foo; // //# 04: static type warning
-  od.foo; // //# 05: static type warning
+  oc.foo; // //# 04: compile-time error
+  od.foo; // //# 05: compile-time error
   (on as Object).toString();
   (oc as Object).toString();
   (od as Object).toString();

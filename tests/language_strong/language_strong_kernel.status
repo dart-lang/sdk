@@ -16,9 +16,6 @@ asyncstar_throw_in_catch_test: Timeout
 asyncstar_yield_test: Timeout
 asyncstar_yieldstar_test: Timeout
 await_in_cascade_test: RuntimeError
-cha_deopt1_test: RuntimeError
-cha_deopt2_test: RuntimeError
-cha_deopt3_test: RuntimeError
 closure_type_variable_test: RuntimeError
 closures_initializer_test: RuntimeError
 compile_time_constant12_test: Crash

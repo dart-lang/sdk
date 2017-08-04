@@ -69,7 +69,6 @@ get_set_syntax_test/none: fail # Issue 11575
 implicit_this_test/none: fail # Issue 11575
 interface_test/none: fail # Issue 11575
 syntax_test/none: fail # Issue 11575
-cascade_test/none: fail # Issue 11577
 factory5_test/none: fail # Issue 11578
 type_variable_bounds_test/none: fail # Issue 11578
 type_variable_scope_test/none: fail # Issue 11578

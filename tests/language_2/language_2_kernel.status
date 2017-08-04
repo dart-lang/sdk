@@ -12,6 +12,9 @@ generic_methods_generic_function_result_test/none: CompileTimeError # Issue #302
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
+cha_deopt1_test: RuntimeError
+cha_deopt2_test: RuntimeError
+cha_deopt3_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
@@ -158,6 +161,9 @@ function_type/function_type97_test: RuntimeError
 function_type/function_type98_test: RuntimeError
 function_type/function_type99_test: RuntimeError
 function_type/function_type9_test: RuntimeError
+cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+cha_deopt2_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+cha_deopt3_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 assign_static_type_test/02: MissingCompileTimeError

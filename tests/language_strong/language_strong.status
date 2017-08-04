@@ -29,9 +29,6 @@ call_test: Skip
 call_through_getter_test: Skip
 call_type_literal_test: Skip
 callable_test: Skip
-canonical_const3_test: Skip
-cascade_test: Skip
-cast_test: Skip
 check_member_static_test: Skip
 check_method_override_test: Skip
 checked_null_test: Skip
@@ -719,8 +716,6 @@ bit_operations_test/03: RuntimeError # No bigints on web.
 bit_operations_test/04: RuntimeError # No bigints on web.
 bit_operations_test/none: RuntimeError # No bigints on web.
 call_closurization_test: RuntimeError # Issue 29920
-canonical_const2_test: RuntimeError # Ints and doubles are unified.
-canonical_const_test: RuntimeError # Ints and doubles are unified.
 compile_time_constant_a_test: RuntimeError # Allows mutating const map.
 compile_time_constant_b_test: RuntimeError # Issue 29920
 compile_time_constant_d_test: RuntimeError # Issue 29920

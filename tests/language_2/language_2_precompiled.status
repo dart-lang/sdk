@@ -48,6 +48,8 @@ bit_operations_test/01: MissingCompileTimeError
 bit_operations_test/02: MissingCompileTimeError
 bit_operations_test/03: MissingCompileTimeError
 bit_operations_test/04: MissingCompileTimeError
+cast_test/04: MissingCompileTimeError
+cast_test/05: MissingCompileTimeError
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError

@@ -12,3 +12,8 @@ assertion_initializer_const_function_error_test/01: Fail
 
 [ ! $checked ]
 function_type/*: Skip # Needs checked mode.
+
+[ $hot_reload || $hot_reload_rollback ]
+cha_deopt1_test: Crash # Requires deferred libraries
+cha_deopt2_test: Crash # Requires deferred libraries
+cha_deopt3_test: Crash # Requires deferred libraries

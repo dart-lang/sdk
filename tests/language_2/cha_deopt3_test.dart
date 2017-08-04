@@ -1,13 +1,14 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--optimization-counter-threshold=100
+// VMOptions=--optimization-counter-threshold=100 --no-background-compilation
+// VMOptions=--optimization-counter-threshold=100 --no-background-compilation --no-use-field-guards
 
-// Test lazy deoptimization at type checks with deferred loading.
+// Test lazy deoptimization at type checks with interface implementation.
 
 import "package:expect/expect.dart";
-import "cha_deopt2_lib.dart";
-import "cha_deopt2_deferred_lib.dart" deferred as d;
+import "cha_deopt3_lib.dart";
+import "cha_deopt3_deferred_lib.dart" deferred as d;
 
 var loaded = false;
 

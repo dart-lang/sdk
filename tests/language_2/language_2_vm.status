@@ -49,6 +49,8 @@ bit_operations_test/02: MissingCompileTimeError
 bit_operations_test/03: MissingCompileTimeError
 bit_operations_test/04: MissingCompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
+cast_test/04: MissingCompileTimeError
+cast_test/05: MissingCompileTimeError
 
 # The VM and does not implement the Dart 2.0 runtime checks yet unless
 # --checked is explicitly passed).
