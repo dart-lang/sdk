@@ -343,7 +343,7 @@ class BinaryBuilder {
   }
 
   Reference readTypedefReference() {
-    return readCanonicalNameReference().getReference();
+    return readCanonicalNameReference()?.getReference();
   }
 
   Name readName() {
@@ -1176,6 +1176,7 @@ class BinaryBuilder {
         var positional = readDartTypeList();
         var named = readNamedTypeList();
         var positionalNames = readStringReferenceList();
+        var typedefReference = readTypedefReference();
         assert(positional.length + named.length == totalParameterCount);
         var returnType = readDartType();
         typeParameterStack.length = typeParameterStackHeight;
@@ -1183,7 +1184,8 @@ class BinaryBuilder {
             typeParameters: typeParameters,
             requiredParameterCount: requiredParameterCount,
             namedParameters: named,
-            positionalParameterNames: positionalNames);
+            positionalParameterNames: positionalNames,
+            typedefReference: typedefReference);
       case Tag.SimpleFunctionType:
         var positional = readDartTypeList();
         var positionalNames = readStringReferenceList();

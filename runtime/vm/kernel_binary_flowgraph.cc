@@ -1097,6 +1097,11 @@ void StreamingScopeBuilder::VisitFunctionType(bool simple) {
   }
 
   builder_->SkipListOfStrings();  // read positional parameter names.
+
+  if (!simple) {
+    builder_->SkipCanonicalNameReference();  // read typedef reference.
+  }
+
   VisitDartType();  // read return type.
 }
 
@@ -1573,6 +1578,10 @@ void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
   }
 
   builder_->SkipListOfStrings();  // read positional parameter names.
+
+  if (!simple) {
+    builder_->SkipCanonicalNameReference();  // read typedef reference.
+  }
 
   BuildTypeInternal();  // read return type.
   if (result_.IsMalformed()) {
@@ -3812,6 +3821,11 @@ void StreamingFlowGraphBuilder::SkipFunctionType(bool simple) {
   }
 
   SkipListOfStrings();  // read positional parameter names.
+
+  if (!simple) {
+    SkipCanonicalNameReference();  // read typedef reference.
+  }
+
   SkipDartType();  // read return type.
 }
 

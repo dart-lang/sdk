@@ -106,6 +106,8 @@ class KernelResynthesizer {
     } else if (parentName.name == '@methods') {
       isMethod = true;
       parentName = parentName.parent;
+    } else if (parentName.name == '@typedefs') {
+      parentName = parentName.parent;
     }
 
     ElementImpl parentElement = _getElement(parentName);
@@ -734,6 +736,12 @@ class _KernelUnitResynthesizerContextImpl
     }
 
     if (kernelType is kernel.FunctionType) {
+      if (kernelType.typedef != null) {
+        FunctionTypeAliasElementImpl element = libraryContext.resynthesizer
+            ._getElement(kernelType.typedef.canonicalName);
+        return element.type;
+      }
+
       var functionElement = new FunctionElementImpl.synthetic([], null);
       functionElement.enclosingElement = context;
 

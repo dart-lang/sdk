@@ -4143,6 +4143,9 @@ class FunctionType extends DartType {
   @informative
   final List<String> positionalParameterNames;
 
+  /// The [Typedef] this function type is created for.
+  Reference typedefReference;
+
   final DartType returnType;
   int _hashCode;
 
@@ -4150,10 +4153,14 @@ class FunctionType extends DartType {
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
       int requiredParameterCount,
-      this.positionalParameterNames: const <String>[]})
+      this.positionalParameterNames: const <String>[],
+      this.typedefReference})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =
             requiredParameterCount ?? positionalParameters.length;
+
+  /// The [Typedef] this function type is created for.
+  Typedef get typedef => typedefReference?.asTypedef;
 
   accept(DartTypeVisitor v) => v.visitFunctionType(this);
 

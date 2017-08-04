@@ -37,7 +37,7 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
       List<FormalParameterBuilder> formals)
       : super(charOffset, fileUri, returnType, typeVariables, formals);
 
-  DartType build(LibraryBuilder library) {
+  FunctionType build(LibraryBuilder library) {
     DartType builtReturnType =
         returnType?.build(library) ?? const DynamicType();
     List<DartType> positionalParameters = <DartType>[];

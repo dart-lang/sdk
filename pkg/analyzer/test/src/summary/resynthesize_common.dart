@@ -9226,7 +9226,7 @@ E e;
   }
 
   test_type_reference_to_import() async {
-    addLibrarySource('/a.dart', 'class C {} enum E { v }; typedef F();');
+    addLibrarySource('/a.dart', 'class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 import 'a.dart';

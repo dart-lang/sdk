@@ -1130,7 +1130,8 @@ class BinaryPrinter extends Visitor {
   visitFunctionType(FunctionType node) {
     if (node.requiredParameterCount == node.positionalParameters.length &&
         node.typeParameters.isEmpty &&
-        node.namedParameters.isEmpty) {
+        node.namedParameters.isEmpty &&
+        node.typedefReference == null) {
       writeByte(Tag.SimpleFunctionType);
       writeNodeList(node.positionalParameters);
       writeStringReferenceList(node.positionalParameterNames);
@@ -1145,6 +1146,7 @@ class BinaryPrinter extends Visitor {
       writeNodeList(node.positionalParameters);
       writeNodeList(node.namedParameters);
       writeStringReferenceList(node.positionalParameterNames);
+      writeReference(node.typedefReference);
       writeNode(node.returnType);
       _typeParameterIndexer.exit(node.typeParameters);
     }

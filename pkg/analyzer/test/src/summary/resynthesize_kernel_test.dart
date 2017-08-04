@@ -221,18 +221,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_reference_type() async {
-    await super.test_const_reference_type();
-  }
-
-  @failingTest
   test_const_reference_type_functionType() async {
     await super.test_const_reference_type_functionType();
-  }
-
-  @failingTest
-  test_const_reference_type_imported() async {
-    await super.test_const_reference_type_imported();
   }
 
   @failingTest
@@ -522,11 +512,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_inferred_type_is_typedef() async {
-    await super.test_inferred_type_is_typedef();
-  }
-
-  @failingTest
   test_inferred_type_refers_to_function_typed_param_of_typedef() async {
     await super.test_inferred_type_refers_to_function_typed_param_of_typedef();
   }
@@ -776,76 +761,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_type_invalid_typeParameter_asPrefix() async {
     await super.test_type_invalid_typeParameter_asPrefix();
-  }
-
-  @failingTest
-  test_type_reference_lib_to_lib() async {
-    await super.test_type_reference_lib_to_lib();
-  }
-
-  @failingTest
-  test_type_reference_lib_to_part() async {
-    await super.test_type_reference_lib_to_part();
-  }
-
-  @failingTest
-  test_type_reference_part_to_lib() async {
-    await super.test_type_reference_part_to_lib();
-  }
-
-  @failingTest
-  test_type_reference_part_to_other_part() async {
-    await super.test_type_reference_part_to_other_part();
-  }
-
-  @failingTest
-  test_type_reference_part_to_part() async {
-    await super.test_type_reference_part_to_part();
-  }
-
-  @failingTest
-  test_type_reference_to_import() async {
-    await super.test_type_reference_to_import();
-  }
-
-  @failingTest
-  test_type_reference_to_import_export() async {
-    await super.test_type_reference_to_import_export();
-  }
-
-  @failingTest
-  test_type_reference_to_import_export_export() async {
-    await super.test_type_reference_to_import_export_export();
-  }
-
-  @failingTest
-  test_type_reference_to_import_export_export_in_subdirs() async {
-    await super.test_type_reference_to_import_export_export_in_subdirs();
-  }
-
-  @failingTest
-  test_type_reference_to_import_export_in_subdirs() async {
-    await super.test_type_reference_to_import_export_in_subdirs();
-  }
-
-  @failingTest
-  test_type_reference_to_import_part() async {
-    await super.test_type_reference_to_import_part();
-  }
-
-  @failingTest
-  test_type_reference_to_import_part_in_subdir() async {
-    await super.test_type_reference_to_import_part_in_subdir();
-  }
-
-  @failingTest
-  test_type_reference_to_import_relative() async {
-    await super.test_type_reference_to_import_relative();
-  }
-
-  @failingTest
-  test_type_reference_to_typedef() async {
-    await super.test_type_reference_to_typedef();
   }
 
   @failingTest
