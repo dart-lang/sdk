@@ -131,7 +131,12 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     // We want the original declaration where that function is used to point
     // to the correct closure class.
     _closureRepresentationMap[closureClass.callMethod] = closureClass;
-    Entity entity = localsMap.getLocalFunction(node.parent);
+    Entity entity;
+    if (node.parent is ir.Member) {
+      entity = _elementMap.getMember(node.parent);
+    } else {
+      entity = localsMap.getLocalFunction(node.parent);
+    }
     assert(entity != null);
     _closureRepresentationMap[entity] = closureClass;
   }
@@ -337,7 +342,9 @@ class KernelClosureClass extends JsScopeInfo
       this.library,
       KernelScopeInfo info,
       KernelToLocalsMap localsMap)
-      : closureEntity = localsMap.getLocalFunction(closureSourceNode.parent),
+      : closureEntity = closureSourceNode.parent is ir.Member
+            ? null
+            : localsMap.getLocalFunction(closureSourceNode.parent),
         super.from(info, localsMap);
 
   ClassEntity get closureClassEntity => this;
@@ -434,15 +441,35 @@ class ClosureMemberData implements MemberData {
 
 class ClosureFunctionData extends ClosureMemberData implements FunctionData {
   final FunctionType functionType;
+  final ir.FunctionNode functionNode;
 
-  ClosureFunctionData(MemberDefinition definition, this.functionType)
+  ClosureFunctionData(
+      ClosureMemberDefinition definition, this.functionType, this.functionNode)
       : super(definition);
 
-  @override
   void forEachParameter(KernelToElementMapForBuilding elementMap,
       void f(DartType type, String name, ConstantValue defaultValue)) {
-    // TODO(johnniwinther,efortuna): Implement this.
-    throw new UnimplementedError('ClosureFunctionData.forEachParameter');
+    void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
+      DartType type = elementMap.getDartType(node.type);
+      String name = node.name;
+      ConstantValue defaultValue;
+      if (isOptional) {
+        if (node.initializer != null) {
+          defaultValue = elementMap.getConstantValue(node.initializer);
+        } else {
+          defaultValue = new NullConstantValue();
+        }
+      }
+      f(type, name, defaultValue);
+    }
+
+    for (int i = 0; i < functionNode.positionalParameters.length; i++) {
+      handleParameter(functionNode.positionalParameters[i],
+          isOptional: i < functionNode.requiredParameterCount);
+    }
+    functionNode.namedParameters.toList()
+      ..sort(namedOrdering)
+      ..forEach(handleParameter);
   }
 
   @override
