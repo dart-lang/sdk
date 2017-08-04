@@ -14,13 +14,7 @@ int_parse_radix_test/02: Fail # No bigints.
 integer_to_radix_string_test: RuntimeError # issue 22045
 
 [ $runtime == safari || $runtime == safarimobilesim ]
-double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
-double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
-
-[ $runtime == ff ]
-double_round3_test: Pass, Fail, OK # Fails on ff 34, passes on ff 35. Runtime rounds 0.49999999999999994 to 1.
-double_round_to_double2_test: Pass, Fail, OK # Fails on ff 34, passes on ff 35. Runtime rounds 0.49999999999999994 to 1.
 
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
 error_stack_trace1_test: RuntimeError # Issue 12399

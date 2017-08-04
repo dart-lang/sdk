@@ -339,13 +339,14 @@ from_environment_const_type_undefined_test/14: MissingCompileTimeError
 from_environment_const_type_undefined_test/16: MissingCompileTimeError
 
 [ $compiler == dart2js && $runtime == safari ]
-double_round_to_double2_test: RuntimeError
 regexp/no-extensions_test: RuntimeError
 regexp/lookahead_test: RuntimeError
 regexp/overflow_test: RuntimeError
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
+double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
