@@ -295,6 +295,7 @@ inference/refine_binary_expression_type_type_parameter_t_t: Crash
 inference/static_method_tear_off: Crash
 inference/string_literal: Crash
 inference/subexpressions_of_explicitly_typed_fields: Crash
+inference/super_initializer: Crash
 inference/super_method_invocation: Crash
 inference/super_property_get: Crash
 inference/super_property_get_invoke_function_typed: Crash

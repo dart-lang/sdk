@@ -358,6 +358,12 @@ class TypeInferenceListener
   void stringLiteralExit(StringLiteral expression, DartType inferredType) =>
       genericExpressionExit("StringLiteral", expression, inferredType);
 
+  void superInitializerEnter(SuperInitializer initializer) =>
+      genericInitializerEnter("superInitializer", initializer);
+
+  void superInitializerExit(SuperInitializer initializer) =>
+      genericInitializerExit("superInitializer", initializer);
+
   void switchStatementEnter(SwitchStatement statement) =>
       genericStatementEnter('switchStatement', statement);
 

@@ -1806,6 +1806,22 @@ class KernelStringLiteral extends StringLiteral implements KernelExpression {
   }
 }
 
+/// Concrete shadow object representing a super initializer in kernel form.
+class KernelSuperInitializer extends SuperInitializer
+    implements KernelInitializer {
+  KernelSuperInitializer(Constructor target, Arguments arguments)
+      : super(target, arguments);
+
+  @override
+  void _inferInitializer(KernelTypeInferrer inferrer) {
+    inferrer.listener.superInitializerEnter(this);
+    inferrer.inferInvocation(null, false, fileOffset,
+        target.function.functionType, target.enclosingClass.thisType, arguments,
+        skipTypeArgumentInference: true);
+    inferrer.listener.superInitializerExit(this);
+  }
+}
+
 /// Shadow object for [SuperMethodInvocation].
 class KernelSuperMethodInvocation extends SuperMethodInvocation
     implements KernelExpression {

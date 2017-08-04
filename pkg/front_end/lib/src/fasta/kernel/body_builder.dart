@@ -3204,7 +3204,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           charOffset);
     }
     needsImplicitSuperInitializer = false;
-    return new SuperInitializer(constructor, arguments)
+    return new KernelSuperInitializer(constructor, arguments)
       ..fileOffset = charOffset
       ..isSynthetic = isSynthetic;
   }
