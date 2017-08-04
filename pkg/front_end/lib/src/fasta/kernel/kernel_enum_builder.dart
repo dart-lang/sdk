@@ -61,7 +61,7 @@ import 'kernel_builder.dart'
 
 class KernelEnumBuilder extends SourceClassBuilder
     implements EnumBuilder<KernelTypeBuilder, InterfaceType> {
-  final List<Object> constantNamesAndOffsets;
+  final List<Object> constantNamesAndOffsetsAndDocs;
 
   final MapLiteral toStringMap;
 
@@ -80,7 +80,7 @@ class KernelEnumBuilder extends SourceClassBuilder
       Scope scope,
       Scope constructors,
       Class cls,
-      this.constantNamesAndOffsets,
+      this.constantNamesAndOffsetsAndDocs,
       this.toStringMap,
       this.intType,
       this.listType,
@@ -92,13 +92,14 @@ class KernelEnumBuilder extends SourceClassBuilder
             constructors, parent, null, charOffset, cls);
 
   factory KernelEnumBuilder(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
-      List<Object> constantNamesAndOffsets,
+      List<Object> constantNamesAndOffsetsAndDocs,
       KernelLibraryBuilder parent,
       int charOffset,
       int charEndOffset) {
-    constantNamesAndOffsets ??= const <Object>[];
+    constantNamesAndOffsetsAndDocs ??= const <Object>[];
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
     KernelTypeBuilder intType =
@@ -171,13 +172,14 @@ class KernelEnumBuilder extends SourceClassBuilder
         charEndOffset);
     members["toString"] = toStringBuilder;
     String className = name;
-    for (int i = 0; i < constantNamesAndOffsets.length; i += 2) {
-      String name = constantNamesAndOffsets[i];
-      int charOffset = constantNamesAndOffsets[i + 1];
+    for (int i = 0; i < constantNamesAndOffsetsAndDocs.length; i += 3) {
+      String name = constantNamesAndOffsetsAndDocs[i];
+      int charOffset = constantNamesAndOffsetsAndDocs[i + 1];
+      String documentationComment = constantNamesAndOffsetsAndDocs[i + 2];
       if (members.containsKey(name)) {
         parent.addCompileTimeError(templateDuplicatedName.withArguments(name),
             charOffset, parent.fileUri);
-        constantNamesAndOffsets[i] = null;
+        constantNamesAndOffsetsAndDocs[i] = null;
         continue;
       }
       if (name == className) {
@@ -185,11 +187,11 @@ class KernelEnumBuilder extends SourceClassBuilder
             templateEnumConstantSameNameAsEnclosing.withArguments(name),
             charOffset,
             parent.fileUri);
-        constantNamesAndOffsets[i] = null;
+        constantNamesAndOffsetsAndDocs[i] = null;
         continue;
       }
       KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(
-          null,
+          documentationComment,
           null,
           selfType,
           name,
@@ -205,13 +207,13 @@ class KernelEnumBuilder extends SourceClassBuilder
     }
     MapLiteral toStringMap = new MapLiteral(toStringEntries, isConst: true);
     KernelEnumBuilder enumBuilder = new KernelEnumBuilder.internal(
-        null,
+        documentationComment,
         metadata,
         name,
         new Scope(members, null, parent.scope, isModifiable: false),
         new Scope(constructors, null, null, isModifiable: false),
         cls,
-        constantNamesAndOffsets,
+        constantNamesAndOffsetsAndDocs,
         toStringMap,
         intType,
         listType,
@@ -241,7 +243,7 @@ class KernelEnumBuilder extends SourceClassBuilder
   @override
   Class build(KernelLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
     cls.isEnum = true;
-    if (constantNamesAndOffsets.isEmpty) {
+    if (constantNamesAndOffsetsAndDocs.isEmpty) {
       libraryBuilder.addCompileTimeError(
           messageEnumDeclartionEmpty, charOffset, fileUri);
     }
@@ -261,8 +263,8 @@ class KernelEnumBuilder extends SourceClassBuilder
           new DirectPropertyGet(new ThisExpression(), indexField)
         ])));
     List<Expression> values = <Expression>[];
-    for (int i = 0; i < constantNamesAndOffsets.length; i += 2) {
-      String name = constantNamesAndOffsets[i];
+    for (int i = 0; i < constantNamesAndOffsetsAndDocs.length; i += 3) {
+      String name = constantNamesAndOffsetsAndDocs[i];
       if (name != null) {
         KernelFieldBuilder builder = this[name];
         values.add(new StaticGet(builder.build(libraryBuilder)));
@@ -294,8 +296,8 @@ class KernelEnumBuilder extends SourceClassBuilder
             ..parent = constructor);
     }
     int index = 0;
-    for (int i = 0; i < constantNamesAndOffsets.length; i += 2) {
-      String constant = constantNamesAndOffsets[i];
+    for (int i = 0; i < constantNamesAndOffsetsAndDocs.length; i += 3) {
+      String constant = constantNamesAndOffsetsAndDocs[i];
       if (constant != null) {
         KernelFieldBuilder field = this[constant];
         field.build(libraryBuilder);

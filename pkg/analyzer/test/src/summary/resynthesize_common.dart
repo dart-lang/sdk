@@ -5240,18 +5240,22 @@ enum E {
     var library = await checkLibrary('''
 enum E {
   /**
-   * Docs
+   * aaa
    */
-  v
+  a,
+  /// bbb
+  b
 }''');
     checkElementText(library, r'''
 enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   /**
-   * Docs
+   * aaa
    */
-  static const E v;
+  static const E a;
+  /// bbb
+  static const E b;
 }
 ''');
   }

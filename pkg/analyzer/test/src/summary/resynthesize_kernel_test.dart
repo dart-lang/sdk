@@ -372,16 +372,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_enum_documented() async {
-    await super.test_enum_documented();
-  }
-
-  @failingTest
-  test_enum_value_documented() async {
-    await super.test_enum_value_documented();
-  }
-
-  @failingTest
   test_error_extendsEnum() async {
     await super.test_error_extendsEnum();
   }
