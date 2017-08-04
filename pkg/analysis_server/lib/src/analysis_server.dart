@@ -1191,6 +1191,13 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
           }
         }
         if (analysisServer._hasAnalysisServiceSubscription(
+            AnalysisService.CLOSING_LABELS, path)) {
+          _runDelayed(() {
+            sendAnalysisNotificationClosingLabels(
+                analysisServer, path, result.lineInfo, unit);
+          });
+        }
+        if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.OUTLINE, path)) {
           _runDelayed(() {
             SourceKind sourceKind =
