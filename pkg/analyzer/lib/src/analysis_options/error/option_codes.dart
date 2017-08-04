@@ -14,17 +14,8 @@ import 'package:analyzer/error/error.dart';
  */
 class AnalysisOptionsErrorCode extends ErrorCode {
   /**
-   * An error code indicating that there is a syntactic error in the file.
-   *
-   * Parameters:
-   * 0: the error message from the parse error
-   */
-  static const AnalysisOptionsErrorCode PARSE_ERROR =
-      const AnalysisOptionsErrorCode('PARSE_ERROR', '{0}');
-
-  /**
-   * An error code indicating that there is a syntactic error
-   * in the included file.
+   * An error code indicating that there is a syntactic error in the included
+   * file.
    *
    * Parameters:
    * 0: the path of the file containing the error
@@ -32,8 +23,18 @@ class AnalysisOptionsErrorCode extends ErrorCode {
    * 2: the ending offset of the text in the file that contains the error
    * 3: the error message
    */
-  static const INCLUDED_FILE_PARSE_ERROR = const AnalysisOptionsErrorCode(
-      'INCLUDED_FILE_PARSE_ERROR', '{3} in {0}({1}..{2})');
+  static const AnalysisOptionsErrorCode INCLUDED_FILE_PARSE_ERROR =
+      const AnalysisOptionsErrorCode(
+          'INCLUDED_FILE_PARSE_ERROR', '{3} in {0}({1}..{2})');
+
+  /**
+   * An error code indicating that there is a syntactic error in the file.
+   *
+   * Parameters:
+   * 0: the error message from the parse error
+   */
+  static const AnalysisOptionsErrorCode PARSE_ERROR =
+      const AnalysisOptionsErrorCode('PARSE_ERROR', '{0}');
 
   /**
    * Initialize a newly created error code to have the given [name].
@@ -81,19 +82,15 @@ class AnalysisOptionsWarningCode extends ErrorCode {
           "Warning in the included options file {0}({1}..{2}): {3}");
 
   /**
-   * An error code indicating that a plugin is being configured with an
-   * unsupported option and legal options are provided.
+   * An error code indicating that an unrecognized error code is being used to
+   * specify an error filter.
    *
    * Parameters:
-   * 0: the plugin name
-   * 1: the unsupported option key
-   * 2: legal values
+   * 0: the unrecognized error code
    */
-  static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITH_LEGAL_VALUES =
+  static const AnalysisOptionsWarningCode UNRECOGNIZED_ERROR_CODE =
       const AnalysisOptionsWarningCode(
-          'UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
-          "The option '{1}' isn't supported by '{0}'.",
-          "Try using one of the supported options: {2}.");
+          'UNRECOGNIZED_ERROR_CODE', "'{0}' isn't a recognized error code.");
 
   /**
    * An error code indicating that a plugin is being configured with an
@@ -111,6 +108,21 @@ class AnalysisOptionsWarningCode extends ErrorCode {
           "Try using the only supported option: '{2}'.");
 
   /**
+   * An error code indicating that a plugin is being configured with an
+   * unsupported option and legal options are provided.
+   *
+   * Parameters:
+   * 0: the plugin name
+   * 1: the unsupported option key
+   * 2: legal values
+   */
+  static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITH_LEGAL_VALUES =
+      const AnalysisOptionsWarningCode(
+          'UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
+          "The option '{1}' isn't supported by '{0}'.",
+          "Try using one of the supported options: {2}.");
+
+  /**
    * An error code indicating that an option entry is being configured with an
    * unsupported value.
    *
@@ -124,17 +136,6 @@ class AnalysisOptionsWarningCode extends ErrorCode {
           'UNSUPPORTED_VALUE',
           "The value '{1}' isn't supported by '{0}'.",
           "Try using one of the supported options: {2}.");
-
-  /**
-   * An error code indicating that an unrecognized error code is being used to
-   * specify an error filter.
-   *
-   * Parameters:
-   * 0: the unrecognized error code
-   */
-  static const AnalysisOptionsWarningCode UNRECOGNIZED_ERROR_CODE =
-      const AnalysisOptionsWarningCode(
-          'UNRECOGNIZED_ERROR_CODE', "'{0}' isn't a recognized error code.");
 
   /**
    * Initialize a newly created warning code to have the given [name].

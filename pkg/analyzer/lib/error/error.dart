@@ -42,6 +42,9 @@ const List<ErrorCode> errorCodeValues = const [
   // need to be filled in by hand.
   //
   AnalysisOptionsErrorCode.PARSE_ERROR,
+  AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
+  AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
+  AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
   AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
   AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,
   AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES,
