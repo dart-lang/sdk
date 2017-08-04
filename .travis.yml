@@ -3,6 +3,7 @@ dart:
   - dev
 sudo: false
 script: ./tool/travis.sh
+dist: trusty
 env:
   - LINTER_BOT=main
   - LINTER_BOT=benchmark
