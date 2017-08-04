@@ -1149,7 +1149,6 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   intptr_t capacity_increase_in_pages =
       capacity_increase_in_words / PageSpace::kPageSizeInWords;
   double multiplier = 1.0;
-#if !defined(PRODUCT)
   // To avoid waste, the first GC should be triggered before too long. After
   // kInitialTimeoutSeconds, gradually lower the capacity limit.
   static const double kInitialTimeoutSeconds = 1.00;
@@ -1160,7 +1159,6 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
       multiplier *= seconds_since_init / kInitialTimeoutSeconds;
     }
   }
-#endif  // !defined(PRODUCT)
   bool needs_gc = capacity_increase_in_pages * multiplier > grow_heap_;
   if (FLAG_log_growth) {
     OS::PrintErr("%s: %" Pd " * %f %s %" Pd "\n",

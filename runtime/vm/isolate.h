@@ -227,8 +227,9 @@ class Isolate : public BaseIsolate {
 #if !defined(PRODUCT)
   const char* debugger_name() const { return debugger_name_; }
   void set_debugger_name(const char* name);
-  int64_t UptimeMicros() const;
 #endif  // !defined(PRODUCT)
+
+  int64_t UptimeMicros() const;
 
   Dart_Port main_port() const { return main_port_; }
   void set_main_port(Dart_Port port) {
@@ -790,7 +791,6 @@ class Isolate : public BaseIsolate {
   bool should_pause_post_service_request_;
 
   char* debugger_name_;
-  int64_t start_time_micros_;
   Debugger* debugger_;
   int64_t last_resume_timestamp_;
 
@@ -845,6 +845,7 @@ class Isolate : public BaseIsolate {
 #endif  // !defined(PRODUCT)
 
   // All other fields go here.
+  int64_t start_time_micros_;
   ThreadRegistry* thread_registry_;
   SafepointHandler* safepoint_handler_;
   Dart_MessageNotifyCallback message_notify_callback_;

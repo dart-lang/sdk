@@ -759,7 +759,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       has_attempted_reload_(false),
       should_pause_post_service_request_(false),
       debugger_name_(NULL),
-      start_time_micros_(OS::GetCurrentMonotonicMicros()),
       debugger_(NULL),
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
       last_allocationprofile_accumulator_reset_timestamp_(0),
@@ -779,6 +778,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       last_reload_timestamp_(OS::GetCurrentTimeMillis()),
       object_id_ring_(NULL),
 #endif  // !defined(PRODUCT)
+      start_time_micros_(OS::GetCurrentMonotonicMicros()),
       thread_registry_(new ThreadRegistry()),
       safepoint_handler_(new SafepointHandler(this)),
       message_notify_callback_(NULL),
@@ -987,11 +987,11 @@ void Isolate::set_debugger_name(const char* name) {
   free(debugger_name_);
   debugger_name_ = strdup(name);
 }
+#endif  // !defined(PRODUCT)
 
 int64_t Isolate::UptimeMicros() const {
   return OS::GetCurrentMonotonicMicros() - start_time_micros_;
 }
-#endif  // !defined(PRODUCT)
 
 bool Isolate::IsPaused() const {
 #if defined(PRODUCT)
