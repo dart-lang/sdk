@@ -17,9 +17,6 @@ iterable_skip_test: DartkCompileTimeError
 iterable_skip_while_test: DartkCompileTimeError
 iterable_take_test: DartkCompileTimeError
 iterable_take_while_test: DartkCompileTimeError
-list_fill_range_test: DartkCompileTimeError
-list_get_range_test: DartkCompileTimeError
-list_insert_all_test: DartkCompileTimeError
 set_test: DartkCompileTimeError
 shuffle_test: DartkCompileTimeError
 sort_test: DartkCompileTimeError

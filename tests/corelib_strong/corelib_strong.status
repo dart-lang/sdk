@@ -19,9 +19,6 @@ iterable_reduce_test: Skip
 iterable_to_list_test: Skip
 iterable_to_set_test: Skip
 linked_hash_map_from_iterable_test: Skip
-list_contains_argument_order_test: Skip
-list_filled_type_argument_test: Skip
-list_index_of2_test: Skip
 regexp/regress-regexp-codeflush_test: Skip
 regexp/standalones_test: Skip
 string_replace_test: Skip
@@ -35,8 +32,6 @@ integer_to_string_test/01: RuntimeError # Issue 29921
 iterable_generate_test: RuntimeError # Issue 29921
 iterable_return_type_test/02: RuntimeError # Issue 29921
 json_map_test: RuntimeError # Issue 29921
-list_fill_range_test: RuntimeError # Issue 29921
-list_insert_test: RuntimeError # Issue 29921
 regress_r21715_test: RuntimeError # Issue 29921
 string_operations_with_null_test: RuntimeError # Issue 29921
 

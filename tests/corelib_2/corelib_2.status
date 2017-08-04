@@ -171,6 +171,8 @@ error_stack_trace_test/static: MissingCompileTimeError
 
 [ $compiler == dartdevc ]
 error_stack_trace_test/nullThrown: RuntimeError # .stackTrace not present for exception caught from 'throw null;'
+list_fill_range_test: RuntimeError # Issue 29921
+list_insert_test: RuntimeError # Issue 29921
 list_removeat_test: RuntimeError # Issue 29921
 list_replace_range_test: RuntimeError # Issue 29921
 list_set_all_test: RuntimeError # Issue 29921
@@ -349,6 +351,7 @@ double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
+list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ ($compiler == dart2js || $compiler == dartdevc) && $runtime == drt ]
@@ -636,6 +639,55 @@ uri_path_test: Crash
 uri_query_test: Crash
 uri_scheme_test: Crash
 uri_test: Crash
+map_to_string_test: Crash
+map_values2_test: Crash
+map_values3_test: Crash
+map_values4_test: Crash
+map_values_test: Crash
+maps_test: Crash
+nan_infinity_test/01: RuntimeError
+null_nosuchmethod_test: Crash
+null_test: Crash
+num_clamp_test: Crash
+num_parse_test/01: Crash
+num_parse_test/none: Crash
+queue_first_test: Crash
+queue_iterator_test: Crash
+queue_last_test: Crash
+queue_single_test: Crash
+queue_test: Crash
+map_test: Crash # Issue 27394
+main_test: Crash
+map_contains_value_test: Crash
+map_from_iterable_test: Crash
+map_from_iterables_test: Crash
+map_from_test: Crash
+map_keys2_test: Crash
+map_keys_test: Crash
+list_test/01: Crash
+list_test/none: Crash
+list_to_string2_test: Crash
+list_to_string_test: Crash
+list_unmodifiable_test: Crash
+linked_hash_map_from_iterables_test: Crash
+linked_hash_map_test: Crash
+list_as_map_test: Crash
+list_contains_argument_order_test: Crash
+list_fill_range_test: Crash
+list_first_test: Crash
+list_fixed_test: Crash
+list_for_each_test: Crash
+list_get_range_test: Crash
+list_growable_test: Crash
+list_insert_all_test: Crash
+list_insert_test: Crash
+
+[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+stopwatch_test: Crash
+type_hashcode_test: Crash
+map_contains_key_test: Crash
+map_index_test: Crash
+map_remove_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 apply2_test: Crash
@@ -876,6 +928,11 @@ symbol_test/01: Crash
 symbol_test/02: Crash
 symbol_test/03: Crash
 symbol_test/none: Crash
+throw_half_surrogate_pair_test/01: Crash
+throw_half_surrogate_pair_test/02: Crash
+toInt_test: Crash
+type_hashcode_test: Crash
+unicode_test: Crash
 unicode2_test: Crash
 uri_base_test: Crash
 uri_file_test: Crash
@@ -890,6 +947,14 @@ uri_path_test: Crash
 uri_query_test: Crash
 uri_scheme_test: Crash
 uri_test: Crash
+nan_infinity_test/01: Crash
+nan_infinity_test/none: Crash
+num_sign_test: Crash
+map_contains_key_test: Crash
+map_index_test: Crash
+map_remove_test: Crash
+list_filled_type_argument_test: Crash
+list_index_of_test: Crash
 
 [$arch == simdbc || $arch == simdbc64]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
