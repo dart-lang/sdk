@@ -38,6 +38,10 @@ class Bot {
     return _client.readResult(buildUri);
   }
 
+  /// Reads the build results of all given uris.
+  ///
+  /// Returns a list of the results. If a uri couldn't be read, then the entry
+  /// in the list is `null`.
   Future<List<BuildResult>> readResults(List<BuildUri> buildUris) async {
     var result = <BuildResult>[];
     int i = 0;
@@ -47,7 +51,13 @@ class Bot {
       if (end > buildUris.length) end = buildUris.length;
       var parallelChunk = buildUris.sublist(i, end);
       log("Fetching ${end - i} uris in parallel");
-      result.addAll(await Future.wait(parallelChunk.map(_client.readResult)));
+      result.addAll(await Future.wait(parallelChunk.map((uri) {
+        var result = _client.readResult(uri);
+        if (result == null) {
+          log("Error while reading $uri");
+        }
+        return result;
+      })));
       i = end + 1;
     }
     return result;

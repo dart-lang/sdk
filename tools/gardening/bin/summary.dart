@@ -26,7 +26,7 @@ main(List<String> args) async {
   var recentUris = bot.mostRecentUris;
   var results = await bot.readResults(recentUris);
   results.forEach((result) {
-    if (result.hasFailures) {
+    if (result != null && result.hasFailures) {
       print("${result.buildUri} has failures.");
     }
   });
