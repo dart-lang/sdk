@@ -37,6 +37,7 @@ import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/timestamped_data.dart';
+import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
 import 'package:plugin/manager.dart';
@@ -840,6 +841,7 @@ class AnalysisEngine {
    */
   void clearCaches() {
     partitionManager.clearCache();
+    StringToken.canonicalizer.clear();
   }
 
   /**
