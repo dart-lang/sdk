@@ -21,7 +21,6 @@ error_stack_trace1_test: RuntimeError # Issue 12399
 integer_to_string_test/01: RuntimeError # Issue 1533
 iterable_return_type_test/01: RuntimeError # Issue 20085
 iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
-iterable_to_list_test/01: RuntimeError # Issue 26501
 
 big_integer_*: Skip # VM specific test.
 compare_to2_test: RuntimeError, OK    # Requires bigint support.

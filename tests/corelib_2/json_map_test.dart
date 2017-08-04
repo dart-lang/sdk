@@ -299,8 +299,16 @@ void testConcurrentModifications() {
 
 void testType() {
   Expect.isTrue(jsonify({}) is Map);
+  Expect.isTrue(jsonify({}) is HashMap);
+  Expect.isTrue(jsonify({}) is LinkedHashMap);
+
   Expect.isTrue(jsonify({}) is Map<String, dynamic>);
+  Expect.isTrue(jsonify({}) is HashMap<String, dynamic>);
+  Expect.isTrue(jsonify({}) is LinkedHashMap<String, dynamic>);
+
   Expect.isFalse(jsonify({}) is Map<int, dynamic>);
+  Expect.isFalse(jsonify({}) is HashMap<int, dynamic>);
+  Expect.isFalse(jsonify({}) is LinkedHashMap<int, dynamic>);
 }
 
 void testClear() {

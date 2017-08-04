@@ -28,10 +28,10 @@ main() {
   Expect.isTrue(setCopy is Set<int>);
   Expect.isFalse(setCopy is Set<String>);
 
-  setCopy = list3.toSet();
-  Expect.isTrue(setCopy.isEmpty);
-  Expect.isTrue(setCopy is Set<String>);
-  Expect.isFalse(setCopy is Set<int>);
+  var setStrCopy = list3.toSet();
+  Expect.isTrue(setStrCopy.isEmpty);
+  Expect.isTrue(setStrCopy is Set<String>);
+  Expect.isFalse(setStrCopy is Set<int>);
 
   setCopy = set1.toSet();
   Expect.setEquals(set1, setCopy);
@@ -39,11 +39,11 @@ main() {
   Expect.isFalse(setCopy is Set<String>);
   Expect.isFalse(identical(setCopy, set1));
 
-  setCopy = set2.toSet();
-  Expect.setEquals(set2, setCopy);
-  Expect.isTrue(setCopy is Set<String>);
-  Expect.isFalse(setCopy is Set<int>);
-  Expect.isFalse(identical(setCopy, set2));
+  setStrCopy = set2.toSet();
+  Expect.setEquals(set2, setStrCopy);
+  Expect.isTrue(setStrCopy is Set<String>);
+  Expect.isFalse(setStrCopy is Set<int>);
+  Expect.isFalse(identical(setStrCopy, set2));
 
   setCopy = set3.toSet();
   Expect.setEquals(set3, setCopy);

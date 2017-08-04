@@ -14,9 +14,6 @@ iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_return_type_test/none: RuntimeError
 iterable_skip_test: DartkCompileTimeError
-iterable_skip_while_test: DartkCompileTimeError
-iterable_take_test: DartkCompileTimeError
-iterable_take_while_test: DartkCompileTimeError
 set_test: DartkCompileTimeError
 shuffle_test: DartkCompileTimeError
 sort_test: DartkCompileTimeError
