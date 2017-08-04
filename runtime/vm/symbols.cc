@@ -336,6 +336,10 @@ RawArray* Symbols::UnifiedSymbolTable() {
   }
   table.Release();
 
+  const double kMinLoad = 0.90;
+  const double kMaxLoad = 0.90;
+  HashTables::EnsureLoadFactor(kMinLoad, kMaxLoad, unified_table);
+
   return unified_table.Release().raw();
 }
 
