@@ -194,7 +194,7 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
     if (_running) return;
     _running = true;
     final now = new DateTime.now();
-    final start = now.subtract(_window).subtract(_period);
+    final start = now.subtract(_window);
     // The Service classes order isolates from the older to the newer
     final isolates =
         (await Future.wait(_vm.isolates.map(_isolates.get))).reversed.toList();
@@ -203,6 +203,13 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
       _vmSamples.removeAt(0);
       _isolateUsedSamples.removeAt(0);
       _isolateFreeSamples.removeAt(0);
+    }
+
+    if (_ts.first.isAfter(start)) {
+      _ts.insert(0, start);
+      _vmSamples.insert(0, _vmSamples.first);
+      _isolateUsedSamples.insert(0, _isolateUsedSamples.first);
+      _isolateFreeSamples.insert(0, _isolateFreeSamples.first);
     }
 
     if (_isolateIndex.length == 0) {
