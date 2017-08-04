@@ -7,10 +7,11 @@ import 'package:path/path.dart' as p;
 import 'editable_status_file.dart';
 import 'fork.dart';
 import 'io.dart';
+import 'log.dart';
 import 'test_directories.dart';
 
 /// Migrates the status file entries that match [files].
-void migrateStatusEntries(List<Fork> files) {
+void migrateStatusEntries(List<Fork> files, Map<String, List<String>> todos) {
   var entriesToMove = new EntrySet();
 
   _collectEntries(files, entriesToMove, isOne: true);
@@ -21,7 +22,58 @@ void migrateStatusEntries(List<Fork> files) {
     _addEntries(statusFile, sections);
   }
 
-  // TODO(rnystrom): Should this log any output?
+  // If any entries need manual splitting, let the user know.
+  for (var dir in entriesToMove._todoHeaders.keys) {
+    var destination = "$dir.status";
+    var headers = entriesToMove._todoHeaders[dir];
+    var splits = headers.map((header) {
+      var files =
+          filesForHeader(header).map((file) => bold("${dir}_$file")).join(", ");
+      return "Need to manually split status file section in ${bold(destination)}"
+          " across files $files:\n    $header";
+    }).toList();
+
+    if (splits.isNotEmpty) todos[destination] = splits;
+  }
+}
+
+/// Given the header for a status file section, looks at the condition
+/// expression to determine which status files it should go in.
+Set<String> filesForHeader(String header) {
+  // Figure out which status file it goes into.
+  var result = new Set<String>();
+
+  // The various compilers are roughly separate products.
+  const compilers = const {
+    r"$compiler == dart2analyzer": "analyzer",
+    r"$compiler == dart2js": "dart2js",
+    r"$compiler == dartdevc": "dartdevc",
+    // This deliberately matches both dartk and dartkp.
+    r"$compiler == dartk": "kernel",
+    r"$compiler == precompiler": "precompiled"
+  };
+
+  // TODO(rnystrom): This is obviously very sensitive to the formatting of
+  // the expression. Hacky, but hopefully good enough for now.
+  compilers.forEach((compiler, file) {
+    if (header.contains(compiler)) result.add(file);
+  });
+
+  // If we couldn't figure out where to put it based on the compiler, look at
+  // the runtime.
+  if (result.isEmpty) {
+    const runtimes = const {
+      r"$runtime == vm": "vm",
+      r"$runtime == flutter": "flutter",
+      r"$runtime == dart_precompiled": "precompiled",
+    };
+
+    runtimes.forEach((runtime, file) {
+      if (header.contains(runtime)) result.add(file);
+    });
+  }
+
+  return result;
 }
 
 /// Tracks a set of entries to add to a set of Dart 2.0 status files.
@@ -31,13 +83,41 @@ class EntrySet {
   /// of entries to add under that section.
   final Map<String, Map<String, List<String>>> _files = {};
 
+  final _todoHeaders = <String, Set<String>>{};
+
   Iterable<String> get statusFiles => _files.keys;
 
-  void add(String fromDir, String header, String entry) {
+  /// Attempts to add the [entry] under [header] in a status file in [fromDir]
+  /// to this EntrySet.
+  ///
+  /// Returns true if successful or false if the header's condition doesn't fit
+  /// into a single status file and needs to be manually split by the user.
+  bool add(String fromDir, String header, String entry) {
     var toDir = toTwoDirectory(fromDir);
-    var sections = _files.putIfAbsent(p.join(toDir, "$toDir.status"), () => {});
+
+    // Figure out which status file it goes into.
+    var possibleFiles = filesForHeader(header);
+    var destination = "$toDir.status";
+
+    if (possibleFiles.length > 1) {
+      // The condition matches multiple files, so the user is going to have to
+      // manually split it up into multiple sections first.
+      // TODO(rnystrom): Would be good to automate this, though it requires
+      // being able to work with condition expressions directly.
+      _todoHeaders.putIfAbsent(toDir, () => new Set()).add(header);
+      return false;
+    }
+
+    // If the condition places it directly into one file, put it there.
+    if (possibleFiles.length == 1) {
+      destination = "${toDir}_${possibleFiles.single}.status";
+    }
+
+    var sections = _files.putIfAbsent(p.join(toDir, destination), () => {});
+
     var entries = sections.putIfAbsent(header, () => []);
     entries.add(entry);
+    return true;
   }
 
   Map<String, List<String>> sections(String file) => _files[file];
@@ -77,12 +157,12 @@ void _collectEntries(List<Fork> files, EntrySet entriesToMove, {bool isOne}) {
             // manually handle it.
             if (!entryPath.startsWith(filePath)) continue;
 
-            // Remove it from this status file.
-            deleteLines.add(entry.lineNumber - 1);
-
-            // And add it to the 2.0 one.
-            entriesToMove.add(fromDir, editable.lineAt(section.lineNumber),
-                editable.lineAt(entry.lineNumber));
+            // Add it to the 2.0 one.
+            if (entriesToMove.add(fromDir, editable.lineAt(section.lineNumber),
+                editable.lineAt(entry.lineNumber))) {
+              // Remove it from the original status file.
+              deleteLines.add(entry.lineNumber - 1);
+            }
           }
         }
       }

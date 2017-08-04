@@ -67,7 +67,7 @@ void main(List<String> arguments) {
     }
   }
 
-  migrateStatusEntries(tests);
+  migrateStatusEntries(tests, allTodos);
 
   // Tell the user what's left to do.
   print("");

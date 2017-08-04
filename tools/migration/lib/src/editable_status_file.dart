@@ -24,19 +24,45 @@ class EditableStatusFile {
   StatusFile _statusFile;
   StatusFile get statusFile {
     if (_statusFile == null) {
-      _statusFile = new StatusFile.read(path);
+      if (new File(path).existsSync()) {
+        _statusFile = new StatusFile.read(path);
+      } else {
+        _statusFile = new StatusFile(path);
+      }
     }
 
     return _statusFile;
   }
 
-  List<String> _lines;
+  /// The lines of text in the status file, loaded lazily.
+  ///
+  /// If the status file doesn't exist, creates a set of lines for a new empty
+  /// status file.
+  List<String> get _lines {
+    if (_linesCache == null) {
+      var file = new File(path);
+      if (file.existsSync()) {
+        _linesCache = file.readAsLinesSync();
+      } else {
+        _linesCache = [
+          "# Copyright (c) 2017, the Dart project authors.  Please see the "
+              "AUTHORS file",
+          "# for details. All rights reserved. Use of this source code is "
+              "governed by a",
+          "# BSD-style license that can be found in the LICENSE file."
+        ];
+      }
+    }
+
+    return _linesCache;
+  }
+
+  List<String> _linesCache;
 
   EditableStatusFile(this.path);
 
   /// Gets the line at the given one-based index.
   String lineAt(int line) {
-    _ensureLines();
     return _lines[line - 1];
   }
 
@@ -48,8 +74,6 @@ class EditableStatusFile {
       print("Delete lines ${lines.join(', ')} from $path.");
       return;
     }
-
-    _ensureLines();
 
     var deleted = 0;
     for (var line in lines) {
@@ -70,7 +94,6 @@ class EditableStatusFile {
       return;
     }
 
-    _ensureLines();
     _lines.insertAll(line, entries);
     _save();
   }
@@ -84,7 +107,6 @@ class EditableStatusFile {
       return;
     }
 
-    _ensureLines();
     _lines.add("");
 
     _lines.add(header);
@@ -92,18 +114,17 @@ class EditableStatusFile {
     _save();
   }
 
-  void _ensureLines() {
-    if (_lines == null) {
-      _lines = new File(path).readAsLinesSync();
-    }
-  }
-
   void _save() {
+    if (dryRun) {
+      print("Save ${bold(path)}");
+      return;
+    }
+
     new File(path).writeAsStringSync(_lines.join("\n") + "\n");
 
     // It needs to be reparsed now since the lines have changed.
     // TODO(rnystrom): This is kind of hacky and slow, but it gets the job done.
     _statusFile = null;
-    _lines = null;
+    _linesCache = null;
   }
 }
