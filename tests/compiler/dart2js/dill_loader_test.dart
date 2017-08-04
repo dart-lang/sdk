@@ -36,7 +36,7 @@ class TestScriptLoader implements ScriptLoader {
 /// than just string source files.
 main() {
   asyncTest(() async {
-    String filename = 'tests/corelib/list_literal_test.dart';
+    String filename = 'tests/corelib_2/list_literal_test.dart';
     Uri uri = Uri.base.resolve(filename);
     DiagnosticCollector diagnostics = new DiagnosticCollector();
     OutputCollector output = new OutputCollector();
