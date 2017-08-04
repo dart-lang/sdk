@@ -18,14 +18,14 @@ tmp=$(mktemp -d)
 function update_suite {
   local suite=$1
   echo "running '$suite' minified tests"
-  ./tools/test.py -m release -c dart2js -r d8 \
+  ./tools/test.py -m release -c dart2js -r d8 --dart2js-batch \
       --use-sdk --minified --dart2js-with-kernel \
       $suite > $tmp/$suite-minified.txt
 
   $dart $update_script minified $tmp/$suite-minified.txt
 
   echo "running '$suite' host-checked tests"
-  ./tools/test.py -m release -c dart2js -r d8 --host-checked \
+  ./tools/test.py -m release -c dart2js -r d8 --dart2js-batch --host-checked \
     --dart2js-options="--library-root=$sdk" --dart2js-with-kernel \
     $suite > $tmp/$suite-checked.txt
 
