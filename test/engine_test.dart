@@ -10,10 +10,11 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/analysis.dart';
 import 'package:analyzer/src/lint/io.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/linter.dart' hide CamelCaseString;
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/string_source.dart' show StringSource;
 import 'package:cli_util/cli_util.dart' show getSdkPath;
+import 'package:linter/src/utils.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
