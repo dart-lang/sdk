@@ -28,6 +28,8 @@ import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
 import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;
 
+import 'libraries_specification.dart';
+
 /// All options needed for the front end implementation.
 ///
 /// This includes: all of [CompilerOptions] in a form useful to the
@@ -76,10 +78,22 @@ class ProcessedOptions {
   /// The location of the SDK, or `null` if the location hasn't been determined
   /// yet.
   Uri _sdkRoot;
-  Uri get sdkRoot => _sdkRoot ??= _normalizeSdkRoot();
+  Uri get sdkRoot {
+    _ensureSdkDefaults();
+    return _sdkRoot;
+  }
 
   Uri _sdkSummary;
-  Uri get sdkSummary => _sdkSummary ??= _computeSdkSummaryUri();
+  Uri get sdkSummary {
+    _ensureSdkDefaults();
+    return _sdkSummary;
+  }
+
+  Uri _librariesSpecificationUri;
+  Uri get librariesSpecificationUri {
+    _ensureSdkDefaults();
+    return _librariesSpecificationUri;
+  }
 
   Ticker ticker;
 
@@ -274,20 +288,45 @@ class ProcessedOptions {
   /// required to locate/read the packages file as well as SDK metadata.
   Future<UriTranslatorImpl> getUriTranslator() async {
     if (_uriTranslator == null) {
-      await _getPackages();
-      // TODO(scheglov) Load SDK libraries from whatever format we decide.
-      // TODO(scheglov) Remove the field "_raw.dartLibraries".
-      var libraries = _raw.dartLibraries ?? await _parseDartLibraries();
-      _uriTranslator = new UriTranslatorImpl(
-          libraries, const <String, List<Uri>>{}, _packages);
+      ticker.logMs("Started building UriTranslator");
+      var libraries = await _computeLibrarySpecification();
+      ticker.logMs("Read libraries file");
+      var packages = await _getPackages();
       ticker.logMs("Read packages file");
+      _uriTranslator = new UriTranslatorImpl(libraries, packages);
     }
     return _uriTranslator;
   }
 
-  Future<Map<String, Uri>> _parseDartLibraries() async {
-    Uri librariesJson = _raw.sdkRoot?.resolve("lib/libraries.json");
-    return await computeDartLibraries(fileSystem, librariesJson);
+  Future<TargetLibrariesSpecification> _computeLibrarySpecification() async {
+    var name = target.name;
+    // TODO(sigmund): Eek! We should get to the point where there is no
+    // fasta-specific targets and the target names are meaningful.
+    if (name.endsWith('_fasta')) name = name.substring(0, name.length - 6);
+
+    if (librariesSpecificationUri == null ||
+        !await fileSystem.entityForUri(librariesSpecificationUri).exists()) {
+      if (compileSdk) {
+        reportWithoutLocation(
+            templateSdkSpecificationNotFound
+                .withArguments(librariesSpecificationUri),
+            Severity.error);
+      }
+      return new TargetLibrariesSpecification(name);
+    }
+
+    var json =
+        await fileSystem.entityForUri(librariesSpecificationUri).readAsString();
+    try {
+      var spec =
+          await LibrariesSpecification.parse(librariesSpecificationUri, json);
+      return spec.specificationFor(name);
+    } on LibrariesSpecificationException catch (e) {
+      reportWithoutLocation(
+          templateCannotReadSdkSpecification.withArguments('${e.error}'),
+          Severity.error);
+      return new TargetLibrariesSpecification(name);
+    }
   }
 
   /// Get the package map which maps package names to URIs.
@@ -398,32 +437,42 @@ class ProcessedOptions {
     return Packages.noPackages;
   }
 
-  /// Get the location of the SDK.
-  Uri _normalizeSdkRoot() {
-    // If an SDK summary location was provided, the SDK itself should not be
-    // needed.
-    assert(_raw.sdkSummary == null);
-    if (_raw.sdkRoot == null) {
+  bool _computedSdkDefaults = false;
+
+  /// Ensure [_sdkRoot], [_sdkSummary] and [_librarySpecUri] are initialized.
+  ///
+  /// If they are not set explicitly, they are infered based on the default
+  /// behavior described in [CompilerOptions].
+  void _ensureSdkDefaults() {
+    if (_computedSdkDefaults) return;
+    _computedSdkDefaults = true;
+    var root = _raw.sdkRoot;
+    if (root != null) {
+      // Normalize to always end in '/'
+      if (!root.path.endsWith('/')) {
+        root = root.replace(path: root.path + '/');
+      }
+      _sdkRoot = root;
+    } else if (compileSdk) {
       // TODO(paulberry): implement the algorithm for finding the SDK
       // automagically.
-      return unimplemented('infer the default sdk location', -1, null);
+      unimplemented('infer the default sdk location', -1, null);
     }
-    var root = _raw.sdkRoot;
-    if (!root.path.endsWith('/')) {
-      root = root.replace(path: root.path + '/');
+
+    if (_raw.sdkSummary != null) {
+      _sdkSummary = _raw.sdkSummary;
+    } else if (!compileSdk) {
+      // Infer based on the sdkRoot, but only when `compileSdk` is false,
+      // otherwise the default intent was to compile the sdk from sources and
+      // not to load an sdk summary file.
+      _sdkSummary = root?.resolve('outline.dill');
     }
-    return root;
-  }
 
-  /// Get or infer the location of the SDK summary.
-  Uri _computeSdkSummaryUri() {
-    if (_raw.sdkSummary != null) return _raw.sdkSummary;
-
-    // Infer based on the sdkRoot, but only when `compileSdk` is false,
-    // otherwise the default intent was to compile the sdk from sources and not
-    // to load an sdk summary file.
-    if (_raw.compileSdk) return null;
-    return sdkRoot.resolve('outline.dill');
+    if (_raw.librariesSpecificationUri != null) {
+      _librariesSpecificationUri = _raw.librariesSpecificationUri;
+    } else if (compileSdk) {
+      _librariesSpecificationUri = sdkRoot.resolve('lib/libraries.json');
+    }
   }
 
   /// Create a [FileSystem] specific to the current options.
@@ -494,6 +543,8 @@ class ProcessedOptions {
 
     sb.writeln('Compile SDK: ${compileSdk}');
     sb.writeln('SDK root: ${_sdkRoot} (provided: ${_raw.sdkRoot})');
+    sb.writeln('SDK specification: ${_librariesSpecificationUri} '
+        '(provided: ${_raw.librariesSpecificationUri})');
     sb.writeln('SDK summary: ${_sdkSummary} (provided: ${_raw.sdkSummary})');
 
     sb.writeln('Strong: ${strongMode}');

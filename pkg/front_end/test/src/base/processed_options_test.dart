@@ -8,6 +8,7 @@ import 'package:front_end/compiler_options.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/fasta.dart' show ByteSink;
+import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/kernel.dart' show Program, Library, CanonicalName;
@@ -17,8 +18,10 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(ProcessedOptionsTest);
+  CompilerContext.runWithDefaultOptions((_) {
+    defineReflectiveSuite(() {
+      defineReflectiveTests(ProcessedOptionsTest);
+    });
   });
 }
 
@@ -82,6 +85,58 @@ class ProcessedOptionsTest {
     var sdkSummary = await processed.loadSdkSummary(new CanonicalName.root());
     expect(sdkSummary.libraries.single.importUri,
         mockSummary.libraries.single.importUri);
+  }
+
+  test_getUriTranslator_explicitLibrariesSpec() async {
+    fileSystem
+        .entityForUri(Uri.parse('file:///.packages'))
+        .writeAsStringSync('');
+    fileSystem
+        .entityForUri(Uri.parse('file:///libraries.json'))
+        .writeAsStringSync('{"vm":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
+    var raw = new CompilerOptions()
+      ..packagesFileUri = Uri.parse('file:///.packages')
+      ..fileSystem = fileSystem
+      ..librariesSpecificationUri = Uri.parse('file:///libraries.json');
+    var processed = new ProcessedOptions(raw);
+    var uriTranslator = await processed.getUriTranslator();
+    expect(uriTranslator.dartLibraries.libraryInfoFor('foo').uri.path,
+        '/bar.dart');
+  }
+
+  test_getUriTranslator_inferredLibrariesSpec() async {
+    fileSystem
+        .entityForUri(Uri.parse('file:///.packages'))
+        .writeAsStringSync('');
+    fileSystem
+        .entityForUri(Uri.parse('file:///mysdk/lib/libraries.json'))
+        .writeAsStringSync('{"vm":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
+    var raw = new CompilerOptions()
+      ..fileSystem = fileSystem
+      ..packagesFileUri = Uri.parse('file:///.packages')
+      ..compileSdk = true
+      ..sdkRoot = Uri.parse('file:///mysdk/');
+    var processed = new ProcessedOptions(raw);
+    var uriTranslator = await processed.getUriTranslator();
+    expect(uriTranslator.dartLibraries.libraryInfoFor('foo').uri.path,
+        '/mysdk/lib/bar.dart');
+  }
+
+  test_getUriTranslator_notInferredLibrariesSpec() async {
+    fileSystem
+        .entityForUri(Uri.parse('file:///.packages'))
+        .writeAsStringSync('');
+    fileSystem
+        .entityForUri(Uri.parse('file:///mysdk/lib/libraries.json'))
+        .writeAsStringSync('{"vm":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
+    var raw = new CompilerOptions()
+      ..fileSystem = fileSystem
+      ..packagesFileUri = Uri.parse('file:///.packages')
+      ..compileSdk = false // libraries.json is only inferred if true
+      ..sdkRoot = Uri.parse('file:///mysdk/');
+    var processed = new ProcessedOptions(raw);
+    var uriTranslator = await processed.getUriTranslator();
+    expect(uriTranslator.dartLibraries.libraryInfoFor('foo'), isNull);
   }
 
   checkPackageExpansion(

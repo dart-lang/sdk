@@ -3,18 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/memory_file_system.dart';
+import 'package:front_end/src/base/libraries_specification.dart';
 
 /// Create SDK libraries which are used by Fasta to perform kernel generation.
-/// Return the mapping from the simple names of these library to the URIs
-/// in the given [fileSystem].  The root of the SDK is `file:///sdk`.
-Map<String, Uri> createSdkFiles(MemoryFileSystem fileSystem) {
-  Map<String, Uri> dartLibraries = {};
-
+/// The root of the SDK is `file:///sdk`, it will contain a libraries
+/// specification file at `lib/libraries.json`.
+///
+/// Returns the [TargetLibrariesSpecification] whose contents are in
+/// libraries.json.
+TargetLibrariesSpecification createSdkFiles(MemoryFileSystem fileSystem) {
+  Map<String, LibraryInfo> dartLibraries = {};
   void addSdkLibrary(String name, String contents) {
     String path = '$name/$name.dart';
     Uri uri = Uri.parse('file:///sdk/lib/$path');
     fileSystem.entityForUri(uri).writeAsStringSync(contents);
-    dartLibraries[name] = uri;
+    dartLibraries[name] = new LibraryInfo(name, uri, const []);
   }
 
   addSdkLibrary('core', r'''
@@ -265,5 +268,10 @@ class ExternalName {
 ''');
   addSdkLibrary('_vmservice', 'library dart._vmservice;');
 
-  return dartLibraries;
+  var targetSpec = new TargetLibrariesSpecification('vm', dartLibraries);
+  var spec = new LibrariesSpecification({'vm': targetSpec});
+
+  Uri uri = Uri.parse('file:///sdk/lib/libraries.json');
+  fileSystem.entityForUri(uri).writeAsStringSync(spec.toJsonString(uri));
+  return targetSpec;
 }
