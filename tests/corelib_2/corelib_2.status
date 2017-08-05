@@ -1022,11 +1022,3 @@ package_resource_test: RuntimeError # Issue 26842
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
 iterable_to_list_test/01: RuntimeError # Issue 26501
-
-[ $compiler == dartk && $runtime == vm ]
-list_map_test: DartkCompileTimeError
-list_remove_range_test: DartkCompileTimeError
-list_replace_range_test: DartkCompileTimeError
-list_set_all_test: DartkCompileTimeError
-list_set_range_test: DartkCompileTimeError
-list_sublist_test: DartkCompileTimeError
