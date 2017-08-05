@@ -136,9 +136,7 @@ Future<Null> main(List<String> arguments) async {
     var configArgs = allConfigs[name];
     print("${bold(name)} ${configArgs.join(' ')}:");
 
-    var args = [
-      "--progress=color",
-    ];
+    var args = ["--progress=diff"];
 
     args.addAll(configArgs);
 
