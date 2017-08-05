@@ -19,8 +19,8 @@ if [ -d test/codegen/expect ]; then
   rm -r test/codegen/expect || fail
 fi
 
-if [ -d gen/codegen_input ]; then
-  rm -r gen/codegen_input || fail
+if [ -d gen/codegen_tests ]; then
+  rm -r gen/codegen_tests || fail
 fi
 
 if [ -d gen/codegen_output ]; then
@@ -37,11 +37,5 @@ fi
 # code coverage.
 unset COVERALLS_TOKEN
 dart test/all_tests.dart || fail
-
-{
-  fc=`find test -name "*.dart" |\
-      xargs grep "/\*\S* should be \S*\*/" | wc -l`
-  echo "There are" $fc "tests marked as known failures."
-}
 
 echo -e "[32mAll tests built - run tool/browser_test.sh to run tests[0m"
