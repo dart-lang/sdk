@@ -42,6 +42,9 @@ class _AnalysisNotificationClosingLabelsTest extends AbstractAnalysisTest {
         lastLabels = params.labels;
         _labelsReceived.complete(null);
       }
+    } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
+      var params = new ServerErrorParams.fromNotification(notification);
+      throw "${params.message}\n${params.stackTrace}";
     }
   }
 
