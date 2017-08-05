@@ -83,6 +83,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require',
       'bit_operations_test_none_multi': fail,  // DDC/dart2js canonicalize bitop results to unsigned
       'branch_canonicalization_test': fail,  // JS bit operations truncate to 32 bits.
       'call_closurization_test': fail, // Functions do not expose a "call" method.
+      'call_test': fail,
       'canonical_const2_test': fail,
       'canonical_const_test': fail,
       'compile_time_constant10_test_none_multi': fail,
