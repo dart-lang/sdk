@@ -2763,14 +2763,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     // So we produce an initializer like this:
     //
     //    var #t0 = (() { statement; }) ()
-    return new LocalInitializer(new VariableDeclaration.forValue(
-        buildMethodInvocation(
+    return new KernelAssertInitializer(
+        new VariableDeclaration.forValue(buildMethodInvocation(
             new FunctionExpression(new FunctionNode(statement)),
             callName,
             new Arguments.empty(),
             statement.fileOffset,
             isConstantExpression: true,
-            isImplicitCall: true)));
+            isImplicitCall: true)),
+        statement);
   }
 
   @override

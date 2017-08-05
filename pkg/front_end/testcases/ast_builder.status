@@ -26,6 +26,7 @@ functions: Crash
 implicit_scope_test: Crash
 implicit_this: Crash
 inference/abstract_class_instantiation: Crash
+inference/assert_initializer: Crash
 inference/assign_local: Crash
 inference/block_bodied_lambdas_basic: Crash
 inference/block_bodied_lambdas_basic_void: Crash

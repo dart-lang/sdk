@@ -90,6 +90,12 @@ class TypeInferenceListener
   void asExpressionExit(AsExpression expression, DartType inferredType) =>
       genericExpressionExit("asExpression", expression, inferredType);
 
+  void assertInitializerEnter(LocalInitializer initializer) =>
+      genericInitializerEnter("assertInitializer", initializer);
+
+  void assertInitializerExit(LocalInitializer initializer) =>
+      genericInitializerExit("assertInitializer", initializer);
+
   void assertStatementEnter(AssertStatement statement) =>
       genericStatementEnter('assertStatement', statement);
 

@@ -90,6 +90,23 @@ class KernelAsExpression extends AsExpression implements KernelExpression {
   }
 }
 
+/// Concrete shadow object representing an assert initializer in kernel form.
+class KernelAssertInitializer extends LocalInitializer
+    implements KernelInitializer {
+  /// The assert statement performing the check
+  AssertStatement _statement;
+
+  KernelAssertInitializer(VariableDeclaration variable, this._statement)
+      : super(variable);
+
+  @override
+  void _inferInitializer(KernelTypeInferrer inferrer) {
+    inferrer.listener.assertInitializerEnter(this);
+    inferrer.inferStatement(_statement);
+    inferrer.listener.assertInitializerExit(this);
+  }
+}
+
 /// Concrete shadow object representing an assertion statement in kernel form.
 class KernelAssertStatement extends AssertStatement implements KernelStatement {
   KernelAssertStatement(Expression condition,

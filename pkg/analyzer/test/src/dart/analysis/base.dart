@@ -92,12 +92,14 @@ class BaseAnalysisDriverTest {
           }),
           new ResourceUriResolver(provider)
         ], null, provider),
-        new AnalysisOptionsImpl()
-          ..strongMode = true
-          ..enableUriInPartOf = true,
+        createAnalysisOptions(),
         disableChangesAndCacheAllResults: disableChangesAndCacheAllResults,
         externalSummaries: externalSummaries);
   }
+
+  AnalysisOptionsImpl createAnalysisOptions() => new AnalysisOptionsImpl()
+    ..strongMode = true
+    ..enableUriInPartOf = true;
 
   int findOffset(String search) {
     int offset = testCode.indexOf(search);
