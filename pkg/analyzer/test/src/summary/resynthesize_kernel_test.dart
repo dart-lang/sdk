@@ -15,7 +15,6 @@ import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/base/libraries_specification.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
@@ -75,16 +74,13 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
     Uri testUri = testFile.toUri();
     String testUriStr = testUri.toString();
 
-    Map<String, LibraryInfo> dartLibraries = {};
+    Map<String, Uri> dartLibraries = {};
     MockSdk.FULL_URI_MAP.forEach((dartUri, path) {
-      var name = Uri.parse(dartUri).path;
-      dartLibraries[name] =
-          new LibraryInfo(name, Uri.parse('file://$path'), const []);
+      dartLibraries[Uri.parse(dartUri).path] = Uri.parse('file://$path');
     });
 
-    var uriTranslator = new UriTranslatorImpl(
-        new TargetLibrariesSpecification('none', dartLibraries),
-        Packages.noPackages);
+    var uriTranslator =
+        new UriTranslatorImpl(dartLibraries, {}, Packages.noPackages);
     var options = new ProcessedOptions(new CompilerOptions()
       ..target = new NoneTarget(new TargetFlags(strongMode: isStrongMode))
       ..reportMessages = false

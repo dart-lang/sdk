@@ -17,7 +17,7 @@ main() {
     test('compiler fails if it cannot find sdk sources', () async {
       var errors = [];
       var options = new CompilerOptions()
-        ..librariesSpecificationUri = invalidCoreLibsSpecUri
+        ..dartLibraries = invalidCoreLibs
         ..sdkSummary = null
         ..compileSdk = true // To prevent FE from loading an sdk-summary.
         ..onError = (e) => errors.add(e);
@@ -42,10 +42,9 @@ main() {
 
     test('by default program is compiled using summaries', () async {
       var options = new CompilerOptions()
-        // Note: we define [librariesSpecificationUri] with a specification that
-        // contains broken URIs to ensure we do not attempt to lookup for
-        // sources of the sdk directly.
-        ..librariesSpecificationUri = invalidCoreLibsSpecUri;
+        // Note: we define [dartLibraries] with broken URIs to ensure we do not
+        // attempt to lookup for sources of the sdk directly.
+        ..dartLibraries = invalidCoreLibs;
       var program =
           await compileScript('main() => print("hi");', options: options);
       var core = program.libraries.firstWhere(isDartCoreLibrary);

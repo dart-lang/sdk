@@ -12,9 +12,6 @@ import 'dart:convert' show JSON;
 
 import 'package:front_end/physical_file_system.dart' show PhysicalFileSystem;
 
-import 'package:front_end/src/base/libraries_specification.dart'
-    show TargetLibrariesSpecification;
-
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
     show ValidatingInstrumentation;
 
@@ -158,10 +155,8 @@ class FastaContext extends ChainContext {
     Uri sdk = await computePatchedSdk();
     Uri vm = computeDartVm(sdk);
     Uri packages = Uri.base.resolve(".packages");
-    var options = new ProcessedOptions(new CompilerOptions()
-      ..sdkRoot = sdk
-      ..packagesFileUri = packages);
-    UriTranslator uriTranslator = await options.getUriTranslator();
+    UriTranslator uriTranslator = await UriTranslatorImpl
+        .parse(PhysicalFileSystem.instance, sdk, packages: packages);
     bool strongMode = environment.containsKey(STRONG_MODE);
     bool updateExpectations = environment["updateExpectations"] == "true";
     bool updateComments = environment["updateComments"] == "true";
@@ -247,7 +242,8 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
       // We create a new URI translator to avoid reading platform libraries from
       // file system.
       UriTranslatorImpl uriTranslator = new UriTranslatorImpl(
-          const TargetLibrariesSpecification('vm'),
+          const <String, Uri>{},
+          const <String, List<Uri>>{},
           context.uriTranslator.packages);
       KernelTarget sourceTarget = astKind == AstKind.Analyzer
           ? new AnalyzerTarget(dillTarget, uriTranslator, strongMode)

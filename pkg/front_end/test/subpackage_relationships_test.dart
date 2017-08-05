@@ -57,7 +57,6 @@ final subpackageRules = {
     'lib',
     'lib/src',
     'lib/src/fasta',
-    'lib/src/fasta/util',
     'lib/src/incremental'
   ]),
   'lib/src/codegen': new SubpackageRules(),

@@ -650,8 +650,9 @@ import 'b.dart';
   /// Create new [KernelDriver] instance and put it into the [driver] field.
   void _createDriver(
       {Map<String, Uri> packages, KernelDriverFileAddedFn fileAddedFn}) {
-    var uriTranslator = new UriTranslatorImpl(
-        createSdkFiles(fileSystem), new MapPackages(packages));
+    Map<String, Uri> dartLibraries = createSdkFiles(fileSystem);
+    var uriTranslator =
+        new UriTranslatorImpl(dartLibraries, {}, new MapPackages(packages));
     driver = new KernelDriver(
         new ProcessedOptions(new CompilerOptions()
           ..logger = new PerformanceLog(null)

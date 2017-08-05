@@ -202,29 +202,6 @@ Message _withArgumentsCannotReadPackagesFile(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)>
-    templateCannotReadSdkSpecification =
-    const Template<Message Function(String string)>(
-        messageTemplate:
-            r"""Unable to read the 'libraries.json' specification file:
-  #string.""",
-        withArguments: _withArgumentsCannotReadSdkSpecification);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeCannotReadSdkSpecification =
-    const Code<Message Function(String string)>(
-  "CannotReadSdkSpecification",
-  templateCannotReadSdkSpecification,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCannotReadSdkSpecification(String string) {
-  return new Message(codeCannotReadSdkSpecification,
-      message: """Unable to read the 'libraries.json' specification file:
-  $string.""", arguments: {'string': string});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCantInferPackagesFromManyInputs =
     messageCantInferPackagesFromManyInputs;
 
@@ -2509,34 +2486,6 @@ Message _withArgumentsSdkRootNotFound(Uri uri_) {
   String uri = relativizeUri(uri_);
   return new Message(codeSdkRootNotFound,
       message: """SDK root directory not found: $uri.""",
-      arguments: {'uri': uri_});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        Uri
-            uri_)> templateSdkSpecificationNotFound = const Template<
-        Message Function(Uri uri_)>(
-    messageTemplate: r"""SDK libraries specification not found: #uri.""",
-    tipTemplate:
-        r"""Normally, the specification is a file named 'libraries.json' in the Dart SDK install location.""",
-    withArguments: _withArgumentsSdkSpecificationNotFound);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(Uri uri_)> codeSdkSpecificationNotFound =
-    const Code<Message Function(Uri uri_)>(
-  "SdkSpecificationNotFound",
-  templateSdkSpecificationNotFound,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSdkSpecificationNotFound(Uri uri_) {
-  String uri = relativizeUri(uri_);
-  return new Message(codeSdkSpecificationNotFound,
-      message: """SDK libraries specification not found: $uri.""",
-      tip:
-          """Normally, the specification is a file named 'libraries.json' in the Dart SDK install location.""",
       arguments: {'uri': uri_});
 }
 

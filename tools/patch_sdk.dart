@@ -108,7 +108,7 @@ Future _main(List<String> argv) async {
   libContents = _updateLibraryMetadata(sdkOut, libContents);
   var sdkLibraries = _getSdkLibraries(libContents);
 
-  var locations = <String, Map<String, String>>{};
+  Map<String, String> locations = <String, String>{};
 
   // Enumerate core libraries and apply patches
   for (SdkLibrary library in sdkLibraries) {
@@ -125,10 +125,7 @@ Future _main(List<String> argv) async {
   Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
 
   await _writeSync(
-      librariesJson.toFilePath(),
-      JSON.encode({
-        mode: {"libraries": locations}
-      }));
+      librariesJson.toFilePath(), JSON.encode({"libraries": locations}));
 
   var flags = new TargetFlags();
   var target = forVm
@@ -144,22 +141,6 @@ Future _main(List<String> argv) async {
     var base = path.fromUri(Platform.script);
     Uri dartDir =
         new Uri.directory(path.dirname(path.dirname(path.absolute(base))));
-
-    String vmserviceJson = JSON.encode({
-      'vm': {
-        "libraries": {
-          '_vmservice': {
-            'uri': dartDir.resolve('sdk/lib/vmservice/vmservice.dart').path
-          },
-          'vmservice_io': {
-            'uri':
-                dartDir.resolve('runtime/bin/vmservice/vmservice_io.dart').path
-          },
-        }
-      }
-    });
-    Uri vmserviceJsonUri = outDirUri.resolve("lib/vmservice_libraries.json");
-    await _writeSync(vmserviceJsonUri.toFilePath(), vmserviceJson);
     var program = await kernelForProgram(
         Uri.parse('dart:$vmserviceName'),
         new CompilerOptions()
@@ -167,7 +148,11 @@ Future _main(List<String> argv) async {
           // TODO(sigmund): investigate. This should be outline, but it breaks
           // vm-debug tests. Issue #30111
           ..sdkSummary = platform
-          ..librariesSpecificationUri = vmserviceJsonUri
+          ..dartLibraries = <String, Uri>{
+            '_vmservice': dartDir.resolve('sdk/lib/vmservice/vmservice.dart'),
+            'vmservice_io':
+                dartDir.resolve('runtime/bin/vmservice/vmservice_io.dart'),
+          }
           ..packagesFileUri = packages);
     Uri vmserviceUri = outDirUri.resolve('$vmserviceName.dill');
     // TODO(sigmund): remove. This is a workaround because in the VM
@@ -348,7 +333,7 @@ String _updateLibraryMetadata(String sdkOut, String libContents) {
 /// Copy internal libraries that are developed outside the sdk folder into the
 /// patched_sdk folder. For the VM< this includes files under 'runtime/bin/',
 /// for flutter, this is includes also the ui library.
-_copyExtraLibraries(String sdkOut, Map<String, Map<String, String>> locations) {
+_copyExtraLibraries(String sdkOut, Map<String, String> locations) {
   if (forDart2js) return;
   var base = path.fromUri(Platform.script);
   var dartDir = path.dirname(path.dirname(path.absolute(base)));
@@ -356,7 +341,7 @@ _copyExtraLibraries(String sdkOut, Map<String, Map<String, String>> locations) {
   var builtinLibraryIn = path.join(dartDir, 'runtime', 'bin', 'builtin.dart');
   var builtinLibraryOut = path.join(sdkOut, '_builtin', '_builtin.dart');
   _writeSync(builtinLibraryOut, readInputFile(builtinLibraryIn));
-  addLocation(locations, '_builtin', path.join('_builtin', '_builtin.dart'));
+  locations['_builtin'] = path.join('_builtin', '_builtin.dart');
 
   if (forFlutter) {
     // Flutter repo has this layout:
@@ -371,7 +356,7 @@ _copyExtraLibraries(String sdkOut, Map<String, Map<String, String>> locations) {
       var uiLibraryOut = path.join(sdkOut, 'ui', name);
       _writeSync(uiLibraryOut, readInputFile(file.path));
     }
-    addLocation(locations, 'ui', path.join('ui', 'ui.dart'));
+    locations['ui'] = 'ui/ui.dart';
 
     if (!forFlutterRelease) {
       // vmservice should be present unless we build release flavor of Flutter.
@@ -383,23 +368,22 @@ _copyExtraLibraries(String sdkOut, Map<String, Map<String, String>> locations) {
         var libraryOut = path.join(sdkOut, 'vmservice_io', file);
         _writeSync(libraryOut, readInputFile(libraryIn));
       }
-      addLocation(locations, 'vmservice_sky',
-          path.join('vmservice_io', 'vmservice_io.dart'));
-      addLocation(
-          locations, '_vmservice', path.join('vmservice', 'vmservice.dart'));
+      locations['vmservice_sky'] =
+          path.join('vmservice_io', 'vmservice_io.dart');
+      locations['_vmservice'] = path.join('vmservice', 'vmservice.dart');
     }
   }
 }
 
 _applyPatch(SdkLibrary library, String sdkLibIn, String patchIn, String sdkOut,
-    Map<String, Map<String, String>> locations) {
+    Map<String, String> locations) {
   var libraryOut = path.join(sdkLibIn, library.path);
   var libraryIn = libraryOut;
 
   var libraryFile = getInputFile(libraryIn, canBeMissing: true);
   if (libraryFile != null) {
-    addLocation(locations, Uri.parse(library.shortName).path,
-        path.relative(libraryOut, from: sdkLibIn));
+    locations[Uri.parse(library.shortName).path] =
+        path.relative(libraryOut, from: sdkLibIn);
     var outPaths = <String>[libraryOut];
     var libraryContents = libraryFile.readAsStringSync();
 
@@ -821,10 +805,4 @@ List<SdkLibrary> _getSdkLibraries(String contents) {
   var libraryBuilder = new SdkLibrariesReader_LibraryBuilder(forDart2js);
   parseCompilationUnit(contents).accept(libraryBuilder);
   return libraryBuilder.librariesMap.sdkLibraries;
-}
-
-void addLocation(Map<String, Map<String, String>> locations, String libraryName,
-    String path) {
-  assert(locations[libraryName] == null);
-  locations[libraryName] = {'uri': path};
 }

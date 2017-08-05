@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/incremental_kernel_generator_impl.dart';
-import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:kernel/kernel.dart';
 
 import 'compiler_options.dart';
@@ -101,11 +100,9 @@ abstract class IncrementalKernelGenerator {
       CompilerOptions options, Uri entryPoint,
       {WatchUsedFilesFn watch}) async {
     var processedOptions = new ProcessedOptions(options, false, [entryPoint]);
-    return await CompilerContext.runWithOptions(processedOptions, (_) async {
-      var uriTranslator = await processedOptions.getUriTranslator();
-      return new IncrementalKernelGeneratorImpl(
-          processedOptions, uriTranslator, entryPoint,
-          watch: watch);
-    });
+    var uriTranslator = await processedOptions.getUriTranslator();
+    return new IncrementalKernelGeneratorImpl(
+        processedOptions, uriTranslator, entryPoint,
+        watch: watch);
   }
 }

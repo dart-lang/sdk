@@ -24,14 +24,16 @@ main() {
 class FileSystemStateTest {
   final byteStore = new MemoryByteStore();
   final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
+  final UriTranslatorImpl uriTranslator =
+      new UriTranslatorImpl({}, {}, Packages.noPackages);
   FileSystemState fsState;
 
   Uri _coreUri;
   List<Uri> _newFileUris = <Uri>[];
 
   void setUp() {
-    var uriTranslator =
-        new UriTranslatorImpl(createSdkFiles(fileSystem), Packages.noPackages);
+    Map<String, Uri> dartLibraries = createSdkFiles(fileSystem);
+    uriTranslator.dartLibraries.addAll(dartLibraries);
     _coreUri = Uri.parse('dart:core');
     expect(_coreUri, isNotNull);
     fsState = new FileSystemState(byteStore, fileSystem, uriTranslator, <int>[],

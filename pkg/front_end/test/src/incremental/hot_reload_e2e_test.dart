@@ -175,12 +175,22 @@ Future<IncrementalKernelGenerator> createIncrementalCompiler(
   var entryUri = Uri.base.resolve(entry);
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
+    ..sdkSummary = sdkRoot.resolve('outline.dill')
     ..packagesFileUri = Uri.parse('file:///.packages')
     ..strongMode = false
-    ..compileSdk = true // the incremental generator requires the sdk sources
+    ..dartLibraries = loadDartLibraries()
     ..fileSystem = fs
     ..byteStore = new MemoryByteStore();
   return IncrementalKernelGenerator.newInstance(options, entryUri);
+}
+
+Map<String, Uri> loadDartLibraries() {
+  var libraries = sdkRoot.resolve('lib/libraries.json');
+  var map =
+      JSON.decode(new File.fromUri(libraries).readAsStringSync())['libraries'];
+  var dartLibraries = <String, Uri>{};
+  map.forEach((k, v) => dartLibraries[k] = libraries.resolve(v));
+  return dartLibraries;
 }
 
 Future<bool> rebuild(IncrementalKernelGenerator compiler, Uri outputUri) async {

@@ -36,8 +36,10 @@ class IncrementalKernelGeneratorTest {
   /// Compute the initial [Program] for the given [entryPoint].
   Future<Program> getInitialState(Uri entryPoint,
       {bool setPackages: true}) async {
-    createSdkFiles(fileSystem);
+    Map<String, Uri> dartLibraries = createSdkFiles(fileSystem);
     // TODO(scheglov) Builder the SDK kernel and set it into the options.
+
+    // TODO(scheglov) Make `.packages` file optional.
 
     var compilerOptions = new CompilerOptions()
       ..fileSystem = fileSystem
@@ -45,7 +47,7 @@ class IncrementalKernelGeneratorTest {
 //      ..logger = new PerformanceLog(stdout)
       ..strongMode = true
       ..chaseDependencies = true
-      ..librariesSpecificationUri = Uri.parse('file:///sdk/lib/libraries.json');
+      ..dartLibraries = dartLibraries;
 
     if (setPackages) {
       compilerOptions.packagesFileUri = Uri.parse('file:///test/.packages');
