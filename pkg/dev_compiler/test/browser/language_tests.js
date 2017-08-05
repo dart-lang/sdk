@@ -295,8 +295,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require',
       'list_removeat_test': fail,
 
       'iterable_to_list_test_01_multi': fail,
-      'iterable_to_list_test_none_multi': fail,
-      'iterable_to_set_test': fail
+      'iterable_to_list_test_none_multi': fail
     },
 
     'corelib/regexp': {
