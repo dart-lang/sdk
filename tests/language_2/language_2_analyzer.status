@@ -145,8 +145,6 @@ black_listed_test/none: fail # Issue 14228
 body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
 built_in_identifier_prefix_test: CompileTimeError
 cascade_test/none: fail # Issue 11577
-cast_test/04: MissingCompileTimeError
-cast_test/05: MissingCompileTimeError
 
 [ $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -169,6 +167,8 @@ accessor_conflict_import2_test: StaticWarning # Issue 25626
 accessor_conflict_import_prefixed2_test: StaticWarning # Issue 25626
 accessor_conflict_import_prefixed_test: StaticWarning # Issue 25626
 accessor_conflict_import_test: StaticWarning # Issue 25626
+cast_test/04: MissingCompileTimeError
+cast_test/05: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30207
 
 [ $compiler == dart2analyzer && $runtime == none ]

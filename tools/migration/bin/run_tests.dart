@@ -54,6 +54,7 @@ final allConfigs = {
   // dart2js-jsshell?
   "analyzer": [analyzer, noRuntime, useSdk],
   "analyzer-checked": [analyzer, noRuntime, checked, useSdk],
+  "analyzer-strong": [analyzer, noRuntime, checked, strong, useSdk],
   "dart2js": [dart2js, chrome, useSdk, dart2jsBatch],
   "dart2js-jsshell": [dart2js, jsshell, fastStartup, useSdk, dart2jsBatch],
   // TODO(rnystrom): Is it worth running dart2js on Firefox too?
