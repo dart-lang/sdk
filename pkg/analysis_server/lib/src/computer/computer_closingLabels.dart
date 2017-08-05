@@ -59,7 +59,8 @@ class _DartUnitClosingLabelsComputerVisitor
   @override
   visitListLiteral(ListLiteral node) {
     if (_spansManyLines(node)) {
-      final typeName = node.typeArguments?.arguments[0]?.toString();
+      final args = node.typeArguments?.arguments;
+      final typeName = args != null ? args[0]?.toString() : null;
 
       if (typeName != null) {
         _addLabel(node, "List<$typeName>");

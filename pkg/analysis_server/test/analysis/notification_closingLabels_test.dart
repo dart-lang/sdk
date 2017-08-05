@@ -233,14 +233,46 @@ void myMethod() {
     ''');
   }
 
+  test_knownBadCode1() async {
+    // This code crashed during testing when I accidentally inserted a test snippet.
+    await _testCode(
+        0,
+        '''
+@override
+Widget build(BuildContext context) {
+  new SliverGrid(
+            gridDelegate: gridDelegate,
+            delegate: myMethod(<test('', () {
+              
+            });>[
+              "a",
+              'b',
+              "c",
+            ]),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+      ''',
+        // TODO(dantup) Results here are currently bad so this test is just checking that we
+        // dont crash. Need to confirm what to do here; the bad labels might not be fixed
+        // until the code is using the new shared parser.
+        // https://github.com/dart-lang/sdk/issues/30370
+        checkResults: false);
+  }
+
   /// Helper that updates files and waits for server notifications before performing checks.
-  _testCode(int labelCount, String code) async {
+  _testCode(int labelCount, String code, {bool checkResults = true}) async {
     addTestFile(code);
     await waitForTasksFinished();
     expect(lastLabels, isNull);
 
     await waitForLabels(() => subscribeForLabels());
-    _compareLastResultsWithTestFileComments(labelCount);
+    if (checkResults) {
+      _compareLastResultsWithTestFileComments(labelCount);
+    }
   }
 
   /// Compares the latest received closing labels with expected
