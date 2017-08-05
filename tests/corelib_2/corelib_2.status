@@ -165,6 +165,7 @@ typed_data_with_limited_ints_test: Skip # dart2js and dartdevc don't know about 
 
 [ $compiler == dart2js && $runtime != none ]
 nan_infinity_test/01: RuntimeError
+iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 
 [ $compiler == dart2js && $runtime == drt && $csp && $minified ]
 core_runtime_types_test: Pass, Fail # Issue 27913
@@ -172,7 +173,7 @@ core_runtime_types_test: Pass, Fail # Issue 27913
 [ $compiler != dartdevc ]
 error_stack_trace_test/static: MissingCompileTimeError
 
-[ $compiler == dartdevc ]
+[ $compiler == dartdevc && $runtime != none ]
 error_stack_trace_test/nullThrown: RuntimeError # .stackTrace not present for exception caught from 'throw null;'
 list_fill_range_test: RuntimeError # Issue 29921
 list_insert_test: RuntimeError # Issue 29921
@@ -296,6 +297,7 @@ big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
 
 [ $compiler == none && ($runtime == vm || $runtime == flutter)]
 string_trimlr_test/02: RuntimeError # Issue 29060
+iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 
 [ $compiler == precompiler || $compiler == app_jit ]
 string_trimlr_test/02: RuntimeError # Issue 29060
@@ -343,6 +345,7 @@ from_environment_const_type_undefined_test/12: MissingCompileTimeError
 from_environment_const_type_undefined_test/13: MissingCompileTimeError
 from_environment_const_type_undefined_test/14: MissingCompileTimeError
 from_environment_const_type_undefined_test/16: MissingCompileTimeError
+iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 
 [ $compiler == dart2js && $runtime == safari ]
 regexp/no-extensions_test: RuntimeError
