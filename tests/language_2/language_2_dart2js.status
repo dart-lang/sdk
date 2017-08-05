@@ -48,6 +48,26 @@ bit_operations_test/02: MissingCompileTimeError
 bit_operations_test/03: MissingCompileTimeError
 bit_operations_test/04: MissingCompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
+call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
+call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
+call_constructor_on_unresolvable_class_test/03: MissingCompileTimeError
+call_non_method_field_test/01: MissingCompileTimeError
+call_non_method_field_test/02: MissingCompileTimeError
+call_nonexistent_constructor_test/01: MissingCompileTimeError
+call_nonexistent_constructor_test/02: MissingCompileTimeError
+call_nonexistent_static_test/01: MissingCompileTimeError
+call_nonexistent_static_test/02: MissingCompileTimeError
+call_nonexistent_static_test/03: MissingCompileTimeError
+call_nonexistent_static_test/04: MissingCompileTimeError
+call_nonexistent_static_test/05: MissingCompileTimeError
+call_nonexistent_static_test/06: MissingCompileTimeError
+call_nonexistent_static_test/07: MissingCompileTimeError
+call_nonexistent_static_test/08: MissingCompileTimeError
+call_nonexistent_static_test/09: MissingCompileTimeError
+call_nonexistent_static_test/10: MissingCompileTimeError
+call_through_getter_test/01: MissingCompileTimeError
+call_through_getter_test/02: MissingCompileTimeError
+call_type_literal_test/01: MissingCompileTimeError
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
@@ -72,6 +92,7 @@ assertion_initializer_const_function_error_test/01: Crash
 assertion_initializer_const_function_test/01: CompileTimeError
 assertion_initializer_test: Crash
 bad_typedef_test/00: Crash # Issue 28214
+call_function_apply_test: RuntimeError # Issue 23873
 canonical_const2_test: RuntimeError, OK # Issue 1533
 
 [ $compiler == dart2js && $runtime != none && ! $dart2js_with_kernel ]
@@ -106,6 +127,7 @@ async_star_take_reyield_test: RuntimeError # Issue 27394
 black_listed_test/13c: Crash # Issue 27394
 black_listed_test/14c: Crash # Issue 27394
 bootstrap_test: RuntimeError # Issue 27394
+call_nonexistent_static_test/10: Crash # Issue 27394
 
 [ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
 assertion_initializer_const_function_test/none: RuntimeError
@@ -368,6 +390,30 @@ function_type/function_type97_test: Crash
 function_type/function_type98_test: Crash
 function_type/function_type99_test: Crash
 function_type/function_type9_test: Crash
+call_closurization_test: Crash
+call_constructor_on_unresolvable_class_test/07: Crash
+call_function_apply_test: Crash
+call_nonexistent_constructor_test/01: Crash
+call_nonexistent_constructor_test/02: Crash
+call_nonexistent_constructor_test/none: Crash
+call_nonexistent_static_test/01: Crash
+call_nonexistent_static_test/02: Crash
+call_nonexistent_static_test/03: Crash
+call_nonexistent_static_test/04: Crash
+call_nonexistent_static_test/05: Crash
+call_nonexistent_static_test/06: Crash
+call_nonexistent_static_test/07: Crash
+call_nonexistent_static_test/08: Crash
+call_nonexistent_static_test/09: Crash
+call_nonexistent_static_test/10: Crash
+call_nonexistent_static_test/none: Crash
+call_operator_test: RuntimeError
+call_property_test: Crash
+call_test: Crash
+call_through_getter_test: Crash
+call_through_null_getter_test: Crash
+call_type_literal_test/01: Crash
+call_with_no_such_method_test: Crash
 canonical_const2_test: RuntimeError
 canonical_const3_test: Crash
 canonical_const_test: Crash
@@ -651,6 +697,30 @@ function_type/function_type97_test: Crash
 function_type/function_type98_test: Crash
 function_type/function_type99_test: Crash
 function_type/function_type9_test: Crash
+call_closurization_test: Crash
+call_constructor_on_unresolvable_class_test/07: Crash
+call_function_apply_test: Crash
+call_nonexistent_constructor_test/01: Crash
+call_nonexistent_constructor_test/02: Crash
+call_nonexistent_constructor_test/none: Crash
+call_nonexistent_static_test/01: Crash
+call_nonexistent_static_test/02: Crash
+call_nonexistent_static_test/03: Crash
+call_nonexistent_static_test/04: Crash
+call_nonexistent_static_test/05: Crash
+call_nonexistent_static_test/06: Crash
+call_nonexistent_static_test/07: Crash
+call_nonexistent_static_test/08: Crash
+call_nonexistent_static_test/09: Crash
+call_nonexistent_static_test/10: Crash
+call_nonexistent_static_test/none: Crash
+call_operator_test: Crash
+call_operator_test: RuntimeError
+call_test: Crash
+call_through_getter_test: Crash
+call_through_null_getter_test: Crash
+call_type_literal_test/01: Crash
+call_with_no_such_method_test: Crash
 canonical_const2_test: Crash
 canonical_const2_test: RuntimeError
 canonical_const3_test: Crash
@@ -740,3 +810,6 @@ function_type/function_type6_test: Crash # Issue 27394
 function_type/function_type7_test: Crash # Issue 27394
 function_type/function_type98_test: Crash # Issue 27394
 function_type/function_type99_test: Crash # Issue 27394
+
+[ $compiler == dart2js && $runtime == safarimobilesim ]
+call_through_getter_test: Fail, OK

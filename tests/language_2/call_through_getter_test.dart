@@ -29,12 +29,8 @@ class CallThroughGetterTest {
     Expect.equals(1, TOP_LEVEL_CONST_REF);
     Expect.equals(2, topLevel());
 
-    expectThrowsNoSuchMethod(() {
-      TOP_LEVEL_CONST(); //# static type warning
-    });
-    expectThrowsNoSuchMethod(() {
-      (TOP_LEVEL_CONST)(); // //# static type warning
-    });
+    TOP_LEVEL_CONST(); //# 01: compile-time error
+    (TOP_LEVEL_CONST)(); //# 02: compile-time error
   }
 
   static void testField() {
@@ -48,10 +44,10 @@ class CallThroughGetterTest {
     Expect.equals(87, (a.field)());
 
     a.field = 99;
-    expectThrowsNoSuchMethod(() {
+    Expect.throwsNoSuchMethodError(() {
       a.field();
     });
-    expectThrowsNoSuchMethod(() {
+    Expect.throwsNoSuchMethodError(() {
       (a.field)();
     });
   }
@@ -67,10 +63,10 @@ class CallThroughGetterTest {
     Expect.equals(87, (a.getter)());
 
     a.field = 99;
-    expectThrowsNoSuchMethod(() {
+    Expect.throwsNoSuchMethodError(() {
       a.getter();
     });
-    expectThrowsNoSuchMethod(() {
+    Expect.throwsNoSuchMethodError(() {
       (a.getter)();
     });
   }
@@ -114,28 +110,6 @@ class CallThroughGetterTest {
     Expect.equals("yzxgf", b.g3(b.y, b.z, b.x));
     b = new B();
     Expect.equals("gyzxf", (b.g3)(b.y, b.z, b.x));
-  }
-
-  static expectThrowsNoSuchMethod(fn) {
-    var exception = catchException(fn);
-    if (exception is! NoSuchMethodError) {
-      Expect.fail("Wrong exception.  Expected: NoSuchMethodError"
-          " got: ${exception}");
-    }
-  }
-
-  static catchException(fn) {
-    bool caught = false;
-    var result = null;
-    try {
-      fn();
-      Expect.equals(true, false); // Shouldn't reach this.
-    } catch (e) {
-      caught = true;
-      result = e;
-    }
-    Expect.equals(true, caught);
-    return result;
   }
 }
 

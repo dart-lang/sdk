@@ -48,6 +48,26 @@ bit_operations_test/01: MissingCompileTimeError
 bit_operations_test/02: MissingCompileTimeError
 bit_operations_test/03: MissingCompileTimeError
 bit_operations_test/04: MissingCompileTimeError
+call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
+call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
+call_constructor_on_unresolvable_class_test/03: MissingCompileTimeError
+call_non_method_field_test/01: MissingCompileTimeError
+call_non_method_field_test/02: MissingCompileTimeError
+call_nonexistent_constructor_test/01: MissingCompileTimeError
+call_nonexistent_constructor_test/02: MissingCompileTimeError
+call_nonexistent_static_test/01: MissingCompileTimeError
+call_nonexistent_static_test/02: MissingCompileTimeError
+call_nonexistent_static_test/03: MissingCompileTimeError
+call_nonexistent_static_test/04: MissingCompileTimeError
+call_nonexistent_static_test/05: MissingCompileTimeError
+call_nonexistent_static_test/06: MissingCompileTimeError
+call_nonexistent_static_test/07: MissingCompileTimeError
+call_nonexistent_static_test/08: MissingCompileTimeError
+call_nonexistent_static_test/09: MissingCompileTimeError
+call_nonexistent_static_test/10: MissingCompileTimeError
+call_through_getter_test/01: MissingCompileTimeError
+call_through_getter_test/02: MissingCompileTimeError
+call_type_literal_test/01: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && ! $strong && $checked ]
 abstract_beats_arguments_test: MissingCompileTimeError
@@ -91,6 +111,26 @@ bit_operations_test/01: MissingCompileTimeError
 bit_operations_test/02: MissingCompileTimeError
 bit_operations_test/03: MissingCompileTimeError
 bit_operations_test/04: MissingCompileTimeError
+call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
+call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
+call_constructor_on_unresolvable_class_test/03: MissingCompileTimeError
+call_non_method_field_test/01: MissingCompileTimeError
+call_non_method_field_test/02: MissingCompileTimeError
+call_nonexistent_constructor_test/01: MissingCompileTimeError
+call_nonexistent_constructor_test/02: MissingCompileTimeError
+call_nonexistent_static_test/01: MissingCompileTimeError
+call_nonexistent_static_test/02: MissingCompileTimeError
+call_nonexistent_static_test/03: MissingCompileTimeError
+call_nonexistent_static_test/04: MissingCompileTimeError
+call_nonexistent_static_test/05: MissingCompileTimeError
+call_nonexistent_static_test/06: MissingCompileTimeError
+call_nonexistent_static_test/07: MissingCompileTimeError
+call_nonexistent_static_test/08: MissingCompileTimeError
+call_nonexistent_static_test/09: MissingCompileTimeError
+call_nonexistent_static_test/10: MissingCompileTimeError
+call_through_getter_test/01: MissingCompileTimeError
+call_through_getter_test/02: MissingCompileTimeError
+call_type_literal_test/01: MissingCompileTimeError
 
 [ $compiler == dart2analyzer ]
 async_return_types_test/nestedFuture: MissingCompileTimeError

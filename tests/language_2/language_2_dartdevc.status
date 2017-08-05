@@ -40,5 +40,7 @@ bit_operations_test/04: RuntimeError # No bigints on web.
 bit_operations_test/none: RuntimeError # No bigints on web.
 branch_canonicalization_test: RuntimeError # Issue 29920
 function_type/*: RuntimeError # Issue 28988
+call_closurization_test: RuntimeError # Issue 29920
+call_test: RuntimeError
 canonical_const2_test: RuntimeError # Ints and doubles are unified.
 canonical_const_test: RuntimeError # Ints and doubles are unified.

@@ -1,7 +1,7 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--optimization_counter_threshold=10
+// VMOptions=--optimization_counter_threshold=10 --no-background_compilation
 
 import "package:expect/expect.dart";
 
@@ -37,7 +37,7 @@ main() {
     Expect.equals("4455", named_arg.call(x: 44, y: 55));
   }
 
-  Expect.throws(() => bar.call(), (e) => e is NoSuchMethodError);
-  Expect.throws(() => opt_arg.call(x: "p"), (e) => e is NoSuchMethodError);
-  Expect.throws(() => named_arg.call("p", "q"), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => (bar as dynamic).call());
+  Expect.throwsNoSuchMethodError(() => (opt_arg as dynamic).call(x: "p"));
+  Expect.throwsNoSuchMethodError(() => (named_arg as dynamic).call("p", "q"));
 }

@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 // Tests that we can call functions through getters which return null.
 
-const TOP_LEVEL_NULL = null;
+const dynamic TOP_LEVEL_NULL = null;
 
 var topLevel;
 
@@ -20,16 +20,16 @@ class CallThroughNullGetterTest {
 
   static void testTopLevel() {
     topLevel = null;
-    expectThrowsNoSuchMethodError(() {
+    Expect.throwsNoSuchMethodError(() {
       topLevel();
     });
-    expectThrowsNoSuchMethodError(() {
+    Expect.throwsNoSuchMethodError(() {
       (topLevel)();
     });
-    expectThrowsNoSuchMethodError(() {
+    Expect.throwsNoSuchMethodError(() {
       TOP_LEVEL_NULL();
     });
-    expectThrowsNoSuchMethodError(() {
+    Expect.throwsNoSuchMethodError(() {
       (TOP_LEVEL_NULL)();
     });
   }
@@ -38,10 +38,10 @@ class CallThroughNullGetterTest {
     A a = new A();
 
     a.field = null;
-    expectThrowsNoSuchMethodError(() {
+    Expect.throwsNoSuchMethodError(() {
       a.field();
     });
-    expectThrowsNoSuchMethodError(() {
+    Expect.throwsNoSuchMethodError(() {
       (a.field)();
     });
   }
@@ -50,10 +50,10 @@ class CallThroughNullGetterTest {
     A a = new A();
 
     a.field = null;
-    expectThrowsNoSuchMethodError(() {
+    Expect.throwsNoSuchMethodError(() {
       a.getter();
     });
-    expectThrowsNoSuchMethodError(() {
+    Expect.throwsNoSuchMethodError(() {
       (a.getter)();
     });
   }
@@ -62,14 +62,9 @@ class CallThroughNullGetterTest {
     A a = new A();
 
     a.field = null;
-    expectThrowsNoSuchMethodError(() {
+    Expect.throwsNoSuchMethodError(() {
       a.method()();
     });
-  }
-
-  static void expectThrowsNoSuchMethodError(fn) {
-    Expect.throws(
-        fn, (e) => e is NoSuchMethodError, "Should throw NoSuchMethodError");
   }
 }
 

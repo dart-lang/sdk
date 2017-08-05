@@ -19,7 +19,6 @@ setter4_test: CompileTimeError # issue 13639
 try_catch_on_syntax_test/10: Fail # Issue 19823
 try_catch_on_syntax_test/11: Fail # Issue 19823
 
-call_function_apply_test: RuntimeError # Issue 23873
 mixin_supertype_subclass_test: CompileTimeError # Issue 23773
 mixin_supertype_subclass2_test: CompileTimeError # Issue 23773
 mixin_supertype_subclass3_test: CompileTimeError # Issue 23773
@@ -257,7 +256,6 @@ string_literals_test: RuntimeError # Issue 27533
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 # Safari codegen bug, fixed on some versions of Safari 7.1 (Version 7.1 (9537.85.10.17.1))
-call_through_getter_test: Fail, OK
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
@@ -292,7 +290,6 @@ await_for_use_local_test: RuntimeError # Issue 27394
 black_listed_test/13c: Crash # Issue 27394
 black_listed_test/14c: Crash # Issue 27394
 bootstrap_test: RuntimeError # Issue 27394
-call_nonexistent_static_test/10: Crash # Issue 27394
 conditional_property_assignment_test/07: RuntimeError # Issue 27394
 conditional_property_increment_decrement_test/01: RuntimeError # Issue 27394
 conditional_property_increment_decrement_test/05: RuntimeError # Issue 27394
@@ -566,6 +563,20 @@ call_through_getter_test: Crash
 call_through_null_getter_test: Crash
 call_type_literal_test/01: Crash
 call_with_no_such_method_test: Crash
+canonical_const2_test: RuntimeError
+canonical_const3_test: Crash
+canonical_const_test: Crash
+cascade2_test: Crash
+cascade_in_expression_function_test: Crash
+cascade_precedence_test: Crash
+cascade_test/none: Crash
+cast_test/04: RuntimeError
+cast_test/05: RuntimeError
+cast_test/none: RuntimeError
+catch_liveness_test: Crash
+cha_deopt1_test: CompileTimeError
+cha_deopt2_test: CompileTimeError
+cha_deopt3_test: CompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 checked_null_test/01: Crash
 checked_setter2_test: Crash
@@ -2151,6 +2162,24 @@ call_through_getter_test: Crash
 call_through_null_getter_test: Crash
 call_type_literal_test/01: Crash
 call_with_no_such_method_test: Crash
+canonical_const2_test: Crash
+canonical_const2_test: RuntimeError
+canonical_const3_test: Crash
+canonical_const_test: Crash
+cascade2_test: Crash
+cascade_in_expression_function_test: Crash
+cascade_precedence_test: Crash
+cascade_test/none: Crash
+cast_test/04: Crash
+cast_test/04: RuntimeError
+cast_test/05: Crash
+cast_test/05: RuntimeError
+cast_test/none: Crash
+cast_test/none: RuntimeError
+catch_liveness_test: Crash
+cha_deopt1_test: CompileTimeError
+cha_deopt2_test: CompileTimeError
+cha_deopt3_test: CompileTimeError
 check_member_static_test/02: Crash
 check_member_static_test/02: MissingCompileTimeError
 checked_null_test/01: Crash
@@ -2345,10 +2374,10 @@ custom_await_stack_trace_test: Crash
 cyclic_constructor_test/01: Crash
 cyclic_default_values_test: Crash
 cyclic_type2_test: Crash
-cyclic_type_test/00: RuntimeError	
-cyclic_type_test/01: RuntimeError	
-cyclic_type_test/02: RuntimeError	
-cyclic_type_test/03: RuntimeError	
+cyclic_type_test/00: RuntimeError
+cyclic_type_test/01: RuntimeError
+cyclic_type_test/02: RuntimeError
+cyclic_type_test/03: RuntimeError
 cyclic_type_test/04: RuntimeError
 dangling_else_test: Crash
 dead_field_access_test: Crash

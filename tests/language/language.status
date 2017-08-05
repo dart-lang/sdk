@@ -397,10 +397,6 @@ check_method_override_test/02: CompileTimeError
 malformed_inheritance_test/02: CompileTimeError
 malformed_inheritance_test/04: CompileTimeError
 malformed_inheritance_test/06: CompileTimeError
-call_constructor_on_unresolvable_class_test/01: CompileTimeError
-call_constructor_on_unresolvable_class_test/03: CompileTimeError
-call_constructor_on_unresolvable_class_test/02: CompileTimeError
-call_constructor_on_unresolvable_class_test/07: CompileTimeError
 unicode_bom_test: CompileTimeError
 prefix16_test: CompileTimeError
 deferred_not_loaded_check_test: CompileTimeError

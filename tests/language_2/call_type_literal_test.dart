@@ -4,11 +4,10 @@
 
 import "package:expect/expect.dart";
 
-class A {
-  call(a) => a is num;
+class C {
+  void a() {}
 }
 
-main() {
-  Expect.isTrue(new A().call(42));
-  Expect.isFalse(new A()('foo'));
+void main() {
+  C().a(); //# 01: compile-time error
 }
