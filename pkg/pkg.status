@@ -161,6 +161,7 @@ front_end/test/scanner_replacement_test: RuntimeError # Issue 30279.
 front_end/test/scanner_test: RuntimeError # Issue 30279.
 front_end/test/src/async_dependency_walker_test: RuntimeError # Issue 30279.
 front_end/test/src/base/flat_buffers_test: RuntimeError # Issue 30279.
+front_end/test/src/base/libraries_specification_test: RuntimeError # Issue 30279.
 front_end/test/src/base/uri_resolver_test: RuntimeError # Issue 30279.
 front_end/test/src/dependency_walker_test: RuntimeError # Issue 30279.
 front_end/test/src/incremental/byte_store_test: RuntimeError # Issue 30279.
