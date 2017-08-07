@@ -63,14 +63,10 @@ class MemoryFileSystemEntity implements FileSystemEntity {
 
   /// Create a directory for this file system entry.
   ///
-  /// If the entry already exists, either as a file, or as a directory,
-  /// this is an error.
+  /// If the entry is an existing file, this is an error.
   void createDirectory() {
     if (_fileSystem._files[uri] != null) {
       throw new FileSystemException(uri, 'Entry $uri is a file.');
-    }
-    if (_fileSystem._directories.contains(uri)) {
-      throw new FileSystemException(uri, 'Directory $uri already exists.');
     }
     _fileSystem._directories.add(uri);
   }

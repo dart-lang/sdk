@@ -51,6 +51,10 @@ class KernelDriver {
   /// Options used by the kernel compiler.
   final ProcessedOptions _options;
 
+  /// The optional SDK outline as a serialized program.
+  /// If provided, the driver will not attempt to read SDK files.
+  final List<int> _sdkOutlineBytes;
+
   /// The logger to report compilation progress.
   final PerformanceLog _logger;
 
@@ -68,6 +72,10 @@ class KernelDriver {
   /// reading the file contents.
   final KernelDriverFileAddedFn _fileAddedFn;
 
+  /// The optional SDK outline loaded from [_sdkOutlineBytes].
+  /// Might be `null` if the bytes are not provided, or if not loaded yet.
+  Program _sdkOutline;
+
   /// The salt to mix into all hashes used as keys for serialized data.
   List<int> _salt;
 
@@ -82,10 +90,11 @@ class KernelDriver {
   final _TestView _testView = new _TestView();
 
   KernelDriver(this._options, this._uriTranslator,
-      {KernelDriverFileAddedFn fileAddedFn})
+      {List<int> sdkOutlineBytes, KernelDriverFileAddedFn fileAddedFn})
       : _logger = _options.logger,
         _fileSystem = _options.fileSystem,
         _byteStore = _options.byteStore,
+        _sdkOutlineBytes = sdkOutlineBytes,
         _fileAddedFn = fileAddedFn {
     _computeSalt();
 
@@ -122,6 +131,10 @@ class KernelDriver {
     return await runWithFrontEndContext('Compute delta', () async {
       await _refreshInvalidatedFiles();
 
+      // Load the SDK outline before building the graph, so that the file
+      // system state is configured to skip SDK libraries.
+      await _loadSdkOutline();
+
       // Ensure that the graph starting at the entry point is ready.
       FileState entryLibrary =
           await _logger.runAsync('Build graph of files', () async {
@@ -137,6 +150,12 @@ class KernelDriver {
       CanonicalName nameRoot = new CanonicalName.root();
       DillTarget dillTarget = new DillTarget(
           new Ticker(isVerbose: false), _uriTranslator, _options.target);
+
+      // If there is SDK outline, load it.
+      if (_sdkOutline != null) {
+        dillTarget.loader.appendLibraries(_sdkOutline);
+        await dillTarget.buildOutlines();
+      }
 
       List<LibraryCycleResult> results = [];
       _testView.compiledCycles.clear();
@@ -297,6 +316,9 @@ class KernelDriver {
     var saltBuilder = new ApiSignature();
     saltBuilder.addInt(DATA_VERSION);
     saltBuilder.addBool(_options.strongMode);
+    if (_sdkOutlineBytes != null) {
+      saltBuilder.addBytes(_sdkOutlineBytes);
+    }
     _salt = saltBuilder.toByteList();
   }
 
@@ -333,6 +355,23 @@ class KernelDriver {
     }
 
     return signatureBuilder.toHex();
+  }
+
+  /// Load the SDK outline if its bytes are provided, and configure the file
+  /// system state to skip SDK library files.
+  Future<Null> _loadSdkOutline() async {
+    if (_sdkOutlineBytes != null) {
+      if (_sdkOutline == null) {
+        await _logger.runAsync('Load SDK outline from bytes.', () async {
+          _sdkOutline = new Program();
+          new BinaryBuilder(_sdkOutlineBytes).readProgram(_sdkOutline);
+          // Configure the file system state to skip the outline libraries.
+          for (var outlineLibrary in _sdkOutline.libraries) {
+            _fsState.skipSdkLibraries.add(outlineLibrary.importUri);
+          }
+        });
+      }
+    }
   }
 
   /// Refresh all the invalidated files and update dependencies.

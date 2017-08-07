@@ -44,7 +44,8 @@ class FileTest extends _BaseTestNative {
 
   test_createDirectory_exists_asDirectory() async {
     file.createDirectory();
-    expect(() => file.createDirectory(), _throwsFileSystemException);
+    file.createDirectory();
+    expect(await file.exists(), true);
   }
 
   test_createDirectory_exists_asFile() async {
