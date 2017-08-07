@@ -924,8 +924,16 @@ void Scavenger::Evacuate() {
 }
 
 int64_t Scavenger::UsedInWords() const {
-  int64_t used_in_words = (top_ - FirstObjectStart()) >> kWordSizeLog2;
-  return used_in_words;
+  int64_t free_space_in_tlab = 0;
+  if (heap_->isolate()->IsMutatorThreadScheduled()) {
+    Thread* mutator_thread = heap_->isolate()->mutator_thread();
+    if (mutator_thread->HasActiveTLAB()) {
+      free_space_in_tlab =
+          (mutator_thread->end() - mutator_thread->top()) >> kWordSizeLog2;
+    }
+  }
+  int64_t max_space_used = (top_ - FirstObjectStart()) >> kWordSizeLog2;
+  return max_space_used - free_space_in_tlab;
 }
 
 }  // namespace dart
