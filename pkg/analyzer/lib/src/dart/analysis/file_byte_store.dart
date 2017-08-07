@@ -5,5 +5,5 @@
 // This library re-exports the parts of front_end's file_byte_store.dart whose
 // API is stable enough to be relied upon by clients.
 
-export 'package:front_end/src/incremental/file_byte_store.dart'
+export 'package:front_end/src/byte_store/file_byte_store.dart'
     show FileByteStore;

@@ -34,7 +34,7 @@ import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/fasta/builder/builder.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart' as fasta;
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:meta/meta.dart';
 
 /**

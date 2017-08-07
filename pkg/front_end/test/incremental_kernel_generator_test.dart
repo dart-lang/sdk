@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/incremental_kernel_generator_impl.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/text/ast_to_text.dart';

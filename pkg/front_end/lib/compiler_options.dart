@@ -5,7 +5,7 @@
 library front_end.compiler_options;
 
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:kernel/target/targets.dart' show Target;
 
 import 'compilation_message.dart';

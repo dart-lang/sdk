@@ -14,7 +14,7 @@ import 'package:front_end/src/fasta/severity.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/kernel.dart'
     show Program, loadProgramFromBytes, CanonicalName;

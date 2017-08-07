@@ -12,7 +12,7 @@ import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/resolve_relative_uri.dart';
 import 'package:front_end/src/dependency_walker.dart' as graph;
 import 'package:front_end/src/fasta/uri_translator.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/incremental/format.dart';
 import 'package:front_end/src/incremental/unlinked_unit.dart';
 import 'package:kernel/target/vm.dart';

@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:package_config/packages.dart';
 import 'package:test/test.dart';
