@@ -2545,7 +2545,7 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     MonitorLocker ml(threads_lock(), false);
 
     // Check to make sure we don't already have a mutator thread.
-    if (is_mutator && mutator_thread_ != NULL) {
+    if (is_mutator && scheduled_mutator_thread_ != NULL) {
       return NULL;
     }
 
@@ -2573,11 +2573,11 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     ASSERT(thread->no_safepoint_scope_depth() == 0);
     os_thread->set_thread(thread);
     if (is_mutator) {
-      mutator_thread_ = thread;
+      scheduled_mutator_thread_ = thread;
       if ((Dart::vm_isolate() != NULL) &&
           (heap() != Dart::vm_isolate()->heap())) {
-        mutator_thread_->set_top(0);
-        mutator_thread_->set_end(0);
+        scheduled_mutator_thread_->set_top(0);
+        scheduled_mutator_thread_->set_end(0);
       }
     }
     Thread::SetCurrent(thread);
@@ -2619,12 +2619,12 @@ void Isolate::UnscheduleThread(Thread* thread,
   if (is_mutator) {
     if ((Dart::vm_isolate() != NULL) &&
         (heap() != Dart::vm_isolate()->heap())) {
-      if (mutator_thread_->HasActiveTLAB()) {
-        heap()->AbandonRemainingTLAB(mutator_thread_);
+      if (scheduled_mutator_thread_->HasActiveTLAB()) {
+        heap()->AbandonRemainingTLAB(scheduled_mutator_thread_);
       }
     }
-    ASSERT(!mutator_thread_->HasActiveTLAB());
-    mutator_thread_ = NULL;
+    ASSERT(!scheduled_mutator_thread_->HasActiveTLAB());
+    scheduled_mutator_thread_ = NULL;
   }
   thread->isolate_ = NULL;
   thread->heap_ = NULL;
