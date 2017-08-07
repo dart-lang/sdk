@@ -4,65 +4,33 @@
 
 library fasta.uri_translator_impl;
 
-import 'dart:async' show Future;
-import 'dart:convert' show JSON;
-
-import 'package:front_end/file_system.dart'
-    show FileSystem, FileSystemException;
+import 'package:front_end/src/base/libraries_specification.dart'
+    show TargetLibrariesSpecification;
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 import 'package:front_end/src/fasta/uri_translator.dart';
-import 'package:package_config/packages_file.dart' as packages_file show parse;
 import 'package:package_config/packages.dart' show Packages;
-import 'package:package_config/src/packages_impl.dart' show MapPackages;
-
-import 'deprecated_problems.dart' show deprecated_inputError;
-
-/// Read the JSON file with defined SDK libraries from the given [uri] in the
-/// [fileSystem] and return the mapping from parsed Dart library names (e.g.
-/// `math`) to file URIs.
-Future<Map<String, Uri>> computeDartLibraries(
-    FileSystem fileSystem, Uri uri) async {
-  if (uri == null) return const <String, Uri>{};
-  Map<String, String> libraries = JSON
-      .decode(await fileSystem.entityForUri(uri).readAsString())["libraries"];
-  Map<String, Uri> result = <String, Uri>{};
-  libraries.forEach((String name, String path) {
-    result[name] = uri.resolveUri(new Uri.file(path));
-  });
-  return result;
-}
-
-Future<Map<String, List<Uri>>> computeDartPatches(
-    FileSystem fileSystem, Uri uri) async {
-  // TODO(ahe): Read patch information.
-  return const <String, List<Uri>>{};
-}
 
 /// Implementation of [UriTranslator] for absolute `dart` and `package` URIs.
 class UriTranslatorImpl implements UriTranslator {
-  /// Mapping from Dart library names (e.g. `math`) to file URIs.
-  final Map<String, Uri> dartLibraries;
-
-  // TODO(ahe): We probably want this to be `Map<String, Uri>`, that is, just
-  // one patch library (with parts).
-  /// Mapping from Dart library names to the file URIs of patches to apply.
-  final Map<String, List<Uri>> dartPatches;
+  /// Library information for platform libraries.
+  final TargetLibrariesSpecification dartLibraries;
 
   /// Mapping from package names (e.g. `angular`) to the file URIs.
   final Packages packages;
 
-  UriTranslatorImpl(this.dartLibraries, this.dartPatches, this.packages);
+  UriTranslatorImpl(this.dartLibraries, this.packages);
 
   @override
-  List<Uri> getDartPatches(String libraryName) => dartPatches[libraryName];
+  List<Uri> getDartPatches(String libraryName) =>
+      dartLibraries.libraryInfoFor(libraryName)?.patches;
 
   @override
   bool isPlatformImplementation(Uri uri) {
     if (uri.scheme != "dart") return false;
     String path = uri.path;
-    return dartLibraries[path] == null || path.startsWith("_");
+    return dartLibraries.libraryInfoFor(path) == null || path.startsWith("_");
   }
 
   @override
@@ -82,11 +50,11 @@ class UriTranslatorImpl implements UriTranslator {
     String path = uri.path;
 
     int index = path.indexOf('/');
-    if (index == -1) return dartLibraries[path];
+    if (index == -1) return dartLibraries.libraryInfoFor(path)?.uri;
 
     String libraryName = path.substring(0, index);
     String relativePath = path.substring(index + 1);
-    Uri libraryFileUri = dartLibraries[libraryName];
+    Uri libraryFileUri = dartLibraries.libraryInfoFor(libraryName).uri;
     return libraryFileUri?.resolve(relativePath);
   }
 
@@ -115,33 +83,5 @@ class UriTranslatorImpl implements UriTranslator {
     // this null result will likely cause another error further down in the
     // compiler.
     return null;
-  }
-
-  static Future<UriTranslator> parse(FileSystem fileSystem, Uri sdk,
-      {Uri packages}) async {
-    Uri librariesJson = sdk?.resolve("lib/libraries.json");
-
-    // TODO(ahe): Provide a value for this file.
-    Uri patches = null;
-
-    packages ??= Uri.base.resolve(".packages");
-
-    List<int> bytes;
-    try {
-      bytes = await fileSystem.entityForUri(packages).readAsBytes();
-    } on FileSystemException catch (e) {
-      deprecated_inputError(packages, -1, e.message);
-    }
-
-    Packages parsedPackages;
-    try {
-      parsedPackages = new MapPackages(packages_file.parse(bytes, packages));
-    } on FormatException catch (e) {
-      return deprecated_inputError(packages, e.offset, e.message);
-    }
-
-    var dartLibraries = await computeDartLibraries(fileSystem, librariesJson);
-    return new UriTranslatorImpl(dartLibraries,
-        await computeDartPatches(fileSystem, patches), parsedPackages);
   }
 }

@@ -9,7 +9,6 @@ library front_end.example.incremental_reload.compiler_with_invalidation;
 
 import 'dart:io';
 import 'dart:async';
-import 'dart:convert' show JSON;
 
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
@@ -33,7 +32,6 @@ Future<IncrementalCompiler> createIncrementalCompiler(String entry,
     ..sdkRoot = sdkRoot
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..strongMode = false
-    ..dartLibraries = loadDartLibraries(sdkRoot)
     // Note: we do not report error on the console because the incremental
     // compiler is an ongoing background service that shouldn't polute stdout.
     // TODO(sigmund): do something with the errors.
@@ -41,18 +39,6 @@ Future<IncrementalCompiler> createIncrementalCompiler(String entry,
     ..byteStore =
         persistent ? new FileByteStore(tmpDir.path) : new MemoryByteStore();
   return IncrementalCompiler.create(options, entryUri);
-}
-
-/// Reads the `libraries.json` file for an SDK to provide the location of the
-/// SDK files.
-// TODO(sigmund): this should be handled by package:front_end internally.
-Map<String, Uri> loadDartLibraries(Uri sdkRoot) {
-  var libraries = sdkRoot.resolve('lib/libraries.json');
-  var map =
-      JSON.decode(new File.fromUri(libraries).readAsStringSync())['libraries'];
-  var dartLibraries = <String, Uri>{};
-  map.forEach((k, v) => dartLibraries[k] = libraries.resolve(v));
-  return dartLibraries;
 }
 
 /// An incremental compiler that monitors file modifications on disk and

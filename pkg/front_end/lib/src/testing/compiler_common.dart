@@ -85,6 +85,9 @@ Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
     }
   });
   fs.entityForUri(toTestUri('.packages')).writeAsStringSync('');
+  fs
+      .entityForUri(invalidCoreLibsSpecUri)
+      .writeAsStringSync(_invalidLibrariesSpec);
   options
     ..verify = true
     ..fileSystem = new HybridFileSystem(fs)
@@ -105,13 +108,22 @@ Uri _defaultDir = Uri.parse('file:///a/b/c/');
 /// helpers above.
 Uri toTestUri(String relativePath) => _defaultDir.resolve(relativePath);
 
-/// A map defining the location of core libraries that purposely provides
-/// invalid Uris. Used by tests that want to ensure that the sdk libraries are
-/// not loaded from sources, but read from a .dill file.
-Map<String, Uri> invalidCoreLibs = {
-  'core': Uri.parse('file:///non_existing_file/core.dart'),
-  'async': Uri.parse('file:///non_existing_file/async.dart'),
-};
+/// Uri to a libraries specification file that purposely provides
+/// invalid Uris to dart:core and dart:async. Used by tests that want to ensure
+/// that the sdk libraries are not loaded from sources, but read from a .dill
+/// file.
+Uri invalidCoreLibsSpecUri = toTestUri('invalid_sdk_libraries.json');
+
+String _invalidLibrariesSpec = '''
+{
+  "vm": {
+    "libraries": {
+      "core":  {"uri": "/non_existing_file/core.dart"},
+      "async": {"uri": "/non_existing_file/async.dart"}
+    }
+  }
+}
+''';
 
 bool isDartCoreLibrary(Library lib) => isDartCore(lib.importUri);
 bool isDartCore(Uri uri) => uri.scheme == 'dart' && uri.path == 'core';
