@@ -22,7 +22,6 @@ main(List<String> args) async {
   var options = new CompilerOptions()
     ..target = new Dart2jsTarget(new TargetFlags())
     ..packagesFileUri = Uri.base.resolve('.packages')
-    ..compileSdk = true
     ..setExitCodeOnProblem = true
     ..linkedDependencies = [Uri.base.resolve(flags['platform'])];
 
