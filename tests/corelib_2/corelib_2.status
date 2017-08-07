@@ -371,6 +371,7 @@ list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
 
 [ $compiler == dart2js && $runtime == d8 ]
 string_trimlr_test/02: RuntimeError, Pass # Uses Unicode 6.2.0 or earlier, issue 30279.
+uri_base_test: RuntimeError # D8 uses a custom uri scheme for Uri.base
 
 [ $compiler == dart2js && $dart2js_with_kernel_in_ssa ]
 symbol_reserved_word_test/03: Pass # Issue 27394
