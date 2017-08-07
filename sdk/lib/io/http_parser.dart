@@ -664,9 +664,15 @@ class _HttpParser extends Stream<_HttpIncoming> {
             }
             if (headerField == "connection") {
               List<String> tokens = _tokenizeFieldValue(headerValue);
+              final bool isResponse = _messageType == _MessageType.RESPONSE;
+              final bool isUpgradeCode =
+                  (_statusCode == HttpStatus.UPGRADE_REQUIRED) ||
+                      (_statusCode == HttpStatus.SWITCHING_PROTOCOLS);
               for (int i = 0; i < tokens.length; i++) {
-                if (_caseInsensitiveCompare(
-                    "upgrade".codeUnits, tokens[i].codeUnits)) {
+                final bool isUpgrade = _caseInsensitiveCompare(
+                    "upgrade".codeUnits, tokens[i].codeUnits);
+                if ((isUpgrade && !isResponse) ||
+                    (isUpgrade && isResponse && isUpgradeCode)) {
                   _connectionUpgrade = true;
                 }
                 _headers._add(headerField, tokens[i]);
