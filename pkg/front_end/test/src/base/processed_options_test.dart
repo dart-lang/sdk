@@ -13,7 +13,6 @@ import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/kernel.dart' show Program, Library, CanonicalName;
 import 'package:package_config/packages.dart' show Packages;
-
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -198,14 +197,14 @@ class ProcessedOptionsTest {
   }
 
   test_getUriTranslator_implicitPackagesFile_nextToScript() async {
-    // Fake the existence of the base directory.
+    // Create the base directory.
     fileSystem
         .entityForUri(Uri.parse('file:///base/location/'))
-        .writeAsStringSync('');
+        .createDirectory();
     // Packages directory should be ignored (.packages file takes precedence).
     fileSystem
         .entityForUri(Uri.parse('file:///base/location/packages/'))
-        .writeAsStringSync('');
+        .createDirectory();
     // This .packages file should be ignored.
     fileSystem
         .entityForUri(Uri.parse('file:///.packages'))
@@ -222,10 +221,10 @@ class ProcessedOptionsTest {
   }
 
   test_getUriTranslator_implicitPackagesFile_searchAbove() async {
-    // Fake the existence of the base directory.
+    // Create the base directory.
     fileSystem
         .entityForUri(Uri.parse('file:///base/location/'))
-        .writeAsStringSync('');
+        .createDirectory();
     // This .packages file should be ignored.
     fileSystem
         .entityForUri(Uri.parse('file:///.packages'))
@@ -242,13 +241,13 @@ class ProcessedOptionsTest {
   }
 
   test_getUriTranslator_implicitPackagesFile_packagesDirectory() async {
-    // Fake the existence of the base directory.
+    // Create the base directory.
     fileSystem
         .entityForUri(Uri.parse('file:///base/location/'))
-        .writeAsStringSync('');
+        .createDirectory();
     fileSystem
         .entityForUri(Uri.parse('file:///base/location/packages/'))
-        .writeAsStringSync('');
+        .createDirectory();
 
     // Both of these .packages file should be ignored.
     fileSystem
@@ -266,10 +265,10 @@ class ProcessedOptionsTest {
   }
 
   test_getUriTranslator_implicitPackagesFile_noPackages() async {
-    // Fake the existence of the base directory.
+    // Create the base directory.
     fileSystem
         .entityForUri(Uri.parse('file:///base/location/'))
-        .writeAsStringSync('');
+        .createDirectory();
     var errors = [];
     // .packages file should be ignored.
     var raw = new CompilerOptions()
