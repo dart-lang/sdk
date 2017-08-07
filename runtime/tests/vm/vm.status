@@ -284,6 +284,7 @@ cc/Invoke_CrossLibrary:  Crash
 cc/IsolateReload_BadClass: Fail
 cc/IsolateReload_ClassFieldAdded: Crash
 cc/IsolateReload_ClassFieldAdded2: Crash
+cc/IsolateReload_ClassFieldRemoved: Crash
 cc/IsolateReload_ChangeInstanceFormat1: Skip
 cc/IsolateReload_ChangeInstanceFormat3: Skip
 cc/IsolateReload_ChangeInstanceFormat7: Skip
