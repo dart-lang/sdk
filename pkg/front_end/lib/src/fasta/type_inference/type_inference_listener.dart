@@ -232,6 +232,12 @@ class TypeInferenceListener
   void intLiteralExit(IntLiteral expression, DartType inferredType) =>
       genericExpressionExit("intLiteral", expression, inferredType);
 
+  void invalidInitializerEnter(LocalInitializer initializer) =>
+      genericInitializerEnter("invalidInitializer", initializer);
+
+  void invalidInitializerExit(LocalInitializer initializer) =>
+      genericInitializerExit("invalidInitializer", initializer);
+
   bool isExpressionEnter(IsExpression expression, DartType typeContext) =>
       genericExpressionEnter("isExpression", expression, typeContext);
 

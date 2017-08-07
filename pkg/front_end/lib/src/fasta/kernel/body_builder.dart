@@ -3137,7 +3137,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   Initializer buildInvalidInitializer(Expression expression,
       [int charOffset = -1]) {
     needsImplicitSuperInitializer = false;
-    return new LocalInitializer(new VariableDeclaration.forValue(expression))
+    return new KernelInvalidInitializer(
+        new VariableDeclaration.forValue(expression))
       ..fileOffset = charOffset;
   }
 

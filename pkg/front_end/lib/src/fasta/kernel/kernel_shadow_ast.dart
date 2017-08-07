@@ -1019,6 +1019,19 @@ class KernelIntLiteral extends IntLiteral implements KernelExpression {
   }
 }
 
+/// Concrete shadow object representing an invalid initializer in kernel form.
+class KernelInvalidInitializer extends LocalInitializer
+    implements KernelInitializer {
+  KernelInvalidInitializer(VariableDeclaration variable) : super(variable);
+
+  @override
+  void _inferInitializer(KernelTypeInferrer inferrer) {
+    inferrer.listener.invalidInitializerEnter(this);
+    inferrer.inferExpression(variable.initializer, null, false);
+    inferrer.listener.invalidInitializerExit(this);
+  }
+}
+
 /// Concrete shadow object representing a non-inverted "is" test in kernel form.
 class KernelIsExpression extends IsExpression implements KernelExpression {
   KernelIsExpression(Expression operand, DartType type) : super(operand, type);
