@@ -2492,11 +2492,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       exitLocalScope();
     }
     FormalParameters formals = pop();
-    List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
-    FunctionNode function = formals.addToFunction(new FunctionNode(body,
-        typeParameters: typeParameters, asyncMarker: asyncModifier)
-      ..fileOffset = formals.charOffset
-      ..fileEndOffset = token.charOffset);
     exitLocalScope();
     var declaration = pop();
     var returnType = pop();
@@ -2504,6 +2499,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     returnType ??= const DynamicType();
     pop(); // Modifiers.
     exitFunction();
+    List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
+    FunctionNode function = formals.addToFunction(new FunctionNode(body,
+        typeParameters: typeParameters, asyncMarker: asyncModifier)
+      ..fileOffset = formals.charOffset
+      ..fileEndOffset = token.charOffset);
     if (declaration is FunctionDeclaration) {
       KernelFunctionDeclaration.setHasImplicitReturnType(
           declaration, hasImplicitReturnType);

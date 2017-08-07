@@ -1176,13 +1176,7 @@ class Parser {
         }
 
         if (looksLikeType && token.isIdentifier) {
-          // If the identifier token has a type substitution comment /*=T*/,
-          // then the set of tokens type tokens should be replaced with the
-          // tokens parsed from the comment.
           Token afterId = token.next;
-
-          begin =
-              listener.replaceTokenWithGenericCommentTypeAssign(begin, token);
 
           int afterIdKind = afterId.kind;
           if (looksLikeVariableDeclarationEnd(afterIdKind)) {
@@ -1197,18 +1191,44 @@ class Parser {
             if (looksLikeFunctionBody(closeBraceTokenFor(afterId).next)) {
               // We are looking at `type identifier '(' ... ')'` followed
               // `( '{' | '=>' | 'async' | 'sync' )`.
-              return parseLocalFunctionDeclaration(begin);
+
+              // Although it looks like there are no type variables here, they
+              // may get injected from a comment.
+              Token formals = parseTypeVariablesOpt(afterId);
+
+              listener.beginLocalFunctionDeclaration(begin);
+              listener.handleModifiers(0);
+              if (voidToken != null) {
+                listener.handleVoidKeyword(voidToken);
+              } else {
+                commitType();
+              }
+              listener.beginFunctionName(token);
+              token = parseIdentifier(
+                  token, IdentifierContext.localFunctionDeclaration);
+              listener.endFunctionName(begin, token);
+              return parseLocalFunctionDeclarationFromFormals(formals);
             }
           } else if (identical(afterIdKind, LT_TOKEN)) {
             // We are looking at `type identifier '<'`.
-            Token afterTypeVariables = closeBraceTokenFor(afterId)?.next;
-            if (afterTypeVariables != null &&
-                optional("(", afterTypeVariables)) {
-              if (looksLikeFunctionBody(
-                  closeBraceTokenFor(afterTypeVariables).next)) {
+            Token formals = closeBraceTokenFor(afterId)?.next;
+            if (formals != null && optional("(", formals)) {
+              if (looksLikeFunctionBody(closeBraceTokenFor(formals).next)) {
                 // We are looking at "type identifier '<' ... '>' '(' ... ')'"
                 // followed by '{', '=>', 'async', or 'sync'.
-                return parseLocalFunctionDeclaration(begin);
+                parseTypeVariablesOpt(afterId);
+                listener.beginLocalFunctionDeclaration(begin);
+                listener.handleModifiers(0);
+                if (voidToken != null) {
+                  listener.handleVoidKeyword(voidToken);
+                } else {
+                  commitType();
+                }
+                listener.beginFunctionName(token);
+                token = parseIdentifier(
+                    token, IdentifierContext.localFunctionDeclaration);
+                listener.endFunctionName(begin, token);
+                return parseLocalFunctionDeclarationFromFormals(formals);
               }
             }
           }
@@ -1219,7 +1239,21 @@ class Parser {
             return parseLabeledStatement(token);
           } else if (optional('(', token.next)) {
             if (looksLikeFunctionBody(closeBraceTokenFor(token.next).next)) {
-              return parseLocalFunctionDeclaration(token);
+              // We are looking at `identifier '(' ... ')'` followed by `'{'`,
+              // `'=>'`, `'async'`, or `'sync'`.
+
+              // Although it looks like there are no type variables here, they
+              // may get injected from a comment.
+              Token formals = parseTypeVariablesOpt(token.next);
+
+              listener.beginLocalFunctionDeclaration(token);
+              listener.handleModifiers(0);
+              listener.handleNoType(token);
+              listener.beginFunctionName(token);
+              token = parseIdentifier(
+                  token, IdentifierContext.localFunctionDeclaration);
+              listener.endFunctionName(begin, token);
+              return parseLocalFunctionDeclarationFromFormals(formals);
             }
           } else if (optional('<', token.next)) {
             Token afterTypeVariables = closeBraceTokenFor(token.next)?.next;
@@ -1227,7 +1261,18 @@ class Parser {
                 optional("(", afterTypeVariables)) {
               if (looksLikeFunctionBody(
                   closeBraceTokenFor(afterTypeVariables).next)) {
-                return parseLocalFunctionDeclaration(token);
+                // We are looking at `identifier '<' ... '>' '(' ... ')'`
+                // followed by `'{'`, `'=>'`, `'async'`, or `'sync'`.
+                parseTypeVariablesOpt(token.next);
+                listener.beginLocalFunctionDeclaration(token);
+                listener.handleModifiers(0);
+                listener.handleNoType(token);
+                listener.beginFunctionName(token);
+                token = parseIdentifier(
+                    token, IdentifierContext.localFunctionDeclaration);
+                listener.endFunctionName(begin, token);
+                return parseLocalFunctionDeclarationFromFormals(
+                    afterTypeVariables);
               }
             }
             // Fall through to expression statement.
@@ -2335,16 +2380,17 @@ class Parser {
     return isBlock ? token.next : token;
   }
 
-  Token parseLocalFunctionDeclaration(Token token) {
-    listener.beginLocalFunctionDeclaration(token);
-    Token beginToken = token;
-    token = parseModifiers(token, MemberKind.Local);
-    listener.beginFunctionName(token);
-    token = parseIdentifier(token, IdentifierContext.localFunctionDeclaration);
-    token = parseQualifiedRestOpt(
-        token, IdentifierContext.localFunctionDeclarationContinuation);
-    listener.endFunctionName(beginToken, token);
-    token = parseTypeVariablesOpt(token);
+  /// Parses the rest of a local function declaration starting from formal
+  /// parameters.
+  ///
+  /// Precondition: the parser has previously generated these events:
+  ///
+  /// - Type variables.
+  /// - beginLocalFunctionDeclaration.
+  /// - Modifiers.
+  /// - Return type.
+  /// - Function name.
+  Token parseLocalFunctionDeclarationFromFormals(Token token) {
     token = parseFormalParametersOpt(token, MemberKind.Local);
     token = parseInitializersOpt(token);
     AsyncModifier savedAsyncModifier = asyncState;
