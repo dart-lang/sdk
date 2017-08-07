@@ -2195,19 +2195,14 @@ class KernelTypeInferrer extends TypeInferrerImpl {
 
   @override
   void inferInitializer(Initializer initializer) {
-    if (initializer is KernelInitializer) {
-      // Use polymorphic dispatch on [KernelInitializer] to perform whatever
-      // kind of type inference is correct for this kind of initializer.
-      // TODO(paulberry): experiment to see if dynamic dispatch would be better,
-      // so that the type hierarchy will be simpler (which may speed up "is"
-      // checks).
-      return initializer._inferInitializer(this);
-    } else {
-      // Encountered an initializer type for which type inference is not yet
-      // implemented, so just skip it for now.
-      // TODO(paulberry): once the BodyBuilder uses shadow classes for
-      // everything, this case should no longer be needed.
-    }
+    assert(initializer is KernelInitializer);
+    // Use polymorphic dispatch on [KernelInitializer] to perform whatever
+    // kind of type inference is correct for this kind of initializer.
+    // TODO(paulberry): experiment to see if dynamic dispatch would be better,
+    // so that the type hierarchy will be simpler (which may speed up "is"
+    // checks).
+    KernelInitializer kernelInitializer = initializer;
+    return kernelInitializer._inferInitializer(this);
   }
 
   @override
