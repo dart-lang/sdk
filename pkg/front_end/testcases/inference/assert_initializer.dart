@@ -8,14 +8,14 @@ library test;
 T f<T>() => null;
 
 class C {
-  C.expressionOnly() : assert(/*@typeArgs=dynamic*/ f());
+  C.expressionOnly() : assert(/*@typeArgs=bool*/ f());
   C.expressionAndMessage()
-      : assert(/*@typeArgs=dynamic*/ f(), /*@typeArgs=dynamic*/ f());
+      : assert(/*@typeArgs=bool*/ f(), /*@typeArgs=dynamic*/ f());
 }
 
 main() {
   // Test type inference of assert statements just to verify that the behavior
   // is the same.
-  assert(/*@typeArgs=dynamic*/ f());
-  assert(/*@typeArgs=dynamic*/ f(), /*@typeArgs=dynamic*/ f());
+  assert(/*@typeArgs=bool*/ f());
+  assert(/*@typeArgs=bool*/ f(), /*@typeArgs=dynamic*/ f());
 }

@@ -119,7 +119,8 @@ class KernelAssertStatement extends AssertStatement implements KernelStatement {
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
     inferrer.listener.assertStatementEnter(this);
-    inferrer.inferExpression(condition, null, false);
+    inferrer.inferExpression(
+        condition, inferrer.coreTypes.boolClass.rawType, false);
     if (message != null) {
       inferrer.inferExpression(message, null, false);
     }

@@ -5,18 +5,18 @@ import "dart:core" as core;
 class C extends core::Object {
   constructor expressionOnly() → void
     : final dynamic #t1 = () → dynamic
-      assert(self::f<dynamic>());
+      assert(self::f<core::bool>());
 .call(), super core::Object::•()
     ;
   constructor expressionAndMessage() → void
     : final dynamic #t2 = () → dynamic
-      assert(self::f<dynamic>(), self::f<dynamic>());
+      assert(self::f<core::bool>(), self::f<dynamic>());
 .call(), super core::Object::•()
     ;
 }
 static method f<T extends core::Object>() → self::f::T
   return null;
 static method main() → dynamic {
-  assert(self::f<dynamic>());
-  assert(self::f<dynamic>(), self::f<dynamic>());
+  assert(self::f<core::bool>());
+  assert(self::f<core::bool>(), self::f<dynamic>());
 }
