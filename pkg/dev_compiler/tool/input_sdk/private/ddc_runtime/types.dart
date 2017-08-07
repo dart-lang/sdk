@@ -1027,37 +1027,3 @@ isClassSubType(t1, t2, isCovariant) => JS(
   // can return false.
   return false;
 })()''');
-
-// TODO(jmesserly): this isn't currently used, but it could be if we want
-// `obj is NonGroundType<T,S>` to be rejected at runtime instead of compile
-// time.
-isGroundType(type) => JS(
-    '',
-    '''(() => {
-  // TODO(vsm): Cache this if we start using it at runtime.
-
-  // TODO(jmesserly): implement for generic function types if we start using?
-  if ($type instanceof $Typedef) $type = $type.functionType;
-
-  if ($type instanceof $FunctionType) {
-    if (!$_isTop($type.returnType)) return false;
-    for (let i = 0; i < $type.args.length; ++i) {
-      if (!$_isBottom($type.args[i])) return false;
-    }
-    for (let i = 0; i < $type.optionals.length; ++i) {
-      if (!$_isBottom($type.optionals[i])) return false;
-    }
-    let names = $getOwnPropertyNames($type.named);
-    for (let i = 0; i < names.length; ++i) {
-      if (!$_isBottom($type.named[names[i]])) return false;
-    }
-    return true;
-  }
-
-  let typeArgs = $getGenericArgs($type);
-  if (!typeArgs) return true;
-  for (let t of typeArgs) {
-    if (t != $Object && t != $dynamic) return false;
-  }
-  return true;
-})()''');

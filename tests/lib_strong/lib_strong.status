@@ -189,7 +189,6 @@ html/custom/regress_194523002_test: Crash # Issue 29922
 [ $compiler == dartdevc && $runtime != none ]
 async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_or_non_strong_test: RuntimeError # Issue 29922
-async/future_or_strong_test: RuntimeError # Issue 29922
 async/futures_test: RuntimeError # Issue 29922
 async/slow_consumer_test: Pass, Timeout # Issue 29922
 async/timer_not_available_test: RuntimeError # Issue 29922

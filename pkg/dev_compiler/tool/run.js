@@ -62,7 +62,6 @@ function finish(e) {
 }
 
 sdk.dart.ignoreWhitelistedErrors(false);
-sdk.dart.failForWeakModeIsChecks(false);
 sdk._isolate_helper.startRootIsolate(() => {}, []);
 // Make it easier to debug test failures and required for formatter test that
 // assumes custom formatters are enabled.

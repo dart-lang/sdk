@@ -13,7 +13,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require',
   let mochaOnError = window.onerror;
   dart_sdk.dart.trapRuntimeErrors(false);
   dart_sdk.dart.ignoreWhitelistedErrors(false);
-  dart_sdk.dart.failForWeakModeIsChecks(false);
   dart_sdk._isolate_helper.startRootIsolate(function() {}, []);
   // Make it easier to debug test failures and required for formatter test that
   // assumes custom formatters are enabled.
@@ -82,6 +81,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require',
       'await_for_test': 'slow',
       'bit_operations_test_none_multi': fail,  // DDC/dart2js canonicalize bitop results to unsigned
       'branch_canonicalization_test': fail,  // JS bit operations truncate to 32 bits.
+      'call_test': fail,
       'call_closurization_test': fail, // Functions do not expose a "call" method.
       'call_test': fail,
       'canonical_const2_test': fail,

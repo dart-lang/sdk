@@ -73,6 +73,21 @@
 
     * Support assert in const constructor initializer lists.
     * Better formatting for multi-line strings in argument lists.
+    wasn't in a Git repository.
+
+* Dart Dev Compiler
+
+  * dartdevc will no longer throw an error from `is` checks that return a
+    different result in weak mode
+    (SDK issue [28988](https://github.com/dart-lang/sdk/issues/28988)).
+    For example:
+    ```dart
+    main() {
+      List l = [];
+      // Prints "false", does not throw.
+      print(l is List<String>);
+    }
+    ```
 
 ## 1.24.2 - 22-06-2017
 

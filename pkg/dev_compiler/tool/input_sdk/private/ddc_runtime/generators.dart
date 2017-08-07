@@ -62,7 +62,7 @@ async_(gen, T, @rest args) => JS(
   let result = FutureT.microtask(function() {
     iter = $gen.apply(null, $args)[Symbol.iterator]();
     var result = onValue();
-    if ($strongInstanceOf(result, FutureT) == null) {
+    if ($isSubtype($getReifiedType(result), FutureT) == null) {
       // Chain the Future<dynamic> to a Future<T> to produce the correct
       // final type.
       return result.then($T)((x) => x, {onError: onError});

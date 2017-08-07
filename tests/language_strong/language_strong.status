@@ -728,7 +728,6 @@ deferred_call_empty_before_load_test: RuntimeError # Issue 27777
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 deferred_not_loaded_check_test: RuntimeError # Issue 27777
 deferred_redirecting_factory_test: RuntimeError # Issue 27777
-deferred_regression_22995_test: RuntimeError # Issue 29920
 deferred_static_seperate_test: RuntimeError # Issue 27777
 double_int_to_string_test: RuntimeError # Issue 29920
 dynamic_test: RuntimeError # Strong mode is-check failure: M1 does not soundly subtype Iface<dynamic, num>
@@ -744,56 +743,21 @@ flatten_test/08: MissingRuntimeError # Issue 29920
 flatten_test/09: MissingRuntimeError # Issue 29920
 flatten_test/12: MissingRuntimeError # Issue 29920
 for_variable_capture_test: RuntimeError # Issue 29920
-function_subtype0_test: RuntimeError # Issue 29920
-function_subtype1_test: RuntimeError # Issue 29920
-function_subtype2_test: RuntimeError # Issue 29920
-function_subtype3_test: RuntimeError # Issue 29920
-function_subtype_bound_closure0_test: RuntimeError # Issue 29920
-function_subtype_bound_closure1_test: RuntimeError # Issue 29920
-function_subtype_bound_closure2_test: RuntimeError # Issue 29920
-function_subtype_bound_closure3_test: RuntimeError # Issue 29920
-function_subtype_bound_closure4_test: RuntimeError # Issue 29920
-function_subtype_bound_closure5_test: RuntimeError # Issue 29920
-function_subtype_bound_closure5a_test: RuntimeError # Issue 29920
-function_subtype_bound_closure6_test: RuntimeError # Issue 29920
-function_subtype_call0_test: RuntimeError # Issue 29920
-function_subtype_call1_test: RuntimeError # Issue 29920
-function_subtype_call2_test: RuntimeError # Issue 29920
 function_subtype_cast0_test: RuntimeError # Issue 29920
 function_subtype_cast1_test: RuntimeError # Issue 29920
 function_subtype_cast2_test: RuntimeError # Issue 29920
 function_subtype_cast3_test: RuntimeError # Issue 29920
-function_subtype_factory0_test: RuntimeError # Issue 29920
-function_subtype_inline0_test: RuntimeError # Issue 29920
-function_subtype_local0_test: RuntimeError # Issue 29920
-function_subtype_local1_test: RuntimeError # Issue 29920
-function_subtype_local2_test: RuntimeError # Issue 29920
-function_subtype_local3_test: RuntimeError # Issue 29920
-function_subtype_local4_test: RuntimeError # Issue 29920
-function_subtype_local5_test: RuntimeError # Issue 29920
 function_subtype_named1_test: RuntimeError # Issue 29920
 function_subtype_named2_test: RuntimeError # Issue 29920
-function_subtype_not0_test: RuntimeError # Issue 29920
-function_subtype_not1_test: RuntimeError # Issue 29920
-function_subtype_not2_test: RuntimeError # Issue 29920
-function_subtype_not3_test: RuntimeError # Issue 29920
 function_subtype_optional1_test: RuntimeError # Issue 29920
 function_subtype_optional2_test: RuntimeError # Issue 29920
-function_subtype_top_level0_test: RuntimeError # Issue 29920
-function_subtype_top_level1_test: RuntimeError # Issue 29920
 function_subtype_typearg2_test: RuntimeError # Issue 29920
 function_subtype_typearg4_test: RuntimeError # Issue 29920
-function_type_alias2_test: RuntimeError # Issue 29920
 function_type_alias3_test: RuntimeError # Issue 29920
-function_type_alias4_test: RuntimeError # Issue 29920
 generic_instanceof2_test: RuntimeError # Issue 29920
 generic_instanceof_test: RuntimeError # Issue 29920
 generic_is_check_test: RuntimeError # Issue 29920
 generic_methods_generic_class_tearoff_test: RuntimeError # Issue 29920
-generic_methods_named_parameters_test: RuntimeError # Issue 29920
-generic_methods_optional_parameters_test: RuntimeError # Issue 29920
-generic_methods_tearoff_specialization_test: RuntimeError # Issue 29920
-generic_typedef_test: RuntimeError # Issue 29920
 getter_closure_execution_order_test: RuntimeError # Issue 29920
 identical_closure2_test: RuntimeError # Issue 29920
 infinite_switch_label_test: RuntimeError # Issue 29920
@@ -831,7 +795,6 @@ switch_try_catch_test: RuntimeError # Issue 29920
 throwing_lazy_variable_test: RuntimeError # Issue 29920
 truncdiv_test: RuntimeError # Issue 29920
 type_variable_nested_test: RuntimeError # Issue 29920
-type_variable_typedef_test: RuntimeError # Issue 29920
 
 # This test does not generate the expected compile time error, but it also does
 # not behave correctly at runtime. We cannot record this as "Fail" without

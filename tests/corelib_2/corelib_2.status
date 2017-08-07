@@ -82,8 +82,6 @@ date_time10_test: RuntimeError # Issue 29921
 growable_list_test: RuntimeError # Issue 29921
 hash_set_test/01: RuntimeError # Issue 29921
 iterable_to_list_test/*: RuntimeError
-iterable_to_set_test: RuntimeError
-list_unmodifiable_test: RuntimeError
 list_test/none: RuntimeError
 list_test/01: RuntimeError
 nan_infinity_test/01: RuntimeError # Issue 29921
