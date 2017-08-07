@@ -140,6 +140,10 @@ abstract class TypeInferenceEngine {
   TypeInferrer createLocalTypeInferrer(
       Uri uri, TypeInferenceListener listener, InterfaceType thisType);
 
+  /// Creates a disabled type inferrer (intended for debugging and profiling
+  /// only).
+  TypeInferrer createDisabledTypeInferrer();
+
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
   TypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,

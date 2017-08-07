@@ -427,6 +427,7 @@ regress/issue_29981: Crash
 regress/issue_29984: Crash
 regress/issue_29985: Crash
 regress/issue_29987: Crash
+reorder_super: Crash
 static_setter: Crash
 store_load: Crash
 stringliteral: Crash

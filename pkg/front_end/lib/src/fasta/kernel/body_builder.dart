@@ -511,7 +511,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               initializer = buildFieldInitializer(true, formal.name,
                   formal.charOffset, new VariableGet(formal.declaration));
             }
-            member.addInitializer(initializer);
+            member.addInitializer(initializer, _typeInferrer);
           }
         }
       }
@@ -573,7 +573,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     _typeInferrer.inferInitializer(initializer);
     if (member is KernelConstructorBuilder && !member.isExternal) {
-      member.addInitializer(initializer);
+      member.addInitializer(initializer, _typeInferrer);
     } else {
       deprecated_addCompileTimeError(
           token.charOffset, "Can't have initializers: ${member.name}");

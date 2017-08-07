@@ -36,8 +36,6 @@ import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 import '../type_inference/type_inference_listener.dart'
     show TypeInferenceListener;
 
-import '../type_inference/type_inferrer.dart' show TypeInferrerDisabled;
-
 import '../util/link.dart' show Link;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
@@ -434,7 +432,7 @@ class DietListener extends StackListener {
       thisType = cls.thisType;
     }
     var typeInferrer = library.disableTypeInference
-        ? new TypeInferrerDisabled()
+        ? typeInferenceEngine.createDisabledTypeInferrer()
         : typeInferenceEngine.createLocalTypeInferrer(uri, listener, thisType);
     return new BodyBuilder(library, builder, memberScope, formalParameterScope,
         hierarchy, coreTypes, currentClass, isInstanceMember, uri, typeInferrer)

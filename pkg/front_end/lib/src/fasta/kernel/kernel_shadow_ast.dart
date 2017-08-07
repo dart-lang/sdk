@@ -2112,6 +2112,10 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
   }
 
   @override
+  TypeInferrer createDisabledTypeInferrer() =>
+      new TypeInferrerDisabled(typeSchemaEnvironment);
+
+  @override
   KernelTypeInferrer createLocalTypeInferrer(
       Uri uri, TypeInferenceListener listener, InterfaceType thisType) {
     return new KernelTypeInferrer._(
