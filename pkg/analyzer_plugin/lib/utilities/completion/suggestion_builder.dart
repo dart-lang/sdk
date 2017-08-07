@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';
-import 'package:front_end/src/base/source.dart' show Source;
+import 'package:analyzer/src/generated/source.dart' show Source;
 
 /**
  * An object used to build code completion suggestions for Dart code.
