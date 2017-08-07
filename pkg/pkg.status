@@ -163,8 +163,8 @@ front_end/test/src/async_dependency_walker_test: RuntimeError # Issue 30279.
 front_end/test/src/base/flat_buffers_test: RuntimeError # Issue 30279.
 front_end/test/src/base/libraries_specification_test: RuntimeError # Issue 30279.
 front_end/test/src/base/uri_resolver_test: RuntimeError # Issue 30279.
+front_end/test/src/byte_store/byte_store_test: RuntimeError # Issue 30279.
 front_end/test/src/dependency_walker_test: RuntimeError # Issue 30279.
-front_end/test/src/incremental/byte_store_test: RuntimeError # Issue 30279.
 front_end/test/src/incremental/format_test: RuntimeError # Issue 30279.
 front_end/test/src/multi_root_file_system_test: RuntimeError # Issue 30279.
 front_end/test/token_test: RuntimeError # Issue 30279.
