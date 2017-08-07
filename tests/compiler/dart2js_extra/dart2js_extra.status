@@ -183,7 +183,6 @@ regress/4562_test/01: Crash # Issue 27394
 22776_test: Crash
 22868_test: Crash
 22917_test: Crash
-23056_test: RuntimeError
 23264_test: Crash
 23404_test: Crash
 23432_test: Crash

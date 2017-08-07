@@ -1286,8 +1286,10 @@ class Namer {
   /// Returns a proposed name for the given typedef or class [element].
   /// The returned id is guaranteed to be a valid JavaScript identifier.
   String _proposeNameForType(Entity element) {
-    return element.name.replaceAll('+', '_');
+    return element.name.replaceAll(_nonIdentifierRE, '_');
   }
+
+  static RegExp _nonIdentifierRE = new RegExp(r'[^A-Za-z0-9_$]');
 
   /// Returns a proposed name for the given top-level or static member
   /// [element]. The returned id is guaranteed to be a valid JavaScript
