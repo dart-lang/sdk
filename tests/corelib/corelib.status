@@ -99,7 +99,6 @@ duration2_test: Crash
 duration_big_num_test: Crash
 duration_double_multiplication_test: Crash
 duration_test: Crash
-error_stack_trace1_test: Crash
 error_stack_trace1_test: Pass # Issue 27394
 error_stack_trace2_test: Crash
 error_stack_trace_test: Crash
@@ -165,7 +164,6 @@ set_retainAll_test: Crash
 set_test: Crash
 set_to_string_test: Crash
 shuffle_test: Crash
-sort_test: Crash
 sort_test: RuntimeError
 splay_tree_from_iterable_test: Crash
 splay_tree_from_iterables_test: Crash
@@ -242,7 +240,6 @@ duration2_test: Crash
 duration_big_num_test: Crash
 duration_double_multiplication_test: Crash
 duration_test: Crash
-error_stack_trace1_test: Crash
 error_stack_trace1_test: Pass # Issue 27394
 error_stack_trace2_test: Crash
 error_stack_trace_test: Crash
@@ -321,7 +318,6 @@ regexp/parentheses_test: Crash
 regexp/stack-overflow2_test: Crash
 regexp/stack-overflow_test: Crash
 regress_11099_test: Crash
-regress_r21715_test: Crash
 regress_r21715_test: RuntimeError
 safe_to_string_test: Crash
 set_containsAll_test: Crash
@@ -334,7 +330,6 @@ set_retainAll_test: Crash
 set_test: Crash
 set_to_string_test: Crash
 shuffle_test: Crash
-sort_test: Crash
 sort_test: RuntimeError
 splay_tree_from_iterable_test: Crash
 splay_tree_from_iterables_test: Crash

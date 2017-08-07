@@ -126,7 +126,6 @@ regexp/range-bound-ffff_test: RuntimeError # Issue 29921
 regexp/range-out-of-order_test: RuntimeError # Issue 29921
 regexp/ranges-and-escaped-hyphens_test: RuntimeError # Issue 29921
 regexp/regress-6-9-regexp_test: RuntimeError # Issue 29921
-regexp/regress-6-9-regexp_test: RuntimeError # Issue 29921
 regexp/pcre-test-4_test: RuntimeError # Issue 29921
 regexp/regress-regexp-codeflush_test: RuntimeError # Issue 29921
 regexp/regress-regexp-construct-result_test: RuntimeError # Issue 29921
@@ -468,14 +467,24 @@ double_parse_test/02: Crash
 double_parse_test/03: Crash
 double_parse_test/04: Crash
 double_parse_test/none: Crash
+double_round2_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+double_truncate2_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+duration_test: Crash # Assertion failure: Cannot find value local(main_closure.call#d1) in (local(main#)) for j:closure_call(main_closure.call).
+dynamic_nosuchmethod_test: Crash # type 'KMethod' is not a subtype of type 'MemberElement' of 'member' where
+error_stack_trace1_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+error_stack_trace2_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+error_stack_trace_test/none: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+error_stack_trace_test/nullThrown: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
 exception_implementation_test: Crash
 expando_test: Crash
 for_in_test: Crash
 growable_list_test: Crash
 has_next_iterator_test: Crash
 hash_map2_test: Crash
+hash_map_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 hash_set_test/01: Crash
 hash_set_test/none: Crash
+hash_set_type_check_test: Crash # Assertion failure: Cannot create exact type mask for uninstantiated class null.
 hash_set_type_check_test: RuntimeError
 hashcode_test: Crash
 hidden_library2_test/01: Crash
@@ -510,90 +519,48 @@ list_growable_test: Crash
 list_insert_all_test: Crash
 list_insert_test: Crash
 list_iterators_test: Crash
-list_iterators_test: Crash
-list_last_test: Crash
 list_last_test: Crash
 list_map_test: Crash
-list_map_test: Crash
-list_remove_range_test: Crash
 list_remove_range_test: Crash
 list_removeat_test: Crash
-list_removeat_test: Crash
-list_replace_range_test: Crash
 list_replace_range_test: Crash
 list_reversed_test: Crash
-list_reversed_test: Crash
-list_set_all_test: Crash
 list_set_all_test: Crash
 list_set_range_test: Crash
-list_set_range_test: Crash
-list_sort_test: Crash
-list_sort_test: RuntimeError
-list_sort_test: RuntimeError
-list_sublist_test: Crash
+list_sort_test: Crash # Assertion failure: Cannot find value local(ListSortTest_testMain_closure.call#compare) in (local(ListSortTest_testMain_closure.call#list), local(ListSortTest.testMain#)) for j:closure_call(ListSortTest_testMain_closure.call).
 list_sublist_test: Crash
 list_test/01: Crash
-list_test/01: Crash
-list_test/none: Crash
 list_test/none: Crash
 list_to_string2_test: Crash
-list_to_string2_test: Crash
-list_to_string_test: Crash
 list_to_string_test: Crash
 list_unmodifiable_test: Crash
-list_unmodifiable_test: Crash
-main_test: Crash
 main_test: Crash
 map_contains_key_test: Crash
 map_contains_value_test: Crash
-map_contains_value_test: Crash
-map_from_iterable_test: Crash
 map_from_iterable_test: Crash
 map_from_iterables_test: Crash
-map_from_iterables_test: Crash
-map_from_test: Crash
 map_from_test: Crash
 map_index_test: Crash
 map_keys2_test: Crash
-map_keys2_test: Crash
-map_keys_test: Crash
 map_keys_test: Crash
 map_remove_test: Crash
 map_test: Crash # Issue 27394
-map_test: Crash # Issue 27394
-map_to_string_test: Crash
 map_to_string_test: Crash
 map_values2_test: Crash
-map_values2_test: Crash
-map_values3_test: Crash
 map_values3_test: Crash
 map_values4_test: Crash
-map_values4_test: Crash
-map_values_test: Crash
 map_values_test: Crash
 maps_test: Crash
-maps_test: Crash
-nan_infinity_test/01: RuntimeError
 nan_infinity_test/01: RuntimeError
 null_nosuchmethod_test: Crash
-null_nosuchmethod_test: Crash
-null_test: Crash
 null_test: Crash
 num_clamp_test: Crash
-num_clamp_test: Crash
-num_parse_test/01: Crash
 num_parse_test/01: Crash
 num_parse_test/none: Crash
-num_parse_test/none: Crash
-queue_first_test: Crash
 queue_first_test: Crash
 queue_iterator_test: Crash
-queue_iterator_test: Crash
-queue_last_test: Crash
 queue_last_test: Crash
 queue_single_test: Crash
-queue_single_test: Crash
-queue_test: Crash
 queue_test: Crash
 range_error_test: Crash
 reg_exp4_test: Crash
@@ -618,8 +585,7 @@ regexp/no-extensions_test: Crash
 regexp/non-capturing-groups_test: Crash
 regexp/parentheses_test: Crash
 regexp/pcre-test-4_test: Crash
-regexp/pcre_test: Crash
-regexp/pcre_test: RuntimeError # Issue 27394
+regexp/pcre_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
 regexp/range-out-of-order_test: Crash
 regexp/regexp_kde_test: Crash
 regexp/regexp_test: Crash
@@ -627,6 +593,8 @@ regexp/regress-regexp-codeflush_test: Crash
 regexp/standalones_test: Crash
 regexp/unicode-handling_test: Crash
 regexp/unicodeCaseInsensitive_test: Crash
+regress_11099_test: Crash # type 'FunctionType' is not a subtype of type 'ResolutionFunctionType' of 'type' where
+safe_to_string_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionDartType' of 'type' where
 set_containsAll_test: Crash
 set_contains_test: Crash
 set_intersection_test: Crash
@@ -637,6 +605,7 @@ set_retainAll_test: Crash
 set_test: Crash
 set_to_string_test: Crash
 shuffle_test: Crash
+sort_test: Crash # Assertion failure: Cannot find value local(main_closure.call#compare) in (local(main_closure.call#list), local(main#)) for j:closure_call(main_closure.call).
 sort_test: RuntimeError
 splay_tree_from_iterable_test: Crash
 splay_tree_from_iterables_test: Crash
@@ -670,19 +639,6 @@ string_substring_test: Crash
 string_test: Crash
 string_to_lower_case_test: Crash
 string_trimlr_test/02: Crash
-double_round2_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
-double_truncate2_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
-duration_test: Crash # Assertion failure: Cannot find value local(main_closure.call#d1) in (local(main#)) for j:closure_call(main_closure.call).
-dynamic_nosuchmethod_test: Crash # type 'KMethod' is not a subtype of type 'MemberElement' of 'member' where
-error_stack_trace1_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-error_stack_trace2_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
-error_stack_trace_test/none: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
-error_stack_trace_test/nullThrown: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
-hash_map_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
-hash_set_type_check_test: Crash # Assertion failure: Cannot create exact type mask for uninstantiated class null.
-regress_11099_test: Crash # type 'FunctionType' is not a subtype of type 'ResolutionFunctionType' of 'type' where
-safe_to_string_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionDartType' of 'type' where
-sort_test: Crash # Assertion failure: Cannot find value local(main_closure.call#compare) in (local(main_closure.call#list), local(main#)) for j:closure_call(main_closure.call).
 symbol_operator_test/03: Crash
 symbol_operator_test/none: Crash
 symbol_reserved_word_test/04: MissingCompileTimeError
@@ -807,8 +763,7 @@ hash_map2_test: Crash
 hash_map_test: Crash
 hash_set_test/01: Crash
 hash_set_test/none: Crash
-hash_set_type_check_test: Crash
-hash_set_type_check_test: RuntimeError
+hash_set_type_check_test: Crash # NoSuchMethodError: The getter 'name' was called on null.
 hashcode_test: Crash
 hidden_library2_test/01: Crash
 hidden_library2_test/none: Crash
@@ -820,6 +775,27 @@ int_from_environment3_test/05: Crash
 int_modulo_arith_test/bignum: Crash
 int_modulo_arith_test/modPow: Crash
 int_modulo_arith_test/none: Crash
+iterable_skip_while_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+iterable_take_test: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
+iterable_take_while_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+iterable_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+iterable_to_list_test/01: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+iterable_to_list_test/none: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+iterable_to_set_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+iterable_tostring_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+json_map_test: Crash # Assertion failure: Cannot find value local(listEach_closure.call#result) in (local(listEach_closure.call#key), local(listEach_closure.call#value), local(listEach#)) for j:closure_call(listEach_closure.call).
+linked_hash_map_from_iterables_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
+linked_hash_map_test: Crash # Assertion failure: Cannot find value local(LinkedHashMapTest_testMain_closure.call#keys) in (local(LinkedHashMapTest_testMain_closure.call#v), local(LinkedHashMapTest.testMain#testForEachKey)) for j:closure_call(LinkedHashMapTest_testMain_closure.call).
+list_as_map_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
+list_contains_argument_order_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+list_fill_range_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+list_first_test: Crash # Assertion failure: Cannot find value local(test_closure.call#list) in (local(test#)) for j:closure_call(test_closure.call).
+list_fixed_test: Crash # Assertion failure: Cannot find value local(main_closure.call#a) in (local(main#)) for j:closure_call(main_closure.call).
+list_for_each_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+list_get_range_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+list_growable_test: Crash # Assertion failure: Cannot find value local(main_closure.call#a) in (local(main#)) for j:closure_call(main_closure.call).
+list_insert_all_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+list_insert_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 list_iterators_test: Crash
 list_last_test: Crash
 list_map_test: Crash
@@ -829,8 +805,7 @@ list_replace_range_test: Crash
 list_reversed_test: Crash
 list_set_all_test: Crash
 list_set_range_test: Crash
-list_sort_test: Crash
-list_sort_test: RuntimeError
+list_sort_test: Crash # Assertion failure: Cannot find value local(ListSortTest_testMain_closure.call#compare) in (local(ListSortTest_testMain_closure.call#list), local(ListSortTest.testMain#)) for j:closure_call(ListSortTest_testMain_closure.call).
 list_sublist_test: Crash
 list_test/01: Crash
 list_test/none: Crash
@@ -839,16 +814,13 @@ list_to_string_test: Crash
 list_unmodifiable_test: Crash
 main_test: Crash
 map_contains_key_test: Crash
-map_contains_key_test: Crash
 map_contains_value_test: Crash
 map_from_iterable_test: Crash
 map_from_iterables_test: Crash
 map_from_test: Crash
 map_index_test: Crash
-map_index_test: Crash
 map_keys2_test: Crash
 map_keys_test: Crash
-map_remove_test: Crash
 map_remove_test: Crash
 map_test: Crash # Issue 27394
 map_to_string_test: Crash
@@ -857,8 +829,6 @@ map_values3_test: Crash
 map_values4_test: Crash
 map_values_test: Crash
 maps_test: Crash
-nan_infinity_test/01: Crash
-nan_infinity_test/01: Crash
 nan_infinity_test/01: RuntimeError
 null_nosuchmethod_test: Crash
 null_test: Crash
@@ -912,8 +882,7 @@ set_retainAll_test: Crash
 set_test: Crash
 set_to_string_test: Crash
 shuffle_test: Crash
-sort_test: Crash
-sort_test: RuntimeError
+sort_test: Crash # Assertion failure: Cannot find value local(main_closure.call#compare) in (local(main_closure.call#list), local(main#)) for j:closure_call(main_closure.call).
 splay_tree_from_iterable_test: Crash
 splay_tree_from_iterables_test: Crash
 splay_tree_test/01: Crash
@@ -951,39 +920,17 @@ string_trimlr_test/02: Crash
 symbol_operator_test/03: Crash
 symbol_operator_test/none: Crash
 symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/05: Crash
 symbol_reserved_word_test/05: MissingCompileTimeError
-symbol_reserved_word_test/06: Crash
+symbol_reserved_word_test/06: Crash # Assertion failure: Cannot find value local(checkBadSymbol_closure.call#s) in (local(checkBadSymbol#)) for j:closure_call(checkBadSymbol_closure.call).
 symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/09: Crash
+symbol_reserved_word_test/09: Crash # Assertion failure: Cannot find value local(checkBadSymbol_closure.call#s) in (local(checkBadSymbol#)) for j:closure_call(checkBadSymbol_closure.call).
 symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_reserved_word_test/12: Crash
+symbol_reserved_word_test/12: Crash # Assertion failure: Cannot find value local(checkBadSymbol_closure.call#s) in (local(checkBadSymbol#)) for j:closure_call(checkBadSymbol_closure.call).
 symbol_test/01: Crash
 symbol_test/02: Crash
 symbol_test/03: Crash
 symbol_test/none: Crash
 unicode2_test: Crash
-iterable_skip_while_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-iterable_take_test: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
-iterable_take_while_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-iterable_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-iterable_to_list_test/01: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
-iterable_to_list_test/none: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-iterable_to_set_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-iterable_tostring_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-json_map_test: Crash # Assertion failure: Cannot find value local(listEach_closure.call#result) in (local(listEach_closure.call#key), local(listEach_closure.call#value), local(listEach#)) for j:closure_call(listEach_closure.call).
-linked_hash_map_from_iterables_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
-linked_hash_map_test: Crash # Assertion failure: Cannot find value local(LinkedHashMapTest_testMain_closure.call#keys) in (local(LinkedHashMapTest_testMain_closure.call#v), local(LinkedHashMapTest.testMain#testForEachKey)) for j:closure_call(LinkedHashMapTest_testMain_closure.call).
-list_as_map_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
-list_contains_argument_order_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-list_fill_range_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
-list_first_test: Crash # Assertion failure: Cannot find value local(test_closure.call#list) in (local(test#)) for j:closure_call(test_closure.call).
-list_fixed_test: Crash # Assertion failure: Cannot find value local(main_closure.call#a) in (local(main#)) for j:closure_call(main_closure.call).
-list_for_each_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
-list_get_range_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
-list_growable_test: Crash # Assertion failure: Cannot find value local(main_closure.call#a) in (local(main#)) for j:closure_call(main_closure.call).
-list_insert_all_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
-list_insert_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 uri_base_test: Crash
 uri_file_test: Crash
 uri_http_test: Crash
