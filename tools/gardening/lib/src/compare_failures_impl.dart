@@ -32,13 +32,7 @@ Future<Map<BuildUri, List<BuildResult>>> loadBuildResults(
   }
   if (buildUriList.isEmpty) {
     for (String url in args) {
-      if (!url.endsWith('/text')) {
-        // Use the text version of the stdio log.
-        url += '/text';
-      }
-      Uri uri = Uri.parse(url);
-      BuildUri buildUri = new BuildUri(uri);
-      buildUriList.add(buildUri);
+      buildUriList.add(new BuildUri.fromUrl(url));
     }
   }
   Map<BuildUri, List<BuildResult>> buildResults =

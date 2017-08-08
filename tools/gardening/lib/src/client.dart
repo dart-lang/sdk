@@ -30,9 +30,9 @@ class HttpBuildbotClient implements BuildbotClient {
   Future<BuildResult> readResult(BuildUri buildUri) async {
     try {
       return await readBuildResultFromHttp(_client, buildUri);
-    } on HttpException catch (e) {
+    } on HttpException {
       return null;
-    } on SocketException catch (e) {
+    } on SocketException {
       return null;
     }
   }

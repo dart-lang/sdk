@@ -103,6 +103,11 @@ BuildResult parseTestStepResult(BuildUri buildUri, String text) {
     } else if (line.startsWith('FAILED:')) {
       currentFailure = <String>[];
       currentFailure.add(line);
+    } else if (line.startsWith('Done ')) {
+      TestStatus status = parseTestStatus(line);
+      if (status != null) {
+        results.add(status);
+      }
     }
     if (line.startsWith('--- Total time:')) {
       parsingTimingBlock = true;

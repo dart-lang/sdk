@@ -23,6 +23,14 @@ class BuildUri {
     return new BuildUri.fromData(botName, buildNumber, stepName);
   }
 
+  factory BuildUri.fromUrl(String url) {
+    if (!url.endsWith('/text')) {
+      // Use the text version of the stdio log.
+      url += '/text';
+    }
+    return new BuildUri(Uri.parse(url));
+  }
+
   factory BuildUri.fromData(String botName, int buildNumber, String stepName) {
     return new BuildUri.internal('https', 'build.chromium.org',
         '/p/client.dart', botName, buildNumber, stepName, 'stdio/text');
