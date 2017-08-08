@@ -662,6 +662,36 @@ abstract class IntegrationTestMixin {
   StreamController<AnalysisAnalyzedFilesParams> _onAnalysisAnalyzedFiles;
 
   /**
+   * Reports closing labels relevant to a given file.
+   *
+   * This notification is not subscribed to by default. Clients can subscribe
+   * by including the value "CLOSING_LABELS" in the list of services passed in
+   * an analysis.setSubscriptions request.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The file the closing labels relate to.
+   *
+   * labels: List<ClosingLabel>
+   *
+   *   Closing labels relevant to the file. Each item represents a useful label
+   *   associated with some range with may be useful to display to the user
+   *   within the editor at the end of the range to indicate what construct is
+   *   closed at that location. Closing labels include constructor/method calls
+   *   and List arguments that span multiple lines. Note that the ranges that
+   *   are returned can overlap each other because they may be associated with
+   *   constructs that can be nested.
+   */
+  Stream<AnalysisClosingLabelsParams> onAnalysisClosingLabels;
+
+  /**
+   * Stream controller for [onAnalysisClosingLabels].
+   */
+  StreamController<AnalysisClosingLabelsParams> _onAnalysisClosingLabels;
+
+  /**
    * Reports the errors associated with a given file. The set of errors
    * included in the notification is always a complete list that supersedes any
    * previously reported errors.
@@ -2022,6 +2052,10 @@ abstract class IntegrationTestMixin {
         new StreamController<AnalysisAnalyzedFilesParams>(sync: true);
     onAnalysisAnalyzedFiles =
         _onAnalysisAnalyzedFiles.stream.asBroadcastStream();
+    _onAnalysisClosingLabels =
+        new StreamController<AnalysisClosingLabelsParams>(sync: true);
+    onAnalysisClosingLabels =
+        _onAnalysisClosingLabels.stream.asBroadcastStream();
     _onAnalysisErrors = new StreamController<AnalysisErrorsParams>(sync: true);
     onAnalysisErrors = _onAnalysisErrors.stream.asBroadcastStream();
     _onAnalysisFlushResults =
@@ -2086,6 +2120,11 @@ abstract class IntegrationTestMixin {
       case "analysis.analyzedFiles":
         outOfTestExpect(params, isAnalysisAnalyzedFilesParams);
         _onAnalysisAnalyzedFiles.add(new AnalysisAnalyzedFilesParams.fromJson(
+            decoder, 'params', params));
+        break;
+      case "analysis.closingLabels":
+        outOfTestExpect(params, isAnalysisClosingLabelsParams);
+        _onAnalysisClosingLabels.add(new AnalysisClosingLabelsParams.fromJson(
             decoder, 'params', params));
         break;
       case "analysis.errors":
