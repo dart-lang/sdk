@@ -282,6 +282,8 @@ cc/InjectNativeFieldsSuperClass: Crash
 cc/InvokeNoSuchMethod: Fail
 cc/Invoke_CrossLibrary:  Crash
 cc/IsolateReload_BadClass: Fail
+cc/IsolateReload_ClassFieldAdded: Crash
+cc/IsolateReload_ClassFieldAdded2: Crash
 cc/IsolateReload_ChangeInstanceFormat1: Skip
 cc/IsolateReload_ChangeInstanceFormat3: Skip
 cc/IsolateReload_ChangeInstanceFormat7: Skip
@@ -418,9 +420,6 @@ cc/Debug_BreakpointStubPatching: Fail
 cc/InjectNativeFields1: Crash
 cc/InjectNativeFields3: Crash
 cc/Service_TokenStream: Crash
-cc/IsolateReload_ClassFieldAdded: Crash
-cc/IsolateReload_ClassFieldAdded2: Crash
-cc/IsolateReload_ClassFieldRemoved: Crash
 
 [ ($compiler == dartk) && ($runtime == vm) && ($system == macos) ]
 cc/IsolateReload_DanglingGetter_Class: Crash
