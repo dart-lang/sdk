@@ -113,7 +113,7 @@ Future runSingleTest(BuildbotClient client, String testUri, int runCount,
       await loadBuildResults(client, [testUri], runCount: runCount);
   print('- checking results for ${buildResults.keys}');
   if (LOG) {
-    printBuildResultsSummary(buildResults);
+    printBuildResultsSummary(buildResults, [testUri]);
   }
   Expect.equals(1, buildResults.length);
   testSingleResults(expectedResult, buildResults.values.first);
