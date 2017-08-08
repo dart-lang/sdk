@@ -26,7 +26,7 @@ typedef void _TestWorkerLoopAnalyze(CommandLineOptions options);
 class TestAnalyzerWorkerLoop extends AnalyzerWorkerLoop {
   final _TestWorkerLoopAnalyze _analyze;
 
-  TestAnalyzerWorkerLoop(SyncWorkerConnection connection, [this._analyze])
+  TestAnalyzerWorkerLoop(AsyncWorkerConnection connection, [this._analyze])
       : super(new MemoryResourceProvider(), connection);
 
   @override
@@ -39,18 +39,18 @@ class TestAnalyzerWorkerLoop extends AnalyzerWorkerLoop {
 
 @reflectiveTest
 class WorkerLoopTest {
-  final TestStdinSync stdinStream = new TestStdinSync();
+  final TestStdinAsync stdinStream = new TestStdinAsync();
   final TestStdoutStream stdoutStream = new TestStdoutStream();
-  TestSyncWorkerConnection connection;
+  TestAsyncWorkerConnection connection;
 
   WorkerLoopTest() {
     connection =
-        new TestSyncWorkerConnection(this.stdinStream, this.stdoutStream);
+        new TestAsyncWorkerConnection(this.stdinStream, this.stdoutStream);
   }
 
   void setUp() {}
 
-  test_run() {
+  test_run() async {
     var request = new WorkRequest();
     request.arguments.addAll([
       '--build-summary-input=/tmp/1.sum',
@@ -61,7 +61,7 @@ class WorkerLoopTest {
     stdinStream.addInputBytes(_serializeProto(request));
     stdinStream.close();
 
-    new TestAnalyzerWorkerLoop(connection, (CommandLineOptions options) {
+    await new TestAnalyzerWorkerLoop(connection, (CommandLineOptions options) {
       expect(options.buildSummaryInputs,
           unorderedEquals(['/tmp/1.sum', '/tmp/2.sum']));
       expect(
@@ -89,12 +89,12 @@ class WorkerLoopTest {
     expect(stdoutStream.writes[0], _serializeProto(response));
   }
 
-  test_run_invalidOptions() {
+  test_run_invalidOptions() async {
     var request = new WorkRequest();
     request.arguments.addAll(['--unknown-option', '/foo.dart', '/bar.dart']);
     stdinStream.addInputBytes(_serializeProto(request));
     stdinStream.close();
-    new TestAnalyzerWorkerLoop(connection).run();
+    await new TestAnalyzerWorkerLoop(connection).run();
     expect(connection.responses, hasLength(1));
 
     var response = connection.responses[0];
@@ -102,11 +102,11 @@ class WorkerLoopTest {
     expect(response.output, anything);
   }
 
-  test_run_invalidRequest_noArgumentsInputs() {
+  test_run_invalidRequest_noArgumentsInputs() async {
     stdinStream.addInputBytes(_serializeProto(new WorkRequest()));
     stdinStream.close();
 
-    new TestAnalyzerWorkerLoop(connection).run();
+    await new TestAnalyzerWorkerLoop(connection).run();
     expect(connection.responses, hasLength(1));
 
     var response = connection.responses[0];
@@ -114,10 +114,10 @@ class WorkerLoopTest {
     expect(response.output, anything);
   }
 
-  test_run_invalidRequest_randomBytes() {
+  test_run_invalidRequest_randomBytes() async {
     stdinStream.addInputBytes([1, 2, 3]);
     stdinStream.close();
-    new TestAnalyzerWorkerLoop(connection).run();
+    await new TestAnalyzerWorkerLoop(connection).run();
     expect(connection.responses, hasLength(1));
 
     var response = connection.responses[0];
@@ -125,9 +125,9 @@ class WorkerLoopTest {
     expect(response.output, anything);
   }
 
-  test_run_stopAtEOF() {
+  test_run_stopAtEOF() async {
     stdinStream.close();
-    new TestAnalyzerWorkerLoop(connection).run();
+    await new TestAnalyzerWorkerLoop(connection).run();
   }
 
   List<int> _serializeProto(GeneratedMessage message) {

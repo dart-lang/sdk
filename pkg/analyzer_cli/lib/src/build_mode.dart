@@ -4,6 +4,7 @@
 
 library analyzer_cli.src.build_mode;
 
+import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
@@ -32,21 +33,21 @@ import 'package:bazel_worker/bazel_worker.dart';
 /**
  * Persistent Bazel worker.
  */
-class AnalyzerWorkerLoop extends SyncWorkerLoop {
+class AnalyzerWorkerLoop extends AsyncWorkerLoop {
   final StringBuffer errorBuffer = new StringBuffer();
   final StringBuffer outBuffer = new StringBuffer();
 
   final ResourceProvider resourceProvider;
   final String dartSdkPath;
 
-  AnalyzerWorkerLoop(this.resourceProvider, SyncWorkerConnection connection,
+  AnalyzerWorkerLoop(this.resourceProvider, AsyncWorkerConnection connection,
       {this.dartSdkPath})
       : super(connection: connection);
 
   factory AnalyzerWorkerLoop.std(ResourceProvider resourceProvider,
       {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
-    SyncWorkerConnection connection = new StdSyncWorkerConnection(
-        stdinStream: stdinStream, stdoutStream: stdoutStream);
+    AsyncWorkerConnection connection = new StdAsyncWorkerConnection(
+        inputStream: stdinStream, outputStream: stdoutStream);
     return new AnalyzerWorkerLoop(resourceProvider, connection,
         dartSdkPath: dartSdkPath);
   }
@@ -63,7 +64,7 @@ class AnalyzerWorkerLoop extends SyncWorkerLoop {
    * Perform a single loop step.
    */
   @override
-  WorkResponse performRequest(WorkRequest request) {
+  Future<WorkResponse> performRequest(WorkRequest request) async {
     errorBuffer.clear();
     outBuffer.clear();
     try {
@@ -98,13 +99,13 @@ class AnalyzerWorkerLoop extends SyncWorkerLoop {
    * Run the worker loop.
    */
   @override
-  void run() {
+  Future<Null> run() async {
     errorSink = errorBuffer;
     outSink = outBuffer;
     exitHandler = (int exitCode) {
       return throw new StateError('Exit called: $exitCode');
     };
-    super.run();
+    await super.run();
   }
 
   String _getErrorOutputBuffersText() {
