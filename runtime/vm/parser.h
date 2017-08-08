@@ -944,6 +944,8 @@ class Parser : public ValueObject {
 
   void AddEqualityNullCheck();
 
+  AstNode* AddAsyncResultTypeCheck(TokenPosition expr_pos, AstNode* expr);
+
   AstNode* BuildClosureCall(TokenPosition token_pos,
                             AstNode* closure,
                             ArgumentListNode* arguments);

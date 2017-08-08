@@ -21,6 +21,7 @@ assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 
 [ $compiler == dartk && $runtime == vm && $checked ]
 assertion_initializer_const_function_test/01: RuntimeError
+regress_30339_test: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -38,6 +39,7 @@ assertion_initializer_const_function_error_test/none: Crash
 assertion_initializer_const_function_test/01: Crash
 assertion_initializer_const_function_test/none: Crash
 assertion_initializer_test: CompileTimeError
+regress_30339_test: Crash
 
 # dartk: checked mode failures
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]

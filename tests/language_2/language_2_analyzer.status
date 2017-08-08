@@ -159,6 +159,7 @@ bit_operations_test/02: MissingStaticWarning # Issue 28823
 bit_operations_test/03: MissingStaticWarning # Issue 28823
 bit_operations_test/04: MissingStaticWarning # Issue 28823
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
+regress_30339_test: CompileTimeError
 
 [ ! $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: StaticWarning # Issue 25626
