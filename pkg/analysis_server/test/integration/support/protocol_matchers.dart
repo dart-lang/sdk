@@ -128,6 +128,7 @@ final Matcher isAnalysisOptions = new LazyMatcher(
  * AnalysisService
  *
  * enum {
+ *   CLOSING_LABELS
  *   FOLDING
  *   HIGHLIGHTS
  *   IMPLEMENTED
@@ -139,6 +140,7 @@ final Matcher isAnalysisOptions = new LazyMatcher(
  * }
  */
 final Matcher isAnalysisService = new MatchesEnum("AnalysisService", [
+  "CLOSING_LABELS",
   "FOLDING",
   "HIGHLIGHTS",
   "IMPLEMENTED",
@@ -172,6 +174,18 @@ final Matcher isAnalysisStatus = new LazyMatcher(() => new MatchesJsonObject(
 final Matcher isChangeContentOverlay = new LazyMatcher(() =>
     new MatchesJsonObject("ChangeContentOverlay",
         {"type": equals("change"), "edits": isListOf(isSourceEdit)}));
+
+/**
+ * ClosingLabel
+ *
+ * {
+ *   "offset": int
+ *   "length": int
+ *   "label": String
+ * }
+ */
+final Matcher isClosingLabel = new LazyMatcher(() => new MatchesJsonObject(
+    "ClosingLabel", {"offset": isInt, "length": isInt, "label": isString}));
 
 /**
  * CompletionId
@@ -1211,6 +1225,18 @@ final Matcher isTypeHierarchyItem =
 final Matcher isAnalysisAnalyzedFilesParams = new LazyMatcher(() =>
     new MatchesJsonObject("analysis.analyzedFiles params",
         {"directories": isListOf(isFilePath)}));
+
+/**
+ * analysis.closingLabels params
+ *
+ * {
+ *   "file": FilePath
+ *   "labels": List<ClosingLabel>
+ * }
+ */
+final Matcher isAnalysisClosingLabelsParams = new LazyMatcher(() =>
+    new MatchesJsonObject("analysis.closingLabels params",
+        {"file": isFilePath, "labels": isListOf(isClosingLabel)}));
 
 /**
  * analysis.errors params

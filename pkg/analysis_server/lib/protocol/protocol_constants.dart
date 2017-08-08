@@ -8,6 +8,9 @@
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
+const String ANALYSIS_NOTIFICATION_CLOSING_LABELS = 'analysis.closingLabels';
+const String ANALYSIS_NOTIFICATION_CLOSING_LABELS_FILE = 'file';
+const String ANALYSIS_NOTIFICATION_CLOSING_LABELS_LABELS = 'labels';
 const String ANALYSIS_NOTIFICATION_ERRORS = 'analysis.errors';
 const String ANALYSIS_NOTIFICATION_ERRORS_ERRORS = 'errors';
 const String ANALYSIS_NOTIFICATION_ERRORS_FILE = 'file';
