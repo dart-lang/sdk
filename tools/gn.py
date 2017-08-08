@@ -223,7 +223,9 @@ def ToGnArgs(args, mode, arch, target_os):
   gn_args['is_msan'] = args.msan and gn_args['is_clang']
   gn_args['is_tsan'] = args.tsan and gn_args['is_clang']
 
-  gn_args['dart_platform_sdk'] = args.platform_sdk
+  if not args.platform_sdk and not gn_args['target_cpu'].startswith('arm'):
+    gn_args['dart_platform_sdk'] = args.platform_sdk
+  gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
 
   # Setup the user-defined sysroot.
   if gn_args['target_os'] == 'linux' and args.wheezy and not crossbuild:
