@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.strong_mode_test;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -480,35 +478,6 @@ class E extends C<int> {
     expect(covariantE.toList(), []);
   }
 
-  test_covarianceChecks_superclass() async {
-    var source = addSource(r'''
-class C<T> {
-  add(T t) {}
-  forEach(void f(T t)) {}
-}
-class D {
-  add(int t) {}
-  forEach(void f(int t)) {}
-}
-class E extends D implements C<int> {}
-''');
-    var unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-    var cAdd = AstFinder.getMethodInClass(unit, "C", "add");
-    var covariantC = getClassCovariantParameters(AstFinder.getClass(unit, "C"));
-    expect(covariantC.toList(), [cAdd.element.parameters[0]]);
-
-    var dAdd = AstFinder.getMethodInClass(unit, "D", "add");
-    var covariantD = getClassCovariantParameters(AstFinder.getClass(unit, "D"));
-    expect(covariantD, null);
-
-    var classE = AstFinder.getClass(unit, "E");
-    var covariantE = getClassCovariantParameters(classE);
-    var superCovariantE = getSuperclassCovariantParameters(classE);
-    expect(covariantE.toList(), []);
-    expect(superCovariantE.toList(), [dAdd.element.parameters[0]]);
-  }
-
   test_covarianceChecks_returnFunction() async {
     var source = addSource(r'''
 typedef F<T>(T t);
@@ -712,6 +681,35 @@ noCasts() {
     for (var s in AstFinder.getStatementsInTopLevelFunction(unit, 'casts')) {
       expectCast(s, true);
     }
+  }
+
+  test_covarianceChecks_superclass() async {
+    var source = addSource(r'''
+class C<T> {
+  add(T t) {}
+  forEach(void f(T t)) {}
+}
+class D {
+  add(int t) {}
+  forEach(void f(int t)) {}
+}
+class E extends D implements C<int> {}
+''');
+    var unit = (await computeAnalysisResult(source)).unit;
+    assertNoErrors(source);
+    var cAdd = AstFinder.getMethodInClass(unit, "C", "add");
+    var covariantC = getClassCovariantParameters(AstFinder.getClass(unit, "C"));
+    expect(covariantC.toList(), [cAdd.element.parameters[0]]);
+
+    var dAdd = AstFinder.getMethodInClass(unit, "D", "add");
+    var covariantD = getClassCovariantParameters(AstFinder.getClass(unit, "D"));
+    expect(covariantD, null);
+
+    var classE = AstFinder.getClass(unit, "E");
+    var covariantE = getClassCovariantParameters(classE);
+    var superCovariantE = getSuperclassCovariantParameters(classE);
+    expect(covariantE.toList(), []);
+    expect(superCovariantE.toList(), [dAdd.element.parameters[0]]);
   }
 
   test_factoryConstructor_propagation() async {
@@ -2681,23 +2679,23 @@ class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
   fail_genericMethod_tearoff_instantiated() async {
     await resolveTestUnit(r'''
 class C<E> {
-  /*=T*/ f/*<T>*/(E e) => null;
-  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  T f<T>(E e) => null;
+  static T g<T>(T e) => null;
   static final h = g;
 }
 
-/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+T topF<T>(T e) => null;
 var topG = topF;
-void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+void test<S>(T pf<T>(T e)) {
   var c = new C<int>();
-  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
-  var methodTearOffInst = c.f/*<int>*/;
-  var staticTearOffInst = C.g/*<int>*/;
-  var staticFieldTearOffInst = C.h/*<int>*/;
-  var topFunTearOffInst = topF/*<int>*/;
-  var topFieldTearOffInst = topG/*<int>*/;
-  var localTearOffInst = lf/*<int>*/;
-  var paramTearOffInst = pf/*<int>*/;
+  T lf<T>(T e) => null;
+  var methodTearOffInst = c.f<int>;
+  var staticTearOffInst = C.g<int>;
+  var staticFieldTearOffInst = C.h<int>;
+  var topFunTearOffInst = topF<int>;
+  var topFieldTearOffInst = topG<int>;
+  var localTearOffInst = lf<int>;
+  var paramTearOffInst = pf<int>;
 }
 ''');
     expectIdentifierType('methodTearOffInst', "(int) → int");
@@ -2770,7 +2768,7 @@ main() {
   }
 
   test_genericFunction() async {
-    await resolveTestUnit(r'/*=T*/ f/*<T>*/(/*=T*/ x) => null;');
+    await resolveTestUnit(r'T f<T>(T x) => null;');
     expectFunctionType('f', '<T>(T) → T',
         elementTypeParams: '[T]', typeFormals: '[T]');
     SimpleIdentifier f = findIdentifier('f');
@@ -2780,14 +2778,14 @@ main() {
   }
 
   test_genericFunction_bounds() async {
-    await resolveTestUnit(r'/*=T*/ f/*<T extends num>*/(/*=T*/ x) => null;');
+    await resolveTestUnit(r'T f<T extends num>(T x) => null;');
     expectFunctionType('f', '<T extends num>(T) → T',
         elementTypeParams: '[T extends num]', typeFormals: '[T extends num]');
   }
 
   test_genericFunction_parameter() async {
     await resolveTestUnit(r'''
-void g(/*=T*/ f/*<T>*/(/*=T*/ x)) {}
+void g(T f<T>(T x)) {}
 ''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
         );
     expectFunctionType('f', '<T>(T) → T',
@@ -2802,7 +2800,7 @@ void g(/*=T*/ f/*<T>*/(/*=T*/ x)) {}
   test_genericFunction_static() async {
     await resolveTestUnit(r'''
 class C<E> {
-  static /*=T*/ f/*<T>*/(/*=T*/ x) => null;
+  static T f<T>(T x) => null;
 }
 ''');
     expectFunctionType('f', '<T>(T) → T',
@@ -2885,7 +2883,7 @@ List<Object> eee = [new Object()];
   test_genericMethod() async {
     await resolveTestUnit(r'''
 class C<E> {
-  List/*<T>*/ f/*<T>*/(E e) => null;
+  List<T> f<T>(E e) => null;
 }
 main() {
   C<String> cOfString;
@@ -2907,14 +2905,14 @@ main() {
   test_genericMethod_explicitTypeParams() async {
     await resolveTestUnit(r'''
 class C<E> {
-  List/*<T>*/ f/*<T>*/(E e) => null;
+  List<T> f<T>(E e) => null;
 }
 main() {
   C<String> cOfString;
-  var x = cOfString.f/*<int>*/('hi');
+  var x = cOfString.f<int>('hi');
 }
 ''');
-    MethodInvocation f = findIdentifier('f/*<int>*/').parent;
+    MethodInvocation f = findIdentifier('f<int>').parent;
     FunctionType ft = f.staticInvokeType;
     expect(ft.toString(), '(String) → List<int>');
     expect('${ft.typeArguments}/${ft.typeParameters}', '[String, int]/[E, T]');
@@ -2927,25 +2925,25 @@ main() {
   test_genericMethod_functionExpressionInvocation_explicit() async {
     await resolveTestUnit(r'''
 class C<E> {
-  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
-  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  T f<T>(T e) => null;
+  static T g<T>(T e) => null;
   static final h = g;
 }
 
-/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+T topF<T>(T e) => null;
 var topG = topF;
-void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+void test<S>(T pf<T>(T e)) {
   var c = new C<int>();
-  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+  T lf<T>(T e) => null;
 
-  var lambdaCall = (/*<E>*/(/*=E*/ e) => e)/*<int>*/(3);
-  var methodCall = (c.f)/*<int>*/(3);
-  var staticCall = (C.g)/*<int>*/(3);
-  var staticFieldCall = (C.h)/*<int>*/(3);
-  var topFunCall = (topF)/*<int>*/(3);
-  var topFieldCall = (topG)/*<int>*/(3);
-  var localCall = (lf)/*<int>*/(3);
-  var paramCall = (pf)/*<int>*/(3);
+  var lambdaCall = (<E>(E e) => e)<int>(3);
+  var methodCall = (c.f)<int>(3);
+  var staticCall = (C.g)<int>(3);
+  var staticFieldCall = (C.h)<int>(3);
+  var topFunCall = (topF)<int>(3);
+  var topFieldCall = (topG)<int>(3);
+  var localCall = (lf)<int>(3);
+  var paramCall = (pf)<int>(3);
 }
 ''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
         );
@@ -2962,18 +2960,18 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   test_genericMethod_functionExpressionInvocation_inferred() async {
     await resolveTestUnit(r'''
 class C<E> {
-  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
-  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  T f<T>(T e) => null;
+  static T g<T>(T e) => null;
   static final h = g;
 }
 
-/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+T topF<T>(T e) => null;
 var topG = topF;
-void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+void test<S>(T pf<T>(T e)) {
   var c = new C<int>();
-  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+  T lf<T>(T e) => null;
 
-  var lambdaCall = (/*<E>*/(/*=E*/ e) => e)(3);
+  var lambdaCall = (<E>(E e) => e)(3);
   var methodCall = (c.f)(3);
   var staticCall = (C.g)(3);
   var staticFieldCall = (C.h)(3);
@@ -2997,23 +2995,23 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   test_genericMethod_functionInvocation_explicit() async {
     await resolveTestUnit(r'''
 class C<E> {
-  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
-  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  T f<T>(T e) => null;
+  static T g<T>(T e) => null;
   static final h = g;
 }
 
-/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+T topF<T>(T e) => null;
 var topG = topF;
-void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+void test<S>(T pf<T>(T e)) {
   var c = new C<int>();
-  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
-  var methodCall = c.f/*<int>*/(3);
-  var staticCall = C.g/*<int>*/(3);
-  var staticFieldCall = C.h/*<int>*/(3);
-  var topFunCall = topF/*<int>*/(3);
-  var topFieldCall = topG/*<int>*/(3);
-  var localCall = lf/*<int>*/(3);
-  var paramCall = pf/*<int>*/(3);
+  T lf<T>(T e) => null;
+  var methodCall = c.f<int>(3);
+  var staticCall = C.g<int>(3);
+  var staticFieldCall = C.h<int>(3);
+  var topFunCall = topF<int>(3);
+  var topFieldCall = topG<int>(3);
+  var localCall = lf<int>(3);
+  var paramCall = pf<int>(3);
 }
 ''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
         );
@@ -3029,16 +3027,16 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   test_genericMethod_functionInvocation_inferred() async {
     await resolveTestUnit(r'''
 class C<E> {
-  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
-  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  T f<T>(T e) => null;
+  static T g<T>(T e) => null;
   static final h = g;
 }
 
-/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+T topF<T>(T e) => null;
 var topG = topF;
-void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+void test<S>(T pf<T>(T e)) {
   var c = new C<int>();
-  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+  T lf<T>(T e) => null;
   var methodCall = c.f(3);
   var staticCall = C.g(3);
   var staticFieldCall = C.h(3);
@@ -3061,7 +3059,7 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   test_genericMethod_functionTypedParameter() async {
     await resolveTestUnit(r'''
 class C<E> {
-  List/*<T>*/ f/*<T>*/(/*=T*/ f(E e)) => null;
+  List<T> f<T>(T f(E e)) => null;
 }
 main() {
   C<String> cOfString;
@@ -3086,7 +3084,7 @@ main() {
     // These should not cause any hints or warnings.
     await resolveTestUnit(r'''
 class List<E> {
-  /*=T*/ map/*<T>*/(/*=T*/ f(E e)) => null;
+  T map<T>(T f(E e)) => null;
 }
 void foo() {
   List list = null;
@@ -3160,7 +3158,7 @@ main() {
   test_genericMethod_nestedBound() async {
     String code = r'''
 class Foo<T extends num> {
-  void method/*<U extends T>*/(dynamic/*=U*/ u) {
+  void method<U extends T>(U u) {
     u.abs();
   }
 }
@@ -3172,14 +3170,14 @@ class Foo<T extends num> {
   test_genericMethod_nestedCapture() async {
     await resolveTestUnit(r'''
 class C<T> {
-  /*=T*/ f/*<S>*/(/*=S*/ x) {
-    new C<S>().f/*<int>*/(3);
+  T f<S>(S x) {
+    new C<S>().f<int>(3);
     new C<S>().f; // tear-off
     return null;
   }
 }
 ''');
-    MethodInvocation f = findIdentifier('f/*<int>*/(3);').parent;
+    MethodInvocation f = findIdentifier('f<int>(3);').parent;
     expect(f.staticInvokeType.toString(), '(int) → S');
     FunctionType ft = f.staticInvokeType;
     expect('${ft.typeArguments}/${ft.typeParameters}', '[S, int]/[T, S]');
@@ -3189,8 +3187,8 @@ class C<T> {
 
   test_genericMethod_nestedFunctions() async {
     await resolveTestUnit(r'''
-/*=S*/ f/*<S>*/(/*=S*/ x) {
-  g/*<S>*/(/*=S*/ x) => f;
+S f<S>(S x) {
+  g<S>(S x) => f;
   return null;
 }
 ''');
@@ -3201,16 +3199,15 @@ class C<T> {
   test_genericMethod_override() async {
     await resolveTestUnit(r'''
 class C {
-  /*=T*/ f/*<T>*/(/*=T*/ x) => null;
+  T f<T>(T x) => null;
 }
 class D extends C {
-  /*=T*/ f/*<T>*/(/*=T*/ x) => null; // from D
+  T f<T>(T x) => null; // from D
 }
 ''');
-    expectFunctionType('f/*<T>*/(/*=T*/ x) => null; // from D', '<T>(T) → T',
+    expectFunctionType('f<T>(T x) => null; // from D', '<T>(T) → T',
         elementTypeParams: '[T]', typeFormals: '[T]');
-    SimpleIdentifier f =
-        findIdentifier('f/*<T>*/(/*=T*/ x) => null; // from D');
+    SimpleIdentifier f = findIdentifier('f<T>(T x) => null; // from D');
     MethodElementImpl e = f.staticElement;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
     expect(ft.toString(), '(String) → String');
@@ -3221,10 +3218,10 @@ class D extends C {
 class A {}
 class B extends A {}
 class C {
-  /*=T*/ f/*<T extends B>*/(/*=T*/ x) => null;
+  T f<T extends B>(T x) => null;
 }
 class D extends C {
-  /*=T*/ f/*<T extends A>*/(/*=T*/ x) => null;
+  T f<T extends A>(T x) => null;
 }
 ''');
   }
@@ -3248,10 +3245,10 @@ class B extends A {
   test_genericMethod_override_invalidReturnType() async {
     Source source = addSource(r'''
 class C {
-  Iterable/*<T>*/ f/*<T>*/(/*=T*/ x) => null;
+  Iterable<T> f<T>(T x) => null;
 }
 class D extends C {
-  String f/*<S>*/(/*=S*/ x) => null;
+  String f<S>(S x) => null;
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
@@ -3263,10 +3260,10 @@ class D extends C {
 class A {}
 class B extends A {}
 class C {
-  /*=T*/ f/*<T extends A>*/(/*=T*/ x) => null;
+  T f<T extends A>(T x) => null;
 }
 class D extends C {
-  /*=T*/ f/*<T extends B>*/(/*=T*/ x) => null;
+  T f<T extends B>(T x) => null;
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
@@ -3276,10 +3273,10 @@ class D extends C {
   test_genericMethod_override_invalidTypeParamCount() async {
     Source source = addSource(r'''
 class C {
-  /*=T*/ f/*<T>*/(/*=T*/ x) => null;
+  T f<T>(T x) => null;
 }
 class D extends C {
-  /*=S*/ f/*<T, S>*/(/*=T*/ x) => null;
+  S f<T, S>(T x) => null;
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
@@ -3296,7 +3293,7 @@ class D extends C {
     // strong mode.
     await resolveTestUnit(r'''
 abstract class Iter {
-  List/*<S>*/ map/*<S>*/(/*=S*/ f(x));
+  List<S> map<S>(S f(x));
 }
 class C {}
 C toSpan(dynamic element) {
@@ -3311,16 +3308,16 @@ C toSpan(dynamic element) {
   test_genericMethod_tearoff() async {
     await resolveTestUnit(r'''
 class C<E> {
-  /*=T*/ f/*<T>*/(E e) => null;
-  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  T f<T>(E e) => null;
+  static T g<T>(T e) => null;
   static final h = g;
 }
 
-/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+T topF<T>(T e) => null;
 var topG = topF;
-void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+void test<S>(T pf<T>(T e)) {
   var c = new C<int>();
-  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+  T lf<T>(T e) => null;
   var methodTearOff = c.f;
   var staticTearOff = C.g;
   var staticFieldTearOff = C.h;

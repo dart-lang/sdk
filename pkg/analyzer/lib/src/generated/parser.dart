@@ -5192,47 +5192,6 @@ class Parser {
   }
 
   /**
-   * Parse a type which is not `void`.
-   *
-   *     typeNotVoid ::=
-   *         functionType
-   *       | typeNotVoidWithoutFunction
-   */
-  TypeAnnotation parseTypeNotVoid(bool inExpression) {
-    TypeAnnotation type = null;
-    if (_atGenericFunctionTypeAfterReturnType(_currentToken)) {
-      // Generic function type with no return type.
-      type = parseGenericFunctionTypeAfterReturnType(null);
-    } else if (_currentToken.keyword == Keyword.VOID &&
-        _atGenericFunctionTypeAfterReturnType(_currentToken.next)) {
-      type = astFactory.typeName(
-          astFactory.simpleIdentifier(getAndAdvance()), null);
-    } else {
-      type = parseTypeName(inExpression);
-    }
-    while (_atGenericFunctionTypeAfterReturnType(_currentToken)) {
-      type = parseGenericFunctionTypeAfterReturnType(type);
-    }
-    return type;
-  }
-
-  /**
-   * Parse a type which is not a function type.
-   *
-   *     typeWithoutFunction ::=
-   *         `void`
-   *       | typeNotVoidWithoutFunction
-   */
-  TypeAnnotation parseTypeWithoutFunction(bool inExpression) {
-    if (_currentToken.keyword == Keyword.VOID) {
-      return astFactory.typeName(
-          astFactory.simpleIdentifier(getAndAdvance()), null);
-    } else {
-      return parseTypeName(inExpression);
-    }
-  }
-
-  /**
    * Parse a list of type arguments. Return the type argument list that was
    * parsed.
    *
@@ -5276,6 +5235,31 @@ class Parser {
   }
 
   /**
+   * Parse a type which is not `void`.
+   *
+   *     typeNotVoid ::=
+   *         functionType
+   *       | typeNotVoidWithoutFunction
+   */
+  TypeAnnotation parseTypeNotVoid(bool inExpression) {
+    TypeAnnotation type = null;
+    if (_atGenericFunctionTypeAfterReturnType(_currentToken)) {
+      // Generic function type with no return type.
+      type = parseGenericFunctionTypeAfterReturnType(null);
+    } else if (_currentToken.keyword == Keyword.VOID &&
+        _atGenericFunctionTypeAfterReturnType(_currentToken.next)) {
+      type = astFactory.typeName(
+          astFactory.simpleIdentifier(getAndAdvance()), null);
+    } else {
+      type = parseTypeName(inExpression);
+    }
+    while (_atGenericFunctionTypeAfterReturnType(_currentToken)) {
+      type = parseGenericFunctionTypeAfterReturnType(type);
+    }
+    return type;
+  }
+
+  /**
    * Parse a type parameter. Return the type parameter that was parsed.
    *
    *     typeParameter ::=
@@ -5316,6 +5300,22 @@ class Parser {
     Token rightBracket = _expectGt();
     return astFactory.typeParameterList(
         leftBracket, typeParameters, rightBracket);
+  }
+
+  /**
+   * Parse a type which is not a function type.
+   *
+   *     typeWithoutFunction ::=
+   *         `void`
+   *       | typeNotVoidWithoutFunction
+   */
+  TypeAnnotation parseTypeWithoutFunction(bool inExpression) {
+    if (_currentToken.keyword == Keyword.VOID) {
+      return astFactory.typeName(
+          astFactory.simpleIdentifier(getAndAdvance()), null);
+    } else {
+      return parseTypeName(inExpression);
+    }
   }
 
   /**
@@ -5690,22 +5690,6 @@ class Parser {
   }
 
   /**
-   * Parse a typeWithoutFunction, starting at the [startToken], without actually
-   * creating a TypeAnnotation or changing the current token. Return the token
-   * following the typeWithoutFunction that was parsed, or `null` if the given
-   * token is not the first token in a valid typeWithoutFunction.
-   *
-   * This method must be kept in sync with [parseTypeWithoutFunction].
-   */
-  Token skipTypeWithoutFunction(Token startToken) {
-    if (startToken.keyword == Keyword.VOID) {
-      return startToken.next;
-    } else {
-      return skipTypeName(startToken);
-    }
-  }
-
-  /**
    * Parse a list of type arguments, starting at the [startToken], without
    * actually creating a type argument list or changing the current token.
    * Return the token following the type argument list that was parsed, or
@@ -5802,6 +5786,22 @@ class Parser {
       next = next.next;
     }
     return null;
+  }
+
+  /**
+   * Parse a typeWithoutFunction, starting at the [startToken], without actually
+   * creating a TypeAnnotation or changing the current token. Return the token
+   * following the typeWithoutFunction that was parsed, or `null` if the given
+   * token is not the first token in a valid typeWithoutFunction.
+   *
+   * This method must be kept in sync with [parseTypeWithoutFunction].
+   */
+  Token skipTypeWithoutFunction(Token startToken) {
+    if (startToken.keyword == Keyword.VOID) {
+      return startToken.next;
+    } else {
+      return skipTypeName(startToken);
+    }
   }
 
   /**
@@ -6156,6 +6156,7 @@ class Parser {
           String comment = t.lexeme.substring(prefixLen, t.lexeme.length - 2);
           Token list = _scanGenericMethodComment(comment, t.offset + prefixLen);
           if (list != null) {
+            _reportErrorForToken(HintCode.GENERIC_METHOD_COMMENT, t);
             // Remove the token from the comment stream.
             t.remove();
             // Insert the tokens into the stream.
