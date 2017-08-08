@@ -10,6 +10,18 @@ import 'package:args/args.dart';
 
 import 'cache.dart';
 
+/// Checks that [haystack] contains substring [needle], case insensitive.
+/// Throws an exception if either parameter is `null`.
+bool containsIgnoreCase(String haystack, String needle) {
+  if (haystack == null) {
+    throw "Unexpected null as the first paramter value of containsIgnoreCase";
+  }
+  if (needle == null) {
+    throw "Unexpected null as the second parameter value of containsIgnoreCase";
+  }
+  return haystack.toLowerCase().contains(needle.toLowerCase());
+}
+
 /// Split [text] using [infixes] as infix markers.
 List<String> split(String text, List<String> infixes) {
   List<String> result = <String>[];

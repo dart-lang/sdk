@@ -19,25 +19,12 @@ import 'package:gardening/src/util.dart';
 
 void help(ArgParser argParser) {
   print('Displays the current status of specific tests on the buildbot');
-  print('Only prints output for failing tests.');
   print('The test-names may be fully qualified (such as in ');
   print('"pkg/front_end/test/token_test") or just be a substring of the fully');
   print(' qualified name.');
   print('Usage: current_summary [options] <test-name1> [<test-name2> ...]');
   print('where options are:');
   print(argParser.usage);
-}
-
-/// Checks that [haystack] contains substring [needle], case insensitive.
-/// Throws an exception if either parameter is `null`.
-bool containsIgnoreCase(String haystack, String needle) {
-  if (haystack == null) {
-    throw "Unexpected null as the first paramter value of containsIgnoreCase";
-  }
-  if (needle == null) {
-    throw "Unexpected null as the second parameter value of containsIgnoreCase";
-  }
-  return haystack.toLowerCase().contains(needle.toLowerCase());
 }
 
 main(List<String> args) async {
@@ -74,7 +61,7 @@ main(List<String> args) async {
     // http, i.e. always use build number `-1`.
     List<BuildUri> uriList = group.createUris(bot.mostRecentBuildNumber);
     if (uriList.isEmpty) continue;
-    print('Fetching ${uriList.first} + ${uriList.length - 1} more ...');
+    print('Fetching "${uriList.first}" + ${uriList.length - 1} more ...');
     List<BuildResult> results = await bot.readResults(uriList);
     bool testsFoundInGroup = false;
     for (BuildResult buildResult in results) {
