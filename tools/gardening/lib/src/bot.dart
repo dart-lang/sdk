@@ -21,6 +21,8 @@ class Bot {
         _client =
             logdog ? new LogdogBuildbotClient() : new HttpBuildbotClient();
 
+  int get mostRecentBuildNumber => _client.mostRecentBuildNumber;
+
   /// Reads the build result of [buildUri] and the [previousCount] earlier
   /// builds.
   Future<List<BuildResult>> readHistoricResults(BuildUri buildUri,
@@ -67,7 +69,7 @@ class Bot {
   List<BuildUri> get mostRecentUris {
     List<BuildUri> result = [];
     for (BuildGroup group in buildGroups) {
-      result.addAll(group.createUris(_client.mostRecentBuildNumber));
+      result.addAll(group.createUris(mostRecentBuildNumber));
     }
     return result;
   }

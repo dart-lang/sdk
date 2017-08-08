@@ -807,6 +807,8 @@ class BuildGroup {
     }
     return uriList;
   }
+
+  String toString() => groupName;
 }
 
 /// A group of buildbot subgroups, often shards, that share their test steps,
