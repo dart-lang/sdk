@@ -40,6 +40,9 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
 
   Uri get fileUri => uri;
 
+  @override
+  Library get target => library;
+
   void addClass(Class cls) {
     DillClassBuilder classBulder = new DillClassBuilder(cls, this);
     addBuilder(cls.name, classBulder, cls.fileOffset);

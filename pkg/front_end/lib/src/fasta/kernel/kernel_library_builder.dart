@@ -4,7 +4,6 @@
 
 library fasta.kernel_library_builder;
 
-import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
 import 'package:front_end/src/fasta/combinator.dart' as fasta;
 import 'package:front_end/src/fasta/export.dart';
 import 'package:front_end/src/fasta/import.dart';
@@ -96,6 +95,7 @@ class KernelLibraryBuilder
       : library = new Library(uri, fileUri: relativizeUri(fileUri)),
         super(loader, fileUri);
 
+  @override
   Library get target => library;
 
   Uri get uri => library.importUri;
@@ -755,13 +755,7 @@ class KernelLibraryBuilder
     }
 
     for (Import import in imports) {
-      var importedBuilder = import.imported;
-      Library importedLibrary;
-      if (importedBuilder is DillLibraryBuilder) {
-        importedLibrary = importedBuilder.library;
-      } else if (importedBuilder is KernelLibraryBuilder) {
-        importedLibrary = importedBuilder.library;
-      }
+      Library importedLibrary = import.imported.target;
       if (importedLibrary != null) {
         library.addDependency(new LibraryDependency.import(importedLibrary,
             name: import.prefix,
@@ -770,13 +764,7 @@ class KernelLibraryBuilder
     }
 
     for (Export export in exports) {
-      var exportedBuilder = export.exported;
-      Library exportedLibrary;
-      if (exportedBuilder is DillLibraryBuilder) {
-        exportedLibrary = exportedBuilder.library;
-      } else if (exportedBuilder is KernelLibraryBuilder) {
-        exportedLibrary = exportedBuilder.library;
-      }
+      Library exportedLibrary = export.exported.target;
       if (exportedLibrary != null) {
         library.addDependency(new LibraryDependency.export(exportedLibrary,
             combinators: toKernelCombinators(export.combinators)));
