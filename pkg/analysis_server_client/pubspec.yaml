@@ -1,0 +1,13 @@
+name: analysis_server_client
+version: 1.0.1
+author: Dart Team <misc@dartlang.org>
+description:
+  A client wrapper over analysis_server. Instances of this client
+  manage a connection to the analysis_server process and
+  facilitates communication to and from the server.
+homepage: http://github.com/dart-lang/sdk/pkg/analysis_server_client
+dev_dependencies:
+  test: ">=0.12.0 <0.13.0"
+  mockito: ^2.0.2
+environment:
+  sdk: ">=1.0.0 < 2.0.0-dev.infinity"

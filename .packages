@@ -7,6 +7,7 @@
 # Please update this file if you add a package to DEPS or /pkg
 #
 analysis_server:pkg/analysis_server/lib
+analysis_server_client:pkg/analysis_server_client/lib
 analyzer:pkg/analyzer/lib
 analyzer_cli:pkg/analyzer_cli/lib
 analyzer_plugin:pkg/analyzer_plugin/lib
