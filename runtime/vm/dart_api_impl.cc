@@ -1453,6 +1453,12 @@ DART_EXPORT Dart_Handle Dart_GetStickyError() {
   return Dart_Null();
 }
 
+DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
+  Thread* T = Thread::Current();
+  CHECK_ISOLATE(T->isolate());
+  API_TIMELINE_BEGIN_END;
+}
+
 DART_EXPORT void Dart_ExitIsolate() {
   Thread* T = Thread::Current();
   CHECK_ISOLATE(T->isolate());

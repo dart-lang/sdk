@@ -955,6 +955,18 @@ DART_EXPORT Dart_Handle Dart_DebugName();
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
 
 /**
+ * Notifies the VM that the embedder expects to be idle until |deadline|. The VM
+ * may use this time to perform garbage collection or other tasks to avoid
+ * delays during execution of Dart code in the future.
+ *
+ * |deadline| is measured in microseconds against the system's monotonic time.
+ * This clock can be accessed via Dart_TimelineGetMicros().
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT void Dart_NotifyIdle(int64_t deadline);
+
+/**
  * Notifies the VM that the current thread should not be profiled until a
  * matching call to Dart_ThreadEnableProfiling is made.
  *
