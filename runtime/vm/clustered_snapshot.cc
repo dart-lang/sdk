@@ -5320,7 +5320,6 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
       clustered_isolate_size_(0),
       mapped_data_size_(0),
       mapped_instructions_size_(0) {
-  ASSERT(isolate_snapshot_data_buffer_ != NULL);
   ASSERT(alloc_ != NULL);
   ASSERT(isolate() != NULL);
   ASSERT(ClassFinalizer::AllClassesFinalized());
