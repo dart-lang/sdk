@@ -176,11 +176,11 @@ abstract class AnalysisTask {
    * Return the value of the input with the given [name]. Throw an exception if
    * the input value is not defined.
    */
-  Object/*=E*/ getRequiredInput/*<E>*/(String name) {
+  E getRequiredInput<E>(String name) {
     if (inputs == null || !inputs.containsKey(name)) {
       throw new AnalysisException("Could not $description: missing $name");
     }
-    return inputs[name] as Object/*=E*/;
+    return inputs[name] as E;
   }
 
   /**
@@ -368,36 +368,33 @@ abstract class ListTaskInput<E> implements TaskInput<List<E>> {
    * Return a task input that can be used to compute a flatten list whose
    * elements are combined [subListResult]'s associated with those elements.
    */
-  ListTaskInput/*<V>*/ toFlattenListOf/*<V>*/(
-      ListResultDescriptor/*<V>*/ subListResult);
+  ListTaskInput<V> toFlattenListOf<V>(ListResultDescriptor<V> subListResult);
 
   /**
    * Return a task input that can be used to compute a list whose elements are
    * the result of passing the elements of this input to the [mapper] function.
    */
-  ListTaskInput/*<V>*/ toList/*<V>*/(UnaryFunction<E, dynamic/*=V*/ > mapper);
+  ListTaskInput<V> toList<V>(UnaryFunction<E, V> mapper);
 
   /**
    * Return a task input that can be used to compute a list whose elements are
    * [valueResult]'s associated with those elements.
    */
-  ListTaskInput/*<V>*/ toListOf/*<V>*/(ResultDescriptor/*<V>*/ valueResult);
+  ListTaskInput<V> toListOf<V>(ResultDescriptor<V> valueResult);
 
   /**
    * Return a task input that can be used to compute a map whose keys are the
    * elements of this input and whose values are the result of passing the
    * corresponding key to the [mapper] function.
    */
-  MapTaskInput<E, dynamic/*=V*/ > toMap/*<V>*/(
-      UnaryFunction<E, dynamic/*=V*/ > mapper);
+  MapTaskInput<E, V> toMap<V>(UnaryFunction<E, V> mapper);
 
   /**
    * Return a task input that can be used to compute a map whose keys are the
    * elements of this input and whose values are the [valueResult]'s associated
    * with those elements.
    */
-  MapTaskInput<AnalysisTarget, dynamic/*=V*/ > toMapOf/*<V>*/(
-      ResultDescriptor/*<V>*/ valueResult);
+  MapTaskInput<AnalysisTarget, V> toMapOf<V>(ResultDescriptor<V> valueResult);
 }
 
 /**
@@ -412,8 +409,8 @@ abstract class MapTaskInput<K, V> implements TaskInput<Map<K, V>> {
    * the result of passing keys [K] and the corresponding elements of [V] to
    * the [mapper] function.
    */
-  TaskInput<List/*<E>*/ > toFlattenList/*<E>*/(
-      BinaryFunction<K, dynamic /*element of V*/, dynamic/*=E*/ > mapper);
+  TaskInput<List<E>> toFlattenList<E>(
+      BinaryFunction<K, dynamic /*element of V*/, E> mapper);
 }
 
 /**
@@ -607,7 +604,7 @@ abstract class TaskInput<V> {
    * Return a task input that can be used to compute a list whose elements are
    * the result of passing the result of this input to the [mapper] function.
    */
-  ListTaskInput/*<E>*/ mappedToList/*<E>*/(List/*<E>*/ mapper(V value));
+  ListTaskInput<E> mappedToList<E>(List<E> mapper(V value));
 }
 
 /**

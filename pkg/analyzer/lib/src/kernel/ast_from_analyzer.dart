@@ -2298,9 +2298,8 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
     }
   }
 
-  static Iterable/*<E>*/ concatenate/*<E>*/(
-          Iterable/*<E>*/ x, Iterable/*<E>*/ y) =>
-      <Iterable<dynamic/*=E*/ >>[x, y].expand((z) => z);
+  static Iterable<E> concatenate<E>(Iterable<E> x, Iterable<E> y) =>
+      <Iterable<E>>[x, y].expand((z) => z);
 
   ast.TypeParameter convertTypeParameter(TypeParameterElement typeParameter,
       List<TypeParameterElement> boundVariables) {
@@ -3079,7 +3078,7 @@ Element desynthesizeSetter(Element element) {
   return element;
 }
 
-void sortAndRemoveDuplicates/*<T extends Comparable<T>>*/(List/*<T>*/ list) {
+void sortAndRemoveDuplicates<T extends Comparable<T>>(List<T> list) {
   list.sort();
   int deleted = 0;
   for (int i = 1; i < list.length; ++i) {

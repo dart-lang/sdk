@@ -251,18 +251,18 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
       // no longer use resolution types.
       if (node.typeParameters.isEmpty) {
         data.thisType =
-            data.rawType = new InterfaceType(cls, const/*<DartType>*/ []);
+            data.rawType = new InterfaceType(cls, const <DartType>[]);
       } else {
         data.thisType = new InterfaceType(
             cls,
-            new List/*<DartType>*/ .generate(node.typeParameters.length,
+            new List<DartType>.generate(node.typeParameters.length,
                 (int index) {
               return new TypeVariableType(
                   _getTypeVariable(node.typeParameters[index]));
             }));
         data.rawType = new InterfaceType(
             cls,
-            new List/*<DartType>*/ .filled(
+            new List<DartType>.filled(
                 node.typeParameters.length, const DynamicType()));
       }
     }
@@ -397,7 +397,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   List<DartType> getDartTypes(List<ir.DartType> types) {
     // TODO(johnniwinther): Add the type argument to the list literal when we
     // no longer use resolution types.
-    List<DartType> list = /*<DartType>*/ [];
+    List<DartType> list = <DartType>[];
     types.forEach((ir.DartType type) {
       list.add(getDartType(type));
     });
@@ -418,8 +418,8 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     } else {
       returnType = getDartType(node.returnType);
     }
-    List<DartType> parameterTypes = /*<DartType>*/ [];
-    List<DartType> optionalParameterTypes = /*<DartType>*/ [];
+    List<DartType> parameterTypes = <DartType>[];
+    List<DartType> optionalParameterTypes = <DartType>[];
     for (ir.VariableDeclaration variable in node.positionalParameters) {
       if (parameterTypes.length == node.requiredParameterCount) {
         optionalParameterTypes.add(getDartType(variable.type));
@@ -428,7 +428,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
       }
     }
     List<String> namedParameters = <String>[];
-    List<DartType> namedParameterTypes = /*<DartType>*/ [];
+    List<DartType> namedParameterTypes = <DartType>[];
     List<ir.VariableDeclaration> sortedNamedParameters =
         node.namedParameters.toList()..sort((a, b) => a.name.compareTo(b.name));
     for (ir.VariableDeclaration variable in sortedNamedParameters) {
@@ -1999,7 +1999,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
     closureData
       ..isMixinApplication = false
       ..thisType =
-          closureData.rawType = new InterfaceType(cls, const/*<DartType>*/ [])
+          closureData.rawType = new InterfaceType(cls, const <DartType>[])
       ..supertype = supertype
       ..interfaces = const <InterfaceType>[];
     var setBuilder = new _KernelOrderedTypeSetBuilder(this, cls);
