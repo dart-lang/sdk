@@ -366,11 +366,9 @@ class Thread : public BaseThread {
   static intptr_t heap_offset() { return OFFSET_OF(Thread, heap_); }
 
   void set_top(uword value) {
-    ASSERT(heap_ != NULL);
     top_ = value;
   }
   void set_end(uword value) {
-    ASSERT(heap_ != NULL);
     end_ = value;
   }
 

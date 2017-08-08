@@ -405,10 +405,8 @@ void Scavenger::Epilogue(Isolate* isolate,
 
   // Ensure the mutator thread will fail the next allocation. This will force
   // mutator to allocate a new TLAB
-  if (isolate->IsMutatorThreadScheduled()) {
-    Thread* mutator_thread = isolate->mutator_thread();
-    ASSERT(!mutator_thread->HasActiveTLAB());
-  }
+  Thread* mutator_thread = isolate->mutator_thread();
+  ASSERT((mutator_thread == NULL) || (!mutator_thread->HasActiveTLAB()));
 
   double avg_frac = stats_history_.Get(0).PromoCandidatesSuccessFraction();
   if (stats_history_.Size() >= 2) {
@@ -716,8 +714,8 @@ void Scavenger::ProcessWeakReferences() {
 
 void Scavenger::MakeNewSpaceIterable() const {
   ASSERT(heap_ != NULL);
-  if (heap_->isolate()->IsMutatorThreadScheduled() && !scavenging_) {
-    Thread* mutator_thread = heap_->isolate()->mutator_thread();
+  Thread* mutator_thread = heap_->isolate()->mutator_thread();
+  if (mutator_thread != NULL && !scavenging_) {
     if (mutator_thread->HasActiveTLAB()) {
       ASSERT(mutator_thread->top() <=
              mutator_thread->heap()->new_space()->top());
@@ -802,11 +800,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   int64_t post_safe_point = OS::GetCurrentMonotonicMicros();
   heap_->RecordTime(kSafePoint, post_safe_point - pre_safe_point);
 
-  if (isolate->IsMutatorThreadScheduled()) {
-    Thread* mutator_thread = isolate->mutator_thread();
-    if (mutator_thread->HasActiveTLAB()) {
-      heap_->AbandonRemainingTLAB(mutator_thread);
-    }
+  Thread* mutator_thread = isolate->mutator_thread();
+  if ((mutator_thread != NULL) && (mutator_thread->HasActiveTLAB())) {
+    heap_->AbandonRemainingTLAB(mutator_thread);
   }
 
   // TODO(koda): Make verification more compatible with concurrent sweep.
