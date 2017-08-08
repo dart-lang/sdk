@@ -136,7 +136,7 @@ class BuildMode {
 
   PackageBundleAssembler assembler;
   final Set<Source> processedSources = new Set<Source>();
-  final Map<Uri, UnlinkedUnit> uriToUnit = <Uri, UnlinkedUnit>{};
+  final Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
 
   BuildMode(this.resourceProvider, this.options, this.stats);
 
@@ -206,22 +206,26 @@ class BuildMode {
     // Write summary.
     assembler = new PackageBundleAssembler();
     if (_shouldOutputSummary) {
-      if (options.buildSummaryOnlyUnlinked) {
-        for (var src in explicitSources) {
-          // Note: This adds the unit to the assembler if it needed to be
-          // computed, so we don't need to explicitly do that.
-          _unlinkedUnitForUri('${src.uri}');
-        }
-      } else {
-        Set<String> unlinkedUris =
-            explicitSources.map((Source s) => s.uri.toString()).toSet();
+      // Prepare all unlinked units.
+      for (var src in explicitSources) {
+        _prepareUnlinkedUnit('${src.uri}');
+      }
+
+      // Build and assemble linked libraries.
+      if (!options.buildSummaryOnlyUnlinked) {
+        // Prepare URIs of unlinked units that should be linked.
+        var unlinkedUris = new Set<String>();
         for (var bundle in unlinkedBundles) {
           unlinkedUris.addAll(bundle.unlinkedUnitUris);
         }
-
-        _serializeAstBasedSummary(unlinkedUris);
+        for (var src in explicitSources) {
+          unlinkedUris.add('${src.uri}');
+        }
+        // Perform linking.
+        _computeLinkedLibraries(unlinkedUris);
         assembler.recordDependencies(summaryDataStore);
       }
+
       // Write the whole package bundle.
       PackageBundleBuilder bundle = assembler.assemble();
       if (options.buildSummaryOutput != null) {
@@ -242,6 +246,27 @@ class BuildMode {
       _printErrors(outputPath: options.buildAnalysisOutput);
       return _computeMaxSeverity();
     }
+  }
+
+  /**
+   * Compute linked libraries for the given [libraryUris] using the linked
+   * libraries of the [summaryDataStore] and unlinked units in [uriToUnit], and
+   * add them to  the [assembler].
+   */
+  void _computeLinkedLibraries(Set<String> libraryUris) {
+    LinkedLibrary getDependency(String absoluteUri) =>
+        summaryDataStore.linkedMap[absoluteUri];
+
+    UnlinkedUnit getUnit(String absoluteUri) =>
+        summaryDataStore.unlinkedMap[absoluteUri] ?? uriToUnit[absoluteUri];
+
+    Map<String, LinkedLibraryBuilder> linkResult = link(
+        libraryUris,
+        getDependency,
+        getUnit,
+        context.declaredVariables.get,
+        options.strongMode);
+    linkResult.forEach(assembler.addLinkedLibrary);
   }
 
   ErrorSeverity _computeMaxSeverity() {
@@ -362,6 +387,32 @@ class BuildMode {
   }
 
   /**
+   * Ensure that the [UnlinkedUnit] for [absoluteUri] is available.
+   *
+   * If the unit is in the input [summaryDataStore], do nothing.
+   *
+   * Otherwise compute it and store into the [uriToUnit] and [assembler].
+   */
+  void _prepareUnlinkedUnit(String absoluteUri) {
+    // Maybe an input package contains the source.
+    if (summaryDataStore.unlinkedMap[absoluteUri] != null) {
+      return;
+    }
+    // Parse the source and serialize its AST.
+    Uri uri = Uri.parse(absoluteUri);
+    Source source = context.sourceFactory.forUri2(uri);
+    if (!source.exists()) {
+      // TODO(paulberry): we should report a warning/error because DDC
+      // compilations are unlikely to work.
+      return;
+    }
+    CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
+    UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
+    uriToUnit[absoluteUri] = unlinkedUnit;
+    assembler.addUnlinkedUnit(source, unlinkedUnit);
+  }
+
+  /**
    * Print errors for all explicit sources.  If [outputPath] is supplied, output
    * is sent to a new file at that path.
    */
@@ -388,54 +439,6 @@ class BuildMode {
     } else {
       new io.File(outputPath).writeAsStringSync(buffer.toString());
     }
-  }
-
-  /**
-   * Serialize the package with the given [sources] into [assembler] using only
-   * their ASTs and [LinkedUnit]s of input packages.
-   */
-  void _serializeAstBasedSummary(Set<String> unlinkedUris) {
-    LinkedLibrary _getDependency(String absoluteUri) =>
-        summaryDataStore.linkedMap[absoluteUri];
-
-    Map<String, LinkedLibraryBuilder> linkResult = link(
-        unlinkedUris,
-        _getDependency,
-        _unlinkedUnitForUri,
-        context.declaredVariables.get,
-        options.strongMode);
-    linkResult.forEach(assembler.addLinkedLibrary);
-  }
-
-  /**
-   * Returns the [UnlinkedUnit] for [absoluteUri], either by computing it or
-   * using the stored one in [uriToUnit].
-   *
-   * If the [UnlinkedUnit] needed to be computed, it will also be added to the
-   * [assembler].
-   */
-  UnlinkedUnit _unlinkedUnitForUri(String absoluteUri) {
-    // Maybe an input package contains the source.
-    {
-      UnlinkedUnit unlinkedUnit = summaryDataStore.unlinkedMap[absoluteUri];
-      if (unlinkedUnit != null) {
-        return unlinkedUnit;
-      }
-    }
-    // Parse the source and serialize its AST.
-    Uri uri = Uri.parse(absoluteUri);
-    Source source = context.sourceFactory.forUri2(uri);
-    if (!source.exists()) {
-      // TODO(paulberry): we should report a warning/error because DDC
-      // compilations are unlikely to work.
-      return null;
-    }
-    return uriToUnit.putIfAbsent(uri, () {
-      CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
-      UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
-      assembler.addUnlinkedUnit(source, unlinkedUnit);
-      return unlinkedUnit;
-    });
   }
 }
 
