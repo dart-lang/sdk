@@ -4,6 +4,8 @@
 
 library analyzer_cli.test.built_mode;
 
+import 'dart:async';
+
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer_cli/src/build_mode.dart';
 import 'package:analyzer_cli/src/driver.dart';
@@ -30,7 +32,7 @@ class TestAnalyzerWorkerLoop extends AnalyzerWorkerLoop {
       : super(new MemoryResourceProvider(), connection);
 
   @override
-  void analyze(CommandLineOptions options) {
+  Future<Null> analyze(CommandLineOptions options) async {
     if (_analyze != null) {
       _analyze(options);
     }
