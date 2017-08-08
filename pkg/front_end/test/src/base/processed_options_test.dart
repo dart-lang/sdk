@@ -7,11 +7,12 @@ import 'dart:async';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/fasta.dart' show ByteSink;
 import 'package:front_end/src/fasta/compiler_context.dart';
+import 'package:front_end/src/fasta/fasta.dart' show ByteSink;
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
-import 'package:kernel/kernel.dart' show Program, Library, CanonicalName;
+import 'package:kernel/kernel.dart'
+    show CanonicalName, Library, Program, loadProgramFromBytes;
 import 'package:package_config/packages.dart' show Packages;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -63,6 +64,24 @@ class ProcessedOptionsTest {
     var raw = new CompilerOptions()..fileSystem = fileSystem;
     var processed = new ProcessedOptions(raw);
     expect(processed.fileSystem, same(fileSystem));
+  }
+
+  test_getSdkSummaryBytes_summaryLocationProvided() async {
+    var uri = Uri.parse('file:///sdkSummary');
+
+    writeMockSummaryTo(uri);
+
+    var raw = new CompilerOptions()
+      ..fileSystem = fileSystem
+      ..sdkSummary = uri;
+    var processed = new ProcessedOptions(raw);
+
+    var bytes = await processed.loadSdkSummaryBytes();
+    expect(bytes, isNotEmpty);
+
+    var sdkSummary = loadProgramFromBytes(bytes);
+    expect(sdkSummary.libraries.single.importUri,
+        mockSummary.libraries.single.importUri);
   }
 
   test_getSdkSummary_summaryLocationProvided() async {

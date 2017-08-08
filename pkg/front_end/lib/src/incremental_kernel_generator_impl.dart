@@ -33,7 +33,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// The function to notify when files become used or unused, or `null`.
   final WatchUsedFilesFn _watchFn;
 
-  /// TODO(scheglov) document
+  /// The [KernelDriver] that is used to compute kernels.
   KernelDriver _driver;
 
   /// Latest compilation signatures produced by [computeDelta] for libraries.
@@ -42,8 +42,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// The object that provides additional information for tests.
   _TestView _testView;
 
-  IncrementalKernelGeneratorImpl(
-      ProcessedOptions options, UriTranslator uriTranslator, this._entryPoint,
+  IncrementalKernelGeneratorImpl(ProcessedOptions options,
+      UriTranslator uriTranslator, List<int> sdkOutlineBytes, this._entryPoint,
       {WatchUsedFilesFn watch})
       : _logger = options.logger,
         _watchFn = watch {
@@ -56,8 +56,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       return new Future.value();
     }
 
-    _driver =
-        new KernelDriver(options, uriTranslator, fileAddedFn: onFileAdded);
+    _driver = new KernelDriver(options, uriTranslator,
+        sdkOutlineBytes: sdkOutlineBytes, fileAddedFn: onFileAdded);
   }
 
   /// Return the object that provides additional information for tests.

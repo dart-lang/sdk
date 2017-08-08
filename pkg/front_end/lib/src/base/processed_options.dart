@@ -89,6 +89,18 @@ class ProcessedOptions {
     return _sdkSummary;
   }
 
+  List<int> _sdkSummaryBytes;
+
+  /// Get the bytes of the SDK outline, if any.
+  Future<List<int>> loadSdkSummaryBytes() async {
+    if (_sdkSummaryBytes == null) {
+      if (sdkSummary == null) return null;
+      var entry = fileSystem.entityForUri(sdkSummary);
+      _sdkSummaryBytes = await entry.readAsBytes();
+    }
+    return _sdkSummaryBytes;
+  }
+
   Uri _librariesSpecificationUri;
   Uri get librariesSpecificationUri {
     _ensureSdkDefaults();
@@ -240,7 +252,7 @@ class ProcessedOptions {
   Future<Program> loadSdkSummary(CanonicalName nameRoot) async {
     if (_sdkSummaryProgram == null) {
       if (sdkSummary == null) return null;
-      var bytes = await fileSystem.entityForUri(sdkSummary).readAsBytes();
+      var bytes = await loadSdkSummaryBytes();
       _sdkSummaryProgram = loadProgram(bytes, nameRoot);
     }
     return _sdkSummaryProgram;

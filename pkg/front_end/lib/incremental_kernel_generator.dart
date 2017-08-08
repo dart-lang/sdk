@@ -103,8 +103,9 @@ abstract class IncrementalKernelGenerator {
     var processedOptions = new ProcessedOptions(options, false, [entryPoint]);
     return await CompilerContext.runWithOptions(processedOptions, (_) async {
       var uriTranslator = await processedOptions.getUriTranslator();
+      var sdkOutlineBytes = await processedOptions.loadSdkSummaryBytes();
       return new IncrementalKernelGeneratorImpl(
-          processedOptions, uriTranslator, entryPoint,
+          processedOptions, uriTranslator, sdkOutlineBytes, entryPoint,
           watch: watch);
     });
   }
