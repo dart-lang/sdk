@@ -1347,6 +1347,39 @@ class KernelMethodInvocation extends MethodInvocation
   }
 }
 
+/// Concrete shadow object representing a named function expression.
+///
+/// Named function expressions are not legal in Dart, but they are accepted by
+/// the parser and BodyBuilder for error recovery purposes.
+///
+/// A named function expression of the form `f() { ... }` is represented as the
+/// kernel expression:
+///
+///     let f = () { ... } in f
+class KernelNamedFunctionExpression extends Let implements KernelExpression {
+  KernelNamedFunctionExpression(VariableDeclaration variable, Expression body)
+      : super(variable, body);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    collector.collectDependencies(variable.initializer);
+  }
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    typeNeeded =
+        inferrer.listener.namedFunctionExpressionEnter(this, typeContext) ||
+            typeNeeded;
+    var inferredType =
+        inferrer.inferExpression(variable.initializer, typeContext, true);
+    if (inferrer.strongMode) variable.type = inferredType;
+    if (!typeNeeded) inferredType = null;
+    inferrer.listener.namedFunctionExpressionExit(this, inferredType);
+    return inferredType;
+  }
+}
+
 /// Shadow object for [Not].
 class KernelNot extends Not implements KernelExpression {
   KernelNot(Expression operand) : super(operand);

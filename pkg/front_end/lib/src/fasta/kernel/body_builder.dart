@@ -2480,7 +2480,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           ..fileEndOffset = endToken.charOffset))
       ..parent = variable
       ..fileOffset = formals.charOffset;
-    push(new Let(variable, new VariableGet(variable)));
+    push(
+        new KernelNamedFunctionExpression(variable, new VariableGet(variable)));
   }
 
   @override

@@ -1,7 +1,8 @@
 library;
 import self as self;
+import "dart:core" as core;
 
 const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29937.dart:6:4: Error: A function expression can't have a name.\n  [f() {}];\n   ^"]/* from null */;
 static method main() → dynamic {
-  <dynamic>[let final dynamic f = () → dynamic {} in f];
+  <() → core::Null>[let final () → core::Null f = () → core::Null {} in f];
 }
