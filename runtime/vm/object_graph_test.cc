@@ -58,7 +58,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
   intptr_t d_size = d.raw()->Size();
   {
     // No more allocation; raw pointers ahead.
-    NoSafepointScope no_safepoint_scope;
+    SafepointOperationScope safepoint(thread);
     RawObject* b_raw = b.raw();
     // Clear handles to cut unintended retained paths.
     b = Array::null();
@@ -66,7 +66,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
     d = Array::null();
     ObjectGraph graph(thread);
     {
-      HeapIterationScope iteration_scope(true);
+      HeapIterationScope iteration_scope(thread, true);
       {
         // Compare count and size when 'b' is/isn't skipped.
         CounterVisitor with(Object::null(), Object::null());

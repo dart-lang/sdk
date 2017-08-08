@@ -178,12 +178,6 @@ class Isolate : public BaseIsolate {
   void RegisterClassAt(intptr_t index, const Class& cls);
   void ValidateClassTable();
 
-  // Visit all object pointers.
-  void IterateObjectPointers(ObjectPointerVisitor* visitor,
-                             bool validate_frames);
-  void IterateStackPointers(ObjectPointerVisitor* visitor,
-                            bool validate_frames);
-
   // Visits weak object pointers.
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
@@ -928,8 +922,9 @@ class Isolate : public BaseIsolate {
   friend class Become;    // VisitObjectPointers
   friend class GCMarker;  // VisitObjectPointers
   friend class SafepointHandler;
-  friend class Scavenger;    // VisitObjectPointers
   friend class ObjectGraph;  // VisitObjectPointers
+  friend class Scavenger;    // VisitObjectPointers
+  friend class HeapIterationScope;  // VisitObjectPointers
   friend class ServiceIsolate;
   friend class Thread;
   friend class Timeline;

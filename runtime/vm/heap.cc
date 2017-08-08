@@ -14,6 +14,7 @@
 #include "vm/os.h"
 #include "vm/pages.h"
 #include "vm/raw_object.h"
+#include "vm/safepoint.h"
 #include "vm/scavenger.h"
 #include "vm/service.h"
 #include "vm/service_event.h"
@@ -239,9 +240,10 @@ void Heap::VisitObjectsImagePages(ObjectVisitor* visitor) const {
   old_space_.VisitObjectsImagePages(visitor);
 }
 
-HeapIterationScope::HeapIterationScope(bool writable)
-    : StackResource(Thread::Current()),
-      old_space_(isolate()->heap()->old_space()),
+HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
+    : StackResource(thread),
+      heap_(isolate()->heap()),
+      old_space_(heap_->old_space()),
       writable_(writable) {
   {
     // It's not yet safe to iterate over a paged space while it's concurrently
@@ -249,27 +251,31 @@ HeapIterationScope::HeapIterationScope(bool writable)
     MonitorLocker ml(old_space_->tasks_lock());
 #if defined(DEBUG)
     // We currently don't support nesting of HeapIterationScopes.
-    ASSERT(old_space_->iterating_thread_ != thread());
+    ASSERT(old_space_->iterating_thread_ != thread);
 #endif
     while (old_space_->tasks() > 0) {
-      ml.WaitWithSafepointCheck(thread());
+      ml.WaitWithSafepointCheck(thread);
     }
 #if defined(DEBUG)
     ASSERT(old_space_->iterating_thread_ == NULL);
-    old_space_->iterating_thread_ = thread();
+    old_space_->iterating_thread_ = thread;
 #endif
     old_space_->set_tasks(1);
   }
 
+  isolate()->safepoint_handler()->SafepointThreads(thread);
+
   if (writable_) {
-    thread()->heap()->WriteProtectCode(false);
+    heap_->WriteProtectCode(false);
   }
 }
 
 HeapIterationScope::~HeapIterationScope() {
   if (writable_) {
-    thread()->heap()->WriteProtectCode(true);
+    heap_->WriteProtectCode(true);
   }
+
+  isolate()->safepoint_handler()->ResumeThreads(thread());
 
   MonitorLocker ml(old_space_->tasks_lock());
 #if defined(DEBUG)
@@ -281,21 +287,37 @@ HeapIterationScope::~HeapIterationScope() {
   ml.NotifyAll();
 }
 
-void Heap::IterateObjects(ObjectVisitor* visitor) const {
-  // The visitor must not allocate from the heap.
-  NoSafepointScope no_safepoint_scope_;
-  new_space_.VisitObjects(visitor);
-  IterateOldObjects(visitor);
+void HeapIterationScope::IterateObjects(ObjectVisitor* visitor) const {
+  heap_->VisitObjects(visitor);
 }
 
-void Heap::IterateOldObjects(ObjectVisitor* visitor) const {
-  HeapIterationScope heap_iteration_scope;
-  old_space_.VisitObjects(visitor);
+void HeapIterationScope::IterateObjectsNoImagePages(
+    ObjectVisitor* visitor) const {
+  heap_->new_space()->VisitObjects(visitor);
+  heap_->old_space()->VisitObjectsNoImagePages(visitor);
 }
 
-void Heap::IterateOldObjectsNoImagePages(ObjectVisitor* visitor) const {
-  HeapIterationScope heap_iteration_scope;
-  old_space_.VisitObjectsNoImagePages(visitor);
+void HeapIterationScope::IterateOldObjects(ObjectVisitor* visitor) const {
+  old_space_->VisitObjects(visitor);
+}
+
+void HeapIterationScope::IterateOldObjectsNoImagePages(
+    ObjectVisitor* visitor) const {
+  old_space_->VisitObjectsNoImagePages(visitor);
+}
+
+void HeapIterationScope::IterateVMIsolateObjects(ObjectVisitor* visitor) const {
+  Dart::vm_isolate()->heap()->VisitObjects(visitor);
+}
+
+void HeapIterationScope::IterateObjectPointers(ObjectPointerVisitor* visitor,
+                                               bool validate_frames) {
+  isolate()->VisitObjectPointers(visitor, validate_frames);
+}
+
+void HeapIterationScope::IterateStackPointers(ObjectPointerVisitor* visitor,
+                                              bool validate_frames) {
+  isolate()->VisitStackPointers(visitor, validate_frames);
 }
 
 void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
@@ -312,7 +334,6 @@ RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
 }
 
 RawObject* Heap::FindOldObject(FindObjectVisitor* visitor) const {
-  HeapIterationScope heap_iteration_scope;
   return old_space_.FindObject(visitor, HeapPage::kData);
 }
 
@@ -596,7 +617,7 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
 }
 
 bool Heap::Verify(MarkExpectation mark_expectation) const {
-  HeapIterationScope heap_iteration_scope;
+  HeapIterationScope heap_iteration_scope(Thread::Current());
   return VerifyGC(mark_expectation);
 }
 

@@ -224,6 +224,7 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -293,6 +294,7 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -339,6 +341,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -481,6 +484,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -497,6 +501,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -545,6 +550,7 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -563,6 +569,7 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -634,6 +641,7 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -674,6 +682,7 @@ TEST_CASE(Profiler_CodeTicks) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -697,6 +706,7 @@ TEST_CASE(Profiler_CodeTicks) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -776,6 +786,7 @@ TEST_CASE(Profiler_FunctionTicks) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -799,6 +810,7 @@ TEST_CASE(Profiler_FunctionTicks) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -869,6 +881,7 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -883,6 +896,7 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -909,6 +923,7 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -938,6 +953,7 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -952,6 +968,7 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -980,6 +997,7 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1004,6 +1022,7 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1036,6 +1055,7 @@ TEST_CASE(Profiler_ContextAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1050,6 +1070,7 @@ TEST_CASE(Profiler_ContextAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1074,6 +1095,7 @@ TEST_CASE(Profiler_ContextAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1116,6 +1138,7 @@ TEST_CASE(Profiler_ClosureAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1144,6 +1167,7 @@ TEST_CASE(Profiler_ClosureAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1177,6 +1201,7 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1191,6 +1216,7 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1215,6 +1241,7 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1229,6 +1256,7 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1260,6 +1288,7 @@ TEST_CASE(Profiler_StringAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1274,6 +1303,7 @@ TEST_CASE(Profiler_StringAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1300,6 +1330,7 @@ TEST_CASE(Profiler_StringAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1314,6 +1345,7 @@ TEST_CASE(Profiler_StringAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1346,6 +1378,7 @@ TEST_CASE(Profiler_StringInterpolation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1360,6 +1393,7 @@ TEST_CASE(Profiler_StringInterpolation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1388,6 +1422,7 @@ TEST_CASE(Profiler_StringInterpolation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1402,6 +1437,7 @@ TEST_CASE(Profiler_StringInterpolation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1461,6 +1497,7 @@ TEST_CASE(Profiler_FunctionInline) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1480,6 +1517,7 @@ TEST_CASE(Profiler_FunctionInline) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1598,6 +1636,7 @@ TEST_CASE(Profiler_FunctionInline) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1770,6 +1809,7 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1788,6 +1828,7 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1885,6 +1926,7 @@ TEST_CASE(Profiler_ChainedSamples) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -1986,6 +2028,7 @@ TEST_CASE(Profiler_BasicSourcePosition) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -2079,6 +2122,7 @@ TEST_CASE(Profiler_BasicSourcePositionOptimized) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -2165,6 +2209,7 @@ TEST_CASE(Profiler_SourcePosition) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -2289,6 +2334,7 @@ TEST_CASE(Profiler_SourcePositionOptimized) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -2396,6 +2442,7 @@ TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -2529,6 +2576,7 @@ TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -2737,10 +2785,13 @@ TEST_CASE(Profiler_GetSourceReport) {
   InsertFakeSample(sample_buffer, &sample4[0]);
 
   // Generate source report for main.
-  SourceReport sourceReport(SourceReport::kProfile);
   JSONStream js;
-  sourceReport.PrintJSON(&js, script, do_work.token_pos(),
-                         main.end_token_pos());
+  {
+    TransitionNativeToVM transition(thread);
+    SourceReport sourceReport(SourceReport::kProfile);
+    sourceReport.PrintJSON(&js, script, do_work.token_pos(),
+                           main.end_token_pos());
+  }
 
   // Verify positions in do_work.
   EXPECT_SUBSTRING("\"positions\":[\"ControlFlow\",6]", js.ToCString());

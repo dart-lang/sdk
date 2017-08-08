@@ -727,6 +727,8 @@ void Scavenger::MakeNewSpaceIterable() const {
 }
 
 void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
+  ASSERT(Thread::Current()->IsAtSafepoint() ||
+         (Thread::Current()->task_kind() == Thread::kMarkerTask));
   MakeNewSpaceIterable();
   uword cur = FirstObjectStart();
   while (cur < top_) {
@@ -736,6 +738,8 @@ void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 }
 
 void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
+  ASSERT(Thread::Current()->IsAtSafepoint() ||
+         (Thread::Current()->task_kind() == Thread::kMarkerTask));
   MakeNewSpaceIterable();
   uword cur = FirstObjectStart();
   while (cur < top_) {

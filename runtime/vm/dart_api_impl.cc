@@ -1506,8 +1506,11 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
 
 #if defined(DEBUG)
   I->heap()->CollectAllGarbage();
-  CheckFunctionTypesVisitor check_canonical(T);
-  I->heap()->IterateObjects(&check_canonical);
+  {
+    HeapIterationScope iteration(T);
+    CheckFunctionTypesVisitor check_canonical(T);
+    iteration.IterateObjects(&check_canonical);
+  }
 #endif  // #if defined(DEBUG)
 
   Symbols::Compact(I);
@@ -1541,8 +1544,11 @@ Dart_CreateScriptSnapshot(uint8_t** script_snapshot_buffer,
 
 #if defined(DEBUG)
   I->heap()->CollectAllGarbage();
-  CheckFunctionTypesVisitor check_canonical(T);
-  I->heap()->IterateObjects(&check_canonical);
+  {
+    HeapIterationScope iteration(T);
+    CheckFunctionTypesVisitor check_canonical(T);
+    iteration.IterateObjects(&check_canonical);
+  }
 #endif  // #if defined(DEBUG)
 
   ScriptSnapshotWriter writer(script_snapshot_buffer, ApiReallocate);

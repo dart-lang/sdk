@@ -4067,8 +4067,11 @@ ISOLATE_UNIT_TEST_CASE(PrintJSON) {
   Heap* heap = Isolate::Current()->heap();
   heap->CollectAllGarbage();
   GrowableArray<Object*> objects;
-  ObjectAccumulator acc(&objects);
-  heap->IterateObjects(&acc);
+  {
+    HeapIterationScope iteration(Thread::Current());
+    ObjectAccumulator acc(&objects);
+    iteration.IterateObjects(&acc);
+  }
   for (intptr_t i = 0; i < objects.length(); ++i) {
     JSONStream js;
     objects[i]->PrintJSON(&js, false);

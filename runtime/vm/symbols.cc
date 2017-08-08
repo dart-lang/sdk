@@ -369,8 +369,12 @@ void Symbols::Compact(Isolate* isolate) {
     Zone* zone_;
   };
 
-  SymbolCollector visitor(Thread::Current(), &symbols);
-  isolate->heap()->IterateObjects(&visitor);
+  {
+    Thread* thread = Thread::Current();
+    HeapIterationScope iteration(thread);
+    SymbolCollector visitor(thread, &symbols);
+    iteration.IterateObjects(&visitor);
+  }
 
   // 3. Build a new table from the surviving symbols.
   Array& array = Array::Handle(

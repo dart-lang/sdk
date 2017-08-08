@@ -3654,13 +3654,14 @@ class CidRewriteVisitor : public ObjectVisitor {
 };
 
 void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
-  Isolate* I = Thread::Current()->isolate();
+  Thread* T = Thread::Current();
+  Isolate* I = T->isolate();
 
   // Code, ICData, allocation stubs have now-invalid cids.
   ClearAllCode();
 
   {
-    HeapIterationScope his;
+    HeapIterationScope his(T);
     I->set_remapping_cids(true);
 
     // Update the class table. Do it before rewriting cids in headers, as the
@@ -3720,7 +3721,7 @@ void ClassFinalizer::RehashTypes() {
 
   // Clear all cached hash values.
   {
-    HeapIterationScope his;
+    HeapIterationScope his(T);
     ClearTypeHashVisitor visitor(Z);
     I->heap()->VisitObjects(&visitor);
   }

@@ -1116,10 +1116,12 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
 
   {
     ASSERT(isolate == Dart::vm_isolate());
-    WritableVMIsolateScope scope(Thread::Current());
+    Thread* thread = Thread::Current();
+    WritableVMIsolateScope scope(thread);
+    HeapIterationScope iteration(thread);
     FinalizeVMIsolateVisitor premarker;
     ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
-    isolate->heap()->IterateOldObjectsNoImagePages(&premarker);
+    iteration.IterateOldObjectsNoImagePages(&premarker);
     // Make the VM isolate read-only again after setting all objects as marked.
     // Note objects in image pages are already pre-marked.
   }
@@ -14126,7 +14128,7 @@ RawCode* Code::LookupCodeInIsolate(Isolate* isolate, uword pc) {
   if (isolate->heap() == NULL) {
     return Code::null();
   }
-  NoSafepointScope no_safepoint;
+  HeapIterationScope heap_iteration_scope(Thread::Current());
   SlowFindRawCodeVisitor visitor(pc);
   RawObject* needle = isolate->heap()->FindOldObject(&visitor);
   if (needle != Code::null()) {

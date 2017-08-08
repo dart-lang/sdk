@@ -93,11 +93,6 @@ class Heap {
   bool CodeContains(uword addr) const;
   bool DataContains(uword addr) const;
 
-  void IterateObjects(ObjectVisitor* visitor) const;
-  void IterateOldObjects(ObjectVisitor* visitor) const;
-  void IterateOldObjectsNoImagePages(ObjectVisitor* visitor) const;
-  void IterateObjectPointers(ObjectVisitor* visitor) const;
-
   // Find an object by visiting all pointers in the specified heap space,
   // the 'visitor' is used to determine if an object is found or not.
   // The 'visitor' function should be set up to return true if the
@@ -364,23 +359,35 @@ class Heap {
 
   friend class Become;       // VisitObjectPointers
   friend class Precompiler;  // VisitObjects
-  friend class ObjectGraph;  // VisitObjects
   friend class Unmarker;     // VisitObjects
   friend class ServiceEvent;
   friend class PageSpace;             // VerifyGC
   friend class IsolateReloadContext;  // VisitObjects
   friend class ClassFinalizer;        // VisitObjects
+  friend class HeapIterationScope;    // VisitObjects
 
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };
 
 class HeapIterationScope : public StackResource {
  public:
-  explicit HeapIterationScope(bool writable = false);
+  explicit HeapIterationScope(Thread* thread, bool writable = false);
   ~HeapIterationScope();
 
+  void IterateObjects(ObjectVisitor* visitor) const;
+  void IterateObjectsNoImagePages(ObjectVisitor* visitor) const;
+  void IterateOldObjects(ObjectVisitor* visitor) const;
+  void IterateOldObjectsNoImagePages(ObjectVisitor* visitor) const;
+
+  void IterateVMIsolateObjects(ObjectVisitor* visitor) const;
+
+  void IterateObjectPointers(ObjectPointerVisitor* visitor,
+                             bool validate_frames);
+  void IterateStackPointers(ObjectPointerVisitor* visitor,
+                            bool validate_frames);
+
  private:
-  NoSafepointScope no_safepoint_scope_;
+  Heap* heap_;
   PageSpace* old_space_;
   bool writable_;
 

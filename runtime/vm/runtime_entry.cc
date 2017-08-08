@@ -96,8 +96,6 @@ DEFINE_FLAG(charp,
 void VerifyOnTransition() {
   Thread* thread = Thread::Current();
   TransitionGeneratedToVM transition(thread);
-  thread->isolate()->heap()->WaitForSweeperTasks(thread);
-  SafepointOperationScope safepoint_scope(thread);
   VerifyPointersVisitor::VerifyPointers();
   thread->isolate()->heap()->Verify();
 }

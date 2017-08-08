@@ -1001,6 +1001,7 @@ void TestBreakpointHandlerWithVerify(Dart_IsolateId isolate_id,
   EXPECT_NE(-1, line_number);
   if (verbose) OS::Print("Hit line %" Pd "\n", line_number);
 
+  TransitionNativeToVM transition(Thread::Current());
   VerifyPointersVisitor::VerifyPointers();
 }
 

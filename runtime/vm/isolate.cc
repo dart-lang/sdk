@@ -1465,8 +1465,9 @@ static void ShutdownIsolate(uword parameter) {
       // This would otherwise happen in Dart::ShowdownIsolate.
       isolate->StopBackgroundCompiler();
       isolate->heap()->CollectAllGarbage();
+      HeapIterationScope iteration(thread);
       VerifyCanonicalVisitor check_canonical(thread);
-      isolate->heap()->IterateObjects(&check_canonical);
+      iteration.IterateObjects(&check_canonical);
     }
 #endif  // DEBUG
     const Error& error = Error::Handle(thread->sticky_error());
@@ -1737,18 +1738,6 @@ Dart_IsolateCleanupCallback Isolate::cleanup_callback_ = NULL;
 Monitor* Isolate::isolates_list_monitor_ = NULL;
 Isolate* Isolate::isolates_list_head_ = NULL;
 bool Isolate::creation_enabled_ = false;
-
-void Isolate::IterateObjectPointers(ObjectPointerVisitor* visitor,
-                                    bool validate_frames) {
-  HeapIterationScope heap_iteration_scope;
-  VisitObjectPointers(visitor, validate_frames);
-}
-
-void Isolate::IterateStackPointers(ObjectPointerVisitor* visitor,
-                                   bool validate_frames) {
-  HeapIterationScope heap_iteration_scope;
-  VisitStackPointers(visitor, validate_frames);
-}
 
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                   bool validate_frames) {
