@@ -49,6 +49,7 @@ const List<ErrorCode> errorCodeValues = const [
   AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,
   AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES,
   AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
+  AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
   CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
   CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
   CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
