@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
@@ -83,6 +84,16 @@ void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
     server.prevAnalyzedFiles = analyzedFiles;
     protocol.AnalysisAnalyzedFilesParams params =
         new protocol.AnalysisAnalyzedFilesParams(analyzedFiles.toList());
+    server.sendNotification(params.toNotification());
+  });
+}
+
+void sendAnalysisNotificationClosingLabels(AnalysisServer server, String file,
+    LineInfo lineInfo, CompilationUnit dartUnit) {
+  _sendNotification(server, () {
+    var labels =
+        new DartUnitClosingLabelsComputer(lineInfo, dartUnit).compute();
+    var params = new protocol.AnalysisClosingLabelsParams(file, labels);
     server.sendNotification(params.toNotification());
   });
 }
