@@ -6,6 +6,8 @@ library status_files.log_parser;
 
 import 'record.dart';
 
+final RegExp _stackRE = new RegExp('#[0-9]* ');
+
 /// Extracts test records from a test.py [log].
 List<Record> parse(String log) {
   var records = [];
@@ -15,6 +17,9 @@ List<Record> parse(String log) {
   var expected;
   var actual;
   var reason;
+  var fullReason; // lines before stack, usually multiline reason.
+  var stack = [];
+  var paragraph = []; // collector of lines for fullReason.
   bool reproIsNext = false;
   for (var line in log.split('\n')) {
     if (line.startsWith("FAILED: ")) {
@@ -39,11 +44,24 @@ List<Record> parse(String log) {
     }
     if (line.startsWith("The compiler crashed:")) {
       reason = line.substring("The compiler crashed:".length).trim();
+      paragraph.clear();
     }
+
+    if (line.startsWith(_stackRE)) {
+      stack.add(line);
+      fullReason ??= paragraph.take(5).join('\n');
+      paragraph.clear();
+    } else {
+      paragraph.add(line);
+    }
+
     if (reproIsNext) {
-      records.add(new Record(
-          suite, test, config, expected, actual, reason, line.trim()));
+      records.add(new Record(suite, test, config, expected, actual, reason,
+          line.trim(), fullReason, stack));
       suite = test = config = expected = actual = reason = null;
+      stack = [];
+      fullReason = null;
+      paragraph.clear();
       reproIsNext = false;
     }
     if (line.startsWith("Short reproduction command (experimental):")) {
