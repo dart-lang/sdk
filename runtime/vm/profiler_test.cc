@@ -189,7 +189,15 @@ class AllocationFilter : public SampleFilter {
   bool enable_vm_ticks_;
 };
 
+static void EnableProfiler() {
+  if (!FLAG_profiler) {
+    FLAG_profiler = true;
+    Profiler::InitOnce();
+  }
+}
+
 TEST_CASE(Profiler_TrivialRecordAllocation) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
@@ -316,6 +324,8 @@ DART_NOINLINE static void NativeAllocationSampleHelper(char** result) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
+  EnableProfiler();
+
   bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
   FLAG_profiler_native_memory = true;
 
@@ -521,6 +531,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
         // !defined(TARGET_ARCH_DBC) && !defined(HOST_OS_FUCHSIA)
 
 TEST_CASE(Profiler_ToggleRecordAllocation) {
+  EnableProfiler();
+
   DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
@@ -653,6 +665,7 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
 }
 
 TEST_CASE(Profiler_CodeTicks) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
@@ -757,6 +770,7 @@ TEST_CASE(Profiler_CodeTicks) {
 }
 
 TEST_CASE(Profiler_FunctionTicks) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
@@ -861,6 +875,7 @@ TEST_CASE(Profiler_FunctionTicks) {
 }
 
 TEST_CASE(Profiler_IntrinsicAllocation) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript = "double foo(double a, double b) => a + b;";
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
@@ -935,6 +950,7 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
 }
 
 TEST_CASE(Profiler_ArrayAllocation) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript =
       "List foo() => new List(4);\n"
@@ -1035,6 +1051,7 @@ TEST_CASE(Profiler_ArrayAllocation) {
 }
 
 TEST_CASE(Profiler_ContextAllocation) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript =
       "var msg1 = 'a';\n"
@@ -1107,6 +1124,7 @@ TEST_CASE(Profiler_ContextAllocation) {
 }
 
 TEST_CASE(Profiler_ClosureAllocation) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript =
       "var msg1 = 'a';\n"
@@ -1180,6 +1198,7 @@ TEST_CASE(Profiler_ClosureAllocation) {
 }
 
 TEST_CASE(Profiler_TypedArrayAllocation) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript =
       "import 'dart:typed_data';\n"
@@ -1268,6 +1287,7 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
 }
 
 TEST_CASE(Profiler_StringAllocation) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript = "String foo(String a, String b) => a + b;";
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
@@ -1357,6 +1377,7 @@ TEST_CASE(Profiler_StringAllocation) {
 }
 
 TEST_CASE(Profiler_StringInterpolation) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript = "String foo(String a, String b) => '$a | $b';";
@@ -1449,6 +1470,7 @@ TEST_CASE(Profiler_StringInterpolation) {
 }
 
 TEST_CASE(Profiler_FunctionInline) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
 
@@ -1741,6 +1763,7 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
   // This test checks the profiler service takes this into account; see
   // ProfileBuilder::ProcessFrame.
 
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -1874,6 +1897,7 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
 }
 
 TEST_CASE(Profiler_ChainedSamples) {
+  EnableProfiler();
   MaxProfileDepthScope mpds(32);
   DisableNativeProfileScope dnps;
 
@@ -1987,6 +2011,7 @@ TEST_CASE(Profiler_ChainedSamples) {
 }
 
 TEST_CASE(Profiler_BasicSourcePosition) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -2062,6 +2087,7 @@ TEST_CASE(Profiler_BasicSourcePosition) {
 }
 
 TEST_CASE(Profiler_BasicSourcePositionOptimized) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   // We use the AlwaysInline and NeverInline annotations in this test.
@@ -2156,6 +2182,7 @@ TEST_CASE(Profiler_BasicSourcePositionOptimized) {
 }
 
 TEST_CASE(Profiler_SourcePosition) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -2261,6 +2288,7 @@ TEST_CASE(Profiler_SourcePosition) {
 }
 
 TEST_CASE(Profiler_SourcePositionOptimized) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   // We use the AlwaysInline and NeverInline annotations in this test.
@@ -2386,6 +2414,7 @@ TEST_CASE(Profiler_SourcePositionOptimized) {
 }
 
 TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -2500,6 +2529,7 @@ TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
 }
 
 TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   // We use the AlwaysInline and NeverInline annotations in this test.
@@ -2673,6 +2703,7 @@ static uword FindPCForTokenPosition(const Code& code, TokenPosition tp) {
 }
 
 TEST_CASE(Profiler_GetSourceReport) {
+  EnableProfiler();
   const char* kScript =
       "doWork(i) => i * i;\n"
       "main() {\n"

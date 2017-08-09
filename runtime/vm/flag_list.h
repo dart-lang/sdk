@@ -134,7 +134,7 @@
   C(print_stop_message, false, false, bool, false, "Print stop message.")      \
   D(print_variable_descriptors, bool, false,                                   \
     "Print variable descriptors in disassembly.")                              \
-  R(profiler, false, bool, !USING_DBC, "Enable the profiler.")                 \
+  R(profiler, false, bool, false, "Enable the profiler.")                      \
   R(profiler_native_memory, false, bool, false,                                \
     "Enable native memory statistic collection.")                              \
   P(reify_generic_functions, bool, false,                                      \

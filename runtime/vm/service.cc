@@ -29,6 +29,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
+#include "vm/profiler.h"
 #include "vm/profiler_service.h"
 #include "vm/reusable_handles.h"
 #include "vm/safepoint.h"
@@ -3121,6 +3122,19 @@ static bool Pause(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static const MethodParameter* enable_profiler_params[] = {
+    NULL,
+};
+
+static bool EnableProfiler(Thread* thread, JSONStream* js) {
+  if (!FLAG_profiler) {
+    FLAG_profiler = true;
+    Profiler::InitOnce();
+  }
+  PrintSuccess(js);
+  return true;
+}
+
 static const MethodParameter* get_tag_profile_params[] = {
     RUNNABLE_ISOLATE_PARAMETER, NULL,
 };
@@ -4022,6 +4036,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     clear_cpu_profile_params },
   { "_clearVMTimeline", ClearVMTimeline,
     clear_vm_timeline_params, },
+  { "_enableProfiler", EnableProfiler,
+    enable_profiler_params, },
   { "evaluate", Evaluate,
     evaluate_params },
   { "evaluateInFrame", EvaluateInFrame,

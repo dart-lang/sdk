@@ -202,7 +202,11 @@ FlowGraphCompiler::FlowGraphCompiler(
   ASSERT(assembler != NULL);
   ASSERT(!list_class_.IsNull());
 
-  bool stack_traces_only = !FLAG_profiler;
+#if defined(PRODUCT)
+  const bool stack_traces_only = true;
+#else
+  const bool stack_traces_only = false;
+#endif
   code_source_map_builder_ = new (zone_)
       CodeSourceMapBuilder(stack_traces_only, caller_inline_id,
                            inline_id_to_token_pos, inline_id_to_function);

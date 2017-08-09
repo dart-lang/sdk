@@ -895,6 +895,10 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     return invokeRpc('getFlagList', {});
   }
 
+  Future enableProfiler() {
+    return invokeRpc("_enableProfiler", {});
+  }
+
   Future<ServiceObject> _streamListen(String streamId) {
     Map params = {
       'streamId': streamId,
