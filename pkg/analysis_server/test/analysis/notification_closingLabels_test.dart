@@ -60,10 +60,15 @@ Widget build(BuildContext context) {
     children: /*2*/<Widget>[
       new Text('a'),
       new Text('b'),
-    ]/*2:List<Widget>*/,
-  )/*1:Row*/;
+    ]/*/2*/,
+  )/*/1*/;
 }
 ''';
+
+  static final expectedResults = [
+    new ClosingLabel(51, 96, "Row"),
+    new ClosingLabel(79, 57, "List<Widget>")
+  ];
 
   test_afterAnalysis() async {
     addTestFile(sampleCode);
@@ -71,12 +76,13 @@ Widget build(BuildContext context) {
     expect(lastLabels, isNull);
 
     await waitForLabels(() => subscribeForLabels());
-    _compareLastResultsWithTestFileComments(2);
+
+    expect(lastLabels, expectedResults);
   }
 
   test_afterUpdate() async {
     addTestFile('');
-    // TODO(dantup) currently required to get notifications on updates
+    // Currently required to get notifications on updates
     setPriorityFiles([testFile]);
 
     // Before subscribing, we shouldn't have had any labels.
@@ -89,293 +95,7 @@ Widget build(BuildContext context) {
 
     // With sample code there will be labels.
     await waitForLabels(() => modifyTestFile(sampleCode));
-    _compareLastResultsWithTestFileComments(2);
-  }
 
-  test_multipleNested() async {
-    addTestFile('''
-Widget build(BuildContext context) {
-  return /*1*/new Row(
-    children: /*2*/<Widget>[
-      /*3*/new RaisedButton(
-        onPressed: increment,
-        child: /*4*/new Text(
-          'Increment'
-        )/*4:Text*/,
-      )/*3:RaisedButton*/,
-      /*5*/_makeWidget(
-        'a',
-        'b'
-      )/*5:_makeWidget*/,
-      new Text('Count: \$counter'),
-    ]/*2:List<Widget>*/,
-  )/*1:Row*/;
-}
-''');
-    await waitForTasksFinished();
-    expect(lastLabels, isNull);
-
-    await waitForLabels(() {
-      subscribeForLabels();
-    });
-    _compareLastResultsWithTestFileComments(5);
-  }
-
-  test_newConstructor() async {
-    await _testCode(
-        1,
-        '''
-void myMethod() {
-  return /*1*/new Class(
-    1,
-    2
-  )/*1:Class*/;
-}
-    ''');
-  }
-
-  test_newNamedConstructor() async {
-    await _testCode(
-        1,
-        '''
-void myMethod() {
-  return /*1*/new Class.fromThing(
-    1,
-    2
-  )/*1:Class.fromThing*/;
-}
-    ''');
-  }
-
-  test_constConstructor() async {
-    await _testCode(
-        1,
-        '''
-void myMethod() {
-  return /*1*/const Class(
-    1,
-    2
-  )/*1:Class*/;
-}
-    ''');
-  }
-
-  test_constNamedConstructor() async {
-    await _testCode(
-        1,
-        '''
-void myMethod() {
-  return /*1*/const Class.fromThing(
-    1,
-    2
-  )/*1:Class.fromThing*/;
-}
-    ''');
-  }
-
-  test_instanceMethod() async {
-    await _testCode(
-        1,
-        '''
-void myMethod() {
-  return /*1*/createWidget(
-    1,
-    2
-  )/*1:createWidget*/;
-}
-    ''');
-  }
-
-  test_staticMethod() async {
-    await _testCode(
-        1,
-        '''
-void myMethod() {
-  return /*1*/Widget.createWidget(
-    1,
-    2
-  )/*1:Widget.createWidget*/;
-}
-    ''');
-  }
-
-  test_prefixedNewConstructor() async {
-    await _testCode(
-        1,
-        '''
-import 'dart:async' as a;
-void myMethod() {
-  return /*1*/new a.Future(
-    1,
-    2
-  )/*1:a.Future*/;
-}
-    ''');
-  }
-
-  test_prefixedNewNamedConstructor() async {
-    await _testCode(
-        1,
-        '''
-import 'dart:async' as a;
-void myMethod() {
-  return /*1*/new a.Future.delayed(
-    1,
-    2
-  )/*1:a.Future.delayed*/;
-}
-    ''');
-  }
-
-  test_prefixedConstConstructor() async {
-    await _testCode(
-        1,
-        '''
-import 'dart:async' as a;
-void myMethod() {
-  return /*1*/const a.Future(
-    1,
-    2
-  )/*1:a.Future*/;
-}
-    ''');
-  }
-
-  test_prefixedConstNamedConstructor() async {
-    await _testCode(
-        1,
-        '''
-import 'dart:async' as a;
-void myMethod() {
-  return /*1*/const a.Future.delayed(
-    1,
-    2
-  )/*1:a.Future.delayed*/;
-}
-    ''');
-  }
-
-  test_prefixedStaticMethod() async {
-    await _testCode(
-        1,
-        '''
-import 'widgets.dart' as a;
-void myMethod() {
-  return /*1*/a.Widget.createWidget(
-    1,
-    2
-  )/*1:a.Widget.createWidget*/;
-}
-    ''');
-  }
-
-  test_sameLineExcluded() async {
-    await _testCode(
-        0,
-        '''
-void myMethod() {
-  return new Thing();
-}
-    ''');
-  }
-
-  test_adjacentLinesExcluded() async {
-    await _testCode(
-        0,
-        '''
-void myMethod() {
-  return new Thing(1,
-    2);
-}
-    ''');
-  }
-
-  test_listLiterals() async {
-    await _testCode(
-        2,
-        '''
-void myMethod() {
-  return /*1*/Widget.createWidget(/*2*/<Widget>[
-    1,
-    2
-  ]/*2:List<Widget>*/)/*1:Widget.createWidget*/;
-}
-    ''');
-  }
-
-  test_knownBadCode1() async {
-    // This code crashed during testing when I accidentally inserted a test snippet.
-    await _testCode(
-        0,
-        '''
-@override
-Widget build(BuildContext context) {
-  new SliverGrid(
-            gridDelegate: gridDelegate,
-            delegate: myMethod(<test('', () {
-              
-            });>[
-              "a",
-              'b',
-              "c",
-            ]),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-      ''',
-        // TODO(dantup) Results here are currently bad so this test is just checking that we
-        // dont crash. Need to confirm what to do here; the bad labels might not be fixed
-        // until the code is using the new shared parser.
-        // https://github.com/dart-lang/sdk/issues/30370
-        checkResults: false);
-  }
-
-  /// Helper that updates files and waits for server notifications before performing checks.
-  _testCode(int labelCount, String code, {bool checkResults = true}) async {
-    addTestFile(code);
-    await waitForTasksFinished();
-    expect(lastLabels, isNull);
-
-    await waitForLabels(() => subscribeForLabels());
-    if (checkResults) {
-      _compareLastResultsWithTestFileComments(labelCount);
-    }
-  }
-
-  /// Compares the latest received closing labels with expected
-  /// labels extracted from the comments in the test file.
-  _compareLastResultsWithTestFileComments(int expectedLabelCount) {
-    // Require the test pass us the expected count to guard
-    // against expected annotations being mistyped and not
-    // extracted by the regex.
-    expect(lastLabels, hasLength(expectedLabelCount));
-
-    // Find all numeric markers for label starts.
-    var regex = new RegExp("/\\*(\\d+)\\*/");
-    var expectedLabels = regex.allMatches(testCode);
-
-    // Check we didn't get more than expected, since the loop below only
-    // checks for the presence of matches, not absence.
-    expect(lastLabels, hasLength(expectedLabels.length));
-
-    // Go through each marker, find the expected label/end and
-    // ensure it's in the results.
-    expectedLabels.forEach((m) {
-      var i = m.group(1);
-      // Find the end marker.
-      var endMatch = new RegExp("/\\*$i:(.+?)\\*/").firstMatch(testCode);
-
-      var expectedStart = m.end;
-      var expectedLength = endMatch.start - expectedStart;
-      var expectedLabel = endMatch.group(1);
-
-      expect(
-          lastLabels,
-          contains(
-              new ClosingLabel(expectedStart, expectedLength, expectedLabel)));
-    });
+    expect(lastLabels, expectedResults);
   }
 }
