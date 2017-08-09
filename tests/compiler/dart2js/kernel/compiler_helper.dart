@@ -109,6 +109,7 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
         Flags.useKernelInSsa,
         Flags.enableAssertMessage
       ]);
+  compiler.resolution.retainCachesForTesting = true;
   await compiler.run(entryPoint);
 
   if (printSteps) {
