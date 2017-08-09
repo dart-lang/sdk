@@ -413,17 +413,20 @@ void ClearProfileVisitor::VisitSample(Sample* sample) {
 }
 
 static void DumpStackFrame(intptr_t frame_index, uword pc) {
-  Isolate* isolate = Isolate::Current();
-  if ((isolate != NULL) && isolate->is_runnable()) {
-    Code& code = Code::Handle(Code::LookupCodeInVmIsolate(pc));
-    if (!code.IsNull()) {
-      OS::PrintErr("  [0x%" Pp "] %s\n", pc, code.QualifiedName());
-      return;
-    }
-    code = Code::LookupCode(pc);
-    if (!code.IsNull()) {
-      OS::PrintErr("  [0x%" Pp "] %s\n", pc, code.QualifiedName());
-      return;
+  Thread* thread = Thread::Current();
+  if ((thread != NULL) && !thread->IsAtSafepoint()) {
+    Isolate* isolate = thread->isolate();
+    if ((isolate != NULL) && isolate->is_runnable()) {
+      // Only attempt to symbolize Dart frames if we can safely iterate the
+      // current isolate's heap.
+      Code& code = Code::Handle(Code::LookupCodeInVmIsolate(pc));
+      if (!code.IsNull()) {
+        code = Code::LookupCode(pc);  // In current isolate.
+      }
+      if (!code.IsNull()) {
+        OS::PrintErr("  [0x%" Pp "] %s\n", pc, code.QualifiedName());
+        return;
+      }
     }
   }
 
