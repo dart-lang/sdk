@@ -23,7 +23,7 @@ class String;
 class MegamorphicCacheTable : public AllStatic {
  public:
   static RawFunction* miss_handler(Isolate* isolate);
-  NOT_IN_PRECOMPILED(static void InitMissHandler(Isolate* isolate));
+  static void InitMissHandler(Isolate* isolate);
 
   static RawMegamorphicCache* Lookup(Isolate* isolate,
                                      const String& name,

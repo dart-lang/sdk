@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/globals.h"  // Needed here to get TARGET_ARCH_ARM.
-#if defined(TARGET_ARCH_ARM) && !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/disassembler.h"
 
+#include "vm/globals.h"  // Needed here to get TARGET_ARCH_ARM.
+#if defined(TARGET_ARCH_ARM)
 #include "platform/assert.h"
 #include "vm/cpu.h"
 #include "vm/instructions.h"
@@ -1512,4 +1511,4 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
 
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_ARM) && !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined TARGET_ARCH_ARM

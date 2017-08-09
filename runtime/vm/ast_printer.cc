@@ -10,7 +10,7 @@
 #include "vm/os.h"
 #include "vm/parser.h"
 
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(PRODUCT)
 
 namespace dart {
 
@@ -511,4 +511,4 @@ void AstPrinter::PrintFunctionNodes(const ParsedFunction& parsed_function) {
 
 }  // namespace dart
 
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(PRODUCT)
