@@ -142,7 +142,7 @@ void myMethod() {
   return /*1*/new Class.fromThing(
     1,
     2
-  )/*1:Class*/;
+  )/*1:Class.fromThing*/;
 }
     ''');
   }
@@ -168,7 +168,21 @@ void myMethod() {
   return /*1*/const Class.fromThing(
     1,
     2
-  )/*1:Class*/;
+  )/*1:Class.fromThing*/;
+}
+    ''');
+  }
+
+  test_prefixedIndentifier() async {
+    await _testCode(
+        1,
+        '''
+import 'dart:async' as a;
+Object myMethod() {
+  return /*1*/new a.Future.delayed(
+    new Duration(seconds: 1)
+    
+  )/*1:a.Future.delayed*/;
 }
     ''');
   }
