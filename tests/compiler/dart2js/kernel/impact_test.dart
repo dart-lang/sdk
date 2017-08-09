@@ -30,7 +30,11 @@ import 'test_helpers.dart';
 const Map<String, String> SOURCE = const <String, String>{
   // Pretend this is a dart2js_native test to allow use of 'native' keyword.
   'sdk/tests/compiler/dart2js_native/main.dart': r'''
-import 'dart:_foreign_helper';
+@JS()
+library test;
+
+import 'dart:_foreign_helper' as foreign show JS;
+import 'dart:_foreign_helper' hide JS;
 import 'dart:_js_helper';
 import 'dart:_interceptors';
 import 'dart:_native_typed_data';
@@ -40,6 +44,7 @@ import 'dart:html_common';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:web_sql';
+import 'package:js/js.dart';
 import 'helper.dart';
 
 main() {
@@ -202,6 +207,8 @@ main() {
   testNamedMixinInstantiation();
   testGenericMixinInstantiation();
   testGenericNamedMixinInstantiation();
+  testJsInteropMethod();
+  testJsInteropClass();
 }
 
 testEmpty() {}
@@ -669,7 +676,7 @@ testInstanceGenericMethod() {
 }
 
 testDynamicPrivateMethodInvoke([o]) => o._privateMethod();
-testJSCall() => JS('int|bool|NativeUint8List|Rectangle|IdbFactory|'
+testJSCall() => foreign.JS('int|bool|NativeUint8List|Rectangle|IdbFactory|'
     'SqlDatabase|TypedData|ContextAttributes', '#', null);
 @JSName('foo')
 @SupportedBrowser(SupportedBrowser.CHROME)
@@ -691,6 +698,17 @@ testMixinInstantiation() => new Sub();
 testNamedMixinInstantiation() => new NamedMixin();
 testGenericMixinInstantiation() => new GenericSub<int, String>();
 testGenericNamedMixinInstantiation() => new GenericNamedMixin<int, String>();
+
+@JS()
+external int testJsInteropMethod();
+
+@JS()
+class JsInteropClass {
+  @JS()
+  external double method();
+}
+
+testJsInteropClass() => new JsInteropClass().method();
 ''',
   'sdk/tests/compiler/dart2js_native/helper.dart': '''
 import 'dart:_js_helper';

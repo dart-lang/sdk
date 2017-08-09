@@ -2403,8 +2403,8 @@ main() => A.A = 1;
           const MessageTemplate(
               MessageKind
                   .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
-              "Parameter '#{parameter}' in anonymous js-interop class '#{cls}' "
-              "object literal constructor is positional instead of named."
+              "Some parameters in anonymous js-interop class '#{cls}' "
+              "object literal constructor are positional instead of named."
               ".",
               howToFix: "Make all arguments in external factory object literal "
                   "constructors named.",

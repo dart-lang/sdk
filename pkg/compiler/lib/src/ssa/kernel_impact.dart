@@ -165,9 +165,11 @@ class KernelImpactBuilder extends ir.Visitor {
     handleAsyncMarker(procedure.function.asyncMarker);
     if (procedure.isExternal &&
         !elementAdapter.isForeignLibrary(procedure.enclosingLibrary)) {
-      // TODO(redemption): Provide the correct value for [isJsInterop].
+      MemberEntity member = elementAdapter.getMember(procedure);
+      bool isJsInterop =
+          elementAdapter.nativeBasicData.isJsInteropMember(member);
       impactBuilder.registerNativeData(elementAdapter
-          .getNativeBehaviorForMethod(procedure, isJsInterop: false));
+          .getNativeBehaviorForMethod(procedure, isJsInterop: isJsInterop));
     }
     return impactBuilder;
   }

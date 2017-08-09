@@ -14,6 +14,7 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/namer.dart';
+import '../js_backend/native_data.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../native/native.dart' as native;
 import '../types/types.dart';
@@ -104,6 +105,8 @@ abstract class KernelToElementMap {
 /// Interface that translates between Kernel IR nodes and entities used for
 /// computing the [WorldImpact] for members.
 abstract class KernelToElementMapForImpact extends KernelToElementMap {
+  NativeBasicData get nativeBasicData;
+
   /// Adds libraries in [program] to the set of libraries.
   ///
   /// The main method of the first program is used as the main method for the

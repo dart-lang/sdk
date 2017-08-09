@@ -58,19 +58,15 @@ Future checkNativeData(Uri uri, {bool verbose: false}) async {
   NativeDataImpl nativeData1 = closedWorld1.nativeData;
   NativeDataImpl nativeData2 = closedWorld2.nativeData;
 
-  checkMaps(
-      nativeData1.jsInteropLibraryNames,
-      nativeData2.jsInteropLibraryNames,
-      "NativeData.jsInteropLibraryNames",
-      areElementsEquivalent,
-      equality,
+  checkMaps(nativeData1.jsInteropLibraries, nativeData2.jsInteropLibraries,
+      "NativeData.jsInteropLibraryNames", areElementsEquivalent, equality,
       verbose: verbose);
 
-  checkMaps(nativeData1.jsInteropClassNames, nativeData2.jsInteropClassNames,
+  checkMaps(nativeData1.jsInteropClasses, nativeData2.jsInteropClasses,
       "NativeData.jsInteropClassNames", areElementsEquivalent, equality,
       verbose: verbose);
 
-  checkMaps(nativeData1.jsInteropMemberNames, nativeData2.jsInteropMemberNames,
+  checkMaps(nativeData1.jsInteropMembers, nativeData2.jsInteropMembers,
       "NativeData.jsInteropMemberNames", areElementsEquivalent, equality,
       verbose: verbose);
 

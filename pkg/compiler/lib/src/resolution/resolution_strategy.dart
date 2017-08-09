@@ -905,7 +905,7 @@ class _ElementAnnotationProcessor implements AnnotationProcessor {
                       parameter,
                       MessageKind
                           .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
-                      {'parameter': parameter.name, 'cls': classElement.name});
+                      {'cls': classElement.name});
                 }
               });
             } else {

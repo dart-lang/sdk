@@ -989,9 +989,10 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
         KElementCreatorMixin {
   native.BehaviorBuilder _nativeBehaviorBuilder;
   FrontendStrategy _frontendStrategy;
+  CompilerOptions _options;
 
   KernelToElementMapForImpactImpl(DiagnosticReporter reporter,
-      Environment environment, this._frontendStrategy)
+      Environment environment, this._frontendStrategy, this._options)
       : super(reporter, environment);
 
   @override
@@ -1016,7 +1017,8 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
 
   @override
   native.BehaviorBuilder get nativeBehaviorBuilder =>
-      _nativeBehaviorBuilder ??= new KernelBehaviorBuilder(commonElements);
+      _nativeBehaviorBuilder ??= new KernelBehaviorBuilder(elementEnvironment,
+          commonElements, nativeBasicData, reporter, _options);
 
   ResolutionImpact computeWorldImpact(KMember member) {
     return buildKernelImpact(
@@ -1031,10 +1033,6 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
   /// Returns the kernel [ir.Procedure] node for the [method].
   ir.Procedure _lookupProcedure(KFunction method) {
     return _memberData[method.memberIndex].definition.node;
-  }
-
-  Iterable<ConstantValue> _getClassMetadata(KClass cls) {
-    return _classData[cls.classIndex].getMetadata(this);
   }
 
   @override
@@ -1378,25 +1376,18 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
 /// [native.BehaviorBuilder] for kernel based elements.
 class KernelBehaviorBuilder extends native.BehaviorBuilder {
+  final ElementEnvironment elementEnvironment;
   final CommonElements commonElements;
+  final DiagnosticReporter reporter;
+  final NativeBasicData nativeBasicData;
+  final CompilerOptions _options;
 
-  KernelBehaviorBuilder(this.commonElements);
-
-  @override
-  bool get trustJSInteropTypeAnnotations {
-    throw new UnimplementedError(
-        "KernelNativeBehaviorComputer.trustJSInteropTypeAnnotations");
-  }
+  KernelBehaviorBuilder(this.elementEnvironment, this.commonElements,
+      this.nativeBasicData, this.reporter, this._options);
 
   @override
-  DiagnosticReporter get reporter {
-    throw new UnimplementedError("KernelNativeBehaviorComputer.reporter");
-  }
-
-  NativeBasicData get nativeBasicData {
-    throw new UnimplementedError(
-        "KernelNativeBehaviorComputer.nativeBasicData");
-  }
+  bool get trustJSInteropTypeAnnotations =>
+      _options.trustJSInteropTypeAnnotations;
 }
 
 /// Constant environment mapping [ConstantExpression]s to [ConstantValue]s using
@@ -1735,8 +1726,7 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
 
   @override
   bool isJsInteropMember(MemberEntity element) {
-    // TODO(redemption): Compute this.
-    return false;
+    return nativeBasicData.isJsInteropMember(element);
   }
 }
 
