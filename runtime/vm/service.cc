@@ -130,7 +130,7 @@ static StreamInfo* streams_[] = {
 
 bool Service::ListenStream(const char* stream_id) {
   if (FLAG_trace_service) {
-    OS::Print("vm-service: starting stream '%s'\n", stream_id);
+    OS::PrintErr("vm-service: starting stream '%s'\n", stream_id);
   }
   intptr_t num_streams = sizeof(streams_) / sizeof(streams_[0]);
   for (intptr_t i = 0; i < num_streams; i++) {
@@ -149,7 +149,7 @@ bool Service::ListenStream(const char* stream_id) {
 
 void Service::CancelStream(const char* stream_id) {
   if (FLAG_trace_service) {
-    OS::Print("vm-service: stopping stream '%s'\n", stream_id);
+    OS::PrintErr("vm-service: stopping stream '%s'\n", stream_id);
   }
   intptr_t num_streams = sizeof(streams_) / sizeof(streams_[0]);
   for (intptr_t i = 0; i < num_streams; i++) {
@@ -912,7 +912,7 @@ void Service::SendEvent(const char* stream_id,
   ASSERT(!ServiceIsolate::IsServiceIsolateDescendant(isolate));
 
   if (FLAG_trace_service) {
-    OS::Print(
+    OS::PrintErr(
         "vm-service: Pushing ServiceEvent(isolate='%s', kind='%s',"
         " len=%" Pd ") to stream %s\n",
         isolate->name(), event_type, bytes_length, stream_id);
@@ -1097,7 +1097,7 @@ void Service::PostEvent(Isolate* isolate,
     if (isolate != NULL) {
       isolate_name = isolate->name();
     }
-    OS::Print(
+    OS::PrintErr(
         "vm-service: Pushing ServiceEvent(isolate='%s', kind='%s') "
         "to stream %s\n",
         isolate_name, kind, stream_id);

@@ -587,8 +587,8 @@ void IsolateMessageHandler::NotifyPauseOnStart() {
     ServiceEvent pause_event(I, ServiceEvent::kPauseStart);
     Service::HandleEvent(&pause_event);
   } else if (FLAG_trace_service) {
-    OS::Print("vm-service: Dropping event of type PauseStart (%s)\n",
-              I->name());
+    OS::PrintErr("vm-service: Dropping event of type PauseStart (%s)\n",
+                 I->name());
   }
 }
 
@@ -603,7 +603,8 @@ void IsolateMessageHandler::NotifyPauseOnExit() {
     ServiceEvent pause_event(I, ServiceEvent::kPauseExit);
     Service::HandleEvent(&pause_event);
   } else if (FLAG_trace_service) {
-    OS::Print("vm-service: Dropping event of type PauseExit (%s)\n", I->name());
+    OS::PrintErr("vm-service: Dropping event of type PauseExit (%s)\n",
+                 I->name());
   }
 }
 #endif  // !PRODUCT
@@ -2161,13 +2162,13 @@ RawObject* Isolate::InvokePendingServiceExtensionCalls() {
     arguments.SetAt(kPendingEntrySize, Bool::Get(FLAG_trace_service));
 
     if (FLAG_trace_service) {
-      OS::Print("[+%" Pd64 "ms] Isolate %s invoking _runExtension for %s\n",
-                Dart::UptimeMillis(), name(), method_name.ToCString());
+      OS::PrintErr("[+%" Pd64 "ms] Isolate %s invoking _runExtension for %s\n",
+                   Dart::UptimeMillis(), name(), method_name.ToCString());
     }
     result = DartEntry::InvokeFunction(run_extension, arguments);
     if (FLAG_trace_service) {
-      OS::Print("[+%" Pd64 "ms] Isolate %s : _runExtension complete for %s\n",
-                Dart::UptimeMillis(), name(), method_name.ToCString());
+      OS::PrintErr("[+%" Pd64 "ms] Isolate %s _runExtension complete for %s\n",
+                   Dart::UptimeMillis(), name(), method_name.ToCString());
     }
     // Propagate the error.
     if (result.IsError()) {
@@ -2203,8 +2204,9 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
                                          const Instance& reply_port,
                                          const Instance& id) {
   if (FLAG_trace_service) {
-    OS::Print("[+%" Pd64 "ms] Isolate %s ENQUEUING request for extension %s\n",
-              Dart::UptimeMillis(), name(), method_name.ToCString());
+    OS::PrintErr("[+%" Pd64
+                 "ms] Isolate %s ENQUEUING request for extension %s\n",
+                 Dart::UptimeMillis(), name(), method_name.ToCString());
   }
   GrowableObjectArray& calls =
       GrowableObjectArray::Handle(pending_service_extension_calls());
