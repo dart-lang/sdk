@@ -72,7 +72,6 @@ class _DartUnitClosingLabelsComputerVisitor
 
   bool _spansManyLines(AstNode node) {
     final start = computer._lineInfo.getLocation(node.offset);
-    // TODO(dantup) Is this valid? We want the last character of the node, not the start of the next?
     final end = computer._lineInfo.getLocation(node.end - 1);
 
     return end.lineNumber - start.lineNumber > 1;
