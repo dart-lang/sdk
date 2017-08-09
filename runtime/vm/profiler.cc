@@ -97,6 +97,13 @@ void Profiler::Shutdown() {
   ASSERT(initialized_);
   ThreadInterrupter::Shutdown();
   NativeSymbolResolver::ShutdownOnce();
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
+  // TODO(30309): Free the sample buffer on platforms that use a signal-based
+  // thread interrupter.
+#else
+  delete sample_buffer_;
+  sample_buffer_ = NULL;
+#endif
 }
 
 void Profiler::SetSampleDepth(intptr_t depth) {
