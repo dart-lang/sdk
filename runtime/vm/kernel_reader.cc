@@ -128,6 +128,7 @@ KernelReader::KernelReader(Program* program)
       zone_(thread_->zone()),
       isolate_(thread_->isolate()),
       scripts_(Array::ZoneHandle(zone_)),
+      patch_classes_(Array::ZoneHandle(zone_)),
       translation_helper_(this, thread_),
       builder_(&translation_helper_,
                zone_,
@@ -137,6 +138,7 @@ KernelReader::KernelReader(Program* program)
   T.finalize_ = false;
 
   scripts_ = Array::New(builder_.SourceTableSize(), Heap::kOld);
+  patch_classes_ = Array::New(builder_.SourceTableSize(), Heap::kOld);
 
   // Copy the Kernel string offsets out of the binary and into the VM's heap.
   ASSERT(program->string_table_offset() >= 0);
@@ -690,9 +692,14 @@ const Object& KernelReader::ClassForScriptAt(const dart::Class& klass,
                                              intptr_t source_uri_index) {
   Script& correct_script = ScriptAt(source_uri_index);
   if (klass.script() != correct_script.raw()) {
-    // TODO(jensj): We could probably cache this so we don't create
-    // new PatchClasses all the time
-    return PatchClass::ZoneHandle(Z, PatchClass::New(klass, correct_script));
+    // Use cache for patch classes. This works best for in-order usages.
+    PatchClass& patch_class = PatchClass::ZoneHandle(Z);
+    patch_class ^= patch_classes_.At(source_uri_index);
+    if (patch_class.IsNull() || patch_class.origin_class() != klass.raw()) {
+      patch_class = PatchClass::New(klass, correct_script);
+      patch_classes_.SetAt(source_uri_index, patch_class);
+    }
+    return patch_class;
   }
   return klass;
 }

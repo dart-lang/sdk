@@ -140,6 +140,7 @@ class KernelReader {
   dart::Zone* zone_;
   dart::Isolate* isolate_;
   Array& scripts_;
+  Array& patch_classes_;
   ActiveClass active_class_;
   BuildingTranslationHelper translation_helper_;
   StreamingFlowGraphBuilder builder_;
