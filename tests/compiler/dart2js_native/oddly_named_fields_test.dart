@@ -1381,11 +1381,14 @@ testObjectWeaklyTyped(object) {
 
 NativeClassWithOddNames makeNativeClassWithOddNames() native;
 
-setup() native """
-function NativeClassWithOddNames() {}
-makeNativeClassWithOddNames = function() { return new NativeClassWithOddNames; }
-self.nativeConstructor(NativeClassWithOddNames);
-""";
+setup() {
+  JS('', r"""
+(function(){
+  function NativeClassWithOddNames() {}
+  makeNativeClassWithOddNames = function() {return new NativeClassWithOddNames()};
+  self.nativeConstructor(NativeClassWithOddNames);
+})()""");
+}
 
 main() {
   nativeTesting();

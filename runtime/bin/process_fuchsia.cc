@@ -64,7 +64,7 @@ class ProcessInfo {
   ~ProcessInfo() {
     int closed = NO_RETRY_EXPECTED(close(exit_pipe_fd_));
     if (closed != 0) {
-      FATAL("Failed to close process exit code pipe");
+      LOG_ERR("Failed to close process exit code pipe");
     }
     mx_handle_close(process_);
   }
@@ -156,18 +156,17 @@ class ExitCodeHandler {
     if (running_) {
       return;
     }
-
     LOG_INFO("ExitCodeHandler Starting\n");
 
-    mx_status_t status = mx_socket_create(0, &interrupt_in_, &interrupt_out_);
-    if (status < 0) {
-      FATAL1("Failed to create exit code handler interrupt socket: %s\n",
+    mx_status_t status = mx_port_create(0, &port_);
+    if (status != MX_OK) {
+      FATAL1("ExitCodeHandler: mx_port_create failed: %s\n",
              mx_status_get_string(status));
+      return;
     }
 
     // Start thread that handles process exits when wait returns.
-    intptr_t result =
-        Thread::Start(ExitCodeHandlerEntry, static_cast<uword>(interrupt_out_));
+    intptr_t result = Thread::Start(ExitCodeHandlerEntry, 0);
     if (result != 0) {
       FATAL1("Failed to start exit code handler worker thread %ld", result);
     }
@@ -175,10 +174,11 @@ class ExitCodeHandler {
     running_ = true;
   }
 
-  static void Add(mx_handle_t process) {
+  static mx_status_t Add(mx_handle_t process) {
     MonitorLocker locker(monitor_);
     LOG_INFO("ExitCodeHandler Adding Process: %ld\n", process);
-    SendMessage(Message::kAdd, process);
+    return mx_object_wait_async(process, port_, static_cast<uint64_t>(process),
+                                MX_TASK_TERMINATED, MX_WAIT_ASYNC_ONCE);
   }
 
   static void Terminate() {
@@ -189,121 +189,72 @@ class ExitCodeHandler {
     running_ = false;
 
     LOG_INFO("ExitCodeHandler Terminating\n");
-    SendMessage(Message::kShutdown, MX_HANDLE_INVALID);
+    SendShutdownMessage();
 
     while (!terminate_done_) {
       monitor_->Wait(Monitor::kNoTimeout);
     }
-    mx_handle_close(interrupt_in_);
+    mx_handle_close(port_);
     LOG_INFO("ExitCodeHandler Terminated\n");
   }
 
  private:
-  class Message {
-   public:
-    enum Command {
-      kAdd,
-      kShutdown,
-    };
-    Command command;
-    mx_handle_t handle;
-  };
+  static const uint64_t kShutdownPacketKey = 1;
 
-  static void SendMessage(Message::Command command, mx_handle_t handle) {
-    Message msg;
-    msg.command = command;
-    msg.handle = handle;
-    size_t actual;
-    mx_status_t status =
-        mx_socket_write(interrupt_in_, 0, &msg, sizeof(msg), &actual);
-    if (status < 0) {
-      FATAL1("Write to exit handler interrupt handle failed: %s\n",
-             mx_status_get_string(status));
+  static void SendShutdownMessage() {
+    mx_port_packet_t pkt;
+    pkt.key = kShutdownPacketKey;
+    mx_status_t status = mx_port_queue(port_, reinterpret_cast<void*>(&pkt), 0);
+    if (status != MX_OK) {
+      Log::PrintErr("ExitCodeHandler: mx_port_queue failed: %s\n",
+                    mx_status_get_string(status));
     }
-    ASSERT(actual == sizeof(msg));
   }
 
   // Entry point for the separate exit code handler thread started by
   // the ExitCodeHandler.
   static void ExitCodeHandlerEntry(uword param) {
     LOG_INFO("ExitCodeHandler Entering ExitCodeHandler thread\n");
-    item_capacity_ = 16;
-    items_ = reinterpret_cast<mx_wait_item_t*>(
-        malloc(item_capacity_ * sizeof(*items_)));
-    items_to_remove_ = reinterpret_cast<intptr_t*>(
-        malloc(item_capacity_ * sizeof(*items_to_remove_)));
 
-    // The interrupt handle is fixed to the first entry.
-    items_[0].handle = interrupt_out_;
-    items_[0].waitfor = MX_SOCKET_READABLE | MX_SOCKET_PEER_CLOSED;
-    items_[0].pending = MX_SIGNAL_NONE;
-    item_count_ = 1;
-
-    while (!do_shutdown_) {
-      LOG_INFO("ExitCodeHandler Calling mx_object_wait_many: %ld items\n",
-               item_count_);
-      mx_status_t status =
-          mx_object_wait_many(items_, item_count_, MX_TIME_INFINITE);
-      if (status < 0) {
-        FATAL1("Exit code handler handle wait failed: %s\n",
+    mx_port_packet_t pkt;
+    while (true) {
+      mx_status_t status = mx_port_wait(port_, MX_TIME_INFINITE,
+                                        reinterpret_cast<void*>(&pkt), 0);
+      if (status != MX_OK) {
+        FATAL1("ExitCodeHandler: mx_port_wait failed: %s\n",
                mx_status_get_string(status));
       }
-      LOG_INFO("ExitCodeHandler mx_object_wait_many returned\n");
-
-      bool have_interrupt = false;
-      intptr_t remove_count = 0;
-      for (intptr_t i = 0; i < item_count_; i++) {
-        if (items_[i].pending == MX_SIGNAL_NONE) {
-          continue;
-        }
-        if (i == 0) {
-          LOG_INFO("ExitCodeHandler thread saw interrupt\n");
-          have_interrupt = true;
-          continue;
-        }
-        ASSERT(items_[i].waitfor == MX_TASK_TERMINATED);
-        ASSERT((items_[i].pending & MX_TASK_TERMINATED) != 0);
-        LOG_INFO("ExitCodeHandler signal for %ld\n", items_[i].handle);
-        SendProcessStatus(items_[i].handle);
-        items_to_remove_[remove_count++] = i;
+      if (pkt.type == MX_PKT_TYPE_USER) {
+        ASSERT(pkt.key == kShutdownPacketKey);
+        break;
       }
-      for (intptr_t i = 0; i < remove_count; i++) {
-        RemoveItem(items_to_remove_[i]);
+      mx_handle_t process = static_cast<mx_handle_t>(pkt.key);
+      mx_signals_t observed = pkt.signal.observed;
+      if ((observed & MX_TASK_TERMINATED) == MX_SIGNAL_NONE) {
+        LOG_ERR("ExitCodeHandler: Unexpected signals, process %ld: %lx\n",
+                process, observed);
       }
-      if (have_interrupt) {
-        HandleInterruptMsg();
-      }
+      SendProcessStatus(process);
     }
 
     LOG_INFO("ExitCodeHandler thread shutting down\n");
-    mx_handle_close(interrupt_out_);
-    free(items_);
-    items_ = NULL;
-    free(items_to_remove_);
-    items_to_remove_ = NULL;
-    item_count_ = 0;
-    item_capacity_ = 0;
-
     terminate_done_ = true;
     monitor_->Notify();
   }
 
   static void SendProcessStatus(mx_handle_t process) {
     LOG_INFO("ExitCodeHandler thread getting process status: %ld\n", process);
+    int return_code = -1;
     mx_info_process_t proc_info;
     mx_status_t status = mx_object_get_info(
         process, MX_INFO_PROCESS, &proc_info, sizeof(proc_info), NULL, NULL);
-    if (status < 0) {
-      FATAL1("mx_object_get_info failed on process handle: %s\n",
-             mx_status_get_string(status));
+    if (status != MX_OK) {
+      Log::PrintErr("ExitCodeHandler: mx_object_get_info failed: %s\n",
+                    mx_status_get_string(status));
+    } else {
+      return_code = proc_info.return_code;
     }
-
-    const int return_code = proc_info.return_code;
-    status = mx_handle_close(process);
-    if (status < 0) {
-      FATAL1("Failed to close process handle: %s\n",
-             mx_status_get_string(status));
-    }
+    mx_handle_close(process);
     LOG_INFO("ExitCodeHandler thread process %ld exited with %d\n", process,
              return_code);
 
@@ -319,91 +270,22 @@ class ExitCodeHandler {
       ASSERT((result == -1) || (result == sizeof(exit_code_fd)));
       if ((result == -1) && (errno != EPIPE)) {
         int err = errno;
-        FATAL1("Failed to write exit code to pipe: %d\n", err);
+        Log::PrintErr("Failed to write exit code for process %ld: errno=%d\n",
+                      process, err);
       }
       LOG_INFO("ExitCodeHandler thread wrote %ld bytes to fd %ld\n", result,
                exit_code_fd);
       LOG_INFO("ExitCodeHandler thread removing process %ld from list\n",
                process);
       ProcessInfoList::RemoveProcess(process);
+    } else {
+      LOG_ERR("ExitCodeHandler: Process %ld not found\n", process);
     }
   }
 
-  static void HandleInterruptMsg() {
-    ASSERT(items_[0].handle == interrupt_out_);
-    ASSERT(items_[0].waitfor == MX_SOCKET_READABLE);
-    ASSERT((items_[0].pending & MX_SOCKET_READABLE) != 0);
-    while (true) {
-      Message msg;
-      size_t actual = 0;
-      LOG_INFO("ExitCodeHandler thread reading interrupt message\n");
-      mx_status_t status =
-          mx_socket_read(interrupt_out_, 0, &msg, sizeof(msg), &actual);
-      if (status == MX_ERR_SHOULD_WAIT) {
-        LOG_INFO("ExitCodeHandler thread done reading interrupt messages\n");
-        return;
-      }
-      if (status < 0) {
-        FATAL1("Failed to read exit handler interrupt handle: %s\n",
-               mx_status_get_string(status));
-      }
-      if (actual < sizeof(msg)) {
-        FATAL1("Short read from exit handler interrupt handle: %ld\n", actual);
-      }
-      switch (msg.command) {
-        case Message::kShutdown:
-          LOG_INFO("ExitCodeHandler thread got shutdown message\n");
-          do_shutdown_ = true;
-          break;
-        case Message::kAdd:
-          LOG_INFO("ExitCodeHandler thread got add message: %ld\n", msg.handle);
-          AddItem(msg.handle);
-          break;
-      }
-    }
-  }
-
-  static void AddItem(mx_handle_t h) {
-    if (item_count_ == item_capacity_) {
-      item_capacity_ = item_capacity_ + (item_capacity_ >> 1);
-      items_ =
-          reinterpret_cast<mx_wait_item_t*>(realloc(items_, item_capacity_));
-      items_to_remove_ = reinterpret_cast<intptr_t*>(
-          realloc(items_to_remove_, item_capacity_));
-    }
-    LOG_INFO("ExitCodeHandler thread adding item %ld at %ld\n", h, item_count_);
-    items_[item_count_].handle = h;
-    items_[item_count_].waitfor = MX_TASK_TERMINATED;
-    items_[item_count_].pending = MX_SIGNAL_NONE;
-    item_count_++;
-  }
-
-  static void RemoveItem(intptr_t idx) {
-    LOG_INFO("ExitCodeHandler thread removing item %ld at %ld\n",
-             items_[idx].handle, idx);
-    ASSERT(idx != 0);
-    const intptr_t last = item_count_ - 1;
-    items_[idx].handle = MX_HANDLE_INVALID;
-    items_[idx].waitfor = MX_SIGNAL_NONE;
-    items_[idx].pending = MX_SIGNAL_NONE;
-    if (idx != last) {
-      items_[idx] = items_[last];
-    }
-    item_count_--;
-  }
-
-  // Interrupt channel.
-  static mx_handle_t interrupt_in_;
-  static mx_handle_t interrupt_out_;
-
-  // Accessed only by the ExitCodeHandler thread.
-  static mx_wait_item_t* items_;
-  static intptr_t* items_to_remove_;
-  static intptr_t item_count_;
-  static intptr_t item_capacity_;
+  static mx_handle_t port_;
 
   // Protected by monitor_.
-  static bool do_shutdown_;
   static bool terminate_done_;
   static bool running_;
   static Monitor* monitor_;
@@ -412,14 +294,7 @@ class ExitCodeHandler {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ExitCodeHandler);
 };
 
-mx_handle_t ExitCodeHandler::interrupt_in_ = MX_HANDLE_INVALID;
-mx_handle_t ExitCodeHandler::interrupt_out_ = MX_HANDLE_INVALID;
-mx_wait_item_t* ExitCodeHandler::items_ = NULL;
-intptr_t* ExitCodeHandler::items_to_remove_ = NULL;
-intptr_t ExitCodeHandler::item_count_ = 0;
-intptr_t ExitCodeHandler::item_capacity_ = 0;
-
-bool ExitCodeHandler::do_shutdown_ = false;
+mx_handle_t ExitCodeHandler::port_ = MX_HANDLE_INVALID;
 bool ExitCodeHandler::running_ = false;
 bool ExitCodeHandler::terminate_done_ = false;
 Monitor* ExitCodeHandler::monitor_ = new Monitor();
@@ -725,15 +600,11 @@ class ProcessStarter {
     const char* errormsg = NULL;
     status = launchpad_go(lp, &process, &errormsg);
     lp = NULL;  // launchpad_go() calls launchpad_destroy() on the launchpad.
-    if (status < 0) {
-      LOG_INFO("ProcessStarter: Start() launchpad_start failed\n");
-      const intptr_t kMaxMessageSize = 256;
+    if (status != MX_OK) {
+      LOG_ERR("ProcessStarter: Start() launchpad_start failed\n");
       close(exit_pipe_fds[0]);
       close(exit_pipe_fds[1]);
-      char* message = DartUtils::ScopedCString(kMaxMessageSize);
-      snprintf(message, kMaxMessageSize, "%s:%d: launchpad_start failed: %s\n",
-               __FILE__, __LINE__, errormsg);
-      *os_error_message_ = message;
+      ReportStartError(errormsg);
       return status;
     }
 
@@ -741,7 +612,17 @@ class ProcessStarter {
              process, exit_pipe_fds[1]);
     ProcessInfoList::AddProcess(process, exit_pipe_fds[1]);
     ExitCodeHandler::Start();
-    ExitCodeHandler::Add(process);
+    status = ExitCodeHandler::Add(process);
+    if (status != MX_OK) {
+      LOG_ERR("ProcessStarter: ExitCodeHandler: Add failed: %s\n",
+              mx_status_get_string(status));
+      close(exit_pipe_fds[0]);
+      close(exit_pipe_fds[1]);
+      mx_task_kill(process);
+      ProcessInfoList::RemoveProcess(process);
+      ReportStartError(mx_status_get_string(status));
+      return status;
+    }
 
     // The IOHandles allocated below are returned to Dart code. The Dart code
     // calls into the runtime again to allocate a C++ Socket object, which
@@ -763,6 +644,13 @@ class ProcessStarter {
   }
 
  private:
+  void ReportStartError(const char* errormsg) {
+    const intptr_t kMaxMessageSize = 256;
+    char* message = DartUtils::ScopedCString(kMaxMessageSize);
+    snprintf(message, kMaxMessageSize, "Process start failed: %s\n", errormsg);
+    *os_error_message_ = message;
+  }
+
   mx_status_t SetupLaunchpad(launchpad_t** launchpad) {
     // TODO(zra): Use the supplied working directory when launchpad adds an
     // API to set it.

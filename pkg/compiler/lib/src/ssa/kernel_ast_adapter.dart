@@ -17,6 +17,7 @@ import '../elements/modelx.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js_backend/js_backend.dart';
+import '../js_backend/native_data.dart';
 import '../kernel/element_map.dart';
 import '../kernel/element_map_mixins.dart';
 import '../kernel/kernel.dart';
@@ -86,6 +87,10 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
     }
     _typeConverter = new DartTypeConverter(this);
   }
+
+  @override
+  NativeBasicData get nativeBasicData =>
+      _backend.frontendStrategy.nativeBasicData;
 
   void addProgram(ir.Program node) {
     throw new UnsupportedError('KernelAstAdapter.addProgram');

@@ -4,7 +4,6 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'byte_store_test.dart' as byte_store;
 import 'file_state_test.dart' as file_state;
 import 'format_test.dart' as format;
 import 'kernel_driver_test.dart' as kernel_driver;
@@ -12,7 +11,6 @@ import 'kernel_driver_test.dart' as kernel_driver;
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
-    byte_store.main();
     file_state.main();
     format.main();
     kernel_driver.main();

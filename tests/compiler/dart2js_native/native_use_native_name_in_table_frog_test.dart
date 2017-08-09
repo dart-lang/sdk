@@ -18,28 +18,31 @@ class B extends A {}
 A makeA() native;
 B makeB() native;
 
-void setup() native """
-function inherits(child, parent) {
-  if (child.prototype.__proto__) {
-    child.prototype.__proto__ = parent.prototype;
-  } else {
-    function tmp() {};
-    tmp.prototype = parent.prototype;
-    child.prototype = new tmp();
-    child.prototype.constructor = child;
+void setup() {
+  JS('', r"""
+(function(){
+  function inherits(child, parent) {
+    if (child.prototype.__proto__) {
+      child.prototype.__proto__ = parent.prototype;
+    } else {
+      function tmp() {};
+      tmp.prototype = parent.prototype;
+      child.prototype = new tmp();
+      child.prototype.constructor = child;
+    }
   }
+  function NativeA() {}
+  function NativeB() {}
+  inherits(NativeB, NativeA);
+  NativeA.prototype.foo = function() { return 42; };
+
+  makeA = function(){return new NativeA()};
+  makeB = function(){return new NativeB()};
+
+  self.nativeConstructor(NativeA);
+  self.nativeConstructor(NativeB);
+})()""");
 }
-function NativeA() {}
-function NativeB() {}
-inherits(NativeB, NativeA);
-NativeA.prototype.foo = function() { return 42; };
-
-makeA = function(){return new NativeA;};
-makeB = function(){return new NativeB;};
-
-self.nativeConstructor(NativeA);
-self.nativeConstructor(NativeB);
-""";
 
 main() {
   nativeTesting();

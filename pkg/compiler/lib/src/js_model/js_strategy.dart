@@ -94,12 +94,21 @@ class JsBackendStrategy implements KernelBackendStrategy {
         .forEach((ClassEntity cls, NativeClassTag tag) {
       nativeClassTagInfo[map.toBackendClass(cls)] = tag;
     });
-    Set<LibraryEntity> jsInteropLibraries =
-        map.toBackendLibrarySet(nativeBasicData.jsInteropLibraries);
-    Set<ClassEntity> jsInteropClasses =
-        map.toBackendClassSet(nativeBasicData.jsInteropClasses);
-    return new NativeBasicDataImpl(_elementEnvironment, nativeClassTagInfo,
-        jsInteropLibraries, jsInteropClasses);
+    Map<LibraryEntity, String> jsInteropLibraries =
+        map.toBackendLibraryMap(nativeBasicData.jsInteropLibraries, identity);
+    Map<ClassEntity, String> jsInteropClasses =
+        map.toBackendClassMap(nativeBasicData.jsInteropClasses, identity);
+    Set<ClassEntity> anonymousJsInteropClasses =
+        map.toBackendClassSet(nativeBasicData.anonymousJsInteropClasses);
+    Map<MemberEntity, String> jsInteropMembers =
+        map.toBackendMemberMap(nativeBasicData.jsInteropMembers, identity);
+    return new NativeBasicDataImpl(
+        _elementEnvironment,
+        nativeClassTagInfo,
+        jsInteropLibraries,
+        jsInteropClasses,
+        anonymousJsInteropClasses,
+        jsInteropMembers);
   }
 
   NativeData _convertNativeData(
@@ -146,13 +155,13 @@ class JsBackendStrategy implements KernelBackendStrategy {
         map.toBackendMemberMap(
             nativeData.nativeFieldStoreBehavior, convertNativeBehavior);
     Map<LibraryEntity, String> jsInteropLibraryNames =
-        map.toBackendLibraryMap(nativeData.jsInteropLibraryNames, identity);
+        map.toBackendLibraryMap(nativeData.jsInteropLibraries, identity);
     Set<ClassEntity> anonymousJsInteropClasses =
         map.toBackendClassSet(nativeData.anonymousJsInteropClasses);
     Map<ClassEntity, String> jsInteropClassNames =
-        map.toBackendClassMap(nativeData.jsInteropClassNames, identity);
+        map.toBackendClassMap(nativeData.jsInteropClasses, identity);
     Map<MemberEntity, String> jsInteropMemberNames =
-        map.toBackendMemberMap(nativeData.jsInteropMemberNames, identity);
+        map.toBackendMemberMap(nativeData.jsInteropMembers, identity);
 
     return new NativeDataImpl(
         nativeBasicData,

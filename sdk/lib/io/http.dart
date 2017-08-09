@@ -43,6 +43,7 @@ abstract class HttpStatus {
   static const int UNSUPPORTED_MEDIA_TYPE = 415;
   static const int REQUESTED_RANGE_NOT_SATISFIABLE = 416;
   static const int EXPECTATION_FAILED = 417;
+  static const int UPGRADE_REQUIRED = 426;
   static const int INTERNAL_SERVER_ERROR = 500;
   static const int NOT_IMPLEMENTED = 501;
   static const int BAD_GATEWAY = 502;

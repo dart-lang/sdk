@@ -190,42 +190,44 @@ typedef ZoneGrowableArray<PushArgumentInstr*>* ArgumentArray;
 
 class ActiveClass {
  public:
-  ActiveClass()
-      : kernel_class(NULL),
-        class_type_parameters(0),
-        class_type_parameters_offset_start(-1),
-        klass(NULL),
-        member_is_procedure(false),
-        member_is_factory_procedure(false),
-        member_type_parameters(0),
-        member_type_parameters_offset_start(-1) {}
+  ActiveClass() : klass(NULL), member(NULL) {}
 
-  // The current enclosing kernel class (if available, otherwise NULL).
-  Class* kernel_class;
-  intptr_t class_type_parameters;
-  intptr_t class_type_parameters_offset_start;
+  bool HasMember() { return member != NULL; }
 
-  // The current enclosing class (or the library top-level class).  When this is
-  // a library's top-level class, the kernel_class will be NULL.
+  bool MemberIsProcedure() {
+    ASSERT(member != NULL);
+    RawFunction::Kind function_kind = member->kind();
+    return function_kind == RawFunction::kRegularFunction ||
+           function_kind == RawFunction::kGetterFunction ||
+           function_kind == RawFunction::kSetterFunction ||
+           function_kind == RawFunction::kMethodExtractor ||
+           member->IsFactory();
+  }
+
+  bool MemberIsFactoryProcedure() {
+    ASSERT(member != NULL);
+    return member->IsFactory();
+  }
+
+  intptr_t MemberTypeParameterCount(Zone* zone);
+
+  intptr_t ClassTypeParameterCount(Zone* zone) {
+    ASSERT(member != NULL);
+    TypeArguments& class_types =
+        dart::TypeArguments::Handle(zone, klass->type_parameters());
+    return class_types.Length();
+  }
+
+  // The current enclosing class (or the library top-level class).
   const dart::Class* klass;
 
-  bool member_is_procedure;
-  bool member_is_factory_procedure;
-  intptr_t member_type_parameters;
-  intptr_t member_type_parameters_offset_start;
+  const dart::Function* member;
 };
 
 class ActiveClassScope {
  public:
-  ActiveClassScope(ActiveClass* active_class,
-                   intptr_t class_type_parameters,
-                   intptr_t class_type_parameters_offset_start,
-                   const dart::Class* klass)
+  ActiveClassScope(ActiveClass* active_class, const dart::Class* klass)
       : active_class_(active_class), saved_(*active_class) {
-    active_class_->kernel_class = NULL;
-    active_class_->class_type_parameters = class_type_parameters;
-    active_class_->class_type_parameters_offset_start =
-        class_type_parameters_offset_start;
     active_class_->klass = klass;
   }
 
@@ -238,18 +240,10 @@ class ActiveClassScope {
 
 class ActiveMemberScope {
  public:
-  ActiveMemberScope(ActiveClass* active_class,
-                    bool member_is_procedure,
-                    bool member_is_factory_procedure,
-                    intptr_t member_type_parameters,
-                    intptr_t member_type_parameters_offset_start)
+  ActiveMemberScope(ActiveClass* active_class, const Function* member)
       : active_class_(active_class), saved_(*active_class) {
-    // The class and kernel_class is inherited.
-    active_class_->member_is_procedure = member_is_procedure;
-    active_class_->member_is_factory_procedure = member_is_factory_procedure;
-    active_class_->member_type_parameters = member_type_parameters;
-    active_class_->member_type_parameters_offset_start =
-        member_type_parameters_offset_start;
+    // The class is inherited.
+    active_class_->member = member;
   }
 
   ~ActiveMemberScope() { *active_class_ = saved_; }

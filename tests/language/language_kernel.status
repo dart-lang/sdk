@@ -11,9 +11,6 @@ deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeE
 [ $compiler == dartk || $compiler == dartkp ]
 method_override_test: RuntimeError # Not triaged.
 
-cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-cha_deopt2_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-cha_deopt3_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 conditional_import_string_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 conditional_import_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_call_empty_before_load_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
@@ -242,106 +239,6 @@ factory_redirection_test/12: Fail
 factory_redirection_test/13: Fail
 factory_redirection_test/14: Fail
 function_type2_test: RuntimeError
-function_type/function_type0_test: RuntimeError
-function_type/function_type10_test: RuntimeError
-function_type/function_type11_test: RuntimeError
-function_type/function_type12_test: RuntimeError
-function_type/function_type13_test: RuntimeError
-function_type/function_type14_test: RuntimeError
-function_type/function_type15_test: RuntimeError
-function_type/function_type16_test: RuntimeError
-function_type/function_type17_test: RuntimeError
-function_type/function_type18_test: RuntimeError
-function_type/function_type19_test: RuntimeError
-function_type/function_type1_test: RuntimeError
-function_type/function_type20_test: RuntimeError
-function_type/function_type21_test: RuntimeError
-function_type/function_type22_test: RuntimeError
-function_type/function_type23_test: RuntimeError
-function_type/function_type24_test: RuntimeError
-function_type/function_type25_test: RuntimeError
-function_type/function_type26_test: RuntimeError
-function_type/function_type27_test: RuntimeError
-function_type/function_type28_test: RuntimeError
-function_type/function_type29_test: RuntimeError
-function_type/function_type2_test: RuntimeError
-function_type/function_type30_test: RuntimeError
-function_type/function_type31_test: RuntimeError
-function_type/function_type32_test: RuntimeError
-function_type/function_type33_test: RuntimeError
-function_type/function_type34_test: RuntimeError
-function_type/function_type35_test: RuntimeError
-function_type/function_type36_test: RuntimeError
-function_type/function_type37_test: RuntimeError
-function_type/function_type38_test: RuntimeError
-function_type/function_type39_test: RuntimeError
-function_type/function_type3_test: RuntimeError
-function_type/function_type40_test: RuntimeError
-function_type/function_type41_test: RuntimeError
-function_type/function_type42_test: RuntimeError
-function_type/function_type43_test: RuntimeError
-function_type/function_type44_test: RuntimeError
-function_type/function_type45_test: RuntimeError
-function_type/function_type46_test: RuntimeError
-function_type/function_type47_test: RuntimeError
-function_type/function_type48_test: RuntimeError
-function_type/function_type49_test: RuntimeError
-function_type/function_type4_test: RuntimeError
-function_type/function_type50_test: RuntimeError
-function_type/function_type51_test: RuntimeError
-function_type/function_type52_test: RuntimeError
-function_type/function_type53_test: RuntimeError
-function_type/function_type54_test: RuntimeError
-function_type/function_type55_test: RuntimeError
-function_type/function_type56_test: RuntimeError
-function_type/function_type57_test: RuntimeError
-function_type/function_type58_test: RuntimeError
-function_type/function_type59_test: RuntimeError
-function_type/function_type5_test: RuntimeError
-function_type/function_type60_test: RuntimeError
-function_type/function_type61_test: RuntimeError
-function_type/function_type62_test: RuntimeError
-function_type/function_type63_test: RuntimeError
-function_type/function_type64_test: RuntimeError
-function_type/function_type65_test: RuntimeError
-function_type/function_type66_test: RuntimeError
-function_type/function_type67_test: RuntimeError
-function_type/function_type68_test: RuntimeError
-function_type/function_type69_test: RuntimeError
-function_type/function_type6_test: RuntimeError
-function_type/function_type70_test: RuntimeError
-function_type/function_type71_test: RuntimeError
-function_type/function_type72_test: RuntimeError
-function_type/function_type73_test: RuntimeError
-function_type/function_type74_test: RuntimeError
-function_type/function_type75_test: RuntimeError
-function_type/function_type76_test: RuntimeError
-function_type/function_type77_test: RuntimeError
-function_type/function_type78_test: RuntimeError
-function_type/function_type79_test: RuntimeError
-function_type/function_type7_test: RuntimeError
-function_type/function_type80_test: RuntimeError
-function_type/function_type81_test: RuntimeError
-function_type/function_type82_test: RuntimeError
-function_type/function_type83_test: RuntimeError
-function_type/function_type84_test: RuntimeError
-function_type/function_type85_test: RuntimeError
-function_type/function_type86_test: RuntimeError
-function_type/function_type87_test: RuntimeError
-function_type/function_type88_test: RuntimeError
-function_type/function_type89_test: RuntimeError
-function_type/function_type8_test: RuntimeError
-function_type/function_type90_test: RuntimeError
-function_type/function_type91_test: RuntimeError
-function_type/function_type92_test: RuntimeError
-function_type/function_type93_test: RuntimeError
-function_type/function_type94_test: RuntimeError
-function_type/function_type95_test: RuntimeError
-function_type/function_type96_test: RuntimeError
-function_type/function_type97_test: RuntimeError
-function_type/function_type98_test: RuntimeError
-function_type/function_type99_test: RuntimeError
-function_type/function_type9_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 malbounded_redirecting_factory2_test/03: Fail
 malbounded_redirecting_factory2_test/04: Fail

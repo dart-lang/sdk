@@ -56,7 +56,10 @@ void FUNCTION_NAME(StackFrame_frameCount)(Dart_NativeArguments args) {
   while (frames.NextFrame() != NULL) {
     count += 1;  // Count the frame.
   }
-  VerifyPointersVisitor::VerifyPointers();
+  {
+    TransitionNativeToVM transition(Thread::Current());
+    VerifyPointersVisitor::VerifyPointers();
+  }
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   arguments->SetReturn(Object::Handle(Smi::New(count)));
 }
@@ -68,7 +71,10 @@ void FUNCTION_NAME(StackFrame_dartFrameCount)(Dart_NativeArguments args) {
   while (frames.NextFrame() != NULL) {
     count += 1;  // Count the dart frame.
   }
-  VerifyPointersVisitor::VerifyPointers();
+  {
+    TransitionNativeToVM transition(Thread::Current());
+    VerifyPointersVisitor::VerifyPointers();
+  }
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   arguments->SetReturn(Object::Handle(Smi::New(count)));
 }

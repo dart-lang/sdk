@@ -35,6 +35,7 @@ enum NullValue {
   ConstructorInitializers,
   ConstructorReferenceContinuationAfterTypeArguments,
   ContinueTarget,
+  DocumentationComment,
   Expression,
   FieldInitializer,
   FormalParameters,

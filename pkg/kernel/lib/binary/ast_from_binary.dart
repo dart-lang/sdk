@@ -343,7 +343,7 @@ class BinaryBuilder {
   }
 
   Reference readTypedefReference() {
-    return readCanonicalNameReference().getReference();
+    return readCanonicalNameReference()?.getReference();
   }
 
   Name readName() {
@@ -387,6 +387,7 @@ class BinaryBuilder {
       _skipNodeList(readExpression);
     }
     _readLibraryDependencies(library);
+    _readLibraryParts(library);
     _mergeNamedNodeList(library.typedefs, readTypedef, library);
     _mergeNamedNodeList(library.classes, readClass, library);
     _mergeNamedNodeList(library.fields, readField, library);
@@ -424,6 +425,17 @@ class BinaryBuilder {
 
   List<Combinator> readCombinatorList() {
     return new List<Combinator>.generate(readUInt(), (i) => readCombinator());
+  }
+
+  void _readLibraryParts(Library library) {
+    int length = readUInt();
+    library.parts.length = length;
+    for (int i = 0; i < length; ++i) {
+      var annotations = readExpressionList();
+      var fileUri = readStringOrNullIfEmpty();
+      library.parts[i] = new LibraryPart(annotations, fileUri)
+        ..parent = library;
+    }
   }
 
   Typedef readTypedef() {
@@ -1005,28 +1017,36 @@ class BinaryBuilder {
         return new BreakStatement(labelStack[labelStackBase + index])
           ..fileOffset = offset;
       case Tag.WhileStatement:
-        return new WhileStatement(readExpression(), readStatement());
+        var offset = readOffset();
+        return new WhileStatement(readExpression(), readStatement())
+          ..fileOffset = offset;
       case Tag.DoStatement:
-        return new DoStatement(readStatement(), readExpression());
+        var offset = readOffset();
+        return new DoStatement(readStatement(), readExpression())
+          ..fileOffset = offset;
       case Tag.ForStatement:
         int variableStackHeight = variableStack.length;
+        var offset = readOffset();
         var variables = readAndPushVariableDeclarationList();
         var condition = readExpressionOption();
         var updates = readExpressionList();
         var body = readStatement();
         variableStack.length = variableStackHeight;
-        return new ForStatement(variables, condition, updates, body);
+        return new ForStatement(variables, condition, updates, body)
+          ..fileOffset = offset;
       case Tag.ForInStatement:
       case Tag.AsyncForInStatement:
         bool isAsync = tag == Tag.AsyncForInStatement;
         int variableStackHeight = variableStack.length;
         var offset = readOffset();
+        var bodyOffset = readOffset();
         var variable = readAndPushVariableDeclaration();
         var iterable = readExpression();
         var body = readStatement();
         variableStack.length = variableStackHeight;
         return new ForInStatement(variable, iterable, body, isAsync: isAsync)
-          ..fileOffset = offset;
+          ..fileOffset = offset
+          ..bodyOffset = bodyOffset;
       case Tag.SwitchStatement:
         var expression = readExpression();
         int count = readUInt();
@@ -1163,21 +1183,25 @@ class BinaryBuilder {
         var totalParameterCount = readUInt();
         var positional = readDartTypeList();
         var named = readNamedTypeList();
+        var positionalNames = readStringReferenceList();
+        var typedefReference = readTypedefReference();
         assert(positional.length + named.length == totalParameterCount);
         var returnType = readDartType();
         typeParameterStack.length = typeParameterStackHeight;
         return new FunctionType(positional, returnType,
             typeParameters: typeParameters,
             requiredParameterCount: requiredParameterCount,
-            namedParameters: named);
+            namedParameters: named,
+            positionalParameterNames: positionalNames,
+            typedefReference: typedefReference);
       case Tag.SimpleFunctionType:
         var positional = readDartTypeList();
+        var positionalNames = readStringReferenceList();
         var returnType = readDartType();
-        return new FunctionType(positional, returnType);
+        return new FunctionType(positional, returnType,
+            positionalParameterNames: positionalNames);
       case Tag.TypeParameterType:
         int index = readUInt();
-        readUInt(); // offset of parameter list in the binary.
-        readUInt(); // index in the list.
         var bound = readDartTypeOption();
         return new TypeParameterType(typeParameterStack[index], bound);
       default:

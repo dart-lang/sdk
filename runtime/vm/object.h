@@ -6422,6 +6422,10 @@ class Number : public Instance {
 class Integer : public Number {
  public:
   static RawInteger* New(const String& str, Heap::Space space = Heap::kNew);
+
+  // Creates a new Integer by given uint64_t value.
+  // In the --limit-ints-to-64-bits mode silently casts value to int64_t
+  // (with wrap-around if it is greater than kMaxInt64).
   static RawInteger* NewFromUint64(uint64_t value,
                                    Heap::Space space = Heap::kNew);
 
@@ -6430,6 +6434,9 @@ class Integer : public Number {
   static RawInteger* NewCanonical(const String& str);
 
   static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
+
+  // Returns true iff the given uint64_t value is representable as Dart integer.
+  static bool IsValueInRange(uint64_t value);
 
   virtual bool OperatorEquals(const Instance& other) const {
     return Equals(other);
@@ -6457,6 +6464,11 @@ class Integer : public Number {
 
   // Returns 0, -1 or 1.
   virtual int CompareWith(const Integer& other) const;
+
+  // Converts integer to hex string.
+  // TODO(alexmarkov): this method can become non-virtual once Bigint class is
+  // decoupled from Integer hierarchy.
+  virtual const char* ToHexCString(Zone* zone) const;
 
   // Return the most compact presentation of an integer.
   RawInteger* AsValidInteger() const;
@@ -6615,6 +6627,8 @@ class Bigint : public Integer {
 
   virtual int CompareWith(const Integer& other) const;
 
+  virtual const char* ToHexCString(Zone* zone) const;
+
   virtual bool CheckAndCanonicalizeFields(Thread* thread,
                                           const char** error_str) const;
 
@@ -6643,7 +6657,6 @@ class Bigint : public Integer {
   uint32_t DigitAt(intptr_t index) const;
 
   const char* ToDecCString(Zone* zone) const;
-  const char* ToHexCString(Zone* zone) const;
 
   static const intptr_t kBitsPerDigit = 32;  // Same as _Bigint._DIGIT_BITS
   static const intptr_t kBytesPerDigit = 4;

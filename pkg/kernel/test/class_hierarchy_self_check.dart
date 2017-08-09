@@ -151,8 +151,8 @@ void testClassHierarchyOnProgram(Program program, {bool verbose: false}) {
 
 var random = new Random(12345);
 
-List/*<T>*/ pickRandom/*<T>*/(List/*<T>*/ items, int n) {
-  var result = /*<T>*/ [];
+List<T> pickRandom<T>(List<T> items, int n) {
+  var result = <T>[];
   for (int i = 0; i < n; ++i) {
     result.add(items[random.nextInt(items.length)]);
   }

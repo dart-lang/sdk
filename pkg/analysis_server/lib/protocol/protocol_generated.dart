@@ -100,6 +100,134 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
 }
 
 /**
+ * analysis.closingLabels params
+ *
+ * {
+ *   "file": FilePath
+ *   "labels": List<ClosingLabel>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalysisClosingLabelsParams implements HasToJson {
+  String _file;
+
+  List<ClosingLabel> _labels;
+
+  /**
+   * The file the closing labels relate to.
+   */
+  String get file => _file;
+
+  /**
+   * The file the closing labels relate to.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  /**
+   * Closing labels relevant to the file. Each item represents a useful label
+   * associated with some range with may be useful to display to the user
+   * within the editor at the end of the range to indicate what construct is
+   * closed at that location. Closing labels include constructor/method calls
+   * and List arguments that span multiple lines. Note that the ranges that are
+   * returned can overlap each other because they may be associated with
+   * constructs that can be nested.
+   */
+  List<ClosingLabel> get labels => _labels;
+
+  /**
+   * Closing labels relevant to the file. Each item represents a useful label
+   * associated with some range with may be useful to display to the user
+   * within the editor at the end of the range to indicate what construct is
+   * closed at that location. Closing labels include constructor/method calls
+   * and List arguments that span multiple lines. Note that the ranges that are
+   * returned can overlap each other because they may be associated with
+   * constructs that can be nested.
+   */
+  void set labels(List<ClosingLabel> value) {
+    assert(value != null);
+    this._labels = value;
+  }
+
+  AnalysisClosingLabelsParams(String file, List<ClosingLabel> labels) {
+    this.file = file;
+    this.labels = labels;
+  }
+
+  factory AnalysisClosingLabelsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      List<ClosingLabel> labels;
+      if (json.containsKey("labels")) {
+        labels = jsonDecoder.decodeList(
+            jsonPath + ".labels",
+            json["labels"],
+            (String jsonPath, Object json) =>
+                new ClosingLabel.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "labels");
+      }
+      return new AnalysisClosingLabelsParams(file, labels);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "analysis.closingLabels params", json);
+    }
+  }
+
+  factory AnalysisClosingLabelsParams.fromNotification(
+      Notification notification) {
+    return new AnalysisClosingLabelsParams.fromJson(
+        new ResponseDecoder(null), "params", notification.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["labels"] =
+        labels.map((ClosingLabel value) => value.toJson()).toList();
+    return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("analysis.closingLabels", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalysisClosingLabelsParams) {
+      return file == other.file &&
+          listEqual(
+              labels, other.labels, (ClosingLabel a, ClosingLabel b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, labels.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * AnalysisErrorFixes
  *
  * {
@@ -3215,6 +3343,7 @@ class AnalysisReanalyzeResult implements ResponseResult {
  * AnalysisService
  *
  * enum {
+ *   CLOSING_LABELS
  *   FOLDING
  *   HIGHLIGHTS
  *   IMPLEMENTED
@@ -3228,6 +3357,9 @@ class AnalysisReanalyzeResult implements ResponseResult {
  * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisService implements Enum {
+  static const AnalysisService CLOSING_LABELS =
+      const AnalysisService._("CLOSING_LABELS");
+
   static const AnalysisService FOLDING = const AnalysisService._("FOLDING");
 
   static const AnalysisService HIGHLIGHTS =
@@ -3257,6 +3389,7 @@ class AnalysisService implements Enum {
    * A list containing all of the enum values that are defined.
    */
   static const List<AnalysisService> VALUES = const <AnalysisService>[
+    CLOSING_LABELS,
     FOLDING,
     HIGHLIGHTS,
     IMPLEMENTED,
@@ -3274,6 +3407,8 @@ class AnalysisService implements Enum {
 
   factory AnalysisService(String name) {
     switch (name) {
+      case "CLOSING_LABELS":
+        return CLOSING_LABELS;
       case "FOLDING":
         return FOLDING;
       case "HIGHLIGHTS":
@@ -4723,6 +4858,131 @@ class AnalyticsSendTimingResult implements ResponseResult {
   @override
   int get hashCode {
     return 875010924;
+  }
+}
+
+/**
+ * ClosingLabel
+ *
+ * {
+ *   "offset": int
+ *   "length": int
+ *   "label": String
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ClosingLabel implements HasToJson {
+  int _offset;
+
+  int _length;
+
+  String _label;
+
+  /**
+   * The offset of the construct being labelled.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset of the construct being labelled.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  /**
+   * The length of the whole construct to be labelled.
+   */
+  int get length => _length;
+
+  /**
+   * The length of the whole construct to be labelled.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
+
+  /**
+   * The label associated with this range that should be displayed to the user.
+   */
+  String get label => _label;
+
+  /**
+   * The label associated with this range that should be displayed to the user.
+   */
+  void set label(String value) {
+    assert(value != null);
+    this._label = value;
+  }
+
+  ClosingLabel(int offset, int length, String label) {
+    this.offset = offset;
+    this.length = length;
+    this.label = label;
+  }
+
+  factory ClosingLabel.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "offset");
+      }
+      int length;
+      if (json.containsKey("length")) {
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "length");
+      }
+      String label;
+      if (json.containsKey("label")) {
+        label = jsonDecoder.decodeString(jsonPath + ".label", json["label"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "label");
+      }
+      return new ClosingLabel(offset, length, label);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "ClosingLabel", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["offset"] = offset;
+    result["length"] = length;
+    result["label"] = label;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ClosingLabel) {
+      return offset == other.offset &&
+          length == other.length &&
+          label == other.label;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, label.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 

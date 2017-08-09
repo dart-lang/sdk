@@ -307,5 +307,4 @@ checkerForAbsentPresent(String test) {
 
 RegExp _directivePattern = new RegExp(
     //      \1                     \2        \3
-    r'''// *(present|absent): *(?:"([^"]*)"|'([^'']*)')''',
-    multiLine: true);
+    r'''// *(present|absent): *(?:"([^"]*)"|'([^'']*)')''', multiLine: true);

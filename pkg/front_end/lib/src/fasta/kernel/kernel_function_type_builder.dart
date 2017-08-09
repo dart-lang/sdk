@@ -37,10 +37,11 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
       List<FormalParameterBuilder> formals)
       : super(charOffset, fileUri, returnType, typeVariables, formals);
 
-  DartType build(LibraryBuilder library) {
+  FunctionType build(LibraryBuilder library) {
     DartType builtReturnType =
         returnType?.build(library) ?? const DynamicType();
     List<DartType> positionalParameters = <DartType>[];
+    List<String> positionalParameterNames = <String>[];
     List<NamedType> namedParameters;
     int requiredParameterCount = 0;
     if (formals != null) {
@@ -48,6 +49,7 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
         DartType type = formal.type?.build(library) ?? const DynamicType();
         if (formal.isPositional) {
           positionalParameters.add(type);
+          positionalParameterNames.add(formal.name ?? '');
           if (formal.isRequired) requiredParameterCount++;
         } else if (formal.isNamed) {
           namedParameters ??= <NamedType>[];
@@ -68,7 +70,8 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
     return new FunctionType(positionalParameters, builtReturnType,
         namedParameters: namedParameters ?? const <NamedType>[],
         typeParameters: typeParameters ?? const <TypeParameter>[],
-        requiredParameterCount: requiredParameterCount);
+        requiredParameterCount: requiredParameterCount,
+        positionalParameterNames: positionalParameterNames);
   }
 
   Supertype buildSupertype(LibraryBuilder library) {

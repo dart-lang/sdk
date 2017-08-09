@@ -32,12 +32,12 @@ Future<BuildResult> _readBuildResult(
 }
 
 /// Fetches test data for [buildUri] through the buildbot stdio.
-Future<BuildResult> readBuildResult(
-    HttpClient client, BuildUri buildUri) async {
+Future<BuildResult> readBuildResultFromHttp(
+    HttpClient client, BuildUri buildUri) {
   Future<String> read() async {
     Uri uri = buildUri.toUri();
     log('Reading buildbot results: $uri');
-    return await readUriAsText(client, uri);
+    return readUriAsText(client, uri);
   }
 
   return _readBuildResult(buildUri, read);
@@ -46,7 +46,7 @@ Future<BuildResult> readBuildResult(
 /// Fetches test data for [buildUri] through logdog.
 ///
 /// The build number of [buildUri] most be non-negative.
-Future<BuildResult> readLogDogResult(BuildUri buildUri) {
+Future<BuildResult> readBuildResultFromLogDog(BuildUri buildUri) {
   Future<String> read() async {
     log('Reading logdog results: $buildUri');
     return cat(buildUri.logdogPath);
@@ -87,6 +87,7 @@ BuildResult parseTestStepResult(BuildUri buildUri, String text) {
     if (line.startsWith(BUILDBOT_BUILDNUMBER)) {
       buildNumber =
           int.parse(line.substring(BUILDBOT_BUILDNUMBER.length).trim());
+      buildUri = buildUri.withBuildNumber(buildNumber);
     }
     if (currentFailure != null) {
       if (line.startsWith('Done ')) {
@@ -102,6 +103,11 @@ BuildResult parseTestStepResult(BuildUri buildUri, String text) {
     } else if (line.startsWith('FAILED:')) {
       currentFailure = <String>[];
       currentFailure.add(line);
+    } else if (line.startsWith('Done ')) {
+      TestStatus status = parseTestStatus(line);
+      if (status != null) {
+        results.add(status);
+      }
     }
     if (line.startsWith('--- Total time:')) {
       parsingTimingBlock = true;

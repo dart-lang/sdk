@@ -91,6 +91,7 @@ class SafepointHandler {
 
   friend class Isolate;
   friend class SafepointOperationScope;
+  friend class HeapIterationScope;
 };
 
 /*

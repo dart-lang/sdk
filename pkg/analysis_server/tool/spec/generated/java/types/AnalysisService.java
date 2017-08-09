@@ -24,6 +24,8 @@ package org.dartlang.analysis.server.protocol;
  */
 public class AnalysisService {
 
+  public static final String CLOSING_LABELS = "CLOSING_LABELS";
+
   public static final String FOLDING = "FOLDING";
 
   public static final String HIGHLIGHTS = "HIGHLIGHTS";

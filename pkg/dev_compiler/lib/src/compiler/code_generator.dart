@@ -3957,19 +3957,20 @@ class CodeGenerator extends Object
     var conditionType = condition.staticType;
     JS.Expression jsCondition = _visit(condition);
 
-    var assertHelper = 'assert';
     if (conditionType is FunctionType &&
         conditionType.parameters.isEmpty &&
         conditionType.returnType == types.boolType) {
-      jsCondition = new JS.Call(jsCondition, []);
+      jsCondition = _callHelper('test(#())', jsCondition);
     } else if (conditionType != types.boolType) {
-      assertHelper = 'dassert';
+      jsCondition = _callHelper('dassert(#)', jsCondition);
+    } else if (isNullable(condition)) {
+      jsCondition = _callHelper('test(#)', jsCondition);
     }
-    var args = [jsCondition];
-    if (node.message != null) {
-      args.add(js.call('() => #', [_visit(node.message)]));
-    }
-    return _callHelperStatement('$assertHelper(#);', [args]);
+    return js.statement(' if (!#) #.assertFailed(#);', [
+      jsCondition,
+      _runtimeModule,
+      node.message != null ? [_visit(node.message)] : []
+    ]);
   }
 
   @override

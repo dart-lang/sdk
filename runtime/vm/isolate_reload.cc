@@ -1257,8 +1257,9 @@ void IsolateReloadContext::Commit() {
   // corresponding canonical tables.
   Thread* thread = Thread::Current();
   I->heap()->CollectAllGarbage();
+  HeapIterationScope iteration(thread);
   VerifyCanonicalVisitor check_canonical(thread);
-  I->heap()->IterateObjects(&check_canonical);
+  iteration.IterateObjects(&check_canonical);
 #endif  // DEBUG
 }
 
@@ -1355,7 +1356,10 @@ void IsolateReloadContext::MorphInstances() {
 
   // Find all objects that need to be morphed.
   ObjectLocator locator(this);
-  isolate()->heap()->VisitObjects(&locator);
+  {
+    HeapIterationScope iteration(Thread::Current());
+    iteration.IterateObjects(&locator);
+  }
 
   // Return if no objects are located.
   intptr_t count = locator.count();
@@ -1616,10 +1620,9 @@ void IsolateReloadContext::MarkAllFunctionsForRecompilation() {
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
-  NoSafepointScope no_safepoint;
-  HeapIterationScope heap_iteration_scope;
+  HeapIterationScope iteration(thread);
   MarkFunctionsForRecompilation visitor(isolate_, this, zone);
-  isolate_->heap()->VisitObjects(&visitor);
+  iteration.IterateObjects(&visitor);
 }
 
 void IsolateReloadContext::InvalidateWorld() {

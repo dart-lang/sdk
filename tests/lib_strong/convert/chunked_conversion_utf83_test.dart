@@ -15,7 +15,7 @@ String decode(List<int> bytes, int chunkSize) {
   var byteSink = new Utf8Decoder().startChunkedConversion(stringSink);
   int i = 0;
   while (i < bytes.length) {
-    List nextChunk = [];
+    var nextChunk = <int>[];
     for (int j = 0; j < chunkSize; j++) {
       if (i < bytes.length) {
         nextChunk.add(bytes[i]);
@@ -35,7 +35,7 @@ String decodeAllowMalformed(List<int> bytes, int chunkSize) {
   var byteSink = decoder.startChunkedConversion(stringSink);
   int i = 0;
   while (i < bytes.length) {
-    List nextChunk = [];
+    var nextChunk = <int>[];
     for (int j = 0; j < chunkSize; j++) {
       if (i < bytes.length) {
         nextChunk.add(bytes[i]);

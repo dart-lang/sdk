@@ -13,7 +13,6 @@ SafepointOperationScope::SafepointOperationScope(Thread* T) : StackResource(T) {
   ASSERT(T != NULL);
   Isolate* I = T->isolate();
   ASSERT(I != NULL);
-  ASSERT(T->no_safepoint_scope_depth() == 0);
 
   SafepointHandler* handler = I->safepoint_handler();
   ASSERT(handler != NULL);
@@ -51,6 +50,9 @@ SafepointHandler::~SafepointHandler() {
 }
 
 void SafepointHandler::SafepointThreads(Thread* T) {
+  ASSERT(T->no_safepoint_scope_depth() == 0);
+  ASSERT(T->execution_state() == Thread::kThreadInVM);
+
   {
     // First grab the threads list lock for this isolate
     // and check if a safepoint is already in progress. This

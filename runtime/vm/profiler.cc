@@ -1427,9 +1427,12 @@ void CodeLookupTable::Build(Thread* thread) {
   code_objects_.Clear();
 
   // Add all found Code objects.
-  CodeLookupTableBuilder cltb(this);
-  vm_isolate->heap()->IterateOldObjects(&cltb);
-  isolate->heap()->IterateOldObjects(&cltb);
+  {
+    HeapIterationScope iteration(thread);
+    CodeLookupTableBuilder cltb(this);
+    iteration.IterateVMIsolateObjects(&cltb);
+    iteration.IterateOldObjects(&cltb);
+  }
 
   // Sort by entry.
   code_objects_.Sort(CodeDescriptor::Compare);

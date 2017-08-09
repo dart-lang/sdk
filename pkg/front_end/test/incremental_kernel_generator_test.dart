@@ -7,8 +7,9 @@ import 'dart:async';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/incremental_kernel_generator_impl.dart';
+import 'package:front_end/summary_generator.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:test/test.dart';
@@ -34,11 +35,10 @@ class IncrementalKernelGeneratorTest {
   IncrementalKernelGeneratorImpl incrementalKernelGenerator;
 
   /// Compute the initial [Program] for the given [entryPoint].
-  Future<Program> getInitialState(Uri entryPoint) async {
-    Map<String, Uri> dartLibraries = createSdkFiles(fileSystem);
+  Future<Program> getInitialState(Uri entryPoint,
+      {Uri sdkOutlineUri, bool setPackages: true}) async {
+    createSdkFiles(fileSystem);
     // TODO(scheglov) Builder the SDK kernel and set it into the options.
-
-    // TODO(scheglov) Make `.packages` file optional.
 
     var compilerOptions = new CompilerOptions()
       ..fileSystem = fileSystem
@@ -46,8 +46,12 @@ class IncrementalKernelGeneratorTest {
 //      ..logger = new PerformanceLog(stdout)
       ..strongMode = true
       ..chaseDependencies = true
-      ..dartLibraries = dartLibraries
-      ..packagesFileUri = Uri.parse('file:///test/.packages');
+      ..librariesSpecificationUri = Uri.parse('file:///sdk/lib/libraries.json')
+      ..sdkSummary = sdkOutlineUri;
+
+    if (setPackages) {
+      compilerOptions.packagesFileUri = Uri.parse('file:///test/.packages');
+    }
     incrementalKernelGenerator = await IncrementalKernelGenerator
         .newInstance(compilerOptions, entryPoint, watch: watchFn);
     return (await incrementalKernelGenerator.computeDelta()).newProgram;
@@ -170,6 +174,60 @@ b() {
       // recompiled, because the change to c.dart was in the function body.
       _assertCompiledUris([cUri]);
     }
+  }
+
+  test_compile_useSdkOutline() async {
+    createSdkFiles(fileSystem);
+    List<int> sdkOutlineBytes = await _computeSdkOutlineBytes();
+
+    Uri sdkOutlineUri = Uri.parse('file:///sdk/outline.dill');
+    fileSystem.entityForUri(sdkOutlineUri).writeAsBytesSync(sdkOutlineBytes);
+
+    writeFile('/test/.packages', 'test:lib/');
+    String path = '/test/lib/test.dart';
+    Uri uri = writeFile(path, r'''
+import 'dart:async';
+var a = 1;
+Future<String> b;
+''');
+
+    Program program = await getInitialState(uri, sdkOutlineUri: sdkOutlineUri);
+    _assertLibraryUris(program,
+        includes: [uri], excludes: [Uri.parse('dart:core')]);
+
+    Library library = _getLibrary(program, uri);
+    expect(_getLibraryText(library), r'''library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static field core::int a = 1;
+static field asy::Future<core::String> b;
+''');
+  }
+
+  test_inferPackagesFile() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    writeFile(aPath, 'var a = 1;');
+    Uri bUri = writeFile(bPath, r'''
+import "package:test/a.dart";
+var b = a;
+''');
+
+    // Ensures that the `.packages` file can be discovered automatically
+    // from the entry point file.
+    Program program = await getInitialState(bUri, setPackages: false);
+    Library library = _getLibrary(program, bUri);
+    expect(_getLibraryText(library), r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "package:test/a.dart" as a;
+
+static field core::int b = a::a;
+''');
   }
 
   test_updateEntryPoint() async {
@@ -343,6 +401,17 @@ import 'a.dart';
     for (var shouldExclude in excludes) {
       expect(libraryUris, isNot(contains(shouldExclude)));
     }
+  }
+
+  Future<List<int>> _computeSdkOutlineBytes() async {
+    var options = new CompilerOptions()
+      ..fileSystem = fileSystem
+      ..sdkRoot = Uri.parse('file:///sdk/')
+      ..compileSdk = true
+      ..chaseDependencies = true
+      ..strongMode = true;
+    var inputs = [Uri.parse('dart:core')];
+    return summaryFor(inputs, options);
   }
 
   Library _getLibrary(Program program, Uri uri) {

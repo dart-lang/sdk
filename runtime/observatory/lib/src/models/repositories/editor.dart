@@ -5,5 +5,8 @@
 part of models;
 
 abstract class EditorRepository {
-  Future<Sentinel> sendObject(IsolateRef isolate, ObjectRef obj);
+  bool get canOpenClass;
+
+  Future openClass(IsolateRef isolate, ClassRef clazz);
+  Future openSourceLocation(IsolateRef isolate, SourceLocation location);
 }

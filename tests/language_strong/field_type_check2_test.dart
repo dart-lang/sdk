@@ -6,7 +6,7 @@ class A {
   A a;
 
   bar(c) {
-    c.a = 2; //# 01: dynamic type error
+    c.a = 2; //# 01: runtime error
   }
 }
 

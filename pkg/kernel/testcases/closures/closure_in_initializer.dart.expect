@@ -4,23 +4,25 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field dynamic t;
-  constructor foo(dynamic f) → void
-    : final Vector #context = MakeVector(2), dynamic #t1 = #context[1] = f, self::C::t = MakeClosure<() → dynamic>(self::closure#C#foo#function, #context), super core::Object::•() {
-    final Vector #context = MakeVector(2);
-    #context[1] = f;
-    core::print(1);
+  constructor foo(dynamic f, dynamic x) → void
+    : final Vector #context = MakeVector(3), this self::C::foo#redir(f, x, #context)
+    ;
+  constructor foo#redir(dynamic f, dynamic x, final Vector #context) → void
+    : dynamic #t1 = #context[1] = f, dynamic #t2 = #context[2] = x, self::C::t = MakeClosure<() → dynamic>(self::closure#C#foo#function, #context), super core::Object::•() {
+    #context[2] = 1;
+    core::print(#context[2]);
   }
 }
 static method main() → dynamic {
   core::print(0);
-  dynamic c = new self::C::foo(MakeClosure<() → dynamic>(self::closure#main#function, null));
+  dynamic c = new self::C::foo(MakeClosure<(dynamic) → dynamic>(self::closure#main#function, null), 0);
   core::print(2);
   c.t();
   core::print(3);
 }
 static method closure#C#foo#function(Vector #contextParameter) → dynamic {
-  return (#contextParameter[1]).call();
+  return (#contextParameter[1]).call(#contextParameter[2]);
 }
-static method closure#main#function(Vector #contextParameter) → dynamic {
-  return core::print("hest");
+static method closure#main#function(Vector #contextParameter, dynamic x) → dynamic {
+  return core::print("hest${x}");
 }

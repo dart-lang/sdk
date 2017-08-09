@@ -90,6 +90,23 @@ class KernelAsExpression extends AsExpression implements KernelExpression {
   }
 }
 
+/// Concrete shadow object representing an assert initializer in kernel form.
+class KernelAssertInitializer extends LocalInitializer
+    implements KernelInitializer {
+  /// The assert statement performing the check
+  AssertStatement _statement;
+
+  KernelAssertInitializer(VariableDeclaration variable, this._statement)
+      : super(variable);
+
+  @override
+  void _inferInitializer(KernelTypeInferrer inferrer) {
+    inferrer.listener.assertInitializerEnter(this);
+    inferrer.inferStatement(_statement);
+    inferrer.listener.assertInitializerExit(this);
+  }
+}
+
 /// Concrete shadow object representing an assertion statement in kernel form.
 class KernelAssertStatement extends AssertStatement implements KernelStatement {
   KernelAssertStatement(Expression condition,
@@ -102,7 +119,8 @@ class KernelAssertStatement extends AssertStatement implements KernelStatement {
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
     inferrer.listener.assertStatementEnter(this);
-    inferrer.inferExpression(condition, null, false);
+    inferrer.inferExpression(
+        condition, inferrer.coreTypes.boolClass.rawType, false);
     if (message != null) {
       inferrer.inferExpression(message, null, false);
     }
@@ -690,6 +708,19 @@ class KernelField extends Field implements KernelMember {
   }
 }
 
+/// Concrete shadow object representing a field initializer in kernel form.
+class KernelFieldInitializer extends FieldInitializer
+    implements KernelInitializer {
+  KernelFieldInitializer(Field field, Expression value) : super(field, value);
+
+  @override
+  void _inferInitializer(KernelTypeInferrer inferrer) {
+    inferrer.listener.fieldInitializerEnter(this);
+    inferrer.inferExpression(value, field.type, false);
+    inferrer.listener.fieldInitializerExit(this);
+  }
+}
+
 /// Concrete shadow object representing a for-in loop in kernel form.
 class KernelForInStatement extends ForInStatement implements KernelStatement {
   final bool _declaresVariable;
@@ -985,6 +1016,19 @@ class KernelIntLiteral extends IntLiteral implements KernelExpression {
     var inferredType = typeNeeded ? inferrer.coreTypes.intClass.rawType : null;
     inferrer.listener.intLiteralExit(this, inferredType);
     return inferredType;
+  }
+}
+
+/// Concrete shadow object representing an invalid initializer in kernel form.
+class KernelInvalidInitializer extends LocalInitializer
+    implements KernelInitializer {
+  KernelInvalidInitializer(VariableDeclaration variable) : super(variable);
+
+  @override
+  void _inferInitializer(KernelTypeInferrer inferrer) {
+    inferrer.listener.invalidInitializerEnter(this);
+    inferrer.inferExpression(variable.initializer, null, false);
+    inferrer.listener.invalidInitializerExit(this);
   }
 }
 
@@ -1300,6 +1344,39 @@ class KernelMethodInvocation extends MethodInvocation
     return inferrer.inferMethodInvocation(
         this, receiver, fileOffset, _isImplicitCall, typeContext, typeNeeded,
         desugaredInvocation: this);
+  }
+}
+
+/// Concrete shadow object representing a named function expression.
+///
+/// Named function expressions are not legal in Dart, but they are accepted by
+/// the parser and BodyBuilder for error recovery purposes.
+///
+/// A named function expression of the form `f() { ... }` is represented as the
+/// kernel expression:
+///
+///     let f = () { ... } in f
+class KernelNamedFunctionExpression extends Let implements KernelExpression {
+  KernelNamedFunctionExpression(VariableDeclaration variable, Expression body)
+      : super(variable, body);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    collector.collectDependencies(variable.initializer);
+  }
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    typeNeeded =
+        inferrer.listener.namedFunctionExpressionEnter(this, typeContext) ||
+            typeNeeded;
+    var inferredType =
+        inferrer.inferExpression(variable.initializer, typeContext, true);
+    if (inferrer.strongMode) variable.type = inferredType;
+    if (!typeNeeded) inferredType = null;
+    inferrer.listener.namedFunctionExpressionExit(this, inferredType);
+    return inferredType;
   }
 }
 
@@ -1793,6 +1870,22 @@ class KernelStringLiteral extends StringLiteral implements KernelExpression {
   }
 }
 
+/// Concrete shadow object representing a super initializer in kernel form.
+class KernelSuperInitializer extends SuperInitializer
+    implements KernelInitializer {
+  KernelSuperInitializer(Constructor target, Arguments arguments)
+      : super(target, arguments);
+
+  @override
+  void _inferInitializer(KernelTypeInferrer inferrer) {
+    inferrer.listener.superInitializerEnter(this);
+    inferrer.inferInvocation(null, false, fileOffset,
+        target.function.functionType, target.enclosingClass.thisType, arguments,
+        skipTypeArgumentInference: true);
+    inferrer.listener.superInitializerExit(this);
+  }
+}
+
 /// Shadow object for [SuperMethodInvocation].
 class KernelSuperMethodInvocation extends SuperMethodInvocation
     implements KernelExpression {
@@ -2052,6 +2145,10 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
   }
 
   @override
+  TypeInferrer createDisabledTypeInferrer() =>
+      new TypeInferrerDisabled(typeSchemaEnvironment);
+
+  @override
   KernelTypeInferrer createLocalTypeInferrer(
       Uri uri, TypeInferenceListener listener, InterfaceType thisType) {
     return new KernelTypeInferrer._(
@@ -2131,19 +2228,14 @@ class KernelTypeInferrer extends TypeInferrerImpl {
 
   @override
   void inferInitializer(Initializer initializer) {
-    if (initializer is KernelInitializer) {
-      // Use polymorphic dispatch on [KernelInitializer] to perform whatever
-      // kind of type inference is correct for this kind of initializer.
-      // TODO(paulberry): experiment to see if dynamic dispatch would be better,
-      // so that the type hierarchy will be simpler (which may speed up "is"
-      // checks).
-      return initializer._inferInitializer(this);
-    } else {
-      // Encountered an initializer type for which type inference is not yet
-      // implemented, so just skip it for now.
-      // TODO(paulberry): once the BodyBuilder uses shadow classes for
-      // everything, this case should no longer be needed.
-    }
+    assert(initializer is KernelInitializer);
+    // Use polymorphic dispatch on [KernelInitializer] to perform whatever
+    // kind of type inference is correct for this kind of initializer.
+    // TODO(paulberry): experiment to see if dynamic dispatch would be better,
+    // so that the type hierarchy will be simpler (which may speed up "is"
+    // checks).
+    KernelInitializer kernelInitializer = initializer;
+    return kernelInitializer._inferInitializer(this);
   }
 
   @override

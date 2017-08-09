@@ -59,7 +59,8 @@ abstract class NullableTypeInference {
     // resulting value if that becomes an issue, so we maintain the invariant
     // that each node is visited once.
     Element element = null;
-    if (expr is PropertyAccess) {
+    if (expr is PropertyAccess &&
+        expr.operator?.type != TokenType.QUESTION_PERIOD) {
       element = expr.propertyName.staticElement;
     } else if (expr is Identifier) {
       element = expr.staticElement;

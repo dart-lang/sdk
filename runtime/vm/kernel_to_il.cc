@@ -67,6 +67,25 @@ Fragment operator<<(const Fragment& fragment, Instruction* next) {
   return result;
 }
 
+intptr_t ActiveClass::MemberTypeParameterCount(Zone* zone) {
+  ASSERT(member != NULL);
+  if (member->IsFactory()) {
+    TypeArguments& class_types =
+        dart::TypeArguments::Handle(zone, klass->type_parameters());
+    return class_types.Length();
+  } else if (member->IsMethodExtractor()) {
+    Function& extracted =
+        Function::Handle(zone, member->extracted_method_closure());
+    TypeArguments& function_types =
+        dart::TypeArguments::Handle(zone, extracted.type_parameters());
+    return function_types.Length();
+  } else {
+    TypeArguments& function_types =
+        dart::TypeArguments::Handle(zone, member->type_parameters());
+    return function_types.Length();
+  }
+}
+
 TranslationHelper::TranslationHelper(Thread* thread)
     : thread_(thread),
       zone_(thread->zone()),
@@ -761,7 +780,7 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
 #endif
     instructions += LoadLocal(scopes_->type_arguments_variable);
   } else if (scopes_->this_variable != NULL &&
-             active_class_.class_type_parameters > 0) {
+             active_class_.ClassTypeParameterCount(Z) > 0) {
     ASSERT(!parsed_function_->function().IsFactory());
     intptr_t type_arguments_field_offset =
         active_class_.klass->type_arguments_field_offset();

@@ -41,8 +41,8 @@ final subpackageRules = {
   'lib': new SubpackageRules(allowedDependencies: [
     'lib/src',
     'lib/src/base',
+    'lib/src/byte_store',
     'lib/src/fasta',
-    'lib/src/incremental',
   ]),
   'lib/src': new SubpackageRules(allowedDependencies: [
     'lib',
@@ -56,9 +56,13 @@ final subpackageRules = {
   'lib/src/base': new SubpackageRules(allowedDependencies: [
     'lib',
     'lib/src',
+    'lib/src/byte_store',
     'lib/src/fasta',
-    'lib/src/incremental'
+    'lib/src/fasta/util',
   ]),
+  // Note: byte_store should never depend on other parts of front_end, since we
+  // may want to move it to its own package someday.
+  'lib/src/byte_store': new SubpackageRules(allowedDependencies: []),
   'lib/src/codegen': new SubpackageRules(),
   'lib/src/fasta': new SubpackageRules(allowedDependencies: [
     'lib',
@@ -139,6 +143,7 @@ final subpackageRules = {
     'lib',
     'lib/src',
     'lib/src/base',
+    'lib/src/byte_store',
     'lib/src/fasta',
     'lib/src/fasta/dill',
     'lib/src/fasta/kernel',

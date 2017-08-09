@@ -1855,12 +1855,9 @@ static void CheckStringInvalid(Dart_Handle dart_string) {
 }
 
 VM_UNIT_TEST_CASE(DartGeneratedMessages) {
-  static const char* kCustomIsolateScriptChars =
+  static const char* kCustomIsolateScriptCommonChars =
       "getSmi() {\n"
       "  return 42;\n"
-      "}\n"
-      "getBigint() {\n"
-      "  return -0x424242424242424242424242424242424242;\n"
       "}\n"
       "getAsciiString() {\n"
       "  return \"Hello, world!\";\n"
@@ -1886,20 +1883,33 @@ VM_UNIT_TEST_CASE(DartGeneratedMessages) {
       "getList() {\n"
       "  return new List(kArrayLength);\n"
       "}\n";
+  static const char* kCustomIsolateScriptBigintChars =
+      "getBigint() {\n"
+      "  return -0x424242424242424242424242424242424242;\n"
+      "}\n";
 
   TestCase::CreateTestIsolate();
   Isolate* isolate = Isolate::Current();
   EXPECT(isolate != NULL);
   Dart_EnterScope();
 
-  Dart_Handle lib = TestCase::LoadTestScript(kCustomIsolateScriptChars, NULL);
+  const char* scriptChars = kCustomIsolateScriptCommonChars;
+  if (!Bigint::IsDisabled()) {
+    scriptChars = OS::SCreate(Thread::Current()->zone(), "%s%s", scriptChars,
+                              kCustomIsolateScriptBigintChars);
+  }
+
+  Dart_Handle lib = TestCase::LoadTestScript(scriptChars, NULL);
   EXPECT_VALID(lib);
   Dart_Handle smi_result;
   smi_result = Dart_Invoke(lib, NewString("getSmi"), 0, NULL);
   EXPECT_VALID(smi_result);
-  Dart_Handle bigint_result;
-  bigint_result = Dart_Invoke(lib, NewString("getBigint"), 0, NULL);
-  EXPECT_VALID(bigint_result);
+
+  Dart_Handle bigint_result = NULL;
+  if (!Bigint::IsDisabled()) {
+    bigint_result = Dart_Invoke(lib, NewString("getBigint"), 0, NULL);
+    EXPECT_VALID(bigint_result);
+  }
 
   Dart_Handle ascii_string_result;
   ascii_string_result = Dart_Invoke(lib, NewString("getAsciiString"), 0, NULL);
@@ -1965,7 +1975,7 @@ VM_UNIT_TEST_CASE(DartGeneratedMessages) {
       EXPECT_EQ(42, root->value.as_int32);
       CheckEncodeDecodeMessage(root);
     }
-    {
+    if (!Bigint::IsDisabled()) {
       StackZone zone(thread);
       Bigint& bigint = Bigint::Handle();
       bigint ^= Api::UnwrapHandle(bigint_result);
@@ -2333,7 +2343,7 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
 
 VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   const int kArrayLength = 10;
-  static const char* kScriptChars =
+  static const char* kScriptCommonChars =
       "import 'dart:typed_data';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
@@ -2346,12 +2356,6 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       "  var mint = 0x7FFFFFFFFFFFFFFF;\n"
       "  var list = new List(kArrayLength);\n"
       "  for (var i = 0; i < kArrayLength; i++) list[i] = mint;\n"
-      "  return list;\n"
-      "}\n"
-      "getBigintList() {\n"
-      "  var bigint = 0x1234567890123456789012345678901234567890;\n"
-      "  var list = new List(kArrayLength);\n"
-      "  for (var i = 0; i < kArrayLength; i++) list[i] = bigint;\n"
       "  return list;\n"
       "}\n"
       "getDoubleList() {\n"
@@ -2389,13 +2393,26 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       "  }\n"
       "  return list;\n"
       "}\n";
+  static const char* kScriptBigintChars =
+      "getBigintList() {\n"
+      "  var bigint = 0x1234567890123456789012345678901234567890;\n"
+      "  var list = new List(kArrayLength);\n"
+      "  for (var i = 0; i < kArrayLength; i++) list[i] = bigint;\n"
+      "  return list;\n"
+      "}\n";
 
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
   EXPECT(thread->isolate() != NULL);
   Dart_EnterScope();
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  const char* scriptChars = kScriptCommonChars;
+  if (!Bigint::IsDisabled()) {
+    scriptChars =
+        OS::SCreate(thread->zone(), "%s%s", scriptChars, kScriptBigintChars);
+  }
+
+  Dart_Handle lib = TestCase::LoadTestScript(scriptChars, NULL);
   EXPECT_VALID(lib);
 
   {
@@ -2433,7 +2450,7 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
         EXPECT_EQ(DART_INT64_C(0x7FFFFFFFFFFFFFFF), element->value.as_int64);
       }
     }
-    {
+    if (!Bigint::IsDisabled()) {
       // Generate a list of bigints from Dart code.
       uint8_t* buf = GetSerialized(lib, "getBigintList", &buf_len);
       ApiNativeScope scope;
@@ -2552,7 +2569,7 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
 
 VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   const int kArrayLength = 10;
-  static const char* kScriptChars =
+  static const char* kScriptCommonChars =
       "import 'dart:typed_data';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
@@ -2564,12 +2581,6 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       "  var mint = 0x7FFFFFFFFFFFFFFF;\n"
       "  var list = [mint, mint, mint, mint, mint,\n"
       "              mint, mint, mint, mint, mint];\n"
-      "  return list;\n"
-      "}\n"
-      "getBigintList() {\n"
-      "  var bigint = 0x1234567890123456789012345678901234567890;\n"
-      "  var list = [bigint, bigint, bigint, bigint, bigint,\n"
-      "              bigint, bigint, bigint, bigint, bigint];\n"
       "  return list;\n"
       "}\n"
       "getDoubleList() {\n"
@@ -2614,13 +2625,25 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       "  }\n"
       "  return list;\n"
       "}\n";
+  static const char* kScriptBigintChars =
+      "getBigintList() {\n"
+      "  var bigint = 0x1234567890123456789012345678901234567890;\n"
+      "  var list = [bigint, bigint, bigint, bigint, bigint,\n"
+      "              bigint, bigint, bigint, bigint, bigint];\n"
+      "  return list;\n"
+      "}\n";
 
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
   EXPECT(thread->isolate() != NULL);
   Dart_EnterScope();
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  const char* scriptChars = kScriptCommonChars;
+  if (!Bigint::IsDisabled()) {
+    scriptChars =
+        OS::SCreate(thread->zone(), "%s%s", scriptChars, kScriptBigintChars);
+  }
+  Dart_Handle lib = TestCase::LoadTestScript(scriptChars, NULL);
   EXPECT_VALID(lib);
 
   {
@@ -2658,7 +2681,7 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
         EXPECT_EQ(DART_INT64_C(0x7FFFFFFFFFFFFFFF), element->value.as_int64);
       }
     }
-    {
+    if (!Bigint::IsDisabled()) {
       // Generate a list of bigints from Dart code.
       uint8_t* buf = GetSerialized(lib, "getBigintList", &buf_len);
       ApiNativeScope scope;

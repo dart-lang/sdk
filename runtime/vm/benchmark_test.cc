@@ -496,6 +496,7 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
   TestCase::LoadCoreTestScript(kScriptChars, NULL);
   Api::CheckAndFinalizePendingClasses(thread);
 
+  TransitionNativeToVM transition(thread);
   // Write snapshot with object content.
   FullSnapshotWriter writer(Snapshot::kFull, &vm_snapshot_data_buffer,
                             &isolate_snapshot_data_buffer, &malloc_allocator,
@@ -533,6 +534,7 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
   TestCase::LoadCoreTestScript(kScriptChars, NULL);
   Api::CheckAndFinalizePendingClasses(thread);
 
+  TransitionNativeToVM transition(thread);
   // Write snapshot with object content.
   FullSnapshotWriter writer(Snapshot::kFull, &vm_snapshot_data_buffer,
                             &isolate_snapshot_data_buffer, &malloc_allocator,

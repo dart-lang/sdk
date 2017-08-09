@@ -605,6 +605,7 @@ class BatchRunnerProcess {
   String _status;
   DateTime _startTime;
   Timer _timer;
+  int _testCount = 0;
 
   Future<CommandOutput> runCommand(String runnerType, ProcessCommand command,
       int timeout, List<String> arguments) {
@@ -620,12 +621,17 @@ class BatchRunnerProcess {
     _arguments = arguments;
     _processEnvironmentOverrides = command.environmentOverrides;
 
+    // TOOD(jmesserly): this restarts `dartdevc --batch` to work around a
+    // memory leak, see https://github.com/dart-lang/sdk/issues/30314.
+    var clearMemoryLeak = command is CompilationCommand &&
+        command.displayName == 'dartdevc' &&
+        ++_testCount % 100 == 0;
     if (_process == null) {
       // Start process if not yet started.
       _startProcess(() {
         doStartTest(command, timeout);
       });
-    } else if (!sameRunnerType) {
+    } else if (!sameRunnerType || clearMemoryLeak) {
       // Restart this runner with the right executable for this test if needed.
       _processExitHandler = (_) {
         _startProcess(() {
@@ -1162,6 +1168,11 @@ class CommandExecutorImpl implements CommandExecutor {
       return _getBatchRunner("dart2js")
           .runCommand("dart2js", command, timeout, command.arguments);
     } else if (command is AnalysisCommand && globalConfiguration.batch) {
+      return _getBatchRunner(command.displayName)
+          .runCommand(command.displayName, command, timeout, command.arguments);
+    } else if (command is CompilationCommand &&
+        command.displayName == 'dartdevc' &&
+        globalConfiguration.batch) {
       return _getBatchRunner(command.displayName)
           .runCommand(command.displayName, command, timeout, command.arguments);
     } else if (command is ScriptCommand) {

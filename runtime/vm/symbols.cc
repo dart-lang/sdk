@@ -336,6 +336,10 @@ RawArray* Symbols::UnifiedSymbolTable() {
   }
   table.Release();
 
+  const double kMinLoad = 0.90;
+  const double kMaxLoad = 0.90;
+  HashTables::EnsureLoadFactor(kMinLoad, kMaxLoad, unified_table);
+
   return unified_table.Release().raw();
 }
 
@@ -365,8 +369,12 @@ void Symbols::Compact(Isolate* isolate) {
     Zone* zone_;
   };
 
-  SymbolCollector visitor(Thread::Current(), &symbols);
-  isolate->heap()->IterateObjects(&visitor);
+  {
+    Thread* thread = Thread::Current();
+    HeapIterationScope iteration(thread);
+    SymbolCollector visitor(thread, &symbols);
+    iteration.IterateObjects(&visitor);
+  }
 
   // 3. Build a new table from the surviving symbols.
   Array& array = Array::Handle(

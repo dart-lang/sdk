@@ -10,13 +10,10 @@
 
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
-
 import 'package:migration/src/fork.dart';
 import 'package:migration/src/io.dart';
 import 'package:migration/src/log.dart';
 import 'package:migration/src/migrate_statuses.dart';
-import 'package:migration/src/test_directories.dart';
 
 const simpleDirs = const ["corelib", "language", "lib"];
 
@@ -32,8 +29,7 @@ void main(List<String> arguments) {
     stderr.writeln();
     stderr.writeln("Example:");
     stderr.writeln();
-    stderr.writeln(
-        "    \$ dart migrate_batch.dart corelib/map_to_string corelib/queue");
+    stderr.writeln("    \$ dart migrate_batch.dart map_to_string queue");
     exit(1);
   }
 
@@ -71,7 +67,7 @@ void main(List<String> arguments) {
     }
   }
 
-  migrateStatusEntries(tests);
+  migrateStatusEntries(tests, allTodos);
 
   // Tell the user what's left to do.
   print("");
@@ -94,58 +90,4 @@ void main(List<String> arguments) {
     print("- ${bold(todoTest)}:");
     allTodos[todoTest].forEach(todo);
   }
-}
-
-int findFork(List<Fork> forks, String description) {
-  var matches = <int>[];
-
-  for (var i = 0; i < forks.length; i++) {
-    if (forks[i].twoPath.contains(description)) matches.add(i);
-  }
-
-  if (matches.isEmpty) {
-    print('Could not find a test matching "${bold(description)}".');
-    return null;
-  } else if (matches.length == 1) {
-    return matches.first;
-  } else {
-    print('Description "${bold(description)}" is ambiguous. Could be any of:');
-    for (var i in matches) {
-      print("- ${forks[i].twoPath.replaceAll(description, bold(description))}");
-    }
-
-    print("Please use a more precise description.");
-    return null;
-  }
-}
-
-/// Loads all of the unforked test files.
-///
-/// Creates an list of [Fork]s, ordered by their destination paths. Handles
-/// tests that only appear in one fork or the other, or both.
-List<Fork> scanTests() {
-  var tests = <String, Fork>{};
-
-  for (var fromDir in fromRootDirs) {
-    var twoDir = toTwoDirectory(fromDir);
-    for (var path in listFiles(fromDir)) {
-      var fromPath = p.relative(path, from: testRoot);
-      var twoPath = p.join(twoDir, p.relative(fromPath, from: fromDir));
-
-      tests.putIfAbsent(twoPath, () => new Fork(twoPath));
-    }
-  }
-
-  // Include tests that have already been migrated too so we can show what
-  // works remains to be done in them.
-  for (var dir in twoRootDirs) {
-    for (var path in listFiles(dir)) {
-      var twoPath = p.relative(path, from: testRoot);
-      tests.putIfAbsent(twoPath, () => new Fork(twoPath));
-    }
-  }
-
-  var sorted = tests.values.toList();
-  sorted.sort((a, b) => a.twoPath.compareTo(b.twoPath));
-  return sorted;
 }

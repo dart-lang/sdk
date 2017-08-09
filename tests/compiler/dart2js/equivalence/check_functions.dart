@@ -98,8 +98,8 @@ void checkNativeData(NativeDataImpl data1, NativeDataImpl data2,
       data1,
       data2,
       'jsInteropLibraryNames',
-      data1.jsInteropLibraryNames,
-      data2.jsInteropLibraryNames,
+      data1.jsInteropLibraries,
+      data2.jsInteropLibraries,
       strategy.elementEquivalence,
       equality);
 
@@ -115,8 +115,8 @@ void checkNativeData(NativeDataImpl data1, NativeDataImpl data2,
       data1,
       data2,
       'jsInteropClassNames',
-      data1.jsInteropClassNames,
-      data2.jsInteropClassNames,
+      data1.jsInteropClasses,
+      data2.jsInteropClasses,
       strategy.elementEquivalence,
       equality);
 
@@ -124,8 +124,8 @@ void checkNativeData(NativeDataImpl data1, NativeDataImpl data2,
       data1,
       data2,
       'jsInteropMemberNames',
-      data1.jsInteropMemberNames,
-      data2.jsInteropMemberNames,
+      data1.jsInteropMembers,
+      data2.jsInteropMembers,
       strategy.elementEquivalence,
       equality);
 }
@@ -386,11 +386,16 @@ void checkNativeBasicData(NativeBasicDataImpl data1, NativeBasicDataImpl data2,
       data1,
       data2,
       'jsInteropLibraries',
-      data1.jsInteropLibraries,
-      data2.jsInteropLibraries,
+      data1.jsInteropLibraries.keys,
+      data2.jsInteropLibraries.keys,
       strategy.elementEquivalence);
-  checkSetEquivalence(data1, data2, 'jsInteropClasses', data1.jsInteropClasses,
-      data2.jsInteropClasses, strategy.elementEquivalence);
+  checkSetEquivalence(
+      data1,
+      data2,
+      'jsInteropClasses',
+      data1.jsInteropClasses.keys,
+      data2.jsInteropClasses.keys,
+      strategy.elementEquivalence);
 }
 
 void checkBackendUsage(

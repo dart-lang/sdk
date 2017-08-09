@@ -482,56 +482,44 @@ final _ignoreTypeFailure = JS('', '''(() => {
   });
 })()''');
 
-/// Returns true if [obj] is an instance of [type]
-/// Returns true if [obj] is a JS function and [type] is a function type
-/// Returns false if [obj] is not an instance of [type] in both spec
-///  and strong mode
-/// Returns null if [obj] is not an instance of [type] in strong mode
-///  but might be in spec mode
+/// Returns true if [obj] is an instance of [type] in strong mode, otherwise
+/// false.
+///
+/// This also allows arbitrary JS function objects to be subtypes of every Dart
+/// function types.
 bool strongInstanceOf(obj, type, ignoreFromWhiteList) => JS('', '''(() => {
   let actual = $getReifiedType($obj);
   let result = $isSubtype(actual, $type);
-  if (result || (actual == $int && $isSubtype($double, $type))) return true;
-  if (actual == $jsobject && $_isFunctionType(type) &&
-      typeof(obj) === 'function') {
+  if (result ||
+      (actual == $int && $isSubtype($double, $type)) ||
+      (actual == $jsobject && $_isFunctionType(type) &&
+          typeof(obj) === 'function')) {
     return true;
   }
-  if (result === false) return false;
-  if (!dart.__ignoreWhitelistedErrors ||
-      ($ignoreFromWhiteList == void 0)) {
-    return result;
+  if (result === null &&
+      dart.__ignoreWhitelistedErrors &&
+      $ignoreFromWhiteList &&
+      $_ignoreTypeFailure(actual, $type)) {
+    return true;
   }
-  if ($_ignoreTypeFailure(actual, $type)) return true;
-  return result;
+  return false;
 })()''');
 
 /// Returns true if [obj] is null or an instance of [type]
 /// Returns false if [obj] is non-null and not an instance of [type]
 /// in strong mode
-instanceOfOrNull(obj, type) => JS('', '''(() => {
+bool instanceOfOrNull(obj, type) {
   // If strongInstanceOf returns null, convert to false here.
-  if (($obj == null) || $strongInstanceOf($obj, $type, true)) return true;
-  return false;
-})()''');
+  return obj == null || JS('bool', '#', strongInstanceOf(obj, type, true));
+}
 
 @JSExportName('is')
-bool instanceOf(obj, type) => JS('', '''(() => {
-  if ($obj == null) {
-    return $type == $Null || $_isTop($type);
+bool instanceOf(obj, type) {
+  if (obj == null) {
+    return JS('bool', '# == # || #', type, Null, _isTop(type));
   }
-  let result = $strongInstanceOf($obj, $type);
-  if (result !== null) return result;
-  if (!dart.__failForWeakModeIsChecks) return false;
-  let actual = $getReifiedType($obj);
-  let message = 'Strong mode is-check failure: ' +
-      $typeName(actual) + ' does not soundly subtype ' +
-      $typeName($type);
-  if (!dart.__ignoreAllErrors) {
-    $throwStrongModeError(message);
-  }
-  console.error(message);
-  return true; // Match Dart 1.0 Semantics when ignoring errors.
-})()''');
+  return strongInstanceOf(obj, type, false);
+}
 
 @JSExportName('as')
 cast(obj, type) {
@@ -688,20 +676,12 @@ map(values, [K, V]) => JS('', '''(() => {
   return map;
 })()''');
 
-@JSExportName('assert')
-assert_(condition, message()) {
-  if (JS('bool', '# !== true', condition)) {
-    if (condition == null) _throwBooleanConversionError();
-    throwAssertionError(message);
-  }
-}
-
-dassert(value, message()) {
+bool dassert(value) {
   if (JS('bool', '# != null && #[#] instanceof #', value, value, _runtimeType,
       AbstractFunctionType)) {
     value = JS('', '#(#)', dcall, value);
   }
-  return assert_(dtest(value), message);
+  return dtest(value);
 }
 
 /// Store a JS error for an exception.  For non-primitives, we store as an

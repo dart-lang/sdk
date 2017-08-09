@@ -36,7 +36,7 @@ class TestScriptLoader implements ScriptLoader {
 /// than just string source files.
 main() {
   asyncTest(() async {
-    String filename = 'tests/corelib/list_literal_test.dart';
+    String filename = 'tests/corelib_2/list_literal_test.dart';
     Uri uri = Uri.base.resolve(filename);
     DiagnosticCollector diagnostics = new DiagnosticCollector();
     OutputCollector output = new OutputCollector();
@@ -45,15 +45,16 @@ main() {
     String buildDir = Platform.isMacOS ? 'xcodebuild' : 'out';
     String configuration =
         Platform.environment['DART_CONFIGURATION'] ?? 'ReleaseX64';
-    var platform = Platform.script.resolve(
-        '../../../$buildDir/$configuration/patched_dart2js_sdk/platform.dill');
+    String sdkPath = '$buildDir/$configuration/patched_dart2js_sdk/';
+    var platform = Uri.base.resolve('$sdkPath/platform.dill');
     var options = new CompilerOptions()
       ..target = new Dart2jsTarget(new TargetFlags())
-      ..packagesFileUri = Platform.script.resolve('../../../.packages')
+      ..packagesFileUri = Uri.base.resolve('.packages')
       ..compileSdk = true
       ..linkedDependencies = [platform]
       ..setExitCodeOnProblem = true
-      ..verify = true;
+      ..verify = true
+      ..sdkRoot = Uri.parse(sdkPath);
 
     List<int> kernelBinary =
         serializeProgram(await kernelForProgram(uri, options));

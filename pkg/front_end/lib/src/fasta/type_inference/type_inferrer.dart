@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:front_end/src/base/instrumentation.dart';
-import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/names.dart' show callName;
+import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
@@ -203,6 +203,9 @@ abstract class TypeInferrer {
   /// this method body or initializer.
   TypePromoter get typePromoter;
 
+  /// Gets the [TypeSchemaEnvironment] being used for type inference.
+  TypeSchemaEnvironment get typeSchemaEnvironment;
+
   /// The URI of the code for which type inference is currently being
   /// performed--this is used for testing.
   String get uri;
@@ -232,6 +235,11 @@ abstract class TypeInferrer {
 class TypeInferrerDisabled extends TypeInferrer {
   @override
   final typePromoter = new TypePromoterDisabled();
+
+  @override
+  final TypeSchemaEnvironment typeSchemaEnvironment;
+
+  TypeInferrerDisabled(this.typeSchemaEnvironment);
 
   @override
   String get uri => null;

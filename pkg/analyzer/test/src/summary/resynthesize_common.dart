@@ -2454,6 +2454,21 @@ final dynamic f;
     }
   }
 
+  test_const_finalField_hasConstConstructor() async {
+    var library = await checkLibrary(r'''
+class C {
+  final int f = 42;
+  const C();
+}
+''');
+    checkElementText(library, r'''
+class C {
+  final int f = 42;
+  const C();
+}
+''');
+  }
+
   test_const_invalid_field_const() async {
     variablesWithNotConstInitializers.add('f');
     var library = await checkLibrary(r'''
@@ -5225,18 +5240,22 @@ enum E {
     var library = await checkLibrary('''
 enum E {
   /**
-   * Docs
+   * aaa
    */
-  v
+  a,
+  /// bbb
+  b
 }''');
     checkElementText(library, r'''
 enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   /**
-   * Docs
+   * aaa
    */
-  static const E v;
+  static const E a;
+  /// bbb
+  static const E b;
 }
 ''');
   }
@@ -5993,7 +6012,6 @@ void f() {}
   }
 
   test_function_type_parameter() async {
-    prepareAnalysisContext(createOptions());
     var library = await checkLibrary('T f<T, U>(U u) => null;');
     checkElementText(library, r'''
 T f<T, U>(U u) {}
@@ -6001,7 +6019,6 @@ T f<T, U>(U u) {}
   }
 
   test_function_type_parameter_with_function_typed_parameter() async {
-    prepareAnalysisContext(createOptions());
     var library = await checkLibrary('void f<T, U>(T x(U u)) {}');
     checkElementText(library, r'''
 void f<T, U>(T x(U u)) {}
@@ -6111,7 +6128,6 @@ dynamic f() {}
   }
 
   test_generic_gClass_gMethodStatic() async {
-    prepareAnalysisContext(createOptions());
     var library = await checkLibrary('''
 class C<T, U> {
   static void m<V, W>(V v, W w) {
@@ -6756,12 +6772,24 @@ class C extends D {
 }
 ''');
     if (isStrongMode) {
-      checkElementText(library, r'''
+      if (isSharedFrontEnd) {
+        // Front-end copies FunctionType instances, which means that if it has
+        // parameter names in superclass, then we have names also in the
+        // subclass.
+        checkElementText(library, r'''
+import 'a.dart';
+class C extends D {
+  void f(int x, int g(String s)) {}
+}
+''');
+      } else {
+        checkElementText(library, r'''
 import 'a.dart';
 class C extends D {
   void f(int x, (String) → int g) {}
 }
 ''');
+      }
     } else {
       checkElementText(library, r'''
 import 'a.dart';
@@ -8213,7 +8241,6 @@ abstract class D {
   }
 
   test_method_type_parameter() async {
-    prepareAnalysisContext(createOptions());
     var library = await checkLibrary('class C { T f<T, U>(U u) => null; }');
     checkElementText(library, r'''
 class C {
@@ -8223,7 +8250,6 @@ class C {
   }
 
   test_method_type_parameter_in_generic_class() async {
-    prepareAnalysisContext(createOptions());
     var library = await checkLibrary('''
 class C<T, U> {
   V f<V, W>(T t, U u, W w) => null;
@@ -8237,7 +8263,6 @@ class C<T, U> {
   }
 
   test_method_type_parameter_with_function_typed_parameter() async {
-    prepareAnalysisContext(createOptions());
     var library = await checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
     checkElementText(library, r'''
 class C {
@@ -8539,7 +8564,6 @@ const dynamic checked = null;
   }
 
   test_parameter_covariant() async {
-    prepareAnalysisContext(createOptions());
     var library = await checkLibrary('class C { void m(covariant C c) {} }');
     checkElementText(library, r'''
 class C {
@@ -9206,7 +9230,7 @@ E e;
   }
 
   test_type_reference_to_import() async {
-    addLibrarySource('/a.dart', 'class C {} enum E { v }; typedef F();');
+    addLibrarySource('/a.dart', 'class C {} enum E { v } typedef F();');
     var library = await checkLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 import 'a.dart';
@@ -9432,6 +9456,13 @@ typedef dynamic F<T>(T t);
     var library = await checkLibrary('typedef F(x, y);');
     checkElementText(library, r'''
 typedef dynamic F(dynamic x, dynamic y);
+''');
+  }
+
+  test_typedef_parameters_named() async {
+    var library = await checkLibrary('typedef F({y, z, x});');
+    checkElementText(library, r'''
+typedef dynamic F({dynamic y}, {dynamic z}, {dynamic x});
 ''');
   }
 

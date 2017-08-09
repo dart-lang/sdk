@@ -27,23 +27,56 @@ class AnalysisGetImportedElementsIntegrationTest
   /**
    * Dart code under test.
    */
-  final String text = r'''
-main() {}
-''';
+  String text;
 
   /**
    * Check that an analysis.getImportedElements request on the region starting
    * with the first character that matches [target] and having the given
    * [length] matches the given list of [expected] imported elements.
    */
-  checkElements(
-      String target, int length, List<ImportedElements> expected) async {
+  checkElements(String target, List<ImportedElements> expected) async {
+    bool equals(
+        ImportedElements actualElements, ImportedElements expectedElements) {
+      // We can't test the path because the paths are relative to a generated
+      // temporary directory.
+      if (actualElements.prefix == expectedElements.prefix) {
+        List<String> actual = actualElements.elements;
+        List<String> expected = expectedElements.elements;
+        if (actual.length == expected.length) {
+          for (int i = 0; i < actual.length; i++) {
+            if (!expected.contains(actual[i])) {
+              return false;
+            }
+          }
+          return true;
+        }
+      }
+      return false;
+    }
+
+    int find(List<ImportedElements> actual, ImportedElements expectedElements) {
+      for (int i = 0; i < actual.length; i++) {
+        ImportedElements actualElements = actual[i];
+        if (equals(actualElements, expectedElements)) {
+          return i;
+        }
+      }
+      return -1;
+    }
+
     int offset = text.indexOf(target);
     AnalysisGetImportedElementsResult result =
-        await sendAnalysisGetImportedElements(pathname, offset, length);
+        await sendAnalysisGetImportedElements(pathname, offset, target.length);
 
-    expect(result.elements, hasLength(expected.length));
-    // TODO(brianwilkerson) Finish implementing this.
+    List<ImportedElements> actual = result.elements;
+    expect(actual, hasLength(expected.length));
+    for (ImportedElements elements in expected) {
+      int index = find(actual, elements);
+      if (index < 0) {
+        fail('Expected $elements; not found');
+      }
+      actual.removeAt(index);
+    }
   }
 
   /**
@@ -64,13 +97,34 @@ main() {}
     });
   }
 
-  test_getImportedElements() async {
+  test_getImportedElements_none() async {
+    text = r'''
+main() {}
+''';
     writeFile(pathname, text);
     standardAnalysisSetup();
     await analysisFinished;
 
     List<Future> tests = [];
     tests.add(checkNoElements('main() {}'));
+    return Future.wait(tests);
+  }
+
+  test_getImportedElements_some() async {
+    text = r'''
+main() {
+  String s = '';
+  print(s);
+}
+''';
+    writeFile(pathname, text);
+    standardAnalysisSetup();
+    await analysisFinished;
+
+    List<Future> tests = [];
+    tests.add(checkElements(text, [
+      new ImportedElements('', '', ['String', 'print'])
+    ]));
     return Future.wait(tests);
   }
 }

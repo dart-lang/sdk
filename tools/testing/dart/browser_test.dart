@@ -84,15 +84,11 @@ window.ddcSettings = {
 <script type="text/javascript">
 requirejs(["$testName", "dart_sdk", "async_helper"],
     function($testName, dart_sdk, async_helper) {  
-  function finish() {
-    // dev_compiler's test runner (language_test.js) uses this to notify the
-    // test results, but it isn't needed for test.dart.
-  }
+  dart_sdk.dart.ignoreWhitelistedErrors(false);
   
   // TODO(rnystrom): This uses DDC's forked version of async_helper. Unfork
   // these packages when possible.
-  async_helper.async_helper.asyncTestInitialize(finish);
-  
+  async_helper.async_helper.asyncTestInitialize(function() {});
   dart_sdk._isolate_helper.startRootIsolate(function() {}, []);
   dartMainRunner($testName.$testName.main);
 });

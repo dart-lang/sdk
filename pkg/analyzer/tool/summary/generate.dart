@@ -435,8 +435,8 @@ class _CodeGenerator {
     out();
     out("import 'dart:convert' as convert;");
     out();
-    out("import 'package:front_end/src/base/api_signature.dart' as api_sig;");
-    out("import 'package:front_end/src/base/flat_buffers.dart' as fb;");
+    out("import 'package:analyzer/src/summary/api_signature.dart' as api_sig;");
+    out("import 'package:analyzer/src/summary/flat_buffers.dart' as fb;");
     out();
     out("import 'idl.dart' as idl;");
     out();

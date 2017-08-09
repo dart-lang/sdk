@@ -11,8 +11,6 @@ import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/kernel.dart' hide Source;
-import 'package:kernel/target/targets.dart';
-import 'package:kernel/target/vm_fasta.dart';
 import 'package:meta/meta.dart';
 
 /// Implementation of [IncrementalKernelGenerator].
@@ -35,7 +33,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// The function to notify when files become used or unused, or `null`.
   final WatchUsedFilesFn _watchFn;
 
-  /// TODO(scheglov) document
+  /// The [KernelDriver] that is used to compute kernels.
   KernelDriver _driver;
 
   /// Latest compilation signatures produced by [computeDelta] for libraries.
@@ -44,8 +42,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// The object that provides additional information for tests.
   _TestView _testView;
 
-  IncrementalKernelGeneratorImpl(
-      ProcessedOptions options, UriTranslator uriTranslator, this._entryPoint,
+  IncrementalKernelGeneratorImpl(ProcessedOptions options,
+      UriTranslator uriTranslator, List<int> sdkOutlineBytes, this._entryPoint,
       {WatchUsedFilesFn watch})
       : _logger = options.logger,
         _watchFn = watch {
@@ -58,13 +56,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       return new Future.value();
     }
 
-    _driver = new KernelDriver(
-        _logger,
-        options.fileSystem,
-        options.byteStore,
-        uriTranslator,
-        new VmFastaTarget(new TargetFlags(strongMode: options.strongMode)),
-        fileAddedFn: onFileAdded);
+    _driver = new KernelDriver(options, uriTranslator,
+        sdkOutlineBytes: sdkOutlineBytes, fileAddedFn: onFileAdded);
   }
 
   /// Return the object that provides additional information for tests.

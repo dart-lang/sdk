@@ -6,8 +6,7 @@ var pathToModule = function(path) {
 };
 
 var testsToSkip = [
-  // syntax error in DDC's generated code:
-  '/base/gen/codegen_output/language/assert_message_test.js',
+  // syntax error in DDC's generated code (related to break/continue labels):
   '/base/gen/codegen_output/language/execute_finally6_test.js',
   '/base/gen/codegen_output/language/switch_label2_test.js',
   '/base/gen/codegen_output/language/infinite_switch_label_test.js',
@@ -15,18 +14,14 @@ var testsToSkip = [
   '/base/gen/codegen_output/language/nested_switch_label_test.js',
   '/base/gen/codegen_output/language/switch_try_catch_test.js',
 
-  // module code execution error in DDC's generated code:
+  // module code execution error in DDC's generated code
+  // (types are initialized incorrectly):
   '/base/gen/codegen_output/language/f_bounded_quantification3_test.js',
   '/base/gen/codegen_output/language/regress_16640_test.js',
-  '/base/gen/codegen_output/language/regress_22666_test.js',
-  '/base/gen/codegen_output/language/cyclic_type_test_00_multi.js',
-  '/base/gen/codegen_output/language/cyclic_type_test_01_multi.js',
   '/base/gen/codegen_output/language/cyclic_type_test_02_multi.js',
   '/base/gen/codegen_output/language/cyclic_type_test_03_multi.js',
   '/base/gen/codegen_output/language/cyclic_type_test_04_multi.js',
-  '/base/gen/codegen_output/language/cyclic_type_test_none_multi.js',
   '/base/gen/codegen_output/language/cyclic_type2_test.js',
-  '/base/gen/codegen_output/language/mixin_regress_13688_test.js',
   '/base/gen/codegen_output/language/least_upper_bound_expansive_test_none_multi.js'
 ];
 
@@ -59,6 +54,7 @@ require.config({
     stack_trace: 'gen/codegen_output/pkg/stack_trace',
     unittest: 'gen/codegen_output/pkg/unittest',
     is: 'node_modules/is_js/is',
+    test_status: 'gen/codegen_output/test_status'
   },
 
   // Require all test files before starting tests.

@@ -12,7 +12,7 @@ import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/resolve_relative_uri.dart';
 import 'package:front_end/src/dependency_walker.dart' as graph;
 import 'package:front_end/src/fasta/uri_translator.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/incremental/format.dart';
 import 'package:front_end/src/incremental/unlinked_unit.dart';
 import 'package:kernel/target/vm.dart';
@@ -281,6 +281,10 @@ class FileSystemState {
   /// contain `file:*` URIs as keys.
   final Map<Uri, FileState> _fileUriToFile = {};
 
+  /// The set of absolute URIs with the `dart` scheme that should be skipped.
+  /// We do this when we use SDK outline instead of compiling SDK sources.
+  final Set<Uri> skipSdkLibraries = new Set<Uri>();
+
   FileSystemState(this._byteStore, this.fileSystem, this.uriTranslator,
       this._salt, this._newFileFn);
 
@@ -333,6 +337,11 @@ class FileSystemState {
   ///
   /// The returned file has the last known state since it was last refreshed.
   Future<FileState> getFile(Uri absoluteUri) async {
+    // We don't need to process SDK libraries if we have SDK outline.
+    if (skipSdkLibraries.contains(absoluteUri)) {
+      return null;
+    }
+
     // Resolve the absolute URI into the absolute file URI.
     Uri fileUri;
     if (absoluteUri.isScheme('file')) {

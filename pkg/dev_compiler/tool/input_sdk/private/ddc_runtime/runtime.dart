@@ -123,11 +123,8 @@ final global_ = JS(
             settings.ignoreWhitelistedErrors : true);
 
     $ignoreAllErrors(
-        'ignoreAllErrors' in settings ?settings.ignoreAllErrors : false);
+        'ignoreAllErrors' in settings ? settings.ignoreAllErrors : false);
 
-    $failForWeakModeIsChecks(
-        'failForWeakModeIsChecks' in settings ?
-            settings.failForWeakModeIsChecks : true);
     $trackProfile(
         'trackProfile' in settings ? settings.trackProfile : false);
 

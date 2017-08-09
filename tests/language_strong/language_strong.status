@@ -21,22 +21,7 @@ bad_named_parameters_test: Skip
 bad_override_test: Skip
 black_listed_test: Skip
 body_less_constructor_wrong_arg_negative_test: Skip
-bool_check_test: Skip
-bound_closure_equality_test: Skip
-bound_closure_primitives_test: Skip
-built_in_identifier_illegal_test: Skip
-built_in_identifier_prefix_test: Skip
-call_constructor_on_unresolvable_class_test: Skip
-call_non_method_field_test: Skip
-call_nonexistent_constructor_test: Skip
-call_nonexistent_static_test: Skip
-call_test: Skip
-call_through_getter_test: Skip
-call_type_literal_test: Skip
 callable_test: Skip
-canonical_const3_test: Skip
-cascade_test: Skip
-cast_test: Skip
 check_member_static_test: Skip
 check_method_override_test: Skip
 checked_null_test: Skip
@@ -138,14 +123,7 @@ default_factory_test: Skip
 deferred_constraints_constants_test: Skip
 deferred_constraints_constants_test_default: Skip
 deferred_constraints_constants_test: Skip
-deferred_constraints_type_annotation_test_as: Skip
-deferred_constraints_type_annotation_test_catch: Skip
-deferred_constraints_type_annotation_test_is: Skip
-deferred_constraints_type_annotation_test_new_before: Skip
-deferred_constraints_type_annotation_test_new: Skip
-deferred_constraints_type_annotation_test_type: Skip
-deferred_constraints_type_annotation_test_type_annotation: Skip
-deferred_constraints_type_annotation_test_type_annotation_top: Skip
+deferred_constraints_type_annotation_test: Skip
 deferred_duplicate_prefix1_test: Skip
 deferred_duplicate_prefix2_test: Skip
 deferred_duplicate_prefix3_test: Skip
@@ -702,6 +680,20 @@ try_catch4_test: StaticWarning # Issue 28823
 try_catch5_test: StaticWarning # Issue 28823
 
 [ $compiler == dartdevc ]
+regress_23089_test: CompileTimeError # Issue 29920
+constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
+generic_methods_closure_test: CompileTimeError # Issue 29920
+generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
+generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
+generic_methods_shadowing_test: CompileTimeError # Issue 29920
+generic_methods_simple_is_expression_test: CompileTimeError # Issue 29920
+reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
+export_private_test/01: MissingCompileTimeError # Issue 29920
+generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29920
+import_private_test/01: MissingCompileTimeError # Issue 29920
+internal_library_test/01: MissingCompileTimeError # Issue 29920
+
+[ $compiler == dartdevc && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920
 async_star_test/01: RuntimeError # Issue 28969
 async_star_test/02: RuntimeError # Issue 28969
@@ -716,19 +708,16 @@ bit_operations_test/02: RuntimeError # No bigints on web.
 bit_operations_test/03: RuntimeError # No bigints on web.
 bit_operations_test/04: RuntimeError # No bigints on web.
 bit_operations_test/none: RuntimeError # No bigints on web.
-branch_canonicalization_test: RuntimeError # Issue 29920
-call_closurization_test: RuntimeError # Issue 29920
 canonical_const2_test: RuntimeError # Ints and doubles are unified.
 canonical_const_test: RuntimeError # Ints and doubles are unified.
+call_closurization_test: RuntimeError # Issue 29920
 compile_time_constant_a_test: RuntimeError # Allows mutating const map.
 compile_time_constant_b_test: RuntimeError # Issue 29920
 compile_time_constant_d_test: RuntimeError # Issue 29920
 const_evaluation_test/01: RuntimeError # Issue 29920
 const_switch_test/02: RuntimeError # Issue 29920
 const_switch_test/04: RuntimeError # Ints and doubles are unified.
-constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
 constructor12_test: RuntimeError # Issue 29920
-covariant_subtyping_test: RuntimeError # Issue 29920
 custom_await_stack_trace_test: RuntimeError # Issue 29920
 cyclic_type2_test: RuntimeError # Issue 29920
 cyclic_type_test/02: RuntimeError # Issue 29920
@@ -738,14 +727,12 @@ deferred_call_empty_before_load_test: RuntimeError # Issue 27777
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 deferred_not_loaded_check_test: RuntimeError # Issue 27777
 deferred_redirecting_factory_test: RuntimeError # Issue 27777
-deferred_regression_22995_test: RuntimeError # Issue 29920
 deferred_static_seperate_test: RuntimeError # Issue 27777
 double_int_to_string_test: RuntimeError # Issue 29920
 dynamic_test: RuntimeError # Strong mode is-check failure: M1 does not soundly subtype Iface<dynamic, num>
 exception_test: RuntimeError # DDC doesn't implement NullThrownError?
 execute_finally6_test: RuntimeError # Issue 29920
 expect_test: RuntimeError # Issue 29920
-export_private_test/01: MissingCompileTimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920
 field_increment_bailout_test: RuntimeError # Issue 29920
 field_optimization3_test: RuntimeError # Issue 29920
@@ -755,65 +742,19 @@ flatten_test/08: MissingRuntimeError # Issue 29920
 flatten_test/09: MissingRuntimeError # Issue 29920
 flatten_test/12: MissingRuntimeError # Issue 29920
 for_variable_capture_test: RuntimeError # Issue 29920
-function_subtype0_test: RuntimeError # Issue 29920
-function_subtype1_test: RuntimeError # Issue 29920
-function_subtype2_test: RuntimeError # Issue 29920
-function_subtype3_test: RuntimeError # Issue 29920
-function_subtype_bound_closure0_test: RuntimeError # Issue 29920
-function_subtype_bound_closure1_test: RuntimeError # Issue 29920
-function_subtype_bound_closure2_test: RuntimeError # Issue 29920
-function_subtype_bound_closure3_test: RuntimeError # Issue 29920
-function_subtype_bound_closure4_test: RuntimeError # Issue 29920
-function_subtype_bound_closure5_test: RuntimeError # Issue 29920
-function_subtype_bound_closure5a_test: RuntimeError # Issue 29920
-function_subtype_bound_closure6_test: RuntimeError # Issue 29920
-function_subtype_call0_test: RuntimeError # Issue 29920
-function_subtype_call1_test: RuntimeError # Issue 29920
-function_subtype_call2_test: RuntimeError # Issue 29920
-function_subtype_cast0_test: RuntimeError # Issue 29920
-function_subtype_cast1_test: RuntimeError # Issue 29920
-function_subtype_cast2_test: RuntimeError # Issue 29920
-function_subtype_cast3_test: RuntimeError # Issue 29920
-function_subtype_factory0_test: RuntimeError # Issue 29920
-function_subtype_inline0_test: RuntimeError # Issue 29920
-function_subtype_local0_test: RuntimeError # Issue 29920
-function_subtype_local1_test: RuntimeError # Issue 29920
-function_subtype_local2_test: RuntimeError # Issue 29920
-function_subtype_local3_test: RuntimeError # Issue 29920
-function_subtype_local4_test: RuntimeError # Issue 29920
-function_subtype_local5_test: RuntimeError # Issue 29920
 function_subtype_named1_test: RuntimeError # Issue 29920
 function_subtype_named2_test: RuntimeError # Issue 29920
-function_subtype_not0_test: RuntimeError # Issue 29920
-function_subtype_not1_test: RuntimeError # Issue 29920
-function_subtype_not2_test: RuntimeError # Issue 29920
-function_subtype_not3_test: RuntimeError # Issue 29920
 function_subtype_optional1_test: RuntimeError # Issue 29920
 function_subtype_optional2_test: RuntimeError # Issue 29920
-function_subtype_top_level0_test: RuntimeError # Issue 29920
-function_subtype_top_level1_test: RuntimeError # Issue 29920
 function_subtype_typearg2_test: RuntimeError # Issue 29920
 function_subtype_typearg4_test: RuntimeError # Issue 29920
-function_type_alias2_test: RuntimeError # Issue 29920
 function_type_alias3_test: RuntimeError # Issue 29920
-function_type_alias4_test: RuntimeError # Issue 29920
 generic_instanceof2_test: RuntimeError # Issue 29920
 generic_instanceof_test: RuntimeError # Issue 29920
 generic_is_check_test: RuntimeError # Issue 29920
-generic_methods_closure_test: CompileTimeError # Issue 29920
 generic_methods_generic_class_tearoff_test: RuntimeError # Issue 29920
-generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29920
-generic_methods_named_parameters_test: RuntimeError # Issue 29920
-generic_methods_optional_parameters_test: RuntimeError # Issue 29920
-generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
-generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
-generic_methods_shadowing_test: CompileTimeError # Issue 29920
-generic_methods_simple_is_expression_test: CompileTimeError # Issue 29920
-generic_methods_tearoff_specialization_test: RuntimeError # Issue 29920
-generic_typedef_test: RuntimeError # Issue 29920
 getter_closure_execution_order_test: RuntimeError # Issue 29920
 identical_closure2_test: RuntimeError # Issue 29920
-import_private_test/01: MissingCompileTimeError # Issue 29920
 infinite_switch_label_test: RuntimeError # Issue 29920
 infinity_test: RuntimeError # Issue 29920
 initializing_formal_final_test: RuntimeError # Issue 29920
@@ -822,7 +763,6 @@ instanceof2_test: RuntimeError # Issue 29920
 instanceof4_test/01: RuntimeError # Issue 29920
 instanceof4_test/none: RuntimeError # Issue 29920
 integer_division_by_zero_test: RuntimeError # Issue 29920
-internal_library_test/01: MissingCompileTimeError # Issue 29920
 issue23244_test: RuntimeError # Issue 29920
 lazy_static3_test: RuntimeError # Issue 29920
 left_shift_test: RuntimeError # Issue 29920
@@ -839,11 +779,8 @@ nan_identical_test: RuntimeError # Issue 29920
 nested_switch_label_test: RuntimeError # Issue 29920
 number_identity2_test: RuntimeError # Issue 29920
 numbers_test: RuntimeError # Issue 29920
-prefix10_negative_test: Fail # Issue 29920
 regress_16640_test: RuntimeError # Issue 29920
 regress_22443_test: RuntimeError # Issue 29920
-regress_23089_test: CompileTimeError # Issue 29920
-reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
 stack_overflow_stacktrace_test: RuntimeError # Issue 29920
 stack_overflow_test: RuntimeError # Issue 29920
 stacktrace_test: RuntimeError # Issue 29920
@@ -853,4 +790,15 @@ switch_try_catch_test: RuntimeError # Issue 29920
 throwing_lazy_variable_test: RuntimeError # Issue 29920
 truncdiv_test: RuntimeError # Issue 29920
 type_variable_nested_test: RuntimeError # Issue 29920
-type_variable_typedef_test: RuntimeError # Issue 29920
+
+# This test does not generate the expected compile time error, but it also does
+# not behave correctly at runtime. We cannot record this as "Fail" without
+# confusing the DDC travis bot (as "Fail" is normally used for compile time
+# failures of _negative_tests). Remove "Skip" once we have the DDC travis bot
+# running on test.dart, OR when we fix dartanalyzer/dartdevc CommandOutput
+# classes to invert negative test status in the same way our other tools do.
+prefix10_negative_test: Skip # Issue 29920
+
+[ $compiler == dartdevc && $system == windows ]
+multiline_strings_test: RuntimeError # Issue 30336
+raw_string_test: RuntimeError # Issue 30336

@@ -155,19 +155,8 @@ front_end/test/*: RuntimeError, OK, Pass # Issue 26103. Timers are not supported
 kernel/test/*: RuntimeError, OK # Issue 26103. Timers are not supported.
 
 [ $compiler == dart2js && $runtime == d8 ]
-front_end/test/precedence_info_test: RuntimeError # Issue 30279.
-front_end/test/scanner_fasta_test: RuntimeError # Issue 30279.
-front_end/test/scanner_replacement_test: RuntimeError # Issue 30279.
-front_end/test/scanner_test: RuntimeError # Issue 30279.
-front_end/test/src/async_dependency_walker_test: RuntimeError # Issue 30279.
-front_end/test/src/base/flat_buffers_test: RuntimeError # Issue 30279.
-front_end/test/src/base/uri_resolver_test: RuntimeError # Issue 30279.
-front_end/test/src/dependency_walker_test: RuntimeError # Issue 30279.
-front_end/test/src/incremental/byte_store_test: RuntimeError # Issue 30279.
-front_end/test/src/incremental/format_test: RuntimeError # Issue 30279.
-front_end/test/src/multi_root_file_system_test: RuntimeError # Issue 30279.
-front_end/test/token_test: RuntimeError # Issue 30279.
-lookup_map/test/lookup_map_test: RuntimeError # Issue 30279.
+front_end/test/src/base/uri_resolver_test: SkipByDesign # Relies on access to file system
+
 
 [ $compiler == dart2js && $runtime == drt ]
 async/test/stream_zip_test: RuntimeError, Pass # Issue 18548

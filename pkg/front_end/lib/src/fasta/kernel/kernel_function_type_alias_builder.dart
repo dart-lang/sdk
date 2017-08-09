@@ -61,14 +61,19 @@ class KernelFunctionTypeAliasBuilder
       return thisType;
     }
     thisType = const InvalidType();
-    DartType builtType = type?.build(library) ?? const DynamicType();
-    if (typeVariables != null) {
-      for (KernelTypeVariableBuilder tv in typeVariables) {
-        tv.parameter.bound = tv?.bound?.build(library);
-        target.typeParameters.add(tv.parameter..parent = target);
+    FunctionType builtType = type?.build(library);
+    if (builtType != null) {
+      builtType.typedefReference = target.reference;
+      if (typeVariables != null) {
+        for (KernelTypeVariableBuilder tv in typeVariables) {
+          tv.parameter.bound = tv?.bound?.build(library);
+          target.typeParameters.add(tv.parameter..parent = target);
+        }
       }
+      return thisType = builtType;
+    } else {
+      return thisType = const DynamicType();
     }
-    return thisType = builtType;
   }
 
   /// [arguments] have already been built.

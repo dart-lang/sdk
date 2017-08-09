@@ -158,23 +158,18 @@ do {
             'do #; while ( # )', [stm, 'a'], 'do\n  foo();\nwhile (a);'),
 
         testStatement('switch (#) {}', [eOne], 'switch (1) {\n}'),
-        testStatement(
-            '''
+        testStatement('''
         switch (#) {
           case #: { # }
-        }''',
-            [eTrue, eOne, block12],
+        }''', [eTrue, eOne, block12],
             'switch (true) {\n  case 1:\n    1;\n    2;\n}'),
-        testStatement(
-            '''
+        testStatement('''
         switch (#) {
           case #: { # }
             break;
           case #: { # }
           default: { # }
-        }''',
-            [eTrue, eOne, block12, eTwo, block12, stm],
-            '''
+        }''', [eTrue, eOne, block12, eTwo, block12, stm], '''
 switch (true) {
   case 1:
     1;
@@ -479,19 +474,13 @@ switch (true) {
         testStatement('label: {label2: {break label;}}', [],
             'label:\n  label2:\n    break label;\n'),
         // Test dangling else:
-        testStatement(
-            'if (a) {if (b) {foo1();}} else {foo2();}',
-            [],
-            """
+        testStatement('if (a) {if (b) {foo1();}} else {foo2();}', [], """
 if (a) {
   if (b)
     foo1();
 } else
   foo2();"""),
-        testStatement(
-            'if (a) {if (b) {foo1();} else {foo2();}}',
-            [],
-            """
+        testStatement('if (a) {if (b) {foo1();} else {foo2();}}', [], """
 if (a)
   if (b)
     foo1();
@@ -499,9 +488,7 @@ if (a)
     foo2();
 """),
         testStatement(
-            'if (a) {if (b) {foo1();} else {foo2();}} else {foo3();}',
-            [],
-            """
+            'if (a) {if (b) {foo1();} else {foo2();}} else {foo3();}', [], """
 if (a)
   if (b)
     foo1();
@@ -510,9 +497,7 @@ if (a)
 else
   foo3();"""),
         testStatement(
-            'if (a) {while (true) if (b) {foo1();}} else {foo2();}',
-            [],
-            """
+            'if (a) {while (true) if (b) {foo1();}} else {foo2();}', [], """
 if (a) {
   while (true)
     if (b)

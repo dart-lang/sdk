@@ -130,10 +130,11 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       Smi& smi = Smi::Handle(zone, Smi::New(unique_smi));
       EXPECT(smi.Value() == unique_smi);
       {
+        HeapIterationScope iteration(thread);
         ObjectCounter counter(isolate_, &smi);
         // Ensure that our particular zone is visited.
-        isolate_->IterateObjectPointers(&counter,
-                                        StackFrameIterator::kValidateFrames);
+        iteration.IterateStackPointers(&counter,
+                                       StackFrameIterator::kValidateFrames);
         EXPECT_EQ(1, counter.count());
       }
       char* unique_chars = zone->PrintToString("unique_str_%" Pd, id_);
@@ -146,10 +147,11 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       }
       EXPECT(unique_str.Equals(unique_chars));
       {
+        HeapIterationScope iteration(thread);
         ObjectCounter str_counter(isolate_, &unique_str);
         // Ensure that our particular zone is visited.
-        isolate_->IterateObjectPointers(&str_counter,
-                                        StackFrameIterator::kValidateFrames);
+        iteration.IterateStackPointers(&str_counter,
+                                       StackFrameIterator::kValidateFrames);
         // We should visit the string object exactly once.
         EXPECT_EQ(1, str_counter.count());
       }
@@ -173,7 +175,7 @@ ISOLATE_UNIT_TEST_CASE(ManyTasksWithZones) {
   const int kTaskCount = 100;
   Monitor sync[kTaskCount];
   bool done[kTaskCount];
-  Isolate* isolate = Thread::Current()->isolate();
+  Isolate* isolate = thread->isolate();
   EXPECT(isolate->heap()->GrowthControlState());
   isolate->heap()->DisableGrowthControl();
   for (int i = 0; i < kTaskCount; i++) {
@@ -181,20 +183,27 @@ ISOLATE_UNIT_TEST_CASE(ManyTasksWithZones) {
     Dart::thread_pool()->Run(
         new TaskWithZoneAllocation(isolate, &sync[i], &done[i], i));
   }
+  bool in_isolate = true;
   for (int i = 0; i < kTaskCount; i++) {
     // Check that main mutator thread can still freely use its own zone.
     String& bar = String::Handle(String::New("bar"));
     if (i % 10 == 0) {
       // Mutator thread is free to independently move in/out/between isolates.
       Thread::ExitIsolate();
+      in_isolate = false;
     }
     MonitorLocker ml(&sync[i]);
     while (!done[i]) {
-      ml.Wait();
+      if (in_isolate) {
+        ml.WaitWithSafepointCheck(thread);
+      } else {
+        ml.Wait();
+      }
     }
     EXPECT(done[i]);
     if (i % 10 == 0) {
       Thread::EnterIsolate(isolate);
+      in_isolate = true;
     }
     EXPECT(bar.Equals("bar"));
   }
@@ -421,10 +430,11 @@ class SafepointTestTask : public ThreadPool::Task {
         TransitionVMToBlocked transition(thread);
       } else {
         // But occasionally, organize a rendezvous.
-        SafepointOperationScope safepoint_scope(thread);
+        HeapIterationScope iteration(thread);  // Establishes a safepoint.
+        ASSERT(thread->IsAtSafepoint());
         ObjectCounter counter(isolate_, &smi);
-        isolate_->IterateObjectPointers(&counter,
-                                        StackFrameIterator::kValidateFrames);
+        iteration.IterateStackPointers(&counter,
+                                       StackFrameIterator::kValidateFrames);
         {
           MonitorLocker ml(monitor_);
           EXPECT_EQ(*expected_count_, counter.count());

@@ -23,6 +23,14 @@ class BuildUri {
     return new BuildUri.fromData(botName, buildNumber, stepName);
   }
 
+  factory BuildUri.fromUrl(String url) {
+    if (!url.endsWith('/text')) {
+      // Use the text version of the stdio log.
+      url += '/text';
+    }
+    return new BuildUri(Uri.parse(url));
+  }
+
   factory BuildUri.fromData(String botName, int buildNumber, String stepName) {
     return new BuildUri.internal('https', 'build.chromium.org',
         '/p/client.dart', botName, buildNumber, stepName, 'stdio/text');
@@ -101,7 +109,7 @@ class TestConfiguration {
 
 /// The results of a build step.
 class BuildResult {
-  final BuildUri _buildUri;
+  final BuildUri buildUri;
 
   /// The absolute build number, if found.
   ///
@@ -114,11 +122,8 @@ class BuildResult {
   final List<TestFailure> _failures;
   final List<Timing> _timings;
 
-  BuildResult(this._buildUri, this.buildNumber, this._results, this._failures,
+  BuildResult(this.buildUri, this.buildNumber, this._results, this._failures,
       this._timings);
-
-  BuildUri get buildUri =>
-      buildNumber != null ? _buildUri.withBuildNumber(buildNumber) : _buildUri;
 
   /// `true` of the build result has test failures.
   bool get hasFailures => _failures.isNotEmpty;
@@ -140,6 +145,9 @@ class BuildResult {
     return _failures
         .where((TestFailure failure) => failure.actual != 'Timeout');
   }
+
+  /// Returns all [TestFailure]s.
+  Iterable<TestFailure> get failures => _failures;
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -166,8 +174,8 @@ class TestFailure {
     String testName = parts[3];
     TestConfiguration id =
         new TestConfiguration(configName, archName, testName);
-    String expected = split(lines[1], ['Expected: '])[1];
-    String actual = split(lines[2], ['Actual: '])[1];
+    String expected = split(lines[1], ['Expected: '])[1].trim();
+    String actual = split(lines[2], ['Actual: '])[1].trim();
     return new TestFailure.internal(
         uri, id, expected, actual, lines.skip(3).join('\n'));
   }

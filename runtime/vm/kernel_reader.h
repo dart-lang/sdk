@@ -110,6 +110,11 @@ class KernelReader {
                      const dart::Class& owner,
                      bool in_class);
 
+  void ReadAndSetupTypeParameters(const Object& set_on,
+                                  intptr_t type_parameter_count,
+                                  const Class& parameterized_class,
+                                  const Function& parameterized_function);
+
   RawArray* MakeFunctionsArray();
 
   // If klass's script is not the script at the uri index, return a PatchClass
@@ -140,6 +145,7 @@ class KernelReader {
   dart::Zone* zone_;
   dart::Isolate* isolate_;
   Array& scripts_;
+  Array& patch_classes_;
   ActiveClass active_class_;
   BuildingTranslationHelper translation_helper_;
   StreamingFlowGraphBuilder builder_;

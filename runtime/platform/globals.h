@@ -385,9 +385,11 @@ typedef simd128_value_t fpu_register_t;
 #define Pd PRIdPTR
 #define Pu PRIuPTR
 #define Px PRIxPTR
+#define PX PRIXPTR
 #define Pd64 PRId64
 #define Pu64 PRIu64
 #define Px64 PRIx64
+#define PX64 PRIX64
 
 // Zero-padded pointer
 #if defined(ARCH_IS_32_BIT)

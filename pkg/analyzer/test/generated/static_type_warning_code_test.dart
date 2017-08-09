@@ -1107,10 +1107,10 @@ class Point<T extends num> {
 }
 
 main() {
-  Point/*<T>*/ f/*<T extends num>*/(num/*=T*/ x, num/*=T*/ y) {
-    return new Point/*<T>*/(x, y);
+  Point<T> f<T extends num>(T x, T y) {
+    return new Point<T>(x, y);
   }
-  print(f/*<String>*/('hello', 'world'));
+  print(f<String>('hello', 'world'));
 }
 ''', [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
@@ -1123,13 +1123,13 @@ class Point<T extends num> {
 }
 
 class PointFactory {
-  Point/*<T>*/ point/*<T extends num>*/(num/*=T*/ x, num/*=T*/ y) {
-    return new Point/*<T>*/(x, y);
+  Point<T> point<T extends num>(T x, T y) {
+    return new Point<T>(x, y);
   }
 }
 
 f(PointFactory factory) {
-  print(factory.point/*<String>*/('hello', 'world'));
+  print(factory.point<String>('hello', 'world'));
 }
 ''', [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
@@ -1141,12 +1141,12 @@ class Point<T extends num> {
   Point(T x, T y);
 }
 
-Point/*<T>*/ f/*<T extends num>*/(num/*=T*/ x, num/*=T*/ y) {
-  return new Point/*<T>*/(x, y);
+Point<T> f<T extends num>(T x, T y) {
+  return new Point<T>(x, y);
 }
 
 main() {
-  print(f/*<String>*/('hello', 'world'));
+  print(f<String>('hello', 'world'));
 }
 ''', [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
@@ -2050,7 +2050,7 @@ class StrongModeStaticTypeWarningCodeTest extends ResolverTestCase {
     Source source = addSource('''
 f() {}
 main() {
-  f/*<int>*/();
+  f<int>();
 }
 ''');
     TestAnalysisResult analysisResult = await computeAnalysisResult(source);

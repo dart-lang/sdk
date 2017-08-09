@@ -14,7 +14,7 @@ import '../elements/elements.dart'
     show ConstructorElement, LocalElement, MemberElement;
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../tree/tree.dart' as ast show Node;
+import '../tree/tree.dart' as ast show ForIn, Node, Send, SendSet;
 import '../types/masks.dart'
     show
         CommonMasks,
@@ -825,6 +825,24 @@ class ParameterTypeInformation extends ElementTypeInformation {
   }
 }
 
+enum CallType {
+  access,
+  complex,
+  forIn,
+}
+
+bool validCallType(CallType callType, Object call) {
+  switch (callType) {
+    case CallType.complex:
+      return call is ast.SendSet;
+    case CallType.access:
+      return call is ast.Send;
+    case CallType.forIn:
+      return call is ast.ForIn;
+  }
+  throw new StateError('Unexpected call type $callType.');
+}
+
 /**
  * A [CallSiteTypeInformation] is a call found in the AST, or a
  * synthesized call for implicit calls in Dart (such as forwarding
@@ -837,7 +855,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
  */
 abstract class CallSiteTypeInformation extends TypeInformation
     with ApplyableTypeInformation {
-  final Spannable _call;
+  final Object _call;
   final MemberEntity caller;
   final Selector selector;
   final TypeMask mask;
@@ -948,7 +966,8 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 }
 
-class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
+class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
+  final CallType _callType;
   final TypeInformation receiver;
   final bool isConditional;
 
@@ -957,7 +976,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
   DynamicCallSiteTypeInformation(
       MemberTypeInformation context,
-      Spannable call,
+      this._callType,
+      T call,
       MemberEntity enclosing,
       Selector selector,
       TypeMask mask,
@@ -965,7 +985,9 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       ArgumentsTypes arguments,
       bool inLoop,
       this.isConditional)
-      : super(context, call, enclosing, selector, mask, arguments, inLoop);
+      : super(context, call, enclosing, selector, mask, arguments, inLoop) {
+    assert(validCallType(_callType, _call));
+  }
 
   void addToGraph(InferrerEngine inferrer) {
     assert(receiver != null);
@@ -1118,7 +1140,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   TypeMask computeType(InferrerEngine inferrer) {
     Iterable<MemberEntity> oldTargets = targets;
     TypeMask typeMask = computeTypedSelector(inferrer);
-    inferrer.updateSelectorInMember(caller, _call, selector, typeMask);
+    inferrer.updateSelectorInMember(
+        caller, _callType, _call, selector, typeMask);
 
     TypeMask maskToUse =
         inferrer.closedWorld.extendMaskIfReachesAll(selector, typeMask);
@@ -1223,7 +1246,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
   void giveUp(InferrerEngine inferrer, {bool clearAssignments: true}) {
     if (!abandonInferencing) {
-      inferrer.updateSelectorInMember(caller, _call, selector, mask);
+      inferrer.updateSelectorInMember(caller, _callType, _call, selector, mask);
       Iterable<MemberEntity> oldTargets = targets;
       targets = inferrer.closedWorld.locateMembers(selector, mask);
       for (MemberEntity element in targets) {
@@ -1273,7 +1296,7 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
 
   ClosureCallSiteTypeInformation(
       MemberTypeInformation context,
-      Spannable call,
+      Object call,
       MemberEntity enclosing,
       Selector selector,
       TypeMask mask,

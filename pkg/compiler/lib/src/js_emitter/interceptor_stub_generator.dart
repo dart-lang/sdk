@@ -153,8 +153,7 @@ class InterceptorStubGenerator {
           : _commonElements.jsNumberClass);
 
       if (hasInt) {
-        whenNumber = js.statement(
-            '''{
+        whenNumber = js.statement('''{
             if (Math.floor(receiver) == receiver) return #;
             return #;
         }''',
@@ -187,21 +186,19 @@ class InterceptorStubGenerator {
     }
 
     if (hasNative) {
-      statements.add(js.statement(
-          r'''{
+      statements.add(js.statement(r'''{
           if (typeof receiver != "object") {
               if (typeof receiver == "function" ) return #;
               return receiver;
           }
           if (receiver instanceof #) return receiver;
           return #(receiver);
-      }''',
-          [
-            interceptorFor(_commonElements.jsJavaScriptFunctionClass),
-            _emitter.constructorAccess(_commonElements.objectClass),
-            _emitter.staticFunctionAccess(
-                _commonElements.getNativeInterceptorMethod)
-          ]));
+      }''', [
+        interceptorFor(_commonElements.jsJavaScriptFunctionClass),
+        _emitter.constructorAccess(_commonElements.objectClass),
+        _emitter
+            .staticFunctionAccess(_commonElements.getNativeInterceptorMethod)
+      ]));
     } else {
       ClassEntity jsUnknown = _commonElements.jsUnknownJavaScriptObjectClass;
       if (_codegenWorldBuilder.directlyInstantiatedClasses
@@ -339,14 +336,12 @@ class InterceptorStubGenerator {
           typeCheck = orExp(typeCheck, indexableCheck);
         }
 
-        return js.statement(
-            '''
+        return js.statement('''
           if (typeof a0 === "number")
             if (#)
               if ((a0 >>> 0) === a0 && a0 < receiver.length)
                 return receiver[a0];
-          ''',
-            typeCheck);
+          ''', typeCheck);
       } else {
         jsAst.Expression typeCheck;
         if (containsArray) {
@@ -357,14 +352,12 @@ class InterceptorStubGenerator {
           typeCheck = orExp(typeCheck, indexableCheck);
         }
 
-        return js.statement(
-            r'''
+        return js.statement(r'''
           if (typeof a0 === "number")
             if (# && !receiver.immutable$list &&
                 (a0 >>> 0) === a0 && a0 < receiver.length)
               return receiver[a0] = a1;
-          ''',
-            typeCheck);
+          ''', typeCheck);
       }
     }
     return null;

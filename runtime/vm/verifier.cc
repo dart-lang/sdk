@@ -65,15 +65,17 @@ void VerifyWeakPointersVisitor::VisitHandle(uword addr) {
 }
 
 void VerifyPointersVisitor::VerifyPointers(MarkExpectation mark_expectation) {
-  NoSafepointScope no_safepoint;
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
+  HeapIterationScope iteration(thread);
   StackZone stack_zone(thread);
   ObjectSet* allocated_set = isolate->heap()->CreateAllocatedObjectSet(
       stack_zone.GetZone(), mark_expectation);
+
   VerifyPointersVisitor visitor(isolate, allocated_set);
   // Visit all strongly reachable objects.
-  isolate->IterateObjectPointers(&visitor, StackFrameIterator::kValidateFrames);
+  iteration.IterateObjectPointers(&visitor,
+                                  StackFrameIterator::kValidateFrames);
   VerifyWeakPointersVisitor weak_visitor(&visitor);
   // Visit weak handles and prologue weak handles.
   isolate->VisitWeakPersistentHandles(&weak_visitor);

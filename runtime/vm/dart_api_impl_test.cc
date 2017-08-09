@@ -838,11 +838,20 @@ TEST_CASE(IntegerValues) {
   EXPECT_VALID(result);
   EXPECT(fits);
 
+  int64_t out = 0;
+  result = Dart_IntegerToInt64(val1, &out);
+  EXPECT_VALID(result);
+  EXPECT_EQ(kIntegerVal1, out);
+
   Dart_Handle val2 = Dart_NewInteger(kIntegerVal2);
   EXPECT(Dart_IsInteger(val2));
   result = Dart_IntegerFitsIntoInt64(val2, &fits);
   EXPECT_VALID(result);
   EXPECT(fits);
+
+  result = Dart_IntegerToInt64(val2, &out);
+  EXPECT_VALID(result);
+  EXPECT_EQ(kIntegerVal2, out);
 
   Dart_Handle val3 = Dart_NewIntegerFromHexCString(kIntegerVal3);
   if (FLAG_limit_ints_to_64_bits) {
@@ -852,21 +861,12 @@ TEST_CASE(IntegerValues) {
     result = Dart_IntegerFitsIntoInt64(val3, &fits);
     EXPECT_VALID(result);
     EXPECT(!fits);
+
+    const char* chars = NULL;
+    result = Dart_IntegerToHexCString(val3, &chars);
+    EXPECT_VALID(result);
+    EXPECT(!strcmp(kIntegerVal3, chars));
   }
-
-  int64_t out = 0;
-  result = Dart_IntegerToInt64(val1, &out);
-  EXPECT_VALID(result);
-  EXPECT_EQ(kIntegerVal1, out);
-
-  result = Dart_IntegerToInt64(val2, &out);
-  EXPECT_VALID(result);
-  EXPECT_EQ(kIntegerVal2, out);
-
-  const char* chars = NULL;
-  result = Dart_IntegerToHexCString(val3, &chars);
-  EXPECT_VALID(result);
-  EXPECT(!strcmp(kIntegerVal3, chars));
 
   Dart_Handle val4 = Dart_NewIntegerFromUint64(kIntegerVal4);
   if (FLAG_limit_ints_to_64_bits) {
@@ -890,6 +890,57 @@ TEST_CASE(IntegerValues) {
   uint64_t out6 = 0;
   result = Dart_IntegerToUint64(val6, &out6);
   EXPECT(Dart_IsError(result));
+}
+
+TEST_CASE(IntegerToHexCString) {
+  const struct {
+    int64_t i;
+    const char* s;
+  } kIntTestCases[] = {
+      {0, "0x0"},
+      {1, "0x1"},
+      {-1, "-0x1"},
+      {0x123, "0x123"},
+      {-0xABCDEF, "-0xABCDEF"},
+      {DART_INT64_C(-0x7FFFFFFFFFFFFFFF), "-0x7FFFFFFFFFFFFFFF"},
+      {kMaxInt64, "0x7FFFFFFFFFFFFFFF"},
+      {kMinInt64, "-0x8000000000000000"},
+  };
+
+  const size_t kNumberOfIntTestCases =
+      sizeof(kIntTestCases) / sizeof(kIntTestCases[0]);
+
+  for (size_t i = 0; i < kNumberOfIntTestCases; ++i) {
+    Dart_Handle val = Dart_NewInteger(kIntTestCases[i].i);
+    EXPECT_VALID(val);
+    const char* chars = NULL;
+    Dart_Handle result = Dart_IntegerToHexCString(val, &chars);
+    EXPECT_VALID(result);
+    EXPECT_STREQ(kIntTestCases[i].s, chars);
+  }
+
+  if (!FLAG_limit_ints_to_64_bits) {
+    const char* kStrTestCases[] = {
+        "0x8000000000000000",
+        "-0x8000000000000000",
+        "0xFFFFFFFFFFFFFFFF",
+        "-0xFFFFFFFFFFFFFFFF",
+        "0xAABBCCDDEEFF00112233445566778899",
+        "-0x1234567890ABCDEF1234567890ABCDEF",
+    };
+
+    const size_t kNumberOfStrTestCases =
+        sizeof(kStrTestCases) / sizeof(kStrTestCases[0]);
+
+    for (size_t i = 0; i < kNumberOfStrTestCases; ++i) {
+      Dart_Handle val = Dart_NewIntegerFromHexCString(kStrTestCases[i]);
+      EXPECT_VALID(val);
+      const char* chars = NULL;
+      Dart_Handle result = Dart_IntegerToHexCString(val, &chars);
+      EXPECT_VALID(result);
+      EXPECT_STREQ(kStrTestCases[i], chars);
+    }
+  }
 }
 
 TEST_CASE(IntegerFitsIntoInt64) {
@@ -5340,7 +5391,15 @@ static void NativeArgumentAccess(Dart_NativeArguments args) {
 
     EXPECT(arg_values[1].as_int32 == 77);
 
-    EXPECT(arg_values[2].as_uint64 == 0xffffffffffffffffLL);
+    // Note: this particular value is chosen for the following reasons.
+    // 1) When wrapped-around, it should not fit into int32, because this unit
+    // test verifies that getting it as int32 produces error.
+    // 2) It should be large enough to exercise Bigints with unlimited ints, so
+    // it should be > MaxInt64.
+    // Given these constraints, any value between MaxInt64+1 and
+    // MaxUint64-MaxInt32-1 would work. Value 0x8000000000000000 is in this
+    // range and easy to produce without using a large integer literal.
+    EXPECT(arg_values[2].as_uint64 == 0x8000000000000000LL);
 
     EXPECT(arg_values[3].as_bool == true);
 
@@ -5446,7 +5505,7 @@ TEST_CASE(GetNativeArguments) {
       "  MyObject obj1 = MyObject.createObject();"
       "  MyObject obj2 = MyObject.createObject();"
       "  return obj1.accessFields(77,"
-      "                           0xffffffffffffffff,"
+      "                           1 << 63,"
       "                           true,"
       "                           3.14,"
       "                           str,"

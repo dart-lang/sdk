@@ -607,20 +607,37 @@ class ResolutionNativeClassFinder extends BaseNativeClassFinder {
   }
 }
 
+/// Returns `true` if [value] is named annotation based on [annotationClass].
+bool isAnnotation(
+    Spannable spannable, ConstantValue value, ClassEntity annotationClass) {
+  if (!value.isConstructedObject) return null;
+  ConstructedConstantValue constructedObject = value;
+  return constructedObject.type.element == annotationClass;
+}
+
 /// Extracts the name if [value] is a named annotation based on
 /// [annotationClass], otherwise returns `null`.
 String readAnnotationName(
-    Spannable spannable, ConstantValue value, ClassEntity annotationClass) {
+    Spannable spannable, ConstantValue value, ClassEntity annotationClass,
+    {String defaultValue}) {
   if (!value.isConstructedObject) return null;
   ConstructedConstantValue constructedObject = value;
   if (constructedObject.type.element != annotationClass) return null;
 
   Iterable<ConstantValue> fields = constructedObject.fields.values;
   // TODO(sra): Better validation of the constant.
-  if (fields.length != 1 || fields.single is! StringConstantValue) {
+  if (fields.length != 1) {
     failedAt(
         spannable, 'Annotations needs one string: ${value.toStructuredText()}');
+    return null;
+  } else if (fields.single is StringConstantValue) {
+    StringConstantValue specStringConstant = fields.single;
+    return specStringConstant.primitiveValue;
+  } else if (defaultValue != null && fields.single is NullConstantValue) {
+    return defaultValue;
+  } else {
+    failedAt(
+        spannable, 'Annotations needs one string: ${value.toStructuredText()}');
+    return null;
   }
-  StringConstantValue specStringConstant = fields.single;
-  return specStringConstant.primitiveValue;
 }

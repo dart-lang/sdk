@@ -17,7 +17,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -599,6 +599,22 @@ class C {
     expect(apiSignatureChanged, isFalse);
 
     expect(file.apiSignature, signature);
+  }
+
+  test_store_zeroLengthUnlinked() {
+    String path = _p('/test.dart');
+    provider.newFile(path, 'class A {}');
+
+    // Get the file, prepare unlinked.
+    FileState file = fileSystemState.getFileForPath(path);
+    expect(file.unlinked, isNotNull);
+
+    // Make the unlinked unit in the byte store zero-length, damaged.
+    byteStore.put(file.test.unlinkedKey, <int>[]);
+
+    // Refresh should not fail, zero bytes in the store are ignored.
+    file.refresh();
+    expect(file.unlinked, isNotNull);
   }
 
   test_subtypedNames() {

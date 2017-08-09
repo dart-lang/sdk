@@ -86,15 +86,13 @@ checkMasks(ClosedWorld closedWorld, List<ClassElement> allClasses,
 }
 
 Future testUnionTypeMaskFlatten() async {
-  TypeEnvironment env = await TypeEnvironment.create(
-      r"""
+  TypeEnvironment env = await TypeEnvironment.create(r"""
       class A {}
       class B {}
       class C extends A {}
       class D implements A {}
       class E extends B implements A {}
-      """,
-      mainSource: r"""
+      """, mainSource: r"""
       main() {
         new A();
         new B();
@@ -102,8 +100,7 @@ Future testUnionTypeMaskFlatten() async {
         new D();
         new E();
       }
-      """,
-      useMockCompiler: false);
+      """, useMockCompiler: false);
 
   ClosedWorld closedWorld = env.closedWorld;
 

@@ -15,9 +15,12 @@ class B {
 
 nativeId(x) native;
 
-void setup() native """
-nativeId = function(x) { return x; }
-""";
+void setup() {
+  JS('', r"""
+(function(){
+  nativeId = function(x) { return x; }
+})()""");
+}
 
 main() {
   setup();

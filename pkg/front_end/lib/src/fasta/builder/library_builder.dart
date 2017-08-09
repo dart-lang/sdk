@@ -65,6 +65,9 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
 
   Loader get loader;
 
+  @override
+  R get target;
+
   Uri get uri;
 
   Builder addBuilder(String name, Builder builder, int charOffset);

@@ -34,7 +34,7 @@ class CapturedScopeBuilder extends ir.Visitor {
   /// Pointer to the context in which this closure is executed.
   /// For example, in the expression `var foo = () => 3 + i;`, the executable
   /// context as we walk the nodes in that expression is the ir.Field `foo`.
-  ir.Node _executableContext;
+  ir.TreeNode _executableContext;
 
   /// A flag to indicate if we are currently inside a closure.
   bool _isInsideClosure = false;
@@ -61,6 +61,10 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   final bool _hasThisLocal;
 
+  /// Keeps track of the number of boxes that we've created so that they each
+  /// have unique names.
+  int _boxCounter = 0;
+
   CapturedScopeBuilder(this._model, {bool hasThisLocal})
       : this._hasThisLocal = hasThisLocal;
 
@@ -84,11 +88,26 @@ class CapturedScopeBuilder extends ir.Visitor {
       KernelScopeInfo from = _model.scopeInfo;
       _scopesCapturedInClosureMap[node] = new KernelCapturedScope(
           capturedVariablesForScope,
+          new NodeBox(getBoxName(), _executableContext),
           _currentLocalFunction,
           from.localsUsedInTryOrSync,
           from.freeVariables,
           _hasThisLocal);
     }
+  }
+
+  /// Generate a unique name for the [_boxCounter]th box field.
+  ///
+  /// The result is used as the name of [NodeBox]s and [BoxLocal]s, and must
+  /// therefore be unique to avoid breaking an invariant in the element model
+  /// (classes cannot declare multiple fields with the same name).
+  ///
+  /// Also, the names should be distinct from real field names to prevent
+  /// clashes with selectors for those fields.
+  ///
+  /// These names are not used in generated code, just as element name.
+  String getBoxName() {
+    return "_box_${_boxCounter++}";
   }
 
   /// Perform book-keeping with the current set of local variables that have
@@ -192,6 +211,7 @@ class CapturedScopeBuilder extends ir.Visitor {
     if (scope == null) return;
     _scopesCapturedInClosureMap[node] = new KernelCapturedLoopScope(
         scope.boxedVariables,
+        scope.capturedVariablesAccessor,
         boxedLoopVariables,
         scope.context,
         scope.localsUsedInTryOrSync,
@@ -201,7 +221,7 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   void visitInvokable(ir.TreeNode node) {
     bool oldIsInsideClosure = _isInsideClosure;
-    ir.Node oldExecutableContext = _executableContext;
+    ir.TreeNode oldExecutableContext = _executableContext;
     KernelScopeInfo oldScopeInfo = _currentScopeInfo;
     ir.TreeNode oldLocalFunction = _currentLocalFunction;
 

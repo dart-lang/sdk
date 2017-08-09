@@ -52,6 +52,11 @@ class Dart2jsTarget extends Target {
       (uri.path == 'core' || uri.path == '_interceptors');
 
   @override
+  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
+      super.allowPlatformPrivateLibraryAccess(importer, imported) ||
+      maybeEnableNative(importer);
+
+  @override
   bool enableNative(Uri uri) => maybeEnableNative(uri);
 
   @override

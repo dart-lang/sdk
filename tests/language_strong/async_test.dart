@@ -45,7 +45,7 @@ class B {
 }
 
 main() {
-  var asyncReturn;
+  Future asyncReturn;
 
   asyncReturn = topLevelFunction();
   Expect.isTrue(asyncReturn is Future);
@@ -94,7 +94,7 @@ main() {
   };
   asyncReturn = moreNesting(1, "ignore", 2);
   Expect.isTrue(asyncReturn is Future);
-  asyncReturn.then((int result) => Expect.equals(result, 28));
+  asyncReturn.then((num result) => Expect.equals(result, 28));
 
   var checkAsync = (var someFunc) {
     var toTest = someFunc();

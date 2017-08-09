@@ -269,6 +269,8 @@ class Library extends NamedNode implements Comparable<Library> {
   String name;
   final List<Expression> annotations;
   final List<LibraryDependency> dependencies;
+  @informative
+  final List<LibraryPart> parts;
   final List<Typedef> typedefs;
   final List<Class> classes;
   final List<Procedure> procedures;
@@ -279,6 +281,7 @@ class Library extends NamedNode implements Comparable<Library> {
       this.isExternal: false,
       List<Expression> annotations,
       List<LibraryDependency> dependencies,
+      List<LibraryPart> parts,
       List<Typedef> typedefs,
       List<Class> classes,
       List<Procedure> procedures,
@@ -287,12 +290,14 @@ class Library extends NamedNode implements Comparable<Library> {
       Reference reference})
       : this.annotations = annotations ?? <Expression>[],
         this.dependencies = dependencies ?? <LibraryDependency>[],
+        this.parts = parts ?? <LibraryPart>[],
         this.typedefs = typedefs ?? <Typedef>[],
         this.classes = classes ?? <Class>[],
         this.procedures = procedures ?? <Procedure>[],
         this.fields = fields ?? <Field>[],
         super(reference) {
     setParents(this.dependencies, this);
+    setParents(this.parts, this);
     setParents(this.typedefs, this);
     setParents(this.classes, this);
     setParents(this.procedures, this);
@@ -353,10 +358,15 @@ class Library extends NamedNode implements Comparable<Library> {
     dependencies.add(node..parent = this);
   }
 
+  void addPart(LibraryPart node) {
+    parts.add(node..parent = this);
+  }
+
   accept(TreeVisitor v) => v.visitLibrary(this);
 
   visitChildren(Visitor v) {
     visitList(dependencies, v);
+    visitList(parts, v);
     visitList(typedefs, v);
     visitList(classes, v);
     visitList(procedures, v);
@@ -365,6 +375,7 @@ class Library extends NamedNode implements Comparable<Library> {
 
   transformChildren(Transformer v) {
     transformList(dependencies, v, this);
+    transformList(parts, v, this);
     transformList(typedefs, v, this);
     transformList(classes, v, this);
     transformList(procedures, v, this);
@@ -460,6 +471,37 @@ class LibraryDependency extends TreeNode {
   transformChildren(Transformer v) {
     transformList(annotations, v, this);
     transformList(combinators, v, this);
+  }
+}
+
+/// A part declaration in a library.
+///
+///     part <url>;
+///
+/// optionally with metadata.
+class LibraryPart extends TreeNode {
+  final List<Expression> annotations;
+  final String fileUri;
+
+  LibraryPart(List<Expression> annotations, String fileUri)
+      : this.byReference(annotations, fileUri);
+
+  LibraryPart.byReference(this.annotations, this.fileUri) {
+    setParents(annotations, this);
+  }
+
+  void addAnnotation(Expression annotation) {
+    annotations.add(annotation..parent = this);
+  }
+
+  accept(TreeVisitor v) => v.visitLibraryPart(this);
+
+  visitChildren(Visitor v) {
+    visitList(annotations, v);
+  }
+
+  transformChildren(Transformer v) {
+    transformList(annotations, v, this);
   }
 }
 
@@ -3390,6 +3432,12 @@ class ForStatement extends Statement {
 }
 
 class ForInStatement extends Statement {
+  /// Offset in the source file it comes from.
+  ///
+  /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
+  /// offset is not available (this is the default if none is specifically set).
+  int bodyOffset = TreeNode.noOffset;
+
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
   Statement body;
@@ -4095,16 +4143,30 @@ class FunctionType extends DartType {
   final int requiredParameterCount;
   final List<DartType> positionalParameters;
   final List<NamedType> namedParameters; // Must be sorted.
+
+  /// The optional names of [positionalParameters], not `null`, but might be
+  /// empty if information is not available.
+  @informative
+  final List<String> positionalParameterNames;
+
+  /// The [Typedef] this function type is created for.
+  Reference typedefReference;
+
   final DartType returnType;
   int _hashCode;
 
   FunctionType(List<DartType> positionalParameters, this.returnType,
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
-      int requiredParameterCount})
+      int requiredParameterCount,
+      this.positionalParameterNames: const <String>[],
+      this.typedefReference})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =
             requiredParameterCount ?? positionalParameters.length;
+
+  /// The [Typedef] this function type is created for.
+  Typedef get typedef => typedefReference?.asTypedef;
 
   accept(DartTypeVisitor v) => v.visitFunctionType(this);
 

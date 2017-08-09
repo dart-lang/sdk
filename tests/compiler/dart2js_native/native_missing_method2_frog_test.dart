@@ -9,12 +9,15 @@ class A {}
 
 A makeA() native;
 
-void setup() native """
-function A() {};
-A.prototype.foo = function() { return  42; }
-makeA = function() { return new A; }
-self.nativeConstructor(A);
-""";
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {};
+  A.prototype.foo = function() { return  42; };
+  makeA = function() { return new A() };
+  self.nativeConstructor(A);
+})()""");
+}
 
 class B {
   foo() {

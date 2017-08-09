@@ -37,18 +37,21 @@ class AA {
   static int proton(c) => _baryon(c);
 }
 
-void setup() native r"""
-// This code is all inside 'setup' and so not accessible from the global scope.
+void setup() {
+  JS('', r"""
+(function(){
+  // This code is inside 'setup' and so not accessible from the global scope.
 
-function CC(){}
+  function CC(){}
 
-CC.foo = function(s) { return s.length; }
-CC.bar = function(f) { return f("Bye"); }
-CC.lepton = function(f) { return f("Lepton"); }
-CC.baryon = function(f) { return f("three quarks"); }
+  CC.foo = function(s) { return s.length; };
+  CC.bar = function(f) { return f("Bye"); };
+  CC.lepton = function(f) { return f("Lepton"); };
+  CC.baryon = function(f) { return f("three quarks"); };
 
-self.CC = CC;
-""";
+  self.CC = CC;
+})()""");
+}
 
 main() {
   nativeTesting();

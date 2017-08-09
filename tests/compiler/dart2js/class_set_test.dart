@@ -23,8 +23,7 @@ void main() {
 }
 
 testIterators() async {
-  var env = await TypeEnvironment.create(
-      r"""
+  var env = await TypeEnvironment.create(r"""
       ///        A
       ///       / \
       ///      B   C
@@ -38,8 +37,7 @@ testIterators() async {
       class E extends C {}
       class F extends C {}
       class G extends C {}
-      """,
-      mainSource: r"""
+      """, mainSource: r"""
       main() {
         new A();
         new C();
@@ -48,8 +46,7 @@ testIterators() async {
         new F();
         new G();
       }
-      """,
-      useMockCompiler: false);
+      """, useMockCompiler: false);
   ClosedWorld world = env.closedWorld;
 
   ClassElement A = env.getElement("A");
@@ -349,8 +346,7 @@ testIterators() async {
 }
 
 testForEach() async {
-  var env = await TypeEnvironment.create(
-      r"""
+  var env = await TypeEnvironment.create(r"""
       ///        A
       ///       / \
       ///      B   C
@@ -369,8 +365,7 @@ testForEach() async {
       class H extends F {}
       class I extends F {}
       class X {}
-      """,
-      mainSource: r"""
+      """, mainSource: r"""
       main() {
         new A();
         new C();
@@ -381,8 +376,7 @@ testForEach() async {
         new H();
         new I();
       }
-      """,
-      useMockCompiler: false);
+      """, useMockCompiler: false);
   ClosedWorld world = env.closedWorld;
 
   ClassElement A = env.getElement("A");

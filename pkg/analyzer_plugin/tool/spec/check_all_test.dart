@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:front_end/src/codegen/tools.dart';
+import 'package:analyzer/src/codegen/tools.dart';
 import 'package:path/path.dart';
 
 import 'generate_all.dart';

@@ -90,6 +90,12 @@ class TypeInferenceListener
   void asExpressionExit(AsExpression expression, DartType inferredType) =>
       genericExpressionExit("asExpression", expression, inferredType);
 
+  void assertInitializerEnter(LocalInitializer initializer) =>
+      genericInitializerEnter("assertInitializer", initializer);
+
+  void assertInitializerExit(LocalInitializer initializer) =>
+      genericInitializerExit("assertInitializer", initializer);
+
   void assertStatementEnter(AssertStatement statement) =>
       genericStatementEnter('assertStatement', statement);
 
@@ -170,6 +176,12 @@ class TypeInferenceListener
   void expressionStatementExit(ExpressionStatement statement) =>
       genericStatementExit('expressionStatement', statement);
 
+  void fieldInitializerEnter(FieldInitializer initializer) =>
+      genericInitializerEnter("fieldInitializer", initializer);
+
+  void fieldInitializerExit(FieldInitializer initializer) =>
+      genericInitializerExit("fieldInitializer", initializer);
+
   void forInStatementEnter(ForInStatement statement) =>
       genericStatementEnter('forInStatement', statement);
 
@@ -220,6 +232,12 @@ class TypeInferenceListener
   void intLiteralExit(IntLiteral expression, DartType inferredType) =>
       genericExpressionExit("intLiteral", expression, inferredType);
 
+  void invalidInitializerEnter(LocalInitializer initializer) =>
+      genericInitializerEnter("invalidInitializer", initializer);
+
+  void invalidInitializerExit(LocalInitializer initializer) =>
+      genericInitializerExit("invalidInitializer", initializer);
+
   bool isExpressionEnter(IsExpression expression, DartType typeContext) =>
       genericExpressionEnter("isExpression", expression, typeContext);
 
@@ -258,14 +276,22 @@ class TypeInferenceListener
   void mapLiteralExit(MapLiteral expression, DartType typeContext) =>
       genericExpressionExit("mapLiteral", expression, typeContext);
 
+  void methodInvocationBeforeArgs(Expression expression, bool isImplicitCall) {}
+
   bool methodInvocationEnter(Expression expression, DartType typeContext) =>
       genericExpressionEnter("methodInvocation", expression, typeContext);
-
-  void methodInvocationBeforeArgs(Expression expression, bool isImplicitCall) {}
 
   void methodInvocationExit(Expression expression, Arguments arguments,
           bool isImplicitCall, DartType inferredType) =>
       genericExpressionExit("methodInvocation", expression, inferredType);
+
+  bool namedFunctionExpressionEnter(Let expression, DartType typeContext) =>
+      genericExpressionEnter(
+          "namedFunctionExpression", expression, typeContext);
+
+  void namedFunctionExpressionExit(Let expression, DartType inferredType) =>
+      genericExpressionExit(
+          "namedFunctionExpression", expression, inferredType);
 
   bool notEnter(Not expression, DartType typeContext) =>
       genericExpressionEnter("not", expression, typeContext);
@@ -351,6 +377,12 @@ class TypeInferenceListener
 
   void stringLiteralExit(StringLiteral expression, DartType inferredType) =>
       genericExpressionExit("StringLiteral", expression, inferredType);
+
+  void superInitializerEnter(SuperInitializer initializer) =>
+      genericInitializerEnter("superInitializer", initializer);
+
+  void superInitializerExit(SuperInitializer initializer) =>
+      genericInitializerExit("superInitializer", initializer);
 
   void switchStatementEnter(SwitchStatement statement) =>
       genericStatementEnter('switchStatement', statement);

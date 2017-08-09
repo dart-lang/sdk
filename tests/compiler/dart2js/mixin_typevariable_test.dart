@@ -16,9 +16,7 @@ void main() {
 }
 
 void testMixinSupertypes() {
-  asyncTest(() => TypeEnvironment
-          .create(
-              r"""
+  asyncTest(() => TypeEnvironment.create(r"""
       class S<S_T> {}
       class M1<M1_T> {}
       class M2<M2_T> {}
@@ -26,9 +24,7 @@ void testMixinSupertypes() {
 
       class C1<C1_T> extends S<C1_T> with M1<C1_T>, M2<C1_T>, M3<C1_T> {}
       class C2<C2_T> = S<C2_T> with M1<C2_T>, M2<C2_T>, M3<C2_T>;
-      """,
-              expectNoWarningsOrErrors: true)
-          .then((env) {
+      """, expectNoWarningsOrErrors: true).then((env) {
         ClassElement Object = env.getElement('Object');
         ClassElement S = env.getElement('S');
         ClassElement M1 = env.getElement('M1');
@@ -75,9 +71,7 @@ void testMixinSupertypes() {
 }
 
 void testNonTrivialSubstitutions() {
-  asyncTest(() => TypeEnvironment
-          .create(
-              r"""
+  asyncTest(() => TypeEnvironment.create(r"""
       class _ {}
       class A<A_T> {}
       class B<B_T, B_S> {}
@@ -93,9 +87,7 @@ void testNonTrivialSubstitutions() {
 
       class F1<F1_T> extends A<_> with B<_, B<F1_T, _>> {}
       class F2<F2_T> = A<_> with B<_, B<F2_T, _>>;
-      """,
-              expectNoWarningsOrErrors: true)
-          .then((env) {
+      """, expectNoWarningsOrErrors: true).then((env) {
         ResolutionDartType _dynamic = env['dynamic'];
         ResolutionDartType _ = env['_'];
 

@@ -57,6 +57,11 @@ class StreamingDartTypeTranslator {
           parameters_count_(parameters_count),
           outer_(translator->type_parameter_scope_),
           translator_(translator) {
+      outer_parameter_count_ = 0;
+      if (outer_ != NULL) {
+        outer_parameter_count_ =
+            outer_->outer_parameter_count_ + outer_->parameters_count_;
+      }
       translator_->type_parameter_scope_ = this;
     }
     ~TypeParameterScope() { translator_->type_parameter_scope_ = outer_; }
@@ -64,10 +69,12 @@ class StreamingDartTypeTranslator {
     TypeParameterScope* outer() const { return outer_; }
     intptr_t parameters_offset() const { return parameters_offset_; }
     intptr_t parameters_count() const { return parameters_count_; }
+    intptr_t outer_parameter_count() const { return outer_parameter_count_; }
 
    private:
     intptr_t parameters_offset_;
     intptr_t parameters_count_;
+    intptr_t outer_parameter_count_;
     TypeParameterScope* outer_;
     StreamingDartTypeTranslator* translator_;
   };
@@ -346,20 +353,8 @@ class StreamingFlowGraphBuilder {
  private:
   void DiscoverEnclosingElements(Zone* zone,
                                  const Function& function,
-                                 Function* outermost_function,
-                                 intptr_t* outermost_kernel_offset,
-                                 intptr_t* parent_class_offset);
-  intptr_t GetParentOffset(intptr_t offset);
-  void GetTypeParameterInfoForClass(intptr_t class_offset,
-                                    intptr_t* type_paremeter_counts,
-                                    intptr_t* type_paremeter_offset);
+                                 Function* outermost_function);
 
-  void GetTypeParameterInfoForPossibleProcedure(
-      intptr_t outermost_kernel_offset,
-      bool* member_is_procedure,
-      bool* is_factory_procedure,
-      intptr_t* member_type_parameters,
-      intptr_t* member_type_parameters_offset_start);
   /**
    * Will return kernel offset for parent class if reading a constructor.
    * Will otherwise return -1.
@@ -403,6 +398,7 @@ class StreamingFlowGraphBuilder {
   void SkipFunctionType(bool simple);
   void SkipListOfExpressions();
   void SkipListOfDartTypes();
+  void SkipListOfStrings();
   void SkipListOfVariableDeclarations();
   void SkipTypeParametersList();
   void SkipExpression();
@@ -413,6 +409,7 @@ class StreamingFlowGraphBuilder {
   void SkipVariableDeclaration();
   void SkipLibraryCombinator();
   void SkipLibraryDependency();
+  void SkipLibraryPart();
   void SkipLibraryTypedef();
   TokenPosition ReadPosition(bool record = true);
   void record_token_position(TokenPosition position);
@@ -653,6 +650,27 @@ class StreamingFlowGraphBuilder {
   friend class ConstructorHelper;
   friend class SimpleExpressionConverter;
   friend class KernelReader;
+};
+
+// A helper class that saves the current reader position, goes to another reader
+// position, and upon destruction, resets to the original reader position.
+class AlternativeReadingScope {
+ public:
+  AlternativeReadingScope(Reader* reader, intptr_t new_position)
+      : reader_(reader), saved_offset_(reader_->offset()) {
+    reader_->set_offset(new_position);
+  }
+
+  explicit AlternativeReadingScope(Reader* reader)
+      : reader_(reader), saved_offset_(reader_->offset()) {}
+
+  ~AlternativeReadingScope() { reader_->set_offset(saved_offset_); }
+
+  intptr_t saved_offset() { return saved_offset_; }
+
+ private:
+  Reader* reader_;
+  intptr_t saved_offset_;
 };
 
 // Helper class that reads a kernel FunctionNode from binary.
@@ -937,16 +955,16 @@ class FieldHelper {
         if (builder_->ReadTag() == kSomething) {
           if (detect_function_literal_initializer &&
               builder_->PeekTag() == kFunctionExpression) {
-            has_function_literal_initializer_ = true;
-            intptr_t expr_offset = builder_->ReaderOffset();
+            AlternativeReadingScope alt(builder_->reader_);
             Tag tag = builder_->ReadTag();
             ASSERT(tag == kFunctionExpression);
-            tag = builder_->ReadTag();
-            ASSERT(tag == kFunctionNode);
-            function_literal_start_ = builder_->ReadPosition();
-            function_literal_end_ = builder_->ReadPosition();
 
-            builder_->SetOffset(expr_offset);
+            FunctionNodeHelper helper(builder_);
+            helper.ReadUntilIncluding(FunctionNodeHelper::kEndPosition);
+
+            has_function_literal_initializer_ = true;
+            function_literal_start_ = helper.position_;
+            function_literal_end_ = helper.end_position_;
           }
           builder_->SkipExpression();  // read initializer.
         }
@@ -1424,6 +1442,7 @@ class LibraryHelper {
     kSourceUriIndex,
     kAnnotations,
     kDependencies,
+    kParts,
     kTypedefs,
     kClasses,
     kToplevelField,
@@ -1468,6 +1487,13 @@ class LibraryHelper {
         intptr_t dependency_count = builder_->ReadUInt();  // read list length.
         for (intptr_t i = 0; i < dependency_count; ++i) {
           builder_->SkipLibraryDependency();
+        }
+        if (++next_read_ == field) return;
+      }
+      case kParts: {
+        intptr_t part_count = builder_->ReadUInt();  // read list length.
+        for (intptr_t i = 0; i < part_count; ++i) {
+          builder_->SkipLibraryPart();
         }
         if (++next_read_ == field) return;
       }
@@ -1522,27 +1548,6 @@ class LibraryHelper {
  private:
   StreamingFlowGraphBuilder* builder_;
   intptr_t next_read_;
-};
-
-// A helper class that saves the current reader position, goes to another reader
-// position, and upon destruction, resets to the original reader position.
-class AlternativeReadingScope {
- public:
-  AlternativeReadingScope(Reader* reader, intptr_t new_position)
-      : reader_(reader), saved_offset_(reader_->offset()) {
-    reader_->set_offset(new_position);
-  }
-
-  explicit AlternativeReadingScope(Reader* reader)
-      : reader_(reader), saved_offset_(reader_->offset()) {}
-
-  ~AlternativeReadingScope() { reader_->set_offset(saved_offset_); }
-
-  intptr_t saved_offset() { return saved_offset_; }
-
- private:
-  Reader* reader_;
-  intptr_t saved_offset_;
 };
 
 }  // namespace kernel

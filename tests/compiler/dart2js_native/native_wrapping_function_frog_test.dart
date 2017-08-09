@@ -17,16 +17,19 @@ class A {
 
 makeA() native;
 
-void setup() native """
-function A() {}
-A.prototype.foo0 = function(closure) { return closure(); };
-A.prototype.foo1 = function(closure, arg1) { return closure(arg1); };
-A.prototype.foo2 = function(closure, arg1, arg2) {
-  return closure(arg1, arg2);
-};
-makeA = function(){return new A;};
-self.nativeConstructor(A);
-""";
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {}
+  A.prototype.foo0 = function(closure) { return closure(); };
+  A.prototype.foo1 = function(closure, arg1) { return closure(arg1); };
+  A.prototype.foo2 = function(closure, arg1, arg2) {
+    return closure(arg1, arg2);
+  };
+  makeA = function(){return new A()};
+  self.nativeConstructor(A);
+})()""");
+}
 
 main() {
   nativeTesting();

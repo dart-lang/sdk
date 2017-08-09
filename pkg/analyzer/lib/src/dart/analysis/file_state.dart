@@ -31,10 +31,10 @@ import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/fasta/builder/builder.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart' as fasta;
-import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:meta/meta.dart';
 
 /**
@@ -116,6 +116,7 @@ class FileState {
   Set<String> _definedClassMemberNames;
   Set<String> _referencedNames;
   Set<String> _subtypedNames;
+  String _unlinkedKey;
   UnlinkedUnit _unlinked;
   List<int> _apiSignature;
 
@@ -282,6 +283,9 @@ class FileState {
    */
   Set<String> get subtypedNames => _subtypedNames;
 
+  @visibleForTesting
+  FileStateTestView get test => new FileStateTestView(this);
+
   /**
    * Return public top-level declarations declared in the file. The keys to the
    * map are names of declarations.
@@ -424,20 +428,19 @@ class FileState {
     }
 
     // Prepare the unlinked bundle key.
-    String unlinkedKey;
     {
       ApiSignature signature = new ApiSignature();
       signature.addUint32List(_fsState._salt);
       signature.addInt(contentBytes.length);
       signature.addString(_contentHash);
-      unlinkedKey = '${signature.toHex()}.unlinked';
+      _unlinkedKey = '${signature.toHex()}.unlinked';
     }
 
     // Prepare bytes of the unlinked bundle - existing or new.
     List<int> bytes;
     {
-      bytes = _fsState._byteStore.get(unlinkedKey);
-      if (bytes == null) {
+      bytes = _fsState._byteStore.get(_unlinkedKey);
+      if (bytes == null || bytes.isEmpty) {
         CompilationUnit unit = parse(AnalysisErrorListener.NULL_LISTENER);
         _fsState._logger.run('Create unlinked for $path', () {
           UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
@@ -452,7 +455,7 @@ class FileState {
                   referencedNames: referencedNames,
                   subtypedNames: subtypedNames)
               .toBuffer();
-          _fsState._byteStore.put(unlinkedKey, bytes);
+          _fsState._byteStore.put(_unlinkedKey, bytes);
         });
       }
     }
@@ -641,6 +644,15 @@ class FileState {
   }
 }
 
+@visibleForTesting
+class FileStateTestView {
+  final FileState file;
+
+  FileStateTestView(this.file);
+
+  String get unlinkedKey => file._unlinkedKey;
+}
+
 /**
  * Information about known file system state.
  */
@@ -691,6 +703,11 @@ class FileSystemState {
    * set of known files to notify the stream about.
    */
   Timer _knownFilesSetChangesTimer;
+
+  /**
+   * Whether the [knownFilesSetChanges] stream is requested.
+   */
+  bool _knownFilesSetChangesRequested = false;
 
   /**
    * The controller for the [knownFilesSetChanges] stream.
@@ -747,8 +764,15 @@ class FileSystemState {
    * Return the [Stream] that is periodically notified about changes to the
    * known files set.
    */
-  Stream<KnownFilesSetChange> get knownFilesSetChanges =>
-      _knownFilesSetChangesController.stream;
+  Stream<KnownFilesSetChange> get knownFilesSetChanges {
+    // If this is the first (and actually the only) time when the stream is
+    // requested, schedule the timer to send updates.
+    if (!_knownFilesSetChangesRequested) {
+      _knownFilesSetChangesRequested = true;
+      _scheduleKnownFilesSetChange();
+    }
+    return _knownFilesSetChangesController.stream;
+  }
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
@@ -894,6 +918,11 @@ class FileSystemState {
   }
 
   void _scheduleKnownFilesSetChange() {
+    // Schedule the timer only if there is a client who listens the stream.
+    if (!_knownFilesSetChangesRequested) {
+      return;
+    }
+
     Duration delay = _knownFilesSetChangesDelay ?? new Duration(seconds: 1);
     _knownFilesSetChangesTimer ??= new Timer(delay, () {
       Set<String> addedFiles = _addedKnownFiles.toSet();

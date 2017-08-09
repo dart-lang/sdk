@@ -1879,7 +1879,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     TypeMask type = new TypeMask.nonNullExact(closureClassEntity, closedWorld);
     push(new HCreate(closureClassEntity, capturedVariables, type,
-        callMethod: closureInfo.callMethod, localFunction: methodElement)
+        callMethod: closureInfo.callMethod)
       ..sourceInformation = sourceInformationBuilder.buildCreate(node));
   }
 

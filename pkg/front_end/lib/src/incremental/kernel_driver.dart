@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performace_logger.dart';
@@ -16,13 +15,12 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide Source;
 import 'package:kernel/src/incremental_class_hierarchy.dart';
-import 'package:kernel/target/targets.dart' show Target;
 import 'package:kernel/type_environment.dart';
 import 'package:meta/meta.dart';
 
@@ -50,6 +48,13 @@ class KernelDriver {
   /// The version of data format, should be incremented on every format change.
   static const int DATA_VERSION = 1;
 
+  /// Options used by the kernel compiler.
+  final ProcessedOptions _options;
+
+  /// The optional SDK outline as a serialized program.
+  /// If provided, the driver will not attempt to read SDK files.
+  final List<int> _sdkOutlineBytes;
+
   /// The logger to report compilation progress.
   final PerformanceLog _logger;
 
@@ -62,13 +67,14 @@ class KernelDriver {
   /// The object that knows how to resolve "package:" and "dart:" URIs.
   final UriTranslator _uriTranslator;
 
-  /// The backend target to generate kernels for.
-  final Target _target;
-
   /// The function that is invoked when a new file is about to be added to
   /// the current file state. The [Future] that it returns is awaited before
   /// reading the file contents.
   final KernelDriverFileAddedFn _fileAddedFn;
+
+  /// The optional SDK outline loaded from [_sdkOutlineBytes].
+  /// Might be `null` if the bytes are not provided, or if not loaded yet.
+  Program _sdkOutline;
 
   /// The salt to mix into all hashes used as keys for serialized data.
   List<int> _salt;
@@ -83,10 +89,13 @@ class KernelDriver {
   /// The object that provides additional information for tests.
   final _TestView _testView = new _TestView();
 
-  KernelDriver(this._logger, this._fileSystem, this._byteStore,
-      this._uriTranslator, this._target,
-      {KernelDriverFileAddedFn fileAddedFn})
-      : _fileAddedFn = fileAddedFn {
+  KernelDriver(this._options, this._uriTranslator,
+      {List<int> sdkOutlineBytes, KernelDriverFileAddedFn fileAddedFn})
+      : _logger = _options.logger,
+        _fileSystem = _options.fileSystem,
+        _byteStore = _options.byteStore,
+        _sdkOutlineBytes = sdkOutlineBytes,
+        _fileAddedFn = fileAddedFn {
     _computeSalt();
 
     Future<Null> onFileAdded(Uri uri) {
@@ -122,6 +131,10 @@ class KernelDriver {
     return await runWithFrontEndContext('Compute delta', () async {
       await _refreshInvalidatedFiles();
 
+      // Load the SDK outline before building the graph, so that the file
+      // system state is configured to skip SDK libraries.
+      await _loadSdkOutline();
+
       // Ensure that the graph starting at the entry point is ready.
       FileState entryLibrary =
           await _logger.runAsync('Build graph of files', () async {
@@ -135,8 +148,14 @@ class KernelDriver {
       });
 
       CanonicalName nameRoot = new CanonicalName.root();
-      DillTarget dillTarget =
-          new DillTarget(new Ticker(isVerbose: false), _uriTranslator, _target);
+      DillTarget dillTarget = new DillTarget(
+          new Ticker(isVerbose: false), _uriTranslator, _options.target);
+
+      // If there is SDK outline, load it.
+      if (_sdkOutline != null) {
+        dillTarget.loader.appendLibraries(_sdkOutline);
+        await dillTarget.buildOutlines();
+      }
 
       List<LibraryCycleResult> results = [];
       _testView.compiledCycles.clear();
@@ -171,15 +190,8 @@ class KernelDriver {
   }
 
   Future<T> runWithFrontEndContext<T>(String msg, Future<T> f()) async {
-    var options = new CompilerOptions()
-      ..target = _target
-      // Note: we do not report error on the console because the driver is an
-      // ongoing background service that shouldn't polute stdout.
-      // TODO(scheglov,sigmund): add an error handler to forward errors to
-      // analyzer driver and incremental kernel generator.
-      ..reportMessages = false;
     return await CompilerContext.runWithOptions(
-        new ProcessedOptions(options), (_) => _logger.runAsync(msg, f));
+        _options, (_) => _logger.runAsync(msg, f));
   }
 
   /// Return the [TypeEnvironment] that corresponds to the [results].
@@ -303,7 +315,10 @@ class KernelDriver {
   void _computeSalt() {
     var saltBuilder = new ApiSignature();
     saltBuilder.addInt(DATA_VERSION);
-    saltBuilder.addBool(_target.strongMode);
+    saltBuilder.addBool(_options.strongMode);
+    if (_sdkOutlineBytes != null) {
+      saltBuilder.addBytes(_sdkOutlineBytes);
+    }
     _salt = saltBuilder.toByteList();
   }
 
@@ -340,6 +355,23 @@ class KernelDriver {
     }
 
     return signatureBuilder.toHex();
+  }
+
+  /// Load the SDK outline if its bytes are provided, and configure the file
+  /// system state to skip SDK library files.
+  Future<Null> _loadSdkOutline() async {
+    if (_sdkOutlineBytes != null) {
+      if (_sdkOutline == null) {
+        await _logger.runAsync('Load SDK outline from bytes.', () async {
+          _sdkOutline = new Program();
+          new BinaryBuilder(_sdkOutlineBytes).readProgram(_sdkOutline);
+          // Configure the file system state to skip the outline libraries.
+          for (var outlineLibrary in _sdkOutline.libraries) {
+            _fsState.skipSdkLibraries.add(outlineLibrary.importUri);
+          }
+        });
+      }
+    }
   }
 
   /// Refresh all the invalidated files and update dependencies.

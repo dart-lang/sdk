@@ -823,6 +823,10 @@ SdkRootNotFound:
 SdkSummaryNotFound:
   template: "SDK summary not found: #uri."
 
+SdkSpecificationNotFound:
+  template: "SDK libraries specification not found: #uri."
+  tip: "Normally, the specification is a file named 'libraries.json' in the Dart SDK install location."
+
 ThisAccessInFieldInitializer:
   template: "Can't access 'this' in a field initializer to read '#name'."
 
@@ -882,6 +886,9 @@ NotAnLvalue:
 
 CannotReadPackagesFile:
   template: "Unable to read '.packages' file:\n  #string."
+
+CannotReadSdkSpecification:
+  template: "Unable to read the 'libraries.json' specification file:\n  #string."
 
 CantInferPackagesFromManyInputs:
   template: "Can't infer a .packages file when compiling multiple inputs."

@@ -15,7 +15,7 @@ import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/testing/hybrid_file_system.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
@@ -175,22 +175,12 @@ Future<IncrementalKernelGenerator> createIncrementalCompiler(
   var entryUri = Uri.base.resolve(entry);
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
-    ..sdkSummary = sdkRoot.resolve('outline.dill')
     ..packagesFileUri = Uri.parse('file:///.packages')
     ..strongMode = false
-    ..dartLibraries = loadDartLibraries()
+    ..compileSdk = true // the incremental generator requires the sdk sources
     ..fileSystem = fs
     ..byteStore = new MemoryByteStore();
   return IncrementalKernelGenerator.newInstance(options, entryUri);
-}
-
-Map<String, Uri> loadDartLibraries() {
-  var libraries = sdkRoot.resolve('lib/libraries.json');
-  var map =
-      JSON.decode(new File.fromUri(libraries).readAsStringSync())['libraries'];
-  var dartLibraries = <String, Uri>{};
-  map.forEach((k, v) => dartLibraries[k] = libraries.resolve(v));
-  return dartLibraries;
 }
 
 Future<bool> rebuild(IncrementalKernelGenerator compiler, Uri outputUri) async {

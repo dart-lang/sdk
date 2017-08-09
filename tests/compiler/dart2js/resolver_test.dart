@@ -1299,39 +1299,32 @@ testConstConstructorAndNonFinalFields() {
 
 testCantAssignMethods() {
   // Can't override local functions
-  checkWarningOn(
-      '''
+  checkWarningOn('''
       main() {
         mname() { mname = 2; };
         mname();
       }
-      ''',
-      [MessageKind.ASSIGNING_METHOD]);
+      ''', [MessageKind.ASSIGNING_METHOD]);
 
-  checkWarningOn(
-      '''
+  checkWarningOn('''
       main() {
         mname() { };
         mname = 3;
       }
-      ''',
-      [MessageKind.ASSIGNING_METHOD]);
+      ''', [MessageKind.ASSIGNING_METHOD]);
 
   // Can't override top-level functions
-  checkWarningOn(
-      '''
+  checkWarningOn('''
       m() {}
       main() { m = 4; }
-      ''',
-      [
-        MessageKind.ASSIGNING_METHOD,
-        // TODO(johnniwinther): Avoid duplicate warnings.
-        MessageKind.NOT_ASSIGNABLE
-      ]);
+      ''', [
+    MessageKind.ASSIGNING_METHOD,
+    // TODO(johnniwinther): Avoid duplicate warnings.
+    MessageKind.NOT_ASSIGNABLE
+  ]);
 
   // Can't override instance methods
-  checkWarningOn(
-      '''
+  checkWarningOn('''
       main() { new B().bar(); }
       class B {
         mname() {}
@@ -1339,10 +1332,8 @@ testCantAssignMethods() {
           mname = () => null;
         }
       }
-      ''',
-      [MessageKind.UNDEFINED_SETTER]);
-  checkWarningOn(
-      '''
+      ''', [MessageKind.UNDEFINED_SETTER]);
+  checkWarningOn('''
       main() { new B().bar(); }
       class B {
         mname() {}
@@ -1350,12 +1341,10 @@ testCantAssignMethods() {
           this.mname = () => null;
         }
       }
-      ''',
-      [MessageKind.UNDEFINED_SETTER]);
+      ''', [MessageKind.UNDEFINED_SETTER]);
 
   // Can't override super methods
-  checkWarningOn(
-      '''
+  checkWarningOn('''
       main() { new B().bar(); }
       class A {
         mname() {}
@@ -1365,16 +1354,14 @@ testCantAssignMethods() {
           super.mname = () => 6;
         }
       }
-      ''',
-      [
-        MessageKind.ASSIGNING_METHOD_IN_SUPER,
-        // TODO(johnniwinther): Avoid duplicate warnings.
-        MessageKind.UNDEFINED_SETTER
-      ]);
+      ''', [
+    MessageKind.ASSIGNING_METHOD_IN_SUPER,
+    // TODO(johnniwinther): Avoid duplicate warnings.
+    MessageKind.UNDEFINED_SETTER
+  ]);
 
   // But index operators should be OK
-  checkWarningOn(
-      '''
+  checkWarningOn('''
       main() { new B().bar(); }
       class B {
         operator[]=(x, y) {}
@@ -1382,10 +1369,8 @@ testCantAssignMethods() {
           this[1] = 3; // This is OK
         }
       }
-      ''',
-      []);
-  checkWarningOn(
-      '''
+      ''', []);
+  checkWarningOn('''
       main() { new B().bar(); }
       class A {
         operator[]=(x, y) {}
@@ -1395,67 +1380,53 @@ testCantAssignMethods() {
           super[1] = 3; // This is OK
         }
       }
-      ''',
-      []);
+      ''', []);
 }
 
 testCantAssignFinalAndConsts() {
   // Can't write final or const locals.
-  checkWarningOn(
-      '''
+  checkWarningOn('''
       main() {
         final x = 1;
         x = 2;
       }
-      ''',
-      [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
-  checkWarningOn(
-      '''
+      ''', [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
+  checkWarningOn('''
       main() {
         const x = 1;
         x = 2;
       }
-      ''',
-      [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
-  checkWarningOn(
-      '''
+      ''', [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
+  checkWarningOn('''
       final x = 1;
       main() { x = 3; }
-      ''',
-      [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
+      ''', [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
 
-  checkWarningOn(
-      '''
+  checkWarningOn('''
       const x = 1;
       main() { x = 3; }
-      ''',
-      [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
+      ''', [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
 
   // Detect assignments to final fields:
-  checkWarningOn(
-      '''
+  checkWarningOn('''
       main() => new B().m();
       class B {
         final x = 1;
         m() { x = 2; }
       }
-      ''',
-      [MessageKind.UNDEFINED_SETTER]);
+      ''', [MessageKind.UNDEFINED_SETTER]);
 
   // ... even if 'this' is explicit:
-  checkWarningOn(
-      '''
+  checkWarningOn('''
       main() => new B().m();
       class B {
         final x = 1;
         m() { this.x = 2; }
       }
-      ''',
-      [MessageKind.UNDEFINED_SETTER]);
+      ''', [MessageKind.UNDEFINED_SETTER]);
 
   // ... and in super class:
-  checkWarningOn(
-      '''
+  checkWarningOn('''
       main() => new B().m();
       class A {
         final x = 1;
@@ -1463,16 +1434,14 @@ testCantAssignFinalAndConsts() {
       class B extends A {
         m() { super.x = 2; }
       }
-      ''',
-      [
-        MessageKind.ASSIGNING_FINAL_FIELD_IN_SUPER,
-        // TODO(johnniwinther): Avoid duplicate warnings.
-        MessageKind.UNDEFINED_SETTER
-      ]);
+      ''', [
+    MessageKind.ASSIGNING_FINAL_FIELD_IN_SUPER,
+    // TODO(johnniwinther): Avoid duplicate warnings.
+    MessageKind.UNDEFINED_SETTER
+  ]);
 
   // But non-final fields are OK:
-  checkWarningOn(
-      '''
+  checkWarningOn('''
       main() => new B().m();
       class A {
         int x = 1;
@@ -1480,12 +1449,10 @@ testCantAssignFinalAndConsts() {
       class B extends A {
         m() { super.x = 2; }
       }
-      ''',
-      []);
+      ''', []);
 
   // Check getter without setter.
-  checkWarningOn(
-      '''
+  checkWarningOn('''
       main() => new B().m();
       class A {
         get x => 1;
@@ -1493,12 +1460,11 @@ testCantAssignFinalAndConsts() {
       class B extends A {
         m() { super.x = 2; }
       }
-      ''',
-      [
-        MessageKind.UNDEFINED_SUPER_SETTER,
-        // TODO(johnniwinther): Avoid duplicate warnings.
-        MessageKind.UNDEFINED_SETTER
-      ]);
+      ''', [
+    MessageKind.UNDEFINED_SUPER_SETTER,
+    // TODO(johnniwinther): Avoid duplicate warnings.
+    MessageKind.UNDEFINED_SETTER
+  ]);
 }
 
 /// Helper to test that [script] produces all the given [warnings].
@@ -1541,29 +1507,22 @@ testAwaitHint() {
   check('main() { await -3; }', functionName: 'main');
   check('main() { () => await -3; }');
   check('foo() => await -3; main() => foo();', functionName: 'foo');
-  check(
-      '''
+  check('''
     class A {
       m() => await - 3;
     }
     main() => new A().m();
-  ''',
-      className: 'A',
-      functionName: 'm');
-  check(
-      '''
+  ''', className: 'A', functionName: 'm');
+  check('''
     class A {
       static m() => await - 3;
     }
     main() => A.m();
-  ''',
-      functionName: 'm');
-  check(
-      '''
+  ''', functionName: 'm');
+  check('''
     class A {
       m() => () => await - 3;
     }
     main() => new A().m();
-  ''',
-      className: 'A');
+  ''', className: 'A');
 }

@@ -1176,13 +1176,7 @@ class Parser {
         }
 
         if (looksLikeType && token.isIdentifier) {
-          // If the identifier token has a type substitution comment /*=T*/,
-          // then the set of tokens type tokens should be replaced with the
-          // tokens parsed from the comment.
           Token afterId = token.next;
-
-          begin =
-              listener.replaceTokenWithGenericCommentTypeAssign(begin, token);
 
           int afterIdKind = afterId.kind;
           if (looksLikeVariableDeclarationEnd(afterIdKind)) {
@@ -1197,18 +1191,36 @@ class Parser {
             if (looksLikeFunctionBody(closeBraceTokenFor(afterId).next)) {
               // We are looking at `type identifier '(' ... ')'` followed
               // `( '{' | '=>' | 'async' | 'sync' )`.
-              return parseLocalFunctionDeclaration(begin);
+
+              // Although it looks like there are no type variables here, they
+              // may get injected from a comment.
+              Token formals = parseTypeVariablesOpt(afterId);
+
+              listener.beginLocalFunctionDeclaration(begin);
+              listener.handleModifiers(0);
+              if (voidToken != null) {
+                listener.handleVoidKeyword(voidToken);
+              } else {
+                commitType();
+              }
+              return parseLocalFunctionDeclarationRest(begin, token, formals);
             }
           } else if (identical(afterIdKind, LT_TOKEN)) {
             // We are looking at `type identifier '<'`.
-            Token afterTypeVariables = closeBraceTokenFor(afterId)?.next;
-            if (afterTypeVariables != null &&
-                optional("(", afterTypeVariables)) {
-              if (looksLikeFunctionBody(
-                  closeBraceTokenFor(afterTypeVariables).next)) {
+            Token formals = closeBraceTokenFor(afterId)?.next;
+            if (formals != null && optional("(", formals)) {
+              if (looksLikeFunctionBody(closeBraceTokenFor(formals).next)) {
                 // We are looking at "type identifier '<' ... '>' '(' ... ')'"
                 // followed by '{', '=>', 'async', or 'sync'.
-                return parseLocalFunctionDeclaration(begin);
+                parseTypeVariablesOpt(afterId);
+                listener.beginLocalFunctionDeclaration(begin);
+                listener.handleModifiers(0);
+                if (voidToken != null) {
+                  listener.handleVoidKeyword(voidToken);
+                } else {
+                  commitType();
+                }
+                return parseLocalFunctionDeclarationRest(begin, token, formals);
               }
             }
           }
@@ -1219,7 +1231,17 @@ class Parser {
             return parseLabeledStatement(token);
           } else if (optional('(', token.next)) {
             if (looksLikeFunctionBody(closeBraceTokenFor(token.next).next)) {
-              return parseLocalFunctionDeclaration(token);
+              // We are looking at `identifier '(' ... ')'` followed by `'{'`,
+              // `'=>'`, `'async'`, or `'sync'`.
+
+              // Although it looks like there are no type variables here, they
+              // may get injected from a comment.
+              Token formals = parseTypeVariablesOpt(token.next);
+
+              listener.beginLocalFunctionDeclaration(token);
+              listener.handleModifiers(0);
+              listener.handleNoType(token);
+              return parseLocalFunctionDeclarationRest(begin, token, formals);
             }
           } else if (optional('<', token.next)) {
             Token afterTypeVariables = closeBraceTokenFor(token.next)?.next;
@@ -1227,7 +1249,14 @@ class Parser {
                 optional("(", afterTypeVariables)) {
               if (looksLikeFunctionBody(
                   closeBraceTokenFor(afterTypeVariables).next)) {
-                return parseLocalFunctionDeclaration(token);
+                // We are looking at `identifier '<' ... '>' '(' ... ')'`
+                // followed by `'{'`, `'=>'`, `'async'`, or `'sync'`.
+                parseTypeVariablesOpt(token.next);
+                listener.beginLocalFunctionDeclaration(token);
+                listener.handleModifiers(0);
+                listener.handleNoType(token);
+                return parseLocalFunctionDeclarationRest(
+                    begin, token, afterTypeVariables);
               }
             }
             // Fall through to expression statement.
@@ -2326,34 +2355,32 @@ class Parser {
     Token beginToken = token;
     listener.beginFunctionExpression(token);
     token = parseFormalParameters(token, MemberKind.Local);
-    AsyncModifier savedAsyncModifier = asyncState;
-    token = parseAsyncModifier(token);
-    bool isBlock = optional('{', token);
-    token = parseFunctionBody(token, true, false);
-    asyncState = savedAsyncModifier;
+    token = parseAsyncOptBody(token, true, false);
     listener.endFunctionExpression(beginToken, token);
-    return isBlock ? token.next : token;
+    return token;
   }
 
-  Token parseLocalFunctionDeclaration(Token token) {
-    listener.beginLocalFunctionDeclaration(token);
-    Token beginToken = token;
-    token = parseModifiers(token, MemberKind.Local);
+  /// Parses the rest of a local function declaration starting from its [name]
+  /// but then skips any type parameters and continue parsing from [formals]
+  /// (the formal parameters).
+  ///
+  /// Precondition: the parser has previously generated these events:
+  ///
+  /// - Type variables.
+  /// - beginLocalFunctionDeclaration.
+  /// - Modifiers.
+  /// - Return type.
+  Token parseLocalFunctionDeclarationRest(
+      Token begin, Token name, Token formals) {
+    Token token = name;
     listener.beginFunctionName(token);
     token = parseIdentifier(token, IdentifierContext.localFunctionDeclaration);
-    token = parseQualifiedRestOpt(
-        token, IdentifierContext.localFunctionDeclarationContinuation);
-    listener.endFunctionName(beginToken, token);
-    token = parseTypeVariablesOpt(token);
-    token = parseFormalParametersOpt(token, MemberKind.Local);
+    listener.endFunctionName(begin, token);
+    token = parseFormalParametersOpt(formals, MemberKind.Local);
     token = parseInitializersOpt(token);
-    AsyncModifier savedAsyncModifier = asyncState;
-    token = parseAsyncModifier(token);
-    token = parseFunctionBody(token, false, true);
-    asyncState = savedAsyncModifier;
-    token = token.next;
+    token = parseAsyncOptBody(token, false, false);
     listener.endLocalFunctionDeclaration(token);
-    return token;
+    return token.next;
   }
 
   /// Parses a named function expression which isn't legal syntax in Dart.
@@ -2376,13 +2403,24 @@ class Parser {
     token = parseTypeVariablesOpt(token);
     token = parseFormalParameters(token, MemberKind.Local);
     listener.handleNoInitializers();
+    token = parseAsyncOptBody(token, true, false);
+    listener.endNamedFunctionExpression(token);
+    return token;
+  }
+
+  /// Parses a function body optionally preceded by an async modifier (see
+  /// [parseAsyncModifier]).  This method is used in both expression context
+  /// (when [isExpression] is true) and statement context. In statement context
+  /// (when [isExpression] is false), and if the function body is on the form
+  /// `=> expression`, a trailing semicolon is required.
+  ///
+  /// It's an error if there's no function body unless [allowAbstract] is true.
+  Token parseAsyncOptBody(Token token, bool isExpression, bool allowAbstract) {
     AsyncModifier savedAsyncModifier = asyncState;
     token = parseAsyncModifier(token);
-    bool isBlock = optional('{', token);
-    token = parseFunctionBody(token, true, false);
+    token = parseFunctionBody(token, isExpression, allowAbstract);
     asyncState = savedAsyncModifier;
-    listener.endNamedFunctionExpression(token);
-    return isBlock ? token.next : token;
+    return token;
   }
 
   Token parseConstructorReference(Token token) {
@@ -2443,6 +2481,12 @@ class Parser {
     return token;
   }
 
+  /// Parses a function body.  This method is used in both expression context
+  /// (when [isExpression] is true) and statement context. In statement context
+  /// (when [isExpression] is false), and if the function body is on the form
+  /// `=> expression`, a trailing semicolon is required.
+  ///
+  /// It's an error if there's no function body unless [allowAbstract] is true.
   Token parseFunctionBody(Token token, bool isExpression, bool allowAbstract) {
     if (optional(';', token)) {
       if (!allowAbstract) {
@@ -2491,7 +2535,7 @@ class Parser {
     }
     listener.endBlockFunctionBody(statementCount, begin, token);
     expect('}', token);
-    return token;
+    return isExpression ? token.next : token;
   }
 
   Token skipAsyncModifier(Token token) {

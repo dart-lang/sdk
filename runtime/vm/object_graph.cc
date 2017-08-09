@@ -205,7 +205,6 @@ ObjectGraph::ObjectGraph(Thread* thread) : StackResource(thread) {
 ObjectGraph::~ObjectGraph() {}
 
 void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
-  NoSafepointScope no_safepoint_scope_;
   Stack stack(isolate());
   isolate()->VisitObjectPointers(&stack, false);
   stack.TraverseGraph(visitor);
@@ -213,7 +212,6 @@ void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
 }
 
 void ObjectGraph::IterateUserObjects(ObjectGraph::Visitor* visitor) {
-  NoSafepointScope no_safepoint_scope_;
   Stack stack(isolate());
   IterateUserFields(&stack);
   stack.include_vm_objects_ = false;
@@ -223,7 +221,6 @@ void ObjectGraph::IterateUserObjects(ObjectGraph::Visitor* visitor) {
 
 void ObjectGraph::IterateObjectsFrom(const Object& root,
                                      ObjectGraph::Visitor* visitor) {
-  NoSafepointScope no_safepoint_scope_;
   Stack stack(isolate());
   RawObject* root_raw = root.raw();
   stack.VisitPointer(&root_raw);
@@ -252,11 +249,11 @@ class InstanceAccumulator : public ObjectVisitor {
 
 void ObjectGraph::IterateObjectsFrom(intptr_t class_id,
                                      ObjectGraph::Visitor* visitor) {
-  NoSafepointScope no_safepoint_scope_;
+  HeapIterationScope iteration(thread());
   Stack stack(isolate());
 
   InstanceAccumulator accumulator(&stack, class_id);
-  isolate()->heap()->VisitObjectsNoImagePages(&accumulator);
+  iteration.IterateObjectsNoImagePages(&accumulator);
 
   stack.TraverseGraph(visitor);
   Unmarker::UnmarkAll(isolate());
@@ -301,7 +298,7 @@ class SizeExcludingClassVisitor : public SizeVisitor {
 };
 
 intptr_t ObjectGraph::SizeRetainedByInstance(const Object& obj) {
-  HeapIterationScope iteration_scope(true);
+  HeapIterationScope iteration_scope(Thread::Current(), true);
   SizeVisitor total;
   IterateObjects(&total);
   intptr_t size_total = total.size();
@@ -312,14 +309,14 @@ intptr_t ObjectGraph::SizeRetainedByInstance(const Object& obj) {
 }
 
 intptr_t ObjectGraph::SizeReachableByInstance(const Object& obj) {
-  HeapIterationScope iteration_scope(true);
+  HeapIterationScope iteration_scope(Thread::Current(), true);
   SizeVisitor total;
   IterateObjectsFrom(obj, &total);
   return total.size();
 }
 
 intptr_t ObjectGraph::SizeRetainedByClass(intptr_t class_id) {
-  HeapIterationScope iteration_scope(true);
+  HeapIterationScope iteration_scope(Thread::Current(), true);
   SizeVisitor total;
   IterateObjects(&total);
   intptr_t size_total = total.size();
@@ -330,7 +327,7 @@ intptr_t ObjectGraph::SizeRetainedByClass(intptr_t class_id) {
 }
 
 intptr_t ObjectGraph::SizeReachableByClass(intptr_t class_id) {
-  HeapIterationScope iteration_scope(true);
+  HeapIterationScope iteration_scope(Thread::Current(), true);
   SizeVisitor total;
   IterateObjectsFrom(class_id, &total);
   return total.size();
@@ -341,7 +338,6 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
   // We cannot use a GrowableObjectArray, since we must not trigger GC.
   RetainingPathVisitor(RawObject* obj, const Array& path)
       : thread_(Thread::Current()), obj_(obj), path_(path), length_(0) {
-    ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0);
   }
 
   intptr_t length() const { return length_; }
@@ -424,8 +420,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
 };
 
 intptr_t ObjectGraph::RetainingPath(Object* obj, const Array& path) {
-  NoSafepointScope no_safepoint_scope_;
-  HeapIterationScope iteration_scope(true);
+  HeapIterationScope iteration_scope(Thread::Current(), true);
   // To break the trivial path, the handle 'obj' is temporarily cleared during
   // the search, but restored before returning.
   RawObject* raw = obj->raw();
@@ -504,9 +499,9 @@ class InboundReferencesVisitor : public ObjectVisitor,
 
 intptr_t ObjectGraph::InboundReferences(Object* obj, const Array& references) {
   Object& scratch = Object::Handle();
-  NoSafepointScope no_safepoint_scope;
+  HeapIterationScope iteration(Thread::Current());
   InboundReferencesVisitor visitor(isolate(), obj->raw(), references, &scratch);
-  isolate()->heap()->IterateObjects(&visitor);
+  iteration.IterateObjects(&visitor);
   return visitor.length();
 }
 
@@ -609,7 +604,7 @@ intptr_t ObjectGraph::Serialize(WriteStream* stream,
   }
   // Current encoding assumes objects do not move, so promote everything to old.
   isolate()->heap()->new_space()->Evacuate();
-  HeapIterationScope iteration_scope(true);
+  HeapIterationScope iteration_scope(Thread::Current(), true);
 
   RawObject* kRootAddress = reinterpret_cast<RawObject*>(kHeapObjectTag);
   const intptr_t kRootCid = kIllegalCid;

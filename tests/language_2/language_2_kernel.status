@@ -1,0 +1,181 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Sections in this file should contain "$compiler == dartk" or
+# "$compiler == dartkp".
+
+[ $compiler == dartk ]
+generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
+
+[ $compiler == dartk && $runtime == vm ]
+assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+assertion_initializer_test: CompileTimeError
+cha_deopt1_test: RuntimeError
+cha_deopt2_test: RuntimeError
+cha_deopt3_test: RuntimeError
+
+[ $compiler == dartk && $runtime == vm && !$checked ]
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+
+[ $compiler == dartk && $runtime == vm && $checked ]
+assertion_initializer_const_function_test/01: RuntimeError
+regress_30339_test: RuntimeError
+
+[ $compiler == dartkp && $runtime == dart_precompiled ]
+assertion_initializer_const_error2_test/none: CompileTimeError
+
+[ $compiler == dartkp && $runtime == dart_precompiled && !$checked ]
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+assertion_initializer_test: CompileTimeError
+
+[ $compiler == dartkp && $runtime == dart_precompiled && $checked ]
+assertion_initializer_const_error2_test/cc02: Crash
+assertion_initializer_const_error_test/none: Crash
+assertion_initializer_const_function_error_test/01: Crash
+assertion_initializer_const_function_error_test/none: Crash
+assertion_initializer_const_function_test/01: Crash
+assertion_initializer_const_function_test/none: Crash
+assertion_initializer_test: CompileTimeError
+regress_30339_test: Crash
+
+# dartk: checked mode failures
+[ $checked && ($compiler == dartk || $compiler == dartkp) ]
+assert_initializer_test/31: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/32: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/33: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/34: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/35: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/36: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/37: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/38: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/41: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/42: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/43: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/44: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/45: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/46: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/47: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/48: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/none: RuntimeError # KernelVM bug: Constant evaluation.
+
+[ $compiler == dartk || $compiler == dartkp ]
+assert_trailing_comma_test/none: CompileTimeError # Issue 29959
+function_type/function_type0_test: RuntimeError
+function_type/function_type10_test: RuntimeError
+function_type/function_type11_test: RuntimeError
+function_type/function_type12_test: RuntimeError
+function_type/function_type13_test: RuntimeError
+function_type/function_type14_test: RuntimeError
+function_type/function_type15_test: RuntimeError
+function_type/function_type16_test: RuntimeError
+function_type/function_type17_test: RuntimeError
+function_type/function_type18_test: RuntimeError
+function_type/function_type19_test: RuntimeError
+function_type/function_type1_test: RuntimeError
+function_type/function_type20_test: RuntimeError
+function_type/function_type21_test: RuntimeError
+function_type/function_type22_test: RuntimeError
+function_type/function_type23_test: RuntimeError
+function_type/function_type24_test: RuntimeError
+function_type/function_type25_test: RuntimeError
+function_type/function_type26_test: RuntimeError
+function_type/function_type27_test: RuntimeError
+function_type/function_type28_test: RuntimeError
+function_type/function_type29_test: RuntimeError
+function_type/function_type2_test: RuntimeError
+function_type/function_type30_test: RuntimeError
+function_type/function_type31_test: RuntimeError
+function_type/function_type32_test: RuntimeError
+function_type/function_type33_test: RuntimeError
+function_type/function_type34_test: RuntimeError
+function_type/function_type35_test: RuntimeError
+function_type/function_type36_test: RuntimeError
+function_type/function_type37_test: RuntimeError
+function_type/function_type38_test: RuntimeError
+function_type/function_type39_test: RuntimeError
+function_type/function_type3_test: RuntimeError
+function_type/function_type40_test: RuntimeError
+function_type/function_type41_test: RuntimeError
+function_type/function_type42_test: RuntimeError
+function_type/function_type43_test: RuntimeError
+function_type/function_type44_test: RuntimeError
+function_type/function_type45_test: RuntimeError
+function_type/function_type46_test: RuntimeError
+function_type/function_type47_test: RuntimeError
+function_type/function_type48_test: RuntimeError
+function_type/function_type49_test: RuntimeError
+function_type/function_type4_test: RuntimeError
+function_type/function_type50_test: RuntimeError
+function_type/function_type51_test: RuntimeError
+function_type/function_type52_test: RuntimeError
+function_type/function_type53_test: RuntimeError
+function_type/function_type54_test: RuntimeError
+function_type/function_type55_test: RuntimeError
+function_type/function_type56_test: RuntimeError
+function_type/function_type57_test: RuntimeError
+function_type/function_type58_test: RuntimeError
+function_type/function_type59_test: RuntimeError
+function_type/function_type5_test: RuntimeError
+function_type/function_type60_test: RuntimeError
+function_type/function_type61_test: RuntimeError
+function_type/function_type62_test: RuntimeError
+function_type/function_type63_test: RuntimeError
+function_type/function_type64_test: RuntimeError
+function_type/function_type65_test: RuntimeError
+function_type/function_type66_test: RuntimeError
+function_type/function_type67_test: RuntimeError
+function_type/function_type68_test: RuntimeError
+function_type/function_type69_test: RuntimeError
+function_type/function_type6_test: RuntimeError
+function_type/function_type70_test: RuntimeError
+function_type/function_type71_test: RuntimeError
+function_type/function_type72_test: RuntimeError
+function_type/function_type73_test: RuntimeError
+function_type/function_type74_test: RuntimeError
+function_type/function_type75_test: RuntimeError
+function_type/function_type76_test: RuntimeError
+function_type/function_type77_test: RuntimeError
+function_type/function_type78_test: RuntimeError
+function_type/function_type79_test: RuntimeError
+function_type/function_type7_test: RuntimeError
+function_type/function_type80_test: RuntimeError
+function_type/function_type81_test: RuntimeError
+function_type/function_type82_test: RuntimeError
+function_type/function_type83_test: RuntimeError
+function_type/function_type84_test: RuntimeError
+function_type/function_type85_test: RuntimeError
+function_type/function_type86_test: RuntimeError
+function_type/function_type87_test: RuntimeError
+function_type/function_type88_test: RuntimeError
+function_type/function_type89_test: RuntimeError
+function_type/function_type8_test: RuntimeError
+function_type/function_type90_test: RuntimeError
+function_type/function_type91_test: RuntimeError
+function_type/function_type92_test: RuntimeError
+function_type/function_type93_test: RuntimeError
+function_type/function_type94_test: RuntimeError
+function_type/function_type95_test: RuntimeError
+function_type/function_type96_test: RuntimeError
+function_type/function_type97_test: RuntimeError
+function_type/function_type98_test: RuntimeError
+function_type/function_type99_test: RuntimeError
+function_type/function_type9_test: RuntimeError
+cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+cha_deopt2_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+cha_deopt3_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+
+[ $checked && ($compiler == dartk || $compiler == dartkp) ]
+assign_static_type_test/02: MissingCompileTimeError
+async_return_types_test/nestedFuture: Fail
+async_return_types_test/wrongTypeParameter: Fail
+
+# These test entries will be valid for vm (with and without kernel).
+[ $compiler == none || $compiler == app_jit || $compiler == dartk ]
+async_star_cancel_while_paused_test: RuntimeError
+async_star_pause_test: Fail, OK
+
+[ $compiler == dartk && $runtime == vm ]
+async_star_cancel_while_paused_test: RuntimeError

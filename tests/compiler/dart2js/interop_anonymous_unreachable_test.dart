@@ -10,8 +10,7 @@ import 'compiler_helper.dart';
 main() {
   test("unreachable code doesn't crash the compiler", () async {
     // This test is a regression for Issue #24974
-    String generated = await compile(
-        """
+    String generated = await compile("""
         import 'package:js/js.dart';
 
         @JS() @anonymous
@@ -19,8 +18,7 @@ main() {
           external factory UniqueLongNameForTesting_A();
         }
         main() {}
-    """,
-        returnAll: true);
+    """, returnAll: true);
 
     // the code should not be included in the output either.
     expect(generated, isNot(contains("UniqueLongNameForTesting_A")));

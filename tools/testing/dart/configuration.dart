@@ -356,11 +356,6 @@ class Configuration {
       print("-rflutter is applicable only for --arch=x64");
     }
 
-    if (compiler == Compiler.dartdevc && !useSdk) {
-      isValid = false;
-      print("--compiler dartdevc requires --use-sdk");
-    }
-
     if (compiler == Compiler.dartdevc && !isStrong) {
       isValid = false;
       print("--compiler dartdevc requires --strong");

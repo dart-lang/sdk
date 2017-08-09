@@ -1,0 +1,786 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Sections in this file should contain "$compiler == dart2js".
+
+# dart2js does not implement the Dart 2.0 static type errors yet.
+[ $compiler == dart2js ]
+abstract_beats_arguments_test: MissingCompileTimeError
+abstract_exact_selector_test/01: MissingCompileTimeError
+abstract_factory_constructor_test/00: MissingCompileTimeError
+abstract_getter_test/01: MissingCompileTimeError
+abstract_syntax_test/00: MissingCompileTimeError
+assign_static_type_test/01: MissingCompileTimeError
+assign_static_type_test/02: MissingCompileTimeError
+assign_static_type_test/03: MissingCompileTimeError
+assign_static_type_test/04: MissingCompileTimeError
+assign_static_type_test/05: MissingCompileTimeError
+assign_static_type_test/06: MissingCompileTimeError
+assign_to_type_test/01: MissingCompileTimeError
+assign_to_type_test/02: MissingCompileTimeError
+assign_to_type_test/03: MissingCompileTimeError
+assign_to_type_test/04: MissingCompileTimeError
+assign_top_method_test: MissingCompileTimeError
+async_await_syntax_test/a10a: MissingCompileTimeError
+async_await_syntax_test/b10a: MissingCompileTimeError
+async_await_syntax_test/c10a: MissingCompileTimeError
+async_await_syntax_test/d08b: MissingCompileTimeError
+async_await_syntax_test/d10a: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
+async_return_types_test/nestedFuture: MissingCompileTimeError
+async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
+async_return_types_test/wrongReturnType: MissingCompileTimeError
+async_return_types_test/wrongTypeParameter: MissingCompileTimeError
+bad_named_parameters2_test/01: MissingCompileTimeError
+bad_named_parameters_test/01: MissingCompileTimeError
+bad_named_parameters_test/02: MissingCompileTimeError
+bad_named_parameters_test/03: MissingCompileTimeError
+bad_named_parameters_test/04: MissingCompileTimeError
+bad_named_parameters_test/05: MissingCompileTimeError
+bad_override_test/01: MissingCompileTimeError
+bad_override_test/02: MissingCompileTimeError
+bad_override_test/06: MissingCompileTimeError
+bit_operations_test/01: MissingCompileTimeError
+bit_operations_test/02: MissingCompileTimeError
+bit_operations_test/03: MissingCompileTimeError
+bit_operations_test/04: MissingCompileTimeError
+built_in_identifier_prefix_test: CompileTimeError
+call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
+call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
+call_constructor_on_unresolvable_class_test/03: MissingCompileTimeError
+call_non_method_field_test/01: MissingCompileTimeError
+call_non_method_field_test/02: MissingCompileTimeError
+call_nonexistent_constructor_test/01: MissingCompileTimeError
+call_nonexistent_constructor_test/02: MissingCompileTimeError
+call_nonexistent_static_test/01: MissingCompileTimeError
+call_nonexistent_static_test/02: MissingCompileTimeError
+call_nonexistent_static_test/03: MissingCompileTimeError
+call_nonexistent_static_test/04: MissingCompileTimeError
+call_nonexistent_static_test/05: MissingCompileTimeError
+call_nonexistent_static_test/06: MissingCompileTimeError
+call_nonexistent_static_test/07: MissingCompileTimeError
+call_nonexistent_static_test/08: MissingCompileTimeError
+call_nonexistent_static_test/09: MissingCompileTimeError
+call_nonexistent_static_test/10: MissingCompileTimeError
+call_through_getter_test/01: MissingCompileTimeError
+call_through_getter_test/02: MissingCompileTimeError
+call_type_literal_test/01: MissingCompileTimeError
+cast_test/04: MissingCompileTimeError
+cast_test/05: MissingCompileTimeError
+generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
+
+[ $compiler == dart2js && $runtime != none ]
+bit_operations_test: RuntimeError, OK # Issue 1533
+
+[ $compiler == dart2js && ! $dart2js_with_kernel ]
+accessor_conflict_export2_test: Crash # Issue 25626
+accessor_conflict_export_test: Crash # Issue 25626
+assert_trailing_comma_test/none: CompileTimeError # Issue 29959
+assertion_initializer_const_error2_test/cc01: Crash
+assertion_initializer_const_error2_test/cc02: Crash
+assertion_initializer_const_error2_test/cc03: Crash
+assertion_initializer_const_error2_test/cc04: Crash
+assertion_initializer_const_error2_test/cc05: Crash
+assertion_initializer_const_error2_test/cc06: Crash
+assertion_initializer_const_error2_test/cc07: Crash
+assertion_initializer_const_error2_test/cc08: Crash
+assertion_initializer_const_error2_test/cc09: Crash
+assertion_initializer_const_function_error_test/01: Crash
+assertion_initializer_const_function_test/01: CompileTimeError
+assertion_initializer_test: Crash
+bad_typedef_test/00: Crash # Issue 28214
+call_function_apply_test: RuntimeError # Issue 23873
+canonical_const2_test: RuntimeError, OK # Issue 1533
+
+[ $compiler == dart2js && $runtime != none && ! $dart2js_with_kernel ]
+accessor_conflict_import2_test: RuntimeError # Issue 25626
+accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
+accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
+accessor_conflict_import_test: RuntimeError # Issue 25626
+branch_canonicalization_test: RuntimeError # Issue 638.
+
+[ $compiler == dart2js && ! $checked && ! $enable_asserts && ! $dart2js_with_kernel && $runtime != none ]
+assertion_test: RuntimeError # Issue 12748
+
+[ $compiler == dart2js && $dart2js_with_kernel_in_ssa ]
+abstract_beats_arguments_test: RuntimeError # Issue 27394
+abstract_runtime_error_test/01: RuntimeError # Issue 27394
+abstract_runtime_error_test/02: RuntimeError # Issue 27394
+arithmetic_canonicalization_test: RuntimeError # Issue 27394
+assertion_initializer_const_error_test/01: Crash
+assertion_initializer_const_function_test/01: Crash
+assign_top_method_test/01: Crash # Issue 27394
+async_await_syntax_test/a04b: Crash # Issue 27394
+async_await_syntax_test/a06a: RuntimeError # Issue 27394
+async_await_syntax_test/a07b: Crash # Issue 27394
+async_await_syntax_test/a08b: Crash # Issue 27394
+async_await_syntax_test/b06a: RuntimeError # Issue 27394
+async_await_syntax_test/c06a: RuntimeError # Issue 27394
+async_await_syntax_test/d06a: RuntimeError # Issue 27394
+async_star_pause_test: RuntimeError # Issue 27394
+async_star_regression_fisk_test: RuntimeError # Issue 27394
+async_star_stream_take_test: RuntimeError # Issue 27394
+async_star_take_reyield_test: RuntimeError # Issue 27394
+black_listed_test/13c: Crash # Issue 27394
+black_listed_test/14c: Crash # Issue 27394
+bootstrap_test: RuntimeError # Issue 27394
+call_nonexistent_static_test/10: Crash # Issue 27394
+
+[ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
+assertion_initializer_const_function_test/none: RuntimeError
+
+[ $compiler == dart2js && $runtime == d8 && $checked ]
+assertion_test: RuntimeError
+regress_30339_test: RuntimeError # Issue 26429
+
+[ $compiler == dart2js && $runtime == jsshell && $checked ]
+assertion_test: RuntimeError
+
+[ $compiler == dart2js && $runtime == drt && $checked ]
+assertion_test: RuntimeError
+
+[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+aborting_switch_case_test: Crash
+abstract_exact_selector_test/01: Crash
+abstract_exact_selector_test/none: Crash
+abstract_getter_test/01: Crash
+abstract_method_test: Crash
+abstract_object_method_test: Crash
+abstract_runtime_error_test/01: Crash
+abstract_runtime_error_test/02: Crash
+arg_param_trailing_comma_test/none: Crash
+arithmetic_test: Crash
+assert_message_test: Crash
+assert_trailing_comma_test/none: CompileTimeError
+assertion_initializer_const_error2_test/cc02: Crash
+assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_function_error_test/01: Crash
+assertion_initializer_const_function_test/01: Crash
+assertion_initializer_test: CompileTimeError
+assertion_test: Crash
+assign_instance_method_negative_test: Crash
+assign_instance_method_test: Crash
+assign_to_type_test/01: Crash
+assign_to_type_test/02: Crash
+assign_to_type_test/03: Crash
+assign_to_type_test/04: Crash
+assign_top_method_test/01: Crash
+async_and_or_test: Crash
+async_await_catch_regression_test: Crash
+async_await_foreign_test: Crash
+async_await_syntax_test/a01a: Crash
+async_await_syntax_test/a02a: Crash
+async_await_syntax_test/a03a: Crash
+async_await_syntax_test/a03b: Crash
+async_await_syntax_test/a04a: RuntimeError
+async_await_syntax_test/a04c: RuntimeError
+async_await_syntax_test/a05a: Crash
+async_await_syntax_test/a05b: Crash
+async_await_syntax_test/a06a: Crash
+async_await_syntax_test/a07a: RuntimeError
+async_await_syntax_test/a08a: RuntimeError
+async_await_syntax_test/a09a: Crash
+async_await_syntax_test/a10a: Crash
+async_await_syntax_test/a11b: RuntimeError
+async_await_syntax_test/a11c: Crash
+async_await_syntax_test/a11d: Crash
+async_await_syntax_test/a12g: Crash
+async_await_syntax_test/b01a: Crash
+async_await_syntax_test/b02a: Crash
+async_await_syntax_test/b03a: Crash
+async_await_syntax_test/b04a: RuntimeError
+async_await_syntax_test/b05a: Crash
+async_await_syntax_test/b06a: Crash
+async_await_syntax_test/b07a: RuntimeError
+async_await_syntax_test/b08a: RuntimeError
+async_await_syntax_test/b09a: Crash
+async_await_syntax_test/b10a: Crash
+async_await_syntax_test/b11b: RuntimeError
+async_await_syntax_test/b11c: Crash
+async_await_syntax_test/b11d: Crash
+async_await_syntax_test/b12g: Crash
+async_await_syntax_test/c01a: Crash
+async_await_syntax_test/c02a: Crash
+async_await_syntax_test/c03a: Crash
+async_await_syntax_test/c04a: Crash
+async_await_syntax_test/c05a: Crash
+async_await_syntax_test/c06a: Crash
+async_await_syntax_test/c07a: Crash
+async_await_syntax_test/c08a: Crash
+async_await_syntax_test/c09a: Crash
+async_await_syntax_test/c10a: Crash
+async_await_syntax_test/d01a: Crash
+async_await_syntax_test/d02a: Crash
+async_await_syntax_test/d03a: Crash
+async_await_syntax_test/d04a: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+async_await_syntax_test/d05a: Crash
+async_await_syntax_test/d06a: Crash
+async_await_syntax_test/d07a: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+async_await_syntax_test/d08a: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+async_await_syntax_test/d08b: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+async_await_syntax_test/d09a: Crash
+async_await_syntax_test/d10a: Crash
+async_break_in_finally_test: Crash
+async_call_test: Crash
+async_cascade_test: Crash
+async_continue_label_test/await_in_body: Crash
+async_continue_label_test/await_in_condition: Crash
+async_continue_label_test/await_in_init: Crash
+async_continue_label_test/await_in_update: Crash
+async_continue_label_test/none: Crash
+async_control_structures_test: Crash
+async_finally_rethrow_test: Crash
+async_or_generator_return_type_stacktrace_test/01: Crash
+async_or_generator_return_type_stacktrace_test/02: Crash
+async_or_generator_return_type_stacktrace_test/03: Crash
+async_regression_23058_test: Crash
+async_rethrow_test: Crash
+async_return_types_test/nestedFuture: Crash
+async_return_types_test/none: Crash
+async_return_types_test/tooManyTypeParameters: Crash
+async_return_types_test/wrongReturnType: Crash
+async_return_types_test/wrongTypeParameter: Crash
+async_star_await_pauses_test: Crash
+async_star_cancel_and_throw_in_finally_test: Crash
+async_star_cancel_while_paused_test: Crash
+async_star_no_cancel2_test: Crash
+async_star_no_cancel_test: Crash
+async_star_pause_test: Crash
+async_star_regression_2238_test: Crash
+async_star_regression_23116_test: Crash
+async_star_regression_fisk_test: Crash
+async_star_stream_take_test: Crash
+async_star_take_reyield_test: Crash
+bad_constructor_test/05: MissingCompileTimeError
+bad_named_parameters2_test/01: Crash
+bad_named_parameters_test/01: Crash
+bad_named_parameters_test/02: Crash
+bad_named_parameters_test/03: Crash
+bad_named_parameters_test/04: Crash
+bad_named_parameters_test/05: Crash
+bad_override_test/03: MissingCompileTimeError
+bad_override_test/04: Crash # type 'KernelField' is not a subtype of type 'Procedure' of 'value' where
+bad_override_test/05: MissingCompileTimeError
+bailout3_test: Crash
+bailout4_test: Crash
+bailout5_test: Crash
+bailout6_test: Crash
+bailout7_test: Crash
+bailout_test: Crash
+bind_test: Crash
+bit_operations_test/01: Crash
+bit_operations_test/02: Crash
+bit_operations_test/03: Crash
+bit_operations_test/04: Crash
+bit_operations_test/none: Crash
+bool_check_test: Crash
+bool_condition_check_test: Crash
+bool_test: Crash
+bound_closure_equality_test: Crash
+bound_closure_primitives_test: Crash
+branch_canonicalization_test: RuntimeError
+break_test: Crash
+built_in_identifier_test/01: Crash
+built_in_identifier_test/none: Crash
+call_closurization_test: Crash
+call_constructor_on_unresolvable_class_test/07: Crash
+call_function2_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
+call_function_apply_test: Crash
+call_function_test: Crash # type 'FunctionType' is not a subtype of type 'ResolutionFunctionType' of 'type' where
+call_nonexistent_constructor_test/01: Crash
+call_nonexistent_constructor_test/02: Crash
+call_nonexistent_static_test/01: Crash
+call_nonexistent_static_test/02: Crash
+call_nonexistent_static_test/03: Crash
+call_nonexistent_static_test/04: Crash
+call_nonexistent_static_test/05: Crash
+call_nonexistent_static_test/06: Crash
+call_nonexistent_static_test/07: Crash
+call_nonexistent_static_test/08: Crash
+call_nonexistent_static_test/09: Crash
+call_nonexistent_static_test/10: Crash
+call_operator_test: RuntimeError
+call_property_test: Crash
+call_test: Crash
+call_through_getter_test: Crash
+call_through_null_getter_test: Crash
+call_type_literal_test/01: Crash
+call_with_no_such_method_test: Crash
+canonical_const2_test: RuntimeError
+canonical_const_test: Crash
+cascade2_test: Crash
+cascade_in_expression_function_test: Crash
+cascade_precedence_test: Crash
+cascade_test/none: Crash
+cast2_test: Crash # Assertion failure: Cannot find value local(main_closure.call#oc) in (local(main#)) for j:closure_call(main_closure.call).
+cast_test/04: RuntimeError
+cast_test/05: RuntimeError
+cast_test/none: RuntimeError
+catch_liveness_test: Crash
+cha_deopt1_test: CompileTimeError
+cha_deopt2_test: CompileTimeError
+cha_deopt3_test: CompileTimeError
+function_type/function_type0_test: Crash
+function_type/function_type10_test: Crash
+function_type/function_type11_test: Crash
+function_type/function_type12_test: Crash
+function_type/function_type13_test: Crash
+function_type/function_type14_test: Crash
+function_type/function_type15_test: Crash
+function_type/function_type16_test: Crash
+function_type/function_type17_test: Crash
+function_type/function_type18_test: Crash
+function_type/function_type19_test: Crash
+function_type/function_type1_test: Crash
+function_type/function_type20_test: Crash
+function_type/function_type21_test: Crash
+function_type/function_type22_test: Crash
+function_type/function_type23_test: Crash
+function_type/function_type24_test: Crash
+function_type/function_type25_test: Crash
+function_type/function_type26_test: Crash
+function_type/function_type27_test: Crash
+function_type/function_type28_test: Crash
+function_type/function_type29_test: Crash
+function_type/function_type2_test: Crash
+function_type/function_type30_test: Crash
+function_type/function_type31_test: Crash
+function_type/function_type32_test: Crash
+function_type/function_type33_test: Crash
+function_type/function_type34_test: Crash
+function_type/function_type35_test: Crash
+function_type/function_type36_test: Crash
+function_type/function_type37_test: Crash
+function_type/function_type38_test: Crash
+function_type/function_type39_test: Crash
+function_type/function_type3_test: Crash
+function_type/function_type40_test: Crash
+function_type/function_type41_test: Crash
+function_type/function_type42_test: Crash
+function_type/function_type43_test: Crash
+function_type/function_type44_test: Crash
+function_type/function_type45_test: Crash
+function_type/function_type46_test: Crash
+function_type/function_type47_test: Crash
+function_type/function_type48_test: Crash
+function_type/function_type49_test: Crash
+function_type/function_type4_test: Crash
+function_type/function_type50_test: Crash
+function_type/function_type51_test: Crash
+function_type/function_type52_test: Crash
+function_type/function_type53_test: Crash
+function_type/function_type54_test: Crash
+function_type/function_type55_test: Crash
+function_type/function_type56_test: Crash
+function_type/function_type57_test: Crash
+function_type/function_type58_test: Crash
+function_type/function_type59_test: Crash
+function_type/function_type5_test: Crash
+function_type/function_type60_test: Crash
+function_type/function_type61_test: Crash
+function_type/function_type62_test: Crash
+function_type/function_type63_test: Crash
+function_type/function_type64_test: Crash
+function_type/function_type65_test: Crash
+function_type/function_type66_test: Crash
+function_type/function_type67_test: Crash
+function_type/function_type68_test: Crash
+function_type/function_type69_test: Crash
+function_type/function_type6_test: Crash
+function_type/function_type70_test: Crash
+function_type/function_type71_test: Crash
+function_type/function_type72_test: Crash
+function_type/function_type73_test: Crash
+function_type/function_type74_test: Crash
+function_type/function_type75_test: Crash
+function_type/function_type76_test: Crash
+function_type/function_type77_test: Crash
+function_type/function_type78_test: Crash
+function_type/function_type79_test: Crash
+function_type/function_type7_test: Crash
+function_type/function_type80_test: Crash
+function_type/function_type81_test: Crash
+function_type/function_type82_test: Crash
+function_type/function_type83_test: Crash
+function_type/function_type84_test: Crash
+function_type/function_type85_test: Crash
+function_type/function_type86_test: Crash
+function_type/function_type87_test: Crash
+function_type/function_type88_test: Crash
+function_type/function_type89_test: Crash
+function_type/function_type8_test: Crash
+function_type/function_type90_test: Crash
+function_type/function_type91_test: Crash
+function_type/function_type92_test: Crash
+function_type/function_type93_test: Crash
+function_type/function_type94_test: Crash
+function_type/function_type95_test: Crash
+function_type/function_type96_test: Crash
+function_type/function_type97_test: Crash
+function_type/function_type98_test: Crash
+function_type/function_type99_test: Crash
+function_type/function_type9_test: Crash
+
+[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+aborting_switch_case_test: Crash
+abstract_beats_arguments_test: Crash
+abstract_exact_selector_test/01: Crash
+abstract_exact_selector_test/none: Crash
+abstract_getter_test/01: Crash
+abstract_method_test: Crash
+abstract_object_method_test: Crash
+abstract_runtime_error_test/01: Crash
+abstract_runtime_error_test/02: Crash
+abstract_syntax_test/00: Crash
+arg_param_trailing_comma_test/none: Crash
+arithmetic_test: Crash
+assert_message_test: Crash
+assert_trailing_comma_test/none: CompileTimeError
+assertion_initializer_const_error2_test/cc02: Crash
+assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_function_error_test/01: Crash
+assertion_initializer_test: CompileTimeError
+assertion_test: Crash
+assign_instance_method_negative_test: Crash
+assign_instance_method_test: Crash
+assign_static_type_test/03: Crash
+assign_static_type_test/04: Crash
+assign_to_type_test/01: Crash
+assign_to_type_test/02: Crash
+assign_to_type_test/03: Crash
+assign_to_type_test/04: Crash
+assign_top_method_test/01: Crash
+async_and_or_test: Crash
+async_await_catch_regression_test: Crash
+async_await_foreign_test: Crash
+async_await_syntax_test/a01a: Crash
+async_await_syntax_test/a02a: Crash
+async_await_syntax_test/a03a: Crash
+async_await_syntax_test/a03b: Crash
+async_await_syntax_test/a04a: RuntimeError
+async_await_syntax_test/a04c: RuntimeError
+async_await_syntax_test/a05a: Crash
+async_await_syntax_test/a05b: Crash
+async_await_syntax_test/a06a: Crash
+async_await_syntax_test/a07a: RuntimeError
+async_await_syntax_test/a08a: RuntimeError
+async_await_syntax_test/a09a: Crash
+async_await_syntax_test/a10a: Crash
+async_await_syntax_test/a11b: RuntimeError
+async_await_syntax_test/a11c: Crash
+async_await_syntax_test/a11d: Crash
+async_await_syntax_test/a12g: Crash
+async_await_syntax_test/b01a: Crash
+async_await_syntax_test/b02a: Crash
+async_await_syntax_test/b03a: Crash
+async_await_syntax_test/b04a: RuntimeError
+async_await_syntax_test/b05a: Crash
+async_await_syntax_test/b06a: Crash
+async_await_syntax_test/b07a: RuntimeError
+async_await_syntax_test/b08a: RuntimeError
+async_await_syntax_test/b09a: Crash
+async_await_syntax_test/b10a: Crash
+async_await_syntax_test/b11b: RuntimeError
+async_await_syntax_test/b11c: Crash
+async_await_syntax_test/b11d: Crash
+async_await_syntax_test/b12g: Crash
+async_await_syntax_test/c01a: Crash
+async_await_syntax_test/c02a: Crash
+async_await_syntax_test/c03a: Crash
+async_await_syntax_test/c04a: Crash
+async_await_syntax_test/c05a: Crash
+async_await_syntax_test/c06a: Crash
+async_await_syntax_test/c07a: Crash
+async_await_syntax_test/c08a: Crash
+async_await_syntax_test/c09a: Crash
+async_await_syntax_test/c10a: Crash
+async_await_syntax_test/d01a: Crash
+async_await_syntax_test/d02a: Crash
+async_await_syntax_test/d03a: Crash
+async_await_syntax_test/d04a: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+async_await_syntax_test/d05a: Crash
+async_await_syntax_test/d06a: Crash
+async_await_syntax_test/d07a: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+async_await_syntax_test/d08a: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+async_await_syntax_test/d08b: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+async_await_syntax_test/d09a: Crash
+async_await_syntax_test/d10a: Crash
+async_break_in_finally_test: Crash
+async_call_test: Crash
+async_cascade_test: Crash
+async_continue_label_test/await_in_body: Crash
+async_continue_label_test/await_in_condition: Crash
+async_continue_label_test/await_in_init: Crash
+async_continue_label_test/await_in_update: Crash
+async_continue_label_test/none: Crash
+async_control_structures_test: Crash
+async_finally_rethrow_test: Crash
+async_or_generator_return_type_stacktrace_test/01: Crash
+async_or_generator_return_type_stacktrace_test/02: Crash
+async_or_generator_return_type_stacktrace_test/03: Crash
+async_regression_23058_test: Crash
+async_rethrow_test: Crash
+async_return_types_test/nestedFuture: Crash
+async_return_types_test/none: Crash
+async_return_types_test/tooManyTypeParameters: Crash
+async_return_types_test/wrongReturnType: Crash
+async_return_types_test/wrongTypeParameter: Crash
+async_star_await_pauses_test: Crash
+async_star_cancel_and_throw_in_finally_test: Crash
+async_star_cancel_while_paused_test: Crash
+async_star_no_cancel2_test: Crash
+async_star_no_cancel_test: Crash
+async_star_pause_test: Crash
+async_star_regression_2238_test: Crash
+async_star_regression_23116_test: Crash
+async_star_regression_fisk_test: Crash
+async_star_stream_take_test: Crash
+async_star_take_reyield_test: Crash
+bad_constructor_test/05: MissingCompileTimeError
+bad_named_parameters2_test/01: Crash
+bad_named_parameters_test/01: Crash
+bad_named_parameters_test/02: Crash
+bad_named_parameters_test/03: Crash
+bad_named_parameters_test/04: Crash
+bad_named_parameters_test/05: Crash
+bad_override_test/01: Crash
+bad_override_test/02: Crash
+bad_override_test/03: MissingCompileTimeError
+bad_override_test/04: MissingCompileTimeError
+bad_override_test/05: MissingCompileTimeError
+bad_override_test/06: Crash
+bailout3_test: Crash
+bailout4_test: Crash
+bailout5_test: Crash
+bailout6_test: Crash
+bailout7_test: Crash
+bailout_test: Crash
+bind_test: Crash
+bit_operations_test/01: Crash
+bit_operations_test/02: Crash
+bit_operations_test/03: Crash
+bit_operations_test/04: Crash
+bit_operations_test/none: Crash
+bool_check_test: Crash
+bool_condition_check_test/01: Crash
+bool_condition_check_test: Crash
+bool_test: Crash
+bound_closure_equality_test: Crash
+bound_closure_primitives_test: Crash
+branch_canonicalization_test: RuntimeError
+break_test: Crash
+built_in_identifier_test/01: Crash
+built_in_identifier_test/none: Crash
+call_closurization_test: Crash
+call_constructor_on_unresolvable_class_test/07: Crash
+call_function2_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
+call_function_apply_test: Crash
+call_nonexistent_constructor_test/01: Crash
+call_nonexistent_constructor_test/02: Crash
+call_nonexistent_static_test/01: Crash
+call_nonexistent_static_test/02: Crash
+call_nonexistent_static_test/03: Crash
+call_nonexistent_static_test/04: Crash
+call_nonexistent_static_test/05: Crash
+call_nonexistent_static_test/06: Crash
+call_nonexistent_static_test/07: Crash
+call_nonexistent_static_test/08: Crash
+call_nonexistent_static_test/09: Crash
+call_nonexistent_static_test/10: Crash
+call_operator_test: RuntimeError
+call_test: Crash
+call_through_getter_test: Crash
+call_through_null_getter_test: Crash
+call_type_literal_test/01: Crash
+call_with_no_such_method_test: Crash
+canonical_const2_test: RuntimeError
+canonical_const_test: Crash
+cascade2_test: Crash
+cascade_in_expression_function_test: Crash
+cascade_precedence_test: Crash
+cascade_test/none: Crash
+cast2_test: Crash # Assertion failure: Cannot find value local(main_closure.call#oc) in (local(main#)) for j:closure_call(main_closure.call).
+cast_test/04: RuntimeError
+cast_test/05: RuntimeError
+cast_test/none: RuntimeError
+catch_liveness_test: Crash
+cha_deopt1_test: CompileTimeError
+cha_deopt2_test: CompileTimeError
+cha_deopt3_test: CompileTimeError
+function_type/function_type0_test: Crash
+function_type/function_type10_test: Crash
+function_type/function_type11_test: Crash
+function_type/function_type12_test: Crash
+function_type/function_type13_test: Crash
+function_type/function_type14_test: Crash
+function_type/function_type15_test: Crash
+function_type/function_type16_test: Crash
+function_type/function_type17_test: Crash
+function_type/function_type18_test: Crash
+function_type/function_type19_test: Crash
+function_type/function_type1_test: Crash
+function_type/function_type20_test: Crash
+function_type/function_type21_test: Crash
+function_type/function_type22_test: Crash
+function_type/function_type23_test: Crash
+function_type/function_type24_test: Crash
+function_type/function_type25_test: Crash
+function_type/function_type26_test: Crash
+function_type/function_type27_test: Crash
+function_type/function_type28_test: Crash
+function_type/function_type29_test: Crash
+function_type/function_type2_test: Crash
+function_type/function_type30_test: Crash
+function_type/function_type31_test: Crash
+function_type/function_type32_test: Crash
+function_type/function_type33_test: Crash
+function_type/function_type34_test: Crash
+function_type/function_type35_test: Crash
+function_type/function_type36_test: Crash
+function_type/function_type37_test: Crash
+function_type/function_type38_test: Crash
+function_type/function_type39_test: Crash
+function_type/function_type3_test: Crash
+function_type/function_type40_test: Crash
+function_type/function_type41_test: Crash
+function_type/function_type42_test: Crash
+function_type/function_type43_test: Crash
+function_type/function_type44_test: Crash
+function_type/function_type45_test: Crash
+function_type/function_type46_test: Crash
+function_type/function_type47_test: Crash
+function_type/function_type48_test: Crash
+function_type/function_type49_test: Crash
+function_type/function_type4_test: Crash
+function_type/function_type50_test: Crash
+function_type/function_type51_test: Crash
+function_type/function_type52_test: Crash
+function_type/function_type53_test: Crash
+function_type/function_type54_test: Crash
+function_type/function_type55_test: Crash
+function_type/function_type56_test: Crash
+function_type/function_type57_test: Crash
+function_type/function_type58_test: Crash
+function_type/function_type59_test: Crash
+function_type/function_type5_test: Crash
+function_type/function_type60_test: Crash
+function_type/function_type61_test: Crash
+function_type/function_type62_test: Crash
+function_type/function_type63_test: Crash
+function_type/function_type64_test: Crash
+function_type/function_type65_test: Crash
+function_type/function_type66_test: Crash
+function_type/function_type67_test: Crash
+function_type/function_type68_test: Crash
+function_type/function_type69_test: Crash
+function_type/function_type6_test: Crash
+function_type/function_type70_test: Crash
+function_type/function_type71_test: Crash
+function_type/function_type72_test: Crash
+function_type/function_type73_test: Crash
+function_type/function_type74_test: Crash
+function_type/function_type75_test: Crash
+function_type/function_type76_test: Crash
+function_type/function_type77_test: Crash
+function_type/function_type78_test: Crash
+function_type/function_type79_test: Crash
+function_type/function_type7_test: Crash
+function_type/function_type80_test: Crash
+function_type/function_type81_test: Crash
+function_type/function_type82_test: Crash
+function_type/function_type83_test: Crash
+function_type/function_type84_test: Crash
+function_type/function_type85_test: Crash
+function_type/function_type86_test: Crash
+function_type/function_type87_test: Crash
+function_type/function_type88_test: Crash
+function_type/function_type89_test: Crash
+function_type/function_type8_test: Crash
+function_type/function_type90_test: Crash
+function_type/function_type91_test: Crash
+function_type/function_type92_test: Crash
+function_type/function_type93_test: Crash
+function_type/function_type94_test: Crash
+function_type/function_type95_test: Crash
+function_type/function_type96_test: Crash
+function_type/function_type97_test: Crash
+function_type/function_type98_test: Crash
+function_type/function_type99_test: Crash
+function_type/function_type9_test: Crash
+
+[ $compiler == dart2js && ! $dart2js_with_kernel && $runtime != none ]
+async_star_cancel_while_paused_test: RuntimeError # Issue 22853
+
+[ $compiler == dart2js && $runtime == jsshell && ! $dart2js_with_kernel ]
+async_star_await_pauses_test: RuntimeError # Need triage
+async_star_no_cancel2_test: RuntimeError # Need triage
+async_star_no_cancel_test: RuntimeError # Need triage
+
+[ $compiler == dart2js && $checked && ! $dart2js_with_kernel ]
+async_return_types_test/nestedFuture: Fail # Issue 26429
+async_return_types_test/wrongTypeParameter: Fail # Issue 26429
+
+[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel && $host_checked ]
+assign_instance_method_negative_test: Crash
+
+[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel && $minified ]
+assign_instance_method_negative_test: Crash
+
+[ $compiler == dart2js && $runtime != none && $checked ]
+assert_with_message_test: RuntimeError
+
+[ $compiler == dart2js && ! $checked && ! $dart2js_with_kernel ]
+bool_check_test: RuntimeError # Issue 29647
+bool_condition_check_test: RuntimeError
+
+[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
+function_type/function_type14_test: Crash # Issue 27394
+function_type/function_type15_test: Crash # Issue 27394
+function_type/function_type20_test: Crash # Issue 27394
+function_type/function_type21_test: Crash # Issue 27394
+function_type/function_type22_test: Crash # Issue 27394
+function_type/function_type23_test: Crash # Issue 27394
+function_type/function_type24_test: Crash # Issue 27394
+function_type/function_type25_test: Crash # Issue 27394
+function_type/function_type26_test: Crash # Issue 27394
+function_type/function_type27_test: Crash # Issue 27394
+function_type/function_type28_test: Crash # Issue 27394
+function_type/function_type29_test: Crash # Issue 27394
+function_type/function_type30_test: Crash # Issue 27394
+function_type/function_type31_test: Crash # Issue 27394
+function_type/function_type32_test: Crash # Issue 27394
+function_type/function_type33_test: Crash # Issue 27394
+function_type/function_type34_test: Crash # Issue 27394
+function_type/function_type35_test: Crash # Issue 27394
+function_type/function_type36_test: Crash # Issue 27394
+function_type/function_type37_test: Crash # Issue 27394
+function_type/function_type38_test: Crash # Issue 27394
+function_type/function_type39_test: Crash # Issue 27394
+function_type/function_type40_test: Crash # Issue 27394
+function_type/function_type41_test: Crash # Issue 27394
+function_type/function_type42_test: Crash # Issue 27394
+function_type/function_type43_test: Crash # Issue 27394
+function_type/function_type44_test: Crash # Issue 27394
+function_type/function_type45_test: Crash # Issue 27394
+function_type/function_type46_test: Crash # Issue 27394
+function_type/function_type47_test: Crash # Issue 27394
+function_type/function_type48_test: Crash # Issue 27394
+function_type/function_type49_test: Crash # Issue 27394
+function_type/function_type50_test: Crash # Issue 27394
+function_type/function_type51_test: Crash # Issue 27394
+function_type/function_type52_test: Crash # Issue 27394
+function_type/function_type53_test: Crash # Issue 27394
+function_type/function_type54_test: Crash # Issue 27394
+function_type/function_type55_test: Crash # Issue 27394
+function_type/function_type62_test: Crash # Issue 27394
+function_type/function_type63_test: Crash # Issue 27394
+function_type/function_type6_test: Crash # Issue 27394
+function_type/function_type7_test: Crash # Issue 27394
+function_type/function_type98_test: Crash # Issue 27394
+function_type/function_type99_test: Crash # Issue 27394
+
+[ $compiler == dart2js && $runtime == safarimobilesim ]
+call_through_getter_test: Fail, OK

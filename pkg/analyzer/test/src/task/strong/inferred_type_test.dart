@@ -1065,28 +1065,6 @@ void main () {
 ''');
   }
 
-  test_downwardsInferenceOnFunctionOfTUsingTheT_comment() async {
-    await checkFileElement('''
-void main () {
-  {
-    /*=T*/ f/*<T>*/(/*=T*/ x) => null;
-    var v1 = f;
-    v1 = /*info:INFERRED_TYPE_CLOSURE*//*<S>*/(x) => x;
-  }
-  {
-    /*=List<T>*/ f/*<T>*/(/*=T*/ x) => null;
-    var v2 = f;
-    v2 = /*info:INFERRED_TYPE_CLOSURE*//*<S>*/(x) => /*info:INFERRED_TYPE_LITERAL*/[x];
-    Iterable<int> r = v2(42);
-    Iterable<String> s = v2('hello');
-    Iterable<List<int>> t = v2(<int>[]);
-    Iterable<num> u = v2(42);
-    Iterable<num> v = v2/*<num>*/(42);
-  }
-}
-''');
-  }
-
   test_downwardsInferenceOnGenericConstructorArguments_emptyList() async {
     await checkFileElement('''
 class F3<T> {
@@ -1205,53 +1183,6 @@ void main () {
     y = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) => /*info:DYNAMIC_INVOKE, info:DYNAMIC_CAST*/x./*error:UNDEFINED_METHOD*/substring(3);
     var z = string2String;
     z = /*info:INFERRED_TYPE_CLOSURE*/<T>(x) => x.substring(3);
-  }
-}
-''');
-  }
-
-  test_downwardsInferenceOnGenericFunctionExpressions_comment() async {
-    await checkFileElement('''
-void main () {
-  {
-    String f/*<S>*/(int x) => null;
-    var v = f;
-    v = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(int x) => null;
-    v = /*<T>*/(int x) => "hello";
-    v = /*error:INVALID_ASSIGNMENT*//*<T>*/(String x) => "hello";
-    v = /*error:INVALID_ASSIGNMENT*//*<T>*/(int x) => 3;
-    v = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(int x) {return /*error:RETURN_OF_INVALID_TYPE*/3;};
-  }
-  {
-    String f/*<S>*/(int x) => null;
-    var v = f;
-    v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => null;
-    v = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => "hello";
-    v = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*//*<T>*/(x) => 3;
-    v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) {return /*error:RETURN_OF_INVALID_TYPE*/3;};
-    v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) {return /*error:RETURN_OF_INVALID_TYPE*/x;};
-  }
-  {
-    List<String> f/*<S>*/(int x) => null;
-    var v = f;
-    v = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(int x) => null;
-    v = /*<T>*/(int x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
-    v = /*error:INVALID_ASSIGNMENT*//*<T>*/(String x) => /*info:INFERRED_TYPE_LITERAL*/["hello"];
-    v = /*<T>*/(int x) => /*info:INFERRED_TYPE_LITERAL*/[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3];
-    v = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(int x) {return /*info:INFERRED_TYPE_LITERAL*/[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3];};
-  }
-  {
-    int int2int/*<S>*/(int x) => null;
-    String int2String/*<T>*/(int x) => null;
-    String string2String/*<T>*/(String x) => null;
-    var x = int2int;
-    x = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => x;
-    x = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => x+1;
-    var y = int2String;
-    y = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*//*<T>*/(x) => x;
-    y = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => /*info:DYNAMIC_INVOKE, info:DYNAMIC_CAST*/x./*error:UNDEFINED_METHOD*/substring(3);
-    var z = string2String;
-    z = /*info:INFERRED_TYPE_CLOSURE*//*<T>*/(x) => x.substring(3);
   }
 }
 ''');
@@ -1872,20 +1803,6 @@ main() async {
   ''');
   }
 
-  test_futureUnion_downwardsGenericMethodWithGenericReturn_comment() async {
-    // Regression test for https://github.com/dart-lang/sdk/issues/27284
-    await checkFileElement(r'''
-import 'dart:async';
-
-/*=T*/ id/*<T>*/(/*=T*/ x) => x;
-
-main() async {
-  Future<String> f;
-  String s = await id(f);
-}
-  ''');
-  }
-
   test_futureUnion_upwardsGenericMethods() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/27151
     await checkFileElement(r'''
@@ -1921,33 +1838,9 @@ main() {
   ''');
   }
 
-  test_genericFunctions_returnTypedef_comment() async {
-    await checkFileElement(r'''
-typedef void ToValue<T>(T value);
-
-main() {
-  ToValue/*<T>*/ f/*<T>*/(dynamic /*=T*/ x) => null;
-  var x = f/*<int>*/(42);
-  var y = f(42);
-  ToValue<int> takesInt = x;
-  takesInt = y;
-}
-  ''');
-  }
-
   test_genericMethods_basicDownwardInference() async {
     await checkFileElement(r'''
 T f<S, T>(S s) => null;
-main() {
-  String x = f(42);
-  String y = (f)(42);
-}
-''');
-  }
-
-  test_genericMethods_basicDownwardInference_comment() async {
-    await checkFileElement(r'''
-/*=T*/ f/*<S, T>*/(/*=S*/ s) => null;
 main() {
   String x = f(42);
   String y = (f)(42);
@@ -2029,34 +1922,9 @@ main() {
 ''');
   }
 
-  test_genericMethods_doNotInferInvalidOverrideOfGenericMethod_comment() async {
-    await checkFileElement('''
-class C {
-/*=T*/ m/*<T>*/(/*=T*/ x) => x;
-}
-class D extends C {
-/*error:INVALID_METHOD_OVERRIDE*/m(x) => x;
-}
-main() {
-  int y = /*info:DYNAMIC_CAST*/new D()./*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/m/*<int>*/(42);
-  print(y);
-}
-''');
-  }
-
   test_genericMethods_downwardsInferenceAffectsArguments() async {
     await checkFileElement(r'''
 T f<T>(List<T> s) => null;
-main() {
-  String x = f(/*info:INFERRED_TYPE_LITERAL*/['hi']);
-  String y = f(/*info:INFERRED_TYPE_LITERAL*/[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/42]);
-}
-''');
-  }
-
-  test_genericMethods_downwardsInferenceAffectsArguments_comment() async {
-    await checkFileElement(r'''
-/*=T*/ f/*<T>*/(List/*<T>*/ s) => null;
 main() {
   String x = f(/*info:INFERRED_TYPE_LITERAL*/['hi']);
   String y = f(/*info:INFERRED_TYPE_LITERAL*/[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/42]);
@@ -2139,34 +2007,6 @@ typedef List<V> G<V>();
     expect(f.type.toString(), '<U>(() → List<U>) → void');
   }
 
-  test_genericMethods_inferGenericFunctionParameterType2_comment() async {
-    var mainUnit = await checkFileElement('''
-class C<T> extends D<T> {
-  f/*<U>*/(g) => null;
-}
-abstract class D<T> {
-  void f/*<U>*/(G/*<U>*/ g);
-}
-typedef List<V> G<V>();
-''');
-    var f = mainUnit.getType('C').methods[0];
-    expect(f.type.toString(), '<U>(() → List<U>) → void');
-  }
-
-  test_genericMethods_inferGenericFunctionParameterType_comment() async {
-    var mainUnit = await checkFileElement('''
-class C<T> extends D<T> {
-  f/*<U>*/(x) {}
-}
-class D<T> {
-  F/*<U>*/ f/*<U>*/(/*=U*/ u) => null;
-}
-typedef void F<V>(V v);
-''');
-    var f = mainUnit.getType('C').methods[0];
-    expect(f.type.toString(), '<U>(U) → (U) → void');
-  }
-
   test_genericMethods_inferGenericFunctionReturnType() async {
     var mainUnit = await checkFileElement('''
 class C<T> extends D<T> {
@@ -2174,20 +2014,6 @@ class C<T> extends D<T> {
 }
 class D<T> {
   F<U> f<U>(U u) => null;
-}
-typedef V F<V>();
-''');
-    var f = mainUnit.getType('C').methods[0];
-    expect(f.type.toString(), '<U>(U) → () → U');
-  }
-
-  test_genericMethods_inferGenericFunctionReturnType_comment() async {
-    var mainUnit = await checkFileElement('''
-class C<T> extends D<T> {
-  f/*<U>*/(x) {}
-}
-class D<T> {
-  F/*<U>*/ f/*<U>*/(/*=U*/ u) => null;
 }
 typedef V F<V>();
 ''');
@@ -2305,22 +2131,6 @@ main() {
 ''');
   }
 
-  test_genericMethods_inferGenericMethodType_comment() async {
-    // Regression test for https://github.com/dart-lang/sdk/issues/25668
-    await checkFileElement('''
-class C {
-  /*=T*/ m/*<T>*/(/*=T*/ x) => x;
-}
-class D extends C {
-  m/*<S>*/(x) => x;
-}
-main() {
-  int y = new D().m/*<int>*/(42);
-  print(y);
-}
-''');
-  }
-
   test_genericMethods_inferJSBuiltin() async {
     // TODO(jmesserly): we should change how this inference works.
     // For now this test will cover what we use.
@@ -2390,27 +2200,12 @@ main() {
     expect(v.type.toString(), '(num) → List<int>');
   }
 
-  test_genericMethods_usesGreatestLowerBound_comment() async {
-    var unit = await checkFile(r'''
-typedef Iterable<num> F(int x);
-typedef List<int> G(double x);
-
-/*=T*/ generic/*<T>*/(a(/*=T*/ _), b(/*=T*/ _)) => null;
-
-main() {
-  var v = generic((F f) => null, (G g) => null);
-}
-''');
-    var v = findLocalVariable(unit, 'v');
-    expect(v.type.toString(), '(num) → List<int>');
-  }
-
-  test_genericMethods_usesGreatestLowerBound_comment_topLevel() async {
+  test_genericMethods_usesGreatestLowerBound_topLevel() async {
     var mainUnit = await checkFileElement(r'''
 typedef Iterable<num> F(int x);
 typedef List<int> G(double x);
 
-/*=T*/ generic/*<T>*/(a(/*=T*/ _), b(/*=T*/ _)) => null;
+T generic<T>(a(T _), b(T _)) => null;
 
 var v = generic((F f) => null, (G g) => null);
 ''');
@@ -2893,19 +2688,6 @@ main() {
     expect(y.type.toString(), 'double');
   }
 
-  test_inferGenericMethodType_named_comment() async {
-    var unit = await checkFile('''
-class C {
-  /*=T*/ m/*<T>*/(int a, {String b, /*=T*/ c}) => null;
-}
-main() {
-  var y = new C().m(1, b: 'bbb', c: 2.0);
-}
-''');
-    var y = findLocalVariable(unit, 'y');
-    expect(y.type.toString(), 'double');
-  }
-
   test_inferGenericMethodType_positional() async {
     var unit = await checkFile('''
 class C {
@@ -2932,49 +2714,10 @@ main() {
     expect(y.type.toString(), 'double');
   }
 
-  test_inferGenericMethodType_positional2_comment() async {
-    var unit = await checkFile('''
-class C {
-  /*=T*/ m/*<T>*/(int a, [String b, /*=T*/ c]) => null;
-}
-main() {
-  var y = new C().m(1, 'bbb', 2.0);
-}
-''');
-    var y = findLocalVariable(unit, 'y');
-    expect(y.type.toString(), 'double');
-  }
-
-  test_inferGenericMethodType_positional_comment() async {
-    var unit = await checkFile('''
-class C {
-  /*=T*/ m/*<T>*/(int a, [/*=T*/ b]) => null;
-}
-main() {
-  var y = new C().m(1, 2.0);
-}
-''');
-    var y = findLocalVariable(unit, 'y');
-    expect(y.type.toString(), 'double');
-  }
-
   test_inferGenericMethodType_required() async {
     var unit = await checkFile('''
 class C {
   T m<T>(T x) => x;
-}
-main() {
-  var y = new C().m(42);
-}
-''');
-    var y = findLocalVariable(unit, 'y');
-    expect(y.type.toString(), 'int');
-  }
-
-  test_inferGenericMethodType_required_comment() async {
-    var unit = await checkFile('''
-class C {
-  /*=T*/ m/*<T>*/(/*=T*/ x) => x;
 }
 main() {
   var y = new C().m(42);
@@ -4008,18 +3751,6 @@ var f = new C().f<int>();
     expect(v.type.toString(), 'D<int>');
   }
 
-  test_methodCall_withTypeArguments_instanceMethod_comment() async {
-    var mainUnit = await checkFileElement('''
-class C {
-  D/*<T>*/ f/*<T>*/() => null;
-}
-class D<T> {}
-var f = new C().f/*<int>*/();
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'D<int>');
-  }
-
   test_methodCall_withTypeArguments_instanceMethod_identifierSequence() async {
     var mainUnit = await checkFileElement('''
 class C {
@@ -4028,20 +3759,6 @@ class C {
 class D<T> {}
 C c;
 var f = c.f<int>();
-''');
-    var v = mainUnit.topLevelVariables[1];
-    expect(v.name, 'f');
-    expect(v.type.toString(), 'D<int>');
-  }
-
-  test_methodCall_withTypeArguments_instanceMethod_identifierSequence_comment() async {
-    var mainUnit = await checkFileElement('''
-class C {
-  D/*<T>*/ f/*<T>*/() => null;
-}
-class D<T> {}
-C c;
-var f = c.f/*<int>*/();
 ''');
     var v = mainUnit.topLevelVariables[1];
     expect(v.name, 'f');
@@ -4060,33 +3777,11 @@ var f = C.f<int>();
     expect(v.type.toString(), 'D<int>');
   }
 
-  test_methodCall_withTypeArguments_staticMethod_comment() async {
-    var mainUnit = await checkFileElement('''
-class C {
-  static D/*<T>*/ f/*<T>*/() => null;
-}
-class D<T> {}
-var f = C.f/*<int>*/();
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'D<int>');
-  }
-
   test_methodCall_withTypeArguments_topLevelFunction() async {
     var mainUnit = await checkFileElement('''
 D<T> f<T>() => null;
 class D<T> {}
 var g = f<int>();
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'D<int>');
-  }
-
-  test_methodCall_withTypeArguments_topLevelFunction_comment() async {
-    var mainUnit = await checkFileElement('''
-D/*<T>*/ f/*<T>*/() => null;
-class D<T> {}
-var g = f/*<int>*/();
 ''');
     var v = mainUnit.topLevelVariables[0];
     expect(v.type.toString(), 'D<int>');
@@ -4370,16 +4065,6 @@ var v = f<dynamic>(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
     expect(v.type.toString(), 'List<dynamic>');
   }
 
-  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_comment() async {
-    var mainUnit = await checkFileElement('''
-dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
-var v = f/*<dynamic>*/(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.name, 'v');
-    expect(v.type.toString(), 'List<dynamic>');
-  }
-
   @failingTest
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() async {
     // Note: (f/*<dynamic>*/) is nort properly resulting in an instantiated
@@ -4387,19 +4072,6 @@ var v = f/*<dynamic>*/(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
     var mainUnit = await checkFileElement('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f<dynamic>)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.name, 'v');
-    expect(v.type.toString(), 'List<dynamic>');
-  }
-
-  @failingTest
-  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1_comment() async {
-    // Note: (f/*<dynamic>*/) is nort properly resulting in an instantiated
-    // function type due to dartbug.com/25824.
-    var mainUnit = await checkFileElement('''
-dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
-var v = (f/*<dynamic>*/)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
 ''');
     var v = mainUnit.topLevelVariables[0];
     expect(v.name, 'v');
@@ -4416,30 +4088,10 @@ var v = (f)<dynamic>(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
     expect(v.type.toString(), 'List<dynamic>');
   }
 
-  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2_comment() async {
-    var mainUnit = await checkFileElement('''
-dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
-var v = (f)/*<dynamic>*/(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.name, 'v');
-    expect(v.type.toString(), 'List<dynamic>');
-  }
-
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam() async {
     var mainUnit = await checkFileElement('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = f<int>(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.name, 'v');
-    expect(v.type.toString(), 'List<int>');
-  }
-
-  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_comment() async {
-    var mainUnit = await checkFileElement('''
-dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
-var v = f/*<int>*/(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
 ''');
     var v = mainUnit.topLevelVariables[0];
     expect(v.name, 'v');
@@ -4459,33 +4111,10 @@ var v = (f/int>)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
     expect(v.type.toString(), 'List<int>');
   }
 
-  @failingTest
-  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1_comment() async {
-    // TODO(paulberry): for some reason (f/*<int>) is nort properly resulting
-    // in an instantiated function type.
-    var mainUnit = await checkFileElement('''
-dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
-var v = (f/*<int>*/)(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.name, 'v');
-    expect(v.type.toString(), 'List<int>');
-  }
-
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() async {
     var mainUnit = await checkFileElement('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f)<int>(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.name, 'v');
-    expect(v.type.toString(), 'List<int>');
-  }
-
-  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment() async {
-    var mainUnit = await checkFileElement('''
-dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
-var v = (f)/*<int>*/(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
 ''');
     var v = mainUnit.topLevelVariables[0];
     expect(v.name, 'v');
@@ -4506,20 +4135,6 @@ List<T> f<T>(T g()) => <T>[g()];
     expect(v.type.toString(), 'List<int>');
   }
 
-  test_unsafeBlockClosureInference_functionCall_implicitTypeParam_comment() async {
-    var unit = await checkFile('''
-main() {
-  var v = f(
-    /*info:INFERRED_TYPE_CLOSURE*/() {
-      return 1;
-    });
-}
-dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
-''');
-    var v = findLocalVariable(unit, 'v');
-    expect(v.type.toString(), 'List<int>');
-  }
-
   test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr() async {
     var unit = await checkFile('''
 main() {
@@ -4529,20 +4144,6 @@ main() {
     });
 }
 List<T> f<T>(T g()) => <T>[g()];
-''');
-    var v = findLocalVariable(unit, 'v');
-    expect(v.type.toString(), 'List<int>');
-  }
-
-  test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr_comment() async {
-    var unit = await checkFile('''
-main() {
-  var v = (f)(
-    /*info:INFERRED_TYPE_CLOSURE*/() {
-      return 1;
-    });
-}
-dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
 ''');
     var v = findLocalVariable(unit, 'v');
     expect(v.type.toString(), 'List<int>');
@@ -4651,19 +4252,6 @@ main() {
     expect(v.type.toString(), 'List<dynamic>');
   }
 
-  test_unsafeBlockClosureInference_methodCall_explicitDynamicParam_comment() async {
-    var unit = await checkFile('''
-class C {
-  dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
-}
-main() {
-  var v = new C().f/*<dynamic>*/(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
-}
-''');
-    var v = findLocalVariable(unit, 'v');
-    expect(v.type.toString(), 'List<dynamic>');
-  }
-
   test_unsafeBlockClosureInference_methodCall_explicitTypeParam() async {
     var unit = await checkFile('''
 class C {
@@ -4677,39 +4265,10 @@ main() {
     expect(v.type.toString(), 'List<int>');
   }
 
-  test_unsafeBlockClosureInference_methodCall_explicitTypeParam_comment() async {
-    var unit = await checkFile('''
-class C {
-  dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
-}
-main() {
-  var v = new C().f/*<int>*/(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
-}
-''');
-    var v = findLocalVariable(unit, 'v');
-    expect(v.type.toString(), 'List<int>');
-  }
-
   test_unsafeBlockClosureInference_methodCall_implicitTypeParam() async {
     var unit = await checkFile('''
 class C {
   List<T> f<T>(T g()) => <T>[g()];
-}
-main() {
-  var v = new C().f(
-    /*info:INFERRED_TYPE_CLOSURE*/() {
-      return 1;
-    });
-}
-''');
-    var v = findLocalVariable(unit, 'v');
-    expect(v.type.toString(), 'List<int>');
-  }
-
-  test_unsafeBlockClosureInference_methodCall_implicitTypeParam_comment() async {
-    var unit = await checkFile('''
-class C {
-  dynamic /*=List<T>*/ f/*<T>*/(dynamic/*=T*/ g()) => <T>[g()];
 }
 main() {
   var v = new C().f(
@@ -4798,8 +4357,8 @@ class InferredTypeTest_Driver extends InferredTypeTest {
 
   @failingTest
   @override
-  test_genericMethods_usesGreatestLowerBound_comment_topLevel() async {
-    await super.test_genericMethods_usesGreatestLowerBound_comment_topLevel();
+  test_genericMethods_usesGreatestLowerBound_topLevel() async {
+    await super.test_genericMethods_usesGreatestLowerBound_topLevel();
   }
 
   @failingTest
@@ -4821,23 +4380,9 @@ class InferredTypeTest_Driver extends InferredTypeTest {
 
   @failingTest
   @override
-  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2_comment() async {
-    await super
-        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2_comment();
-  }
-
-  @failingTest
-  @override
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() async {
     await super
         .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2();
-  }
-
-  @failingTest
-  @override
-  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment() async {
-    await super
-        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment();
   }
 
   @failingTest

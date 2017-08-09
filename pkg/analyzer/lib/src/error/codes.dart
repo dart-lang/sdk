@@ -1098,7 +1098,7 @@ class CompileTimeErrorCode extends ErrorCode {
    *
    * TODO(paulberry): remove this once dartbug.com/28515 is fixed.
    */
-  static const GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED =
+  static const CompileTimeErrorCode GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED =
       const CompileTimeErrorCode(
           'GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED',
           "Analysis of generic function typed parameters is not yet supported.",
@@ -4992,7 +4992,7 @@ class StrongModeCode extends ErrorCode {
    * hints and then clean up the function _errorSeverity in
    * test/src/task/strong/strong_test_helper.dart.
    */
-  /* TODO(leafp) Delete most of these.  
+  /* TODO(leafp) Delete most of these.
    */
   static const StrongModeCode TOP_LEVEL_CYCLE = const StrongModeCode(
       ErrorType.HINT,

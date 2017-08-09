@@ -1644,6 +1644,23 @@ class B implements A {
     verify([source]);
   }
 
+  test_deferredImportWithInvalidUri() async {
+    Source source = addSource(r'''
+import '[invalid uri]' deferred as p;
+main() {
+  p.loadLibrary();
+}''');
+    await computeAnalysisResult(source);
+    if (enableNewAnalysisDriver) {
+      assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+        StaticWarningCode.UNDEFINED_IDENTIFIER
+      ]);
+    }
+  }
+
   test_duplicateConstructorName_named() async {
     Source source = addSource(r'''
 class A {
@@ -2482,29 +2499,6 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);''');
     // TODO(paulberry): When dartbug.com/28515 is fixed, convert this into a
     // NonErrorResolverTest.
     Source source = addSource('void g(T f<T>(T x)) {}');
-    await computeAnalysisResult(source);
-    var expectedErrorCodes = <ErrorCode>[
-      CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED
-    ];
-    if (enableNewAnalysisDriver) {
-      // Due to dartbug.com/28515, some additional errors appear when using the
-      // new analysis driver.
-      expectedErrorCodes.addAll([
-        StaticWarningCode.UNDEFINED_CLASS,
-        StaticWarningCode.UNDEFINED_CLASS
-      ]);
-    }
-    assertErrors(source, expectedErrorCodes);
-    verify([source]);
-  }
-
-  test_genericFunctionTypedParameter_commentSyntax() async {
-    // Once dartbug.com/28515 is fixed, this syntax should no longer generate an
-    // error.
-    // TODO(paulberry): When dartbug.com/28515 is fixed, convert this into a
-    // NonErrorResolverTest.
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
-    Source source = addSource('void g(/*=T*/ f/*<T>*/(/*=T*/ x)) {}');
     await computeAnalysisResult(source);
     var expectedErrorCodes = <ErrorCode>[
       CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED
@@ -5946,23 +5940,6 @@ f() sync* {
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.RETURN_IN_GENERATOR]);
     verify([source]);
-  }
-
-  test_deferredImportWithInvalidUri() async {
-    Source source = addSource(r'''
-import '[invalid uri]' deferred as p;
-main() {
-  p.loadLibrary();
-}''');
-    await computeAnalysisResult(source);
-    if (enableNewAnalysisDriver) {
-      assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
-    } else {
-      assertErrors(source, [
-        CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-        StaticWarningCode.UNDEFINED_IDENTIFIER
-      ]);
-    }
   }
 
   test_sharedDeferredPrefix() async {

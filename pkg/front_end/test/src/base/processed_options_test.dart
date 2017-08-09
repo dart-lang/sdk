@@ -7,18 +7,21 @@ import 'dart:async';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/fasta.dart' show ByteSink;
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
-import 'package:kernel/kernel.dart' show Program, Library, CanonicalName;
+import 'package:kernel/kernel.dart'
+    show CanonicalName, Library, Program, loadProgramFromBytes;
 import 'package:package_config/packages.dart' show Packages;
-
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(ProcessedOptionsTest);
+  CompilerContext.runWithDefaultOptions((_) {
+    defineReflectiveSuite(() {
+      defineReflectiveTests(ProcessedOptionsTest);
+    });
   });
 }
 
@@ -63,6 +66,24 @@ class ProcessedOptionsTest {
     expect(processed.fileSystem, same(fileSystem));
   }
 
+  test_getSdkSummaryBytes_summaryLocationProvided() async {
+    var uri = Uri.parse('file:///sdkSummary');
+
+    writeMockSummaryTo(uri);
+
+    var raw = new CompilerOptions()
+      ..fileSystem = fileSystem
+      ..sdkSummary = uri;
+    var processed = new ProcessedOptions(raw);
+
+    var bytes = await processed.loadSdkSummaryBytes();
+    expect(bytes, isNotEmpty);
+
+    var sdkSummary = loadProgramFromBytes(bytes);
+    expect(sdkSummary.libraries.single.importUri,
+        mockSummary.libraries.single.importUri);
+  }
+
   test_getSdkSummary_summaryLocationProvided() async {
     var uri = Uri.parse('file:///sdkSummary');
     writeMockSummaryTo(uri);
@@ -82,6 +103,58 @@ class ProcessedOptionsTest {
     var sdkSummary = await processed.loadSdkSummary(new CanonicalName.root());
     expect(sdkSummary.libraries.single.importUri,
         mockSummary.libraries.single.importUri);
+  }
+
+  test_getUriTranslator_explicitLibrariesSpec() async {
+    fileSystem
+        .entityForUri(Uri.parse('file:///.packages'))
+        .writeAsStringSync('');
+    fileSystem
+        .entityForUri(Uri.parse('file:///libraries.json'))
+        .writeAsStringSync('{"vm":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
+    var raw = new CompilerOptions()
+      ..packagesFileUri = Uri.parse('file:///.packages')
+      ..fileSystem = fileSystem
+      ..librariesSpecificationUri = Uri.parse('file:///libraries.json');
+    var processed = new ProcessedOptions(raw);
+    var uriTranslator = await processed.getUriTranslator();
+    expect(uriTranslator.dartLibraries.libraryInfoFor('foo').uri.path,
+        '/bar.dart');
+  }
+
+  test_getUriTranslator_inferredLibrariesSpec() async {
+    fileSystem
+        .entityForUri(Uri.parse('file:///.packages'))
+        .writeAsStringSync('');
+    fileSystem
+        .entityForUri(Uri.parse('file:///mysdk/lib/libraries.json'))
+        .writeAsStringSync('{"vm":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
+    var raw = new CompilerOptions()
+      ..fileSystem = fileSystem
+      ..packagesFileUri = Uri.parse('file:///.packages')
+      ..compileSdk = true
+      ..sdkRoot = Uri.parse('file:///mysdk/');
+    var processed = new ProcessedOptions(raw);
+    var uriTranslator = await processed.getUriTranslator();
+    expect(uriTranslator.dartLibraries.libraryInfoFor('foo').uri.path,
+        '/mysdk/lib/bar.dart');
+  }
+
+  test_getUriTranslator_notInferredLibrariesSpec() async {
+    fileSystem
+        .entityForUri(Uri.parse('file:///.packages'))
+        .writeAsStringSync('');
+    fileSystem
+        .entityForUri(Uri.parse('file:///mysdk/lib/libraries.json'))
+        .writeAsStringSync('{"vm":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
+    var raw = new CompilerOptions()
+      ..fileSystem = fileSystem
+      ..packagesFileUri = Uri.parse('file:///.packages')
+      ..compileSdk = false // libraries.json is only inferred if true
+      ..sdkRoot = Uri.parse('file:///mysdk/');
+    var processed = new ProcessedOptions(raw);
+    var uriTranslator = await processed.getUriTranslator();
+    expect(uriTranslator.dartLibraries.libraryInfoFor('foo'), isNull);
   }
 
   checkPackageExpansion(
@@ -143,14 +216,14 @@ class ProcessedOptionsTest {
   }
 
   test_getUriTranslator_implicitPackagesFile_nextToScript() async {
-    // Fake the existence of the base directory.
+    // Create the base directory.
     fileSystem
         .entityForUri(Uri.parse('file:///base/location/'))
-        .writeAsStringSync('');
+        .createDirectory();
     // Packages directory should be ignored (.packages file takes precedence).
     fileSystem
         .entityForUri(Uri.parse('file:///base/location/packages/'))
-        .writeAsStringSync('');
+        .createDirectory();
     // This .packages file should be ignored.
     fileSystem
         .entityForUri(Uri.parse('file:///.packages'))
@@ -167,10 +240,10 @@ class ProcessedOptionsTest {
   }
 
   test_getUriTranslator_implicitPackagesFile_searchAbove() async {
-    // Fake the existence of the base directory.
+    // Create the base directory.
     fileSystem
         .entityForUri(Uri.parse('file:///base/location/'))
-        .writeAsStringSync('');
+        .createDirectory();
     // This .packages file should be ignored.
     fileSystem
         .entityForUri(Uri.parse('file:///.packages'))
@@ -187,13 +260,13 @@ class ProcessedOptionsTest {
   }
 
   test_getUriTranslator_implicitPackagesFile_packagesDirectory() async {
-    // Fake the existence of the base directory.
+    // Create the base directory.
     fileSystem
         .entityForUri(Uri.parse('file:///base/location/'))
-        .writeAsStringSync('');
+        .createDirectory();
     fileSystem
         .entityForUri(Uri.parse('file:///base/location/packages/'))
-        .writeAsStringSync('');
+        .createDirectory();
 
     // Both of these .packages file should be ignored.
     fileSystem
@@ -211,10 +284,10 @@ class ProcessedOptionsTest {
   }
 
   test_getUriTranslator_implicitPackagesFile_noPackages() async {
-    // Fake the existence of the base directory.
+    // Create the base directory.
     fileSystem
         .entityForUri(Uri.parse('file:///base/location/'))
-        .writeAsStringSync('');
+        .createDirectory();
     var errors = [];
     // .packages file should be ignored.
     var raw = new CompilerOptions()

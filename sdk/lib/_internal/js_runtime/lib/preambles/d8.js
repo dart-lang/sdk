@@ -16,21 +16,13 @@ if (typeof global != "undefined") self = global;  // Node.js.
 
   // Location (Uri.base)
 
-  var workingDirectory;
-  // TODO(sgjesse): This does not work on Windows.
-  if (typeof os == "object" && "system" in os) {
-    // V8.
-    workingDirectory = os.system("pwd");
-    var length = workingDirectory.length;
-    if (workingDirectory[length - 1] == '\n') {
-      workingDirectory = workingDirectory.substring(0, length - 1);
-    }
-  } else if (typeof process != "undefined" &&
+  var baseUri = 'org-dartlang-d8-preamble:///mock/uri/base/';
+  if (typeof process != "undefined" &&
              typeof process.cwd == "function") {
     // Node.js.
-    workingDirectory = process.cwd();
+    baseUri = 'file://' + process.cwd() + '/';
   }
-  self.location = { href: "file://" + workingDirectory + "/" };
+  self.location = { href: baseUri };
 
   // Event loop.
 

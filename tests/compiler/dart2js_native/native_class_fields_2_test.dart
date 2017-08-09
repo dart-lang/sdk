@@ -14,26 +14,29 @@ class A {
   int gettersCalled;
 }
 
-void setup() native r"""
-function getter() {
-  this.gettersCalled++;
-  return 42;
-}
+void setup() {
+  JS('', r"""
+(function(){
+  function getter() {
+    this.gettersCalled++;
+    return 42;
+  }
 
-function A(){
-  var a = Object.create(
-      { constructor: A },
-      { x: { get: getter, configurable: false, writeable: false },
-        y: { get: getter, configurable: false, writeable: false },
-        z: { get: getter, configurable: false, writeable: false }
-      });
-  a.gettersCalled = 0;
-  return a;
-}
+  function A(){
+    var a = Object.create(
+        { constructor: A },
+        { x: { get: getter, configurable: false, writeable: false },
+          y: { get: getter, configurable: false, writeable: false },
+          z: { get: getter, configurable: false, writeable: false }
+        });
+    a.gettersCalled = 0;
+    return a;
+  }
 
-makeA = function() { return new A; };
-self.nativeConstructor(A);
-""";
+  makeA = function() { return new A(); };
+  self.nativeConstructor(A);
+})()""");
+}
 
 A makeA() native;
 

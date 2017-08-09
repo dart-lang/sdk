@@ -22,14 +22,17 @@ class A implements I {
 
 makeA() native;
 
-void setup() native """
-// This code is all inside 'setup' and so not accessible from the global scope.
-function A(){}
-A.prototype.read = function() { return this._x; };
-A.prototype.write = function(x) { this._x = x; };
-makeA = function(){return new A};
-self.nativeConstructor(A);
-""";
+void setup() {
+  JS('', r"""
+(function(){
+  // This code is inside 'setup' and so not accessible from the global scope.
+  function A(){}
+  A.prototype.read = function() { return this._x; };
+  A.prototype.write = function(x) { this._x = x; };
+  makeA = function(){return new A()};
+  self.nativeConstructor(A);
+})()""");
+}
 
 class B {}
 

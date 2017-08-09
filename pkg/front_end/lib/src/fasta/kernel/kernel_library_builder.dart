@@ -4,7 +4,6 @@
 
 library fasta.kernel_library_builder;
 
-import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
 import 'package:front_end/src/fasta/combinator.dart' as fasta;
 import 'package:front_end/src/fasta/export.dart';
 import 'package:front_end/src/fasta/import.dart';
@@ -96,6 +95,7 @@ class KernelLibraryBuilder
       : library = new Library(uri, fileUri: relativizeUri(fileUri)),
         super(loader, fileUri);
 
+  @override
   Library get target => library;
 
   Uri get uri => library.importUri;
@@ -290,6 +290,10 @@ class KernelLibraryBuilder
       int unresolvedCount = 0;
       Map<String, TypeBuilder> freeTypes = <String, TypeBuilder>{};
 
+      // TODO(30316): Use correct locations of mixin applications
+      // (e.g. identifiers for mixed-in classes).
+      if (charOffset == -1) charOffset = type.charOffset;
+
       if (name == null || type.mixins.length != 1) {
         TypeBuilder last = type.mixins.last;
 
@@ -419,8 +423,8 @@ class KernelLibraryBuilder
         checkArguments(mixin);
         supertype = applyMixin(supertype, mixin, signature,
             isSyntheticMixinImplementation: true,
-            typeVariables:
-                new List<TypeVariableBuilder>.from(variables.values));
+            typeVariables: new List<TypeVariableBuilder>.from(variables.values),
+            charOffset: charOffset);
       }
       KernelNamedTypeBuilder mixin = type.mixins.last;
 
@@ -653,12 +657,17 @@ class KernelLibraryBuilder
     }
   }
 
-  void addEnum(List<MetadataBuilder> metadata, String name,
-      List<Object> constantNamesAndOffsets, int charOffset, int charEndOffset) {
+  void addEnum(
+      String documentationComment,
+      List<MetadataBuilder> metadata,
+      String name,
+      List<Object> constantNamesAndOffsets,
+      int charOffset,
+      int charEndOffset) {
     addBuilder(
         name,
-        new KernelEnumBuilder(metadata, name, constantNamesAndOffsets, this,
-            charOffset, charEndOffset),
+        new KernelEnumBuilder(documentationComment, metadata, name,
+            constantNamesAndOffsets, this, charOffset, charEndOffset),
         charOffset);
   }
 
@@ -746,32 +755,29 @@ class KernelLibraryBuilder
     }
 
     for (Import import in imports) {
-      var importedBuilder = import.imported;
-      Library importedLibrary;
-      if (importedBuilder is DillLibraryBuilder) {
-        importedLibrary = importedBuilder.library;
-      } else if (importedBuilder is KernelLibraryBuilder) {
-        importedLibrary = importedBuilder.library;
-      }
+      Library importedLibrary = import.imported.target;
       if (importedLibrary != null) {
         library.addDependency(new LibraryDependency.import(importedLibrary,
             name: import.prefix,
             combinators: toKernelCombinators(import.combinators)));
       }
     }
+
     for (Export export in exports) {
-      var exportedBuilder = export.exported;
-      Library exportedLibrary;
-      if (exportedBuilder is DillLibraryBuilder) {
-        exportedLibrary = exportedBuilder.library;
-      } else if (exportedBuilder is KernelLibraryBuilder) {
-        exportedLibrary = exportedBuilder.library;
-      }
+      Library exportedLibrary = export.exported.target;
       if (exportedLibrary != null) {
         library.addDependency(new LibraryDependency.export(exportedLibrary,
             combinators: toKernelCombinators(export.combinators)));
       }
     }
+
+    for (var part in parts) {
+      // TODO(scheglov): Add support for annotations, see
+      // https://github.com/dart-lang/sdk/issues/30284.
+      String fileUri = part.fileUri.toString();
+      library.addPart(new LibraryPart(<Expression>[], fileUri));
+    }
+
     library.name = name;
     library.procedures.sort(compareProcedures);
     return library;

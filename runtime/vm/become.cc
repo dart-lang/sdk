@@ -215,7 +215,7 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
   Heap* heap = isolate->heap();
 
   TIMELINE_FUNCTION_GC_DURATION(thread, "Become::ElementsForwardIdentity");
-  HeapIterationScope his;
+  HeapIterationScope his(thread);
 
   // Setup forwarding pointers.
   ASSERT(before.Length() == after.Length());

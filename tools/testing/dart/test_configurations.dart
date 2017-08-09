@@ -49,6 +49,7 @@ final TEST_SUITE_DIRECTORIES = [
   new Path('tests/lib_strong'),
   new Path('tests/lib_2'),
   new Path('tests/standalone'),
+  new Path('tests/standalone_2'),
   new Path('utils/tests/peg'),
 ];
 

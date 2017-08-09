@@ -460,6 +460,10 @@ class Expect {
     Expect.throws(f, (error) => error is ArgumentError, "ArgumentError");
   }
 
+  static void throwsAssertionError(void f()) {
+    Expect.throws(f, (error) => error is AssertionError, "AssertionError");
+  }
+
   static void throwsCastError(void f()) {
     Expect.throws(f, (error) => error is CastError, "CastError");
   }

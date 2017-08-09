@@ -511,7 +511,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               initializer = buildFieldInitializer(true, formal.name,
                   formal.charOffset, new VariableGet(formal.declaration));
             }
-            member.addInitializer(initializer);
+            member.addInitializer(initializer, _typeInferrer);
           }
         }
       }
@@ -573,7 +573,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     _typeInferrer.inferInitializer(initializer);
     if (member is KernelConstructorBuilder && !member.isExternal) {
-      member.addInitializer(initializer);
+      member.addInitializer(initializer, _typeInferrer);
     } else {
       deprecated_addCompileTimeError(
           token.charOffset, "Can't have initializers: ${member.name}");
@@ -1508,7 +1508,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       continueTarget.resolveContinues(body);
     }
     Statement result =
-        new KernelForStatement(variables, condition, updates, body);
+        new KernelForStatement(variables, condition, updates, body)
+          ..fileOffset = forKeyword.charOffset;
     if (begin != null) {
       result = new KernelBlock(<Statement>[begin, result]);
     }
@@ -2480,7 +2481,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           ..fileEndOffset = endToken.charOffset))
       ..parent = variable
       ..fileOffset = formals.charOffset;
-    push(new Let(variable, new VariableGet(variable)));
+    push(
+        new KernelNamedFunctionExpression(variable, new VariableGet(variable)));
   }
 
   @override
@@ -2492,11 +2494,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       exitLocalScope();
     }
     FormalParameters formals = pop();
-    List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
-    FunctionNode function = formals.addToFunction(new FunctionNode(body,
-        typeParameters: typeParameters, asyncMarker: asyncModifier)
-      ..fileOffset = formals.charOffset
-      ..fileEndOffset = token.charOffset);
     exitLocalScope();
     var declaration = pop();
     var returnType = pop();
@@ -2504,6 +2501,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     returnType ??= const DynamicType();
     pop(); // Modifiers.
     exitFunction();
+    List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
+    FunctionNode function = formals.addToFunction(new FunctionNode(body,
+        typeParameters: typeParameters, asyncMarker: asyncModifier)
+      ..fileOffset = formals.charOffset
+      ..fileEndOffset = token.charOffset);
     if (declaration is FunctionDeclaration) {
       KernelFunctionDeclaration.setHasImplicitReturnType(
           declaration, hasImplicitReturnType);
@@ -2556,7 +2558,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       body = new KernelLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
-    Statement result = new KernelDoStatement(body, condition);
+    Statement result = new KernelDoStatement(body, condition)
+      ..fileOffset = doKeyword.charOffset;
     if (breakTarget.hasUsers) {
       result = new KernelLabeledStatement(result);
       breakTarget.resolveBreaks(result);
@@ -2624,7 +2627,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Statement result = new KernelForInStatement(
         variable, expression, body, declaresVariable,
         isAsync: awaitToken != null)
-      ..fileOffset = body.fileOffset;
+      ..fileOffset = forToken.charOffset
+      ..bodyOffset = body.fileOffset;
     if (breakTarget.hasUsers) {
       result = new KernelLabeledStatement(result);
       breakTarget.resolveBreaks(result);
@@ -2703,7 +2707,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       body = new KernelLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
-    Statement result = new KernelWhileStatement(condition, body);
+    Statement result = new KernelWhileStatement(condition, body)
+      ..fileOffset = whileKeyword.charOffset;
     if (breakTarget.hasUsers) {
       result = new KernelLabeledStatement(result);
       breakTarget.resolveBreaks(result);
@@ -2763,14 +2768,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     // So we produce an initializer like this:
     //
     //    var #t0 = (() { statement; }) ()
-    return new LocalInitializer(new VariableDeclaration.forValue(
-        buildMethodInvocation(
+    return new KernelAssertInitializer(
+        new VariableDeclaration.forValue(buildMethodInvocation(
             new FunctionExpression(new FunctionNode(statement)),
             callName,
             new Arguments.empty(),
             statement.fileOffset,
             isConstantExpression: true,
-            isImplicitCall: true)));
+            isImplicitCall: true)),
+        statement);
   }
 
   @override
@@ -3136,7 +3142,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   Initializer buildInvalidInitializer(Expression expression,
       [int charOffset = -1]) {
     needsImplicitSuperInitializer = false;
-    return new LocalInitializer(new VariableDeclaration.forValue(expression))
+    return new KernelInvalidInitializer(
+        new VariableDeclaration.forValue(expression))
       ..fileOffset = charOffset;
   }
 
@@ -3181,7 +3188,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
                 charOffset: offset)),
             offset);
       } else {
-        return new FieldInitializer(builder.field, expression)
+        return new KernelFieldInitializer(builder.field, expression)
           ..fileOffset = offset
           ..isSynthetic = isSynthetic;
       }
@@ -3204,7 +3211,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           charOffset);
     }
     needsImplicitSuperInitializer = false;
-    return new SuperInitializer(constructor, arguments)
+    return new KernelSuperInitializer(constructor, arguments)
       ..fileOffset = charOffset
       ..isSynthetic = isSynthetic;
   }

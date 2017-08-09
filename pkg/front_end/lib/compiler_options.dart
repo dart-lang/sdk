@@ -5,7 +5,7 @@
 library front_end.compiler_options;
 
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:kernel/target/targets.dart' show Target;
 
 import 'compilation_message.dart';
@@ -25,18 +25,17 @@ class CompilerOptions {
   /// [Platform.resolvedExecutable] as a starting point.
   Uri sdkRoot;
 
-  /// Map of `dart:*` libraries to URIs in the [fileSystem].
+  /// Uri to a platform libraries specification file.
   ///
-  /// Keys in the map are the name of the library with no `dart:` prefix, for
-  /// example:
+  /// A libraries specification file is a JSON file that describes how to map
+  /// `dart:*` libraries to URIs in the underlying [fileSystem].  See
+  /// `package:front_end/src/base/libraries_specification.dart` for details on
+  /// the format.
   ///
-  ///      {'core': 'file:///sdk/lib/core/core.dart'}
-  ///
-  /// If `null`, the default set of libraries will be loaded from
-  /// `sdkRoot/lib/libraries.json`.
-  // TODO(sigmund): also provide an option to specify the .json file, then
-  // consider dropping this option.
-  Map<String, Uri> dartLibraries;
+  /// If a value is not specified and `compileSdk = true`, the compiler will
+  /// infer at a default location under [sdkRoot], typically under
+  /// `lib/libraries.json`.
+  Uri librariesSpecificationUri;
 
   /// Callback to which compilation errors should be delivered.
   ///

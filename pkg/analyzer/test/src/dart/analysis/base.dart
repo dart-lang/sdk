@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -92,12 +92,14 @@ class BaseAnalysisDriverTest {
           }),
           new ResourceUriResolver(provider)
         ], null, provider),
-        new AnalysisOptionsImpl()
-          ..strongMode = true
-          ..enableUriInPartOf = true,
+        createAnalysisOptions(),
         disableChangesAndCacheAllResults: disableChangesAndCacheAllResults,
         externalSummaries: externalSummaries);
   }
+
+  AnalysisOptionsImpl createAnalysisOptions() => new AnalysisOptionsImpl()
+    ..strongMode = true
+    ..enableUriInPartOf = true;
 
   int findOffset(String search) {
     int offset = testCode.indexOf(search);

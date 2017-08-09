@@ -790,18 +790,21 @@ type BreakStatement extends Statement {
 
 type WhileStatement extends Statement {
   Byte tag = 67;
+  FileOffset fileOffset;
   Expression condition;
   Statement body;
 }
 
 type DoStatement extends Statement {
   Byte tag = 68;
+  FileOffset fileOffset;
   Statement body;
   Expression condition;
 }
 
 type ForStatement extends Statement {
   Byte tag = 69;
+  FileOffset fileOffset;
   List<VariableDeclaration> variables;
   Option<Expression> condition;
   List<Expression> updates;
@@ -810,7 +813,8 @@ type ForStatement extends Statement {
 
 type ForInStatement extends Statement {
   Byte tag = 70;
-  FileOffset fileOffset; // note that this is actually the body offset
+  FileOffset fileOffset;
+  FileOffset bodyOffset;
   VariableDeclaration variable;
   Expression iterable;
   Statement body;
@@ -818,7 +822,8 @@ type ForInStatement extends Statement {
 
 type AsyncForInStatement extends Statement {
   Byte tag = 80; // Note: tag is out of order.
-  FileOffset fileOffset; // note that this is actually the body offset
+  FileOffset fileOffset;
+  FileOffset bodyOffset;
   VariableDeclaration variable;
   Expression iterable;
   Statement body;
@@ -1006,12 +1011,6 @@ type TypeParameterType extends DartType {
   // the class type parameters in a constructor refer to those declared on the
   // class.
   UInt index;
-
-  // Byte offset in the binary for the first type declaration of the
-  // Class or FunctionNode.
-  UInt typeParameterPosition;
-  // The entry number in the list (starting at 0).
-  UInt typeParameterIndex;
   Option<DartType> bound;
 }
 

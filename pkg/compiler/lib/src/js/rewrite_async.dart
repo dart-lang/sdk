@@ -1767,16 +1767,14 @@ class AsyncRewriter extends AsyncRewriterBase {
 
   @override
   js.Statement awaitStatement(js.Expression value) {
-    return js.js.statement(
-        """
+    return js.js.statement("""
           return #asyncHelper(#value,
                               #bodyName);
-          """,
-        {
-          "asyncHelper": asyncAwait,
-          "value": value,
-          "bodyName": bodyName,
-        });
+          """, {
+      "asyncHelper": asyncAwait,
+      "value": value,
+      "bodyName": bodyName,
+    });
   }
 
   @override
@@ -1785,8 +1783,7 @@ class AsyncRewriter extends AsyncRewriterBase {
       js.Statement rewrittenBody,
       js.VariableDeclarationList variableDeclarations,
       SourceInformation sourceInformation) {
-    return js.js(
-        """
+    return js.js("""
         function (#parameters) {
           #variableDeclarations;
           var #bodyName = #wrapBody(function (#errorCode, #result) {
@@ -1800,24 +1797,23 @@ class AsyncRewriter extends AsyncRewriterBase {
             #rewrittenBody;
           });
           return #asyncStart(#bodyName, #completer);
-        }""",
-        {
-          "parameters": parameters,
-          "variableDeclarations": variableDeclarations,
-          "ERROR": js.number(error_codes.ERROR),
-          "rewrittenBody": rewrittenBody,
-          "bodyName": bodyName,
-          "currentError": currentError,
-          "goto": goto,
-          "handler": handler,
-          "errorCode": errorCodeName,
-          "result": resultName,
-          "asyncStart": asyncStart,
-          "asyncRethrow": asyncRethrow,
-          "hasHandlerLabels": hasHandlerLabels,
-          "completer": completer,
-          "wrapBody": wrapBody,
-        }).withSourceInformation(sourceInformation);
+        }""", {
+      "parameters": parameters,
+      "variableDeclarations": variableDeclarations,
+      "ERROR": js.number(error_codes.ERROR),
+      "rewrittenBody": rewrittenBody,
+      "bodyName": bodyName,
+      "currentError": currentError,
+      "goto": goto,
+      "handler": handler,
+      "errorCode": errorCodeName,
+      "result": resultName,
+      "asyncStart": asyncStart,
+      "asyncRethrow": asyncRethrow,
+      "hasHandlerLabels": hasHandlerLabels,
+      "completer": completer,
+      "wrapBody": wrapBody,
+    }).withSourceInformation(sourceInformation);
   }
 }
 
@@ -1886,8 +1882,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
     }
     js.VariableDeclarationList copyParameters =
         new js.VariableDeclarationList(declarations);
-    return js.js(
-        """
+    return js.js("""
           function (#renamedParameters) {
             if (#needsThis)
               var #self = this;
@@ -1905,24 +1900,23 @@ class SyncStarRewriter extends AsyncRewriterBase {
               };
             });
           }
-          """,
-        {
-          "renamedParameters": renamedParameters,
-          "needsThis": analysis.hasThis,
-          "helperBody": rewrittenBody,
-          "hasParameters": parameters.isNotEmpty,
-          "copyParameters": copyParameters,
-          "varDecl": variableDeclarations,
-          "errorCode": errorCodeName,
-          "iterableFactory": iterableFactory,
-          "body": bodyName,
-          "self": selfName,
-          "result": resultName,
-          "goto": goto,
-          "handler": handler,
-          "currentError": currentErrorName,
-          "ERROR": js.number(error_codes.ERROR),
-        }).withSourceInformation(sourceInformation);
+          """, {
+      "renamedParameters": renamedParameters,
+      "needsThis": analysis.hasThis,
+      "helperBody": rewrittenBody,
+      "hasParameters": parameters.isNotEmpty,
+      "copyParameters": copyParameters,
+      "varDecl": variableDeclarations,
+      "errorCode": errorCodeName,
+      "iterableFactory": iterableFactory,
+      "body": bodyName,
+      "self": selfName,
+      "result": resultName,
+      "goto": goto,
+      "handler": handler,
+      "currentError": currentErrorName,
+      "ERROR": js.number(error_codes.ERROR),
+    }).withSourceInformation(sourceInformation);
   }
 
   void addErrorExit() {
@@ -2043,18 +2037,15 @@ class AsyncStarRewriter extends AsyncRewriterBase {
       nextWhenCanceled,
       new js.ArrayInitializer(enclosingFinallyLabels.map(js.number).toList())
     ]));
-    addStatement(js.js.statement(
-        """
+    addStatement(js.js.statement("""
         return #asyncStarHelper(#yieldExpression(#expression), #bodyName,
-            #controller);""",
-        {
-          "asyncStarHelper": asyncStarHelper,
-          "yieldExpression":
-              node.hasStar ? yieldStarExpression : yieldExpression,
-          "expression": expression,
-          "bodyName": bodyName,
-          "controller": controllerName,
-        }));
+            #controller);""", {
+      "asyncStarHelper": asyncStarHelper,
+      "yieldExpression": node.hasStar ? yieldStarExpression : yieldExpression,
+      "expression": expression,
+      "bodyName": bodyName,
+      "controller": controllerName,
+    }));
   }
 
   @override
@@ -2063,8 +2054,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
       js.Statement rewrittenBody,
       js.VariableDeclarationList variableDeclarations,
       SourceInformation sourceInformation) {
-    return js.js(
-        """
+    return js.js("""
         function (#parameters) {
           var #bodyName = #wrapBody(function (#errorCode, #result) {
             if (#hasYield) {
@@ -2087,26 +2077,25 @@ class AsyncStarRewriter extends AsyncRewriterBase {
           });
           #variableDeclarations;
           return #streamOfController(#controller);
-        }""",
-        {
-          "parameters": parameters,
-          "variableDeclarations": variableDeclarations,
-          "STREAM_WAS_CANCELED": js.number(error_codes.STREAM_WAS_CANCELED),
-          "ERROR": js.number(error_codes.ERROR),
-          "hasYield": analysis.hasYield,
-          "rewrittenBody": rewrittenBody,
-          "bodyName": bodyName,
-          "currentError": currentError,
-          "goto": goto,
-          "handler": handler,
-          "next": next,
-          "nextWhenCanceled": nextWhenCanceled,
-          "errorCode": errorCodeName,
-          "result": resultName,
-          "streamOfController": streamOfController,
-          "controller": controllerName,
-          "wrapBody": wrapBody,
-        }).withSourceInformation(sourceInformation);
+        }""", {
+      "parameters": parameters,
+      "variableDeclarations": variableDeclarations,
+      "STREAM_WAS_CANCELED": js.number(error_codes.STREAM_WAS_CANCELED),
+      "ERROR": js.number(error_codes.ERROR),
+      "hasYield": analysis.hasYield,
+      "rewrittenBody": rewrittenBody,
+      "bodyName": bodyName,
+      "currentError": currentError,
+      "goto": goto,
+      "handler": handler,
+      "next": next,
+      "nextWhenCanceled": nextWhenCanceled,
+      "errorCode": errorCodeName,
+      "result": resultName,
+      "streamOfController": streamOfController,
+      "controller": controllerName,
+      "wrapBody": wrapBody,
+    }).withSourceInformation(sourceInformation);
   }
 
   @override
@@ -2155,18 +2144,16 @@ class AsyncStarRewriter extends AsyncRewriterBase {
 
   @override
   js.Statement awaitStatement(js.Expression value) {
-    return js.js.statement(
-        """
+    return js.js.statement("""
           return #asyncHelper(#value,
                               #bodyName,
                               #controller);
-          """,
-        {
-          "asyncHelper": asyncStarHelper,
-          "value": value,
-          "bodyName": bodyName,
-          "controller": controllerName
-        });
+          """, {
+      "asyncHelper": asyncStarHelper,
+      "value": value,
+      "bodyName": bodyName,
+      "controller": controllerName
+    });
   }
 }
 

@@ -12,8 +12,7 @@ import 'package:analyzer_plugin/src/utilities/documentation.dart';
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 import 'package:analyzer_plugin/utilities/completion/suggestion_builder.dart';
-import 'package:front_end/src/base/source.dart' show Source;
-import 'package:front_end/src/base/uri_kind.dart';
+import 'package:analyzer/src/generated/source.dart' show Source, UriKind;
 
 /**
  * An object used to build code completion suggestions for Dart code.

@@ -3696,7 +3696,8 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     const TokenPosition expr_pos = TokenPos();
     AstNode* expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
     ASSERT(expr != NULL);
-    current_block_->statements->Add(new ReturnNode(expr_pos, expr));
+    expr = AddAsyncResultTypeCheck(expr_pos, expr);
+    current_block_->statements->Add(new (Z) ReturnNode(expr_pos, expr));
     end_token_pos = TokenPos();
     if (check_semicolon) {
       ExpectSemicolon();
@@ -3769,6 +3770,52 @@ void Parser::AddEqualityNullCheck() {
   IfNode* if_arg_null =
       new IfNode(TokenPosition::kNoSource, check_arg, arg_is_null, NULL);
   current_block_->statements->Add(if_arg_null);
+}
+
+AstNode* Parser::AddAsyncResultTypeCheck(TokenPosition expr_pos,
+                                         AstNode* expr) {
+  if (I->type_checks() &&
+      (((FunctionLevel() == 0) && current_function().IsAsyncClosure()))) {
+    // In checked mode, when the declared result type is Future<T>, verify
+    // that the returned expression is of type T or Future<T> as follows:
+    // return temp = expr, temp is Future ? temp as Future<T> : temp as T;
+    // In case of a mismatch, we need a TypeError and not a CastError, so
+    // we do not actually implement an "as" test, but an "assignable" test.
+    Function& async_func =
+        Function::Handle(Z, current_function().parent_function());
+    const AbstractType& result_type =
+        AbstractType::ZoneHandle(Z, async_func.result_type());
+    const Class& future_class =
+        Class::ZoneHandle(Z, I->object_store()->future_class());
+    ASSERT(!future_class.IsNull());
+    if (result_type.type_class() == future_class.raw()) {
+      const TypeArguments& result_type_args =
+          TypeArguments::ZoneHandle(Z, result_type.arguments());
+      if (!result_type_args.IsNull() && (result_type_args.Length() == 1)) {
+        const AbstractType& result_type_arg =
+            AbstractType::ZoneHandle(Z, result_type_args.TypeAt(0));
+        LetNode* checked_expr = new (Z) LetNode(expr_pos);
+        LocalVariable* temp = checked_expr->AddInitializer(expr);
+        temp->set_is_final();
+        const AbstractType& future_type =
+            AbstractType::ZoneHandle(Z, future_class.RareType());
+        AstNode* is_future = new (Z) LoadLocalNode(expr_pos, temp);
+        is_future =
+            new (Z) ComparisonNode(expr_pos, Token::kIS, is_future,
+                                   new (Z) TypeNode(expr_pos, future_type));
+        AstNode* as_future_t = new (Z) LoadLocalNode(expr_pos, temp);
+        as_future_t = new (Z) AssignableNode(expr_pos, as_future_t, result_type,
+                                             Symbols::FunctionResult());
+        AstNode* as_t = new (Z) LoadLocalNode(expr_pos, temp);
+        as_t = new (Z) AssignableNode(expr_pos, as_t, result_type_arg,
+                                      Symbols::FunctionResult());
+        checked_expr->AddNode(new (Z) ConditionalExprNode(expr_pos, is_future,
+                                                          as_future_t, as_t));
+        expr = checked_expr;
+      }
+    }
+  }
+  return expr;
 }
 
 void Parser::SkipIf(Token::Kind token) {
@@ -10537,47 +10584,7 @@ AstNode* Parser::ParseStatement() {
         ReportError(expr_pos, "generator functions may not return a value");
       }
       AstNode* expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
-      if (I->type_checks() &&
-          (((function_level == 0) && current_function().IsAsyncClosure()))) {
-        // In checked mode, when the declared result type is Future<T>, verify
-        // that the returned expression is of type T or Future<T> as follows:
-        // return temp = expr, temp is Future ? temp as Future<T> : temp as T;
-        // In case of a mismatch, we need a TypeError and not a CastError, so
-        // we do not actually implement an "as" test, but an "assignable" test.
-        Function& async_func =
-            Function::Handle(Z, current_function().parent_function());
-        const AbstractType& result_type =
-            AbstractType::ZoneHandle(Z, async_func.result_type());
-        const Class& future_class =
-            Class::ZoneHandle(Z, I->object_store()->future_class());
-        ASSERT(!future_class.IsNull());
-        if (result_type.type_class() == future_class.raw()) {
-          const TypeArguments& result_type_args =
-              TypeArguments::ZoneHandle(Z, result_type.arguments());
-          if (!result_type_args.IsNull() && (result_type_args.Length() == 1)) {
-            const AbstractType& result_type_arg =
-                AbstractType::ZoneHandle(Z, result_type_args.TypeAt(0));
-            LetNode* checked_expr = new (Z) LetNode(expr_pos);
-            LocalVariable* temp = checked_expr->AddInitializer(expr);
-            temp->set_is_final();
-            const AbstractType& future_type =
-                AbstractType::ZoneHandle(Z, future_class.RareType());
-            AstNode* is_future = new (Z) LoadLocalNode(expr_pos, temp);
-            is_future =
-                new (Z) ComparisonNode(expr_pos, Token::kIS, is_future,
-                                       new (Z) TypeNode(expr_pos, future_type));
-            AstNode* as_future_t = new (Z) LoadLocalNode(expr_pos, temp);
-            as_future_t = new (Z) AssignableNode(
-                expr_pos, as_future_t, result_type, Symbols::FunctionResult());
-            AstNode* as_t = new (Z) LoadLocalNode(expr_pos, temp);
-            as_t = new (Z) AssignableNode(expr_pos, as_t, result_type_arg,
-                                          Symbols::FunctionResult());
-            checked_expr->AddNode(new (Z) ConditionalExprNode(
-                expr_pos, is_future, as_future_t, as_t));
-            expr = checked_expr;
-          }
-        }
-      }
+      expr = AddAsyncResultTypeCheck(expr_pos, expr);
       statement = new (Z) ReturnNode(statement_pos, expr);
     } else {
       if (current_function().IsSyncGenClosure() && (FunctionLevel() == 0)) {

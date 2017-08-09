@@ -21,25 +21,6 @@ void ignoreAllErrors(bool flag) {
   JS('', 'dart.__ignoreAllErrors = #', flag);
 }
 
-/// Throw an exception on `is` checks that would return an unsound answer in
-/// non-strong mode Dart.
-///
-/// For example `x is List<int>` where `x = <Object>['hello']`.
-///
-/// These checks behave correctly in strong mode (they return false), however,
-/// they will produce a different answer if run on a platform without strong
-/// mode. As a debugging feature, these checks can be configured to throw, to
-/// avoid seeing different behavior between modes.
-///
-/// (There are many other ways that different `is` behavior can be observed,
-/// however, even with this flag. The most obvious is due to lack of reified
-/// generic type parameters. This affects generic functions and methods, as
-/// well as generic types when the type parameter was inferred. Setting this
-/// flag to `true` will not catch these differences in behavior..)
-void failForWeakModeIsChecks(bool flag) {
-  JS('', 'dart.__failForWeakModeIsChecks = #', flag);
-}
-
 throwCastError(object, actual, type) {
   var found = typeName(actual);
   var expected = typeName(type);
@@ -73,9 +54,8 @@ throwUnimplementedError(String message) {
   throw new UnimplementedError(message);
 }
 
-throwAssertionError(messageFn()) {
+assertFailed(message) {
   if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
-  var message = messageFn != null ? messageFn() : null;
   throw new AssertionErrorImpl(message);
 }
 

@@ -5320,7 +5320,6 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
       clustered_isolate_size_(0),
       mapped_data_size_(0),
       mapped_instructions_size_(0) {
-  ASSERT(isolate_snapshot_data_buffer_ != NULL);
   ASSERT(alloc_ != NULL);
   ASSERT(isolate() != NULL);
   ASSERT(ClassFinalizer::AllClassesFinalized());
@@ -5349,15 +5348,18 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
     // it out as part of the VM isolate snapshot. We first count the number of
     // token streams, allocate an array and then fill it up with the token
     // streams.
-    SnapshotTokenStreamVisitor token_streams_counter(thread());
-    heap()->IterateOldObjects(&token_streams_counter);
-    Dart::vm_isolate()->heap()->IterateOldObjects(&token_streams_counter);
-    intptr_t count = token_streams_counter.count();
-    token_streams_ = Array::New(count, Heap::kOld);
-    SnapshotTokenStreamVisitor script_visitor(thread(), &token_streams_);
-    heap()->IterateOldObjects(&script_visitor);
-    Dart::vm_isolate()->heap()->IterateOldObjects(&script_visitor);
-    ASSERT(script_visitor.count() == count);
+    {
+      HeapIterationScope iteration(thread());
+      SnapshotTokenStreamVisitor token_streams_counter(thread());
+      iteration.IterateObjects(&token_streams_counter);
+      iteration.IterateVMIsolateObjects(&token_streams_counter);
+      intptr_t count = token_streams_counter.count();
+      token_streams_ = Array::New(count, Heap::kOld);
+      SnapshotTokenStreamVisitor script_visitor(thread(), &token_streams_);
+      iteration.IterateObjects(&script_visitor);
+      iteration.IterateVMIsolateObjects(&script_visitor);
+      ASSERT(script_visitor.count() == count);
+    }
 
     // Tuck away the current symbol table.
     saved_symbol_table_ = object_store->symbol_table();
@@ -5454,7 +5456,9 @@ void FullSnapshotWriter::WriteFullSnapshot() {
     num_base_objects = 0;
   }
 
-  WriteIsolateSnapshot(num_base_objects);
+  if (isolate_snapshot_data_buffer() != NULL) {
+    WriteIsolateSnapshot(num_base_objects);
+  }
 
   if (FLAG_print_snapshot_sizes) {
     OS::Print("VMIsolate(CodeSize): %" Pd "\n", clustered_vm_size_);

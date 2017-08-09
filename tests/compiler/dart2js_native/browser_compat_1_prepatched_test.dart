@@ -21,54 +21,57 @@ makeT1C() native;
 
 int getTagCallCount() native;
 
-void setup() native r'''
-function T1A() { } //       Normal native class.
-function T1CrazyB() { } //  Native class with different constructor name.
+void setup() {
+  JS('', r'''
+(function(){
+  function T1A() { } //       Normal native class.
+  function T1CrazyB() { } //  Native class with different constructor name.
 
-var T1fakeA = (function(){
-  function T1A() {} //      Native class with adversarial constructor name.
-  return T1A;
-})();
+  var T1fakeA = (function(){
+    function T1A() {} //      Native class with adversarial constructor name.
+    return T1A;
+  })();
 
-// Make constructors visible on 'window' for prepatching.
-if (typeof window == "undefined") window = {}
-window.T1A = T1A;
-window.T1CrazyB = T1CrazyB;
+  // Make constructors visible on 'window' for prepatching.
+  if (typeof window == "undefined") window = {};
+  window.T1A = T1A;
+  window.T1CrazyB = T1CrazyB;
 
-makeT1A = function(){return new T1A;};
-makeT1B = function(){return new T1CrazyB;};
-makeT1C = function(){return new T1fakeA;};
+  makeT1A = function(){return new T1A()};
+  makeT1B = function(){return new T1CrazyB()};
+  makeT1C = function(){return new T1fakeA()};
 
-self.nativeConstructor(T1A);
-self.nativeConstructor(T1CrazyB);
-self.nativeConstructor(T1fakeA);
+  self.nativeConstructor(T1A);
+  self.nativeConstructor(T1CrazyB);
+  self.nativeConstructor(T1fakeA);
 
-var getTagCount = 0;
-getTagCallCount = function() { return getTagCount; }
+  var getTagCount = 0;
+  getTagCallCount = function() { return getTagCount; };
 
-function transformer1(hooks) {
-  var getTag = hooks.getTag;
+  function transformer1(hooks) {
+    var getTag = hooks.getTag;
 
-  function getTagNew(obj) {
-    ++getTagCount;
+    function getTagNew(obj) {
+      ++getTagCount;
 
-    // If something looks like a different native type we can check in advance
-    // of the default algorithm.
-    if (obj instanceof T1fakeA) return "T1C";
+      // If something looks like a different native type we can check in advance
+      // of the default algorithm.
+      if (obj instanceof T1fakeA) return "T1C";
 
-    var tag = getTag(obj);
+      var tag = getTag(obj);
 
-    // New constructor names can be mapped here.
-    if (tag == "T1CrazyB") return "T1B";
+      // New constructor names can be mapped here.
+      if (tag == "T1CrazyB") return "T1B";
 
-    return tag;
+      return tag;
+    }
+
+    hooks.getTag = getTagNew;
   }
 
-  hooks.getTag = getTagNew;
+  dartNativeDispatchHooksTransformer = [transformer1];
+})()''');
 }
-
-dartNativeDispatchHooksTransformer = [transformer1];
-''';
 
 main() {
   nativeTesting();

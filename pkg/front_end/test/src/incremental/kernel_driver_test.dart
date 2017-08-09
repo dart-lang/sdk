@@ -4,12 +4,15 @@
 
 import 'dart:async';
 
+import 'package:front_end/compiler_options.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
+import 'package:front_end/summary_generator.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/target/targets.dart';
@@ -282,6 +285,34 @@ static field (core::String) → core::int f;
     KernelResult result = await driver.getKernel(aUri);
     expect(result.types.coreTypes.intClass, isNotNull);
     expect(result.types.hierarchy, isNotNull);
+  }
+
+  test_compile_useSdkOutline() async {
+    List<int> sdkOutlineBytes = await _computeSdkOutlineBytes();
+
+    // Configure the driver to use the SDK outline.
+    _createDriver(sdkOutlineBytes: sdkOutlineBytes);
+
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    Uri aUri = writeFile(aPath, r'''
+import 'dart:async';
+var a = 1;
+Future<String> b;
+''');
+
+    KernelResult result = await driver.getKernel(aUri);
+
+    // The result does not include SDK libraries.
+    _assertLibraryUris(result,
+        includes: [aUri],
+        excludes: [Uri.parse('dart:core'), Uri.parse('dart:core')]);
+
+    // The types of top-level variables are resolved.
+    var library = _getLibrary(result, aUri);
+    expect(library.fields[0].type.toString(), 'dart.core::int');
+    expect(library.fields[1].type.toString(),
+        'dart.async::Future<dart.core::String>');
   }
 
   test_limitedStore_exportDependencies() async {
@@ -645,19 +676,35 @@ import 'b.dart';
     }
   }
 
+  Future<List<int>> _computeSdkOutlineBytes() async {
+    var options = new CompilerOptions()
+      ..fileSystem = fileSystem
+      ..sdkRoot = Uri.parse('file:///sdk/')
+      ..compileSdk = true
+      ..chaseDependencies = true
+      ..strongMode = true
+      ..target = new NoneTarget(new TargetFlags(strongMode: true));
+    var inputs = [Uri.parse('dart:core')];
+    return summaryFor(inputs, options);
+  }
+
   /// Create new [KernelDriver] instance and put it into the [driver] field.
   void _createDriver(
-      {Map<String, Uri> packages, KernelDriverFileAddedFn fileAddedFn}) {
-    Map<String, Uri> dartLibraries = createSdkFiles(fileSystem);
-    var uriTranslator =
-        new UriTranslatorImpl(dartLibraries, {}, new MapPackages(packages));
-    driver = new KernelDriver(
-        new PerformanceLog(null),
-        fileSystem,
-        new MemoryByteStore(),
-        uriTranslator,
-        new NoneTarget(new TargetFlags(strongMode: true)),
-        fileAddedFn: fileAddedFn);
+      {List<int> sdkOutlineBytes,
+      Map<String, Uri> packages,
+      KernelDriverFileAddedFn fileAddedFn}) {
+    var uriTranslator = new UriTranslatorImpl(
+        createSdkFiles(fileSystem), new MapPackages(packages));
+
+    var options = new CompilerOptions()
+      ..logger = new PerformanceLog(null)
+      ..fileSystem = fileSystem
+      ..byteStore = new MemoryByteStore()
+      ..strongMode = true
+      ..target = new NoneTarget(new TargetFlags(strongMode: true));
+
+    driver = new KernelDriver(new ProcessedOptions(options), uriTranslator,
+        sdkOutlineBytes: sdkOutlineBytes, fileAddedFn: fileAddedFn);
   }
 
   Library _getLibrary(KernelResult result, Uri uri) {

@@ -698,6 +698,37 @@ class CompilationCommandOutput extends CommandOutput {
   }
 }
 
+class DevCompilerCommandOutput extends CommandOutput {
+  DevCompilerCommandOutput(
+      Command command,
+      int exitCode,
+      bool timedOut,
+      List<int> stdout,
+      List<int> stderr,
+      Duration time,
+      bool compilationSkipped,
+      int pid)
+      : super(command, exitCode, timedOut, stdout, stderr, time,
+            compilationSkipped, pid);
+
+  Expectation result(TestCase testCase) {
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+
+    // Handle errors / missing errors
+    if (testCase.expectCompileError) {
+      return exitCode == 0
+          ? Expectation.missingCompileTimeError
+          : Expectation.pass;
+    }
+
+    // TODO(jmesserly): should we handle `testCase.isNegative`? Analyzer does
+    // not, so this behavior is chosen to match.
+    return exitCode == 0 ? Expectation.pass : Expectation.compileTimeError;
+  }
+}
+
 class KernelCompilationCommandOutput extends CompilationCommandOutput {
   KernelCompilationCommandOutput(
       Command command,
@@ -804,6 +835,9 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
         command.displayName == 'app_jit') {
       return new VMCommandOutput(
           command, exitCode, timedOut, stdout, stderr, time, pid);
+    } else if (command.displayName == 'dartdevc') {
+      return new DevCompilerCommandOutput(command, exitCode, timedOut, stdout,
+          stderr, time, compilationSkipped, pid);
     }
     return new CompilationCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);

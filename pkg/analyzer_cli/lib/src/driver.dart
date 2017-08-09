@@ -40,7 +40,7 @@ import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:meta/meta.dart';
 import 'package:package_config/discovery.dart' as pkg_discovery;
@@ -180,7 +180,7 @@ class Driver implements CommandLineStarter {
 
     // Do analysis.
     if (options.buildMode) {
-      ErrorSeverity severity = _buildModeAnalyze(options);
+      ErrorSeverity severity = await _buildModeAnalyze(options);
       // Propagate issues to the exit code.
       if (_shouldBeFatal(severity, options)) {
         io.exitCode = severity.ordinal;
@@ -365,16 +365,20 @@ class Driver implements CommandLineStarter {
   }
 
   /// Perform analysis in build mode according to the given [options].
-  ErrorSeverity _buildModeAnalyze(CommandLineOptions options) {
-    return _analyzeAllTag.makeCurrentWhile(() {
+  Future<ErrorSeverity> _buildModeAnalyze(CommandLineOptions options) async {
+    PerformanceTag previous = _analyzeAllTag.makeCurrent();
+    try {
       if (options.buildModePersistentWorker) {
-        new AnalyzerWorkerLoop.std(resourceProvider,
+        await new AnalyzerWorkerLoop.std(resourceProvider,
                 dartSdkPath: options.dartSdkPath)
             .run();
+        return ErrorSeverity.NONE;
       } else {
-        return new BuildMode(resourceProvider, options, stats).analyze();
+        return await new BuildMode(resourceProvider, options, stats).analyze();
       }
-    });
+    } finally {
+      previous.makeCurrent();
+    }
   }
 
   /// Decide on the appropriate policy for which files need to be fully parsed

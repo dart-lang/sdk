@@ -113,6 +113,7 @@ void HeapPage::Deallocate() {
 }
 
 void HeapPage::VisitObjects(ObjectVisitor* visitor) const {
+  ASSERT(Thread::Current()->IsAtSafepoint());
   NoSafepointScope no_safepoint;
   uword obj_addr = object_start();
   uword end_addr = object_end();
@@ -125,6 +126,7 @@ void HeapPage::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
+  ASSERT(Thread::Current()->IsAtSafepoint());
   NoSafepointScope no_safepoint;
   uword obj_addr = object_start();
   uword end_addr = object_end();
@@ -752,9 +754,9 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
     // "pages" is an array [page0, page1, ..., pageN], each page of the form
     // {"object_start": "0x...", "objects": [size, class id, size, ...]}
     // TODO(19445): Use ExclusivePageIterator once HeapMap supports large pages.
+    HeapIterationScope iteration(Thread::Current());
     MutexLocker ml(pages_lock_);
     MakeIterable();
-    NoSafepointScope no_safepoint;
     JSONArray all_pages(&heap_map, "pages");
     for (HeapPage* page = pages_; page != NULL; page = page->next()) {
       JSONObject page_container(&all_pages);
@@ -1149,7 +1151,6 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   intptr_t capacity_increase_in_pages =
       capacity_increase_in_words / PageSpace::kPageSizeInWords;
   double multiplier = 1.0;
-#if !defined(PRODUCT)
   // To avoid waste, the first GC should be triggered before too long. After
   // kInitialTimeoutSeconds, gradually lower the capacity limit.
   static const double kInitialTimeoutSeconds = 1.00;
@@ -1160,7 +1161,6 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
       multiplier *= seconds_since_init / kInitialTimeoutSeconds;
     }
   }
-#endif  // !defined(PRODUCT)
   bool needs_gc = capacity_increase_in_pages * multiplier > grow_heap_;
   if (FLAG_log_growth) {
     OS::PrintErr("%s: %" Pd " * %f %s %" Pd "\n",

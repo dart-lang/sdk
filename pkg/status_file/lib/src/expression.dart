@@ -91,7 +91,7 @@ class _ComparisonExpression implements Expression {
     return negate != (left.lookup(environment) == right);
   }
 
-  String toString() => "(\$${left.name} ${negate ? '!=' : '=='} $right)";
+  String toString() => "\$${left.name} ${negate ? '!=' : '=='} $right";
 }
 
 /// A reference to a variable defined in the environment. The expression
@@ -125,7 +125,7 @@ class _VariableExpression implements Expression {
   bool evaluate(Environment environment) =>
       negate != (variable.lookup(environment) == "true");
 
-  String toString() => "(bool ${negate ? "! " : ""}\$${variable.name})";
+  String toString() => "${negate ? "!" : ""}\$${variable.name}";
 }
 
 /// A logical `||` or `&&` expression.
@@ -147,7 +147,18 @@ class _LogicExpression implements Expression {
       ? left.evaluate(environment) && right.evaluate(environment)
       : left.evaluate(environment) || right.evaluate(environment);
 
-  String toString() => "($left $op $right)";
+  String toString() {
+    String parenthesize(Expression operand) {
+      var result = operand.toString();
+      if (op == "&&" && operand is _LogicExpression && operand.op == "||") {
+        result = "($result)";
+      }
+
+      return result;
+    }
+
+    return "${parenthesize(left)} $op ${parenthesize(right)}";
+  }
 }
 
 /// Parser for Boolean expressions in a .status file for Dart.

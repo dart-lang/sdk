@@ -281,7 +281,8 @@ class Listener {
     logEvent("NamedFunctionExpression");
   }
 
-  /// Handle the beginning of a local function declaration.
+  /// Handle the beginning of a local function declaration.  Substructures:
+  /// - Type variables
   void beginLocalFunctionDeclaration(Token token) {}
 
   /// A function declaration.

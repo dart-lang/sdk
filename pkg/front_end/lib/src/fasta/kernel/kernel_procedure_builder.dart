@@ -4,6 +4,9 @@
 
 library fasta.kernel_procedure_builder;
 
+import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
+    show TypeInferrer;
+
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -389,7 +392,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     }
   }
 
-  void addInitializer(Initializer initializer) {
+  void addInitializer(Initializer initializer, TypeInferrer typeInferrer) {
     List<Initializer> initializers = constructor.initializers;
     if (initializer is SuperInitializer) {
       checkSuperOrThisInitializer(initializer);
@@ -420,8 +423,13 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
         Arguments arguments = superInitializer.arguments;
         List<Expression> positional = arguments.positional;
         for (int i = 0; i < positional.length; i++) {
-          VariableDeclaration variable =
-              new VariableDeclaration.forValue(positional[i], isFinal: true);
+          var type = typeInferrer.typeSchemaEnvironment.strongMode
+              ? positional[i].getStaticType(typeInferrer.typeSchemaEnvironment)
+              : const DynamicType();
+          VariableDeclaration variable = new VariableDeclaration.forValue(
+              positional[i],
+              isFinal: true,
+              type: type);
           initializers
               .add(new LocalInitializer(variable)..parent = constructor);
           positional[i] = new VariableGet(variable)..parent = arguments;

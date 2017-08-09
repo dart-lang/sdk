@@ -3446,7 +3446,7 @@ void BoxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   BoxAllocationSlowPath::Allocate(compiler, this,
                                   compiler->BoxClassFor(from_representation()),
                                   out_reg, temp);
-  __ movsd(FieldAddress(out_reg, Double::value_offset()), value);
+
   switch (from_representation()) {
     case kUnboxedDouble:
       __ movsd(FieldAddress(out_reg, ValueOffset()), value);

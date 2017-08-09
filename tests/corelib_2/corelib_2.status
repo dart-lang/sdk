@@ -30,13 +30,44 @@ string_static_test: MissingCompileTimeError
 [ $compiler == dart2analyzer && !$strong ]
 symbol_reserved_word_test/05: MissingCompileTimeError # Issue 30245
 
+[ $compiler == dart2analyzer && !$strong && !$checked ]
+from_environment_const_type_test/02: MissingCompileTimeError
+from_environment_const_type_test/03: MissingCompileTimeError
+from_environment_const_type_test/04: MissingCompileTimeError
+from_environment_const_type_test/06: MissingCompileTimeError
+from_environment_const_type_test/07: MissingCompileTimeError
+from_environment_const_type_test/08: MissingCompileTimeError
+from_environment_const_type_test/09: MissingCompileTimeError
+from_environment_const_type_test/11: MissingCompileTimeError
+from_environment_const_type_test/12: MissingCompileTimeError
+from_environment_const_type_test/13: MissingCompileTimeError
+from_environment_const_type_test/14: MissingCompileTimeError
+from_environment_const_type_test/16: MissingCompileTimeError
+from_environment_const_type_undefined_test/02: MissingCompileTimeError
+from_environment_const_type_undefined_test/03: MissingCompileTimeError
+from_environment_const_type_undefined_test/04: MissingCompileTimeError
+from_environment_const_type_undefined_test/06: MissingCompileTimeError
+from_environment_const_type_undefined_test/07: MissingCompileTimeError
+from_environment_const_type_undefined_test/08: MissingCompileTimeError
+from_environment_const_type_undefined_test/09: MissingCompileTimeError
+from_environment_const_type_undefined_test/11: MissingCompileTimeError
+from_environment_const_type_undefined_test/12: MissingCompileTimeError
+from_environment_const_type_undefined_test/13: MissingCompileTimeError
+from_environment_const_type_undefined_test/14: MissingCompileTimeError
+from_environment_const_type_undefined_test/16: MissingCompileTimeError
+
 [ $compiler == dart2js && $fast_startup ]
 apply3_test: Fail # mirrors not supported
+dynamic_nosuchmethod_test: Fail # mirrors not supported
 
 [ $compiler == precompiler ]
 apply3_test: SkipByDesign
+dynamic_nosuchmethod_test: SkipByDesign
 big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
+
+[ $compiler == dart2js && $runtime != none && !$checked ]
+growable_list_test: RuntimeError # Concurrent modifications test always runs
 
 [ $compiler == dartdevc && $runtime != none ]
 apply2_test: RuntimeError # Issue 29921
@@ -48,7 +79,16 @@ const_list_remove_range_test: RuntimeError # Issue 29921
 const_list_set_range_test: RuntimeError # Issue 29921
 compare_to2_test: RuntimeError # Issue 30170
 date_time10_test: RuntimeError # Issue 29921
+growable_list_test: RuntimeError # Issue 29921
 hash_set_test/01: RuntimeError # Issue 29921
+iterable_to_list_test/*: RuntimeError
+list_test/none: RuntimeError
+list_test/01: RuntimeError
+nan_infinity_test/01: RuntimeError # Issue 29921
+null_nosuchmethod_test: RuntimeError # Issue 29921
+main_test: RuntimeError # Issue 29921
+map_test: RuntimeError # Issue 29921
+map_keys2_test: RuntimeError # Issue 29921
 regexp/bol-with-multiline_test: RuntimeError # Issue 29921
 regexp/invalid-range-in-class_test: RuntimeError # Issue 29921
 regexp/look-ahead_test: RuntimeError # Issue 29921
@@ -70,11 +110,19 @@ regexp/capture-3_test: RuntimeError # Issue 29921
 regexp/char-insensitive_test: RuntimeError # Issue 29921
 regexp/character-match-out-of-order_test: RuntimeError # Issue 29921
 regexp/loop-capture_test: RuntimeError # Issue 29921
+regexp/char-insensitive_test: RuntimeError # Issue 29921
+regexp/character-match-out-of-order_test: RuntimeError # Issue 29921
+regexp/compile-crash_test: RuntimeError # Issue 29921
+regexp/default_arguments_test: RuntimeError # Issue 29921
+regexp/early-acid3-86_test: RuntimeError # Issue 29921
+regexp/ecma-regex-examples_test: RuntimeError # Issue 29921
+regexp/extended-characters-match_test: RuntimeError # Issue 29921
+regexp/extended-characters-more_test: RuntimeError # Issue 29921
+regexp/find-first-asserted_test: RuntimeError # Issue 29921
 regexp/quantified-assertions_test: RuntimeError # Issue 29921
 regexp/range-bound-ffff_test: RuntimeError # Issue 29921
 regexp/range-out-of-order_test: RuntimeError # Issue 29921
 regexp/ranges-and-escaped-hyphens_test: RuntimeError # Issue 29921
-regexp/regress-6-9-regexp_test: RuntimeError # Issue 29921
 regexp/regress-6-9-regexp_test: RuntimeError # Issue 29921
 regexp/pcre-test-4_test: RuntimeError # Issue 29921
 regexp/regress-regexp-codeflush_test: RuntimeError # Issue 29921
@@ -93,6 +141,10 @@ symbol_test/none: RuntimeError # Issue 29921
 symbol_reserved_word_test/06: RuntimeError # Issue 29921
 symbol_reserved_word_test/09: RuntimeError # Issue 29921
 symbol_reserved_word_test/12: RuntimeError # Issue 29921
+int_parse_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
+typed_data_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
+int_modulo_arith_test/none: RuntimeError # Issue 29921
+list_unmodifiable_test: RuntimeError # Issue 29921, strong mode cast failure
 
 [ ($compiler == dart2js || $compiler == dartdevc) && $runtime != none ]
 big_integer_arith_vm_test: RuntimeError # Issues 10245, 30170
@@ -100,23 +152,64 @@ big_integer_parsed_arith_vm_test: RuntimeError # Issues 10245, 29921
 big_integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921
 big_integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
 bit_twiddling_bigint_test: RuntimeError # Required bigint support.
+json_map_test: RuntimeError
 compare_to2_test: RuntimeError, OK # Requires bigint support.
 hash_set_test/01: RuntimeError # Issue 11551
 int_modulo_arith_test/bignum: RuntimeError # Issue 29921
 int_modulo_arith_test/modPow: RuntimeError # Issue 29921
 regress_r21715_test: RuntimeError # Requires bigint support.
+int_parse_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
+typed_data_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
+
+[ $compiler == dart2js && $runtime != none ]
+nan_infinity_test/01: RuntimeError
+iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 
 [ $compiler == dart2js && $runtime == drt && $csp && $minified ]
 core_runtime_types_test: Pass, Fail # Issue 27913
+
+[ $compiler != dartdevc ]
+error_stack_trace_test/static: MissingCompileTimeError
+
+[ $compiler == dartdevc && $runtime != none ]
+error_stack_trace_test/nullThrown: RuntimeError # .stackTrace not present for exception caught from 'throw null;'
+list_fill_range_test: RuntimeError # Issue 29921
+list_insert_test: RuntimeError # Issue 29921
+list_removeat_test: RuntimeError # Issue 29921
+list_replace_range_test: RuntimeError # Issue 29921
+list_set_all_test: RuntimeError # Issue 29921
+json_map_test: RuntimeError # Issue 29921
+core_runtime_types_test: RuntimeError # Issue 29921 - runtime cast failure
+string_fromcharcodes_test: RuntimeError # Issue 29921 - runtime cast failure
+uri_query_test: RuntimeError # Issue 29921 - runtime cast failure
 
 [ $runtime == flutter ]
 apply3_test: CompileTimeError # mirrors not supported
 bool_from_environment_test: Fail # Flutter Issue 9111
 int_from_environment_test: Fail # Flutter Issue 9111
 int_from_environment2_test: Fail # Flutter Issue 9111
+format_exception_test: RuntimeError # Flutter Issue 9111
+from_environment_const_type_test/none: Fail # Flutter Issue 9111
+from_environment_const_type_test/01: Fail # Flutter Issue 9111
+from_environment_const_type_test/05: Fail # Flutter Issue 9111
+from_environment_const_type_test/10: Fail # Flutter Issue 9111
+from_environment_const_type_test/15: Fail # Flutter Issue 9111
+from_environment_const_type_test/02: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/03: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/04: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/06: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/07: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/08: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/09: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/12: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/11: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/13: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/14: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/16: MissingCompileTimeError # Flutter Issue 9111
 string_trimlr_test/02: RuntimeError # Flutter Issue 9111
 string_from_environment_test: Fail # Flutter Issue 9111
 string_from_environment2_test: Fail # Flutter Issue 9111
+main_test: RuntimeError # Flutter Issue 9111
 
 [ $hot_reload || $hot_reload_rollback ]
 big_integer_huge_mul_vm_test: Pass, Slow # Slow
@@ -138,6 +231,27 @@ symbol_reserved_word_test/12: RuntimeError # Issue 11669
 symbol_test/none: Fail # Issue 11669
 symbol_operator_test/03: Fail # Issue 11669
 string_case_test/01: Fail # Bug 18061
+
+# dartk: checked mode failures
+[ $checked && ($compiler == dartk || $compiler == dartkp) ]
+from_environment_const_type_test/02: MissingCompileTimeError
+from_environment_const_type_test/03: MissingCompileTimeError
+from_environment_const_type_test/04: MissingCompileTimeError
+from_environment_const_type_test/06: MissingCompileTimeError
+from_environment_const_type_test/07: MissingCompileTimeError
+from_environment_const_type_test/08: MissingCompileTimeError
+from_environment_const_type_test/09: MissingCompileTimeError
+from_environment_const_type_test/11: MissingCompileTimeError
+from_environment_const_type_test/12: MissingCompileTimeError
+from_environment_const_type_test/13: MissingCompileTimeError
+from_environment_const_type_test/14: MissingCompileTimeError
+from_environment_const_type_test/16: MissingCompileTimeError
+from_environment_const_type_undefined_test/02: MissingCompileTimeError
+from_environment_const_type_undefined_test/03: MissingCompileTimeError
+from_environment_const_type_undefined_test/04: MissingCompileTimeError
+from_environment_const_type_undefined_test/06: MissingCompileTimeError
+from_environment_const_type_undefined_test/07: MissingCompileTimeError
+from_environment_const_type_undefined_test/08: MissingCompileTimeError
 
 [ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
 bool_from_environment2_test/01: MissingCompileTimeError
@@ -184,6 +298,7 @@ big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
 
 [ $compiler == none && ($runtime == vm || $runtime == flutter)]
 string_trimlr_test/02: RuntimeError # Issue 29060
+iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 
 [ $compiler == precompiler || $compiler == app_jit ]
 string_trimlr_test/02: RuntimeError # Issue 29060
@@ -201,11 +316,37 @@ symbol_reserved_word_test/10: MissingCompileTimeError # Issue 11669, 19972
 [ $compiler == dart2js ]
 hash_set_test/01: RuntimeError # Issue 11551
 string_static_test: MissingCompileTimeError
-int_parse_with_limited_ints_test: Skip # dart2js doesn't know about --limit-ints-to-64-bits
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $runtime != drt ]
 symbol_test/02: MissingCompileTimeError # Issue 11669
 symbol_test/03: MissingCompileTimeError # Issue 11669
+
+[ $compiler == app_jit || $compiler == precompiler || $compiler == dartk ]
+from_environment_const_type_test/02: MissingCompileTimeError
+from_environment_const_type_test/03: MissingCompileTimeError
+from_environment_const_type_test/04: MissingCompileTimeError
+from_environment_const_type_test/06: MissingCompileTimeError
+from_environment_const_type_test/07: MissingCompileTimeError
+from_environment_const_type_test/08: MissingCompileTimeError
+from_environment_const_type_test/09: MissingCompileTimeError
+from_environment_const_type_test/11: MissingCompileTimeError
+from_environment_const_type_test/12: MissingCompileTimeError
+from_environment_const_type_test/13: MissingCompileTimeError
+from_environment_const_type_test/14: MissingCompileTimeError
+from_environment_const_type_test/16: MissingCompileTimeError
+from_environment_const_type_undefined_test/02: MissingCompileTimeError
+from_environment_const_type_undefined_test/03: MissingCompileTimeError
+from_environment_const_type_undefined_test/04: MissingCompileTimeError
+from_environment_const_type_undefined_test/06: MissingCompileTimeError
+from_environment_const_type_undefined_test/07: MissingCompileTimeError
+from_environment_const_type_undefined_test/08: MissingCompileTimeError
+from_environment_const_type_undefined_test/09: MissingCompileTimeError
+from_environment_const_type_undefined_test/11: MissingCompileTimeError
+from_environment_const_type_undefined_test/12: MissingCompileTimeError
+from_environment_const_type_undefined_test/13: MissingCompileTimeError
+from_environment_const_type_undefined_test/14: MissingCompileTimeError
+from_environment_const_type_undefined_test/16: MissingCompileTimeError
+iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 
 [ $compiler == dart2js && $runtime == safari ]
 regexp/no-extensions_test: RuntimeError
@@ -214,19 +355,24 @@ regexp/overflow_test: RuntimeError
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
+double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
+list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
-[ $compiler == dart2js && $runtime == drt ]
+[ ($compiler == dart2js || $compiler == dartdevc) && $runtime == drt ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 string_trimlr_test/01: Fail
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
 
 [ $compiler == dart2js && $runtime == d8 ]
 string_trimlr_test/02: RuntimeError, Pass # Uses Unicode 6.2.0 or earlier, issue 30279.
+uri_base_test: RuntimeError # D8 uses a custom uri scheme for Uri.base
 
 [ $compiler == dart2js && $dart2js_with_kernel_in_ssa ]
 symbol_reserved_word_test/03: Pass # Issue 27394
@@ -240,16 +386,44 @@ symbol_test/none: RuntimeError # Issue 27394
 string_static_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel]
+error_stack_trace1_test: RuntimeError # Issue 12399
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 regexp/pcre_test: Pass, Slow # Issue 21593
+
+[ !$checked && (($compiler == none && $runtime == vm) || $compiler == dart2js) ]
+from_environment_const_type_test/02: MissingCompileTimeError
+from_environment_const_type_test/03: MissingCompileTimeError
+from_environment_const_type_test/04: MissingCompileTimeError
+from_environment_const_type_test/06: MissingCompileTimeError
+from_environment_const_type_test/07: MissingCompileTimeError
+from_environment_const_type_test/08: MissingCompileTimeError
+from_environment_const_type_test/09: MissingCompileTimeError
+from_environment_const_type_test/11: MissingCompileTimeError
+from_environment_const_type_test/12: MissingCompileTimeError
+from_environment_const_type_test/13: MissingCompileTimeError
+from_environment_const_type_test/14: MissingCompileTimeError
+from_environment_const_type_test/16: MissingCompileTimeError
+from_environment_const_type_undefined_test/02: MissingCompileTimeError
+from_environment_const_type_undefined_test/03: MissingCompileTimeError
+from_environment_const_type_undefined_test/04: MissingCompileTimeError
+from_environment_const_type_undefined_test/06: MissingCompileTimeError
+from_environment_const_type_undefined_test/07: MissingCompileTimeError
+from_environment_const_type_undefined_test/08: MissingCompileTimeError
+
+
+[ ($compiler == none && $runtime == vm) || $compiler == dart2js ]
+from_environment_const_type_undefined_test/09: MissingCompileTimeError
+from_environment_const_type_undefined_test/11: MissingCompileTimeError
+from_environment_const_type_undefined_test/12: MissingCompileTimeError
+from_environment_const_type_undefined_test/13: MissingCompileTimeError
+from_environment_const_type_undefined_test/14: MissingCompileTimeError
+from_environment_const_type_undefined_test/16: MissingCompileTimeError
 
 [ ($compiler == none && $runtime == vm) || $compiler == dart2js ]
 string_base_vm_static_test: MissingCompileTimeError
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
 string_case_test/01: Fail, OK # Bug in Firefox.
-
-[ $compiler == dart2js && $runtime == jsshell ]
 regexp/UC16_test: RuntimeError
 
 [ $compiler == none && $runtime == drt ]
@@ -263,7 +437,7 @@ stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
 [ $runtime == vm ]
 string_case_test/01: RuntimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel ]
+[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 apply2_test: Crash
 apply3_test: Crash
 apply4_test: Crash
@@ -272,7 +446,6 @@ apply_test: Crash
 big_integer_arith_vm_test/modInv: Crash
 big_integer_arith_vm_test/shift: Crash
 bit_twiddling_bigint_test: Crash
-bit_twiddling_test: Crash
 bool_from_environment2_test/01: MissingCompileTimeError
 bool_from_environment2_test/02: MissingCompileTimeError
 bool_from_environment2_test/03: MissingCompileTimeError
@@ -289,11 +462,6 @@ const_list_remove_range_test: Crash
 const_list_set_range_test: Crash
 core_runtime_types_test: Crash
 data_uri_test: Crash
-date_time2_test: Crash
-date_time3_test: Crash
-date_time4_test: Crash
-date_time7_test: Crash
-date_time_parse_test: Crash
 date_time_test: Crash
 double_floor2_test: Crash
 double_parse_test/01: Crash
@@ -301,8 +469,24 @@ double_parse_test/02: Crash
 double_parse_test/03: Crash
 double_parse_test/04: Crash
 double_parse_test/none: Crash
+double_round2_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+double_truncate2_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+duration_test: Crash # Assertion failure: Cannot find value local(main_closure.call#d1) in (local(main#)) for j:closure_call(main_closure.call).
+dynamic_nosuchmethod_test: Crash # type 'KMethod' is not a subtype of type 'MemberElement' of 'member' where
+error_stack_trace1_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+error_stack_trace2_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+error_stack_trace_test/none: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+error_stack_trace_test/nullThrown: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+exception_implementation_test: Crash
+expando_test: Crash
+for_in_test: Crash
+growable_list_test: Crash
+has_next_iterator_test: Crash
+hash_map2_test: Crash
+hash_map_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 hash_set_test/01: Crash
 hash_set_test/none: Crash
+hash_set_type_check_test: Crash # Assertion failure: Cannot create exact type mask for uninstantiated class null.
 hash_set_type_check_test: RuntimeError
 hashcode_test: Crash
 hidden_library2_test/01: Crash
@@ -315,36 +499,104 @@ int_from_environment3_test/05: Crash
 int_modulo_arith_test/bignum: Crash
 int_modulo_arith_test/modPow: Crash
 int_modulo_arith_test/none: Crash
-regexp/invalid-range-in-class_test: Crash
-regexp/issue_19193_test: Crash
-regexp/lastindex_test: Crash
-regexp/lookahead_test: Crash
-regexp/multiline_test: Crash
-regexp/negative-special-characters_test: Crash
-regexp/no-extensions_test: Crash
-regexp/non-capturing-groups_test: Crash
-regexp/parentheses_test: Crash
-regexp/pcre-test-4_test: Crash
+iterable_skip_while_test: Crash
+iterable_take_test: Crash
+iterable_take_while_test: Crash
+iterable_test: Crash
+iterable_to_list_test/01: Crash
+iterable_to_list_test/none: Crash
+iterable_to_set_test: Crash
+iterable_tostring_test: Crash
+json_map_test: Crash
+linked_hash_map_from_iterables_test: Crash
+linked_hash_map_test: Crash
+list_as_map_test: Crash
+list_contains_argument_order_test: Crash
+list_fill_range_test: Crash
+list_first_test: Crash
+list_fixed_test: Crash
+list_for_each_test: Crash
+list_get_range_test: Crash
+list_growable_test: Crash
+list_insert_all_test: Crash
+list_insert_test: Crash
+list_iterators_test: Crash
+list_last_test: Crash
+list_map_test: Crash
+list_remove_range_test: Crash
+list_removeat_test: Crash
+list_replace_range_test: Crash
+list_reversed_test: Crash
+list_set_all_test: Crash
+list_set_range_test: Crash
+list_sort_test: Crash # Assertion failure: Cannot find value local(ListSortTest_testMain_closure.call#compare) in (local(ListSortTest_testMain_closure.call#list), local(ListSortTest.testMain#)) for j:closure_call(ListSortTest_testMain_closure.call).
+list_sublist_test: Crash
+list_test/01: Crash
+list_test/none: Crash
+list_to_string2_test: Crash
+list_to_string_test: Crash
+list_unmodifiable_test: Crash
+main_test: Crash
+map_contains_key_test: Crash
+map_contains_value_test: Crash
+map_from_iterable_test: Crash
+map_from_iterables_test: Crash
+map_from_test: Crash
+map_index_test: Crash
+map_keys2_test: Crash
+map_keys_test: Crash
+map_remove_test: Crash
+map_test: Crash # Issue 27394
+map_to_string_test: Crash
+map_values2_test: Crash
+map_values3_test: Crash
+map_values4_test: Crash
+map_values_test: Crash
+maps_test: Crash
+nan_infinity_test/01: RuntimeError
+null_nosuchmethod_test: Crash
+null_test: Crash
+num_clamp_test: Crash
+num_parse_test/01: Crash
+num_parse_test/none: Crash
+queue_first_test: Crash
+queue_iterator_test: Crash
+queue_last_test: Crash
+queue_single_test: Crash
+queue_test: Crash
 range_error_test: Crash
 reg_exp4_test: Crash
 reg_exp5_test: Crash
 reg_exp_all_matches_test: Crash
 reg_exp_start_end_test: Crash
 regexp/ascii-regexp-subject_test: Crash
-regexp/capture-3_test: Crash
 regexp/capture_test: Crash
-symbol_test/01: Crash
-symbol_test/02: Crash
-symbol_test/03: Crash
-symbol_test/none: Crash
+regexp/compile-crash_test: Crash
+regexp/compile_test: Crash
+regexp/early-acid3-86_test: Crash
+regexp/ecma-regex-examples_test: Crash
+regexp/extended-characters-more_test: Crash
+regexp/global_test: Crash
+regexp/indexof_test: Crash
+regexp/invalid-range-in-class_test: Crash
+regexp/issue_19193_test: Crash
+regexp/lastindex_test: Crash
+regexp/multiline_test: Crash
+regexp/negative-special-characters_test: Crash
+regexp/no-extensions_test: Crash
+regexp/non-capturing-groups_test: Crash
+regexp/parentheses_test: Crash
+regexp/pcre-test-4_test: Crash
+regexp/pcre_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
 regexp/range-out-of-order_test: Crash
 regexp/regexp_kde_test: Crash
 regexp/regexp_test: Crash
 regexp/regress-regexp-codeflush_test: Crash
 regexp/standalones_test: Crash
-regexp/toString_test: Crash
 regexp/unicode-handling_test: Crash
 regexp/unicodeCaseInsensitive_test: Crash
+regress_11099_test: Crash # type 'FunctionType' is not a subtype of type 'ResolutionFunctionType' of 'type' where
+safe_to_string_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionDartType' of 'type' where
 set_containsAll_test: Crash
 set_contains_test: Crash
 set_intersection_test: Crash
@@ -355,17 +607,16 @@ set_retainAll_test: Crash
 set_test: Crash
 set_to_string_test: Crash
 shuffle_test: Crash
+sort_test: Crash # Assertion failure: Cannot find value local(main_closure.call#compare) in (local(main_closure.call#list), local(main#)) for j:closure_call(main_closure.call).
 sort_test: RuntimeError
 splay_tree_from_iterable_test: Crash
 splay_tree_from_iterables_test: Crash
 splay_tree_test/01: Crash
 splay_tree_test/02: Crash
 splay_tree_test/none: Crash
-regexp/pcre_test: RuntimeError # Issue 27394
-regexp/pcre_test: Crash
-regexp/pcre-test-4_test: Crash
 stacktrace_fromstring_test: Crash
 stopwatch2_test: Crash
+stopwatch_test: Crash
 string_base_vm_test: Crash
 string_buffer_test: Crash
 string_codeunits_test: Crash
@@ -389,9 +640,7 @@ string_split_test: Crash
 string_substring_test: Crash
 string_test: Crash
 string_to_lower_case_test: Crash
-string_trimlr_test/01: Crash
 string_trimlr_test/02: Crash
-string_trimlr_test/none: Crash
 symbol_operator_test/03: Crash
 symbol_operator_test/none: Crash
 symbol_reserved_word_test/04: MissingCompileTimeError
@@ -401,6 +650,284 @@ symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/09: Crash
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_reserved_word_test/12: Crash
+symbol_test/01: Crash
+symbol_test/02: Crash
+symbol_test/03: Crash
+symbol_test/none: Crash
+type_hashcode_test: Crash
+unicode2_test: Crash
+uri_base_test: Crash
+uri_file_test: Crash
+uri_http_test: Crash
+uri_ipv4_test: Crash
+uri_ipv6_test: Crash
+uri_normalize_path_test: Crash
+uri_normalize_test: Crash
+uri_parameters_all_test: Crash
+uri_parse_test: Crash
+uri_path_test: Crash
+uri_query_test: Crash
+uri_scheme_test: Crash
+uri_test: Crash
+
+[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+stopwatch_test: Crash
+type_hashcode_test: Crash
+map_contains_key_test: Crash
+map_index_test: Crash
+map_remove_test: Crash
+
+[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+apply2_test: Crash
+apply3_test: Crash
+apply4_test: Crash
+apply5_test: Crash
+apply_test: Crash
+big_integer_arith_vm_test/add: Crash
+big_integer_arith_vm_test/div: Crash
+big_integer_arith_vm_test/gcd: Crash
+big_integer_arith_vm_test/mod: Crash
+big_integer_arith_vm_test/modInv: Crash
+big_integer_arith_vm_test/modPow: Crash
+big_integer_arith_vm_test/mul: Crash
+big_integer_arith_vm_test/negate: Crash
+big_integer_arith_vm_test/none: Crash
+big_integer_arith_vm_test/overflow: Crash
+big_integer_arith_vm_test/shift: Crash
+big_integer_arith_vm_test/sub: Crash
+big_integer_arith_vm_test/trunDiv: Crash
+big_integer_parsed_arith_vm_test: Crash
+big_integer_parsed_div_rem_vm_test: Crash
+big_integer_parsed_mul_div_vm_test: Crash
+bit_twiddling_bigint_test: Crash
+bool_from_environment2_test/01: MissingCompileTimeError
+bool_from_environment2_test/02: MissingCompileTimeError
+bool_from_environment2_test/03: MissingCompileTimeError
+bool_from_environment2_test/04: MissingCompileTimeError
+bool_from_environment2_test/05: Crash
+collection_from_test: Crash
+collection_length_test: Crash
+collection_removes_test: Crash
+collection_test: Crash
+collection_to_string_test: Crash
+compare_to2_test: Crash
+const_list_literal_test: Crash
+const_list_remove_range_test: Crash
+const_list_set_range_test: Crash
+core_runtime_types_static_test: Crash
+core_runtime_types_test: Crash
+data_uri_test: Crash
+date_time_test: Crash
+double_floor2_test: Crash
+double_parse_test/01: Crash
+double_parse_test/02: Crash
+double_parse_test/03: Crash
+double_parse_test/04: Crash
+double_parse_test/none: Crash
+double_round2_test: Crash
+double_truncate2_test: Crash
+duration_test: Crash
+dynamic_nosuchmethod_test: Crash
+error_stack_trace1_test: Crash
+error_stack_trace2_test: Crash
+error_stack_trace_test/none: Crash
+error_stack_trace_test/nullThrown: Crash
+exception_implementation_test: Crash
+expando_test: Crash
+for_in_test: Crash
+from_environment_const_type_test/02: Crash
+from_environment_const_type_test/03: Crash
+from_environment_const_type_test/04: Crash
+from_environment_const_type_test/06: Crash
+from_environment_const_type_test/07: Crash
+from_environment_const_type_test/08: Crash
+from_environment_const_type_test/09: Crash
+from_environment_const_type_test/11: Crash
+from_environment_const_type_test/12: Crash
+from_environment_const_type_test/13: Crash
+from_environment_const_type_test/14: Crash
+from_environment_const_type_test/16: Crash
+from_environment_const_type_undefined_test/02: Crash
+from_environment_const_type_undefined_test/03: Crash
+from_environment_const_type_undefined_test/04: Crash
+from_environment_const_type_undefined_test/06: Crash
+from_environment_const_type_undefined_test/07: Crash
+from_environment_const_type_undefined_test/08: Crash
+from_environment_const_type_undefined_test/09: Crash
+from_environment_const_type_undefined_test/11: Crash
+from_environment_const_type_undefined_test/12: Crash
+from_environment_const_type_undefined_test/13: Crash
+from_environment_const_type_undefined_test/14: Crash
+from_environment_const_type_undefined_test/16: Crash
+growable_list_test: Crash
+has_next_iterator_test: Crash
+hash_map2_test: Crash
+hash_map_test: Crash
+hash_set_test/01: Crash
+hash_set_test/none: Crash
+hash_set_type_check_test: Crash # NoSuchMethodError: The getter 'name' was called on null.
+hashcode_test: Crash
+hidden_library2_test/01: Crash
+hidden_library2_test/none: Crash
+int_from_environment3_test/01: MissingCompileTimeError
+int_from_environment3_test/02: MissingCompileTimeError
+int_from_environment3_test/03: MissingCompileTimeError
+int_from_environment3_test/04: MissingCompileTimeError
+int_from_environment3_test/05: Crash
+int_modulo_arith_test/bignum: Crash
+int_modulo_arith_test/modPow: Crash
+int_modulo_arith_test/none: Crash
+iterable_skip_while_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+iterable_take_test: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
+iterable_take_while_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+iterable_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+iterable_to_list_test/01: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+iterable_to_list_test/none: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+iterable_to_set_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+iterable_tostring_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+json_map_test: Crash # Assertion failure: Cannot find value local(listEach_closure.call#result) in (local(listEach_closure.call#key), local(listEach_closure.call#value), local(listEach#)) for j:closure_call(listEach_closure.call).
+linked_hash_map_from_iterables_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
+linked_hash_map_test: Crash # Assertion failure: Cannot find value local(LinkedHashMapTest_testMain_closure.call#keys) in (local(LinkedHashMapTest_testMain_closure.call#v), local(LinkedHashMapTest.testMain#testForEachKey)) for j:closure_call(LinkedHashMapTest_testMain_closure.call).
+list_as_map_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
+list_contains_argument_order_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+list_fill_range_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+list_first_test: Crash # Assertion failure: Cannot find value local(test_closure.call#list) in (local(test#)) for j:closure_call(test_closure.call).
+list_fixed_test: Crash # Assertion failure: Cannot find value local(main_closure.call#a) in (local(main#)) for j:closure_call(main_closure.call).
+list_for_each_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+list_get_range_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+list_growable_test: Crash # Assertion failure: Cannot find value local(main_closure.call#a) in (local(main#)) for j:closure_call(main_closure.call).
+list_insert_all_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+list_insert_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+list_iterators_test: Crash
+list_last_test: Crash
+list_map_test: Crash
+list_remove_range_test: Crash
+list_removeat_test: Crash
+list_replace_range_test: Crash
+list_reversed_test: Crash
+list_set_all_test: Crash
+list_set_range_test: Crash
+list_sort_test: Crash # Assertion failure: Cannot find value local(ListSortTest_testMain_closure.call#compare) in (local(ListSortTest_testMain_closure.call#list), local(ListSortTest.testMain#)) for j:closure_call(ListSortTest_testMain_closure.call).
+list_sublist_test: Crash
+list_test/01: Crash
+list_test/none: Crash
+list_to_string2_test: Crash
+list_to_string_test: Crash
+list_unmodifiable_test: Crash
+main_test: Crash
+map_contains_key_test: Crash
+map_contains_value_test: Crash
+map_from_iterable_test: Crash
+map_from_iterables_test: Crash
+map_from_test: Crash
+map_index_test: Crash
+map_keys2_test: Crash
+map_keys_test: Crash
+map_remove_test: Crash
+map_test: Crash # Issue 27394
+map_to_string_test: Crash
+map_values2_test: Crash
+map_values3_test: Crash
+map_values4_test: Crash
+map_values_test: Crash
+maps_test: Crash
+nan_infinity_test/01: RuntimeError
+null_nosuchmethod_test: Crash
+null_test: Crash
+num_clamp_test: Crash
+num_parse_test/01: Crash
+num_parse_test/none: Crash
+queue_first_test: Crash
+queue_iterator_test: Crash
+queue_last_test: Crash
+queue_single_test: Crash
+queue_test: Crash
+range_error_test: Crash
+reg_exp4_test: Crash
+reg_exp5_test: Crash
+reg_exp_all_matches_test: Crash
+reg_exp_start_end_test: Crash
+regexp/ascii-regexp-subject_test: Crash
+regexp/capture_test: Crash
+regexp/compile-crash_test: Crash
+regexp/compile_test: Crash
+regexp/early-acid3-86_test: Crash
+regexp/ecma-regex-examples_test: Crash
+regexp/extended-characters-more_test: Crash
+regexp/global_test: Crash
+regexp/indexof_test: Crash
+regexp/invalid-range-in-class_test: Crash
+regexp/issue_19193_test: Crash
+regexp/lastindex_test: Crash
+regexp/multiline_test: Crash
+regexp/negative-special-characters_test: Crash
+regexp/no-extensions_test: Crash
+regexp/non-capturing-groups_test: Crash
+regexp/parentheses_test: Crash
+regexp/pcre-test-4_test: Crash
+regexp/pcre_test: Crash, RuntimeError, Timeout # Issue 27394
+regexp/range-out-of-order_test: Crash
+regexp/regexp_kde_test: Crash
+regexp/regexp_test: Crash
+regexp/regress-regexp-codeflush_test: Crash
+regexp/standalones_test: Crash
+regexp/unicode-handling_test: Crash
+regexp/unicodeCaseInsensitive_test: Crash
+regress_r21715_test: Crash
+set_containsAll_test: Crash
+set_contains_test: Crash
+set_intersection_test: Crash
+set_iterator_test: Crash
+set_removeAll_test: Crash
+set_remove_test: Crash
+set_retainAll_test: Crash
+set_test: Crash
+set_to_string_test: Crash
+shuffle_test: Crash
+sort_test: Crash # Assertion failure: Cannot find value local(main_closure.call#compare) in (local(main_closure.call#list), local(main#)) for j:closure_call(main_closure.call).
+splay_tree_from_iterable_test: Crash
+splay_tree_from_iterables_test: Crash
+splay_tree_test/01: Crash
+splay_tree_test/02: Crash
+splay_tree_test/none: Crash
+stacktrace_fromstring_test: Crash
+stopwatch2_test: Crash
+stopwatch_test: Crash
+string_base_vm_static_test: Crash
+string_base_vm_test: Crash
+string_buffer_test: Crash
+string_codeunits_test: Crash
+string_from_environment3_test/01: MissingCompileTimeError
+string_from_environment3_test/02: MissingCompileTimeError
+string_from_environment3_test/03: MissingCompileTimeError
+string_from_environment3_test/04: MissingCompileTimeError
+string_from_environment3_test/05: Crash
+string_from_list_test: Crash
+string_fromcharcode_test: Crash
+string_fromcharcodes_test: Crash
+string_operations_with_null_test: Crash
+string_pattern_test: Crash
+string_replace_all_test: Crash
+string_replace_dollar_test: Crash
+string_replace_static_test: Crash
+string_replace_test: Crash
+string_runes_test: Crash
+string_source_test: Crash
+string_split_test: Crash
+string_static_test: Crash
+string_substring_test: Crash
+string_test: Crash
+string_to_lower_case_test: Crash
+string_trimlr_test/02: Crash
+symbol_operator_test/03: Crash
+symbol_operator_test/none: Crash
+symbol_reserved_word_test/04: MissingCompileTimeError
+symbol_reserved_word_test/05: MissingCompileTimeError
+symbol_reserved_word_test/06: Crash # Assertion failure: Cannot find value local(checkBadSymbol_closure.call#s) in (local(checkBadSymbol#)) for j:closure_call(checkBadSymbol_closure.call).
+symbol_reserved_word_test/07: MissingCompileTimeError
+symbol_reserved_word_test/09: Crash # Assertion failure: Cannot find value local(checkBadSymbol_closure.call#s) in (local(checkBadSymbol#)) for j:closure_call(checkBadSymbol_closure.call).
+symbol_reserved_word_test/10: MissingCompileTimeError
+symbol_reserved_word_test/12: Crash # Assertion failure: Cannot find value local(checkBadSymbol_closure.call#s) in (local(checkBadSymbol#)) for j:closure_call(checkBadSymbol_closure.call).
 symbol_test/01: Crash
 symbol_test/02: Crash
 symbol_test/03: Crash
@@ -420,120 +947,6 @@ uri_query_test: Crash
 uri_scheme_test: Crash
 uri_test: Crash
 
-[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-stopwatch_test: Crash
-type_hashcode_test: Crash
-
-[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-big_integer_arith_vm_test/add: Crash
-big_integer_arith_vm_test/div: Crash
-big_integer_arith_vm_test/gcd: Crash
-big_integer_arith_vm_test/mod: Crash
-big_integer_arith_vm_test/modPow: Crash
-big_integer_arith_vm_test/mul: Crash
-big_integer_arith_vm_test/negate: Crash
-big_integer_arith_vm_test/none: Crash
-big_integer_arith_vm_test/overflow: Crash
-big_integer_arith_vm_test/sub: Crash
-big_integer_arith_vm_test/trunDiv: Crash
-big_integer_huge_mul_vm_test: Crash
-big_integer_parsed_arith_vm_test: Crash
-big_integer_parsed_div_rem_vm_test: Crash
-big_integer_parsed_mul_div_vm_test: Crash
-bool_from_environment_test: Crash
-bool_hashcode_test: Crash
-compare_to_test: Crash
-core_runtime_types_static_test: Crash
-date_time10_test: Crash
-date_time5_test: Crash
-date_time6_test: Crash
-date_time8_test: Crash
-date_time9_test: Crash
-double_ceil_test: Crash
-double_ceil_to_double_test: Crash
-double_compare_test: Crash
-double_floor2_test: Crash
-double_floor_test: Crash
-double_floor_to_double_test: Crash
-double_parse_test/01: Crash
-double_parse_test/02: Crash
-double_parse_test/03: Crash
-double_parse_test/04: Crash
-double_parse_test/none: Crash
-hash_map_test: Crash
-hash_set_type_check_test: Crash
-hashcode_boxed_test: Crash
-int_ceil_test: Crash
-int_ceil_to_double_test: Crash
-int_floor_test: Crash
-int_floor_to_double_test: Crash
-int_from_environment2_test: Crash
-int_from_environment_test: Crash
-regexp/bol-with-multiline_test: Crash
-regexp/look-ahead_test: Crash
-regexp/loop-capture_test: Crash
-regexp/malformed-escapes_test: Crash
-regexp/many-brackets_test: Crash
-regexp/non-bmp_test: Crash
-regexp/non-capturing-backtracking_test: Crash
-regexp/non-character_test: Crash
-regexp/non-greedy-parentheses_test: Crash
-regexp/norepeat_test: Crash
-regexp/overflow_test: Crash
-regexp/stack-overflow_test: Crash
-reg_exp1_test: Crash
-reg_exp_first_match_test: Crash
-reg_exp_group_test: Crash
-reg_exp_groups_test: Crash
-reg_exp_has_match_test: Crash
-reg_exp_pattern_test: Crash
-reg_exp_string_match_test: Crash
-regexp/UC16_test: Crash
-regexp/alternative-length-miscalculation_test: Crash
-regexp/alternatives_test: Crash
-regexp/assertion_test: Crash
-regexp/backreferences_test: Crash
-regexp/bol-with-multiline_test: Crash
-regexp/bol_test: Crash
-regexp/captures_test: Crash
-regexp/char-insensitive_test: Crash
-regexp/character-match-out-of-order_test: Crash
-regexp/loop-capture_test: Crash
-regexp/zero-length-alternatives_test: Crash
-regexp/quantified-assertions_test: Crash
-regexp/range-bound-ffff_test: Crash
-regexp/ranges-and-escaped-hyphens_test: Crash
-regexp/regress-6-9-regexp_test: Crash
-regexp/regress-regexp-construct-result_test: Crash
-regexp/repeat-match-waldemar_test: Crash
-regexp/results-cache_test: Crash
-regexp/stack-overflow2_test: Crash
-regexp/stack-overflow_test: Crash
-regexp/zero-length-alternatives_test: Crash
-regress_11099_test: Crash
-regress_r21715_test: Crash
-safe_to_string_test: Crash
-sort_test: Crash
-stopwatch_test: Crash
-string_base_vm_static_test: Crash
-string_case_test/01: Crash
-string_case_test/02: Crash
-string_case_test/03: Crash
-string_case_test/none: Crash
-string_from_environment2_test: Crash
-string_from_environment_test: Crash
-string_static_test: Crash
-string_trim2_test: Crash
-string_trim_test: Crash
-strings_test: Crash
-symbol_reserved_word_test/03: Crash
-symbol_reserved_word_test/05: Crash
-throw_half_surrogate_pair_test/01: Crash
-throw_half_surrogate_pair_test/02: Crash
-toInt_test: Crash
-type_hashcode_test: Crash
-unicode_test: Crash
-
 [$arch == simdbc || $arch == simdbc64]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 
@@ -548,6 +961,14 @@ splay_tree_from_iterable_test: RuntimeError
 
 [ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter ]
 regexp/pcre_test: Pass, Slow, Timeout
+regexp/global_test: Skip # Issue 21709
 
 [ $mode == debug ]
 regexp/pcre_test: Pass, Slow # Issue 22008
+
+[ $compiler == dart2js && ! $browser ]
+package_resource_test: RuntimeError # Issue 26842
+
+[ $compiler == dart2js && ! $dart2js_with_kernel ]
+list_unmodifiable_test: Pass, RuntimeError # Issue 28712
+iterable_to_list_test/01: RuntimeError # Issue 26501

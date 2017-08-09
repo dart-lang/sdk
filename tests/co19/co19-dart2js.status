@@ -894,6 +894,7 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image_t01: Runtime
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: RuntimeError, Pass # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgb565_t01: RuntimeError, Pass # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01: RuntimeError, Pass # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-sub-image-2d-bad-args_t01: RuntimeError, Pass # Please triage this failure
 LayoutTests/fast/canvas/webgl/texImageTest_t01: RuntimeError, Pass # Please triage this failure

@@ -1134,8 +1134,8 @@ dynamic aTop(A x) => x;
 A aa(A x) => x;
 dynamic topTop(dynamic x) => x;
 A topA(dynamic x) => /*info:DYNAMIC_CAST*/x;
-void apply/*<T>*/(/*=T*/ f0, /*=T*/ f1, /*=T*/ f2,
-                  /*=T*/ f3, /*=T*/ f4, /*=T*/ f5) {}
+void apply<T>(T f0, T f1, T f2,
+                  T f3, T f4, T f5) {}
 void main() {
   BotTop botTop;
   BotA botA;
@@ -1147,7 +1147,7 @@ void main() {
     f = aTop;
     f = botA;
     f = botTop;
-    apply/*<BotTop>*/(
+    apply<BotTop>(
         topA,
         topTop,
         aa,
@@ -1155,7 +1155,7 @@ void main() {
         botA,
         botTop
                       );
-    apply/*<BotTop>*/(
+    apply<BotTop>(
         (dynamic x) => new A(),
         (dynamic x) => (x as Object),
         (A x) => x,
@@ -1172,7 +1172,7 @@ void main() {
     f = aTop;
     f = /*error:INVALID_ASSIGNMENT*/botA;
     f = /*info:DOWN_CAST_COMPOSITE*/botTop;
-    apply/*<ATop>*/(
+    apply<ATop>(
         topA,
         topTop,
         aa,
@@ -1180,7 +1180,7 @@ void main() {
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
         /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
-    apply/*<ATop>*/(
+    apply<ATop>(
         (dynamic x) => new A(),
         (dynamic x) => (x as Object),
         (A x) => x,
@@ -1197,7 +1197,7 @@ void main() {
     f = /*error:INVALID_ASSIGNMENT*/aTop;
     f = botA;
     f = /*info:DOWN_CAST_COMPOSITE*/botTop;
-    apply/*<BotA>*/(
+    apply<BotA>(
         topA,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/topTop,
         aa,
@@ -1205,7 +1205,7 @@ void main() {
         botA,
         /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
-    apply/*<BotA>*/(
+    apply<BotA>(
         (dynamic x) => new A(),
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(dynamic x) => (x as Object),
         (A x) => x,
@@ -1222,7 +1222,7 @@ void main() {
     f = /*error:INVALID_CAST_FUNCTION*/aTop; // known function
     f = /*info:DOWN_CAST_COMPOSITE*/botA;
     f = /*info:DOWN_CAST_COMPOSITE*/botTop;
-    apply/*<AA>*/(
+    apply<AA>(
         topA,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/topTop,
         aa,
@@ -1230,7 +1230,7 @@ void main() {
         /*info:DOWN_CAST_COMPOSITE*/botA,
         /*info:DOWN_CAST_COMPOSITE*/botTop
                   );
-    apply/*<AA>*/(
+    apply<AA>(
         (dynamic x) => new A(),
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(dynamic x) => (x as Object),
         (A x) => x,
@@ -1247,7 +1247,7 @@ void main() {
     f = /*error:INVALID_CAST_FUNCTION*/aTop; // known function
     f = /*error:INVALID_ASSIGNMENT*/botA;
     f = /*info:DOWN_CAST_COMPOSITE*/botTop;
-    apply/*<TopTop>*/(
+    apply<TopTop>(
         topA,
         topTop,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/aa,
@@ -1255,7 +1255,7 @@ void main() {
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
         /*info:DOWN_CAST_COMPOSITE*/botTop
                       );
-    apply/*<TopTop>*/(
+    apply<TopTop>(
         (dynamic x) => new A(),
         (dynamic x) => (x as Object),
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(A x) => x,
@@ -1272,7 +1272,7 @@ void main() {
     f = /*error:INVALID_CAST_FUNCTION*/aTop; // known function
     f = /*info:DOWN_CAST_COMPOSITE*/botA;
     f = /*info:DOWN_CAST_COMPOSITE*/botTop;
-    apply/*<TopA>*/(
+    apply<TopA>(
         topA,
         /*error:INVALID_CAST_FUNCTION*/topTop, // known function
         /*error:INVALID_CAST_FUNCTION*/aa, // known function
@@ -1280,7 +1280,7 @@ void main() {
         /*info:DOWN_CAST_COMPOSITE*/botA,
         /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
-    apply/*<TopA>*/(
+    apply<TopA>(
         (dynamic x) => new A(),
         /*error:INVALID_CAST_FUNCTION_EXPR*/(dynamic x) => (x as Object), // known function
         /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => x, // known function
@@ -1355,7 +1355,7 @@ void test1() {
 
 void test2() {
   int x;
-  int f/*<T>*/(/*=T*/ t, callback(/*=T*/ x)) { return 3; }
+  int f<T>(T t, callback(T x)) { return 3; }
   f(x, (y) => 3);
 }
 ''');
@@ -1969,8 +1969,8 @@ void main() {
 void main() {
   nonGenericFn(x) => null;
   {
-    /*=R*/ f/*<P, R>*/(/*=P*/ p) => null;
-    /*=T*/ g/*<S, T>*/(/*=S*/ s) => null;
+    R f<P, R>(P p) => null;
+    T g<S, T>(S s) => null;
 
     var local = f;
     local = g; // valid
@@ -1980,8 +1980,8 @@ void main() {
     local = /*error:INVALID_ASSIGNMENT*/nonGenericFn;
   }
   {
-    Iterable/*<R>*/ f/*<P, R>*/(List/*<P>*/ p) => null;
-    List/*<T>*/ g/*<S, T>*/(Iterable/*<S>*/ s) => null;
+    Iterable<R> f<P, R>(List<P> p) => null;
+    List<T> g<S, T>(Iterable<S> s) => null;
 
     var local = f;
     local = g; // valid
@@ -2039,8 +2039,8 @@ class Derived2<S extends B> extends Base<B> {
 
   test_genericFunctionWrongNumberOfArguments() async {
     await checkFile(r'''
-/*=T*/ foo/*<T>*/(/*=T*/ x, /*=T*/ y) => x;
-/*=T*/ bar/*<T>*/({/*=T*/ x, /*=T*/ y}) => x;
+T foo<T>(T x, T y) => x;
+T bar<T>({T x, T y}) => x;
 
 main() {
   String x;
@@ -2066,23 +2066,23 @@ main() {
   test_genericMethodOverride() async {
     await checkFile('''
 class Future<T> {
-  /*=S*/ then/*<S>*/(/*=S*/ onValue(T t)) => null;
+  S then<S>(S onValue(T t)) => null;
 }
 
 class DerivedFuture<T> extends Future<T> {
-  /*=S*/ then/*<S>*/(/*=S*/ onValue(T t)) => null;
+  S then<S>(S onValue(T t)) => null;
 }
 
 class DerivedFuture2<A> extends Future<A> {
-  /*=B*/ then/*<B>*/(/*=B*/ onValue(A a)) => null;
+  B then<B>(B onValue(A a)) => null;
 }
 
 class DerivedFuture3<T> extends Future<T> {
-  /*=S*/ then/*<S>*/(Object onValue(T t)) => null;
+  S then<S>(Object onValue(T t)) => null;
 }
 
 class DerivedFuture4<A> extends Future<A> {
-  /*=B*/ then/*<B>*/(Object onValue(A a)) => null;
+  B then<B>(Object onValue(A a)) => null;
 }
 ''');
   }
@@ -2377,10 +2377,10 @@ class C {
 
   test_implicitDynamic_function() async {
     addFile(r'''
-/*=T*/ a/*<T>*/(/*=T*/ t) => t;
-/*=T*/ b/*<T>*/() => null;
+T a<T>(T t) => t;
+T b<T>() => null;
 
-void main/*<S>*/() {
+void main<S>() {
   dynamic d;
   int i;
   /*error:IMPLICIT_DYNAMIC_FUNCTION*/a(d);
@@ -2389,8 +2389,8 @@ void main/*<S>*/() {
   d = /*error:IMPLICIT_DYNAMIC_FUNCTION*/b();
   i = b();
 
-  void f/*<T>*/(/*=T*/ t) {};
-  /*=T*/ g/*<T>*/() => null;
+  void f<T>(T t) {};
+  T g<T>() => null;
 
   /*error:IMPLICIT_DYNAMIC_FUNCTION*/f(d);
   f(42);
@@ -2398,9 +2398,9 @@ void main/*<S>*/() {
   d = /*error:IMPLICIT_DYNAMIC_FUNCTION*/g();
   i = g();
 
-  /*error:IMPLICIT_DYNAMIC_INVOKE*/(/*<T>*/(/*=T*/ t) => t)(d);
-  (/*<T>*/(/*=T*/ t) => t)(42);
-  (/*<T>*/() => /*info:UNNECESSARY_CAST*/null as dynamic/*=T*/)/*<int>*/();
+  /*error:IMPLICIT_DYNAMIC_INVOKE*/(<T>(T t) => t)(d);
+  (<T>(T t) => t)(42);
+  (<T>() => /*info:UNNECESSARY_CAST*/null as T)<int>();
 }
     ''');
     await check(implicitDynamic: false);
@@ -2444,12 +2444,12 @@ var m9 = /*info:INFERRED_TYPE_LITERAL*/{'hi': 'there'};
   test_implicitDynamic_method() async {
     addFile(r'''
 class C {
-  /*=T*/ m/*<T>*/(/*=T*/ s) => s;
-  /*=T*/ n/*<T>*/() => null;
+  T m<T>(T s) => s;
+  T n<T>() => null;
 }
 class D<E> {
-  /*=T*/ m/*<T>*/(/*=T*/ s) => s;
-  /*=T*/ n/*<T>*/() => null;
+  T m<T>(T s) => s;
+  T n<T>() => null;
 }
 void f() {
   dynamic d;
@@ -4147,10 +4147,10 @@ g() {
     // https://github.com/dart-lang/sdk/issues/26965
     // https://github.com/dart-lang/sdk/issues/27040
     await checkFile(r'''
-void f/*<T>*/(/*=T*/ object) {
+void f<T>(T object) {
   if (object is String) print(object.substring(1));
 }
-void g/*<T extends num>*/(/*=T*/ object) {
+void g<T extends num>(T object) {
   if (object is int) print(object.isEven);
   if (object is String) print(/*info:DYNAMIC_INVOKE*/object./*error:UNDEFINED_METHOD*/substring(1));
 }
@@ -4158,14 +4158,14 @@ class Clonable<T> {}
 class SubClonable<T> extends Clonable<T> {
   T m(T t) => t;
 }
-void takesSubClonable/*<A>*/(SubClonable/*<A>*/ t) {}
+void takesSubClonable<A>(SubClonable<A> t) {}
 
-void h/*<T extends Clonable<T>>*/(/*=T*/ object) {
-  if (/*info:NON_GROUND_TYPE_CHECK_INFO*/object is SubClonable/*<T>*/) {
+void h<T extends Clonable<T>>(T object) {
+  if (/*info:NON_GROUND_TYPE_CHECK_INFO*/object is SubClonable<T>) {
     print(object.m(object));
 
-    SubClonable/*<T>*/ s = object;
-    takesSubClonable/*<T>*/(object);
+    SubClonable<T> s = object;
+    takesSubClonable<T>(object);
     h(object);
   }
 }
@@ -4176,7 +4176,7 @@ void h/*<T extends Clonable<T>>*/(/*=T*/ object) {
     // Regression test for:
     // https://github.com/dart-lang/sdk/issues/27040
     await checkFile(r'''
-void f/*<T extends num>*/(T x, T y) {
+void f<T extends num>(T x, T y) {
   var z = x;
   var f = () => x;
   f = () => y;

@@ -13,7 +13,7 @@ String decode(List<int> bytes, int chunkSize) {
   var byteSink = new Utf8Decoder().startChunkedConversion(stringSink);
   int i = 0;
   while (i < bytes.length) {
-    List nextChunk = [];
+    var nextChunk = <int>[];
     for (int j = 0; j < chunkSize; j++) {
       if (i < bytes.length) {
         nextChunk.add(bytes[i]);
@@ -33,7 +33,7 @@ String decodeAllowMalformed(List<int> bytes, int chunkSize) {
   var byteSink = decoder.startChunkedConversion(stringSink);
   int i = 0;
   while (i < bytes.length) {
-    List nextChunk = [];
+    var nextChunk = <int>[];
     for (int j = 0; j < chunkSize; j++) {
       if (i < bytes.length) {
         nextChunk.add(bytes[i]);
@@ -226,37 +226,37 @@ main() {
     return [
       [test, "\u{FFFD}"],
       [
-        new List.from([0x61])..addAll(test),
+        new List<int>.from([0x61])..addAll(test),
         "a\u{FFFD}"
       ],
       [
-        new List.from([0x61])
+        new List<int>.from([0x61])
           ..addAll(test)
           ..add(0x61),
         "a\u{FFFD}a"
       ],
-      [new List.from(test)..add(0x61), "\u{FFFD}a"],
-      [new List.from(test)..addAll(test), "\u{FFFD}\u{FFFD}"],
+      [new List<int>.from(test)..add(0x61), "\u{FFFD}a"],
+      [new List<int>.from(test)..addAll(test), "\u{FFFD}\u{FFFD}"],
       [
-        new List.from(test)
+        new List<int>.from(test)
           ..add(0x61)
           ..addAll(test),
         "\u{FFFD}a\u{FFFD}"
       ],
       [
-        new List.from([0xc3, 0xa5])..addAll(test),
+        new List<int>.from([0xc3, 0xa5])..addAll(test),
         "å\u{FFFD}"
       ],
       [
-        new List.from([0xc3, 0xa5])..addAll(test)..addAll([0xc3, 0xa5]),
+        new List<int>.from([0xc3, 0xa5])..addAll(test)..addAll([0xc3, 0xa5]),
         "å\u{FFFD}å"
       ],
       [
-        new List.from(test)..addAll([0xc3, 0xa5]),
+        new List<int>.from(test)..addAll([0xc3, 0xa5]),
         "\u{FFFD}å"
       ],
       [
-        new List.from(test)..addAll([0xc3, 0xa5])..addAll(test),
+        new List<int>.from(test)..addAll([0xc3, 0xa5])..addAll(test),
         "\u{FFFD}å\u{FFFD}"
       ]
     ];

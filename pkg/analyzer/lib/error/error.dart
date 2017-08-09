@@ -42,6 +42,9 @@ const List<ErrorCode> errorCodeValues = const [
   // need to be filled in by hand.
   //
   AnalysisOptionsErrorCode.PARSE_ERROR,
+  AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
+  AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
+  AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
   AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
   AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,
   AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES,
@@ -245,6 +248,7 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.DUPLICATE_IMPORT,
   HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
   HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
+  HintCode.GENERIC_METHOD_COMMENT,
   HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
   HintCode.INVALID_ASSIGNMENT,
   HintCode.INVALID_FACTORY_ANNOTATION,

@@ -14,6 +14,7 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/namer.dart';
+import '../js_backend/native_data.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../native/native.dart' as native;
 import '../types/types.dart';
@@ -104,6 +105,8 @@ abstract class KernelToElementMap {
 /// Interface that translates between Kernel IR nodes and entities used for
 /// computing the [WorldImpact] for members.
 abstract class KernelToElementMapForImpact extends KernelToElementMap {
+  NativeBasicData get nativeBasicData;
+
   /// Adds libraries in [program] to the set of libraries.
   ///
   /// The main method of the first program is used as the main method for the
@@ -231,7 +234,7 @@ abstract class MemberDefinition {
 
   /// The canonical location of [member]. This is used for sorting the members
   /// in the emitted code.
-  ir.Location get location;
+  SourceSpan get location;
 }
 
 enum ClassKind {
@@ -246,7 +249,7 @@ class RegularMemberDefinition implements MemberDefinition {
 
   RegularMemberDefinition(this.member, this.node);
 
-  ir.Location get location => node.location;
+  SourceSpan get location => computeSourceSpanFromTreeNode(node);
 
   MemberKind get kind => MemberKind.regular;
 
@@ -262,7 +265,7 @@ class SpecialMemberDefinition implements MemberDefinition {
 
   SpecialMemberDefinition(this.member, this.node, this.kind);
 
-  ir.Location get location => node.location;
+  SourceSpan get location => computeSourceSpanFromTreeNode(node);
 
   String toString() => 'SpecialMemberDefinition(kind:$kind,member:$member,'
       'node:$node,location:$location)';
@@ -281,7 +284,7 @@ abstract class ClassDefinition {
 
   /// The canonical location of [cls]. This is used for sorting the classes
   /// in the emitted code.
-  ir.Location get location;
+  SourceSpan get location;
 }
 
 /// A class directly defined by its [ir.Class] node.
@@ -291,7 +294,7 @@ class RegularClassDefinition implements ClassDefinition {
 
   RegularClassDefinition(this.cls, this.node);
 
-  ir.Location get location => node.location;
+  SourceSpan get location => computeSourceSpanFromTreeNode(node);
 
   ClassKind get kind => ClassKind.regular;
 
@@ -430,4 +433,22 @@ abstract class KernelToLocalsMap {
 // TODO(johnniwinther): Remove this when named parameters are sorted in dill.
 int namedOrdering(ir.VariableDeclaration a, ir.VariableDeclaration b) {
   return a.name.compareTo(b.name);
+}
+
+SourceSpan computeSourceSpanFromTreeNode(ir.TreeNode node) {
+  // TODO(johnniwinther): Use [ir.Location] directly as a [SourceSpan].
+  Uri uri;
+  int offset;
+  while (node != null) {
+    if (node.fileOffset != ir.TreeNode.noOffset) {
+      offset = node.fileOffset;
+      uri = Uri.parse(node.location.file);
+      break;
+    }
+    node = node.parent;
+  }
+  if (uri != null) {
+    return new SourceSpan(uri, offset, offset + 1);
+  }
+  return null;
 }

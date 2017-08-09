@@ -16,15 +16,18 @@ class A {
 
 A makeA() native;
 
-void setup() native """
-function A() {}
-A.prototype.returnNull = function() { return null; };
-A.prototype.returnUndefined = function() { return void 0; };
-A.prototype.returnEmptyString = function() { return ""; };
-A.prototype.returnZero = function() { return 0; };
-makeA = function(){return new A;};
-self.nativeConstructor(A);
-""";
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {}
+  A.prototype.returnNull = function() { return null; };
+  A.prototype.returnUndefined = function() { return void 0; };
+  A.prototype.returnEmptyString = function() { return ""; };
+  A.prototype.returnZero = function() { return 0; };
+  makeA = function(){return new A()};
+  self.nativeConstructor(A);
+})()""");
+}
 
 @NoInline()
 staticTests() {

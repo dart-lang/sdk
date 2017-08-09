@@ -260,8 +260,13 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String nativeMethodName,
       {bool isTopLevel});
 
-  void addEnum(List<MetadataBuilder> metadata, String name,
-      List<Object> constantNamesAndOffsets, int charOffset, int charEndOffset);
+  void addEnum(
+      String documentationComment,
+      List<MetadataBuilder> metadata,
+      String name,
+      List<Object> constantNamesAndOffsets,
+      int charOffset,
+      int charEndOffset);
 
   void addFunctionTypeAlias(
       List<MetadataBuilder> metadata,

@@ -1,0 +1,97 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Sections in this file should contain "$runtime == vm".
+
+# The VM does not implement the Dart 2.0 static type errors yet.
+[ $runtime == vm ]
+abstract_beats_arguments_test: MissingCompileTimeError
+abstract_exact_selector_test/01: MissingCompileTimeError
+abstract_factory_constructor_test/00: MissingCompileTimeError
+abstract_getter_test/01: MissingCompileTimeError
+abstract_syntax_test/00: MissingCompileTimeError
+assign_static_type_test/01: MissingCompileTimeError
+assign_static_type_test/02: MissingCompileTimeError
+assign_static_type_test/03: MissingCompileTimeError
+assign_static_type_test/04: MissingCompileTimeError
+assign_static_type_test/05: MissingCompileTimeError
+assign_static_type_test/06: MissingCompileTimeError
+assign_to_type_test/01: MissingCompileTimeError
+assign_to_type_test/02: MissingCompileTimeError
+assign_to_type_test/03: MissingCompileTimeError
+assign_to_type_test/04: MissingCompileTimeError
+assign_top_method_test: MissingCompileTimeError
+async_await_syntax_test/a10a: MissingCompileTimeError
+async_await_syntax_test/b10a: MissingCompileTimeError
+async_await_syntax_test/c10a: MissingCompileTimeError
+async_await_syntax_test/d08b: MissingCompileTimeError
+async_await_syntax_test/d10a: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
+async_return_types_test/nestedFuture: MissingCompileTimeError
+async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
+async_return_types_test/wrongReturnType: MissingCompileTimeError
+async_return_types_test/wrongTypeParameter: MissingCompileTimeError
+bad_constructor_test/05: MissingCompileTimeError
+bad_named_parameters2_test/01: MissingCompileTimeError
+bad_named_parameters_test/01: MissingCompileTimeError
+bad_named_parameters_test/02: MissingCompileTimeError
+bad_named_parameters_test/03: MissingCompileTimeError
+bad_named_parameters_test/04: MissingCompileTimeError
+bad_named_parameters_test/05: MissingCompileTimeError
+bad_override_test/01: MissingCompileTimeError
+bad_override_test/02: MissingCompileTimeError
+bad_override_test/06: MissingCompileTimeError
+bit_operations_test/01: MissingCompileTimeError
+bit_operations_test/02: MissingCompileTimeError
+bit_operations_test/03: MissingCompileTimeError
+bit_operations_test/04: MissingCompileTimeError
+built_in_identifier_prefix_test: CompileTimeError
+call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
+call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
+call_constructor_on_unresolvable_class_test/03: MissingCompileTimeError
+call_non_method_field_test/01: MissingCompileTimeError
+call_non_method_field_test/02: MissingCompileTimeError
+call_nonexistent_constructor_test/01: MissingCompileTimeError
+call_nonexistent_constructor_test/02: MissingCompileTimeError
+call_nonexistent_static_test/01: MissingCompileTimeError
+call_nonexistent_static_test/02: MissingCompileTimeError
+call_nonexistent_static_test/03: MissingCompileTimeError
+call_nonexistent_static_test/04: MissingCompileTimeError
+call_nonexistent_static_test/05: MissingCompileTimeError
+call_nonexistent_static_test/06: MissingCompileTimeError
+call_nonexistent_static_test/07: MissingCompileTimeError
+call_nonexistent_static_test/08: MissingCompileTimeError
+call_nonexistent_static_test/09: MissingCompileTimeError
+call_nonexistent_static_test/10: MissingCompileTimeError
+call_through_getter_test/01: MissingCompileTimeError
+call_through_getter_test/02: MissingCompileTimeError
+call_type_literal_test/01: MissingCompileTimeError
+cast_test/04: MissingCompileTimeError
+cast_test/05: MissingCompileTimeError
+
+# The VM and does not implement the Dart 2.0 runtime checks yet unless
+# --checked is explicitly passed).
+[ $runtime == vm && !$checked ]
+bool_check_test: RuntimeError
+bool_condition_check_test: RuntimeError
+
+# The VM doesn't enforce that potentially const expressions are actually
+# const expressions when the constructor is called with `const`.
+[ $runtime == vm && $compiler == none && $checked ]
+assert_initializer_test/4*: MissingCompileTimeError # Issue 392.
+
+[ $compiler == dartk && $runtime == vm ]
+arithmetic2_test: RuntimeError # Throws CastError instead of TypeError
+
+[ $compiler == none && $runtime == vm && !$checked ]
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+assertion_initializer_const_error_test/01: MissingCompileTimeError
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+
+[ $compiler == app_jit && $runtime == vm && !$checked ]
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+assertion_initializer_const_error_test/01: MissingCompileTimeError
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError

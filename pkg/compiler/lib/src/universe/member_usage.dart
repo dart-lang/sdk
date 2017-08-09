@@ -49,7 +49,7 @@ abstract class _MemberUsage extends AbstractUsage<MemberUse> {
     } else if (member.isSetter) {
       return new _SetterUsage(member);
     } else {
-      assert(member.isFunction);
+      assert(member.isFunction, failedAt(member, "Unexpected member: $member"));
       return new _FunctionUsage(member);
     }
   }

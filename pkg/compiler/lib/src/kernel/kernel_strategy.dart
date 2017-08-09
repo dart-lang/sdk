@@ -52,8 +52,8 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
 
   KernelFrontEndStrategy(
       this._options, DiagnosticReporter reporter, env.Environment environment) {
-    _elementMap =
-        new KernelToElementMapForImpactImpl(reporter, environment, this);
+    _elementMap = new KernelToElementMapForImpactImpl(
+        reporter, environment, this, _options);
   }
 
   @override

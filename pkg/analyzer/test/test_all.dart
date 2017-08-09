@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.test_all;
-
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'cancelable_future_test.dart' as cancelable_future_test;
 import 'context/test_all.dart' as context;
 import 'dart/test_all.dart' as dart;
+import 'error/test_all.dart' as error;
 import 'file_system/test_all.dart' as file_system;
 import 'generated/test_all.dart' as generated;
 import 'instrumentation/test_all.dart' as instrumentation;
@@ -22,6 +21,7 @@ main() {
     cancelable_future_test.main();
     context.main();
     dart.main();
+    error.main();
     file_system.main();
     generated.main();
     instrumentation.main();

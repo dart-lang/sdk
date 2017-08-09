@@ -45,6 +45,9 @@ final _issuePattern = new RegExp(r"[Ii]ssue (\d+)");
 class StatusFile {
   final String path;
   final List<StatusSection> sections = [];
+  final List<String> _comments = [];
+
+  int _lineCount = 0;
 
   StatusFile(this.path);
 
@@ -53,17 +56,16 @@ class StatusFile {
   /// Throws a [SyntaxError] if the file could not be parsed.
   StatusFile.read(this.path) {
     var lines = new File(path).readAsLinesSync();
+    _comments.length = lines.length + 1;
 
     // The current section whose rules are being parsed.
     StatusSection section;
 
-    var lineNumber = 0;
-
     for (var line in lines) {
-      lineNumber++;
+      _lineCount++;
 
       fail(String message, [List<String> errors]) {
-        throw new SyntaxError(_shortPath, lineNumber, line, message, errors);
+        throw new SyntaxError(_shortPath, _lineCount, line, message, errors);
       }
 
       // Strip off the comment and whitespace.
@@ -72,7 +74,8 @@ class StatusFile {
       var hashIndex = line.indexOf('#');
       if (hashIndex >= 0) {
         source = line.substring(0, hashIndex);
-        comment = line.substring(hashIndex);
+        comment = line.substring(hashIndex + 1);
+        _comments[_lineCount] = comment;
       }
       source = source.trim();
 
@@ -84,7 +87,7 @@ class StatusFile {
       if (match != null) {
         try {
           var condition = Expression.parse(match[1].trim());
-          section = new StatusSection(condition, lineNumber);
+          section = new StatusSection(condition, _lineCount);
           sections.add(section);
         } on FormatException {
           fail("Status expression syntax error");
@@ -117,7 +120,7 @@ class StatusFile {
         }
 
         section.entries
-            .add(new StatusEntry(path, lineNumber, expectations, issue));
+            .add(new StatusEntry(path, _lineCount, expectations, issue));
         continue;
       }
 
@@ -174,6 +177,70 @@ class StatusFile {
       }
 
       buffer.writeln();
+    }
+
+    return buffer.toString();
+  }
+
+  /// Serialize the status file to a string.
+  ///
+  /// Unlike [toString()], this preserves comments and gives a "canonical"
+  /// rendering of the status file that can be saved back to disc.
+  String serialize() {
+    var buffer = new StringBuffer();
+
+    var lastLine = 0;
+    var needBlankLine = false;
+
+    void writeLine(String text, int line) {
+      var comment = _comments[line];
+      if (text == null && comment == null) {
+        // There's no comment on this line, so it's blank.
+        needBlankLine = true;
+        return;
+      }
+
+      if (needBlankLine) buffer.writeln();
+      needBlankLine = false;
+
+      if (text != null) {
+        buffer.write(text);
+      }
+
+      if (comment != null) {
+        if (text != null) buffer.write(" ");
+        buffer.write("#$comment");
+      }
+
+      buffer.writeln();
+    }
+
+    void writeText(String text, int line) {
+      if (line != null) {
+        while (++lastLine < line) {
+          writeLine(null, lastLine);
+        }
+      }
+
+      writeLine(text, line);
+    }
+
+    for (var section in sections) {
+      if (section.condition != null) {
+        writeText("[ ${section.condition} ]", section.lineNumber);
+      }
+
+      for (var entry in section.entries) {
+        writeText("${entry.path}: ${entry.expectations.join(', ')}",
+            entry.lineNumber);
+      }
+
+      needBlankLine = true;
+    }
+
+    // Write any trailing comments.
+    while (++lastLine <= _lineCount) {
+      writeLine(null, lastLine);
     }
 
     return buffer.toString();

@@ -1453,6 +1453,12 @@ DART_EXPORT Dart_Handle Dart_GetStickyError() {
   return Dart_Null();
 }
 
+DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
+  Thread* T = Thread::Current();
+  CHECK_ISOLATE(T->isolate());
+  API_TIMELINE_BEGIN_END;
+}
+
 DART_EXPORT void Dart_ExitIsolate() {
   Thread* T = Thread::Current();
   CHECK_ISOLATE(T->isolate());
@@ -1500,8 +1506,11 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
 
 #if defined(DEBUG)
   I->heap()->CollectAllGarbage();
-  CheckFunctionTypesVisitor check_canonical(T);
-  I->heap()->IterateObjects(&check_canonical);
+  {
+    HeapIterationScope iteration(T);
+    CheckFunctionTypesVisitor check_canonical(T);
+    iteration.IterateObjects(&check_canonical);
+  }
 #endif  // #if defined(DEBUG)
 
   Symbols::Compact(I);
@@ -1535,8 +1544,11 @@ Dart_CreateScriptSnapshot(uint8_t** script_snapshot_buffer,
 
 #if defined(DEBUG)
   I->heap()->CollectAllGarbage();
-  CheckFunctionTypesVisitor check_canonical(T);
-  I->heap()->IterateObjects(&check_canonical);
+  {
+    HeapIterationScope iteration(T);
+    CheckFunctionTypesVisitor check_canonical(T);
+    iteration.IterateObjects(&check_canonical);
+  }
 #endif  // #if defined(DEBUG)
 
   ScriptSnapshotWriter writer(script_snapshot_buffer, ApiReallocate);
@@ -2090,12 +2102,11 @@ DART_EXPORT Dart_Handle Dart_NewIntegerFromUint64(uint64_t value) {
   DARTSCOPE(Thread::Current());
   CHECK_CALLBACK_STATE(T);
   API_TIMELINE_DURATION;
-  RawInteger* integer = Integer::NewFromUint64(value);
-  if (integer == Integer::null()) {
-    return Api::NewError("%s: Cannot create Dart integer from value %" Pu64,
-                         CURRENT_FUNC, value);
+  if (Integer::IsValueInRange(value)) {
+    return Api::NewHandle(T, Integer::NewFromUint64(value));
   }
-  return Api::NewHandle(T, integer);
+  return Api::NewError("%s: Cannot create Dart integer from value %" Pu64,
+                       CURRENT_FUNC, value);
 }
 
 DART_EXPORT Dart_Handle Dart_NewIntegerFromHexCString(const char* str) {
@@ -2190,13 +2201,7 @@ DART_EXPORT Dart_Handle Dart_IntegerToHexCString(Dart_Handle integer,
     RETURN_TYPE_ERROR(Z, integer, Integer);
   }
   Zone* scope_zone = Api::TopScope(Thread::Current())->zone();
-  if (int_obj.IsSmi() || int_obj.IsMint()) {
-    const Bigint& bigint =
-        Bigint::Handle(Z, Bigint::NewFromInt64(int_obj.AsInt64Value()));
-    *value = bigint.ToHexCString(scope_zone);
-  } else {
-    *value = Bigint::Cast(int_obj).ToHexCString(scope_zone);
-  }
+  *value = int_obj.ToHexCString(scope_zone);
   return Api::Success();
 }
 
@@ -6558,6 +6563,37 @@ Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
 
   writer.WriteFullSnapshot();
   image_writer.Finalize();
+  *assembly_size = image_writer.AssemblySize();
+
+  return Api::Success();
+#endif
+}
+
+DART_EXPORT Dart_Handle
+Dart_CreateVMAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
+                                   intptr_t* assembly_size) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("AOT compilation is not supported on IA32.");
+#elif defined(TARGET_ARCH_DBC)
+  return Api::NewError("AOT compilation is not supported on DBC.");
+#elif !defined(DART_PRECOMPILER)
+  return Api::NewError(
+      "This VM was built without support for AOT compilation.");
+#else
+  API_TIMELINE_DURATION;
+  DARTSCOPE(Thread::Current());
+  CHECK_NULL(assembly_buffer);
+  CHECK_NULL(assembly_size);
+
+  NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
+                                            "WriteVMAOTSnapshot"));
+  AssemblyImageWriter image_writer(assembly_buffer, ApiReallocate,
+                                   2 * MB /* initial_size */);
+  uint8_t* vm_snapshot_data_buffer = NULL;
+  FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer, NULL,
+                            ApiReallocate, &image_writer, NULL);
+
+  writer.WriteFullSnapshot();
   *assembly_size = image_writer.AssemblySize();
 
   return Api::Success();

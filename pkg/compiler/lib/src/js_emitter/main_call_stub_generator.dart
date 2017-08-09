@@ -49,8 +49,7 @@ class MainCallStubGenerator {
     // onload event of all script tags and getting the first script which
     // finishes. Since onload is called immediately after execution this should
     // not substantially change execution order.
-    return js.statement(
-        '''
+    return js.statement('''
       (function (callback) {
         if (typeof document === "undefined") {
           callback(null);
@@ -81,10 +80,9 @@ class MainCallStubGenerator {
         } else {
           #mainCallClosure([]);
         }
-      })''',
-        {
-          'currentScript': currentScriptAccess,
-          'mainCallClosure': mainCallClosure
-        });
+      })''', {
+      'currentScript': currentScriptAccess,
+      'mainCallClosure': mainCallClosure
+    });
   }
 }

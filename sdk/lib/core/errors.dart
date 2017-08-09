@@ -566,3 +566,190 @@ class _ConstantExpressionError {
 
   external _throw(error);
 }
+
+/// Used by Fasta to wrap constant expressions so an illegal constant expression
+/// will throw an error.
+class _ConstantHelper {
+  _isNumStringBoolOrNull(Object e) {
+    return e is num || e is String || e is bool || e == null;
+  }
+
+  _isNumStringOrNull(Object e) {
+    return e is num || e is String || e == null;
+  }
+
+  _isNumOrNull(Object e) {
+    return e is num || e == null;
+  }
+
+  _isIntOrNull(Object e) {
+    return e is int || e == null;
+  }
+
+  ////////////////////////////////////////
+
+  // An expression of one of the forms e1 == e2 or e1 != e2 where e1 and e2 are
+  // constant expressions that evaluate to a numeric, string or boolean value or
+  // to null.
+
+  equals(Object e1, Object e2, Function onError) {
+    if (!_isNumStringBoolOrNull((e1)) || !_isNumStringBoolOrNull(e2)) onError();
+    return e1 == e2;
+  }
+
+  notEquals(Object e1, Object e2, Function onError) {
+    if (!_isNumStringBoolOrNull((e1)) || !_isNumStringBoolOrNull(e2)) onError();
+    return e1 != e2;
+  }
+
+  ////////////////////////////////////////
+
+  // An expression of one of the forms !e, e1 && e2 or e1 || e2 , where e, e1
+  // and e2 are constant expressions that evaluate to a boolean value.
+
+  not(Object e, Function onError) {
+    if (e is! bool) onError();
+    return !e;
+  }
+
+  logicalAnd(Object e1, Object e2, Function onError) {
+    if (e1 is! bool || e2 is! bool) onError();
+    return e1 && e2;
+  }
+
+  logicalOr(Object e1, Object e2, Function onError) {
+    if (e1 is! bool || e2 is! bool) onError();
+    return e1 || e2;
+  }
+
+  ////////////////////////////////////////
+
+  // An expression of one of the forms  ~e, e1 ˆ e2, e1 & e2, e1 | e2, e1 >> e2
+  // or e1 << e2, where e, e1 and e2 are constant expressions that evaluate to
+  // an integer value or to null.
+
+  bitwiseNot(dynamic e, Function onError) {
+    if (!_isIntOrNull(e)) onError();
+    return ~e;
+  }
+
+  bitwiseXor(dynamic e1, dynamic e2, Function onError) {
+    if (!_isIntOrNull(e1) || !_isIntOrNull(e2)) onError();
+    return e1 ^ e2;
+  }
+
+  bitwiseAnd(dynamic e1, dynamic e2, Function onError) {
+    if (!_isIntOrNull(e1) || !_isIntOrNull(e2)) onError();
+    return e1 & e2;
+  }
+
+  bitwiseOr(dynamic e1, dynamic e2, Function onError) {
+    if (!_isIntOrNull(e1) || !_isIntOrNull(e2)) onError();
+    return e1 | e2;
+  }
+
+  rightShift(dynamic e1, dynamic e2, Function onError) {
+    if (!_isIntOrNull(e1) || !_isIntOrNull(e2)) onError();
+    return e1 >> e2;
+  }
+
+  leftShift(dynamic e1, dynamic e2, Function onError) {
+    if (!_isIntOrNull(e1) || !_isIntOrNull(e2)) onError();
+    return e1 << e2;
+  }
+
+  ////////////////////////////////////////
+
+  // An expression of the form e1 + e2 where e1 and e2 are constant expressions
+  // that evaluate to a numeric or string value or to null.
+
+  plus(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumStringOrNull(e1) || !_isNumStringOrNull(e2)) onError();
+    return e1 + e2;
+  }
+
+  ////////////////////////////////////////
+
+  // An expression of one of the forms -e, e1 - e2, e1 * e2, e1 / e2, e1 ~/ e2,
+  // e1 > e2, e1 < e2, e1 >= e2, e1 <= e2 or e1 % e2, where e, e1 and e2 are
+  // constant expressions that evaluate to a numeric value or to null.
+
+  unary_minus(dynamic e, Function onError) {
+    if (!_isNumOrNull(e)) onError();
+    return -e;
+  }
+
+  minus(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 - e2;
+  }
+
+  times(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 * e2;
+  }
+
+  div(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 / e2;
+  }
+
+  integerDiv(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 ~/ e2;
+  }
+
+  greater(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 > e2;
+  }
+
+  less(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 < e2;
+  }
+
+  greaterEqual(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 >= e2;
+  }
+
+  lessEqual(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 <= e2;
+  }
+
+  mod(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 % e2;
+  }
+
+  ////////////////////////////////////////
+
+  // An expression of the form e1 ? e2 : e3 where e1, e2 and e3 are constant
+  // expressions and e1 evaluates to a boolean value.
+
+  conditional(Object e1, Object e2, Object e3, Function onError) {
+    if (e1 is! bool) onError();
+    return e1 ? e2 : e3;
+  }
+
+  ////////////////////////////////////////
+
+  // An expression of the form e1 ?? e2 where e1 and e2 are constant expressions.
+
+  ifNull(Object e1, Object e2, Object e3, Function onError) {
+    if (e1 is! bool) onError();
+    return e1 ?? e2;
+  }
+
+  ////////////////////////////////////////
+
+  // An expression of the form e.length where e is a constant expression that
+  // evaluates to a string value.
+
+  dotLength(dynamic e, Function onError) {
+    if (e is! String) onError();
+    return e.length();
+  }
+}

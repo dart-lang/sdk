@@ -178,12 +178,6 @@ class Isolate : public BaseIsolate {
   void RegisterClassAt(intptr_t index, const Class& cls);
   void ValidateClassTable();
 
-  // Visit all object pointers.
-  void IterateObjectPointers(ObjectPointerVisitor* visitor,
-                             bool validate_frames);
-  void IterateStackPointers(ObjectPointerVisitor* visitor,
-                            bool validate_frames);
-
   // Visits weak object pointers.
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
@@ -218,17 +212,16 @@ class Isolate : public BaseIsolate {
   // Mutator thread is not scheduled if NULL or no heap is attached
   // to it. The latter only occurs when the mutator thread object
   // is unscheduled by the isolate (or never scheduled).
-  bool IsMutatorThreadScheduled() {
-    return mutator_thread_ != NULL && mutator_thread_->heap() != NULL;
-  }
+  bool IsMutatorThreadScheduled() { return scheduled_mutator_thread_ != NULL; }
 
   const char* name() const { return name_; }
 
 #if !defined(PRODUCT)
   const char* debugger_name() const { return debugger_name_; }
   void set_debugger_name(const char* name);
-  int64_t UptimeMicros() const;
 #endif  // !defined(PRODUCT)
+
+  int64_t UptimeMicros() const;
 
   Dart_Port main_port() const { return main_port_; }
   void set_main_port(Dart_Port port) {
@@ -790,7 +783,6 @@ class Isolate : public BaseIsolate {
   bool should_pause_post_service_request_;
 
   char* debugger_name_;
-  int64_t start_time_micros_;
   Debugger* debugger_;
   int64_t last_resume_timestamp_;
 
@@ -845,6 +837,7 @@ class Isolate : public BaseIsolate {
 #endif  // !defined(PRODUCT)
 
   // All other fields go here.
+  int64_t start_time_micros_;
   ThreadRegistry* thread_registry_;
   SafepointHandler* safepoint_handler_;
   Dart_MessageNotifyCallback message_notify_callback_;
@@ -929,8 +922,9 @@ class Isolate : public BaseIsolate {
   friend class Become;    // VisitObjectPointers
   friend class GCMarker;  // VisitObjectPointers
   friend class SafepointHandler;
-  friend class Scavenger;    // VisitObjectPointers
   friend class ObjectGraph;  // VisitObjectPointers
+  friend class Scavenger;    // VisitObjectPointers
+  friend class HeapIterationScope;  // VisitObjectPointers
   friend class ServiceIsolate;
   friend class Thread;
   friend class Timeline;

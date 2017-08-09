@@ -35,6 +35,12 @@ if __name__ == '__main__':
   with bot.BuildStep('Run tests'):
     (bot_name, _) = bot.GetBotName()
     system = bot_utils.GetSystemFromName(bot_name)
-    info = bot.BuildInfo('dartdevc', 'drt', 'release', system,
-        arch='x64', checked=True)
-    bot.RunTest('dartdevc', info, TARGETS, flags=FLAGS)
+    if system == 'linux':
+      bot.RunProcess([
+        'xvfb-run', sys.executable, './tools/test.py', '--strong', '-mrelease',
+        '-cdartdevc', '-rchrome', '-ax64', '--report', '--time', '--checked',
+        'language_2', 'corelib_2', 'language_strong'])
+    else:
+      info = bot.BuildInfo('dartdevc', 'chrome', 'release', system,
+          arch='x64', checked=True)
+      bot.RunTest('dartdevc', info, TARGETS, flags=FLAGS)

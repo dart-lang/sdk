@@ -467,12 +467,12 @@ class FastaParserTestCase extends Object
 
   @override
   CompilationUnitMember parseFullCompilationUnitMember() {
-    return _parserProxy._run((parser) => parser.parseTopLevelDeclaration);
+    return _parserProxy.parseTopLevelDeclaration();
   }
 
   @override
   Directive parseFullDirective() {
-    return _parserProxy._run((parser) => parser.parseTopLevelDeclaration);
+    return _parserProxy.parseTopLevelDeclaration();
   }
 
   @override
@@ -792,6 +792,8 @@ class ParserProxy implements analyzer.Parser {
    */
   final GatheringErrorListener _errorListener;
 
+  final ForwardingTestListener _eventListener;
+
   /**
    * Creates a [ParserProxy] which is prepared to begin parsing at the given
    * Fasta token.
@@ -807,28 +809,40 @@ class ParserProxy implements analyzer.Parser {
     var astBuilder =
         new AstBuilder(errorReporter, library, member, scope, true);
     astBuilder.parseGenericMethodComments = enableGenericMethodComments;
-    var fastaParser = new fasta.Parser(new ForwardingTestListener(astBuilder));
+    var eventListener = new ForwardingTestListener(astBuilder);
+    var fastaParser = new fasta.Parser(eventListener);
     astBuilder.parser = fastaParser;
     return new ParserProxy._(
-        startingToken, fastaParser, astBuilder, errorListener);
+        startingToken, fastaParser, astBuilder, errorListener, eventListener);
   }
 
   ParserProxy._(this._currentFastaToken, this._fastaParser, this._astBuilder,
-      this._errorListener);
+      this._errorListener, this._eventListener);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
   ClassMember parseClassMember(String className) {
     _astBuilder.className = className;
+    _eventListener.begin('CompilationUnit');
     var result = _run((parser) => parser.parseMember) as ClassMember;
+    _eventListener.end('CompilationUnit');
     _astBuilder.className = null;
     return result;
   }
 
   @override
   CompilationUnit parseCompilationUnit2() {
-    return _run((parser) => parser.parseUnit) as CompilationUnit;
+    var result = _run((parser) => parser.parseUnit) as CompilationUnit;
+    _eventListener.expectEmpty();
+    return result;
+  }
+
+  AnnotatedNode parseTopLevelDeclaration() {
+    _eventListener.begin('CompilationUnit');
+    var result = _run((parser) => parser.parseTopLevelDeclaration);
+    _eventListener.end('CompilationUnit');
+    return result;
   }
 
   /**

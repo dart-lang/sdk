@@ -759,7 +759,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       has_attempted_reload_(false),
       should_pause_post_service_request_(false),
       debugger_name_(NULL),
-      start_time_micros_(OS::GetCurrentMonotonicMicros()),
       debugger_(NULL),
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
       last_allocationprofile_accumulator_reset_timestamp_(0),
@@ -779,6 +778,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       last_reload_timestamp_(OS::GetCurrentTimeMillis()),
       object_id_ring_(NULL),
 #endif  // !defined(PRODUCT)
+      start_time_micros_(OS::GetCurrentMonotonicMicros()),
       thread_registry_(new ThreadRegistry()),
       safepoint_handler_(new SafepointHandler(this)),
       message_notify_callback_(NULL),
@@ -987,11 +987,11 @@ void Isolate::set_debugger_name(const char* name) {
   free(debugger_name_);
   debugger_name_ = strdup(name);
 }
+#endif  // !defined(PRODUCT)
 
 int64_t Isolate::UptimeMicros() const {
   return OS::GetCurrentMonotonicMicros() - start_time_micros_;
 }
-#endif  // !defined(PRODUCT)
 
 bool Isolate::IsPaused() const {
 #if defined(PRODUCT)
@@ -1465,8 +1465,9 @@ static void ShutdownIsolate(uword parameter) {
       // This would otherwise happen in Dart::ShowdownIsolate.
       isolate->StopBackgroundCompiler();
       isolate->heap()->CollectAllGarbage();
+      HeapIterationScope iteration(thread);
       VerifyCanonicalVisitor check_canonical(thread);
-      isolate->heap()->IterateObjects(&check_canonical);
+      iteration.IterateObjects(&check_canonical);
     }
 #endif  // DEBUG
     const Error& error = Error::Handle(thread->sticky_error());
@@ -1737,18 +1738,6 @@ Dart_IsolateCleanupCallback Isolate::cleanup_callback_ = NULL;
 Monitor* Isolate::isolates_list_monitor_ = NULL;
 Isolate* Isolate::isolates_list_head_ = NULL;
 bool Isolate::creation_enabled_ = false;
-
-void Isolate::IterateObjectPointers(ObjectPointerVisitor* visitor,
-                                    bool validate_frames) {
-  HeapIterationScope heap_iteration_scope;
-  VisitObjectPointers(visitor, validate_frames);
-}
-
-void Isolate::IterateStackPointers(ObjectPointerVisitor* visitor,
-                                   bool validate_frames) {
-  HeapIterationScope heap_iteration_scope;
-  VisitStackPointers(visitor, validate_frames);
-}
 
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                   bool validate_frames) {
@@ -2545,7 +2534,7 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     MonitorLocker ml(threads_lock(), false);
 
     // Check to make sure we don't already have a mutator thread.
-    if (is_mutator && mutator_thread_ != NULL) {
+    if (is_mutator && scheduled_mutator_thread_ != NULL) {
       return NULL;
     }
 
@@ -2573,11 +2562,10 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     ASSERT(thread->no_safepoint_scope_depth() == 0);
     os_thread->set_thread(thread);
     if (is_mutator) {
-      mutator_thread_ = thread;
-      if ((Dart::vm_isolate() != NULL) &&
-          (heap() != Dart::vm_isolate()->heap())) {
-        mutator_thread_->set_top(0);
-        mutator_thread_->set_end(0);
+      scheduled_mutator_thread_ = thread;
+      if (this != Dart::vm_isolate()) {
+        scheduled_mutator_thread_->set_top(heap()->new_space()->top());
+        scheduled_mutator_thread_->set_end(heap()->new_space()->end());
       }
     }
     Thread::SetCurrent(thread);
@@ -2618,14 +2606,12 @@ void Isolate::UnscheduleThread(Thread* thread,
   OSThread::SetCurrent(os_thread);
   if (is_mutator) {
     if (this != Dart::vm_isolate()) {
-      // Ensure the new space is pointing right after the last object allocated.
-      if (mutator_thread_->HasActiveTLAB()) {
-        heap()->new_space()->set_top(mutator_thread_->top());
-      }
+      heap()->new_space()->set_top(scheduled_mutator_thread_->top_);
+      heap()->new_space()->set_end(scheduled_mutator_thread_->end_);
     }
-    mutator_thread_->set_top(0);
-    mutator_thread_->set_end(0);
-    mutator_thread_ = NULL;
+    scheduled_mutator_thread_->top_ = 0;
+    scheduled_mutator_thread_->end_ = 0;
+    scheduled_mutator_thread_ = NULL;
   }
   thread->isolate_ = NULL;
   thread->heap_ = NULL;

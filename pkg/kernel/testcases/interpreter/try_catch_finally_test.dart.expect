@@ -1,0 +1,14 @@
+print(String: hello1)
+print(String: hello2)
+print(String: hello3)
+static-invocation-foo
+print(String: foo 1)
+return
+print(String: foo 2)
+return
+print(int: 2)
+static-invocation-bar
+print(String: bar 1)
+return
+print(String: bar 2)
+print(int: 1)

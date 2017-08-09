@@ -123,9 +123,13 @@ void CompilerStats::Update() {
   // Traverse the heap and compute number of tokens in all
   // TokenStream objects.
   num_tokens_total = 0;
-  TokenStreamVisitor visitor(this);
-  isolate_->heap()->IterateObjects(&visitor);
-  Dart::vm_isolate()->heap()->IterateObjects(&visitor);
+
+  {
+    HeapIterationScope iteration(Thread::Current());
+    TokenStreamVisitor visitor(this);
+    iteration.IterateObjects(&visitor);
+    iteration.IterateVMIsolateObjects(&visitor);
+  }
 }
 
 void CompilerStats::EnableBenchmark() {

@@ -17,14 +17,9 @@ import("../build/copy_tree.gni")
 
 declare_args() {
   # Build a SDK with less stuff. It excludes dart2js, ddc, and web libraries.
-  dart_platform_sdk = false
-}
-
-if (is_fuchsia ||
-    is_fuchsia_host ||
-    current_cpu == "arm64" ||
-    current_cpu == "arm") {
   dart_platform_sdk = true
+  # Path to stripped dart binary relative to build output directory.
+  dart_stripped_binary = "dart"
 }
 
 # The directory layout of the SDK is as follows:
@@ -226,13 +221,9 @@ copy("copy_dart") {
     sources = [
       "$dart_out/dart.exe",
     ]
-  } else if (is_fuchsia || is_fuchsia_host) {
-    sources = [
-      "$dart_out/dart",
-    ]
   } else {
     sources = [
-      "$dart_out/exe.stripped/dart",
+      "$dart_out/$dart_stripped_binary"
     ]
   }
   if (is_win) {

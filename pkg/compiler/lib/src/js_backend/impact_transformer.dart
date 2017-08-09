@@ -4,13 +4,14 @@
 
 library js_backend.backend.impact_transformer;
 
+import '../closure.dart';
 import '../common.dart';
 import '../common_elements.dart';
 import '../common/backend_api.dart' show ImpactTransformer;
 import '../common/codegen.dart' show CodegenImpact;
 import '../common/resolution.dart' show ResolutionImpact;
-import '../constants/expressions.dart';
 import '../common_elements.dart' show ElementEnvironment;
+import '../constants/expressions.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../native/enqueue.dart';
@@ -427,11 +428,18 @@ class CodegenImpactTransformer {
 
     for (StaticUse staticUse in impact.staticUses) {
       switch (staticUse.kind) {
-        case StaticUseKind.CLOSURE:
-          Local closure = staticUse.element;
-          if (_rtiNeed.localFunctionNeedsRti(closure)) {
+        case StaticUseKind.CALL_METHOD:
+          FunctionEntity callMethod = staticUse.element;
+          // TODO(johnniwinther): Remove [localFunctionNeedsRti] and use
+          // the call method instead.
+          if (_rtiNeed.methodNeedsRti(callMethod)) {
             _impacts.computeSignature
                 .registerImpact(transformed, _elementEnvironment);
+          } else if (callMethod is SynthesizedCallMethodElementX) {
+            if (_rtiNeed.localFunctionNeedsRti(callMethod.expression)) {
+              _impacts.computeSignature
+                  .registerImpact(transformed, _elementEnvironment);
+            }
           }
           break;
         case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:

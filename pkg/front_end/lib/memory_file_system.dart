@@ -16,6 +16,7 @@ import 'file_system.dart';
 /// Not intended to be implemented or extended by clients.
 class MemoryFileSystem implements FileSystem {
   final Map<Uri, Uint8List> _files = {};
+  final Set<Uri> _directories = new Set<Uri>();
 
   /// The "current directory" in the in-memory virtual file system.
   ///
@@ -60,8 +61,21 @@ class MemoryFileSystemEntity implements FileSystemEntity {
       other.uri == uri &&
       identical(other._fileSystem, _fileSystem);
 
+  /// Create a directory for this file system entry.
+  ///
+  /// If the entry is an existing file, this is an error.
+  void createDirectory() {
+    if (_fileSystem._files[uri] != null) {
+      throw new FileSystemException(uri, 'Entry $uri is a file.');
+    }
+    _fileSystem._directories.add(uri);
+  }
+
   @override
-  Future<bool> exists() async => _fileSystem._files[uri] != null;
+  Future<bool> exists() async {
+    return _fileSystem._files[uri] != null ||
+        _fileSystem._directories.contains(uri);
+  }
 
   @override
   Future<List<int>> readAsBytes() async {
@@ -104,6 +118,9 @@ class MemoryFileSystemEntity implements FileSystemEntity {
   }
 
   void _update(Uri uri, Uint8List data) {
+    if (_fileSystem._directories.contains(uri)) {
+      throw new FileSystemException(uri, 'Entry $uri is a directory.');
+    }
     _fileSystem._files[uri] = data;
   }
 }

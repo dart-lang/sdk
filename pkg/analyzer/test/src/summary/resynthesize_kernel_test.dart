@@ -12,10 +12,13 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/kernel/resynthesize.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
+import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/base/libraries_specification.dart';
+import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/target/targets.dart';
@@ -72,19 +75,23 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
     Uri testUri = testFile.toUri();
     String testUriStr = testUri.toString();
 
-    Map<String, Uri> dartLibraries = {};
+    Map<String, LibraryInfo> dartLibraries = {};
     MockSdk.FULL_URI_MAP.forEach((dartUri, path) {
-      dartLibraries[Uri.parse(dartUri).path] = Uri.parse('file://$path');
+      var name = Uri.parse(dartUri).path;
+      dartLibraries[name] =
+          new LibraryInfo(name, Uri.parse('file://$path'), const []);
     });
 
-    var uriTranslator =
-        new UriTranslatorImpl(dartLibraries, {}, Packages.noPackages);
-    var driver = new KernelDriver(
-        new PerformanceLog(null),
-        new _FileSystemAdaptor(resourceProvider),
-        new MemoryByteStore(),
-        uriTranslator,
-        new NoneTarget(new TargetFlags(strongMode: isStrongMode)));
+    var uriTranslator = new UriTranslatorImpl(
+        new TargetLibrariesSpecification('none', dartLibraries),
+        Packages.noPackages);
+    var options = new ProcessedOptions(new CompilerOptions()
+      ..target = new NoneTarget(new TargetFlags(strongMode: isStrongMode))
+      ..reportMessages = false
+      ..logger = new PerformanceLog(null)
+      ..fileSystem = new _FileSystemAdaptor(resourceProvider)
+      ..byteStore = new MemoryByteStore());
+    var driver = new KernelDriver(options, uriTranslator);
 
     KernelResult kernelResult = await driver.getKernel(testUri);
 
@@ -120,26 +127,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_interfaces_unresolved() async {
-    // Fasta generates additional `#errors` top-level variable.
-    await super.test_class_interfaces_unresolved();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_class_mixins_unresolved() async {
-    // Fasta generates additional `#errors` top-level variable.
-    await super.test_class_mixins_unresolved();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_class_supertype_unresolved() async {
-    // Fasta generates additional `#errors` top-level variable.
-    await super.test_class_supertype_unresolved();
-  }
-
-  @failingTest
   @fastaProblem
   test_class_type_parameters_bound() async {
     // Fasta does not provide a flag for explicit vs. implicit Object bound.
@@ -151,11 +138,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   test_closure_generic() async {
     // https://github.com/dart-lang/sdk/issues/30265
     await super.test_closure_generic();
-  }
-
-  @failingTest
-  test_closure_in_variable_declaration_in_part() async {
-    await super.test_closure_in_variable_declaration_in_part();
   }
 
   @failingTest
@@ -243,18 +225,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_reference_type() async {
-    await super.test_const_reference_type();
-  }
-
-  @failingTest
   test_const_reference_type_functionType() async {
     await super.test_const_reference_type_functionType();
-  }
-
-  @failingTest
-  test_const_reference_type_imported() async {
-    await super.test_const_reference_type_imported();
   }
 
   @failingTest
@@ -268,17 +240,23 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_const_reference_unresolved_prefix0() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_reference_unresolved_prefix0();
   }
 
   @failingTest
+  @fastaProblem
   test_const_reference_unresolved_prefix1() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_reference_unresolved_prefix1();
   }
 
   @failingTest
+  @fastaProblem
   test_const_reference_unresolved_prefix2() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_reference_unresolved_prefix2();
   }
 
@@ -288,12 +266,16 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_const_topLevel_super() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_topLevel_super();
   }
 
   @failingTest
+  @fastaProblem
   test_const_topLevel_this() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_topLevel_this();
   }
 
@@ -394,16 +376,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_enum_documented() async {
-    await super.test_enum_documented();
-  }
-
-  @failingTest
-  test_enum_value_documented() async {
-    await super.test_enum_value_documented();
-  }
-
-  @failingTest
   test_error_extendsEnum() async {
     await super.test_error_extendsEnum();
   }
@@ -459,33 +431,13 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_function_entry_point_in_part() async {
-    await super.test_function_entry_point_in_part();
-  }
-
-  @failingTest
-  test_function_parameter_parameters() async {
-    await super.test_function_parameter_parameters();
-  }
-
-  @failingTest
-  test_function_type_parameter_with_function_typed_parameter() async {
-    await super.test_function_type_parameter_with_function_typed_parameter();
-  }
-
-  @failingTest
-  test_futureOr_const() async {
-    await super.test_futureOr_const();
-  }
-
-  @failingTest
-  test_genericFunction_asFunctionTypedParameterReturnType() async {
-    await super.test_genericFunction_asFunctionTypedParameterReturnType();
-  }
-
-  @failingTest
   test_genericFunction_asGenericFunctionReturnType() async {
     await super.test_genericFunction_asGenericFunctionReturnType();
+  }
+
+  @failingTest
+  test_genericFunction_asParameterType() async {
+    await super.test_genericFunction_asParameterType();
   }
 
   @failingTest
@@ -554,11 +506,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_inferred_type_is_typedef() async {
-    await super.test_inferred_type_is_typedef();
-  }
-
-  @failingTest
   test_inferred_type_refers_to_function_typed_param_of_typedef() async {
     await super.test_inferred_type_refers_to_function_typed_param_of_typedef();
   }
@@ -576,31 +523,9 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_inferred_type_refers_to_nested_function_typed_param() async {
-    await super.test_inferred_type_refers_to_nested_function_typed_param();
-  }
-
-  @failingTest
-  test_inferred_type_refers_to_nested_function_typed_param_named() async {
-    await super
-        .test_inferred_type_refers_to_nested_function_typed_param_named();
-  }
-
-  @failingTest
   test_inferred_type_refers_to_setter_function_typed_parameter_type() async {
     await super
         .test_inferred_type_refers_to_setter_function_typed_parameter_type();
-  }
-
-  @failingTest
-  test_inferredType_definedInSdkLibraryPart() async {
-    await super.test_inferredType_definedInSdkLibraryPart();
-  }
-
-  @failingTest
-  test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
-    await super
-        .test_inferredType_usesSyntheticFunctionType_functionTypedParam();
   }
 
   @failingTest
@@ -629,12 +554,16 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_invalid_annotation_prefixed_constructor() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_annotation_prefixed_constructor();
   }
 
   @failingTest
+  @fastaProblem
   test_invalid_annotation_unprefixed_constructor() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_annotation_unprefixed_constructor();
   }
 
@@ -644,28 +573,31 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_invalid_nameConflict_imported() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_nameConflict_imported();
   }
 
   @failingTest
+  @fastaProblem
   test_invalid_nameConflict_imported_exported() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_nameConflict_imported_exported();
   }
 
   @failingTest
+  @fastaProblem
   test_invalid_nameConflict_local() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_nameConflict_local();
   }
 
   @failingTest
+  @fastaProblem
   test_invalid_setterParameter_fieldFormalParameter() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_setterParameter_fieldFormalParameter();
-  }
-
-  @failingTest
-  test_invalid_setterParameter_fieldFormalParameter_self() async {
-    await super.test_invalid_setterParameter_fieldFormalParameter_self();
   }
 
   @failingTest
@@ -686,11 +618,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_library_documented_stars() async {
     await super.test_library_documented_stars();
-  }
-
-  @failingTest
-  test_main_typedef() async {
-    await super.test_main_typedef();
   }
 
   @failingTest
@@ -716,11 +643,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_metadata_fieldFormalParameter_withDefault() async {
     await super.test_metadata_fieldFormalParameter_withDefault();
-  }
-
-  @failingTest
-  test_metadata_functionTypeAlias() async {
-    await super.test_metadata_functionTypeAlias();
   }
 
   @failingTest
@@ -766,16 +688,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_metadata_typeParameter_ofTypedef() async {
-    await super.test_metadata_typeParameter_ofTypedef();
-  }
-
-  @failingTest
-  test_method_type_parameter_with_function_typed_parameter() async {
-    await super.test_method_type_parameter_with_function_typed_parameter();
-  }
-
-  @failingTest
   test_parameter_checked() async {
     await super.test_parameter_checked();
   }
@@ -793,21 +705,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_parameter_covariant_inherited() async {
     await super.test_parameter_covariant_inherited();
-  }
-
-  @failingTest
-  test_parameter_parameters() async {
-    await super.test_parameter_parameters();
-  }
-
-  @failingTest
-  test_parameter_parameters_in_generic_class() async {
-    await super.test_parameter_parameters_in_generic_class();
-  }
-
-  @failingTest
-  test_parts() async {
-    await super.test_parts();
   }
 
   @failingTest
@@ -861,76 +758,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_type_reference_lib_to_lib() async {
-    await super.test_type_reference_lib_to_lib();
-  }
-
-  @failingTest
-  test_type_reference_lib_to_part() async {
-    await super.test_type_reference_lib_to_part();
-  }
-
-  @failingTest
-  test_type_reference_part_to_lib() async {
-    await super.test_type_reference_part_to_lib();
-  }
-
-  @failingTest
-  test_type_reference_part_to_other_part() async {
-    await super.test_type_reference_part_to_other_part();
-  }
-
-  @failingTest
-  test_type_reference_part_to_part() async {
-    await super.test_type_reference_part_to_part();
-  }
-
-  @failingTest
-  test_type_reference_to_import() async {
-    await super.test_type_reference_to_import();
-  }
-
-  @failingTest
-  test_type_reference_to_import_export() async {
-    await super.test_type_reference_to_import_export();
-  }
-
-  @failingTest
-  test_type_reference_to_import_export_export() async {
-    await super.test_type_reference_to_import_export_export();
-  }
-
-  @failingTest
-  test_type_reference_to_import_export_export_in_subdirs() async {
-    await super.test_type_reference_to_import_export_export_in_subdirs();
-  }
-
-  @failingTest
-  test_type_reference_to_import_export_in_subdirs() async {
-    await super.test_type_reference_to_import_export_in_subdirs();
-  }
-
-  @failingTest
-  test_type_reference_to_import_part() async {
-    await super.test_type_reference_to_import_part();
-  }
-
-  @failingTest
-  test_type_reference_to_import_part_in_subdir() async {
-    await super.test_type_reference_to_import_part_in_subdir();
-  }
-
-  @failingTest
-  test_type_reference_to_import_relative() async {
-    await super.test_type_reference_to_import_relative();
-  }
-
-  @failingTest
-  test_type_reference_to_typedef() async {
-    await super.test_type_reference_to_typedef();
-  }
-
-  @failingTest
   test_type_reference_to_typedef_with_type_arguments() async {
     await super.test_type_reference_to_typedef_with_type_arguments();
   }
@@ -966,58 +793,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_typedef_parameter_parameters() async {
-    await super.test_typedef_parameter_parameters();
-  }
-
-  @failingTest
-  test_typedef_parameter_parameters_in_generic_class() async {
-    await super.test_typedef_parameter_parameters_in_generic_class();
-  }
-
-  @failingTest
-  test_typedef_parameter_return_type() async {
-    await super.test_typedef_parameter_return_type();
-  }
-
-  @failingTest
-  test_typedef_parameter_type() async {
-    await super.test_typedef_parameter_type();
-  }
-
-  @failingTest
-  test_typedef_parameter_type_generic() async {
-    await super.test_typedef_parameter_type_generic();
-  }
-
-  @failingTest
-  test_typedef_parameters() async {
-    await super.test_typedef_parameters();
-  }
-
-  @failingTest
-  test_typedef_return_type() async {
-    await super.test_typedef_return_type();
-  }
-
-  @failingTest
-  test_typedef_return_type_generic() async {
-    await super.test_typedef_return_type_generic();
-  }
-
-  @failingTest
-  test_typedef_return_type_implicit() async {
-    await super.test_typedef_return_type_implicit();
-  }
-
-  @failingTest
-  test_typedef_return_type_void() async {
-    await super.test_typedef_return_type_void();
-  }
-
-  @failingTest
-  test_typedef_type_parameters() async {
-    await super.test_typedef_type_parameters();
+  test_typedef_parameters_named() async {
+    await super.test_typedef_parameters_named();
   }
 
   @failingTest
@@ -1033,16 +810,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_typedef_type_parameters_bound_recursive2() async {
     await super.test_typedef_type_parameters_bound_recursive2();
-  }
-
-  @failingTest
-  test_typedef_type_parameters_f_bound_complex() async {
-    await super.test_typedef_type_parameters_f_bound_complex();
-  }
-
-  @failingTest
-  test_typedef_type_parameters_f_bound_simple() async {
-    await super.test_typedef_type_parameters_f_bound_simple();
   }
 
   @failingTest
@@ -1143,36 +910,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_unresolved_import() async {
     await super.test_unresolved_import();
-  }
-
-  @failingTest
-  test_unresolved_part() async {
-    await super.test_unresolved_part();
-  }
-
-  @failingTest
-  test_variable_getterInLib_setterInPart() async {
-    await super.test_variable_getterInLib_setterInPart();
-  }
-
-  @failingTest
-  test_variable_getterInPart_setterInLib() async {
-    await super.test_variable_getterInPart_setterInLib();
-  }
-
-  @failingTest
-  test_variable_getterInPart_setterInPart() async {
-    await super.test_variable_getterInPart_setterInPart();
-  }
-
-  @failingTest
-  test_variable_propagatedType_final_dep_inPart() async {
-    await super.test_variable_propagatedType_final_dep_inPart();
-  }
-
-  @failingTest
-  test_variable_setterInPart_getterInPart() async {
-    await super.test_variable_setterInPart_getterInPart();
   }
 
   String _getLibraryText(kernel.Library library) {

@@ -8,6 +8,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
 typedef HtmlElement VirtualCollectionCreateCallback();
+typedef List<HtmlElement> VirtualCollectionHeaderCallback();
 typedef void VirtualCollectionUpdateCallback(
     HtmlElement el, dynamic item, int index);
 
@@ -20,7 +21,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
       _r.onRendered;
 
   VirtualCollectionCreateCallback _create;
-  VirtualCollectionCreateCallback _createHeader;
+  VirtualCollectionHeaderCallback _createHeader;
   VirtualCollectionUpdateCallback _update;
   double _itemHeight;
   double _headerHeight = 0.0;
@@ -41,7 +42,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
   factory VirtualCollectionElement(VirtualCollectionCreateCallback create,
       VirtualCollectionUpdateCallback update,
       {Iterable items: const [],
-      VirtualCollectionCreateCallback createHeader,
+      VirtualCollectionHeaderCallback createHeader,
       RenderingQueue queue}) {
     assert(create != null);
     assert(update != null);
@@ -79,14 +80,16 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
   final DivElement _header = new DivElement()..classes = ['header'];
   final DivElement _scroller = new DivElement()..classes = ['scroller'];
   final DivElement _shifter = new DivElement()..classes = ['shifter'];
+  final DivElement _container = new DivElement()..classes = ['container'];
 
   dynamic getItemFromElement(HtmlElement element) {
-    final el_index = _shifter.children.indexOf(element);
+    final el_index = _container.children.indexOf(element);
     if (el_index < 0) {
       return null;
     }
-    final item_index =
-        _top + el_index - (_shifter.children.length * _inverse_preload).floor();
+    final item_index = _top +
+        el_index -
+        (_container.children.length * _inverse_preload).floor();
     if (0 <= item_index && item_index < items.length) {
       return _items[item_index];
     }
@@ -119,15 +122,22 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
       children = [
         _scroller
           ..children = [
-            _shifter..children = [_create()]
+            _shifter
+              ..children = [
+                _container..children = [_create()]
+              ]
           ],
       ];
       if (_createHeader != null) {
-        _header.children = [_createHeader()];
+        _header.children = [
+          new DivElement()
+            ..classes = ['container']
+            ..children = _createHeader()
+        ];
         _scroller.children.insert(0, _header);
         _headerHeight = _header.children[0].getBoundingClientRect().height;
       }
-      _itemHeight = _shifter.children[0].getBoundingClientRect().height;
+      _itemHeight = _container.children[0].getBoundingClientRect().height;
       _height = getBoundingClientRect().height;
     }
 
@@ -148,11 +158,11 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     final tail_length = (_height / _itemHeight / _preload).ceil();
     final length = tail_length * 2 + tail_length * _preload;
 
-    if (_shifter.children.length < length) {
-      while (_shifter.children.length != length) {
+    if (_container.children.length < length) {
+      while (_container.children.length != length) {
         var e = _create();
         e..style.display = 'hidden';
-        _shifter.children.add(e);
+        _container.children.add(e);
       }
       _top = null; // force update;
     }
@@ -160,7 +170,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     if ((_top == null) || ((top - _top).abs() >= tail_length)) {
       _shifter.style.top = '${_itemHeight*(top-tail_length)}px';
       int i = top - tail_length;
-      for (final HtmlElement e in _shifter.children) {
+      for (final HtmlElement e in _container.children) {
         if (0 <= i && i < _items.length) {
           e..style.display = null;
           _update(e, _items[i], i);

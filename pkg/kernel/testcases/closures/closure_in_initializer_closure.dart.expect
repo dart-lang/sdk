@@ -6,8 +6,6 @@ class C extends core::Object {
   field dynamic t;
   constructor foo(dynamic f) → void
     : final Vector #context = MakeVector(2), dynamic #t1 = #context[1] = f, self::C::t = MakeClosure<() → dynamic>(self::closure#C#foo#function, #context), super core::Object::•() {
-    final Vector #context = MakeVector(2);
-    #context[1] = f;
     core::print(1);
   }
 }

@@ -858,7 +858,6 @@ class KernelLibraryLoaderTask extends CompilerTask
         var options = new fe.CompilerOptions()
           ..fileSystem = new CompilerFileSystem(compilerInput)
           ..target = new Dart2jsTarget(new TargetFlags())
-          ..compileSdk = true
           ..linkedDependencies = [
             sdkRoot.resolve('_internal/dart2js_platform.dill')
           ]

@@ -33,8 +33,7 @@ main() {
 void testExpression() {
   var expression = Expression
       .parse(r" $mode == debug && ($arch == chromium || $arch == dartc) ");
-  Expect.equals(
-      r"(($mode == debug) && (($arch == chromium) || ($arch == dartc)))",
+  Expect.equals(r"$mode == debug && ($arch == chromium || $arch == dartc)",
       expression.toString());
 
   // Test BooleanExpression.evaluate().
@@ -61,8 +60,8 @@ void testSyntaxError() {
 void testBoolean() {
   var expression =
       Expression.parse(r"  $arch == ia32 && $checked || $mode == release    ");
-  Expect.equals(r"((($arch == ia32) && (bool $checked)) || ($mode == release))",
-      expression.toString());
+  Expect.equals(
+      r"$arch == ia32 && $checked || $mode == release", expression.toString());
 
   // Test BooleanExpression.evaluate().
   var environment =
@@ -85,8 +84,7 @@ void testNotBoolean() {
   var expression =
       Expression.parse(r"  $arch == ia32 && ! $checked || $mode == release ");
   Expect.equals(
-      r"((($arch == ia32) && (bool ! $checked)) || ($mode == release))",
-      expression.toString());
+      r"$arch == ia32 && !$checked || $mode == release", expression.toString());
 
   var environment = new TestEnvironment(
       {"arch": "ia32", "checked": "false", "mode": "debug"});
@@ -108,7 +106,7 @@ void testNotEqual() {
   // Test the != operator.
   var expression = Expression.parse(r"$compiler == dart2js && $runtime != ie9");
   Expect.equals(
-      r"(($compiler == dart2js) && ($runtime != ie9))", expression.toString());
+      r"$compiler == dart2js && $runtime != ie9", expression.toString());
 
   // Test BooleanExpression.evaluate().
   var environment = new TestEnvironment({

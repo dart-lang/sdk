@@ -175,6 +175,18 @@ import 'package:pkg/foo.dart' show A;
     assertNoChanges();
   }
 
+  test_createEdits_importSelf() async {
+    await createBuilder('''
+class A {
+  A parent;
+}
+''');
+    await computeChanges(<ImportedElements>[
+      new ImportedElements(path, '', <String>['A'])
+    ]);
+    assertNoChanges();
+  }
+
   test_createEdits_noElements() async {
     await createBuilder('');
     await computeChanges(<ImportedElements>[]);

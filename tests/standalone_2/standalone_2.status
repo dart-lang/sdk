@@ -1,0 +1,65 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# WARNING:
+# Tests using the multitest feature where failure is expected should *also* be
+# listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
+# prefix.
+
+# All static_tests have expected compile-time errors.
+[ $strong && $compiler != dart2analyzer && $compiler != dartdevc ]
+float_array_static_test: MissingCompileTimeError
+
+[ !$strong ]
+float_array_static_test: MissingCompileTimeError
+
+[ ((($runtime != vm) && ($runtime != dart_precompiled)) && ($compiler != none)) ]
+no_assert_test: Fail, Ok
+env_test: Skip
+
+[ ((($runtime == vm) || ($runtime == flutter)) && ($system == linux)) ]
+io/http_launch_test: Pass, Slow, Timeout # Issue 28046
+
+[ (((($runtime != vm) || ($arch == arm)) || ($arch == arm64)) || (($system == windows) && ($mode == debug))) ]
+fragmentation_test: Skip
+
+[ ($compiler == dart2analyzer) ]
+deferred_transitive_import_error_test: Skip
+
+[ ($runtime == dart_precompiled) ]
+http_launch_test: Skip
+io/addlatexhash_test: Skip
+
+[ ($compiler == app_jit) ]
+assert_test: RuntimeError
+
+[ (($runtime == dart_precompiled) || ($mode == product)) ]
+assert_test: SkipByDesign
+no_assert_test: SkipByDesign
+
+[ ($mode == product) ]
+dart_developer_env_test: SkipByDesign
+dart_developer_env_test: SkipByDesign
+
+[ (($runtime == dart_precompiled) && ($mode == product)) ]
+dwarf_stack_trace_test: Pass, RuntimeError
+
+[ ((($runtime == vm) || ($runtime == dart_precompiled)) || ($runtime == flutter)) ]
+deferred_transitive_import_error_test: Skip
+
+[ (($hot_reload) || ($hot_reload_rollback)) ]
+deferred_transitive_import_error_test: Crash
+
+[ (($compiler == dartk) || ($compiler == dartkp)) ]
+assert_test: RuntimeError
+
+[ ($compiler == dartkp) ]
+causal_async_stack_test: Fail
+
+[ ($runtime == flutter) ]
+io/addlatexhash_test: RuntimeError # Issue 9115
+http_launch_test: Skip # Issue 9115
+dart_developer_disabled_env_test: RuntimeError # Issue 9115
+dart_developer_disabled_env_test: RuntimeError # Issue 9115
+

@@ -7,23 +7,26 @@ import 'package:kernel/ast.dart' as ir;
 import '../common.dart';
 import '../common/names.dart';
 import '../compiler.dart';
-import '../constants/expressions.dart';
-import '../constants/values.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart';
+import '../constants/values.dart';
+import '../elements/elements.dart'
+    show
+        ClassElement,
+        ConstructorElement,
+        Elements,
+        MemberElement,
+        ParameterElement;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/js_backend.dart';
 import '../native/behavior.dart' as native;
-import '../resolution/tree_elements.dart';
-import '../tree/nodes.dart' as ast;
 import '../types/constants.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
-import '../util/util.dart';
+import '../util/setlet.dart';
 import '../world.dart';
 import 'closure_tracer.dart';
 import 'debug.dart' as debug;
@@ -31,7 +34,6 @@ import 'locals_handler.dart';
 import 'list_tracer.dart';
 import 'map_tracer.dart';
 import 'builder.dart';
-import 'builder_kernel.dart';
 import 'type_graph_dump.dart';
 import 'type_graph_inferrer.dart';
 import 'type_graph_nodes.dart';
@@ -40,7 +42,7 @@ import 'type_system.dart';
 /// An inferencing engine that computes a call graph of [TypeInformation] nodes
 /// by visiting the AST of the application, and then does the inferencing on the
 /// graph.
-abstract class InferrerEngine {
+abstract class InferrerEngine<T> {
   /// A set of selector names that [List] implements, that we know return their
   /// element type.
   final Set<Selector> returnsListElementTypeSet =
@@ -64,8 +66,8 @@ abstract class InferrerEngine {
   CommonMasks get commonMasks => closedWorld.commonMasks;
   CommonElements get commonElements => closedWorld.commonElements;
 
-  TypeSystem<ast.Node> get types;
-  Map<ast.Node, TypeInformation> get concreteTypes;
+  TypeSystem<T> get types;
+  Map<T, TypeInformation> get concreteTypes;
 
   /// Parallel structure for concreteTypes.
   // TODO(efortuna): Remove concreteTypes and/or parameterize InferrerEngine by
@@ -76,7 +78,7 @@ abstract class InferrerEngine {
 
   void runOverAllElements();
 
-  void analyze(ResolvedAst resolvedAst, ArgumentsTypes arguments);
+  void analyze(MemberEntity member, T node, ArgumentsTypes arguments);
   void analyzeListAndEnqueue(ListTypeInformation info);
   void analyzeMapAndEnqueue(MapTypeInformation info);
 
@@ -136,11 +138,11 @@ abstract class InferrerEngine {
 
   /// Registers a call to await with an expression of type [argumentType] as
   /// argument.
-  TypeInformation registerAwait(ast.Node node, TypeInformation argument);
+  TypeInformation registerAwait(T node, TypeInformation argument);
 
   /// Registers a call to yield with an expression of type [argumentType] as
   /// argument.
-  TypeInformation registerYield(ast.Node node, TypeInformation argument);
+  TypeInformation registerYield(T node, TypeInformation argument);
 
   /// Registers that [caller] calls [closure] with [arguments].
   ///
@@ -149,7 +151,7 @@ abstract class InferrerEngine {
   ///
   /// [inLoop] tells whether the call happens in a loop.
   TypeInformation registerCalledClosure(
-      ast.Node node,
+      T node,
       Selector selector,
       TypeMask mask,
       TypeInformation closure,
@@ -183,7 +185,8 @@ abstract class InferrerEngine {
   ///
   /// [inLoop] tells whether the call happens in a loop.
   TypeInformation registerCalledSelector(
-      ast.Node node,
+      CallType callType,
+      T node,
       Selector selector,
       TypeMask mask,
       TypeInformation receiverType,
@@ -200,8 +203,8 @@ abstract class InferrerEngine {
       ArgumentsTypes arguments, Selector selector, TypeMask mask,
       {bool remove, bool addToQueue: true});
 
-  void updateSelectorInMember(
-      MemberEntity owner, ast.Node node, Selector selector, TypeMask mask);
+  void updateSelectorInMember(MemberEntity owner, CallType callType, T node,
+      Selector selector, TypeMask mask);
 
   /// Returns the return type of [element].
   TypeInformation returnTypeOfMember(MemberEntity element);
@@ -227,7 +230,7 @@ abstract class InferrerEngine {
   void clear();
 }
 
-class InferrerEngineImpl extends InferrerEngine {
+abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   final Map<Local, TypeInformation> defaultTypeOfParameter =
       new Map<Local, TypeInformation>();
   final WorkQueue workQueue = new WorkQueue();
@@ -248,9 +251,8 @@ class InferrerEngineImpl extends InferrerEngine {
   final ClosedWorld closedWorld;
 
   final ClosedWorldRefiner closedWorldRefiner;
-  final TypeSystem<ast.Node> types;
-  final Map<ast.Node, TypeInformation> concreteTypes =
-      new Map<ast.Node, TypeInformation>();
+  final TypeSystem<T> types;
+  final Map<T, TypeInformation> concreteTypes = new Map<T, TypeInformation>();
 
   final Map<ir.Node, TypeInformation> concreteKernelTypes =
       new Map<ir.Node, TypeInformation>();
@@ -262,10 +264,13 @@ class InferrerEngineImpl extends InferrerEngine {
   final Map<MemberEntity, GlobalTypeInferenceElementData> _memberData =
       new Map<MemberEntity, GlobalTypeInferenceElementData>();
 
-  InferrerEngineImpl(this.compiler, ClosedWorld closedWorld,
-      this.closedWorldRefiner, this.mainElement)
-      : this.types = new TypeSystem<ast.Node>(
-            closedWorld, const TypeSystemStrategyImpl()),
+  InferrerEngineImpl(
+      this.compiler,
+      ClosedWorld closedWorld,
+      this.closedWorldRefiner,
+      this.mainElement,
+      TypeSystemStrategy<T> typeSystemStrategy)
+      : this.types = new TypeSystem<T>(closedWorld, typeSystemStrategy),
         this.closedWorld = closedWorld;
 
   void forEachElementMatching(
@@ -276,12 +281,13 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
-  // TODO(johnniwinther): Make this private again.
-  GlobalTypeInferenceElementData dataOfMember(MemberEntity element) =>
-      _memberData.putIfAbsent(
-          element, () => new GlobalTypeInferenceElementData());
+  GlobalTypeInferenceElementData<T> createElementData();
 
-  GlobalTypeInferenceElementData lookupDataOfMember(MemberEntity element) =>
+  // TODO(johnniwinther): Make this private again.
+  GlobalTypeInferenceElementData<T> dataOfMember(MemberEntity element) =>
+      _memberData.putIfAbsent(element, createElementData);
+
+  GlobalTypeInferenceElementData<T> lookupDataOfMember(MemberEntity element) =>
       _memberData[element];
 
   /**
@@ -357,30 +363,34 @@ class InferrerEngineImpl extends InferrerEngine {
     return returnType;
   }
 
-  void updateSelectorInMember(
-      MemberEntity owner, ast.Node node, Selector selector, TypeMask mask) {
+  void updateSelectorInMember(MemberEntity owner, CallType callType, T node,
+      Selector selector, TypeMask mask) {
     GlobalTypeInferenceElementData data = dataOfMember(owner);
-    if (node.asSendSet() != null) {
-      if (selector.isSetter || selector.isIndexSet) {
+    assert(validCallType(callType, node));
+    switch (callType) {
+      case CallType.complex:
+        if (selector.isSetter || selector.isIndexSet) {
+          data.setTypeMask(node, mask);
+        } else if (selector.isGetter || selector.isIndex) {
+          data.setGetterTypeMaskInComplexSendSet(node, mask);
+        } else {
+          assert(selector.isOperator);
+          data.setOperatorTypeMaskInComplexSendSet(node, mask);
+        }
+        break;
+      case CallType.access:
         data.setTypeMask(node, mask);
-      } else if (selector.isGetter || selector.isIndex) {
-        data.setGetterTypeMaskInComplexSendSet(node, mask);
-      } else {
-        assert(selector.isOperator);
-        data.setOperatorTypeMaskInComplexSendSet(node, mask);
-      }
-    } else if (node.asSend() != null) {
-      data.setTypeMask(node, mask);
-    } else {
-      assert(node.asForIn() != null);
-      if (selector == Selectors.iterator) {
-        data.setIteratorTypeMask(node, mask);
-      } else if (selector == Selectors.current) {
-        data.setCurrentTypeMask(node, mask);
-      } else {
-        assert(selector == Selectors.moveNext);
-        data.setMoveNextTypeMask(node, mask);
-      }
+        break;
+      case CallType.forIn:
+        if (selector == Selectors.iterator) {
+          data.setIteratorTypeMask(node, mask);
+        } else if (selector == Selectors.current) {
+          data.setCurrentTypeMask(node, mask);
+        } else {
+          assert(selector == Selectors.moveNext);
+          data.setMoveNextTypeMask(node, mask);
+        }
+        break;
     }
   }
 
@@ -456,17 +466,7 @@ class InferrerEngineImpl extends InferrerEngine {
     if (compiler.options.verbose) {
       compiler.progress.reset();
     }
-    sortResolvedAsts().forEach((ResolvedAst resolvedAst) {
-      if (compiler.shouldPrintProgress) {
-        reporter.log('Added $addedInGraph elements in inferencing graph.');
-        compiler.progress.reset();
-      }
-      // This also forces the creation of the [ElementTypeInformation] to ensure
-      // it is in the graph.
-      MemberElement member = resolvedAst.element;
-      types.withMember(member, () => analyze(resolvedAst, null));
-    });
-    reporter.log('Added $addedInGraph elements in inferencing graph.');
+    analyzeAllElements();
 
     TypeGraphDump dump = debug.PRINT_GRAPH ? new TypeGraphDump(this) : null;
 
@@ -493,16 +493,12 @@ class InferrerEngineImpl extends InferrerEngine {
           Iterable<FunctionEntity> elements, ClosureTracerVisitor tracer) {
         tracer.run();
         if (!tracer.continueAnalyzing) {
-          elements.forEach((FunctionEntity _element) {
-            MethodElement element = _element;
-            MethodElement implementation = element.implementation;
+          elements.forEach((FunctionEntity element) {
             closedWorldRefiner.registerMightBePassedToApply(element);
             if (debug.VERBOSE) {
               print("traced closure $element as ${true} (bail)");
             }
-            implementation.functionSignature
-                .forEachParameter((FormalElement _parameter) {
-              ParameterElement parameter = _parameter;
+            forEachParameter(element, (Local parameter) {
               types
                   .getInferredTypeOfParameter(parameter)
                   .giveUp(this, clearAssignments: false);
@@ -513,12 +509,8 @@ class InferrerEngineImpl extends InferrerEngine {
         }
         elements
             .where((e) => !bailedOutOn.contains(e))
-            .forEach((FunctionEntity _element) {
-          MethodElement element = _element;
-          MethodElement implementation = element.implementation;
-          implementation.functionSignature
-              .forEachParameter((FormalElement _parameter) {
-            ParameterElement parameter = _parameter;
+            .forEach((FunctionEntity element) {
+          forEachParameter(element, (Local parameter) {
             ParameterTypeInformation info =
                 types.getInferredTypeOfParameter(parameter);
             info.maybeResume();
@@ -544,13 +536,11 @@ class InferrerEngineImpl extends InferrerEngine {
             info.selector.isCall) {
           // This is a constructor call to a class with a call method. So we
           // need to trace the call method here.
-          MethodElement calledElement = info.calledElement;
-          assert(calledElement.isGenerativeConstructor);
-          ClassElement cls = calledElement.enclosingClass;
-          MethodElement callMethod = cls.lookupMember(Identifiers.call);
-          if (callMethod == null) {
-            callMethod = cls.lookupMember(Identifiers.noSuchMethod_);
-          }
+          FunctionEntity calledElement = info.calledElement;
+          assert(calledElement is ConstructorEntity &&
+              calledElement.isGenerativeConstructor);
+          ClassEntity cls = calledElement.enclosingClass;
+          FunctionEntity callMethod = lookupCallMethod(cls);
           assert(callMethod != null, failedAt(cls));
           Iterable<FunctionEntity> elements = [callMethod];
           trace(elements, new ClosureTracerVisitor(elements, info, this));
@@ -622,8 +612,8 @@ class InferrerEngineImpl extends InferrerEngine {
             }
           }
         } else if (info is StaticCallSiteTypeInformation) {
-          ClassElement cls = info.calledElement.enclosingClass;
-          MethodElement callMethod = cls.lookupMember(Identifiers.call);
+          ClassEntity cls = info.calledElement.enclosingClass;
+          FunctionEntity callMethod = lookupCallMethod(cls);
           print('${types.getInferredSignatureOfMethod(callMethod)} for ${cls}');
         } else {
           print('${info.type} for some unknown kind of closure');
@@ -641,58 +631,69 @@ class InferrerEngineImpl extends InferrerEngine {
     processLoopInformation();
   }
 
-  void analyze(ResolvedAst resolvedAst, ArgumentsTypes arguments) {
-    MemberElement element = resolvedAst.element;
+  /// Call [analyze] for all live members.
+  void analyzeAllElements() {
+    sortMembers(compiler, computeMemberSize).forEach((MemberEntity member) {
+      if (compiler.shouldPrintProgress) {
+        reporter.log('Added $addedInGraph elements in inferencing graph.');
+        compiler.progress.reset();
+      }
+      // This also forces the creation of the [ElementTypeInformation] to ensure
+      // it is in the graph.
+      T body = computeMemberBody(member);
+      types.withMember(member, () => analyze(member, body, null));
+    });
+    reporter.log('Added $addedInGraph elements in inferencing graph.');
+  }
+
+  /// Compute a 'size' of [member] used for sorting member for the type
+  /// inference work-queue. Smallest members are processed first.
+  int computeMemberSize(MemberEntity member);
+
+  /// Returns the body node for [member].
+  T computeMemberBody(MemberEntity member);
+
+  /// Calls [f] for each parameter of [method].
+  void forEachParameter(FunctionEntity method, void f(Local parameter));
+
+  /// Returns the `call` method on [cls] or the `noSuchMethod` if [cls] doesn't
+  /// implement `call`.
+  FunctionEntity lookupCallMethod(ClassEntity cls);
+
+  void analyze(MemberEntity element, T body, ArgumentsTypes arguments) {
+    assert(!(element is MemberElement && !element.isDeclaration));
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
-    dynamic visitor = compiler.options.kernelGlobalInference
-        ? new KernelTypeGraphBuilder(element, resolvedAst, compiler, this)
-        : new ElementGraphBuilder(element, resolvedAst, compiler, this);
     TypeInformation type;
     reporter.withCurrentElement(element, () {
-      // ignore: UNDEFINED_METHOD
-      type = visitor.run();
+      type = computeMemberTypeInformation(element, body);
     });
     addedInGraph++;
 
     if (element.isField) {
-      FieldElement field = element;
-      ast.Node initializer = resolvedAst.body;
-      if (field.isFinal || field.isConst) {
+      FieldEntity field = element;
+      if (!field.isAssignable) {
         // If [element] is final and has an initializer, we record
         // the inferred type.
-        if (resolvedAst.body != null) {
+        if (body != null) {
           if (type is! ListTypeInformation && type is! MapTypeInformation) {
             // For non-container types, the constant handler does
             // constant folding that could give more precise results.
-            ConstantExpression constant = field.constant;
-            if (constant != null) {
-              ConstantValue value =
-                  compiler.backend.constants.getConstantValue(constant);
-              if (value != null) {
-                if (value.isFunction) {
-                  FunctionConstantValue functionConstant = value;
-                  MethodElement function = functionConstant.element;
-                  type = types.allocateClosure(function);
-                } else {
-                  // Although we might find a better type, we have to keep
-                  // the old type around to ensure that we get a complete view
-                  // of the type graph and do not drop any flow edges.
-                  TypeMask refinedType = computeTypeMask(closedWorld, value);
-                  assert(TypeMask.assertIsNormalized(refinedType, closedWorld));
-                  type = new NarrowTypeInformation(type, refinedType);
-                  types.allocatedTypes.add(type);
-                }
+            ConstantValue value = getFieldConstant(field);
+            if (value != null) {
+              if (value.isFunction) {
+                FunctionConstantValue functionConstant = value;
+                FunctionEntity function = functionConstant.element;
+                type = types.allocateClosure(function);
               } else {
-                assert(
-                    field.isInstanceMember ||
-                        constant.isImplicit ||
-                        constant.isPotential,
-                    failedAt(
-                        field,
-                        "Constant expression without value: "
-                        "${constant.toStructuredText()}."));
+                // Although we might find a better type, we have to keep
+                // the old type around to ensure that we get a complete view
+                // of the type graph and do not drop any flow edges.
+                TypeMask refinedType = computeTypeMask(closedWorld, value);
+                assert(TypeMask.assertIsNormalized(refinedType, closedWorld));
+                type = new NarrowTypeInformation(type, refinedType);
+                types.allocatedTypes.add(type);
               }
             }
           }
@@ -700,31 +701,38 @@ class InferrerEngineImpl extends InferrerEngine {
         } else if (!element.isInstanceMember) {
           recordTypeOfField(field, types.nullType);
         }
-      } else if (initializer == null) {
+      } else if (body == null) {
         // Only update types of static fields if there is no
         // assignment. Instance fields are dealt with in the constructor.
-        if (Elements.isStaticOrTopLevelField(element)) {
+        if (element.isStatic || element.isTopLevel) {
           recordTypeOfField(field, type);
         }
       } else {
         recordTypeOfField(field, type);
       }
-      if (Elements.isStaticOrTopLevelField(field) &&
-          resolvedAst.body != null &&
+      if ((element.isStatic || element.isTopLevel) &&
+          body != null &&
           !element.isConst) {
-        dynamic argument = resolvedAst.body;
-        // TODO(13429): We could do better here by using the
-        // constant handler to figure out if it's a lazy field or not.
-        if (argument.asSend() != null ||
-            (argument.asNewExpression() != null && !argument.isConst)) {
+        if (isFieldInitializerPotentiallyNull(element, body)) {
           recordTypeOfField(field, types.nullType);
         }
       }
     } else {
-      MethodElement method = element;
+      FunctionEntity method = element;
       recordReturnType(method, type);
     }
   }
+
+  /// Visits [body] to compute the [TypeInformation] node for [member].
+  TypeInformation computeMemberTypeInformation(MemberEntity member, T body);
+
+  /// Returns `true` if the [initializer] of the non-const static or top-level
+  /// [field] is potentially `null`.
+  bool isFieldInitializerPotentiallyNull(FieldEntity field, T initializer);
+
+  /// Returns the [ConstantValue] for the initial value of [field], or
+  /// `null` if the initializer is not a constant value.
+  ConstantValue getFieldConstant(FieldEntity field);
 
   void processLoopInformation() {
     types.allocatedCalls.forEach((dynamic info) {
@@ -801,23 +809,19 @@ class InferrerEngineImpl extends InferrerEngine {
     } else if (selector != null && selector.isGetter) {
       // We are tearing a function off and thus create a closure.
       assert(callee.isFunction);
-      MethodElement method = callee;
-      MemberTypeInformation info = types.getInferredTypeOfMember(method);
+      MemberTypeInformation info = types.getInferredTypeOfMember(callee);
       if (remove) {
         info.closurizedCount--;
       } else {
         info.closurizedCount++;
-        if (Elements.isStaticOrTopLevel(method)) {
+        if (callee.isStatic || callee.isTopLevel) {
           types.allocatedClosures.add(info);
         } else {
           // We add the call-site type information here so that we
           // can benefit from further refinement of the selector.
           types.allocatedClosures.add(caller);
         }
-        FunctionElement function = method.implementation;
-        FunctionSignature signature = function.functionSignature;
-        signature.forEachParameter((FormalElement _parameter) {
-          ParameterElement parameter = _parameter;
+        forEachParameter(callee, (Local parameter) {
           ParameterTypeInformation info =
               types.getInferredTypeOfParameter(parameter);
           info.tagAsTearOffClosureParameter(this);
@@ -825,24 +829,18 @@ class InferrerEngineImpl extends InferrerEngine {
         });
       }
     } else {
-      MethodElement method = callee;
-      FunctionElement function = method.implementation;
-      FunctionSignature signature = function.functionSignature;
+      FunctionEntity method = callee;
+      ParameterStructure parameterStructure = method.parameterStructure;
       int parameterIndex = 0;
-      bool visitingRequiredParameter = true;
-      signature.forEachParameter((FormalElement _parameter) {
-        ParameterElement parameter = _parameter;
-        if (signature.hasOptionalParameters &&
-            parameter == signature.optionalParameters.first) {
-          visitingRequiredParameter = false;
+      forEachParameter(callee, (Local parameter) {
+        TypeInformation type;
+        if (parameterIndex < parameterStructure.requiredParameters) {
+          type = arguments.positional[parameterIndex];
+        } else if (parameterStructure.namedParameters.isNotEmpty) {
+          type = arguments.named[parameter.name];
+        } else if (parameterIndex < arguments.positional.length) {
+          type = arguments.positional[parameterIndex];
         }
-        TypeInformation type = visitingRequiredParameter
-            ? arguments.positional[parameterIndex]
-            : signature.optionalParametersAreNamed
-                ? arguments.named[parameter.name]
-                : parameterIndex < arguments.positional.length
-                    ? arguments.positional[parameterIndex]
-                    : null;
         if (type == null) type = getDefaultTypeOfParameter(parameter);
         TypeInformation info = types.getInferredTypeOfParameter(parameter);
         if (remove) {
@@ -976,7 +974,8 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   TypeInformation registerCalledSelector(
-      ast.Node node,
+      CallType callType,
+      T node,
       Selector selector,
       TypeMask mask,
       TypeInformation receiverType,
@@ -996,6 +995,7 @@ class InferrerEngineImpl extends InferrerEngine {
 
     CallSiteTypeInformation info = new DynamicCallSiteTypeInformation(
         types.currentMember,
+        callType,
         node,
         caller,
         selector,
@@ -1010,24 +1010,24 @@ class InferrerEngineImpl extends InferrerEngine {
     return info;
   }
 
-  TypeInformation registerAwait(ast.Node node, TypeInformation argument) {
+  TypeInformation registerAwait(T node, TypeInformation argument) {
     AwaitTypeInformation info =
-        new AwaitTypeInformation<ast.Node>(types.currentMember, node);
+        new AwaitTypeInformation<T>(types.currentMember, node);
     info.addAssignment(argument);
     types.allocatedTypes.add(info);
     return info;
   }
 
-  TypeInformation registerYield(ast.Node node, TypeInformation argument) {
+  TypeInformation registerYield(T node, TypeInformation argument) {
     YieldTypeInformation info =
-        new YieldTypeInformation<ast.Node>(types.currentMember, node);
+        new YieldTypeInformation<T>(types.currentMember, node);
     info.addAssignment(argument);
     types.allocatedTypes.add(info);
     return info;
   }
 
   TypeInformation registerCalledClosure(
-      ast.Node node,
+      T node,
       Selector selector,
       TypeMask mask,
       TypeInformation closure,
@@ -1049,46 +1049,6 @@ class InferrerEngineImpl extends InferrerEngine {
     info.addToGraph(this);
     types.allocatedCalls.add(info);
     return info;
-  }
-
-  // Sorts the resolved elements by size. We do this for this inferrer
-  // to get the same results for [ListTracer] compared to the
-  // [SimpleTypesInferrer].
-  Iterable<ResolvedAst> sortResolvedAsts() {
-    int max = 0;
-    Map<int, Setlet<ResolvedAst>> methodSizes = <int, Setlet<ResolvedAst>>{};
-    compiler.enqueuer.resolution.processedEntities.forEach((_element) {
-      MemberElement element = _element;
-      ResolvedAst resolvedAst = element.resolvedAst;
-      element = element.implementation;
-      if (element.impliesType) return;
-      assert(
-          element.isField ||
-              element.isFunction ||
-              element.isConstructor ||
-              element.isGetter ||
-              element.isSetter,
-          failedAt(element, 'Unexpected element kind: ${element.kind}'));
-      if (element.isAbstract) return;
-      // Put the other operators in buckets by length, later to be added in
-      // length order.
-      int length = 0;
-      if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-        TreeElementMapping mapping = resolvedAst.elements;
-        length = mapping.getSelectorCount();
-      }
-      max = length > max ? length : max;
-      Setlet<ResolvedAst> set =
-          methodSizes.putIfAbsent(length, () => new Setlet<ResolvedAst>());
-      set.add(resolvedAst);
-    });
-
-    List<ResolvedAst> result = <ResolvedAst>[];
-    for (int i = 0; i <= max; i++) {
-      Setlet<ResolvedAst> set = methodSizes[i];
-      if (set != null) result.addAll(set);
-    }
-    return result;
   }
 
   void clear() {
@@ -1154,105 +1114,36 @@ class InferrerEngineImpl extends InferrerEngine {
       return returnTypeOfMember(element);
     }
   }
-}
 
-class TypeSystemStrategyImpl implements TypeSystemStrategy<ast.Node> {
-  const TypeSystemStrategyImpl();
-
-  @override
-  MemberTypeInformation createMemberTypeInformation(
-      covariant MemberElement member) {
-    assert(member.isDeclaration, failedAt(member));
-    if (member.isField) {
-      FieldElement field = member;
-      return new FieldTypeInformation(field, field.type);
-    } else if (member.isGetter) {
-      GetterElement getter = member;
-      return new GetterTypeInformation(getter, getter.type);
-    } else if (member.isSetter) {
-      SetterElement setter = member;
-      return new SetterTypeInformation(setter);
-    } else if (member.isFunction) {
-      MethodElement method = member;
-      return new MethodTypeInformation(method, method.type);
-    } else {
-      ConstructorElement constructor = member;
-      if (constructor.isFactoryConstructor) {
-        return new FactoryConstructorTypeInformation(
-            constructor, constructor.type);
-      } else {
-        return new GenerativeConstructorTypeInformation(constructor);
-      }
+  // Sorts the resolved elements by size. We do this for this inferrer
+  // to get the same results for [ListTracer] compared to the
+  // [SimpleTypesInferrer].
+  static Iterable<MemberEntity> sortMembers(
+      Compiler compiler, int computeSize(MemberEntity member)) {
+    Map<int, Set<MemberEntity>> methodSizes =
+        groupMembers(compiler, computeSize);
+    int max = methodSizes.keys.fold(0, (a, b) => a > b ? a : b);
+    List<MemberEntity> result = <MemberEntity>[];
+    for (int i = 0; i <= max; i++) {
+      Set<MemberEntity> set = methodSizes[i];
+      if (set != null) result.addAll(set);
     }
+    return result;
   }
 
-  @override
-  ParameterTypeInformation createParameterTypeInformation(
-      covariant ParameterElement parameter, TypeSystem<ast.Node> types) {
-    assert(parameter.isImplementation, failedAt(parameter));
-    FunctionTypedElement function = parameter.functionDeclaration.declaration;
-    if (function.isLocal) {
-      LocalFunctionElement localFunction = function;
-      MethodElement callMethod = localFunction.callMethod;
-      return new ParameterTypeInformation.localFunction(
-          types.getInferredTypeOfMember(callMethod),
-          parameter,
-          parameter.type,
-          callMethod);
-    } else if (function.isInstanceMember) {
-      MethodElement method = function;
-      return new ParameterTypeInformation.instanceMember(
-          types.getInferredTypeOfMember(method),
-          parameter,
-          parameter.type,
-          method,
-          new ParameterAssignments());
-    } else {
-      MethodElement method = function;
-      return new ParameterTypeInformation.static(
-          types.getInferredTypeOfMember(method),
-          parameter,
-          parameter.type,
-          method,
-          // TODO(johnniwinther): Is this still valid now that initializing
-          // formals also introduce locals?
-          isInitializingFormal: parameter.isInitializingFormal);
-    }
-  }
-
-  @override
-  void forEachParameter(
-      covariant MethodElement function, void f(Local parameter)) {
-    MethodElement impl = function.implementation;
-    FunctionSignature signature = impl.functionSignature;
-    signature.forEachParameter((FormalElement _parameter) {
-      ParameterElement parameter = _parameter;
-      f(parameter);
+  static Map<int, Set<MemberEntity>> groupMembers(
+      Compiler compiler, int computeSize(MemberEntity member)) {
+    Map<int, Set<MemberEntity>> methodSizes = <int, Set<MemberEntity>>{};
+    compiler.enqueuer.resolution.processedEntities
+        .forEach((MemberEntity element) {
+      if (element.isAbstract) return;
+      // Put the other operators in buckets by size, later to be added in
+      // size order.
+      int size = computeSize(element);
+      Set<MemberEntity> set =
+          methodSizes.putIfAbsent(size, () => new Setlet<MemberEntity>());
+      set.add(element);
     });
-  }
-
-  @override
-  bool checkMapNode(ast.Node node) {
-    return node is ast.LiteralMap;
-  }
-
-  @override
-  bool checkListNode(ast.Node node) {
-    return node is ast.LiteralList || node is ast.Send;
-  }
-
-  @override
-  bool checkLoopPhiNode(ast.Node node) {
-    return node is ast.Loop || node is ast.SwitchStatement;
-  }
-
-  @override
-  bool checkPhiNode(ast.Node node) {
-    return true;
-  }
-
-  @override
-  bool checkClassEntity(covariant ClassElement cls) {
-    return cls.isDeclaration;
+    return methodSizes;
   }
 }

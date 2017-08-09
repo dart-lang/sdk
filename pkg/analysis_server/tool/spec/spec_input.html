@@ -948,6 +948,41 @@
       </field>
     </params>
   </notification>
+  <notification event="closingLabels">
+    <p>
+      Reports closing labels relevant to a given file.
+    </p>
+    <p>
+      This notification is not subscribed to by default. Clients
+      can subscribe by including the value <tt>"CLOSING_LABELS"</tt>
+      in the list of services passed in an
+      analysis.setSubscriptions request.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file the closing labels relate to.
+        </p>
+      </field>
+      <field name="labels">
+        <list>
+          <ref>ClosingLabel</ref>
+        </list>
+        <p>
+          Closing labels relevant to the file. Each item
+          represents a useful label associated with some range
+          with may be useful to display to the user within the editor
+          at the end of the range to indicate what construct is closed
+          at that location. Closing labels include constructor/method
+          calls and List arguments that span multiple lines.
+          Note that the ranges that are returned can overlap
+          each other because they may be associated with
+          constructs that can be nested.
+        </p>
+      </field>
+    </params>
+  </notification>
   <notification event="errors">
     <p>
       Reports the errors associated with a given file. The set of
@@ -2599,6 +2634,7 @@
       are related to a specific list of files.
     </p>
     <enum>
+      <value><code>CLOSING_LABELS</code></value>
       <value><code>FOLDING</code></value>
       <value><code>HIGHLIGHTS</code></value>
       <value><code>IMPLEMENTED</code></value>
@@ -2629,6 +2665,34 @@
         <p>
           The name of the current target of analysis. This field is
           omitted if analyzing is false.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="ClosingLabel">
+    <p>
+      A label that is associated with a range of code that may be useful to render at the end
+      of the range to aid code readability. For example, a constructor call that spans multiple
+      lines may result in a closing label to allow the constructor type/name to be rendered
+      alongside the closing parenthesis.
+    </p>
+    <object>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the construct being labelled.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the whole construct to be labelled.
+        </p>
+      </field>
+      <field name="label">
+        <ref>String</ref>
+        <p>
+          The label associated with this range that should be displayed to the user.
         </p>
       </field>
     </object>

@@ -27,26 +27,26 @@ const String _covariantPrivateMembers = '_covariantPrivateMembers';
 /// and MethodInvocation calls on functions (`obj.f()` where `obj.f` is an
 /// accessor and not a real method) can need a cast on the function.
 DartType getImplicitOperationCast(Expression node) {
-  return node.getProperty/*<DartType>*/(_implicitOperationCast);
+  return node.getProperty<DartType>(_implicitOperationCast);
 }
 
 /// If this expression has an implicit cast, returns the type it is coerced to,
 /// otherwise returns null.
 DartType getImplicitCast(Expression node) {
-  return node.getProperty/*<DartType>*/(_implicitCast);
+  return node.getProperty<DartType>(_implicitCast);
 }
 
 /// True if this compilation unit has any implicit casts, otherwise false.
 ///
 /// See also [getImplicitCast].
 bool hasImplicitCasts(CompilationUnit node) {
-  return node.getProperty/*<bool>*/(_hasImplicitCasts) ?? false;
+  return node.getProperty<bool>(_hasImplicitCasts) ?? false;
 }
 
 /// True if this node is a dynamic operation that requires dispatch and/or
 /// checking at runtime.
 bool isDynamicInvoke(Expression node) {
-  return node.getProperty/*<bool>*/(_isDynamicInvoke) ?? false;
+  return node.getProperty<bool>(_isDynamicInvoke) ?? false;
 }
 
 /// Sets [hasImplicitCasts] property for this compilation unit.

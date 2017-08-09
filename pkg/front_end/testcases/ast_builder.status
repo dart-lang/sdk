@@ -26,6 +26,7 @@ functions: Crash
 implicit_scope_test: Crash
 implicit_this: Crash
 inference/abstract_class_instantiation: Crash
+inference/assert_initializer: Crash
 inference/assign_local: Crash
 inference/block_bodied_lambdas_basic: Crash
 inference/block_bodied_lambdas_basic_void: Crash
@@ -39,6 +40,7 @@ inference/block_bodied_lambdas_nested_lambdas: Crash
 inference/block_bodied_lambdas_no_return: Crash
 inference/block_bodied_lambdas_returns: Crash
 inference/block_bodied_lambdas_void_context: Crash
+inference/bug30251: Crash
 inference/call_corner_cases: Crash
 inference/conditional_lub: Crash
 inference/conditional_upwards_inference: Crash
@@ -71,7 +73,7 @@ inference/downwards_inference_annotations_parameter: Fail
 inference/downwards_inference_annotations_parameter_local: Crash
 inference/downwards_inference_annotations_type_variable: Fail
 inference/downwards_inference_annotations_type_variable_local: Crash
-inference/downwards_inference_annotations_typedef: Fail
+inference/downwards_inference_annotations_typedef: Crash
 inference/downwards_inference_assignment_statements: Crash
 inference/downwards_inference_async_await: Fail
 inference/downwards_inference_for_each: Fail
@@ -90,6 +92,10 @@ inference/downwards_inference_on_list_literals_infer_downwards: Crash
 inference/downwards_inference_on_list_literals_infer_if_value_types_match_context: Crash
 inference/downwards_inference_on_map_literals: Crash
 inference/downwards_inference_yield_yield_star: Fail
+inference/field_initializer_context_explicit: Crash
+inference/field_initializer_context_implicit: Crash
+inference/field_initializer_context_this: Crash
+inference/field_initializer_parameter: Crash
 inference/field_refers_to_static_getter: Crash
 inference/field_refers_to_top_level_getter: Crash
 inference/for_in_loop_promotion: Crash
@@ -290,6 +296,7 @@ inference/refine_binary_expression_type_type_parameter_t_t: Crash
 inference/static_method_tear_off: Crash
 inference/string_literal: Crash
 inference/subexpressions_of_explicitly_typed_fields: Crash
+inference/super_initializer: Crash
 inference/super_method_invocation: Crash
 inference/super_property_get: Crash
 inference/super_property_get_invoke_function_typed: Crash
@@ -412,16 +419,15 @@ regress/issue_29942: Crash
 regress/issue_29943: Crash
 regress/issue_29944: Crash
 regress/issue_29945: Crash
-regress/issue_29976: Crash
 regress/issue_29977: Crash
 regress/issue_29978: Crash
 regress/issue_29979: Crash
 regress/issue_29980: Crash
 regress/issue_29981: Crash
-regress/issue_29982: Crash
 regress/issue_29984: Crash
 regress/issue_29985: Crash
 regress/issue_29987: Crash
+reorder_super: Crash
 static_setter: Crash
 store_load: Crash
 stringliteral: Crash

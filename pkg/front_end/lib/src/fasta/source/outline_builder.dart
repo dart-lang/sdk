@@ -200,6 +200,10 @@ class OutlineBuilder extends UnhandledListener {
   void handleIdentifier(Token token, IdentifierContext context) {
     super.handleIdentifier(token, context);
     push(token.charOffset);
+    if (context == IdentifierContext.enumValueDeclaration) {
+      String documentationComment = _getDocumentationComment(token);
+      push(documentationComment ?? NullValue.DocumentationComment);
+    }
   }
 
   @override
@@ -626,12 +630,13 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void endEnum(Token enumKeyword, Token endBrace, int count) {
-    List constantNamesAndOffsets = popList(count * 2);
+    String documentationComment = _getDocumentationComment(enumKeyword);
+    List constantNamesAndOffsets = popList(count * 3);
     int charOffset = pop();
     String name = pop();
     List<MetadataBuilder> metadata = pop();
-    library.addEnum(metadata, name, constantNamesAndOffsets, charOffset,
-        endBrace.charOffset);
+    library.addEnum(documentationComment, metadata, name,
+        constantNamesAndOffsets, charOffset, endBrace.charOffset);
     checkEmpty(enumKeyword.charOffset);
   }
 
@@ -923,7 +928,7 @@ class OutlineBuilder extends UnhandledListener {
 
   /// Return the documentation comment for the entity that starts at the
   /// given [token], or `null` if there is no preceding documentation comment.
-  String _getDocumentationComment(Token token) {
+  static String _getDocumentationComment(Token token) {
     Token docToken = token.precedingComments;
     if (docToken == null) return null;
     bool inSlash = false;

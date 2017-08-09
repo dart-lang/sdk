@@ -103,7 +103,7 @@ Future readLogDogResults(
         int buildNumber = buildNumbers[buildNumberIndex + i];
         for (BuildUri buildUri
             in subgroup.createShardUris(shardName, buildNumber)) {
-          BuildResult result = await readLogDogResult(buildUri);
+          BuildResult result = await readBuildResultFromLogDog(buildUri);
           for (TestFailure timeout in result.timeouts) {
             timeouts.putIfAbsent(timeout.id.testName, () => <Timeout>[]).add(
                 new Timeout(subgroup, result.buildNumber, buildUri, timeout));

@@ -20,30 +20,33 @@ class B extends A {
 makeA() native;
 makeB() native;
 
-void setup() native """
-function inherits(child, parent) {
-  if (child.prototype.__proto__) {
-    child.prototype.__proto__ = parent.prototype;
-  } else {
-    function tmp() {};
-    tmp.prototype = parent.prototype;
-    child.prototype = new tmp();
-    child.prototype.constructor = child;
+void setup() {
+  JS('', r"""
+(function(){
+  function inherits(child, parent) {
+    if (child.prototype.__proto__) {
+      child.prototype.__proto__ = parent.prototype;
+    } else {
+      function tmp() {};
+      tmp.prototype = parent.prototype;
+      child.prototype = new tmp();
+      child.prototype.constructor = child;
+    }
   }
+  function A() {}
+  A.prototype.foo = function () { return arguments.length; };
+
+  function B() {}
+  B.prototype.foo = function () { return arguments.length; };
+  inherits(B, A);
+
+  makeA = function(){return new A()};
+  makeB = function(){return new B()};
+
+  self.nativeConstructor(A);
+  self.nativeConstructor(B);
+})()""");
 }
-function A() {}
-A.prototype.foo = function () { return arguments.length; };
-
-function B() {}
-B.prototype.foo = function () { return arguments.length; };
-inherits(B, A);
-
-makeA = function(){return new A;};
-makeB = function(){return new B;};
-
-self.nativeConstructor(A);
-self.nativeConstructor(B);
-""";
 
 testDynamicContext() {
   var a = confuse(makeA());

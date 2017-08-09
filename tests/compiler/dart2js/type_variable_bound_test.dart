@@ -164,20 +164,17 @@ void main() {
 }
 
 Future test6() {
-  return test(
-      r"""
+  return test(r"""
 class A<T extends num> {}
 
 void main() {
   new A<String>();
 }
-""",
-      warnings: MessageKind.INVALID_TYPE_VARIABLE_BOUND);
+""", warnings: MessageKind.INVALID_TYPE_VARIABLE_BOUND);
 }
 
 Future test7() {
-  return test(
-      r"""
+  return test(r"""
 class A<T extends num> {}
 class B<T> extends A<T> {} // Warning produced here.
 
@@ -185,8 +182,7 @@ void main() {
   new B(); // No warning produced here.
   new B<String>(); // No warning produced here.
 }
-""",
-      warnings: MessageKind.INVALID_TYPE_VARIABLE_BOUND);
+""", warnings: MessageKind.INVALID_TYPE_VARIABLE_BOUND);
 }
 
 Future test8() {
@@ -217,8 +213,7 @@ void main() {
 }
 
 Future test9() {
-  return test(
-      r"""
+  return test(r"""
 class B<T extends B<T>> {}
 class C<T extends B<T>> extends B<T> {}
 class D<T extends C<T>> extends C<T> {}
@@ -229,11 +224,10 @@ void main() {
   new D<B<F>>(); // Warning: B<F> is not a subtype of C<T>.
   new E<D<F>>(); // Warning: E<F> is not a subtype of E<T>.
 }
-""",
-      warnings: [
-        MessageKind.INVALID_TYPE_VARIABLE_BOUND,
-        MessageKind.INVALID_TYPE_VARIABLE_BOUND
-      ]);
+""", warnings: [
+    MessageKind.INVALID_TYPE_VARIABLE_BOUND,
+    MessageKind.INVALID_TYPE_VARIABLE_BOUND
+  ]);
 }
 
 Future test10() {
@@ -254,8 +248,7 @@ main() {
 // TODO(het): The error is reported twice because both the Dart and JS constant
 // compilers are run on the const constructor, investigate why.
 Future test11() {
-  return test(
-      r"""
+  return test(r"""
 class A {
   const A();
 }
@@ -269,8 +262,7 @@ class Test<T extends A> {
 main() {
   print(const Test<B>());
 }
-""",
-      errors: [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+""", errors: [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
 }
 
 main() {

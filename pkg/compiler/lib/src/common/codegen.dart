@@ -5,7 +5,6 @@
 library dart2js.common.codegen;
 
 import '../common_elements.dart';
-import '../elements/elements.dart' show LocalFunctionElement;
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
@@ -147,8 +146,8 @@ class CodegenRegistry {
     worldImpact.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
   }
 
-  void registerInstantiatedClosure(LocalFunctionElement element) {
-    worldImpact.registerStaticUse(new StaticUse.closure(element));
+  void registerInstantiatedClosure(FunctionEntity element) {
+    worldImpact.registerStaticUse(new StaticUse.callMethod(element));
   }
 
   void registerConstSymbol(String name) {

@@ -1116,10 +1116,12 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
 
   {
     ASSERT(isolate == Dart::vm_isolate());
-    WritableVMIsolateScope scope(Thread::Current());
+    Thread* thread = Thread::Current();
+    WritableVMIsolateScope scope(thread);
+    HeapIterationScope iteration(thread);
     FinalizeVMIsolateVisitor premarker;
     ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
-    isolate->heap()->IterateOldObjectsNoImagePages(&premarker);
+    iteration.IterateOldObjectsNoImagePages(&premarker);
     // Make the VM isolate read-only again after setting all objects as marked.
     // Note objects in image pages are already pre-marked.
   }
@@ -14126,7 +14128,7 @@ RawCode* Code::LookupCodeInIsolate(Isolate* isolate, uword pc) {
   if (isolate->heap() == NULL) {
     return Code::null();
   }
-  NoSafepointScope no_safepoint;
+  HeapIterationScope heap_iteration_scope(Thread::Current());
   SlowFindRawCodeVisitor visitor(pc);
   RawObject* needle = isolate->heap()->FindOldObject(&visitor);
   if (needle != Code::null()) {
@@ -18155,15 +18157,18 @@ RawInteger* Integer::New(int64_t value, Heap::Space space) {
 }
 
 RawInteger* Integer::NewFromUint64(uint64_t value, Heap::Space space) {
-  if (value > static_cast<uint64_t>(Mint::kMaxValue)) {
-    if (FLAG_limit_ints_to_64_bits) {
-      // Out of range.
-      return Integer::null();
-    } else {
-      return Bigint::NewFromUint64(value, space);
-    }
+  if (!FLAG_limit_ints_to_64_bits &&
+      (value > static_cast<uint64_t>(Mint::kMaxValue))) {
+    return Bigint::NewFromUint64(value, space);
+  }
+  return Integer::New(static_cast<int64_t>(value), space);
+}
+
+bool Integer::IsValueInRange(uint64_t value) {
+  if (FLAG_limit_ints_to_64_bits) {
+    return (value <= static_cast<uint64_t>(Mint::kMaxValue));
   } else {
-    return Integer::New(value, space);
+    return true;
   }
 }
 
@@ -18236,6 +18241,16 @@ RawInteger* Integer::AsValidInteger() const {
     return Mint::New(value);
   }
   return raw();
+}
+
+const char* Integer::ToHexCString(Zone* zone) const {
+  ASSERT(IsSmi() || IsMint());  // Bigint has its own implementation.
+  int64_t value = AsInt64Value();
+  if (value < 0) {
+    return OS::SCreate(zone, "-0x%" PX64, static_cast<uint64_t>(-value));
+  } else {
+    return OS::SCreate(zone, "0x%" PX64, static_cast<uint64_t>(value));
+  }
 }
 
 RawInteger* Integer::ArithmeticOp(Token::Kind operation,

@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -133,6 +134,10 @@ class _ElementNamer {
 }
 
 class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
+  @override
+  AnalysisOptionsImpl createAnalysisOptions() =>
+      super.createAnalysisOptions()..enableAssertInitializer = true;
+
   Future<String> runTest(String path, String code) {
     return fasta.CompilerContext.runWithDefaultOptions((_) async {
       Uri uri = provider.pathContext.toUri(path);

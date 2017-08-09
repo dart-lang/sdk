@@ -77,6 +77,7 @@ enum StaticUseKind {
   FIELD_GET,
   FIELD_SET,
   CLOSURE,
+  CALL_METHOD,
   CONSTRUCTOR_INVOKE,
   CONST_CONSTRUCTOR_INVOKE,
   REDIRECTION,
@@ -375,6 +376,11 @@ class StaticUse {
   /// Read of a local function [element].
   factory StaticUse.closure(Local element) {
     return new StaticUse.internal(element, StaticUseKind.CLOSURE);
+  }
+
+  /// Read of a call [method] on a closureClass.
+  factory StaticUse.callMethod(FunctionEntity method) {
+    return new StaticUse.internal(method, StaticUseKind.CALL_METHOD);
   }
 
   /// Use of [element] through reflection.

@@ -11,7 +11,7 @@ class C1 extends core::Object {
 class C2 extends core::Object {
   field dynamic x = null;
   constructor •(dynamic y) → void
-    : final Vector #context = MakeVector(2), dynamic #t2 = #context[1] = y, super core::Object::•() {
+    : super core::Object::•() {
     final Vector #context = MakeVector(2);
     #context[1] = y;
     this.x = MakeClosure<() → dynamic>(self::closure#C2#function#function, #context);

@@ -312,6 +312,7 @@ class BinaryPrinter extends Visitor {
     writeUriReference(node.fileUri ?? '');
     writeAnnotationList(node.annotations);
     writeLibraryDependencies(node);
+    writeLibraryParts(node);
     writeNodeList(node.typedefs);
     writeNodeList(node.classes);
     writeNodeList(node.fields);
@@ -341,6 +342,19 @@ class BinaryPrinter extends Visitor {
   void visitCombinator(Combinator node) {
     writeByte(node.isShow ? 1 : 0);
     writeStringReferenceList(node.names);
+  }
+
+  void writeLibraryParts(Library library) {
+    writeUInt30(library.parts.length);
+    for (int i = 0; i < library.parts.length; ++i) {
+      var partNode = library.parts[i];
+      writeLibraryPart(partNode);
+    }
+  }
+
+  void writeLibraryPart(LibraryPart node) {
+    writeNodeList(node.annotations);
+    writeStringReference(node.fileUri ?? '');
   }
 
   void visitTypedef(Typedef node) {
@@ -933,12 +947,14 @@ class BinaryPrinter extends Visitor {
 
   visitWhileStatement(WhileStatement node) {
     writeByte(Tag.WhileStatement);
+    writeOffset(node.fileOffset);
     writeNode(node.condition);
     writeNode(node.body);
   }
 
   visitDoStatement(DoStatement node) {
     writeByte(Tag.DoStatement);
+    writeOffset(node.fileOffset);
     writeNode(node.body);
     writeNode(node.condition);
   }
@@ -946,6 +962,7 @@ class BinaryPrinter extends Visitor {
   visitForStatement(ForStatement node) {
     _variableIndexer.pushScope();
     writeByte(Tag.ForStatement);
+    writeOffset(node.fileOffset);
     writeVariableDeclarationList(node.variables);
     writeOptionalNode(node.condition);
     writeNodeList(node.updates);
@@ -957,6 +974,7 @@ class BinaryPrinter extends Visitor {
     _variableIndexer.pushScope();
     writeByte(node.isAsync ? Tag.AsyncForInStatement : Tag.ForInStatement);
     writeOffset(node.fileOffset);
+    writeOffset(node.bodyOffset);
     writeVariableDeclaration(node.variable);
     writeNode(node.iterable);
     writeNode(node.body);
@@ -1116,9 +1134,11 @@ class BinaryPrinter extends Visitor {
   visitFunctionType(FunctionType node) {
     if (node.requiredParameterCount == node.positionalParameters.length &&
         node.typeParameters.isEmpty &&
-        node.namedParameters.isEmpty) {
+        node.namedParameters.isEmpty &&
+        node.typedefReference == null) {
       writeByte(Tag.SimpleFunctionType);
       writeNodeList(node.positionalParameters);
+      writeStringReferenceList(node.positionalParameterNames);
       writeNode(node.returnType);
     } else {
       writeByte(Tag.FunctionType);
@@ -1129,6 +1149,8 @@ class BinaryPrinter extends Visitor {
           node.positionalParameters.length + node.namedParameters.length);
       writeNodeList(node.positionalParameters);
       writeNodeList(node.namedParameters);
+      writeStringReferenceList(node.positionalParameterNames);
+      writeReference(node.typedefReference);
       writeNode(node.returnType);
       _typeParameterIndexer.exit(node.typeParameters);
     }
@@ -1142,10 +1164,6 @@ class BinaryPrinter extends Visitor {
   visitTypeParameterType(TypeParameterType node) {
     writeByte(Tag.TypeParameterType);
     writeUInt30(_typeParameterIndexer[node.parameter]);
-    List<TypeParameter> typeParameters =
-        _typeParameterIndexer.indexList[node.parameter];
-    writeUInt30(typeParameters[0].binaryOffset);
-    writeUInt30(typeParameters.indexOf(node.parameter));
     writeOptionalNode(node.promotedBound);
   }
 
@@ -1261,14 +1279,11 @@ class SwitchCaseIndexer {
 
 class TypeParameterIndexer {
   final Map<TypeParameter, int> index = <TypeParameter, int>{};
-  final Map<TypeParameter, List<TypeParameter>> indexList =
-      <TypeParameter, List<TypeParameter>>{};
   int stackHeight = 0;
 
   void enter(List<TypeParameter> typeParameters) {
     for (var parameter in typeParameters) {
       index[parameter] = stackHeight;
-      indexList[parameter] = typeParameters;
       ++stackHeight;
     }
   }
@@ -1362,6 +1377,12 @@ class StringIndexer extends RecursiveVisitor<Null> {
     node.visitChildren(this);
   }
 
+  @override
+  visitLibraryPart(LibraryPart node) {
+    put(node.fileUri);
+    node.visitChildren(this);
+  }
+
   visitCombinator(Combinator node) {
     node.names.forEach(put);
   }
@@ -1387,6 +1408,12 @@ class StringIndexer extends RecursiveVisitor<Null> {
   visitField(Field node) {
     putOptional(node.documentationComment);
     super.visitField(node);
+  }
+
+  @override
+  visitFunctionType(FunctionType node) {
+    node.positionalParameterNames.forEach(put);
+    super.visitFunctionType(node);
   }
 
   visitNamedExpression(NamedExpression node) {

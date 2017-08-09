@@ -127,6 +127,41 @@ analyzer:
     expect(excludes, unorderedEquals(['foo/bar.dart', 'test/**']));
   }
 
+  test_configure_plugins_list() {
+    configureContext('''
+analyzer:
+  plugins:
+    - angular2
+    - intl
+''');
+
+    List<String> names = analysisOptions.enabledPluginNames;
+    expect(names, ['angular2', 'intl']);
+  }
+
+  test_configure_plugins_map() {
+    configureContext('''
+analyzer:
+  plugins:
+    angular2:
+      enabled: true
+''');
+
+    List<String> names = analysisOptions.enabledPluginNames;
+    expect(names, ['angular2']);
+  }
+
+  test_configure_plugins_string() {
+    configureContext('''
+analyzer:
+  plugins:
+    angular2
+''');
+
+    List<String> names = analysisOptions.enabledPluginNames;
+    expect(names, ['angular2']);
+  }
+
   test_configure_strong_mode() {
     configureContext('''
 analyzer:
