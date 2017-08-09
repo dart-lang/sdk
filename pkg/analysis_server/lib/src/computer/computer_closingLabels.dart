@@ -49,7 +49,7 @@ class _DartUnitClosingLabelsComputerVisitor
 
   @override
   Object visitMethodInvocation(MethodInvocation node) {
-    if (node.argumentList != null && _spansManyLines(node.argumentList)) {
+    if (node.argumentList != null && _spansManyLines(node)) {
       _addLabel(node, node.methodName.name);
     }
 
