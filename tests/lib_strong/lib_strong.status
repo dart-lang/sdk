@@ -334,6 +334,21 @@ typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 29922
 typed_data/typed_data_list_test: RuntimeError # Issue 29922
 html/interactive_test: Skip # requests interactive permissions (camera, geolocation)
 
+async/stream_controller_async_test: RuntimeError # Issue 29922, strong mode cast failure
+async/stream_join_test: RuntimeError # Issue 29922, strong mode cast failure
+async/stream_subscription_as_future_test: RuntimeError # Issue 29922, strong mode cast failure
+async/stream_transformer_from_handlers_test: RuntimeError # Issue 29922, strong mode cast failure
+async/zone_bind_callback_test: RuntimeError # Issue 29922, strong mode cast failure
+async/zone_register_callback_test: RuntimeError # Issue 29922, strong mode cast failure
+convert/encoding_test: RuntimeError # Issue 29922, strong mode cast failure
+convert/streamed_conversion_json_utf8_decode_test: RuntimeError # Issue 29922, strong mode cast failure
+convert/streamed_conversion_json_utf8_encode_test: RuntimeError # Issue 29922, strong mode cast failure
+convert/streamed_conversion_utf8_decode_test: RuntimeError # Issue 29922, strong mode cast failure
+convert/streamed_conversion_utf8_encode_test: RuntimeError # Issue 29922, strong mode cast failure
+html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure
+html/indexeddb_2_test: RuntimeError, Timeout # Issue 29922, strong mode cast failure
+html/xhr_test/xhr: RuntimeError # Issue 29922, strong mode cast failure
+
 [ $compiler == dartdevc && $runtime == chrome ]
 html/css_test: RuntimeError # Issue 29922
 html/element_animate_test/timing_dict: RuntimeError # Issue 29922

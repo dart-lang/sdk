@@ -27,7 +27,6 @@ int_parse_radix_test/01: RuntimeError # Issue 29921
 int_parse_radix_test/02: RuntimeError # Issue 29921
 integer_to_radix_string_test: RuntimeError # Issue 29921
 integer_to_string_test/01: RuntimeError # Issue 29921
-iterable_generate_test: RuntimeError # Issue 29921
 iterable_return_type_test/02: RuntimeError # Issue 29921
 regress_r21715_test: RuntimeError # Issue 29921
 string_operations_with_null_test: RuntimeError # Issue 29921

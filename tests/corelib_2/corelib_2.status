@@ -143,7 +143,8 @@ symbol_reserved_word_test/09: RuntimeError # Issue 29921
 symbol_reserved_word_test/12: RuntimeError # Issue 29921
 int_parse_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
 typed_data_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
-int_modulo_arith_test/none: RuntimeError  # Issue 29921
+int_modulo_arith_test/none: RuntimeError # Issue 29921
+list_unmodifiable_test: RuntimeError # Issue 29921, strong mode cast failure
 
 [ ($compiler == dart2js || $compiler == dartdevc) && $runtime != none ]
 big_integer_arith_vm_test: RuntimeError # Issues 10245, 30170
@@ -178,6 +179,9 @@ list_removeat_test: RuntimeError # Issue 29921
 list_replace_range_test: RuntimeError # Issue 29921
 list_set_all_test: RuntimeError # Issue 29921
 json_map_test: RuntimeError # Issue 29921
+core_runtime_types_test: RuntimeError # Issue 29921 - runtime cast failure
+string_fromcharcodes_test: RuntimeError # Issue 29921 - runtime cast failure
+uri_query_test: RuntimeError # Issue 29921 - runtime cast failure
 
 [ $runtime == flutter ]
 apply3_test: CompileTimeError # mirrors not supported
