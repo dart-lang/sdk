@@ -1033,3 +1033,6 @@ iterable_fold_test/01: CompileTimeError
 
 [ $compiler == dart2analyzer && $checked && !$strong ]
 iterable_fold_test/01: Pass
+
+[ $compiler == dart2analyzer && $strong  && !$checked ]
+iterable_fold_test/01: CompileTimeError
