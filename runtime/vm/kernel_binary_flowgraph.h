@@ -57,6 +57,11 @@ class StreamingDartTypeTranslator {
           parameters_count_(parameters_count),
           outer_(translator->type_parameter_scope_),
           translator_(translator) {
+      outer_parameter_count_ = 0;
+      if (outer_ != NULL) {
+        outer_parameter_count_ =
+            outer_->outer_parameter_count_ + outer_->parameters_count_;
+      }
       translator_->type_parameter_scope_ = this;
     }
     ~TypeParameterScope() { translator_->type_parameter_scope_ = outer_; }
@@ -64,10 +69,12 @@ class StreamingDartTypeTranslator {
     TypeParameterScope* outer() const { return outer_; }
     intptr_t parameters_offset() const { return parameters_offset_; }
     intptr_t parameters_count() const { return parameters_count_; }
+    intptr_t outer_parameter_count() const { return outer_parameter_count_; }
 
    private:
     intptr_t parameters_offset_;
     intptr_t parameters_count_;
+    intptr_t outer_parameter_count_;
     TypeParameterScope* outer_;
     StreamingDartTypeTranslator* translator_;
   };
@@ -346,20 +353,8 @@ class StreamingFlowGraphBuilder {
  private:
   void DiscoverEnclosingElements(Zone* zone,
                                  const Function& function,
-                                 Function* outermost_function,
-                                 intptr_t* outermost_kernel_offset,
-                                 intptr_t* parent_class_offset);
-  intptr_t GetParentOffset(intptr_t offset);
-  void GetTypeParameterInfoForClass(intptr_t class_offset,
-                                    intptr_t* type_paremeter_counts,
-                                    intptr_t* type_paremeter_offset);
+                                 Function* outermost_function);
 
-  void GetTypeParameterInfoForPossibleProcedure(
-      intptr_t outermost_kernel_offset,
-      bool* member_is_procedure,
-      bool* is_factory_procedure,
-      intptr_t* member_type_parameters,
-      intptr_t* member_type_parameters_offset_start);
   /**
    * Will return kernel offset for parent class if reading a constructor.
    * Will otherwise return -1.

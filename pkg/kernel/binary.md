@@ -1011,12 +1011,6 @@ type TypeParameterType extends DartType {
   // the class type parameters in a constructor refer to those declared on the
   // class.
   UInt index;
-
-  // Byte offset in the binary for the first type declaration of the
-  // Class or FunctionNode.
-  UInt typeParameterPosition;
-  // The entry number in the list (starting at 0).
-  UInt typeParameterIndex;
   Option<DartType> bound;
 }
 

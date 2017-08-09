@@ -67,37 +67,12 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
   // e.g. for type translation.
   const dart::Class& klass =
       dart::Class::Handle(zone_, parsed_function_->function().Owner());
+
   Function& outermost_function = Function::Handle(Z);
-  intptr_t outermost_kernel_offset = -1;
-  intptr_t parent_class_offset = -1;
-  builder_->DiscoverEnclosingElements(Z, function, &outermost_function,
-                                      &outermost_kernel_offset,
-                                      &parent_class_offset);
-  // Use [klass]/[kernel_class] as active class.  Type parameters will get
-  // resolved via [kernel_class] unless we are nested inside a static factory
-  // in which case we will use [member].
-  intptr_t class_type_parameters = 0;
-  intptr_t class_type_parameters_offset_start = -1;
-  if (parent_class_offset > 0) {
-    builder_->GetTypeParameterInfoForClass(parent_class_offset,
-                                           &class_type_parameters,
-                                           &class_type_parameters_offset_start);
-  }
-  ActiveClassScope active_class_scope(&active_class_, class_type_parameters,
-                                      class_type_parameters_offset_start,
-                                      &klass);
+  builder_->DiscoverEnclosingElements(Z, function, &outermost_function);
 
-  bool member_is_procedure = false;
-  bool is_factory_procedure = false;
-  intptr_t member_type_parameters = 0;
-  intptr_t member_type_parameters_offset_start = -1;
-  builder_->GetTypeParameterInfoForPossibleProcedure(
-      outermost_kernel_offset, &member_is_procedure, &is_factory_procedure,
-      &member_type_parameters, &member_type_parameters_offset_start);
-
-  ActiveMemberScope active_member(&active_class_, member_is_procedure,
-                                  is_factory_procedure, member_type_parameters,
-                                  member_type_parameters_offset_start);
+  ActiveClassScope active_class_scope(&active_class_, &klass);
+  ActiveMemberScope active_member(&active_class_, &outermost_function);
 
   LocalScope* enclosing_scope = NULL;
   if (function.IsLocalFunction()) {
@@ -124,7 +99,6 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
   parsed_function->SetNodeSequence(
       new SequenceNode(TokenPosition::kNoSource, scope_));
 
-  intptr_t parent_offset = -1;
   builder_->SetOffset(kernel_offset_);
 
   FunctionNodeHelper function_node_helper(builder_);
@@ -138,7 +112,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
     case RawFunction::kSetterFunction:
     case RawFunction::kConstructor: {
       const Tag tag = builder_->PeekTag();
-      parent_offset = builder_->ReadUntilFunctionNode();
+      intptr_t parent_offset = builder_->ReadUntilFunctionNode();
       function_node_helper.ReadUntilExcluding(
           FunctionNodeHelper::kPositionalParameters);
       current_function_async_marker_ = function_node_helper.async_marker_;
@@ -638,7 +612,7 @@ void StreamingScopeBuilder::VisitExpression() {
     case kFunctionExpression: {
       intptr_t offset =
           builder_->ReaderOffset() - 1;  // -1 to include tag byte.
-      HandleLocalFunction(offset);
+      HandleLocalFunction(offset);       // read function node.
       return;
     }
     case kLet: {
@@ -1127,8 +1101,6 @@ void StreamingScopeBuilder::VisitTypeParameterType() {
   }
 
   builder_->ReadUInt();              // read index for parameter.
-  builder_->ReadUInt();              // read list binary offset.
-  builder_->ReadUInt();              // read index in list.
   builder_->SkipOptionalDartType();  // read bound bound.
 }
 
@@ -1608,23 +1580,21 @@ void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
 }
 
 void StreamingDartTypeTranslator::BuildTypeParameterType() {
-  builder_->ReadUInt();                           // read parameter index.
-  intptr_t binary_offset = builder_->ReadUInt();  // read lists binary offset.
-  intptr_t list_index = builder_->ReadUInt();     // read index in list.
-  builder_->SkipOptionalDartType();               // read bound.
+  intptr_t parameter_index = builder_->ReadUInt();  // read parameter index.
+  builder_->SkipOptionalDartType();                 // read bound.
 
-  ASSERT(binary_offset > 0);
-
-  for (TypeParameterScope* scope = type_parameter_scope_; scope != NULL;
-       scope = scope->outer()) {
-    if (scope->parameters_offset() == binary_offset) {
-      result_ ^= dart::Type::DynamicType();
-      return;
-    }
+  const TypeArguments& class_types =
+      dart::TypeArguments::Handle(Z, active_class_->klass->type_parameters());
+  if (parameter_index < class_types.Length()) {
+    // The index of the type parameter in [parameters] is
+    // the same index into the `klass->type_parameters()` array.
+    result_ ^= class_types.TypeAt(parameter_index);
+    return;
   }
+  parameter_index -= class_types.Length();
 
-  if (active_class_->member_is_procedure) {
-    if (active_class_->member_type_parameters > 0) {
+  if (active_class_->HasMember()) {
+    if (active_class_->MemberIsFactoryProcedure()) {
       //
       // WARNING: This is a little hackish:
       //
@@ -1643,31 +1613,40 @@ void StreamingDartTypeTranslator::BuildTypeParameterType() {
       //     static A.x<T'>() { return new B<T'>(); }
       //   }
       //
-      if (active_class_->member_type_parameters_offset_start == binary_offset) {
-        if (active_class_->member_is_factory_procedure) {
-          // The index of the type parameter in [parameters] is
-          // the same index into the `klass->type_parameters()` array.
-          result_ ^= dart::TypeArguments::Handle(
-                         Z, active_class_->klass->type_parameters())
-                         .TypeAt(list_index);
-        } else {
-          result_ ^= dart::Type::DynamicType();
-        }
+      if (class_types.Length() > parameter_index) {
+        result_ ^= class_types.TypeAt(parameter_index);
         return;
       }
+      parameter_index -= class_types.Length();
+    }
+
+    intptr_t procedure_type_parameter_count =
+        active_class_->MemberIsProcedure()
+            ? active_class_->MemberTypeParameterCount(Z)
+            : 0;
+    if (procedure_type_parameter_count > 0) {
+      if (procedure_type_parameter_count > parameter_index) {
+        // Here we technically could load the correct one via something like
+        //     result_ ^= dart::TypeArguments::Handle(
+        //                    Z, active_class_->member->type_parameters())
+        //                    .TypeAt(parameter_index);
+        // but that isn't currently supported elsewhere
+        // (FlowGraphBuilder::LoadFunctionTypeArguments()).
+        result_ ^= dart::Type::DynamicType();
+        return;
+      }
+      parameter_index -= procedure_type_parameter_count;
     }
   }
 
-  if (active_class_->class_type_parameters_offset_start == binary_offset) {
-    // The index of the type parameter in [parameters] is
-    // the same index into the `klass->type_parameters()` array.
-    result_ ^=
-        dart::TypeArguments::Handle(Z, active_class_->klass->type_parameters())
-            .TypeAt(list_index);
+  if (type_parameter_scope_ != NULL && parameter_index >= 0 &&
+      parameter_index < type_parameter_scope_->outer_parameter_count() +
+                            type_parameter_scope_->parameters_count()) {
+    result_ ^= dart::Type::DynamicType();
     return;
   }
 
-  UNREACHABLE();
+  H.ReportError("Unexpected input. Please report this at dartbug.com.");
 }
 
 const TypeArguments& StreamingDartTypeTranslator::BuildTypeArguments(
@@ -2506,91 +2485,12 @@ void StreamingConstantEvaluator::CacheConstantValue(intptr_t kernel_offset,
 void StreamingFlowGraphBuilder::DiscoverEnclosingElements(
     Zone* zone,
     const Function& function,
-    Function* outermost_function,
-    intptr_t* outermost_kernel_offset,
-    intptr_t* parent_class_offset) {
+    Function* outermost_function) {
   // Find out if there is an enclosing kernel class (which will be used to
   // resolve type parameters).
   *outermost_function = function.raw();
   while (outermost_function->parent_function() != Object::null()) {
     *outermost_function = outermost_function->parent_function();
-  }
-
-  if (outermost_function->kernel_offset() > 0) {
-    *outermost_kernel_offset = outermost_function->kernel_offset();
-    *parent_class_offset = GetParentOffset(*outermost_kernel_offset);
-  }
-}
-
-intptr_t StreamingFlowGraphBuilder::GetParentOffset(intptr_t offset) {
-  AlternativeReadingScope alt(reader_, offset);
-
-  Tag tag = PeekTag();
-  switch (tag) {
-    case kConstructor: {
-      ConstructorHelper constructor_helper(this);
-      constructor_helper.ReadUntilIncluding(
-          ConstructorHelper::kParentClassBinaryOffset);
-      return constructor_helper.parent_class_binary_offset_;
-    }
-    case kProcedure: {
-      ProcedureHelper procedure_helper(this);
-      procedure_helper.ReadUntilIncluding(
-          ProcedureHelper::kParentClassBinaryOffset);
-      return procedure_helper.parent_class_binary_offset_;
-    }
-    case kField: {
-      FieldHelper field_helper(this);
-      field_helper.ReadUntilIncluding(FieldHelper::kParentClassBinaryOffset);
-      return field_helper.parent_class_binary_offset_;
-    }
-    default:
-      UNIMPLEMENTED();
-      return -1;
-  }
-}
-
-void StreamingFlowGraphBuilder::GetTypeParameterInfoForClass(
-    intptr_t class_offset,
-    intptr_t* type_paremeter_counts,
-    intptr_t* type_paremeter_offset) {
-  AlternativeReadingScope alt(reader_, class_offset);
-
-  ClassHelper class_helper(this);
-  class_helper.ReadUntilExcluding(ClassHelper::kTypeParameters);
-  *type_paremeter_counts =
-      ReadListLength();  // read type_parameters list length.
-  *type_paremeter_offset = ReaderOffset();
-}
-
-void StreamingFlowGraphBuilder::GetTypeParameterInfoForPossibleProcedure(
-    intptr_t outermost_kernel_offset,
-    bool* member_is_procedure,
-    bool* is_factory_procedure,
-    intptr_t* member_type_parameters,
-    intptr_t* member_type_parameters_offset_start) {
-  if (outermost_kernel_offset >= 0) {
-    AlternativeReadingScope alt(reader_, outermost_kernel_offset);
-    Tag tag = PeekTag();
-    if (tag == kProcedure) {
-      *member_is_procedure = true;
-
-      ProcedureHelper procedure_helper(this);
-      procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
-      *is_factory_procedure = procedure_helper.kind_ == Procedure::kFactory;
-      if (ReadTag() == kSomething) {
-        FunctionNodeHelper function_node_helper(this);
-        function_node_helper.ReadUntilExcluding(
-            FunctionNodeHelper::kTypeParameters);
-
-        // read type_parameters list length.
-        intptr_t list_length = ReadListLength();
-        if (list_length > 0) {
-          *member_type_parameters = list_length;
-          *member_type_parameters_offset_start = ReaderOffset();
-        }
-      }
-    }
   }
 }
 
@@ -3405,35 +3305,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
       dart::Class::Handle(zone_, parsed_function()->function().Owner());
 
   Function& outermost_function = Function::Handle(Z);
-  intptr_t outermost_kernel_offset = -1;
-  intptr_t parent_class_offset = -1;
-  DiscoverEnclosingElements(Z, function, &outermost_function,
-                            &outermost_kernel_offset, &parent_class_offset);
-  // Use [klass]/[kernel_class] as active class.  Type parameters will get
-  // resolved via [kernel_class] unless we are nested inside a static factory
-  // in which case we will use [member].
-  intptr_t class_type_parameters = 0;
-  intptr_t class_type_parameters_offset_start = -1;
-  if (parent_class_offset > 0) {
-    GetTypeParameterInfoForClass(parent_class_offset, &class_type_parameters,
-                                 &class_type_parameters_offset_start);
-  }
+  DiscoverEnclosingElements(Z, function, &outermost_function);
 
-  ActiveClassScope active_class_scope(active_class(), class_type_parameters,
-                                      class_type_parameters_offset_start,
-                                      &klass);
-
-  bool member_is_procedure = false;
-  bool is_factory_procedure = false;
-  intptr_t member_type_parameters = 0;
-  intptr_t member_type_parameters_offset_start = -1;
-  GetTypeParameterInfoForPossibleProcedure(
-      outermost_kernel_offset, &member_is_procedure, &is_factory_procedure,
-      &member_type_parameters, &member_type_parameters_offset_start);
-
-  ActiveMemberScope active_member(active_class(), member_is_procedure,
-                                  is_factory_procedure, member_type_parameters,
-                                  member_type_parameters_offset_start);
+  ActiveClassScope active_class_scope(active_class(), &klass);
+  ActiveMemberScope active_member(active_class(), &outermost_function);
 
   // The IR builder will create its own local variables and scopes, and it
   // will not need an AST.  The code generator will assume that there is a
@@ -3779,8 +3654,6 @@ void StreamingFlowGraphBuilder::SkipDartType() {
       return;
     case kTypeParameterType:
       ReadUInt();              // read index for parameter.
-      ReadUInt();              // read list binary offset.
-      ReadUInt();              // read index in list.
       SkipOptionalDartType();  // read bound bound.
       return;
     default:

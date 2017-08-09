@@ -259,12 +259,12 @@ void KernelReader::ReadLibrary(intptr_t kernel_offset) {
 
   fields_.Clear();
   functions_.Clear();
-  ActiveClassScope active_class_scope(&active_class_, 0, -1, &toplevel_class);
+  ActiveClassScope active_class_scope(&active_class_, &toplevel_class);
   // Load toplevel fields.
   intptr_t field_count = builder_.ReadListLength();  // read list length.
   for (intptr_t i = 0; i < field_count; ++i) {
     intptr_t field_offset = builder_.ReaderOffset();
-    ActiveMemberScope active_member_scope(&active_class_, false, false, 0, -1);
+    ActiveMemberScope active_member_scope(&active_class_, NULL);
     FieldHelper field_helper(&builder_);
     field_helper.ReadUntilExcluding(FieldHelper::kName);
 
@@ -312,51 +312,9 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
   // the binary is as follows: [...], kTypeParameters, kSuperClass, kMixinType,
   // kImplementedClasses, [...].
 
-  // First setup the type parameters, so if any of the following code uses it
-  // (in a recursive way) we're fine.
-  TypeArguments& type_parameters =
-      TypeArguments::Handle(Z, TypeArguments::null());
-  if (type_parameter_count > 0) {
-    dart::TypeParameter& parameter = dart::TypeParameter::Handle(Z);
-    Type& null_bound = Type::Handle(Z, Type::null());
-
-    // Step a) Create array of [TypeParameter] objects (without bound).
-    type_parameters = TypeArguments::New(type_parameter_count);
-    {
-      AlternativeReadingScope alt(builder_.reader_);
-      for (intptr_t i = 0; i < type_parameter_count; i++) {
-        parameter = dart::TypeParameter::New(
-            *klass, Function::Handle(Z), i,
-            H.DartSymbol(
-                builder_.ReadStringReference()),  // read ith name index.
-            null_bound, TokenPosition::kNoSource);
-        type_parameters.SetTypeAt(i, parameter);
-        builder_.SkipDartType();  // read guard.
-      }
-    }
-    klass->set_type_parameters(type_parameters);
-
-    // Step b) Fill in the bounds of all [TypeParameter]s.
-    for (intptr_t i = 0; i < type_parameter_count; i++) {
-      builder_.SkipStringReference();  // read ith name index.
-
-      // TODO(github.com/dart-lang/kernel/issues/42): This should be handled
-      // by the frontend.
-      parameter ^= type_parameters.TypeAt(i);
-      Tag tag = builder_.PeekTag();  // peek ith bound type.
-      if (tag == kDynamicType) {
-        builder_.SkipDartType();  // read ith bound.
-        parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
-      } else {
-        AbstractType& bound =
-            T.BuildTypeWithoutFinalization();  // read ith bound.
-        if (bound.IsMalformedOrMalbounded()) {
-          bound = I->object_store()->object_type();
-        }
-        parameter.set_bound(bound);
-      }
-    }
-  }
+  // Set type parameters.
+  ReadAndSetupTypeParameters(*klass, type_parameter_count, *klass,
+                             Function::Handle(Z));
 
   // Set super type.  Some classes (e.g., Object) do not have one.
   Tag type_tag = builder_.ReadTag();  // read super class type (part 1).
@@ -406,16 +364,14 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
   }
 
   class_helper.ReadUntilExcluding(ClassHelper::kTypeParameters);
-  intptr_t type_paremeter_counts =
+  intptr_t type_parameter_counts =
       builder_.ReadListLength();  // read type_parameters list length.
-  intptr_t type_paremeter_offset = builder_.ReaderOffset();
 
-  ActiveClassScope active_class_scope(&active_class_, type_paremeter_counts,
-                                      type_paremeter_offset, &klass);
+  ActiveClassScope active_class_scope(&active_class_, &klass);
   if (!klass.is_cycle_free()) {
-    ReadPreliminaryClass(&klass, &class_helper, type_paremeter_counts);
+    ReadPreliminaryClass(&klass, &class_helper, type_parameter_counts);
   } else {
-    for (intptr_t i = 0; i < type_paremeter_counts; ++i) {
+    for (intptr_t i = 0; i < type_parameter_counts; ++i) {
       builder_.SkipStringReference();  // read ith name index.
       builder_.SkipDartType();         // read ith bound.
     }
@@ -436,7 +392,7 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
     int field_count = builder_.ReadListLength();  // read list length.
     for (intptr_t i = 0; i < field_count; ++i) {
       intptr_t field_offset = builder_.ReaderOffset();
-      ActiveMemberScope active_member(&active_class_, false, false, 0, -1);
+      ActiveMemberScope active_member(&active_class_, NULL);
       FieldHelper field_helper(&builder_);
       field_helper.ReadUntilExcluding(FieldHelper::kName);
 
@@ -479,7 +435,7 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
   int constructor_count = builder_.ReadListLength();  // read list length.
   for (intptr_t i = 0; i < constructor_count; ++i) {
     intptr_t constructor_offset = builder_.ReaderOffset();
-    ActiveMemberScope active_member_scope(&active_class_, false, false, 0, -1);
+    ActiveMemberScope active_member_scope(&active_class_, NULL);
     ConstructorHelper constructor_helper(&builder_);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
 
@@ -544,18 +500,6 @@ void KernelReader::ReadProcedure(const dart::Library& library,
                                  bool in_class) {
   intptr_t procedure_offset = builder_.ReaderOffset();
   ProcedureHelper procedure_helper(&builder_);
-
-  bool member_is_procedure = false;
-  bool is_factory_procedure = false;
-  intptr_t member_type_parameters = 0;
-  intptr_t member_type_parameters_offset_start = -1;
-  builder_.GetTypeParameterInfoForPossibleProcedure(
-      builder_.ReaderOffset(), &member_is_procedure, &is_factory_procedure,
-      &member_type_parameters, &member_type_parameters_offset_start);
-
-  ActiveMemberScope active_member(&active_class_, member_is_procedure,
-                                  is_factory_procedure, member_type_parameters,
-                                  member_type_parameters_offset_start);
 
   procedure_helper.ReadUntilExcluding(ProcedureHelper::kAnnotations);
   const dart::String& name =
@@ -636,6 +580,8 @@ void KernelReader::ReadProcedure(const dart::Library& library,
   functions_.Add(&function);
   function.set_kernel_offset(procedure_offset);
 
+  ActiveMemberScope active_member(&active_class_, &function);
+
   procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
   Tag function_node_tag = builder_.ReadTag();
   ASSERT(function_node_tag == kSomething);
@@ -665,6 +611,16 @@ void KernelReader::ReadProcedure(const dart::Library& library,
     function.set_native_name(*native_name);
   }
 
+  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
+  if (!function.IsFactory()) {
+    // Read type_parameters list length.
+    intptr_t type_parameter_count = builder_.ReadListLength();
+    // Set type parameters.
+    ReadAndSetupTypeParameters(function, type_parameter_count, Class::Handle(Z),
+                               function);
+    function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
+  }
+
   function_node_helper.ReadUntilExcluding(
       FunctionNodeHelper::kRequiredParameterCount);
   builder_.SetupFunctionParameters(owner, function, is_method,
@@ -686,6 +642,65 @@ void KernelReader::ReadProcedure(const dart::Library& library,
   }
 
   procedure_helper.ReadUntilExcluding(ProcedureHelper::kEnd);
+}
+
+void KernelReader::ReadAndSetupTypeParameters(
+    const Object& set_on,
+    intptr_t type_parameter_count,
+    const Class& parameterized_class,
+    const Function& parameterized_function) {
+  ASSERT(type_parameter_count >= 0);
+  if (type_parameter_count == 0) {
+    return;
+  }
+  // First setup the type parameters, so if any of the following code uses it
+  // (in a recursive way) we're fine.
+  TypeArguments& type_parameters =
+      TypeArguments::Handle(Z, TypeArguments::null());
+  dart::TypeParameter& parameter = dart::TypeParameter::Handle(Z);
+  Type& null_bound = Type::Handle(Z, Type::null());
+
+  // Step a) Create array of [TypeParameter] objects (without bound).
+  type_parameters = TypeArguments::New(type_parameter_count);
+  {
+    AlternativeReadingScope alt(builder_.reader_);
+    for (intptr_t i = 0; i < type_parameter_count; i++) {
+      parameter = dart::TypeParameter::New(
+          parameterized_class, parameterized_function, i,
+          H.DartSymbol(builder_.ReadStringReference()),  // read ith name index.
+          null_bound, TokenPosition::kNoSource);
+      type_parameters.SetTypeAt(i, parameter);
+      builder_.SkipDartType();  // read guard.
+    }
+  }
+
+  ASSERT(set_on.IsClass() || set_on.IsFunction());
+  if (set_on.IsClass()) {
+    Class::Cast(set_on).set_type_parameters(type_parameters);
+  } else {
+    Function::Cast(set_on).set_type_parameters(type_parameters);
+  }
+
+  // Step b) Fill in the bounds of all [TypeParameter]s.
+  for (intptr_t i = 0; i < type_parameter_count; i++) {
+    builder_.SkipStringReference();  // read ith name index.
+
+    // TODO(github.com/dart-lang/kernel/issues/42): This should be handled
+    // by the frontend.
+    parameter ^= type_parameters.TypeAt(i);
+    Tag tag = builder_.PeekTag();  // peek ith bound type.
+    if (tag == kDynamicType) {
+      builder_.SkipDartType();  // read ith bound.
+      parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
+    } else {
+      AbstractType& bound =
+          T.BuildTypeWithoutFinalization();  // read ith bound.
+      if (bound.IsMalformedOrMalbounded()) {
+        bound = I->object_store()->object_type();
+      }
+      parameter.set_bound(bound);
+    }
+  }
 }
 
 const Object& KernelReader::ClassForScriptAt(const dart::Class& klass,
