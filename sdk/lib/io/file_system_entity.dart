@@ -756,6 +756,10 @@ class FileSystemEvent {
 
   /**
    * Is `true` if the event target was a directory.
+   *
+   * Note that if the file has been deleted by the time the event has arrived,
+   * this will always be `false` on Windows. In particular, it will always be
+   * `false` for `DELETE` events.
    */
   final bool isDirectory;
 
