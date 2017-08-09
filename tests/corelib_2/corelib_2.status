@@ -307,6 +307,10 @@ string_from_environment3_test/05: MissingCompileTimeError
 double_parse_test/02: Fail, OK
 unicode_test: Fail
 
+[ $runtime == ff && $system == windows ]
+unicode_test: Pass # When Linux FF updates to 55, remove the fail status from FF in the other status line for this file.
+string_case_test/01: Pass # When Linux FF updates to 55, remove the fail status from FF in the other status line for this file.
+
 [ ($runtime == vm || $runtime == dart_precompiled) && $arch == simarmv5te ]
 big_integer_parsed_mul_div_vm_test: Pass, SloW
 int_parse_radix_test/*: Pass, Slow
@@ -442,7 +446,7 @@ from_environment_const_type_undefined_test/16: MissingCompileTimeError
 string_base_vm_static_test: MissingCompileTimeError
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
-string_case_test/01: Fail, OK # Bug in Firefox.
+string_case_test/01: Fail, OK # Bug in Firefox. Change to jsshell fail only once linux updates to 55.
 regexp/UC16_test: RuntimeError
 
 [ $compiler == none && $runtime == drt ]
