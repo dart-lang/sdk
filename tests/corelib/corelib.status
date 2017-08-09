@@ -9,16 +9,12 @@
 string_case_test/01: Fail # Bug 18061
 
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
-int_parse_radix_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
-int_parse_radix_test/02: Fail # No bigints.
-integer_to_radix_string_test: RuntimeError # issue 22045
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
 error_stack_trace1_test: RuntimeError # Issue 12399
-integer_to_string_test/01: RuntimeError # Issue 1533
 iterable_return_type_test/01: RuntimeError # Issue 20085
 iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
 
@@ -30,9 +26,7 @@ regress_r21715_test: RuntimeError # Requires bigint support.
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dart2analyzer ]
-int_parse_radix_bad_handler_test: fail
 error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.
-iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
 string_test: StaticWarning, OK # Test generates error on purpose.
 duration2_test: StaticWarning, OK # Test generates error on purpose.
 
@@ -55,10 +49,8 @@ http_resource_test: Skip, OK # VM specific test, uses dart:io.
 [ $mode == debug ]
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $arch == simarmv5te ]
-int_parse_radix_test/*: Pass, Slow
 
 [ $compiler == precompiler ]
-int_parse_radix_test: Pass, Timeout # --no_intrinsify
 
 [ $compiler == precompiler || $compiler == app_jit ]
 file_resource_test: Skip # Resolve URI not supported yet in product mode.
@@ -108,21 +100,6 @@ for_in_test: Crash
 growable_list_test: Crash
 has_next_iterator_test: Crash
 hash_map2_test: Crash
-int_parse_radix_bad_handler_test: Crash
-int_parse_radix_test/01: Crash
-int_parse_radix_test/02: Crash
-int_parse_radix_test/none: Crash
-integer_to_radix_string_test: Crash
-integer_to_string_test/01: RuntimeError
-is_operator_basic_types_test: Crash
-iterable_contains2_test: Crash
-iterable_contains_test: Crash
-iterable_element_at_test: Crash
-iterable_empty_test: Crash
-iterable_expand_test: Crash
-iterable_first_test: Crash
-iterable_first_where_test: Crash
-iterable_fold_test: Crash
 iterable_generate_test/01: Crash
 iterable_generate_test/none: Crash
 iterable_join_test: Crash

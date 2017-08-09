@@ -19,10 +19,10 @@ class MyList extends ListBase {
   operator []=(index, val) => list[index] = val;
 }
 
-id(x) => x;
+id (x) => x;
 
 main() {
-  for (var iterable in [
+  for (dynamic iterable in [
     const [1, 2, 3],
     [1, 2, 3],
     new List(3)
@@ -35,10 +35,10 @@ main() {
     new List.generate(3, (x) => x + 1),
     [0, 1, 2, 3].where((x) => x > 0),
     [0, 1, 2].map((x) => x + 1),
-    [
-      [1, 2],
-      [3]
-    ].expand(id),
+    [ //# 01: ok
+      [1, 2], //# 01: ok
+      [3] //# 01: ok
+    ].expand(id), //# 01: ok
     [3, 2, 1].reversed,
     [0, 1, 2, 3].skip(1),
     [1, 2, 3, 4].take(3),
@@ -93,7 +93,7 @@ main() {
     new List.generate(0, (x) => x + 1),
     [0, 1, 2, 3].where((x) => false),
     [].map((x) => x + 1),
-    [[], []].expand(id),
+    [[], []].expand(id), //# 01: ok
     [].reversed,
     [0, 1, 2, 3].skip(4),
     [1, 2, 3, 4].take(0),
@@ -113,7 +113,7 @@ main() {
   }
 
   // Singleton iterables are calling reduce function.
-  for (var iterable in [
+  for (dynamic iterable in [
     const [1],
     [1],
     new List(1)..[0] = 1,
@@ -123,18 +123,18 @@ main() {
     new List.generate(1, (x) => x + 1),
     [0, 1, 2, 3].where((x) => x == 1),
     [0].map((x) => x + 1),
-    [
-      [],
-      [1]
-    ].expand(id),
+    [ //# 01: ok
+      [], //# 01: ok
+      [1] //# 01: ok
+    ].expand(id), //# 01: ok
     [1].reversed,
     [0, 1].skip(1),
     [1, 2, 3, 4].take(1),
     new Uint8List(1)..[0] = 1,
     (new HashMap()..[1] = 0).keys,
-    (new HashMap()..[0] = 1).values,
+    (new HashMap()..[0] = 1).values, //# 02: ok
     (new SplayTreeMap()..[1] = 0).keys,
-    (new SplayTreeMap()..[0] = 1).values,
+    (new SplayTreeMap()..[0] = 1).values, //# 02: ok
     new HashSet()..add(1),
     new LinkedHashSet()..add(1),
     new SplayTreeSet()..add(1),
@@ -164,19 +164,19 @@ main() {
     map[4] = 4;
   }
 
-  testModification([1, 2, 3], add4, id);
-  testModification(new HashSet()..add(1)..add(2)..add(3), add4, id);
-  testModification(new LinkedHashSet()..add(1)..add(2)..add(3), add4, id);
-  testModification(new SplayTreeSet()..add(1)..add(2)..add(3), add4, id);
-  testModification(new MyList([1, 2, 3]), add4, id);
+  testModification([1, 2, 3], add4, id); //# 02: ok
+  testModification(new HashSet()..add(1)..add(2)..add(3), add4, id); //# 02: ok
+  testModification(new LinkedHashSet()..add(1)..add(2)..add(3), add4, id); //# 02: ok
+  testModification(new SplayTreeSet()..add(1)..add(2)..add(3), add4, id); //# 02: ok
+  testModification(new MyList([1, 2, 3]), add4, id); //# 02: ok
 
-  testModification([0, 1, 2, 3], add4, (x) => x.where((x) => x > 0));
-  testModification([0, 1, 2], add4, (x) => x.map((x) => x + 1));
-  testModification([
-    [1, 2],
-    [3]
-  ], add4, (x) => x.expand((x) => x));
-  testModification([3, 2, 1], add4, (x) => x.reversed);
+  testModification([0, 1, 2, 3], add4, (x) => x.where((x) => x > 0)); //# 02: ok
+  testModification([0, 1, 2], add4, (x) => x.map((x) => x + 1)); //# 02: ok
+  testModification([ //# 02: ok
+    [1, 2], //# 02: ok
+    [3] //# 02: ok
+  ], add4, (x) => x.expand((x) => x)); //# 02: ok
+  testModification([3, 2, 1], add4, (x) => x.reversed); //# 02: ok
   testModification({1: 1, 2: 2, 3: 3}, put4, (x) => x.keys);
   testModification({1: 1, 2: 2, 3: 3}, put4, (x) => x.values);
   var hashMap = new HashMap()

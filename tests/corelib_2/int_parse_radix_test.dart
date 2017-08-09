@@ -7,7 +7,7 @@ import "dart:math" show pow;
 
 void main() {
   const String oneByteWhiteSpace = "\x09\x0a\x0b\x0c\x0d\x20"
-    "\x85" //   //# 01: ok
+    "\x85" //# 01: ok
       "\xa0";
   const String whiteSpace = "$oneByteWhiteSpace\u1680"
       "\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a"
@@ -114,15 +114,8 @@ void main() {
   }
 
   testBadTypes(var source, var radix) {
-    if (!typeAssertionsEnabled) {
-      // No promises on what error is thrown if the type doesn't match.
-      // Likely either ArgumentError or NoSuchMethodError.
-      Expect.throws(() => int.parse(source, radix: radix, onError: (s) => 0));
-      return;
-    }
-    // With type assertions enabled we can be more precise.
-    Expect.throws(() => int.parse(source, radix: radix, onError: (s) => 0),
-        (e) => e is TypeError || e is CastError);
+    Expect.throws(() => int.parse(source, radix: radix, onError: (s) => 0), //# badTypes: ok
+        (e) => e is TypeError); //# badTypes: ok
   }
 
   testBadTypes(9, 10);
