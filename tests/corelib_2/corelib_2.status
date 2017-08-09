@@ -19,7 +19,7 @@ string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
-[ (!$checked && $runtime == vm) || $compiler == dart2js  || $compiler == precompiler ]
+[ (!$checked && $runtime == vm) || (!$checked && $compiler == dart2js) || $compiler == precompiler ]
 int_parse_radix_test/badTypes: RuntimeError # wrong exception returned
 
 [ !$strong && !$checked ]
