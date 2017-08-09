@@ -1167,7 +1167,7 @@ class FixProcessor {
     ClassDeclaration targetClassNode = targetTypeNode;
     // prepare location
     ClassMemberLocation targetLocation =
-        utils.prepareNewFieldLocation(targetClassNode);
+        _getUtilsFor(targetClassNode).prepareNewFieldLocation(targetClassNode);
     // build field source
     Source targetSource = targetClassElement.source;
     String targetFile = targetSource.fullName;
@@ -1324,7 +1324,7 @@ class FixProcessor {
     ClassDeclaration targetClassNode = targetTypeNode;
     // prepare location
     ClassMemberLocation targetLocation =
-        utils.prepareNewGetterLocation(targetClassNode);
+        _getUtilsFor(targetClassNode).prepareNewGetterLocation(targetClassNode);
     // build method source
     Source targetSource = targetClassElement.source;
     String targetFile = targetSource.fullName;
@@ -2863,6 +2863,26 @@ class FixProcessor {
       }
     }
     return null;
+  }
+
+  /**
+   * Return the correction utilities that should be used when creating an edit
+   * in the compilation unit containing the given [node].
+   */
+  CorrectionUtils _getUtilsFor(AstNode node) {
+    CompilationUnit targetUnit =
+        node.getAncestor((node) => node is CompilationUnit);
+    CompilationUnitElement targetUnitElement = targetUnit?.element;
+    CorrectionUtils realUtils = utils;
+    if (targetUnitElement != utils.unit.element) {
+      realUtils = new CorrectionUtils(targetUnit);
+      ClassDeclaration targetClass =
+          node.getAncestor((node) => node is ClassDeclaration);
+      if (targetClass != null) {
+        realUtils.targetClassElement = targetClass.element;
+      }
+    }
+    return realUtils;
   }
 
   /**

@@ -85,11 +85,13 @@ bool test() {
     List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
 
+    String fileContent = testCode;
     if (target != null) {
       expect(target, fileEdits.first.file);
+      fileContent = provider.getFile(target).readAsStringSync();
     }
 
-    resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
+    resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
     // verify
     expect(resultCode, expected);
   }
@@ -1630,6 +1632,39 @@ main(A a) {
 ''');
   }
 
+  test_createField_getter_qualified_instance_differentLibrary() async {
+    addSource('/other.dart', '''
+/**
+ * A comment to push the offset of the braces for the following class
+ * declaration past the end of the content of the test file. Used to catch an
+ * index out of bounds exception that occurs when using the test source instead
+ * of the target source to compute the location at which to insert the field.
+ */
+class A {
+}
+''');
+    await resolveTestUnit('''
+import 'other.dart';
+main(A a) {
+  int v = a.test;
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_FIELD,
+        '''
+/**
+ * A comment to push the offset of the braces for the following class
+ * declaration past the end of the content of the test file. Used to catch an
+ * index out of bounds exception that occurs when using the test source instead
+ * of the target source to compute the location at which to insert the field.
+ */
+class A {
+  int test;
+}
+''',
+        target: '/other.dart');
+  }
+
   test_createField_getter_qualified_instance_dynamicType() async {
     await resolveTestUnit('''
 class A {
@@ -2217,6 +2252,39 @@ main(A a) {
   int v = a.test;
 }
 ''');
+  }
+
+  test_createGetter_qualified_instance_differentLibrary() async {
+    addSource('/other.dart', '''
+/**
+ * A comment to push the offset of the braces for the following class
+ * declaration past the end of the content of the test file. Used to catch an
+ * index out of bounds exception that occurs when using the test source instead
+ * of the target source to compute the location at which to insert the field.
+ */
+class A {
+}
+''');
+    await resolveTestUnit('''
+import 'other.dart';
+main(A a) {
+  int v = a.test;
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_GETTER,
+        '''
+/**
+ * A comment to push the offset of the braces for the following class
+ * declaration past the end of the content of the test file. Used to catch an
+ * index out of bounds exception that occurs when using the test source instead
+ * of the target source to compute the location at which to insert the field.
+ */
+class A {
+  int get test => null;
+}
+''',
+        target: '/other.dart');
   }
 
   test_createGetter_qualified_instance_dynamicType() async {
