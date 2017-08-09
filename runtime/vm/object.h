@@ -4954,12 +4954,14 @@ class Code : public Object {
     ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(sizeof(RawCode) + (len * kBytesPerElement));
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static RawCode* FinalizeCode(const Function& function,
                                Assembler* assembler,
                                bool optimized = false);
   static RawCode* FinalizeCode(const char* name,
                                Assembler* assembler,
                                bool optimized);
+#endif
   static RawCode* LookupCode(uword pc);
   static RawCode* LookupCodeInVmIsolate(uword pc);
   static RawCode* FindCode(uword pc, int64_t timestamp);

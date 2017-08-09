@@ -9,7 +9,7 @@
 // Dart method was intrinsified.
 
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_IA32.
-#if defined(TARGET_ARCH_IA32)
+#if defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/intrinsifier.h"
 
@@ -2245,4 +2245,4 @@ void Intrinsifier::SetAsyncThreadStackTrace(Assembler* assembler) {
 
 }  // namespace dart
 
-#endif  // defined TARGET_ARCH_IA32
+#endif  // defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)

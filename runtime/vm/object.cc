@@ -13929,7 +13929,7 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
 }
 
 void Code::Disassemble(DisassemblyFormatter* formatter) const {
-#ifndef PRODUCT
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (!FLAG_support_disassembler) {
     return;
   }
@@ -14018,6 +14018,7 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
   return result.raw();
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 RawCode* Code::FinalizeCode(const char* name,
                             Assembler* assembler,
                             bool optimized) {
@@ -14118,6 +14119,7 @@ RawCode* Code::FinalizeCode(const Function& function,
 #endif  // !PRODUCT
   return FinalizeCode("", assembler, optimized);
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 bool Code::SlowFindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
   return RawCode::ContainsPC(raw_obj, pc_);
