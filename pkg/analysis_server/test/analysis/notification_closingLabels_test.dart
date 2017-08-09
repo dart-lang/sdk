@@ -173,20 +173,6 @@ void myMethod() {
     ''');
   }
 
-  test_prefixedIndentifier() async {
-    await _testCode(
-        1,
-        '''
-import 'dart:async' as a;
-Object myMethod() {
-  return /*1*/new a.Future.delayed(
-    new Duration(seconds: 1)
-    
-  )/*1:a.Future.delayed*/;
-}
-    ''');
-  }
-
   test_instanceMethod() async {
     await _testCode(
         1,
@@ -206,6 +192,76 @@ void myMethod() {
         '''
 void myMethod() {
   return /*1*/Widget.createWidget(
+    1,
+    2
+  )/*1:createWidget*/;
+}
+    ''');
+  }
+
+  test_prefixedNewConstructor() async {
+    await _testCode(
+        1,
+        '''
+import 'dart:async' as a;
+void myMethod() {
+  return /*1*/new a.Future(
+    1,
+    2
+  )/*1:a.Future*/;
+}
+    ''');
+  }
+
+  test_prefixedNewNamedConstructor() async {
+    await _testCode(
+        1,
+        '''
+import 'dart:async' as a;
+void myMethod() {
+  return /*1*/new a.Future.delayed(
+    1,
+    2
+  )/*1:a.Future.delayed*/;
+}
+    ''');
+  }
+
+  test_prefixedConstConstructor() async {
+    await _testCode(
+        1,
+        '''
+import 'dart:async' as a;
+void myMethod() {
+  return /*1*/const a.Future(
+    1,
+    2
+  )/*1:a.Future*/;
+}
+    ''');
+  }
+
+  test_prefixedConstNamedConstructor() async {
+    await _testCode(
+        1,
+        '''
+import 'dart:async' as a;
+void myMethod() {
+  return /*1*/const a.Future.delayed(
+    1,
+    2
+  )/*1:a.Future.delayed*/;
+}
+    ''');
+  }
+
+  test_prefixedStaticMethod() async {
+    await _testCode(
+        1,
+        '''
+import 'widgets.dart' as a;
+void myMethod() {
+  return /*1*/a.Widget.createWidget(
     1,
     2
   )/*1:createWidget*/;
