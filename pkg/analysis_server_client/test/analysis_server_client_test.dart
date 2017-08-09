@@ -16,8 +16,10 @@ void main() {
 
   setUp(() async {
     _process = new MockProcess();
+    final _mockStdin = new MockStdin();
     serverWrapper = new AnalysisServerClient(_process);
-    when(_process.stdin).thenReturn(<int>[]);
+    when(_process.stdin).thenReturn(_mockStdin);
+    when(_mockStdin.add).thenReturn(null);
   });
 
   test('test_listenToOutput_good', () async {
@@ -91,3 +93,5 @@ Stream<List<int>> _eventMessage() async* {
 }
 
 class MockProcess extends Mock implements Process {}
+
+class MockStdin extends Mock implements List {}
