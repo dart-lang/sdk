@@ -366,16 +366,16 @@ class Thread : public BaseThread {
   static intptr_t heap_offset() { return OFFSET_OF(Thread, heap_); }
 
   void set_top(uword value) {
-    ASSERT(heap_ != NULL);
     top_ = value;
   }
   void set_end(uword value) {
-    ASSERT(heap_ != NULL);
     end_ = value;
   }
 
   uword top() { return top_; }
   uword end() { return end_; }
+
+  bool HasActiveTLAB() { return end_ > 0; }
 
   static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
   static intptr_t end_offset() { return OFFSET_OF(Thread, end_); }
