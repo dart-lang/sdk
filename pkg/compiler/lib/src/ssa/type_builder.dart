@@ -37,8 +37,7 @@ class TypeBuilder {
 
   /// Produces code that checks the runtime type is actually the type specified
   /// by attempting a type conversion.
-  HInstruction _checkType(
-      HInstruction original, ResolutionDartType type, int kind) {
+  HInstruction _checkType(HInstruction original, DartType type, int kind) {
     assert(builder.options.enableTypeAssertions);
     assert(type != null);
     type = builder.localsHandler.substInContext(type);

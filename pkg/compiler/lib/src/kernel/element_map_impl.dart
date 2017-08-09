@@ -1025,9 +1025,9 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
         _memberData[member.memberIndex].definition.node, this);
   }
 
-  ClosureModel computeClosureModel(KMember member) {
+  ScopeModel computeScopeModel(KMember member) {
     ir.Member node = _memberData[member.memberIndex].definition.node;
-    return KernelClosureAnalysis.computeClosureModel(member, node);
+    return KernelClosureAnalysis.computeScopeModel(member, node);
   }
 
   /// Returns the kernel [ir.Procedure] node for the [method].

@@ -13,7 +13,7 @@ import 'closure.dart';
 class CapturedScopeBuilder extends ir.Visitor {
   ir.TreeNode _currentLocalFunction;
 
-  ClosureModel _model;
+  ScopeModel _model;
 
   /// A map of each visited call node with the associated information about what
   /// variables are captured/used. Each ir.Node key corresponds to a scope that

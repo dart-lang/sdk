@@ -423,6 +423,7 @@ function_type/function_type97_test: Crash
 function_type/function_type98_test: Crash
 function_type/function_type99_test: Crash
 function_type/function_type9_test: Crash
+regress_30339_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 aborting_switch_case_test: Crash
@@ -710,6 +711,7 @@ function_type/function_type97_test: Crash
 function_type/function_type98_test: Crash
 function_type/function_type99_test: Crash
 function_type/function_type9_test: Crash
+regress_30339_test: Crash
 
 [ $compiler == dart2js && ! $dart2js_with_kernel && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853

@@ -25,7 +25,7 @@ import '../js_backend/mirrors_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
-import '../js_model/closure.dart' show ClosureModel;
+import '../js_model/closure.dart' show ScopeModel;
 import '../library_loader.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
@@ -47,8 +47,8 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
 
   KernelAnnotationProcessor _annotationProcesser;
 
-  final Map<MemberEntity, ClosureModel> closureModels =
-      <MemberEntity, ClosureModel>{};
+  final Map<MemberEntity, ScopeModel> closureModels =
+      <MemberEntity, ScopeModel>{};
 
   KernelFrontEndStrategy(
       this._options, DiagnosticReporter reporter, env.Environment environment) {
@@ -155,7 +155,7 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
   final KernelToElementMapForImpactImpl _elementMap;
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
-  final Map<MemberEntity, ClosureModel> closureModels;
+  final Map<MemberEntity, ScopeModel> closureModels;
 
   KernelWorkItemBuilder(
       this._elementMap,
@@ -178,7 +178,7 @@ class KernelWorkItem implements ResolutionWorkItem {
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
   final MemberEntity element;
-  final Map<MemberEntity, ClosureModel> closureModels;
+  final Map<MemberEntity, ScopeModel> closureModels;
 
   KernelWorkItem(this._elementMap, this._impactTransformer,
       this._nativeMemberResolver, this.element, this.closureModels);
@@ -187,7 +187,7 @@ class KernelWorkItem implements ResolutionWorkItem {
   WorldImpact run() {
     _nativeMemberResolver.resolveNativeMember(element);
     ResolutionImpact impact = _elementMap.computeWorldImpact(element);
-    ClosureModel closureModel = _elementMap.computeClosureModel(element);
+    ScopeModel closureModel = _elementMap.computeScopeModel(element);
     if (closureModel != null) {
       closureModels[element] = closureModel;
     }

@@ -933,9 +933,10 @@ function_getter_test: Crash
 function_literals2_test: Crash
 function_literals_test: Crash
 function_malformed_result_type_test: Crash
-function_propagation_test: RuntimeError
+function_propagation_test: Crash
 function_subtype0_test: Crash
 function_subtype2_test: Crash
+function_subtype3_test: Crash
 function_subtype_bound_closure0_test: Crash
 function_subtype_bound_closure1_test: Crash
 function_subtype_bound_closure2_test: Crash
@@ -945,6 +946,9 @@ function_subtype_bound_closure5_test: Crash
 function_subtype_bound_closure5a_test: Crash
 function_subtype_bound_closure6_test: Crash
 function_subtype_bound_closure7_test: Crash
+function_subtype_call0_test: Crash
+function_subtype_call1_test: Crash
+function_subtype_call2_test: Crash
 function_subtype_cast0_test: Crash
 function_subtype_cast1_test: Crash
 function_subtype_cast2_test: Crash
@@ -2315,6 +2319,7 @@ enum_private_test/none: Crash
 enum_test: Crash
 equality_test: Crash
 error_stacktrace_test: Crash
+evaluation_redirecting_constructor_test: Crash
 example_constructor_test: Crash
 exception_identity_test: Crash
 exception_in_increment_test: Crash
@@ -2591,6 +2596,7 @@ inferrer_constructor4_test: Crash
 inferrer_constructor5_test/01: Crash
 inferrer_constructor_test: Crash
 inferrer_synthesized_constructor_test: Crash
+inferrer_synthesized_super_constructor_test: Crash
 inferrer_this_access_test: Crash
 infinite_switch_label_test: Crash
 infinity_test: RuntimeError
@@ -2633,6 +2639,8 @@ issue11724_test: Crash
 issue12284_test: Crash
 issue13474_test: Crash
 issue1363_test: Crash
+issue14014_test: Crash
+issue14014_2_test: Crash
 issue14014_3_test: Crash
 issue14242_test: Crash
 issue15720_test: Crash
@@ -2641,6 +2649,7 @@ issue21079_test: Crash
 issue21159_test: Crash
 issue22800_test: Crash
 issue23244_test: Crash
+issue4295001_test: Crash
 issue9602_test: Crash
 issue9664_test: Crash
 issue9939_test: Crash
