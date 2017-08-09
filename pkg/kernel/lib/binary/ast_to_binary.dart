@@ -947,12 +947,14 @@ class BinaryPrinter extends Visitor {
 
   visitWhileStatement(WhileStatement node) {
     writeByte(Tag.WhileStatement);
+    writeOffset(node.fileOffset);
     writeNode(node.condition);
     writeNode(node.body);
   }
 
   visitDoStatement(DoStatement node) {
     writeByte(Tag.DoStatement);
+    writeOffset(node.fileOffset);
     writeNode(node.body);
     writeNode(node.condition);
   }
@@ -960,6 +962,7 @@ class BinaryPrinter extends Visitor {
   visitForStatement(ForStatement node) {
     _variableIndexer.pushScope();
     writeByte(Tag.ForStatement);
+    writeOffset(node.fileOffset);
     writeVariableDeclarationList(node.variables);
     writeOptionalNode(node.condition);
     writeNodeList(node.updates);
@@ -971,6 +974,7 @@ class BinaryPrinter extends Visitor {
     _variableIndexer.pushScope();
     writeByte(node.isAsync ? Tag.AsyncForInStatement : Tag.ForInStatement);
     writeOffset(node.fileOffset);
+    writeOffset(node.bodyOffset);
     writeVariableDeclaration(node.variable);
     writeNode(node.iterable);
     writeNode(node.body);

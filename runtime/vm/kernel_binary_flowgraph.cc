@@ -760,12 +760,14 @@ void StreamingScopeBuilder::VisitStatement() {
       return;
     case kWhileStatement:
       ++depth_.loop_;
+      builder_->ReadPosition();  // read position.
       VisitExpression();  // read condition.
       VisitStatement();   // read body.
       --depth_.loop_;
       return;
     case kDoStatement:
       ++depth_.loop_;
+      builder_->ReadPosition();  // read position.
       VisitStatement();   // read body.
       VisitExpression();  // read condition.
       --depth_.loop_;
@@ -778,6 +780,7 @@ void StreamingScopeBuilder::VisitStatement() {
 
       EnterScope(offset);
 
+      TokenPosition position = builder_->ReadPosition();  // read position.
       intptr_t list_length =
           builder_->ReadListLength();  // read number of variables.
       for (intptr_t i = 0; i < list_length; ++i) {
@@ -798,8 +801,7 @@ void StreamingScopeBuilder::VisitStatement() {
 
       --depth_.loop_;
 
-      ExitScope(builder_->reader_->min_position(),
-                builder_->reader_->max_position());
+      ExitScope(position, builder_->reader_->max_position());
       return;
     }
     case kForInStatement:
@@ -809,7 +811,9 @@ void StreamingScopeBuilder::VisitStatement() {
       intptr_t start_offset =
           builder_->ReaderOffset() - 1;  // -1 to include tag byte.
 
-      TokenPosition position = builder_->ReadPosition();  // read position.
+      builder_->ReadPosition();  // read position.
+      TokenPosition body_position =
+          builder_->ReadPosition();  // read body position.
 
       // Notice the ordering: We skip the variable, read the iterable, go back,
       // re-read the variable, go forward to after having read the iterable.
@@ -828,12 +832,12 @@ void StreamingScopeBuilder::VisitStatement() {
       }
       VisitStatement();  // read body.
 
-      if (!position.IsReal()) {
-        position = builder_->reader_->min_position();
+      if (!body_position.IsReal()) {
+        body_position = builder_->reader_->min_position();
       }
       // TODO(jensj): From kernel_binary.cc
       // forinstmt->variable_->set_end_position(forinstmt->position_);
-      ExitScope(position, builder_->reader_->max_position());
+      ExitScope(body_position, builder_->reader_->max_position());
       --depth_.loop_;
       --depth_.for_in_;
       return;
@@ -4104,14 +4108,17 @@ void StreamingFlowGraphBuilder::SkipStatement() {
       ReadUInt();      // read target_index.
       return;
     case kWhileStatement:
+      ReadPosition();    // read position.
       SkipExpression();  // read condition.
       SkipStatement();   // read body.
       return;
     case kDoStatement:
+      ReadPosition();    // read position.
       SkipStatement();   // read body.
       SkipExpression();  // read condition.
       return;
     case kForStatement: {
+      ReadPosition();                    // read position.
       SkipListOfVariableDeclarations();  // read variables.
       Tag tag = ReadTag();               // Read first part of condition.
       if (tag == kSomething) {
@@ -4124,6 +4131,7 @@ void StreamingFlowGraphBuilder::SkipStatement() {
     case kForInStatement:
     case kAsyncForInStatement:
       ReadPosition();             // read position.
+      ReadPosition();             // read body position.
       SkipVariableDeclaration();  // read variable.
       SkipExpression();           // read iterable.
       SkipStatement();            // read body.
@@ -6089,6 +6097,8 @@ Fragment StreamingFlowGraphBuilder::BuildBreakStatement() {
 
 Fragment StreamingFlowGraphBuilder::BuildWhileStatement() {
   loop_depth_inc();
+  ReadPosition();  // read position.
+
   bool negate;
   Fragment condition = TranslateCondition(&negate);  // read condition.
   TargetEntryInstr* body_entry;
@@ -6117,6 +6127,7 @@ Fragment StreamingFlowGraphBuilder::BuildWhileStatement() {
 
 Fragment StreamingFlowGraphBuilder::BuildDoStatement() {
   loop_depth_inc();
+  ReadPosition();                    // read position.
   Fragment body = BuildStatement();  // read body.
 
   if (body.is_closed()) {
@@ -6145,6 +6156,8 @@ Fragment StreamingFlowGraphBuilder::BuildDoStatement() {
 
 Fragment StreamingFlowGraphBuilder::BuildForStatement() {
   intptr_t offset = ReaderOffset() - 1;  // Include the tag.
+
+  ReadPosition();  // read position.
 
   Fragment declarations;
 
@@ -6207,7 +6220,8 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
 Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
   intptr_t offset = ReaderOffset() - 1;  // Include the tag.
 
-  TokenPosition position = ReadPosition();  // read position.
+  ReadPosition();                                // read position.
+  TokenPosition body_position = ReadPosition();  // read body position.
   intptr_t variable_kernel_position = ReaderOffset();
   SkipVariableDeclaration();  // read variable.
 
@@ -6240,7 +6254,7 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
   body += PushArgument();
   const dart::String& current_getter = dart::String::ZoneHandle(
       Z, dart::Field::GetterSymbol(Symbols::Current()));
-  body += InstanceCall(position, current_getter, Token::kGET, 1);
+  body += InstanceCall(body_position, current_getter, Token::kGET, 1);
   body += StoreLocal(TokenPosition::kNoSource,
                      LookupVariable(variable_kernel_position));
   body += Drop();

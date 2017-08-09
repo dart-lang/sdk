@@ -3432,6 +3432,12 @@ class ForStatement extends Statement {
 }
 
 class ForInStatement extends Statement {
+  /// Offset in the source file it comes from.
+  ///
+  /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
+  /// offset is not available (this is the default if none is specifically set).
+  int bodyOffset = TreeNode.noOffset;
+
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
   Statement body;

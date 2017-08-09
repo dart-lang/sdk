@@ -1508,7 +1508,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       continueTarget.resolveContinues(body);
     }
     Statement result =
-        new KernelForStatement(variables, condition, updates, body);
+        new KernelForStatement(variables, condition, updates, body)
+          ..fileOffset = forKeyword.charOffset;
     if (begin != null) {
       result = new KernelBlock(<Statement>[begin, result]);
     }
@@ -2557,7 +2558,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       body = new KernelLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
-    Statement result = new KernelDoStatement(body, condition);
+    Statement result = new KernelDoStatement(body, condition)
+      ..fileOffset = doKeyword.charOffset;
     if (breakTarget.hasUsers) {
       result = new KernelLabeledStatement(result);
       breakTarget.resolveBreaks(result);
@@ -2625,7 +2627,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Statement result = new KernelForInStatement(
         variable, expression, body, declaresVariable,
         isAsync: awaitToken != null)
-      ..fileOffset = body.fileOffset;
+      ..fileOffset = forToken.charOffset
+      ..bodyOffset = body.fileOffset;
     if (breakTarget.hasUsers) {
       result = new KernelLabeledStatement(result);
       breakTarget.resolveBreaks(result);
@@ -2704,7 +2707,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       body = new KernelLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
-    Statement result = new KernelWhileStatement(condition, body);
+    Statement result = new KernelWhileStatement(condition, body)
+      ..fileOffset = whileKeyword.charOffset;
     if (breakTarget.hasUsers) {
       result = new KernelLabeledStatement(result);
       breakTarget.resolveBreaks(result);

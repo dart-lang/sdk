@@ -1017,28 +1017,36 @@ class BinaryBuilder {
         return new BreakStatement(labelStack[labelStackBase + index])
           ..fileOffset = offset;
       case Tag.WhileStatement:
-        return new WhileStatement(readExpression(), readStatement());
+        var offset = readOffset();
+        return new WhileStatement(readExpression(), readStatement())
+          ..fileOffset = offset;
       case Tag.DoStatement:
-        return new DoStatement(readStatement(), readExpression());
+        var offset = readOffset();
+        return new DoStatement(readStatement(), readExpression())
+          ..fileOffset = offset;
       case Tag.ForStatement:
         int variableStackHeight = variableStack.length;
+        var offset = readOffset();
         var variables = readAndPushVariableDeclarationList();
         var condition = readExpressionOption();
         var updates = readExpressionList();
         var body = readStatement();
         variableStack.length = variableStackHeight;
-        return new ForStatement(variables, condition, updates, body);
+        return new ForStatement(variables, condition, updates, body)
+          ..fileOffset = offset;
       case Tag.ForInStatement:
       case Tag.AsyncForInStatement:
         bool isAsync = tag == Tag.AsyncForInStatement;
         int variableStackHeight = variableStack.length;
         var offset = readOffset();
+        var bodyOffset = readOffset();
         var variable = readAndPushVariableDeclaration();
         var iterable = readExpression();
         var body = readStatement();
         variableStack.length = variableStackHeight;
         return new ForInStatement(variable, iterable, body, isAsync: isAsync)
-          ..fileOffset = offset;
+          ..fileOffset = offset
+          ..bodyOffset = bodyOffset;
       case Tag.SwitchStatement:
         var expression = readExpression();
         int count = readUInt();
