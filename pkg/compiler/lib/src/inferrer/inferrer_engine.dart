@@ -8,6 +8,7 @@ import '../common.dart';
 import '../common/names.dart';
 import '../compiler.dart';
 import '../common_elements.dart';
+import '../constants/values.dart';
 import '../elements/elements.dart'
     show
         ClassElement,
@@ -20,16 +21,19 @@ import '../elements/names.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/js_backend.dart';
 import '../native/behavior.dart' as native;
+import '../types/constants.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../world.dart';
+import 'closure_tracer.dart';
 import 'debug.dart' as debug;
 import 'locals_handler.dart';
 import 'list_tracer.dart';
 import 'map_tracer.dart';
 import 'builder.dart';
+import 'type_graph_dump.dart';
 import 'type_graph_inferrer.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
@@ -456,9 +460,259 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
     workQueue.add(info);
   }
 
-  void runOverAllElements();
+  void runOverAllElements() {
+    if (compiler.disableTypeInference) return;
+    if (compiler.options.verbose) {
+      compiler.progress.reset();
+    }
+    analyzeAllElements();
 
-  void analyze(MemberEntity element, T body, ArgumentsTypes arguments);
+    TypeGraphDump dump = debug.PRINT_GRAPH ? new TypeGraphDump(this) : null;
+
+    dump?.beforeAnalysis();
+    buildWorkQueue();
+    refine();
+
+    // Try to infer element types of lists and compute their escape information.
+    types.allocatedLists.values.forEach((TypeInformation info) {
+      analyzeListAndEnqueue(info);
+    });
+
+    // Try to infer the key and value types for maps and compute the values'
+    // escape information.
+    types.allocatedMaps.values.forEach((TypeInformation info) {
+      analyzeMapAndEnqueue(info);
+    });
+
+    Set<FunctionEntity> bailedOutOn = new Set<FunctionEntity>();
+
+    // Trace closures to potentially infer argument types.
+    types.allocatedClosures.forEach((dynamic info) {
+      void trace(
+          Iterable<FunctionEntity> elements, ClosureTracerVisitor tracer) {
+        tracer.run();
+        if (!tracer.continueAnalyzing) {
+          elements.forEach((FunctionEntity element) {
+            closedWorldRefiner.registerMightBePassedToApply(element);
+            if (debug.VERBOSE) {
+              print("traced closure $element as ${true} (bail)");
+            }
+            forEachParameter(element, (Local parameter) {
+              types
+                  .getInferredTypeOfParameter(parameter)
+                  .giveUp(this, clearAssignments: false);
+            });
+          });
+          bailedOutOn.addAll(elements);
+          return;
+        }
+        elements
+            .where((e) => !bailedOutOn.contains(e))
+            .forEach((FunctionEntity element) {
+          forEachParameter(element, (Local parameter) {
+            ParameterTypeInformation info =
+                types.getInferredTypeOfParameter(parameter);
+            info.maybeResume();
+            workQueue.add(info);
+          });
+          if (tracer.tracedType.mightBePassedToFunctionApply) {
+            closedWorldRefiner.registerMightBePassedToApply(element);
+          }
+          if (debug.VERBOSE) {
+            print("traced closure $element as "
+                "${closedWorldRefiner
+                .getCurrentlyKnownMightBePassedToApply(element)}");
+          }
+        });
+      }
+
+      if (info is ClosureTypeInformation) {
+        Iterable<FunctionEntity> elements = [info.closure];
+        trace(elements, new ClosureTracerVisitor(elements, info, this));
+      } else if (info is CallSiteTypeInformation) {
+        if (info is StaticCallSiteTypeInformation &&
+            info.selector != null &&
+            info.selector.isCall) {
+          // This is a constructor call to a class with a call method. So we
+          // need to trace the call method here.
+          FunctionEntity calledElement = info.calledElement;
+          assert(calledElement is ConstructorEntity &&
+              calledElement.isGenerativeConstructor);
+          ClassEntity cls = calledElement.enclosingClass;
+          FunctionEntity callMethod = lookupCallMethod(cls);
+          assert(callMethod != null, failedAt(cls));
+          Iterable<FunctionEntity> elements = [callMethod];
+          trace(elements, new ClosureTracerVisitor(elements, info, this));
+        } else {
+          // We only are interested in functions here, as other targets
+          // of this closure call are not a root to trace but an intermediate
+          // for some other function.
+          Iterable<FunctionEntity> elements = new List<FunctionEntity>.from(
+              info.callees.where((e) => e.isFunction));
+          trace(elements, new ClosureTracerVisitor(elements, info, this));
+        }
+      } else if (info is MemberTypeInformation) {
+        trace(<FunctionEntity>[info.member],
+            new StaticTearOffClosureTracerVisitor(info.member, info, this));
+      } else if (info is ParameterTypeInformation) {
+        failedAt(
+            NO_LOCATION_SPANNABLE, 'Unexpected closure allocation info $info');
+      }
+    });
+
+    dump?.beforeTracing();
+
+    // Reset all nodes that use lists/maps that have been inferred, as well
+    // as nodes that use elements fetched from these lists/maps. The
+    // workset for a new run of the analysis will be these nodes.
+    Set<TypeInformation> seenTypes = new Set<TypeInformation>();
+    while (!workQueue.isEmpty) {
+      TypeInformation info = workQueue.remove();
+      if (seenTypes.contains(info)) continue;
+      // If the node cannot be reset, we do not need to update its users either.
+      if (!info.reset(this)) continue;
+      seenTypes.add(info);
+      workQueue.addAll(info.users);
+    }
+
+    workQueue.addAll(seenTypes);
+    refine();
+
+    if (debug.PRINT_SUMMARY) {
+      types.allocatedLists.values.forEach((_info) {
+        ListTypeInformation info = _info;
+        print('${info.type} '
+            'for ${info.originalType.allocationNode} '
+            'at ${info.originalType.allocationElement} '
+            'after ${info.refineCount}');
+      });
+      types.allocatedMaps.values.forEach((_info) {
+        MapTypeInformation info = _info;
+        print('${info.type} '
+            'for ${info.originalType.allocationNode} '
+            'at ${info.originalType.allocationElement} '
+            'after ${info.refineCount}');
+      });
+      types.allocatedClosures.forEach((TypeInformation info) {
+        if (info is ElementTypeInformation) {
+          print('${info.getInferredSignature(types)} for '
+              '${info.debugName}');
+        } else if (info is ClosureTypeInformation) {
+          print('${info.getInferredSignature(types)} for '
+              '${info.debugName}');
+        } else if (info is DynamicCallSiteTypeInformation) {
+          for (MemberEntity target in info.targets) {
+            if (target is FunctionEntity) {
+              print(
+                  '${types.getInferredSignatureOfMethod(target)} for ${target}');
+            } else {
+              print(
+                  '${types.getInferredTypeOfMember(target).type} for ${target}');
+            }
+          }
+        } else if (info is StaticCallSiteTypeInformation) {
+          ClassEntity cls = info.calledElement.enclosingClass;
+          FunctionEntity callMethod = lookupCallMethod(cls);
+          print('${types.getInferredSignatureOfMethod(callMethod)} for ${cls}');
+        } else {
+          print('${info.type} for some unknown kind of closure');
+        }
+      });
+      analyzedElements.forEach((MemberEntity elem) {
+        TypeInformation type = types.getInferredTypeOfMember(elem);
+        print('${elem} :: ${type} from ${type.assignments} ');
+      });
+    }
+    dump?.afterAnalysis();
+
+    reporter.log('Inferred $overallRefineCount types.');
+
+    processLoopInformation();
+  }
+
+  /// Call [analyze] for all live members.
+  void analyzeAllElements();
+
+  /// Calls [f] for each parameter of [method].
+  void forEachParameter(FunctionEntity method, void f(Local parameter));
+
+  /// Returns the `call` method on [cls] or the `noSuchMethod` if [cls] doesn't
+  /// implement `call`.
+  FunctionEntity lookupCallMethod(ClassEntity cls);
+
+  void analyze(MemberEntity element, T body, ArgumentsTypes arguments) {
+    assert(!(element is MemberElement && !element.isDeclaration));
+    if (analyzedElements.contains(element)) return;
+    analyzedElements.add(element);
+
+    TypeInformation type;
+    reporter.withCurrentElement(element, () {
+      type = computeMemberTypeInformation(element, body);
+    });
+    addedInGraph++;
+
+    if (element.isField) {
+      FieldEntity field = element;
+      if (!field.isAssignable) {
+        // If [element] is final and has an initializer, we record
+        // the inferred type.
+        if (body != null) {
+          if (type is! ListTypeInformation && type is! MapTypeInformation) {
+            // For non-container types, the constant handler does
+            // constant folding that could give more precise results.
+            ConstantValue value = getFieldConstant(field);
+            if (value != null) {
+              if (value.isFunction) {
+                FunctionConstantValue functionConstant = value;
+                FunctionEntity function = functionConstant.element;
+                type = types.allocateClosure(function);
+              } else {
+                // Although we might find a better type, we have to keep
+                // the old type around to ensure that we get a complete view
+                // of the type graph and do not drop any flow edges.
+                TypeMask refinedType = computeTypeMask(closedWorld, value);
+                assert(TypeMask.assertIsNormalized(refinedType, closedWorld));
+                type = new NarrowTypeInformation(type, refinedType);
+                types.allocatedTypes.add(type);
+              }
+            }
+          }
+          recordTypeOfField(field, type);
+        } else if (!element.isInstanceMember) {
+          recordTypeOfField(field, types.nullType);
+        }
+      } else if (body == null) {
+        // Only update types of static fields if there is no
+        // assignment. Instance fields are dealt with in the constructor.
+        if (element.isStatic || element.isTopLevel) {
+          recordTypeOfField(field, type);
+        }
+      } else {
+        recordTypeOfField(field, type);
+      }
+      if ((element.isStatic || element.isTopLevel) &&
+          body != null &&
+          !element.isConst) {
+        if (isFieldInitializerPotentiallyNull(element, body)) {
+          recordTypeOfField(field, types.nullType);
+        }
+      }
+    } else {
+      FunctionEntity method = element;
+      recordReturnType(method, type);
+    }
+  }
+
+  /// Visits [body] to compute the [TypeInformation] node for [member].
+  TypeInformation computeMemberTypeInformation(MemberEntity member, T body);
+
+  /// Returns `true` if the [initializer] of the non-const static or top-level
+  /// [field] is potentially `null`.
+  bool isFieldInitializerPotentiallyNull(FieldEntity field, T initializer);
+
+  /// Returns the [ConstantValue] for the initial value of [field], or
+  /// `null` if the initializer is not a constant value.
+  ConstantValue getFieldConstant(FieldEntity field);
 
   void processLoopInformation() {
     types.allocatedCalls.forEach((dynamic info) {
@@ -518,7 +772,67 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
 
   void updateParameterAssignments(TypeInformation caller, MemberEntity callee,
       ArgumentsTypes arguments, Selector selector, TypeMask mask,
-      {bool remove, bool addToQueue: true});
+      {bool remove, bool addToQueue: true}) {
+    if (callee.name == Identifiers.noSuchMethod_) return;
+    if (callee.isField) {
+      if (selector.isSetter) {
+        ElementTypeInformation info = types.getInferredTypeOfMember(callee);
+        if (remove) {
+          info.removeAssignment(arguments.positional[0]);
+        } else {
+          info.addAssignment(arguments.positional[0]);
+        }
+        if (addToQueue) workQueue.add(info);
+      }
+    } else if (callee.isGetter) {
+      return;
+    } else if (selector != null && selector.isGetter) {
+      // We are tearing a function off and thus create a closure.
+      assert(callee.isFunction);
+      MemberTypeInformation info = types.getInferredTypeOfMember(callee);
+      if (remove) {
+        info.closurizedCount--;
+      } else {
+        info.closurizedCount++;
+        if (callee.isStatic || callee.isTopLevel) {
+          types.allocatedClosures.add(info);
+        } else {
+          // We add the call-site type information here so that we
+          // can benefit from further refinement of the selector.
+          types.allocatedClosures.add(caller);
+        }
+        forEachParameter(callee, (Local parameter) {
+          ParameterTypeInformation info =
+              types.getInferredTypeOfParameter(parameter);
+          info.tagAsTearOffClosureParameter(this);
+          if (addToQueue) workQueue.add(info);
+        });
+      }
+    } else {
+      FunctionEntity method = callee;
+      ParameterStructure parameterStructure = method.parameterStructure;
+      int parameterIndex = 0;
+      forEachParameter(callee, (Local parameter) {
+        TypeInformation type;
+        if (parameterIndex < parameterStructure.requiredParameters) {
+          type = arguments.positional[parameterIndex];
+        } else if (parameterStructure.namedParameters.isNotEmpty) {
+          type = arguments.named[parameter.name];
+        } else if (parameterIndex < arguments.positional.length) {
+          type = arguments.positional[parameterIndex];
+        }
+        if (type == null) type = getDefaultTypeOfParameter(parameter);
+        TypeInformation info = types.getInferredTypeOfParameter(parameter);
+        if (remove) {
+          info.removeAssignment(type);
+        } else {
+          info.addAssignment(type);
+        }
+        parameterIndex++;
+        if (addToQueue) workQueue.add(info);
+      });
+    }
+  }
 
   void setDefaultTypeOfParameter(Local parameter, TypeInformation type,
       {bool isInstanceMember}) {
