@@ -522,14 +522,40 @@ int_from_environment3_test/05: Crash
 int_modulo_arith_test/bignum: Crash
 int_modulo_arith_test/modPow: Crash
 int_modulo_arith_test/none: Crash
+int_parse_radix_bad_handler_test: Crash
+int_parse_radix_test/01: Crash
+int_parse_radix_test/02: Crash
+int_parse_radix_test/none: Crash
+integer_to_string_test/01: Crash
+double_ceil2_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+int_parse_radix_test/badTypes: Crash # 'file:///usr/local/google/home/sigmund/dart/git_all/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 185 pos 12: 'closure != null': Corresponding closure class not found for local(main_closure.call#). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(unwrapException_closure.call), local(unwrapException#saveStackTrace))
+integer_to_radix_string_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+is_operator_basic_types_test: Crash
+iterable_contains2_test: Crash
+iterable_contains_test: Crash
+iterable_element_at_test: Crash
+iterable_empty_test: Crash
+iterable_expand_test: Crash
+iterable_first_test: Crash
+iterable_first_where_test: Crash
+iterable_fold_test: Crash
+iterable_skip_while_test: Crash
 iterable_skip_while_test: Crash
 iterable_take_test: Crash
+iterable_take_test: Crash
+iterable_take_while_test: Crash
 iterable_take_while_test: Crash
 iterable_test: Crash
+iterable_test: Crash
+iterable_to_list_test/01: Crash
 iterable_to_list_test/01: Crash
 iterable_to_list_test/none: Crash
+iterable_to_list_test/none: Crash
+iterable_to_set_test: Crash
 iterable_to_set_test: Crash
 iterable_tostring_test: Crash
+iterable_tostring_test: Crash
+json_map_test: Crash
 json_map_test: Crash
 linked_hash_map_from_iterables_test: Crash
 linked_hash_map_test: Crash
@@ -692,30 +718,6 @@ uri_path_test: Crash
 uri_query_test: Crash
 uri_scheme_test: Crash
 uri_test: Crash
-iterable_skip_while_test: Crash
-iterable_take_test: Crash
-iterable_take_while_test: Crash
-iterable_test: Crash
-iterable_to_list_test/01: Crash
-iterable_to_list_test/none: Crash
-iterable_to_set_test: Crash
-iterable_tostring_test: Crash
-json_map_test: Crash
-int_parse_radix_bad_handler_test: Crash
-int_parse_radix_test/01: Crash
-int_parse_radix_test/02: Crash
-int_parse_radix_test/none: Crash
-integer_to_string_test/01: Crash
-integer_to_string_test/none: Crash
-is_operator_basic_types_test: Crash
-iterable_contains2_test: Crash
-iterable_contains_test: Crash
-iterable_element_at_test: Crash
-iterable_empty_test: Crash
-iterable_expand_test: Crash
-iterable_first_test: Crash
-iterable_first_where_test: Crash
-iterable_fold_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 stopwatch_test: Crash
@@ -824,6 +826,25 @@ int_from_environment3_test/05: Crash
 int_modulo_arith_test/bignum: Crash
 int_modulo_arith_test/modPow: Crash
 int_modulo_arith_test/none: Crash
+double_ceil2_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+int_parse_radix_bad_handler_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+int_parse_radix_test/01: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+int_parse_radix_test/02: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+int_parse_radix_test/badTypes: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+int_parse_radix_test/none: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+integer_to_radix_string_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+is_operator_basic_types_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(CodeUnits.#E) in j:constructor(CodeUnits.).
+iterable_contains2_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+iterable_contains_test: Crash # Assertion failure: Cannot find value local(test_closure.call#notInList) in (local(test_closure.call#list), local(test#testList), local(test_closure.call#i)) for j:closure_call(test_closure.call).
+iterable_element_at_test/none: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
+iterable_element_at_test/static: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
+iterable_empty_test: Crash # Assertion failure: Cannot find value local(main#testEmpty) in () for j:method(main).
+iterable_expand_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+iterable_first_test: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
+iterable_first_where_test: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
+iterable_fold_test/01: Crash # Assertion failure: Super constructor for k:constructor(SplayTreeSet.) not found.
+iterable_fold_test/02: Crash # Assertion failure: Super constructor for k:constructor(SplayTreeSet.) not found.
+iterable_fold_test/none: Crash # Assertion failure: Super constructor for k:constructor(SplayTreeSet.) not found.
 iterable_skip_while_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 iterable_take_test: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
 iterable_take_while_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
@@ -993,11 +1014,6 @@ uri_path_test: Crash
 uri_query_test: Crash
 uri_scheme_test: Crash
 uri_test: Crash
-int_round_test: Crash
-int_round_to_double_test: Crash
-int_to_int_test: Crash
-int_truncate_test: Crash
-int_truncate_to_double_test: Crash
 
 [$arch == simdbc || $arch == simdbc64]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter

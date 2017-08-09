@@ -873,13 +873,36 @@ class KernelLibraryLoaderTask extends CompilerTask
   // Only visible for unit testing.
   LoadedLibraries createLoadedLibraries(ir.Program program) {
     _elementMap.addProgram(program);
-    program.libraries.forEach((ir.Library library) =>
-        _allLoadedLibraries.add(_elementMap.lookupLibrary(library.importUri)));
     LibraryEntity rootLibrary = null;
+    Iterable<ir.Library> libraries = program.libraries;
     if (program.mainMethod != null) {
-      rootLibrary = _elementMap
-          .lookupLibrary(program.mainMethod.enclosingLibrary.importUri);
+      var root = program.mainMethod.enclosingLibrary;
+      rootLibrary = _elementMap.lookupLibrary(root.importUri);
+
+      // Filter unreachable libraries: [Program] was built by linking in the
+      // entire SDK libraries, not all of them are used. We include anything
+      // that is reachable from `main`. Note that all internal libraries that
+      // the compiler relies on are reachable from `dart:core`.
+      var seen = new Set<Library>();
+      search(ir.Library current) {
+        if (!seen.add(current)) return;
+        for (ir.LibraryDependency dep in current.dependencies) {
+          search(dep.targetLibrary);
+        }
+      }
+
+      search(root);
+
+      // Libraries dependencies do not show implicit imports to `dart:core`.
+      var dartCore = program.libraries.firstWhere((lib) {
+        return lib.importUri.scheme == 'dart' && lib.importUri.path == 'core';
+      });
+      search(dartCore);
+
+      libraries = libraries.where(seen.contains);
     }
+    _allLoadedLibraries.addAll(
+        libraries.map((lib) => _elementMap.lookupLibrary(lib.importUri)));
     return new _LoadedLibrariesAdapter(
         rootLibrary, _allLoadedLibraries, _elementMap);
   }
