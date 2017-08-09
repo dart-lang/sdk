@@ -632,6 +632,16 @@ public interface AnalysisServer {
   public boolean isSocketOpen();
 
   /**
+   * {@code kythe.getKytheEntries}
+   *
+   * Return the list of KytheEntry objects for some file, given the current state of the file system
+   * populated by "analysis.updateContent".
+   *
+   * @param file The file containing the code for which the Kythe Entry objects are being requested.
+   */
+  public void kythe_getKytheEntries(String file, GetKytheEntriesConsumer consumer);
+
+  /**
    * Remove the given listener from the list of listeners that will receive notification when new
      * analysis results become available.
    *

@@ -11773,6 +11773,592 @@ class InlineMethodOptions extends RefactoringOptions {
 }
 
 /**
+ * KytheEntry
+ *
+ * {
+ *   "source": KytheVName
+ *   "kind": String
+ *   "target": KytheVName
+ *   "fact": String
+ *   "value": List<int>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class KytheEntry implements HasToJson {
+  KytheVName _source;
+
+  String _kind;
+
+  KytheVName _target;
+
+  String _fact;
+
+  List<int> _value;
+
+  /**
+   * The ticket of the source node (must not be empty).
+   */
+  KytheVName get source => _source;
+
+  /**
+   * The ticket of the source node (must not be empty).
+   */
+  void set source(KytheVName value) {
+    assert(value != null);
+    this._source = value;
+  }
+
+  /**
+   * An edge label (may be empty). The schema defines which labels are
+   * meaningful.
+   */
+  String get kind => _kind;
+
+  /**
+   * An edge label (may be empty). The schema defines which labels are
+   * meaningful.
+   */
+  void set kind(String value) {
+    assert(value != null);
+    this._kind = value;
+  }
+
+  /**
+   * The ticket of the target node (may be empty).
+   */
+  KytheVName get target => _target;
+
+  /**
+   * The ticket of the target node (may be empty).
+   */
+  void set target(KytheVName value) {
+    assert(value != null);
+    this._target = value;
+  }
+
+  /**
+   * A fact label (must not be empty). The schema defines which fact labels are
+   * meaningful.
+   */
+  String get fact => _fact;
+
+  /**
+   * A fact label (must not be empty). The schema defines which fact labels are
+   * meaningful.
+   */
+  void set fact(String value) {
+    assert(value != null);
+    this._fact = value;
+  }
+
+  /**
+   * The String value of the fact (may be empty).
+   */
+  List<int> get value => _value;
+
+  /**
+   * The String value of the fact (may be empty).
+   */
+  void set value(List<int> value) {
+    assert(value != null);
+    this._value = value;
+  }
+
+  KytheEntry(KytheVName source, String kind, KytheVName target, String fact,
+      List<int> value) {
+    this.source = source;
+    this.kind = kind;
+    this.target = target;
+    this.fact = fact;
+    this.value = value;
+  }
+
+  factory KytheEntry.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      KytheVName source;
+      if (json.containsKey("source")) {
+        source = new KytheVName.fromJson(
+            jsonDecoder, jsonPath + ".source", json["source"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "source");
+      }
+      String kind;
+      if (json.containsKey("kind")) {
+        kind = jsonDecoder.decodeString(jsonPath + ".kind", json["kind"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "kind");
+      }
+      KytheVName target;
+      if (json.containsKey("target")) {
+        target = new KytheVName.fromJson(
+            jsonDecoder, jsonPath + ".target", json["target"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "target");
+      }
+      String fact;
+      if (json.containsKey("fact")) {
+        fact = jsonDecoder.decodeString(jsonPath + ".fact", json["fact"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "fact");
+      }
+      List<int> value;
+      if (json.containsKey("value")) {
+        value = jsonDecoder.decodeList(
+            jsonPath + ".value", json["value"], jsonDecoder.decodeInt);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "value");
+      }
+      return new KytheEntry(source, kind, target, fact, value);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "KytheEntry", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["source"] = source.toJson();
+    result["kind"] = kind;
+    result["target"] = target.toJson();
+    result["fact"] = fact;
+    result["value"] = value;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is KytheEntry) {
+      return source == other.source &&
+          kind == other.kind &&
+          target == other.target &&
+          fact == other.fact &&
+          listEqual(value, other.value, (int a, int b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, source.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, target.hashCode);
+    hash = JenkinsSmiHash.combine(hash, fact.hashCode);
+    hash = JenkinsSmiHash.combine(hash, value.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * kythe.getKytheEntries params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class KytheGetKytheEntriesParams implements RequestParams {
+  String _file;
+
+  /**
+   * The file containing the code for which the Kythe Entry objects are being
+   * requested.
+   */
+  String get file => _file;
+
+  /**
+   * The file containing the code for which the Kythe Entry objects are being
+   * requested.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  KytheGetKytheEntriesParams(String file) {
+    this.file = file;
+  }
+
+  factory KytheGetKytheEntriesParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      return new KytheGetKytheEntriesParams(file);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "kythe.getKytheEntries params", json);
+    }
+  }
+
+  factory KytheGetKytheEntriesParams.fromRequest(Request request) {
+    return new KytheGetKytheEntriesParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "kythe.getKytheEntries", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is KytheGetKytheEntriesParams) {
+      return file == other.file;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * kythe.getKytheEntries result
+ *
+ * {
+ *   "entries": List<KytheEntry>
+ *   "files": List<FilePath>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class KytheGetKytheEntriesResult implements ResponseResult {
+  List<KytheEntry> _entries;
+
+  List<String> _files;
+
+  /**
+   * The list of KytheEntry objects for the queried file.
+   */
+  List<KytheEntry> get entries => _entries;
+
+  /**
+   * The list of KytheEntry objects for the queried file.
+   */
+  void set entries(List<KytheEntry> value) {
+    assert(value != null);
+    this._entries = value;
+  }
+
+  /**
+   * The set of files paths that were required, but not in the file system, to
+   * give a complete and accurate Kythe graph for the file. This could be due
+   * to a referenced file that does not exist or generated files not being
+   * generated or passed before the call to "getKytheEntries".
+   */
+  List<String> get files => _files;
+
+  /**
+   * The set of files paths that were required, but not in the file system, to
+   * give a complete and accurate Kythe graph for the file. This could be due
+   * to a referenced file that does not exist or generated files not being
+   * generated or passed before the call to "getKytheEntries".
+   */
+  void set files(List<String> value) {
+    assert(value != null);
+    this._files = value;
+  }
+
+  KytheGetKytheEntriesResult(List<KytheEntry> entries, List<String> files) {
+    this.entries = entries;
+    this.files = files;
+  }
+
+  factory KytheGetKytheEntriesResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<KytheEntry> entries;
+      if (json.containsKey("entries")) {
+        entries = jsonDecoder.decodeList(
+            jsonPath + ".entries",
+            json["entries"],
+            (String jsonPath, Object json) =>
+                new KytheEntry.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "entries");
+      }
+      List<String> files;
+      if (json.containsKey("files")) {
+        files = jsonDecoder.decodeList(
+            jsonPath + ".files", json["files"], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "files");
+      }
+      return new KytheGetKytheEntriesResult(entries, files);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "kythe.getKytheEntries result", json);
+    }
+  }
+
+  factory KytheGetKytheEntriesResult.fromResponse(Response response) {
+    return new KytheGetKytheEntriesResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["entries"] =
+        entries.map((KytheEntry value) => value.toJson()).toList();
+    result["files"] = files;
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is KytheGetKytheEntriesResult) {
+      return listEqual(
+              entries, other.entries, (KytheEntry a, KytheEntry b) => a == b) &&
+          listEqual(files, other.files, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, entries.hashCode);
+    hash = JenkinsSmiHash.combine(hash, files.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * KytheVName
+ *
+ * {
+ *   "signature": String
+ *   "corpus": String
+ *   "root": String
+ *   "path": String
+ *   "language": String
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class KytheVName implements HasToJson {
+  String _signature;
+
+  String _corpus;
+
+  String _root;
+
+  String _path;
+
+  String _language;
+
+  /**
+   * An opaque signature generated by the analyzer.
+   */
+  String get signature => _signature;
+
+  /**
+   * An opaque signature generated by the analyzer.
+   */
+  void set signature(String value) {
+    assert(value != null);
+    this._signature = value;
+  }
+
+  /**
+   * The corpus of source code this KytheVName belongs to. Loosely, a corpus is
+   * a collection of related files, such as the contents of a given source
+   * repository.
+   */
+  String get corpus => _corpus;
+
+  /**
+   * The corpus of source code this KytheVName belongs to. Loosely, a corpus is
+   * a collection of related files, such as the contents of a given source
+   * repository.
+   */
+  void set corpus(String value) {
+    assert(value != null);
+    this._corpus = value;
+  }
+
+  /**
+   * A corpus-specific root label, typically a directory path or project
+   * identifier, denoting a distinct subset of the corpus. This may also be
+   * used to designate virtual collections like generated files.
+   */
+  String get root => _root;
+
+  /**
+   * A corpus-specific root label, typically a directory path or project
+   * identifier, denoting a distinct subset of the corpus. This may also be
+   * used to designate virtual collections like generated files.
+   */
+  void set root(String value) {
+    assert(value != null);
+    this._root = value;
+  }
+
+  /**
+   * A path-structured label describing the “location” of the named object
+   * relative to the corpus and the root.
+   */
+  String get path => _path;
+
+  /**
+   * A path-structured label describing the “location” of the named object
+   * relative to the corpus and the root.
+   */
+  void set path(String value) {
+    assert(value != null);
+    this._path = value;
+  }
+
+  /**
+   * The language this name belongs to.
+   */
+  String get language => _language;
+
+  /**
+   * The language this name belongs to.
+   */
+  void set language(String value) {
+    assert(value != null);
+    this._language = value;
+  }
+
+  KytheVName(String signature, String corpus, String root, String path,
+      String language) {
+    this.signature = signature;
+    this.corpus = corpus;
+    this.root = root;
+    this.path = path;
+    this.language = language;
+  }
+
+  factory KytheVName.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String signature;
+      if (json.containsKey("signature")) {
+        signature = jsonDecoder.decodeString(
+            jsonPath + ".signature", json["signature"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "signature");
+      }
+      String corpus;
+      if (json.containsKey("corpus")) {
+        corpus = jsonDecoder.decodeString(jsonPath + ".corpus", json["corpus"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "corpus");
+      }
+      String root;
+      if (json.containsKey("root")) {
+        root = jsonDecoder.decodeString(jsonPath + ".root", json["root"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "root");
+      }
+      String path;
+      if (json.containsKey("path")) {
+        path = jsonDecoder.decodeString(jsonPath + ".path", json["path"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "path");
+      }
+      String language;
+      if (json.containsKey("language")) {
+        language =
+            jsonDecoder.decodeString(jsonPath + ".language", json["language"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "language");
+      }
+      return new KytheVName(signature, corpus, root, path, language);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "KytheVName", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["signature"] = signature;
+    result["corpus"] = corpus;
+    result["root"] = root;
+    result["path"] = path;
+    result["language"] = language;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is KytheVName) {
+      return signature == other.signature &&
+          corpus == other.corpus &&
+          root == other.root &&
+          path == other.path &&
+          language == other.language;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, signature.hashCode);
+    hash = JenkinsSmiHash.combine(hash, corpus.hashCode);
+    hash = JenkinsSmiHash.combine(hash, root.hashCode);
+    hash = JenkinsSmiHash.combine(hash, path.hashCode);
+    hash = JenkinsSmiHash.combine(hash, language.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * moveFile feedback
  *
  * Clients may not extend, implement or mix-in this class.
