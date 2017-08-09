@@ -10,11 +10,13 @@ _dart_root = rebase_path("..")
 # Optional parameters:
 # exclude - A comma separated list that is passed to shutil.ignore_patterns()
 #           in tools/copy_tree.py.
-template("copy_tree") {
+template("_copy_tree") {
   assert(defined(invoker.source), "copy_tree must define 'source'")
   assert(defined(invoker.dest), "copy_tree must define 'dest'")
+  assert(defined(invoker.inputs), "copy_tree must define 'inputs'")
   source = invoker.source
   dest = invoker.dest
+  inputs = invoker.inputs
   action(target_name) {
     if (defined(invoker.visibility)) {
       visibility = invoker.visibility
@@ -38,12 +40,7 @@ template("copy_tree") {
       ]
     }
 
-    dry_run_args = common_args + [ "--dry-run" ]
-    input_files = exec_script("$_dart_root/tools/copy_tree.py",
-                              dry_run_args,
-                              "list lines")
-    inputs = input_files
-    relative_files = rebase_path(input_files, rebase_path(source))
+    relative_files = rebase_path(inputs, rebase_path(source))
 
     output_files = []
     foreach(input, relative_files) {
@@ -53,5 +50,56 @@ template("copy_tree") {
     outputs = output_files
     script = "$_dart_root/tools/copy_tree.py"
     args = common_args
+  }
+}
+
+# copy_trees() arranges to invoke copy_tree.py only once to gather the list of
+# input source files for every _copy_tree() target. It takes a list of scopes as
+# a parameter. The scopes should contain the following mappings.
+#
+# target: The target name for the _copy_tree() target.
+# visibility: The visibility for the _copy_tree() target.
+# source: The source directory relative to this directory.
+# dest: The destination directory for the _copy_tree() target.
+# deps: Any deps needed for the _copy_tree() target.
+# ignore_patterns: Patterns to ignore when walking the directory tree.
+#                  This should be '{}' if nothing should be ignored.
+#
+# copy_trees() will then make sure each invocation of _copy_tree() has the
+# correct 'inputs' parameter
+template("copy_trees") {
+  assert(defined(invoker.sources), "$target_name must define 'source'")
+  sources = invoker.sources
+  copy_tree_source_paths = []
+  foreach(copy_tree_spec, sources) {
+    copy_tree_source_paths += [
+      rebase_path(copy_tree_spec.source),
+      copy_tree_spec.ignore_patterns
+    ]
+  }
+
+  # Evaluate script output as GN, producing a scope containing a single value
+  # "sources"
+  copy_tree_inputs_scope = exec_script("$_dart_root/tools/copy_tree.py",
+                                       ["--gn"] + copy_tree_source_paths,
+                                       "scope")
+
+  # A list of lists of input source files for copy_tree.
+  copy_tree_inputs = copy_tree_inputs_scope.sources
+  copy_tree_inputs_index = 0
+  foreach(copy_tree_spec, sources) {
+    _copy_tree(copy_tree_spec.target) {
+      visibility = copy_tree_spec.visibility
+      source = copy_tree_spec.source
+      dest = copy_tree_spec.dest
+      inputs = copy_tree_inputs[copy_tree_inputs_index]
+      if (defined(copy_tree_spec.deps)) {
+        deps = copy_tree_spec.deps
+      }
+      if (copy_tree_spec.ignore_patterns != "{}") {
+        exclude = copy_tree_spec.ignore_patterns
+      }
+    }
+    copy_tree_inputs_index = copy_tree_inputs_index + 1
   }
 }
