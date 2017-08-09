@@ -78,3 +78,6 @@ server calls. This file is validated by `coverage_test.dart`.
 - [x] analytics.enable
 - [x] analytics.sendEvent
 - [x] analytics.sendTiming
+
+## kythe domain
+- [] kythe.getKytheEntries
