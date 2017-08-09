@@ -38,9 +38,10 @@ class _DartUnitClosingLabelsComputerVisitor
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (_spansManyLines(node)) {
-      // TODO(dantup) confirm whether calling toString on constructorName is a reasonable
-      // thing to do here.
-      _addLabel(node, node.constructorName.toString());
+      var label = node.constructorName.type.name.name;
+      if (node.constructorName.name != null)
+        label += ".${node.constructorName.name.name}";
+      _addLabel(node, label);
     }
 
     return super.visitInstanceCreationExpression(node);
