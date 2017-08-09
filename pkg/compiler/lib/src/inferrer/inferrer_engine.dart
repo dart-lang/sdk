@@ -26,6 +26,7 @@ import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
+import '../util/setlet.dart';
 import '../world.dart';
 import 'closure_tracer.dart';
 import 'debug.dart' as debug;
@@ -631,7 +632,26 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   }
 
   /// Call [analyze] for all live members.
-  void analyzeAllElements();
+  void analyzeAllElements() {
+    sortMembers(compiler, computeMemberSize).forEach((MemberEntity member) {
+      if (compiler.shouldPrintProgress) {
+        reporter.log('Added $addedInGraph elements in inferencing graph.');
+        compiler.progress.reset();
+      }
+      // This also forces the creation of the [ElementTypeInformation] to ensure
+      // it is in the graph.
+      T body = computeMemberBody(member);
+      types.withMember(member, () => analyze(member, body, null));
+    });
+    reporter.log('Added $addedInGraph elements in inferencing graph.');
+  }
+
+  /// Compute a 'size' of [member] used for sorting member for the type
+  /// inference work-queue. Smallest members are processed first.
+  int computeMemberSize(MemberEntity member);
+
+  /// Returns the body node for [member].
+  T computeMemberBody(MemberEntity member);
 
   /// Calls [f] for each parameter of [method].
   void forEachParameter(FunctionEntity method, void f(Local parameter));
@@ -1093,5 +1113,37 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
     } else {
       return returnTypeOfMember(element);
     }
+  }
+
+  // Sorts the resolved elements by size. We do this for this inferrer
+  // to get the same results for [ListTracer] compared to the
+  // [SimpleTypesInferrer].
+  static Iterable<MemberEntity> sortMembers(
+      Compiler compiler, int computeSize(MemberEntity member)) {
+    Map<int, Set<MemberEntity>> methodSizes =
+        groupMembers(compiler, computeSize);
+    int max = methodSizes.keys.fold(0, (a, b) => a > b ? a : b);
+    List<MemberEntity> result = <MemberEntity>[];
+    for (int i = 0; i <= max; i++) {
+      Set<MemberEntity> set = methodSizes[i];
+      if (set != null) result.addAll(set);
+    }
+    return result;
+  }
+
+  static Map<int, Set<MemberEntity>> groupMembers(
+      Compiler compiler, int computeSize(MemberEntity member)) {
+    Map<int, Set<MemberEntity>> methodSizes = <int, Set<MemberEntity>>{};
+    compiler.enqueuer.resolution.processedEntities
+        .forEach((MemberEntity element) {
+      if (element.isAbstract) return;
+      // Put the other operators in buckets by size, later to be added in
+      // size order.
+      int size = computeSize(element);
+      Set<MemberEntity> set =
+          methodSizes.putIfAbsent(size, () => new Setlet<MemberEntity>());
+      set.add(element);
+    });
+    return methodSizes;
   }
 }

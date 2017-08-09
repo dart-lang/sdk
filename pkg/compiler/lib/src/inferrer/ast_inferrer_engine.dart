@@ -12,7 +12,6 @@ import '../elements/entities.dart';
 import '../resolution/tree_elements.dart';
 import '../tree/nodes.dart' as ast;
 import '../types/types.dart';
-import '../util/util.dart';
 import '../world.dart';
 import 'builder.dart';
 import 'builder_kernel.dart';
@@ -29,22 +28,15 @@ class AstInferrerEngine extends InferrerEngineImpl<ast.Node> {
   GlobalTypeInferenceElementData<ast.Node> createElementData() =>
       new AstGlobalTypeInferenceElementData();
 
-  void analyzeAllElements() {
-    sortResolvedAsts().forEach((ResolvedAst resolvedAst) {
-      if (compiler.shouldPrintProgress) {
-        reporter.log('Added $addedInGraph elements in inferencing graph.');
-        compiler.progress.reset();
-      }
-      // This also forces the creation of the [ElementTypeInformation] to ensure
-      // it is in the graph.
-      MemberElement member = resolvedAst.element;
-      ast.Node body;
-      if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-        body = resolvedAst.body;
-      }
-      types.withMember(member, () => analyze(member, body, null));
-    });
-    reporter.log('Added $addedInGraph elements in inferencing graph.');
+  int computeMemberSize(MemberEntity member) => resolveAstApproxSize(member);
+
+  ast.Node computeMemberBody(covariant MemberElement member) {
+    ResolvedAst resolvedAst = member.resolvedAst;
+    ast.Node body;
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      body = resolvedAst.body;
+    }
+    return body;
   }
 
   void forEachParameter(
@@ -103,44 +95,20 @@ class AstInferrerEngine extends InferrerEngineImpl<ast.Node> {
     return null;
   }
 
-  // Sorts the resolved elements by size. We do this for this inferrer
-  // to get the same results for [ListTracer] compared to the
-  // [SimpleTypesInferrer].
-  Iterable<ResolvedAst> sortResolvedAsts() {
-    int max = 0;
-    Map<int, Setlet<ResolvedAst>> methodSizes = <int, Setlet<ResolvedAst>>{};
-    compiler.enqueuer.resolution.processedEntities.forEach((_element) {
-      MemberElement element = _element;
-      ResolvedAst resolvedAst = element.resolvedAst;
-      element = element.implementation;
-      if (element.impliesType) return;
-      assert(
-          element.isField ||
-              element.isFunction ||
-              element.isConstructor ||
-              element.isGetter ||
-              element.isSetter,
-          failedAt(element, 'Unexpected element kind: ${element.kind}'));
-      if (element.isAbstract) return;
-      // Put the other operators in buckets by length, later to be added in
-      // length order.
-      int length = 0;
-      if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-        TreeElementMapping mapping = resolvedAst.elements;
-        length = mapping.getSelectorCount();
-      }
-      max = length > max ? length : max;
-      Setlet<ResolvedAst> set =
-          methodSizes.putIfAbsent(length, () => new Setlet<ResolvedAst>());
-      set.add(resolvedAst);
-    });
-
-    List<ResolvedAst> result = <ResolvedAst>[];
-    for (int i = 0; i <= max; i++) {
-      Setlet<ResolvedAst> set = methodSizes[i];
-      if (set != null) result.addAll(set);
+  /// Computes a 'size' of [_element] based on the number of selectors in the
+  /// associated [TreeElements]. This is used for sorting member for the type
+  /// inference work-queue.
+  // TODO(johnniwinther): This is brittle and cannot be translated in the
+  // kernel based inference. Find a more stable a reproducable size measure.
+  static int resolveAstApproxSize(_element) {
+    MemberElement element = _element;
+    ResolvedAst resolvedAst = element.resolvedAst;
+    element = element.implementation;
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      TreeElementMapping mapping = resolvedAst.elements;
+      return mapping.getSelectorCount();
     }
-    return result;
+    return 0;
   }
 }
 
