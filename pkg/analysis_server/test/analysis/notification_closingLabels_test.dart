@@ -194,7 +194,7 @@ void myMethod() {
   return /*1*/Widget.createWidget(
     1,
     2
-  )/*1:createWidget*/;
+  )/*1:Widget.createWidget*/;
 }
     ''');
   }
@@ -264,7 +264,7 @@ void myMethod() {
   return /*1*/a.Widget.createWidget(
     1,
     2
-  )/*1:createWidget*/;
+  )/*1:a.Widget.createWidget*/;
 }
     ''');
   }
@@ -298,7 +298,7 @@ void myMethod() {
   return /*1*/Widget.createWidget(/*2*/<Widget>[
     1,
     2
-  ]/*2:List<Widget>*/)/*1:createWidget*/;
+  ]/*2:List<Widget>*/)/*1:Widget.createWidget*/;
 }
     ''');
   }

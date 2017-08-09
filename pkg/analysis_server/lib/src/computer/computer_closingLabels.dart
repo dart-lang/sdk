@@ -49,9 +49,11 @@ class _DartUnitClosingLabelsComputerVisitor
   @override
   Object visitMethodInvocation(MethodInvocation node) {
     if (node.argumentList != null && _spansManyLines(node)) {
-      // TODO(dantup) This doesn't include prefix/class name for statics (a.Class.method)
-      // This means it's not consistent with constructors.
-      _addLabel(node, node.methodName.name);
+      final target = node.target;
+      final label = target is Identifier
+          ? "${target.name}.${node.methodName.name}"
+          : node.methodName.name;
+      _addLabel(node, label);
     }
 
     return super.visitMethodInvocation(node);
