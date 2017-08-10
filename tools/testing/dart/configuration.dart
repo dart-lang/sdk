@@ -370,8 +370,7 @@ class Configuration {
   /// server for cross-domain tests can be found by calling
   /// `getCrossOriginPortNumber()`.
   Future startServers() {
-    _servers = new TestingServers(
-        buildDirectory, isCsp, runtime, null, packageRoot, packages);
+    _servers = new TestingServers(buildDirectory, isCsp, runtime, null);
     var future = servers.startServers(localIP,
         port: testServerPort, crossOriginPort: testServerCrossOriginPort);
 
