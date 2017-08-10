@@ -223,7 +223,6 @@ class BuildMode {
             }
             // Perform linking.
             _computeLinkedLibraries(unlinkedUris);
-            assembler.recordDependencies(summaryDataStore);
           }
 
           // Write the whole package bundle.
@@ -294,8 +293,7 @@ class BuildMode {
 
   void _createAnalysisDriver() {
     // Read the summaries.
-    summaryDataStore = new SummaryDataStore(<String>[],
-        recordDependencyInfo: _shouldOutputSummary);
+    summaryDataStore = new SummaryDataStore(<String>[]);
 
     // Adds a bundle at `path` to `summaryDataStore`.
     PackageBundle addBundle(String path) {

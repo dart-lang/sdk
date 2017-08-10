@@ -207,9 +207,6 @@ var x = 0;
 import "a.dart";
 var y = x;
 ''', path: '/b.dart');
-    expect(bundle2.dependencies, hasLength(1));
-    expect(bundle2.dependencies[0].summaryPath, '/a.ds');
-    expect(bundle2.dependencies[0].apiSignature, bundle1.apiSignature);
     addBundle('/a.ds', bundle1);
     addBundle('/b.ds', bundle2);
     createLinker('''

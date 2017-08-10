@@ -290,7 +290,6 @@ abstract class SummaryLinkerTest {
   PackageBundleBuilder createPackageBundle(String text,
       {String path: '/test.dart', String uri}) {
     PackageBundleAssembler assembler = new PackageBundleAssembler();
-    assembler.recordDependencies(_filesToLink.summaryDataStore);
     LinkerInputs linkerInputs = createLinkerInputs(text, path: path, uri: uri);
     Map<String, LinkedLibraryBuilder> linkedLibraries = link(
         linkerInputs.linkedLibraries,
@@ -338,6 +337,5 @@ class _FilesToLink {
   /**
    * Information about summaries to be included in the link process.
    */
-  SummaryDataStore summaryDataStore =
-      new SummaryDataStore([], recordDependencyInfo: true);
+  SummaryDataStore summaryDataStore = new SummaryDataStore([]);
 }
