@@ -1059,7 +1059,8 @@ void FlowGraphCompiler::CompileGraph() {
   }
 
   // Check for a passed type argument vector if the function is generic.
-  if (FLAG_reify_generic_functions && function.IsGeneric()) {
+  if (FLAG_reify_generic_functions && function.IsGeneric() &&
+      !flow_graph().IsCompiledForOsr()) {
     __ Comment("Check passed-in type args");
     Label store_type_args, ok;
     __ cmpq(FieldAddress(R10, ArgumentsDescriptor::type_args_len_offset()),

@@ -404,7 +404,8 @@ void FlowGraphCompiler::EmitFrameEntry() {
   }
 
   // Check for a passed type argument vector if the function is generic.
-  if (FLAG_reify_generic_functions && function.IsGeneric()) {
+  if (FLAG_reify_generic_functions && function.IsGeneric() &&
+      !flow_graph().IsCompiledForOsr()) {
     __ Comment("Check passed-in type args");
     UNIMPLEMENTED();  // TODO(regis): Not yet supported.
   }
