@@ -4075,6 +4075,7 @@ LayoutTests/fast/dom/DOMImplementation/createDocumentType-err_t01: RuntimeError 
 LayoutTests/fast/dom/Document/createElementNS-namespace-err_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Element/setAttributeNS-namespace-err_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/selection-start-end-readonly_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/media/media-query-list_t01: RuntimeError # Please triage this failure
 WebPlatformTest/dom/nodes/DOMImplementation-createDocumentType_t01: RuntimeError # Please triage this failure
 WebPlatformTest/dom/nodes/attributes/setAttributeNS_A02_t01: RuntimeError # Please triage this failure
 
