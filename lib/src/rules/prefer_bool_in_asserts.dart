@@ -15,12 +15,18 @@ const details = '''
 
 **BAD:**
 ```
-assert(() {return f(););
+assert(() {
+  f();
+  return true;
+});
 ```
 
 **GOOD:**
 ```
-assert(() {return f();)();
+assert(() {
+  f();
+  return true;
+}());
 ```
 ''';
 
@@ -43,7 +49,7 @@ class Visitor extends SimpleAstVisitor {
   @override
   visitAssertStatement(AssertStatement node) {
     if (!DartTypeUtilities.isClass(
-        node.condition.staticType, 'bool', 'dart.core')) {
+        node.condition.bestType, 'bool', 'dart.core')) {
       rule.reportLint(node.condition);
     }
   }
