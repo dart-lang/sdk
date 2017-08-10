@@ -284,8 +284,8 @@ Widget build(BuildContext context) {
     return computer.compute();
   }
 
-  /// Compares the latest received closing labels with expected
-  /// labels extracted from the comments in the test file.
+  /// Compares provided closing labels with expected
+  /// labels extracted from the comments in the provided content.
   _compareLabels(List<ClosingLabel> labels, String content,
       {int expectedLabelCount}) {
     // Require the test pass us the expected count to guard
