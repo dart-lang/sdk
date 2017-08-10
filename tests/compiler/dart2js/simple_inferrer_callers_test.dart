@@ -30,7 +30,7 @@ main() {
 
 // Create our own type inferrer to avoid clearing out the internal
 // data structures.
-class MyInferrer extends TypeGraphInferrer {
+class MyInferrer extends AstTypeGraphInferrer {
   MyInferrer(compiler, closedWorld, closedWorldRefiner)
       : super(compiler, closedWorld, closedWorldRefiner);
   clear() {}

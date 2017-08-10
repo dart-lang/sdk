@@ -14,6 +14,7 @@ import 'js_backend/js_backend.dart';
 import 'js_backend/native_data.dart';
 import 'js_emitter/sorter.dart';
 import 'ssa/ssa.dart';
+import 'types/types.dart';
 import 'universe/world_builder.dart';
 import 'world.dart';
 
@@ -48,4 +49,8 @@ abstract class BackendStrategy {
 
   /// Creates a [SourceSpan] from [spannable] in context of [currentElement].
   SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement);
+
+  /// Creates the [TypesInferrer] used by this strategy.
+  TypesInferrer createTypesInferrer(ClosedWorldRefiner closedWorldRefiner,
+      {bool disableTypeInference: false});
 }

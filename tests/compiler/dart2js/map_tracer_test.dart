@@ -207,7 +207,8 @@ void main() {
   doTest('{aDouble : anInt}', "aDouble", "anInt");
 }
 
-void doTest(String allocation, [String keyElement, String valueElement]) {
+void doTest(String allocation,
+    [String keyElementName, String valueElementName]) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(generateTest(allocation), uri,
       expectedErrors: 0, expectedWarnings: 1);
@@ -217,21 +218,21 @@ void doTest(String allocation, [String keyElement, String valueElement]) {
         var closedWorld = typesInferrer.closedWorld;
         var commonMasks = closedWorld.commonMasks;
         var emptyType = new TypeMask.nonNullEmpty();
-        var aKeyType =
-            typesInferrer.getTypeOfMember(findElement(compiler, 'aKey'));
-        if (keyElement != null) {
-          keyType =
-              typesInferrer.getTypeOfMember(findElement(compiler, keyElement));
+        MemberElement aKey = findElement(compiler, 'aKey');
+        var aKeyType = typesInferrer.getTypeOfMember(aKey);
+        if (keyElementName != null) {
+          MemberElement keyElement = findElement(compiler, keyElementName);
+          keyType = typesInferrer.getTypeOfMember(keyElement);
         }
-        if (valueElement != null) {
-          valueType = typesInferrer
-              .getTypeOfMember(findElement(compiler, valueElement));
+        if (valueElementName != null) {
+          MemberElement valueElement = findElement(compiler, valueElementName);
+          valueType = typesInferrer.getTypeOfMember(valueElement);
         }
         if (keyType == null) keyType = emptyType;
         if (valueType == null) valueType = emptyType;
 
         checkType(String name, keyType, valueType) {
-          var element = findElement(compiler, name);
+          MemberElement element = findElement(compiler, name);
           MapTypeMask mask = typesInferrer.getTypeOfMember(element);
           Expect.equals(keyType, simplify(mask.keyType, closedWorld), name);
           Expect.equals(valueType, simplify(mask.valueType, closedWorld), name);

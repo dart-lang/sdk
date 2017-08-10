@@ -42,12 +42,14 @@ class TypeMaskComputer extends AbstractResolvedAstComputer {
   String computeElementValue(AstElement element) {
     GlobalTypeInferenceElementResult elementResult;
     if (element.isParameter) {
-      elementResult = results.resultOfParameter(element);
+      ParameterElement parameter = element;
+      elementResult = results.resultOfParameter(parameter);
     } else if (element.isLocal) {
       LocalFunctionElement localFunction = element;
       elementResult = results.resultOfMember(localFunction.callMethod);
     } else {
-      elementResult = results.resultOfMember(element);
+      MemberElement member = element;
+      elementResult = results.resultOfMember(member);
     }
 
     TypeMask value =

@@ -30,7 +30,7 @@ void main() {
         var closedWorld = typesInferrer.closedWorld;
 
         checkType(String name, type) {
-          var element = findElement(compiler, name);
+          MemberElement element = findElement(compiler, name);
           ContainerTypeMask mask = typesInferrer.getTypeOfMember(element);
           Expect.equals(type, simplify(mask.elementType, closedWorld), name);
         }

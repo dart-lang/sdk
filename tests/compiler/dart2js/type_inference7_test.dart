@@ -26,7 +26,7 @@ Future runTest() async {
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var closedWorld = typesInferrer.closedWorld;
     var commonMasks = closedWorld.commonMasks;
-    dynamic foo = findElement(compiler, "foo");
+    MethodElement foo = findElement(compiler, "foo");
     // Return type is null|bool.
     var mask = typesInferrer.getReturnTypeOfMember(foo);
     Expect.isTrue(mask.isNullable);
@@ -57,7 +57,7 @@ Future runTest() async {
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var closedWorld = typesInferrer.closedWorld;
     var commonMasks = closedWorld.commonMasks;
-    dynamic foo = findElement(compiler, "foo");
+    MethodElement foo = findElement(compiler, "foo");
     // Return type is null.
     var mask = typesInferrer.getReturnTypeOfMember(foo);
     Expect.isTrue(mask.isNullable);

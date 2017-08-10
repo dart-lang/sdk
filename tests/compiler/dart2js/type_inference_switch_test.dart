@@ -139,7 +139,7 @@ Future runTest(String test, checker) {
     var commonMasks = closedWorld.commonMasks;
 
     checkTypeOf(String name, TypeMask type) {
-      var element = findElement(compiler, name);
+      MemberElement element = findElement(compiler, name);
       var mask = typesInferrer.getReturnTypeOfMember(element);
       Expect.equals(type, simplify(mask, closedWorld));
     }
