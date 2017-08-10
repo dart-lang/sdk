@@ -22,4 +22,3 @@ cha_deopt3_test: Crash # Requires deferred libraries
 class_literal_static_test: SkipByDesign # Requires strong mode
 class_override_test: SkipByDesign # Requires strong mode
 closure_internals_test: SkipByDesign # Requires strong mode
-closure_in_initializer_static_test: SkipByDesign # Requires strong mode
