@@ -252,7 +252,7 @@ class Heap {
   }
 
   intptr_t CalculateTLABSize();
-  void FillRemainingTLAB(Thread* thread);
+  void MakeTLABIterable(Thread* thread);
   void AbandonRemainingTLAB(Thread* thread);
 
  private:
