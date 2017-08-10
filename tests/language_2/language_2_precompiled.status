@@ -123,6 +123,3 @@ async_star_regression_2238_test: CompileTimeError, RuntimeError
 [ $runtime == dart_precompiled ]
 async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
-
-[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) ]
-class_keyword_test/02: MissingCompileTimeError # Issue 13627

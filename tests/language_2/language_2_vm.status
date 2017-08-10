@@ -95,6 +95,3 @@ assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
-
-[$runtime == vm && $compiler == none && $system == fuchsia]
-closure_cycles_test: Pass, Crash

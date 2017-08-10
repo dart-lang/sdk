@@ -71,6 +71,7 @@ generic_functions_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) ]
+class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 
@@ -246,6 +247,7 @@ async_star_test: RuntimeError
 vm/causal_async_exception_stack_test: RuntimeError
 vm/causal_async_exception_stack2_test: RuntimeError
 # TODO(zra): Investigate
+closure_cycles_test: Pass, Crash
 vm/math_vm_test: Crash
 
 [$compiler == dart2analyzer]
@@ -347,6 +349,7 @@ wrong_number_type_arguments_test/00: CompileTimeError
 wrong_number_type_arguments_test/02: CompileTimeError
 wrong_number_type_arguments_test/01: CompileTimeError
 is_malformed_type_test/97: CompileTimeError
+class_keyword_test/02: CompileTimeError
 is_malformed_type_test/98: CompileTimeError
 is_malformed_type_test/99: CompileTimeError
 is_malformed_type_test/95: CompileTimeError
@@ -441,6 +444,7 @@ vm/reflect_core_vm_test: CompileTimeError
 vm/debug_break_enabled_vm_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/none: CompileTimeError
 generic_function_typedef2_test/04: CompileTimeError
+class_override_test/00: CompileTimeError
 const_types_test/01: CompileTimeError
 const_types_test/02: CompileTimeError
 const_types_test/03: CompileTimeError

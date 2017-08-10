@@ -17,8 +17,6 @@ call_constructor_on_unresolvable_class_test/01: CompileTimeError
 call_constructor_on_unresolvable_class_test/03: CompileTimeError
 call_constructor_on_unresolvable_class_test/02: CompileTimeError
 call_constructor_on_unresolvable_class_test/07: CompileTimeError
-class_keyword_test/02: CompileTimeError
-class_override_test/00: CompileTimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.

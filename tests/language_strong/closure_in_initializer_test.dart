@@ -24,8 +24,8 @@ class B extends A {
 class C extends A {
   var h;
   C(a)
-      : h = (() => ++a),
-        super(42);
+      : super(42),
+        h = (() => ++a);
 }
 
 main() {
@@ -43,6 +43,8 @@ main() {
   Expect.equals(46, a.f());
   Expect.equals(5, a.g());
   Expect.equals(47, a.f());
+  Expect.equals(1, a.h());
+  Expect.equals(2, a.h());
   Expect.equals(47, a.f());
   Expect.equals(6, a.g());
   Expect.equals(48, a.f());
