@@ -36,8 +36,12 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// The [KernelDriver] that is used to compute kernels.
   KernelDriver _driver;
 
-  /// Latest compilation signatures produced by [computeDelta] for libraries.
-  final Map<Uri, String> _latestSignature = {};
+  /// The current signatures for libraries.
+  final Map<Uri, String> _currentSignatures = {};
+
+  /// The signatures for libraries produced by the last [computeDelta], or
+  /// `null` if the last delta was either accepted or rejected.
+  Map<Uri, String> _lastSignatures;
 
   /// The object that provides additional information for tests.
   _TestView _testView;
@@ -65,7 +69,20 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   _TestView get test => _testView;
 
   @override
+  void acceptLastDelta() {
+    _throwIfNoLastDelta();
+    _currentSignatures.addAll(_lastSignatures);
+    _lastSignatures = null;
+  }
+
+  @override
   Future<DeltaProgram> computeDelta() async {
+    if (_lastSignatures != null) {
+      throw new StateError(
+          'The last delta must be either accepted or rejected.');
+    }
+    _lastSignatures = {};
+
     return await _logger.runAsync('Compute delta', () async {
       KernelResult kernelResult = await _driver.getKernel(_entryPoint);
       List<LibraryCycleResult> results = kernelResult.results;
@@ -78,8 +95,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       for (LibraryCycleResult result in results) {
         for (Library library in result.kernelLibraries) {
           Uri uri = library.importUri;
-          if (_latestSignature[uri] != result.signature) {
-            _latestSignature[uri] = result.signature;
+          if (_currentSignatures[uri] != result.signature) {
+            _lastSignatures[uri] = result.signature;
             affectedLibraryCycles.add(result.cycle);
           }
         }
@@ -130,6 +147,12 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
     _driver.invalidate(uri);
   }
 
+  @override
+  void rejectLastDelta() {
+    _throwIfNoLastDelta();
+    _lastSignatures = null;
+  }
+
   /// TODO(scheglov) document
   Future<Null> _gc() async {
     var removedFiles = _driver.fsState.gc(_entryPoint);
@@ -137,6 +160,16 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       for (var removedFile in removedFiles) {
         await _watchFn(removedFile.fileUri, false);
       }
+    }
+  }
+
+  /// Throw [StateError] if [_lastSignatures] is `null`, i.e. there is no
+  /// last delta - it either has not been computed yet, or has been already
+  /// accepted or rejected.
+  void _throwIfNoLastDelta() {
+    if (_lastSignatures == null) {
+      throw new StateError(
+          'The last delta has been already accepted or rejected.');
     }
   }
 }

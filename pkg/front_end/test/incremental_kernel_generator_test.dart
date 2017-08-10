@@ -57,6 +57,20 @@ class IncrementalKernelGeneratorTest {
     return (await incrementalKernelGenerator.computeDelta()).newProgram;
   }
 
+  test_acceptLastDelta() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String path = '/test/lib/test.dart';
+    Uri uri = writeFile(path, 'var v = 1;');
+
+    await getInitialState(uri);
+    incrementalKernelGenerator.acceptLastDelta();
+
+    // Attempt to accept the second time.
+    expect(() {
+      incrementalKernelGenerator.acceptLastDelta();
+    }, throwsStateError);
+  }
+
   test_compile_chain() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
@@ -77,6 +91,7 @@ void main() {}
 
     {
       Program program = await getInitialState(cUri);
+      incrementalKernelGenerator.acceptLastDelta();
       _assertLibraryUris(program,
           includes: [aUri, bUri, cUri, Uri.parse('dart:core')]);
       Library library = _getLibrary(program, cUri);
@@ -154,6 +169,7 @@ b() {
 
     {
       Program program = await getInitialState(aUri);
+      incrementalKernelGenerator.acceptLastDelta();
       _assertLibraryUris(program,
           includes: [aUri, bUri, cUri, dUri, Uri.parse('dart:core')]);
     }
@@ -166,6 +182,7 @@ b() {
     incrementalKernelGenerator.invalidate(cUri);
     {
       DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      incrementalKernelGenerator.acceptLastDelta();
       Program program = delta.newProgram;
       _assertLibraryUris(program,
           includes: [aUri, bUri, cUri],
@@ -230,6 +247,34 @@ static field core::int b = a::a;
 ''');
   }
 
+  test_rejectLastDelta() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String path = '/test/lib/test.dart';
+    Uri uri = writeFile(path, 'var v = 1;');
+
+    // The first delta includes the the library.
+    {
+      Program program = await getInitialState(uri);
+      _assertLibraryUris(program, includes: [uri]);
+      Library library = _getLibrary(program, uri);
+      expect(_getLibraryText(library), contains('core::int v = 1'));
+    }
+
+    // Reject the last delta, so the test library is included again.
+    incrementalKernelGenerator.rejectLastDelta();
+    {
+      var delta = await incrementalKernelGenerator.computeDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [uri]);
+    }
+
+    // Attempt to reject the last delta twice.
+    incrementalKernelGenerator.rejectLastDelta();
+    expect(() {
+      incrementalKernelGenerator.rejectLastDelta();
+    }, throwsStateError);
+  }
+
   test_updateEntryPoint() async {
     writeFile('/test/.packages', 'test:lib/');
     String path = '/test/lib/test.dart';
@@ -252,6 +297,7 @@ static method main() → dynamic {
     // Compute the initial state.
     {
       Program program = await getInitialState(uri);
+      incrementalKernelGenerator.acceptLastDelta();
       Library library = _getLibrary(program, uri);
       expect(_getLibraryText(library), initialText);
     }
@@ -266,6 +312,7 @@ main() {
     // We have not invalidated the file, so the delta is empty.
     {
       DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      incrementalKernelGenerator.acceptLastDelta();
       expect(delta.newProgram.libraries, isEmpty);
     }
 
@@ -273,6 +320,7 @@ main() {
     incrementalKernelGenerator.invalidate(uri);
     {
       DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      incrementalKernelGenerator.acceptLastDelta();
       Program program = delta.newProgram;
       _assertLibraryUris(program, includes: [uri]);
       Library library = _getLibrary(program, uri);
@@ -312,6 +360,7 @@ import 'a.dart';
 
     {
       await getInitialState(cUri);
+      incrementalKernelGenerator.acceptLastDelta();
       // We use at least c.dart and a.dart now.
       expect(usedFiles, contains(cUri));
       expect(usedFiles, contains(aUri));
@@ -327,6 +376,7 @@ import 'b.dart';
     incrementalKernelGenerator.invalidate(cUri);
     {
       await incrementalKernelGenerator.computeDelta();
+      incrementalKernelGenerator.acceptLastDelta();
       // The only new file is b.dart now.
       expect(usedFiles, [bUri]);
       usedFiles.clear();
@@ -340,6 +390,7 @@ import 'a.dart';
     incrementalKernelGenerator.invalidate(cUri);
     {
       await incrementalKernelGenerator.computeDelta();
+      incrementalKernelGenerator.acceptLastDelta();
       // No new used files.
       expect(usedFiles, isEmpty);
       // The file b.dart is not used anymore.
@@ -359,6 +410,7 @@ import 'a.dart';
     watchFn = null;
 
     await getInitialState(bUri);
+    incrementalKernelGenerator.acceptLastDelta();
 
     // Update b.dart to import a.dart file.
     writeFile(bPath, "import 'a.dart';");

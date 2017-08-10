@@ -107,6 +107,7 @@ class IncrementalCompiler {
 
     var compileTimer = new Stopwatch()..start();
     var delta = await _generator.computeDelta();
+    _generator.acceptLastDelta();
     compileTimer.stop();
     compileTime = compileTimer.elapsedMilliseconds;
     var program = delta.newProgram;
