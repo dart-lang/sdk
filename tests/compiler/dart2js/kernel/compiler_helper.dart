@@ -181,8 +181,11 @@ Future generateDill(Uri entryPoint, Map<String, String> memorySourceFiles,
 }
 
 Future<Compiler> compileWithDill(
-    Uri entryPoint, Map<String, String> memorySourceFiles, List<String> options,
-    {bool printSteps: false,
+    {Uri entryPoint,
+    Map<String, String> memorySourceFiles: const <String, String>{},
+    List<String> options: const <String>[],
+    CompilerDiagnostics diagnosticHandler,
+    bool printSteps: false,
     CompilerOutput compilerOutput,
     void beforeRun(Compiler compiler)}) async {
   Uri dillFile =
@@ -194,6 +197,7 @@ Future<Compiler> compileWithDill(
   Compiler compiler = compilerFor(
       entryPoint: dillFile,
       options: [Flags.useKernel]..addAll(options),
+      diagnosticHandler: diagnosticHandler,
       outputProvider: compilerOutput);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler.resolution.retainCachesForTesting = true;

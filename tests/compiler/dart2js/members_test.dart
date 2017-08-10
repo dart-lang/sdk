@@ -187,7 +187,7 @@ void testClassMembers() {
     class C<S> extends B<S> {}
     class D extends C<int> {}
     class E extends D {}
-    """, useMockCompiler: false).then((env) {
+    """, compileMode: CompileMode.memory).then((env) {
         ResolutionInterfaceType bool_ = env['bool'];
         ResolutionInterfaceType String_ = env['String'];
         ResolutionInterfaceType int_ = env['int'];

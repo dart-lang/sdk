@@ -139,7 +139,8 @@ Future<ResultKind> mainInternal(List<String> args,
   ClosedWorld closedWorld1 = compiler1.resolutionWorldBuilder.closeWorld();
 
   Compiler compiler2 = await compileWithDill(
-      entryPoint, const {}, [Flags.analyzeOnly, Flags.enableAssertMessage],
+      entryPoint: entryPoint,
+      options: [Flags.analyzeOnly, Flags.enableAssertMessage],
       printSteps: true);
 
   KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;

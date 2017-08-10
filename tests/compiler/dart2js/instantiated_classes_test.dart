@@ -62,7 +62,8 @@ Future test(String source, List<String> directlyInstantiatedClasses,
   }
   mainSource.write('}');
   return TypeEnvironment
-      .create(source, mainSource: mainSource.toString(), useMockCompiler: true)
+      .create(source,
+          mainSource: mainSource.toString(), compileMode: CompileMode.mock)
       .then((dynamic env) {
     LibraryEntity mainLibrary =
         env.compiler.frontendStrategy.elementEnvironment.mainLibrary;

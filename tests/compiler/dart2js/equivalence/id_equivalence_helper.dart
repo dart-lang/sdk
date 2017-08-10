@@ -44,12 +44,12 @@ Future<Compiler> compileFromSource(
 Future<Compiler> compileFromDill(
     AnnotatedCode code, Uri mainUri, List<String> options) async {
   Compiler compiler = await compileWithDill(
-      mainUri,
-      {'main.dart': code.sourceCode},
-      [Flags.disableTypeInference]..addAll(options),
+      entryPoint: mainUri,
+      memorySourceFiles: {'main.dart': code.sourceCode},
+      options: [Flags.disableTypeInference]..addAll(options),
       beforeRun: (Compiler compiler) {
-    compiler.stopAfterTypeInference = true;
-  });
+        compiler.stopAfterTypeInference = true;
+      });
   return compiler;
 }
 

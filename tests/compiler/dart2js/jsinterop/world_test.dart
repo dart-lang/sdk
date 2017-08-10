@@ -6,7 +6,8 @@ library jsinterop.world_test;
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/elements/elements.dart' show ClassElement;
+import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/world.dart';
@@ -76,38 +77,40 @@ newF() => new F(5);
 import 'package:js/js.dart';
 
 $mainSource
-""", useMockCompiler: false);
-    Map<String, ClassElement> classEnvironment = <String, ClassElement>{};
+""", compileMode: CompileMode.memory);
+    Map<String, ClassEntity> classEnvironment = <String, ClassEntity>{};
 
-    ClassElement registerClass(ClassElement cls) {
+    ClassEntity registerClass(ClassEntity cls) {
       classEnvironment[cls.name] = cls;
       return cls;
     }
 
     ClosedWorld world = env.closedWorld;
-    ClassElement Object_ = registerClass(world.commonElements.objectClass);
-    ClassElement Interceptor =
+    ElementEnvironment elementEnvironment = world.elementEnvironment;
+    ClassEntity Object_ = registerClass(world.commonElements.objectClass);
+    ClassEntity Interceptor =
         registerClass(world.commonElements.jsInterceptorClass);
-    ClassElement JavaScriptObject =
+    ClassEntity JavaScriptObject =
         registerClass(world.commonElements.jsJavaScriptObjectClass);
-    ClassElement A = registerClass(env.getElement('A'));
-    ClassElement B = registerClass(env.getElement('B'));
-    ClassElement C = registerClass(env.getElement('C'));
-    ClassElement D = registerClass(env.getElement('D'));
-    ClassElement E = registerClass(env.getElement('E'));
-    ClassElement F = registerClass(env.getElement('F'));
+    ClassEntity A = registerClass(env.getClass('A'));
+    ClassEntity B = registerClass(env.getClass('B'));
+    ClassEntity C = registerClass(env.getClass('C'));
+    ClassEntity D = registerClass(env.getClass('D'));
+    ClassEntity E = registerClass(env.getClass('E'));
+    ClassEntity F = registerClass(env.getClass('F'));
 
     Selector nonExisting = new Selector.getter(const PublicName('nonExisting'));
 
-    Expect.equals(Interceptor.superclass, Object_);
-    Expect.equals(JavaScriptObject.superclass, Interceptor);
+    Expect.equals(elementEnvironment.getSuperClass(Interceptor), Object_);
+    Expect.equals(
+        elementEnvironment.getSuperClass(JavaScriptObject), Interceptor);
 
-    Expect.equals(A.superclass, JavaScriptObject);
-    Expect.equals(B.superclass, JavaScriptObject);
-    Expect.equals(C.superclass, JavaScriptObject);
-    Expect.equals(D.superclass, JavaScriptObject);
-    Expect.equals(E.superclass, Object_);
-    Expect.equals(F.superclass, Object_);
+    Expect.equals(elementEnvironment.getSuperClass(A), JavaScriptObject);
+    Expect.equals(elementEnvironment.getSuperClass(B), JavaScriptObject);
+    Expect.equals(elementEnvironment.getSuperClass(C), JavaScriptObject);
+    Expect.equals(elementEnvironment.getSuperClass(D), JavaScriptObject);
+    Expect.equals(elementEnvironment.getSuperClass(E), Object_);
+    Expect.equals(elementEnvironment.getSuperClass(F), Object_);
 
     Expect.isFalse(world.nativeData.isJsInteropClass(Object_));
     Expect.isTrue(world.nativeData.isJsInteropClass(A));
@@ -131,7 +134,7 @@ $mainSource
     Expect.equals('', world.nativeData.getJsInteropClassName(D));
 
     for (String name in classEnvironment.keys) {
-      ClassElement cls = classEnvironment[name];
+      ClassEntity cls = classEnvironment[name];
       bool isInstantiated = false;
       if (directlyInstantiated.contains(name)) {
         isInstantiated = true;

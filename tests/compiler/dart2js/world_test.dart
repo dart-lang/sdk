@@ -47,7 +47,7 @@ testClassSets() async {
         html.window;
         new html.Worker('');
       }
-      """, useMockCompiler: false);
+      """, compileMode: CompileMode.memory);
   ClosedWorld closedWorld = env.closedWorld;
 
   ClassElement Object_ = env.getElement("Object");
@@ -233,7 +233,7 @@ testProperties() async {
         new G3();
         new H4();
       }
-      """, useMockCompiler: false);
+      """, compileMode: CompileMode.memory);
   ClosedWorld closedWorld = env.closedWorld;
 
   check(String name, {bool hasStrictSubtype, bool hasOnlySubclasses}) {
@@ -310,7 +310,7 @@ testNativeClasses() async {
             ..getContext(''); // Creates CanvasRenderingContext2D
       }
       """,
-      useMockCompiler: false);
+      compileMode: CompileMode.memory);
   ClosedWorld closedWorld = env.closedWorld;
   LibraryElement dart_html =
       env.compiler.libraryLoader.lookupLibrary(Uris.dart_html);
@@ -532,7 +532,7 @@ testCommonSubclasses() async {
         new J();
       }
       """,
-      useMockCompiler: false);
+      compileMode: CompileMode.memory);
   ClosedWorld closedWorld = env.closedWorld;
 
   ClassElement A = env.getElement("A");

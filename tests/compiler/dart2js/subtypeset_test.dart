@@ -41,7 +41,7 @@ void main() {
         new F();
         new G();
       }
-      """, useMockCompiler: false).then((env) {
+      """, compileMode: CompileMode.memory).then((env) {
         ClosedWorld world = env.closedWorld;
 
         ClassElement A = env.getElement("A");
