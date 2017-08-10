@@ -142,8 +142,9 @@ abstract class KernelToElementMapForImpact extends KernelToElementMap {
   /// Computes the native behavior for writing to the native [field].
   native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field);
 
-  /// Computes the native behavior for calling [procedure].
-  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure,
+  /// Computes the native behavior for calling the function or constructor
+  /// [member].
+  native.NativeBehavior getNativeBehaviorForMethod(ir.Member member,
       {bool isJsInterop});
 
   /// Compute the kind of foreign helper function called by [node], if any.

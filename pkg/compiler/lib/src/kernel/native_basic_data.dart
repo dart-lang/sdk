@@ -129,18 +129,33 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
                 {'cls': cls.name, 'member': member.name});
           }
 
-          if (function is ConstructorEntity &&
-              function.isFactoryConstructor &&
-              isAnonymous) {
-            if (function.parameterStructure.requiredParameters > 0) {
+          checkFunctionParameters(function);
+        });
+        elementEnvironment.forEachConstructor(cls,
+            (ConstructorEntity constructor) {
+          String memberName = getJsInteropName(
+              library, elementEnvironment.getMemberMetadata(constructor));
+          if (memberName != null) {
+            _nativeBasicDataBuilder.markAsJsInteropMember(
+                constructor, memberName);
+          }
+
+          if (!constructor.isExternal) {
+            reporter.reportErrorMessage(
+                constructor,
+                MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
+                {'cls': cls.name, 'member': constructor.name});
+          }
+          if (constructor.isFactoryConstructor && isAnonymous) {
+            if (constructor.parameterStructure.requiredParameters > 0) {
               reporter.reportErrorMessage(
-                  function,
+                  constructor,
                   MessageKind
                       .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
                   {'cls': cls.name});
             }
           } else {
-            checkFunctionParameters(function);
+            checkFunctionParameters(constructor);
           }
         });
       }

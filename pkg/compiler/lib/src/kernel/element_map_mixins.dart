@@ -402,12 +402,19 @@ abstract class KernelToElementMapForImpactMixin
     return nativeBehaviorBuilder.buildFieldStoreBehavior(type);
   }
 
-  /// Computes the native behavior for calling [procedure].
+  /// Computes the native behavior for calling [member].
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure,
+  native.NativeBehavior getNativeBehaviorForMethod(ir.Member member,
       {bool isJsInterop}) {
-    DartType type = getFunctionType(procedure.function);
-    List<ConstantValue> metadata = getMetadata(procedure.annotations);
+    DartType type;
+    if (member is ir.Procedure) {
+      type = getFunctionType(member.function);
+    } else if (member is ir.Constructor) {
+      type = getFunctionType(member.function);
+    } else {
+      failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected method node $member.");
+    }
+    List<ConstantValue> metadata = getMetadata(member.annotations);
     return nativeBehaviorBuilder.buildMethodBehavior(
         type, metadata, typeLookup(resolveAsRaw: false),
         isJsInterop: isJsInterop);

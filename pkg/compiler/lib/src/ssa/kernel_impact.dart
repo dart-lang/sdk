@@ -137,6 +137,14 @@ class KernelImpactBuilder extends ir.Visitor {
     handleSignature(constructor.function, checkReturnType: false);
     visitNodes(constructor.initializers);
     visitNode(constructor.function.body);
+    if (constructor.isExternal &&
+        !elementAdapter.isForeignLibrary(constructor.enclosingLibrary)) {
+      MemberEntity member = elementAdapter.getMember(constructor);
+      bool isJsInterop =
+          elementAdapter.nativeBasicData.isJsInteropMember(member);
+      impactBuilder.registerNativeData(elementAdapter
+          .getNativeBehaviorForMethod(constructor, isJsInterop: isJsInterop));
+    }
     return impactBuilder;
   }
 

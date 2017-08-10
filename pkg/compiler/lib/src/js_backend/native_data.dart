@@ -291,9 +291,31 @@ class NativeBasicDataImpl implements NativeBasicData {
     return jsInteropClasses.containsKey(element);
   }
 
+  bool _isJsInteropMember(MemberEntity element) {
+    return jsInteropMembers.containsKey(element);
+  }
+
   @override
   bool isJsInteropMember(MemberEntity element) {
-    return jsInteropMembers.containsKey(element);
+    // TODO(johnniwinther): Share this with [NativeDataImpl.isJsInteropMember].
+    if (element.isFunction ||
+        element.isConstructor ||
+        element.isGetter ||
+        element.isSetter) {
+      FunctionEntity function = element;
+      if (!function.isExternal) return false;
+
+      if (_isJsInteropMember(function)) return true;
+      if (function.enclosingClass != null) {
+        return isJsInteropClass(function.enclosingClass);
+      }
+      if (function.isTopLevel) {
+        return isJsInteropLibrary(function.library);
+      }
+      return false;
+    } else {
+      return _isJsInteropMember(element);
+    }
   }
 
   @override

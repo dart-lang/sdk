@@ -30,9 +30,6 @@ import 'test_helpers.dart';
 const Map<String, String> SOURCE = const <String, String>{
   // Pretend this is a dart2js_native test to allow use of 'native' keyword.
   'sdk/tests/compiler/dart2js_native/main.dart': r'''
-@JS()
-library test;
-
 import 'dart:_foreign_helper' as foreign show JS;
 import 'dart:_foreign_helper' hide JS;
 import 'dart:_js_helper';
@@ -44,8 +41,8 @@ import 'dart:html_common';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:web_sql';
-import 'package:js/js.dart';
 import 'helper.dart';
+import 'jsinterop.dart';
 
 main() {
   testEmpty();
@@ -698,12 +695,20 @@ testMixinInstantiation() => new Sub();
 testNamedMixinInstantiation() => new NamedMixin();
 testGenericMixinInstantiation() => new GenericSub<int, String>();
 testGenericNamedMixinInstantiation() => new GenericNamedMixin<int, String>();
+''',
+  'sdk/tests/compiler/dart2js_native/jsinterop.dart': '''
+@JS()
+library jsinterop;
+
+import 'package:js/js.dart';
 
 @JS()
 external int testJsInteropMethod();
 
 @JS()
 class JsInteropClass {
+  external JsInteropClass();
+
   @JS()
   external double method();
 }

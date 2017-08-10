@@ -15,11 +15,12 @@ import '../type_test_helper.dart';
 
 void main() {
   asyncTest(() async {
-    await testClasses();
+    await testClasses(CompileMode.memory);
+    await testClasses(CompileMode.dill);
   });
 }
 
-testClasses() async {
+testClasses(CompileMode compileMode) async {
   test(String mainSource,
       {List<String> directlyInstantiated: const <String>[],
       List<String> abstractlyInstantiated: const <String>[],
@@ -77,7 +78,7 @@ newF() => new F(5);
 import 'package:js/js.dart';
 
 $mainSource
-""", compileMode: CompileMode.memory);
+""", compileMode: compileMode);
     Map<String, ClassEntity> classEnvironment = <String, ClassEntity>{};
 
     ClassEntity registerClass(ClassEntity cls) {
