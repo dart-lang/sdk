@@ -247,6 +247,26 @@ void myMethod() {
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
+  /// When a line contains the end of a label, we need to ensure we also include any
+  /// other labels that end on the same line, even if they are 1-2 lines, otherwise
+  /// it isn't obvious which closing bracket goes with the label.
+  test_mixedLineSpanning() async {
+    String content = """
+main() {
+    /*1*/expectedLabels.forEach((m) {
+      /*2*/expect(
+          labels,
+          /*3*/contains(
+              /*4*/new ClosingLabel(expectedStart, expectedLength, expectedLabel)/*4:ClosingLabel*/)/*3:contains*/)/*2:expect*/;
+    })/*1:expectedLabels.forEach*/;
+  }
+}
+  """;
+
+    var labels = await _computeElements(content);
+    _compareLabels(labels, content, expectedLabelCount: 4);
+  }
+
   test_knownBadCode1() async {
     // This code crashed during testing when I accidentally inserted a test snippet.
     String content = """

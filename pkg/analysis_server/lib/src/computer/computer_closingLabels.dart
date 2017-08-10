@@ -7,13 +7,18 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
 
+class _ClosingLabelWithLineCount {
+  ClosingLabel label;
+  int spannedLines;
+}
+
 /**
  * A computer for [CompilationUnit] closing labels.
  */
 class DartUnitClosingLabelsComputer {
   final LineInfo _lineInfo;
   final CompilationUnit _unit;
-  final List<ClosingLabel> _closingLabels = <ClosingLabel>[];
+  final Map<int, List<_ClosingLabelWithLineCount>> _closingLabelsByEndLine = {};
 
   DartUnitClosingLabelsComputer(this._lineInfo, this._unit);
 
@@ -22,7 +27,11 @@ class DartUnitClosingLabelsComputer {
    */
   List<ClosingLabel> compute() {
     _unit.accept(new _DartUnitClosingLabelsComputerVisitor(this));
-    return _closingLabels;
+    return _closingLabelsByEndLine.values
+        .where((l) => l.any((cl) => cl.spannedLines >= 2))
+        .expand((cls) => cls)
+        .map((clwlc) => clwlc.label)
+        .toList();
   }
 }
 
@@ -37,19 +46,17 @@ class _DartUnitClosingLabelsComputerVisitor
 
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (_spansManyLines(node)) {
-      var label = node.constructorName.type.name.name;
-      if (node.constructorName.name != null)
-        label += ".${node.constructorName.name.name}";
-      _addLabel(node, label);
-    }
+    var label = node.constructorName.type.name.name;
+    if (node.constructorName.name != null)
+      label += ".${node.constructorName.name.name}";
+    _addLabel(node, label);
 
     return super.visitInstanceCreationExpression(node);
   }
 
   @override
   Object visitMethodInvocation(MethodInvocation node) {
-    if (node.argumentList != null && _spansManyLines(node)) {
+    if (node.argumentList != null) {
       final target = node.target;
       final label = target is Identifier
           ? "${target.name}.${node.methodName.name}"
@@ -62,27 +69,27 @@ class _DartUnitClosingLabelsComputerVisitor
 
   @override
   visitListLiteral(ListLiteral node) {
-    if (_spansManyLines(node)) {
-      final args = node.typeArguments?.arguments;
-      final typeName = args != null ? args[0]?.toString() : null;
+    final args = node.typeArguments?.arguments;
+    final typeName = args != null ? args[0]?.toString() : null;
 
-      if (typeName != null) {
-        _addLabel(node, "List<$typeName>");
-      }
+    if (typeName != null) {
+      _addLabel(node, "List<$typeName>");
     }
 
     return super.visitListLiteral(node);
   }
 
-  bool _spansManyLines(AstNode node) {
+  void _addLabel(AstNode node, String label) {
     final start = computer._lineInfo.getLocation(node.offset);
     final end = computer._lineInfo.getLocation(node.end - 1);
+    final closingLabel = new ClosingLabel(node.offset, node.length, label);
+    final labelWithSpan = new _ClosingLabelWithLineCount()
+      ..label = closingLabel
+      ..spannedLines = end.lineNumber - start.lineNumber;
 
-    return end.lineNumber - start.lineNumber > 1;
-  }
-
-  void _addLabel(AstNode node, String label) {
-    computer._closingLabels
-        .add(new ClosingLabel(node.offset, node.length, label));
+    if (!computer._closingLabelsByEndLine.containsKey(end.lineNumber)) {
+      computer._closingLabelsByEndLine[end.lineNumber] = [];
+    }
+    computer._closingLabelsByEndLine[end.lineNumber].add(labelWithSpan);
   }
 }
