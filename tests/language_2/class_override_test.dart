@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// It is a static warning if a method m1 overrides a method m2 and has a
+// It is a static compile time error if a method m1 overrides a method m2 and has a
 // different number of required parameters.
 
 class A {
@@ -10,14 +10,9 @@ class A {
 }
 
 class B extends A {
-  foo(a) {} // //# 00: static type warning
+  /*@compile-error=unspecified*/ foo(a) {} 
 }
 
 main() {
-  B instance = new B();
-  try {
-    instance.foo();
-  } on NoSuchMethodError catch (error) { // //# 00: continued
-  } finally {}
-  print("Success");
+  new B().foo(42);
 }

@@ -30,12 +30,6 @@ checked_setter3_test: Skip
 checked_setter_test: Skip
 class_cycle2_test: Skip
 class_cycle_test: Skip
-class_keyword_test: Skip
-class_literal_test: Skip
-class_override_test: Skip
-class_syntax_test: Skip
-closure_in_initializer_test: Skip
-closure_internals_test: Skip
 closure_type_test: Skip
 closure_with_super_field_test: Skip
 compile_time_constant10_test: Skip

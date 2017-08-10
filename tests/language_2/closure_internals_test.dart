@@ -10,7 +10,7 @@ class C {
 
 main() {
   var f = new C().foo;
-  Expect.throws(() => f.target, (e) => e is NoSuchMethodError);
-  Expect.throws(() => f.self, (e) => e is NoSuchMethodError);
-  Expect.throws(() => f.receiver, (e) => e is NoSuchMethodError);
+  var target = f.target; //# 01: compile-time error
+  var self = f.self; //# 02: compile-time error
+  var receiver = f.receiver; //# 03: compile-time error
 }
