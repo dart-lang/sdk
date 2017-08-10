@@ -77,6 +77,8 @@ class Generic<T> {
 
 var toplevel;
 
+typedef Typedef();
+
 main() {
   foo();
   bar(true);
@@ -137,6 +139,8 @@ main() {
     return 400 + x;
   };
   x = f(x);
+  x = Object;
+  x = Typedef;
   return x;
 }
 typedef NoArg();

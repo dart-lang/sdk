@@ -922,7 +922,7 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
   @override
   String getTypeRepresentationForTypeConstant(DartType type) {
     if (type.isDynamic) return "dynamic";
-    if (type is ResolutionTypedefType) {
+    if (type is TypedefType) {
       return namer.uniqueNameForTypeConstantElement(
           type.element.library, type.element);
     }

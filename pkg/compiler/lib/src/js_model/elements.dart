@@ -101,6 +101,11 @@ class JsElementCreatorMixin {
     return new JClass(library, classIndex, name, isAbstract: isAbstract);
   }
 
+  IndexedTypedef createTypedef(
+      LibraryEntity library, int typedefIndex, String name) {
+    return new JTypedef(library, typedefIndex, name);
+  }
+
   TypeVariableEntity createTypeVariable(
       int typeVariableIndex, Entity typeDeclaration, String name, int index) {
     return new JTypeVariable(typeVariableIndex, typeDeclaration, name, index);
@@ -263,6 +268,12 @@ class TypeConverter implements DartTypeVisitor<DartType, EntityConverter> {
   }
 
   @override
+  DartType visitTypedefType(TypedefType type, EntityConverter converter) {
+    return new TypedefType(
+        converter(type.element), visitList(type.typeArguments, converter));
+  }
+
+  @override
   DartType visitFunctionType(FunctionType type, EntityConverter converter) {
     return new FunctionType(
         visit(type.returnType, converter),
@@ -312,6 +323,19 @@ class JClass implements ClassEntity, IndexedClass {
   bool get isClosure => false;
 
   String toString() => '${jsElementPrefix}class($name)';
+}
+
+class JTypedef implements TypedefEntity, IndexedTypedef {
+  final JLibrary library;
+
+  /// Typedef index used for fast lookup in [JsToFrontendMapImpl].
+  final int typedefIndex;
+
+  final String name;
+
+  JTypedef(this.library, this.typedefIndex, this.name);
+
+  String toString() => '${jsElementPrefix}typedef($name)';
 }
 
 abstract class JMember implements MemberEntity, IndexedMember {

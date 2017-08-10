@@ -82,6 +82,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   List<ClassEntity> _classList = <ClassEntity>[];
   List<MemberEntity> _memberList = <MemberEntity>[];
   List<TypeVariableEntity> _typeVariableList = <TypeVariableEntity>[];
+  List<TypedefEntity> _typedefList = <TypedefEntity>[];
 
   /// List of library environments by `IndexedLibrary.libraryIndex`. This is
   /// used for fast lookup into library classes and members.
@@ -102,6 +103,10 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   /// List of member data by `IndexedMember.memberIndex`. This is used for
   /// fast lookup into member properties.
   List<MemberData> _memberData = <MemberData>[];
+
+  /// List of typedef data by `IndexedTypedef.typedefIndex`. This is used for
+  /// fast lookup into typedef properties.
+  List<TypedefData> _typedefData = <TypedefData>[];
 
   KernelToElementMapBase(this.reporter, Environment environment) {
     _elementEnvironment = new KernelElementEnvironment(this);
@@ -322,6 +327,14 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
       }
     }
   }
+
+  @override
+  TypedefType getTypedefType(ir.Typedef node) {
+    IndexedTypedef typedef = _getTypedef(node);
+    return _typedefData[typedef.typedefIndex].rawType;
+  }
+
+  TypedefEntity _getTypedef(ir.Typedef node);
 
   @override
   MemberEntity getMember(ir.Member node) {
@@ -611,9 +624,12 @@ abstract class ElementCreatorMixin {
   List<MemberEntity> get _memberList;
   List<MemberData> get _memberData;
   List<TypeVariableEntity> get _typeVariableList;
+  List<TypedefEntity> get _typedefList;
+  List<TypedefData> get _typedefData;
 
   Map<ir.Library, IndexedLibrary> _libraryMap = <ir.Library, IndexedLibrary>{};
   Map<ir.Class, IndexedClass> _classMap = <ir.Class, IndexedClass>{};
+  Map<ir.Typedef, IndexedTypedef> _typedefMap = <ir.Typedef, IndexedTypedef>{};
   Map<ir.TypeParameter, IndexedTypeVariable> _typeVariableMap =
       <ir.TypeParameter, IndexedTypeVariable>{};
   Map<ir.Member, IndexedConstructor> _constructorMap =
@@ -668,6 +684,21 @@ abstract class ElementCreatorMixin {
           .add(new ClassData(node, new RegularClassDefinition(cls, node)));
       _classList.add(cls);
       return cls;
+    });
+  }
+
+  TypedefEntity _getTypedef(ir.Typedef node) {
+    return _typedefMap.putIfAbsent(node, () {
+      IndexedLibrary library = _getLibrary(node.enclosingLibrary);
+      TypedefEntity typedef =
+          createTypedef(library, _typedefList.length, node.name);
+      TypedefType typedefType = new TypedefType(
+          typedef,
+          new List<DartType>.filled(
+              node.typeParameters.length, const DynamicType()));
+      _typedefData.add(new TypedefData(node, typedef, typedefType));
+      _typedefList.add(typedef);
+      return typedef;
     });
   }
 
@@ -855,6 +886,9 @@ abstract class ElementCreatorMixin {
   IndexedClass createClass(LibraryEntity library, int classIndex, String name,
       {bool isAbstract});
 
+  IndexedTypedef createTypedef(
+      LibraryEntity library, int typedefIndex, String name);
+
   TypeVariableEntity createTypeVariable(
       int typeVariableIndex, Entity typeDeclaration, String name, int index);
 
@@ -909,6 +943,12 @@ abstract class KElementCreatorMixin implements ElementCreatorMixin {
   IndexedClass createClass(LibraryEntity library, int classIndex, String name,
       {bool isAbstract}) {
     return new KClass(library, classIndex, name, isAbstract: isAbstract);
+  }
+
+  @override
+  IndexedTypedef createTypedef(
+      LibraryEntity library, int typedefIndex, String name) {
+    throw new UnsupportedError('KElementCreatorMixin.createTypedef');
   }
 
   TypeVariableEntity createTypeVariable(

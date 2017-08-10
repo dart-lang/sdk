@@ -712,8 +712,8 @@ class TypeEquivalence
   }
 
   @override
-  bool visitTypedefType(
-      ResolutionTypedefType type, covariant ResolutionTypedefType other) {
+  bool visitTypedefType(covariant ResolutionTypedefType type,
+      covariant ResolutionTypedefType other) {
     return visitGenericType(type, other);
   }
 }

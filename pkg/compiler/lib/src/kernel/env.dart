@@ -593,3 +593,11 @@ class FieldDataImpl extends MemberDataImpl implements FieldData {
     return new FieldDataImpl(node, definition);
   }
 }
+
+class TypedefData {
+  final ir.Typedef node;
+  final TypedefEntity element;
+  final TypedefType rawType;
+
+  TypedefData(this.node, this.element, this.rawType);
+}

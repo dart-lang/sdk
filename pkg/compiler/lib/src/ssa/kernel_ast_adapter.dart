@@ -375,6 +375,11 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
         getClass(cls), getDartTypes(typeArguments));
   }
 
+  @override
+  TypedefType getTypedefType(ir.Typedef node) {
+    throw new UnsupportedError('KernelAstAdapter.getTypedefType');
+  }
+
   FunctionEntity getConstructorBody(ir.Constructor constructor) {
     AstElement element = getElement(constructor);
     MemberEntity constructorBody =

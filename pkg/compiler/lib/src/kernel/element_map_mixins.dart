@@ -624,16 +624,26 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
 
   @override
   ConstantExpression visitTypeLiteral(ir.TypeLiteral node) {
-    DartType type = elementMap.getDartType(node.type);
     String name;
+    DartType type = elementMap.getDartType(node.type);
     if (type.isDynamic) {
       name = 'dynamic';
     } else if (type is InterfaceType) {
       name = type.element.name;
-    } else if (type.isFunctionType || type.isTypedef) {
+    } else if (type.isTypedef) {
       // TODO(johnniwinther): Compute a name for the type literal? It is only
       // used in error messages in the old SSA builder.
       name = '?';
+    } else if (node.type is ir.FunctionType) {
+      ir.FunctionType functionType = node.type;
+      if (functionType.typedef != null) {
+        type = elementMap.getTypedefType(functionType.typedef);
+        name = functionType.typedef.name;
+      } else {
+        // TODO(johnniwinther): Remove branch when [KernelAstAdapter] is
+        // removed.
+        name = '?';
+      }
     } else {
       return defaultExpression(node);
     }

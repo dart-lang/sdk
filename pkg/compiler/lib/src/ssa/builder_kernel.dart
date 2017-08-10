@@ -2124,11 +2124,18 @@ class KernelSsaGraphBuilder extends ir.Visitor
   @override
   void visitTypeLiteral(ir.TypeLiteral typeLiteral) {
     ir.DartType type = typeLiteral.type;
-    if (type is ir.InterfaceType || type is ir.DynamicType) {
+    if (type is ir.InterfaceType ||
+        type is ir.DynamicType ||
+        type is ir.TypedefType ||
+        type is ir.FunctionType) {
       ConstantValue constant = _elementMap.getConstantValue(typeLiteral);
       stack.add(graph.addConstant(constant, closedWorld));
       return;
     }
+    assert(
+        type is ir.TypeParameterType,
+        failedAt(CURRENT_ELEMENT_SPANNABLE,
+            "Unexpected type literal ${typeLiteral}."));
     // For other types (e.g. TypeParameterType, function types from expanded
     // typedefs), look-up or construct a reified type representation and convert
     // to a RuntimeType.

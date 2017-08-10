@@ -32,3 +32,8 @@ abstract class IndexedTypeVariable implements TypeVariableEntity {
   /// Type variable index used for fast lookup in [KernelToElementMapBase].
   int get typeVariableIndex;
 }
+
+abstract class IndexedTypedef implements TypedefEntity {
+  /// Typedef index used for fast lookup in [KernelToElementMapBase].
+  int get typedefIndex;
+}

@@ -741,8 +741,10 @@ class TypeConstantExpression extends ConstantExpression {
     assert(
         type.isInterfaceType ||
             type.isTypedef ||
-            type.isFunctionType ||
-            type.isDynamic,
+            type.isDynamic ||
+            // TODO(johnniwinther): Remove `type.isFunctionType` when
+            // [KernelAstAdapter] is removed.
+            type.isFunctionType,
         "Unexpected type constant type: $type");
   }
 

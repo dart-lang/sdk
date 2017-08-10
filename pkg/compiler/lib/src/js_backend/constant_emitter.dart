@@ -6,7 +6,6 @@ import '../common.dart';
 import '../common_elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart' show ResolutionTypedefType;
 import '../elements/types.dart';
 import '../io/code_output.dart';
 import '../js/js.dart' as jsAst;
@@ -282,7 +281,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     Entity element;
     if (type is InterfaceType) {
       element = type.element;
-    } else if (type is ResolutionTypedefType) {
+    } else if (type is TypedefType) {
       // TODO(redemption): Handle typedef type literals from .dill.
       element = type.element;
     } else {
