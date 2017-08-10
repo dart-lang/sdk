@@ -320,9 +320,6 @@ class TranslationHelper {
   }
   dart::String& DartString(StringIndex string_index, Heap::Space space);
 
-  dart::String& DartString(const uint8_t* utf8_array, intptr_t len) {
-    return DartString(utf8_array, len, allocation_space_);
-  }
   dart::String& DartString(const uint8_t* utf8_array,
                            intptr_t len,
                            Heap::Space space);
@@ -932,8 +929,6 @@ class CatchBlock {
 RawObject* EvaluateMetadata(const dart::Field& metadata_field);
 RawObject* BuildParameterDescriptor(const Function& function);
 void CollectTokenPositionsFor(const Script& script);
-String& GetSourceFor(const Script& script);
-Array& GetLineStartsFor(const Script& script);
 
 }  // namespace kernel
 }  // namespace dart

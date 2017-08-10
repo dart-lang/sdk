@@ -877,6 +877,8 @@ void RawField::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectImpl(ptr()->owner_, kAsReference);
   // Write out the type.
   writer->WriteObjectImpl(ptr()->type_, kAsReference);
+  // Write out the kernel_data.
+  writer->WriteObjectImpl(ptr()->kernel_data_, kAsReference);
   // Write out the initial static value or field offset.
   if (Field::StaticBit::decode(ptr()->kind_bits_)) {
     if (Field::ConstBit::decode(ptr()->kind_bits_)) {

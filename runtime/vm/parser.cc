@@ -227,10 +227,9 @@ void ParsedFunction::Bailout(const char* origin, const char* reason) const {
 
 kernel::ScopeBuildingResult* ParsedFunction::EnsureKernelScopes() {
   if (kernel_scopes_ == NULL) {
-    intptr_t kernel_offset = function().kernel_offset();
-    Script& script = Script::Handle(Z, function().script());
     kernel::StreamingScopeBuilder builder(
-        this, kernel_offset, script.kernel_data(), script.kernel_data_size());
+        this, function().kernel_offset(),
+        TypedData::Handle(Z, function().kernel_data()));
     kernel_scopes_ = builder.BuildScopes();
   }
   return kernel_scopes_;

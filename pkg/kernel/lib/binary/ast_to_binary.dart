@@ -396,7 +396,6 @@ class BinaryPrinter extends Visitor {
     if (node.canonicalName == null) {
       throw 'Missing canonical name for $node';
     }
-    node.binaryOffset = _sink.flushedLength + _sink.length;
     writeByte(Tag.Class);
     writeCanonicalNameReference(getCanonicalNameOfClass(node));
     writeOffset(node.fileOffset);
@@ -429,9 +428,6 @@ class BinaryPrinter extends Visitor {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
-    assert(node.parent is Class);
-    Class parent = node.parent;
-    writeUInt30(parent.binaryOffset);
     writeName(node.name ?? _emptyName);
     writeStringReference(node.documentationComment ?? '');
     writeAnnotationList(node.annotations);
@@ -455,12 +451,6 @@ class BinaryPrinter extends Visitor {
     writeOffset(node.fileEndOffset);
     writeByte(node.kind.index);
     writeByte(node.flags);
-    if (node.parent is Class) {
-      Class parent = node.parent;
-      writeUInt30(parent.binaryOffset);
-    } else {
-      writeUInt30(0); // 0 is a valid offset, but not for a class.
-    }
     writeName(node.name ?? '');
     writeUriReference(node.fileUri ?? '');
     writeStringReference(node.documentationComment ?? '');
@@ -479,12 +469,6 @@ class BinaryPrinter extends Visitor {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
-    if (node.parent is Class) {
-      Class parent = node.parent;
-      writeUInt30(parent.binaryOffset);
-    } else {
-      writeUInt30(0); // 0 is a valid offset, but not for a class.
-    }
     writeName(node.name);
     writeUriReference(node.fileUri ?? '');
     writeStringReference(node.documentationComment ?? '');
@@ -1178,7 +1162,6 @@ class BinaryPrinter extends Visitor {
   }
 
   visitTypeParameter(TypeParameter node) {
-    node.binaryOffset = _sink.flushedLength + _sink.length;
     writeStringReference(node.name ?? '');
     writeNode(node.bound);
   }

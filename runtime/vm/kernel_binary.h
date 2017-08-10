@@ -137,21 +137,29 @@ static const int SpecializedIntLiteralBias = 3;
 class Reader {
  public:
   Reader(const uint8_t* buffer, intptr_t size)
-      : buffer_(buffer), size_(size), offset_(0) {}
+      : raw_buffer_(buffer), typed_data_(NULL), size_(size), offset_(0) {}
+
+  explicit Reader(const TypedData& typed_data)
+      : raw_buffer_(NULL),
+        typed_data_(&typed_data),
+        size_(typed_data.IsNull() ? 0 : typed_data.Length()),
+        offset_(0) {}
 
   uint32_t ReadUInt32() {
     ASSERT(offset_ + 4 <= size_);
 
-    uint32_t value = (buffer_[offset_ + 0] << 24) |
-                     (buffer_[offset_ + 1] << 16) |
-                     (buffer_[offset_ + 2] << 8) | (buffer_[offset_ + 3] << 0);
+    const uint8_t* buffer = this->buffer();
+    uint32_t value = (buffer[offset_ + 0] << 24) | (buffer[offset_ + 1] << 16) |
+                     (buffer[offset_ + 2] << 8) | (buffer[offset_ + 3] << 0);
     offset_ += 4;
     return value;
   }
 
   uint32_t ReadUInt() {
     ASSERT(offset_ + 1 <= size_);
-    uint8_t byte0 = buffer_[offset_];
+
+    const uint8_t* buffer = this->buffer();
+    uint8_t byte0 = buffer[offset_];
     if ((byte0 & 0x80) == 0) {
       // 0...
       offset_++;
@@ -159,15 +167,14 @@ class Reader {
     } else if ((byte0 & 0xc0) == 0x80) {
       // 10...
       ASSERT(offset_ + 2 <= size_);
-      uint32_t value = ((byte0 & ~0x80) << 8) | (buffer_[offset_ + 1]);
+      uint32_t value = ((byte0 & ~0x80) << 8) | (buffer[offset_ + 1]);
       offset_ += 2;
       return value;
     } else {
       // 11...
       ASSERT(offset_ + 4 <= size_);
-      uint32_t value = ((byte0 & ~0xc0) << 24) | (buffer_[offset_ + 1] << 16) |
-                       (buffer_[offset_ + 2] << 8) |
-                       (buffer_[offset_ + 3] << 0);
+      uint32_t value = ((byte0 & ~0xc0) << 24) | (buffer[offset_ + 1] << 16) |
+                       (buffer[offset_ + 2] << 8) | (buffer[offset_ + 3] << 0);
       offset_ += 4;
       return value;
     }
@@ -175,10 +182,6 @@ class Reader {
 
   /**
    * Read and return a TokenPosition from this reader.
-   * @param record specifies whether or not the read position is saved as a
-   * valid token position in the current script.
-   * If not be sure to record it later by calling record_token_position (after
-   * setting the correct current_script_id).
    */
   TokenPosition ReadPosition() {
     // Position is saved as unsigned,
@@ -197,9 +200,9 @@ class Reader {
 
   intptr_t ReadListLength() { return ReadUInt(); }
 
-  uint8_t ReadByte() { return buffer_[offset_++]; }
+  uint8_t ReadByte() { return buffer()[offset_++]; }
 
-  uint8_t PeekByte() { return buffer_[offset_]; }
+  uint8_t PeekByte() { return buffer()[offset_]; }
 
   bool ReadBool() { return (ReadByte() & 1) == 1; }
 
@@ -231,13 +234,6 @@ class Reader {
     }
   }
 
-  const uint8_t* Consume(int count) {
-    ASSERT(offset_ + count <= size_);
-    const uint8_t* old = buffer_ + offset_;
-    offset_ += count;
-    return old;
-  }
-
   void EnsureEnd() {
     if (offset_ != size_) {
       FATAL2(
@@ -256,33 +252,55 @@ class Reader {
   // but can be overwritten (e.g. via the PositionScope class).
   TokenPosition min_position() { return min_position_; }
 
-  template <typename T, typename RT>
-  T* ReadOptional() {
-    Tag tag = ReadTag();
-    if (tag == kNothing) {
-      return NULL;
-    }
-    ASSERT(tag == kSomething);
-    return RT::ReadFrom(this);
-  }
-
-  template <typename T>
-  T* ReadOptional() {
-    return ReadOptional<T, T>();
-  }
-
   // A canonical name reference of -1 indicates none (for optional names), not
   // the root name as in the canonical name table.
   NameIndex ReadCanonicalNameReference() { return NameIndex(ReadUInt() - 1); }
 
   intptr_t offset() { return offset_; }
   void set_offset(intptr_t offset) { offset_ = offset; }
-  intptr_t size() { return size_; }
 
-  const uint8_t* buffer() { return buffer_; }
+  intptr_t size() { return size_; }
+  void set_size(intptr_t size) { size_ = size; }
+
+  const TypedData* typed_data() { return typed_data_; }
+  void set_typed_data(const TypedData* typed_data) { typed_data_ = typed_data; }
+
+  const uint8_t* raw_buffer() { return raw_buffer_; }
+  void set_raw_buffer(const uint8_t* raw_buffer) { raw_buffer_ = raw_buffer; }
+
+  TypedData& CopyDataToVMHeap(Zone* zone,
+                              intptr_t from_byte,
+                              intptr_t to_byte) {
+    intptr_t size = to_byte - from_byte;
+    TypedData& data = TypedData::Handle(
+        zone, TypedData::New(kTypedDataUint8ArrayCid, size, Heap::kOld));
+    {
+      NoSafepointScope no_safepoint;
+      memmove(data.DataAddr(0), buffer() + from_byte, size);
+    }
+    return data;
+  }
+
+  uint8_t* CopyDataIntoZone(Zone* zone, intptr_t offset, intptr_t length) {
+    uint8_t* buffer_ = zone->Alloc<uint8_t>(length);
+    {
+      NoSafepointScope no_safepoint;
+      memmove(buffer_, buffer() + offset, length);
+    }
+    return buffer_;
+  }
 
  private:
-  const uint8_t* buffer_;
+  const uint8_t* buffer() {
+    if (raw_buffer_ != NULL) {
+      return raw_buffer_;
+    }
+    NoSafepointScope no_safepoint;
+    return reinterpret_cast<uint8_t*>(typed_data_->DataAddr(0));
+  }
+
+  const uint8_t* raw_buffer_;
+  const TypedData* typed_data_;
   intptr_t size_;
   intptr_t offset_;
   TokenPosition max_position_;

@@ -246,9 +246,6 @@ type Field extends Member {
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte flags (isFinal, isConst, isStatic);
-  // Byte offset in the binary for the parent class,
-  // or 0 if parent is not a class
-  UInt parentPosition;
   Name name;
   // An absolute path URI to the .dart file from which the field was created.
   UriReference fileUri;
@@ -263,7 +260,6 @@ type Constructor extends Member {
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte flags (isConst, isExternal);
-  UInt parentPosition; // Byte offset in the binary for the parent class.
   Name name;
   List<Expression> annotations;
   FunctionNode function;
@@ -287,9 +283,6 @@ type Procedure extends Member {
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
   Byte flags (isStatic, isAbstract, isExternal, isConst);
-  // Byte offset in the binary for the parent class,
-  // or 0 if parent is not a class.
-  UInt parentPosition;
   Name name;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;

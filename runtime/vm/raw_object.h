@@ -878,6 +878,7 @@ class RawFunction : public RawObject {
   RawArray* parameter_names_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawObject* data_;  // Additional data specific to the function kind.
+  RawTypedData* kernel_data_;
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&ptr()->data_);
   }
@@ -964,6 +965,7 @@ class RawField : public RawObject {
   RawObject* owner_;  // Class or patch class or mixin class
                       // where this field is defined or original field.
   RawAbstractType* type_;
+  RawTypedData* kernel_data_;
   union {
     RawInstance* static_value_;  // Value for static fields.
     RawSmi* offset_;             // Offset in words for instance fields.
@@ -1089,8 +1091,6 @@ class RawScript : public RawObject {
   int32_t col_offset_;
   int8_t kind_;  // Of type Kind.
   int64_t load_timestamp_;
-  const uint8_t* kernel_data_;
-  intptr_t kernel_data_size_;
   intptr_t kernel_script_index_;
 };
 

@@ -634,11 +634,7 @@ FlowGraphBuilder::FlowGraphBuilder(
   H.SetCanonicalNames(TypedData::Handle(Z, script.kernel_canonical_names()));
 }
 
-FlowGraphBuilder::~FlowGraphBuilder() {
-  if (streaming_flow_graph_builder_ != NULL) {
-    delete streaming_flow_graph_builder_;
-  }
-}
+FlowGraphBuilder::~FlowGraphBuilder() {}
 
 Fragment FlowGraphBuilder::TranslateFinallyFinalizers(
     TryFinallyBlock* outer_finally,
@@ -1650,16 +1646,13 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 
   if (function.IsConstructorClosureFunction()) return NULL;
 
-  if (streaming_flow_graph_builder_ != NULL) {
-    delete streaming_flow_graph_builder_;
-    streaming_flow_graph_builder_ = NULL;
-  }
-
-  Script& script = Script::Handle(Z, function.script());
-  streaming_flow_graph_builder_ = new StreamingFlowGraphBuilder(
-      this, script.kernel_data(), script.kernel_data_size());
-
-  return streaming_flow_graph_builder_->BuildGraph(kernel_offset_);
+  StreamingFlowGraphBuilder streaming_flow_graph_builder(
+      this, function.kernel_offset(),
+      TypedData::Handle(Z, function.kernel_data()));
+  streaming_flow_graph_builder_ = &streaming_flow_graph_builder;
+  FlowGraph* result = streaming_flow_graph_builder_->BuildGraph(0);
+  streaming_flow_graph_builder_ = NULL;
+  return result;
 }
 
 Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
@@ -2248,9 +2241,9 @@ RawObject* EvaluateMetadata(const dart::Field& metadata_field) {
         TypedData::Handle(Z, script.kernel_canonical_names()));
 
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
-        &helper, zone_, script.kernel_data(), script.kernel_data_size());
-    return streaming_flow_graph_builder.EvaluateMetadata(
-        metadata_field.kernel_offset());
+        &helper, zone_, metadata_field.kernel_offset(),
+        TypedData::Handle(Z, metadata_field.kernel_data()));
+    return streaming_flow_graph_builder.EvaluateMetadata(0);
   } else {
     Thread* thread = Thread::Current();
     Error& error = Error::Handle();
@@ -2274,9 +2267,9 @@ RawObject* BuildParameterDescriptor(const Function& function) {
         TypedData::Handle(Z, script.kernel_canonical_names()));
 
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
-        &helper, zone_, script.kernel_data(), script.kernel_data_size());
-    return streaming_flow_graph_builder.BuildParameterDescriptor(
-        function.kernel_offset());
+        &helper, zone_, function.kernel_offset(),
+        TypedData::Handle(Z, function.kernel_data()));
+    return streaming_flow_graph_builder.BuildParameterDescriptor(0);
   } else {
     Thread* thread = Thread::Current();
     Error& error = Error::Handle();
@@ -2322,6 +2315,26 @@ static RawArray* AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
   return array_object.raw();
 }
 
+void ProcessTokenPositionsEntry(const TypedData& data,
+                                const Script& script,
+                                const Script& entry_script,
+                                intptr_t kernel_offset,
+                                Zone* zone_,
+                                TranslationHelper* helper,
+                                GrowableArray<intptr_t>* token_positions,
+                                GrowableArray<intptr_t>* yield_positions) {
+  if (data.IsNull() ||
+      script.kernel_string_offsets() != entry_script.kernel_string_offsets()) {
+    return;
+  }
+
+  StreamingFlowGraphBuilder streaming_flow_graph_builder(helper, zone_,
+                                                         kernel_offset, data);
+  streaming_flow_graph_builder.CollectTokenPositionsFor(
+      script.kernel_script_index(), entry_script.kernel_script_index(),
+      token_positions, yield_positions);
+}
+
 void CollectTokenPositionsFor(const Script& const_script) {
   Thread* thread = Thread::Current();
   Zone* zone_ = thread->zone();
@@ -2334,47 +2347,70 @@ void CollectTokenPositionsFor(const Script& const_script) {
 
   GrowableArray<intptr_t> token_positions(10);
   GrowableArray<intptr_t> yield_positions(1);
-  StreamingFlowGraphBuilder streaming_flow_graph_builder(
-      &helper, zone_, script.kernel_data(), script.kernel_data_size());
-  streaming_flow_graph_builder.CollectTokenPositionsFor(
-      script.kernel_script_index(), &token_positions, &yield_positions);
+
+  Isolate* isolate = thread->isolate();
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(Z, isolate->object_store()->libraries());
+  Library& lib = Library::Handle(Z);
+  Object& entry = Object::Handle();
+  Script& entry_script = Script::Handle(Z);
+  TypedData& data = TypedData::Handle(Z);
+  for (intptr_t i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    DictionaryIterator it(lib);
+    while (it.HasNext()) {
+      entry = it.GetNext();
+      data = TypedData::null();
+      if (entry.IsClass()) {
+        const Class& klass = Class::Cast(entry);
+        entry_script = klass.script();
+        if (!entry_script.IsNull() && script.kernel_script_index() ==
+                                          entry_script.kernel_script_index()) {
+          token_positions.Add(klass.token_pos().value());
+        }
+        Array& array = Array::Handle(zone_, klass.fields());
+        dart::Field& field = dart::Field::Handle(Z);
+        for (intptr_t i = 0; i < array.Length(); ++i) {
+          field ^= array.At(i);
+          data = field.kernel_data();
+          entry_script = field.Script();
+          ProcessTokenPositionsEntry(data, script, entry_script,
+                                     field.kernel_offset(), zone_, &helper,
+                                     &token_positions, &yield_positions);
+        }
+        array = klass.functions();
+        Function& function = Function::Handle(Z);
+        for (intptr_t i = 0; i < array.Length(); ++i) {
+          function ^= array.At(i);
+          data = function.kernel_data();
+          entry_script = function.script();
+          ProcessTokenPositionsEntry(data, script, entry_script,
+                                     function.kernel_offset(), zone_, &helper,
+                                     &token_positions, &yield_positions);
+        }
+      } else if (entry.IsFunction()) {
+        const Function& function = Function::Cast(entry);
+        data = function.kernel_data();
+        entry_script = function.script();
+        ProcessTokenPositionsEntry(data, script, entry_script,
+                                   function.kernel_offset(), zone_, &helper,
+                                   &token_positions, &yield_positions);
+      } else if (entry.IsField()) {
+        const dart::Field& field = dart::Field::Cast(entry);
+        data = field.kernel_data();
+        entry_script = field.Script();
+        ProcessTokenPositionsEntry(data, script, entry_script,
+                                   field.kernel_offset(), zone_, &helper,
+                                   &token_positions, &yield_positions);
+      }
+    }
+  }
+
   Array& array_object = Array::Handle(Z);
   array_object = AsSortedDuplicateFreeArray(&token_positions);
   script.set_debug_positions(array_object);
   array_object = AsSortedDuplicateFreeArray(&yield_positions);
   script.set_yield_positions(array_object);
-}
-
-String& GetSourceFor(const Script& const_script) {
-  Thread* thread = Thread::Current();
-  Zone* zone_ = thread->zone();
-  Script& script = Script::Handle(Z, const_script.raw());
-  TranslationHelper helper(thread);
-  helper.SetStringOffsets(TypedData::Handle(Z, script.kernel_string_offsets()));
-  helper.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
-  helper.SetCanonicalNames(
-      TypedData::Handle(Z, script.kernel_canonical_names()));
-
-  StreamingFlowGraphBuilder streaming_flow_graph_builder(
-      &helper, zone_, script.kernel_data(), script.kernel_data_size());
-  return streaming_flow_graph_builder.GetSourceFor(
-      script.kernel_script_index());
-}
-
-Array& GetLineStartsFor(const Script& const_script) {
-  Thread* thread = Thread::Current();
-  Zone* zone_ = thread->zone();
-  Script& script = Script::Handle(Z, const_script.raw());
-  TranslationHelper helper(thread);
-  helper.SetStringOffsets(TypedData::Handle(Z, script.kernel_string_offsets()));
-  helper.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
-  helper.SetCanonicalNames(
-      TypedData::Handle(Z, script.kernel_canonical_names()));
-
-  StreamingFlowGraphBuilder streaming_flow_graph_builder(
-      &helper, zone_, script.kernel_data(), script.kernel_data_size());
-  return streaming_flow_graph_builder.GetLineStartsFor(
-      script.kernel_script_index());
 }
 
 }  // namespace kernel

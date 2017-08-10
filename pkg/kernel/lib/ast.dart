@@ -632,9 +632,6 @@ class Class extends NamedNode {
   /// (this is the default if none is specifically set).
   int fileEndOffset = TreeNode.noOffset;
 
-  /// Offset of the declaration, set and used when writing the binary.
-  int binaryOffset = -1;
-
   /// The degree to which the contents of the class have been loaded.
   ClassLevel level = ClassLevel.Body;
 
@@ -4401,9 +4398,6 @@ class TypeParameter extends TreeNode {
   /// Should not be null except temporarily during IR construction.  Should
   /// be set to the root class for type parameters without an explicit bound.
   DartType bound;
-
-  /// Offset of the declaration, set and used when writing the binary.
-  int binaryOffset = 0;
 
   TypeParameter([this.name, this.bound]);
 

@@ -937,6 +937,7 @@ class FieldSerializationCluster : public SerializationCluster {
     s->Push(field->ptr()->name_);
     s->Push(field->ptr()->owner_);
     s->Push(field->ptr()->type_);
+    s->Push(field->ptr()->kernel_data_);
     // Write out the initial static value or field offset.
     if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
       if (kind == Snapshot::kFullAOT) {
@@ -987,6 +988,7 @@ class FieldSerializationCluster : public SerializationCluster {
       s->WriteRef(field->ptr()->name_);
       s->WriteRef(field->ptr()->owner_);
       s->WriteRef(field->ptr()->type_);
+      s->WriteRef(field->ptr()->kernel_data_);
       // Write out the initial static value or field offset.
       if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
         if (kind == Snapshot::kFullAOT) {
