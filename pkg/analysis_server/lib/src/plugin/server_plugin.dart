@@ -19,6 +19,7 @@ import 'package:analysis_server/src/domain_analytics.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:analysis_server/src/domain_execution.dart';
+import 'package:analysis_server/src/domain_kythe.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
@@ -309,6 +310,8 @@ class ServerPlugin implements Plugin {
         (AnalysisServer server) => new DiagnosticDomainHandler(server));
     registerExtension(domainId,
         (AnalysisServer server) => new AnalyticsDomainHandler(server));
+    registerExtension(
+        domainId, (AnalysisServer server) => new KytheDomainHandler(server));
 
     //
     // Register fix contributors.
