@@ -136,6 +136,9 @@ assertion_initializer_const_function_test/none: RuntimeError
 assertion_test: RuntimeError
 regress_30339_test: RuntimeError # Issue 26429
 
+[ $compiler == dart2js && $runtime == drt && $checked ]
+regress_30339_test: RuntimeError # Issue 30393
+
 [ $compiler == dart2js && $runtime == jsshell && $checked ]
 assertion_test: RuntimeError
 
