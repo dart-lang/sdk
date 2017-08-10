@@ -46,10 +46,16 @@ class _DartUnitClosingLabelsComputerVisitor
 
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var label = node.constructorName.type.name.name;
-    if (node.constructorName.name != null)
-      label += ".${node.constructorName.name.name}";
-    _addLabel(node, label);
+    if (node.argumentList != null) {
+      var label = node.constructorName.type.name.name;
+      if (node.constructorName.name != null)
+        label += ".${node.constructorName.name.name}";
+      // We override the node used for doing line calculations because otherwise constructors
+      // that split over multiple lines (but have parens on same line) would incorrectly
+      // get labels, because node.start on an instance creation expression starts at the start
+      // of the expression.
+      _addLabel(node, label, checkLinesUsing: node.argumentList);
+    }
 
     return super.visitInstanceCreationExpression(node);
   }
@@ -61,7 +67,10 @@ class _DartUnitClosingLabelsComputerVisitor
       final label = target is Identifier
           ? "${target.name}.${node.methodName.name}"
           : node.methodName.name;
-      _addLabel(node, label);
+      // We override the node used for doing line calculations because otherwise methods
+      // that chain over multiple lines (but have parens on same line) would incorrectly
+      // get labels, because node.start on a methodInvocation starts at the start of the expression.
+      _addLabel(node, label, checkLinesUsing: node.argumentList);
     }
 
     return super.visitMethodInvocation(node);
@@ -79,9 +88,10 @@ class _DartUnitClosingLabelsComputerVisitor
     return super.visitListLiteral(node);
   }
 
-  void _addLabel(AstNode node, String label) {
-    final start = computer._lineInfo.getLocation(node.offset);
-    final end = computer._lineInfo.getLocation(node.end - 1);
+  void _addLabel(AstNode node, String label, {AstNode checkLinesUsing}) {
+    checkLinesUsing = checkLinesUsing ?? node;
+    final start = computer._lineInfo.getLocation(checkLinesUsing.offset);
+    final end = computer._lineInfo.getLocation(checkLinesUsing.end - 1);
     final closingLabel = new ClosingLabel(node.offset, node.length, label);
     final labelWithSpan = new _ClosingLabelWithLineCount()
       ..label = closingLabel

@@ -267,6 +267,41 @@ main() {
     _compareLabels(labels, content, expectedLabelCount: 4);
   }
 
+  /// When chaining methods like this, the node's start position is on the first line
+  /// of the expression and not where the opening paren is, so this test ensures we
+  /// dont end up with lots of unwanted labels on each line here.
+  test_chainedMethodsOverManyLines() async {
+    String content = """
+List<ClosingLabel> compute() {
+  _unit.accept(new _DartUnitClosingLabelsComputerVisitor(this));
+  return _closingLabelsByEndLine.values
+      .where((l) => l.any((cl) => cl.spannedLines >= 2))
+      .expand((cls) => cls)
+      .map((clwlc) => clwlc.label)
+      .toList();
+}
+    """;
+
+    var labels = await _computeElements(content);
+    _compareLabels(labels, content, expectedLabelCount: 0);
+  }
+
+  /// When constructors span many like this, the node's start position is on the first line
+  /// of the expression and not where the opening paren is, so this test ensures we
+  /// dont end up with lots of unwanted labels on each line here.
+  test_chainedConstructorOverManyLines() async {
+    String content = """
+main() {
+  return new thing
+    .whatIsSplit
+    .acrossManyLines(1, 2);
+}
+    """;
+
+    var labels = await _computeElements(content);
+    _compareLabels(labels, content, expectedLabelCount: 0);
+  }
+
   test_knownBadCode1() async {
     // This code crashed during testing when I accidentally inserted a test snippet.
     String content = """
