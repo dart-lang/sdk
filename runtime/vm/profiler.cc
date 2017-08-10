@@ -84,8 +84,8 @@ void Profiler::InitOnce() {
 }
 
 void Profiler::InitAllocationSampleBuffer() {
-  if (FLAG_profiler_native_memory &&
-      (Profiler::allocation_sample_buffer_ == NULL)) {
+  ASSERT(Profiler::allocation_sample_buffer_ == NULL);
+  if (FLAG_profiler_native_memory) {
     Profiler::allocation_sample_buffer_ = new AllocationSampleBuffer();
   }
 }

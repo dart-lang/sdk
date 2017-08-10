@@ -30,7 +30,6 @@ class EnableMallocHooksScope : public ValueObject {
   EnableMallocHooksScope() {
     saved_enable_malloc_hooks_ = FLAG_profiler_native_memory;
     FLAG_profiler_native_memory = true;
-    Profiler::InitAllocationSampleBuffer();
     MallocHooks::InitOnce();
     MallocHooks::ResetStats();
   }
@@ -53,6 +52,7 @@ class EnableMallocHooksAndStacksScope : public EnableMallocHooksScope {
       FLAG_profiler = true;
       Profiler::InitOnce();
     }
+    MallocHooks::ResetStats();
   }
 
   ~EnableMallocHooksAndStacksScope() {
