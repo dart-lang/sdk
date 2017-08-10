@@ -17,3 +17,9 @@ function_type/*: Skip # Needs checked mode.
 cha_deopt1_test: Crash # Requires deferred libraries
 cha_deopt2_test: Crash # Requires deferred libraries
 cha_deopt3_test: Crash # Requires deferred libraries
+
+[ ! $strong ]
+class_literal_static_test: SkipByDesign # Requires strong mode
+class_override_test: SkipByDesign # Requires strong mode
+closure_internals_test: SkipByDesign # Requires strong mode
+closure_in_initializer_static_test: SkipByDesign # Requires strong mode

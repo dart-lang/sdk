@@ -18,34 +18,14 @@ class A {
 }
 
 class B extends A {
-  B() : super(42);
-}
-
-class C extends A {
   var h;
   C(a)
-      : super(42),
-        h = (() => ++a);
+      : h = (() => ++a),
+        super(42);
 }
 
 main() {
   var a = new A(1);
-  Expect.equals(46, a.f());
-  Expect.equals(5, a.g());
-  Expect.equals(47, a.f());
-
-  a = new B();
-  Expect.equals(46, a.f());
-  Expect.equals(5, a.g());
-  Expect.equals(47, a.f());
-
-  a = new C(0);
-  Expect.equals(46, a.f());
-  Expect.equals(5, a.g());
-  Expect.equals(47, a.f());
-  Expect.equals(1, a.h());
-  Expect.equals(2, a.h());
-  Expect.equals(47, a.f());
-  Expect.equals(6, a.g());
-  Expect.equals(48, a.f());
+  a = new B(0);
+  var ah = /*@compile-error=unspecified*/ a.h();
 }

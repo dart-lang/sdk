@@ -145,6 +145,7 @@ black_listed_test/none: fail # Issue 14228
 body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
 built_in_identifier_prefix_test: CompileTimeError
 cascade_test/none: fail # Issue 11577
+closure_call_wrong_argument_count_negative_test: skip
 
 [ $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
