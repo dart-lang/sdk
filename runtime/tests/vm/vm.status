@@ -268,8 +268,6 @@ cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
 cc/ErrorHandleBasics: Fail
 cc/FieldAccess: Crash
-cc/FullSnapshot1: Crash
-cc/FullSnapshot: Crash
 cc/FunctionSourceFingerprint: Crash
 cc/GetFunctionNames: Crash
 cc/ImplicitNativeFieldAccess: Crash

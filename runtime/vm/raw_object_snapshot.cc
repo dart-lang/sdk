@@ -719,16 +719,20 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
     // don't set them until after setting the kind.
     const int32_t token_pos = reader->Read<int32_t>();
     const int32_t end_token_pos = reader->Read<uint32_t>();
+    int32_t kernel_offset = 0;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    kernel_offset = reader->Read<int32_t>();
+#endif
     func.set_num_fixed_parameters(reader->Read<int16_t>());
     func.set_num_optional_parameters(reader->Read<int16_t>());
     func.set_kind_tag(reader->Read<uint32_t>());
     func.set_token_pos(TokenPosition::SnapshotDecode(token_pos));
     func.set_end_token_pos(TokenPosition::SnapshotDecode(end_token_pos));
+    func.set_kernel_offset(kernel_offset);
     func.set_usage_counter(reader->Read<int32_t>());
     func.set_deoptimization_counter(reader->Read<int8_t>());
     func.set_optimized_instruction_count(reader->Read<uint16_t>());
     func.set_optimized_call_site_count(reader->Read<uint16_t>());
-    func.set_kernel_offset(0);
     func.set_was_compiled(false);
 
     // Set all the object fields.
@@ -788,6 +792,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
 #if !defined(DART_PRECOMPILED_RUNTIME)
     writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
     writer->Write<int32_t>(ptr()->end_token_pos_.SnapshotEncode());
+    writer->Write<int32_t>(ptr()->kernel_offset_);
 #endif
     writer->Write<int16_t>(ptr()->num_fixed_parameters_);
     writer->Write<int16_t>(ptr()->num_optional_parameters_);
@@ -831,8 +836,10 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   field.set_token_pos(TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
   field.set_guarded_cid(reader->Read<int32_t>());
   field.set_is_nullable(reader->Read<int32_t>());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  field.set_kernel_offset(reader->Read<int32_t>());
+#endif
   field.set_kind_bits(reader->Read<uint8_t>());
-  field.set_kernel_offset(0);
 
   // Set all the object fields.
   READ_OBJECT_FIELDS(field, field.raw()->from(), field.raw()->to_snapshot(kind),
@@ -869,6 +876,9 @@ void RawField::WriteTo(SnapshotWriter* writer,
   writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
   writer->Write<int32_t>(ptr()->guarded_cid_);
   writer->Write<int32_t>(ptr()->is_nullable_);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  writer->Write<int32_t>(ptr()->kernel_offset_);
+#endif
   writer->Write<uint8_t>(ptr()->kind_bits_);
 
   // Write out the name.
@@ -1020,6 +1030,8 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
   script.StoreNonPointer(&script.raw_ptr()->col_offset_,
                          reader->Read<int32_t>());
   script.StoreNonPointer(&script.raw_ptr()->kind_, reader->Read<int8_t>());
+  script.StoreNonPointer(&script.raw_ptr()->kernel_script_index_,
+                         reader->Read<int32_t>());
 
   *reader->StringHandle() ^= String::null();
   script.set_source(*reader->StringHandle());
@@ -1061,6 +1073,7 @@ void RawScript::WriteTo(SnapshotWriter* writer,
   writer->Write<int32_t>(ptr()->line_offset_);
   writer->Write<int32_t>(ptr()->col_offset_);
   writer->Write<int8_t>(ptr()->kind_);
+  writer->Write<int32_t>(ptr()->kernel_script_index_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);

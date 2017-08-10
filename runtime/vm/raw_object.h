@@ -880,7 +880,7 @@ class RawFunction : public RawObject {
   RawObject* data_;  // Additional data specific to the function kind.
   RawTypedData* kernel_data_;
   RawObject** to_snapshot() {
-    return reinterpret_cast<RawObject**>(&ptr()->data_);
+    return reinterpret_cast<RawObject**>(&ptr()->kernel_data_);
   }
   RawArray* ic_data_array_;  // ICData of unoptimized code.
   RawObject** to_no_code() {
@@ -899,12 +899,12 @@ class RawFunction : public RawObject {
 
   NOT_IN_PRECOMPILED(TokenPosition token_pos_);
   NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
+  NOT_IN_PRECOMPILED(intptr_t kernel_offset_);
   NOT_IN_PRECOMPILED(int32_t usage_counter_);  // Accessed from generated code
                                                // (JIT only).
   uint32_t kind_tag_;                          // See Function::KindTagBits.
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
-  NOT_IN_PRECOMPILED(intptr_t kernel_offset_);
   NOT_IN_PRECOMPILED(uint16_t optimized_instruction_count_);
   NOT_IN_PRECOMPILED(uint16_t optimized_call_site_count_);
   NOT_IN_PRECOMPILED(int8_t deoptimization_counter_);
@@ -1006,13 +1006,13 @@ class RawField : public RawObject {
   classid_t guarded_cid_;
   classid_t is_nullable_;  // kNullCid if field can contain null value and
                            // any other value otherwise.
+  NOT_IN_PRECOMPILED(intptr_t kernel_offset_);
   // Offset to the guarded length field inside an instance of class matching
   // guarded_cid_. Stored corrected by -kHeapObjectTag to simplify code
   // generated on platforms with weak addressing modes (ARM).
   int8_t guarded_list_length_in_object_offset_;
 
   uint8_t kind_bits_;  // static, final, const, has initializer....
-  NOT_IN_PRECOMPILED(intptr_t kernel_offset_);
 
   friend class CidRewriteVisitor;
 };
@@ -1090,8 +1090,8 @@ class RawScript : public RawObject {
   int32_t line_offset_;
   int32_t col_offset_;
   int8_t kind_;  // Of type Kind.
-  int64_t load_timestamp_;
   intptr_t kernel_script_index_;
+  int64_t load_timestamp_;
 };
 
 class RawLibrary : public RawObject {
