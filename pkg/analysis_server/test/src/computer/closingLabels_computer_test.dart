@@ -269,10 +269,11 @@ Widget build(BuildContext context) {
 }
 """;
 
+    // ignore: unused_local_variable
     var labels = await _computeElements(content);
-    // TODO(dantup) Results here are currently bad so this test is just checking that we
-    // dont crash. Need to confirm what to do here; the bad labels might not be fixed
-    // until the code is using the new shared parser.
+    // TODO(dantup): Results here are currently bad so this test is just
+    // checking that we don't crash. Need to confirm what to do here; the bad
+    // labels might not be fixed until the code is using the new shared parser.
     // https://github.com/dart-lang/sdk/issues/30370
   }
 

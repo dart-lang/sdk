@@ -1347,6 +1347,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     return collector.allOccurrences;
   }
 
+  // ignore: unused_element
   server.AnalysisOutlineParams _computeOutlineParams(
       String path, CompilationUnit unit, LineInfo lineInfo) {
     // compute FileKind
