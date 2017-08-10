@@ -818,7 +818,6 @@ duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
-dynamic_test: Crash
 efficient_length_warning_test: Crash
 emit_const_fields_test: Crash
 empty_block_case_test: Crash
@@ -849,7 +848,7 @@ export_double_same_main_test: CompileTimeError
 export_main_test: CompileTimeError
 external_test/10: Crash
 external_test/13: Crash
-external_test/20: MissingRuntimeError
+external_test/20: Crash
 f_bounded_equality_test: Crash
 f_bounded_quantification5_test: Crash
 f_bounded_quantification_test/01: Crash
@@ -887,7 +886,6 @@ final_field_initialization_order_test: RuntimeError
 final_super_field_set_test/01: Crash
 final_syntax_test/09: Crash
 final_used_in_try_test: Crash
-first_class_types_constants_test: Crash
 first_class_types_libraries_test: Crash
 first_class_types_literals_test/01: Crash
 first_class_types_literals_test/02: Crash
@@ -2304,7 +2302,6 @@ duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
-dynamic_test: Crash
 efficient_length_warning_test: Crash
 emit_const_fields_test: Crash
 empty_block_case_test: Crash
@@ -2335,7 +2332,7 @@ export_double_same_main_test: CompileTimeError
 export_main_test: CompileTimeError
 external_test/10: Crash
 external_test/13: Crash
-external_test/20: MissingRuntimeError
+external_test/20: Crash
 f_bounded_quantification4_test: RuntimeError
 f_bounded_quantification5_test: Crash
 f_bounded_quantification_test/01: Crash
@@ -2373,7 +2370,6 @@ final_field_initialization_order_test: RuntimeError
 final_super_field_set_test/01: Crash
 final_syntax_test/09: Crash
 final_used_in_try_test: Crash
-first_class_types_constants_test: Crash
 first_class_types_literals_test/01: Crash
 first_class_types_literals_test/02: Crash
 first_class_types_literals_test/03: Crash
