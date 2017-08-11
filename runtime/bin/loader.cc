@@ -9,6 +9,7 @@
 #include "bin/dfe.h"
 #include "bin/extensions.h"
 #include "bin/file.h"
+#include "bin/gzip.h"
 #include "bin/lockers.h"
 #include "bin/utils.h"
 #include "include/dart_tools_api.h"
@@ -318,6 +319,39 @@ void Loader::ResolveDependenciesAsFilePaths() {
   }
 }
 
+class ScopedDecompress : public ValueObject {
+ public:
+  ScopedDecompress(const uint8_t** payload, intptr_t* payload_length)
+      : payload_(payload),
+        payload_length_(payload_length),
+        decompressed_(NULL) {
+    DartUtils::MagicNumber payload_type =
+        DartUtils::SniffForMagicNumber(*payload, *payload_length);
+    if (payload_type == DartUtils::kGzipMagicNumber) {
+      int64_t start = Dart_TimelineGetMicros();
+      intptr_t decompressed_length = 0;
+      Decompress(*payload, *payload_length, &decompressed_,
+                 &decompressed_length);
+      int64_t end = Dart_TimelineGetMicros();
+      Dart_TimelineEvent("Decompress", start, end, Dart_Timeline_Event_Duration,
+                         0, NULL, NULL);
+      *payload_ = decompressed_;
+      *payload_length_ = decompressed_length;
+    }
+  }
+
+  ~ScopedDecompress() {
+    if (decompressed_ != NULL) {
+      free(decompressed_);
+    }
+  }
+
+ private:
+  const uint8_t** payload_;
+  intptr_t* payload_length_;
+  uint8_t* decompressed_;
+};
+
 bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
   // We have to copy everything we care about out of |result| because after
   // dropping the lock below |result| may no longer valid.
@@ -388,11 +422,15 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
   // Check for payload and load accordingly.
   const uint8_t* payload = result->payload;
   intptr_t payload_length = result->payload_length;
+
+  // Decompress if gzip'd.
+  ScopedDecompress decompress(&payload, &payload_length);
+
   const DartUtils::MagicNumber payload_type =
-      DartUtils::SniffForMagicNumber(&payload, &payload_length);
+      DartUtils::SniffForMagicNumber(payload, payload_length);
   Dart_Handle source = Dart_Null();
   if (payload_type == DartUtils::kUnknownMagicNumber) {
-    source = Dart_NewStringFromUTF8(result->payload, result->payload_length);
+    source = Dart_NewStringFromUTF8(payload, payload_length);
     if (Dart_IsError(source)) {
       loader->error_ =
           DartUtils::NewError("%s is not a valid UTF-8 script",
@@ -424,6 +462,7 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
     } break;
     case Dart_kScriptTag:
       if (payload_type == DartUtils::kSnapshotMagicNumber) {
+        DartUtils::SkipSnapshotMagicNumber(&payload, &payload_length);
         dart_result = Dart_LoadScriptFromSnapshot(payload, payload_length);
         reload_extensions = true;
       } else if (payload_type == DartUtils::kKernelMagicNumber) {

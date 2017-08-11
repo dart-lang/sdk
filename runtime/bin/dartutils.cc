@@ -48,14 +48,15 @@ const char* const DartUtils::kHttpScheme = "http:";
 const char* const DartUtils::kVMServiceLibURL = "dart:vmservice";
 
 struct MagicNumberData {
-  static const intptr_t kLength = 4;
+  static const intptr_t kMaxLength = 4;
 
-  const uint8_t bytes[kLength];
-  bool should_skip;
+  intptr_t length;
+  const uint8_t bytes[kMaxLength];
 };
 
-MagicNumberData snapshot_magic_number = {{0xf5, 0xf5, 0xdc, 0xdc}, true};
-MagicNumberData kernel_magic_number = {{0x90, 0xab, 0xcd, 0xef}, false};
+MagicNumberData snapshot_magic_number = {4, {0xf5, 0xf5, 0xdc, 0xdc}};
+MagicNumberData kernel_magic_number = {4, {0x90, 0xab, 0xcd, 0xef}};
+MagicNumberData gzip_magic_number = {2, {0x1f, 0x8b, 0, 0}};
 
 static bool IsWindowsHost() {
 #if defined(HOST_OS_WINDOWS)
@@ -339,38 +340,43 @@ Dart_Handle DartUtils::ResolveScript(Dart_Handle url) {
                      kNumArgs, dart_args);
 }
 
-static bool CheckMagicNumber(const uint8_t** buf,
-                             intptr_t* len,
+static bool CheckMagicNumber(const uint8_t* buffer,
+                             intptr_t buffer_length,
                              const MagicNumberData& magic_number) {
-  if ((*len >= MagicNumberData::kLength) &&
-      (memcmp(*buf, magic_number.bytes, MagicNumberData::kLength) == 0)) {
-    if (magic_number.should_skip) {
-      *buf += MagicNumberData::kLength;
-      *len -= MagicNumberData::kLength;
-    }
-    return true;
+  if ((buffer_length >= magic_number.length)) {
+    return memcmp(buffer, magic_number.bytes, magic_number.length) == 0;
   }
   return false;
 }
 
-DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const uint8_t** buf,
-                                                      intptr_t* len) {
-  if (CheckMagicNumber(buf, len, snapshot_magic_number)) {
+DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const uint8_t* buffer,
+                                                      intptr_t buffer_length) {
+  if (CheckMagicNumber(buffer, buffer_length, snapshot_magic_number)) {
     return kSnapshotMagicNumber;
   }
 
-  if (CheckMagicNumber(buf, len, kernel_magic_number)) {
+  if (CheckMagicNumber(buffer, buffer_length, kernel_magic_number)) {
     return kKernelMagicNumber;
+  }
+
+  if (CheckMagicNumber(buffer, buffer_length, gzip_magic_number)) {
+    return kGzipMagicNumber;
   }
 
   return kUnknownMagicNumber;
 }
 
-void DartUtils::WriteMagicNumber(File* file) {
+void DartUtils::WriteSnapshotMagicNumber(File* file) {
   // Write a magic number and version information into the snapshot file.
-  bool bytes_written =
-      file->WriteFully(snapshot_magic_number.bytes, MagicNumberData::kLength);
+  bool bytes_written = file->WriteFully(snapshot_magic_number.bytes,
+                                        snapshot_magic_number.length);
   ASSERT(bytes_written);
+}
+
+void DartUtils::SkipSnapshotMagicNumber(const uint8_t** buffer,
+                                        intptr_t* buffer_length) {
+  *buffer += snapshot_magic_number.length;
+  *buffer_length -= snapshot_magic_number.length;
 }
 
 void FUNCTION_NAME(Builtin_GetCurrentDirectory)(Dart_NativeArguments args) {

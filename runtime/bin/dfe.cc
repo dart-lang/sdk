@@ -143,10 +143,7 @@ bool DFE::TryReadKernelFile(const char* script_uri,
     DartUtils::ReadFile(&buffer, kernel_ir_size, script_file);
     DartUtils::CloseFile(script_file);
     if (*kernel_ir_size > 0 && buffer != NULL) {
-      // We need a temporary variable because SniffForMagicNumber modifies the
-      // buffer pointer to skip snapshot magic number.
-      const uint8_t* temp = buffer;
-      if (DartUtils::SniffForMagicNumber(&temp, kernel_ir_size) !=
+      if (DartUtils::SniffForMagicNumber(buffer, *kernel_ir_size) !=
           DartUtils::kKernelMagicNumber) {
         free(const_cast<uint8_t*>(buffer));
         *kernel_ir = NULL;

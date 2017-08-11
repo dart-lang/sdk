@@ -259,7 +259,7 @@ static void WriteSnapshotFile(const char* filename,
 
   if (write_magic_number) {
     // Write the magic number to indicate file is a script snapshot.
-    DartUtils::WriteMagicNumber(file);
+    DartUtils::WriteSnapshotMagicNumber(file);
   }
 
   if (!file->WriteFully(buffer, size)) {

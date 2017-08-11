@@ -316,6 +316,8 @@ template("build_gen_snapshot") {
       "address_sanitizer.cc",
       "builtin.cc",
       "builtin.h",
+      "gzip.cc",
+      "gzip.h",
       "loader.cc",
       "loader.h",
 
@@ -329,7 +331,10 @@ template("build_gen_snapshot") {
       "vmservice_impl.h",
     ]
 
-    include_dirs = [ ".." ]
+    include_dirs = [
+      "..",
+      "//third_party",
+    ]
 
     if (dart_use_tcmalloc) {
       deps += [ "//third_party/tcmalloc" ]
@@ -760,6 +765,8 @@ dart_executable("dart") {
     "dfe.h",
     "loader.cc",
     "loader.h",
+    "gzip.cc",
+    "gzip.h",
     "$target_gen_dir/resources_gen.cc",
   ]
   if (dart_runtime_mode == "release") {
@@ -778,6 +785,8 @@ dart_executable("dart_precompiled_runtime") {
     "snapshot_empty.cc",
     "loader.cc",
     "loader.h",
+    "gzip.cc",
+    "gzip.h",
   ]
   if (dart_runtime_mode == "release") {
     extra_sources += [ "observatory_assets_empty.cc" ]
@@ -816,6 +825,8 @@ dart_executable("dart_bootstrap") {
     "dfe.h",
     "loader.cc",
     "loader.h",
+    "gzip.cc",
+    "gzip.h",
     "observatory_assets_empty.cc",
     "snapshot_empty.cc",
 
