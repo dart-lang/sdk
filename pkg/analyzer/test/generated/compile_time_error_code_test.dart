@@ -881,6 +881,21 @@ foo(var p) {
     verify([source]);
   }
 
+  test_const_invalid_constructorFieldInitializer_fromLibrary() async {
+    addNamedSource('/lib.dart', r'''
+class A<T> {
+  final int f;
+  const A() : f = T.foo;
+}
+''');
+    Source source = addSource(r'''
+import 'lib.dart';
+const a = const A();
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+  }
+
   test_constConstructor_redirect_generic() async {
     Source source = addSource(r'''
 class A<T> {
