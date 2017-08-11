@@ -3312,7 +3312,7 @@ void UnboxInstr::EmitLoadFromBox(FlowGraphCompiler* compiler) {
   const Register box = locs()->in(0).reg();
 
   switch (representation()) {
-    case kUnboxedMint: {
+    case kUnboxedInt64: {
       UNIMPLEMENTED();
       break;
     }
@@ -3341,7 +3341,7 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
   const Register box = locs()->in(0).reg();
 
   switch (representation()) {
-    case kUnboxedMint: {
+    case kUnboxedInt64: {
       UNIMPLEMENTED();
       break;
     }
@@ -5369,33 +5369,33 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* BinaryMintOpInstr::MakeLocationSummary(Zone* zone,
+LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+LocationSummary* ShiftInt64OpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   UNIMPLEMENTED();
   return NULL;
 }
 
-void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
-LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Zone* zone,
-                                                       bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-LocationSummary* UnaryMintOpInstr::MakeLocationSummary(Zone* zone,
-                                                       bool opt) const {
+LocationSummary* UnaryInt64OpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
   UNIMPLEMENTED();
   return NULL;
 }
 
-void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -5422,9 +5422,9 @@ LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  if (from() == kUnboxedMint) {
+  if (from() == kUnboxedInt64) {
     UNREACHABLE();
-  } else if (to() == kUnboxedMint) {
+  } else if (to() == kUnboxedInt64) {
     UNREACHABLE();
   } else {
     ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
@@ -5461,9 +5461,9 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ cmp(out, Operand(value, UXTW, 0));
       __ b(deopt, NE);
     }
-  } else if (from() == kUnboxedMint) {
+  } else if (from() == kUnboxedInt64) {
     UNREACHABLE();
-  } else if (to() == kUnboxedMint) {
+  } else if (to() == kUnboxedInt64) {
     ASSERT((from() == kUnboxedUint32) || (from() == kUnboxedInt32));
     UNREACHABLE();
   } else {

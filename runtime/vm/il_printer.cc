@@ -1079,8 +1079,8 @@ static const char* RepresentationToCString(Representation rep) {
       return "int32";
     case kUnboxedUint32:
       return "uint32";
-    case kUnboxedMint:
-      return "mint";
+    case kUnboxedInt64:
+      return "int64";
     case kUnboxedFloat32x4:
       return "float32x4";
     case kUnboxedInt32x4:

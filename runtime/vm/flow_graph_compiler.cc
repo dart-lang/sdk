@@ -1660,7 +1660,7 @@ const Class& FlowGraphCompiler::BoxClassFor(Representation rep) {
       return float64x2_class();
     case kUnboxedInt32x4:
       return int32x4_class();
-    case kUnboxedMint:
+    case kUnboxedInt64:
       return mint_class();
     default:
       UNREACHABLE();

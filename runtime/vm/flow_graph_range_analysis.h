@@ -584,9 +584,9 @@ class RangeAnalysis : public ValueObject {
   // Value that are known to be smi or mint.
   GrowableArray<Definition*> values_;
 
-  GrowableArray<BinaryMintOpInstr*> binary_mint_ops_;
+  GrowableArray<BinaryInt64OpInstr*> binary_int64_ops_;
 
-  GrowableArray<ShiftMintOpInstr*> shift_mint_ops_;
+  GrowableArray<ShiftInt64OpInstr*> shift_int64_ops_;
 
   // All CheckArrayBound instructions.
   GrowableArray<CheckArrayBoundInstr*> bounds_checks_;

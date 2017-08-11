@@ -1120,17 +1120,17 @@ CompileType ConstraintInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }
 
-// Note that MintOp may produce Smi-s as result of an
+// Note that Int64Op may produce Smi-s as result of an
 // appended BoxInt64Instr node.
-CompileType BinaryMintOpInstr::ComputeType() const {
+CompileType BinaryInt64OpInstr::ComputeType() const {
   return CompileType::Int();
 }
 
-CompileType ShiftMintOpInstr::ComputeType() const {
+CompileType ShiftInt64OpInstr::ComputeType() const {
   return CompileType::Int();
 }
 
-CompileType UnaryMintOpInstr::ComputeType() const {
+CompileType UnaryInt64OpInstr::ComputeType() const {
   return CompileType::Int();
 }
 
@@ -1330,7 +1330,7 @@ CompileType UnboxInstr::ComputeType() const {
     case kUnboxedInt32x4:
       return CompileType::FromCid(kInt32x4Cid);
 
-    case kUnboxedMint:
+    case kUnboxedInt64:
       return CompileType::Int();
 
     default:

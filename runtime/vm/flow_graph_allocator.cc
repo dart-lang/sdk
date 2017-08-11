@@ -2848,8 +2848,8 @@ void FlowGraphAllocator::ResolveControlFlow() {
 }
 
 static Representation RepresentationForRange(Representation definition_rep) {
-  if (definition_rep == kUnboxedMint) {
-    // kUnboxedMint is split into two ranges, each of which are kUntagged.
+  if (definition_rep == kUnboxedInt64) {
+    // kUnboxedInt64 is split into two ranges, each of which are kUntagged.
     return kUntagged;
   } else if (definition_rep == kUnboxedUint32) {
     // kUnboxedUint32 is untagged.

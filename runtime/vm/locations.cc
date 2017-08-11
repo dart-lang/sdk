@@ -259,7 +259,7 @@ Location Location::RemapForSlowPath(Definition* def,
         UNREACHABLE();
     }
   } else if (IsPairLocation()) {
-    ASSERT(def->representation() == kUnboxedMint);
+    ASSERT(def->representation() == kUnboxedInt64);
     PairLocation* value_pair = AsPairLocation();
     intptr_t index_lo;
     intptr_t index_hi;

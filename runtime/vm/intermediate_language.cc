@@ -1331,7 +1331,7 @@ bool BinarySmiOpInstr::ComputeCanDeoptimize() const {
   }
 }
 
-bool ShiftMintOpInstr::IsShiftCountInRange() const {
+bool ShiftInt64OpInstr::IsShiftCountInRange() const {
   return RangeUtils::IsWithin(shift_range(), 0, kMintShiftCountLimit);
 }
 
@@ -1350,7 +1350,7 @@ static intptr_t RepresentationBits(Representation r) {
     case kUnboxedInt32:
     case kUnboxedUint32:
       return 32;
-    case kUnboxedMint:
+    case kUnboxedInt64:
       return 64;
     default:
       UNREACHABLE();
@@ -1369,7 +1369,7 @@ static bool ToIntegerConstant(Value* value, int64_t* result) {
     if (unbox != NULL) {
       switch (unbox->representation()) {
         case kUnboxedDouble:
-        case kUnboxedMint:
+        case kUnboxedInt64:
           return ToIntegerConstant(unbox->value(), result);
 
         case kUnboxedUint32:
@@ -1521,8 +1521,8 @@ UnaryIntegerOpInstr* UnaryIntegerOpInstr::Make(Representation representation,
     case kUnboxedUint32:
       op = new UnaryUint32OpInstr(op_kind, value, deopt_id);
       break;
-    case kUnboxedMint:
-      op = new UnaryMintOpInstr(op_kind, value, deopt_id);
+    case kUnboxedInt64:
+      op = new UnaryInt64OpInstr(op_kind, value, deopt_id);
       break;
     default:
       UNREACHABLE();
@@ -1567,11 +1567,11 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(Representation representation,
         op = new BinaryUint32OpInstr(op_kind, left, right, deopt_id);
       }
       break;
-    case kUnboxedMint:
+    case kUnboxedInt64:
       if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
-        op = new ShiftMintOpInstr(op_kind, left, right, deopt_id);
+        op = new ShiftInt64OpInstr(op_kind, left, right, deopt_id);
       } else {
-        op = new BinaryMintOpInstr(op_kind, left, right, deopt_id);
+        op = new BinaryInt64OpInstr(op_kind, left, right, deopt_id);
       }
       break;
     default:
@@ -1603,7 +1603,7 @@ static bool IsRepresentable(const Integer& value, Representation rep) {
       }
       return false;
 
-    case kUnboxedMint:
+    case kUnboxedInt64:
       return value.IsSmi() || value.IsMint();
 
     case kUnboxedUint32:  // Only truncating Uint32 arithmetic is supported.
@@ -2335,7 +2335,7 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
     if (box_defn->from() == to()) {
       // Do not erase truncating conversions from 64-bit value to 32-bit values
       // because such conversions erase upper 32 bits.
-      if ((box_defn->from() == kUnboxedMint) && box_defn->is_truncating()) {
+      if ((box_defn->from() == kUnboxedInt64) && box_defn->is_truncating()) {
         return this;
       }
       return box_defn->value()->definition();
@@ -2352,7 +2352,7 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   UnboxInt64Instr* unbox_defn = value()->definition()->AsUnboxInt64();
-  if (unbox_defn != NULL && (from() == kUnboxedMint) &&
+  if (unbox_defn != NULL && (from() == kUnboxedInt64) &&
       (to() == kUnboxedInt32) && unbox_defn->HasOnlyInputUse(value())) {
     // TODO(vegorov): there is a duplication of code between UnboxedIntCoverter
     // and code path that unboxes Mint into Int32. We should just schedule
@@ -2712,7 +2712,7 @@ BoxInstr* BoxInstr::Create(Representation from, Value* value) {
     case kUnboxedUint32:
       return new BoxUint32Instr(value);
 
-    case kUnboxedMint:
+    case kUnboxedInt64:
       return new BoxInt64Instr(value);
 
     case kUnboxedDouble:
@@ -2738,7 +2738,7 @@ UnboxInstr* UnboxInstr::Create(Representation to,
     case kUnboxedUint32:
       return new UnboxUint32Instr(value, deopt_id);
 
-    case kUnboxedMint:
+    case kUnboxedInt64:
       return new UnboxInt64Instr(value, deopt_id);
 
     case kUnboxedDouble:
@@ -2756,7 +2756,7 @@ UnboxInstr* UnboxInstr::Create(Representation to,
 bool UnboxInstr::CanConvertSmi() const {
   switch (representation()) {
     case kUnboxedDouble:
-    case kUnboxedMint:
+    case kUnboxedInt64:
       return true;
 
     case kUnboxedFloat32x4:

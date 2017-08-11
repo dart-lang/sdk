@@ -1095,7 +1095,7 @@ void DeoptInfoBuilder::AddCopy(Value* value,
         deopt_instr =
             new (zone()) DeoptWordInstr(ToCpuRegisterSource(source_loc));
         break;
-      case kUnboxedMint: {
+      case kUnboxedInt64: {
         if (source_loc.IsPairLocation()) {
           PairLocation* pair = source_loc.AsPairLocation();
           deopt_instr =

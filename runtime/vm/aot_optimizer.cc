@@ -769,7 +769,7 @@ bool AotOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                  FlowGraphCompiler::SupportsUnboxedMints()) {
         // Don't generate mint code if the IC data is marked because of an
         // overflow.
-        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) return false;
+        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryInt64Op)) return false;
         operands_type = kMintCid;
       } else if (ShouldSpecializeForDouble(ic_data)) {
         operands_type = kDoubleCid;
@@ -816,7 +816,7 @@ bool AotOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         // Left shift may overflow from smi into mint or big ints.
         // Don't generate smi code if the IC data is marked because
         // of an overflow.
-        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
+        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryInt64Op)) {
           return false;
         }
         operands_type = ic_data.HasDeoptReason(ICData::kDeoptBinarySmiOp)
@@ -827,7 +827,7 @@ bool AotOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                      Z, ic_data.AsUnaryClassChecksForArgNr(1)))) {
         // Don't generate mint code if the IC data is marked because of an
         // overflow.
-        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
+        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryInt64Op)) {
           return false;
         }
         // Check for smi/mint << smi or smi/mint >> smi.
@@ -878,11 +878,11 @@ bool AotOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   } else if (operands_type == kMintCid) {
     if (!FlowGraphCompiler::SupportsUnboxedMints()) return false;
     if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
-      ShiftMintOpInstr* shift_op = new (Z) ShiftMintOpInstr(
+      ShiftInt64OpInstr* shift_op = new (Z) ShiftInt64OpInstr(
           op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
       ReplaceCall(call, shift_op);
     } else {
-      BinaryMintOpInstr* bin_op = new (Z) BinaryMintOpInstr(
+      BinaryInt64OpInstr* bin_op = new (Z) BinaryInt64OpInstr(
           op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
       ReplaceCall(call, bin_op);
     }
@@ -956,7 +956,7 @@ bool AotOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
              HasOnlySmiOrMint(*call->ic_data()) &&
              FlowGraphCompiler::SupportsUnboxedMints()) {
     unary_op = new (Z)
-        UnaryMintOpInstr(op_kind, new (Z) Value(input), call->deopt_id());
+        UnaryInt64OpInstr(op_kind, new (Z) Value(input), call->deopt_id());
   } else if (HasOnlyOneDouble(*call->ic_data()) &&
              (op_kind == Token::kNEGATE) && CanUnboxDouble()) {
     AddReceiverCheck(call);
@@ -2014,7 +2014,7 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
 void AotOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
 // TODO(zerny): Use kUnboxedUint32 once it is fully supported/optimized.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
-  if (!instr->can_pack_into_smi()) instr->set_representation(kUnboxedMint);
+  if (!instr->can_pack_into_smi()) instr->set_representation(kUnboxedInt64);
 #endif
 }
 

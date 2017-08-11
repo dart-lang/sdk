@@ -1917,13 +1917,13 @@ class ICData : public Object {
 // printed during deoptimization itself.
 #define DEOPT_REASONS(V)                                                       \
   V(BinarySmiOp)                                                               \
-  V(BinaryMintOp)                                                              \
+  V(BinaryInt64Op)                                                             \
   V(DoubleToSmi)                                                               \
   V(CheckSmi)                                                                  \
   V(CheckClass)                                                                \
   V(Unknown)                                                                   \
   V(PolymorphicInstanceCallTestFail)                                           \
-  V(UnaryMintOp)                                                               \
+  V(UnaryInt64Op)                                                              \
   V(BinaryDoubleOp)                                                            \
   V(UnaryOp)                                                                   \
   V(UnboxInteger)                                                              \
