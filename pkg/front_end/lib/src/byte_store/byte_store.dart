@@ -5,6 +5,55 @@
 import 'dart:collection';
 
 /**
+ * In-memory LRU cache for bytes.
+ */
+class BytesMemoryCache<K> {
+  final int _maxSizeBytes;
+
+  final _map = new LinkedHashMap<K, List<int>>();
+  int _currentSizeBytes = 0;
+
+  BytesMemoryCache(this._maxSizeBytes);
+
+  List<int> get(K key, List<int> getNotCached()) {
+    List<int> bytes = _map.remove(key);
+    if (bytes == null) {
+      bytes = getNotCached();
+      if (bytes != null) {
+        _map[key] = bytes;
+        _currentSizeBytes += bytes.length;
+        _evict();
+      }
+    } else {
+      _map[key] = bytes;
+    }
+    return bytes;
+  }
+
+  void put(K key, List<int> bytes) {
+    _currentSizeBytes -= _map[key]?.length ?? 0;
+    _map[key] = bytes;
+    _currentSizeBytes += bytes.length;
+    _evict();
+  }
+
+  void _evict() {
+    while (_currentSizeBytes > _maxSizeBytes) {
+      if (_map.isEmpty) {
+        // Should be impossible, since _currentSizeBytes should always match
+        // _map.  But recover anyway.
+        assert(false);
+        _currentSizeBytes = 0;
+        break;
+      }
+      K key = _map.keys.first;
+      List<int> bytes = _map.remove(key);
+      _currentSizeBytes -= bytes.length;
+    }
+  }
+}
+
+/**
  * Store of bytes associated with string keys.
  *
  * Each key must be not longer than 100 characters and consist of only `[a-z]`,
@@ -51,51 +100,20 @@ class MemoryByteStore implements ByteStore {
  */
 class MemoryCachingByteStore implements ByteStore {
   final ByteStore _store;
-  final int _maxSizeBytes;
+  final BytesMemoryCache<String> _cache;
 
-  final _map = new LinkedHashMap<String, List<int>>();
-  int _currentSizeBytes = 0;
-
-  MemoryCachingByteStore(this._store, this._maxSizeBytes);
+  MemoryCachingByteStore(this._store, int maxSizeBytes)
+      : _cache = new BytesMemoryCache<String>(maxSizeBytes);
 
   @override
   List<int> get(String key) {
-    List<int> bytes = _map.remove(key);
-    if (bytes == null) {
-      bytes = _store.get(key);
-      if (bytes != null) {
-        _map[key] = bytes;
-        _currentSizeBytes += bytes.length;
-        _evict();
-      }
-    } else {
-      _map[key] = bytes;
-    }
-    return bytes;
+    return _cache.get(key, () => _store.get(key));
   }
 
   @override
   void put(String key, List<int> bytes) {
     _store.put(key, bytes);
-    _currentSizeBytes -= _map[key]?.length ?? 0;
-    _map[key] = bytes;
-    _currentSizeBytes += bytes.length;
-    _evict();
-  }
-
-  void _evict() {
-    while (_currentSizeBytes > _maxSizeBytes) {
-      if (_map.isEmpty) {
-        // Should be impossible, since _currentSizeBytes should always match
-        // _map.  But recover anyway.
-        assert(false);
-        _currentSizeBytes = 0;
-        break;
-      }
-      String key = _map.keys.first;
-      List<int> bytes = _map.remove(key);
-      _currentSizeBytes -= bytes.length;
-    }
+    _cache.put(key, bytes);
   }
 }
 
