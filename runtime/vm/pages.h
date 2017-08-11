@@ -37,6 +37,11 @@ class HeapPage {
 
   uword object_start() const { return memory_->start() + ObjectStartOffset(); }
   uword object_end() const { return object_end_; }
+  uword used_in_bytes() const { return used_in_bytes_; }
+  void set_used_in_bytes(uword value) {
+    ASSERT(Utils::IsAligned(value, kObjectAlignment));
+    used_in_bytes_ = value;
+  }
 
   PageType type() const { return type_; }
 
@@ -54,9 +59,9 @@ class HeapPage {
   }
 
  private:
-  void set_object_end(uword val) {
-    ASSERT((val & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
-    object_end_ = val;
+  void set_object_end(uword value) {
+    ASSERT((value & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
+    object_end_ = value;
   }
 
   // These return NULL on OOM.
@@ -74,6 +79,7 @@ class HeapPage {
   VirtualMemory* memory_;
   HeapPage* next_;
   uword object_end_;
+  uword used_in_bytes_;
   PageType type_;
 
   friend class PageSpace;

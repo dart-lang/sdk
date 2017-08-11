@@ -71,6 +71,7 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory,
   ASSERT(result != NULL);
   result->memory_ = memory;
   result->next_ = NULL;
+  result->used_in_bytes_ = 0;
   result->type_ = type;
 
   LSAN_REGISTER_ROOT_REGION(result, sizeof(*result));
@@ -1092,6 +1093,7 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   page->memory_ = memory;
   page->next_ = NULL;
   page->object_end_ = memory->end();
+  page->used_in_bytes_ = page->object_end_ - page->object_start();
 
   MutexLocker ml(pages_lock_);
   HeapPage **first, **tail;
