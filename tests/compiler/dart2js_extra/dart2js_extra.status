@@ -239,6 +239,8 @@ deferred/deferred_function_test: CompileTimeError
 deferred/deferred_mirrors1_test: CompileTimeError
 deferred/deferred_mirrors2_test: Crash
 deferred/deferred_overlapping_test: CompileTimeError
+deferred/interface_type_variable_test: CompileTimeError
+deferred/uninstantiated_type_variable_test: CompileTimeError
 deferred_custom_loader_test: CompileTimeError
 deferred_fail_and_retry_test: CompileTimeError
 deferred_fail_and_retry_worker_test: CompileTimeError
@@ -322,7 +324,6 @@ regress/4562_test/none: CompileTimeError
 regress/4639_test: Crash
 regress/4740_test: Crash
 round_constant_folding_test: Crash
-deferred/uninstantiated_type_variable_test: CompileTimeError
 string_interpolation_dynamic_test: RuntimeError
 string_interpolation_test: RuntimeError
 super_constructor1_test: Crash
@@ -406,6 +407,7 @@ deferred/deferred_function_test: CompileTimeError
 deferred/deferred_mirrors1_test: CompileTimeError
 deferred/deferred_mirrors2_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 deferred/deferred_overlapping_test: CompileTimeError
+deferred/interface_type_variable_test: CompileTimeError
 deferred/uninstantiated_type_variable_test: CompileTimeError
 deferred_custom_loader_test: CompileTimeError
 deferred_fail_and_retry_test: CompileTimeError

@@ -319,9 +319,7 @@ class DeferredLoadTask extends CompilerTask {
         elements.add(type.element);
         collectTypeDependencies(type.unaliased);
       } else if (type is ResolutionInterfaceType) {
-        if (elements.add(type.element)) {
-          collectTypeDependencies(type.element.supertype);
-        }
+        elements.add(type.element);
       }
     }
 
@@ -458,7 +456,7 @@ class DeferredLoadTask extends CompilerTask {
       ClassElement cls = element.declaration;
       cls.implementation.forEachMember(addLiveInstanceMember);
       for (ResolutionInterfaceType type in cls.implementation.allSupertypes) {
-        elements.add(type.element.implementation);
+        collectTypeDependencies(type);
       }
       elements.add(cls.implementation);
     } else if (Elements.isStaticOrTopLevel(element) || element.isConstructor) {
