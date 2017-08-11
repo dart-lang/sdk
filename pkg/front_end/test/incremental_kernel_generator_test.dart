@@ -60,15 +60,15 @@ class IncrementalKernelGeneratorTest {
   test_acceptLastDelta() async {
     writeFile('/test/.packages', 'test:lib/');
     String path = '/test/lib/test.dart';
-    Uri uri = writeFile(path, 'var v = 1;');
+    Uri uri = writeFile(path, '');
 
     await getInitialState(uri);
     incrementalKernelGenerator.acceptLastDelta();
 
     // Attempt to accept the second time.
-    expect(() {
+    _assertStateError(() {
       incrementalKernelGenerator.acceptLastDelta();
-    }, throwsStateError);
+    }, IncrementalKernelGeneratorImpl.MSG_NO_LAST_DELTA);
   }
 
   test_compile_chain() async {
@@ -223,6 +223,36 @@ static field asy::Future<core::String> b;
 ''');
   }
 
+  test_computeDelta_hasAnotherRunning() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String path = '/test/lib/test.dart';
+    Uri uri = writeFile(path, '');
+
+    await getInitialState(uri);
+    incrementalKernelGenerator.acceptLastDelta();
+
+    // Run, but don't wait.
+    var future = incrementalKernelGenerator.computeDelta();
+
+    // acceptLastDelta() is failing while the future is pending.
+    _assertStateError(() {
+      incrementalKernelGenerator.acceptLastDelta();
+    }, IncrementalKernelGeneratorImpl.MSG_PENDING_COMPUTE);
+
+    // rejectLastDelta() is failing while the future is pending.
+    _assertStateError(() {
+      incrementalKernelGenerator.rejectLastDelta();
+    }, IncrementalKernelGeneratorImpl.MSG_PENDING_COMPUTE);
+
+    // Run another, this causes StateError.
+    _assertStateError(() {
+      incrementalKernelGenerator.computeDelta();
+    }, IncrementalKernelGeneratorImpl.MSG_PENDING_COMPUTE);
+
+    // Wait for the pending future.
+    await future;
+  }
+
   test_inferPackagesFile() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
@@ -270,9 +300,9 @@ static field core::int b = a::a;
 
     // Attempt to reject the last delta twice.
     incrementalKernelGenerator.rejectLastDelta();
-    expect(() {
+    _assertStateError(() {
       incrementalKernelGenerator.rejectLastDelta();
-    }, throwsStateError);
+    }, IncrementalKernelGeneratorImpl.MSG_NO_LAST_DELTA);
   }
 
   test_updateEntryPoint() async {
@@ -452,6 +482,16 @@ import 'a.dart';
     }
     for (var shouldExclude in excludes) {
       expect(libraryUris, isNot(contains(shouldExclude)));
+    }
+  }
+
+  /// Assert that invocation of [f] throws a [StateError] with the given [msg].
+  void _assertStateError(f(), String msg) {
+    try {
+      f();
+      fail('StateError expected.');
+    } on StateError catch (e) {
+      expect(e.message, msg);
     }
   }
 
