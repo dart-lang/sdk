@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:convert' show HtmlEscape;
 import 'dart:io';
 
+import 'package:package_resolver/package_resolver.dart';
+
 import 'configuration.dart';
 import 'vendored_pkg/args/args.dart';
 import 'utils.dart';
@@ -45,6 +47,10 @@ class DispatchingServer {
 ///               directory (i.e. '$DartDirectory/X').
 /// /root_build/X: This will serve the corresponding file from the build
 ///                directory (i.e. '$BuildDirectory/X').
+/// /FOO/packages/PAZ/BAR: This will serve files from the packages listed in
+///      the package spec .packages.  Supports a package
+///      root or custom package spec, and uses [dart_dir]/.packages
+///      as the default. This will serve file lib/BAR from the package PAZ.
 /// /ws: This will upgrade the connection to a WebSocket connection and echo
 ///      all data back to the client.
 ///
@@ -70,8 +76,8 @@ void main(List<String> arguments) {
   parser.addFlag('help',
       abbr: 'h', negatable: false, help: 'Print this usage information.');
   parser.addOption('build-directory', help: 'The build directory to use.');
-  parser.addOption('package-root', help: 'Obsolete unsupported option');
-  parser.addOption('packages', help: 'Obsolete unsupported option');
+  parser.addOption('package-root', help: 'The package root to use.');
+  parser.addOption('packages', help: 'The package spec file to use.');
   parser.addOption('network',
       help: 'The network interface to use.', defaultsTo: '0.0.0.0');
   parser.addFlag('csp',
@@ -83,8 +89,13 @@ void main(List<String> arguments) {
   if (args['help'] as bool) {
     print(parser.getUsage());
   } else {
-    var servers = new TestingServers(args['build-directory'] as String,
-        args['csp'] as bool, Runtime.find(args['runtime'] as String), null);
+    var servers = new TestingServers(
+        args['build-directory'] as String,
+        args['csp'] as bool,
+        Runtime.find(args['runtime'] as String),
+        null,
+        args['package-root'] as String,
+        args['packages'] as String);
     var port = int.parse(args['port'] as String);
     var crossOriginPort = int.parse(args['crossOriginPort'] as String);
     servers
@@ -99,7 +110,7 @@ void main(List<String> arguments) {
 
 /**
  * Runs a set of servers that are initialized specifically for the needs of our
- * test framework.
+ * test framework, such as dealing with package-root.
  */
 class TestingServers {
   static final _CACHE_EXPIRATION_IN_SECONDS = 30;
@@ -116,17 +127,32 @@ class TestingServers {
   final List<HttpServer> _serverList = [];
   Uri _buildDirectory;
   Uri _dartDirectory;
+  Uri _packageRoot;
+  Uri _packages;
   final bool useContentSecurityPolicy;
   final Runtime runtime;
   DispatchingServer _server;
+  SyncPackageResolver _resolver;
 
   TestingServers(String buildDirectory, this.useContentSecurityPolicy,
-      [this.runtime = Runtime.none, String dartDirectory]) {
+      [this.runtime = Runtime.none,
+      String dartDirectory,
+      String packageRoot,
+      String packages]) {
     _buildDirectory = Uri.base.resolveUri(new Uri.directory(buildDirectory));
     if (dartDirectory == null) {
       _dartDirectory = TestUtils.dartDirUri;
     } else {
       _dartDirectory = Uri.base.resolveUri(new Uri.directory(dartDirectory));
+    }
+    if (packageRoot == null) {
+      if (packages == null) {
+        _packages = _dartDirectory.resolve('.packages');
+      } else {
+        _packages = new Uri.file(packages);
+      }
+    } else {
+      _packageRoot = new Uri.directory(packageRoot);
     }
   }
 
@@ -144,6 +170,11 @@ class TestingServers {
    */
   Future startServers(String host,
       {int port: 0, int crossOriginPort: 0}) async {
+    if (_packages != null) {
+      _resolver = await SyncPackageResolver.loadConfig(_packages);
+    } else {
+      _resolver = new SyncPackageResolver.root(_packageRoot);
+    }
     _server = await _startHttpServer(host, port: port);
     await _startHttpServer(host,
         port: crossOriginPort, allowedPort: _serverList[0].port);
@@ -165,6 +196,11 @@ class TestingServers {
     ];
     if (useContentSecurityPolicy) {
       command.add('--csp');
+    }
+    if (_packages != null) {
+      command.add('--packages=${_packages.toFilePath()}');
+    } else if (_packageRoot != null) {
+      command.add('--package-root=${_packageRoot.toFilePath()}');
     }
     return command.join(' ');
   }
@@ -191,6 +227,7 @@ class TestingServers {
 
       server.addHandler('/$PREFIX_BUILDDIR', fileHandler);
       server.addHandler('/$PREFIX_DARTDIR', fileHandler);
+      server.addHandler('/packages', fileHandler);
       _serverList.add(httpServer);
       return server;
     });
@@ -263,6 +300,13 @@ class TestingServers {
     // Go to the top of the file to see an explanation of the URL path scheme.
     List<String> pathSegments = request.normalizePath().pathSegments;
     if (pathSegments.length == 0) return null;
+    int packagesIndex = pathSegments.indexOf('packages');
+    if (packagesIndex != -1) {
+      var packageUri = new Uri(
+          scheme: 'package',
+          pathSegments: pathSegments.skip(packagesIndex + 1));
+      return _resolver.resolveUri(packageUri);
+    }
     if (pathSegments[0] == PREFIX_BUILDDIR) {
       return _buildDirectory.resolve(pathSegments.skip(1).join('/'));
     }
