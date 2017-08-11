@@ -38,7 +38,7 @@
     `Timeline.{start,finish}Sync` and `Timeline.timeSync`.
 
 ### Dart VM
-* Support for MIPS has been remvoed.
+* Support for MIPS has been removed.
 
 ### Tool Changes
 
@@ -733,9 +733,9 @@ Patch release, resolves two issues:
 
 * Pub
 
-  * Avoid using a barback asset server for executables unless they actually use
-    transformers. This makes precompilation substantially faster, produces
-    better error messages when precompilation fails, and allows
+  * Avoid using a bareback asset server for executables unless they actually use
+    transformers. This makes pre-compilation substantially faster, produces
+    better error messages when pre-compilation fails, and allows
     globally-activated executables to consistently use the
     `Isolate.resolvePackageUri()` API.
 
