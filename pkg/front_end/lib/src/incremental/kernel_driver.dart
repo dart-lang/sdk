@@ -8,6 +8,7 @@ import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
@@ -15,7 +16,6 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/core_types.dart';
@@ -131,9 +131,11 @@ class KernelDriver {
     return await runWithFrontEndContext('Compute delta', () async {
       await _refreshInvalidatedFiles();
 
+      CanonicalName nameRoot = new CanonicalName.root();
+
       // Load the SDK outline before building the graph, so that the file
       // system state is configured to skip SDK libraries.
-      await _loadSdkOutline();
+      await _loadSdkOutline(nameRoot);
 
       // Ensure that the graph starting at the entry point is ready.
       FileState entryLibrary =
@@ -147,7 +149,6 @@ class KernelDriver {
         return cycles;
       });
 
-      CanonicalName nameRoot = new CanonicalName.root();
       DillTarget dillTarget = new DillTarget(
           new Ticker(isVerbose: false), _uriTranslator, _options.target);
 
@@ -359,18 +360,16 @@ class KernelDriver {
 
   /// Load the SDK outline if its bytes are provided, and configure the file
   /// system state to skip SDK library files.
-  Future<Null> _loadSdkOutline() async {
+  Future<Null> _loadSdkOutline(CanonicalName nameRoot) async {
     if (_sdkOutlineBytes != null) {
-      if (_sdkOutline == null) {
-        await _logger.runAsync('Load SDK outline from bytes.', () async {
-          _sdkOutline = new Program();
-          new BinaryBuilder(_sdkOutlineBytes).readProgram(_sdkOutline);
-          // Configure the file system state to skip the outline libraries.
-          for (var outlineLibrary in _sdkOutline.libraries) {
-            _fsState.skipSdkLibraries.add(outlineLibrary.importUri);
-          }
-        });
-      }
+      await _logger.runAsync('Load SDK outline from bytes.', () async {
+        _sdkOutline = new Program(nameRoot: nameRoot);
+        new BinaryBuilder(_sdkOutlineBytes).readProgram(_sdkOutline);
+        // Configure the file system state to skip the outline libraries.
+        for (var outlineLibrary in _sdkOutline.libraries) {
+          _fsState.skipSdkLibraries.add(outlineLibrary.importUri);
+        }
+      });
     }
   }
 

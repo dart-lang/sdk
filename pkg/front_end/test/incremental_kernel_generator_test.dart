@@ -8,6 +8,7 @@ import 'package:front_end/compiler_options.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/byte_store/byte_store.dart';
+import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/incremental_kernel_generator_impl.dart';
 import 'package:front_end/summary_generator.dart';
 import 'package:kernel/ast.dart';
@@ -201,19 +202,29 @@ b() {
     fileSystem.entityForUri(sdkOutlineUri).writeAsBytesSync(sdkOutlineBytes);
 
     writeFile('/test/.packages', 'test:lib/');
-    String path = '/test/lib/test.dart';
-    Uri uri = writeFile(path, r'''
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    Uri aUri = writeFile(aPath, r'''
+int getValue() {
+  return 1;
+}
+''');
+    Uri bUri = writeFile(bPath, r'''
 import 'dart:async';
+import 'a.dart';
+
 var a = 1;
 Future<String> b;
 ''');
 
-    Program program = await getInitialState(uri, sdkOutlineUri: sdkOutlineUri);
+    Program program = await getInitialState(bUri, sdkOutlineUri: sdkOutlineUri);
+    incrementalKernelGenerator.acceptLastDelta();
     _assertLibraryUris(program,
-        includes: [uri], excludes: [Uri.parse('dart:core')]);
+        includes: [bUri], excludes: [Uri.parse('dart:core')]);
 
-    Library library = _getLibrary(program, uri);
-    expect(_getLibraryText(library), r'''library;
+    Library library = _getLibrary(program, bUri);
+    expect(_getLibraryText(library), r'''
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -221,6 +232,19 @@ import "dart:async" as asy;
 static field core::int a = 1;
 static field asy::Future<core::String> b;
 ''');
+
+    // Update a.dart and recompile.
+    writeFile(aPath, r'''
+int getValue() {
+  return 2;
+}
+''');
+    incrementalKernelGenerator.invalidate(aUri);
+    var deltaProgram = await incrementalKernelGenerator.computeDelta();
+
+    // Check that the canonical names for SDK libraries are serializable.
+    serializeProgram(deltaProgram.newProgram,
+        filter: (library) => !library.importUri.isScheme('dart'));
   }
 
   test_computeDelta_hasAnotherRunning() async {
