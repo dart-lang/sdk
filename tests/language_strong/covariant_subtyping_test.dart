@@ -93,6 +93,15 @@ testReturnOfFunctionType() {
   Expect.equals(cObj.getT(), 42);
 }
 
+testTearoffReturningFunctionType() {
+  FnChecks<int> cInt = new FnChecks<int>();
+  FnChecks<Object> cObj = cInt;
+
+  Expect.throws(
+      () => cObj.setterForT, isTypeError, 'unsound tear-off throws at runtime');
+  Expect.equals(cInt.setterForT, cInt.setterForT, 'sound tear-off works');
+}
+
 testFieldOfFunctionType() {
   FnChecks<Object> c = new FnChecks<String>()..f = (String b) {};
   Expect.throws(() {
@@ -217,6 +226,7 @@ main() {
   testPrivateFields();
   testClassBounds();
   testReturnOfFunctionType();
+  testTearoffReturningFunctionType();
   testFieldOfFunctionType();
   testFieldOfGenericFunctionType();
   testMixinApplication();
