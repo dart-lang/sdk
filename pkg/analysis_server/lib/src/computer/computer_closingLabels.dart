@@ -116,9 +116,8 @@ class _DartUnitClosingLabelsComputerVisitor
     final labelWithSpan = new _ClosingLabelWithLineCount(
         closingLabel, end.lineNumber - start.lineNumber);
 
-    if (!computer._closingLabelsByEndLine.containsKey(end.lineNumber)) {
-      computer._closingLabelsByEndLine[end.lineNumber] = [];
-    }
-    computer._closingLabelsByEndLine[end.lineNumber].add(labelWithSpan);
+    computer._closingLabelsByEndLine
+        .putIfAbsent(end.lineNumber, () => <_ClosingLabelWithLineCount>[])
+        .add(labelWithSpan);
   }
 }
