@@ -88,7 +88,23 @@ class _DartUnitClosingLabelsComputerVisitor
     return super.visitListLiteral(node);
   }
 
+  int interpolatedStringsEntered = 0;
+  @override
+  visitStringInterpolation(StringInterpolation node) {
+    interpolatedStringsEntered++;
+    try {
+      return super.visitStringInterpolation(node);
+    } finally {
+      interpolatedStringsEntered--;
+    }
+  }
+
   void _addLabel(AstNode node, String label, {AstNode checkLinesUsing}) {
+    // Never add labels if we're inside strings.
+    if (interpolatedStringsEntered > 0) {
+      return;
+    }
+
     checkLinesUsing = checkLinesUsing ?? node;
     final start = computer._lineInfo.getLocation(checkLinesUsing.offset);
     final end = computer._lineInfo.getLocation(checkLinesUsing.end - 1);

@@ -302,6 +302,20 @@ main() {
     _compareLabels(labels, content, expectedLabelCount: 0);
   }
 
+  @soloTest
+  test_NoLabelsFromInterpolatedStrings() async {
+    String content = """
+void main(HighlightRegionType type, int offset, int length) {
+  /*1*/fail(
+      'Not expected to find (offset=\$offset; length=\$length; type=\$type) in\\n'
+      '\${regions.join('\\n')}')/*1:fail*/;
+}
+    """;
+
+    var labels = await _computeElements(content);
+    _compareLabels(labels, content, expectedLabelCount: 1);
+  }
+
   test_knownBadCode1() async {
     // This code crashed during testing when I accidentally inserted a test snippet.
     String content = """
