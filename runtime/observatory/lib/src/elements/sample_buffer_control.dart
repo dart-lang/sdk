@@ -7,7 +7,6 @@ import 'dart:html';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
-import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/utils.dart';
 
 class SampleBufferControlChangedElement {
@@ -54,7 +53,6 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
       {M.SampleProfileTag selectedTag: M.SampleProfileTag.none,
       bool showTag: true,
       RenderingQueue queue}) {
-    assert(vm != null);
     assert(progress != null);
     assert(progressStream != null);
     assert(selectedTag != null);

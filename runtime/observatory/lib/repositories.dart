@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 import 'package:observatory/allocation_profile.dart';
-import 'package:observatory/cpu_profile.dart';
+import 'package:observatory/sample_profile.dart';
 import 'package:observatory/heap_snapshot.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart' as S;

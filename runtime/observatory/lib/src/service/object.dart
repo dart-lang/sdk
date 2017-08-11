@@ -441,8 +441,7 @@ class RetainingObject implements M.RetainingObject {
   RetainingObject(this.object);
 }
 
-abstract class ServiceObjectOwner extends ServiceObject
-    implements M.ServiceObjectOwner {
+abstract class ServiceObjectOwner extends ServiceObject {
   /// Creates an empty [ServiceObjectOwner].
   ServiceObjectOwner._empty(ServiceObjectOwner owner) : super._empty(owner);
 

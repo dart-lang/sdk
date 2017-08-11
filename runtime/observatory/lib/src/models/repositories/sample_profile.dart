@@ -34,7 +34,8 @@ abstract class SampleProfileLoadingProgress {
 
 abstract class ClassSampleProfileRepository {
   Stream<SampleProfileLoadingProgressEvent> get(
-      IsolateRef isolate, ClassRef cls, SampleProfileTag tag);
+      IsolateRef isolate, ClassRef cls, SampleProfileTag tag,
+      {bool clear: false, bool forceFetch: false});
   Future enable(IsolateRef isolate, ClassRef cls);
   Future disable(IsolateRef isolate, ClassRef cls);
 }

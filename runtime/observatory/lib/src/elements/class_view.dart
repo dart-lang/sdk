@@ -272,7 +272,8 @@ class ClassViewElement extends HtmlElement implements Renderable {
           new DivElement()
             ..children = _loadProfile
                 ? [
-                    new ClassAllocationProfileElement(_isolate, _cls, _profiles,
+                    new ClassAllocationProfileElement(
+                        _vm, _isolate, _cls, _profiles,
                         queue: _r.queue)
                   ]
                 : const [],

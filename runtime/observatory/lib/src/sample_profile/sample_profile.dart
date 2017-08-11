@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of cpu_profiler;
+part of sample_profiler;
 
 abstract class CallTreeNode<NodeT extends M.CallTreeNode>
     implements M.CallTreeNode {
@@ -460,7 +460,7 @@ class InlineIntervalTick {
 }
 
 class ProfileCode implements M.ProfileCode {
-  final CpuProfile profile;
+  final SampleProfile profile;
   final Code code;
   int exclusiveTicks;
   int inclusiveTicks;
@@ -588,7 +588,7 @@ class ProfileCode implements M.ProfileCode {
 }
 
 class ProfileFunction implements M.ProfileFunction {
-  final CpuProfile profile;
+  final SampleProfile profile;
   final ServiceFunction function;
   // List of compiled code objects containing this function.
   final List<ProfileCode> profileCodes = new List<ProfileCode>();
@@ -747,8 +747,7 @@ class ProfileFunction implements M.ProfileFunction {
   }
 }
 
-// TODO(johnmccutchan): Rename to SampleProfile
-class CpuProfile extends M.SampleProfile {
+class SampleProfile extends M.SampleProfile {
   Isolate isolate;
 
   int sampleCount = 0;
