@@ -11,9 +11,7 @@ class _ClosingLabelWithLineCount {
   final ClosingLabel label;
   final int spannedLines;
 
-  _ClosingLabelWithLineCount(ClosingLabel label, int spannedLines)
-      : this.label = label,
-        this.spannedLines = spannedLines;
+  _ClosingLabelWithLineCount(ClosingLabel this.label, int this.spannedLines);
 }
 
 /**
