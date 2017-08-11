@@ -149,7 +149,7 @@ void Log::EnableManualFlush() {
   manual_flush_++;
 }
 
-void Log::DisableManualFlush(const intptr_t cursor) {
+void Log::DisableManualFlush() {
   if (this == NoOpLog()) {
     return;
   }
@@ -157,7 +157,7 @@ void Log::DisableManualFlush(const intptr_t cursor) {
   manual_flush_--;
   ASSERT(manual_flush_ >= 0);
   if (manual_flush_ == 0) {
-    Flush(cursor);
+    Flush();
   }
 }
 
@@ -166,7 +166,8 @@ void LogBlock::Initialize() {
 }
 
 LogBlock::~LogBlock() {
-  log_->DisableManualFlush(cursor_);
+  log_->Flush(cursor_);
+  log_->DisableManualFlush();
 }
 
 }  // namespace dart
