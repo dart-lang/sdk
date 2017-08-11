@@ -20,19 +20,25 @@ main() {
 
 @reflectiveTest
 class _AnalysisNotificationClosingLabelsTest extends AbstractAnalysisTest {
+  static const sampleCode = '''
+Widget build(BuildContext context) {
+  return /*1*/new Row(
+    children: /*2*/<Widget>[
+      new Text('a'),
+      new Text('b'),
+    ]/*/2*/,
+  )/*/1*/;
+}
+''';
+
+  static final expectedResults = [
+    new ClosingLabel(51, 96, "Row"),
+    new ClosingLabel(79, 57, "List<Widget>")
+  ];
+
   List<ClosingLabel> lastLabels;
 
   Completer _labelsReceived;
-
-  void subscribeForLabels() {
-    addAnalysisSubscription(AnalysisService.CLOSING_LABELS, testFile);
-  }
-
-  Future waitForLabels(action()) {
-    _labelsReceived = new Completer();
-    action();
-    return _labelsReceived.future;
-  }
 
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_CLOSING_LABELS) {
@@ -54,21 +60,9 @@ class _AnalysisNotificationClosingLabelsTest extends AbstractAnalysisTest {
     createProject();
   }
 
-  static const sampleCode = '''
-Widget build(BuildContext context) {
-  return /*1*/new Row(
-    children: /*2*/<Widget>[
-      new Text('a'),
-      new Text('b'),
-    ]/*/2*/,
-  )/*/1*/;
-}
-''';
-
-  static final expectedResults = [
-    new ClosingLabel(51, 96, "Row"),
-    new ClosingLabel(79, 57, "List<Widget>")
-  ];
+  void subscribeForLabels() {
+    addAnalysisSubscription(AnalysisService.CLOSING_LABELS, testFile);
+  }
 
   test_afterAnalysis() async {
     addTestFile(sampleCode);
@@ -97,5 +91,11 @@ Widget build(BuildContext context) {
     await waitForLabels(() => modifyTestFile(sampleCode));
 
     expect(lastLabels, expectedResults);
+  }
+
+  Future waitForLabels(action()) {
+    _labelsReceived = new Completer();
+    action();
+    return _labelsReceived.future;
   }
 }
