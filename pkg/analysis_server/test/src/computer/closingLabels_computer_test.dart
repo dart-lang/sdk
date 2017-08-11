@@ -302,7 +302,7 @@ main() {
     _compareLabels(labels, content, expectedLabelCount: 0);
   }
 
-  test_NoLabelsFromInterpolatedStrings() async {
+  test_NnLabelsFromInterpolatedStrings() async {
     String content = """
 void main(HighlightRegionType type, int offset, int length) {
   /*1*/fail(
