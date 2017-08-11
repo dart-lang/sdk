@@ -59,10 +59,8 @@ namespace dart {
 // Facilitate quick access to the current zone once we have the current thread.
 #define Z (T->zone())
 
-DECLARE_FLAG(bool, use_dart_frontend);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, verify_handles);
-DECLARE_FLAG(bool, use_dart_frontend);
 #if defined(DART_NO_SNAPSHOT)
 DEFINE_FLAG(bool,
             check_function_fingerprints,
@@ -1093,7 +1091,8 @@ DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
       params->vm_snapshot_data, params->vm_snapshot_instructions,
       params->create, params->shutdown, params->cleanup, params->thread_exit,
       params->file_open, params->file_read, params->file_write,
-      params->file_close, params->entropy_source, params->get_service_assets);
+      params->file_close, params->entropy_source, params->get_service_assets,
+      params->start_kernel_isolate);
 }
 
 DART_EXPORT char* Dart_Cleanup() {
@@ -1227,6 +1226,13 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolateFromKernel(const char* script_uri,
                                                       Dart_IsolateFlags* flags,
                                                       void* callback_data,
                                                       char** error) {
+  // Setup default flags in case none were passed.
+  Dart_IsolateFlags api_flags;
+  if (flags == NULL) {
+    Isolate::FlagsInitialize(&api_flags);
+    flags = &api_flags;
+  }
+  flags->use_dart_frontend = true;
   return CreateIsolate(script_uri, main, NULL, NULL, -1,
                        reinterpret_cast<kernel::Program*>(kernel_program),
                        flags, callback_data, error);
@@ -5116,7 +5122,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
 
   Dart_Handle result;
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_use_dart_frontend && !KernelIsolate::IsKernelIsolate(I)) {
+  if (I->use_dart_frontend()) {
     if ((source == Api::Null()) || (source == NULL)) {
       RETURN_NULL_ERROR(source);
     }
@@ -5470,10 +5476,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   }
   Dart_Handle result;
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  // Kernel isolate is loaded from script in case of dart_bootstrap
-  // even when FLAG_use_dart_frontend is true. Hence, do not interpret
-  // |source| as a kernel if the current isolate is the kernel isolate.
-  if (FLAG_use_dart_frontend && !KernelIsolate::IsKernelIsolate(I)) {
+  if (I->use_dart_frontend()) {
     result = LoadKernelProgram(T, url_str, reinterpret_cast<void*>(source));
     if (::Dart_IsError(result)) {
       return result;

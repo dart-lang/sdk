@@ -583,7 +583,7 @@ DART_EXPORT const char* Dart_VersionString();
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x00000002)
+#define DART_FLAGS_CURRENT_VERSION (0x00000003)
 
 typedef struct {
   int32_t version;
@@ -593,6 +593,7 @@ typedef struct {
   bool enable_error_on_bad_override;
   bool use_field_guards;
   bool use_osr;
+  bool use_dart_frontend;
 } Dart_IsolateFlags;
 
 /**
@@ -763,7 +764,7 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)();
  * The current version of the Dart_InitializeFlags. Should be incremented every
  * time Dart_InitializeFlags changes in a binary incompatible way.
  */
-#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000002)
+#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000003)
 
 /**
  * Describes how to initialize the VM. Used with Dart_Initialize.
@@ -798,6 +799,7 @@ typedef struct {
   Dart_FileCloseCallback file_close;
   Dart_EntropySource entropy_source;
   Dart_GetVMServiceAssetsArchive get_service_assets;
+  bool start_kernel_isolate;
 } Dart_InitializeParams;
 
 /**

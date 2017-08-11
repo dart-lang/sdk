@@ -28,7 +28,10 @@ using dart::bin::DartUtils;
 
 namespace dart {
 
-DECLARE_FLAG(bool, use_dart_frontend);
+DEFINE_FLAG(bool,
+            use_dart_frontend,
+            false,
+            "Parse scripts with Dart-to-Kernel parser");
 
 TestCaseBase* TestCaseBase::first_ = NULL;
 TestCaseBase* TestCaseBase::tail_ = NULL;
@@ -65,8 +68,11 @@ void TestCaseBase::RunAll() {
 
 Dart_Isolate TestCase::CreateIsolate(const uint8_t* buffer, const char* name) {
   char* err;
+  Dart_IsolateFlags api_flags;
+  Isolate::FlagsInitialize(&api_flags);
+  api_flags.use_dart_frontend = FLAG_use_dart_frontend;
   Dart_Isolate isolate =
-      Dart_CreateIsolate(name, NULL, buffer, NULL, NULL, NULL, &err);
+      Dart_CreateIsolate(name, NULL, buffer, NULL, &api_flags, NULL, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);
     free(err);

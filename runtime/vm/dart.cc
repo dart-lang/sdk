@@ -118,7 +118,8 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                      Dart_FileWriteCallback file_write,
                      Dart_FileCloseCallback file_close,
                      Dart_EntropySource entropy_source,
-                     Dart_GetVMServiceAssetsArchive get_service_assets) {
+                     Dart_GetVMServiceAssetsArchive get_service_assets,
+                     bool start_kernel_isolate) {
   CheckOffsets();
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
@@ -307,7 +308,9 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   ServiceIsolate::Run();
 
 #ifndef DART_PRECOMPILED_RUNTIME
-  KernelIsolate::Run();
+  if (start_kernel_isolate) {
+    KernelIsolate::Run();
+  }
 #endif  // DART_PRECOMPILED_RUNTIME
 
   return NULL;

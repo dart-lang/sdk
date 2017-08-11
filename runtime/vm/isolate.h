@@ -132,13 +132,15 @@ typedef FixedCache<intptr_t, CatchEntryState, 16> CatchEntryStateCache;
 //       V(name, Dart_IsolateFlags-member-name, command-line-flag-name)
 //
 #define ISOLATE_FLAG_LIST(V)                                                   \
-  V(type_checks, enable_type_checks, FLAG_enable_type_checks)                  \
-  V(asserts, enable_asserts, FLAG_enable_asserts)                              \
-  V(error_on_bad_type, enable_error_on_bad_type, FLAG_error_on_bad_type)       \
-  V(error_on_bad_override, enable_error_on_bad_override,                       \
+  V(type_checks, EnableTypeChecks, enable_type_checks,                         \
+    FLAG_enable_type_checks)                                                   \
+  V(asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)               \
+  V(error_on_bad_type, ErrorOnBadType, enable_error_on_bad_type,               \
+    FLAG_error_on_bad_type)                                                    \
+  V(error_on_bad_override, ErrorOnBadOverride, enable_error_on_bad_override,   \
     FLAG_error_on_bad_override)                                                \
-  V(use_field_guards, use_field_guards, FLAG_use_field_guards)                 \
-  V(use_osr, use_osr, FLAG_use_osr)
+  V(use_field_guards, UseFieldGuards, use_field_guards, FLAG_use_field_guards) \
+  V(use_osr, UseOsr, use_osr, FLAG_use_osr)
 
 class Isolate : public BaseIsolate {
  public:
@@ -293,11 +295,11 @@ class Isolate : public BaseIsolate {
   MessageHandler* message_handler() const { return message_handler_; }
   void set_message_handler(MessageHandler* value) { message_handler_ = value; }
 
-  bool is_runnable() const { return is_runnable_; }
+  bool is_runnable() const { return RunnableBit::decode(isolate_flags_); }
   void set_is_runnable(bool value) {
-    is_runnable_ = value;
+    isolate_flags_ = RunnableBit::update(value, isolate_flags_);
 #if !defined(PRODUCT)
-    if (is_runnable_) {
+    if (is_runnable()) {
       set_last_resume_timestamp();
     }
 #endif
@@ -330,9 +332,12 @@ class Isolate : public BaseIsolate {
   }
 
 #if !defined(PRODUCT)
+  bool ResumeRequest() const {
+    return ResumeRequestBit::decode(isolate_flags_);
+  }
   // Lets the embedder know that a service message resulted in a resume request.
   void SetResumeRequest() {
-    resume_request_ = true;
+    isolate_flags_ = ResumeRequestBit::update(true, isolate_flags_);
     set_last_resume_timestamp();
   }
 
@@ -345,8 +350,8 @@ class Isolate : public BaseIsolate {
   // Returns whether the vm service has requested that the debugger
   // resume execution.
   bool GetAndClearResumeRequest() {
-    bool resume_request = resume_request_;
-    resume_request_ = false;
+    bool resume_request = ResumeRequestBit::decode(isolate_flags_);
+    isolate_flags_ = ResumeRequestBit::update(false, isolate_flags_);
     return resume_request;
   }
 #endif
@@ -369,8 +374,10 @@ class Isolate : public BaseIsolate {
   void RemoveErrorListener(const SendPort& listener);
   bool NotifyErrorListeners(const String& msg, const String& stacktrace);
 
-  bool ErrorsFatal() const { return errors_fatal_; }
-  void SetErrorsFatal(bool val) { errors_fatal_ = val; }
+  bool ErrorsFatal() const { return ErrorsFatalBit::decode(isolate_flags_); }
+  void SetErrorsFatal(bool val) {
+    isolate_flags_ = ErrorsFatalBit::update(val, isolate_flags_);
+  }
 
   Random* random() { return &random_; }
 
@@ -514,7 +521,12 @@ class Isolate : public BaseIsolate {
 
   void DeleteReloadContext();
 
-  bool HasAttemptedReload() const { return has_attempted_reload_; }
+  bool HasAttemptedReload() const {
+    return HasAttemptedReloadBit::decode(isolate_flags_);
+  }
+  void SetHasAttemptedReload(bool value) {
+    isolate_flags_ = HasAttemptedReloadBit::update(value, isolate_flags_);
+  }
 
   bool CanReload() const;
 
@@ -528,13 +540,20 @@ class Isolate : public BaseIsolate {
 
 #if !defined(PRODUCT)
   bool should_pause_post_service_request() const {
-    return should_pause_post_service_request_;
+    return ShouldPausePostServiceRequestBit::decode(isolate_flags_);
   }
-  void set_should_pause_post_service_request(
-      bool should_pause_post_service_request) {
-    should_pause_post_service_request_ = should_pause_post_service_request;
+  void set_should_pause_post_service_request(bool value) {
+    isolate_flags_ =
+        ShouldPausePostServiceRequestBit::update(value, isolate_flags_);
   }
 #endif  // !defined(PRODUCT)
+
+  bool use_dart_frontend() const {
+    return UseDartFrontEndBit::decode(isolate_flags_);
+  }
+  void set_use_dart_frontend(bool value) {
+    isolate_flags_ = UseDartFrontEndBit::update(value, isolate_flags_);
+  }
 
   RawError* PausePostRequest();
 
@@ -584,14 +603,27 @@ class Isolate : public BaseIsolate {
   RawError* sticky_error() const { return sticky_error_; }
   void clear_sticky_error();
 
-  bool compilation_allowed() const { return compilation_allowed_; }
-  void set_compilation_allowed(bool allowed) { compilation_allowed_ = allowed; }
+  bool compilation_allowed() const {
+    return CompilationAllowedBit::decode(isolate_flags_);
+  }
+  void set_compilation_allowed(bool allowed) {
+    isolate_flags_ = CompilationAllowedBit::update(allowed, isolate_flags_);
+  }
 
   // In precompilation we finalize all regular classes before compiling.
-  bool all_classes_finalized() const { return all_classes_finalized_; }
-  void set_all_classes_finalized(bool value) { all_classes_finalized_ = value; }
+  bool all_classes_finalized() const {
+    return AllClassesFinalizedBit::decode(isolate_flags_);
+  }
+  void set_all_classes_finalized(bool value) {
+    isolate_flags_ = AllClassesFinalizedBit::update(value, isolate_flags_);
+  }
 
-  void set_remapping_cids(bool value) { remapping_cids_ = value; }
+  bool remapping_cids() const {
+    return RemappingCidsBit::decode(isolate_flags_);
+  }
+  void set_remapping_cids(bool value) {
+    isolate_flags_ = RemappingCidsBit::update(value, isolate_flags_);
+  }
 
   // True during top level parsing.
   bool IsTopLevelParsing() {
@@ -652,7 +684,12 @@ class Isolate : public BaseIsolate {
   intptr_t FindClosureIndex(const Function& needle) const;
   RawFunction* ClosureFunctionFromIndex(intptr_t idx) const;
 
-  bool is_service_isolate() const { return is_service_isolate_; }
+  bool is_service_isolate() const {
+    return ServiceIsolateBit::decode(isolate_flags_);
+  }
+  void set_is_service_isolate(bool value) {
+    isolate_flags_ = ServiceIsolateBit::update(value, isolate_flags_);
+  }
 
   // Isolate-specific flag handling.
   static void FlagsInitialize(Dart_IsolateFlags* api_flags);
@@ -660,17 +697,19 @@ class Isolate : public BaseIsolate {
   void FlagsCopyFrom(const Dart_IsolateFlags& api_flags);
 
 #if defined(PRODUCT)
-#define DECLARE_GETTER(name, isolate_flag_name, flag_name)                     \
+#define DECLARE_GETTER(name, bitname, isolate_flag_name, flag_name)            \
   bool name() const { return flag_name; }
   ISOLATE_FLAG_LIST(DECLARE_GETTER)
 #undef DECLARE_GETTER
   void set_use_osr(bool use_osr) { ASSERT(!use_osr); }
 #else  // defined(PRODUCT)
-#define DECLARE_GETTER(name, isolate_flag_name, flag_name)                     \
-  bool name() const { return name##_; }
+#define DECLARE_GETTER(name, bitname, isolate_flag_name, flag_name)            \
+  bool name() const { return bitname##Bit::decode(isolate_flags_); }
   ISOLATE_FLAG_LIST(DECLARE_GETTER)
 #undef DECLARE_GETTER
-  void set_use_osr(bool use_osr) { use_osr_ = use_osr; }
+  void set_use_osr(bool use_osr) {
+    isolate_flags_ = UseOsrBit::update(use_osr, isolate_flags_);
+  }
 #endif  // defined(PRODUCT)
 
   static void KillAllIsolates(LibMsgId msg_id);
@@ -766,30 +805,67 @@ class Isolate : public BaseIsolate {
   ClassTable class_table_;
   bool single_step_;
 
-  // Try to keep boolean fields together.
-  bool errors_fatal_;
-  bool is_runnable_;
-  bool is_service_isolate_;
-  bool compilation_allowed_;
-  bool all_classes_finalized_;
-  bool remapping_cids_;
+  // Isolate specific flags.
+  enum FlagBits {
+    kErrorsFatalBit = 0,
+    kIsRunnableBit = 1,
+    kIsServiceIsolateBit = 2,
+    kCompilationAllowedBit = 3,
+    kAllClassesFinalizedBit = 4,
+    kRemappingCidsBit = 5,
+    kResumeRequestBit = 6,
+    kHasAttemptedReloadBit = 7,
+    kShouldPausePostServiceRequestBit = 8,
+    kUseDartFrontEndBit = 9,
+    kEnableTypeChecksBit = 10,
+    kEnableAssertsBit = 11,
+    kErrorOnBadTypeBit = 12,
+    kErrorOnBadOverrideBit = 13,
+    kUseFieldGuardsBit = 14,
+    kUseOsrBit = 15,
+  };
+  class ErrorsFatalBit : public BitField<uint32_t, bool, kErrorsFatalBit, 1> {};
+  class RunnableBit : public BitField<uint32_t, bool, kIsRunnableBit, 1> {};
+  class ServiceIsolateBit
+      : public BitField<uint32_t, bool, kIsServiceIsolateBit, 1> {};
+  class CompilationAllowedBit
+      : public BitField<uint32_t, bool, kCompilationAllowedBit, 1> {};
+  class AllClassesFinalizedBit
+      : public BitField<uint32_t, bool, kAllClassesFinalizedBit, 1> {};
+  class RemappingCidsBit
+      : public BitField<uint32_t, bool, kRemappingCidsBit, 1> {};
+  class ResumeRequestBit
+      : public BitField<uint32_t, bool, kResumeRequestBit, 1> {};
+  class HasAttemptedReloadBit
+      : public BitField<uint32_t, bool, kHasAttemptedReloadBit, 1> {};
+  class ShouldPausePostServiceRequestBit
+      : public BitField<uint32_t, bool, kShouldPausePostServiceRequestBit, 1> {
+  };
+  class UseDartFrontEndBit
+      : public BitField<uint32_t, bool, kUseDartFrontEndBit, 1> {};
+  class EnableTypeChecksBit
+      : public BitField<uint32_t, bool, kEnableTypeChecksBit, 1> {};
+  class EnableAssertsBit
+      : public BitField<uint32_t, bool, kEnableAssertsBit, 1> {};
+  class ErrorOnBadTypeBit
+      : public BitField<uint32_t, bool, kErrorOnBadTypeBit, 1> {};
+  class ErrorOnBadOverrideBit
+      : public BitField<uint32_t, bool, kErrorOnBadOverrideBit, 1> {};
+  class UseFieldGuardsBit
+      : public BitField<uint32_t, bool, kUseFieldGuardsBit, 1> {};
+  class UseOsrBit : public BitField<uint32_t, bool, kUseOsrBit, 1> {};
+  uint32_t isolate_flags_;
+
+  // Background compilation.
+  int16_t background_compiler_disabled_depth_;
+  BackgroundCompiler* background_compiler_;
 
 // Fields that aren't needed in a product build go here with boolean flags at
 // the top.
 #if !defined(PRODUCT)
-  bool resume_request_;
-  bool has_attempted_reload_;  // Has a reload ever been attempted?
-  // Should we pause in the debug message loop after this request?
-  bool should_pause_post_service_request_;
-
   char* debugger_name_;
   Debugger* debugger_;
   int64_t last_resume_timestamp_;
-
-// Isolate-specific flags.
-#define DECLARE_FIELD(name, isolate_flag_name, flag_name) bool name##_;
-  ISOLATE_FLAG_LIST(DECLARE_FIELD)
-#undef DECLARE_FIELD
 
   // Timestamps of last operation via service.
   int64_t last_allocationprofile_accumulator_reset_timestamp_;
@@ -870,10 +946,6 @@ class Isolate : public BaseIsolate {
   RawGrowableObjectArray* deoptimized_code_array_;
 
   RawError* sticky_error_;
-
-  // Background compilation.
-  BackgroundCompiler* background_compiler_;
-  intptr_t background_compiler_disabled_depth_;
 
   // Isolate list next pointer.
   Isolate* next_;

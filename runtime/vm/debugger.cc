@@ -58,7 +58,6 @@ DEFINE_FLAG(bool,
             "the VM service.");
 
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
-DECLARE_FLAG(bool, use_dart_frontend);
 
 #ifndef PRODUCT
 
@@ -2577,7 +2576,8 @@ bool Debugger::FindBestFit(const Script& script,
                            TokenPosition token_pos,
                            TokenPosition last_token_pos,
                            Function* best_fit) {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   Class& cls = Class::Handle(zone);
   Library& lib = Library::Handle(zone, script.FindLibrary());
   ASSERT(!lib.IsNull());
@@ -2670,7 +2670,7 @@ bool Debugger::FindBestFit(const Script& script,
 
         bool has_func_literal_initializer = false;
 #ifndef DART_PRECOMPILED_RUNTIME
-        if (FLAG_use_dart_frontend) {
+        if (isolate_->use_dart_frontend()) {
           has_func_literal_initializer =
               kernel::KernelReader::FieldHasFunctionLiteralInitializer(
                   field, &start, &end);

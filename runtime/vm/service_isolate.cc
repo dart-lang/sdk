@@ -257,7 +257,7 @@ void ServiceIsolate::SetServiceIsolate(Isolate* isolate) {
   MonitorLocker ml(monitor_);
   isolate_ = isolate;
   if (isolate_ != NULL) {
-    isolate_->is_service_isolate_ = true;
+    isolate_->set_is_service_isolate(true);
     origin_ = isolate_->origin_id();
   }
 }

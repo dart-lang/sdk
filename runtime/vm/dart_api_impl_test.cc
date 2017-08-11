@@ -3471,6 +3471,7 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateSetCheckedMode) {
   api_flags.enable_asserts = true;
   api_flags.enable_error_on_bad_type = true;
   api_flags.enable_error_on_bad_override = true;
+  api_flags.use_dart_frontend = FLAG_use_dart_frontend;
 
   char* err;
   Dart_Isolate isolate = Dart_CreateIsolate(
@@ -7408,9 +7409,12 @@ void BusyLoop_start(uword unused) {
   {
     MonitorLocker ml(sync);
     char* error = NULL;
+    Dart_IsolateFlags api_flags;
+    Isolate::FlagsInitialize(&api_flags);
+    api_flags.use_dart_frontend = FLAG_use_dart_frontend;
     shared_isolate = Dart_CreateIsolate(
         NULL, NULL, bin::core_isolate_snapshot_data,
-        bin::core_isolate_snapshot_instructions, NULL, NULL, &error);
+        bin::core_isolate_snapshot_instructions, &api_flags, NULL, &error);
     EXPECT(shared_isolate != NULL);
     Dart_EnterScope();
     Dart_Handle url = NewString(TestCase::url());
@@ -7509,9 +7513,12 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateShutdownRunDartCode) {
 
   // Create an isolate.
   char* err;
+  Dart_IsolateFlags api_flags;
+  Isolate::FlagsInitialize(&api_flags);
+  api_flags.use_dart_frontend = FLAG_use_dart_frontend;
   Dart_Isolate isolate = Dart_CreateIsolate(
       NULL, NULL, bin::core_isolate_snapshot_data,
-      bin::core_isolate_snapshot_instructions, NULL, NULL, &err);
+      bin::core_isolate_snapshot_instructions, &api_flags, NULL, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);
     free(err);

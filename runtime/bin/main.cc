@@ -354,7 +354,6 @@ static bool ProcessFrontendOption(const char* filename,
     return false;
   }
   dfe.set_frontend_filename(filename);
-  vm_options->AddArgument("--use-dart-frontend");
   return true;
 }
 
@@ -1789,6 +1788,11 @@ void main(int argc, char** argv) {
   init_params.file_close = DartUtils::CloseFile;
   init_params.entropy_source = DartUtils::EntropySource;
   init_params.get_service_assets = GetVMServiceAssetsArchiveCallback;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  init_params.start_kernel_isolate = dfe.UseDartFrontend();
+#else
+  init_params.start_kernel_isolate = false;
+#endif
 
   char* error = Dart_Initialize(&init_params);
   if (error != NULL) {

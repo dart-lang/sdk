@@ -31,10 +31,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, trace_kernel, false, "Trace Kernel service requests.");
 DEFINE_FLAG(bool,
-            use_dart_frontend,
-            false,
-            "Parse scripts with Dart-to-Kernel parser");
-DEFINE_FLAG(bool,
             show_kernel_isolate,
             false,
             "Show Kernel service isolate as normal isolate.");
@@ -50,14 +46,6 @@ class RunKernelTask : public ThreadPool::Task {
  public:
   virtual void Run() {
     ASSERT(Isolate::Current() == NULL);
-
-    if (!FLAG_use_dart_frontend) {
-      ASSERT(FLAG_use_dart_frontend);
-      // In release builds, make this a no-op. In debug builds, the
-      // assert shows that this is not supposed to happen.
-      return;
-    }
-
 #ifndef PRODUCT
     TimelineDurationScope tds(Timeline::GetVMStream(), "KernelIsolateStartup");
 #endif  // !PRODUCT
@@ -199,9 +187,6 @@ class RunKernelTask : public ThreadPool::Task {
 };
 
 void KernelIsolate::Run() {
-  if (!FLAG_use_dart_frontend) {
-    return;
-  }
   // Grab the isolate create callback here to avoid race conditions with tests
   // that change this after Dart_Initialize returns.
   create_callback_ = Isolate::CreateCallback();
@@ -213,8 +198,7 @@ void KernelIsolate::InitCallback(Isolate* I) {
   ASSERT(I == T->isolate());
   ASSERT(I != NULL);
   ASSERT(I->name() != NULL);
-  if (!FLAG_use_dart_frontend ||
-      (strstr(I->name(), DART_KERNEL_ISOLATE_NAME) == NULL)) {
+  if (strstr(I->name(), DART_KERNEL_ISOLATE_NAME) == NULL) {
     // Not kernel isolate.
     return;
   }
@@ -257,9 +241,6 @@ void KernelIsolate::FinishedInitializing() {
 }
 
 Dart_Port KernelIsolate::WaitForKernelPort() {
-  if (!FLAG_use_dart_frontend) {
-    return ILLEGAL_PORT;
-  }
   MonitorLocker ml(monitor_);
   while (initializing_ && (kernel_port_ == ILLEGAL_PORT)) {
     ml.Wait();

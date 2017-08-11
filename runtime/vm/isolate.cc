@@ -692,28 +692,32 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
 
 void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
-#define INIT_FROM_FLAG(name, isolate_flag, flag) api_flags->isolate_flag = flag;
+#define INIT_FROM_FLAG(name, bitname, isolate_flag, flag)                      \
+  api_flags->isolate_flag = flag;
   ISOLATE_FLAG_LIST(INIT_FROM_FLAG)
 #undef INIT_FROM_FLAG
+  api_flags->use_dart_frontend = false;
 }
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
-#define INIT_FROM_FIELD(name, isolate_flag, flag)                              \
+#define INIT_FROM_FIELD(name, bitname, isolate_flag, flag)                     \
   api_flags->isolate_flag = name();
   ISOLATE_FLAG_LIST(INIT_FROM_FIELD)
 #undef INIT_FROM_FIELD
+  api_flags->use_dart_frontend = use_dart_frontend();
 }
 
-#if !defined(PRODUCT)
 void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
-#define SET_FROM_FLAG(name, isolate_flag, flag)                                \
-  name##_ = api_flags.isolate_flag;
+#if !defined(PRODUCT)
+#define SET_FROM_FLAG(name, bitname, isolate_flag, flag)                       \
+  isolate_flags_ = bitname##Bit::update(api_flags.isolate_flag, isolate_flags_);
   ISOLATE_FLAG_LIST(SET_FROM_FLAG)
 #undef SET_FROM_FLAG
+#endif  // !defined(PRODUCT)
+  set_use_dart_frontend(api_flags.use_dart_frontend);
   // Leave others at defaults.
 }
-#endif  // !defined(PRODUCT)
 
 #if defined(DEBUG)
 // static
@@ -749,16 +753,10 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       object_store_(NULL),
       class_table_(),
       single_step_(false),
-      errors_fatal_(true),
-      is_runnable_(false),
-      is_service_isolate_(false),
-      compilation_allowed_(true),
-      all_classes_finalized_(false),
-      remapping_cids_(false),
+      isolate_flags_(0),
+      background_compiler_disabled_depth_(0),
+      background_compiler_(NULL),
 #if !defined(PRODUCT)
-      resume_request_(false),
-      has_attempted_reload_(false),
-      should_pause_post_service_request_(false),
       debugger_name_(NULL),
       debugger_(NULL),
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
@@ -809,8 +807,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
-      background_compiler_(NULL),
-      background_compiler_disabled_depth_(0),
       next_(NULL),
       loading_invalidation_gen_(kInvalidGen),
       top_level_parsing_count_(0),
@@ -820,7 +816,9 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       spawn_count_(0),
       handler_info_cache_(),
       catch_entry_state_cache_() {
-  NOT_IN_PRODUCT(FlagsCopyFrom(api_flags));
+  FlagsCopyFrom(api_flags);
+  SetErrorsFatal(true);
+  set_compilation_allowed(true);
   // TODO(asiva): A Thread is not available here, need to figure out
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to
   // move to the OSThread structure.
@@ -1064,7 +1062,7 @@ bool Isolate::ReloadSources(JSONStream* js,
                             const char* packages_url,
                             bool dont_delete_reload_context) {
   ASSERT(!IsReloading());
-  has_attempted_reload_ = true;
+  SetHasAttemptedReload(true);
   reload_context_ = new IsolateReloadContext(this, js);
   reload_context_->Reload(force_reload, root_script_url, packages_url);
   bool success = !reload_context_->reload_aborted();
@@ -1844,7 +1842,7 @@ RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   raw_class = class_table()->At(cid);
 #endif  // !PRODUCT
   ASSERT(raw_class != NULL);
-  ASSERT(remapping_cids_ || raw_class->ptr()->id_ == cid);
+  ASSERT(remapping_cids() || raw_class->ptr()->id_ == cid);
   return raw_class;
 }
 
@@ -1944,7 +1942,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
     jsobj.AddProperty("pauseEvent", &pause_event);
   } else if ((debugger() != NULL) && (debugger()->PauseEvent() != NULL) &&
-             !resume_request_) {
+             !ResumeRequest()) {
     jsobj.AddProperty("pauseEvent", debugger()->PauseEvent());
   } else {
     ServiceEvent pause_event(this, ServiceEvent::kResume);
