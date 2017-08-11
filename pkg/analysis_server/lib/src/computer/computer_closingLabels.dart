@@ -7,13 +7,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-class _ClosingLabelWithLineCount {
-  final ClosingLabel label;
-  final int spannedLines;
-
-  _ClosingLabelWithLineCount(ClosingLabel this.label, int this.spannedLines);
-}
-
 /**
  * A computer for [CompilationUnit] closing labels.
  */
@@ -37,12 +30,21 @@ class DartUnitClosingLabelsComputer {
   }
 }
 
+class _ClosingLabelWithLineCount {
+  final ClosingLabel label;
+  final int spannedLines;
+
+  _ClosingLabelWithLineCount(ClosingLabel this.label, int this.spannedLines);
+}
+
 /**
  * An AST visitor for [DartUnitClosingLabelsComputer].
  */
 class _DartUnitClosingLabelsComputerVisitor
     extends RecursiveAstVisitor<Object> {
   final DartUnitClosingLabelsComputer computer;
+
+  int interpolatedStringsEntered = 0;
 
   _DartUnitClosingLabelsComputerVisitor(this.computer);
 
@@ -63,6 +65,18 @@ class _DartUnitClosingLabelsComputerVisitor
   }
 
   @override
+  visitListLiteral(ListLiteral node) {
+    final args = node.typeArguments?.arguments;
+    final typeName = args != null ? args[0]?.toString() : null;
+
+    if (typeName != null) {
+      _addLabel(node, "List<$typeName>");
+    }
+
+    return super.visitListLiteral(node);
+  }
+
+  @override
   Object visitMethodInvocation(MethodInvocation node) {
     if (node.argumentList != null) {
       final target = node.target;
@@ -78,19 +92,6 @@ class _DartUnitClosingLabelsComputerVisitor
     return super.visitMethodInvocation(node);
   }
 
-  @override
-  visitListLiteral(ListLiteral node) {
-    final args = node.typeArguments?.arguments;
-    final typeName = args != null ? args[0]?.toString() : null;
-
-    if (typeName != null) {
-      _addLabel(node, "List<$typeName>");
-    }
-
-    return super.visitListLiteral(node);
-  }
-
-  int interpolatedStringsEntered = 0;
   @override
   visitStringInterpolation(StringInterpolation node) {
     interpolatedStringsEntered++;
