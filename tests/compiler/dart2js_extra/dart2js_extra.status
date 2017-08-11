@@ -190,7 +190,6 @@ regress/4562_test/01: Crash # Issue 27394
 23804_test: Crash
 23828_test: Crash
 26243_test: Crash
-28749_test: Crash
 28919_test: Crash
 LayoutTests_fast_mediastream_getusermedia_t01_test/none: Crash
 assert_with_message_test: Crash
@@ -323,7 +322,7 @@ regress/4562_test/none: CompileTimeError
 regress/4639_test: Crash
 regress/4740_test: Crash
 round_constant_folding_test: Crash
-runtime_type_int_test: Crash
+deferred/uninstantiated_type_variable_test: CompileTimeError
 string_interpolation_dynamic_test: RuntimeError
 string_interpolation_test: RuntimeError
 super_constructor1_test: Crash
@@ -334,7 +333,7 @@ timer_test: Crash
 truncation_errors_test: Crash
 type_argument_factory_crash_test: Crash
 type_argument_factory_nocrash_test: Crash
-type_constant_switch_test/01: Crash
+type_constant_switch_test/01: MissingCompileTimeError
 type_error_message_test: Crash
 unconditional_dartio_import_test: CompileTimeError
 useful_error_message_1_test: Crash
@@ -407,6 +406,7 @@ deferred/deferred_function_test: CompileTimeError
 deferred/deferred_mirrors1_test: CompileTimeError
 deferred/deferred_mirrors2_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 deferred/deferred_overlapping_test: CompileTimeError
+deferred/uninstantiated_type_variable_test: CompileTimeError
 deferred_custom_loader_test: CompileTimeError
 deferred_fail_and_retry_test: CompileTimeError
 deferred_fail_and_retry_worker_test: CompileTimeError
