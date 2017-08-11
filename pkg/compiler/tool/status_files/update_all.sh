@@ -32,12 +32,17 @@ function update_suite {
 
 pushd $repodir > /dev/null
 ./tools/build.py -m release create_sdk
-update_suite dart2js_native
-update_suite dart2js_extra
-update_suite language
-update_suite language_2
-update_suite corelib
-update_suite corelib_2
+
+if [[ $# -ge 1 ]]; then
+  update_suite $1
+else
+  update_suite dart2js_native
+  update_suite dart2js_extra
+  update_suite language
+  update_suite language_2
+  update_suite corelib
+  update_suite corelib_2
+fi
 
 rm -rf $tmp
 popd > /dev/null
