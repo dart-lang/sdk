@@ -8,8 +8,12 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 class _ClosingLabelWithLineCount {
-  ClosingLabel label;
-  int spannedLines;
+  final ClosingLabel label;
+  final int spannedLines;
+
+  _ClosingLabelWithLineCount(ClosingLabel label, int spannedLines)
+      : this.label = label,
+        this.spannedLines = spannedLines;
 }
 
 /**
@@ -109,9 +113,8 @@ class _DartUnitClosingLabelsComputerVisitor
     final start = computer._lineInfo.getLocation(checkLinesUsing.offset);
     final end = computer._lineInfo.getLocation(checkLinesUsing.end - 1);
     final closingLabel = new ClosingLabel(node.offset, node.length, label);
-    final labelWithSpan = new _ClosingLabelWithLineCount()
-      ..label = closingLabel
-      ..spannedLines = end.lineNumber - start.lineNumber;
+    final labelWithSpan = new _ClosingLabelWithLineCount(
+        closingLabel, end.lineNumber - start.lineNumber);
 
     if (!computer._closingLabelsByEndLine.containsKey(end.lineNumber)) {
       computer._closingLabelsByEndLine[end.lineNumber] = [];
