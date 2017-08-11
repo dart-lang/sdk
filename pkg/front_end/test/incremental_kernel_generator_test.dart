@@ -57,6 +57,20 @@ class IncrementalKernelGeneratorTest {
     return (await incrementalKernelGenerator.computeDelta()).newProgram;
   }
 
+  test_acceptLastDelta() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String path = '/test/lib/test.dart';
+    Uri uri = writeFile(path, '');
+
+    await getInitialState(uri);
+    incrementalKernelGenerator.acceptLastDelta();
+
+    // Attempt to accept the second time.
+    _assertStateError(() {
+      incrementalKernelGenerator.acceptLastDelta();
+    }, IncrementalKernelGeneratorImpl.MSG_NO_LAST_DELTA);
+  }
+
   test_compile_chain() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
@@ -77,6 +91,7 @@ void main() {}
 
     {
       Program program = await getInitialState(cUri);
+      incrementalKernelGenerator.acceptLastDelta();
       _assertLibraryUris(program,
           includes: [aUri, bUri, cUri, Uri.parse('dart:core')]);
       Library library = _getLibrary(program, cUri);
@@ -154,6 +169,7 @@ b() {
 
     {
       Program program = await getInitialState(aUri);
+      incrementalKernelGenerator.acceptLastDelta();
       _assertLibraryUris(program,
           includes: [aUri, bUri, cUri, dUri, Uri.parse('dart:core')]);
     }
@@ -166,6 +182,7 @@ b() {
     incrementalKernelGenerator.invalidate(cUri);
     {
       DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      incrementalKernelGenerator.acceptLastDelta();
       Program program = delta.newProgram;
       _assertLibraryUris(program,
           includes: [aUri, bUri, cUri],
@@ -206,6 +223,36 @@ static field asy::Future<core::String> b;
 ''');
   }
 
+  test_computeDelta_hasAnotherRunning() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String path = '/test/lib/test.dart';
+    Uri uri = writeFile(path, '');
+
+    await getInitialState(uri);
+    incrementalKernelGenerator.acceptLastDelta();
+
+    // Run, but don't wait.
+    var future = incrementalKernelGenerator.computeDelta();
+
+    // acceptLastDelta() is failing while the future is pending.
+    _assertStateError(() {
+      incrementalKernelGenerator.acceptLastDelta();
+    }, IncrementalKernelGeneratorImpl.MSG_PENDING_COMPUTE);
+
+    // rejectLastDelta() is failing while the future is pending.
+    _assertStateError(() {
+      incrementalKernelGenerator.rejectLastDelta();
+    }, IncrementalKernelGeneratorImpl.MSG_PENDING_COMPUTE);
+
+    // Run another, this causes StateError.
+    _assertStateError(() {
+      incrementalKernelGenerator.computeDelta();
+    }, IncrementalKernelGeneratorImpl.MSG_PENDING_COMPUTE);
+
+    // Wait for the pending future.
+    await future;
+  }
+
   test_inferPackagesFile() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
@@ -230,6 +277,34 @@ static field core::int b = a::a;
 ''');
   }
 
+  test_rejectLastDelta() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String path = '/test/lib/test.dart';
+    Uri uri = writeFile(path, 'var v = 1;');
+
+    // The first delta includes the the library.
+    {
+      Program program = await getInitialState(uri);
+      _assertLibraryUris(program, includes: [uri]);
+      Library library = _getLibrary(program, uri);
+      expect(_getLibraryText(library), contains('core::int v = 1'));
+    }
+
+    // Reject the last delta, so the test library is included again.
+    incrementalKernelGenerator.rejectLastDelta();
+    {
+      var delta = await incrementalKernelGenerator.computeDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [uri]);
+    }
+
+    // Attempt to reject the last delta twice.
+    incrementalKernelGenerator.rejectLastDelta();
+    _assertStateError(() {
+      incrementalKernelGenerator.rejectLastDelta();
+    }, IncrementalKernelGeneratorImpl.MSG_NO_LAST_DELTA);
+  }
+
   test_updateEntryPoint() async {
     writeFile('/test/.packages', 'test:lib/');
     String path = '/test/lib/test.dart';
@@ -252,6 +327,7 @@ static method main() → dynamic {
     // Compute the initial state.
     {
       Program program = await getInitialState(uri);
+      incrementalKernelGenerator.acceptLastDelta();
       Library library = _getLibrary(program, uri);
       expect(_getLibraryText(library), initialText);
     }
@@ -266,6 +342,7 @@ main() {
     // We have not invalidated the file, so the delta is empty.
     {
       DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      incrementalKernelGenerator.acceptLastDelta();
       expect(delta.newProgram.libraries, isEmpty);
     }
 
@@ -273,6 +350,7 @@ main() {
     incrementalKernelGenerator.invalidate(uri);
     {
       DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      incrementalKernelGenerator.acceptLastDelta();
       Program program = delta.newProgram;
       _assertLibraryUris(program, includes: [uri]);
       Library library = _getLibrary(program, uri);
@@ -312,6 +390,7 @@ import 'a.dart';
 
     {
       await getInitialState(cUri);
+      incrementalKernelGenerator.acceptLastDelta();
       // We use at least c.dart and a.dart now.
       expect(usedFiles, contains(cUri));
       expect(usedFiles, contains(aUri));
@@ -327,6 +406,7 @@ import 'b.dart';
     incrementalKernelGenerator.invalidate(cUri);
     {
       await incrementalKernelGenerator.computeDelta();
+      incrementalKernelGenerator.acceptLastDelta();
       // The only new file is b.dart now.
       expect(usedFiles, [bUri]);
       usedFiles.clear();
@@ -340,6 +420,7 @@ import 'a.dart';
     incrementalKernelGenerator.invalidate(cUri);
     {
       await incrementalKernelGenerator.computeDelta();
+      incrementalKernelGenerator.acceptLastDelta();
       // No new used files.
       expect(usedFiles, isEmpty);
       // The file b.dart is not used anymore.
@@ -359,6 +440,7 @@ import 'a.dart';
     watchFn = null;
 
     await getInitialState(bUri);
+    incrementalKernelGenerator.acceptLastDelta();
 
     // Update b.dart to import a.dart file.
     writeFile(bPath, "import 'a.dart';");
@@ -400,6 +482,16 @@ import 'a.dart';
     }
     for (var shouldExclude in excludes) {
       expect(libraryUris, isNot(contains(shouldExclude)));
+    }
+  }
+
+  /// Assert that invocation of [f] throws a [StateError] with the given [msg].
+  void _assertStateError(f(), String msg) {
+    try {
+      f();
+      fail('StateError expected.');
+    } on StateError catch (e) {
+      expect(e.message, msg);
     }
   }
 

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -14,19 +13,19 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    show KytheEntry, KytheVName;
 
 import 'schema.dart' as schema;
 
 const int _notFound = -1;
 
-/// Computes analysis of the given compilation [unit].
-///
-/// [unit] is the compilation unit to be analyzed; it is assumed to exist in the
-/// given [corpus] and to have the given text [contents].  Analysis results are
-/// returned as a list of Kythe [pb_Entry] objects.
-List<pb_Entry> computeIndex(
+/// Computes analysis of the given compilation [unit]. The unit is assumed to
+/// exist in the given [corpus] and to have the given text [contents]. Analysis
+/// results are returned as a list of [KytheEntry] objects.
+List<KytheEntry> computeIndex(
     String corpus, CompilationUnit unit, String contents) {
-  final List<pb_Entry> entries = [];
+  final List<KytheEntry> entries = [];
   var visitor = new KytheDartVisitor(
       entries,
       corpus,
@@ -37,25 +36,9 @@ List<pb_Entry> computeIndex(
   return entries;
 }
 
-/// Outputs analysis of the given compilation [unit] to the parent process.
-///
-/// [unit] is the compilation unit to be analyzed; it is assumed to exist in the
-/// given [corpus] and to have the given text [contents].  Analysis results are
-/// sent do the parent process as raw Kythe [Entry] objects.
-void writeOutIndex(CompilationUnit unit, String corpus, String contents) {
-  List<pb_Entry> entries = computeIndex(corpus, unit, contents);
-  for (pb_Entry e in entries) {
-    assert(e.source != null);
-    if (e.edgeKind == "") {
-      assert(e.target.toString() == "");
-    }
-    _sendToParentProcess(e);
-  }
-}
-
 /// Given some [ConstructorElement], this method returns '<class-name>' as the
-/// name of the constructor, unless the constructor is a named constructor
-/// in which '<class-name>.<constructor-name>' is returned.
+/// name of the constructor, unless the constructor is a named constructor in
+/// which '<class-name>.<constructor-name>' is returned.
 String _computeConstructorElementName(ConstructorElement element) {
   assert(element != null);
   var name = element.enclosingElement.name;
@@ -72,6 +55,8 @@ String _getAnchorSignature(int start, int end) {
 }
 
 String _getPath(Element e) {
+  // TODO(jwren) This method simply serves to provide the WORKSPACE relative
+  // path for sources in Elements, it needs to be written in a more robust way.
   // TODO(jwren) figure out what source generates a e != null, but
   // e.source == null to ensure that it is not a bug somewhere in the stack.
   if (e == null || e.source == null) {
@@ -85,8 +70,8 @@ String _getPath(Element e) {
 }
 
 /// If a non-null element is passed, the [SignatureElementVisitor] is used to
-/// generate and return a [String] signature, otherwise
-/// [schema.DYNAMIC_KIND] is returned.
+/// generate and return a [String] signature, otherwise [schema.DYNAMIC_KIND] is
+/// returned.
 String _getSignature(Element element, String nodeKind, String corpus) {
   assert(nodeKind != schema.ANCHOR_KIND); // Call _getAnchorSignature instead
   if (element == null) {
@@ -98,35 +83,24 @@ String _getSignature(Element element, String nodeKind, String corpus) {
   return '$nodeKind:${element.accept(SignatureElementVisitor.instance)}';
 }
 
-/// Send a [Reply] message to the parent process via standard output.
-///
-/// The message is formatted as a base-128 encoded length followed by the
-/// serialized message data.  The base-128 encoding is in little-endian order,
-/// with the high bit set on all bytes but the last.  This was chosen since
-/// it's the same as the base-128 encoding used by protobufs, so it allows a
-/// modest amount of code reuse.  Also it parallels the format used by
-/// [messageGrouper].
-void _sendToParentProcess(pb_Entry entry) {
-  var rawMessage = entry.writeToBuffer();
-  var encodedLength = (new CodedBufferWriter(rawMessage.length)).toBuffer();
-  stdout..add(encodedLength)..add(rawMessage);
+class CodedBufferWriter {
+  CodedBufferWriter(var v);
+  toBuffer() {}
 }
 
-// TODO(jwren) This method simply serves to provide the WORKSPACE relative path
-// for sources in Elements, it needs to be written in a more robust way.
 /// This visitor writes out Kythe facts and edges as specified by the Kythe
 /// Schema here https://kythe.io/docs/schema/.  This visitor handles all nodes,
 /// facts and edges.
 class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
-  final List<pb_Entry> entries;
+  final List<KytheEntry> entries;
   final String corpus;
   final InheritanceManager _inheritanceManager;
   String _enclosingFilePath = '';
   Element _enclosingElement;
   ClassElement _enclosingClassElement;
-  pb_VName _enclosingVName;
-  pb_VName _enclosingFileVName;
-  pb_VName _enclosingClassVName;
+  KytheVName _enclosingVName;
+  KytheVName _enclosingFileVName;
+  KytheVName _enclosingClassVName;
   final String _contents;
 
   KytheDartVisitor(
@@ -934,7 +908,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
     SyntacticEntity syntacticEntity: null,
     start: _notFound,
     end: _notFound,
-    pb_VName enclosingTarget: null,
+    KytheVName enclosingTarget: null,
   }) {
     if (element is ExecutableElement &&
         _enclosingVName != _enclosingFileVName) {
@@ -961,18 +935,18 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
 
   /// This is a convenience method for adding ref edges. If the [start] and
   /// [end] offsets are provided, they are used, otherwise the offsets are
-  /// computed by using the [syntacticEntity].
-  /// The list of edges is assumed to be non-empty, and are added from the
-  /// anchor to the target generated using the passed [Element].
-  /// The created [pb_VName] is returned, if not `null` is returned.
-  pb_VName _handleRefEdge(
+  /// computed by using the [syntacticEntity]. The list of edges is assumed to
+  /// be non-empty, and are added from the anchor to the target generated using
+  /// the passed [Element]. The created [KytheVName] is returned, if not `null`
+  /// is returned.
+  KytheVName _handleRefEdge(
     Element element,
     List<String> refEdgeTypes, {
     SyntacticEntity syntacticEntity: null,
     start: _notFound,
     end: _notFound,
-    pb_VName enclosingTarget: null,
-    pb_VName enclosingAnchor: null,
+    KytheVName enclosingTarget: null,
+    KytheVName enclosingAnchor: null,
   }) {
     assert(refEdgeTypes.isNotEmpty);
     element = _findNonSyntheticElement(element);
@@ -1061,7 +1035,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
   }
 
   _handleVariableDeclarationListAnnotations(
-      VariableDeclarationList variableDeclarationList, pb_VName refVName) {
+      VariableDeclarationList variableDeclarationList, KytheVName refVName) {
     assert(refVName != null);
     for (var varDecl in variableDeclarationList.variables) {
       if (varDecl.element != null) {
@@ -1120,24 +1094,24 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
 
 /// This class is meant to be a mixin to concrete visitor methods to walk the
 /// [Element] or [AstNode]s produced by the Dart Analyzer to output Kythe
-/// [pb_Entry] protos.
+/// [KytheEntry] protos.
 abstract class OutputUtils {
-  /// A set of [String]s which have already had a name [pb_VName] created.
+  /// A set of [String]s which have already had a name [KytheVName] created.
   final Set<String> nameNodes = new Set<String>();
   String get corpus;
-  pb_VName get dynamicBuiltin => _vName(schema.DYNAMIC_KIND, '', '', '');
+  KytheVName get dynamicBuiltin => _vName(schema.DYNAMIC_KIND, '', '', '');
 
   String get enclosingFilePath;
 
-  List<pb_Entry> get entries;
-  pb_VName get fnBuiltin => _vName(schema.FN_BUILTIN, '', '', '');
-  pb_VName get voidBuiltin => _vName(schema.VOID_BUILTIN, '', '', '');
+  List<KytheEntry> get entries;
+  KytheVName get fnBuiltin => _vName(schema.FN_BUILTIN, '', '', '');
+  KytheVName get voidBuiltin => _vName(schema.VOID_BUILTIN, '', '', '');
 
   /// This is a convenience method for adding anchors. If the [start] and [end]
   /// offsets are provided, they are used, otherwise the offsets are computed by
   /// using the [syntacticEntity]. If a non-empty list of edges is provided, as
   /// well as a target, then this method also adds the edges from the anchor to
-  /// target. The anchor [pb_VName] is returned.
+  /// target. The anchor [KytheVName] is returned.
   ///
   /// If a [target] and [enclosingTarget] are provided, a childof edge is
   /// written out from the target to the enclosing target.
@@ -1148,14 +1122,14 @@ abstract class OutputUtils {
   ///
   /// Finally, for all anchors, a childof edge with a target of the enclosing
   /// file is written out.
-  pb_VName addAnchorEdgesContainingEdge({
+  KytheVName addAnchorEdgesContainingEdge({
     SyntacticEntity syntacticEntity: null,
     int start: _notFound,
     int end: _notFound,
     List<String> edges: const [],
-    pb_VName target: null,
-    pb_VName enclosingTarget: null,
-    pb_VName enclosingAnchor: null,
+    KytheVName target: null,
+    KytheVName enclosingTarget: null,
+    KytheVName enclosingAnchor: null,
   }) {
     if (start == _notFound && end == _notFound) {
       if (syntacticEntity != null) {
@@ -1200,7 +1174,7 @@ abstract class OutputUtils {
   /// TODO(jwren): for cases where the target is a name, we need the same kind
   /// of logic as [addNameFact] to prevent the edge from being written out.
   /// This is a convenience method for visitors to add an edge Entry.
-  pb_Entry addEdge(pb_VName source, String edgeKind, pb_VName target,
+  KytheEntry addEdge(KytheVName source, String edgeKind, KytheVName target,
       {int ordinalIntValue: _notFound}) {
     if (ordinalIntValue == _notFound) {
       return addEntry(source, edgeKind, target, "/", new List<int>());
@@ -1210,35 +1184,32 @@ abstract class OutputUtils {
     }
   }
 
-  pb_Entry addEntry(pb_VName source, String edgeKind, pb_VName target,
+  KytheEntry addEntry(KytheVName source, String edgeKind, KytheVName target,
       String factName, List<int> factValue) {
     assert(source != null);
     assert(factName != null);
     assert(factValue != null);
     // factValue may be an empty array, the fact may be that a file text or
     // document text is empty
-    var entry = pb_Entry.create()
-      ..source = source
-      ..factName = factName
-      ..factValue = factValue;
-    if (edgeKind != null && edgeKind.isNotEmpty) {
-      entry.edgeKind = edgeKind;
-      entry.target = target;
+    if (edgeKind == null || edgeKind.isEmpty) {
+      edgeKind = null;
+      target = null;
     }
+    var entry = new KytheEntry(source, edgeKind, target, factName, factValue);
     entries.add(entry);
     return entry;
   }
 
-  /// This is a convenience method for visitors to add a fact [pb_Entry].
-  pb_Entry addFact(pb_VName source, String factName, List<int> factValue) {
+  /// This is a convenience method for visitors to add a fact [KytheEntry].
+  KytheEntry addFact(KytheVName source, String factName, List<int> factValue) {
     return addEntry(source, null, null, factName, factValue);
   }
 
   /// This is a convenience method for adding function types.
-  pb_VName addFunctionType(
+  KytheVName addFunctionType(
     Element functionElement,
     FormalParameterList paramNodes,
-    pb_VName functionVName, {
+    KytheVName functionVName, {
     AstNode returnNode: null,
   }) {
     var i = 0;
@@ -1295,15 +1266,15 @@ abstract class OutputUtils {
   }
 
   /// This is a convenience method for adding nodes with facts.
-  /// If an [pb_VName] is passed, it is used, otherwise an element is required
-  /// which is used to create a [pb_VName].  Either [nodeVName] must be non-null or
+  /// If an [KytheVName] is passed, it is used, otherwise an element is required
+  /// which is used to create a [KytheVName].  Either [nodeVName] must be non-null or
   /// [element] must be non-null. Other optional parameters if passed are then
-  /// used to set the associated facts on the [pb_VName]. This method does not
+  /// used to set the associated facts on the [KytheVName]. This method does not
   /// currently guarantee that the inputs to these fact kinds are valid for the
   /// associated nodeKind- if a non-null, then it will set.
-  pb_VName addNodeAndFacts(String nodeKind,
+  KytheVName addNodeAndFacts(String nodeKind,
       {Element element: null,
-      pb_VName nodeVName: null,
+      KytheVName nodeVName: null,
       String subKind: null,
       String completeFact: null}) {
     if (nodeVName == null) {
@@ -1327,41 +1298,36 @@ abstract class OutputUtils {
     return UTF8.encode(i.toString());
   }
 
-  /// Given all parameters for a [pb_VName] this method creates and returns a
-  /// [pb_VName].
-  pb_VName _vName(String signature, String corpus, String root, String path,
+  /// Given all parameters for a [KytheVName] this method creates and returns a
+  /// [KytheVName].
+  KytheVName _vName(String signature, String corpus, String root, String path,
       [String language = schema.DART_LANG]) {
-    return pb_VName.create()
-      ..signature = signature
-      ..corpus = corpus
-      ..root = root
-      ..path = path
-      ..language = language;
+    return new KytheVName(signature, corpus, root, path, language);
   }
 
-  /// Returns an anchor [pb_VName] corresponding to the given start and end
+  /// Returns an anchor [KytheVName] corresponding to the given start and end
   /// offsets.
-  pb_VName _vNameAnchor(int start, int end) {
+  KytheVName _vNameAnchor(int start, int end) {
     return _vName(
         _getAnchorSignature(start, end), corpus, '', enclosingFilePath);
   }
 
-  /// Return the [pb_VName] for this file.
-  pb_VName _vNameFile() {
+  /// Return the [KytheVName] for this file.
+  KytheVName _vNameFile() {
     // file vnames, the signature and language are not set
     return _vName('', corpus, '', enclosingFilePath, '');
   }
 
   /// Given some [Element] and Kythe node kind, this method generates and
-  /// returns the [pb_VName].
-  pb_VName _vNameFromElement(Element e, String nodeKind) {
+  /// returns the [KytheVName].
+  KytheVName _vNameFromElement(Element e, String nodeKind) {
     assert(nodeKind != schema.FILE_KIND);
     // general case
     return _vName(_getSignature(e, nodeKind, corpus), corpus, '', _getPath(e));
   }
 
-  /// Returns a [pb_VName] corresponding to the given [DartType].
-  pb_VName _vNameFromType(DartType type) {
+  /// Returns a [KytheVName] corresponding to the given [DartType].
+  KytheVName _vNameFromType(DartType type) {
     if (type == null || type.isDynamic) {
       return dynamicBuiltin;
     } else if (type.isVoid) {
@@ -1372,22 +1338,6 @@ abstract class OutputUtils {
       return dynamicBuiltin;
     }
   }
-}
-
-class CodedBufferWriter {
-  CodedBufferWriter(var v);
-  toBuffer() {}
-}
-
-class pb_Entry {
-  var source, edgeKind, target, factName, factValue;
-  static pb_Entry create() => new pb_Entry();
-  writeToBuffer() {}
-}
-
-class pb_VName {
-  var signature, corpus, root, path, language;
-  static pb_VName create() => new pb_VName();
 }
 
 /// This visitor class should be used by [_getSignature].

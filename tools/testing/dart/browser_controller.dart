@@ -793,7 +793,7 @@ class Firefox extends Browser {
       if (versionResult.exitCode != 0) {
         _logEvent("Failed to firefox get version");
         _logEvent("Make sure $_binary is a valid program for running firefox");
-        return new Future<bool>.value(false);
+        return new Future.value(false);
       }
       version = versionResult.stdout as String;
       _logEvent("Got version: $version");

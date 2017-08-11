@@ -18,7 +18,7 @@ import 'perf/benchmarks_impl.dart';
 Future main(List<String> args) async {
   final List<Benchmark> benchmarks = [
     new ColdAnalysisBenchmark(),
-    new AnalysisBenchmark(),
+    new AnalysisBenchmark()
   ];
 
   CommandRunner runner = new CommandRunner(
@@ -115,10 +115,7 @@ class RunCommand extends Command {
 
       time.stop();
       print('Finished in ${time.elapsed.inSeconds} seconds.\n');
-      Map m = {
-        'benchmark': benchmarkId,
-        'result': result.toJson(),
-      };
+      Map m = {'benchmark': benchmarkId, 'result': result.toJson()};
       print(JSON.encode(m));
     } catch (error, st) {
       print('$benchmarkId threw exception: $error');
@@ -133,7 +130,7 @@ abstract class Benchmark {
   final String description;
   final bool enabled;
 
-  /// One of 'memory' or 'cpu'.
+  /// One of 'memory', 'cpu', or 'group'.
   final String kind;
 
   Benchmark(this.id, this.description, {this.enabled: true, this.kind: 'cpu'});

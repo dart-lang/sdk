@@ -324,7 +324,8 @@ Scavenger::Scavenger(Heap* heap,
       gc_time_micros_(0),
       collections_(0),
       external_size_(0),
-      failed_to_promote_(false) {
+      failed_to_promote_(false),
+      space_lock_(new Mutex()) {
   // Verify assumptions about the first word in objects which the scavenger is
   // going to use for forwarding pointers.
   ASSERT(Object::tags_offset() == 0);
@@ -355,6 +356,7 @@ Scavenger::Scavenger(Heap* heap,
 Scavenger::~Scavenger() {
   ASSERT(!scavenging_);
   to_->Delete();
+  delete space_lock_;
 }
 
 intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
@@ -712,14 +714,38 @@ void Scavenger::ProcessWeakReferences() {
   }
 }
 
+void Scavenger::MakeAllTLABsIterable(Isolate* isolate) const {
+  MonitorLocker ml(isolate->threads_lock(), false);
+  Thread* current = heap_->isolate()->thread_registry()->active_list();
+  while (current != NULL) {
+    if (current->HasActiveTLAB()) {
+      heap_->MakeTLABIterable(current);
+    }
+    current = current->next();
+  }
+  Thread* mutator_thread = isolate->mutator_thread();
+  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
+    heap_->MakeTLABIterable(mutator_thread);
+  }
+}
+
 void Scavenger::MakeNewSpaceIterable() const {
   ASSERT(heap_ != NULL);
-  Thread* mutator_thread = heap_->isolate()->mutator_thread();
-  if (mutator_thread != NULL && !scavenging_) {
-    if (mutator_thread->HasActiveTLAB()) {
-      ASSERT(mutator_thread->top() <= top_);
-      heap_->FillRemainingTLAB(mutator_thread);
-    }
+  if (!scavenging_) {
+    MakeAllTLABsIterable(heap_->isolate());
+  }
+}
+
+void Scavenger::AbandonAllTLABs(Isolate* isolate) {
+  MonitorLocker ml(isolate->threads_lock(), false);
+  Thread* current = isolate->thread_registry()->active_list();
+  while (current != NULL) {
+    heap_->AbandonRemainingTLAB(current);
+    current = current->next();
+  }
+  Thread* mutator_thread = isolate->mutator_thread();
+  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
+    heap_->AbandonRemainingTLAB(mutator_thread);
   }
 }
 
@@ -799,10 +825,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   int64_t post_safe_point = OS::GetCurrentMonotonicMicros();
   heap_->RecordTime(kSafePoint, post_safe_point - pre_safe_point);
 
-  Thread* mutator_thread = isolate->mutator_thread();
-  if ((mutator_thread != NULL) && (mutator_thread->HasActiveTLAB())) {
-    heap_->AbandonRemainingTLAB(mutator_thread);
-  }
+  AbandonAllTLABs(isolate);
 
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_before_gc && !FLAG_concurrent_sweep) {
@@ -922,15 +945,26 @@ void Scavenger::Evacuate() {
   ASSERT((UsedInWords() == 0) || failed_to_promote_);
 }
 
-int64_t Scavenger::UsedInWords() const {
-  int64_t free_space_in_tlab = 0;
-  if (heap_->isolate()->IsMutatorThreadScheduled()) {
-    Thread* mutator_thread = heap_->isolate()->mutator_thread();
-    if (mutator_thread->HasActiveTLAB()) {
-      free_space_in_tlab =
-          (mutator_thread->end() - mutator_thread->top()) >> kWordSizeLog2;
+int64_t Scavenger::FreeSpaceInWords(Isolate* isolate) const {
+  MonitorLocker ml(isolate->threads_lock(), false);
+  Thread* current = isolate->thread_registry()->active_list();
+  int64_t free_space = 0;
+  while (current != NULL) {
+    if (current->HasActiveTLAB()) {
+      free_space += current->end() - current->top();
     }
+    current = current->next();
   }
+
+  Thread* mutator_thread = isolate->mutator_thread();
+  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
+    free_space += mutator_thread->end() - mutator_thread->top();
+  }
+  return free_space >> kWordSizeLog2;
+}
+
+int64_t Scavenger::UsedInWords() const {
+  int64_t free_space_in_tlab = FreeSpaceInWords(heap_->isolate());
   int64_t max_space_used = (top_ - FirstObjectStart()) >> kWordSizeLog2;
   return max_space_used - free_space_in_tlab;
 }

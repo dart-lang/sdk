@@ -6994,6 +6994,7 @@ RawFunction* Function::ConvertedClosureFunction() const {
     closure_function.SetParameterNameAt(i, param_name);
   }
   closure_function.set_kernel_offset(kernel_offset());
+  closure_function.set_kernel_data(TypedData::Handle(zone, kernel_data()));
 
   const Type& signature_type =
       Type::Handle(zone, closure_function.SignatureType());

@@ -138,11 +138,11 @@ Widget build(BuildContext context) {
 }
 """;
 
-    var labels = await _computeElements(content);
     // TODO(dantup) Results here are currently bad so this test is just checking that we
     // dont crash. Need to confirm what to do here; the bad labels might not be fixed
     // until the code is using the new shared parser.
     // https://github.com/dart-lang/sdk/issues/30370
+    await _computeElements(content);
   }
 
   test_listLiterals() async {

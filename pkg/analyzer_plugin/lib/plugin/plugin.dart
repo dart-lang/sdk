@@ -6,9 +6,12 @@ import 'dart:async';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriverGeneric, AnalysisDriverScheduler;
+import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -18,9 +21,6 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/src/utilities/null_string_sink.dart';
 import 'package:analyzer_plugin/utilities/subscriptions/subscription_manager.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
 import 'package:path/src/context.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -373,6 +373,13 @@ abstract class ServerPlugin {
       null;
 
   /**
+   * Handle a 'kythe.getKytheEntries' request.
+   */
+  Future<KytheGetKytheEntriesResult> handleKytheGetKytheEntries(
+          KytheGetKytheEntriesParams parameters) async =>
+      null;
+
+  /**
    * Handle a 'plugin.shutdown' request. Subclasses can override this method to
    * perform any required clean-up, but cannot prevent the plugin from shutting
    * down.
@@ -510,6 +517,10 @@ abstract class ServerPlugin {
       case EDIT_REQUEST_GET_REFACTORING:
         var params = new EditGetRefactoringParams.fromRequest(request);
         result = await handleEditGetRefactoring(params);
+        break;
+      case KYTHE_REQUEST_GET_KYTHE_ENTRIES:
+        var params = new KytheGetKytheEntriesParams.fromRequest(request);
+        result = await handleKytheGetKytheEntries(params);
         break;
       case PLUGIN_REQUEST_SHUTDOWN:
         var params = new PluginShutdownParams();

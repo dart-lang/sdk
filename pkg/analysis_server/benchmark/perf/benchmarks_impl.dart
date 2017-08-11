@@ -18,16 +18,18 @@ import 'memory_tests.dart';
 class ColdAnalysisBenchmark extends Benchmark {
   ColdAnalysisBenchmark()
       : super(
-          'analysis-server-cold',
-          'Analysis server benchmarks of a large project on start-up, no '
-              'existing driver cache.',
-        );
+            'analysis-server-cold',
+            'Analysis server benchmarks of a large project on start-up, no '
+            'existing driver cache.',
+            kind: 'group');
 
   int get maxIterations => 3;
 
   @override
   Future<BenchMarkResult> run({bool quick: false}) async {
-    deleteServerCache();
+    if (!quick) {
+      deleteServerCache();
+    }
 
     Stopwatch stopwatch = new Stopwatch()..start();
 
@@ -59,10 +61,10 @@ class ColdAnalysisBenchmark extends Benchmark {
 class AnalysisBenchmark extends Benchmark {
   AnalysisBenchmark()
       : super(
-          'analysis-server',
-          'Analysis server benchmarks of a large project, with an existing '
-              'driver cache.',
-        );
+            'analysis-server',
+            'Analysis server benchmarks of a large project, with an existing '
+            'driver cache.',
+            kind: 'group');
 
   @override
   Future<BenchMarkResult> run({bool quick: false}) async {

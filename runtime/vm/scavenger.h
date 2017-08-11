@@ -10,6 +10,7 @@
 #include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
+#include "vm/lockers.h"
 #include "vm/raw_object.h"
 #include "vm/ring_buffer.h"
 #include "vm/spaces.h"
@@ -125,6 +126,7 @@ class Scavenger {
     ASSERT(Utils::IsAligned(size, kObjectAlignment));
     ASSERT(heap_ != Dart::vm_isolate()->heap());
     ASSERT(!scavenging_);
+    MutexLocker ml(space_lock_);
     uword result = top_;
     intptr_t remaining = end_ - top_;
     if (remaining < size) {
@@ -235,7 +237,9 @@ class Scavenger {
   void FreeExternal(intptr_t size);
 
   void MakeNewSpaceIterable() const;
-  uword FirstObjectStart() const { return to_->start() | object_alignment_; }
+  int64_t FreeSpaceInWords(Isolate* isolate) const;
+  void MakeAllTLABsIterable(Isolate* isolate) const;
+  void AbandonAllTLABs(Isolate* isolate);
 
  private:
   // Ids for time and data records in Heap::GCStats.
@@ -254,6 +258,7 @@ class Scavenger {
     kToKBAfterStoreBuffer = 3
   };
 
+  uword FirstObjectStart() const { return to_->start() | object_alignment_; }
   SemiSpace* Prologue(Isolate* isolate, bool invoke_api_callbacks);
   void IterateStoreBuffers(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateObjectIdTable(Isolate* isolate, ScavengerVisitor* visitor);
@@ -333,6 +338,8 @@ class Scavenger {
 
   bool failed_to_promote_;
 
+  // Protects new space during the allocation of new TLABs
+  Mutex* space_lock_;
   friend class ScavengerVisitor;
   friend class ScavengerWeakVisitor;
 

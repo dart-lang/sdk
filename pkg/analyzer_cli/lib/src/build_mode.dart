@@ -36,11 +36,12 @@ import 'package:front_end/src/byte_store/byte_store.dart';
  * Persistent Bazel worker.
  */
 class AnalyzerWorkerLoop extends AsyncWorkerLoop {
+  final ResourceProvider resourceProvider;
+  final PerformanceLog logger = new PerformanceLog(null);
+  final String dartSdkPath;
+
   final StringBuffer errorBuffer = new StringBuffer();
   final StringBuffer outBuffer = new StringBuffer();
-
-  final ResourceProvider resourceProvider;
-  final String dartSdkPath;
 
   AnalyzerWorkerLoop(this.resourceProvider, AsyncWorkerConnection connection,
       {this.dartSdkPath})
@@ -58,8 +59,9 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
    * Performs analysis with given [options].
    */
   Future<Null> analyze(CommandLineOptions options) async {
-    var buildMode =
-        new BuildMode(resourceProvider, options, new AnalysisStats());
+    var buildMode = new BuildMode(
+        resourceProvider, options, new AnalysisStats(),
+        logger: logger);
     await buildMode.analyze();
     AnalysisEngine.instance.clearCaches();
   }
@@ -69,34 +71,36 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
    */
   @override
   Future<WorkResponse> performRequest(WorkRequest request) async {
-    errorBuffer.clear();
-    outBuffer.clear();
-    try {
-      // Add in the dart-sdk argument if `dartSdkPath` is not null, otherwise it
-      // will try to find the currently installed sdk.
-      var arguments = new List<String>.from(request.arguments);
-      if (dartSdkPath != null &&
-          !arguments.any((arg) => arg.startsWith('--dart-sdk'))) {
-        arguments.add('--dart-sdk=$dartSdkPath');
+    return logger.run('Perform request', () async {
+      errorBuffer.clear();
+      outBuffer.clear();
+      try {
+        // Add in the dart-sdk argument if `dartSdkPath` is not null,
+        // otherwise it will try to find the currently installed sdk.
+        var arguments = request.arguments.toList();
+        if (dartSdkPath != null &&
+            !arguments.any((arg) => arg.startsWith('--dart-sdk'))) {
+          arguments.add('--dart-sdk=$dartSdkPath');
+        }
+        // Prepare options.
+        CommandLineOptions options =
+            CommandLineOptions.parse(arguments, printAndFail: (String msg) {
+          throw new ArgumentError(msg);
+        });
+        // Analyze and respond.
+        await analyze(options);
+        String msg = _getErrorOutputBuffersText();
+        return new WorkResponse()
+          ..exitCode = EXIT_CODE_OK
+          ..output = msg;
+      } catch (e, st) {
+        String msg = _getErrorOutputBuffersText();
+        msg += '$e\n$st';
+        return new WorkResponse()
+          ..exitCode = EXIT_CODE_ERROR
+          ..output = msg;
       }
-      // Prepare options.
-      CommandLineOptions options =
-          CommandLineOptions.parse(arguments, printAndFail: (String msg) {
-        throw new ArgumentError(msg);
-      });
-      // Analyze and respond.
-      await analyze(options);
-      String msg = _getErrorOutputBuffersText();
-      return new WorkResponse()
-        ..exitCode = EXIT_CODE_OK
-        ..output = msg;
-    } catch (e, st) {
-      String msg = _getErrorOutputBuffersText();
-      msg += '$e\n$st';
-      return new WorkResponse()
-        ..exitCode = EXIT_CODE_ERROR
-        ..output = msg;
-    }
+    });
   }
 
   /**
@@ -131,6 +135,7 @@ class BuildMode {
   final ResourceProvider resourceProvider;
   final CommandLineOptions options;
   final AnalysisStats stats;
+  final PerformanceLog logger;
 
   SummaryDataStore summaryDataStore;
   AnalysisOptions analysisOptions;
@@ -138,14 +143,15 @@ class BuildMode {
   final List<Source> explicitSources = <Source>[];
   final List<PackageBundle> unlinkedBundles = <PackageBundle>[];
 
-  PerformanceLog logger = new PerformanceLog(null);
   AnalysisDriver analysisDriver;
 
   PackageBundleAssembler assembler;
   final Set<Source> processedSources = new Set<Source>();
   final Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
 
-  BuildMode(this.resourceProvider, this.options, this.stats);
+  BuildMode(this.resourceProvider, this.options, this.stats,
+      {PerformanceLog logger})
+      : logger = logger ?? new PerformanceLog(null);
 
   bool get _shouldOutputSummary =>
       options.buildSummaryOutput != null ||

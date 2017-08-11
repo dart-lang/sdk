@@ -3339,10 +3339,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
   const Function& function = parsed_function()->function();
-  TypedData& kernel_data = TypedData::Handle(Z, function.kernel_data());
-  if (kernel_data.IsNull() && kernel_offset > 0) {
-    UNREACHABLE();
-  }
 
   // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
   // e.g. for type translation.

@@ -41,6 +41,7 @@ main() {
     compiler = await createIncrementalCompiler(
         'file:///a.dart', new HybridFileSystem(fs));
     await rebuild(compiler, outputUri); // this is a full compile.
+    compiler.acceptLastDelta();
   });
 
   tearDown(() async {
@@ -105,6 +106,7 @@ main() {
     var remoteVm = new RemoteVm(port);
     var reloadResult = await remoteVm.reload(outputUri);
     expect(reloadResult['success'], isTrue);
+    compiler.acceptLastDelta();
     await remoteVm.disconnect();
   }
 

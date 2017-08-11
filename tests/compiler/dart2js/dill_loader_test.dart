@@ -50,11 +50,9 @@ main() {
     var options = new CompilerOptions()
       ..target = new Dart2jsTarget(new TargetFlags())
       ..packagesFileUri = Uri.base.resolve('.packages')
-      ..compileSdk = true
       ..linkedDependencies = [platform]
       ..setExitCodeOnProblem = true
-      ..verify = true
-      ..sdkRoot = Uri.parse(sdkPath);
+      ..verify = true;
 
     List<int> kernelBinary =
         serializeProgram(await kernelForProgram(uri, options));

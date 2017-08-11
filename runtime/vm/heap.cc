@@ -58,7 +58,7 @@ Heap::~Heap() {
   }
 }
 
-void Heap::FillRemainingTLAB(Thread* thread) {
+void Heap::MakeTLABIterable(Thread* thread) {
   uword start = thread->top();
   uword end = thread->end();
   ASSERT(end >= start);
@@ -67,12 +67,11 @@ void Heap::FillRemainingTLAB(Thread* thread) {
   if (size >= kObjectAlignment) {
     FreeListElement::AsElement(start, size);
     ASSERT(RawObject::FromAddr(start)->Size() == size);
-    ASSERT((start + size) == new_space_.top());
   }
 }
 
 void Heap::AbandonRemainingTLAB(Thread* thread) {
-  FillRemainingTLAB(thread);
+  MakeTLABIterable(thread);
   thread->set_top(0);
   thread->set_end(0);
 }
@@ -630,6 +629,7 @@ bool Heap::VerifyGC(MarkExpectation mark_expectation) const {
   ObjectSet* allocated_set =
       CreateAllocatedObjectSet(stack_zone.GetZone(), mark_expectation);
   VerifyPointersVisitor visitor(isolate(), allocated_set);
+
   VisitObjectPointers(&visitor);
 
   // Only returning a value so that Heap::Validate can be called from an ASSERT.

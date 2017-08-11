@@ -1874,7 +1874,8 @@
       <field name="offset">
         <ref>int</ref>
         <p>
-          The offset used to identify the code to which the template will be applied.
+          The offset used to identify the code to which the template will be
+          applied.
         </p>
       </field>
     </params>
@@ -2075,7 +2076,8 @@
       <field name="offset">
         <ref>int</ref>
         <p>
-          The offset used to identify the code to which the template will be applied.
+          The offset used to identify the code to which the template will be
+          applied.
         </p>
       </field>
     </params>
@@ -2435,9 +2437,9 @@
     </tt>
   </p>
   <p>
-    The analysis server will send it's own analytics data (for example, operations
-    performed, operating system type, SDK version). No data (from the analysis
-    server or from clients) will be sent if analytics is disabled.
+    The analysis server will send it's own analytics data (for example,
+    operations performed, operating system type, SDK version). No data (from the
+    analysis server or from clients) will be sent if analytics is disabled.
   </p>
   <request method="isEnabled">
     <p>Query whether analytics is enabled.</p>
@@ -2451,10 +2453,11 @@
       The value of this flag can be changed by other tools outside of the
       analysis server's process. When you query the flag, you get the value of
       the flag at a given moment. Clients should not use the value returned to
-      decide whether or not to send the <tt>sendEvent</tt> and <tt>sendTiming</tt>
-      requests. Those requests should be used unconditionally and server will
-      determine whether or not it is appropriate to forward the information to
-      the cloud at the time each request is received.
+      decide whether or not to send the <tt>sendEvent</tt> and
+      <tt>sendTiming</tt> requests. Those requests should be used
+      unconditionally and server will determine whether or not it is appropriate
+      to forward the information to the cloud at the time each request is
+      received.
     </p>
     <result>
       <field name="enabled">
@@ -2534,13 +2537,16 @@
     <a href="http://kythe.io/">Kythe</a> format.
   </p>
   <request method="getKytheEntries">
-    <p>Return the list of <tt>KytheEntry</tt> objects for some file, given the current state of the
-      file system populated by "analysis.updateContent".</p>
+    <p>
+      Return the list of <tt>KytheEntry</tt> objects for some file, given the
+      current state of the file system populated by "analysis.updateContent".
+    </p>
     <params>
       <field name="file">
         <ref>FilePath</ref>
         <p>
-          The file containing the code for which the Kythe Entry objects are being requested.
+          The file containing the code for which the Kythe Entry objects are
+          being requested.
         </p>
       </field>
     </params>
@@ -2549,16 +2555,20 @@
         <list>
           <ref>KytheEntry</ref>
         </list>
-        <p>The list of <tt>KytheEntry</tt> objects for the queried file.</p>
+        <p>
+          The list of <tt>KytheEntry</tt> objects for the queried file.
+        </p>
       </field>
       <field name="files">
         <list>
           <ref>FilePath</ref>
         </list>
-        <p>The set of files paths that were required, but not in the file system, to give a complete
-          and accurate Kythe graph for the file. This could be due to a referenced file that does
-          not exist or generated files not being generated or passed before the call to
-          "getKytheEntries".</p>
+        <p>
+          The set of files paths that were required, but not in the file system,
+          to give a complete and accurate Kythe graph for the file. This could
+          be due to a referenced file that does not exist or generated files not
+          being generated or passed before the call to "getKytheEntries".
+        </p>
       </field>
     </result>
   </request>
@@ -2706,10 +2716,11 @@
   </type>
   <type name="ClosingLabel">
     <p>
-      A label that is associated with a range of code that may be useful to render at the end
-      of the range to aid code readability. For example, a constructor call that spans multiple
-      lines may result in a closing label to allow the constructor type/name to be rendered
-      alongside the closing parenthesis.
+      A label that is associated with a range of code that may be useful to
+      render at the end of the range to aid code readability. For example, a
+      constructor call that spans multiple lines may result in a closing label
+      to allow the constructor type/name to be rendered alongside the closing
+      parenthesis.
     </p>
     <object>
       <field name="offset">
@@ -2727,7 +2738,8 @@
       <field name="label">
         <ref>String</ref>
         <p>
-          The label associated with this range that should be displayed to the user.
+          The label associated with this range that should be displayed to the
+          user.
         </p>
       </field>
     </object>
@@ -3016,87 +3028,6 @@
       </field>
     </object>
   </type>
-  <type name="KytheEntry">
-    <p>
-      This object matches the format and documentation of the Entry object documented in the
-      <a href="https://kythe.io/docs/kythe-storage.html#_entry">Kythe Storage Model</a>.
-    </p>
-    <object>
-    <field name="source">
-      <ref>KytheVName</ref>
-      <p>
-        The ticket of the source node (must not be empty).
-      </p>
-    </field>
-    <field name="kind">
-      <ref>String</ref>
-      <p>
-        An edge label (may be empty). The schema defines which labels are meaningful.
-      </p>
-    </field>
-    <field name="target">
-      <ref>KytheVName</ref>
-      <p>
-        The ticket of the target node (may be empty).
-      </p>
-    </field>
-    <field name="fact">
-      <ref>String</ref>
-      <p>
-        A fact label (must not be empty). The schema defines which fact labels are meaningful.
-      </p>
-    </field>
-    <field name="value">
-      <list>
-        <ref>int</ref>
-      </list>
-      <p>
-        The <tt>String</tt> value of the fact (may be empty).
-      </p>
-    </field>
-    </object>
-  </type>
-  <type name="KytheVName">
-    <p>
-      This object matches the format and documentation of the Vector-Name object documented in the
-      <a href="https://kythe.io/docs/kythe-storage.html#_a_id_termvname_a_vector_name_strong_vname_strong">Kythe Storage Model</a>.
-    </p>
-    <object>
-    <field name="signature">
-      <ref>String</ref>
-      <p>
-        An opaque signature generated by the analyzer.
-      </p>
-    </field>
-    <field name="corpus">
-      <ref>String</ref>
-      <p>
-        The corpus of source code this <tt>KytheVName</tt> belongs to. Loosely, a corpus is a
-        collection of related files, such as the contents of a given source repository.
-      </p>
-    </field>
-    <field name="root">
-      <ref>String</ref>
-      <p>
-        A corpus-specific root label, typically a directory path or project identifier, denoting a
-        distinct subset of the corpus. This may also be used to designate virtual collections like generated files.
-      </p>
-    </field>
-    <field name="path">
-      <ref>String</ref>
-      <p>
-        A path-structured label describing the “location” of the named object relative to the corpus
-        and the root.
-      </p>
-    </field>
-    <field name="language">
-      <ref>String</ref>
-      <p>
-        The language this name belongs to.
-      </p>
-    </field>
-    </object>
-  </type>
   <type name="Override">
     <p>
       A description of a member that overrides an inherited member.
@@ -3175,7 +3106,8 @@
       <field name="example">
         <ref>String</ref>
         <p>
-          A short example of the transformation performed when the template is applied.
+          A short example of the transformation performed when the template is
+          applied.
         </p>
       </field>
     </object>

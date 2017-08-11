@@ -200,7 +200,7 @@ dart/optimized_stacktrace_line_and_column_test: RuntimeError,OK # AOT lacks colu
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 
 [ $runtime == vm && $mode == product ]
-cc/IsolateSetCheckedMode: Fail,OK  # Checked mode disabled in product mode.
+cc/DartAPI_IsolateSetCheckedMode: Fail,OK  # Checked mode disabled in product mode.
 
 [ $arch == simdbc  || $arch == simdbc64 ]
 # TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp
@@ -252,33 +252,58 @@ dart/spawn_shutdown_test: SkipSlow
 [ ($compiler == dartk) && ($runtime == vm) ]
 cc/CanonicalizationInScriptSnapshots: Fail
 cc/Class_ComputeEndTokenPos: Crash
-cc/CurrentStackTraceInfo: Fail
-cc/Dart_LoadLibraryPatch_Error1: Fail
-cc/Dart_LoadLibraryPatch_Error2: Fail
-cc/Dart_LoadLibraryPatch_Error3: Fail
-cc/Dart_PropagateError: Fail
-cc/Debug_EvaluateExpr: Fail
-cc/Debug_GetClosureInfo: Fail
-cc/Debug_InterruptIsolate: SkipSlow
-cc/Debug_IsolateID: Fail
-cc/Debug_ScriptGetTokenInfo_Basic: Fail
-cc/Debug_ScriptGetTokenInfo_MultiLineInterpolation: Fail
+cc/DartAPI_CurrentStackTraceInfo: Fail
+cc/DartAPI_ErrorHandleBasics: Fail
+cc/DartAPI_FieldAccess: Crash
+cc/DartAPI_GetFunctionNames: Crash
+cc/DartAPI_ImplicitNativeFieldAccess: Crash
+cc/DartAPI_ImportLibrary2: Crash
+cc/DartAPI_ImportLibrary3: Crash
+cc/DartAPI_ImportLibrary4: Crash
+cc/DartAPI_ImportLibrary5: Crash
+cc/DartAPI_ImportLibraryWithPrefix: Crash
+cc/DartAPI_InjectNativeFields1: Skip
+cc/DartAPI_InjectNativeFields3: Crash
+cc/DartAPI_InjectNativeFields4: Crash
+cc/DartAPI_InjectNativeFieldsSuperClass: Crash
+cc/DartAPI_Invoke_CrossLibrary:  Crash
+cc/DartAPI_InvokeNoSuchMethod: Fail
+cc/DartAPI_IsolateShutdownRunDartCode: Skip # Flaky
+cc/DartAPI_LazyLoadDeoptimizes: Fail
+cc/DartAPI_LibraryGetClassNames: Crash
+cc/DartAPI_LibraryId: Crash
+cc/DartAPI_LibraryImportLibrary: Crash
+cc/DartAPI_LibraryName: Crash
+cc/DartAPI_LibraryUrl: Crash
+cc/DartAPI_LoadLibrary: Crash
+cc/DartAPI_LoadLibrary_CompileError: Crash
+cc/DartAPI_LoadLibraryPatch_Error1: Fail
+cc/DartAPI_LoadLibraryPatch_Error2: Fail
+cc/DartAPI_LoadLibraryPatch_Error3: Fail
+cc/DartAPI_LoadPatch: Crash
+cc/DartAPI_LoadPatchSignatureMismatch: Crash
+cc/DartAPI_LoadSource: Crash
+cc/DartAPI_LoadSource_LateLoad: Crash
+cc/DartAPI_LookupLibrary: Crash
+cc/DartAPI_NativeFieldAccess: Fail
+cc/DartAPI_NegativeNativeFieldInIsolateMessage: Crash
+cc/DartAPI_New: Crash
+cc/DartAPI_ParsePatchLibrary: Crash
+cc/DartAPI_PropagateError: Fail
+cc/DartAPI_StackOverflowStackTraceInfo: Skip
+cc/DartAPI_TestNativeFieldsAccess: Crash
+cc/DartAPI_TypeGetParameterizedTypes: Crash
+cc/DebuggerAPI_BreakpointStubPatching: Fail
+cc/DebuggerAPI_EvaluateExpr: Fail
+cc/DebuggerAPI_GetClosureInfo: Fail
+cc/DebuggerAPI_InterruptIsolate: SkipSlow
+cc/DebuggerAPI_IsolateID: Fail
+cc/DebuggerAPI_ScriptGetTokenInfo_Basic: Fail
+cc/DebuggerAPI_ScriptGetTokenInfo_MultiLineInterpolation: Fail
 cc/Debugger_PrintBreakpointsToJSONArray: Fail
 cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
-cc/ErrorHandleBasics: Fail
-cc/FieldAccess: Crash
 cc/FunctionSourceFingerprint: Crash
-cc/GetFunctionNames: Crash
-cc/ImplicitNativeFieldAccess: Crash
-cc/ImportLibrary2: Crash
-cc/ImportLibrary3: Crash
-cc/ImportLibrary4: Crash
-cc/ImportLibrary5: Crash
-cc/ImportLibraryWithPrefix: Crash
-cc/InjectNativeFieldsSuperClass: Crash
-cc/InvokeNoSuchMethod: Fail
-cc/Invoke_CrossLibrary:  Crash
 cc/IsolateReload_BadClass: Fail
 cc/IsolateReload_ClassFieldAdded: Crash
 cc/IsolateReload_ClassFieldAdded2: Crash
@@ -329,23 +354,6 @@ cc/IsolateReload_TypeIdentity: Fail
 cc/IsolateReload_TypeIdentityGeneric: Fail
 cc/IsolateReload_TypeIdentityParameter: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
-cc/LazyLoadDeoptimizes: Fail
-cc/LibraryGetClassNames: Crash
-cc/LibraryId: Crash
-cc/LibraryImportLibrary: Crash
-cc/LibraryName: Crash
-cc/LibraryUrl: Crash
-cc/LoadPatch: Crash
-cc/LoadPatchSignatureMismatch: Crash
-cc/LoadSource: Crash
-cc/LoadLibrary: Crash
-cc/LoadLibrary_CompileError: Crash
-cc/LoadSource_LateLoad: Crash
-cc/LookupLibrary: Crash
-cc/NativeFieldAccess: Fail
-cc/NegativeNativeFieldInIsolateMessage: Crash
-cc/New: Crash
-cc/ParsePatchLibrary: Crash
 cc/Parser_AllocateVariables_CaptureLoopVar: Fail
 cc/Parser_AllocateVariables_CapturedVar: Fail
 cc/Parser_AllocateVariables_Issue7681: Fail
@@ -388,10 +396,7 @@ cc/SourceReport_Coverage_UnusedClass_ForceCompileError: Crash
 cc/SourceReport_Coverage_UnusedClass_NoForceCompile: Fail
 cc/SourceReport_MultipleReports: Fail
 cc/SourceReport_PossibleBreakpoints_Simple: Fail
-cc/StackOverflowStackTraceInfo: Skip
 cc/StackTraceFormat: Fail
-cc/TestNativeFieldsAccess: Crash
-cc/TypeGetParameterizedTypes: Crash
 cc/UseDartApi: Fail
 dart/data_uri_import_test/base64: CompileTimeError
 dart/data_uri_import_test/nocharset: CompileTimeError
@@ -402,19 +407,13 @@ dart/data_uri_spawn_test: RuntimeError
 dart/redirection_type_shuffling_test/00: Crash
 dart/redirection_type_shuffling_test/none: Crash
 dart/spawn_shutdown_test: SkipSlow
-cc/InjectNativeFields1: Skip
-cc/InjectNativeFields3: Crash
-cc/InjectNativeFields4: Crash
-cc/IsolateShutdownRunDartCode: Skip # Flaky
 
 [ ($compiler == dartk) && ($runtime == vm) && ($mode == release) ]
-cc/Debug_BreakpointStubPatching: Fail
 cc/InjectNativeFields1: Fail
 cc/InjectNativeFields3: Fail
 cc/Service_TokenStream: Fail
 
 [ ($compiler == dartk) && ($runtime == vm) && ($mode == debug) ]
-cc/Debug_BreakpointStubPatching: Fail
 cc/InjectNativeFields1: Crash
 cc/InjectNativeFields3: Crash
 cc/Service_TokenStream: Crash
