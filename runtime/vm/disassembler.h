@@ -99,7 +99,7 @@ class Disassembler : public AllStatic {
   }
 
   static void Disassemble(uword start, uword end, const Code& code) {
-#ifndef PRODUCT
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     DisassembleToStdout stdout_formatter;
     LogBlock lb;
     Disassemble(start, end, &stdout_formatter, code);
@@ -109,7 +109,7 @@ class Disassembler : public AllStatic {
   }
 
   static void Disassemble(uword start, uword end) {
-#ifndef PRODUCT
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     DisassembleToStdout stdout_formatter;
     LogBlock lb;
     Disassemble(start, end, &stdout_formatter);

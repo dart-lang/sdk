@@ -3,7 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 // Class for intrinsifying functions.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/intrinsifier.h"
+
 #include "vm/assembler.h"
 #include "vm/compiler.h"
 #include "vm/cpu.h"
@@ -1135,3 +1138,5 @@ void Intrinsifier::RegExp_ExecuteMatchSticky(Assembler* assembler) {
 #endif  // !defined(TARGET_ARCH_DBC)
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

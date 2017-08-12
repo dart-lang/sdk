@@ -169,11 +169,6 @@ class StubCode : public AllStatic {
 
   static const intptr_t kStubCodeSize = 4 * KB;
 
-#define STUB_CODE_GENERATE(name)                                               \
-  static void Generate##name##Stub(Assembler* assembler);
-  VM_STUB_CODE_LIST(STUB_CODE_GENERATE)
-#undef STUB_CODE_GENERATE
-
   enum {
 #define STUB_CODE_ENTRY(name) k##name##Index,
     VM_STUB_CODE_LIST(STUB_CODE_ENTRY)
@@ -182,6 +177,12 @@ class StubCode : public AllStatic {
   };
 
   static StubEntry* entries_[kNumStubEntries];
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#define STUB_CODE_GENERATE(name)                                               \
+  static void Generate##name##Stub(Assembler* assembler);
+  VM_STUB_CODE_LIST(STUB_CODE_GENERATE)
+#undef STUB_CODE_GENERATE
 
   // Generate the stub and finalize the generated code into the stub
   // code executable area.
@@ -200,6 +201,7 @@ class StubCode : public AllStatic {
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
 enum DeoptStubKind { kLazyDeoptFromReturn, kLazyDeoptFromThrow, kEagerDeopt };
