@@ -16,6 +16,7 @@
 #include "vm/assembler.h"
 #include "vm/constants_arm64.h"
 #include "vm/disassembler.h"
+#include "vm/lockers.h"
 #include "vm/native_arguments.h"
 #include "vm/os_thread.h"
 #include "vm/stack_frame.h"
@@ -705,10 +706,18 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
   return result;
 }
 
+// Synchronization primitives support.
+Mutex* Simulator::exclusive_access_lock_ = NULL;
+Simulator::AddressTag Simulator::exclusive_access_state_[kNumAddressTags] = {
+    {NULL, 0}};
+int Simulator::next_address_tag_ = 0;
+
 void Simulator::InitOnce() {
+  // Setup exclusive access state lock.
+  exclusive_access_lock_ = new Mutex();
 }
 
-Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
+Simulator::Simulator() {
   // Setup simulator support first. Some of this information is needed to
   // setup the architecture state.
   // We allocate the stack here, the size is computed as the sum of
@@ -1097,57 +1106,124 @@ void Simulator::WriteB(uword addr, uint8_t value) {
   *ptr = value;
 }
 
+// Synchronization primitives support.
+void Simulator::SetExclusiveAccess(uword addr) {
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
+  DEBUG_ASSERT(exclusive_access_lock_->IsOwnedByCurrentThread());
+  int i = 0;
+  // Find an entry for this thread in the exclusive access state.
+  while ((i < kNumAddressTags) &&
+         (exclusive_access_state_[i].thread != thread)) {
+    i++;
+  }
+  // Round-robin replacement of previously used entries.
+  if (i == kNumAddressTags) {
+    i = next_address_tag_;
+    if (++next_address_tag_ == kNumAddressTags) {
+      next_address_tag_ = 0;
+    }
+    exclusive_access_state_[i].thread = thread;
+  }
+  // Remember the address being reserved.
+  exclusive_access_state_[i].addr = addr;
+}
+
+bool Simulator::HasExclusiveAccessAndOpen(uword addr) {
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
+  ASSERT(addr != 0);
+  DEBUG_ASSERT(exclusive_access_lock_->IsOwnedByCurrentThread());
+  bool result = false;
+  for (int i = 0; i < kNumAddressTags; i++) {
+    if (exclusive_access_state_[i].thread == thread) {
+      // Check whether the current threads address reservation matches.
+      if (exclusive_access_state_[i].addr == addr) {
+        result = true;
+      }
+      exclusive_access_state_[i].addr = 0;
+    } else if (exclusive_access_state_[i].addr == addr) {
+      // Other threads with matching address lose their reservations.
+      exclusive_access_state_[i].addr = 0;
+    }
+  }
+  return result;
+}
+
 void Simulator::ClearExclusive() {
-  exclusive_access_addr_ = 0;
-  exclusive_access_value_ = 0;
+  MutexLocker ml(exclusive_access_lock_);
+  // Remove the reservation for this thread.
+  SetExclusiveAccess(0);
 }
 
 intptr_t Simulator::ReadExclusiveX(uword addr, Instr* instr) {
-  exclusive_access_addr_ = addr;
-  exclusive_access_value_ = ReadX(addr, instr);
-  return exclusive_access_value_;
+  MutexLocker ml(exclusive_access_lock_);
+  SetExclusiveAccess(addr);
+  return ReadX(addr, instr);
 }
 
 intptr_t Simulator::ReadExclusiveW(uword addr, Instr* instr) {
-  exclusive_access_addr_ = addr;
-  exclusive_access_value_ = ReadWU(addr, instr);
-  return exclusive_access_value_;
+  MutexLocker ml(exclusive_access_lock_);
+  SetExclusiveAccess(addr);
+  return ReadWU(addr, instr);
 }
 
 intptr_t Simulator::WriteExclusiveX(uword addr, intptr_t value, Instr* instr) {
-  // In a well-formed code store-exclusive instruction should always follow
-  // a corresponding load-exclusive instruction with the same address.
-  ASSERT((exclusive_access_addr_ == 0) || (exclusive_access_addr_ == addr));
-  if (exclusive_access_addr_ != addr) {
-    return 1;  // Failure.
-  }
-
-  uword old_value = exclusive_access_value_;
-  ClearExclusive();
-
-  if (AtomicOperations::CompareAndSwapWord(reinterpret_cast<uword*>(addr),
-                                           old_value, value) == old_value) {
+  MutexLocker ml(exclusive_access_lock_);
+  bool write_allowed = HasExclusiveAccessAndOpen(addr);
+  if (write_allowed) {
+    WriteX(addr, value, instr);
     return 0;  // Success.
   }
   return 1;  // Failure.
 }
 
 intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
-  // In a well-formed code store-exclusive instruction should always follow
-  // a corresponding load-exclusive instruction with the same address.
-  ASSERT((exclusive_access_addr_ == 0) || (exclusive_access_addr_ == addr));
-  if (exclusive_access_addr_ != addr) {
-    return 1;  // Failure.
-  }
-
-  uint32_t old_value = static_cast<uint32_t>(exclusive_access_value_);
-  ClearExclusive();
-
-  if (AtomicOperations::CompareAndSwapUint32(reinterpret_cast<uint32_t*>(addr),
-                                             old_value, value) == old_value) {
+  MutexLocker ml(exclusive_access_lock_);
+  bool write_allowed = HasExclusiveAccessAndOpen(addr);
+  if (write_allowed) {
+    WriteW(addr, value, instr);
     return 0;  // Success.
   }
   return 1;  // Failure.
+}
+
+uword Simulator::CompareExchange(uword* address,
+                                 uword compare_value,
+                                 uword new_value) {
+  MutexLocker ml(exclusive_access_lock_);
+  // We do not get a reservation as it would be guaranteed to be found when
+  // writing below. No other thread is able to make a reservation while we
+  // hold the lock.
+  uword value = *address;
+  if (value == compare_value) {
+    *address = new_value;
+    // Same effect on exclusive access state as a successful STREX.
+    HasExclusiveAccessAndOpen(reinterpret_cast<uword>(address));
+  } else {
+    // Same effect on exclusive access state as an LDREX.
+    SetExclusiveAccess(reinterpret_cast<uword>(address));
+  }
+  return value;
+}
+
+uint32_t Simulator::CompareExchangeUint32(uint32_t* address,
+                                          uint32_t compare_value,
+                                          uint32_t new_value) {
+  MutexLocker ml(exclusive_access_lock_);
+  // We do not get a reservation as it would be guaranteed to be found when
+  // writing below. No other thread is able to make a reservation while we
+  // hold the lock.
+  uint32_t value = *address;
+  if (value == compare_value) {
+    *address = new_value;
+    // Same effect on exclusive access state as a successful STREX.
+    HasExclusiveAccessAndOpen(reinterpret_cast<uword>(address));
+  } else {
+    // Same effect on exclusive access state as an LDREX.
+    SetExclusiveAccess(reinterpret_cast<uword>(address));
+  }
+  return value;
 }
 
 // Unsupported instructions use Format to print an error and stop execution.

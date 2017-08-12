@@ -43,6 +43,7 @@
     'atomic_fuchsia.h',
     'atomic_linux.h',
     'atomic_macos.h',
+    'atomic_simulator.h',
     'atomic_test.cc',
     'atomic_win.h',
     'base_isolate.h',
