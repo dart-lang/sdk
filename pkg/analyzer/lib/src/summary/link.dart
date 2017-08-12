@@ -1434,6 +1434,11 @@ class CompilationUnitElementInDependency extends CompilationUnitElementForLink {
   @override
   final LinkedUnit _linkedUnit;
 
+  /**
+   * Set of slot ids corresponding to parameters that inherit `covariant`.
+   */
+  Set<int> parametersInheritingCovariant;
+
   List<EntityRef> _linkedTypeRefs;
 
   @override
@@ -1448,6 +1453,8 @@ class CompilationUnitElementInDependency extends CompilationUnitElementForLink {
       : _linkedUnit = linkedUnit,
         super(
             unlinkedUnit, unitNum, linkedUnit.references.length, absoluteUri) {
+    parametersInheritingCovariant =
+        _linkedUnit.parametersInheritingCovariant.toSet();
     // Make one pass through the linked types to determine the lengths for
     // _linkedTypeRefs and _linkedTypes.  TODO(paulberry): add an int to the
     // summary to make this unnecessary.
@@ -4296,6 +4303,12 @@ class ParameterElementForLink implements ParameterElementImpl {
       this._typeParameterContext, this.compilationUnit, this._parameterIndex) {
     if (_unlinkedParam.initializer?.bodyExpr != null) {
       _constNode = new ConstParameterNode(this);
+    }
+    if (compilationUnit is CompilationUnitElementInDependency) {
+      _inheritsCovariant =
+          (compilationUnit as CompilationUnitElementInDependency)
+              .parametersInheritingCovariant
+              .contains(_unlinkedParam.inheritsCovariantSlot);
     }
   }
 
