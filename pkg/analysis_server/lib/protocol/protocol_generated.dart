@@ -13011,6 +13011,7 @@ class RequestError implements HasToJson {
  *   FORMAT_WITH_ERRORS
  *   GET_ERRORS_INVALID_FILE
  *   GET_IMPORTED_ELEMENTS_INVALID_FILE
+ *   GET_KYTHE_ENTRIES_INVALID_FILE
  *   GET_NAVIGATION_INVALID_FILE
  *   GET_REACHABLE_SOURCES_INVALID_FILE
  *   IMPORT_ELEMENTS_INVALID_FILE
@@ -13082,6 +13083,13 @@ class RequestErrorCode implements Enum {
    */
   static const RequestErrorCode GET_IMPORTED_ELEMENTS_INVALID_FILE =
       const RequestErrorCode._("GET_IMPORTED_ELEMENTS_INVALID_FILE");
+
+  /**
+   * An "analysis.getKytheEntries" request specified a FilePath that does not
+   * match a file that is currently subject to analysis.
+   */
+  static const RequestErrorCode GET_KYTHE_ENTRIES_INVALID_FILE =
+      const RequestErrorCode._("GET_KYTHE_ENTRIES_INVALID_FILE");
 
   /**
    * An "analysis.getNavigation" request specified a FilePath which does not
@@ -13234,6 +13242,7 @@ class RequestErrorCode implements Enum {
     FORMAT_WITH_ERRORS,
     GET_ERRORS_INVALID_FILE,
     GET_IMPORTED_ELEMENTS_INVALID_FILE,
+    GET_KYTHE_ENTRIES_INVALID_FILE,
     GET_NAVIGATION_INVALID_FILE,
     GET_REACHABLE_SOURCES_INVALID_FILE,
     IMPORT_ELEMENTS_INVALID_FILE,
@@ -13276,6 +13285,8 @@ class RequestErrorCode implements Enum {
         return GET_ERRORS_INVALID_FILE;
       case "GET_IMPORTED_ELEMENTS_INVALID_FILE":
         return GET_IMPORTED_ELEMENTS_INVALID_FILE;
+      case "GET_KYTHE_ENTRIES_INVALID_FILE":
+        return GET_KYTHE_ENTRIES_INVALID_FILE;
       case "GET_NAVIGATION_INVALID_FILE":
         return GET_NAVIGATION_INVALID_FILE;
       case "GET_REACHABLE_SOURCES_INVALID_FILE":

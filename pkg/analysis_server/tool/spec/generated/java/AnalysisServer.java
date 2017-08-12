@@ -637,6 +637,10 @@ public interface AnalysisServer {
    * Return the list of KytheEntry objects for some file, given the current state of the file system
    * populated by "analysis.updateContent".
    *
+   * If a request is made for a file that does not exist, or that is not currently subject to
+   * analysis (e.g. because it is not associated with any analysis root specified to
+   * analysis.setAnalysisRoots), an error of type GET_KYTHE_ENTRIES_INVALID_FILE will be generated.
+   *
    * @param file The file containing the code for which the Kythe Entry objects are being requested.
    */
   public void kythe_getKytheEntries(String file, GetKytheEntriesConsumer consumer);
