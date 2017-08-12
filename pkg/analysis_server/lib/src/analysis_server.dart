@@ -100,7 +100,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.18.3';
+  static final String VERSION = '1.18.4';
 
   /**
    * The options of this server instance.
