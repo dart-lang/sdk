@@ -2508,6 +2508,44 @@ main() {
     _assertLinkedGroup(change.linkedEditGroups[0], ['test;', 'test.add(']);
   }
 
+  test_createLocalVariable_withImport() async {
+    addPackageSource('pkg', 'a/a.dart', '''
+class A {}
+''');
+    addPackageSource('pkg', 'b/b.dart', '''
+class B {}
+''');
+    addPackageSource('pkg', 'c/c.dart', '''
+import 'package:pkg/a/a.dart';
+import 'package:pkg/b/b.dart';
+
+class C {
+  C(A a, B b);
+}
+''');
+
+    await resolveTestUnit('''
+import 'package:pkg/a/a.dart';
+import 'package:pkg/c/c.dart';
+
+main() {
+  A a;
+  new C(a, b);
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_LOCAL_VARIABLE, '''
+import 'package:pkg/a/a.dart';
+import 'package:pkg/b/b.dart';
+import 'package:pkg/c/c.dart';
+
+main() {
+  A a;
+  B b;
+  new C(a, b);
+}
+''');
+  }
+
   test_createLocalVariable_write_assignment() async {
     await resolveTestUnit('''
 main() {
