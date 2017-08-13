@@ -1107,41 +1107,6 @@ a:focus, a:hover {
         <p>
           A list of the paths of the files that are being analyzed.
         </p>
-      </dd></dl></dd><dt class="notification"><a name="notification_analysis.closingLabels">analysis.closingLabels</a></dt><dd><div class="box"><pre>notification: {
-  "event": "analysis.closingLabels"
-  "params": {
-    "<b>file</b>": <a href="#type_FilePath">FilePath</a>
-    "<b>labels</b>": List&lt;<a href="#type_ClosingLabel">ClosingLabel</a>&gt;
-  }
-}</pre></div>
-    <p>
-      Reports closing labels relevant to a given file.
-    </p>
-    <p>
-      This notification is not subscribed to by default. Clients
-      can subscribe by including the value <tt>"CLOSING_LABELS"</tt>
-      in the list of services passed in an
-      analysis.setSubscriptions request.
-    </p>
-    
-  <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
-        
-        <p>
-          The file the closing labels relate to.
-        </p>
-      </dd><dt class="field"><b>labels: List&lt;<a href="#type_ClosingLabel">ClosingLabel</a>&gt;</b></dt><dd>
-        
-        <p>
-          Closing labels relevant to the file. Each item
-          represents a useful label associated with some range
-          with may be useful to display to the user within the editor
-          at the end of the range to indicate what construct is closed
-          at that location. Closing labels include constructor/method
-          calls and List arguments that span multiple lines.
-          Note that the ranges that are returned can overlap
-          each other because they may be associated with
-          constructs that can be nested.
-        </p>
       </dd></dl></dd><dt class="notification"><a name="notification_analysis.errors">analysis.errors</a></dt><dd><div class="box"><pre>notification: {
   "event": "analysis.errors"
   "params": {
