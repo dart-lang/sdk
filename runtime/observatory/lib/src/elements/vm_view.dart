@@ -34,7 +34,6 @@ class VMViewElement extends HtmlElement implements Renderable {
   Stream<RenderedEvent<VMViewElement>> get onRendered => _r.onRendered;
 
   M.VM _vm;
-  M.VMRepository _vms;
   M.EventRepository _events;
   M.NotificationRepository _notifications;
   M.IsolateRepository _isolates;
@@ -48,22 +47,17 @@ class VMViewElement extends HtmlElement implements Renderable {
 
   factory VMViewElement(
       M.VM vm,
-      M.VMRepository vms,
       M.EventRepository events,
       M.NotificationRepository notifications,
       M.IsolateRepository isolates,
       M.ScriptRepository scripts,
       {RenderingQueue queue}) {
     assert(vm != null);
-    assert(vms != null);
     assert(events != null);
     assert(notifications != null);
-    assert(isolates != null);
-    assert(scripts != null);
     VMViewElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._vm = vm;
-    e._vms = vms;
     e._events = events;
     e._notifications = notifications;
     e._isolates = isolates;
@@ -105,14 +99,13 @@ class VMViewElement extends HtmlElement implements Renderable {
         new NavRefreshElement(queue: _r.queue)
           ..onRefresh.listen((e) async {
             e.element.disabled = true;
-            _vm = await _vms.get(_vm);
             _r.dirty();
           }),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = <HtmlElement>[
+        ..children = [
           new HeadingElement.h1()..text = 'VM',
           new HRElement(),
           new DivElement()
@@ -137,16 +130,6 @@ class VMViewElement extends HtmlElement implements Renderable {
                   new DivElement()
                     ..classes = ['memberValue']
                     ..text = _vm.version
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = [
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'embedder',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = _vm.embedder ?? "UNKNOWN"
                 ],
               new DivElement()
                 ..classes = ['memberItem']
@@ -196,21 +179,7 @@ class VMViewElement extends HtmlElement implements Renderable {
                     ..text = 'peak memory',
                   new DivElement()
                     ..classes = ['memberValue']
-                    ..text = _vm.maxRSS != null
-                        ? Utils.formatSize(_vm.maxRSS)
-                        : "unavailable"
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = [
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'current memory',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = _vm.currentRSS != null
-                        ? Utils.formatSize(_vm.currentRSS)
-                        : "unavailable"
+                    ..text = Utils.formatSize(_vm.maxRSS)
                 ],
               new DivElement()
                 ..classes = ['memberItem']
@@ -231,12 +200,8 @@ class VMViewElement extends HtmlElement implements Renderable {
                     ..text = 'native heap memory',
                   new DivElement()
                     ..classes = ['memberValue']
-                    ..text = _vm.heapAllocatedMemoryUsage != null
-                        ? Utils.formatSize(_vm.heapAllocatedMemoryUsage)
-                        : 'unavailable'
-                    ..title = _vm.heapAllocatedMemoryUsage != null
-                        ? '${_vm.heapAllocatedMemoryUsage} bytes'
-                        : null
+                    ..text = Utils.formatSize(_vm.heapAllocatedMemoryUsage)
+                    ..title = '${_vm.heapAllocatedMemoryUsage} bytes'
                 ],
               new DivElement()
                 ..classes = ['memberItem']
@@ -246,9 +211,7 @@ class VMViewElement extends HtmlElement implements Renderable {
                     ..text = 'native heap allocation count',
                   new DivElement()
                     ..classes = ['memberValue']
-                    ..text = _vm.heapAllocationCount != null
-                        ? '${_vm.heapAllocationCount}'
-                        : 'unavailable'
+                    ..text = '${_vm.heapAllocationCount}'
                 ],
               new BRElement(),
               new DivElement()

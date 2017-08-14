@@ -41,8 +41,7 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
   Stream<IsolateSelectedEvent> get onIsolateSelected =>
       _onIsolateSelected.stream;
 
-  M.VMRef _vm;
-  M.VMRepository _vms;
+  M.VM _vm;
   M.IsolateRepository _isolates;
   M.EventRepository _events;
   StreamSubscription _onGCSubscription;
@@ -50,19 +49,17 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
   StreamSubscription _onConnectionClosedSubscription;
   Timer _onTimer;
 
-  M.VMRef get vm => _vm;
+  M.VM get vm => _vm;
 
-  factory MemoryGraphElement(M.VMRef vm, M.VMRepository vms,
-      M.IsolateRepository isolates, M.EventRepository events,
+  factory MemoryGraphElement(
+      M.VM vm, M.IsolateRepository isolates, M.EventRepository events,
       {RenderingQueue queue}) {
     assert(vm != null);
-    assert(vms != null);
     assert(isolates != null);
     assert(events != null);
     MemoryGraphElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._vm = vm;
-    e._vms = vms;
     e._isolates = isolates;
     e._events = events;
     return e;
@@ -73,13 +70,13 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
     var sample = now.subtract(_window);
     while (sample.isBefore(now)) {
       _ts.add(sample);
-      _vmSamples.add(<int>[0, 0]);
+      _vmSamples.add(0);
       _isolateUsedSamples.add([]);
       _isolateFreeSamples.add([]);
       sample = sample.add(_period);
     }
     _ts.add(now);
-    _vmSamples.add(<int>[0, 0]);
+    _vmSamples.add(0);
     _isolateUsedSamples.add([]);
     _isolateFreeSamples.add([]);
   }
@@ -112,7 +109,7 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
   }
 
   final List<DateTime> _ts = <DateTime>[];
-  final List<List<int>> _vmSamples = <List<int>>[];
+  final List<int> _vmSamples = <int>[];
   final List<M.IsolateRef> _seenIsolates = <M.IsolateRef>[];
   final List<List<int>> _isolateUsedSamples = <List<int>>[];
   final List<List<int>> _isolateFreeSamples = <List<int>>[];
@@ -125,12 +122,6 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
 
   void render() {
     if (_previewed != null || _hovered != null) return;
-
-    // cache data of hoverboards
-    final ts = new List<DateTime>.from(_ts);
-    final vmSamples = new List<List<int>>.from(_vmSamples);
-    final isolateFreeSamples = new List<List<int>>.from(_isolateFreeSamples);
-    final isolateUsedSamples = new List<List<int>>.from(_isolateUsedSamples);
 
     final now = _ts.last;
     final nativeComponents = 1;
@@ -153,16 +144,15 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
         ]));
     // The stacked line chart sorts from top to bottom
     final rows = new List.generate(_ts.length, (sampleIndex) {
-      final free = isolateFreeSamples[sampleIndex];
-      final used = isolateUsedSamples[sampleIndex];
-      final isolates = _isolateIndex.keys.expand((key) {
-        final isolateIndex = _isolateIndex[key];
-        return <int>[free[isolateIndex], used[isolateIndex]];
-      });
+      final free = _isolateFreeSamples[sampleIndex];
+      final used = _isolateUsedSamples[sampleIndex];
       return [
-        ts[sampleIndex].difference(now).inMicroseconds,
-        vmSamples[sampleIndex][1] ?? 1000000
-      ]..addAll(isolates);
+        _ts[sampleIndex].difference(now).inMicroseconds,
+        _vmSamples[sampleIndex]
+      ]..addAll(_isolateIndex.keys.expand((key) {
+          final isolateIndex = _isolateIndex[key];
+          return [free[isolateIndex], used[isolateIndex]];
+        }));
     });
 
     final scale = new LinearScale()..domain = [(-_window).inMicroseconds, 0];
@@ -179,15 +169,13 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
     final area = new CartesianArea(host, data, config, state: state)
       ..theme = theme;
     area.addChartBehavior(new Hovercard(builder: (int column, int row) {
+      final data = rows[row];
       if (column == 1) {
-        final data = vmSamples[row];
-        return _formatNativeOvercard(data[0], data[1]);
+        return _formatNativeOvercard(data[1]);
       }
       final isolate = _seenIsolates[column - 2];
-      final index = _isolateIndex[isolate.id];
-      final free = isolateFreeSamples[row][index];
-      final used = isolateUsedSamples[row][index];
-      return _formatIsolateOvercard(isolate.name, free, used);
+      final index = _isolateIndex[isolate.id] * 2 + 2;
+      return _formatIsolateOvercard(isolate.name, data[index], data[index + 1]);
     }));
     area.draw();
 
@@ -210,10 +198,9 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
     _running = true;
     final now = new DateTime.now();
     final start = now.subtract(_window);
-    final vm = await _vms.get(_vm);
     // The Service classes order isolates from the older to the newer
     final isolates =
-        (await Future.wait(vm.isolates.map(_isolates.get))).reversed.toList();
+        (await Future.wait(_vm.isolates.map(_isolates.get))).reversed.toList();
     while (_ts.first.isBefore(start)) {
       _ts.removeAt(0);
       _vmSamples.removeAt(0);
@@ -268,7 +255,7 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
       _isolateUsedSamples.add(isolateUsedSample);
       _isolateFreeSamples.add(isolateFreeSample);
 
-      _vmSamples.add(<int>[vm.currentRSS, vm.heapAllocatedMemoryUsage]);
+      _vmSamples.add(vm.heapAllocatedMemoryUsage);
 
       _ts.add(now);
     }
@@ -283,7 +270,7 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
     _isolateUsedSamples.add(isolateUsedSample);
     _isolateFreeSamples.add(isolateFreeSample);
 
-    _vmSamples.add(<int>[vm.currentRSS, vm.heapAllocatedMemoryUsage]);
+    _vmSamples.add(vm.heapAllocatedMemoryUsage);
 
     _ts.add(now);
     _r.dirty();
@@ -338,35 +325,22 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
     return '${name} ($usedStr / $capacityStr)';
   }
 
-  static HtmlElement _formatNativeOvercard(int currentRSS, int heap) =>
+  static HtmlElement _formatNativeOvercard(int heap) => new DivElement()
+    ..children = [
       new DivElement()
+        ..classes = ['hovercard-title']
+        ..text = 'Native',
+      new DivElement()
+        ..classes = ['hovercard-measure', 'hovercard-multi']
         ..children = [
           new DivElement()
-            ..classes = ['hovercard-title']
-            ..text = 'Native',
+            ..classes = ['hovercard-measure-label']
+            ..text = 'Heap',
           new DivElement()
-            ..classes = ['hovercard-measure', 'hovercard-multi']
-            ..children = [
-              new DivElement()
-                ..classes = ['hovercard-measure-label']
-                ..text = 'Total Memory Usage',
-              new DivElement()
-                ..classes = ['hovercard-measure-value']
-                ..text = currentRSS != null
-                    ? Utils.formatSize(currentRSS)
-                    : "unavailable",
-            ],
-          new DivElement()
-            ..classes = ['hovercard-measure', 'hovercard-multi']
-            ..children = [
-              new DivElement()
-                ..classes = ['hovercard-measure-label']
-                ..text = 'Native Heap',
-              new DivElement()
-                ..classes = ['hovercard-measure-value']
-                ..text = heap != null ? Utils.formatSize(heap) : "unavailable",
-            ]
-        ];
+            ..classes = ['hovercard-measure-value']
+            ..text = Utils.formatSize(heap),
+        ]
+    ];
 
   static HtmlElement _formatIsolateOvercard(String name, int free, int used) {
     final capacity = free + used;

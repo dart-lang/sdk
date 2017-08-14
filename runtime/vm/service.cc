@@ -109,7 +109,6 @@ const ServiceMethodDescriptor* FindMethod(const char* method_name);
 Dart_ServiceStreamListenCallback Service::stream_listen_callback_ = NULL;
 Dart_ServiceStreamCancelCallback Service::stream_cancel_callback_ = NULL;
 Dart_GetVMServiceAssetsArchive Service::get_service_assets_callback_ = NULL;
-Dart_EmbedderInformationCallback Service::embedder_information_callback_ = NULL;
 
 // These are the set of streams known to the core VM.
 StreamInfo Service::vm_stream("VM");
@@ -1226,41 +1225,6 @@ void Service::SetEmbedderStreamCallbacks(
 void Service::SetGetServiceAssetsCallback(
     Dart_GetVMServiceAssetsArchive get_service_assets) {
   get_service_assets_callback_ = get_service_assets;
-}
-
-void Service::SetEmbedderInformationCallback(
-    Dart_EmbedderInformationCallback callback) {
-  embedder_information_callback_ = callback;
-}
-
-int64_t Service::CurrentRSS() {
-  if (embedder_information_callback_ == NULL) {
-    return -1;
-  }
-  Dart_EmbedderInformation info = {
-    0,  // version
-    NULL,  // name
-    0,  // max_rss
-    0  // current_rss
-  };
-  embedder_information_callback_(&info);
-  ASSERT(info.version == DART_EMBEDDER_INFORMATION_CURRENT_VERSION);
-  return info.current_rss;
-}
-
-int64_t Service::MaxRSS() {
-  if (embedder_information_callback_ == NULL) {
-    return -1;
-  }
-  Dart_EmbedderInformation info = {
-    0,  // version
-    NULL,  // name
-    0,  // max_rss
-    0  // current_rss
-  };
-  embedder_information_callback_(&info);
-  ASSERT(info.version == DART_EMBEDDER_INFORMATION_CURRENT_VERSION);
-  return info.max_rss;
 }
 
 EmbedderServiceHandler* Service::FindRootEmbedderHandler(const char* name) {
@@ -3857,28 +3821,6 @@ static const MethodParameter* get_vm_params[] = {
     NO_ISOLATE_PARAMETER, NULL,
 };
 
-void Service::PrintJSONForEmbedderInformation(JSONObject *jsobj) {
-  if (embedder_information_callback_ != NULL) {
-    Dart_EmbedderInformation info = {
-      0,  // version
-      NULL,  // name
-      0,  // max_rss
-      0  // current_rss
-    };
-    embedder_information_callback_(&info);
-    ASSERT(info.version == DART_EMBEDDER_INFORMATION_CURRENT_VERSION);
-    if (info.name != NULL) {
-      jsobj->AddProperty("_embedder", info.name);
-    }
-    if (info.max_rss > 0) {
-      jsobj->AddProperty64("_maxRSS", info.max_rss);
-    }
-    if (info.max_rss > 0) {
-      jsobj->AddProperty64("_currentRSS", info.current_rss);
-    }
-  }
-}
-
 void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", (ref ? "@VM" : "VM"));
@@ -3894,10 +3836,10 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty64("_nativeZoneMemoryUsage",
                       ApiNativeScope::current_memory_usage());
   jsobj.AddProperty64("pid", OS::ProcessId());
+  jsobj.AddProperty64("_maxRSS", OS::MaxRSS());
   jsobj.AddPropertyTimeMillis(
       "startTime", OS::GetCurrentTimeMillis() - Dart::UptimeMillis());
   MallocHooks::PrintToJSONObject(&jsobj);
-  PrintJSONForEmbedderInformation(&jsobj);
   // Construct the isolate list.
   {
     JSONArray jsarr(&jsobj, "isolates");

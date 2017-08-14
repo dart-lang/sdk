@@ -93,4 +93,3 @@ part 'src/models/repositories/target.dart';
 part 'src/models/repositories/top_retaining_instances.dart';
 part 'src/models/repositories/type_arguments.dart';
 part 'src/models/repositories/unlinked_call.dart';
-part 'src/models/repositories/vm.dart';

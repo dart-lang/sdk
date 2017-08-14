@@ -5931,11 +5931,6 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
   return;
 }
 
-DART_EXPORT void Dart_SetEmbedderInformationCallback(
-    Dart_EmbedderInformationCalback calback) {
-  return;
-}
-
 DART_EXPORT Dart_Handle Dart_SetServiceStreamCallbacks(
     Dart_ServiceStreamListenCallback listen_callback,
     Dart_ServiceStreamCancelCallback cancel_callback) {
@@ -5998,13 +5993,6 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
     void* user_data) {
   if (FLAG_support_service) {
     Service::RegisterRootEmbedderCallback(name, callback, user_data);
-  }
-}
-
-DART_EXPORT void Dart_SetEmbedderInformationCallback(
-    Dart_EmbedderInformationCallback callback) {
-  if (FLAG_support_service) {
-    Service::SetEmbedderInformationCallback(callback);
   }
 }
 

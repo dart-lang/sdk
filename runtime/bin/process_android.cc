@@ -859,27 +859,25 @@ intptr_t Process::CurrentProcessId() {
   return static_cast<intptr_t>(getpid());
 }
 
-static void SaveErrorAndClose(FILE* file) {
-  int actual_errno = errno;
-  fclose(file);
-  errno = actual_errno;
-}
-
 int64_t Process::CurrentRSS() {
   // The second value in /proc/self/statm is the current RSS in pages.
-  // It is not possible to use getrusage() because the interested fields are not
-  // implemented by the linux kernel.
-  FILE* statm = fopen("/proc/self/statm", "r");
+  File* statm = File::Open("/proc/self/statm", File::kRead);
   if (statm == NULL) {
     return -1;
   }
-  int64_t current_rss_pages = 0;
-  int matches = fscanf(statm, "%*s%" Pd64 "", &current_rss_pages);
-  if (matches != 1) {
-    SaveErrorAndClose(statm);
+  RefCntReleaseScope<File> releaser(statm);
+  const intptr_t statm_length = 1 * KB;
+  void* buffer = reinterpret_cast<void*>(Dart_ScopeAllocate(statm_length));
+  const intptr_t statm_read = statm->Read(buffer, statm_length);
+  if (statm_read <= 0) {
     return -1;
   }
-  fclose(statm);
+  int64_t current_rss_pages = 0;
+  int matches = sscanf(reinterpret_cast<char*>(buffer), "%*s%" Pd64 "",
+                       &current_rss_pages);
+  if (matches != 1) {
+    return -1;
+  }
   return current_rss_pages * getpagesize();
 }
 

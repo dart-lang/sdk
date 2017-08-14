@@ -79,6 +79,9 @@ class OS {
   // Returns number of available processor cores.
   static int NumberOfAvailableProcessors();
 
+  // Returns the maximium resident set size of this process.
+  static uintptr_t MaxRSS();
+
   // Sleep the currently executing thread for millis ms.
   static void Sleep(int64_t millis);
 

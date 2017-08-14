@@ -702,7 +702,7 @@ BENCHMARK(LargeMap) {
 }
 
 BENCHMARK_MEMORY(InitialRSS) {
-  benchmark->set_score(Service::MaxRSS());
+  benchmark->set_score(OS::MaxRSS());
 }
 
 }  // namespace dart

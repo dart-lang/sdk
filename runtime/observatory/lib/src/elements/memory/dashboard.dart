@@ -41,19 +41,17 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
   Stream<RenderedEvent<MemoryDashboardElement>> get onRendered => _r.onRendered;
 
   M.VMRef _vm;
-  M.VMRepository _vms;
   M.IsolateRepository _isolates;
   M.EditorRepository _editor;
   M.AllocationProfileRepository _allocations;
   M.EventRepository _events;
   M.NotificationRepository _notifications;
 
-  M.VMRef get vm => _vm;
+  M.VM get vm => _vm;
   M.NotificationRepository get notifications => _notifications;
 
   factory MemoryDashboardElement(
-      M.VMRef vm,
-      M.VMRepository vms,
+      M.VM vm,
       M.IsolateRepository isolates,
       M.EditorRepository editor,
       M.AllocationProfileRepository allocations,
@@ -61,7 +59,6 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
       M.NotificationRepository notifications,
       {RenderingQueue queue}) {
     assert(vm != null);
-    assert(vms != null);
     assert(isolates != null);
     assert(editor != null);
     assert(allocations != null);
@@ -70,7 +67,6 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
     MemoryDashboardElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._vm = vm;
-    e._vms = vms;
     e._isolates = isolates;
     e._editor = editor;
     e._allocations = allocations;
@@ -100,9 +96,8 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
 
   void render() {
     if (_graph == null) {
-      _graph =
-          new MemoryGraphElement(vm, _vms, _isolates, _events, queue: _r.queue)
-            ..onIsolateSelected.listen(_onIsolateSelected);
+      _graph = new MemoryGraphElement(vm, _isolates, _events, queue: _r.queue)
+        ..onIsolateSelected.listen(_onIsolateSelected);
     }
     children = [
       navBar([new NavNotifyElement(_notifications, queue: _r.queue)]),

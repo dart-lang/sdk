@@ -51,4 +51,3 @@ part 'src/repositories/target.dart';
 part 'src/repositories/top_retaining_instances.dart';
 part 'src/repositories/type_arguments.dart';
 part 'src/repositories/unlinked_call.dart';
-part 'src/repositories/vm.dart';
