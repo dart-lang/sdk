@@ -262,9 +262,9 @@ abstract class ArrayBasedScanner extends AbstractScanner {
 
   @override
   void appendSyntheticSubstringToken(
-      TokenType type, int start, bool asciiOnly, String closingQuotes) {
+      TokenType type, int start, bool asciiOnly, String syntheticChars) {
     appendToken(
-        createSyntheticSubstringToken(type, start, asciiOnly, closingQuotes));
+        createSyntheticSubstringToken(type, start, asciiOnly, syntheticChars));
   }
 
   /**
@@ -282,13 +282,13 @@ abstract class ArrayBasedScanner extends AbstractScanner {
 
   /**
    * Returns a new synthetic substring from the scan offset [start]
-   * to the current [scanOffset] plus the [closingQuotes].
-   * The [closingQuotes] are appended to the unterminated string
+   * to the current [scanOffset] plus the [syntheticChars].
+   * The [syntheticChars] are appended to the unterminated string
    * literal's lexeme but the returned token's length will *not* include
-   * those closing quotes so as to be true to the original source.
+   * those additional characters so as to be true to the original source.
    */
   analyzer.StringToken createSyntheticSubstringToken(
-      TokenType type, int start, bool asciiOnly, String closingQuotes);
+      TokenType type, int start, bool asciiOnly, String syntheticChars);
 
   /**
    * This method is called to discard '<' from the "grouping" stack.

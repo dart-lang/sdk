@@ -164,13 +164,13 @@ abstract class AbstractScanner implements Scanner {
 
   /**
    * Appends a substring from the scan offset [start] to the current
-   * [scanOffset] plus [closingQuotes]. The closing quote(s) will be added
+   * [scanOffset] plus [syntheticChars]. The additional char(s) will be added
    * to the unterminated string literal's lexeme but the returned
-   * token's length will *not* include those closing quotes
+   * token's length will *not* include those additional char(s)
    * so as to be true to the original source.
    */
   void appendSyntheticSubstringToken(
-      TokenType type, int start, bool asciiOnly, String closingQuotes);
+      TokenType type, int start, bool asciiOnly, String syntheticChars);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
   void appendPrecedenceToken(TokenType type);
@@ -726,7 +726,9 @@ abstract class AbstractScanner implements Scanner {
             hasExponentDigits = true;
           } else {
             if (!hasExponentDigits) {
-              unterminated('1e', shouldAdvance: false);
+              appendSyntheticSubstringToken(TokenType.DOUBLE, start, true, '0');
+              appendErrorToken(
+                  new UnterminatedToken('1e', tokenStart, stringOffset));
               return next;
             }
             break;

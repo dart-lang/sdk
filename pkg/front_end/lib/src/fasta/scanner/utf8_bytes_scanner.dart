@@ -210,10 +210,10 @@ class Utf8BytesScanner extends ArrayBasedScanner {
 
   @override
   analyzer.StringToken createSyntheticSubstringToken(
-      TokenType type, int start, bool asciiOnly, String closingQuotes) {
+      TokenType type, int start, bool asciiOnly, String syntheticChars) {
     String source = StringToken.decodeUtf8(bytes, start, byteOffset, asciiOnly);
     return new SyntheticStringToken(
-        type, source + closingQuotes, tokenStart, source.length);
+        type, source + syntheticChars, tokenStart, source.length);
   }
 
   @override

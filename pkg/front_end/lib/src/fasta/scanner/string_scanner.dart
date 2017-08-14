@@ -57,10 +57,10 @@ class StringScanner extends ArrayBasedScanner {
 
   @override
   analyzer.StringToken createSyntheticSubstringToken(
-      TokenType type, int start, bool asciiOnly, String closingQuotes) {
+      TokenType type, int start, bool asciiOnly, String syntheticChars) {
     String source = string.substring(start, scanOffset);
     return new SyntheticStringToken(
-        type, source + closingQuotes, tokenStart, source.length);
+        type, source + syntheticChars, tokenStart, source.length);
   }
 
   @override
