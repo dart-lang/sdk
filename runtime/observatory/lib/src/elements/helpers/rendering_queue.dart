@@ -56,29 +56,15 @@ class RenderingQueue {
   /// Add a task to the queue.
   /// If the current rendering phase is running it will be executed during this
   /// rendering cycle, otherwise it will be queued for the next one.
-  void enqueue(RenderingTask r, {bool waitForBarrier: true}) {
+  void enqueue(RenderingTask r) {
     assert(r != null);
-    final wasEmpty = _queue.isEmpty;
-    _queue.addLast(r);
     // If no task are in the queue there is no rendering phase scheduled.
-    if (wasEmpty) {
-      if (waitForBarrier) {
-        _render();
-      } else {
-        // We schedule the _renderLoop as a microtask to allow the
-        // scheduleRendering method to terminate, due to the fact that it is
-        // generally invoked from inside a HtmlElement.attached method
-        scheduleMicrotask(_renderLoop);
-      }
-    }
+    if (isEmpty) _render();
+    _queue.addLast(r);
   }
 
   Future _render() async {
     await _barrier.next;
-    _renderLoop();
-  }
-
-  void _renderLoop() {
     while (_queue.isNotEmpty) {
       _queue.first.render();
       _queue.removeFirst();

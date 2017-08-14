@@ -32,7 +32,6 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
   bool _dirty = false;
   bool _renderingScheduled = false;
   bool _notificationScheduled = false;
-  bool _waitForBarrier = false;
 
   /// Element managed by this scheduler.
   final T element;
@@ -104,8 +103,7 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
   void scheduleRendering() {
     if (_renderingScheduled) return;
     if (!_enabled) return;
-    queue.enqueue(this, waitForBarrier: _waitForBarrier);
-    _waitForBarrier = true;
+    queue.enqueue(this);
     _renderingScheduled = true;
   }
 
