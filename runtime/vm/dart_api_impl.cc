@@ -5889,15 +5889,16 @@ Dart_CompileToKernel(const char* script_uri) {
 DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileSourcesToKernel(const char* script_uri,
                             int source_files_count,
-                            Dart_SourceFile sources[]) {
+                            Dart_SourceFile sources[],
+                            bool incremental_compile) {
 #ifdef DART_PRECOMPILED_RUNTIME
   Dart_KernelCompilationResult result;
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
   return result;
 #else
-  return KernelIsolate::CompileToKernel(script_uri, source_files_count,
-                                        sources);
+  return KernelIsolate::CompileToKernel(script_uri, source_files_count, sources,
+                                        incremental_compile);
 #endif
 }
 

@@ -3139,7 +3139,8 @@ typedef struct {
 DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileSourcesToKernel(const char* script_uri,
                             int source_files_count,
-                            Dart_SourceFile source_files[]);
+                            Dart_SourceFile source_files[],
+                            bool incremental_compile);
 
 #define DART_KERNEL_ISOLATE_NAME "kernel-service"
 
