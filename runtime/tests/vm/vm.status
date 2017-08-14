@@ -249,11 +249,6 @@ dart/redirection_type_shuffling_test/none: RuntimeError # Issue 29201
 dart/regress29620_test: RuntimeError
 dart/spawn_shutdown_test: SkipSlow
 
-[ ($compiler != dartk) ]
-cc/IsolateReload_KernelIncrementalCompile: Skip
-cc/IsolateReload_KernelIncrementalCompileAppAndLib: Skip
-cc/IsolateReload_KernelIncrementalCompileGenerics: Skip
-
 [ ($compiler == dartk) && ($runtime == vm) ]
 cc/CanonicalizationInScriptSnapshots: Fail
 cc/Class_ComputeEndTokenPos: Crash
@@ -328,7 +323,6 @@ cc/IsolateReload_EnumToNotEnum: Skip
 cc/IsolateReload_ExportedLibModified: Crash
 cc/IsolateReload_ImportedLibModified: Crash
 cc/IsolateReload_ImportedMixinFunction: Crash
-cc/IsolateReload_KernelIncrementalCompileGenerics: Crash # Issue 30322
 cc/IsolateReload_LibraryHide: Crash
 cc/IsolateReload_LibraryLookup: Fail
 cc/IsolateReload_LibraryShow: Crash
@@ -421,7 +415,6 @@ cc/Service_TokenStream: Fail
 cc/InjectNativeFields1: Crash
 cc/InjectNativeFields3: Crash
 cc/Service_TokenStream: Crash
-cc/IsolateReload_KernelIncrementalCompileAppAndLib: Crash # Issue 30420
 
 [ ($compiler == dartk) && ($runtime == vm) && ($system == macos) ]
 cc/IsolateReload_DanglingGetter_Class: Crash
