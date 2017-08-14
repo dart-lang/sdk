@@ -58,6 +58,24 @@ class ImportElementsComputerTest extends AbstractContextTest {
     path = provider.convertPath('/test.dart');
   }
 
+  test_createEdits_addImport_noDirectives() async {
+    await createBuilder('''
+main() {
+  // paste here
+}
+''');
+    await computeChanges(<ImportedElements>[
+      new ImportedElements('/lib/math/math.dart', '', <String>['Random'])
+    ]);
+    assertChanges('''
+import 'dart:math';
+
+main() {
+  // paste here
+}
+''');
+  }
+
   test_createEdits_addImport_noPrefix() async {
     Source fooSource = addPackageSource('pkg', 'foo.dart', '');
     await createBuilder('''
