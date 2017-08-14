@@ -1273,8 +1273,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
-    push(new KernelIntLiteral(int.parse(token.lexeme))
-      ..fileOffset = offsetForToken(token));
+    int value = int.parse(token.lexeme, onError: (_) => null);
+    if (value == null) {
+      push(buildCompileTimeError(
+          fasta.templateIntegerLiteralIsOutOfRange.withArguments(token),
+          token.charOffset));
+    } else {
+      push(new KernelIntLiteral(value)..fileOffset = offsetForToken(token));
+    }
   }
 
   @override
