@@ -50,11 +50,11 @@ TEST_CASE(DartAPI_ErrorHandleBasics) {
 
   EXPECT_STREQ("", Dart_GetError(instance));
   EXPECT_STREQ("myerror", Dart_GetError(error));
-  EXPECT_STREQ(
-      "Unhandled exception:\n"
-      "Exception: bad news\n"
-      "#0      testMain (test-lib:2:3)",
-      Dart_GetError(exception));
+  EXPECT_STREQ(ZONE_STR("Unhandled exception:\n"
+                        "Exception: bad news\n"
+                        "#0      testMain (%s:2:3)",
+                        TestCase::url()),
+               Dart_GetError(exception));
 
   EXPECT(Dart_IsError(Dart_ErrorGetException(instance)));
   EXPECT(Dart_IsError(Dart_ErrorGetException(error)));
@@ -6082,9 +6082,7 @@ TEST_CASE(DartAPI_GetFunctionNames) {
       "sort(list) => list.sort(_compare);\n";
 
   // Get the functions from a library.
-  Dart_Handle url = NewString("library_url");
-  Dart_Handle source = NewString(kLibraryChars);
-  Dart_Handle lib = Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
+  Dart_Handle lib = TestCase::LoadTestScript(kLibraryChars, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);

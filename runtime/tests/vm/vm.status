@@ -253,9 +253,7 @@ dart/spawn_shutdown_test: SkipSlow
 cc/CanonicalizationInScriptSnapshots: Fail
 cc/Class_ComputeEndTokenPos: Crash
 cc/DartAPI_CurrentStackTraceInfo: Fail
-cc/DartAPI_ErrorHandleBasics: Fail
 cc/DartAPI_FieldAccess: Crash
-cc/DartAPI_GetFunctionNames: Crash
 cc/DartAPI_ImplicitNativeFieldAccess: Crash
 cc/DartAPI_ImportLibrary2: Crash
 cc/DartAPI_ImportLibrary3: Crash
