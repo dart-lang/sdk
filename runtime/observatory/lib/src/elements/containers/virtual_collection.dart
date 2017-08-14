@@ -153,7 +153,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
 
     final top = (scrollTop / _itemHeight).floor();
 
-    _header.style.top = '${scrollTop}px';
+    _updateHeader();
     _scroller.style.height = '${_itemHeight*(_items.length)+_headerHeight}px';
     final tail_length = (_height / _itemHeight / _preload).ceil();
     final length = tail_length * 2 + tail_length * _preload;
@@ -183,7 +183,13 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     }
   }
 
+  void _updateHeader() {
+    _header.style.top = '${scrollTop}px';
+  }
+
   void _onScroll(_) {
+    // needed to avoid flickering
+    _updateHeader();
     _r.dirty();
   }
 
