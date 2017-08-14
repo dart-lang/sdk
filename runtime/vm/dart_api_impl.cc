@@ -5072,11 +5072,13 @@ static void CompileSource(Thread* thread,
 static Dart_Handle LoadKernelProgram(Thread* T,
                                      const String& url,
                                      void* kernel) {
-  // NOTE: Now the VM owns the [kernel_program] memory!  Currently we do not
-  // free it because (similar to the token stream) it will be used to repeatedly
-  // run the `kernel::FlowGraphBuilder()`.
-  kernel::KernelReader reader(reinterpret_cast<kernel::Program*>(kernel));
+  // NOTE: Now the VM owns the [kernel_program] memory!
+  // We will promptly delete it when done.
+  kernel::Program* program = reinterpret_cast<kernel::Program*>(kernel);
+  kernel::KernelReader reader(program);
   const Object& tmp = reader.ReadProgram();
+  delete program;
+
   if (tmp.IsError()) {
     return Api::NewHandle(T, tmp.raw());
   }
@@ -5254,12 +5256,13 @@ DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program) {
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
 
-  // NOTE: Now the VM owns the [kernel_program] memory!  Currently we do not
-  // free it because (similar to the token stream) it will be used to repeatedly
-  // run the `kernel::FlowGraphBuilder()`.
-  kernel::KernelReader reader(
-      reinterpret_cast<kernel::Program*>(kernel_program));
+  // NOTE: Now the VM owns the [kernel_program] memory!
+  // We will promptly delete it when done.
+  kernel::Program* program = reinterpret_cast<kernel::Program*>(kernel_program);
+  kernel::KernelReader reader(program);
   const Object& tmp = reader.ReadProgram();
+  delete program;
+
   if (tmp.IsError()) {
     return Api::NewHandle(T, tmp.raw());
   }

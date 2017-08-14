@@ -34,6 +34,8 @@ class DFE {
 
   void* kernel_vmservice_io() const { return kernel_vmservice_io_; }
 
+  void clear_kernel_vmservice_io();
+
   bool kernel_file_specified() const { return kernel_file_specified_; }
   void set_kernel_file_specified(bool value) { kernel_file_specified_ = value; }
 

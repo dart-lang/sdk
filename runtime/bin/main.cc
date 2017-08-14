@@ -848,6 +848,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   if (dfe.kernel_file_specified()) {
     ASSERT(kernel_program != NULL);
     result = Dart_LoadKernel(kernel_program);
+    isolate_data->kernel_program = NULL;  // Dart_LoadKernel takes ownership.
   } else {
     if (kernel_program != NULL) {
       Dart_Handle uri = Dart_NewStringFromCString(script_uri);
@@ -857,6 +858,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
       result =
           Dart_LoadScript(uri, resolved_script_uri,
                           reinterpret_cast<Dart_Handle>(kernel_program), 0, 0);
+      isolate_data->kernel_program = NULL;  // Dart_LoadScript takes ownership.
       CHECK_RESULT(result);
     }
   }
@@ -1047,6 +1049,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   if (dfe.UsePlatformBinary()) {
     Dart_Handle library = Dart_LoadKernel(dfe.kernel_vmservice_io());
     CHECK_RESULT_CLEANUP(library, isolate_data);
+    dfe.clear_kernel_vmservice_io();  // Dart_LoadKernel takes ownership.
     skip_library_load = true;
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

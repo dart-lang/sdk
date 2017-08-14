@@ -42,6 +42,10 @@ DFE::~DFE() {
   }
 }
 
+void DFE::clear_kernel_vmservice_io() {
+  kernel_vmservice_io_ = NULL;
+}
+
 void DFE::SetKernelBinaries(const char* name) {
   intptr_t len = snprintf(NULL, 0, "%s%s%s", name, File::PathSeparator(),
                           kPlatformBinaryName) +
