@@ -669,6 +669,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   String version = 'unknown';
   String hostCPU;
   String targetCPU;
+  String embedder;
   int architectureBits;
   bool assertsEnabled = false;
   bool typeChecksEnabled = false;
@@ -676,7 +677,8 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   int pid = 0;
   int heapAllocatedMemoryUsage = 0;
   int heapAllocationCount = 0;
-  int maxRSS = 0;
+  int maxRSS;
+  int currentRSS;
   bool profileVM = false;
   DateTime startTime;
   DateTime refreshTime;
@@ -978,13 +980,11 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       nativeZoneMemoryUsage = map['_nativeZoneMemoryUsage'];
     }
     pid = map['pid'];
-    if (map['_heapAllocatedMemoryUsage'] != null) {
-      heapAllocatedMemoryUsage = map['_heapAllocatedMemoryUsage'];
-    }
-    if (map['_heapAllocationCount'] != null) {
-      heapAllocationCount = map['_heapAllocationCount'];
-    }
+    heapAllocatedMemoryUsage = map['_heapAllocatedMemoryUsage'];
+    heapAllocationCount = map['_heapAllocationCount'];
+    embedder = map['_embedder'];
     maxRSS = map['_maxRSS'];
+    currentRSS = map['_currentRSS'];
     profileVM = map['_profilerMode'] == 'VM';
     assertsEnabled = map['_assertsEnabled'];
     typeChecksEnabled = map['_typeChecksEnabled'];

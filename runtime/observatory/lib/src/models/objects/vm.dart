@@ -26,6 +26,8 @@ abstract class VM implements VMRef {
   /// The Dart VM version string.
   String get version;
 
+  String get embedder;
+
   /// The amount of memory currently allocated by native code in zones.
   int get nativeZoneMemoryUsage;
 
@@ -39,6 +41,7 @@ abstract class VM implements VMRef {
   int get heapAllocationCount;
 
   int get maxRSS;
+  int get currentRSS;
 
   /// The time that the VM started in milliseconds since the epoch.
   ///

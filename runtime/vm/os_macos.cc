@@ -200,14 +200,6 @@ int OS::NumberOfAvailableProcessors() {
   return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
-uintptr_t OS::MaxRSS() {
-  struct rusage usage;
-  usage.ru_maxrss = 0;
-  int r = getrusage(RUSAGE_SELF, &usage);
-  ASSERT(r == 0);
-  return usage.ru_maxrss;
-}
-
 void OS::Sleep(int64_t millis) {
   int64_t micros = millis * kMicrosecondsPerMillisecond;
   SleepMicros(micros);

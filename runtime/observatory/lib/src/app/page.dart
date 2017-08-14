@@ -35,6 +35,7 @@ final _subtypeTestCacheRepository = new SubtypeTestCacheRepository();
 final _topRetainingInstancesRepository = new TopRetainingInstancesRepository();
 final _typeArgumentsRepository = new TypeArgumentsRepository();
 final _unlinkedCallRepository = new UnlinkedCallRepository();
+final _vmrepository = new VMRepository();
 
 class IsolateNotFound implements Exception {
   String isolateId;
@@ -170,7 +171,7 @@ class VMPage extends MatchingPage {
     }
     app.vm.reload().then((VM vm) {
       container.children = [
-        new VMViewElement(vm, app.events, app.notifications,
+        new VMViewElement(vm, _vmrepository, app.events, app.notifications,
             new IsolateRepository(app.vm), _scriptRepository,
             queue: app.queue)
       ];
@@ -708,8 +709,8 @@ class MemoryDashboardPage extends MatchingPage {
       // Preload all isolates to avoid sorting problems.
       await Future.wait(vm.isolates.map((i) => i.load()));
       container.children = [
-        new MemoryDashboardElement(vm, new IsolateRepository(vm), editor,
-            _allocationProfileRepository, app.events, app.notifications,
+        new MemoryDashboardElement(vm, _vmrepository, new IsolateRepository(vm),
+            editor, _allocationProfileRepository, app.events, app.notifications,
             queue: app.queue)
       ];
     }).catchError((e, stack) {
