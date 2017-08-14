@@ -2755,10 +2755,16 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
   {
     AlternativeReadingScope alt(reader_, initializers_offset);
     intptr_t list_length = ReadListLength();  // read initializers list length.
-    if (list_length == 1) {
-      Tag tag = ReadTag();
-      if (tag == kRedirectingInitializer) is_redirecting_constructor = true;
+    bool no_field_initializers = true;
+    for (intptr_t i = 0; i < list_length; ++i) {
+      if (PeekTag() == kRedirectingInitializer) {
+        is_redirecting_constructor = true;
+      } else if (PeekTag() == kFieldInitializer) {
+        no_field_initializers = false;
+      }
+      SkipInitializer();
     }
+    ASSERT(is_redirecting_constructor ? no_field_initializers : true);
   }
 
   if (!is_redirecting_constructor) {
@@ -2831,7 +2837,6 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           break;
         }
         case kRedirectingInitializer: {
-          ASSERT(list_length == 1);
           NameIndex canonical_target =
               ReadCanonicalNameReference();  // read target_reference.
 
@@ -3773,6 +3778,32 @@ void StreamingFlowGraphBuilder::SkipTypeParametersList() {
   for (intptr_t i = 0; i < list_length; ++i) {
     SkipStringReference();  // read ith name index.
     SkipDartType();         // read ith bound.
+  }
+}
+
+void StreamingFlowGraphBuilder::SkipInitializer() {
+  Tag tag = ReadTag();
+  ReadByte();  // read isSynthetic flag.
+  switch (tag) {
+    case kInvalidInitializer:
+      return;
+    case kFieldInitializer:
+      SkipCanonicalNameReference();  // read field_reference.
+      SkipExpression();              // read value.
+      return;
+    case kSuperInitializer:
+      SkipCanonicalNameReference();  // read target_reference.
+      SkipArguments();               // read arguments.
+      return;
+    case kRedirectingInitializer:
+      SkipCanonicalNameReference();  // read target_reference.
+      SkipArguments();               // read arguments.
+      return;
+    case kLocalInitializer:
+      SkipVariableDeclaration();  // read variable.
+      return;
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -5859,7 +5890,7 @@ Fragment StreamingFlowGraphBuilder::BuildClosureCreation(
 
   instructions += Drop();
 
-  SkipDartType();  // skip function type of the closure.
+  SkipDartType();         // skip function type of the closure.
   SkipListOfDartTypes();  // skip list of type arguments.
 
   return instructions;
