@@ -1708,8 +1708,12 @@ class Emitter extends js_emitter.EmitterBase {
           };
           // Function for initializing a loaded hunk, given its hash.
           #initializeLoadedHunk = function(hunkHash) {
-            $deferredInitializers[hunkHash](
-            #globalsHolder, ${namer.staticStateHolder});
+            var hunk = $deferredInitializers[hunkHash];
+            if (hunk == null) {
+                throw "DeferredLoading state error: code with hash '" +
+                    hunkHash + "' was not loaded";
+            }
+            hunk(#globalsHolder, ${namer.staticStateHolder});
             #deferredInitialized[hunkHash] = true;
           };
         }
