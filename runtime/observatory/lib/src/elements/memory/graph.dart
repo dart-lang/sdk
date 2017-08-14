@@ -169,10 +169,13 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
     final area = new CartesianArea(host, data, config, state: state)
       ..theme = theme;
     area.addChartBehavior(new Hovercard(builder: (int column, int row) {
+      final data = rows[row];
       if (column == 1) {
-        return _formatNativeOvercard(row);
+        return _formatNativeOvercard(data[1]);
       }
-      return _formatIsolateOvercard(_seenIsolates[column - 2].id, row);
+      final isolate = _seenIsolates[column - 2];
+      final index = _isolateIndex[isolate.id] * 2 + 2;
+      return _formatIsolateOvercard(isolate.name, data[index], data[index + 1]);
     }));
     area.draw();
 
@@ -322,7 +325,7 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
     return '${name} ($usedStr / $capacityStr)';
   }
 
-  Element _formatNativeOvercard(int row) => new DivElement()
+  static HtmlElement _formatNativeOvercard(int heap) => new DivElement()
     ..children = [
       new DivElement()
         ..classes = ['hovercard-title']
@@ -335,20 +338,17 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
             ..text = 'Heap',
           new DivElement()
             ..classes = ['hovercard-measure-value']
-            ..text = Utils.formatSize(_vmSamples[row]),
+            ..text = Utils.formatSize(heap),
         ]
     ];
 
-  Element _formatIsolateOvercard(String isolateId, int row) {
-    final index = _isolateIndex[isolateId];
-    final free = _isolateFreeSamples[row][index];
-    final used = _isolateUsedSamples[row][index];
+  static HtmlElement _formatIsolateOvercard(String name, int free, int used) {
     final capacity = free + used;
     return new DivElement()
       ..children = [
         new DivElement()
           ..classes = ['hovercard-title']
-          ..text = _isolateName[isolateId],
+          ..text = name,
         new DivElement()
           ..classes = ['hovercard-measure', 'hovercard-multi']
           ..children = [
