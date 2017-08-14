@@ -892,6 +892,21 @@ if (is_fuchsia) {
     ]
     output_name = "hello_fuchsia"
   }
+
+  # Uncomment after https://fuchsia-review.googlesource.com/#/c/build/+/37541/
+  # lands.
+  # copy("copy_hello_fuchsia_dylib") {
+  #   sources = [
+  #     get_label_info(":hello_fuchsia_lib($shlib_toolchain)", "root_out_dir") +
+  #         "/libhello_fuchsia.so",
+  #   ]
+  #   outputs = [
+  #     "$root_build_dir/{{source_file_part}}",
+  #   ]
+  #   deps = [
+  #     ":hello_fuchsia_dylib($shlib_toolchain)",
+  #   ]
+  # }
 }
 
 executable("process_test") {
