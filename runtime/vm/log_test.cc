@@ -36,6 +36,9 @@ static void TestPrinter(const char* format, ...) {
     test_output_ = NULL;
   }
   test_output_ = buffer;
+
+  // Also print to stdout to see the overall result.
+  OS::Print("%s", test_output_);
 }
 
 class LogTestHelper : public AllStatic {
@@ -92,9 +95,15 @@ TEST_CASE(Log_Block) {
       log->Print("BANANA");
       EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
     }
-    EXPECT_STREQ("BANANA", test_output_);
+    EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
+    {
+      LogBlock ba(thread, log);
+      log->Print("PEAR");
+      EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
+    }
+    EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
   }
-  EXPECT_STREQ("APPLE", test_output_);
+  EXPECT_STREQ("APPLEBANANAPEAR", test_output_);
   delete log;
   LogTestHelper::FreeTestOutput();
 }
