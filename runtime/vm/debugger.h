@@ -10,6 +10,7 @@
 #include "vm/object.h"
 #include "vm/port.h"
 #include "vm/service_event.h"
+#include "vm/simulator.h"
 
 DECLARE_FLAG(bool, verbose_debug);
 
