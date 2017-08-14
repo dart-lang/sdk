@@ -19,6 +19,9 @@ cha_deopt2_test: Crash # Requires deferred libraries
 cha_deopt3_test: Crash # Requires deferred libraries
 
 [ ! $strong ]
-class_literal_static_test: SkipByDesign # Requires strong mode
-class_override_test: SkipByDesign # Requires strong mode
-closure_internals_test: SkipByDesign # Requires strong mode
+class_literal_static_test: MissingCompileTimeError # Requires strong mode
+class_literal_static_test/none: Pass
+class_override_test: MissingCompileTimeError # Requires strong mode
+closure_internals_test/01: MissingCompileTimeError # Requires strong mode
+closure_internals_test/02: MissingCompileTimeError # Requires strong mode
+closure_internals_test/03: MissingCompileTimeError # Requires strong mode
