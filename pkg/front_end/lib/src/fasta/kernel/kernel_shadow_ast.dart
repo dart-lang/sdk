@@ -1357,8 +1357,8 @@ class KernelMethodInvocation extends MethodInvocation
 ///
 ///     let f = () { ... } in f
 class KernelNamedFunctionExpression extends Let implements KernelExpression {
-  KernelNamedFunctionExpression(VariableDeclaration variable, Expression body)
-      : super(variable, body);
+  KernelNamedFunctionExpression(VariableDeclaration variable)
+      : super(variable, new VariableGet(variable));
 
   @override
   void _collectDependencies(KernelDependencyCollector collector) {

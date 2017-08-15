@@ -94,7 +94,6 @@ rasta/unresolved_recovery: Fail
 
 regress/issue_29940: Crash # Issue 29940.
 regress/issue_29941: Crash # Issue 29941.
-regress/issue_29942: Crash # Issue 29942.
 regress/issue_29943: Crash # Issue 29943.
 regress/issue_29944: Crash # Issue 29944.
 regress/issue_29945: Crash # Issue 29945.

@@ -158,7 +158,6 @@ rasta/unsupported_platform_library: Fail
 
 regress/issue_29940: Crash # Issue 29940.
 regress/issue_29941: Crash # Issue 29941.
-regress/issue_29942: Crash # Issue 29942.
 regress/issue_29943: Crash # Issue 29943.
 regress/issue_29944: Crash # Issue 29944.
 regress/issue_29945: Crash # Issue 29945.
@@ -172,3 +171,7 @@ regress/issue_29983: Crash # Issue 29983.
 regress/issue_29984: Crash # Issue 29984.
 regress/issue_29985: Crash # Issue 29985.
 regress/issue_29987: Crash # Issue 29987.
+
+arrow_function: RuntimeError
+illegal_named_function_expression: RuntimeError
+local_generic_function: RuntimeError

@@ -5,5 +5,5 @@ const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/i
 static method foo(dynamic a, dynamic b) → dynamic
   return null;
 static method main() → dynamic {
-  self::foo(null, let final dynamic f = () → dynamic {} in f);
+  self::foo(null, let final () → dynamic f = () → dynamic {} in f);
 }

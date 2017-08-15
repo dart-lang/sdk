@@ -1530,8 +1530,10 @@ class AstBuilder extends ScopeListener {
   void endLocalFunctionDeclaration(Token token) {
     debugEvent("LocalFunctionDeclaration");
     FunctionBody body = pop();
-    pop(); // constructor initializers
-    pop(); // separator before constructor initializers
+    if (isFullAst) {
+      pop(); // constructor initializers
+      pop(); // separator before constructor initializers
+    }
     FormalParameterList parameters = pop();
     SimpleIdentifier name = pop();
     TypeAnnotation returnType = pop();

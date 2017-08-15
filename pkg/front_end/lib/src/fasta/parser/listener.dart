@@ -261,6 +261,13 @@ class Listener {
     logEvent("ForInBody");
   }
 
+  /// Handle the beginning of a named function expression which isn't legal
+  /// syntax in Dart.  Useful for recovering from Javascript code being pasted
+  /// into a Dart proram, as it will interpret `function foo() {}` as a named
+  /// function expression with return type `function` and name `foo`.
+  ///
+  /// Substructures:
+  /// - Type variables
   void beginNamedFunctionExpression(Token token) {}
 
   /// A named function expression which isn't legal syntax in Dart.
@@ -269,10 +276,10 @@ class Listener {
   /// expression with return type `function` and name `foo`.
   ///
   /// Substructures:
+  /// - Type variables
   /// - Modifiers
   /// - Return type
   /// - Name
-  /// - Type variables
   /// - Formals
   /// - Initializers
   /// - Async modifier
