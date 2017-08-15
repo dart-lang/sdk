@@ -10,16 +10,16 @@ import 'client.dart';
 import 'util.dart';
 
 class Bot {
-  final bool usesLogdog;
   final BuildbotClient _client;
 
   /// Instantiates a Bot.
   ///
   /// Bots must be [close]d when they aren't needed anymore.
   Bot({bool logdog = false})
-      : usesLogdog = logdog,
-        _client =
-            logdog ? new LogdogBuildbotClient() : new HttpBuildbotClient();
+      : this.internal(
+            logdog ? new LogdogBuildbotClient() : new HttpBuildbotClient());
+
+  Bot.internal(this._client);
 
   int get mostRecentBuildNumber => _client.mostRecentBuildNumber;
 

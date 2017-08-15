@@ -35,8 +35,7 @@ class HttpBuildbotClient implements BuildbotClient {
 
     void skipToPreviousBuildNumber() {
       BuildUri prevBuildUri = buildUri.prev();
-      log('Skip build number '
-          '${buildUri.buildNumber} -> ${prevBuildUri.buildNumber}');
+      log('Skip build number on ${buildUri} -> ${prevBuildUri.buildNumber}');
       buildUri = buildUri.prev();
     }
 
