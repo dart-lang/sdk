@@ -1536,13 +1536,16 @@ class FunctionNode extends TreeNode {
     List<NamedType> named =
         namedParameters.map(_getNamedTypeOfVariable).toList(growable: false);
     named.sort();
+    // We need create a copy of the list of type parameters, otherwise
+    // transformations like erasure don't work.
+    var typeParametersCopy = new List<TypeParameter>.from(parent is Constructor
+        ? parent.enclosingClass.typeParameters
+        : typeParameters);
     return new FunctionType(
         positionalParameters.map(_getTypeOfVariable).toList(growable: false),
         returnType,
         namedParameters: named,
-        typeParameters: parent is Constructor
-            ? parent.enclosingClass.typeParameters
-            : typeParameters,
+        typeParameters: typeParametersCopy,
         requiredParameterCount: requiredParameterCount);
   }
 
