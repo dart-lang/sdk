@@ -7225,6 +7225,10 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   MethodDeclaration computeNode() =>
       getNodeMatching((node) => node is MethodDeclaration);
 
+  // TODO(jmesserly): this implementation is completely wrong:
+  // It does not handle covariant parameters from a generic class.
+  // It drops type parameters from generic methods.
+  // Since this method was for DDC, it should be removed.
   @override
   FunctionType getReifiedType(DartType objectType) {
     // Check whether we have any covariant parameters.
