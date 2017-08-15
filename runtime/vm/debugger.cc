@@ -3279,8 +3279,9 @@ void Debugger::SetAsyncSteppingFramePointer() {
   if (!FLAG_async_debugger) {
     return;
   }
-  if (stack_trace_->FrameAt(0)->function().IsAsyncClosure() ||
-      stack_trace_->FrameAt(0)->function().IsAsyncGenClosure()) {
+  if ((stack_trace_->Length()) > 0 &&
+      (stack_trace_->FrameAt(0)->function().IsAsyncClosure() ||
+       stack_trace_->FrameAt(0)->function().IsAsyncGenClosure())) {
     async_stepping_fp_ = stack_trace_->FrameAt(0)->fp();
   } else {
     async_stepping_fp_ = 0;
