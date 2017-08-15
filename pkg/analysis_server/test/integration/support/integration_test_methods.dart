@@ -1665,10 +1665,13 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    *
-   * edits: List<SourceEdit>
+   * edit: SourceFileEdit
    *
-   *   The edit(s) to be applied in order to make the specified elements
-   *   accessible.
+   *   The edits to be applied in order to make the specified elements
+   *   accessible. The file to be edited will be the defining compilation unit
+   *   of the library containing the file specified in the request, which can
+   *   be different than the file specified in the request if the specified
+   *   file is a part file.
    */
   Future<EditImportElementsResult> sendEditImportElements(
       String file, List<ImportedElements> elements) async {

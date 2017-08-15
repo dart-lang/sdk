@@ -7942,31 +7942,37 @@ class EditImportElementsParams implements RequestParams {
  * edit.importElements result
  *
  * {
- *   "edits": List<SourceEdit>
+ *   "edit": SourceFileEdit
  * }
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class EditImportElementsResult implements ResponseResult {
-  List<SourceEdit> _edits;
+  SourceFileEdit _edit;
 
   /**
-   * The edit(s) to be applied in order to make the specified elements
-   * accessible.
+   * The edits to be applied in order to make the specified elements
+   * accessible. The file to be edited will be the defining compilation unit of
+   * the library containing the file specified in the request, which can be
+   * different than the file specified in the request if the specified file is
+   * a part file.
    */
-  List<SourceEdit> get edits => _edits;
+  SourceFileEdit get edit => _edit;
 
   /**
-   * The edit(s) to be applied in order to make the specified elements
-   * accessible.
+   * The edits to be applied in order to make the specified elements
+   * accessible. The file to be edited will be the defining compilation unit of
+   * the library containing the file specified in the request, which can be
+   * different than the file specified in the request if the specified file is
+   * a part file.
    */
-  void set edits(List<SourceEdit> value) {
+  void set edit(SourceFileEdit value) {
     assert(value != null);
-    this._edits = value;
+    this._edit = value;
   }
 
-  EditImportElementsResult(List<SourceEdit> edits) {
-    this.edits = edits;
+  EditImportElementsResult(SourceFileEdit edit) {
+    this.edit = edit;
   }
 
   factory EditImportElementsResult.fromJson(
@@ -7975,17 +7981,14 @@ class EditImportElementsResult implements ResponseResult {
       json = {};
     }
     if (json is Map) {
-      List<SourceEdit> edits;
-      if (json.containsKey("edits")) {
-        edits = jsonDecoder.decodeList(
-            jsonPath + ".edits",
-            json["edits"],
-            (String jsonPath, Object json) =>
-                new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+      SourceFileEdit edit;
+      if (json.containsKey("edit")) {
+        edit = new SourceFileEdit.fromJson(
+            jsonDecoder, jsonPath + ".edit", json["edit"]);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "edits");
+        throw jsonDecoder.mismatch(jsonPath, "edit");
       }
-      return new EditImportElementsResult(edits);
+      return new EditImportElementsResult(edit);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.importElements result", json);
     }
@@ -8001,7 +8004,7 @@ class EditImportElementsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["edits"] = edits.map((SourceEdit value) => value.toJson()).toList();
+    result["edit"] = edit.toJson();
     return result;
   }
 
@@ -8016,8 +8019,7 @@ class EditImportElementsResult implements ResponseResult {
   @override
   bool operator ==(other) {
     if (other is EditImportElementsResult) {
-      return listEqual(
-          edits, other.edits, (SourceEdit a, SourceEdit b) => a == b);
+      return edit == other.edit;
     }
     return false;
   }
@@ -8025,7 +8027,7 @@ class EditImportElementsResult implements ResponseResult {
   @override
   int get hashCode {
     int hash = 0;
-    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    hash = JenkinsSmiHash.combine(hash, edit.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

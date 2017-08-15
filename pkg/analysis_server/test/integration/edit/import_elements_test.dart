@@ -39,7 +39,9 @@ class AnalysisGetImportElementsIntegrationTest
     EditImportElementsResult result =
         await sendEditImportElements(pathname, elements);
 
-    expect(result.edits, hasLength(expected.length));
+    SourceFileEdit edit = result.edit;
+    expect(edit, isNotNull);
+    expect(edit.edits, hasLength(expected.length));
     // TODO(brianwilkerson) Finish implementing this.
   }
 
@@ -51,7 +53,9 @@ class AnalysisGetImportElementsIntegrationTest
     EditImportElementsResult result =
         await sendEditImportElements(pathname, <ImportedElements>[]);
 
-    expect(result.edits, hasLength(0));
+    SourceFileEdit edit = result.edit;
+    expect(edit, isNotNull);
+    expect(edit.edits, hasLength(0));
   }
 
   setUp() {

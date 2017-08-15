@@ -2051,12 +2051,12 @@ final Matcher isEditImportElementsParams = new LazyMatcher(() =>
  * edit.importElements result
  *
  * {
- *   "edits": List<SourceEdit>
+ *   "edit": SourceFileEdit
  * }
  */
 final Matcher isEditImportElementsResult = new LazyMatcher(() =>
     new MatchesJsonObject(
-        "edit.importElements result", {"edits": isListOf(isSourceEdit)}));
+        "edit.importElements result", {"edit": isSourceFileEdit}));
 
 /**
  * edit.isPostfixCompletionApplicable params

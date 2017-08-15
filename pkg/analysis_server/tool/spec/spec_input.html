@@ -2134,13 +2134,14 @@
       </field>
     </params>
     <result>
-      <field name="edits">
-        <list>
-          <ref>SourceEdit</ref>
-        </list>
+      <field name="edit">
+        <ref>SourceFileEdit</ref>
         <p>
-          The edit(s) to be applied in order to make the specified elements
-          accessible.
+          The edits to be applied in order to make the specified elements
+          accessible. The file to be edited will be the defining compilation
+          unit of the library containing the file specified in the request,
+          which can be different than the file specified in the request if the
+          specified file is a part file.
         </p>
       </field>
     </result>

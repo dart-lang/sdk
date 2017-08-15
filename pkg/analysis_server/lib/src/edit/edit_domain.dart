@@ -406,8 +406,8 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     // Send the response.
     //
-    server.sendResponse(new EditImportElementsResult(change.edits[0].edits)
-        .toResponse(request.id));
+    server.sendResponse(
+        new EditImportElementsResult(change.edits[0]).toResponse(request.id));
   }
 
   Future isPostfixCompletionApplicable(Request request) async {
