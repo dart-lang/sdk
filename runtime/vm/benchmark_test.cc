@@ -7,6 +7,7 @@
 #include "bin/builtin.h"
 #include "bin/file.h"
 #include "bin/isolate_data.h"
+#include "bin/process.h"
 
 #include "platform/assert.h"
 #include "platform/globals.h"
@@ -702,7 +703,7 @@ BENCHMARK(LargeMap) {
 }
 
 BENCHMARK_MEMORY(InitialRSS) {
-  benchmark->set_score(OS::MaxRSS());
+  benchmark->set_score(bin::Process::MaxRSS());
 }
 
 }  // namespace dart

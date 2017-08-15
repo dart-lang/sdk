@@ -206,12 +206,6 @@ int OS::NumberOfAvailableProcessors() {
   return info.dwNumberOfProcessors;
 }
 
-uintptr_t OS::MaxRSS() {
-  PROCESS_MEMORY_COUNTERS pmc;
-  GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
-  return pmc.PeakWorkingSetSize;
-}
-
 void OS::Sleep(int64_t millis) {
   ::Sleep(millis);
 }

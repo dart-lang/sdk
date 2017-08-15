@@ -1359,6 +1359,16 @@ static bool FileModifiedCallback(const char* url, int64_t since) {
   return modified;
 }
 
+static void EmbedderInformationCallback(Dart_EmbedderInformation* info) {
+  int64_t max_rss = Process::MaxRSS();
+  int64_t current_rss = Process::CurrentRSS();
+
+  info->version = DART_EMBEDDER_INFORMATION_CURRENT_VERSION;
+  info->name = "Dart VM";
+  info->max_rss = max_rss >= 0 ? max_rss : 0;
+  info->current_rss = current_rss >= 0 ? current_rss : 0;
+}
+
 static void GenerateAppAOTSnapshot() {
   if (use_blobs) {
     Snapshot::GenerateAppAOTAsBlobs(snapshot_filename);
@@ -1808,6 +1818,7 @@ void main(int argc, char** argv) {
   Dart_SetServiceStreamCallbacks(&ServiceStreamListenCallback,
                                  &ServiceStreamCancelCallback);
   Dart_SetFileModifiedCallback(&FileModifiedCallback);
+  Dart_SetEmbedderInformationCallback(&EmbedderInformationCallback);
 
   // Run the main isolate until we aren't told to restart.
   while (RunMainIsolate(script_name, &dart_options)) {

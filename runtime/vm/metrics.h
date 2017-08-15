@@ -31,6 +31,7 @@ class JSONStream;
 
 #define VM_METRIC_LIST(V)                                                      \
   V(MetricIsolateCount, IsolateCount, "vm.isolate.count", kCounter)            \
+  V(MetricCurrentRSS, CurrentRSS, "vm.memory.current", kByte)                  \
   V(MetricPeakRSS, PeakRSS, "vm.memory.max", kByte)
 
 class Metric {
@@ -158,6 +159,11 @@ class MetricHeapNewExternal : public Metric {
 };
 
 class MetricIsolateCount : public Metric {
+ protected:
+  virtual int64_t Value() const;
+};
+
+class MetricCurrentRSS : public Metric {
  protected:
   virtual int64_t Value() const;
 };
