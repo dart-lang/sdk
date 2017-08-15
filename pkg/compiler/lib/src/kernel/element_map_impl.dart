@@ -252,8 +252,6 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     assert(checkFamily(cls));
     if (data.thisType == null) {
       ir.Class node = data.cls;
-      // TODO(johnniwinther): Add the type argument to the list literal when we
-      // no longer use resolution types.
       if (node.typeParameters.isEmpty) {
         data.thisType =
             data.rawType = new InterfaceType(cls, const <DartType>[]);
@@ -408,8 +406,6 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   DartType getDartType(ir.DartType type) => _typeConverter.convert(type);
 
   List<DartType> getDartTypes(List<ir.DartType> types) {
-    // TODO(johnniwinther): Add the type argument to the list literal when we
-    // no longer use resolution types.
     List<DartType> list = <DartType>[];
     types.forEach((ir.DartType type) {
       list.add(getDartType(type));
