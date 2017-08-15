@@ -164,11 +164,12 @@ static Dart_Handle ResolvePackageUri(const char* uri_chars) {
 }
 
 static ThreadLocalKey script_reload_key = kUnsetThreadLocalKey;
+static ThreadLocalKey kernel_reload_key = kUnsetThreadLocalKey;
 
 char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          const char* source,
-                                         void** kernel_pgm) {
-  Zone* zone = Thread::Current()->zone();
+                                         void** kernel_pgm,
+                                         bool incrementally) {
   // clang-format off
   Dart_SourceFile sourcefiles[] = {
     {
@@ -178,9 +179,19 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
       "file:///.packages", "untitled:/"
     }};
   // clang-format on
-  int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
-  Dart_KernelCompilationResult compilation_result =
-      Dart_CompileSourcesToKernel(url, sourcefiles_count, sourcefiles);
+  return CompileTestScriptWithDFE(url,
+                                  sizeof(sourcefiles) / sizeof(Dart_SourceFile),
+                                  sourcefiles, kernel_pgm, incrementally);
+}
+
+char* TestCase::CompileTestScriptWithDFE(const char* url,
+                                         int sourcefiles_count,
+                                         Dart_SourceFile sourcefiles[],
+                                         void** kernel_pgm,
+                                         bool incrementally) {
+  Zone* zone = Thread::Current()->zone();
+  Dart_KernelCompilationResult compilation_result = Dart_CompileSourcesToKernel(
+      url, sourcefiles_count, sourcefiles, incrementally);
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
     return OS::SCreate(zone, "Compilation failed %s", compilation_result.error);
@@ -202,25 +213,35 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                      Dart_Handle url) {
   if (FLAG_use_dart_frontend) {
     // Reload request.
-    ASSERT(script_reload_key != kUnsetThreadLocalKey);
-    const char* script_source = reinterpret_cast<const char*>(
-        OSThread::GetThreadLocal(script_reload_key));
-    ASSERT(script_source != NULL);
-    OSThread::SetThreadLocal(script_reload_key, 0);
+
     const char* urlstr = NULL;
     Dart_Handle result = Dart_StringToCString(url, &urlstr);
     if (Dart_IsError(result)) {
       return Dart_NewApiError("accessing url characters failed");
     }
+
+    // Updated library either arrives as dart source or as
+    // a precompiled kernel binary.
     void* kernel_pgm;
-    char* error =
-        TestCase::CompileTestScriptWithDFE(urlstr, script_source, &kernel_pgm);
-    if (error == NULL) {
-      return Dart_LoadScript(url, Dart_Null(),
-                             reinterpret_cast<Dart_Handle>(kernel_pgm), 0, 0);
+    if (script_reload_key != kUnsetThreadLocalKey) {
+      const char* script_source = reinterpret_cast<const char*>(
+          OSThread::GetThreadLocal(script_reload_key));
+      ASSERT(script_source != NULL);
+      OSThread::SetThreadLocal(script_reload_key, 0);
+      char* error = TestCase::CompileTestScriptWithDFE(urlstr, script_source,
+                                                       &kernel_pgm);
+      if (error != NULL) {
+        return Dart_NewApiError(error);
+      }
     } else {
-      return Dart_NewApiError(error);
+      ASSERT(kernel_reload_key != kUnsetThreadLocalKey);
+      kernel_pgm =
+          reinterpret_cast<void*>(OSThread::GetThreadLocal(kernel_reload_key));
+      ASSERT(kernel_pgm != NULL);
+      OSThread::SetThreadLocal(kernel_reload_key, 0);
     }
+    return Dart_LoadScript(url, Dart_Null(),
+                           reinterpret_cast<Dart_Handle>(kernel_pgm), 0, 0);
   }
   if (tag == Dart_kCanonicalizeUrl) {
     Dart_Handle library_url = Dart_LibraryUrl(library);
@@ -328,45 +349,48 @@ static Dart_Handle LoadTestScriptWithVMParser(const char* script,
   return lib;
 }
 
-static Dart_Handle LoadTestScriptWithDFE(const char* script,
-                                         Dart_NativeEntryResolver resolver,
-                                         const char* lib_url,
-                                         bool finalize_classes) {
-  Dart_Handle url = NewString(lib_url);
-  Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
-  EXPECT_VALID(result);
-  void* kernel_pgm = NULL;
-  char* error =
-      TestCase::CompileTestScriptWithDFE(lib_url, script, &kernel_pgm);
-  if (error == NULL) {
-    Dart_Handle lib = Dart_LoadScript(
-        url, Dart_Null(), reinterpret_cast<Dart_Handle>(kernel_pgm), 0, 0);
-    DART_CHECK_VALID(lib);
-    result = Dart_SetNativeResolver(lib, resolver, NULL);
-    DART_CHECK_VALID(result);
-    if (finalize_classes) {
-      result = Dart_FinalizeLoading(false);
-      DART_CHECK_VALID(result);
-    }
-    return lib;
-  } else {
-    return Dart_NewApiError(error);
-  }
-}
-
 Dart_Handle TestCase::LoadTestScript(const char* script,
                                      Dart_NativeEntryResolver resolver,
                                      const char* lib_url,
                                      bool finalize_classes) {
-  if (!FLAG_use_dart_frontend) {
+  if (FLAG_use_dart_frontend) {
+    Dart_SourceFile sourcefiles[] = {
+        {OS::SCreate(Thread::Current()->zone(), "file:///%s", lib_url),
+         script}};
+    return LoadTestScriptWithDFE(sizeof(sourcefiles) / sizeof(Dart_SourceFile),
+                                 sourcefiles, resolver, finalize_classes);
+  } else {
     return LoadTestScriptWithVMParser(script, resolver, lib_url,
                                       finalize_classes);
-  } else {
-    Zone* zone = Thread::Current()->zone();
-    char* resolved_lib_url = OS::SCreate(zone, "file:///%s", lib_url);
-    return LoadTestScriptWithDFE(script, resolver, resolved_lib_url,
-                                 finalize_classes);
   }
+}
+
+Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
+                                            Dart_SourceFile sourcefiles[],
+                                            Dart_NativeEntryResolver resolver,
+                                            bool finalize,
+                                            bool incrementally) {
+  // First script is the main script.
+  Dart_Handle url = NewString(sourcefiles[0].uri);
+  Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
+  EXPECT_VALID(result);
+  void* kernel_pgm = NULL;
+  char* error = TestCase::CompileTestScriptWithDFE(
+      sourcefiles[0].uri, sourcefiles_count, sourcefiles, &kernel_pgm,
+      incrementally);
+  if (error != NULL) {
+    return Dart_NewApiError(error);
+  }
+  Dart_Handle lib = Dart_LoadScript(
+      url, Dart_Null(), reinterpret_cast<Dart_Handle>(kernel_pgm), 0, 0);
+  DART_CHECK_VALID(lib);
+  result = Dart_SetNativeResolver(lib, resolver, NULL);
+  DART_CHECK_VALID(result);
+  if (finalize) {
+    result = Dart_FinalizeLoading(false);
+    DART_CHECK_VALID(result);
+  }
+  return lib;
 }
 
 #ifndef PRODUCT
@@ -379,6 +403,16 @@ void TestCase::SetReloadTestScript(const char* script) {
   ASSERT(OSThread::GetThreadLocal(script_reload_key) == 0);
   // Store the new script in TLS.
   OSThread::SetThreadLocal(script_reload_key, reinterpret_cast<uword>(script));
+}
+
+void TestCase::SetReloadTestKernel(const void* kernel) {
+  if (kernel_reload_key == kUnsetThreadLocalKey) {
+    kernel_reload_key = OSThread::CreateThreadLocal();
+  }
+  ASSERT(kernel_reload_key != kUnsetThreadLocalKey);
+  ASSERT(OSThread::GetThreadLocal(kernel_reload_key) == 0);
+  // Store the new script in TLS.
+  OSThread::SetThreadLocal(kernel_reload_key, reinterpret_cast<uword>(kernel));
 }
 
 Dart_Handle TestCase::TriggerReload() {
@@ -415,6 +449,28 @@ Dart_Handle TestCase::GetReloadErrorOrRootLibrary() {
 
 Dart_Handle TestCase::ReloadTestScript(const char* script) {
   SetReloadTestScript(script);
+
+  Dart_Handle result = TriggerReload();
+  if (Dart_IsError(result)) {
+    return result;
+  }
+
+  result = GetReloadErrorOrRootLibrary();
+
+  {
+    Thread* thread = Thread::Current();
+    TransitionNativeToVM transition(thread);
+    Isolate* isolate = thread->isolate();
+    if (isolate->reload_context() != NULL) {
+      isolate->DeleteReloadContext();
+    }
+  }
+
+  return result;
+}
+
+Dart_Handle TestCase::ReloadTestKernel(const void* kernel) {
+  SetReloadTestKernel(kernel);
 
   Dart_Handle result = TriggerReload();
   if (Dart_IsError(result)) {

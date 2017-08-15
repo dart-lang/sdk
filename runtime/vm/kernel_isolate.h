@@ -30,7 +30,8 @@ class KernelIsolate : public AllStatic {
   static Dart_KernelCompilationResult CompileToKernel(
       const char* script_uri,
       int source_files_count = 0,
-      Dart_SourceFile source_files[] = NULL);
+      Dart_SourceFile source_files[] = NULL,
+      bool incremental_compile = false);
 
  protected:
   static Monitor* monitor_;
