@@ -1769,6 +1769,12 @@ class AstBuilder extends ScopeListener {
         invocation?.argumentList));
   }
 
+  @override
+  void endMetadataStar(int count, bool forParameter) {
+    debugEvent("MetadataStar");
+    push(popList(count) ?? NullValue.Metadata);
+  }
+
   ParameterKind _toAnalyzerParameterKind(FormalParameterKind type) {
     if (type == FormalParameterKind.optionalPositional) {
       return ParameterKind.POSITIONAL;
