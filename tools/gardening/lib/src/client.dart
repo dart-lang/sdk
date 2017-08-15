@@ -28,16 +28,40 @@ class HttpBuildbotClient implements BuildbotClient {
 
   @override
   Future<BuildResult> readResult(BuildUri buildUri) async {
-    try {
-      return await readBuildResultFromHttp(_client, buildUri);
-    } on HttpException {
-      return null;
-    } on SocketException {
-      return null;
+    Duration timeout;
+    if (buildUri.buildNumber < 0) {
+      timeout = new Duration(seconds: 1);
+    }
+
+    void skipToPreviousBuildNumber() {
+      BuildUri prevBuildUri = buildUri.prev();
+      log('Skip build number '
+          '${buildUri.buildNumber} -> ${prevBuildUri.buildNumber}');
+      buildUri = buildUri.prev();
+    }
+
+    while (true) {
+      try {
+        return await readBuildResultFromHttp(_client, buildUri, timeout);
+      } on TimeoutException {
+        if (timeout != null) {
+          skipToPreviousBuildNumber();
+          continue;
+        }
+        return null;
+      } on HttpException {
+        if (timeout != null) {
+          skipToPreviousBuildNumber();
+          continue;
+        }
+        return null;
+      } on SocketException {
+        return null;
+      }
     }
   }
 
-  int get mostRecentBuildNumber => -2;
+  int get mostRecentBuildNumber => -1;
 
   @override
   void close() {

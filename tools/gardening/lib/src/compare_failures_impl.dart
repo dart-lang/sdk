@@ -64,11 +64,11 @@ void printBuildResultsSummary(
       if (LOG || emptySummaries.length < 3) {
         if (emptySummaries.length == 1) {
           sb.writeln('No errors found for build bot:');
-          sb.write(emptySummaries.single.buildUri);
+          sb.write(emptySummaries.single.name);
         } else {
           sb.writeln('No errors found for any of these build bots:');
           for (Summary summary in emptySummaries) {
-            sb.writeln('${summary.buildUri}');
+            sb.writeln('${summary.name}');
           }
         }
       } else {
@@ -86,7 +86,7 @@ void printBuildResultsSummary(
       if (LOG || emptySummaries.length < 3) {
         sb.writeln('No errors found for the remaining build bots:');
         for (Summary summary in emptySummaries) {
-          sb.writeln('${summary.buildUri}');
+          sb.writeln('${summary.name}');
         }
       } else {
         sb.write(
@@ -103,6 +103,10 @@ Future<List<BuildResult>> readBuildResults(
     BuildbotClient client, BuildUri buildUri, int runCount) async {
   List<BuildResult> summaries = <BuildResult>[];
   BuildResult summary = await client.readResult(buildUri);
+  if (summary == null) {
+    print('No result found for $buildUri');
+    return summaries;
+  }
   summaries.add(summary);
   if (summary.hasFailures) {
     for (int i = 0; i < runCount; i++) {
@@ -145,7 +149,7 @@ class Summary {
               timing.step.stepName] = timing;
         }
       }
-      sb.write('Timeouts for ${buildUri} :\n');
+      sb.write('Timeouts for ${name} :\n');
       map.forEach(
           (TestConfiguration id, Map<int, Map<String, Timing>> timings) {
         if (!timeoutIds.contains(id)) return;
@@ -178,7 +182,7 @@ class Summary {
               failure.uri.buildNumber] = failure;
         }
       }
-      sb.write('Errors for ${buildUri} :\n');
+      sb.write('Errors for ${name} :\n');
       // TODO(johnniwinther): Improve comparison of non-timeouts.
       map.forEach((TestConfiguration id, Map<int, TestFailure> failures) {
         if (!errorIds.contains(id)) return;
@@ -202,7 +206,13 @@ class Summary {
       });
     }
     if (timeoutIds.isEmpty && errorIds.isEmpty) {
-      sb.write('No errors found for ${buildUri}');
+      sb.write('No errors found for ${name}');
     }
   }
+
+  String get name => results.isNotEmpty
+      // Use the first result as name since it most likely has an absolute build
+      // number.
+      ? results.first.buildUri.toString()
+      : buildUri.toString();
 }

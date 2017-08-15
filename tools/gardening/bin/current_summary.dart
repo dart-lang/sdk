@@ -57,8 +57,6 @@ main(List<String> args) async {
       log('Skipping group $group');
       continue;
     }
-    // TODO(johnniwinther): Support reading a partially completed shard from
-    // http, i.e. always use build number `-1`.
     List<BuildUri> uriList = group.createUris(bot.mostRecentBuildNumber);
     if (uriList.isEmpty) continue;
     print('Fetching "${uriList.first}" + ${uriList.length - 1} more ...');
