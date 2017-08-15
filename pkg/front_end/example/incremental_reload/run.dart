@@ -46,21 +46,46 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert' show ASCII;
 
+import 'package:args/args.dart';
+import 'package:kernel/target/targets.dart';
+
 import '../../tool/vm/reload.dart';
 
 import 'compiler_with_invalidation.dart';
+
+ArgParser argParser = new ArgParser(allowTrailingOptions: true)
+  ..addOption('sdk-root', help: 'Path to sdk for compilation')
+  ..addOption('output',
+      help: 'Output dill file', defaultsTo: 'out.dill', abbr: 'o')
+  ..addOption('target',
+      help: 'One of none, vm, vm_fasta, vmcc, vmreify, flutter, flutter_fasta',
+      defaultsTo: 'vm');
+
+String usage = '''
+Usage: dart [options] input.dart
+
+Runs console-driven incremental compiler.
+
+Options:
+${argParser.usage}
+''';
 
 RemoteVm remoteVm = new RemoteVm();
 AnsiTerminal terminal = new AnsiTerminal();
 
 main(List<String> args) async {
-  if (args.length <= 1) {
-    print('usage: dart incremental_compile.dart input.dart out.dill');
+  ArgResults options = argParser.parse(args);
+  if (options.rest.isEmpty) {
+    print('Need an input file');
+    print(usage);
     exit(1);
   }
 
-  var compiler = await createIncrementalCompiler(args[0]);
-  var outputUri = Uri.base.resolve(args[1]);
+  var compiler = await createIncrementalCompiler(options.rest[0],
+      sdkRoot:
+          options['sdk-root'] != null ? Uri.parse(options['sdk-root']) : null,
+      target: targets[options['target']](new TargetFlags()));
+  var outputUri = Uri.base.resolve(options['output']);
 
   showHeader();
   listenOnKeyPress(compiler, outputUri)
@@ -76,7 +101,7 @@ Future listenOnKeyPress(IncrementalCompiler compiler, Uri outputUri) {
     try {
       CompilationResult compilationResult;
       ReloadResult reloadResult;
-      switch (char) {
+      switch (char.trim()) {
         case 'r':
           compilationResult = await rebuild(compiler, outputUri);
           if (!compilationResult.errorSeen &&
@@ -242,7 +267,9 @@ class AnsiTerminal {
   ];
 
   String bolden(String message) => wrap(message, _bold);
+
   String green(String message) => wrap(message, _green);
+
   String red(String message) => wrap(message, _red);
 
   String wrap(String message, String escape) {
