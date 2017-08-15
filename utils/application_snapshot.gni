@@ -32,6 +32,11 @@ template("application_snapshot") {
   if (defined(invoker.inputs)) {
     extra_inputs += invoker.inputs
   }
+  if (defined(invoker.dot_packages)) {
+    dot_packages = invoker.dot_packages
+  } else {
+    dot_packages = rebase_path("$_dart_root/.packages")
+  }
   compiled_action(target_name) {
     tool = "$_dart_root/runtime/bin:dart"
     deps = extra_deps + [ "$_dart_root/pkg:pkg_files_stamp" ]
@@ -46,7 +51,6 @@ template("application_snapshot") {
       output,
     ]
 
-    dot_packages = rebase_path("$_dart_root/.packages")
     abs_output = rebase_path(output)
     main_file = rebase_path(main_dart)
 
