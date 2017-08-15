@@ -21,7 +21,6 @@
 library runtime.tools.kernel_service;
 
 import 'dart:async' show Future;
-import 'dart:convert' show JSON;
 import 'dart:io' show Platform hide FileSystemEntity;
 import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
