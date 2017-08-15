@@ -1,0 +1,27 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# This file contains headers and sources shared between the vm and bin
+# components.
+platform_sources = [
+  "address_sanitizer.h",
+  "allocation.h",
+  "assert.cc",
+  "assert.h",
+  "c99_support_win.h",
+  "floating_point.h",
+  "floating_point_win.cc",
+  "floating_point_win.h",
+  "globals.h",
+  "growable_array.h",
+  "hashmap.cc",
+  "hashmap.h",
+  "inttypes_support_win.h",
+  "memory_sanitizer.h",
+  "signal_blocker.h",
+  "text_buffer.cc",
+  "text_buffer.h",
+  "utils.cc",
+  "utils.h",
+]

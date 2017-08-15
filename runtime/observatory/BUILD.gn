@@ -5,6 +5,7 @@
 import("../../build/executable_suffix.gni")
 import("../../build/prebuilt_dart_sdk.gni")
 import("../../build/dart_host_toolchain.gni")
+import("observatory_sources.gni")
 
 # Construct arguments to the observatory tool for finding pub.
 pub_build_deps = []
@@ -28,14 +29,8 @@ if (!prebuilt_dart_exe_works) {
 current_dir = rebase_path(".", "//")
 
 # Helper build rules for packaging the Dart observatory resources.
-observatory_sources_gypi =
-    exec_script("../../tools/gypi_to_gn.py",
-                [ rebase_path("../observatory/observatory_sources.gypi") ],
-                "scope",
-                [ "../observatory/observatory_sources.gypi" ])
-
 copy("copy_observatory") {
-  sources = rebase_path(observatory_sources_gypi.sources, "", ".")
+  sources = rebase_path(observatory_sources, "", ".")
   outputs = [
     "$root_gen_dir/observatory_copy/{{source_root_relative_dir}}/{{source_file_part}}",
   ]
@@ -97,7 +92,7 @@ action("pub_build_observatory") {
            ":copy_observatory_deps",
          ] + pub_build_deps
 
-  sources = rebase_path(observatory_sources_gypi.sources,
+  sources = rebase_path(observatory_sources,
                         "",
                         "$root_gen_dir/observatory_copy/$current_dir")
 
