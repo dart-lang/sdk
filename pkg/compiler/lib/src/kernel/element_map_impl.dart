@@ -1595,18 +1595,18 @@ abstract class KernelClosedWorldMixin implements ClosedWorldBase {
 
   @override
   bool isNamedMixinApplication(ClassEntity cls) {
-    throw new UnimplementedError(
-        'KernelClosedWorldMixin.isNamedMixinApplication');
+    return elementMap._isMixinApplication(cls) &&
+        elementMap._isUnnamedMixinApplication(cls);
   }
 
   @override
   ClassEntity getAppliedMixin(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorldMixin.getAppliedMixin');
+    return elementMap._getAppliedMixin(cls);
   }
 
   @override
   Iterable<ClassEntity> getInterfaces(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorldMixin.getInterfaces');
+    return elementMap._getInterfaces(cls).map((t) => t.element);
   }
 
   @override

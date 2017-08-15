@@ -27,7 +27,7 @@ import '../../elements/elements.dart'
 import '../../elements/entities.dart';
 import '../../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionFunctionType, ResolutionTypedefType;
-import '../../elements/types.dart' show DartType, DartTypes;
+import '../../elements/types.dart' show DartType, DartTypes, FunctionType;
 import '../../js/js.dart' as js;
 import '../../js_backend/backend.dart' show SuperMemberData;
 import '../../js_backend/backend_usage.dart';
@@ -970,7 +970,7 @@ class ProgramBuilder {
   }
 
   js.Expression _generateFunctionType(
-      ResolutionFunctionType type, OutputUnit outputUnit) {
+      FunctionType type, OutputUnit outputUnit) {
     if (type.containsTypeVariables) {
       js.Expression thisAccess = js.js(r'this.$receiver');
       return _rtiEncoder.getSignatureEncoding(_task.emitter, type, thisAccess);

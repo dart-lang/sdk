@@ -582,7 +582,6 @@ list_sublist_test: Crash
 list_test/01: Crash
 list_test/none: Crash
 list_to_string2_test: Crash
-list_to_string_test: Crash
 list_unmodifiable_test: Crash
 main_test: Crash
 map_contains_key_test: Crash
@@ -643,8 +642,6 @@ regexp/regress-regexp-codeflush_test: Crash
 regexp/standalones_test: Crash
 regexp/unicode-handling_test: Crash
 regexp/unicodeCaseInsensitive_test: Crash
-regress_11099_test: Crash # type 'FunctionType' is not a subtype of type 'ResolutionFunctionType' of 'type' where
-safe_to_string_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionDartType' of 'type' where
 set_containsAll_test: Crash
 set_contains_test: Crash
 set_intersection_test: Crash
@@ -702,7 +699,6 @@ symbol_test/01: Crash
 symbol_test/02: Crash
 symbol_test/03: Crash
 symbol_test/none: Crash
-type_hashcode_test: Crash
 unicode2_test: Crash
 uri_base_test: Crash
 uri_file_test: Crash
@@ -720,7 +716,6 @@ uri_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 stopwatch_test: Crash
-type_hashcode_test: Crash
 map_contains_key_test: Crash
 map_index_test: Crash
 map_remove_test: Crash
@@ -879,7 +874,6 @@ list_sublist_test: Crash
 list_test/01: Crash
 list_test/none: Crash
 list_to_string2_test: Crash
-list_to_string_test: Crash
 list_unmodifiable_test: Crash
 main_test: Crash
 map_contains_key_test: Crash
