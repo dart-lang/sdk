@@ -100,7 +100,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.18.3';
+  static final String VERSION = '1.18.4';
 
   /**
    * The options of this server instance.
@@ -1191,6 +1191,13 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
           }
         }
         if (analysisServer._hasAnalysisServiceSubscription(
+            AnalysisService.CLOSING_LABELS, path)) {
+          _runDelayed(() {
+            sendAnalysisNotificationClosingLabels(
+                analysisServer, path, result.lineInfo, unit);
+          });
+        }
+        if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.OUTLINE, path)) {
           _runDelayed(() {
             SourceKind sourceKind =
@@ -1340,6 +1347,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     return collector.allOccurrences;
   }
 
+  // ignore: unused_element
   server.AnalysisOutlineParams _computeOutlineParams(
       String path, CompilationUnit unit, LineInfo lineInfo) {
     // compute FileKind

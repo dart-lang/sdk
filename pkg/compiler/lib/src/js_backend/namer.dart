@@ -1935,8 +1935,13 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
     // Generates something like 'Type_String_k8F', using the simple name of the
     // type and a hash to disambiguate the same name in different libraries.
     addRoot('Type');
-    ResolutionDartType type = constant.representedType;
-    String name = type.element?.name;
+    DartType type = constant.representedType;
+    String name;
+    if (type is InterfaceType) {
+      name = type.element.name;
+    } else if (type is TypedefType) {
+      name = type.element.name;
+    }
     if (name == null) {
       // e.g. DartType 'dynamic' has no element.
       name = rtiEncoder.getTypeRepresentationForTypeConstant(type);
@@ -2059,7 +2064,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitType(TypeConstantValue constant, [_]) {
-    ResolutionDartType type = constant.representedType;
+    DartType type = constant.representedType;
     // This name includes the library name and type parameters.
     String name = rtiEncoder.getTypeRepresentationForTypeConstant(type);
     return _hashString(4, name);

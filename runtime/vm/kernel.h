@@ -116,6 +116,11 @@ class LogicalExpression {
 
 class Program {
  public:
+  ~Program() {
+    free(const_cast<uint8_t*>(kernel_data_));
+    kernel_data_ = NULL;
+  }
+
   static Program* ReadFrom(Reader* reader);
 
   NameIndex main_method() { return main_method_reference_; }

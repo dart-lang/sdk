@@ -866,7 +866,7 @@ class ResolutionFunctionType extends ResolutionDartType
 bool _typeContainsMethodTypeVariableType(ResolutionDartType type) =>
     type.containsMethodTypeVariableType;
 
-class ResolutionTypedefType extends GenericType {
+class ResolutionTypedefType extends GenericType implements TypedefType {
   ResolutionDartType _unaliased;
 
   ResolutionTypedefType(TypedefElement element,
@@ -886,6 +886,11 @@ class ResolutionTypedefType extends GenericType {
   ResolutionTypedefType createInstantiation(
       List<ResolutionDartType> newTypeArguments) {
     return new ResolutionTypedefType(element, newTypeArguments);
+  }
+
+  ResolutionTypedefType subst(covariant List<ResolutionDartType> arguments,
+      covariant List<ResolutionDartType> parameters) {
+    return super.subst(arguments, parameters);
   }
 
   void computeUnaliased(Resolution resolution) {
@@ -992,7 +997,7 @@ abstract class ResolutionDartTypeVisitor<R, A> extends DartTypeVisitor<R, A> {
 
   R visitMalformedType(MalformedType type, A argument) => null;
 
-  R visitTypedefType(ResolutionTypedefType type, A argument) => null;
+  R visitTypedefType(TypedefType type, A argument) => null;
 }
 
 abstract class BaseResolutionDartTypeVisitor<R, A>
@@ -1011,7 +1016,7 @@ abstract class BaseResolutionDartTypeVisitor<R, A>
       visitGenericType(type, argument);
 
   @override
-  R visitTypedefType(ResolutionTypedefType type, A argument) =>
+  R visitTypedefType(covariant ResolutionTypedefType type, A argument) =>
       visitGenericType(type, argument);
 }
 
@@ -1054,7 +1059,8 @@ abstract class AbstractTypeRelationMixin
   /// spurious errors from malformed types.
   bool visitMalformedType(MalformedType t, ResolutionDartType s) => true;
 
-  bool visitTypedefType(ResolutionTypedefType t, ResolutionDartType s) =>
+  bool visitTypedefType(
+          covariant ResolutionTypedefType t, ResolutionDartType s) =>
       visitType(t, s);
 }
 

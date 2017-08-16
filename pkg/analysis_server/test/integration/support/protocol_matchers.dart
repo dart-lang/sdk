@@ -712,6 +712,46 @@ final Matcher isImportedElements = new LazyMatcher(() => new MatchesJsonObject(
     {"path": isFilePath, "prefix": isString, "elements": isListOf(isString)}));
 
 /**
+ * KytheEntry
+ *
+ * {
+ *   "source": KytheVName
+ *   "kind": String
+ *   "target": KytheVName
+ *   "fact": String
+ *   "value": List<int>
+ * }
+ */
+final Matcher isKytheEntry =
+    new LazyMatcher(() => new MatchesJsonObject("KytheEntry", {
+          "source": isKytheVName,
+          "kind": isString,
+          "target": isKytheVName,
+          "fact": isString,
+          "value": isListOf(isInt)
+        }));
+
+/**
+ * KytheVName
+ *
+ * {
+ *   "signature": String
+ *   "corpus": String
+ *   "root": String
+ *   "path": String
+ *   "language": String
+ * }
+ */
+final Matcher isKytheVName =
+    new LazyMatcher(() => new MatchesJsonObject("KytheVName", {
+          "signature": isString,
+          "corpus": isString,
+          "root": isString,
+          "path": isString,
+          "language": isString
+        }));
+
+/**
  * LinkedEditGroup
  *
  * {
@@ -1037,6 +1077,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   FORMAT_WITH_ERRORS
  *   GET_ERRORS_INVALID_FILE
  *   GET_IMPORTED_ELEMENTS_INVALID_FILE
+ *   GET_KYTHE_ENTRIES_INVALID_FILE
  *   GET_NAVIGATION_INVALID_FILE
  *   GET_REACHABLE_SOURCES_INVALID_FILE
  *   IMPORT_ELEMENTS_INVALID_FILE
@@ -1066,6 +1107,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "FORMAT_WITH_ERRORS",
   "GET_ERRORS_INVALID_FILE",
   "GET_IMPORTED_ELEMENTS_INVALID_FILE",
+  "GET_KYTHE_ENTRIES_INVALID_FILE",
   "GET_NAVIGATION_INVALID_FILE",
   "GET_REACHABLE_SOURCES_INVALID_FILE",
   "IMPORT_ELEMENTS_INVALID_FILE",
@@ -2009,12 +2051,12 @@ final Matcher isEditImportElementsParams = new LazyMatcher(() =>
  * edit.importElements result
  *
  * {
- *   "edits": List<SourceEdit>
+ *   "edit": SourceFileEdit
  * }
  */
 final Matcher isEditImportElementsResult = new LazyMatcher(() =>
     new MatchesJsonObject(
-        "edit.importElements result", {"edits": isListOf(isSourceEdit)}));
+        "edit.importElements result", {"edit": isSourceFileEdit}));
 
 /**
  * edit.isPostfixCompletionApplicable params
@@ -2317,6 +2359,29 @@ final Matcher isInlineMethodFeedback = new LazyMatcher(() =>
 final Matcher isInlineMethodOptions = new LazyMatcher(() =>
     new MatchesJsonObject(
         "inlineMethod options", {"deleteSource": isBool, "inlineAll": isBool}));
+
+/**
+ * kythe.getKytheEntries params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ */
+final Matcher isKytheGetKytheEntriesParams = new LazyMatcher(() =>
+    new MatchesJsonObject(
+        "kythe.getKytheEntries params", {"file": isFilePath}));
+
+/**
+ * kythe.getKytheEntries result
+ *
+ * {
+ *   "entries": List<KytheEntry>
+ *   "files": List<FilePath>
+ * }
+ */
+final Matcher isKytheGetKytheEntriesResult = new LazyMatcher(() =>
+    new MatchesJsonObject("kythe.getKytheEntries result",
+        {"entries": isListOf(isKytheEntry), "files": isListOf(isFilePath)}));
 
 /**
  * moveFile feedback

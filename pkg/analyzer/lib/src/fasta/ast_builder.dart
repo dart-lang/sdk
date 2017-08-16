@@ -1530,8 +1530,10 @@ class AstBuilder extends ScopeListener {
   void endLocalFunctionDeclaration(Token token) {
     debugEvent("LocalFunctionDeclaration");
     FunctionBody body = pop();
-    pop(); // constructor initializers
-    pop(); // separator before constructor initializers
+    if (isFullAst) {
+      pop(); // constructor initializers
+      pop(); // separator before constructor initializers
+    }
     FormalParameterList parameters = pop();
     SimpleIdentifier name = pop();
     TypeAnnotation returnType = pop();
@@ -1765,6 +1767,12 @@ class AstBuilder extends ScopeListener {
     Identifier name = pop();
     push(ast.annotation(beginToken, name, periodBeforeName, constructorName,
         invocation?.argumentList));
+  }
+
+  @override
+  void endMetadataStar(int count, bool forParameter) {
+    debugEvent("MetadataStar");
+    push(popList(count) ?? NullValue.Metadata);
   }
 
   ParameterKind _toAnalyzerParameterKind(FormalParameterKind type) {

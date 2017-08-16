@@ -913,13 +913,20 @@ class CodeChecker extends RecursiveAstVisitor {
       var expectedType = member.returnType;
 
       if (!rules.isSubtypeOf(memberLowerBound.returnType, expectedType)) {
-        if (node is MethodInvocation && member is! MethodElement) {
-          // If `o.m` is not a method, we need to cast `o.m` before the call:
-          // `(o.m as expectedType)(args)`.
+        var isMethod = member is MethodElement;
+        var isCall = node is MethodInvocation;
+
+        if (isMethod && !isCall) {
+          // If `o.m` is a method tearoff, cast to the method type.
+          setImplicitCast(node, member.type);
+        } else if (!isMethod && isCall) {
+          // If `o.g()` is calling a field/getter `g`, we need to cast `o.g`
+          // before the call: `(o.g as expectedType)(args)`.
           // This cannot be represented by an `as` node without changing the
           // Dart AST structure, so we record it as a special cast.
           setImplicitOperationCast(node, expectedType);
         } else {
+          // For method calls `o.m()` or getters `o.g`, simply cast the result.
           setImplicitCast(node, expectedType);
         }
         _hasImplicitCasts = true;

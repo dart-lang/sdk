@@ -21,8 +21,14 @@ import 'package:meta/meta.dart';
 /// used to obtain resolved ASTs, and these are fed into kernel code generation
 /// logic.
 class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
-  /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 1;
+  static const MSG_PENDING_COMPUTE =
+      'A computeDelta() invocation is still executing.';
+
+  static const MSG_NO_LAST_DELTA =
+      'The last delta has been already accepted or rejected.';
+
+  static const MSG_HAS_LAST_DELTA =
+      'The last delta must be either accepted or rejected.';
 
   /// The logger to report compilation progress.
   final PerformanceLog _logger;
@@ -36,8 +42,15 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// The [KernelDriver] that is used to compute kernels.
   KernelDriver _driver;
 
-  /// Latest compilation signatures produced by [computeDelta] for libraries.
-  final Map<Uri, String> _latestSignature = {};
+  /// Whether [computeDelta] is executing.
+  bool _isComputeDeltaExecuting = false;
+
+  /// The current signatures for libraries.
+  final Map<Uri, String> _currentSignatures = {};
+
+  /// The signatures for libraries produced by the last [computeDelta], or
+  /// `null` if the last delta was either accepted or rejected.
+  Map<Uri, String> _lastSignatures;
 
   /// The object that provides additional information for tests.
   _TestView _testView;
@@ -65,63 +78,85 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   _TestView get test => _testView;
 
   @override
-  Future<DeltaProgram> computeDelta() async {
-    return await _logger.runAsync('Compute delta', () async {
-      KernelResult kernelResult = await _driver.getKernel(_entryPoint);
-      List<LibraryCycleResult> results = kernelResult.results;
+  void acceptLastDelta() {
+    _throwIfNoLastDelta();
+    _currentSignatures.addAll(_lastSignatures);
+    _lastSignatures = null;
+  }
 
-      // The file graph might have changed, perform GC.
-      await _gc();
+  @override
+  Future<DeltaProgram> computeDelta() {
+    if (_isComputeDeltaExecuting) {
+      throw new StateError(MSG_PENDING_COMPUTE);
+    }
 
-      // The set of affected library cycles (have different signatures).
-      final affectedLibraryCycles = new Set<LibraryCycle>();
-      for (LibraryCycleResult result in results) {
-        for (Library library in result.kernelLibraries) {
-          Uri uri = library.importUri;
-          if (_latestSignature[uri] != result.signature) {
-            _latestSignature[uri] = result.signature;
-            affectedLibraryCycles.add(result.cycle);
-          }
-        }
-      }
+    if (_lastSignatures != null) {
+      throw new StateError(MSG_HAS_LAST_DELTA);
+    }
+    _lastSignatures = {};
 
-      // The set of affected library cycles (have different signatures),
-      // or libraries that import or export affected libraries (so VM might
-      // have inlined some code from affected libraries into them).
-      final vmRequiredLibraryCycles = new Set<LibraryCycle>();
+    _isComputeDeltaExecuting = true;
 
-      void gatherVmRequiredLibraryCycles(LibraryCycle cycle) {
-        if (vmRequiredLibraryCycles.add(cycle)) {
-          cycle.directUsers.forEach(gatherVmRequiredLibraryCycles);
-        }
-      }
+    return _logger.runAsync('Compute delta', () async {
+      try {
+        KernelResult kernelResult = await _driver.getKernel(_entryPoint);
+        List<LibraryCycleResult> results = kernelResult.results;
 
-      affectedLibraryCycles.forEach(gatherVmRequiredLibraryCycles);
+        // The file graph might have changed, perform GC.
+        await _gc();
 
-      // Add required libraries.
-      Program program = new Program(nameRoot: kernelResult.nameRoot);
-      for (LibraryCycleResult result in results) {
-        if (vmRequiredLibraryCycles.contains(result.cycle)) {
+        // The set of affected library cycles (have different signatures).
+        final affectedLibraryCycles = new Set<LibraryCycle>();
+        for (LibraryCycleResult result in results) {
           for (Library library in result.kernelLibraries) {
-            program.libraries.add(library);
-            library.parent = program;
+            Uri uri = library.importUri;
+            if (_currentSignatures[uri] != result.signature) {
+              _lastSignatures[uri] = result.signature;
+              affectedLibraryCycles.add(result.cycle);
+            }
           }
         }
-      }
 
-      // Set the main method.
-      if (program.libraries.isNotEmpty) {
-        for (Library library in results.last.kernelLibraries) {
-          if (library.importUri == _entryPoint) {
-            program.mainMethod = library.procedures.firstWhere(
-                (procedure) => procedure.name.name == 'main',
-                orElse: () => null);
-            break;
+        // The set of affected library cycles (have different signatures),
+        // or libraries that import or export affected libraries (so VM might
+        // have inlined some code from affected libraries into them).
+        final vmRequiredLibraryCycles = new Set<LibraryCycle>();
+
+        void gatherVmRequiredLibraryCycles(LibraryCycle cycle) {
+          if (vmRequiredLibraryCycles.add(cycle)) {
+            cycle.directUsers.forEach(gatherVmRequiredLibraryCycles);
           }
         }
-      }
 
-      return new DeltaProgram(program);
+        affectedLibraryCycles.forEach(gatherVmRequiredLibraryCycles);
+
+        // Add required libraries.
+        Program program = new Program(nameRoot: kernelResult.nameRoot);
+        for (LibraryCycleResult result in results) {
+          if (vmRequiredLibraryCycles.contains(result.cycle)) {
+            for (Library library in result.kernelLibraries) {
+              program.libraries.add(library);
+              library.parent = program;
+            }
+          }
+        }
+
+        // Set the main method.
+        if (program.libraries.isNotEmpty) {
+          for (Library library in results.last.kernelLibraries) {
+            if (library.importUri == _entryPoint) {
+              program.mainMethod = library.procedures.firstWhere(
+                  (procedure) => procedure.name.name == 'main',
+                  orElse: () => null);
+              break;
+            }
+          }
+        }
+
+        return new DeltaProgram(program);
+      } finally {
+        _isComputeDeltaExecuting = false;
+      }
     });
   }
 
@@ -130,13 +165,32 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
     _driver.invalidate(uri);
   }
 
-  /// TODO(scheglov) document
+  @override
+  void rejectLastDelta() {
+    _throwIfNoLastDelta();
+    _lastSignatures = null;
+  }
+
+  /// Find files which are not referenced from the entry point and report
+  /// them to the watch function.
   Future<Null> _gc() async {
     var removedFiles = _driver.fsState.gc(_entryPoint);
     if (removedFiles.isNotEmpty && _watchFn != null) {
       for (var removedFile in removedFiles) {
         await _watchFn(removedFile.fileUri, false);
       }
+    }
+  }
+
+  /// Throw [StateError] if [_lastSignatures] is `null`, i.e. there is no
+  /// last delta - it either has not been computed yet, or has been already
+  /// accepted or rejected.
+  void _throwIfNoLastDelta() {
+    if (_isComputeDeltaExecuting) {
+      throw new StateError(MSG_PENDING_COMPUTE);
+    }
+    if (_lastSignatures == null) {
+      throw new StateError(MSG_NO_LAST_DELTA);
     }
   }
 }

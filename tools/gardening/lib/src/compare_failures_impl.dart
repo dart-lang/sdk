@@ -8,26 +8,25 @@
 
 import 'dart:async';
 
+import 'package:gardening/src/bot.dart';
 import 'package:gardening/src/buildbot_structures.dart';
 import 'package:gardening/src/buildbot_data.dart';
-import 'package:gardening/src/client.dart';
 import 'package:gardening/src/util.dart';
 
-Future mainInternal(BuildbotClient client, List<String> args,
-    {int runCount: 10}) async {
+Future mainInternal(Bot bot, List<String> args, {int runCount: 10}) async {
   printBuildResultsSummary(
-      await loadBuildResults(client, args, runCount: runCount), args);
+      await loadBuildResults(bot, args, runCount: runCount), args);
 }
 
 /// Loads [BuildResult]s for the [runCount] last builds for the build(s) in
 /// [args]. [args] can be a list of [BuildGroup] names or a list of log uris.
 Future<Map<BuildUri, List<BuildResult>>> loadBuildResults(
-    BuildbotClient client, List<String> args,
+    Bot bot, List<String> args,
     {int runCount: 10}) async {
   List<BuildUri> buildUriList = <BuildUri>[];
   for (BuildGroup buildGroup in buildGroups) {
     if (args.contains(buildGroup.groupName)) {
-      buildUriList.addAll(buildGroup.createUris(client.mostRecentBuildNumber));
+      buildUriList.addAll(buildGroup.createUris(bot.mostRecentBuildNumber));
     }
   }
   if (buildUriList.isEmpty) {
@@ -35,14 +34,21 @@ Future<Map<BuildUri, List<BuildResult>>> loadBuildResults(
       buildUriList.add(new BuildUri.fromUrl(url));
     }
   }
-  Map<BuildUri, List<BuildResult>> buildResults =
+  Map<BuildUri, List<BuildResult>> pastResultsMap =
       <BuildUri, List<BuildResult>>{};
-  for (BuildUri buildUri in buildUriList) {
-    List<BuildResult> results =
-        await readBuildResults(client, buildUri, runCount);
-    buildResults[buildUri] = results;
+  List<BuildResult> buildResults = await bot.readResults(buildUriList);
+  if (buildResults.length != buildUriList.length) {
+    print('Result mismatch: Pulled ${buildUriList.length} uris, '
+        'received ${buildResults.length} results.');
   }
-  return buildResults;
+  for (int index = 0; index < buildResults.length; index++) {
+    BuildUri buildUri = buildUriList[index];
+    BuildResult buildResult = buildResults[index];
+    List<BuildResult> results =
+        await readPastResults(bot, buildUri, buildResult, runCount);
+    pastResultsMap[buildUri] = results;
+  }
+  return pastResultsMap;
 }
 
 /// Prints summaries for the [buildResults].
@@ -64,11 +70,11 @@ void printBuildResultsSummary(
       if (LOG || emptySummaries.length < 3) {
         if (emptySummaries.length == 1) {
           sb.writeln('No errors found for build bot:');
-          sb.write(emptySummaries.single.buildUri);
+          sb.write(emptySummaries.single.name);
         } else {
           sb.writeln('No errors found for any of these build bots:');
           for (Summary summary in emptySummaries) {
-            sb.writeln('${summary.buildUri}');
+            sb.writeln('${summary.name}');
           }
         }
       } else {
@@ -86,7 +92,7 @@ void printBuildResultsSummary(
       if (LOG || emptySummaries.length < 3) {
         sb.writeln('No errors found for the remaining build bots:');
         for (Summary summary in emptySummaries) {
-          sb.writeln('${summary.buildUri}');
+          sb.writeln('${summary.name}');
         }
       } else {
         sb.write(
@@ -99,17 +105,17 @@ void printBuildResultsSummary(
 
 /// Creates a [BuildResult] for [buildUri] and, if it contains failures, the
 /// [BuildResult]s for the previous [runCount] builds.
-Future<List<BuildResult>> readBuildResults(
-    BuildbotClient client, BuildUri buildUri, int runCount) async {
+Future<List<BuildResult>> readPastResults(
+    Bot bot, BuildUri buildUri, BuildResult summary, int runCount) async {
   List<BuildResult> summaries = <BuildResult>[];
-  BuildResult summary = await client.readResult(buildUri);
+  if (summary == null) {
+    print('No result found for $buildUri');
+    return summaries;
+  }
   summaries.add(summary);
   if (summary.hasFailures) {
-    for (int i = 0; i < runCount; i++) {
-      buildUri = summary.buildUri.prev();
-      summary = await client.readResult(buildUri);
-      summaries.add(summary);
-    }
+    summaries.addAll(await bot.readHistoricResults(summary.buildUri.prev(),
+        previousCount: runCount - 1));
   }
   return summaries;
 }
@@ -145,7 +151,7 @@ class Summary {
               timing.step.stepName] = timing;
         }
       }
-      sb.write('Timeouts for ${buildUri} :\n');
+      sb.write('Timeouts for ${name} :\n');
       map.forEach(
           (TestConfiguration id, Map<int, Map<String, Timing>> timings) {
         if (!timeoutIds.contains(id)) return;
@@ -178,7 +184,7 @@ class Summary {
               failure.uri.buildNumber] = failure;
         }
       }
-      sb.write('Errors for ${buildUri} :\n');
+      sb.write('Errors for ${name} :\n');
       // TODO(johnniwinther): Improve comparison of non-timeouts.
       map.forEach((TestConfiguration id, Map<int, TestFailure> failures) {
         if (!errorIds.contains(id)) return;
@@ -202,7 +208,13 @@ class Summary {
       });
     }
     if (timeoutIds.isEmpty && errorIds.isEmpty) {
-      sb.write('No errors found for ${buildUri}');
+      sb.write('No errors found for ${name}');
     }
   }
+
+  String get name => results.isNotEmpty
+      // Use the first result as name since it most likely has an absolute build
+      // number.
+      ? results.first.buildUri.toString()
+      : buildUri.toString();
 }

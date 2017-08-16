@@ -11,9 +11,6 @@
 duration2_test: Skip
 error_stack_trace_test: Skip
 http_resource_test: Skip
-iterable_contains2_test: Skip
-iterable_element_at_test: Skip
-iterable_fold_test: Skip
 iterable_mapping_test: Skip
 iterable_reduce_test: Skip
 linked_hash_map_from_iterable_test: Skip
@@ -23,14 +20,9 @@ string_replace_test: Skip
 
 [ $compiler == dartdevc && $runtime != none ]
 hash_set_test/01: RuntimeError # Issue 29921
-int_parse_radix_test/01: RuntimeError # Issue 29921
-int_parse_radix_test/02: RuntimeError # Issue 29921
-integer_to_radix_string_test: RuntimeError # Issue 29921
-integer_to_string_test/01: RuntimeError # Issue 29921
 iterable_return_type_test/02: RuntimeError # Issue 29921
 regress_r21715_test: RuntimeError # Issue 29921
 string_operations_with_null_test: RuntimeError # Issue 29921
-
 from_environment_const_type_test/01: RuntimeError # Issue 29921
 from_environment_const_type_test/05: RuntimeError # Issue 29921
 from_environment_const_type_test/10: RuntimeError # Issue 29921

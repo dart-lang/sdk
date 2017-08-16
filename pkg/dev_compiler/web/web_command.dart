@@ -146,7 +146,7 @@ class WebCompileCommand extends Command {
         dartSdkPath: '/dart-sdk', dartSdkSummaryPath: dartSdkSummaryPath);
 
     var summaryDataStore = new SummaryDataStore(options.summaryPaths,
-        resourceProvider: resourceProvider, recordDependencyInfo: true);
+        resourceProvider: resourceProvider);
     for (var i = 0; i < summaryBytes.length; i++) {
       var bytes = summaryBytes[i];
 

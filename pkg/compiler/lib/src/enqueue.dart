@@ -14,7 +14,6 @@ import 'constants/values.dart';
 import 'compiler.dart' show Compiler;
 import 'options.dart';
 import 'elements/entities.dart';
-import 'elements/resolution_types.dart' show ResolutionTypedefType;
 import 'elements/types.dart';
 import 'js_backend/enqueuer.dart';
 import 'universe/world_builder.dart';
@@ -367,7 +366,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         break;
       case TypeUseKind.TYPE_LITERAL:
         if (type.isTypedef) {
-          ResolutionTypedefType typedef = type;
+          TypedefType typedef = type;
           worldBuilder.registerTypedef(typedef.element);
         }
         break;

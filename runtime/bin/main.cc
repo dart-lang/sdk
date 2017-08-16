@@ -32,7 +32,7 @@
 #include "platform/hashmap.h"
 #include "platform/text_buffer.h"
 #if !defined(DART_PRECOMPILER)
-#include "zlib/zlib.h"
+#include "bin/gzip.h"
 #endif
 
 #include "vm/kernel.h"
@@ -354,7 +354,6 @@ static bool ProcessFrontendOption(const char* filename,
     return false;
   }
   dfe.set_frontend_filename(filename);
-  vm_options->AddArgument("--use-dart-frontend");
   return true;
 }
 
@@ -456,6 +455,7 @@ static bool ProcessObserveOption(const char* option_value,
   // These options should also be documented in the help message.
   vm_options->AddArgument("--pause-isolates-on-exit");
   vm_options->AddArgument("--pause-isolates-on-unhandled-exceptions");
+  vm_options->AddArgument("--profiler");
   vm_options->AddArgument("--warn-on-pause-with-no-debugger");
   return true;
 }
@@ -848,6 +848,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   if (dfe.kernel_file_specified()) {
     ASSERT(kernel_program != NULL);
     result = Dart_LoadKernel(kernel_program);
+    isolate_data->kernel_program = NULL;  // Dart_LoadKernel takes ownership.
   } else {
     if (kernel_program != NULL) {
       Dart_Handle uri = Dart_NewStringFromCString(script_uri);
@@ -857,6 +858,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
       result =
           Dart_LoadScript(uri, resolved_script_uri,
                           reinterpret_cast<Dart_Handle>(kernel_program), 0, 0);
+      isolate_data->kernel_program = NULL;  // Dart_LoadScript takes ownership.
       CHECK_RESULT(result);
     }
   }
@@ -1047,6 +1049,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   if (dfe.UsePlatformBinary()) {
     Dart_Handle library = Dart_LoadKernel(dfe.kernel_vmservice_io());
     CHECK_RESULT_CLEANUP(library, isolate_data);
+    dfe.clear_kernel_vmservice_io();  // Dart_LoadKernel takes ownership.
     skip_library_load = true;
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -1356,6 +1359,16 @@ static bool FileModifiedCallback(const char* url, int64_t since) {
   return modified;
 }
 
+static void EmbedderInformationCallback(Dart_EmbedderInformation* info) {
+  int64_t max_rss = Process::MaxRSS();
+  int64_t current_rss = Process::CurrentRSS();
+
+  info->version = DART_EMBEDDER_INFORMATION_CURRENT_VERSION;
+  info->name = "Dart VM";
+  info->max_rss = max_rss >= 0 ? max_rss : 0;
+  info->current_rss = current_rss >= 0 ? current_rss : 0;
+}
+
 static void GenerateAppAOTSnapshot() {
   if (use_blobs) {
     Snapshot::GenerateAppAOTAsBlobs(snapshot_filename);
@@ -1657,74 +1670,10 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
 extern unsigned int observatory_assets_archive_len;
 extern const uint8_t* observatory_assets_archive;
 
-// |input| is assumed to be a gzipped stream.
-// This function allocates the output buffer in the C heap and the caller
-// is responsible for freeing it.
-void Decompress(const uint8_t* input,
-                unsigned int input_len,
-                uint8_t** output,
-                unsigned int* output_length) {
-  ASSERT(input != NULL);
-  ASSERT(input_len > 0);
-  ASSERT(output != NULL);
-  ASSERT(output_length != NULL);
-
-  // Initialize output.
-  *output = NULL;
-  *output_length = 0;
-
-  const unsigned int kChunkSize = 256 * 1024;
-  uint8_t chunk_out[kChunkSize];
-  z_stream strm;
-  strm.zalloc = Z_NULL;
-  strm.zfree = Z_NULL;
-  strm.opaque = Z_NULL;
-  strm.avail_in = 0;
-  strm.next_in = 0;
-  int ret = inflateInit2(&strm, 32 + MAX_WBITS);
-  ASSERT(ret == Z_OK);
-
-  unsigned int input_cursor = 0;
-  unsigned int output_cursor = 0;
-  do {
-    // Setup input.
-    unsigned int size_in = input_len - input_cursor;
-    if (size_in > kChunkSize) {
-      size_in = kChunkSize;
-    }
-    strm.avail_in = size_in;
-    strm.next_in = const_cast<uint8_t*>(&input[input_cursor]);
-
-    // Inflate until we've exhausted the current input chunk.
-    do {
-      // Setup output.
-      strm.avail_out = kChunkSize;
-      strm.next_out = &chunk_out[0];
-      // Inflate.
-      ret = inflate(&strm, Z_SYNC_FLUSH);
-      // We either hit the end of the stream or made forward progress.
-      ASSERT((ret == Z_STREAM_END) || (ret == Z_OK));
-      // Grow output buffer size.
-      unsigned int size_out = kChunkSize - strm.avail_out;
-      *output_length += size_out;
-      *output = reinterpret_cast<uint8_t*>(realloc(*output, *output_length));
-      // Copy output.
-      memmove(&((*output)[output_cursor]), &chunk_out[0], size_out);
-      output_cursor += size_out;
-    } while (strm.avail_out == 0);
-
-    // We've processed size_in bytes.
-    input_cursor += size_in;
-
-    // We're finished decompressing when zlib tells us.
-  } while (ret != Z_STREAM_END);
-
-  inflateEnd(&strm);
-}
 
 Dart_Handle GetVMServiceAssetsArchiveCallback() {
   uint8_t* decompressed = NULL;
-  unsigned int decompressed_len = 0;
+  intptr_t decompressed_len = 0;
   Decompress(observatory_assets_archive, observatory_assets_archive_len,
              &decompressed, &decompressed_len);
   Dart_Handle tar_file =
@@ -1852,6 +1801,11 @@ void main(int argc, char** argv) {
   init_params.file_close = DartUtils::CloseFile;
   init_params.entropy_source = DartUtils::EntropySource;
   init_params.get_service_assets = GetVMServiceAssetsArchiveCallback;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  init_params.start_kernel_isolate = dfe.UseDartFrontend();
+#else
+  init_params.start_kernel_isolate = false;
+#endif
 
   char* error = Dart_Initialize(&init_params);
   if (error != NULL) {
@@ -1864,6 +1818,7 @@ void main(int argc, char** argv) {
   Dart_SetServiceStreamCallbacks(&ServiceStreamListenCallback,
                                  &ServiceStreamCancelCallback);
   Dart_SetFileModifiedCallback(&FileModifiedCallback);
+  Dart_SetEmbedderInformationCallback(&EmbedderInformationCallback);
 
   // Run the main isolate until we aren't told to restart.
   while (RunMainIsolate(script_name, &dart_options)) {

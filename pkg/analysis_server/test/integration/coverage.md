@@ -15,9 +15,22 @@ server calls. This file is validated by `coverage_test.dart`.
 - [x] analysis.setSubscriptions
 - [x] analysis.updateContent
 - [x] analysis.updateOptions (failing - see #28800) (deprecated)
+- [ ] analysis.analyzedFiles
+- [ ] analysis.closingLabels
+- [ ] analysis.errors
+- [ ] analysis.flushResults
+- [ ] analysis.folding
+- [x] analysis.highlights
+- [ ] analysis.implemented
+- [ ] analysis.invalidate
+- [x] analysis.navigation
+- [x] analysis.occurrences
+- [x] analysis.outline
+- [x] analysis.overrides
 
 ## completion domain
 - [x] completion.getSuggestions
+- [ ] completion.results
 
 ## diagnostic domain
 - [x] diagnostic.getDiagnostics
@@ -42,6 +55,7 @@ server calls. This file is validated by `coverage_test.dart`.
 - [x] execution.deleteContext
 - [x] execution.mapUri
 - [x] execution.setSubscriptions
+- [ ] execution.launchData
 
 ## search domain
 - [x] search.findElementReferences
@@ -49,14 +63,21 @@ server calls. This file is validated by `coverage_test.dart`.
 - [x] search.findMemberReferences
 - [x] search.findTopLevelDeclarations
 - [x] search.getTypeHierarchy
+- [ ] search.results
 
 ## server domain
 - [x] server.getVersion
 - [x] server.shutdown
 - [x] server.setSubscriptions
+- [ ] server.connected
+- [ ] server.error
+- [x] server.status
 
 ## analytics domain
 - [x] analytics.isEnabled
 - [x] analytics.enable
 - [x] analytics.sendEvent
 - [x] analytics.sendTiming
+
+## kythe domain
+- [] kythe.getKytheEntries

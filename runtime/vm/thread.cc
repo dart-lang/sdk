@@ -510,8 +510,8 @@ void Thread::DeferOOBMessageInterrupts() {
     }
   }
   if (FLAG_trace_service && FLAG_trace_service_verbose) {
-    OS::Print("[+%" Pd64 "ms] Isolate %s deferring OOB interrupts\n",
-              Dart::UptimeMillis(), isolate()->name());
+    OS::PrintErr("[+%" Pd64 "ms] Isolate %s deferring OOB interrupts\n",
+                 Dart::UptimeMillis(), isolate()->name());
   }
 }
 
@@ -532,8 +532,8 @@ void Thread::RestoreOOBMessageInterrupts() {
     deferred_interrupts_ = 0;
   }
   if (FLAG_trace_service && FLAG_trace_service_verbose) {
-    OS::Print("[+%" Pd64 "ms] Isolate %s restoring OOB interrupts\n",
-              Dart::UptimeMillis(), isolate()->name());
+    OS::PrintErr("[+%" Pd64 "ms] Isolate %s restoring OOB interrupts\n",
+                 Dart::UptimeMillis(), isolate()->name());
   }
 }
 

@@ -207,9 +207,6 @@ var x = 0;
 import "a.dart";
 var y = x;
 ''', path: '/b.dart');
-    expect(bundle2.dependencies, hasLength(1));
-    expect(bundle2.dependencies[0].summaryPath, '/a.ds');
-    expect(bundle2.dependencies[0].apiSignature, bundle1.apiSignature);
     addBundle('/a.ds', bundle1);
     addBundle('/b.ds', bundle2);
     createLinker('''
@@ -642,6 +639,37 @@ class D extends C {
             .inferredType
             .toString(),
         'int');
+  }
+
+  void test_inheritsCovariant_fromBundle() {
+    var bundle = createPackageBundle('''
+class X1 {}
+class X2 extends X1 {}
+class A {
+  void foo(covariant X1 x) {}
+}
+class B extends A {
+  void foo(X2 x) {}
+}
+''', path: '/a.dart');
+    addBundle('/a.ds', bundle);
+
+    // C.foo.x must inherit covariance from B.foo.x, even though it is
+    // resynthesized from the bundle.
+    createLinker('''
+import 'a.dart';
+class C extends B {
+  void foo(X2 x) {}
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+
+    ClassElementForLink_Class C = library.getContainedName('C');
+    expect(C.methods, hasLength(1));
+    MethodElementForLink foo = C.methods[0];
+    expect(foo.parameters, hasLength(1));
+    expect(foo.parameters[0].isCovariant, isTrue);
   }
 
   void test_instantiate_param_of_param_to_bounds() {

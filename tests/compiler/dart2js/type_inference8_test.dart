@@ -35,7 +35,7 @@ Future runTest1() {
   return compiler.run(uri).then((_) {
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var commonMasks = typesInferrer.closedWorld.commonMasks;
-    var element = findElement(compiler, "foo");
+    MemberElement element = findElement(compiler, "foo");
     var mask = typesInferrer.getReturnTypeOfMember(element);
     var falseType =
         new ValueTypeMask(commonMasks.boolType, new FalseConstantValue());
@@ -78,7 +78,7 @@ Future runTest2() {
   return compiler.run(uri).then((_) {
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var commonMasks = typesInferrer.closedWorld.commonMasks;
-    var element = findElement(compiler, "foo");
+    MemberElement element = findElement(compiler, "foo");
     var mask = typesInferrer.getReturnTypeOfMember(element);
     // Can't infer value for foo's return type, it could be either true or false
     Expect.identical(commonMasks.boolType, mask);

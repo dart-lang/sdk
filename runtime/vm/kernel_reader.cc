@@ -155,12 +155,8 @@ KernelReader::KernelReader(Program* program)
   }
 
   // Copy the string data out of the binary and into the VM's heap.
-  TypedData& data = TypedData::Handle(
-      Z, TypedData::New(kTypedDataUint8ArrayCid, end_offset, Heap::kOld));
-  {
-    NoSafepointScope no_safepoint;
-    memmove(data.DataAddr(0), reader.buffer() + reader.offset(), end_offset);
-  }
+  TypedData& data =
+      reader.CopyDataToVMHeap(Z, reader.offset(), reader.offset() + end_offset);
 
   // Copy the canonical names into the VM's heap.  Encode them as unsigned, so
   // the parent indexes are adjusted when extracted.
@@ -282,11 +278,21 @@ void KernelReader::ReadLibrary(intptr_t kernel_offset) {
     field.SetFieldType(type);
     field_helper.SetJustRead(FieldHelper::kType);
     field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
+    intptr_t field_initializer_offset = builder_.ReaderOffset();
     field.set_has_initializer(builder_.PeekTag() == kSomething);
-    GenerateFieldAccessors(toplevel_class, field, &field_helper, field_offset);
     field_helper.ReadUntilExcluding(FieldHelper::kEnd);
+    TypedData& kernel_data = builder_.reader_->CopyDataToVMHeap(
+        Z, field_offset, builder_.ReaderOffset());
+    field.set_kernel_data(kernel_data);
+    {
+      // GenerateFieldAccessors reads (some of) the initializer.
+      AlternativeReadingScope alt(builder_.reader_, field_initializer_offset);
+      GenerateFieldAccessors(toplevel_class, field, &field_helper,
+                             field_offset);
+    }
     if (FLAG_enable_mirrors && field_helper.annotation_count_ > 0) {
-      library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
+      library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset,
+                               &kernel_data);
     }
     fields_.Add(&field);
     library.AddObject(field, name);
@@ -363,6 +369,8 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
     klass.set_token_pos(class_helper.position_);
   }
 
+  class_helper.ReadUntilIncluding(ClassHelper::kAnnotations);
+  intptr_t class_offset_after_annotations = builder_.ReaderOffset();
   class_helper.ReadUntilExcluding(ClassHelper::kTypeParameters);
   intptr_t type_parameter_counts =
       builder_.ReadListLength();  // read type_parameters list length.
@@ -419,11 +427,20 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
                            type, field_helper.position_));
       field.set_kernel_offset(field_offset);
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
+      intptr_t field_initializer_offset = builder_.ReaderOffset();
       field.set_has_initializer(builder_.PeekTag() == kSomething);
-      GenerateFieldAccessors(klass, field, &field_helper, field_offset);
       field_helper.ReadUntilExcluding(FieldHelper::kEnd);
+      TypedData& kernel_data = builder_.reader_->CopyDataToVMHeap(
+          Z, field_offset, builder_.ReaderOffset());
+      field.set_kernel_data(kernel_data);
+      {
+        // GenerateFieldAccessors reads (some of) the initializer.
+        AlternativeReadingScope alt(builder_.reader_, field_initializer_offset);
+        GenerateFieldAccessors(klass, field, &field_helper, field_offset);
+      }
       if (FLAG_enable_mirrors && field_helper.annotation_count_ > 0) {
-        library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
+        library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset,
+                                 &kernel_data);
       }
       fields_.Add(&field);
     }
@@ -464,10 +481,13 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
     function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
     constructor_helper.SetJustRead(ConstructorHelper::kFunction);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kEnd);
+    TypedData& kernel_data = builder_.reader_->CopyDataToVMHeap(
+        Z, constructor_offset, builder_.ReaderOffset());
+    function.set_kernel_data(kernel_data);
 
     if (FLAG_enable_mirrors && constructor_helper.annotation_count_ > 0) {
       library.AddFunctionMetadata(function, TokenPosition::kNoSource,
-                                  constructor_offset);
+                                  constructor_offset, &kernel_data);
     }
   }
   class_helper.SetJustRead(ClassHelper::kConstructors);
@@ -486,8 +506,10 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
   }
 
   if (FLAG_enable_mirrors && class_helper.annotation_count_ > 0) {
+    TypedData& header_data = builder_.reader_->CopyDataToVMHeap(
+        Z, class_offset, class_offset_after_annotations);
     library.AddClassMetadata(klass, toplevel_class, TokenPosition::kNoSource,
-                             class_offset);
+                             class_offset, &header_data);
   }
 
   class_helper.ReadUntilExcluding(ClassHelper::kEnd);
@@ -636,12 +658,16 @@ void KernelReader::ReadProcedure(const dart::Library& library,
                        H.DartProcedureName(procedure_helper.canonical_name_)))
                 .IsNull());
   }
-  if (FLAG_enable_mirrors && annotation_count > 0) {
-    library.AddFunctionMetadata(function, TokenPosition::kNoSource,
-                                procedure_offset);
-  }
 
   procedure_helper.ReadUntilExcluding(ProcedureHelper::kEnd);
+  TypedData& kernel_data = builder_.reader_->CopyDataToVMHeap(
+      Z, procedure_offset, builder_.ReaderOffset());
+  function.set_kernel_data(kernel_data);
+
+  if (FLAG_enable_mirrors && annotation_count > 0) {
+    library.AddFunctionMetadata(function, TokenPosition::kNoSource,
+                                procedure_offset, &kernel_data);
+  }
 }
 
 void KernelReader::ReadAndSetupTypeParameters(
@@ -728,16 +754,14 @@ Script& KernelReader::ScriptAt(intptr_t index, StringIndex import_uri) {
     dart::String& import_uri_string =
         import_uri == -1 ? uri_string : H.DartString(import_uri, Heap::kOld);
     script = Script::New(import_uri_string, uri_string,
-                         String::Handle(String::null()), RawScript::kKernelTag);
-    script.set_kernel_data(program_->kernel_data());
-    script.set_kernel_data_size(program_->kernel_data_size());
+                         builder_.GetSourceFor(index), RawScript::kKernelTag);
     script.set_kernel_script_index(index);
     script.set_kernel_string_offsets(H.string_offsets());
     script.set_kernel_string_data(H.string_data());
     script.set_kernel_canonical_names(H.canonical_names());
     scripts_.SetAt(index, script);
 
-    script.set_line_starts(Array::Handle(Array::null()));
+    script.set_line_starts(builder_.GetLineStartsFor(index));
     script.set_debug_positions(Array::Handle(Array::null()));
     script.set_yield_positions(Array::Handle(Array::null()));
   }
@@ -803,6 +827,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
           false,  // is_native
           script_class, field_helper->position_));
   functions_.Add(&getter);
+  getter.set_kernel_data(TypedData::Handle(Z, field.kernel_data()));
   getter.set_end_token_pos(field_helper->end_position_);
   getter.set_kernel_offset(field_offset);
   getter.set_result_type(AbstractType::Handle(Z, field.type()));
@@ -823,6 +848,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
                          false,  // is_native
                          script_class, field_helper->position_));
     functions_.Add(&setter);
+    setter.set_kernel_data(TypedData::Handle(Z, field.kernel_data()));
     setter.set_end_token_pos(field_helper->end_position_);
     setter.set_kernel_offset(field_offset);
     setter.set_result_type(Object::void_type());
@@ -920,17 +946,12 @@ bool KernelReader::FieldHasFunctionLiteralInitializer(const dart::Field& field,
       Thread::Current(), script.kernel_string_offsets(),
       script.kernel_string_data(), script.kernel_canonical_names());
 
-  kernel::StreamingFlowGraphBuilder* builder =
-      new kernel::StreamingFlowGraphBuilder(&translation_helper, zone,
-                                            script.kernel_data(),
-                                            script.kernel_data_size());
-
-  kernel::FieldHelper field_helper(builder, field.kernel_offset());
+  StreamingFlowGraphBuilder builder(
+      &translation_helper, zone, field.kernel_offset(),
+      TypedData::Handle(zone, field.kernel_data()));
+  kernel::FieldHelper field_helper(&builder);
   field_helper.ReadUntilExcluding(kernel::FieldHelper::kEnd, true);
-  bool result = field_helper.FieldHasFunctionLiteralInitializer(start, end);
-
-  delete builder;
-  return result;
+  return field_helper.FieldHasFunctionLiteralInitializer(start, end);
 }
 
 ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
@@ -951,6 +972,7 @@ ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
                           false,  // is_external
                           false,  // is_native
                           owner, TokenPosition::kNoSource));
+  initializer_fun.set_kernel_data(TypedData::Handle(zone, field.kernel_data()));
   initializer_fun.set_kernel_offset(field.kernel_offset());
   initializer_fun.set_result_type(AbstractType::Handle(zone, field.type()));
   initializer_fun.set_is_debuggable(false);

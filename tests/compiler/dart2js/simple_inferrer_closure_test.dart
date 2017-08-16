@@ -122,7 +122,7 @@ void main() {
         var closedWorld = typesInferrer.closedWorld;
 
         checkReturn(String name, type) {
-          var element = findElement(compiler, name);
+          MemberElement element = findElement(compiler, name);
           Expect.equals(
               type,
               simplify(

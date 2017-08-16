@@ -77,9 +77,12 @@ class ImportElementsComputer {
           Source importedSource = importedFile.createSource(uri);
           String importUri =
               _getLibrarySourceUri(libraryElement, importedSource);
-          int offset = _offsetForInsertion(importUri);
-          builder.addInsertion(offset, (DartEditBuilder builder) {
-            builder.writeln();
+          _InsertionDescription description =
+              _getInsertionDescription(importUri);
+          builder.addInsertion(description.offset, (DartEditBuilder builder) {
+            for (int i = 0; i < description.newLinesBefore; i++) {
+              builder.writeln();
+            }
             builder.write("import '");
             builder.write(importUri);
             builder.write("'");
@@ -88,6 +91,9 @@ class ImportElementsComputer {
               builder.write(importedElements.prefix);
             }
             builder.write(';');
+            for (int i = 0; i < description.newLinesAfter; i++) {
+              builder.writeln();
+            }
           });
         } else {
           //
@@ -309,6 +315,41 @@ class ImportElementsComputer {
   }
 
   /**
+   * Return the offset at which an import of the given [importUri] should be
+   * inserted.
+   *
+   * Partially copied from DartFileEditBuilderImpl.
+   */
+  _InsertionDescription _getInsertionDescription(String importUri) {
+    CompilationUnit unit = libraryResult.unit;
+    LibraryDirective libraryDirective;
+    List<ImportDirective> importDirectives = <ImportDirective>[];
+    List<Directive> otherDirectives = <Directive>[];
+    for (Directive directive in unit.directives) {
+      if (directive is LibraryDirective) {
+        libraryDirective = directive;
+      } else if (directive is ImportDirective) {
+        importDirectives.add(directive);
+      } else {
+        otherDirectives.add(directive);
+      }
+    }
+    if (importDirectives.isEmpty) {
+      if (libraryDirective == null) {
+        if (otherDirectives.isEmpty) {
+          // TODO(brianwilkerson) Insert after any non-doc comments.
+          return new _InsertionDescription(0, after: 2);
+        }
+        return new _InsertionDescription(otherDirectives[0].offset, after: 2);
+      }
+      return new _InsertionDescription(libraryDirective.end, before: 2);
+    }
+    // TODO(brianwilkerson) Fix this to find the right location.
+    // See DartFileEditBuilderImpl._addLibraryImports for inspiration.
+    return new _InsertionDescription(importDirectives.last.end, before: 1);
+  }
+
+  /**
    * Computes the best URI to import [what] into [from].
    *
    * Copied from DartFileEditBuilderImpl.
@@ -337,34 +378,6 @@ class ImportElementsComputer {
     return (import.element as ImportElement).importedLibrary.source.fullName ==
             importedElements.path &&
         (import.prefix?.name ?? '') == importedElements.prefix;
-  }
-
-  /**
-   * Return the offset at which an import of the given [importUri] should be
-   * inserted.
-   *
-   * Partially copied from DartFileEditBuilderImpl.
-   */
-  int _offsetForInsertion(String importUri) {
-    // TODO(brianwilkerson) Fix this to find the right location.
-    // See DartFileEditBuilderImpl._addLibraryImports for inspiration.
-    CompilationUnit unit = libraryResult.unit;
-    LibraryDirective libraryDirective;
-    List<ImportDirective> importDirectives = <ImportDirective>[];
-    for (Directive directive in unit.directives) {
-      if (directive is LibraryDirective) {
-        libraryDirective = directive;
-      } else if (directive is ImportDirective) {
-        importDirectives.add(directive);
-      }
-    }
-    if (importDirectives.isEmpty) {
-      if (libraryDirective == null) {
-        return 0;
-      }
-      return libraryDirective.end;
-    }
-    return importDirectives.last.end;
   }
 }
 
@@ -407,4 +420,14 @@ class _ImportUpdate {
   void unhide(String name) {
     namesToUnhide.add(name);
   }
+}
+
+class _InsertionDescription {
+  final int newLinesBefore;
+  final int offset;
+  final int newLinesAfter;
+
+  _InsertionDescription(this.offset, {int before: 0, int after: 0})
+      : this.newLinesBefore = before,
+        this.newLinesAfter = after;
 }

@@ -139,23 +139,25 @@ class Test<E> {
       list.fillRange(0, 1, null);
     });
 
-    success(opName, op(list)) {
-      var expect;
-      try {
-        expect = op(elements);
-      } catch (e) {
-        try {
-          op(list);
-        } catch (e2) {
-          Expect.equals(
-              e.runtimeType,
-              e2.runtimeType,
-              "$name :: $opName threw different exceptions: "
-              "${e.runtimeType} vs ${e2.runtimeType}");
-          return;
-        }
-        Expect.fail("$name-$opName didn't throw, expected: $e");
+    success(opName, op(List list), [bool throws = false]) {
+      if (throws) {
+        var e1, e2;
+        Expect.throws(() => op(elements), (e) {
+          e1 = e;
+          return true;
+        }, '$name :: $opName should throw for $elements');
+        Expect.throws(() => op(list), (e) {
+          e2 = e;
+          return true;
+        }, '$name :: $opName should throw for $list');
+        Expect.equals(
+            e1.runtimeType,
+            e2.runtimeType,
+            "$name :: $opName threw different errors for $elements and $list: "
+            "${e1.runtimeType} vs ${e2.runtimeType}");
+        return;
       }
+      var expect = op(elements);
       var actual = op(list);
       checkElements();
       if (expect is List) {
@@ -171,10 +173,10 @@ class Test<E> {
     success("indexOf", (l) => l.indexOf(null));
     success("lastIndexOf", (l) => l.lastIndexOf(null));
     success("contains", (l) => l.contains(2));
-    success("elementAt", (l) => l.elementAt[1]);
+    success("elementAt", (l) => l.elementAt(1), list.length < 2);
     success("reversed", (l) => l.reversed);
-    success("sublist0-1", (l) => l.sublist(0, 1));
-    success("getRange0-1", (l) => l.getRange(0, 1));
+    success("sublist0-1", (l) => l.sublist(0, 1), list.isEmpty);
+    success("getRange0-1", (l) => l.getRange(0, 1), list.isEmpty);
     success("asMap-keys", (l) => l.asMap().keys);
     success("asMap-values", (l) => l.asMap().values);
     success("where", (l) => l.where((x) => true));
@@ -184,17 +186,22 @@ class Test<E> {
     success("take", (l) => l.take(1));
     success("skipWhile", (l) => l.skipWhile((x) => false));
     success("takeWhile", (l) => l.takeWhile((x) => true));
-    success("first", (l) => l.first);
-    success("last", (l) => l.last);
-    success("single", (l) => l.single);
-    success("firstWhere", (l) => l.firstWhere((x) => true));
-    success("lastWhere", (l) => l.lastWhere((x) => true));
-    success("singleWhere", (l) => l.singleWhere((x) => true));
+    success("first", (l) => l.first, list.isEmpty);
+    success("last", (l) => l.last, list.isEmpty);
+    success("single", (l) => l.single, list.length != 1);
+    success("firstWhere", (l) => l.firstWhere((x) => true), list.isEmpty);
+    success("lastWhere", (l) => l.lastWhere((x) => true), list.isEmpty);
+    success("singleWhere", (l) => l.singleWhere((x) => true), list.length != 1);
     success("isEmpty", (l) => l.isEmpty);
     success("isNotEmpty", (l) => l.isNotEmpty);
     success("join", (l) => l.join("/"));
     success("fold", (l) => l.fold("--", (a, b) => "$a/$b"));
-    success("reduce", (l) => l.reduce((a, b) => a + b));
+    if (elements is List<num> && list is List<num>) {
+      success(
+          "reduce",
+          (l) => (l as List<num>).reduce((a, b) => (a + b).floor()),
+          list.isEmpty);
+    }
     success("every", (l) => l.every((x) => x == 0));
     success("any", (l) => l.any((x) => x == 2));
     success("toList", (l) => l.toList());
@@ -209,7 +216,8 @@ class Test<E> {
     Expect.isFalse(it.moveNext());
 
     if (elements is List<int> && list is List<int>) {
-      success("String.fromCharCodes", (l) => new String.fromCharCodes(l));
+      success("String.fromCharCodes",
+          (l) => new String.fromCharCodes(l as List<int>));
     }
   }
 }

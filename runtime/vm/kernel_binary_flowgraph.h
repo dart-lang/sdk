@@ -51,37 +51,29 @@ class StreamingDartTypeTranslator {
   class TypeParameterScope {
    public:
     TypeParameterScope(StreamingDartTypeTranslator* translator,
-                       intptr_t parameters_offset,
-                       intptr_t parameters_count)
-        : parameters_offset_(parameters_offset),
-          parameters_count_(parameters_count),
+                       intptr_t parameter_count)
+        : parameter_count_(parameter_count),
           outer_(translator->type_parameter_scope_),
           translator_(translator) {
       outer_parameter_count_ = 0;
       if (outer_ != NULL) {
         outer_parameter_count_ =
-            outer_->outer_parameter_count_ + outer_->parameters_count_;
+            outer_->outer_parameter_count_ + outer_->parameter_count_;
       }
       translator_->type_parameter_scope_ = this;
     }
     ~TypeParameterScope() { translator_->type_parameter_scope_ = outer_; }
 
     TypeParameterScope* outer() const { return outer_; }
-    intptr_t parameters_offset() const { return parameters_offset_; }
-    intptr_t parameters_count() const { return parameters_count_; }
+    intptr_t parameter_count() const { return parameter_count_; }
     intptr_t outer_parameter_count() const { return outer_parameter_count_; }
 
    private:
-    intptr_t parameters_offset_;
-    intptr_t parameters_count_;
+    intptr_t parameter_count_;
     intptr_t outer_parameter_count_;
     TypeParameterScope* outer_;
     StreamingDartTypeTranslator* translator_;
   };
-
-  intptr_t FindTypeParameterIndex(intptr_t parameters_offset,
-                                  intptr_t parameters_count,
-                                  intptr_t look_for);
 
   StreamingFlowGraphBuilder* builder_;
   TranslationHelper& translation_helper_;
@@ -98,9 +90,8 @@ class StreamingDartTypeTranslator {
 class StreamingScopeBuilder {
  public:
   StreamingScopeBuilder(ParsedFunction* parsed_function,
-                        intptr_t kernel_offset,
-                        const uint8_t* buffer,
-                        intptr_t buffer_length);
+                        intptr_t relative_kernel_offset,
+                        const TypedData& data);
 
   virtual ~StreamingScopeBuilder();
 
@@ -158,7 +149,7 @@ class StreamingScopeBuilder {
   // Record an assignment or reference to a variable.  If the occurrence is
   // in a nested function, ensure that the variable is handled properly as a
   // captured variable.
-  void LookupVariable(intptr_t declaration_binary_offest);
+  void LookupVariable(intptr_t declaration_binary_offset);
 
   const dart::String& GenerateName(const char* prefix, intptr_t suffix);
 
@@ -185,7 +176,7 @@ class StreamingScopeBuilder {
 
   ScopeBuildingResult* result_;
   ParsedFunction* parsed_function_;
-  intptr_t kernel_offset_;
+  intptr_t relative_kernel_offset_;
 
   ActiveClass active_class_;
 
@@ -306,14 +297,15 @@ class FunctionNodeHelper;
 class StreamingFlowGraphBuilder {
  public:
   StreamingFlowGraphBuilder(FlowGraphBuilder* flow_graph_builder,
-                            const uint8_t* buffer,
-                            intptr_t buffer_length)
+                            intptr_t relative_kernel_offset,
+                            const TypedData& data)
       : flow_graph_builder_(flow_graph_builder),
         translation_helper_(flow_graph_builder->translation_helper_),
         zone_(flow_graph_builder->zone_),
-        reader_(new Reader(buffer, buffer_length)),
+        reader_(new Reader(data)),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
+        relative_kernel_offset_(relative_kernel_offset),
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
@@ -329,6 +321,23 @@ class StreamingFlowGraphBuilder {
         reader_(new Reader(buffer, buffer_length)),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
+        relative_kernel_offset_(0),
+        current_script_id_(-1),
+        record_for_script_id_(-1),
+        record_token_positions_into_(NULL),
+        record_yield_positions_into_(NULL) {}
+
+  StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
+                            Zone* zone,
+                            intptr_t relative_kernel_offset,
+                            const TypedData& data)
+      : flow_graph_builder_(NULL),
+        translation_helper_(*translation_helper),
+        zone_(zone),
+        reader_(new Reader(data)),
+        constant_evaluator_(this),
+        type_translator_(this, /* finalize= */ true),
+        relative_kernel_offset_(relative_kernel_offset),
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
@@ -343,6 +352,7 @@ class StreamingFlowGraphBuilder {
   RawObject* EvaluateMetadata(intptr_t kernel_offset);
   void CollectTokenPositionsFor(
       intptr_t script_index,
+      intptr_t initial_script_index,
       GrowableArray<intptr_t>* record_token_positions_in,
       GrowableArray<intptr_t>* record_yield_positions_in);
   intptr_t SourceTableSize();
@@ -355,22 +365,18 @@ class StreamingFlowGraphBuilder {
                                  const Function& function,
                                  Function* outermost_function);
 
-  /**
-   * Will return kernel offset for parent class if reading a constructor.
-   * Will otherwise return -1.
-   */
-  intptr_t ReadUntilFunctionNode();
-  StringIndex GetNameFromVariableDeclaration(intptr_t kernel_offset);
+  void ReadUntilFunctionNode();
+  StringIndex GetNameFromVariableDeclaration(intptr_t kernel_offset,
+                                             const Function& function);
 
   FlowGraph* BuildGraphOfStaticFieldInitializer();
   FlowGraph* BuildGraphOfFieldAccessor(LocalVariable* setter_value);
   void SetupDefaultParameterValues();
   Fragment BuildFieldInitializer(NameIndex canonical_name);
-  Fragment BuildInitializers(intptr_t constructor_class_parent_offset);
+  Fragment BuildInitializers(const Class& parent_class);
   FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
   FlowGraph* BuildGraphOfConvertedClosureFunction(const Function& function);
-  FlowGraph* BuildGraphOfFunction(
-      intptr_t constructor_class_parent_offset = -1);
+  FlowGraph* BuildGraphOfFunction(bool constructor);
 
   Fragment BuildExpression(TokenPosition* position = NULL);
   Fragment BuildStatement();
@@ -401,6 +407,7 @@ class StreamingFlowGraphBuilder {
   void SkipListOfStrings();
   void SkipListOfVariableDeclarations();
   void SkipTypeParametersList();
+  void SkipInitializer();
   void SkipExpression();
   void SkipStatement();
   void SkipFunctionNode();
@@ -617,10 +624,8 @@ class StreamingFlowGraphBuilder {
   Fragment BuildYieldStatement();
   Fragment BuildVariableDeclaration();
   Fragment BuildFunctionDeclaration();
-  Fragment BuildFunctionNode(intptr_t parent_kernel_offset,
-                             TokenPosition parent_position,
-                             bool declaration,
-                             intptr_t variable_offeset);
+  Fragment BuildFunctionNode(TokenPosition parent_position,
+                             StringIndex name_index);
   void SetupFunctionParameters(const dart::Class& klass,
                                const dart::Function& function,
                                bool is_method,
@@ -633,6 +638,7 @@ class StreamingFlowGraphBuilder {
   Reader* reader_;
   StreamingConstantEvaluator constant_evaluator_;
   StreamingDartTypeTranslator type_translator_;
+  intptr_t relative_kernel_offset_;
   intptr_t current_script_id_;
   intptr_t record_for_script_id_;
   GrowableArray<intptr_t>* record_token_positions_into_;
@@ -657,19 +663,49 @@ class StreamingFlowGraphBuilder {
 class AlternativeReadingScope {
  public:
   AlternativeReadingScope(Reader* reader, intptr_t new_position)
-      : reader_(reader), saved_offset_(reader_->offset()) {
+      : reader_(reader),
+        saved_size_(reader_->size()),
+        saved_raw_buffer_(reader_->raw_buffer()),
+        saved_typed_data_(reader_->typed_data()),
+        saved_offset_(reader_->offset()) {
+    reader_->set_offset(new_position);
+  }
+
+  AlternativeReadingScope(Reader* reader,
+                          const TypedData* new_typed_data,
+                          intptr_t new_position)
+      : reader_(reader),
+        saved_size_(reader_->size()),
+        saved_raw_buffer_(reader_->raw_buffer()),
+        saved_typed_data_(reader_->typed_data()),
+        saved_offset_(reader_->offset()) {
+    reader_->set_raw_buffer(NULL);
+    reader_->set_typed_data(new_typed_data);
+    reader_->set_size(new_typed_data->Length());
     reader_->set_offset(new_position);
   }
 
   explicit AlternativeReadingScope(Reader* reader)
-      : reader_(reader), saved_offset_(reader_->offset()) {}
+      : reader_(reader),
+        saved_size_(reader_->size()),
+        saved_raw_buffer_(reader_->raw_buffer()),
+        saved_typed_data_(reader_->typed_data()),
+        saved_offset_(reader_->offset()) {}
 
-  ~AlternativeReadingScope() { reader_->set_offset(saved_offset_); }
+  ~AlternativeReadingScope() {
+    reader_->set_raw_buffer(saved_raw_buffer_);
+    reader_->set_typed_data(saved_typed_data_);
+    reader_->set_size(saved_size_);
+    reader_->set_offset(saved_offset_);
+  }
 
   intptr_t saved_offset() { return saved_offset_; }
 
  private:
   Reader* reader_;
+  intptr_t saved_size_;
+  const uint8_t* saved_raw_buffer_;
+  const TypedData* saved_typed_data_;
   intptr_t saved_offset_;
 };
 
@@ -875,7 +911,6 @@ class FieldHelper {
     kPosition,
     kEndPosition,
     kFlags,
-    kParentClassBinaryOffset,
     kName,
     kSourceUriIndex,
     kDocumentationCommentIndex,
@@ -925,10 +960,6 @@ class FieldHelper {
       case kFlags:
         flags_ = builder_->ReadFlags();  // read flags.
         if (++next_read_ == field) return;
-      case kParentClassBinaryOffset:
-        parent_class_binary_offset_ =
-            builder_->ReadUInt();  // read parent class binary offset.
-        if (++next_read_ == field) return;
       case kName:
         builder_->SkipName();  // read name.
         if (++next_read_ == field) return;
@@ -958,6 +989,7 @@ class FieldHelper {
             AlternativeReadingScope alt(builder_->reader_);
             Tag tag = builder_->ReadTag();
             ASSERT(tag == kFunctionExpression);
+            builder_->ReadPosition();  // read position.
 
             FunctionNodeHelper helper(builder_);
             helper.ReadUntilIncluding(FunctionNodeHelper::kEndPosition);
@@ -999,7 +1031,6 @@ class FieldHelper {
   TokenPosition position_;
   TokenPosition end_position_;
   word flags_;
-  intptr_t parent_class_binary_offset_;
   intptr_t source_uri_index_;
   intptr_t annotation_count_;
 
@@ -1028,7 +1059,6 @@ class ProcedureHelper {
     kEndPosition,
     kKind,
     kFlags,
-    kParentClassBinaryOffset,
     kName,
     kSourceUriIndex,
     kDocumentationCommentIndex,
@@ -1072,10 +1102,6 @@ class ProcedureHelper {
         if (++next_read_ == field) return;
       case kFlags:
         flags_ = builder_->ReadFlags();  // read flags.
-        if (++next_read_ == field) return;
-      case kParentClassBinaryOffset:
-        parent_class_binary_offset_ =
-            builder_->ReadUInt();  // read parent class binary offset.
         if (++next_read_ == field) return;
       case kName:
         builder_->SkipName();  // read name.
@@ -1129,7 +1155,6 @@ class ProcedureHelper {
   TokenPosition end_position_;
   Procedure::ProcedureKind kind_;
   word flags_;
-  intptr_t parent_class_binary_offset_;
   intptr_t source_uri_index_;
   intptr_t annotation_count_;
 
@@ -1153,7 +1178,6 @@ class ConstructorHelper {
     kPosition,
     kEndPosition,
     kFlags,
-    kParentClassBinaryOffset,
     kName,
     kDocumentationCommentIndex,
     kAnnotations,
@@ -1193,10 +1217,6 @@ class ConstructorHelper {
         if (++next_read_ == field) return;
       case kFlags:
         flags_ = builder_->ReadFlags();  // read flags.
-        if (++next_read_ == field) return;
-      case kParentClassBinaryOffset:
-        parent_class_binary_offset_ =
-            builder_->ReadUInt();  // read parent class binary offset.
         if (++next_read_ == field) return;
       case kName:
         builder_->SkipName();  // read name.
@@ -1266,7 +1286,6 @@ class ConstructorHelper {
   TokenPosition position_;
   TokenPosition end_position_;
   word flags_;
-  intptr_t parent_class_binary_offset_;
   intptr_t annotation_count_;
 
  private:

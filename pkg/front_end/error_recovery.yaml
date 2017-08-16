@@ -1,0 +1,120 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Each entry in this file corresponds to an error recovery scenario. For each
+# scenario we specify:
+#
+#  1. An explanation of the problem (description).
+#  2. Important recovery notes (recovery): a list of text notes explaining of
+#     how the code is interpreted by the front-end and its clients.
+#  3. An optional set of questions if we don't have the answer at this
+#     moment (questions).
+#  4. An example code that illustrates the problem (example).
+#
+# At this time this is just a documentation file, the goal however is to turn it
+# also into a test suite so every example can be tested automatically.
+#
+# To do so we can start annotating the examples to indicate relevant error
+# locations with comments of the form `/*@error=name*/`, where `name` is a
+# message name from `messages.yaml` that corresponds to the error (if known). If
+# the compiler doesn't yet have a specific error message for the error, use
+# `/*@error=?*/`. This comment should go immediately before the token where the
+# error is reported. If we know at this time that the error has a region,
+# include an /*@errorEnd*/ at the point where the region ends.
+
+NameConflictDuplicateField:
+  description: "A field was declared twice."
+  recovery:
+    - "both fields can be seen in the generated kernel output."
+    - "code completion works on the types and inside initializers of either field."
+    - "any errors from the usage of the field should be lower priority than this error."
+    - "accesses to the field get resolved to the first declaration (in text order)."
+  example: >-
+    List bar = [1, 2];
+    StringBuffer foo = new StringBuffer();
+    class A {
+      int    /*@error=DuplicatedName*/ field /*@errorEnd*/ = bar.length;
+      String /*@error=DuplicatedName*/ field /*@errorEnd*/ = '$foo';
+    }
+
+NameConflictDuplicateMethod:
+  description: "A method was declared twice."
+  recovery:
+    - "both methods can be seen in the generated kernel output."
+    - "code completion works within both methods."
+    - "other code that accesses the method will be resolved to the first declaration."
+  example: >-
+    List bar = [1, 2];
+    class A {
+      int /*@error=DuplicatedName*/ m /*@errorEnd*/() => bar.length;
+      int /*@error=DuplicatedName*/ m /*@errorEnd*/(StringBuffer foo) => '$foo';
+    }
+
+NameConflictInconsitentMemberKind:
+  description: "A method and a field have the same name."
+  recovery:
+    - "both can be seen in the generated output."
+    - "first declaration wins."
+  example: >-
+    List bar = [1, 2];
+    class A {
+      int /*@error=DuplicatedName*/ m /*@errorEnd*/ = bar.length;
+      int /*@error=DuplicatedName*/ m /*@errorEnd*/(StringBuffer foo) => '$foo';
+    }
+
+ImportIsOutOfOrder:    
+  description: "An import was written below a definition."
+  recovery:
+    - "treat it as if the import was on top."
+    - "no cascading errors are presented as if the import was missing."
+  example: >-
+    class A extends B {}
+    /*@error=?*/
+    import 'b.dart'; // b.dart defines B
+    /*@errorEnd*/
+
+CallAMissingConstructor:
+  description: "A named constructor has a typo in the name."
+  recovery:
+    - "keep the expression where it occurs."
+    - "treat the type of the expression as if a valid constructor was used."
+  example: >-
+    class C {
+      bar() => null;
+    }
+    main() {
+      var x = new C./*error=MethodNotFound*/foo();
+      x.bar(); // no errors here, `x` has inferred type `C`.
+    }
+
+TreatAbstractFunctionsAsEmpty:
+  description: "A function in a non-abstract class is missing a body."
+  recovery: "Treat it as if it was empty."
+  example: >-
+    class A {
+      foo() /*@error=ExpectedBody*/;
+    }
+
+IgnoreEmptyOptionalArgs:
+  description: "A function declares optional argument, but the list is empty."
+  recovery: "Treat it as if it wasn't there."
+  example: >-
+    m(a, b, []){}
+
+IgnoreEmptyOptionalArgs:
+  description: "A function declares both positional and named arguments."
+  questions: "Treat it as if only named arguments are there?"
+  example: >-
+    m(a, b, [c], {d}){}
+
+# TODO(sigmund): add details to the list below
+
+NameConflictDuplicateTopLevelField:
+  description: "A top-level field was declared twice."
+
+NameConflictDuplicateTopLevelMethod:
+  description: "A top-level method was declared twice."
+
+NameConflictDuplicateTopLevelDeclaration:
+  description: "Two top-level declarations use the same name."

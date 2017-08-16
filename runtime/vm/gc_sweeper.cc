@@ -22,7 +22,7 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
   }
 
   // Keep track whether this page is still in use.
-  bool in_use = false;
+  intptr_t used_in_bytes = 0;
 
   bool is_executable = (page->type() == HeapPage::kExecutable);
   uword start = page->object_start();
@@ -36,7 +36,7 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
       // Found marked object. Clear the mark bit and update swept bytes.
       raw_obj->ClearMarkBit();
       obj_size = raw_obj->Size();
-      in_use = true;
+      used_in_bytes += obj_size;
     } else {
       uword free_end = current + raw_obj->Size();
       while (free_end < end) {
@@ -69,7 +69,8 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
   }
   ASSERT(current == end);
 
-  return in_use;
+  page->set_used_in_bytes(used_in_bytes);
+  return used_in_bytes != 0;  // In use.
 }
 
 intptr_t GCSweeper::SweepLargePage(HeapPage* page) {

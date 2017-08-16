@@ -16,6 +16,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart';
 import '../io/source_information.dart';
+import '../inferrer/kernel_inferrer_engine.dart';
 import '../js_emitter/sorter.dart';
 import '../js/js_source_mapping.dart';
 import '../js_backend/backend.dart';
@@ -30,6 +31,7 @@ import '../kernel/kernel_backend_strategy.dart';
 import '../kernel/kernel_strategy.dart';
 import '../native/behavior.dart';
 import '../ssa/ssa.dart';
+import '../types/types.dart';
 import '../universe/class_set.dart';
 import '../universe/world_builder.dart';
 import '../util/emptyset.dart';
@@ -354,6 +356,14 @@ class JsBackendStrategy implements KernelBackendStrategy {
   @override
   SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
     return _elementMap.getSourceSpan(spannable, currentElement);
+  }
+
+  @override
+  TypesInferrer createTypesInferrer(ClosedWorldRefiner closedWorldRefiner,
+      {bool disableTypeInference: false}) {
+    return new KernelTypeGraphInferrer(
+        _compiler, closedWorldRefiner.closedWorld, closedWorldRefiner,
+        disableTypeInference: disableTypeInference);
   }
 }
 

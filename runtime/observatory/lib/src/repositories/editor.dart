@@ -17,15 +17,15 @@ class EditorRepository extends M.EditorRepository {
   }
 
   S.Service _getService() {
-    if (_vm.services.isEmpty) {
-      return null;
+    Iterable<M.Service> services =
+        _vm.services.where((s) => s.service == 'openSourceLocation');
+    if (_editor != null) {
+      services = services.where((s) => s.alias == _editor);
     }
-    if (_editor == null) {
-      return _vm.services.where((s) => s.service == 'openSourceLocation').first;
+    if (services.isNotEmpty) {
+      return services.first;
     }
-    return _vm.services
-        .where((s) => s.service == 'openSourceLocation' && s.alias == _editor)
-        .single;
+    return null;
   }
 
   Future openClass(M.IsolateRef i, M.ClassRef c) async {

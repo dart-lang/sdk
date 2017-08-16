@@ -1510,7 +1510,7 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
       new IsolateData(script_uri, package_root, package_config, NULL);
   Dart_Isolate isolate = NULL;
   isolate = Dart_CreateIsolate(script_uri, main, isolate_snapshot_data,
-                               isolate_snapshot_instructions, NULL,
+                               isolate_snapshot_instructions, flags,
                                isolate_data, error);
 
   if (isolate == NULL) {
@@ -1629,6 +1629,7 @@ int main(int argc, char** argv) {
   init_params.file_write = DartUtils::WriteFile;
   init_params.file_close = DartUtils::CloseFile;
   init_params.entropy_source = DartUtils::EntropySource;
+  init_params.start_kernel_isolate = false;
 
   MappedMemory* mapped_vm_snapshot_data = NULL;
   MappedMemory* mapped_vm_snapshot_instructions = NULL;

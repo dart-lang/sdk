@@ -13,6 +13,7 @@
 #include "vm/object_id_ring.h"
 #include "vm/os.h"
 #include "vm/port.h"
+#include "vm/profiler.h"
 #include "vm/safepoint.h"
 #include "vm/service.h"
 #include "vm/unit_test.h"
@@ -725,7 +726,15 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
 // TODO(zra): Remove when tests are ready to enable.
 #if !defined(TARGET_ARCH_ARM64)
 
+static void EnableProfiler() {
+  if (!FLAG_profiler) {
+    FLAG_profiler = true;
+    Profiler::InitOnce();
+  }
+}
+
 TEST_CASE(Service_Profile) {
+  EnableProfiler();
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
       "\n"

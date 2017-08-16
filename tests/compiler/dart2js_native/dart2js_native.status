@@ -156,7 +156,6 @@ inference_of_helper_methods_test: Crash
 internal_library_test: Crash
 is_check_test: CompileTimeError
 issue9182_test: Crash
-js_constant_test: Crash
 jsobject_test: Crash
 load_elim_refinement_test: CompileTimeError
 mirror_intercepted_field_test: CompileTimeError

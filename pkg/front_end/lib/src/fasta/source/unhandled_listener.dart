@@ -30,12 +30,6 @@ abstract class UnhandledListener extends StackListener {
   List<String> popIdentifierList(int count) => popList(count);
 
   @override
-  void endMetadataStar(int count, bool forParameter) {
-    debugEvent("MetadataStar");
-    push(popList(count) ?? NullValue.Metadata);
-  }
-
-  @override
   void endConditionalUri(Token ifKeyword, Token equalitySign) {
     debugEvent("ConditionalUri");
     popCharOffset();

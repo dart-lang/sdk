@@ -25,6 +25,7 @@ const chrome = "--runtime=chrome";
 const precompiled = "--runtime=dart_precompiled";
 const noRuntime = "--runtime=none";
 const vm = "--runtime=vm";
+const d8 = "--runtime=d8";
 const jsshell = "--runtime=jsshell";
 
 const checked = "--checked";
@@ -54,8 +55,10 @@ final allConfigs = {
   // dart2js-jsshell?
   "analyzer": [analyzer, noRuntime, useSdk],
   "analyzer-checked": [analyzer, noRuntime, checked, useSdk],
-  "analyzer-strong": [analyzer, noRuntime, checked, strong, useSdk],
+  "analyzer-checked-strong": [analyzer, noRuntime, checked, strong, useSdk],
+  "analyzer-strong": [analyzer, noRuntime, strong, useSdk],
   "dart2js": [dart2js, chrome, useSdk, dart2jsBatch],
+  "dart2js-d8-checked": [dart2js, d8, checked, fastStartup, useSdk, dart2jsBatch],
   "dart2js-jsshell": [dart2js, jsshell, fastStartup, useSdk, dart2jsBatch],
   // TODO(rnystrom): Is it worth running dart2js on Firefox too?
   "dartdevc": [dartdevc, chrome, useSdk, strong],
@@ -87,7 +90,13 @@ Future<Null> main(List<String> arguments) async {
     return;
   }
 
-  if (argResults.rest.length != 2) {
+  var remainingArgs = []..addAll(argResults.rest);
+
+  if (remainingArgs.length == 1) {
+    remainingArgs.add(remainingArgs.first);
+  }
+
+  if (remainingArgs.length != 2) {
     usage(argParser);
     exit(1);
   }
@@ -98,8 +107,8 @@ Future<Null> main(List<String> arguments) async {
 
   var tests = scanTests();
 
-  var startIndex = findFork(tests, argResults.rest[0]);
-  var endIndex = findFork(tests, argResults.rest[1]);
+  var startIndex = findFork(tests, remainingArgs[0]);
+  var endIndex = findFork(tests, remainingArgs[1]);
 
   if (startIndex == null || endIndex == null) exit(1);
 
@@ -180,7 +189,7 @@ Future<Null> main(List<String> arguments) async {
 
 void usage(ArgParser parser) {
   print("Usage: dart run_tests.dart [--build] [--configs=...] "
-      "<first file> <last file>");
+      "<first file> [last file]");
   print("\n");
   print("Example:");
   print("\n");

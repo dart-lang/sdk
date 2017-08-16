@@ -540,6 +540,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   @override
   void visitNotification(Notification notification) {
+    if (notification.experimental) {
+      return;
+    }
     dt('notification', () {
       anchor('notification_${notification.longEvent}', () {
         write(notification.longEvent);

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_ARM.
-#if defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ARCH_ARM) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/flow_graph_compiler.h"
 
@@ -1057,7 +1057,8 @@ void FlowGraphCompiler::CompileGraph() {
   }
 
   // Check for a passed type argument vector if the function is generic.
-  if (FLAG_reify_generic_functions && function.IsGeneric()) {
+  if (FLAG_reify_generic_functions && function.IsGeneric() &&
+      !flow_graph().IsCompiledForOsr()) {
     __ Comment("Check passed-in type args");
     Label store_type_args, ok;
     __ ldr(R0, FieldAddress(R4, ArgumentsDescriptor::type_args_len_offset()));
@@ -1805,4 +1806,4 @@ void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
 
 }  // namespace dart
 
-#endif  // defined TARGET_ARCH_ARM
+#endif  // defined(TARGET_ARCH_ARM) && !defined(DART_PRECOMPILED_RUNTIME)

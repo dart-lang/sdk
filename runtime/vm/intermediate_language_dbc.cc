@@ -56,9 +56,9 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(GenericCheckBound)                                                         \
   M(IndirectGoto)                                                              \
   M(MintToDouble)                                                              \
-  M(BinaryMintOp)                                                              \
-  M(ShiftMintOp)                                                               \
-  M(UnaryMintOp)                                                               \
+  M(BinaryInt64Op)                                                             \
+  M(ShiftInt64Op)                                                              \
+  M(UnaryInt64Op)                                                              \
   M(BinaryFloat32x4Op)                                                         \
   M(Simd32x4Shuffle)                                                           \
   M(Simd32x4ShuffleMix)                                                        \

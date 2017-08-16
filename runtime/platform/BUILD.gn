@@ -1,0 +1,34 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("platform_sources.gni")
+
+template("build_libdart_platform") {
+  extra_configs = []
+  if (defined(invoker.extra_configs)) {
+    extra_configs += invoker.extra_configs
+  }
+  static_library(target_name) {
+    configs += [ "..:dart_config" ] + extra_configs
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+      deps = [
+        "//apps/tracing/lib/trace",
+      ]
+    }
+    public_configs = [ "../vm:libdart_vm_config" ]
+
+    sources = platform_sources
+
+    include_dirs = [ ".." ]
+  }
+}
+
+build_libdart_platform("libdart_platform") {
+  extra_configs = [ "..:dart_maybe_product_config" ]
+}
+
+build_libdart_platform("libdart_platform_product") {
+  extra_configs = [ "..:dart_product_config" ]
+}

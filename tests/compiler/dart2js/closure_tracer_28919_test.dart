@@ -66,8 +66,8 @@ void main() {
         var commonMasks = closedWorld.commonMasks;
 
         typeOf(String name) {
-          return typesInferrer
-              .getReturnTypeOfMember(findElement(compiler, name));
+          MemberElement member = findElement(compiler, name);
+          return typesInferrer.getReturnTypeOfMember(member);
         }
 
         checkType(String name, type) {

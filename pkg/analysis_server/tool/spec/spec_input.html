@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.18.3</version>
+  <version>1.18.4</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -948,7 +948,7 @@
       </field>
     </params>
   </notification>
-  <notification event="closingLabels">
+  <notification event="closingLabels" experimental="true">
     <p>
       Reports closing labels relevant to a given file.
     </p>
@@ -1874,7 +1874,8 @@
       <field name="offset">
         <ref>int</ref>
         <p>
-          The offset used to identify the code to which the template will be applied.
+          The offset used to identify the code to which the template will be
+          applied.
         </p>
       </field>
     </params>
@@ -2075,7 +2076,8 @@
       <field name="offset">
         <ref>int</ref>
         <p>
-          The offset used to identify the code to which the template will be applied.
+          The offset used to identify the code to which the template will be
+          applied.
         </p>
       </field>
     </params>
@@ -2132,13 +2134,14 @@
       </field>
     </params>
     <result>
-      <field name="edits">
-        <list>
-          <ref>SourceEdit</ref>
-        </list>
+      <field name="edit">
+        <ref>SourceFileEdit</ref>
         <p>
-          The edit(s) to be applied in order to make the specified elements
-          accessible.
+          The edits to be applied in order to make the specified elements
+          accessible. The file to be edited will be the defining compilation
+          unit of the library containing the file specified in the request,
+          which can be different than the file specified in the request if the
+          specified file is a part file.
         </p>
       </field>
     </result>
@@ -2435,9 +2438,9 @@
     </tt>
   </p>
   <p>
-    The analysis server will send it's own analytics data (for example, operations
-    performed, operating system type, SDK version). No data (from the analysis
-    server or from clients) will be sent if analytics is disabled.
+    The analysis server will send it's own analytics data (for example,
+    operations performed, operating system type, SDK version). No data (from the
+    analysis server or from clients) will be sent if analytics is disabled.
   </p>
   <request method="isEnabled">
     <p>Query whether analytics is enabled.</p>
@@ -2451,10 +2454,11 @@
       The value of this flag can be changed by other tools outside of the
       analysis server's process. When you query the flag, you get the value of
       the flag at a given moment. Clients should not use the value returned to
-      decide whether or not to send the <tt>sendEvent</tt> and <tt>sendTiming</tt>
-      requests. Those requests should be used unconditionally and server will
-      determine whether or not it is appropriate to forward the information to
-      the cloud at the time each request is received.
+      decide whether or not to send the <tt>sendEvent</tt> and
+      <tt>sendTiming</tt> requests. Those requests should be used
+      unconditionally and server will determine whether or not it is appropriate
+      to forward the information to the cloud at the time each request is
+      received.
     </p>
     <result>
       <field name="enabled">
@@ -2526,6 +2530,54 @@
         <p>The duration of the event in milliseconds.</p>
       </field>
     </params>
+  </request>
+</domain>
+<domain name="kythe" experimental="true">
+  <p>
+    The kythe domain contains APIs related to generating Dart content in the
+    <a href="http://kythe.io/">Kythe</a> format.
+  </p>
+  <request method="getKytheEntries">
+    <p>
+      Return the list of <tt>KytheEntry</tt> objects for some file, given the
+      current state of the file system populated by "analysis.updateContent".
+    </p>
+    <p>
+      If a request is made for a file that does not exist, or that is not
+      currently subject to analysis (e.g. because it is not associated with any
+      analysis root specified to analysis.setAnalysisRoots), an error of type
+      <tt>GET_KYTHE_ENTRIES_INVALID_FILE</tt> will be generated.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the code for which the Kythe Entry objects are
+          being requested.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="entries">
+        <list>
+          <ref>KytheEntry</ref>
+        </list>
+        <p>
+          The list of <tt>KytheEntry</tt> objects for the queried file.
+        </p>
+      </field>
+      <field name="files">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          The set of files paths that were required, but not in the file system,
+          to give a complete and accurate Kythe graph for the file. This could
+          be due to a referenced file that does not exist or generated files not
+          being generated or passed before the call to "getKytheEntries".
+        </p>
+      </field>
+    </result>
   </request>
 </domain>
 <types>
@@ -2671,10 +2723,11 @@
   </type>
   <type name="ClosingLabel">
     <p>
-      A label that is associated with a range of code that may be useful to render at the end
-      of the range to aid code readability. For example, a constructor call that spans multiple
-      lines may result in a closing label to allow the constructor type/name to be rendered
-      alongside the closing parenthesis.
+      A label that is associated with a range of code that may be useful to
+      render at the end of the range to aid code readability. For example, a
+      constructor call that spans multiple lines may result in a closing label
+      to allow the constructor type/name to be rendered alongside the closing
+      parenthesis.
     </p>
     <object>
       <field name="offset">
@@ -2692,7 +2745,8 @@
       <field name="label">
         <ref>String</ref>
         <p>
-          The label associated with this range that should be displayed to the user.
+          The label associated with this range that should be displayed to the
+          user.
         </p>
       </field>
     </object>
@@ -3059,7 +3113,8 @@
       <field name="example">
         <ref>String</ref>
         <p>
-          A short example of the transformation performed when the template is applied.
+          A short example of the transformation performed when the template is
+          applied.
         </p>
       </field>
     </object>
@@ -3174,6 +3229,13 @@
         <p>
           An "analysis.getImportedElements" request specified a FilePath that
           does not match a file currently subject to analysis.
+        </p>
+      </value>
+      <value>
+        <code>GET_KYTHE_ENTRIES_INVALID_FILE</code>
+        <p>
+          An "analysis.getKytheEntries" request specified a FilePath that does
+          not match a file that is currently subject to analysis.
         </p>
       </value>
       <value>

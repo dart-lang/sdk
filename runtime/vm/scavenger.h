@@ -10,6 +10,7 @@
 #include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
+#include "vm/lockers.h"
 #include "vm/raw_object.h"
 #include "vm/ring_buffer.h"
 #include "vm/spaces.h"
@@ -121,6 +122,26 @@ class Scavenger {
 
   RawObject* FindObject(FindObjectVisitor* visitor) const;
 
+  uword TryAllocateNewTLAB(Thread* thread, intptr_t size) {
+    ASSERT(Utils::IsAligned(size, kObjectAlignment));
+    ASSERT(heap_ != Dart::vm_isolate()->heap());
+    ASSERT(!scavenging_);
+    MutexLocker ml(space_lock_);
+    uword result = top_;
+    intptr_t remaining = end_ - top_;
+    if (remaining < size) {
+      return 0;
+    }
+    ASSERT(to_->Contains(result));
+    ASSERT((result & kObjectAlignmentMask) == object_alignment_);
+    top_ += size;
+    ASSERT(to_->Contains(top_) || (top_ == to_->end()));
+    ASSERT(result < top_);
+    thread->set_top(result);
+    thread->set_end(top_);
+    return result;
+  }
+
   uword AllocateGC(intptr_t size) {
     ASSERT(Utils::IsAligned(size, kObjectAlignment));
     ASSERT(heap_ != Dart::vm_isolate()->heap());
@@ -134,7 +155,7 @@ class Scavenger {
     ASSERT(to_->Contains(result));
     ASSERT((result & kObjectAlignmentMask) == object_alignment_);
     top_ += size;
-    ASSERT(to_->Contains(top_) || (top_ == to_->end()));
+    ASSERT((to_->Contains(top_)) || (top_ == to_->end()));
     return result;
   }
 
@@ -143,6 +164,8 @@ class Scavenger {
     ASSERT(heap_ != Dart::vm_isolate()->heap());
     ASSERT(thread->IsMutatorThread());
     ASSERT(thread->isolate()->IsMutatorThreadScheduled());
+    ASSERT(thread->top() <= top_);
+    ASSERT((thread->end() == 0) || (thread->end() == top_));
 #if defined(DEBUG)
     if (FLAG_gc_at_alloc) {
       ASSERT(!scavenging_);
@@ -159,7 +182,7 @@ class Scavenger {
     ASSERT(to_->Contains(result));
     ASSERT((result & kObjectAlignmentMask) == object_alignment_);
     top += size;
-    ASSERT(to_->Contains(top) || (top == to_->end()));
+    ASSERT((to_->Contains(top)) || (top == to_->end()));
     thread->set_top(top);
     return result;
   }
@@ -180,9 +203,7 @@ class Scavenger {
     end_ = value;
   }
 
-  int64_t UsedInWords() const {
-    return (top_ - FirstObjectStart()) >> kWordSizeLog2;
-  }
+  int64_t UsedInWords() const;
   int64_t CapacityInWords() const { return to_->size_in_words(); }
   int64_t ExternalInWords() const { return external_size_ >> kWordSizeLog2; }
   SpaceUsage GetCurrentUsage() const {
@@ -215,7 +236,10 @@ class Scavenger {
   void AllocateExternal(intptr_t size);
   void FreeExternal(intptr_t size);
 
-  void FlushTLS() const;
+  void MakeNewSpaceIterable() const;
+  int64_t FreeSpaceInWords(Isolate* isolate) const;
+  void MakeAllTLABsIterable(Isolate* isolate) const;
+  void AbandonAllTLABs(Isolate* isolate);
 
  private:
   // Ids for time and data records in Heap::GCStats.
@@ -314,6 +338,8 @@ class Scavenger {
 
   bool failed_to_promote_;
 
+  // Protects new space during the allocation of new TLABs
+  Mutex* space_lock_;
   friend class ScavengerVisitor;
   friend class ScavengerWeakVisitor;
 

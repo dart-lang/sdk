@@ -17,7 +17,8 @@ import '../equivalence/id_equivalence_helper.dart';
 /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
 /// for the data origin.
 void computeMemberAstTypeMasks(Compiler compiler, MemberEntity _member,
-    Map<Id, String> actualMap, Map<Id, Spannable> spannableMap) {
+    Map<Id, String> actualMap, Map<Id, Spannable> spannableMap,
+    {bool verbose: false}) {
   MemberElement member = _member;
   ResolvedAst resolvedAst = member.resolvedAst;
   if (resolvedAst.kind != ResolvedAstKind.PARSED) return;
@@ -42,12 +43,14 @@ class TypeMaskComputer extends AbstractResolvedAstComputer {
   String computeElementValue(AstElement element) {
     GlobalTypeInferenceElementResult elementResult;
     if (element.isParameter) {
-      elementResult = results.resultOfParameter(element);
+      ParameterElement parameter = element;
+      elementResult = results.resultOfParameter(parameter);
     } else if (element.isLocal) {
       LocalFunctionElement localFunction = element;
       elementResult = results.resultOfMember(localFunction.callMethod);
     } else {
-      elementResult = results.resultOfMember(element);
+      MemberElement member = element;
+      elementResult = results.resultOfMember(member);
     }
 
     TypeMask value =

@@ -632,9 +632,6 @@ class Class extends NamedNode {
   /// (this is the default if none is specifically set).
   int fileEndOffset = TreeNode.noOffset;
 
-  /// Offset of the declaration, set and used when writing the binary.
-  int binaryOffset = -1;
-
   /// The degree to which the contents of the class have been loaded.
   ClassLevel level = ClassLevel.Body;
 
@@ -1539,13 +1536,16 @@ class FunctionNode extends TreeNode {
     List<NamedType> named =
         namedParameters.map(_getNamedTypeOfVariable).toList(growable: false);
     named.sort();
+    // We need create a copy of the list of type parameters, otherwise
+    // transformations like erasure don't work.
+    var typeParametersCopy = new List<TypeParameter>.from(parent is Constructor
+        ? parent.enclosingClass.typeParameters
+        : typeParameters);
     return new FunctionType(
         positionalParameters.map(_getTypeOfVariable).toList(growable: false),
         returnType,
         namedParameters: named,
-        typeParameters: parent is Constructor
-            ? parent.enclosingClass.typeParameters
-            : typeParameters,
+        typeParameters: typeParametersCopy,
         requiredParameterCount: requiredParameterCount);
   }
 
@@ -4401,9 +4401,6 @@ class TypeParameter extends TreeNode {
   /// Should not be null except temporarily during IR construction.  Should
   /// be set to the root class for type parameters without an explicit bound.
   DartType bound;
-
-  /// Offset of the declaration, set and used when writing the binary.
-  int binaryOffset = 0;
 
   TypeParameter([this.name, this.bound]);
 

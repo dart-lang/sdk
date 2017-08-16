@@ -7,6 +7,7 @@
 #include "bin/builtin.h"
 #include "bin/file.h"
 #include "bin/isolate_data.h"
+#include "bin/process.h"
 
 #include "platform/assert.h"
 #include "platform/globals.h"
@@ -20,6 +21,8 @@
 using dart::bin::File;
 
 namespace dart {
+
+DECLARE_FLAG(bool, use_dart_frontend);
 
 Benchmark* Benchmark::first_ = NULL;
 Benchmark* Benchmark::tail_ = NULL;
@@ -92,8 +95,11 @@ void Benchmark::RunAll(const char* executable) {
 Dart_Isolate Benchmark::CreateIsolate(const uint8_t* snapshot_data,
                                       const uint8_t* snapshot_instructions) {
   char* err = NULL;
+  Dart_IsolateFlags api_flags;
+  Isolate::FlagsInitialize(&api_flags);
+  api_flags.use_dart_frontend = FLAG_use_dart_frontend;
   isolate_ = Dart_CreateIsolate(NULL, NULL, snapshot_data,
-                                snapshot_instructions, NULL, NULL, &err);
+                                snapshot_instructions, &api_flags, NULL, &err);
   EXPECT(isolate_ != NULL);
   free(err);
   return isolate_;
@@ -697,7 +703,7 @@ BENCHMARK(LargeMap) {
 }
 
 BENCHMARK_MEMORY(InitialRSS) {
-  benchmark->set_score(OS::MaxRSS());
+  benchmark->set_score(bin::Process::MaxRSS());
 }
 
 }  // namespace dart

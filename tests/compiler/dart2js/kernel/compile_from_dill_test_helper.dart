@@ -77,6 +77,8 @@ class Generic<T> {
 
 var toplevel;
 
+typedef Typedef();
+
 main() {
   foo();
   bar(true);
@@ -137,6 +139,8 @@ main() {
     return 400 + x;
   };
   x = f(x);
+  x = Object;
+  x = Typedef;
   return x;
 }
 typedef NoArg();
@@ -287,8 +291,10 @@ Future<ResultKind> runTest(
 
   OutputCollector collector2 = new OutputCollector();
   Compiler compiler2 = await compileWithDill(
-      entryPoint, const {}, <String>[]..addAll(commonOptions)..addAll(options),
-      printSteps: true, compilerOutput: collector2);
+      entryPoint: entryPoint,
+      options: <String>[]..addAll(commonOptions)..addAll(options),
+      printSteps: true,
+      compilerOutput: collector2);
 
   KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
   KernelToElementMap elementMap = frontendStrategy.elementMap;

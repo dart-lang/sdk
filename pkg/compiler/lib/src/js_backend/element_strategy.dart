@@ -13,6 +13,7 @@ import '../common/work.dart';
 import '../compiler.dart';
 import '../elements/elements.dart';
 import '../enqueue.dart';
+import '../inferrer/type_graph_inferrer.dart' show AstTypeGraphInferrer;
 import '../io/multi_information.dart' show MultiSourceInformationStrategy;
 import '../io/position_information.dart' show PositionSourceInformationStrategy;
 import '../io/source_information.dart';
@@ -26,6 +27,7 @@ import '../resolution/resolution_strategy.dart';
 import '../ssa/builder.dart';
 import '../ssa/rasta_ssa_builder_task.dart';
 import '../ssa/ssa.dart';
+import '../types/types.dart';
 import '../options.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
@@ -104,6 +106,14 @@ class ElementBackendStrategy extends ComputeSpannableMixin
     } else {
       return const StartEndSourceInformationStrategy();
     }
+  }
+
+  @override
+  TypesInferrer createTypesInferrer(ClosedWorldRefiner closedWorldRefiner,
+      {bool disableTypeInference: false}) {
+    return new AstTypeGraphInferrer(
+        _compiler, closedWorldRefiner.closedWorld, closedWorldRefiner,
+        disableTypeInference: disableTypeInference);
   }
 }
 

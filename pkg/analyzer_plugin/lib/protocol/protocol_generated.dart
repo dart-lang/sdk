@@ -4708,6 +4708,217 @@ class InlineMethodOptions extends RefactoringOptions {
 }
 
 /**
+ * kythe.getKytheEntries params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class KytheGetKytheEntriesParams implements RequestParams {
+  String _file;
+
+  /**
+   * The file containing the code for which the Kythe Entry objects are being
+   * requested.
+   */
+  String get file => _file;
+
+  /**
+   * The file containing the code for which the Kythe Entry objects are being
+   * requested.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  KytheGetKytheEntriesParams(String file) {
+    this.file = file;
+  }
+
+  factory KytheGetKytheEntriesParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      return new KytheGetKytheEntriesParams(file);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "kythe.getKytheEntries params", json);
+    }
+  }
+
+  factory KytheGetKytheEntriesParams.fromRequest(Request request) {
+    return new KytheGetKytheEntriesParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "kythe.getKytheEntries", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is KytheGetKytheEntriesParams) {
+      return file == other.file;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * kythe.getKytheEntries result
+ *
+ * {
+ *   "entries": List<KytheEntry>
+ *   "files": List<FilePath>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class KytheGetKytheEntriesResult implements ResponseResult {
+  List<KytheEntry> _entries;
+
+  List<String> _files;
+
+  /**
+   * The list of KytheEntry objects for the queried file.
+   */
+  List<KytheEntry> get entries => _entries;
+
+  /**
+   * The list of KytheEntry objects for the queried file.
+   */
+  void set entries(List<KytheEntry> value) {
+    assert(value != null);
+    this._entries = value;
+  }
+
+  /**
+   * The set of files paths that were required, but not in the file system, to
+   * give a complete and accurate Kythe graph for the file. This could be due
+   * to a referenced file that does not exist or generated files not being
+   * generated or passed before the call to "getKytheEntries".
+   */
+  List<String> get files => _files;
+
+  /**
+   * The set of files paths that were required, but not in the file system, to
+   * give a complete and accurate Kythe graph for the file. This could be due
+   * to a referenced file that does not exist or generated files not being
+   * generated or passed before the call to "getKytheEntries".
+   */
+  void set files(List<String> value) {
+    assert(value != null);
+    this._files = value;
+  }
+
+  KytheGetKytheEntriesResult(List<KytheEntry> entries, List<String> files) {
+    this.entries = entries;
+    this.files = files;
+  }
+
+  factory KytheGetKytheEntriesResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<KytheEntry> entries;
+      if (json.containsKey("entries")) {
+        entries = jsonDecoder.decodeList(
+            jsonPath + ".entries",
+            json["entries"],
+            (String jsonPath, Object json) =>
+                new KytheEntry.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "entries");
+      }
+      List<String> files;
+      if (json.containsKey("files")) {
+        files = jsonDecoder.decodeList(
+            jsonPath + ".files", json["files"], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "files");
+      }
+      return new KytheGetKytheEntriesResult(entries, files);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "kythe.getKytheEntries result", json);
+    }
+  }
+
+  factory KytheGetKytheEntriesResult.fromResponse(Response response) {
+    return new KytheGetKytheEntriesResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["entries"] =
+        entries.map((KytheEntry value) => value.toJson()).toList();
+    result["files"] = files;
+    return result;
+  }
+
+  @override
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is KytheGetKytheEntriesResult) {
+      return listEqual(
+              entries, other.entries, (KytheEntry a, KytheEntry b) => a == b) &&
+          listEqual(files, other.files, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, entries.hashCode);
+    hash = JenkinsSmiHash.combine(hash, files.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * moveFile feedback
  *
  * Clients may not extend, implement or mix-in this class.

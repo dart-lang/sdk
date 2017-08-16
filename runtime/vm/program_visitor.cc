@@ -598,10 +598,10 @@ void ProgramVisitor::Dedup() {
   DedupCodeSourceMaps();
   DedupLists();
 
-  if (!FLAG_profiler) {
-    // Reduces binary size but obfuscates profiler results.
-    DedupInstructions();
-  }
+#if defined(PRODUCT)
+  // Reduces binary size but obfuscates profiler results.
+  DedupInstructions();
+#endif
 }
 
 }  // namespace dart

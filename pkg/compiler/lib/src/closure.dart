@@ -51,6 +51,9 @@ abstract class ClosureDataLookup<T> {
   ClosureRepresentationInfo getClosureRepresentationInfo(
       covariant Entity member);
 
+  ClosureRepresentationInfo getClosureRepresentationInfoForTesting(
+      covariant Entity member);
+
   /// Look up information about a loop, in case any variables it declares need
   /// to be boxed/snapshotted.
   CapturedLoopScope getCapturedLoopScope(T loopNode);
@@ -287,6 +290,11 @@ class ClosureTask extends ClosureConversionTask<Node> {
 
   ClosureRepresentationInfo getClosureRepresentationInfo(Element member) {
     return getClosureToClassMapping(member);
+  }
+
+  ClosureRepresentationInfo getClosureRepresentationInfoForTesting(
+      Element member) {
+    return getClosureRepresentationInfo(member);
   }
 
   CapturedLoopScope getCapturedLoopScope(Node loopNode) {

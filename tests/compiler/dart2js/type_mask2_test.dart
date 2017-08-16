@@ -100,7 +100,7 @@ Future testUnionTypeMaskFlatten() async {
         new D();
         new E();
       }
-      """, useMockCompiler: false);
+      """, compileMode: CompileMode.memory);
 
   ClosedWorld closedWorld = env.closedWorld;
 
@@ -210,7 +210,7 @@ Future testStringSubtypes() async {
         '' is String;
       }
       """,
-      useMockCompiler: false);
+      compileMode: CompileMode.memory);
   ClosedWorld closedWorld = env.closedWorld;
 
   ClassElement Object_ = env.getElement("Object");

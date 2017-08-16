@@ -29,6 +29,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
+#include "vm/profiler.h"
 #include "vm/profiler_service.h"
 #include "vm/reusable_handles.h"
 #include "vm/safepoint.h"
@@ -108,6 +109,7 @@ const ServiceMethodDescriptor* FindMethod(const char* method_name);
 Dart_ServiceStreamListenCallback Service::stream_listen_callback_ = NULL;
 Dart_ServiceStreamCancelCallback Service::stream_cancel_callback_ = NULL;
 Dart_GetVMServiceAssetsArchive Service::get_service_assets_callback_ = NULL;
+Dart_EmbedderInformationCallback Service::embedder_information_callback_ = NULL;
 
 // These are the set of streams known to the core VM.
 StreamInfo Service::vm_stream("VM");
@@ -129,7 +131,7 @@ static StreamInfo* streams_[] = {
 
 bool Service::ListenStream(const char* stream_id) {
   if (FLAG_trace_service) {
-    OS::Print("vm-service: starting stream '%s'\n", stream_id);
+    OS::PrintErr("vm-service: starting stream '%s'\n", stream_id);
   }
   intptr_t num_streams = sizeof(streams_) / sizeof(streams_[0]);
   for (intptr_t i = 0; i < num_streams; i++) {
@@ -148,7 +150,7 @@ bool Service::ListenStream(const char* stream_id) {
 
 void Service::CancelStream(const char* stream_id) {
   if (FLAG_trace_service) {
-    OS::Print("vm-service: stopping stream '%s'\n", stream_id);
+    OS::PrintErr("vm-service: stopping stream '%s'\n", stream_id);
   }
   intptr_t num_streams = sizeof(streams_) / sizeof(streams_[0]);
   for (intptr_t i = 0; i < num_streams; i++) {
@@ -911,7 +913,7 @@ void Service::SendEvent(const char* stream_id,
   ASSERT(!ServiceIsolate::IsServiceIsolateDescendant(isolate));
 
   if (FLAG_trace_service) {
-    OS::Print(
+    OS::PrintErr(
         "vm-service: Pushing ServiceEvent(isolate='%s', kind='%s',"
         " len=%" Pd ") to stream %s\n",
         isolate->name(), event_type, bytes_length, stream_id);
@@ -1096,7 +1098,7 @@ void Service::PostEvent(Isolate* isolate,
     if (isolate != NULL) {
       isolate_name = isolate->name();
     }
-    OS::Print(
+    OS::PrintErr(
         "vm-service: Pushing ServiceEvent(isolate='%s', kind='%s') "
         "to stream %s\n",
         isolate_name, kind, stream_id);
@@ -1224,6 +1226,41 @@ void Service::SetEmbedderStreamCallbacks(
 void Service::SetGetServiceAssetsCallback(
     Dart_GetVMServiceAssetsArchive get_service_assets) {
   get_service_assets_callback_ = get_service_assets;
+}
+
+void Service::SetEmbedderInformationCallback(
+    Dart_EmbedderInformationCallback callback) {
+  embedder_information_callback_ = callback;
+}
+
+int64_t Service::CurrentRSS() {
+  if (embedder_information_callback_ == NULL) {
+    return -1;
+  }
+  Dart_EmbedderInformation info = {
+    0,  // version
+    NULL,  // name
+    0,  // max_rss
+    0  // current_rss
+  };
+  embedder_information_callback_(&info);
+  ASSERT(info.version == DART_EMBEDDER_INFORMATION_CURRENT_VERSION);
+  return info.current_rss;
+}
+
+int64_t Service::MaxRSS() {
+  if (embedder_information_callback_ == NULL) {
+    return -1;
+  }
+  Dart_EmbedderInformation info = {
+    0,  // version
+    NULL,  // name
+    0,  // max_rss
+    0  // current_rss
+  };
+  embedder_information_callback_(&info);
+  ASSERT(info.version == DART_EMBEDDER_INFORMATION_CURRENT_VERSION);
+  return info.max_rss;
 }
 
 EmbedderServiceHandler* Service::FindRootEmbedderHandler(const char* name) {
@@ -3121,6 +3158,19 @@ static bool Pause(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static const MethodParameter* enable_profiler_params[] = {
+    NULL,
+};
+
+static bool EnableProfiler(Thread* thread, JSONStream* js) {
+  if (!FLAG_profiler) {
+    FLAG_profiler = true;
+    Profiler::InitOnce();
+  }
+  PrintSuccess(js);
+  return true;
+}
+
 static const MethodParameter* get_tag_profile_params[] = {
     RUNNABLE_ISOLATE_PARAMETER, NULL,
 };
@@ -3807,6 +3857,28 @@ static const MethodParameter* get_vm_params[] = {
     NO_ISOLATE_PARAMETER, NULL,
 };
 
+void Service::PrintJSONForEmbedderInformation(JSONObject *jsobj) {
+  if (embedder_information_callback_ != NULL) {
+    Dart_EmbedderInformation info = {
+      0,  // version
+      NULL,  // name
+      0,  // max_rss
+      0  // current_rss
+    };
+    embedder_information_callback_(&info);
+    ASSERT(info.version == DART_EMBEDDER_INFORMATION_CURRENT_VERSION);
+    if (info.name != NULL) {
+      jsobj->AddProperty("_embedder", info.name);
+    }
+    if (info.max_rss > 0) {
+      jsobj->AddProperty64("_maxRSS", info.max_rss);
+    }
+    if (info.max_rss > 0) {
+      jsobj->AddProperty64("_currentRSS", info.current_rss);
+    }
+  }
+}
+
 void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", (ref ? "@VM" : "VM"));
@@ -3822,10 +3894,10 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty64("_nativeZoneMemoryUsage",
                       ApiNativeScope::current_memory_usage());
   jsobj.AddProperty64("pid", OS::ProcessId());
-  jsobj.AddProperty64("_maxRSS", OS::MaxRSS());
   jsobj.AddPropertyTimeMillis(
       "startTime", OS::GetCurrentTimeMillis() - Dart::UptimeMillis());
   MallocHooks::PrintToJSONObject(&jsobj);
+  PrintJSONForEmbedderInformation(&jsobj);
   // Construct the isolate list.
   {
     JSONArray jsarr(&jsobj, "isolates");
@@ -4022,6 +4094,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     clear_cpu_profile_params },
   { "_clearVMTimeline", ClearVMTimeline,
     clear_vm_timeline_params, },
+  { "_enableProfiler", EnableProfiler,
+    enable_profiler_params, },
   { "evaluate", Evaluate,
     evaluate_params },
   { "evaluateInFrame", EvaluateInFrame,

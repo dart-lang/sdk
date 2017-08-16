@@ -1665,10 +1665,13 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    *
-   * edits: List<SourceEdit>
+   * edit: SourceFileEdit
    *
-   *   The edit(s) to be applied in order to make the specified elements
-   *   accessible.
+   *   The edits to be applied in order to make the specified elements
+   *   accessible. The file to be edited will be the defining compilation unit
+   *   of the library containing the file specified in the request, which can
+   *   be different than the file specified in the request if the specified
+   *   file is a part file.
    */
   Future<EditImportElementsResult> sendEditImportElements(
       String file, List<ImportedElements> elements) async {
@@ -2034,6 +2037,43 @@ abstract class IntegrationTestMixin {
     var result = await server.send("analytics.sendTiming", params);
     outOfTestExpect(result, isNull);
     return null;
+  }
+
+  /**
+   * Return the list of KytheEntry objects for some file, given the current
+   * state of the file system populated by "analysis.updateContent".
+   *
+   * If a request is made for a file that does not exist, or that is not
+   * currently subject to analysis (e.g. because it is not associated with any
+   * analysis root specified to analysis.setAnalysisRoots), an error of type
+   * GET_KYTHE_ENTRIES_INVALID_FILE will be generated.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The file containing the code for which the Kythe Entry objects are being
+   *   requested.
+   *
+   * Returns
+   *
+   * entries: List<KytheEntry>
+   *
+   *   The list of KytheEntry objects for the queried file.
+   *
+   * files: List<FilePath>
+   *
+   *   The set of files paths that were required, but not in the file system,
+   *   to give a complete and accurate Kythe graph for the file. This could be
+   *   due to a referenced file that does not exist or generated files not
+   *   being generated or passed before the call to "getKytheEntries".
+   */
+  Future<KytheGetKytheEntriesResult> sendKytheGetKytheEntries(
+      String file) async {
+    var params = new KytheGetKytheEntriesParams(file).toJson();
+    var result = await server.send("kythe.getKytheEntries", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new KytheGetKytheEntriesResult.fromJson(decoder, 'result', result);
   }
 
   /**

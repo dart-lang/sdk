@@ -172,7 +172,7 @@ void main() {
         var commonMasks = closedWorld.commonMasks;
 
         checkReturn(String name, type) {
-          var element = findElement(compiler, name);
+          MemberElement element = findElement(compiler, name);
           Expect.equals(
               type,
               simplify(

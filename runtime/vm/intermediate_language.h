@@ -439,9 +439,9 @@ class EmbeddedArray<T, 0> {
   M(BoxInt64)                                                                  \
   M(UnboxInt64)                                                                \
   M(CaseInsensitiveCompareUC16)                                                \
-  M(BinaryMintOp)                                                              \
-  M(ShiftMintOp)                                                               \
-  M(UnaryMintOp)                                                               \
+  M(BinaryInt64Op)                                                             \
+  M(ShiftInt64Op)                                                              \
+  M(UnaryInt64Op)                                                              \
   M(CheckArrayBound)                                                           \
   M(GenericCheckBound)                                                         \
   M(Constraint)                                                                \
@@ -1736,7 +1736,7 @@ class Definition : public Instruction {
     return representation() == kPairOfTagged;
 #else
     return (representation() == kPairOfTagged) ||
-           (representation() == kUnboxedMint);
+           (representation() == kUnboxedInt64);
 #endif
   }
 
@@ -3150,7 +3150,7 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
     if (operation_cid() == kDoubleCid) return kUnboxedDouble;
-    if (operation_cid() == kMintCid) return kUnboxedMint;
+    if (operation_cid() == kMintCid) return kUnboxedInt64;
     return kTagged;
   }
 
@@ -3186,7 +3186,7 @@ class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
     if (operation_cid() == kDoubleCid) return kUnboxedDouble;
-    if (operation_cid() == kMintCid) return kUnboxedMint;
+    if (operation_cid() == kMintCid) return kUnboxedInt64;
     return kTagged;
   }
 
@@ -4708,7 +4708,7 @@ class Boxing : public AllStatic {
       case kUnboxedFloat32x4:
       case kUnboxedFloat64x2:
       case kUnboxedInt32x4:
-      case kUnboxedMint:
+      case kUnboxedInt64:
       case kUnboxedInt32:
       case kUnboxedUint32:
         return true;
@@ -4731,7 +4731,7 @@ class Boxing : public AllStatic {
       case kUnboxedInt32x4:
         return Int32x4::value_offset();
 
-      case kUnboxedMint:
+      case kUnboxedInt64:
         return Mint::value_offset();
 
       default:
@@ -4742,7 +4742,7 @@ class Boxing : public AllStatic {
 
   static intptr_t BoxCid(Representation rep) {
     switch (rep) {
-      case kUnboxedMint:
+      case kUnboxedInt64:
         return kMintCid;
       case kUnboxedDouble:
         return kDoubleCid;
@@ -4856,7 +4856,8 @@ class BoxUint32Instr : public BoxInteger32Instr {
 
 class BoxInt64Instr : public BoxIntegerInstr {
  public:
-  explicit BoxInt64Instr(Value* value) : BoxIntegerInstr(kUnboxedMint, value) {}
+  explicit BoxInt64Instr(Value* value)
+      : BoxIntegerInstr(kUnboxedInt64, value) {}
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -5003,7 +5004,7 @@ class UnboxInt32Instr : public UnboxInteger32Instr {
 class UnboxInt64Instr : public UnboxIntegerInstr {
  public:
   UnboxInt64Instr(Value* value, intptr_t deopt_id)
-      : UnboxIntegerInstr(kUnboxedMint, kNoTruncation, value, deopt_id) {}
+      : UnboxIntegerInstr(kUnboxedInt64, kNoTruncation, value, deopt_id) {}
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
@@ -5014,8 +5015,8 @@ class UnboxInt64Instr : public UnboxIntegerInstr {
 };
 
 bool Definition::IsMintDefinition() {
-  return (Type()->ToCid() == kMintCid) || IsBinaryMintOp() || IsUnaryMintOp() ||
-         IsShiftMintOp() || IsBoxInt64() || IsUnboxInt64();
+  return (Type()->ToCid() == kMintCid) || IsBinaryInt64Op() ||
+         IsUnaryInt64Op() || IsShiftInt64Op() || IsBoxInt64() || IsUnboxInt64();
 }
 
 class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
@@ -6700,9 +6701,9 @@ class UnaryUint32OpInstr : public UnaryIntegerOpInstr {
   DISALLOW_COPY_AND_ASSIGN(UnaryUint32OpInstr);
 };
 
-class UnaryMintOpInstr : public UnaryIntegerOpInstr {
+class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
  public:
-  UnaryMintOpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
+  UnaryInt64OpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
       : UnaryIntegerOpInstr(op_kind, value, deopt_id) {
     ASSERT(op_kind == Token::kBIT_NOT);
   }
@@ -6711,17 +6712,17 @@ class UnaryMintOpInstr : public UnaryIntegerOpInstr {
 
   virtual CompileType ComputeType() const;
 
-  virtual Representation representation() const { return kUnboxedMint; }
+  virtual Representation representation() const { return kUnboxedInt64; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
-    return kUnboxedMint;
+    return kUnboxedInt64;
   }
 
-  DECLARE_INSTRUCTION(UnaryMintOp)
+  DECLARE_INSTRUCTION(UnaryInt64Op)
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(UnaryMintOpInstr);
+  DISALLOW_COPY_AND_ASSIGN(UnaryInt64OpInstr);
 };
 
 class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
@@ -7014,12 +7015,12 @@ class ShiftUint32OpInstr : public BinaryIntegerOpInstr {
   DISALLOW_COPY_AND_ASSIGN(ShiftUint32OpInstr);
 };
 
-class BinaryMintOpInstr : public BinaryIntegerOpInstr {
+class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
  public:
-  BinaryMintOpInstr(Token::Kind op_kind,
-                    Value* left,
-                    Value* right,
-                    intptr_t deopt_id)
+  BinaryInt64OpInstr(Token::Kind op_kind,
+                     Value* left,
+                     Value* right,
+                     intptr_t deopt_id)
       : BinaryIntegerOpInstr(op_kind, left, right, deopt_id) {
     if (FLAG_limit_ints_to_64_bits) {
       mark_truncating();
@@ -7045,28 +7046,28 @@ class BinaryMintOpInstr : public BinaryIntegerOpInstr {
     }
   }
 
-  virtual Representation representation() const { return kUnboxedMint; }
+  virtual Representation representation() const { return kUnboxedInt64; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
-    return kUnboxedMint;
+    return kUnboxedInt64;
   }
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
   virtual CompileType ComputeType() const;
 
-  DECLARE_INSTRUCTION(BinaryMintOp)
+  DECLARE_INSTRUCTION(BinaryInt64Op)
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(BinaryMintOpInstr);
+  DISALLOW_COPY_AND_ASSIGN(BinaryInt64OpInstr);
 };
 
-class ShiftMintOpInstr : public BinaryIntegerOpInstr {
+class ShiftInt64OpInstr : public BinaryIntegerOpInstr {
  public:
-  ShiftMintOpInstr(Token::Kind op_kind,
-                   Value* left,
-                   Value* right,
-                   intptr_t deopt_id)
+  ShiftInt64OpInstr(Token::Kind op_kind,
+                    Value* left,
+                    Value* right,
+                    intptr_t deopt_id)
       : BinaryIntegerOpInstr(op_kind, left, right, deopt_id),
         shift_range_(NULL) {
     ASSERT((op_kind == Token::kSHR) || (op_kind == Token::kSHL));
@@ -7082,17 +7083,17 @@ class ShiftMintOpInstr : public BinaryIntegerOpInstr {
            (can_overflow() && (op_kind() == Token::kSHL));
   }
 
-  virtual Representation representation() const { return kUnboxedMint; }
+  virtual Representation representation() const { return kUnboxedInt64; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
-    return (idx == 0) ? kUnboxedMint : kTagged;
+    return (idx == 0) ? kUnboxedInt64 : kTagged;
   }
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
   virtual CompileType ComputeType() const;
 
-  DECLARE_INSTRUCTION(ShiftMintOp)
+  DECLARE_INSTRUCTION(ShiftInt64Op)
 
  private:
   static const intptr_t kMintShiftCountLimit = 63;
@@ -7103,7 +7104,7 @@ class ShiftMintOpInstr : public BinaryIntegerOpInstr {
 
   Range* shift_range_;
 
-  DISALLOW_COPY_AND_ASSIGN(ShiftMintOpInstr);
+  DISALLOW_COPY_AND_ASSIGN(ShiftInt64OpInstr);
 };
 
 // Handles only NEGATE.
@@ -7256,7 +7257,7 @@ class MintToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
     ASSERT(index == 0);
-    return kUnboxedMint;
+    return kUnboxedInt64;
   }
 
   virtual Representation representation() const { return kUnboxedDouble; }
@@ -7784,9 +7785,9 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
         to_representation_(to),
         is_truncating_(to == kUnboxedUint32) {
     ASSERT(from != to);
-    ASSERT((from == kUnboxedMint) || (from == kUnboxedUint32) ||
+    ASSERT((from == kUnboxedInt64) || (from == kUnboxedUint32) ||
            (from == kUnboxedInt32));
-    ASSERT((to == kUnboxedMint) || (to == kUnboxedUint32) ||
+    ASSERT((to == kUnboxedInt64) || (to == kUnboxedUint32) ||
            (to == kUnboxedInt32));
     SetInputAt(0, value);
   }

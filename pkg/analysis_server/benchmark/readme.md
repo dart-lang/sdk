@@ -5,13 +5,13 @@
 To see a list of all available benchmarks, run:
 
 ```
-dart benchmarks/benchmarks.dart list
+dart benchmark/benchmarks.dart list
 ```
 
 To run an individual benchmark, run:
 
 ```
-dart benchmarks/benchmarks.dart run <benchmark-id>
+dart benchmark/benchmarks.dart run <benchmark-id>
 ```
 
 ## How they're tested
@@ -27,11 +27,9 @@ See `test/benchmark_test.dart`.
 
 ## To add a new benchmark
 
-Register the new benchmark in then main() method of benchmarks/benchmarks.dart.
+Register the new benchmark in the `main()` method of benchmark/benchmarks.dart.
 
 ## On the bots
 
-Our benchmarks run on a continuous performance testing system. It will run
-any benchmark produced by the `benchmarks/benchmarks.dart list` command.
-
-To not run a benchmark on the bot, define the benchmark with the `disable` flag.
+Our benchmarks run on a continuous performance testing system. Currently, the
+benchmarks need to be manually registered ahead of time.

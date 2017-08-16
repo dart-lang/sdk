@@ -25,7 +25,7 @@ enum Representation {
   kUnboxedDouble,
   kUnboxedInt32,
   kUnboxedUint32,
-  kUnboxedMint,
+  kUnboxedInt64,
   kUnboxedFloat32x4,
   kUnboxedInt32x4,
   kUnboxedFloat64x2,

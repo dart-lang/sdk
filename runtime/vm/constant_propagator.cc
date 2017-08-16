@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/constant_propagator.h"
 
 #include "vm/bit_vector.h"
@@ -681,12 +683,12 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
         (checked_type.IsInt32x4Type() && (rep == kUnboxedInt32x4)) ||
         (checked_type.IsDoubleType() && (rep == kUnboxedDouble) &&
          FlowGraphCompiler::SupportsUnboxedDoubles()) ||
-        (checked_type.IsIntType() && (rep == kUnboxedMint))) {
+        (checked_type.IsIntType() && (rep == kUnboxedInt64))) {
       // Ensure that compile time type matches representation.
       ASSERT(((rep == kUnboxedFloat32x4) && (value_cid == kFloat32x4Cid)) ||
              ((rep == kUnboxedInt32x4) && (value_cid == kInt32x4Cid)) ||
              ((rep == kUnboxedDouble) && (value_cid == kDoubleCid)) ||
-             ((rep == kUnboxedMint) && (value_cid == kMintCid)));
+             ((rep == kUnboxedInt64) && (value_cid == kMintCid)));
       // The representation guarantees the type check to be true.
       SetValue(instr, Bool::True());
     } else {
@@ -906,11 +908,11 @@ void ConstantPropagator::VisitShiftUint32Op(ShiftUint32OpInstr* instr) {
   VisitBinaryIntegerOp(instr);
 }
 
-void ConstantPropagator::VisitBinaryMintOp(BinaryMintOpInstr* instr) {
+void ConstantPropagator::VisitBinaryInt64Op(BinaryInt64OpInstr* instr) {
   VisitBinaryIntegerOp(instr);
 }
 
-void ConstantPropagator::VisitShiftMintOp(ShiftMintOpInstr* instr) {
+void ConstantPropagator::VisitShiftInt64Op(ShiftInt64OpInstr* instr) {
   VisitBinaryIntegerOp(instr);
 }
 
@@ -938,7 +940,7 @@ void ConstantPropagator::VisitUnaryIntegerOp(UnaryIntegerOpInstr* unary_op) {
   SetValue(unary_op, non_constant_);
 }
 
-void ConstantPropagator::VisitUnaryMintOp(UnaryMintOpInstr* instr) {
+void ConstantPropagator::VisitUnaryInt64Op(UnaryInt64OpInstr* instr) {
   VisitUnaryIntegerOp(instr);
 }
 
@@ -1584,3 +1586,5 @@ void ConstantPropagator::Transform() {
 }
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

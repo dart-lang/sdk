@@ -135,13 +135,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
 
   @failingTest
   @fastaProblem
-  test_closure_generic() async {
-    // https://github.com/dart-lang/sdk/issues/30265
-    await super.test_closure_generic();
-  }
-
-  @failingTest
-  @fastaProblem
   test_const_invalid_field_const() async {
     // Fasta generates additional `#errors` top-level variable.
     await super.test_const_invalid_field_const();

@@ -209,6 +209,7 @@ static int Main(int argc, const char** argv) {
   }
 
   int arg_pos = 1;
+  bool start_kernel_isolate = false;
   if (strstr(argv[arg_pos], "--dfe") == argv[arg_pos]) {
     const char* delim = strstr(argv[1], "=");
     if (delim == NULL || strlen(delim + 1) == 0) {
@@ -220,6 +221,7 @@ static int Main(int argc, const char** argv) {
     // VM needs '--use-dart-frontend' option, which we will insert in place
     // of '--dfe' option.
     argv[arg_pos] = strdup("--use-dart-frontend");
+    start_kernel_isolate = true;
     ++arg_pos;
   }
 
@@ -244,7 +246,8 @@ static int Main(int argc, const char** argv) {
       NULL /* cleanup */, NULL /* thread_exit */,
       dart::bin::DartUtils::OpenFile, dart::bin::DartUtils::ReadFile,
       dart::bin::DartUtils::WriteFile, dart::bin::DartUtils::CloseFile,
-      NULL /* entropy_source */, NULL /* get_service_assets */);
+      NULL /* entropy_source */, NULL /* get_service_assets */,
+      start_kernel_isolate);
 
   ASSERT(err_msg == NULL);
   // Apply the filter to all registered tests.

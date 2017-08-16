@@ -116,7 +116,9 @@ main(List<String> args) {
     Compiler compiler1 = result.compiler;
 
     Compiler compiler2 = await compileWithDill(
-        entryPoint, {}, [Flags.analyzeOnly],
+        entryPoint: entryPoint,
+        memorySourceFiles: {},
+        options: [Flags.analyzeOnly],
         printSteps: true);
 
     ElementEnvironment env1 = compiler1.frontendStrategy.elementEnvironment;

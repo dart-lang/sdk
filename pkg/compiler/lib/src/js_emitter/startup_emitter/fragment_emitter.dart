@@ -1303,7 +1303,12 @@ class FragmentEmitter {
     /// deferred hunk.
     js.Expression initializeLoadedHunkFunction = js.js("""
             function(hash) {
-              initializeDeferredHunk($deferredGlobal[hash]);
+              var hunk = $deferredGlobal[hash];
+              if (hunk == null) {
+                throw "DeferredLoading state error: code with hash '" +
+                    hash + "' was not loaded";
+              }
+              initializeDeferredHunk(hunk);
               #deferredInitialized[hash] = true;
             }""", {
       'deferredInitialized': generateEmbeddedGlobalAccess(DEFERRED_INITIALIZED)

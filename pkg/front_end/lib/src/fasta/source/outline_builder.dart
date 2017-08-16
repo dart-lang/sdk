@@ -118,6 +118,12 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void endMetadataStar(int count, bool forParameter) {
+    debugEvent("MetadataStar");
+    push(popList(count) ?? NullValue.Metadata);
+  }
+
+  @override
   void endHide(Token hideKeyword) {
     debugEvent("Hide");
     List<String> names = pop();

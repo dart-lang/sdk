@@ -65,14 +65,19 @@ class HttpException implements Exception {
 }
 
 /// Reads the content of [uri] as text.
-Future<String> readUriAsText(HttpClient client, Uri uri) async {
+Future<String> readUriAsText(
+    HttpClient client, Uri uri, Duration timeout) async {
   HttpClientRequest request = await client.getUrl(uri);
   HttpClientResponse response = await request.close();
   if (response.statusCode != 200) {
     response.drain();
     throw new HttpException(uri, response.statusCode);
   }
-  return response.transform(UTF8.decoder).join();
+  if (timeout != null) {
+    return response.timeout(timeout).transform(UTF8.decoder).join();
+  } else {
+    return response.transform(UTF8.decoder).join();
+  }
 }
 
 ArgParser createArgParser() {

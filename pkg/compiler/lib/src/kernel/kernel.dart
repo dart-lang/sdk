@@ -176,6 +176,15 @@ class Kernel {
         // above gives them in reversed order.
         classes.forEach(libraryNode.addClass);
         members.forEach(libraryNode.addMember);
+        // TODO(sigmund): include combinators, etc.
+        library.imports.forEach((ImportElement import) {
+          libraryNode.addDependency(new ir.LibraryDependency.import(
+              libraryToIr(import.importedLibrary)));
+        });
+        library.exports.forEach((ExportElement export) {
+          libraryNode.addDependency(new ir.LibraryDependency.export(
+              libraryToIr(export.exportedLibrary)));
+        });
       });
       return libraryNode;
     });

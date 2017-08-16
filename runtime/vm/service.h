@@ -25,6 +25,7 @@ class GrowableObjectArray;
 class Instance;
 class Isolate;
 class JSONStream;
+class JSONObject;
 class Object;
 class RawInstance;
 class RawError;
@@ -100,6 +101,9 @@ class Service : public AllStatic {
                                            Dart_ServiceRequestCallback callback,
                                            void* user_data);
 
+  static void SetEmbedderInformationCallback(
+      Dart_EmbedderInformationCallback callback);
+
   static void SetEmbedderStreamCallbacks(
       Dart_ServiceStreamListenCallback listen_callback,
       Dart_ServiceStreamCancelCallback cancel_callback);
@@ -163,9 +167,13 @@ class Service : public AllStatic {
     return stream_cancel_callback_;
   }
 
+  static void PrintJSONForEmbedderInformation(JSONObject *jsobj);
   static void PrintJSONForVM(JSONStream* js, bool ref);
 
   static void CheckForPause(Isolate* isolate, JSONStream* stream);
+
+  static int64_t CurrentRSS();
+  static int64_t MaxRSS();
 
  private:
   static RawError* InvokeMethod(Isolate* isolate,
@@ -209,6 +217,7 @@ class Service : public AllStatic {
   static Dart_ServiceStreamListenCallback stream_listen_callback_;
   static Dart_ServiceStreamCancelCallback stream_cancel_callback_;
   static Dart_GetVMServiceAssetsArchive get_service_assets_callback_;
+  static Dart_EmbedderInformationCallback embedder_information_callback_;
 
   static bool needs_isolate_events_;
   static bool needs_debug_events_;

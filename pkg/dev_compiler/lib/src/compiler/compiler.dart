@@ -89,7 +89,6 @@ class ModuleCompiler {
     // Read the summaries.
     summaryData ??= new SummaryDataStore(options.summaryPaths,
         resourceProvider: resourceProvider,
-        recordDependencyInfo: true,
         // TODO(vsm): Reset this to true once we cleanup internal build rules.
         disallowOverlappingSummaries: false);
 

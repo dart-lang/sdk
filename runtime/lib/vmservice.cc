@@ -83,8 +83,8 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
     const Object& r =
         Object::Handle(DartEntry::InvokeFunction(register_function_, args));
     if (FLAG_trace_service) {
-      OS::Print("vm-service: Isolate %s %" Pd64 " registered.\n",
-                name.ToCString(), port_id);
+      OS::PrintErr("vm-service: Isolate %s %" Pd64 " registered.\n",
+                   name.ToCString(), port_id);
     }
     ASSERT(!r.IsError());
   }
@@ -135,7 +135,7 @@ DEFINE_NATIVE_ENTRY(VMService_SendObjectRootServiceMessage, 1) {
 
 DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
   if (FLAG_trace_service) {
-    OS::Print("vm-service: Booting dart:vmservice library.\n");
+    OS::PrintErr("vm-service: Booting dart:vmservice library.\n");
   }
   // Boot the dart:vmservice library.
   ServiceIsolate::BootVmServiceLibrary();
@@ -146,7 +146,7 @@ DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
   // Register running isolates with service.
   RegisterRunningIsolatesVisitor register_isolates(thread);
   if (FLAG_trace_service) {
-    OS::Print("vm-service: Registering running isolates.\n");
+    OS::PrintErr("vm-service: Registering running isolates.\n");
   }
   Isolate::VisitIsolates(&register_isolates);
 #endif
@@ -155,10 +155,10 @@ DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
 
 DEFINE_NATIVE_ENTRY(VMService_OnExit, 0) {
   if (FLAG_trace_service) {
-    OS::Print("vm-service: processed exit message.\n");
+    OS::PrintErr("vm-service: processed exit message.\n");
     MessageHandler* message_handler = isolate->message_handler();
-    OS::Print("vm-service: live ports = %" Pd "\n",
-              message_handler->live_ports());
+    OS::PrintErr("vm-service: live ports = %" Pd "\n",
+                 message_handler->live_ports());
   }
   return Object::null();
 }

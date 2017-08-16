@@ -29,7 +29,11 @@ class SampleProfileLoadingProgressMock
 typedef Stream<
     M
         .SampleProfileLoadingProgressEvent> ClassSampleProfileRepositoryMockCallback(
-    M.Isolate isolate, M.ClassRef cls, M.SampleProfileTag tag, bool clear);
+    M.Isolate isolate,
+    M.ClassRef cls,
+    M.SampleProfileTag tag,
+    bool clear,
+    bool forceFetch);
 typedef Future ClassSampleProfileRepositoryMockToggleCallback(
     M.Isolate isolate, M.ClassRef cls);
 
@@ -41,9 +45,9 @@ class ClassSampleProfileRepositoryMock
 
   Stream<M.SampleProfileLoadingProgressEvent> get(
       M.Isolate isolate, M.ClassRef cls, M.SampleProfileTag tag,
-      {bool clear: false}) {
+      {bool clear: false, bool forceFetch: false}) {
     if (_get != null) {
-      return _get(isolate, cls, tag, clear);
+      return _get(isolate, cls, tag, clear, forceFetch);
     }
     return null;
   }

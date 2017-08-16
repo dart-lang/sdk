@@ -52,6 +52,7 @@ abstract class ClassEntity extends Entity {
 }
 
 abstract class TypedefEntity extends Entity {
+  /// The library in which the typedef was declared.
   LibraryEntity get library;
 }
 

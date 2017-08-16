@@ -8,9 +8,9 @@ import 'package:front_end/compiler_options.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:front_end/summary_generator.dart';
 import 'package:kernel/ast.dart';
@@ -295,24 +295,63 @@ static field (core::String) → core::int f;
 
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
     Uri aUri = writeFile(aPath, r'''
+int getValue() {
+  return 1;
+}
+''');
+    Uri bUri = writeFile(bPath, r'''
 import 'dart:async';
+import 'a.dart';
 var a = 1;
 Future<String> b;
 ''');
 
-    KernelResult result = await driver.getKernel(aUri);
+    KernelResult result = await driver.getKernel(bUri);
 
     // The result does not include SDK libraries.
     _assertLibraryUris(result,
-        includes: [aUri],
+        includes: [bUri],
         excludes: [Uri.parse('dart:core'), Uri.parse('dart:core')]);
 
     // The types of top-level variables are resolved.
-    var library = _getLibrary(result, aUri);
+    var library = _getLibrary(result, bUri);
     expect(library.fields[0].type.toString(), 'dart.core::int');
     expect(library.fields[1].type.toString(),
         'dart.async::Future<dart.core::String>');
+
+    {
+      // Update a.dart and recompile.
+      writeFile(aPath, r'''
+int getValue() {
+  return 2;
+}
+''');
+      driver.invalidate(aUri);
+      var kernelResult = await driver.getKernel(bUri);
+      var allLibraries = kernelResult.results
+          .map((c) => c.kernelLibraries)
+          .expand((libs) => libs)
+          .toList();
+
+      // The result does not include SDK libraries.
+      _assertLibraryUris(result,
+          includes: [bUri],
+          excludes: [Uri.parse('dart:core'), Uri.parse('dart:core')]);
+
+      // The types of top-level variables are resolved.
+      var library = _getLibrary(result, bUri);
+      expect(library.fields[0].type.toString(), 'dart.core::int');
+      expect(library.fields[1].type.toString(),
+          'dart.async::Future<dart.core::String>');
+
+      // We should be able to serialize the libraries without SDK.
+      var program =
+          new Program(nameRoot: kernelResult.nameRoot, libraries: allLibraries);
+      serializeProgram(program,
+          filter: (library) => !library.importUri.isScheme('dart'));
+    }
   }
 
   test_limitedStore_exportDependencies() async {

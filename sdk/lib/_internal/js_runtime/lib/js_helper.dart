@@ -3647,6 +3647,9 @@ LoadLibraryFunctionType _loadLibraryWrapper(String loadId) {
 final Map<String, Future<Null>> _loadingLibraries = <String, Future<Null>>{};
 final Set<String> _loadedLibraries = new Set<String>();
 
+/// Events used to diagnose failures from deferred loading requests.
+final List<String> _eventLog = <String>[];
+
 typedef void DeferredLoadCallback();
 
 // Function that will be called every time a new deferred import is loaded.
@@ -3674,15 +3677,30 @@ Future<Null> loadDeferredLibrary(String loadId) {
     // Now all hunks have been loaded, we run the needed initializers.
     var isHunkInitialized = JS_EMBEDDED_GLOBAL('', IS_HUNK_INITIALIZED);
     var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK);
-    for (String hash in hashes) {
+    for (int i = 0; i < hashes.length; ++i) {
       // It is possible for a hash to be repeated. This happens when two
       // different parts both end up empty. Checking in the loop rather than
       // pre-filtering prevents duplicate hashes leading to duplicated
       // initializations.
       // TODO(29572): Merge small parts.
       // TODO(29635): Remove duplicate parts from tables and output files.
-      if (JS('bool', '#(#)', isHunkInitialized, hash)) continue;
-      JS('void', '#(#)', initializer, hash);
+      var uri = uris[i];
+      var hash = hashes[i];
+      if (JS('bool', '#(#)', isHunkInitialized, hash)) {
+        _eventLog.add(' - already initialized: $uri ($hash)');
+        continue;
+      }
+      // On strange scenarios, e.g. if js encounters parse errors, we might get
+      // an "success" callback on the script load but the hunk will be null.
+      if (JS('bool', '#(#)', isHunkLoaded, hash)) {
+        _eventLog.add(' - initialize: $uri ($hash)');
+        JS('void', '#(#)', initializer, hash);
+      } else {
+        _eventLog.add(' - missing hunk: $uri ($hash)');
+        throw new DeferredLoadException("Loading ${uris[i]} failed: "
+            "the code with hash '${hash}' was not loaded.\n"
+            "event log:\n${_eventLog.join("\n")}\n");
+      }
     }
     bool updated = _loadedLibraries.add(loadId);
     if (updated && deferredLoadHook != null) {
@@ -3693,7 +3711,9 @@ Future<Null> loadDeferredLibrary(String loadId) {
 
 Future<Null> _loadHunk(String hunkName) {
   Future<Null> future = _loadingLibraries[hunkName];
+  _eventLog.add(' - _loadHunk: $hunkName');
   if (future != null) {
+    _eventLog.add('reuse: $hunkName');
     return future.then((_) => null);
   }
 
@@ -3701,23 +3721,29 @@ Future<Null> _loadHunk(String hunkName) {
 
   int index = uri.lastIndexOf('/');
   uri = '${uri.substring(0, index + 1)}$hunkName';
+  _eventLog.add(' - download: $hunkName from $uri');
 
   var deferredLibraryLoader = JS('', 'self.dartDeferredLibraryLoader');
   Completer<Null> completer = new Completer<Null>();
 
   void success() {
+    _eventLog.add(' - download success: $hunkName');
     completer.complete(null);
   }
 
-  void failure([error, StackTrace stackTrace]) {
+  void failure(error, String context, StackTrace stackTrace) {
+    _eventLog.add(' - download failed: $hunkName (context: $context)');
     _loadingLibraries[hunkName] = null;
-    completer.completeError(
-        new DeferredLoadException('Loading $uri failed: $error'), stackTrace);
+    stackTrace ??= StackTrace.current;
+    completer.completeError(new DeferredLoadException(
+          'Loading $uri failed: $error\n'
+          'event log:\n${_eventLog.join("\n")}\n'), stackTrace);
   }
 
   var jsSuccess = convertDartClosureToJS(success, 0);
   var jsFailure = convertDartClosureToJS((error) {
-    failure(unwrapException(error), getTraceFromException(error));
+    failure(unwrapException(error), 'js-failure-wrapper',
+        getTraceFromException(error));
   }, 1);
 
   if (JS('bool', 'typeof # === "function"', deferredLibraryLoader)) {
@@ -3725,7 +3751,7 @@ Future<Null> _loadHunk(String hunkName) {
       JS('void', '#(#, #, #)', deferredLibraryLoader, uri, jsSuccess,
           jsFailure);
     } catch (error, stackTrace) {
-      failure(error, stackTrace);
+      failure(error, "invoking dartDeferredLibraryLoader hook", stackTrace);
     }
   } else if (isWorker()) {
     // We are in a web worker. Load the code with an XMLHttpRequest.
@@ -3745,7 +3771,7 @@ Future<Null> _loadHunk(String hunkName) {
         convertDartClosureToJS((event) {
           int status = JS('int', '#.status', xhr);
           if (status != 200) {
-            failure('Request status: $status');
+            failure('Request status: $status', 'worker xhr', null);
           }
           String code = JS('String', '#.responseText', xhr);
           try {
@@ -3754,12 +3780,16 @@ Future<Null> _loadHunk(String hunkName) {
             JS('void', '(new Function(#))()', code);
             success();
           } catch (error, stackTrace) {
-            failure(error, stackTrace);
+            failure(error, 'evaluating the code in worker xhr', stackTrace);
           }
         }, 1));
 
-    JS('void', '#.addEventListener("error", #, false)', xhr, failure);
-    JS('void', '#.addEventListener("abort", #, false)', xhr, failure);
+    JS('void', '#.addEventListener("error", #, false)', xhr, (e) {
+      failure(e, 'xhr error handler', null);
+    });
+    JS('void', '#.addEventListener("abort", #, false)', xhr, (e) {
+      failure(e, 'xhr abort handler', null);
+    });
     JS('void', '#.send()', xhr);
   } else {
     // We are in a dom-context.

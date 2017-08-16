@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/locations.h"
 
 #include "vm/assembler.h"
@@ -259,7 +261,7 @@ Location Location::RemapForSlowPath(Definition* def,
         UNREACHABLE();
     }
   } else if (IsPairLocation()) {
-    ASSERT(def->representation() == kUnboxedMint);
+    ASSERT(def->representation() == kUnboxedInt64);
     PairLocation* value_pair = AsPairLocation();
     intptr_t index_lo;
     intptr_t index_hi;
@@ -347,3 +349,5 @@ void LocationSummary::CheckWritableInputs() {
 #endif
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

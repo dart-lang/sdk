@@ -2,9 +2,15 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("gypi_contents.gni")
-import("../runtime_args.gni")
 import("../../build/compiled_action.gni")
+import("../../sdk/lib/io/io_sources.gni")
+import("../runtime_args.gni")
+import("../vm/vm_sources.gni")
+import("builtin_impl_sources.gni")
+import("builtin_sources.gni")
+import("io_impl_sources.gni")
+import("io_sources.gni")
+import("vmservice/vmservice_sources.gni")
 
 declare_args() {
   # Controls the kind of core snapshot linked into the standalone VM. Using a
@@ -23,7 +29,7 @@ action("gen_resources_cc") {
 
   # The path below is hard coded for the Mojo and Flutter trees. When moving
   # the Dart runtime to gn, this path might need to be updated.
-  sources = rebase_path(resources_sources_gypi, "", "../bin/vmservice/")
+  sources = rebase_path(vmservice_sources, "", "../bin/vmservice/")
   outputs = [
     "$target_gen_dir/resources_gen.cc",
   ]
@@ -78,29 +84,23 @@ template("gen_library_src_path") {
 gen_library_src_path("generate_builtin_cc_file") {
   name = "_builtin"
   kind = "source"
-  sources = builtin_sources_gypi
+  sources = builtin_sources
   output = "$target_gen_dir/builtin_gen.cc"
 }
 
-sdk_io_sources_gypi =
-    exec_script("../../tools/gypi_to_gn.py",
-                [ rebase_path("../../sdk/lib/io/io_sources.gypi") ],
-                "scope",
-                [ "../../sdk/lib/io/io_sources.gypi" ])
-sdk_io_sources =
-    rebase_path(sdk_io_sources_gypi.sources, ".", "../../sdk/lib/io")
+rebased_io_sdk_sources = rebase_path(io_sdk_sources, ".", "../../sdk/lib/io")
 
 gen_library_src_path("generate_io_cc_file") {
   name = "io"
   kind = "source"
-  sources = [ "../../sdk/lib/io/io.dart" ] + sdk_io_sources
+  sources = [ "../../sdk/lib/io/io.dart" ] + rebased_io_sdk_sources
   output = "$target_gen_dir/io_gen.cc"
 }
 
 gen_library_src_path("generate_io_patch_cc_file") {
   name = "io"
   kind = "patch"
-  sources = io_sources_gypi
+  sources = io_runtime_sources
   output = "$target_gen_dir/io_patch_gen.cc"
 }
 
@@ -271,7 +271,7 @@ template("build_libdart_builtin") {
                 "log_linux.cc",
                 "log_macos.cc",
                 "log_win.cc",
-              ] + builtin_impl_sources_gypi
+              ] + builtin_impl_sources
   }
 }
 
@@ -316,6 +316,8 @@ template("build_gen_snapshot") {
       "address_sanitizer.cc",
       "builtin.cc",
       "builtin.h",
+      "gzip.cc",
+      "gzip.h",
       "loader.cc",
       "loader.h",
 
@@ -329,7 +331,10 @@ template("build_gen_snapshot") {
       "vmservice_impl.h",
     ]
 
-    include_dirs = [ ".." ]
+    include_dirs = [
+      "..",
+      "//third_party",
+    ]
 
     if (dart_use_tcmalloc) {
       deps += [ "//third_party/tcmalloc" ]
@@ -414,7 +419,7 @@ template("build_gen_snapshot_dart_io") {
 
     defines = [ "DART_IO_SECURE_SOCKET_DISABLED" ]
 
-    sources = io_impl_sources_gypi + builtin_impl_sources_gypi
+    sources = io_impl_sources + builtin_impl_sources
     sources += [
       "io_natives.cc",
       "io_natives.h",
@@ -486,7 +491,7 @@ template("dart_io") {
       libs = [ "launchpad" ]
     }
 
-    sources = io_impl_sources_gypi + builtin_impl_sources_gypi
+    sources = io_impl_sources + builtin_impl_sources
     sources += [
                  "builtin_natives.cc",
                  "io_natives.cc",
@@ -760,6 +765,8 @@ dart_executable("dart") {
     "dfe.h",
     "loader.cc",
     "loader.h",
+    "gzip.cc",
+    "gzip.h",
     "$target_gen_dir/resources_gen.cc",
   ]
   if (dart_runtime_mode == "release") {
@@ -778,6 +785,8 @@ dart_executable("dart_precompiled_runtime") {
     "snapshot_empty.cc",
     "loader.cc",
     "loader.h",
+    "gzip.cc",
+    "gzip.h",
   ]
   if (dart_runtime_mode == "release") {
     extra_sources += [ "observatory_assets_empty.cc" ]
@@ -816,6 +825,8 @@ dart_executable("dart_bootstrap") {
     "dfe.h",
     "loader.cc",
     "loader.h",
+    "gzip.cc",
+    "gzip.h",
     "observatory_assets_empty.cc",
     "snapshot_empty.cc",
 
@@ -881,6 +892,21 @@ if (is_fuchsia) {
     ]
     output_name = "hello_fuchsia"
   }
+
+  # Uncomment after https://fuchsia-review.googlesource.com/#/c/build/+/37541/
+  # lands.
+  # copy("copy_hello_fuchsia_dylib") {
+  #   sources = [
+  #     get_label_info(":hello_fuchsia_lib($shlib_toolchain)", "root_out_dir") +
+  #         "/libhello_fuchsia.so",
+  #   ]
+  #   outputs = [
+  #     "$root_build_dir/{{source_file_part}}",
+  #   ]
+  #   deps = [
+  #     ":hello_fuchsia_dylib($shlib_toolchain)",
+  #   ]
+  # }
 }
 
 executable("process_test") {
@@ -955,7 +981,7 @@ executable("run_vm_tests") {
 
   # The VM sources are already included in libdart, so we just want to add in
   # the tests here.
-  vm_tests = rebase_path(vm_tests_list, ".", "../vm")
+  vm_tests = rebase_path(vm_sources_tests, ".", "../vm")
 
   sources = [
               "error_exit.cc",
@@ -966,7 +992,7 @@ executable("run_vm_tests") {
               "run_vm_tests.cc",
               "dfe.cc",
               "dfe.h",
-            ] + builtin_impl_tests_list + vm_tests
+            ] + builtin_impl_tests + vm_tests
 
   if (!is_win) {
     ldflags = [ "-rdynamic" ]

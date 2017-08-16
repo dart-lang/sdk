@@ -9,8 +9,8 @@ library analyzer.src.summary.format;
 
 import 'dart:convert' as convert;
 
-import 'package:front_end/src/base/api_signature.dart' as api_sig;
-import 'package:front_end/src/base/flat_buffers.dart' as fb;
+import 'package:analyzer/src/summary/api_signature.dart' as api_sig;
+import 'package:analyzer/src/summary/flat_buffers.dart' as fb;
 
 import 'idl.dart' as idl;
 

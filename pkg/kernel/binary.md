@@ -77,7 +77,7 @@ type Source {
   List<Byte> utf8Bytes;
   // Line starts are delta-encoded (they are encoded as line lengths).  The list
   // [0, 10, 25, 32, 42] is encoded as [0, 10, 15, 7, 10].
-  List<Uint> lineStarts;
+  List<UInt> lineStarts;
 }
 
 type UriSource {
@@ -182,6 +182,8 @@ type Library {
   UriReference fileUri;
   List<Expression> annotations;
   List<LibraryDependency> libraryDependencies;
+  List<LibraryPart> libraryParts;
+  List<Typedef> typedefs;
   List<Class> classes;
   List<Field> fields;
   List<Procedure> procedures;
@@ -195,9 +197,23 @@ type LibraryDependency {
   List<Combinator> combinators;
 }
 
+type LibraryPart {
+  List<Expression> annotations;
+  UriReference fileUri;
+}
+
+type Typedef {
+  CanonicalNameReference canonicalName;
+  FileOffset fileOffset;
+  StringReference name;
+  UriReference fileUri;
+  List<TypeParameter> typeParameters;
+  DartType type;
+}
+
 type Combinator {
   Byte flags (isShow);
-  List<String> names;
+  List<StringReference> names;
 }
 
 type LibraryDependencyReference {
@@ -219,7 +235,7 @@ enum ClassLevel { Type = 0, Hierarchy = 1, Mixin = 2, Body = 3, }
 //
 // See ClassLevel in ast.dart for the details of each loading level.
 
-abstract type Class extends Node {
+type Class extends Node {
   Byte tag = 2;
   CanonicalNameReference canonicalName;
   FileOffset fileOffset;
@@ -228,11 +244,12 @@ abstract type Class extends Node {
   StringReference name;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;
+  StringReference documentationComment;
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
-  Option<InterfaceType> superClass;
-  Option<InterfaceType> mixedInType;
-  List<InterfaceType> implementedClasses;
+  Option<DartType> superClass;
+  Option<DartType> mixedInType;
+  List<DartType> implementedClasses;
   List<Field> fields;
   List<Constructor> constructors;
   List<Procedure> procedures;
@@ -246,12 +263,10 @@ type Field extends Member {
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte flags (isFinal, isConst, isStatic);
-  // Byte offset in the binary for the parent class,
-  // or 0 if parent is not a class
-  UInt parentPosition;
   Name name;
   // An absolute path URI to the .dart file from which the field was created.
   UriReference fileUri;
+  StringReference documentationComment;
   List<Expression> annotations;
   DartType type;
   Option<Expression> initializer;
@@ -263,8 +278,8 @@ type Constructor extends Member {
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte flags (isConst, isExternal);
-  UInt parentPosition; // Byte offset in the binary for the parent class.
   Name name;
+  StringReference documentationComment;
   List<Expression> annotations;
   FunctionNode function;
   List<Initializer> initializers;
@@ -287,12 +302,10 @@ type Procedure extends Member {
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
   Byte flags (isStatic, isAbstract, isExternal, isConst);
-  // Byte offset in the binary for the parent class,
-  // or 0 if parent is not a class.
-  UInt parentPosition;
   Name name;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;
+  StringReference documentationComment;
   List<Expression> annotations;
   // Can only be absent if abstract, but tag is there anyway.
   Option<FunctionNode> function;
@@ -302,28 +315,33 @@ abstract type Initializer extends Node {}
 
 type InvalidInitializer extends Initializer {
   Byte tag = 7;
+  Byte isSynthetic;
 }
 
 type FieldInitializer extends Initializer {
   Byte tag = 8;
+  Byte isSynthetic;
   FieldReference field;
   Expression value;
 }
 
 type SuperInitializer extends Initializer {
   Byte tag = 9;
+  Byte isSynthetic;
   ConstructorReference target;
   Arguments arguments;
 }
 
 type RedirectingInitializer extends Initializer {
   Byte tag = 10;
+  Byte isSynthetic;
   ConstructorReference target;
   Arguments arguments;
 }
 
 type LocalInitializer extends Initializer {
   Byte tag = 11;
+  Byte isSynthetic;
   VariableDeclaration variable;
 }
 
@@ -387,6 +405,7 @@ type VariableGet extends Expression {
   // Byte offset in the binary for the variable declaration (without tag).
   UInt variableDeclarationPosition;
   VariableReference variable;
+  Option<DartType> promotedType;
 }
 
 type SpecializedVariableGet extends Expression {
@@ -554,7 +573,6 @@ type LogicalExpression extends Expression {
   Expression left;
   Byte operator; // Index into LogicalOperator enum above
   Expression right;
-  Option<DartType> staticType;
 }
 
 type ConditionalExpression extends Expression {
@@ -676,6 +694,7 @@ type MapLiteral extends Expression {
 
 type ConstMapLiteral extends Expression {
   Byte tag = 59; // Note: tag is out of order.
+  FileOffset fileOffset;
   DartType keyType;
   DartType valueType;
   List<MapEntry> entries;
@@ -694,6 +713,7 @@ type AwaitExpression extends Expression {
 
 type FunctionExpression extends Expression {
   Byte tag = 52;
+  FileOffset fileOffset;
   FunctionNode function;
 }
 
@@ -974,12 +994,15 @@ type FunctionType extends DartType {
   UInt totalParameterCount;
   List<DartType> positionalParameters;
   List<NamedDartType> namedParameters;
+  List<StringReference> positionalParameterNames;
+  CanonicalNameReference typedefReference;
   DartType returnType;
 }
 
 type SimpleFunctionType extends DartType {
   Byte tag = 97; // Note: tag is out of order.
   List<DartType> positionalParameters;
+  List<StringReference> positionalParameterNames;
   DartType returnType;
   // Equivalent to a FunctionType with no type parameters or named parameters,
   // and where all positional parameters are required.

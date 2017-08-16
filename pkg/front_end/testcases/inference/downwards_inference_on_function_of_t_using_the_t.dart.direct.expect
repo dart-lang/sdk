@@ -4,13 +4,13 @@ import "dart:core" as core;
 
 static method main() → void {
   {
-    function f<T extends core::Object>(invalid-type x) → invalid-type
+    function f<T extends core::Object>(T x) → T
       return null;
     dynamic v1 = f;
     v1 = <S extends core::Object>(dynamic x) → dynamic => x;
   }
   {
-    function f<T extends core::Object>(invalid-type x) → core::List<invalid-type>
+    function f<T extends core::Object>(T x) → core::List<T>
       return null;
     dynamic v2 = f;
     v2 = <S extends core::Object>(dynamic x) → dynamic => <dynamic>[x];

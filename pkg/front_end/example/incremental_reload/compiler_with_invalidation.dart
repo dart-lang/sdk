@@ -16,22 +16,22 @@ import 'package:front_end/src/byte_store/file_byte_store.dart';
 import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
+import 'package:kernel/target/targets.dart';
 
 /// Create an instance of an [IncrementalCompiler] to compile a program whose
 /// main entry point file is [entry]. This uses some default options
 /// for the location of the sdk and temporary folder to save intermediate
 /// results.
-// TODO(sigmund): make this example work outside of the SDK repo.
 Future<IncrementalCompiler> createIncrementalCompiler(String entry,
-    {bool persistent: true}) {
+    {bool persistent: true, Uri sdkRoot, Target target}) {
   var entryUri = Uri.base.resolve(entry);
   var dartVm = Uri.base.resolve(Platform.resolvedExecutable);
-  var sdkRoot = dartVm.resolve("patched_sdk/");
   var tmpDir = Directory.systemTemp.createTempSync('ikg_cache');
   var options = new CompilerOptions()
-    ..sdkRoot = sdkRoot
+    ..sdkRoot = sdkRoot ?? dartVm.resolve("patched_sdk/")
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..strongMode = false
+    ..target = target
     // Note: we do not report error on the console because the incremental
     // compiler is an ongoing background service that shouldn't polute stdout.
     // TODO(sigmund): do something with the errors.
@@ -107,6 +107,7 @@ class IncrementalCompiler {
 
     var compileTimer = new Stopwatch()..start();
     var delta = await _generator.computeDelta();
+    _generator.acceptLastDelta();
     compileTimer.stop();
     compileTime = compileTimer.elapsedMilliseconds;
     var program = delta.newProgram;

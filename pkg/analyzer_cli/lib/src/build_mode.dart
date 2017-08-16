@@ -36,11 +36,12 @@ import 'package:front_end/src/byte_store/byte_store.dart';
  * Persistent Bazel worker.
  */
 class AnalyzerWorkerLoop extends AsyncWorkerLoop {
+  final ResourceProvider resourceProvider;
+  final PerformanceLog logger = new PerformanceLog(null);
+  final String dartSdkPath;
+
   final StringBuffer errorBuffer = new StringBuffer();
   final StringBuffer outBuffer = new StringBuffer();
-
-  final ResourceProvider resourceProvider;
-  final String dartSdkPath;
 
   AnalyzerWorkerLoop(this.resourceProvider, AsyncWorkerConnection connection,
       {this.dartSdkPath})
@@ -58,8 +59,9 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
    * Performs analysis with given [options].
    */
   Future<Null> analyze(CommandLineOptions options) async {
-    var buildMode =
-        new BuildMode(resourceProvider, options, new AnalysisStats());
+    var buildMode = new BuildMode(
+        resourceProvider, options, new AnalysisStats(),
+        logger: logger);
     await buildMode.analyze();
     AnalysisEngine.instance.clearCaches();
   }
@@ -69,34 +71,36 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
    */
   @override
   Future<WorkResponse> performRequest(WorkRequest request) async {
-    errorBuffer.clear();
-    outBuffer.clear();
-    try {
-      // Add in the dart-sdk argument if `dartSdkPath` is not null, otherwise it
-      // will try to find the currently installed sdk.
-      var arguments = new List<String>.from(request.arguments);
-      if (dartSdkPath != null &&
-          !arguments.any((arg) => arg.startsWith('--dart-sdk'))) {
-        arguments.add('--dart-sdk=$dartSdkPath');
+    return logger.run('Perform request', () async {
+      errorBuffer.clear();
+      outBuffer.clear();
+      try {
+        // Add in the dart-sdk argument if `dartSdkPath` is not null,
+        // otherwise it will try to find the currently installed sdk.
+        var arguments = request.arguments.toList();
+        if (dartSdkPath != null &&
+            !arguments.any((arg) => arg.startsWith('--dart-sdk'))) {
+          arguments.add('--dart-sdk=$dartSdkPath');
+        }
+        // Prepare options.
+        CommandLineOptions options =
+            CommandLineOptions.parse(arguments, printAndFail: (String msg) {
+          throw new ArgumentError(msg);
+        });
+        // Analyze and respond.
+        await analyze(options);
+        String msg = _getErrorOutputBuffersText();
+        return new WorkResponse()
+          ..exitCode = EXIT_CODE_OK
+          ..output = msg;
+      } catch (e, st) {
+        String msg = _getErrorOutputBuffersText();
+        msg += '$e\n$st';
+        return new WorkResponse()
+          ..exitCode = EXIT_CODE_ERROR
+          ..output = msg;
       }
-      // Prepare options.
-      CommandLineOptions options =
-          CommandLineOptions.parse(arguments, printAndFail: (String msg) {
-        throw new ArgumentError(msg);
-      });
-      // Analyze and respond.
-      await analyze(options);
-      String msg = _getErrorOutputBuffersText();
-      return new WorkResponse()
-        ..exitCode = EXIT_CODE_OK
-        ..output = msg;
-    } catch (e, st) {
-      String msg = _getErrorOutputBuffersText();
-      msg += '$e\n$st';
-      return new WorkResponse()
-        ..exitCode = EXIT_CODE_ERROR
-        ..output = msg;
-    }
+    });
   }
 
   /**
@@ -131,19 +135,23 @@ class BuildMode {
   final ResourceProvider resourceProvider;
   final CommandLineOptions options;
   final AnalysisStats stats;
+  final PerformanceLog logger;
 
   SummaryDataStore summaryDataStore;
   AnalysisOptions analysisOptions;
-  AnalysisDriver analysisDriver;
   Map<Uri, File> uriToFileMap;
   final List<Source> explicitSources = <Source>[];
   final List<PackageBundle> unlinkedBundles = <PackageBundle>[];
+
+  AnalysisDriver analysisDriver;
 
   PackageBundleAssembler assembler;
   final Set<Source> processedSources = new Set<Source>();
   final Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
 
-  BuildMode(this.resourceProvider, this.options, this.stats);
+  BuildMode(this.resourceProvider, this.options, this.stats,
+      {PerformanceLog logger})
+      : logger = logger ?? new PerformanceLog(null);
 
   bool get _shouldOutputSummary =>
       options.buildSummaryOutput != null ||
@@ -153,91 +161,100 @@ class BuildMode {
    * Perform package analysis according to the given [options].
    */
   Future<ErrorSeverity> analyze() async {
-    // Write initial progress message.
-    if (!options.machineFormat) {
-      outSink.writeln("Analyzing ${options.sourceFiles.join(', ')}...");
-    }
+    return await logger.runAsync('Analyze', () async {
+      // Write initial progress message.
+      if (!options.machineFormat) {
+        outSink.writeln("Analyzing ${options.sourceFiles.join(', ')}...");
+      }
 
-    // Create the URI to file map.
-    uriToFileMap = _createUriToFileMap(options.sourceFiles);
-    if (uriToFileMap == null) {
-      io.exitCode = ErrorSeverity.ERROR.ordinal;
-      return ErrorSeverity.ERROR;
-    }
-
-    // BuildMode expects sourceFiles in the format "<uri>|<filepath>",
-    // but the rest of the code base does not understand this format.
-    // Rewrite sourceFiles, stripping the "<uri>|" prefix, so that it
-    // does not cause problems with code that does not expect this format.
-    options.rewriteSourceFiles(options.sourceFiles
-        .map((String uriPipePath) =>
-            uriPipePath.substring(uriPipePath.indexOf('|') + 1))
-        .toList());
-
-    // Prepare the analysis driver.
-    try {
-      _createAnalysisDriver();
-    } on ConflictingSummaryException catch (e) {
-      errorSink.writeln('$e');
-      io.exitCode = ErrorSeverity.ERROR.ordinal;
-      return ErrorSeverity.ERROR;
-    }
-
-    // Add sources.
-    for (Uri uri in uriToFileMap.keys) {
-      File file = uriToFileMap[uri];
-      if (!file.exists) {
-        errorSink.writeln('File not found: ${file.path}');
+      // Create the URI to file map.
+      uriToFileMap = _createUriToFileMap(options.sourceFiles);
+      if (uriToFileMap == null) {
         io.exitCode = ErrorSeverity.ERROR.ordinal;
         return ErrorSeverity.ERROR;
       }
-      Source source = new FileSource(file, uri);
-      explicitSources.add(source);
-    }
 
-    // Write summary.
-    assembler = new PackageBundleAssembler();
-    if (_shouldOutputSummary) {
-      // Prepare all unlinked units.
-      for (var src in explicitSources) {
-        await _prepareUnlinkedUnit('${src.uri}');
+      // BuildMode expects sourceFiles in the format "<uri>|<filepath>",
+      // but the rest of the code base does not understand this format.
+      // Rewrite sourceFiles, stripping the "<uri>|" prefix, so that it
+      // does not cause problems with code that does not expect this format.
+      options.rewriteSourceFiles(options.sourceFiles
+          .map((String uriPipePath) =>
+              uriPipePath.substring(uriPipePath.indexOf('|') + 1))
+          .toList());
+
+      // Prepare the analysis driver.
+      try {
+        logger.run('Prepare analysis driver', () {
+          _createAnalysisDriver();
+        });
+      } on ConflictingSummaryException catch (e) {
+        errorSink.writeln('$e');
+        io.exitCode = ErrorSeverity.ERROR.ordinal;
+        return ErrorSeverity.ERROR;
       }
 
-      // Build and assemble linked libraries.
-      if (!options.buildSummaryOnlyUnlinked) {
-        // Prepare URIs of unlinked units that should be linked.
-        var unlinkedUris = new Set<String>();
-        for (var bundle in unlinkedBundles) {
-          unlinkedUris.addAll(bundle.unlinkedUnitUris);
+      // Add sources.
+      for (Uri uri in uriToFileMap.keys) {
+        File file = uriToFileMap[uri];
+        if (!file.exists) {
+          errorSink.writeln('File not found: ${file.path}');
+          io.exitCode = ErrorSeverity.ERROR.ordinal;
+          return ErrorSeverity.ERROR;
         }
-        for (var src in explicitSources) {
-          unlinkedUris.add('${src.uri}');
-        }
-        // Perform linking.
-        _computeLinkedLibraries(unlinkedUris);
-        assembler.recordDependencies(summaryDataStore);
+        Source source = new FileSource(file, uri);
+        explicitSources.add(source);
       }
 
-      // Write the whole package bundle.
-      PackageBundleBuilder bundle = assembler.assemble();
-      if (options.buildSummaryOutput != null) {
-        io.File file = new io.File(options.buildSummaryOutput);
-        file.writeAsBytesSync(bundle.toBuffer(), mode: io.FileMode.WRITE_ONLY);
-      }
-      if (options.buildSummaryOutputSemantic != null) {
-        bundle.flushInformative();
-        io.File file = new io.File(options.buildSummaryOutputSemantic);
-        file.writeAsBytesSync(bundle.toBuffer(), mode: io.FileMode.WRITE_ONLY);
-      }
-    }
+      // Write summary.
+      assembler = new PackageBundleAssembler();
+      if (_shouldOutputSummary) {
+        await logger.runAsync('Build and write output summary', () async {
+          // Prepare all unlinked units.
+          await logger.runAsync('Prepare unlinked units', () async {
+            for (var src in explicitSources) {
+              await _prepareUnlinkedUnit('${src.uri}');
+            }
+          });
 
-    if (options.buildSummaryOnly) {
-      return ErrorSeverity.NONE;
-    } else {
-      // Process errors.
-      await _printErrors(outputPath: options.buildAnalysisOutput);
-      return await _computeMaxSeverity();
-    }
+          // Build and assemble linked libraries.
+          if (!options.buildSummaryOnlyUnlinked) {
+            // Prepare URIs of unlinked units that should be linked.
+            var unlinkedUris = new Set<String>();
+            for (var bundle in unlinkedBundles) {
+              unlinkedUris.addAll(bundle.unlinkedUnitUris);
+            }
+            for (var src in explicitSources) {
+              unlinkedUris.add('${src.uri}');
+            }
+            // Perform linking.
+            _computeLinkedLibraries(unlinkedUris);
+          }
+
+          // Write the whole package bundle.
+          PackageBundleBuilder bundle = assembler.assemble();
+          if (options.buildSummaryOutput != null) {
+            io.File file = new io.File(options.buildSummaryOutput);
+            file.writeAsBytesSync(bundle.toBuffer(),
+                mode: io.FileMode.WRITE_ONLY);
+          }
+          if (options.buildSummaryOutputSemantic != null) {
+            bundle.flushInformative();
+            io.File file = new io.File(options.buildSummaryOutputSemantic);
+            file.writeAsBytesSync(bundle.toBuffer(),
+                mode: io.FileMode.WRITE_ONLY);
+          }
+        });
+      }
+
+      if (options.buildSummaryOnly) {
+        return ErrorSeverity.NONE;
+      } else {
+        // Process errors.
+        await _printErrors(outputPath: options.buildAnalysisOutput);
+        return await _computeMaxSeverity();
+      }
+    });
   }
 
   /**
@@ -246,19 +263,21 @@ class BuildMode {
    * add them to  the [assembler].
    */
   void _computeLinkedLibraries(Set<String> libraryUris) {
-    LinkedLibrary getDependency(String absoluteUri) =>
-        summaryDataStore.linkedMap[absoluteUri];
+    logger.run('Link output summary', () {
+      LinkedLibrary getDependency(String absoluteUri) =>
+          summaryDataStore.linkedMap[absoluteUri];
 
-    UnlinkedUnit getUnit(String absoluteUri) =>
-        summaryDataStore.unlinkedMap[absoluteUri] ?? uriToUnit[absoluteUri];
+      UnlinkedUnit getUnit(String absoluteUri) =>
+          summaryDataStore.unlinkedMap[absoluteUri] ?? uriToUnit[absoluteUri];
 
-    Map<String, LinkedLibraryBuilder> linkResult = link(
-        libraryUris,
-        getDependency,
-        getUnit,
-        analysisDriver.declaredVariables.get,
-        options.strongMode);
-    linkResult.forEach(assembler.addLinkedLibrary);
+      Map<String, LinkedLibraryBuilder> linkResult = link(
+          libraryUris,
+          getDependency,
+          getUnit,
+          analysisDriver.declaredVariables.get,
+          options.strongMode);
+      linkResult.forEach(assembler.addLinkedLibrary);
+    });
   }
 
   Future<ErrorSeverity> _computeMaxSeverity() async {
@@ -280,8 +299,7 @@ class BuildMode {
 
   void _createAnalysisDriver() {
     // Read the summaries.
-    summaryDataStore = new SummaryDataStore(<String>[],
-        recordDependencyInfo: _shouldOutputSummary);
+    summaryDataStore = new SummaryDataStore(<String>[]);
 
     // Adds a bundle at `path` to `summaryDataStore`.
     PackageBundle addBundle(String path) {
@@ -291,48 +309,56 @@ class BuildMode {
       return bundle;
     }
 
-    for (var path in options.buildSummaryInputs) {
-      var bundle = addBundle(path);
-      if (bundle.linkedLibraryUris.isEmpty &&
-          bundle.unlinkedUnitUris.isNotEmpty) {
-        throw new ArgumentError(
-            'Got an unlinked summary for --build-summary-input at `$path`. '
-            'Unlinked summaries should be provided with the '
-            '--build-summary-unlinked-input argument.');
+    int numInputs = options.buildSummaryInputs.length +
+        options.buildSummaryUnlinkedInputs.length;
+    logger.run('Add $numInputs input summaries', () {
+      for (var path in options.buildSummaryInputs) {
+        var bundle = addBundle(path);
+        if (bundle.linkedLibraryUris.isEmpty &&
+            bundle.unlinkedUnitUris.isNotEmpty) {
+          throw new ArgumentError(
+              'Got an unlinked summary for --build-summary-input at `$path`. '
+              'Unlinked summaries should be provided with the '
+              '--build-summary-unlinked-input argument.');
+        }
       }
-    }
 
-    for (var path in options.buildSummaryUnlinkedInputs) {
-      var bundle = addBundle(path);
-      unlinkedBundles.add(bundle);
-      if (bundle.linkedLibraryUris.isNotEmpty) {
-        throw new ArgumentError(
-            'Got a linked summary for --build-summary-input-unlinked at `$path`'
-            '. Linked bundles should be provided with the '
-            '--build-summary-input argument.');
+      for (var path in options.buildSummaryUnlinkedInputs) {
+        var bundle = addBundle(path);
+        unlinkedBundles.add(bundle);
+        if (bundle.linkedLibraryUris.isNotEmpty) {
+          throw new ArgumentError(
+              'Got a linked summary for --build-summary-input-unlinked at `$path`'
+              '. Linked bundles should be provided with the '
+              '--build-summary-input argument.');
+        }
       }
-    }
+    });
 
     DartSdk sdk;
-    PackageBundle sdkBundle;
-    if (options.dartSdkSummaryPath != null) {
-      SummaryBasedDartSdk summarySdk = new SummaryBasedDartSdk(
-          options.dartSdkSummaryPath, options.strongMode);
-      sdk = summarySdk;
-      sdkBundle = summarySdk.bundle;
-    } else {
-      FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(resourceProvider,
-          resourceProvider.getFolder(options.dartSdkPath), options.strongMode);
-      dartSdk.analysisOptions =
-          Driver.createAnalysisOptionsForCommandLineOptions(
-              resourceProvider, options);
-      dartSdk.useSummary = !options.buildSummaryOnly;
-      sdk = dartSdk;
-      sdkBundle = dartSdk.getSummarySdkBundle(options.strongMode);
-    }
+    logger.run('Add SDK bundle', () {
+      PackageBundle sdkBundle;
+      if (options.dartSdkSummaryPath != null) {
+        SummaryBasedDartSdk summarySdk = new SummaryBasedDartSdk(
+            options.dartSdkSummaryPath, options.strongMode);
+        sdk = summarySdk;
+        sdkBundle = summarySdk.bundle;
+      } else {
+        FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(
+            resourceProvider,
+            resourceProvider.getFolder(options.dartSdkPath),
+            options.strongMode);
+        dartSdk.analysisOptions =
+            Driver.createAnalysisOptionsForCommandLineOptions(
+                resourceProvider, options);
+        dartSdk.useSummary = !options.buildSummaryOnly;
+        sdk = dartSdk;
+        sdkBundle = dartSdk.getSummarySdkBundle(options.strongMode);
+      }
 
-    // Include SDK bundle to avoid parsing SDK sources.
-    summaryDataStore.addBundle(null, sdkBundle);
+      // Include SDK bundle to avoid parsing SDK sources.
+      summaryDataStore.addBundle(null, sdkBundle);
+    });
 
     var sourceFactory = new SourceFactory(<UriResolver>[
       new DartUriResolver(sdk),
@@ -343,7 +369,6 @@ class BuildMode {
     analysisOptions = Driver.createAnalysisOptionsForCommandLineOptions(
         resourceProvider, options);
 
-    PerformanceLog logger = new PerformanceLog(null);
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(logger);
     analysisDriver = new AnalysisDriver(
         scheduler,
@@ -413,29 +438,32 @@ class BuildMode {
    * is sent to a new file at that path.
    */
   Future<Null> _printErrors({String outputPath}) async {
-    StringBuffer buffer = new StringBuffer();
-    var severityProcessor = (AnalysisError error) =>
-        determineProcessedSeverity(error, options, analysisOptions);
-    ErrorFormatter formatter = options.machineFormat
-        ? new MachineErrorFormatter(buffer, options, stats,
-            severityProcessor: severityProcessor)
-        : new HumanErrorFormatter(buffer, options, stats,
-            severityProcessor: severityProcessor);
-    for (Source source in explicitSources) {
-      var result = await analysisDriver.getErrors(source.fullName);
-      var errorInfo = new AnalysisErrorInfoImpl(result.errors, result.lineInfo);
-      formatter.formatErrors([errorInfo]);
-    }
-    formatter.flush();
-    if (!options.machineFormat) {
-      stats.print(buffer);
-    }
-    if (outputPath == null) {
-      StringSink sink = options.machineFormat ? errorSink : outSink;
-      sink.write(buffer);
-    } else {
-      new io.File(outputPath).writeAsStringSync(buffer.toString());
-    }
+    await logger.runAsync('Compute and print analysis errors', () async {
+      StringBuffer buffer = new StringBuffer();
+      var severityProcessor = (AnalysisError error) =>
+          determineProcessedSeverity(error, options, analysisOptions);
+      ErrorFormatter formatter = options.machineFormat
+          ? new MachineErrorFormatter(buffer, options, stats,
+              severityProcessor: severityProcessor)
+          : new HumanErrorFormatter(buffer, options, stats,
+              severityProcessor: severityProcessor);
+      for (Source source in explicitSources) {
+        var result = await analysisDriver.getErrors(source.fullName);
+        var errorInfo =
+            new AnalysisErrorInfoImpl(result.errors, result.lineInfo);
+        formatter.formatErrors([errorInfo]);
+      }
+      formatter.flush();
+      if (!options.machineFormat) {
+        stats.print(buffer);
+      }
+      if (outputPath == null) {
+        StringSink sink = options.machineFormat ? errorSink : outSink;
+        sink.write(buffer);
+      } else {
+        new io.File(outputPath).writeAsStringSync(buffer.toString());
+      }
+    });
   }
 }
 

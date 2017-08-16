@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/flow_graph_allocator.h"
 
 #include "vm/bit_vector.h"
@@ -2848,8 +2850,8 @@ void FlowGraphAllocator::ResolveControlFlow() {
 }
 
 static Representation RepresentationForRange(Representation definition_rep) {
-  if (definition_rep == kUnboxedMint) {
-    // kUnboxedMint is split into two ranges, each of which are kUntagged.
+  if (definition_rep == kUnboxedInt64) {
+    // kUnboxedInt64 is split into two ranges, each of which are kUntagged.
     return kUntagged;
   } else if (definition_rep == kUnboxedUint32) {
     // kUnboxedUint32 is untagged.
@@ -3016,3 +3018,5 @@ void FlowGraphAllocator::AllocateRegisters() {
 }
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

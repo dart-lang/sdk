@@ -118,7 +118,8 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                      Dart_FileWriteCallback file_write,
                      Dart_FileCloseCallback file_close,
                      Dart_EntropySource entropy_source,
-                     Dart_GetVMServiceAssetsArchive get_service_assets) {
+                     Dart_GetVMServiceAssetsArchive get_service_assets,
+                     bool start_kernel_isolate) {
   CheckOffsets();
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
@@ -149,11 +150,9 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   FreeListElement::InitOnce();
   ForwardingCorpse::InitOnce();
   Api::InitOnce();
+  NativeSymbolResolver::InitOnce();
   NOT_IN_PRODUCT(CodeObservers::InitOnce());
-  if (FLAG_profiler) {
-    ThreadInterrupter::InitOnce();
-    Profiler::InitOnce();
-  }
+  NOT_IN_PRODUCT(Profiler::InitOnce());
   SemiSpace::InitOnce();
   NOT_IN_PRODUCT(Metric::InitOnce());
   StoreBuffer::InitOnce();
@@ -204,9 +203,6 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
         if (vm_snapshot_kind_ == Snapshot::kFullAOT) {
 #if defined(DART_PRECOMPILED_RUNTIME)
           vm_isolate_->set_compilation_allowed(false);
-          if (!FLAG_precompiled_runtime) {
-            return strdup("Flag --precompilation was not specified");
-          }
 #else
           return strdup("JIT runtime cannot run a precompiled snapshot");
 #endif
@@ -309,7 +305,9 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   ServiceIsolate::Run();
 
 #ifndef DART_PRECOMPILED_RUNTIME
-  KernelIsolate::Run();
+  if (start_kernel_isolate) {
+    KernelIsolate::Run();
+  }
 #endif  // DART_PRECOMPILED_RUNTIME
 
   return NULL;
@@ -354,14 +352,15 @@ const char* Dart::Cleanup() {
                  UptimeMillis());
   }
 
-  if (FLAG_profiler) {
-    // Shut down profiling.
-    if (FLAG_trace_shutdown) {
-      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down profiling\n",
-                   UptimeMillis());
-    }
-    Profiler::Shutdown();
+#if !defined(PRODUCT)
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down profiling\n",
+                 UptimeMillis());
   }
+  Profiler::Shutdown();
+#endif  // !defined(PRODUCT)
+
+  NativeSymbolResolver::ShutdownOnce();
 
   {
     // Set the VM isolate as current isolate when shutting down

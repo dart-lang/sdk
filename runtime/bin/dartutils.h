@@ -200,21 +200,17 @@ class DartUtils {
   enum MagicNumber {
     kSnapshotMagicNumber,
     kKernelMagicNumber,
+    kGzipMagicNumber,
     kUnknownMagicNumber
   };
 
-  // static const uint8_t* GetMagicNumber(MagicNumber number);
-
-  // Sniffs the specified text_buffer to see if it contains the magic number
-  // representing a script snapshot. If the text_buffer is a script snapshot
-  // the return value is an updated pointer to the text_buffer pointing past
-  // the magic number value. The 'buffer_len' parameter is also appropriately
-  // adjusted.
-  static MagicNumber SniffForMagicNumber(const uint8_t** text_buffer,
-                                         intptr_t* buffer_len);
+  // Checks if the buffer is a script snapshot, kernel file, or gzip file.
+  static MagicNumber SniffForMagicNumber(const uint8_t* text_buffer,
+                                         intptr_t buffer_len);
 
   // Write a magic number to indicate a script snapshot file.
-  static void WriteMagicNumber(File* file);
+  static void WriteSnapshotMagicNumber(File* file);
+  static void SkipSnapshotMagicNumber(const uint8_t** buffer, intptr_t* length);
 
   // Global state that stores the original working directory..
   static const char* original_working_directory;

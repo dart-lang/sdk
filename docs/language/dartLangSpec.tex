@@ -7,9 +7,9 @@
 \usepackage{lmodern}
 \usepackage[T1]{fontenc}
 \newcommand{\code}[1]{{\sf #1}}
-\title{Dart Programming Language  Specification  \\
+\title{Dart Programming Language Specification  \\
 {5th edition draft}\\
-{\large Version 1.15.0}}
+{\large Version 2.0.0-dev}}
 
 % For information about Location Markers (and in particular the
 % commands \LMHash and \LMLabel), see the long comment at the
@@ -18,6 +18,9 @@
 % CHANGES
 % =======
 % Significant changes to the specification.
+%
+% 2.0
+% - Don't allow functions as assert test values.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -6757,41 +6760,34 @@ An {\em assert statement} is used to disrupt normal execution if a given boolean
 \LMHash{}
 The grammar allows a trailing comma before the closing parenthesis,
 similarly to an argument list. That comma, if present, has no effect.
-An assertion with a trailing comme is equivalent to one with that
+An assertion with a trailing comma is equivalent to one with that
 comma removed.
 
 \LMHash{}
-An assertion on the form \code{\ASSERT($e$))} is equivalent to an assertion
-on the form \code{\ASSERT($e$, null)}.
+An assertion on the form \code{\ASSERT($e$))} is equivalent to an assertion on the form \code{\ASSERT($e$, null)}.
 
 \LMHash{}
 Execution of an assert statement executes the assertion as described below
 and completes in the same way as the assertion.
 
 \LMHash{}
-In production mode the assertion has no effect
+In production mode an assertion has no effect
 and its execution immediately completes normally (\ref{completion}).
 In checked mode,
 execution of an assertion \code{\ASSERT{}($c$, $e$)} proceeds as follows:
 
 \LMHash{}
-The expression $c$ is evaluated to an object $o$.
-If the class of $o$ is a subtype of \code{Function}
-and the assertion does not occur in the initializer list of a \CONST{} constructor,
-then let $r$ be the result of invoking $o$ with no arguments.
-Otherwise let $r$ be $o$.
+The expression $c$ is evaluated to an object $r$.
 It is a dynamic type error if $r$ is not of type \code{bool}.
 \commentary{Hence it is a compile-time error if that situation arises during evaluation of an assertion in a \CONST{} constructor invocation.}
-If $r$ is \TRUE{}, execution of the assert statement completes normally (\ref{completion}).
+If $r$ is \TRUE{} then execution of the assert statement completes normally (\ref{completion}).
 Otherwise, $e$ is evaluated to an object $m$
-and then the execution of the assert statement throws (\ref{completion}) an \code{AssertionError} containing $m$ and with a stack trace corresponding to the current execution state at the \ASSERT{} statement.
+and then the execution of the assert statement throws (\ref{completion}) an \code{AssertionError} containing $m$ and with a stack trace corresponding to the current execution state at the assertion.
 
 \LMHash{}
-It is a static type warning if the type of $e$ may not be assigned to either
-\code{bool} or $() \rightarrow$ \code{bool}.
-If the assertion occurs in a \CONST{} constructor initializer list, it is a static type warning if the type of $e$ may not be assigned to \code{bool}.
+It is a static type warning if the type of $e$ may not be assigned to \code{bool}.
 
-\rationale{Why is this a statement, not a built in function call? Because it is handled magically so it has no effect and no overhead in production mode. Also, in the absence of final methods. one could not prevent it being overridden (though there is no real harm in that).  It cannot be viewed as a function call that is being optimized away because the argument might have side effects.
+\rationale{Why is this a statement, not a built in function call? Because it is handled magically so it has no effect and no overhead in production mode. Also, in the absence of final methods, one could not prevent it being overridden (though there is no real harm in that). It cannot be viewed as a function call that is being optimized away because the arguments might have side effects.
 }
 
 %If a lexically visible declaration named \code{assert} is in scope, an assert statement

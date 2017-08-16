@@ -162,6 +162,85 @@ class InterfaceType extends DartType {
   }
 }
 
+class TypedefType extends DartType {
+  final TypedefEntity element;
+  final List<DartType> typeArguments;
+
+  TypedefType(this.element, this.typeArguments);
+
+  bool get isTypedef => true;
+
+  bool get containsTypeVariables =>
+      typeArguments.any((type) => type.containsTypeVariables);
+
+  void forEachTypeVariable(f(TypeVariableType variable)) {
+    typeArguments.forEach((type) => type.forEachTypeVariable(f));
+  }
+
+  TypedefType subst(List<DartType> arguments, List<DartType> parameters) {
+    if (typeArguments.isEmpty) {
+      // Return fast on non-generic types.
+      return this;
+    }
+    if (parameters.isEmpty) {
+      assert(arguments.isEmpty);
+      // Return fast on empty substitutions.
+      return this;
+    }
+    List<DartType> newTypeArguments =
+        _substTypes(typeArguments, arguments, parameters);
+    if (!identical(typeArguments, newTypeArguments)) {
+      // Create a new type only if necessary.
+      return new TypedefType(element, newTypeArguments);
+    }
+    return this;
+  }
+
+  bool get treatAsRaw {
+    for (DartType type in typeArguments) {
+      if (!type.treatAsDynamic) return false;
+    }
+    return true;
+  }
+
+  @override
+  R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
+      visitor.visitTypedefType(this, argument);
+
+  int get hashCode {
+    int hash = element.hashCode;
+    for (DartType argument in typeArguments) {
+      int argumentHash = argument != null ? argument.hashCode : 0;
+      hash = 17 * hash + 3 * argumentHash;
+    }
+    return hash;
+  }
+
+  bool operator ==(other) {
+    if (other is! TypedefType) return false;
+    return identical(element, other.element) &&
+        equalElements(typeArguments, other.typeArguments);
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write(element.name);
+    if (typeArguments.isNotEmpty) {
+      sb.write('<');
+      bool needsComma = false;
+      for (DartType typeArgument in typeArguments) {
+        if (needsComma) {
+          sb.write(',');
+        }
+        sb.write(typeArgument);
+        needsComma = true;
+      }
+      sb.write('>');
+    }
+    return sb.toString();
+  }
+}
+
 class TypeVariableType extends DartType {
   final TypeVariableEntity element;
 
@@ -420,6 +499,8 @@ abstract class DartTypeVisitor<R, A> {
   R visitFunctionType(covariant FunctionType type, A argument) => null;
 
   R visitInterfaceType(covariant InterfaceType type, A argument) => null;
+
+  R visitTypedefType(covariant TypedefType type, A argument) => null;
 
   R visitDynamicType(covariant DynamicType type, A argument) => null;
 }

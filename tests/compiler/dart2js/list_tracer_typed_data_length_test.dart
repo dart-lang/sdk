@@ -4,6 +4,7 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/types/types.dart' show ContainerTypeMask, TypeMask;
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
@@ -34,7 +35,7 @@ void main() {
     ClosedWorld closedWorld = typesInferrer.closedWorld;
 
     checkType(String name, type, length) {
-      var element = findElement(compiler, name);
+      MemberElement element = findElement(compiler, name);
       TypeMask mask = typesInferrer.getTypeOfMember(element);
       Expect.isTrue(mask.isContainer);
       ContainerTypeMask container = mask;

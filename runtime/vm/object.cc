@@ -2733,6 +2733,7 @@ RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
   extractor.set_parameter_names(Object::extractor_parameter_names());
   extractor.set_result_type(Object::dynamic_type());
   extractor.set_kernel_offset(kernel_offset());
+  extractor.set_kernel_data(TypedData::Handle(zone, kernel_data()));
 
   extractor.set_extracted_method_closure(closure_function);
   extractor.set_is_debuggable(false);
@@ -5949,6 +5950,10 @@ void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
                                   : -num_optional_parameters);
 }
 
+void Function::set_kernel_data(const TypedData& data) const {
+  StorePointer(&raw_ptr()->kernel_data_, data.raw());
+}
+
 bool Function::IsOptimizable() const {
   if (FLAG_precompiled_mode) {
     return true;
@@ -6641,6 +6646,8 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.set_optimized_instruction_count(0);
   clone.set_optimized_call_site_count(0);
   clone.set_kernel_offset(kernel_offset());
+  clone.set_kernel_data(TypedData::Handle(zone, kernel_data()));
+
   if (new_owner.NumTypeParameters() > 0) {
     // Adjust uninstantiated types to refer to type parameters of the new owner.
     const TypeArguments& type_params =
@@ -6824,6 +6831,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
     closure_function.SetParameterNameAt(i, param_name);
   }
   closure_function.set_kernel_offset(kernel_offset());
+  closure_function.set_kernel_data(TypedData::Handle(zone, kernel_data()));
 
   const Type& signature_type =
       Type::Handle(zone, closure_function.SignatureType());
@@ -6986,6 +6994,7 @@ RawFunction* Function::ConvertedClosureFunction() const {
     closure_function.SetParameterNameAt(i, param_name);
   }
   closure_function.set_kernel_offset(kernel_offset());
+  closure_function.set_kernel_data(TypedData::Handle(zone, kernel_data()));
 
   const Type& signature_type =
       Type::Handle(zone, closure_function.SignatureType());
@@ -7697,6 +7706,10 @@ void Field::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
   ASSERT(IsOriginal());
   StorePointer(&raw_ptr()->name_, value.raw());
+}
+
+void Field::set_kernel_data(const TypedData& data) const {
+  StorePointer(&raw_ptr()->kernel_data_, data.raw());
 }
 
 RawObject* Field::RawOwner() const {
@@ -8963,12 +8976,7 @@ RawString* TokenStream::Iterator::MakeLiteralToken(const Object& obj) const {
 }
 
 bool Script::HasSource() const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  return kind() == RawScript::kKernelTag ||
-         raw_ptr()->source_ != String::null();
-#else   // !defined(DART_PRECOMPILED_RUNTIME)
   return raw_ptr()->source_ != String::null();
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 RawString* Script::Source() const {
@@ -8980,17 +8988,6 @@ RawString* Script::Source() const {
 }
 
 RawString* Script::GenerateSource() const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (kind() == RawScript::kKernelTag) {
-    String& source = String::Handle(raw_ptr()->source_);
-    if (source.IsNull()) {
-      // This is created lazily. Now we need it.
-      set_source(kernel::GetSourceFor(*this));
-    }
-    return raw_ptr()->source_;
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   const TokenStream& token_stream = TokenStream::Handle(tokens());
   if (token_stream.IsNull()) {
     ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
@@ -9001,14 +8998,6 @@ RawString* Script::GenerateSource() const {
 
 void Script::set_compile_time_constants(const Array& value) const {
   StorePointer(&raw_ptr()->compile_time_constants_, value.raw());
-}
-
-void Script::set_kernel_data(const uint8_t* kernel_data) const {
-  StoreNonPointer(&raw_ptr()->kernel_data_, kernel_data);
-}
-
-void Script::set_kernel_data_size(const intptr_t kernel_data_size) const {
-  StoreNonPointer(&raw_ptr()->kernel_data_size_, kernel_data_size);
 }
 
 void Script::set_kernel_script_index(const intptr_t kernel_script_index) const {
@@ -9213,13 +9202,6 @@ RawArray* Script::yield_positions() const {
 }
 
 RawArray* Script::line_starts() const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  const Array& line_starts_array = Array::Handle(raw_ptr()->line_starts_);
-  if (line_starts_array.IsNull() && kind() == RawScript::kKernelTag) {
-    // This is created lazily. Now we need it.
-    set_line_starts(kernel::GetLineStartsFor(*this));
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return raw_ptr()->line_starts_;
 }
 
@@ -9961,7 +9943,8 @@ static RawString* MakeTypeParameterMetaName(Thread* thread,
 void Library::AddMetadata(const Object& owner,
                           const String& name,
                           TokenPosition token_pos,
-                          intptr_t kernel_offset) const {
+                          intptr_t kernel_offset,
+                          const TypedData* kernel_data) const {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
   Zone* zone = thread->zone();
@@ -9975,6 +9958,9 @@ void Library::AddMetadata(const Object& owner,
   field.set_is_reflectable(false);
   field.SetStaticValue(Array::empty_array(), true);
   field.set_kernel_offset(kernel_offset);
+  if (kernel_data != NULL) {
+    field.set_kernel_data(*kernel_data);
+  }
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(zone, this->metadata());
   metadata.Add(field, Heap::kOld);
@@ -9983,34 +9969,37 @@ void Library::AddMetadata(const Object& owner,
 void Library::AddClassMetadata(const Class& cls,
                                const Object& tl_owner,
                                TokenPosition token_pos,
-                               intptr_t kernel_offset) const {
+                               intptr_t kernel_offset,
+                               const TypedData* kernel_data) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   // We use the toplevel class as the owner of a class's metadata field because
   // a class's metadata is in scope of the library, not the class.
   AddMetadata(tl_owner,
               String::Handle(zone, MakeClassMetaName(thread, zone, cls)),
-              token_pos, kernel_offset);
+              token_pos, kernel_offset, kernel_data);
 }
 
 void Library::AddFieldMetadata(const Field& field,
                                TokenPosition token_pos,
-                               intptr_t kernel_offset) const {
+                               intptr_t kernel_offset,
+                               const TypedData* kernel_data) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   AddMetadata(Object::Handle(zone, field.RawOwner()),
               String::Handle(zone, MakeFieldMetaName(thread, zone, field)),
-              token_pos, kernel_offset);
+              token_pos, kernel_offset, kernel_data);
 }
 
 void Library::AddFunctionMetadata(const Function& func,
                                   TokenPosition token_pos,
-                                  intptr_t kernel_offset) const {
+                                  intptr_t kernel_offset,
+                                  const TypedData* kernel_data) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   AddMetadata(Object::Handle(zone, func.RawOwner()),
               String::Handle(zone, MakeFunctionMetaName(thread, zone, func)),
-              token_pos, kernel_offset);
+              token_pos, kernel_offset, kernel_data);
 }
 
 void Library::AddTypeParameterMetadata(const TypeParameter& param,
@@ -13929,7 +13918,7 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
 }
 
 void Code::Disassemble(DisassemblyFormatter* formatter) const {
-#ifndef PRODUCT
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (!FLAG_support_disassembler) {
     return;
   }
@@ -14018,6 +14007,7 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
   return result.raw();
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 RawCode* Code::FinalizeCode(const char* name,
                             Assembler* assembler,
                             bool optimized) {
@@ -14118,6 +14108,7 @@ RawCode* Code::FinalizeCode(const Function& function,
 #endif  // !PRODUCT
   return FinalizeCode("", assembler, optimized);
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 bool Code::SlowFindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
   return RawCode::ContainsPC(raw_obj, pc_);

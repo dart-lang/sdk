@@ -23,7 +23,7 @@ import 'js_strategy.dart' show JsClosedWorld;
 class KernelClosureAnalysis {
   /// Inspect members and mark if those members capture any state that needs to
   /// be marked as free variables.
-  static ClosureModel computeClosureModel(MemberEntity entity, ir.Member node) {
+  static ScopeModel computeScopeModel(MemberEntity entity, ir.Member node) {
     if (entity.isAbstract) return null;
     if (entity.isField && !entity.isInstanceMember) {
       ir.Field field = node;
@@ -31,12 +31,15 @@ class KernelClosureAnalysis {
       if (field.initializer == null) return null;
     }
 
-    ClosureModel model = new ClosureModel();
+    ScopeModel model = new ScopeModel();
     CapturedScopeBuilder translator = new CapturedScopeBuilder(model,
         hasThisLocal: entity.isInstanceMember || entity.isConstructor);
     if (entity.isField) {
       if (node is ir.Field && node.initializer != null) {
         translator.translateLazyInitializer(node);
+      } else {
+        assert(entity.isInstanceMember);
+        model.scopeInfo = new KernelScopeInfo(true);
       }
     } else {
       assert(node is ir.Procedure || node is ir.Constructor);
@@ -64,7 +67,7 @@ class KernelClosureAnalysis {
 class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   final KernelToElementMapForBuilding _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
-  final Map<MemberEntity, ClosureModel> _closureModels;
+  final Map<MemberEntity, ScopeModel> _closureModels;
 
   /// Map of the scoping information that corresponds to a particular entity.
   Map<Entity, ScopeInfo> _scopeMap = <Entity, ScopeInfo>{};
@@ -89,9 +92,9 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     _createClosureEntities(_closureModels, closedWorldRefiner);
   }
 
-  void _createClosureEntities(Map<MemberEntity, ClosureModel> closureModels,
+  void _createClosureEntities(Map<MemberEntity, ScopeModel> closureModels,
       JsClosedWorld closedWorldRefiner) {
-    closureModels.forEach((MemberEntity member, ClosureModel model) {
+    closureModels.forEach((MemberEntity member, ScopeModel model) {
       KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
       if (model.scopeInfo != null) {
         _scopeMap[member] = new JsScopeInfo.from(model.scopeInfo, localsMap);
@@ -177,11 +180,19 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       _capturedScopesMap[loopNode] ?? const CapturedLoopScope();
 
   @override
-  // TODO(efortuna): Eventually closureRepresentationMap[node] should always be
-  // non-null, and we should just test that with an assert.
   ClosureRepresentationInfo getClosureRepresentationInfo(Entity entity) {
-    return _closureRepresentationMap[entity] ??
-        const ClosureRepresentationInfo();
+    var closure = _closureRepresentationMap[entity];
+    assert(
+        closure != null,
+        "Corresponding closure class not found for $entity. "
+        "Closures found for ${_closureRepresentationMap.keys}");
+    return closure;
+  }
+
+  @override
+  ClosureRepresentationInfo getClosureRepresentationInfoForTesting(
+      Entity member) {
+    return _closureRepresentationMap[member];
   }
 }
 
@@ -328,6 +339,7 @@ class KernelClosureClass extends JsScopeInfo
   final JLibrary library;
   JFunction callMethod;
   final Local closureEntity;
+  final Local thisLocal;
 
   /// Index into the classData, classList and classEnvironment lists where this
   /// entity is stored in [JsToFrontendMapImpl].
@@ -345,14 +357,15 @@ class KernelClosureClass extends JsScopeInfo
       : closureEntity = closureSourceNode.parent is ir.Member
             ? null
             : localsMap.getLocalFunction(closureSourceNode.parent),
+        thisLocal =
+            info.hasThisLocal ? new ThisLocal(localsMap.currentMember) : null,
         super.from(info, localsMap);
 
   ClassEntity get closureClassEntity => this;
 
   List<Local> get createdFieldEntities => localToFieldMap.keys.toList();
 
-  // TODO(efortuna): Implement.
-  FieldEntity get thisFieldEntity => null;
+  FieldEntity get thisFieldEntity => localToFieldMap[thisLocal];
 
   void forEachCapturedVariable(f(Local from, JField to)) {
     localToFieldMap.forEach(f);
@@ -504,12 +517,9 @@ class ClosureMemberDefinition implements MemberDefinition {
       'ClosureMemberDefinition(kind:$kind,member:$member,location:$location)';
 }
 
-/// Collection of closure data collected for a single member.
-class ClosureModel {
-  /// Collection [ScopeInfo] data for the member, if any.
-  // TODO(johnniwinther): [scopeInfo] seem to be missing only for fields
-  // without initializers; we shouldn't even create a [ClosureModel] in these
-  // cases.
+/// Collection of scope data collected for a single member.
+class ScopeModel {
+  /// Collection [ScopeInfo] data for the member.
   KernelScopeInfo scopeInfo;
 
   /// Collected [CapturedScope] data for nodes.

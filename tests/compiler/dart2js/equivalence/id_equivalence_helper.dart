@@ -28,7 +28,8 @@ typedef Future<Compiler> CompileFunction(
 /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
 /// for the data origin.
 typedef void ComputeMemberDataFunction(Compiler compiler, MemberEntity member,
-    Map<Id, String> actualMap, Map<Id, SourceSpan> sourceSpanMap);
+    Map<Id, String> actualMap, Map<Id, SourceSpan> sourceSpanMap,
+    {bool verbose});
 
 /// Compile [code] from .dart sources.
 Future<Compiler> compileFromSource(
@@ -44,12 +45,12 @@ Future<Compiler> compileFromSource(
 Future<Compiler> compileFromDill(
     AnnotatedCode code, Uri mainUri, List<String> options) async {
   Compiler compiler = await compileWithDill(
-      mainUri,
-      {'main.dart': code.sourceCode},
-      [Flags.disableTypeInference]..addAll(options),
+      entryPoint: mainUri,
+      memorySourceFiles: {'main.dart': code.sourceCode},
+      options: [Flags.disableTypeInference]..addAll(options),
       beforeRun: (Compiler compiler) {
-    compiler.stopAfterTypeInference = true;
-  });
+        compiler.stopAfterTypeInference = true;
+      });
   return compiler;
 }
 
@@ -61,7 +62,8 @@ Future<IdData> computeData(
     String annotatedCode,
     ComputeMemberDataFunction computeMemberData,
     CompileFunction compileFunction,
-    {List<String> options: const <String>[]}) async {
+    {List<String> options: const <String>[],
+    bool verbose: false}) async {
   AnnotatedCode code =
       new AnnotatedCode.fromText(annotatedCode, commentStart, commentEnd);
   Map<Id, String> expectedMap = computeExpectedMap(code);
@@ -76,12 +78,14 @@ Future<IdData> computeData(
     elementEnvironment.forEachClassMember(cls,
         (ClassEntity declarer, MemberEntity member) {
       if (cls == declarer) {
-        computeMemberData(compiler, member, actualMap, sourceSpanMap);
+        computeMemberData(compiler, member, actualMap, sourceSpanMap,
+            verbose: verbose);
       }
     });
   });
   elementEnvironment.forEachLibraryMember(mainLibrary, (MemberEntity member) {
-    computeMemberData(compiler, member, actualMap, sourceSpanMap);
+    computeMemberData(compiler, member, actualMap, sourceSpanMap,
+        verbose: verbose);
   });
   return new IdData(compiler, elementEnvironment, mainUri, expectedMap,
       actualMap, sourceSpanMap);
@@ -107,18 +111,27 @@ Future checkCode(
     String annotatedCode,
     ComputeMemberDataFunction computeMemberData,
     CompileFunction compileFunction,
-    {List<String> options: const <String>[]}) async {
+    {List<String> options: const <String>[],
+    bool verbose: false}) async {
   IdData data = await computeData(
       annotatedCode, computeMemberData, compileFunction,
-      options: options);
+      options: options, verbose: verbose);
 
   data.actualMap.forEach((Id id, String actual) {
-    String expected = data.expectedMap.remove(id);
-    if (actual != expected) {
-      reportHere(data.compiler.reporter, data.sourceSpanMap[id],
-          'expected:${expected},actual:${actual}');
+    if (!data.expectedMap.containsKey(id)) {
+      if (actual != '') {
+        reportHere(data.compiler.reporter, data.sourceSpanMap[id],
+            'Id $id not expected in ${data.expectedMap.keys}');
+      }
+      Expect.equals('', actual);
+    } else {
+      String expected = data.expectedMap.remove(id);
+      if (actual != expected) {
+        reportHere(data.compiler.reporter, data.sourceSpanMap[id],
+            'expected:${expected},actual:${actual}');
+      }
+      Expect.equals(expected, actual);
     }
-    Expect.equals(expected, actual);
   });
 
   data.expectedMap.forEach((Id id, String expected) {
@@ -320,5 +333,10 @@ abstract class AbstractIrComputer extends ir.Visitor
   visitFunctionDeclaration(ir.FunctionDeclaration node) {
     computeForNode(node);
     super.visitFunctionDeclaration(node);
+  }
+
+  visitFunctionExpression(ir.FunctionExpression node) {
+    computeForNode(node);
+    super.visitFunctionExpression(node);
   }
 }

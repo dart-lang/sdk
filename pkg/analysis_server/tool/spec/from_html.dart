@@ -131,8 +131,8 @@ class ApiReader {
     });
     for (String expectedAttribute in requiredAttributes) {
       if (!attributesFound.contains(expectedAttribute)) {
-        throw new Exception(
-            '$context: ${element.localName} must contain attribute $expectedAttribute');
+        throw new Exception('$context: ${element
+            .localName} must contain attribute $expectedAttribute');
       }
     }
   }
@@ -211,14 +211,17 @@ class ApiReader {
     checkName(html, 'notification', context);
     String event = html.attributes['event'];
     context = '$context.${event != null ? event : 'event'}';
-    checkAttributes(html, ['event'], context);
+    checkAttributes(html, ['event'], context,
+        optionalAttributes: ['experimental']);
+    bool experimental = html.attributes['experimental'] == 'true';
     TypeDecl params;
     recurse(html, context, {
       'params': (dom.Element child) {
         params = typeObjectFromHtml(child, '$context.params');
       }
     });
-    return new Notification(domainName, event, params, html);
+    return new Notification(domainName, event, params, html,
+        experimental: experimental);
   }
 
   /**

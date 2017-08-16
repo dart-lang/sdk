@@ -199,8 +199,8 @@ bool ServiceIsolate::SendIsolateStartupMessage() {
   writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
-    OS::Print("vm-service: Isolate %s %" Pd64 " registered.\n",
-              name.ToCString(), Dart_GetMainPortId());
+    OS::PrintErr("vm-service: Isolate %s %" Pd64 " registered.\n",
+                 name.ToCString(), Dart_GetMainPortId());
   }
   return PortMap::PostMessage(
       new Message(port_, data, len, Message::kNormalPriority));
@@ -227,8 +227,8 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
   writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
-    OS::Print("vm-service: Isolate %s %" Pd64 " deregistered.\n",
-              name.ToCString(), Dart_GetMainPortId());
+    OS::PrintErr("vm-service: Isolate %s %" Pd64 " deregistered.\n",
+                 name.ToCString(), Dart_GetMainPortId());
   }
   return PortMap::PostMessage(
       new Message(port_, data, len, Message::kNormalPriority));
@@ -242,7 +242,7 @@ void ServiceIsolate::SendServiceExitMessage() {
     return;
   }
   if (FLAG_trace_service) {
-    OS::Print("vm-service: sending service exit message.\n");
+    OS::PrintErr("vm-service: sending service exit message.\n");
   }
   PortMap::PostMessage(new Message(port_, exit_message_, exit_message_length_,
                                    Message::kNormalPriority));
@@ -257,7 +257,7 @@ void ServiceIsolate::SetServiceIsolate(Isolate* isolate) {
   MonitorLocker ml(monitor_);
   isolate_ = isolate;
   if (isolate_ != NULL) {
-    isolate_->is_service_isolate_ = true;
+    isolate_->set_is_service_isolate(true);
     origin_ = isolate_->origin_id();
   }
 }
@@ -366,7 +366,7 @@ class RunServiceTask : public ThreadPool::Task {
  protected:
   static void ShutdownIsolate(uword parameter) {
     if (FLAG_trace_service) {
-      OS::Print("vm-service: ShutdownIsolate\n");
+      OS::PrintErr("vm-service: ShutdownIsolate\n");
     }
     Isolate* I = reinterpret_cast<Isolate*>(parameter);
     ASSERT(ServiceIsolate::IsServiceIsolate(I));
@@ -396,7 +396,7 @@ class RunServiceTask : public ThreadPool::Task {
     // Shut the isolate down.
     Dart::ShutdownIsolate(I);
     if (FLAG_trace_service) {
-      OS::Print("vm-service: Shutdown.\n");
+      OS::PrintErr("vm-service: Shutdown.\n");
     }
     ServiceIsolate::FinishedExiting();
   }
@@ -411,7 +411,7 @@ class RunServiceTask : public ThreadPool::Task {
         Library::Handle(Z, I->object_store()->root_library());
     if (root_library.IsNull()) {
       if (FLAG_trace_service) {
-        OS::Print("vm-service: Embedder did not install a script.");
+        OS::PrintErr("vm-service: Embedder did not install a script.");
       }
       // Service isolate is not supported by embedder.
       return false;
@@ -424,7 +424,7 @@ class RunServiceTask : public ThreadPool::Task {
     if (entry.IsNull()) {
       // Service isolate is not supported by embedder.
       if (FLAG_trace_service) {
-        OS::Print("vm-service: Embedder did not provide a main function.");
+        OS::PrintErr("vm-service: Embedder did not provide a main function.");
       }
       return false;
     }
@@ -436,8 +436,8 @@ class RunServiceTask : public ThreadPool::Task {
       // Service isolate did not initialize properly.
       if (FLAG_trace_service) {
         const Error& error = Error::Cast(result);
-        OS::Print("vm-service: Calling main resulted in an error: %s",
-                  error.ToErrorCString());
+        OS::PrintErr("vm-service: Calling main resulted in an error: %s",
+                     error.ToErrorCString());
       }
       if (result.IsUnwindError()) {
         return true;

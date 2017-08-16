@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/flow_graph_range_analysis.h"
 
 #include "vm/bit_vector.h"
@@ -250,10 +252,10 @@ void RangeAnalysis::CollectValues() {
       if (defn != NULL) {
         if (defn->HasSSATemp() && IsIntegerDefinition(defn)) {
           values_.Add(defn);
-          if (defn->IsBinaryMintOp()) {
-            binary_mint_ops_.Add(defn->AsBinaryMintOp());
-          } else if (defn->IsShiftMintOp()) {
-            shift_mint_ops_.Add(defn->AsShiftMintOp());
+          if (defn->IsBinaryInt64Op()) {
+            binary_int64_ops_.Add(defn->AsBinaryInt64Op());
+          } else if (defn->IsShiftInt64Op()) {
+            shift_int64_ops_.Add(defn->AsShiftInt64Op());
           }
         }
       } else if (current->IsCheckArrayBound()) {
@@ -1500,47 +1502,47 @@ void RangeAnalysis::RemoveConstraints() {
   }
 }
 
-static void NarrowBinaryMintOp(BinaryMintOpInstr* mint_op) {
-  if (RangeUtils::Fits(mint_op->range(), RangeBoundary::kRangeBoundaryInt32) &&
-      RangeUtils::Fits(mint_op->left()->definition()->range(),
+static void NarrowBinaryInt64Op(BinaryInt64OpInstr* int64_op) {
+  if (RangeUtils::Fits(int64_op->range(), RangeBoundary::kRangeBoundaryInt32) &&
+      RangeUtils::Fits(int64_op->left()->definition()->range(),
                        RangeBoundary::kRangeBoundaryInt32) &&
-      RangeUtils::Fits(mint_op->right()->definition()->range(),
+      RangeUtils::Fits(int64_op->right()->definition()->range(),
                        RangeBoundary::kRangeBoundaryInt32) &&
-      BinaryInt32OpInstr::IsSupported(mint_op->op_kind(), mint_op->left(),
-                                      mint_op->right())) {
+      BinaryInt32OpInstr::IsSupported(int64_op->op_kind(), int64_op->left(),
+                                      int64_op->right())) {
     BinaryInt32OpInstr* int32_op = new BinaryInt32OpInstr(
-        mint_op->op_kind(), mint_op->left()->CopyWithType(),
-        mint_op->right()->CopyWithType(), mint_op->DeoptimizationTarget());
-    int32_op->set_range(*mint_op->range());
+        int64_op->op_kind(), int64_op->left()->CopyWithType(),
+        int64_op->right()->CopyWithType(), int64_op->DeoptimizationTarget());
+    int32_op->set_range(*int64_op->range());
     int32_op->set_can_overflow(false);
-    mint_op->ReplaceWith(int32_op, NULL);
+    int64_op->ReplaceWith(int32_op, NULL);
   }
 }
 
-static void NarrowShiftMintOp(ShiftMintOpInstr* mint_op) {
-  if (RangeUtils::Fits(mint_op->range(), RangeBoundary::kRangeBoundaryInt32) &&
-      RangeUtils::Fits(mint_op->left()->definition()->range(),
+static void NarrowShiftInt64Op(ShiftInt64OpInstr* int64_op) {
+  if (RangeUtils::Fits(int64_op->range(), RangeBoundary::kRangeBoundaryInt32) &&
+      RangeUtils::Fits(int64_op->left()->definition()->range(),
                        RangeBoundary::kRangeBoundaryInt32) &&
-      RangeUtils::Fits(mint_op->right()->definition()->range(),
+      RangeUtils::Fits(int64_op->right()->definition()->range(),
                        RangeBoundary::kRangeBoundaryInt32) &&
-      BinaryInt32OpInstr::IsSupported(mint_op->op_kind(), mint_op->left(),
-                                      mint_op->right())) {
+      BinaryInt32OpInstr::IsSupported(int64_op->op_kind(), int64_op->left(),
+                                      int64_op->right())) {
     BinaryInt32OpInstr* int32_op = new BinaryInt32OpInstr(
-        mint_op->op_kind(), mint_op->left()->CopyWithType(),
-        mint_op->right()->CopyWithType(), mint_op->DeoptimizationTarget());
-    int32_op->set_range(*mint_op->range());
+        int64_op->op_kind(), int64_op->left()->CopyWithType(),
+        int64_op->right()->CopyWithType(), int64_op->DeoptimizationTarget());
+    int32_op->set_range(*int64_op->range());
     int32_op->set_can_overflow(false);
-    mint_op->ReplaceWith(int32_op, NULL);
+    int64_op->ReplaceWith(int32_op, NULL);
   }
 }
 
 void RangeAnalysis::NarrowMintToInt32() {
-  for (intptr_t i = 0; i < binary_mint_ops_.length(); i++) {
-    NarrowBinaryMintOp(binary_mint_ops_[i]);
+  for (intptr_t i = 0; i < binary_int64_ops_.length(); i++) {
+    NarrowBinaryInt64Op(binary_int64_ops_[i]);
   }
 
-  for (intptr_t i = 0; i < shift_mint_ops_.length(); i++) {
-    NarrowShiftMintOp(shift_mint_ops_[i]);
+  for (intptr_t i = 0; i < shift_int64_ops_.length(); i++) {
+    NarrowShiftInt64Op(shift_int64_ops_[i]);
   }
 }
 
@@ -1571,8 +1573,8 @@ bool IntegerInstructionSelector::IsPotentialUint32Definition(Definition* def) {
   // TODO(johnmccutchan): Consider Smi operations, to avoid unnecessary tagging
   // & untagged of intermediate results.
   // TODO(johnmccutchan): Consider phis.
-  return def->IsBoxInt64() || def->IsUnboxInt64() || def->IsBinaryMintOp() ||
-         def->IsShiftMintOp() || def->IsUnaryMintOp();
+  return def->IsBoxInt64() || def->IsUnboxInt64() || def->IsBinaryInt64Op() ||
+         def->IsShiftInt64Op() || def->IsUnaryInt64Op();
 }
 
 void IntegerInstructionSelector::FindPotentialUint32Definitions() {
@@ -1600,11 +1602,11 @@ void IntegerInstructionSelector::FindPotentialUint32Definitions() {
   }
 }
 
-// BinaryMintOp masks and stores into unsigned typed arrays that truncate the
+// BinaryInt64Op masks and stores into unsigned typed arrays that truncate the
 // value into a Uint32 range.
 bool IntegerInstructionSelector::IsUint32NarrowingDefinition(Definition* def) {
-  if (def->IsBinaryMintOp()) {
-    BinaryMintOpInstr* op = def->AsBinaryMintOp();
+  if (def->IsBinaryInt64Op()) {
+    BinaryInt64OpInstr* op = def->AsBinaryInt64Op();
     // Must be a mask operation.
     if (op->op_kind() != Token::kBIT_AND) {
       return false;
@@ -1658,8 +1660,8 @@ bool IntegerInstructionSelector::CanBecomeUint32(Definition* def) {
   }
   // A right shift with an input outside of Uint32 range cannot be converted
   // because we need the high bits.
-  if (def->IsShiftMintOp()) {
-    ShiftMintOpInstr* op = def->AsShiftMintOp();
+  if (def->IsShiftInt64Op()) {
+    ShiftInt64OpInstr* op = def->AsShiftInt64Op();
     if (op->op_kind() == Token::kSHR) {
       Definition* shift_input = op->left()->definition();
       ASSERT(shift_input != NULL);
@@ -1719,8 +1721,8 @@ Definition* IntegerInstructionSelector::ConstructReplacementFor(
   ASSERT(IsPotentialUint32Definition(def));
   // Should not see constant instructions.
   ASSERT(!def->IsConstant());
-  if (def->IsBinaryMintOp()) {
-    BinaryMintOpInstr* op = def->AsBinaryMintOp();
+  if (def->IsBinaryInt64Op()) {
+    BinaryInt64OpInstr* op = def->AsBinaryInt64Op();
     Token::Kind op_kind = op->op_kind();
     Value* left = op->left()->CopyWithType();
     Value* right = op->right()->CopyWithType();
@@ -1734,14 +1736,14 @@ Definition* IntegerInstructionSelector::ConstructReplacementFor(
     Value* value = unbox->value()->CopyWithType();
     intptr_t deopt_id = unbox->DeoptimizationTarget();
     return new (Z) UnboxUint32Instr(value, deopt_id);
-  } else if (def->IsUnaryMintOp()) {
-    UnaryMintOpInstr* op = def->AsUnaryMintOp();
+  } else if (def->IsUnaryInt64Op()) {
+    UnaryInt64OpInstr* op = def->AsUnaryInt64Op();
     Token::Kind op_kind = op->op_kind();
     Value* value = op->value()->CopyWithType();
     intptr_t deopt_id = op->DeoptimizationTarget();
     return new (Z) UnaryUint32OpInstr(op_kind, value, deopt_id);
-  } else if (def->IsShiftMintOp()) {
-    ShiftMintOpInstr* op = def->AsShiftMintOp();
+  } else if (def->IsShiftInt64Op()) {
+    ShiftInt64OpInstr* op = def->AsShiftInt64Op();
     Token::Kind op_kind = op->op_kind();
     Value* left = op->left()->CopyWithType();
     Value* right = op->right()->CopyWithType();
@@ -2753,7 +2755,7 @@ static RangeBoundary::RangeSize RepresentationToRangeSize(Representation r) {
       return RangeBoundary::kRangeBoundarySmi;
     case kUnboxedInt32:
       return RangeBoundary::kRangeBoundaryInt32;
-    case kUnboxedMint:
+    case kUnboxedInt64:
       return RangeBoundary::kRangeBoundaryInt64;
     default:
       UNREACHABLE();
@@ -2818,12 +2820,12 @@ void BinaryInt32OpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
                    analysis->GetSmiRange(right()), range);
 }
 
-void BinaryMintOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+void BinaryInt64OpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   InferRangeHelper(left()->definition()->range(),
                    right()->definition()->range(), range);
 }
 
-void ShiftMintOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+void ShiftInt64OpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   CacheRange(&shift_range_, right()->definition()->range(),
              RangeBoundary::kRangeBoundaryInt64);
   InferRangeHelper(left()->definition()->range(),
@@ -2890,9 +2892,9 @@ void UnboxInt64Instr::InferRange(RangeAnalysis* analysis, Range* range) {
 
 void UnboxedIntConverterInstr::InferRange(RangeAnalysis* analysis,
                                           Range* range) {
-  ASSERT((from() == kUnboxedInt32) || (from() == kUnboxedMint) ||
+  ASSERT((from() == kUnboxedInt32) || (from() == kUnboxedInt64) ||
          (from() == kUnboxedUint32));
-  ASSERT((to() == kUnboxedInt32) || (to() == kUnboxedMint) ||
+  ASSERT((to() == kUnboxedInt32) || (to() == kUnboxedInt64) ||
          (to() == kUnboxedUint32));
   const Range* value_range = value()->definition()->range();
   if (Range::IsUnknown(value_range)) {
@@ -2966,3 +2968,5 @@ bool CheckArrayBoundInstr::IsRedundant(const RangeBoundary& length) {
 }
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

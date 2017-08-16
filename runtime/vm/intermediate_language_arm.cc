@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_ARM.
-#if defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ARCH_ARM) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/intermediate_language.h"
 
@@ -1869,7 +1869,7 @@ LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Zone* zone,
     summary->set_temp(0, Location::RequiresRegister());
   }
 
-  if (representation() == kUnboxedMint) {
+  if (representation() == kUnboxedInt64) {
     summary->set_out(0, Location::Pair(Location::RequiresRegister(),
                                        Location::RequiresRegister()));
   } else {
@@ -1889,7 +1889,7 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       true, IsExternal(), class_id(), index_scale(), str, index.reg());
   // Warning: element_address may use register IP as base.
 
-  if (representation() == kUnboxedMint) {
+  if (representation() == kUnboxedInt64) {
     ASSERT(compiler->is_optimizing());
     ASSERT(locs()->out(0).IsPairLocation());
     PairLocation* result_pair = locs()->out(0).AsPairLocation();
@@ -3821,7 +3821,7 @@ LocationSummary* UnboxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   if (needs_temp) {
     summary->set_temp(0, Location::RequiresRegister());
   }
-  if (representation() == kUnboxedMint) {
+  if (representation() == kUnboxedInt64) {
     summary->set_out(0, Location::Pair(Location::RequiresRegister(),
                                        Location::RequiresRegister()));
   } else {
@@ -3834,7 +3834,7 @@ void UnboxInstr::EmitLoadFromBox(FlowGraphCompiler* compiler) {
   const Register box = locs()->in(0).reg();
 
   switch (representation()) {
-    case kUnboxedMint: {
+    case kUnboxedInt64: {
       PairLocation* result = locs()->out(0).AsPairLocation();
       __ LoadFieldFromOffset(kWord, result->At(0).reg(), box, ValueOffset());
       __ LoadFieldFromOffset(kWord, result->At(1).reg(), box,
@@ -3867,7 +3867,7 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
   const Register box = locs()->in(0).reg();
 
   switch (representation()) {
-    case kUnboxedMint: {
+    case kUnboxedInt64: {
       PairLocation* result = locs()->out(0).AsPairLocation();
       __ SmiUntag(result->At(0).reg(), box);
       __ SignFill(result->At(1).reg(), result->At(0).reg());
@@ -6188,8 +6188,8 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* BinaryMintOpInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
@@ -6203,7 +6203,7 @@ LocationSummary* BinaryMintOpInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   PairLocation* left_pair = locs()->in(0).AsPairLocation();
   Register left_lo = left_pair->At(0).reg();
   Register left_hi = left_pair->At(1).reg();
@@ -6216,7 +6216,7 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label* deopt = NULL;
   if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
   }
   switch (op_kind()) {
     case Token::kBIT_AND: {
@@ -6266,8 +6266,8 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Zone* zone,
-                                                       bool opt) const {
+LocationSummary* ShiftInt64OpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
@@ -6280,7 +6280,7 @@ LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   PairLocation* left_pair = locs()->in(0).AsPairLocation();
   Register left_lo = left_pair->At(0).reg();
   Register left_hi = left_pair->At(1).reg();
@@ -6290,7 +6290,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label* deopt = NULL;
   if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
   }
   if (locs()->in(1).IsConstant()) {
     // Code for a constant shift amount.
@@ -6401,8 +6401,8 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* UnaryMintOpInstr::MakeLocationSummary(Zone* zone,
-                                                       bool opt) const {
+LocationSummary* UnaryInt64OpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
@@ -6414,7 +6414,7 @@ LocationSummary* UnaryMintOpInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(op_kind() == Token::kBIT_NOT);
   PairLocation* left_pair = locs()->in(0).AsPairLocation();
   Register left_lo = left_pair->At(0).reg();
@@ -6502,7 +6502,8 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   ASSERT(left != out);
 
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
+  Label* deopt =
+      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
 
   if (locs()->in(1).IsConstant()) {
     // Shifter is constant.
@@ -6575,12 +6576,12 @@ LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  if (from() == kUnboxedMint) {
+  if (from() == kUnboxedInt64) {
     ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
     summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                       Location::RequiresRegister()));
     summary->set_out(0, Location::RequiresRegister());
-  } else if (to() == kUnboxedMint) {
+  } else if (to() == kUnboxedInt64) {
     ASSERT((from() == kUnboxedUint32) || (from() == kUnboxedInt32));
     summary->set_in(0, Location::RequiresRegister());
     summary->set_out(0, Location::Pair(Location::RequiresRegister(),
@@ -6609,7 +6610,7 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ tst(out, Operand(out));
       __ b(deopt, MI);
     }
-  } else if (from() == kUnboxedMint) {
+  } else if (from() == kUnboxedInt64) {
     ASSERT(to() == kUnboxedUint32 || to() == kUnboxedInt32);
     PairLocation* in_pair = locs()->in(0).AsPairLocation();
     Register in_lo = in_pair->At(0).reg();
@@ -6625,7 +6626,7 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ b(deopt, NE);
     }
   } else if (from() == kUnboxedUint32 || from() == kUnboxedInt32) {
-    ASSERT(to() == kUnboxedMint);
+    ASSERT(to() == kUnboxedInt64);
     Register in = locs()->in(0).reg();
     PairLocation* out_pair = locs()->out(0).AsPairLocation();
     Register out_lo = out_pair->At(0).reg();
@@ -6872,4 +6873,4 @@ void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 }  // namespace dart
 
-#endif  // defined TARGET_ARCH_ARM
+#endif  // defined(TARGET_ARCH_ARM) && !defined(DART_PRECOMPILED_RUNTIME)

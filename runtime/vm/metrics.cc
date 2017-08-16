@@ -289,8 +289,12 @@ int64_t MetricIsolateCount::Value() const {
   return Isolate::IsolateListLength();
 }
 
+int64_t MetricCurrentRSS::Value() const {
+  return Service::CurrentRSS();
+}
+
 int64_t MetricPeakRSS::Value() const {
-  return OS::MaxRSS();
+  return Service::MaxRSS();
 }
 
 #define VM_METRIC_VARIABLE(type, variable, name, unit)                         \

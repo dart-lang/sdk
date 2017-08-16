@@ -296,19 +296,44 @@ class ErrorCodeValuesTest {
 }
 
 @reflectiveTest
-class GenerateNewOptionsErrorsTaskTest extends GenerateOptionsErrorsTaskTest {
-  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+class GenerateOldOptionsErrorsTaskTest extends AbstractContextTest {
+  final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
+
+  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
+
+  test_does_analyze_old_options_files() {
+    validate('''
+analyzer:
+  strong-mode: true
+    ''', [AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME]);
+  }
+
+  test_finds_issues_in_old_options_files() {
+    validate('''
+analyzer:
+  strong_mode: true
+    ''', [
+      AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
+      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES
+    ]);
+  }
+
+  void validate(String content, List<ErrorCode> expected) {
+    final Source source = newSource(optionsFilePath, content);
+    var options = optionsProvider.getOptionsFromSource(source);
+    final OptionsFileValidator validator = new OptionsFileValidator(source);
+    var errors = validator.validate(options);
+    expect(errors.map((AnalysisError e) => e.errorCode),
+        unorderedEquals(expected));
+  }
 }
 
 @reflectiveTest
-class GenerateOldOptionsErrorsTaskTest extends GenerateOptionsErrorsTaskTest {
-  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
-}
-
-abstract class GenerateOptionsErrorsTaskTest extends AbstractContextTest {
+class GenerateNewOptionsErrorsTaskTest extends AbstractContextTest {
   Source source;
 
-  String get optionsFilePath;
+  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+
   LineInfo lineInfo(String source) =>
       GenerateOptionsErrorsTask.computeLineInfo(source);
 

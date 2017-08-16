@@ -10,6 +10,7 @@ import 'dart:async';
 
 import 'package:args/args.dart';
 import 'package:expect/expect.dart';
+import 'package:gardening/src/bot.dart';
 import 'package:gardening/src/buildbot_structures.dart';
 import 'package:gardening/src/client.dart';
 import 'package:gardening/src/compare_failures_impl.dart';
@@ -32,14 +33,15 @@ Future runGroupTests(ArgResults argResults) async {
   BuildbotClient client = argResults['logdog']
       ? new LogdogBuildbotClient()
       : new HttpBuildbotClient();
-  await runGroupTest(client, 'vm-kernel');
-  client.close();
+  Bot bot = new Bot.internal(client);
+  await runGroupTest(bot, 'vm-kernel');
+  bot.close();
 }
 
-Future runGroupTest(BuildbotClient client, String testGroup) async {
+Future runGroupTest(Bot bot, String testGroup) async {
   print('Testing group compare-failures: $testGroup runCount=1');
   Map<BuildUri, List<BuildResult>> buildResults =
-      await loadBuildResults(client, [testGroup], runCount: 1);
+      await loadBuildResults(bot, [testGroup], runCount: 1);
   print('- checking results for ${buildResults.keys}');
   buildResults.forEach((BuildUri buildUri, List<BuildResult> results) {
     Expect.isTrue(buildUri.buildNumber < 0,
@@ -66,9 +68,10 @@ Future runSingleTests(ArgResults argResults) async {
   BuildbotClient client = argResults['logdog']
       ? new LogdogBuildbotClient()
       : new TestClient(force: force);
+  Bot bot = new Bot.internal(client);
 
   await runSingleTest(
-      client,
+      bot,
       'https://build.chromium.org/p/client.dart/builders/'
       'vm-kernel-linux-debug-x64-be/builds/1884/steps/'
       'vm%20tests/logs/stdio',
@@ -84,7 +87,7 @@ Future runSingleTests(ArgResults argResults) async {
         },
       });
 
-  client.close();
+  bot.close();
 }
 
 testSingleResults(
@@ -106,11 +109,11 @@ testSingleResults(
   });
 }
 
-Future runSingleTest(BuildbotClient client, String testUri, int runCount,
+Future runSingleTest(Bot bot, String testUri, int runCount,
     Map<int, Map<String, String>> expectedResult) async {
   print('Testing single compare-failures: $testUri runCount=$runCount');
   Map<BuildUri, List<BuildResult>> buildResults =
-      await loadBuildResults(client, [testUri], runCount: runCount);
+      await loadBuildResults(bot, [testUri], runCount: runCount);
   print('- checking results for ${buildResults.keys}');
   if (LOG) {
     printBuildResultsSummary(buildResults, [testUri]);

@@ -58,7 +58,6 @@ DEFINE_FLAG(bool,
             "the VM service.");
 
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
-DECLARE_FLAG(bool, use_dart_frontend);
 
 #ifndef PRODUCT
 
@@ -672,8 +671,10 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
   OS::PrintErr("pc_ %" Px "\n", pc_);
   OS::PrintErr("deopt_id_ %" Px "\n", deopt_id_);
   OS::PrintErr("context_level_ %" Px "\n", context_level_);
+#if !defined(DART_PRECOMPILED_RUNTIME)
   DisassembleToStdout formatter;
   code().Disassemble(&formatter);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   PcDescriptors::Handle(code().pc_descriptors()).Print();
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
                             Thread::Current(),
@@ -1780,6 +1781,7 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
   return activation;
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 RawArray* Debugger::DeoptimizeToArray(Thread* thread,
                                       StackFrame* frame,
                                       const Code& code) {
@@ -1801,6 +1803,7 @@ RawArray* Debugger::DeoptimizeToArray(Thread* thread,
 
   return dest_frame.raw();
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 DebuggerStackTrace* Debugger::CollectStackTrace() {
   Thread* thread = Thread::Current();
@@ -1838,7 +1841,8 @@ void Debugger::AppendCodeFrames(Thread* thread,
                                 Code* code,
                                 Code* inlined_code,
                                 Array* deopt_frame) {
-  if (code->is_optimized() && !FLAG_precompiled_runtime) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (code->is_optimized()) {
     // TODO(rmacnak): Use CodeSourceMap
     *deopt_frame = DeoptimizeToArray(thread, frame, *code);
     for (InlinedFunctionsIterator it(*code, frame->pc()); !it.Done();
@@ -1855,10 +1859,11 @@ void Debugger::AppendCodeFrames(Thread* thread,
                                                   *inlined_code, *deopt_frame,
                                                   deopt_frame_offset));
     }
-  } else {
-    stack_trace->AddActivation(CollectDartFrame(
-        isolate, frame->pc(), frame, *code, Object::null_array(), 0));
+    return;
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  stack_trace->AddActivation(CollectDartFrame(isolate, frame->pc(), frame,
+                                              *code, Object::null_array(), 0));
 }
 
 DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
@@ -1947,11 +1952,14 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
 }
 
 DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // Causal async stacks are not supported in the AOT runtime.
+  ASSERT(!FLAG_async_debugger);
+  return NULL;
+#else
   if (!FLAG_async_debugger) {
     return NULL;
   }
-  // Causal async stacks are not supported in the AOT runtime.
-  ASSERT(!FLAG_precompiled_runtime);
 
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -2090,6 +2098,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
   }
 
   return stack_trace;
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 ActivationFrame* Debugger::TopDartFrame() const {
@@ -2577,7 +2586,8 @@ bool Debugger::FindBestFit(const Script& script,
                            TokenPosition token_pos,
                            TokenPosition last_token_pos,
                            Function* best_fit) {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   Class& cls = Class::Handle(zone);
   Library& lib = Library::Handle(zone, script.FindLibrary());
   ASSERT(!lib.IsNull());
@@ -2670,7 +2680,7 @@ bool Debugger::FindBestFit(const Script& script,
 
         bool has_func_literal_initializer = false;
 #ifndef DART_PRECOMPILED_RUNTIME
-        if (FLAG_use_dart_frontend) {
+        if (isolate_->use_dart_frontend()) {
           has_func_literal_initializer =
               kernel::KernelReader::FieldHasFunctionLiteralInitializer(
                   field, &start, &end);
@@ -3269,8 +3279,9 @@ void Debugger::SetAsyncSteppingFramePointer() {
   if (!FLAG_async_debugger) {
     return;
   }
-  if (stack_trace_->FrameAt(0)->function().IsAsyncClosure() ||
-      stack_trace_->FrameAt(0)->function().IsAsyncGenClosure()) {
+  if ((stack_trace_->Length()) > 0 &&
+      (stack_trace_->FrameAt(0)->function().IsAsyncClosure() ||
+       stack_trace_->FrameAt(0)->function().IsAsyncGenClosure())) {
     async_stepping_fp_ = stack_trace_->FrameAt(0)->fp();
   } else {
     async_stepping_fp_ = 0;

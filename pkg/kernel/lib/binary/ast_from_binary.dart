@@ -535,7 +535,6 @@ class BinaryBuilder {
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readByte();
-    readUInt(); // parent class binary offset.
     var name = readName();
     var fileUri = readUriReference();
     var documentationComment = readStringOrNullIfEmpty();
@@ -574,7 +573,6 @@ class BinaryBuilder {
     var fileOffset = readOffset();
     var fileEndOffset = readOffset();
     var flags = readByte();
-    readUInt(); // parent class binary offset.
     var name = readName();
     var documentationComment = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
@@ -618,7 +616,6 @@ class BinaryBuilder {
     int kindIndex = readByte();
     var kind = ProcedureKind.values[kindIndex];
     var flags = readByte();
-    readUInt(); // parent class binary offset.
     var name = readName();
     var fileUri = readUriReference();
     var documentationComment = readStringOrNullIfEmpty();
@@ -929,7 +926,8 @@ class BinaryBuilder {
       case Tag.AwaitExpression:
         return new AwaitExpression(readExpression());
       case Tag.FunctionExpression:
-        return new FunctionExpression(readFunctionNode());
+        int offset = readOffset();
+        return new FunctionExpression(readFunctionNode())..fileOffset = offset;
       case Tag.Let:
         var variable = readVariableDeclaration();
         int stackHeight = variableStack.length;

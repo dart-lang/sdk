@@ -64,6 +64,12 @@ public class RequestErrorCode {
   public static final String GET_IMPORTED_ELEMENTS_INVALID_FILE = "GET_IMPORTED_ELEMENTS_INVALID_FILE";
 
   /**
+   * An "analysis.getKytheEntries" request specified a FilePath that does not match a file that is
+   * currently subject to analysis.
+   */
+  public static final String GET_KYTHE_ENTRIES_INVALID_FILE = "GET_KYTHE_ENTRIES_INVALID_FILE";
+
+  /**
    * An "analysis.getNavigation" request specified a FilePath which does not match a file currently
    * subject to analysis.
    */

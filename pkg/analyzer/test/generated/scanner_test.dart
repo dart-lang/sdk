@@ -79,6 +79,19 @@ class CharacterRangeReaderTest extends EngineTestCase {
 
 @reflectiveTest
 class LineInfoTest extends EngineTestCase {
+  void test_translate_missing_closing_gt_error() {
+    // Ensure that the UnmatchedToken error for missing '>' is translated
+    // to the correct analyzer error code.
+    // See https://github.com/dart-lang/sdk/issues/30320
+    String source = '<!-- @Component(';
+    GatheringErrorListener listener = new GatheringErrorListener();
+    _scanWithListener(source, listener);
+    listener.assertErrorsWithCodes(const [
+      ScannerErrorCode.EXPECTED_TOKEN,
+      ScannerErrorCode.EXPECTED_TOKEN,
+    ]);
+  }
+
   void test_lineInfo_multilineComment() {
     String source = "/*\r\n *\r\n */";
     _assertLineInfo(source, [

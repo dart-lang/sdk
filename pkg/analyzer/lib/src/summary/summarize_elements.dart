@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:front_end/src/base/api_signature.dart';
@@ -43,8 +42,6 @@ class PackageBundleAssembler {
   final Map<String, UnlinkedUnitBuilder> _unlinkedUnitMap =
       <String, UnlinkedUnitBuilder>{};
   final List<String> _unlinkedUnitHashes;
-  final List<PackageDependencyInfoBuilder> _dependencies =
-      <PackageDependencyInfoBuilder>[];
   final bool _excludeHashes;
 
   /**
@@ -85,16 +82,7 @@ class PackageBundleAssembler {
         unlinkedUnitHashes: _unlinkedUnitHashes,
         majorVersion: currentMajorVersion,
         minorVersion: currentMinorVersion,
-        dependencies: _dependencies,
         apiSignature: _computeApiSignature());
-  }
-
-  /**
-   * Use the dependency information in [summaryDataStore] to populate the
-   * dependencies in the package bundle being assembled.
-   */
-  void recordDependencies(SummaryDataStore summaryDataStore) {
-    _dependencies.addAll(summaryDataStore.dependencies);
   }
 
   /**

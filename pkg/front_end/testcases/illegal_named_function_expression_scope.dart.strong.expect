@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/illegal_named_function_expression_scope.dart:7:9: Error: A function expression can't have a return type.\n  print(void f() {});\n        ^", "pkg/front_end/testcases/illegal_named_function_expression_scope.dart:7:14: Error: A function expression can't have a name.\n  print(void f() {});\n             ^"]/* from null */;
+static method main() → dynamic {
+  function f() → void {}
+  core::print(let final () → core::Null f = () → core::Null {} in f);
+}

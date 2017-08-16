@@ -336,9 +336,11 @@ RawArray* Symbols::UnifiedSymbolTable() {
   }
   table.Release();
 
-  const double kMinLoad = 0.90;
-  const double kMaxLoad = 0.90;
-  HashTables::EnsureLoadFactor(kMinLoad, kMaxLoad, unified_table);
+  // TODO(30378): The default load factor of 0.75 / 2 burns ~100KB, but
+  // increasing the load factor regresses Flutter's hot restart time.
+  // const double kMinLoad = 0.90;
+  // const double kMaxLoad = 0.90;
+  // HashTables::EnsureLoadFactor(kMinLoad, kMaxLoad, unified_table);
 
   return unified_table.Release().raw();
 }

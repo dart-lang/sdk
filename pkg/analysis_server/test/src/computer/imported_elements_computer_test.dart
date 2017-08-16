@@ -132,6 +132,25 @@ blankLine() {
     expect(elements.elements, unorderedEquals(['String']));
   }
 
+  test_dartMath_noPrefix() async {
+    String selection = "new Random();";
+    String content = """
+import 'dart:math';
+bool randomBool() {
+  Random r = $selection
+  return r.nextBool();
+}
+""";
+    List<ImportedElements> elementsList = await _computeElements(
+        content, content.indexOf(selection), selection.length);
+    expect(elementsList, hasLength(1));
+    ImportedElements elements = elementsList[0];
+    expect(elements, isNotNull);
+    expect(elements.path, '/lib/math/math.dart');
+    expect(elements.prefix, '');
+    expect(elements.elements, unorderedEquals(['Random']));
+  }
+
   test_none_comment() async {
     String selection = 'comment';
     String content = """

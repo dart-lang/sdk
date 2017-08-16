@@ -4,7 +4,6 @@
 
 // OtherResources=certificates/untrusted_server_chain.pem
 // OtherResources=certificates/untrusted_server_key.pem
-// OtherResources=certificates/untrusted_server_chain.pem
 // OtherResources=certificates/trusted_certs.pem
 // OtherResources=secure_unauthorized_client.dart
 

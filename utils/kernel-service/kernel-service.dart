@@ -27,6 +27,7 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:front_end/file_system.dart';
 import 'package:front_end/front_end.dart';
+import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/physical_file_system.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
@@ -38,6 +39,119 @@ import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
 const bool verbose = const bool.fromEnvironment('DFE_VERBOSE');
 const bool strongMode = const bool.fromEnvironment('DFE_STRONG_MODE');
 
+abstract class Compiler {
+  final FileSystem fileSystem;
+  final List<String> errors = new List<String>();
+
+  CompilerOptions options;
+
+  Compiler(this.fileSystem) {
+    Uri packagesUri = (Platform.packageConfig != null)
+        ? Uri.parse(Platform.packageConfig)
+        : null;
+
+    Uri sdkSummary = Uri.base
+        .resolveUri(new Uri.file(Platform.resolvedExecutable))
+        .resolveUri(new Uri.directory("patched_sdk"))
+        // TODO(sigmund): use outline.dill when the mixin transformer is
+        // modular.
+        .resolve('platform.dill');
+
+    if (verbose) {
+      print("DFE: Platform.packageConfig: ${Platform.packageConfig}");
+      print("DFE: packagesUri: ${packagesUri}");
+      print("DFE: Platform.resolvedExecutable: ${Platform.resolvedExecutable}");
+      print("DFE: sdkSummary: ${sdkSummary}");
+    }
+
+    options = new CompilerOptions()
+      ..strongMode = strongMode
+      ..fileSystem = fileSystem
+      ..target = new VmFastaTarget(new TargetFlags(strongMode: strongMode))
+      ..packagesFileUri = packagesUri
+      ..sdkSummary = sdkSummary
+      ..verbose = verbose
+      ..throwOnErrors = false
+      ..reportMessages = true
+      ..onError = (CompilationMessage e) {
+        if (e.severity == Severity.error) {
+          // TODO(sigmund): support emitting code with errors as long as they
+          // are handled in the generated code (issue #30194).
+          errors.add(e.message);
+        }
+      };
+  }
+
+  Future<Program> compile(Uri script);
+}
+
+class IncrementalCompiler extends Compiler {
+  IncrementalKernelGenerator generator;
+
+  IncrementalCompiler(FileSystem fileSystem) : super(fileSystem);
+
+  @override
+  Future<Program> compile(Uri script) async {
+    if (generator == null) {
+      generator = await IncrementalKernelGenerator.newInstance(options, script);
+    }
+    DeltaProgram deltaProgram = await generator.computeDelta();
+    // TODO(aam): Accepting/rejecting should be done based on VM response.
+    generator.acceptLastDelta();
+    return deltaProgram.newProgram;
+  }
+
+  void invalidate(Uri uri) {
+    generator.invalidate(uri);
+  }
+}
+
+class SingleShotCompiler extends Compiler {
+  final bool requireMain;
+
+  SingleShotCompiler(FileSystem fileSystem, this.requireMain)
+      : super(fileSystem);
+
+  @override
+  Future<Program> compile(Uri script) async {
+    return requireMain
+        ? kernelForProgram(script, options)
+        : kernelForBuildUnit([script], options..chaseDependencies = true);
+  }
+}
+
+final Map<int, Compiler> isolateCompilers = new Map<int, Compiler>();
+
+Future<Compiler> lookupOrBuildNewIncrementalCompiler(
+    int isolateId, List sourceFiles) async {
+  IncrementalCompiler compiler;
+  if (isolateCompilers.containsKey(isolateId)) {
+    compiler = isolateCompilers[isolateId];
+    final HybridFileSystem fileSystem = compiler.fileSystem;
+    if (sourceFiles != null) {
+      for (int i = 0; i < sourceFiles.length ~/ 2; i++) {
+        Uri uri = Uri.parse(sourceFiles[i * 2]);
+        fileSystem.memory
+            .entityForUri(uri)
+            .writeAsBytesSync(sourceFiles[i * 2 + 1]);
+        compiler.invalidate(uri);
+      }
+    }
+  } else {
+    final FileSystem fileSystem = sourceFiles == null
+        ? PhysicalFileSystem.instance
+        : _buildFileSystem(sourceFiles);
+
+    // TODO(aam): IncrementalCompiler instance created below have to be
+    // destroyed when corresponding isolate is shut down. To achieve that kernel
+    // isolate needs to receive a message indicating that particular
+    // isolate was shut down. Message should be handled here in this script.
+    compiler = new IncrementalCompiler(fileSystem);
+    isolateCompilers[isolateId] = compiler;
+  }
+  return compiler;
+}
+
 // Process a request from the runtime. See KernelIsolate::CompileToKernel in
 // kernel_isolate.cc and Loader::SendKernelRequest in loader.cc.
 Future _processLoadRequest(request) async {
@@ -47,66 +161,44 @@ Future _processLoadRequest(request) async {
   final SendPort port = request[1];
   final String inputFileUri = request[2];
   final Uri script = Uri.base.resolve(inputFileUri);
+  final bool incremental = request[3];
 
-  FileSystem fileSystem = PhysicalFileSystem.instance;
-  bool requireMain = true;
+  final List sourceFiles = request.length > 5 ? request[5] : null;
 
-  if (request.length > 3) {
-    fileSystem = _buildFileSystem(request[3]);
-    requireMain = false;
+  Compiler compiler;
+  // TODO(aam): There should be no need to have an option to choose
+  // one compiler or another. We should always use an incremental
+  // compiler as its functionality is a super set of the other one. We need to
+  // watch the performance though.
+  if (incremental) {
+    final int isolateId = request[4];
+    compiler =
+        await lookupOrBuildNewIncrementalCompiler(isolateId, sourceFiles);
+  } else {
+    final FileSystem fileSystem = sourceFiles == null
+        ? PhysicalFileSystem.instance
+        : _buildFileSystem(sourceFiles);
+    compiler = new SingleShotCompiler(
+        fileSystem, sourceFiles == null /* requireMain */);
   }
-
-  Uri packagesUri = (Platform.packageConfig != null)
-      ? Uri.parse(Platform.packageConfig)
-      : null;
-
-  Uri sdkSummary = Uri.base
-      .resolveUri(new Uri.file(Platform.resolvedExecutable))
-      .resolveUri(new Uri.directory("patched_sdk"))
-      // TODO(sigmund): use outline.dill when the mixin transformer is modular.
-      .resolve('platform.dill');
-
-  if (verbose) {
-    print("DFE: scriptUri: ${script}");
-    print("DFE: Platform.packageConfig: ${Platform.packageConfig}");
-    print("DFE: packagesUri: ${packagesUri}");
-    print("DFE: Platform.resolvedExecutable: ${Platform.resolvedExecutable}");
-    print("DFE: sdkSummary: ${sdkSummary}");
-  }
-
-  var errors = <String>[];
-  var options = new CompilerOptions()
-    ..strongMode = strongMode
-    ..fileSystem = fileSystem
-    ..target = new VmFastaTarget(new TargetFlags(strongMode: strongMode))
-    ..packagesFileUri = packagesUri
-    ..sdkSummary = sdkSummary
-    ..verbose = verbose
-    ..throwOnErrors = false
-    ..reportMessages = true
-    ..onError = (CompilationMessage e) {
-      if (e.severity == Severity.error) {
-        // TODO(sigmund): support emitting code with errors as long as they are
-        // handled in the generated code (issue #30194).
-        errors.add(e.message);
-      }
-    };
 
   CompilationResult result;
   try {
-    Program program = requireMain
-        ? await kernelForProgram(script, options)
-        : await kernelForBuildUnit([script], options..chaseDependencies = true);
+    if (verbose) {
+      print("DFE: scriptUri: ${script}");
+    }
 
-    if (errors.isNotEmpty) {
+    Program program = await compiler.compile(script);
+
+    if (compiler.errors.isNotEmpty) {
       // TODO(sigmund): the compiler prints errors to the console, so we
       // shouldn't print those messages again here.
-      result = new CompilationResult.errors(errors);
+      result = new CompilationResult.errors(compiler.errors);
     } else {
       // We serialize the program excluding platform.dill because the VM has
       // these sources built-in. Everything loaded as a summary in
       // [kernelForProgram] is marked `external`, so we can use that bit to
-      // decide what to excluce.
+      // decide what to exclude.
       // TODO(sigmund): remove the following line (Issue #30111)
       program.libraries.forEach((e) => e.isExternal = false);
       result = new CompilationResult.ok(
@@ -166,7 +258,13 @@ train(String scriptUri) {
       throw "Unexpected response: $response";
     }
   };
-  var request = [tag, responsePort.sendPort, scriptUri];
+  var request = [
+    tag,
+    responsePort.sendPort,
+    scriptUri,
+    1 /* isolateId chosen randomly */,
+    false /* incremental */
+  ];
   _processLoadRequest(request);
 }
 

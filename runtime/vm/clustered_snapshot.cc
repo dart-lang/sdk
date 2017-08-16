@@ -551,6 +551,7 @@ class FunctionSerializationCluster : public SerializationCluster {
       if (kind != Snapshot::kFullAOT) {
         s->WriteTokenPosition(func->ptr()->token_pos_);
         s->WriteTokenPosition(func->ptr()->end_token_pos_);
+        s->Write<int32_t>(func->ptr()->kernel_offset_);
       }
 #endif
       s->Write<int16_t>(func->ptr()->num_fixed_parameters_);
@@ -625,6 +626,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       if (kind != Snapshot::kFullAOT) {
         func->ptr()->token_pos_ = d->ReadTokenPosition();
         func->ptr()->end_token_pos_ = d->ReadTokenPosition();
+        func->ptr()->kernel_offset_ = d->Read<int32_t>();
       }
 #endif
       func->ptr()->num_fixed_parameters_ = d->Read<int16_t>();
@@ -937,6 +939,7 @@ class FieldSerializationCluster : public SerializationCluster {
     s->Push(field->ptr()->name_);
     s->Push(field->ptr()->owner_);
     s->Push(field->ptr()->type_);
+    s->Push(field->ptr()->kernel_data_);
     // Write out the initial static value or field offset.
     if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
       if (kind == Snapshot::kFullAOT) {
@@ -987,6 +990,7 @@ class FieldSerializationCluster : public SerializationCluster {
       s->WriteRef(field->ptr()->name_);
       s->WriteRef(field->ptr()->owner_);
       s->WriteRef(field->ptr()->type_);
+      s->WriteRef(field->ptr()->kernel_data_);
       // Write out the initial static value or field offset.
       if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
         if (kind == Snapshot::kFullAOT) {
@@ -1021,6 +1025,9 @@ class FieldSerializationCluster : public SerializationCluster {
         s->WriteTokenPosition(field->ptr()->token_pos_);
         s->WriteCid(field->ptr()->guarded_cid_);
         s->WriteCid(field->ptr()->is_nullable_);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        s->Write<int32_t>(field->ptr()->kernel_offset_);
+#endif
       }
       s->Write<uint8_t>(field->ptr()->kind_bits_);
     }
@@ -1068,6 +1075,9 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field->ptr()->token_pos_ = d->ReadTokenPosition();
         field->ptr()->guarded_cid_ = d->ReadCid();
         field->ptr()->is_nullable_ = d->ReadCid();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        field->ptr()->kernel_offset_ = d->Read<int32_t>();
+#endif
       }
       field->ptr()->kind_bits_ = d->Read<uint8_t>();
     }
@@ -1291,6 +1301,7 @@ class ScriptSerializationCluster : public SerializationCluster {
       s->Write<int32_t>(script->ptr()->line_offset_);
       s->Write<int32_t>(script->ptr()->col_offset_);
       s->Write<int8_t>(script->ptr()->kind_);
+      s->Write<int32_t>(script->ptr()->kernel_script_index_);
     }
   }
 
@@ -1335,6 +1346,7 @@ class ScriptDeserializationCluster : public DeserializationCluster {
       script->ptr()->line_offset_ = d->Read<int32_t>();
       script->ptr()->col_offset_ = d->Read<int32_t>();
       script->ptr()->kind_ = d->Read<int8_t>();
+      script->ptr()->kernel_script_index_ = d->Read<int32_t>();
       script->ptr()->load_timestamp_ = 0;
     }
   }

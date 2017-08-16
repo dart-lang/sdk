@@ -332,7 +332,7 @@ void TestBreakpointHandler(Dart_IsolateId isolate_id,
   }
 }
 
-TEST_CASE(Debug_Breakpoint) {
+TEST_CASE(DebuggerAPI_Breakpoint) {
   const char* kScriptChars =
       "void moo(s) { }        \n"
       "class A {              \n"
@@ -494,11 +494,11 @@ static void InspectStackTest(bool optimize) {
   isolate->set_use_osr(saved_use_osr);
 }
 
-TEST_CASE(Debug_InspectStack_NotOptimized) {
+TEST_CASE(DebuggerAPI_InspectStack_NotOptimized) {
   InspectStackTest(false);
 }
 
-TEST_CASE(Debug_InspectStack_Optimized) {
+TEST_CASE(DebuggerAPI_InspectStack_Optimized) {
   // Ensure code gets optimized.
   FLAG_background_compilation = false;
   InspectStackTest(true);
@@ -591,11 +591,11 @@ static void InspectStackWithClosureTest(bool optimize) {
   FLAG_use_osr = saved_osr;
 }
 
-TEST_CASE(Debug_InspectStackWithClosure_NotOptimized) {
+TEST_CASE(DebuggerAPI_InspectStackWithClosure_NotOptimized) {
   InspectStackWithClosureTest(false);
 }
 
-TEST_CASE(Debug_InspectStackWithClosure_Optimized) {
+TEST_CASE(DebuggerAPI_InspectStackWithClosure_Optimized) {
   // Ensure code gets optimized.
   FLAG_background_compilation = false;
   InspectStackWithClosureTest(true);
@@ -632,7 +632,7 @@ void TestStepOutHandler(Dart_IsolateId isolate_id,
   Dart_SetStepOut();
 }
 
-TEST_CASE(Debug_StepOut) {
+TEST_CASE(DebuggerAPI_StepOut) {
   const char* kScriptChars =
       "f1() { return 1; }       \n"
       "f2() { return 2; }       \n"
@@ -713,7 +713,7 @@ void TestStepIntoHandler(Dart_IsolateId isolate_id,
   Dart_SetStepInto();
 }
 
-TEST_CASE(Debug_StepInto) {
+TEST_CASE(DebuggerAPI_StepInto) {
   const char* kScriptChars =
       "f1() { return 1; }       \n"
       "f2() { return 2; }       \n"
@@ -766,7 +766,7 @@ static void StepIntoHandler(Dart_IsolateId isolate_id,
   Dart_SetStepInto();
 }
 
-TEST_CASE(Debug_IgnoreBP) {
+TEST_CASE(DebuggerAPI_IgnoreBP) {
   const char* kScriptChars =
       "class B {                \n"
       "  static var z = 0;      \n"
@@ -795,7 +795,7 @@ TEST_CASE(Debug_IgnoreBP) {
   EXPECT(breakpoint_hit == true);
 }
 
-TEST_CASE(Debug_DeoptimizeFunction) {
+TEST_CASE(DebuggerAPI_DeoptimizeFunction) {
   const char* kScriptChars =
       "foo(x) => 2 * x;                     \n"
       "                                     \n"
@@ -861,7 +861,7 @@ void TestSingleStepHandler(Dart_IsolateId isolate_id,
   Dart_SetStepOver();
 }
 
-TEST_CASE(Debug_SingleStep) {
+TEST_CASE(DebuggerAPI_SingleStep) {
   const char* kScriptChars =
       "moo(s) { return 1; }      \n"
       "                          \n"
@@ -914,7 +914,7 @@ static void ClosureBreakpointHandler(Dart_IsolateId isolate_id,
   }
 }
 
-TEST_CASE(Debug_ClosureBreakpoint) {
+TEST_CASE(DebuggerAPI_ClosureBreakpoint) {
   const char* kScriptChars =
       "callback(s) {          \n"
       "  return 111;          \n"
@@ -957,7 +957,7 @@ static void ExprClosureBreakpointHandler(Dart_IsolateId isolate_id,
   VerifyStackTrace(trace, expected_trace, expected_locals, 2, false);
 }
 
-TEST_CASE(Debug_ExprClosureBreakpoint) {
+TEST_CASE(DebuggerAPI_ExprClosureBreakpoint) {
   const char* kScriptChars =
       "var c;                 \n"
       "                       \n"
@@ -1019,7 +1019,7 @@ static Dart_NativeFunction NoopNativeResolver(Dart_Handle name,
   return &NoopNativeFunction;
 }
 
-TEST_CASE(Debug_BreakpointStubPatching) {
+TEST_CASE(DebuggerAPI_BreakpointStubPatching) {
   // Note changes to this script may require changes to the breakpoint line
   // numbers below.
   const char* kScriptChars =
@@ -1105,7 +1105,7 @@ static void DeleteBreakpointHandler(Dart_IsolateId isolate_id,
   }
 }
 
-TEST_CASE(Debug_DeleteBreakpoint) {
+TEST_CASE(DebuggerAPI_DeleteBreakpoint) {
   const char* kScriptChars =
       "moo(s) { }             \n"
       "                       \n"
@@ -1197,7 +1197,7 @@ static void InspectStaticFieldHandler(Dart_IsolateId isolate_id,
   }
 }
 
-TEST_CASE(Debug_InspectStaticField) {
+TEST_CASE(DebuggerAPI_InspectStaticField) {
   const char* kScriptChars =
       " class A {                                 \n"
       "   static var bla = 'yada yada yada';      \n"
@@ -1222,7 +1222,7 @@ TEST_CASE(Debug_InspectStaticField) {
   EXPECT_VALID(retval);
 }
 
-TEST_CASE(Debug_InspectObject) {
+TEST_CASE(DebuggerAPI_InspectObject) {
   const char* kScriptChars =
       " class A {                                 \n"
       "   var a_field = 'a';                      \n"
@@ -1365,7 +1365,7 @@ static void TestIsolateID(Dart_IsolateId isolate_id, Dart_IsolateEvent kind) {
   }
 }
 
-VM_UNIT_TEST_CASE(Debug_IsolateID) {
+VM_UNIT_TEST_CASE(DebuggerAPI_IsolateID) {
   const char* kScriptChars =
       "void moo(s) { }        \n"
       "class A {              \n"
@@ -1488,7 +1488,7 @@ static void InterruptIsolateRun(uword unused) {
   }
 }
 
-TEST_CASE(Debug_InterruptIsolate) {
+TEST_CASE(DebuggerAPI_InterruptIsolate) {
   bool saved_flag = FLAG_trace_shutdown;
   FLAG_trace_shutdown = true;
   sync = new Monitor();
@@ -1637,7 +1637,7 @@ static void StackTraceDump1BreakpointHandler(
                    true);
 }
 
-TEST_CASE(Debug_StackTraceDump1) {
+TEST_CASE(DebuggerAPI_StackTraceDump1) {
   const char* kScriptChars =
       "class Test {\n"
       "  Test(int local);\n"
@@ -1793,7 +1793,7 @@ static void StackTraceDump2ExceptionHandler(Dart_IsolateId isolate_id,
                    true);
 }
 
-TEST_CASE(Debug_StackTraceDump2) {
+TEST_CASE(DebuggerAPI_StackTraceDump2) {
   const char* kScriptChars =
       "class Test {\n"
       "  Test(int local);\n"
@@ -1886,7 +1886,7 @@ void TestEvaluateHandler(Dart_IsolateId isolate_id,
   breakpoint_hit_counter++;
 }
 
-TEST_CASE(Debug_EvaluateExpr) {
+TEST_CASE(DebuggerAPI_EvaluateExpr) {
   const char* kScriptChars =
       "import 'dart:math';               \n"
       "main() {                          \n"
@@ -1996,7 +1996,7 @@ static void EvaluateInActivationOfEvaluateHandler(Dart_IsolateId isolate_id,
   EXPECT_EQ(5.0, ToDouble(result));
 }
 
-TEST_CASE(Debug_EvaluateInActivationOfEvaluate) {
+TEST_CASE(DebuggerAPI_EvaluateInActivationOfEvaluate) {
   // This library deliberately declares no top-level variables or methods. This
   // exercises a path in eval where a library may have no top-level anonymous
   // classes.
@@ -2028,7 +2028,7 @@ static void UnhandledExceptionHandler(Dart_IsolateId isolate_id,
 
 // Check that the debugger is not called when an exception is
 // caught by Dart code.
-TEST_CASE(Debug_BreakOnUnhandledException) {
+TEST_CASE(DebuggerAPI_BreakOnUnhandledException) {
   const char* kScriptChars =
       "main() {                        \n"
       "  try {                         \n"
@@ -2063,7 +2063,7 @@ TEST_CASE(Debug_BreakOnUnhandledException) {
   EXPECT_EQ(1, breakpoint_hit_counter);
 }
 
-TEST_CASE(Debug_GetClosureInfo) {
+TEST_CASE(DebuggerAPI_GetClosureInfo) {
   const char* kScriptChars =
       "void foo() { return 43; } \n"
       "                          \n"
@@ -2094,7 +2094,7 @@ TEST_CASE(Debug_GetClosureInfo) {
   EXPECT(loc.library_id > 0);
 }
 
-TEST_CASE(Debug_GetSupertype) {
+TEST_CASE(DebuggerAPI_GetSupertype) {
   const char* kScriptChars =
       "class Test {\n"
       "}\n"
@@ -2199,7 +2199,7 @@ TEST_CASE(Debug_GetSupertype) {
   }
 }
 
-TEST_CASE(Debug_ListSuperType) {
+TEST_CASE(DebuggerAPI_ListSuperType) {
   const char* kScriptChars =
       "List testMain() {"
       "  List a = new List();"
@@ -2230,7 +2230,7 @@ TEST_CASE(Debug_ListSuperType) {
   EXPECT(!Dart_IsError(super_type));
 }
 
-TEST_CASE(Debug_ScriptGetTokenInfo_Basic) {
+TEST_CASE(DebuggerAPI_ScriptGetTokenInfo_Basic) {
   const char* kScriptChars =
       "var foo;\n"
       "\n"
@@ -2255,7 +2255,7 @@ TEST_CASE(Debug_ScriptGetTokenInfo_Basic) {
       tokens_cstr);
 }
 
-TEST_CASE(Debug_ScriptGetTokenInfo_MultiLineInterpolation) {
+TEST_CASE(DebuggerAPI_ScriptGetTokenInfo_MultiLineInterpolation) {
   const char* kScriptChars =
       "var foo = 'hello world';\n"
       "\n"

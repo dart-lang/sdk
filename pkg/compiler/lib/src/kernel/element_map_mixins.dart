@@ -402,12 +402,19 @@ abstract class KernelToElementMapForImpactMixin
     return nativeBehaviorBuilder.buildFieldStoreBehavior(type);
   }
 
-  /// Computes the native behavior for calling [procedure].
+  /// Computes the native behavior for calling [member].
   // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure,
+  native.NativeBehavior getNativeBehaviorForMethod(ir.Member member,
       {bool isJsInterop}) {
-    DartType type = getFunctionType(procedure.function);
-    List<ConstantValue> metadata = getMetadata(procedure.annotations);
+    DartType type;
+    if (member is ir.Procedure) {
+      type = getFunctionType(member.function);
+    } else if (member is ir.Constructor) {
+      type = getFunctionType(member.function);
+    } else {
+      failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected method node $member.");
+    }
+    List<ConstantValue> metadata = getMetadata(member.annotations);
     return nativeBehaviorBuilder.buildMethodBehavior(
         type, metadata, typeLookup(resolveAsRaw: false),
         isJsInterop: isJsInterop);
@@ -617,16 +624,26 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
 
   @override
   ConstantExpression visitTypeLiteral(ir.TypeLiteral node) {
-    DartType type = elementMap.getDartType(node.type);
     String name;
+    DartType type = elementMap.getDartType(node.type);
     if (type.isDynamic) {
       name = 'dynamic';
     } else if (type is InterfaceType) {
       name = type.element.name;
-    } else if (type.isFunctionType || type.isTypedef) {
+    } else if (type.isTypedef) {
       // TODO(johnniwinther): Compute a name for the type literal? It is only
       // used in error messages in the old SSA builder.
       name = '?';
+    } else if (node.type is ir.FunctionType) {
+      ir.FunctionType functionType = node.type;
+      if (functionType.typedef != null) {
+        type = elementMap.getTypedefType(functionType.typedef);
+        name = functionType.typedef.name;
+      } else {
+        // TODO(johnniwinther): Remove branch when [KernelAstAdapter] is
+        // removed.
+        name = '?';
+      }
     } else {
       return defaultExpression(node);
     }

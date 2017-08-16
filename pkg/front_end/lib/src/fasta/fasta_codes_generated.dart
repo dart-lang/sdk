@@ -1368,6 +1368,36 @@ Message _withArgumentsInputFileNotFound(Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Token
+            token)> templateIntegerLiteralIsOutOfRange = const Template<
+        Message Function(Token token)>(
+    messageTemplate:
+        r"""The integer literal #lexeme can't be represented in 64 bits.""",
+    tipTemplate:
+        r"""Try using BigInt (from 'dart:typed_data' library) if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.""",
+    withArguments: _withArgumentsIntegerLiteralIsOutOfRange);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeIntegerLiteralIsOutOfRange =
+    const Code<Message Function(Token token)>(
+  "IntegerLiteralIsOutOfRange",
+  templateIntegerLiteralIsOutOfRange,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIntegerLiteralIsOutOfRange(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeIntegerLiteralIsOutOfRange,
+      message:
+          """The integer literal $lexeme can't be represented in 64 bits.""",
+      tip:
+          """Try using BigInt (from 'dart:typed_data' library) if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInternalProblemAlreadyInitialized =
     messageInternalProblemAlreadyInitialized;
 

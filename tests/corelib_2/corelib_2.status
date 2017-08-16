@@ -19,6 +19,9 @@ string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
+[ (!$checked && $runtime == vm) || (!$checked && $compiler == dart2js) || $compiler == precompiler ]
+int_parse_radix_test/badTypes: RuntimeError # wrong exception returned
+
 [ !$strong && !$checked ]
 core_runtime_types_static_test: MissingCompileTimeError
 splay_tree_test/01: MissingCompileTimeError
@@ -26,6 +29,9 @@ splay_tree_test/02: MissingCompileTimeError
 string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
+
+[ $runtime == vm || $compiler == precompiler || $compiler == dart2js ]
+int_parse_radix_bad_handler_test: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && !$strong ]
 symbol_reserved_word_test/05: MissingCompileTimeError # Issue 30245
@@ -65,6 +71,7 @@ apply3_test: SkipByDesign
 dynamic_nosuchmethod_test: SkipByDesign
 big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
+int_parse_radix_test: Pass, Timeout # --no_intrinsify
 
 [ $compiler == dart2js && $runtime != none && !$checked ]
 growable_list_test: RuntimeError # Concurrent modifications test always runs
@@ -144,7 +151,6 @@ symbol_reserved_word_test/12: RuntimeError # Issue 29921
 int_parse_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
 typed_data_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
 int_modulo_arith_test/none: RuntimeError # Issue 29921
-list_unmodifiable_test: RuntimeError # Issue 29921, strong mode cast failure
 
 [ ($compiler == dart2js || $compiler == dartdevc) && $runtime != none ]
 big_integer_arith_vm_test: RuntimeError # Issues 10245, 30170
@@ -163,13 +169,17 @@ typed_data_with_limited_ints_test: Skip # dart2js and dartdevc don't know about 
 
 [ $compiler == dart2js && $runtime != none ]
 nan_infinity_test/01: RuntimeError
+integer_to_string_test/01: RuntimeError
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
+int_parse_radix_test/01: RuntimeError
+int_parse_radix_test/02: RuntimeError
 
 [ $compiler == dart2js && $runtime == drt && $csp && $minified ]
 core_runtime_types_test: Pass, Fail # Issue 27913
 
 [ $compiler != dartdevc ]
 error_stack_trace_test/static: MissingCompileTimeError
+iterable_element_at_test/static: MissingCompileTimeError
 
 [ $compiler == dartdevc && $runtime != none ]
 error_stack_trace_test/nullThrown: RuntimeError # .stackTrace not present for exception caught from 'throw null;'
@@ -182,6 +192,12 @@ json_map_test: RuntimeError # Issue 29921
 core_runtime_types_test: RuntimeError # Issue 29921 - runtime cast failure
 string_fromcharcodes_test: RuntimeError # Issue 29921 - runtime cast failure
 uri_query_test: RuntimeError # Issue 29921 - runtime cast failure
+int_parse_radix_test/01: RuntimeError # Issue 29921
+int_parse_radix_test/02: RuntimeError # Issue 29921
+integer_to_radix_string_test: RuntimeError # Issue 29921
+integer_to_string_test/01: RuntimeError # Issue 29921
+iterable_fold_test/01: CompileTimeError # type inference problem
+iterable_fold_test/02: RuntimeError # different type inference problem
 
 [ $runtime == flutter ]
 apply3_test: CompileTimeError # mirrors not supported
@@ -290,8 +306,13 @@ string_from_environment3_test/05: MissingCompileTimeError
 double_parse_test/02: Fail, OK
 unicode_test: Fail
 
+[ $runtime == ff && $system == windows ]
+unicode_test: Pass # When Linux FF updates to 55, remove the fail status from FF in the other status line for this file.
+string_case_test/01: Pass # When Linux FF updates to 55, remove the fail status from FF in the other status line for this file.
+
 [ ($runtime == vm || $runtime == dart_precompiled) && $arch == simarmv5te ]
 big_integer_parsed_mul_div_vm_test: Pass, SloW
+int_parse_radix_test/*: Pass, Slow
 
 [ $compiler == precompiler ]
 big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
@@ -315,6 +336,7 @@ symbol_reserved_word_test/10: MissingCompileTimeError # Issue 11669, 19972
 
 [ $compiler == dart2js ]
 hash_set_test/01: RuntimeError # Issue 11551
+integer_to_radix_string_test: RuntimeError # Issue 29921
 string_static_test: MissingCompileTimeError
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $runtime != drt ]
@@ -423,7 +445,7 @@ from_environment_const_type_undefined_test/16: MissingCompileTimeError
 string_base_vm_static_test: MissingCompileTimeError
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
-string_case_test/01: Fail, OK # Bug in Firefox.
+string_case_test/01: Fail, OK # Bug in Firefox. Change to jsshell fail only once linux updates to 55.
 regexp/UC16_test: RuntimeError
 
 [ $compiler == none && $runtime == drt ]
@@ -499,14 +521,40 @@ int_from_environment3_test/05: Crash
 int_modulo_arith_test/bignum: Crash
 int_modulo_arith_test/modPow: Crash
 int_modulo_arith_test/none: Crash
+int_parse_radix_bad_handler_test: Crash
+int_parse_radix_test/01: Crash
+int_parse_radix_test/02: Crash
+int_parse_radix_test/none: Crash
+integer_to_string_test/01: Crash
+double_ceil2_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+int_parse_radix_test/badTypes: Crash # 'file:///usr/local/google/home/sigmund/dart/git_all/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 185 pos 12: 'closure != null': Corresponding closure class not found for local(main_closure.call#). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(unwrapException_closure.call), local(unwrapException#saveStackTrace))
+integer_to_radix_string_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+is_operator_basic_types_test: Crash
+iterable_contains2_test: Crash
+iterable_contains_test: Crash
+iterable_element_at_test: Crash
+iterable_empty_test: Crash
+iterable_expand_test: Crash
+iterable_first_test: Crash
+iterable_first_where_test: Crash
+iterable_fold_test: Crash
+iterable_skip_while_test: Crash
 iterable_skip_while_test: Crash
 iterable_take_test: Crash
+iterable_take_test: Crash
+iterable_take_while_test: Crash
 iterable_take_while_test: Crash
 iterable_test: Crash
+iterable_test: Crash
+iterable_to_list_test/01: Crash
 iterable_to_list_test/01: Crash
 iterable_to_list_test/none: Crash
+iterable_to_list_test/none: Crash
+iterable_to_set_test: Crash
 iterable_to_set_test: Crash
 iterable_tostring_test: Crash
+iterable_tostring_test: Crash
+json_map_test: Crash
 json_map_test: Crash
 linked_hash_map_from_iterables_test: Crash
 linked_hash_map_test: Crash
@@ -534,7 +582,6 @@ list_sublist_test: Crash
 list_test/01: Crash
 list_test/none: Crash
 list_to_string2_test: Crash
-list_to_string_test: Crash
 list_unmodifiable_test: Crash
 main_test: Crash
 map_contains_key_test: Crash
@@ -595,8 +642,6 @@ regexp/regress-regexp-codeflush_test: Crash
 regexp/standalones_test: Crash
 regexp/unicode-handling_test: Crash
 regexp/unicodeCaseInsensitive_test: Crash
-regress_11099_test: Crash # type 'FunctionType' is not a subtype of type 'ResolutionFunctionType' of 'type' where
-safe_to_string_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionDartType' of 'type' where
 set_containsAll_test: Crash
 set_contains_test: Crash
 set_intersection_test: Crash
@@ -654,7 +699,6 @@ symbol_test/01: Crash
 symbol_test/02: Crash
 symbol_test/03: Crash
 symbol_test/none: Crash
-type_hashcode_test: Crash
 unicode2_test: Crash
 uri_base_test: Crash
 uri_file_test: Crash
@@ -672,7 +716,6 @@ uri_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 stopwatch_test: Crash
-type_hashcode_test: Crash
 map_contains_key_test: Crash
 map_index_test: Crash
 map_remove_test: Crash
@@ -777,6 +820,25 @@ int_from_environment3_test/05: Crash
 int_modulo_arith_test/bignum: Crash
 int_modulo_arith_test/modPow: Crash
 int_modulo_arith_test/none: Crash
+double_ceil2_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+int_parse_radix_bad_handler_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+int_parse_radix_test/01: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+int_parse_radix_test/02: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+int_parse_radix_test/badTypes: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+int_parse_radix_test/none: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+integer_to_radix_string_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
+is_operator_basic_types_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(CodeUnits.#E) in j:constructor(CodeUnits.).
+iterable_contains2_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+iterable_contains_test: Crash # Assertion failure: Cannot find value local(test_closure.call#notInList) in (local(test_closure.call#list), local(test#testList), local(test_closure.call#i)) for j:closure_call(test_closure.call).
+iterable_element_at_test/none: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
+iterable_element_at_test/static: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
+iterable_empty_test: Crash # Assertion failure: Cannot find value local(main#testEmpty) in () for j:method(main).
+iterable_expand_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+iterable_first_test: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
+iterable_first_where_test: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
+iterable_fold_test/01: Crash # Assertion failure: Super constructor for k:constructor(SplayTreeSet.) not found.
+iterable_fold_test/02: Crash # Assertion failure: Super constructor for k:constructor(SplayTreeSet.) not found.
+iterable_fold_test/none: Crash # Assertion failure: Super constructor for k:constructor(SplayTreeSet.) not found.
 iterable_skip_while_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 iterable_take_test: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
 iterable_take_while_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
@@ -812,7 +874,6 @@ list_sublist_test: Crash
 list_test/01: Crash
 list_test/none: Crash
 list_to_string2_test: Crash
-list_to_string_test: Crash
 list_unmodifiable_test: Crash
 main_test: Crash
 map_contains_key_test: Crash
@@ -972,3 +1033,19 @@ package_resource_test: RuntimeError # Issue 26842
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
 iterable_to_list_test/01: RuntimeError # Issue 26501
+
+[ $compiler == dart2analyzer ]
+int_parse_radix_bad_handler_test: MissingCompileTimeError
+iterable_element_at_test/static: Pass
+
+[ $compiler == dart2analyzer && $strong ]
+int_parse_radix_bad_handler_test: Pass
+
+[ $compiler == dart2analyzer && $strong && $checked ]
+iterable_fold_test/01: CompileTimeError
+
+[ $compiler == dart2analyzer && $checked && !$strong ]
+iterable_fold_test/01: Pass
+
+[ $compiler == dart2analyzer && $strong  && !$checked ]
+iterable_fold_test/01: CompileTimeError

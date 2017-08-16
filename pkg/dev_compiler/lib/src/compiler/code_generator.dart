@@ -260,7 +260,6 @@ class CodeGenerator extends Object
     }
 
     var assembler = new PackageBundleAssembler();
-    assembler.recordDependencies(summaryData);
 
     var uriToUnit = new Map<String, UnlinkedUnit>.fromIterable(units,
         key: (u) => u.element.source.uri.toString(),

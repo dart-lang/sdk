@@ -59,10 +59,10 @@ void doTest(
   asyncTest(() => compiler.run(uri).then((_) {
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
         var commonMasks = typesInferrer.closedWorld.commonMasks;
-        var aDoubleType =
-            typesInferrer.getTypeOfMember(findElement(compiler, 'aDouble'));
-        var aListType =
-            typesInferrer.getTypeOfMember(findElement(compiler, 'aList'));
+        MemberElement aDouble = findElement(compiler, 'aDouble');
+        var aDoubleType = typesInferrer.getTypeOfMember(aDouble);
+        MemberElement aList = findElement(compiler, 'aList');
+        var aListType = typesInferrer.getTypeOfMember(aList);
 
         Expect.equals(aDoubleType, commonMasks.doubleType);
         Expect.isTrue(aListType is ContainerTypeMask);

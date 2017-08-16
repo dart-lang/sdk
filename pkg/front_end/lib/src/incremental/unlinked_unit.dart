@@ -110,13 +110,14 @@ class _BodySkippingParser extends Parser {
   _BodySkippingParser() : super(new Listener());
 
   @override
-  Token parseFunctionBody(Token token, bool isExpression, bool allowAbstract) {
+  Token parseFunctionBody(
+      Token token, bool ofFunctionExpression, bool allowAbstract) {
     if (identical('{', token.lexeme)) {
       Token close = skipBlock(token);
       bodyRanges.add(new _BodyRange(token.charOffset, close.charOffset));
-      return isExpression ? close.next : close;
+      return ofFunctionExpression ? close.next : close;
     }
-    return super.parseFunctionBody(token, isExpression, allowAbstract);
+    return super.parseFunctionBody(token, ofFunctionExpression, allowAbstract);
   }
 
   Token parseMixinApplicationRest(Token token) {

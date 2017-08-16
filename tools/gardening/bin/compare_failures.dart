@@ -9,7 +9,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:gardening/src/client.dart';
+import 'package:gardening/src/bot.dart';
 import 'package:gardening/src/compare_failures_impl.dart';
 import 'package:gardening/src/util.dart';
 
@@ -41,9 +41,7 @@ main(List<String> args) async {
     exit(1);
   }
 
-  BuildbotClient client = argResults['logdog']
-      ? new LogdogBuildbotClient()
-      : new HttpBuildbotClient();
-  await mainInternal(client, argResults.rest, runCount: runCount);
-  client.close();
+  Bot bot = new Bot(logdog: argResults['logdog']);
+  await mainInternal(bot, argResults.rest, runCount: runCount);
+  bot.close();
 }

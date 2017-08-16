@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_XXX.
 
 #include "vm/flow_graph_compiler.h"
@@ -52,57 +54,16 @@ DEFINE_FLAG(bool,
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, intrinsify);
-DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(int, regexp_optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
 DECLARE_FLAG(bool, trace_compiler);
-DECLARE_FLAG(int, reload_every);
-DECLARE_FLAG(bool, unbox_numeric_fields);
-
-static void PrecompilationModeHandler(bool value) {
-  if (value) {
-#if defined(TARGET_ARCH_IA32)
-    FATAL("Precompilation not supported on IA32");
-#endif
-
-    FLAG_background_compilation = false;
-    FLAG_fields_may_be_reset = true;
-    FLAG_interpret_irregexp = true;
-    FLAG_lazy_dispatchers = false;
-    FLAG_link_natives_lazily = true;
-    FLAG_optimization_counter_threshold = -1;
-    FLAG_polymorphic_with_deopt = false;
-    FLAG_precompiled_mode = true;
-    FLAG_reorder_basic_blocks = false;
-    FLAG_use_field_guards = false;
-    FLAG_use_cha_deopt = false;
-    FLAG_unbox_numeric_fields = false;
-    FLAG_enable_mirrors = false;
-
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-    // Set flags affecting runtime accordingly for dart_bootstrap.
-    // These flags are constants with PRODUCT and DART_PRECOMPILED_RUNTIME.
-    FLAG_collect_code = false;
-    FLAG_deoptimize_alot = false;  // Used in some tests.
-    FLAG_deoptimize_every = 0;     // Used in some tests.
-    FLAG_load_deferred_eagerly = true;
-    FLAG_print_stop_message = false;
-    FLAG_use_osr = false;
-#endif
-  }
-}
-
-DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
-                    precompilation,
-                    "Precompilation mode");
 
 #ifdef DART_PRECOMPILED_RUNTIME
 
 COMPILE_ASSERT(!FLAG_collect_code);
 COMPILE_ASSERT(!FLAG_deoptimize_alot);  // Used in some tests.
-COMPILE_ASSERT(FLAG_precompiled_runtime);
 COMPILE_ASSERT(!FLAG_print_stop_message);
 COMPILE_ASSERT(!FLAG_use_osr);
 COMPILE_ASSERT(FLAG_deoptimize_every == 0);  // Used in some tests.
@@ -202,7 +163,11 @@ FlowGraphCompiler::FlowGraphCompiler(
   ASSERT(assembler != NULL);
   ASSERT(!list_class_.IsNull());
 
-  bool stack_traces_only = !FLAG_profiler;
+#if defined(PRODUCT)
+  const bool stack_traces_only = true;
+#else
+  const bool stack_traces_only = false;
+#endif
   code_source_map_builder_ = new (zone_)
       CodeSourceMapBuilder(stack_traces_only, caller_inline_id,
                            inline_id_to_token_pos, inline_id_to_function);
@@ -1656,7 +1621,7 @@ const Class& FlowGraphCompiler::BoxClassFor(Representation rep) {
       return float64x2_class();
     case kUnboxedInt32x4:
       return int32x4_class();
-    case kUnboxedMint:
+    case kUnboxedInt64:
       return mint_class();
     default:
       UNREACHABLE();
@@ -1948,3 +1913,5 @@ void FlowGraphCompiler::FrameStateClear() {
 #endif  // defined(DEBUG) && !defined(TARGET_ARCH_DBC)
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

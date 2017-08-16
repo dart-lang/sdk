@@ -77,15 +77,15 @@ void Profiler::InitOnce() {
   Profiler::InitAllocationSampleBuffer();
   // Zero counters.
   memset(&counters_, 0, sizeof(counters_));
-  NativeSymbolResolver::InitOnce();
+  ThreadInterrupter::InitOnce();
   ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
   ThreadInterrupter::Startup();
   initialized_ = true;
 }
 
 void Profiler::InitAllocationSampleBuffer() {
-  if (FLAG_profiler_native_memory &&
-      (Profiler::allocation_sample_buffer_ == NULL)) {
+  ASSERT(Profiler::allocation_sample_buffer_ == NULL);
+  if (FLAG_profiler_native_memory) {
     Profiler::allocation_sample_buffer_ = new AllocationSampleBuffer();
   }
 }
@@ -96,7 +96,13 @@ void Profiler::Shutdown() {
   }
   ASSERT(initialized_);
   ThreadInterrupter::Shutdown();
-  NativeSymbolResolver::ShutdownOnce();
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
+  // TODO(30309): Free the sample buffer on platforms that use a signal-based
+  // thread interrupter.
+#else
+  delete sample_buffer_;
+  sample_buffer_ = NULL;
+#endif
 }
 
 void Profiler::SetSampleDepth(intptr_t depth) {
@@ -406,17 +412,20 @@ void ClearProfileVisitor::VisitSample(Sample* sample) {
 }
 
 static void DumpStackFrame(intptr_t frame_index, uword pc) {
-  Isolate* isolate = Isolate::Current();
-  if ((isolate != NULL) && isolate->is_runnable()) {
-    Code& code = Code::Handle(Code::LookupCodeInVmIsolate(pc));
-    if (!code.IsNull()) {
-      OS::PrintErr("  [0x%" Pp "] %s\n", pc, code.QualifiedName());
-      return;
-    }
-    code = Code::LookupCode(pc);
-    if (!code.IsNull()) {
-      OS::PrintErr("  [0x%" Pp "] %s\n", pc, code.QualifiedName());
-      return;
+  Thread* thread = Thread::Current();
+  if ((thread != NULL) && !thread->IsAtSafepoint()) {
+    Isolate* isolate = thread->isolate();
+    if ((isolate != NULL) && isolate->is_runnable()) {
+      // Only attempt to symbolize Dart frames if we can safely iterate the
+      // current isolate's heap.
+      Code& code = Code::Handle(Code::LookupCodeInVmIsolate(pc));
+      if (!code.IsNull()) {
+        code = Code::LookupCode(pc);  // In current isolate.
+      }
+      if (!code.IsNull()) {
+        OS::PrintErr("  [0x%" Pp "] %s\n", pc, code.QualifiedName());
+        return;
+      }
     }
   }
 

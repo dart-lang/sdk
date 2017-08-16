@@ -765,6 +765,49 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
     Dart_ServiceRequestCallback callback,
     void* user_data);
 
+/**
+ * Embedder information which can be requested by the VM for internal or
+ * reporting purposes.
+ *
+ * The pointers in this structure are not going to be cached or freed by the VM.
+ */
+
+ #define DART_EMBEDDER_INFORMATION_CURRENT_VERSION (0x00000001)
+
+typedef struct {
+  int32_t version;
+  const char* name;  // [optional] The name of the embedder
+  uintptr_t current_rss;  // [optional] the current RSS of the embedder
+  uintptr_t max_rss;  // [optional] the maximum RSS of the embedder
+} Dart_EmbedderInformation;
+
+/**
+ * Callback provided by the embedder that is used by the vm to request
+ * information.
+ *
+ * \return Returns a pointer to a Dart_EmbedderInformation structure.
+ * The embedder keeps the ownership of the structure and any field in it.
+ * The embedder must ensure that the structure will remain valid until the
+ * next invokation of the callback.
+ */
+typedef void (*Dart_EmbedderInformationCallback)(
+    Dart_EmbedderInformation* info);
+
+/**
+ * Register a Dart_ServiceRequestCallback to be called to handle
+ * requests for the named rpc. The callback will be invoked without a
+ * current isolate.
+ *
+ * \param method The name of the command that this callback is responsible for.
+ * \param callback The callback to invoke.
+ * \param user_data The user data passed to the callback.
+ *
+ * NOTE: If multiple callbacks with the same name are registered, only
+ * the last callback registered will be remembered.
+ */
+DART_EXPORT void Dart_SetEmbedderInformationCallback(
+    Dart_EmbedderInformationCallback callback);
+
 /*
  * ========
  * Event Streams

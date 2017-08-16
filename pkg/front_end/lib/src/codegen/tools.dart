@@ -238,7 +238,13 @@ class GeneratedFile extends GeneratedContent {
 class DartFormat {
   static String get _dartfmtPath {
     String binName = Platform.isWindows ? 'dartfmt.bat' : 'dartfmt';
-    return join(dirname(Platform.resolvedExecutable), binName);
+    for (var loc in [binName, join('dart-sdk', 'bin', binName)]) {
+      var candidatePath = join(dirname(Platform.resolvedExecutable), loc);
+      if (new File(candidatePath).existsSync()) {
+        return candidatePath;
+      }
+    }
+    throw new StateError('Could not find dartfmt executable');
   }
 
   static void formatFile(File file) {

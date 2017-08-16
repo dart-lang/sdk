@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/flow_graph.h"
 
 #include "vm/bit_vector.h"
@@ -1530,7 +1532,7 @@ void FlowGraph::ConvertUse(Value* use, Representation from_rep) {
 
 static bool IsUnboxedInteger(Representation rep) {
   return (rep == kUnboxedInt32) || (rep == kUnboxedUint32) ||
-         (rep == kUnboxedMint);
+         (rep == kUnboxedInt64);
 }
 
 static bool ShouldInlineSimd() {
@@ -1571,7 +1573,7 @@ void FlowGraph::InsertConversion(Representation from,
         UnboxedIntConverterInstr(from, to, use->CopyWithType(), deopt_id);
   } else if ((from == kUnboxedInt32) && (to == kUnboxedDouble)) {
     converted = new Int32ToDoubleInstr(use->CopyWithType());
-  } else if ((from == kUnboxedMint) && (to == kUnboxedDouble) &&
+  } else if ((from == kUnboxedInt64) && (to == kUnboxedDouble) &&
              CanConvertUnboxedMintToDouble()) {
     const intptr_t deopt_id = (deopt_target != NULL)
                                   ? deopt_target->DeoptimizationTarget()
@@ -1717,7 +1719,7 @@ static void UnboxPhi(PhiInstr* phi) {
       unboxed =
           RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
               ? kUnboxedInt32
-              : kUnboxedMint;
+              : kUnboxedInt64;
     }
   }
 
@@ -1887,7 +1889,7 @@ void FlowGraph::WidenSmiToInt32() {
           worklist.Add(input);
         } else if (input->IsPhi() && (input->Type()->ToCid() == kSmiCid)) {
           worklist.Add(input);
-        } else if (input->IsBinaryMintOp()) {
+        } else if (input->IsBinaryInt64Op()) {
           // Mint operation produces untagged result. We avoid tagging.
           gain++;
           if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
@@ -1929,9 +1931,9 @@ void FlowGraph::WidenSmiToInt32() {
         } else if (use_defn->IsPhi() &&
                    use_defn->AsPhi()->Type()->ToCid() == kSmiCid) {
           worklist.Add(use_defn);
-        } else if (use_defn->IsBinaryMintOp()) {
-          // BinaryMintOp requires untagging of its inputs.
-          // Converting kUnboxedInt32 to kUnboxedMint is essentially zero cost
+        } else if (use_defn->IsBinaryInt64Op()) {
+          // BinaryInt64Op requires untagging of its inputs.
+          // Converting kUnboxedInt32 to kUnboxedInt64 is essentially zero cost
           // sign extension operation.
           gain++;
           if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
@@ -2064,8 +2066,8 @@ void FlowGraph::TryOptimizePatterns() {
             div_mod_merge.Add(binop);
           }
         }
-      } else if (it.Current()->IsBinaryMintOp()) {
-        BinaryMintOpInstr* mintop = it.Current()->AsBinaryMintOp();
+      } else if (it.Current()->IsBinaryInt64Op()) {
+        BinaryInt64OpInstr* mintop = it.Current()->AsBinaryInt64Op();
         if (mintop->op_kind() == Token::kBIT_AND) {
           OptimizeLeftShiftBitAndSmiOp(&it, mintop,
                                        mintop->left()->definition(),
@@ -2180,8 +2182,8 @@ void FlowGraph::OptimizeLeftShiftBitAndSmiOp(
 
   // Pattern recognized.
   smi_shift_left->mark_truncating();
-  ASSERT(bit_and_instr->IsBinarySmiOp() || bit_and_instr->IsBinaryMintOp());
-  if (bit_and_instr->IsBinaryMintOp()) {
+  ASSERT(bit_and_instr->IsBinarySmiOp() || bit_and_instr->IsBinaryInt64Op());
+  if (bit_and_instr->IsBinaryInt64Op()) {
     // Replace Mint op with Smi op.
     BinarySmiOpInstr* smi_op = new (Z) BinarySmiOpInstr(
         Token::kBIT_AND, new (Z) Value(left_instr), new (Z) Value(right_instr),
@@ -2271,3 +2273,5 @@ void FlowGraph::AppendExtractNthOutputForMerged(Definition* instr,
 }
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

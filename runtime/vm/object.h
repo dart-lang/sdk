@@ -1917,13 +1917,13 @@ class ICData : public Object {
 // printed during deoptimization itself.
 #define DEOPT_REASONS(V)                                                       \
   V(BinarySmiOp)                                                               \
-  V(BinaryMintOp)                                                              \
+  V(BinaryInt64Op)                                                             \
   V(DoubleToSmi)                                                               \
   V(CheckSmi)                                                                  \
   V(CheckClass)                                                                \
   V(Unknown)                                                                   \
   V(PolymorphicInstanceCallTestFail)                                           \
-  V(UnaryMintOp)                                                               \
+  V(UnaryInt64Op)                                                              \
   V(BinaryDoubleOp)                                                            \
   V(UnaryOp)                                                                   \
   V(UnboxInteger)                                                              \
@@ -2667,6 +2667,9 @@ class Function : public Object {
 #endif
   }
 
+  RawTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
+  void set_kernel_data(const TypedData& data) const;
+
   bool IsOptimizable() const;
   void SetIsOptimizable(bool value) const;
 
@@ -3246,6 +3249,9 @@ class Field : public Object {
 #endif
   }
 
+  RawTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
+  void set_kernel_data(const TypedData& data) const;
+
   inline intptr_t Offset() const;
   // Called during class finalization.
   inline void SetOffset(intptr_t offset_in_bytes) const;
@@ -3652,13 +3658,9 @@ class Script : public Object {
   }
   void set_compile_time_constants(const Array& value) const;
 
-  const uint8_t* kernel_data() const { return raw_ptr()->kernel_data_; }
-  void set_kernel_data(const uint8_t* kernel_data) const;
-
-  intptr_t kernel_data_size() const { return raw_ptr()->kernel_data_size_; }
-  void set_kernel_data_size(const intptr_t kernel_data_size) const;
-
-  intptr_t kernel_script_index() { return raw_ptr()->kernel_script_index_; }
+  intptr_t kernel_script_index() const {
+    return raw_ptr()->kernel_script_index_;
+  }
   void set_kernel_script_index(const intptr_t kernel_script_index) const;
 
   RawTypedData* kernel_string_offsets() const {
@@ -3895,13 +3897,16 @@ class Library : public Object {
   void AddClassMetadata(const Class& cls,
                         const Object& tl_owner,
                         TokenPosition token_pos,
-                        intptr_t kernel_offset = 0) const;
+                        intptr_t kernel_offset = 0,
+                        const TypedData* kernel_data = NULL) const;
   void AddFieldMetadata(const Field& field,
                         TokenPosition token_pos,
-                        intptr_t kernel_offset = 0) const;
+                        intptr_t kernel_offset = 0,
+                        const TypedData* kernel_data = NULL) const;
   void AddFunctionMetadata(const Function& func,
                            TokenPosition token_pos,
-                           intptr_t kernel_offset = 0) const;
+                           intptr_t kernel_offset = 0,
+                           const TypedData* kernel_data = NULL) const;
   void AddLibraryMetadata(const Object& tl_owner,
                           TokenPosition token_pos) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
@@ -4073,7 +4078,8 @@ class Library : public Object {
   void AddMetadata(const Object& owner,
                    const String& name,
                    TokenPosition token_pos,
-                   intptr_t kernel_offset = 0) const;
+                   intptr_t kernel_offset = 0,
+                   const TypedData* kernel_data = NULL) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
 
@@ -4954,12 +4960,14 @@ class Code : public Object {
     ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(sizeof(RawCode) + (len * kBytesPerElement));
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static RawCode* FinalizeCode(const Function& function,
                                Assembler* assembler,
                                bool optimized = false);
   static RawCode* FinalizeCode(const char* name,
                                Assembler* assembler,
                                bool optimized);
+#endif
   static RawCode* LookupCode(uword pc);
   static RawCode* LookupCodeInVmIsolate(uword pc);
   static RawCode* FindCode(uword pc, int64_t timestamp);

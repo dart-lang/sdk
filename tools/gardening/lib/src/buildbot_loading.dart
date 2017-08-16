@@ -33,11 +33,12 @@ Future<BuildResult> _readBuildResult(
 
 /// Fetches test data for [buildUri] through the buildbot stdio.
 Future<BuildResult> readBuildResultFromHttp(
-    HttpClient client, BuildUri buildUri) {
+    HttpClient client, BuildUri buildUri,
+    [Duration timeout]) {
   Future<String> read() async {
     Uri uri = buildUri.toUri();
     log('Reading buildbot results: $uri');
-    return readUriAsText(client, uri);
+    return readUriAsText(client, uri, timeout);
   }
 
   return _readBuildResult(buildUri, read);

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/deopt_instructions.h"
 
 #include "vm/assembler.h"
@@ -1095,7 +1097,7 @@ void DeoptInfoBuilder::AddCopy(Value* value,
         deopt_instr =
             new (zone()) DeoptWordInstr(ToCpuRegisterSource(source_loc));
         break;
-      case kUnboxedMint: {
+      case kUnboxedInt64: {
         if (source_loc.IsPairLocation()) {
           PairLocation* pair = source_loc.AsPairLocation();
           deopt_instr =
@@ -1431,3 +1433,5 @@ bool DeoptInfo::VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
 }
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

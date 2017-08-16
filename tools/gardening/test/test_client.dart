@@ -63,3 +63,17 @@ class TestClient implements BuildbotClient {
   @override
   int get mostRecentBuildNumber => -1;
 }
+
+class DummyClient implements BuildbotClient {
+  @override
+  Future<BuildResult> readResult(BuildUri buildUri) {
+    return new Future.value(
+        new BuildResult(buildUri, 1, const [], const [], const []));
+  }
+
+  @override
+  void close() {}
+
+  @override
+  int get mostRecentBuildNumber => -1;
+}

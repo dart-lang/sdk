@@ -32,7 +32,7 @@ void main() {
         var closedWorld = typesInferrer.closedWorld;
 
         checkReturn(String name, type) {
-          var element = findElement(compiler, name);
+          MemberElement element = findElement(compiler, name);
           dynamic returnType = typesInferrer.getReturnTypeOfMember(element);
           Expect.equals(type, returnType.simplify(compiler), name);
         }

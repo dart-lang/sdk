@@ -150,3 +150,31 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   @override
   ErrorType get type => ErrorType.STATIC_WARNING;
 }
+
+class AnalysisOptionsHintCode extends ErrorCode {
+  /**
+   * An error code indicating the analysis options file name is deprecated and
+   * the file should be renamed.
+   *
+   * Parameters:
+   * 0: the uri of the file which should be renamed
+   */
+  static const ErrorCode DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME =
+      const AnalysisOptionsHintCode(
+          'DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME',
+          "The name of the analysis options file {0} is deprecated;"
+          " consider renaming it to analysis_options.yaml.");
+
+  /**
+   * Initialize a newly created hint code to have the given [name].
+   */
+  const AnalysisOptionsHintCode(String name, String message,
+      [String correction])
+      : super(name, message, correction);
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
+
+  @override
+  ErrorType get type => ErrorType.HINT;
+}

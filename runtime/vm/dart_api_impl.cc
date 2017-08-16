@@ -59,10 +59,8 @@ namespace dart {
 // Facilitate quick access to the current zone once we have the current thread.
 #define Z (T->zone())
 
-DECLARE_FLAG(bool, use_dart_frontend);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, verify_handles);
-DECLARE_FLAG(bool, use_dart_frontend);
 #if defined(DART_NO_SNAPSHOT)
 DEFINE_FLAG(bool,
             check_function_fingerprints,
@@ -1093,7 +1091,8 @@ DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
       params->vm_snapshot_data, params->vm_snapshot_instructions,
       params->create, params->shutdown, params->cleanup, params->thread_exit,
       params->file_open, params->file_read, params->file_write,
-      params->file_close, params->entropy_source, params->get_service_assets);
+      params->file_close, params->entropy_source, params->get_service_assets,
+      params->start_kernel_isolate);
 }
 
 DART_EXPORT char* Dart_Cleanup() {
@@ -1227,6 +1226,13 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolateFromKernel(const char* script_uri,
                                                       Dart_IsolateFlags* flags,
                                                       void* callback_data,
                                                       char** error) {
+  // Setup default flags in case none were passed.
+  Dart_IsolateFlags api_flags;
+  if (flags == NULL) {
+    Isolate::FlagsInitialize(&api_flags);
+    flags = &api_flags;
+  }
+  flags->use_dart_frontend = true;
   return CreateIsolate(script_uri, main, NULL, NULL, -1,
                        reinterpret_cast<kernel::Program*>(kernel_program),
                        flags, callback_data, error);
@@ -5066,11 +5072,13 @@ static void CompileSource(Thread* thread,
 static Dart_Handle LoadKernelProgram(Thread* T,
                                      const String& url,
                                      void* kernel) {
-  // NOTE: Now the VM owns the [kernel_program] memory!  Currently we do not
-  // free it because (similar to the token stream) it will be used to repeatedly
-  // run the `kernel::FlowGraphBuilder()`.
-  kernel::KernelReader reader(reinterpret_cast<kernel::Program*>(kernel));
+  // NOTE: Now the VM owns the [kernel_program] memory!
+  // We will promptly delete it when done.
+  kernel::Program* program = reinterpret_cast<kernel::Program*>(kernel);
+  kernel::KernelReader reader(program);
   const Object& tmp = reader.ReadProgram();
+  delete program;
+
   if (tmp.IsError()) {
     return Api::NewHandle(T, tmp.raw());
   }
@@ -5116,7 +5124,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
 
   Dart_Handle result;
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_use_dart_frontend && !KernelIsolate::IsKernelIsolate(I)) {
+  if (I->use_dart_frontend()) {
     if ((source == Api::Null()) || (source == NULL)) {
       RETURN_NULL_ERROR(source);
     }
@@ -5248,12 +5256,13 @@ DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program) {
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
 
-  // NOTE: Now the VM owns the [kernel_program] memory!  Currently we do not
-  // free it because (similar to the token stream) it will be used to repeatedly
-  // run the `kernel::FlowGraphBuilder()`.
-  kernel::KernelReader reader(
-      reinterpret_cast<kernel::Program*>(kernel_program));
+  // NOTE: Now the VM owns the [kernel_program] memory!
+  // We will promptly delete it when done.
+  kernel::Program* program = reinterpret_cast<kernel::Program*>(kernel_program);
+  kernel::KernelReader reader(program);
   const Object& tmp = reader.ReadProgram();
+  delete program;
+
   if (tmp.IsError()) {
     return Api::NewHandle(T, tmp.raw());
   }
@@ -5470,10 +5479,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   }
   Dart_Handle result;
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  // Kernel isolate is loaded from script in case of dart_bootstrap
-  // even when FLAG_use_dart_frontend is true. Hence, do not interpret
-  // |source| as a kernel if the current isolate is the kernel isolate.
-  if (FLAG_use_dart_frontend && !KernelIsolate::IsKernelIsolate(I)) {
+  if (I->use_dart_frontend()) {
     result = LoadKernelProgram(T, url_str, reinterpret_cast<void*>(source));
     if (::Dart_IsError(result)) {
       return result;
@@ -5883,15 +5889,16 @@ Dart_CompileToKernel(const char* script_uri) {
 DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileSourcesToKernel(const char* script_uri,
                             int source_files_count,
-                            Dart_SourceFile sources[]) {
+                            Dart_SourceFile sources[],
+                            bool incremental_compile) {
 #ifdef DART_PRECOMPILED_RUNTIME
   Dart_KernelCompilationResult result;
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
   return result;
 #else
-  return KernelIsolate::CompileToKernel(script_uri, source_files_count,
-                                        sources);
+  return KernelIsolate::CompileToKernel(script_uri, source_files_count, sources,
+                                        incremental_compile);
 #endif
 }
 
@@ -5922,6 +5929,11 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
     const char* name,
     Dart_ServiceRequestCallback callback,
     void* user_data) {
+  return;
+}
+
+DART_EXPORT void Dart_SetEmbedderInformationCallback(
+    Dart_EmbedderInformationCallback callback) {
   return;
 }
 
@@ -5987,6 +5999,13 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
     void* user_data) {
   if (FLAG_support_service) {
     Service::RegisterRootEmbedderCallback(name, callback, user_data);
+  }
+}
+
+DART_EXPORT void Dart_SetEmbedderInformationCallback(
+    Dart_EmbedderInformationCallback callback) {
+  if (FLAG_support_service) {
+    Service::SetEmbedderInformationCallback(callback);
   }
 }
 

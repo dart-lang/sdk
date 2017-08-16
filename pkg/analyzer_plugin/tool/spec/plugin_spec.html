@@ -829,6 +829,48 @@
     </result>
   </request>
 </domain>
+<domain name="kythe" experimental="true">
+  <p>
+    The kythe domain contains APIs related to generating Dart content in the
+    <a href="http://kythe.io/">Kythe</a> format.
+  </p>
+  <request method="getKytheEntries">
+    <p>
+      Return the list of <tt>KytheEntry</tt> objects for some file, given the
+      current state of the file system populated by "analysis.updateContent".
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the code for which the Kythe Entry objects are
+          being requested.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="entries">
+        <list>
+          <ref>KytheEntry</ref>
+        </list>
+        <p>
+          The list of <tt>KytheEntry</tt> objects for the queried file.
+        </p>
+      </field>
+      <field name="files">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          The set of files paths that were required, but not in the file system,
+          to give a complete and accurate Kythe graph for the file. This could
+          be due to a referenced file that does not exist or generated files not
+          being generated or passed before the call to "getKytheEntries".
+        </p>
+      </field>
+    </result>
+  </request>
+</domain>
 <types>
   <h2 class="domain"><a name="types">Types</a></h2>
   <p>

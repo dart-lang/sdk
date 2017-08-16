@@ -261,10 +261,9 @@ class DeferredLoadTask extends CompilerTask {
     _constantToOutputUnit[constant] = _getCanonicalUnit(outputUnit);
   }
 
-  /// Answers whether [element] is explicitly deferred when referred to from
-  /// [library].
-  bool _isExplicitlyDeferred(Element element, LibraryElement library) {
-    Iterable<ImportElement> imports = _getImports(element, library);
+  /// Given [imports] that refer to an element from a library, determine whether
+  /// the element is explicitly deferred.
+  static bool _isExplicitlyDeferred(Iterable<ImportElement> imports) {
     // If the element is not imported explicitly, it is implicitly imported
     // not deferred.
     if (imports.isEmpty) return false;
@@ -456,7 +455,7 @@ class DeferredLoadTask extends CompilerTask {
       ClassElement cls = element.declaration;
       cls.implementation.forEachMember(addLiveInstanceMember);
       for (ResolutionInterfaceType type in cls.implementation.allSupertypes) {
-        elements.add(type.element.implementation);
+        collectTypeDependencies(type);
       }
       elements.add(cls.implementation);
     } else if (Elements.isStaticOrTopLevel(element) || element.isConstructor) {
@@ -527,14 +526,12 @@ class DeferredLoadTask extends CompilerTask {
     });
   }
 
-  /// Recursively traverses the graph of dependencies from one of [element]
-  /// or [constant], mapping deferred imports to each dependency it needs in the
-  /// sets [_importedDeferredBy] and [_constantsDeferredBy].
-  /// Only one of [element] and [constant] should be given.
+  /// Recursively traverses the graph of dependencies from [element], mapping
+  /// deferred imports to each dependency it needs in the sets
+  /// [_importedDeferredBy] and [_constantsDeferredBy].
   void _mapDependencies(
       {Element element, _DeferredImport import, isMirrorUsage: false}) {
-    Set<Element> elements =
-        _importedDeferredBy.putIfAbsent(import, () => new Set<Element>());
+    Set<Element> elements = _importedDeferredBy[import] ??= new Set<Element>();
 
     Set<Element> dependentElements = new Set<Element>();
     Set<ConstantValue> dependentConstants = new Set<ConstantValue>();
@@ -548,6 +545,8 @@ class DeferredLoadTask extends CompilerTask {
       // Anything used directly by main will be loaded from the start
       // We do not need to traverse it again.
       if (import != _fakeMainImport && _mainElements.contains(element)) return;
+      // This adds [element] to [_mainElements] because [_mainElements] is
+      // aliased with `_importedDeferredBy[_fakeMainImport]]`.
       elements.add(element);
 
       // This call can modify [dependentElements] and [dependentConstants].
@@ -558,8 +557,9 @@ class DeferredLoadTask extends CompilerTask {
     }
 
     for (Element dependency in dependentElements) {
-      if (_isExplicitlyDeferred(dependency, library)) {
-        for (ImportElement deferredImport in _getImports(dependency, library)) {
+      Iterable<ImportElement> imports = _getImports(dependency, library);
+      if (_isExplicitlyDeferred(imports)) {
+        for (ImportElement deferredImport in imports) {
           _mapDependencies(
               element: dependency,
               import: new _DeclaredDeferredImport(deferredImport));
@@ -715,97 +715,93 @@ class DeferredLoadTask extends CompilerTask {
     _constantsDeferredBy = new Map<_DeferredImport, Set<ConstantValue>>();
     _importedDeferredBy[_fakeMainImport] = _mainElements;
 
-    reporter.withCurrentElement(
-        mainLibrary,
-        () => measure(() {
-              // Starting from main, traverse the program and find all
-              // dependencies.
-              _mapDependencies(element: mainMethod, import: _fakeMainImport);
+    work() {
+      // Starting from main, traverse the program and find all dependencies.
+      _mapDependencies(element: mainMethod, import: _fakeMainImport);
 
-              // Also add "global" dependencies to the main OutputUnit.  These
-              // are things that the backend needs but cannot associate with a
-              // particular element, for example, startRootIsolate.  This set
-              // also contains elements for which we lack precise information.
-              for (MethodElement element
-                  in closedWorld.backendUsage.globalFunctionDependencies) {
-                _mapDependencies(
-                    element: element.implementation, import: _fakeMainImport);
-              }
-              for (ClassElement element
-                  in closedWorld.backendUsage.globalClassDependencies) {
-                _mapDependencies(
-                    element: element.implementation, import: _fakeMainImport);
-              }
+      // Also add "global" dependencies to the main OutputUnit.  These are
+      // things that the backend needs but cannot associate with a particular
+      // element, for example, startRootIsolate.  This set also contains
+      // elements for which we lack precise information.
+      for (MethodElement element
+          in closedWorld.backendUsage.globalFunctionDependencies) {
+        _mapDependencies(
+            element: element.implementation, import: _fakeMainImport);
+      }
+      for (ClassElement element
+          in closedWorld.backendUsage.globalClassDependencies) {
+        _mapDependencies(
+            element: element.implementation, import: _fakeMainImport);
+      }
 
-              // Now check to see if we have to add more elements due to
-              // mirrors.
-              if (closedWorld.backendUsage.isMirrorsUsed) {
-                _addMirrorElements();
-              }
+      // Now check to see if we have to add more elements due to mirrors.
+      if (closedWorld.backendUsage.isMirrorsUsed) {
+        _addMirrorElements();
+      }
 
-              // Build the OutputUnits using these two maps.
-              Map<Element, OutputUnit> elementToOutputUnitBuilder =
-                  new Map<Element, OutputUnit>();
-              Map<ConstantValue, OutputUnit> constantToOutputUnitBuilder =
-                  new Map<ConstantValue, OutputUnit>();
+      // Build the OutputUnits using these two maps.
+      Map<Element, OutputUnit> elementToOutputUnitBuilder =
+          new Map<Element, OutputUnit>();
+      Map<ConstantValue, OutputUnit> constantToOutputUnitBuilder =
+          new Map<ConstantValue, OutputUnit>();
 
-              // Add all constants that may have been registered during
-              // resolution with [registerConstantDeferredUse].
-              constantToOutputUnitBuilder.addAll(_constantToOutputUnit);
-              _constantToOutputUnit.clear();
+      // Add all constants that may have been registered during resolution with
+      // [registerConstantDeferredUse].
+      constantToOutputUnitBuilder.addAll(_constantToOutputUnit);
+      _constantToOutputUnit.clear();
 
-              // Reverse the mappings. For each element record an OutputUnit
-              // collecting all deferred imports mapped to this element. Same
-              // for constants.
-              for (_DeferredImport import in _importedDeferredBy.keys) {
-                for (Element element in _importedDeferredBy[import]) {
-                  // Only one file should be loaded when the program starts, so
-                  // make sure that only one OutputUnit is created for
-                  // [fakeMainImport].
-                  if (import == _fakeMainImport) {
-                    elementToOutputUnitBuilder[element] = mainOutputUnit;
-                  } else {
-                    elementToOutputUnitBuilder
-                        .putIfAbsent(element, () => new OutputUnit())
-                        .imports
-                        .add(import);
-                  }
-                }
-              }
-              for (_DeferredImport import in _constantsDeferredBy.keys) {
-                for (ConstantValue constant in _constantsDeferredBy[import]) {
-                  // Only one file should be loaded when the program starts, so
-                  // make sure that only one OutputUnit is created for
-                  // [fakeMainImport].
-                  if (import == _fakeMainImport) {
-                    constantToOutputUnitBuilder[constant] = mainOutputUnit;
-                  } else {
-                    constantToOutputUnitBuilder
-                        .putIfAbsent(constant, () => new OutputUnit())
-                        .imports
-                        .add(import);
-                  }
-                }
-              }
+      // Reverse the mappings. For each element record an OutputUnit collecting
+      // all deferred imports mapped to this element. Same for constants.
+      for (_DeferredImport import in _importedDeferredBy.keys) {
+        for (Element element in _importedDeferredBy[import]) {
+          // Only one file should be loaded when the program starts, so make
+          // sure that only one OutputUnit is created for [fakeMainImport].
+          if (import == _fakeMainImport) {
+            elementToOutputUnitBuilder[element] = mainOutputUnit;
+          } else {
+            elementToOutputUnitBuilder
+                .putIfAbsent(element, () => new OutputUnit())
+                .imports
+                .add(import);
+          }
+        }
+      }
+      for (_DeferredImport import in _constantsDeferredBy.keys) {
+        for (ConstantValue constant in _constantsDeferredBy[import]) {
+          // Only one file should be loaded when the program starts, so make
+          // sure that only one OutputUnit is created for [fakeMainImport].
+          if (import == _fakeMainImport) {
+            constantToOutputUnitBuilder[constant] = mainOutputUnit;
+          } else {
+            constantToOutputUnitBuilder
+                .putIfAbsent(constant, () => new OutputUnit())
+                .imports
+                .add(import);
+          }
+        }
+      }
 
-              // Release maps;
-              _importedDeferredBy = null;
-              _constantsDeferredBy = null;
+      // Release maps;
+      _importedDeferredBy = null;
+      _constantsDeferredBy = null;
 
-              // Find all the output units elements/constants have been mapped
-              // to, and canonicalize them.
-              elementToOutputUnitBuilder
-                  .forEach((Element element, OutputUnit outputUnit) {
-                _elementToOutputUnit[element] = _getCanonicalUnit(outputUnit);
-              });
-              constantToOutputUnitBuilder
-                  .forEach((ConstantValue constant, OutputUnit outputUnit) {
-                _constantToOutputUnit[constant] = _getCanonicalUnit(outputUnit);
-              });
+      // Find all the output units elements/constants have been mapped
+      // to, and canonicalize them.
+      elementToOutputUnitBuilder
+          .forEach((Element element, OutputUnit outputUnit) {
+        _elementToOutputUnit[element] = _getCanonicalUnit(outputUnit);
+      });
+      constantToOutputUnitBuilder
+          .forEach((ConstantValue constant, OutputUnit outputUnit) {
+        _constantToOutputUnit[constant] = _getCanonicalUnit(outputUnit);
+      });
 
-              // Generate a unique name for each OutputUnit.
-              _assignNamesToOutputUnits(allOutputUnits);
-            }));
+      // Generate a unique name for each OutputUnit.
+      _assignNamesToOutputUnits(allOutputUnits);
+    }
+
+    reporter.withCurrentElement(mainLibrary, () => measure(work));
+
     // Notify the impact strategy impacts are no longer needed for deferred
     // load.
     compiler.impactStrategy.onImpactUsed(IMPACT_USE);

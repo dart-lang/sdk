@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/il_printer.h"
 
 #include "vm/flow_graph_range_analysis.h"
@@ -1079,8 +1081,8 @@ static const char* RepresentationToCString(Representation rep) {
       return "int32";
     case kUnboxedUint32:
       return "uint32";
-    case kUnboxedMint:
-      return "mint";
+    case kUnboxedInt64:
+      return "int64";
     case kUnboxedFloat32x4:
       return "float32x4";
     case kUnboxedInt32x4:
@@ -1296,3 +1298,5 @@ bool FlowGraphPrinter::ShouldPrint(const Function& function) {
 #endif  // !PRODUCT
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

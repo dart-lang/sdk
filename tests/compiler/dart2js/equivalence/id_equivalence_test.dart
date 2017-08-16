@@ -63,7 +63,8 @@ main() {
 /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
 /// for the data origin.
 void computeAstMemberData(Compiler compiler, MemberEntity _member,
-    Map<Id, String> actualMap, Map<Id, SourceSpan> sourceSpanMap) {
+    Map<Id, String> actualMap, Map<Id, SourceSpan> sourceSpanMap,
+    {bool verbose: false}) {
   MemberElement member = _member;
   ResolvedAst resolvedAst = member.resolvedAst;
   if (resolvedAst.kind != ResolvedAstKind.PARSED) return;
@@ -147,7 +148,8 @@ class ResolvedAstComputer extends AbstractResolvedAstComputer
 /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
 /// for the data origin.
 void computeIrMemberData(Compiler compiler, MemberEntity member,
-    Map<Id, String> actualMap, Map<Id, Spannable> spannableMap) {
+    Map<Id, String> actualMap, Map<Id, Spannable> spannableMap,
+    {bool verbose: false}) {
   KernelBackendStrategy backendStrategy = compiler.backendStrategy;
   KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
   MemberDefinition definition = elementMap.getMemberDefinition(member);
@@ -167,6 +169,8 @@ class IrComputer extends AbstractIrComputer with ComputerMixin {
       return computeLocalName(node.name);
     } else if (node is ir.FunctionDeclaration) {
       return computeLocalName(node.variable.name);
+    } else if (node is ir.FunctionExpression) {
+      return computeLocalName('');
     } else if (node is ir.MethodInvocation) {
       return computeDynamicInvokeName(node.name.name);
     } else if (node is ir.PropertyGet) {

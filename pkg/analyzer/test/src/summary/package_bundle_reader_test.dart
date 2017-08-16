@@ -153,8 +153,8 @@ class ResynthesizerResultProviderTest {
 
 @reflectiveTest
 class SummaryDataStoreTest {
-  SummaryDataStore dataStore = new SummaryDataStore(<String>[],
-      recordDependencyInfo: true, disallowOverlappingSummaries: true);
+  SummaryDataStore dataStore =
+      new SummaryDataStore(<String>[], disallowOverlappingSummaries: true);
 
   PackageBundle bundle1 = new _PackageBundleMock();
   PackageBundle bundle2 = new _PackageBundleMock();
@@ -170,16 +170,6 @@ class SummaryDataStoreTest {
 
   test_addBundle() {
     expect(dataStore.bundles, unorderedEquals([bundle1, bundle2]));
-    expect(dataStore.dependencies[0].summaryPath, '/p1.ds');
-    expect(dataStore.dependencies[0].apiSignature, 'signature1');
-    expect(dataStore.dependencies[0].includedPackageNames, ['p1']);
-    expect(dataStore.dependencies[0].includesFileUris, false);
-    expect(dataStore.dependencies[0].includesDartUris, false);
-    expect(dataStore.dependencies[1].summaryPath, '/p2.ds');
-    expect(dataStore.dependencies[1].apiSignature, 'signature2');
-    expect(dataStore.dependencies[1].includedPackageNames, ['p2']);
-    expect(dataStore.dependencies[1].includesFileUris, false);
-    expect(dataStore.dependencies[1].includesDartUris, false);
     expect(dataStore.uriToSummaryPath,
         containsPair('package:p1/u1.dart', '/p1.ds'));
     // unlinkedMap
@@ -206,9 +196,6 @@ class SummaryDataStoreTest {
     when(bundle.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary1]);
     when(bundle.apiSignature).thenReturn('signature');
     dataStore.addBundle('/p3.ds', bundle);
-    expect(dataStore.dependencies.last.includedPackageNames, []);
-    expect(dataStore.dependencies.last.includesFileUris, false);
-    expect(dataStore.dependencies.last.includesDartUris, true);
   }
 
   test_addBundle_fileUris() {
@@ -219,9 +206,6 @@ class SummaryDataStoreTest {
     when(bundle.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary1]);
     when(bundle.apiSignature).thenReturn('signature');
     dataStore.addBundle('/p3.ds', bundle);
-    expect(dataStore.dependencies.last.includedPackageNames, []);
-    expect(dataStore.dependencies.last.includesFileUris, true);
-    expect(dataStore.dependencies.last.includesDartUris, false);
   }
 
   test_addBundle_multiProject() {
@@ -238,12 +222,11 @@ class SummaryDataStoreTest {
     // p3 conflicts (overlaps) with existing summaries.
     expect(() => dataStore.addBundle('/p3.ds', bundle),
         throwsA(isConflictingSummaryException));
-    expect(dataStore.dependencies.last.includedPackageNames, ['p1', 'p2']);
   }
 
   test_addBundle_multiProjectOverlap() {
-    SummaryDataStore dataStore2 = new SummaryDataStore(<String>[],
-        recordDependencyInfo: true, disallowOverlappingSummaries: false);
+    SummaryDataStore dataStore2 =
+        new SummaryDataStore(<String>[], disallowOverlappingSummaries: false);
     _setupDataStore(dataStore2);
 
     PackageBundle bundle = new _PackageBundleMock();
@@ -258,7 +241,6 @@ class SummaryDataStoreTest {
     when(bundle.apiSignature).thenReturn('signature');
     // p3 conflicts (overlaps) with existing summaries, but now allowed.
     dataStore2.addBundle('/p3.ds', bundle);
-    expect(dataStore2.dependencies.last.includedPackageNames, ['p1', 'p2']);
   }
 
   test_getContainingLibraryUris_libraryUri() {

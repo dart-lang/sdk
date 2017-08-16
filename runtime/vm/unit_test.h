@@ -229,6 +229,9 @@
 #endif  // defined(HOST_ARCH_ARM)
 #endif  // defined(TARGET_ARCH_{ARM, ARM64})
 
+#define ZONE_STR(FMT, ...)                                                     \
+  OS::SCreate(Thread::Current()->zone(), FMT, __VA_ARGS__)
+
 inline Dart_Handle NewString(const char* str) {
   return Dart_NewStringFromCString(str);
 }
@@ -286,11 +289,23 @@ class TestCase : TestCaseBase {
 
   static char* CompileTestScriptWithDFE(const char* url,
                                         const char* source,
-                                        void** kernel_pgm);
+                                        void** kernel_pgm,
+                                        bool incrementally = false);
+  static char* CompileTestScriptWithDFE(const char* url,
+                                        int sourcefiles_count,
+                                        Dart_SourceFile sourcefiles[],
+                                        void** kernel_pgm,
+                                        bool incrementally = false);
   static Dart_Handle LoadTestScript(const char* script,
                                     Dart_NativeEntryResolver resolver,
                                     const char* lib_uri = USER_TEST_URI,
                                     bool finalize = true);
+  static Dart_Handle LoadTestScriptWithDFE(
+      int sourcefiles_count,
+      Dart_SourceFile sourcefiles[],
+      Dart_NativeEntryResolver resolver = NULL,
+      bool finalize = true,
+      bool incrementally = false);
   static Dart_Handle LoadCoreTestScript(const char* script,
                                         Dart_NativeEntryResolver resolver);
   static Dart_Handle lib();
@@ -311,6 +326,8 @@ class TestCase : TestCaseBase {
 
   // Sets |script| to be the source used at next reload.
   static void SetReloadTestScript(const char* script);
+  static void SetReloadTestKernel(const void* kernel);
+
   // Initiates the reload.
   static Dart_Handle TriggerReload();
   // Gets the result of a reload.
@@ -318,6 +335,7 @@ class TestCase : TestCaseBase {
 
   // Helper function which reloads the current isolate using |script|.
   static Dart_Handle ReloadTestScript(const char* script);
+  static Dart_Handle ReloadTestKernel(const void* kernel);
 
   static void AddTestLib(const char* url, const char* source);
   static const char* GetTestLib(const char* url);

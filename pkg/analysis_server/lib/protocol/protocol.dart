@@ -480,6 +480,16 @@ class Response {
 
   /**
    * Initialize a newly created instance to represent the
+   * GET_KYTHE_ENTRIES_INVALID_FILE error condition.
+   */
+  Response.getKytheEntriesInvalidFile(Request request)
+      : this(request.id,
+            error: new RequestError(
+                RequestErrorCode.GET_KYTHE_ENTRIES_INVALID_FILE,
+                'Error during `analysis.getKytheEntries`: invalid file.'));
+
+  /**
+   * Initialize a newly created instance to represent the
    * GET_NAVIGATION_INVALID_FILE error condition.
    */
   Response.getNavigationInvalidFile(Request request)

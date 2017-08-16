@@ -64,6 +64,9 @@ abstract class KernelToElementMap {
   /// Returns the [ClassEntity] corresponding to the class [node].
   ClassEntity getClass(ir.Class node);
 
+  /// Returns the [TypedefType] corresponding to raw type of the typedef [node].
+  TypedefType getTypedefType(ir.Typedef node);
+
   /// Returns the super [MemberEntity] for a super invocation, get or set of
   /// [name] from the member [context].
   ///
@@ -142,8 +145,9 @@ abstract class KernelToElementMapForImpact extends KernelToElementMap {
   /// Computes the native behavior for writing to the native [field].
   native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field);
 
-  /// Computes the native behavior for calling [procedure].
-  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure,
+  /// Computes the native behavior for calling the function or constructor
+  /// [member].
+  native.NativeBehavior getNativeBehaviorForMethod(ir.Member member,
       {bool isJsInterop});
 
   /// Compute the kind of foreign helper function called by [node], if any.

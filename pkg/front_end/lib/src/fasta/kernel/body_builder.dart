@@ -317,7 +317,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     switchScope = outerSwitchScope;
   }
 
-  void declareVariable(VariableDeclaration variable) {
+  void declareVariable(VariableDeclaration variable, Scope scope) {
     // ignore: UNUSED_LOCAL_VARIABLE
     Statement discardedStatement;
     String name = variable.name;
@@ -1273,8 +1273,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
-    push(new KernelIntLiteral(int.parse(token.lexeme))
-      ..fileOffset = offsetForToken(token));
+    int value = int.parse(token.lexeme, onError: (_) => null);
+    if (value == null) {
+      push(buildCompileTimeError(
+          fasta.templateIntegerLiteralIsOutOfRange.withArguments(token),
+          token.charOffset));
+    } else {
+      push(new KernelIntLiteral(value)..fileOffset = offsetForToken(token));
+    }
   }
 
   @override
@@ -1394,7 +1400,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     VariableDeclaration variable = pop();
     variable.fileOffset = nameToken.charOffset;
     push(variable);
-    declareVariable(variable);
+    declareVariable(variable, scope);
   }
 
   @override
@@ -2417,12 +2423,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         // The function node is created later.
         null)
       ..fileOffset = beginToken.charOffset);
-    declareVariable(variable);
-    enterLocalScope();
+    declareVariable(variable, scope.parent);
   }
 
   void enterFunction() {
     debugEvent("enterFunction");
+    enterFunctionTypeScope();
     functionNestingLevel++;
     push(switchScope ?? NullValue.SwitchScope);
     switchScope = null;
@@ -2435,6 +2441,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     functionNestingLevel--;
     inCatchBlock = pop();
     switchScope = pop();
+    List typeVariables = pop();
+    exitLocalScope();
+    push(typeVariables ?? NullValue.TypeVariables);
   }
 
   @override
@@ -2446,6 +2455,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void beginNamedFunctionExpression(Token token) {
     debugEvent("beginNamedFunctionExpression");
+    List typeVariables = pop();
+    // Create an additional scope in which the named function expression is
+    // declared.
+    enterLocalScope();
+    push(typeVariables ?? NullValue.TypeVariables);
     enterFunction();
   }
 
@@ -2455,46 +2469,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     enterFunction();
   }
 
-  @override
-  void endNamedFunctionExpression(Token endToken) {
-    debugEvent("NamedFunctionExpression");
+  void pushNamedFunction(Token token, bool isFunctionExpression) {
     Statement body = popStatement();
     AsyncMarker asyncModifier = pop();
-    if (functionNestingLevel != 0) {
-      exitLocalScope();
-    }
-    FormalParameters formals = pop();
-    List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
-
     exitLocalScope();
-    KernelFunctionDeclaration declaration = pop();
-    VariableDeclaration variable = declaration.variable;
-    var returnType = pop();
-    returnType ??= const DynamicType();
-    pop(); // Modifiers.
-    exitFunction();
-
-    variable.initializer = new KernelFunctionExpression(formals.addToFunction(
-        new FunctionNode(body,
-            typeParameters: typeParameters, asyncMarker: asyncModifier)
-          ..fileOffset = formals.charOffset
-          ..fileEndOffset = endToken.charOffset))
-      ..parent = variable
-      ..fileOffset = formals.charOffset;
-    push(
-        new KernelNamedFunctionExpression(variable, new VariableGet(variable)));
-  }
-
-  @override
-  void endLocalFunctionDeclaration(Token token) {
-    debugEvent("LocalFunctionDeclaration");
-    Statement body = popStatement();
-    AsyncMarker asyncModifier = pop();
-    if (functionNestingLevel != 0) {
-      exitLocalScope();
-    }
     FormalParameters formals = pop();
-    exitLocalScope();
     var declaration = pop();
     var returnType = pop();
     var hasImplicitReturnType = returnType == null;
@@ -2503,25 +2482,57 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitFunction();
     List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
     FunctionNode function = formals.addToFunction(new FunctionNode(body,
-        typeParameters: typeParameters, asyncMarker: asyncModifier)
+        typeParameters: typeParameters,
+        asyncMarker: asyncModifier,
+        returnType: returnType)
       ..fileOffset = formals.charOffset
       ..fileEndOffset = token.charOffset);
+
     if (declaration is FunctionDeclaration) {
+      VariableDeclaration variable = declaration.variable;
       KernelFunctionDeclaration.setHasImplicitReturnType(
           declaration, hasImplicitReturnType);
-      function.returnType = returnType;
-      declaration.variable.type = function.functionType;
-      declaration.function = function;
-      function.parent = declaration;
-    } else {
+
+      variable.type = function.functionType;
+      if (isFunctionExpression) {
+        variable.initializer = new KernelFunctionExpression(function)
+          ..parent = variable
+          ..fileOffset = formals.charOffset;
+        exitLocalScope();
+        push(new KernelNamedFunctionExpression(variable));
+      } else {
+        declaration.function = function;
+        function.parent = declaration;
+        push(declaration);
+      }
+    } else if (declaration is ExpressionStatement) {
       // If [declaration] isn't a [FunctionDeclaration], it must be because
       // there was a compile-time error.
-
-      // TODO(paulberry): ensure that when integrating with analyzer, type
-      // inference is still performed for the dropped declaration.
       assert(library.hasCompileTimeErrors);
+
+      // TODO(paulberry,ahe): ensure that when integrating with analyzer, type
+      // inference is still performed for the dropped declaration.
+      if (isFunctionExpression) {
+        push(declaration.expression);
+      } else {
+        push(declaration);
+      }
+    } else {
+      return unhandled("${declaration.runtimeType}", "pushNamedFunction",
+          token.charOffset, uri);
     }
-    push(declaration);
+  }
+
+  @override
+  void endNamedFunctionExpression(Token endToken) {
+    debugEvent("NamedFunctionExpression");
+    pushNamedFunction(endToken, true);
+  }
+
+  @override
+  void endLocalFunctionDeclaration(Token token) {
+    debugEvent("LocalFunctionDeclaration");
+    pushNamedFunction(token, false);
   }
 
   @override

@@ -1137,6 +1137,24 @@ class Parser {
           optional('sync', token);
     }
 
+    /// Returns true if [token] could be the start of a function declaration
+    /// without a return type.
+    bool looksLikeFunctionDeclaration(Token token) {
+      if (!token.isIdentifier) {
+        return false;
+      }
+      token = token.next;
+      if (optional('<', token)) {
+        Token closeBrace = closeBraceTokenFor(token);
+        if (closeBrace == null) return false;
+        token = closeBrace.next;
+      }
+      if (optional('(', token)) {
+        return looksLikeFunctionBody(closeBraceTokenFor(token).next);
+      }
+      return false;
+    }
+
     FormalParameterKind parameterKind;
     switch (continuation) {
       case TypeContinuation.Required:
@@ -1203,7 +1221,7 @@ class Parser {
               } else {
                 commitType();
               }
-              return parseLocalFunctionDeclarationRest(begin, token, formals);
+              return parseNamedFunctionRest(begin, token, formals, false);
             }
           } else if (identical(afterIdKind, LT_TOKEN)) {
             // We are looking at `type identifier '<'`.
@@ -1220,7 +1238,7 @@ class Parser {
                 } else {
                   commitType();
                 }
-                return parseLocalFunctionDeclarationRest(begin, token, formals);
+                return parseNamedFunctionRest(begin, token, formals, false);
               }
             }
           }
@@ -1241,7 +1259,7 @@ class Parser {
               listener.beginLocalFunctionDeclaration(token);
               listener.handleModifiers(0);
               listener.handleNoType(token);
-              return parseLocalFunctionDeclarationRest(begin, token, formals);
+              return parseNamedFunctionRest(begin, token, formals, false);
             }
           } else if (optional('<', token.next)) {
             Token afterTypeVariables = closeBraceTokenFor(token.next)?.next;
@@ -1255,8 +1273,8 @@ class Parser {
                 listener.beginLocalFunctionDeclaration(token);
                 listener.handleModifiers(0);
                 listener.handleNoType(token);
-                return parseLocalFunctionDeclarationRest(
-                    begin, token, afterTypeVariables);
+                return parseNamedFunctionRest(
+                    begin, token, afterTypeVariables, false);
               }
             }
             // Fall through to expression statement.
@@ -1286,14 +1304,36 @@ class Parser {
         return parseExpressionStatement(begin);
 
       case TypeContinuation.SendOrFunctionLiteral:
-        if (looksLikeType &&
-            token.isIdentifier &&
-            isFunctionDeclaration(token.next)) {
-          return parseNamedFunctionExpression(begin);
-        } else if (isFunctionDeclaration(begin.next)) {
-          return parseNamedFunctionExpression(begin);
+        Token name;
+        bool hasReturnType;
+        if (looksLikeType && looksLikeFunctionDeclaration(token)) {
+          name = token;
+          hasReturnType = true;
+          // Fall-through to parseNamedFunctionRest below.
+        } else if (looksLikeFunctionDeclaration(begin)) {
+          name = begin;
+          hasReturnType = false;
+          // Fall-through to parseNamedFunctionRest below.
+        } else {
+          return parseSend(begin, continuationContext);
         }
-        return parseSend(begin, continuationContext);
+
+        Token formals = parseTypeVariablesOpt(name.next);
+        listener.beginNamedFunctionExpression(begin);
+        listener.handleModifiers(0);
+        if (hasReturnType) {
+          if (voidToken != null) {
+            listener.handleVoidKeyword(voidToken);
+          } else {
+            commitType();
+          }
+          reportRecoverableError(
+              begin, fasta.messageReturnTypeFunctionExpression);
+        } else {
+          listener.handleNoType(begin);
+        }
+
+        return parseNamedFunctionRest(begin, name, formals, true);
 
       case TypeContinuation.VariablesDeclarationOrExpression:
         if (looksLikeType &&
@@ -2360,65 +2400,56 @@ class Parser {
     return token;
   }
 
-  /// Parses the rest of a local function declaration starting from its [name]
+  /// Parses the rest of a named function declaration starting from its [name]
   /// but then skips any type parameters and continue parsing from [formals]
   /// (the formal parameters).
+  ///
+  /// If [isFunctionExpression] is true, this method parses the rest of named
+  /// function expression which isn't legal syntax in Dart.  Useful for
+  /// recovering from Javascript code being pasted into a Dart proram, as it
+  /// will interpret `function foo() {}` as a named function expression with
+  /// return type `function` and name `foo`.
   ///
   /// Precondition: the parser has previously generated these events:
   ///
   /// - Type variables.
-  /// - beginLocalFunctionDeclaration.
+  /// - `beginLocalFunctionDeclaration` if [isFunctionExpression] is false,
+  ///   otherwise `beginNamedFunctionExpression`.
   /// - Modifiers.
   /// - Return type.
-  Token parseLocalFunctionDeclarationRest(
-      Token begin, Token name, Token formals) {
+  Token parseNamedFunctionRest(
+      Token begin, Token name, Token formals, bool isFunctionExpression) {
     Token token = name;
     listener.beginFunctionName(token);
     token = parseIdentifier(token, IdentifierContext.localFunctionDeclaration);
+    if (isFunctionExpression) {
+      reportRecoverableError(name, fasta.messageNamedFunctionExpression);
+    }
     listener.endFunctionName(begin, token);
     token = parseFormalParametersOpt(formals, MemberKind.Local);
     token = parseInitializersOpt(token);
-    token = parseAsyncOptBody(token, false, false);
-    listener.endLocalFunctionDeclaration(token);
-    return token.next;
-  }
-
-  /// Parses a named function expression which isn't legal syntax in Dart.
-  /// Useful for recovering from Javascript code being pasted into a Dart
-  /// proram, as it will interpret `function foo() {}` as a named function
-  /// expression with return type `function` and name `foo`.
-  Token parseNamedFunctionExpression(Token token) {
-    Token beginToken = token;
-    listener.beginNamedFunctionExpression(token);
-    listener.handleModifiers(0);
-    token = parseType(token, TypeContinuation.Optional);
-    if (token != beginToken) {
-      reportRecoverableError(token, fasta.messageReturnTypeFunctionExpression);
+    token = parseAsyncOptBody(token, isFunctionExpression, false);
+    if (isFunctionExpression) {
+      listener.endNamedFunctionExpression(token);
+      return token;
+    } else {
+      listener.endLocalFunctionDeclaration(token);
+      return token.next;
     }
-    listener.beginFunctionName(token);
-    Token nameToken = token;
-    token = parseIdentifier(token, IdentifierContext.functionExpressionName);
-    reportRecoverableError(nameToken, fasta.messageNamedFunctionExpression);
-    listener.endFunctionName(beginToken, token);
-    token = parseTypeVariablesOpt(token);
-    token = parseFormalParameters(token, MemberKind.Local);
-    listener.handleNoInitializers();
-    token = parseAsyncOptBody(token, true, false);
-    listener.endNamedFunctionExpression(token);
-    return token;
   }
 
   /// Parses a function body optionally preceded by an async modifier (see
   /// [parseAsyncModifier]).  This method is used in both expression context
-  /// (when [isExpression] is true) and statement context. In statement context
-  /// (when [isExpression] is false), and if the function body is on the form
-  /// `=> expression`, a trailing semicolon is required.
+  /// (when [ofFunctionExpression] is true) and statement context. In statement
+  /// context (when [ofFunctionExpression] is false), and if the function body
+  /// is on the form `=> expression`, a trailing semicolon is required.
   ///
   /// It's an error if there's no function body unless [allowAbstract] is true.
-  Token parseAsyncOptBody(Token token, bool isExpression, bool allowAbstract) {
+  Token parseAsyncOptBody(
+      Token token, bool ofFunctionExpression, bool allowAbstract) {
     AsyncModifier savedAsyncModifier = asyncState;
     token = parseAsyncModifier(token);
-    token = parseFunctionBody(token, isExpression, allowAbstract);
+    token = parseFunctionBody(token, ofFunctionExpression, allowAbstract);
     asyncState = savedAsyncModifier;
     return token;
   }
@@ -2482,12 +2513,13 @@ class Parser {
   }
 
   /// Parses a function body.  This method is used in both expression context
-  /// (when [isExpression] is true) and statement context. In statement context
-  /// (when [isExpression] is false), and if the function body is on the form
-  /// `=> expression`, a trailing semicolon is required.
+  /// (when [ofFunctionExpression] is true) and statement context. In statement
+  /// context (when [ofFunctionExpression] is false), and if the function body
+  /// is on the form `=> expression`, a trailing semicolon is required.
   ///
   /// It's an error if there's no function body unless [allowAbstract] is true.
-  Token parseFunctionBody(Token token, bool isExpression, bool allowAbstract) {
+  Token parseFunctionBody(
+      Token token, bool ofFunctionExpression, bool allowAbstract) {
     if (optional(';', token)) {
       if (!allowAbstract) {
         reportRecoverableError(token, fasta.messageExpectedBody);
@@ -2497,7 +2529,7 @@ class Parser {
     } else if (optional('=>', token)) {
       Token begin = token;
       token = parseExpression(token.next);
-      if (!isExpression) {
+      if (!ofFunctionExpression) {
         expectSemicolon(token);
         listener.handleExpressionFunctionBody(begin, token);
       } else {
@@ -2509,7 +2541,7 @@ class Parser {
       // Recover from a bad factory method.
       reportRecoverableError(token, fasta.messageExpectedBody);
       token = parseExpression(token.next);
-      if (!isExpression) {
+      if (!ofFunctionExpression) {
         expectSemicolon(token);
         listener.handleExpressionFunctionBody(begin, token);
       } else {
@@ -2535,7 +2567,7 @@ class Parser {
     }
     listener.endBlockFunctionBody(statementCount, begin, token);
     expect('}', token);
-    return isExpression ? token.next : token;
+    return ofFunctionExpression ? token.next : token;
   }
 
   Token skipAsyncModifier(Token token) {
@@ -3029,7 +3061,7 @@ class Parser {
       } else if (identical(value, "const")) {
         return parseConstExpression(token);
       } else if (identical(value, "void")) {
-        return parseNamedFunctionExpression(token);
+        return parseSendOrFunctionLiteral(token, context);
       } else if (!inPlainSync &&
           (identical(value, "yield") || identical(value, "async"))) {
         return expressionExpected(token);
@@ -3245,24 +3277,6 @@ class Parser {
     } else {
       return parseType(token, TypeContinuation.SendOrFunctionLiteral, context);
     }
-  }
-
-  bool isFunctionDeclaration(Token token) {
-    if (optional('<', token)) {
-      Token closeBrace = closeBraceTokenFor(token);
-      if (closeBrace == null) return false;
-      token = closeBrace.next;
-    }
-    if (optional('(', token)) {
-      String afterParens = closeBraceTokenFor(token).next.stringValue;
-      if (identical(afterParens, '{') ||
-          identical(afterParens, '=>') ||
-          identical(afterParens, 'async') ||
-          identical(afterParens, 'sync')) {
-        return true;
-      }
-    }
-    return false;
   }
 
   Token parseRequiredArguments(Token token) {

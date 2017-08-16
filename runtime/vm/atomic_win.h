@@ -102,7 +102,6 @@ inline void AtomicOperations::DecrementBy(intptr_t* p, intptr_t value) {
 #endif
 }
 
-#if !defined(USING_SIMULATOR)
 inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
                                                   uword old_value,
                                                   uword new_value) {
@@ -129,7 +128,6 @@ inline uint32_t AtomicOperations::CompareAndSwapUint32(uint32_t* ptr,
 #error Unsupported host architecture.
 #endif
 }
-#endif  // !defined(USING_SIMULATOR)
 
 }  // namespace dart
 

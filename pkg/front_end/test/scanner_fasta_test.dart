@@ -225,6 +225,26 @@ main() {}
     }
   }
 
+  void test_double_error() {
+    String source = "3457e";
+    ErrorListener listener = new ErrorListener();
+    Token token = scanWithListener(source, listener);
+    expect(token, isNotNull);
+    expect(token.type, TokenType.DOUBLE);
+    expect(token.offset, 0);
+    expect(token.isSynthetic, isTrue);
+    // the invalid token is updated to be valid ...
+    expect(token.lexeme, source + "0");
+    // ... but the length does *not* include the additional character
+    // so as to be true to the original source.
+    expect(token.length, source.length);
+    expect(token.next.isEof, isTrue);
+    expect(listener.errors, hasLength(1));
+    TestError error = listener.errors[0];
+    expect(error.errorCode, ScannerErrorCode.MISSING_DIGIT);
+    expect(error.offset, source.length - 1);
+  }
+
   @override
   void test_mismatched_opener_in_interpolation() {
     // When openers and closers are mismatched,

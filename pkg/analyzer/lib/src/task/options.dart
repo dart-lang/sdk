@@ -411,6 +411,14 @@ class OptionsFileValidator {
   List<AnalysisError> validate(Map<String, YamlNode> options) {
     RecordingErrorListener recorder = new RecordingErrorListener();
     ErrorReporter reporter = new ErrorReporter(recorder, source);
+    if (AnalysisEngine.ANALYSIS_OPTIONS_FILE == source.shortName) {
+      reporter.reportError(new AnalysisError(
+          source,
+          0, // offset
+          1, // length
+          AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
+          [source.shortName]));
+    }
     _validators.forEach((OptionsValidator v) => v.validate(reporter, options));
     return recorder.errors;
   }

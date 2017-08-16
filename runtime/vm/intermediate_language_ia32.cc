@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_IA32.
-#if defined(TARGET_ARCH_IA32)
+#if defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/intermediate_language.h"
 
@@ -3273,7 +3273,7 @@ LocationSummary* UnboxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   if (needs_temp) {
     summary->set_temp(0, Location::RequiresRegister());
   }
-  if (representation() == kUnboxedMint) {
+  if (representation() == kUnboxedInt64) {
     summary->set_out(0, Location::Pair(Location::RegisterLocation(EAX),
                                        Location::RegisterLocation(EDX)));
   } else {
@@ -3286,7 +3286,7 @@ void UnboxInstr::EmitLoadFromBox(FlowGraphCompiler* compiler) {
   const Register box = locs()->in(0).reg();
 
   switch (representation()) {
-    case kUnboxedMint: {
+    case kUnboxedInt64: {
       PairLocation* result = locs()->out(0).AsPairLocation();
       __ movl(result->At(0).reg(), FieldAddress(box, ValueOffset()));
       __ movl(result->At(1).reg(),
@@ -3318,7 +3318,7 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
   const Register box = locs()->in(0).reg();
 
   switch (representation()) {
-    case kUnboxedMint: {
+    case kUnboxedInt64: {
       PairLocation* result = locs()->out(0).AsPairLocation();
       ASSERT(result->At(0).reg() == EAX);
       ASSERT(result->At(1).reg() == EDX);
@@ -3604,7 +3604,7 @@ LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Zone* zone,
     summary->set_temp(1, Location::RequiresRegister());
   }
 
-  if (representation() == kUnboxedMint) {
+  if (representation() == kUnboxedInt64) {
     summary->set_out(0, Location::Pair(Location::RequiresRegister(),
                                        Location::RequiresRegister()));
   } else {
@@ -3627,7 +3627,7 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ SmiUntag(index.reg());
   }
 
-  if (representation() == kUnboxedMint) {
+  if (representation() == kUnboxedInt64) {
     ASSERT(compiler->is_optimizing());
     ASSERT(locs()->out(0).IsPairLocation());
     PairLocation* result_pair = locs()->out(0).AsPairLocation();
@@ -5696,8 +5696,8 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* BinaryMintOpInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
   const intptr_t kNumInputs = 2;
   switch (op_kind()) {
     case Token::kBIT_AND:
@@ -5728,7 +5728,7 @@ LocationSummary* BinaryMintOpInstr::MakeLocationSummary(Zone* zone,
   }
 }
 
-void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   PairLocation* left_pair = locs()->in(0).AsPairLocation();
   Register left_lo = left_pair->At(0).reg();
   Register left_hi = left_pair->At(1).reg();
@@ -5743,7 +5743,7 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label* deopt = NULL;
   if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
   }
   switch (op_kind()) {
     case Token::kBIT_AND:
@@ -5797,8 +5797,8 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Zone* zone,
-                                                       bool opt) const {
+LocationSummary* ShiftInt64OpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps =
       (op_kind() == Token::kSHL) && CanDeoptimize() ? 2 : 0;
@@ -5815,7 +5815,7 @@ LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   PairLocation* left_pair = locs()->in(0).AsPairLocation();
   Register left_lo = left_pair->At(0).reg();
   Register left_hi = left_pair->At(1).reg();
@@ -5827,7 +5827,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label* deopt = NULL;
   if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
   }
   if (locs()->in(1).IsConstant()) {
     // Code for a constant shift amount.
@@ -5986,8 +5986,8 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* UnaryMintOpInstr::MakeLocationSummary(Zone* zone,
-                                                       bool opt) const {
+LocationSummary* UnaryInt64OpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
@@ -5998,7 +5998,7 @@ LocationSummary* UnaryMintOpInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(op_kind() == Token::kBIT_NOT);
   PairLocation* left_pair = locs()->in(0).AsPairLocation();
   Register left_lo = left_pair->At(0).reg();
@@ -6043,7 +6043,8 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register out = locs()->out(0).reg();
   ASSERT(left == out);
 
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
+  Label* deopt =
+      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
 
   if (locs()->in(1).IsConstant()) {
     // Shifter is constant.
@@ -6135,7 +6136,7 @@ LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Zone* zone,
       (to() == kUnboxedInt32 || to() == kUnboxedUint32)) {
     summary->set_in(0, Location::RequiresRegister());
     summary->set_out(0, Location::SameAsFirstInput());
-  } else if (from() == kUnboxedMint) {
+  } else if (from() == kUnboxedInt64) {
     summary->set_in(
         0, Location::Pair(CanDeoptimize() ? Location::WritableRegister()
                                           : Location::RequiresRegister(),
@@ -6166,8 +6167,8 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ testl(locs()->out(0).reg(), locs()->out(0).reg());
       __ j(NEGATIVE, deopt);
     }
-  } else if (from() == kUnboxedMint) {
-    // TODO(vegorov) kUnboxedMint -> kInt32 conversion is currently usually
+  } else if (from() == kUnboxedInt64) {
+    // TODO(vegorov) kUnboxedInt64 -> kInt32 conversion is currently usually
     // dominated by a CheckSmi(BoxInt64(val)) which is an artifact of ordering
     // of optimization passes and the way we check smi-ness of values.
     // Optimize it away.
@@ -6186,7 +6187,7 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ j(NOT_EQUAL, deopt);
     }
   } else if (from() == kUnboxedUint32) {
-    ASSERT(to() == kUnboxedMint);
+    ASSERT(to() == kUnboxedInt64);
     Register in = locs()->in(0).reg();
     PairLocation* out_pair = locs()->out(0).AsPairLocation();
     Register out_lo = out_pair->At(0).reg();
@@ -6196,7 +6197,7 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Zero upper word.
     __ xorl(out_hi, out_hi);
   } else if (from() == kUnboxedInt32) {
-    ASSERT(to() == kUnboxedMint);
+    ASSERT(to() == kUnboxedInt64);
     PairLocation* out_pair = locs()->out(0).AsPairLocation();
     Register out_lo = out_pair->At(0).reg();
     Register out_hi = out_pair->At(1).reg();
@@ -6503,4 +6504,4 @@ void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 #undef __
 
-#endif  // defined TARGET_ARCH_IA32
+#endif  // defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
