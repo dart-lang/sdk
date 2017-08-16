@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -37,9 +38,8 @@ class AnalysisGetImportedElementsIntegrationTest
   checkElements(String target, List<ImportedElements> expected) async {
     bool equals(
         ImportedElements actualElements, ImportedElements expectedElements) {
-      // We can't test the path because the paths are relative to a generated
-      // temporary directory.
-      if (actualElements.prefix == expectedElements.prefix) {
+      if (actualElements.path.endsWith(expectedElements.path) &&
+          actualElements.prefix == expectedElements.prefix) {
         List<String> actual = actualElements.elements;
         List<String> expected = expectedElements.elements;
         if (actual.length == expected.length) {
@@ -105,26 +105,31 @@ main() {}
     standardAnalysisSetup();
     await analysisFinished;
 
-    List<Future> tests = [];
-    tests.add(checkNoElements('main() {}'));
-    return Future.wait(tests);
+    await checkNoElements('main() {}');
   }
 
   test_getImportedElements_some() async {
-    text = r'''
+    String selection = r'''
 main() {
-  String s = '';
+  Random r = new Random();
+  String s = r.nextBool().toString();
   print(s);
 }
+''';
+    text = '''
+import 'dart:math';
+
+$selection
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
     await analysisFinished;
 
-    List<Future> tests = [];
-    tests.add(checkElements(text, [
-      new ImportedElements('', '', ['String', 'print'])
-    ]));
-    return Future.wait(tests);
+    await checkElements(selection, [
+      new ImportedElements(
+          path.join('lib', 'core', 'core.dart'), '', ['String', 'print']),
+      new ImportedElements(
+          path.join('lib', 'math', 'math.dart'), '', ['Random'])
+    ]);
   }
 }

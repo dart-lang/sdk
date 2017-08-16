@@ -151,6 +151,36 @@ bool randomBool() {
     expect(elements.elements, unorderedEquals(['Random']));
   }
 
+  test_multiple() async {
+    String selection = r'''
+main() {
+  Random r = new Random();
+  String s = r.nextBool().toString();
+  print(s);
+}
+''';
+    String content = '''
+import 'dart:math';
+
+$selection
+''';
+    List<ImportedElements> elementsList = await _computeElements(
+        content, content.indexOf(selection), selection.length);
+    expect(elementsList, hasLength(2));
+
+    ImportedElements mathElements = elementsList[0];
+    expect(mathElements, isNotNull);
+    expect(mathElements.path, '/lib/math/math.dart');
+    expect(mathElements.prefix, '');
+    expect(mathElements.elements, unorderedEquals(['Random']));
+
+    ImportedElements coreElements = elementsList[1];
+    expect(coreElements, isNotNull);
+    expect(coreElements.path, '/lib/core/core.dart');
+    expect(coreElements.prefix, '');
+    expect(coreElements.elements, unorderedEquals(['String', 'print']));
+  }
+
   test_none_comment() async {
     String selection = 'comment';
     String content = """
