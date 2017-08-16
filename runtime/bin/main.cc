@@ -1360,13 +1360,9 @@ static bool FileModifiedCallback(const char* url, int64_t since) {
 }
 
 static void EmbedderInformationCallback(Dart_EmbedderInformation* info) {
-  int64_t max_rss = Process::MaxRSS();
-  int64_t current_rss = Process::CurrentRSS();
-
   info->version = DART_EMBEDDER_INFORMATION_CURRENT_VERSION;
   info->name = "Dart VM";
-  info->max_rss = max_rss >= 0 ? max_rss : 0;
-  info->current_rss = current_rss >= 0 ? current_rss : 0;
+  Process::GetRSSInformation(&(info->max_rss), &(info->current_rss));
 }
 
 static void GenerateAppAOTSnapshot() {

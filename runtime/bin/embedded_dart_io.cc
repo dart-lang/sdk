@@ -7,6 +7,7 @@
 #include "bin/directory.h"
 #include "bin/eventhandler.h"
 #include "bin/platform.h"
+#include "bin/process.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 
@@ -30,6 +31,13 @@ void SetExecutableName(const char* executable_name) {
 
 void SetExecutableArguments(int script_index, char** argv) {
   Platform::SetExecutableArguments(script_index, argv);
+}
+
+void GetIOEmbedderInformation(Dart_EmbedderInformation* info) {
+  ASSERT(info != NULL);
+  ASSERT(info->version == DART_EMBEDDER_INFORMATION_CURRENT_VERSION);
+
+  Process::GetRSSInformation(&(info->max_rss), &(info->current_rss));
 }
 
 }  // namespace bin

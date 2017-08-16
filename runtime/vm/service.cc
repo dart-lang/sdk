@@ -3862,18 +3862,18 @@ void Service::PrintJSONForEmbedderInformation(JSONObject *jsobj) {
     Dart_EmbedderInformation info = {
       0,  // version
       NULL,  // name
-      0,  // max_rss
-      0  // current_rss
+      -1,  // max_rss
+      -1  // current_rss
     };
     embedder_information_callback_(&info);
     ASSERT(info.version == DART_EMBEDDER_INFORMATION_CURRENT_VERSION);
     if (info.name != NULL) {
       jsobj->AddProperty("_embedder", info.name);
     }
-    if (info.max_rss > 0) {
+    if (info.max_rss >= 0) {
       jsobj->AddProperty64("_maxRSS", info.max_rss);
     }
-    if (info.max_rss > 0) {
+    if (info.current_rss >= 0) {
       jsobj->AddProperty64("_currentRSS", info.current_rss);
     }
   }
