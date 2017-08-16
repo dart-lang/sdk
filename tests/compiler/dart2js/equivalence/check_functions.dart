@@ -213,48 +213,10 @@ void checkClassHierarchyNodes(
   checkMixinUses(
       closedWorld1, closedWorld2, node1.cls, node2.cls, elementEquivalence,
       verbose: verbose);
-  ClassSet classSet1 = closedWorld1.getClassSet(cls1);
-  ClassSet classSet2 = closedWorld2.getClassSet(cls2);
-  Expect.isNotNull(classSet1, "Missing ClassSet for $cls1");
-  Expect.isNotNull(classSet2, "Missing ClassSet for $cls2");
-  checkClassSets(
-      closedWorld1, closedWorld2, classSet1, classSet2, elementEquivalence,
-      verbose: verbose, allowMissingClosureClasses: allowMissingClosureClasses);
-}
-
-void checkClassSets(
-    ClosedWorld closedWorld1,
-    ClosedWorld closedWorld2,
-    ClassSet classSet1,
-    ClassSet classSet2,
-    bool elementEquivalence(Entity a, Entity b),
-    {bool verbose: false,
-    bool allowMissingClosureClasses: false}) {
-  for (ClassHierarchyNode child in classSet1.subtypeNodes) {
-    bool found = false;
-    for (ClassHierarchyNode other in classSet2.subtypeNodes) {
-      ClassEntity child1 = child.cls;
-      ClassEntity child2 = other.cls;
-      if (elementEquivalence(child1, child2)) {
-        found = true;
-        break;
-      }
-    }
-    if (!found && (!child.cls.isClosure || !allowMissingClosureClasses)) {
-      if (child.isInstantiated) {
-        print('Missing subtype ${child.cls} of ${classSet1.cls} '
-            'in ${classSet2.subtypeNodes}');
-        print(closedWorld1.dump(
-            verbose ? closedWorld1.commonElements.objectClass : classSet1.cls));
-        print(closedWorld2.dump(
-            verbose ? closedWorld2.commonElements.objectClass : classSet2.cls));
-      }
-      Expect.isFalse(
-          child.isInstantiated,
-          'Missing subclass ${child.cls} of ${classSet1.cls} in '
-          '${classSet2.subtypeNodes}');
-    }
-  }
+  Expect.isNotNull(
+      closedWorld1.getClassSet(cls1), "Missing ClassSet for $cls1");
+  Expect.isNotNull(
+      closedWorld2.getClassSet(cls2), "Missing ClassSet for $cls2");
 }
 
 void checkMixinUses(
@@ -492,8 +454,8 @@ void checkBackendUsage(
       usage2.isNoSuchMethodUsed);
 }
 
-checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
-    DartTypes types1, DartTypes types2, TestStrategy strategy,
+checkElementEnvironment(
+    ElementEnvironment env1, ElementEnvironment env2, TestStrategy strategy,
     {bool checkConstructorBodies: false}) {
   strategy.testElements(
       env1, env2, 'mainLibrary', env1.mainLibrary, env2.mainLibrary);
@@ -588,9 +550,6 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
           strategy.elementEquivalence);
 
       // TODO(johnniwinther): Check type variable bounds.
-
-      check(cls1, cls2, 'callType', types1.getCallType(thisType1),
-          types2.getCallType(thisType2), strategy.typeEquivalence);
 
       List<InterfaceType> supertypes1 = <InterfaceType>[];
       env1.forEachSupertype(cls1, supertypes1.add);

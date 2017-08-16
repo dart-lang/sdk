@@ -51,67 +51,6 @@ class Class2 extends Object with Mixin {
  
 method1() {} // Deliberately the same name as the instance member in Mixin.
 
-class ClassWithCallBase {
-  void call() {}
-}
-
-class ClassWithCallRequired {
-  void call(int i) {}
-}
-
-class ClassWithCallGeneric<T> {
-  void call(T t) {}
-}
-
-class ClassWithCallOptional<T> {
-  void call([T t]) {}
-}
-
-class ClassWithCallNamed<T> {
-  void call({T t}) {}
-}
-
-class ClassWithCallGetter {
-  int get call => 0;
-}
-
-class ClassWithCallSetter {
-  void set call(int i) {}
-}
-
-// Inherits the call type:
-class ClassWithCall1 extends ClassWithCallBase {}
-class ClassWithCall2 extends ClassWithCallRequired {}
-class ClassWithCall3 extends ClassWithCallGeneric<String> {}
-class ClassWithCall4 extends ClassWithCallOptional<String> {}
-class ClassWithCall5 extends ClassWithCallNamed<String> {}
-
-// Inherits the same call type twice:
-class ClassWithCall6 extends ClassWithCallRequired
-    implements ClassWithCallGeneric<int> {}
-
-// Inherits different but compatible call types:
-class ClassWithCall7 extends ClassWithCallRequired
-    implements ClassWithCallGeneric<String> {}
-class ClassWithCall8 extends ClassWithCallRequired
-    implements ClassWithCallOptional<int> {}
-class ClassWithCall9 extends ClassWithCallRequired
-    implements ClassWithCallOptional<String> {}
-class ClassWithCall10 extends ClassWithCallBase
-    implements ClassWithCallNamed<String> {}
-
-// Inherits incompatible call types:
-class ClassWithCall11 extends ClassWithCallNamed<int>
-    implements ClassWithCallOptional<int> {}
-class ClassWithCall12 extends ClassWithCallGetter {}
-class ClassWithCall13 extends ClassWithCallSetter {}
-class ClassWithCall14 extends ClassWithCallBase
-    implements ClassWithCallGetter {}
-class ClassWithCall15 extends ClassWithCallBase
-    implements ClassWithCallSetter {}
-
-class ClassImplementsFunction implements Function {}
-
 @NoInline()
 main() {
   print('Hello World');
@@ -126,23 +65,6 @@ main() {
   #main; // Use a const symbol.
   const Symbol('foo'); // Use the const Symbol constructor directly
   new Int8List(0); // Use redirect factory to abstract native class
-
-  new ClassWithCall1();
-  new ClassWithCall2();
-  new ClassWithCall3();
-  new ClassWithCall4();
-  new ClassWithCall5();
-  new ClassWithCall6();
-  new ClassWithCall7();
-  new ClassWithCall8();
-  new ClassWithCall9();
-  new ClassWithCall10();
-  new ClassWithCall11();
-  new ClassWithCall12();
-  new ClassWithCall13();
-  new ClassWithCall14();
-  new ClassWithCall15();
-  new ClassImplementsFunction();
 }
 '''
 };
@@ -214,12 +136,7 @@ Future<ResultKind> mainInternal(List<String> args,
 
   ElementEnvironment environment2 =
       compiler2.frontendStrategy.elementEnvironment;
-  checkElementEnvironment(
-      environment1,
-      environment2,
-      compiler1.frontendStrategy.dartTypes,
-      compiler2.frontendStrategy.dartTypes,
-      strategy);
+  checkElementEnvironment(environment1, environment2, strategy);
 
   ResolutionEnqueuer enqueuer2 = compiler2.enqueuer.resolution;
   ClosedWorld closedWorld2 = compiler2.resolutionWorldBuilder.closeWorld();

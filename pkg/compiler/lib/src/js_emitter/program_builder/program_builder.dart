@@ -19,13 +19,15 @@ import '../../elements/elements.dart'
         ClassElement,
         FieldElement,
         FunctionSignature,
+        GetterElement,
         LibraryElement,
         MemberElement,
         MethodElement,
         ParameterElement;
 import '../../elements/entities.dart';
-import '../../elements/resolution_types.dart' show ResolutionDartType;
-import '../../elements/types.dart';
+import '../../elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionFunctionType, ResolutionTypedefType;
+import '../../elements/types.dart' show DartType, DartTypes, FunctionType;
 import '../../js/js.dart' as js;
 import '../../js_backend/backend.dart' show SuperMemberData;
 import '../../js_backend/backend_usage.dart';
@@ -522,7 +524,10 @@ class ProgramBuilder {
         .forEach((LibraryEntity library, List<ClassEntity> classElements, _) {
       for (ClassEntity cls in classElements) {
         if (_nativeData.isJsInteropClass(cls)) {
-          _elementEnvironment.forEachClassMember(cls, (_, MemberEntity member) {
+          // TODO(redemption): Handle class entities.
+          ClassElement e = cls;
+          e.declaration.forEachMember((_, _member) {
+            MemberElement member = _member;
             var jsName = _nativeData.computeUnescapedJSInteropName(member.name);
             if (!member.isInstanceMember) return;
             if (member.isGetter || member.isField || member.isFunction) {
@@ -556,15 +561,15 @@ class ProgramBuilder {
             // Generating stubs for direct calls and stubs for call-through
             // of getters that happen to be functions.
             bool isFunctionLike = false;
-            FunctionType functionType = null;
+            ResolutionFunctionType functionType = null;
 
             if (member.isFunction) {
               MethodElement fn = member;
               functionType = fn.type;
             } else if (member.isGetter) {
               if (_options.trustTypeAnnotations) {
-                DartType returnType =
-                    _elementEnvironment.getFunctionType(member).returnType;
+                GetterElement getter = member;
+                ResolutionDartType returnType = getter.type.returnType;
                 if (returnType.isFunctionType) {
                   functionType = returnType;
                 } else if (returnType.treatAsDynamic ||
@@ -573,8 +578,9 @@ class ProgramBuilder {
                         // ignore: UNNECESSARY_CAST
                         _commonElements.functionType as DartType)) {
                   if (returnType.isTypedef) {
-                    TypedefType typedef = returnType;
-                    functionType = typedef.unaliased;
+                    ResolutionTypedefType typedef = returnType;
+                    // TODO(jacobr): can we just use typdef.unaliased instead?
+                    functionType = typedef.element.functionSignature.type;
                   } else {
                     // Other misc function type such as commonElements.Function.
                     // Allow any number of arguments.

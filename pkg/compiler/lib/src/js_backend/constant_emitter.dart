@@ -282,6 +282,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     if (type is InterfaceType) {
       element = type.element;
     } else if (type is TypedefType) {
+      // TODO(redemption): Handle typedef type literals from .dill.
       element = type.element;
     } else {
       assert(type is DynamicType);

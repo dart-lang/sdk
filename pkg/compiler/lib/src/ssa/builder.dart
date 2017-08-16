@@ -4221,9 +4221,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       type = TypeMaskFactory.inferredTypeForMember(
           element, globalInferenceResults);
     } else if (element.isFunction) {
-      MethodElement method = element;
       type = TypeMaskFactory.inferredReturnTypeForElement(
-          method, globalInferenceResults);
+          element, globalInferenceResults);
     } else {
       type = closedWorld.commonMasks.dynamicType;
     }

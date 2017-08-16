@@ -459,146 +459,6 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
         context.typeArguments, _getThisType(context.element).typeArguments);
   }
 
-  // TODO(johnniwinther): Remove this when call-type is provided by fasta.
-  void _ensureCallType(IndexedClass cls, ClassData data) {
-    if (!data.isCallTypeComputed) {
-      data.isCallTypeComputed = true;
-      MemberEntity callMethod = lookupClassMember(cls, Identifiers.call);
-      if (callMethod != null) {
-        if (callMethod.isFunction) {
-          data.callType = _getFunctionType(callMethod);
-        } else {
-          data.callType = const DynamicType();
-        }
-        return;
-      }
-
-      Set<FunctionType> inheritedCallTypes = new Set<FunctionType>();
-      bool inheritsInvalidCallMember = false;
-
-      void addCallType(InterfaceType supertype) {
-        if (supertype == null) return;
-        DartType type = _getCallType(supertype);
-        if (type == null) return;
-        if (type.isFunctionType) {
-          inheritedCallTypes.add(type);
-        } else {
-          inheritsInvalidCallMember = true;
-        }
-      }
-
-      addCallType(_getSuperType(cls));
-      _getInterfaces(cls).forEach(addCallType);
-
-      // Following §11.1.1 in the spec.
-      if (inheritsInvalidCallMember) {
-        // From §11.1.1 in the spec (continued):
-        //
-        // If some but not all of the m_i, 1 ≤ i ≤ k are getters none of the m_i
-        // are inherited, and a static warning is issued.
-        data.callType = const DynamicType();
-      } else if (inheritedCallTypes.isEmpty) {
-        return;
-      } else if (inheritedCallTypes.length == 1) {
-        data.callType = inheritedCallTypes.single;
-      } else {
-        // From §11.1.1 in the spec (continued):
-        //
-        // Otherwise, if the static types T_1, ... , T_k of the members
-        // m_1, ..., m_k are not identical, then there must be a member m_x such
-        // that T_x <: T_i, 1 ≤ x ≤ k for all i ∈ 1..k, or a static type warning
-        // occurs.
-        List<FunctionType> subtypesOfAllInherited = <FunctionType>[];
-        outer:
-        for (FunctionType a in inheritedCallTypes) {
-          for (FunctionType b in inheritedCallTypes) {
-            if (identical(a, b)) continue;
-            if (!types.isSubtype(a, b)) continue outer;
-          }
-          subtypesOfAllInherited.add(a);
-        }
-        if (subtypesOfAllInherited.length == 1) {
-          // From §11.1.1 in the spec (continued):
-          //
-          // The member that is inherited is m_x, if it exists.
-          data.callType = subtypesOfAllInherited.single;
-          return;
-        }
-
-        // From §11.1.1 in the spec (continued):
-        //
-        // Otherwise: let numberOfPositionals(f) denote the number of
-        // positional parameters of a function f, and let
-        // numberOfRequiredParams(f) denote the number of required parameters of
-        // a function f. Furthermore, let s denote the set of all named
-        // parameters of the m_1, . . . , m_k. Then let
-        //
-        //     h = max(numberOfPositionals(mi)),
-        //     r = min(numberOfRequiredParams(mi)), i ∈ 1..k.
-
-        // Then I has a method named n, with r required parameters of type
-        // dynamic, h positional parameters of type dynamic, named parameters s
-        // of type dynamic and return type dynamic.
-
-        // Multiple signatures with different types => create the synthesized
-        // version.
-        int minRequiredParameters;
-        int maxPositionalParameters;
-        Set<String> names = new Set<String>();
-        for (FunctionType type in inheritedCallTypes) {
-          type.namedParameters.forEach((String name) => names.add(name));
-          int requiredParameters = type.parameterTypes.length;
-          int optionalParameters = type.optionalParameterTypes.length;
-          int positionalParameters = requiredParameters + optionalParameters;
-          if (minRequiredParameters == null ||
-              minRequiredParameters > requiredParameters) {
-            minRequiredParameters = requiredParameters;
-          }
-          if (maxPositionalParameters == null ||
-              maxPositionalParameters < positionalParameters) {
-            maxPositionalParameters = positionalParameters;
-          }
-        }
-        int optionalParameters =
-            maxPositionalParameters - minRequiredParameters;
-        // TODO(johnniwinther): Support function types with both optional
-        // and named parameters?
-        if (optionalParameters == 0 || names.isEmpty) {
-          DartType dynamic = const DynamicType();
-          List<DartType> requiredParameterTypes =
-              new List.filled(minRequiredParameters, dynamic);
-          List<DartType> optionalParameterTypes =
-              new List.filled(optionalParameters, dynamic);
-          List<String> namedParameters = names.toList()
-            ..sort((a, b) => a.compareTo(b));
-          List<DartType> namedParameterTypes =
-              new List.filled(namedParameters.length, dynamic);
-          data.callType = new FunctionType(dynamic, requiredParameterTypes,
-              optionalParameterTypes, namedParameters, namedParameterTypes);
-        } else {
-          // The function type is not valid.
-          data.callType = const DynamicType();
-        }
-      }
-    }
-  }
-
-  /// Returns the type of the `call` method on 'type'.
-  ///
-  /// If [type] doesn't have a `call` member `null` is returned. If [type] has
-  /// an invalid `call` member (non-method or a synthesized method with both
-  /// optional and named parameters) a [DynamicType] is returned.
-  DartType _getCallType(InterfaceType type) {
-    IndexedClass cls = type.element;
-    assert(checkFamily(cls));
-    ClassData data = _classData[cls.classIndex];
-    _ensureCallType(cls, data);
-    if (data.callType != null) {
-      return _substByContext(data.callType, type);
-    }
-    return null;
-  }
-
   InterfaceType _getThisType(IndexedClass cls) {
     assert(checkFamily(cls));
     ClassData data = _classData[cls.classIndex];
@@ -1247,20 +1107,6 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
           name, memberContext, executableContext, functionType);
     });
   }
-
-  bool _implementsFunction(IndexedClass cls) {
-    assert(checkFamily(cls));
-    ClassData data = _classData[cls.classIndex];
-    OrderedTypeSet orderedTypeSet = data.orderedTypeSet;
-    InterfaceType supertype = orderedTypeSet.asInstanceOf(
-        commonElements.functionClass,
-        _getHierarchyDepth(commonElements.functionClass));
-    if (supertype != null) {
-      return true;
-    }
-    _ensureCallType(cls, data);
-    return data.callType is FunctionType;
-  }
 }
 
 class KernelElementEnvironment implements ElementEnvironment {
@@ -1691,7 +1537,8 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
 
   @override
   bool implementsFunction(ClassEntity cls) {
-    return elementMap._implementsFunction(cls);
+    // TODO(redemption): Implement this.
+    return false;
   }
 
   @override

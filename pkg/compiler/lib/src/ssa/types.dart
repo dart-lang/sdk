@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common_elements.dart' show CommonElements;
+import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../native/native.dart' as native;
 import '../types/types.dart';
@@ -11,19 +12,23 @@ import '../world.dart' show ClosedWorld;
 
 class TypeMaskFactory {
   static TypeMask inferredReturnTypeForElement(
-      FunctionEntity element, GlobalTypeInferenceResults results) {
+      MethodElement element, GlobalTypeInferenceResults results) {
     return results.resultOfMember(element).returnType ??
         results.closedWorld.commonMasks.dynamicType;
   }
 
   static TypeMask inferredTypeForMember(
       MemberEntity element, GlobalTypeInferenceResults results) {
+    // TODO(redemption): Support inferred types for member entities.
+    if (element is! MemberElement) {
+      return results.closedWorld.commonMasks.dynamicType;
+    }
     return results.resultOfMember(element).type ??
         results.closedWorld.commonMasks.dynamicType;
   }
 
   static TypeMask inferredTypeForParameter(
-      Local element, GlobalTypeInferenceResults results) {
+      ParameterElement element, GlobalTypeInferenceResults results) {
     return results.resultOfParameter(element).type ??
         results.closedWorld.commonMasks.dynamicType;
   }
