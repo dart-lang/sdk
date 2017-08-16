@@ -171,8 +171,43 @@ accessor_conflict_import_prefixed_test: StaticWarning # Issue 25626
 accessor_conflict_import_test: StaticWarning # Issue 25626
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
+checked_null_test/01: MissingCompileTimeError
+checked_setter_test: MissingCompileTimeError
+checked_setter2_test: MissingCompileTimeError
+checked_setter3_test/01: MissingCompileTimeError
+checked_setter3_test/02: MissingCompileTimeError
+checked_setter3_test/03: MissingCompileTimeError
+class_literal_test/01: MissingCompileTimeError
+class_literal_test/02: MissingCompileTimeError
+class_literal_test/03: MissingCompileTimeError
+class_literal_test/04: MissingCompileTimeError
+class_literal_test/05: MissingCompileTimeError
+class_literal_test/06: MissingCompileTimeError
+class_literal_test/07: MissingCompileTimeError
+class_literal_test/08: MissingCompileTimeError
+class_literal_test/09: MissingCompileTimeError
+class_literal_test/10: MissingCompileTimeError
+class_literal_test/11: MissingCompileTimeError
+class_literal_test/12: MissingCompileTimeError
+class_literal_test/13: MissingCompileTimeError
+class_literal_test/14: MissingCompileTimeError
+class_literal_test/15: MissingCompileTimeError
+class_literal_test/16: MissingCompileTimeError
+class_literal_test/17: MissingCompileTimeError
+class_literal_test/18: MissingCompileTimeError
+class_literal_test/19: MissingCompileTimeError
+class_literal_test/20: MissingCompileTimeError
+class_literal_test/21: MissingCompileTimeError
+class_literal_test/22: MissingCompileTimeError
+class_literal_test/23: MissingCompileTimeError
+class_literal_test/24: MissingCompileTimeError
+class_literal_test/25: MissingCompileTimeError
+generic_constructor_mixin_test/01: MissingCompileTimeError
+generic_constructor_mixin2_test/01: MissingCompileTimeError
+generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30207
 closure_type_test: Pass
+typevariable_substitution2_test/02: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && $runtime == none ]
 assertion_initializer_const_error2_test/none: CompileTimeError

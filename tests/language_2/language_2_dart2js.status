@@ -70,7 +70,42 @@ call_through_getter_test/02: MissingCompileTimeError
 call_type_literal_test/01: MissingCompileTimeError
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
+checked_null_test/01: MissingCompileTimeError
+checked_setter_test: MissingCompileTimeError
+checked_setter2_test: MissingCompileTimeError
+checked_setter3_test/01: MissingCompileTimeError
+checked_setter3_test/02: MissingCompileTimeError
+checked_setter3_test/03: MissingCompileTimeError
+class_literal_test/01: MissingCompileTimeError
+class_literal_test/02: MissingCompileTimeError
+class_literal_test/03: MissingCompileTimeError
+class_literal_test/04: MissingCompileTimeError
+class_literal_test/05: MissingCompileTimeError
+class_literal_test/06: MissingCompileTimeError
+class_literal_test/07: MissingCompileTimeError
+class_literal_test/08: MissingCompileTimeError
+class_literal_test/09: MissingCompileTimeError
+class_literal_test/10: MissingCompileTimeError
+class_literal_test/11: MissingCompileTimeError
+class_literal_test/12: MissingCompileTimeError
+class_literal_test/13: MissingCompileTimeError
+class_literal_test/14: MissingCompileTimeError
+class_literal_test/15: MissingCompileTimeError
+class_literal_test/16: MissingCompileTimeError
+class_literal_test/17: MissingCompileTimeError
+class_literal_test/18: MissingCompileTimeError
+class_literal_test/19: MissingCompileTimeError
+class_literal_test/20: MissingCompileTimeError
+class_literal_test/21: MissingCompileTimeError
+class_literal_test/22: MissingCompileTimeError
+class_literal_test/23: MissingCompileTimeError
+class_literal_test/24: MissingCompileTimeError
+class_literal_test/25: MissingCompileTimeError
+generic_constructor_mixin_test/01: MissingCompileTimeError
+generic_constructor_mixin2_test/01: MissingCompileTimeError
+generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
+typevariable_substitution2_test/02: MissingCompileTimeError
 
 [ $compiler == dart2js && $runtime != none ]
 bit_operations_test: RuntimeError, OK # Issue 1533
@@ -128,6 +163,9 @@ black_listed_test/13c: Crash # Issue 27394
 black_listed_test/14c: Crash # Issue 27394
 bootstrap_test: RuntimeError # Issue 27394
 call_nonexistent_static_test/10: Crash # Issue 27394
+
+[ $compiler == dart2js && $runtime != d8 ]
+function_subtype_inline2_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
 assertion_initializer_const_function_test/none: RuntimeError
@@ -476,6 +514,68 @@ function_type/function_type98_test: Crash
 function_type/function_type99_test: Crash
 function_type/function_type9_test: Crash
 regress_30339_test: Crash
+checked_null_test/01: Crash
+checked_setter2_test: Crash
+checked_setter3_test/01: Crash
+checked_setter3_test/02: Crash
+checked_setter3_test/none: Crash
+checked_setter_test: Crash
+class_cycle_test/02: MissingCompileTimeError
+class_cycle_test/03: MissingCompileTimeError
+class_literal_test/01: Crash
+class_literal_test/02: Crash
+class_literal_test/03: Crash
+class_literal_test/04: Crash
+class_literal_test/05: Crash
+class_literal_test/06: Crash
+class_literal_test/07: Crash
+class_literal_test/08: Crash
+class_literal_test/09: Crash
+class_literal_test/10: Crash
+class_literal_test/11: Crash
+class_literal_test/12: Crash
+class_literal_test/13: Crash
+class_literal_test/14: Crash
+class_literal_test/15: Crash
+class_literal_test/16: Crash
+class_literal_test/17: Crash
+class_literal_test/18: Crash
+class_literal_test/19: Crash
+class_literal_test/20: Crash
+class_literal_test/21: Crash
+class_literal_test/22: Crash
+class_literal_test/23: Crash
+class_literal_test/24: Crash
+class_literal_test/25: Crash
+class_literal_test/none: Crash
+class_override_test/00: Crash
+class_syntax2_test: Crash
+class_test: Crash
+classes_static_method_clash_test: Crash
+closure2_test: Crash
+closure3_test: Crash
+closure4_test: Crash
+closure5_test: Crash
+closure6_test: Crash
+closure7_test: Crash
+closure8_test: Crash
+closure_break1_test: Crash
+closure_break2_test: Crash
+closure_break_test: Crash
+closure_cycles_test: Crash
+closure_in_constructor_test: Crash
+closure_in_field_initializer_test: Crash
+closure_in_initializer2_test: Crash
+closure_in_initializer_test: Crash
+closure_internals_test: Crash
+closure_parameter_types_test: Crash
+closure_self_reference_test: Crash
+closure_shared_state_test: Crash
+typevariable_substitution2_test/02: Crash
+generic_constructor_mixin_test: Crash
+generic_constructor_mixin2_test: Crash
+generic_constructor_mixin3_test: Crash
+function_subtype_inline2_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 aborting_switch_case_test: Crash
@@ -813,6 +913,67 @@ function_type/function_type98_test: Crash
 function_type/function_type99_test: Crash
 function_type/function_type9_test: Crash
 regress_30339_test: Crash
+checked_null_test/01: Crash
+checked_setter2_test: Crash
+checked_setter3_test/01: Crash
+checked_setter3_test/02: Crash
+checked_setter3_test/none: Crash
+checked_setter_test: Crash
+class_cycle_test/02: MissingCompileTimeError
+class_cycle_test/03: MissingCompileTimeError
+class_literal_test/01: Crash
+class_literal_test/02: Crash
+class_literal_test/03: Crash
+class_literal_test/04: Crash
+class_literal_test/05: Crash
+class_literal_test/06: Crash
+class_literal_test/07: Crash
+class_literal_test/08: Crash
+class_literal_test/09: Crash
+class_literal_test/10: Crash
+class_literal_test/11: Crash
+class_literal_test/12: Crash
+class_literal_test/13: Crash
+class_literal_test/14: Crash
+class_literal_test/15: Crash
+class_literal_test/16: Crash
+class_literal_test/17: Crash
+class_literal_test/18: Crash
+class_literal_test/19: Crash
+class_literal_test/20: Crash
+class_literal_test/21: Crash
+class_literal_test/22: Crash
+class_literal_test/23: Crash
+class_literal_test/24: Crash
+class_literal_test/25: Crash
+class_override_test/00: Crash
+class_syntax2_test: Crash
+class_test: Crash
+classes_static_method_clash_test: Crash
+closure2_test: Crash
+closure3_test: Crash
+closure4_test: Crash
+closure5_test: Crash
+closure6_test: Crash
+closure7_test: Crash
+closure8_test: Crash
+closure_break1_test: Crash
+closure_break2_test: Crash
+closure_break_test: Crash
+closure_cycles_test: Crash
+closure_in_constructor_test: Crash
+closure_in_field_initializer_test: Crash
+closure_in_initializer2_test: Crash
+closure_in_initializer_test: Crash
+closure_internals_test: Crash
+closure_parameter_types_test: Crash
+closure_self_reference_test: Crash
+closure_shared_state_test: Crash
+typevariable_substitution2_test/02: Crash
+generic_constructor_mixin_test: Crash
+generic_constructor_mixin2_test: Crash
+generic_constructor_mixin3_test: Crash
+function_subtype_inline2_test: Crash
 
 [ $compiler == dart2js && ! $dart2js_with_kernel && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853

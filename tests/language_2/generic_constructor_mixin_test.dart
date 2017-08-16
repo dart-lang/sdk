@@ -5,7 +5,7 @@
 // Test that parameter types types are checked correctly in the face of
 // mixin application upon a generic constructor.
 
-import 'checked_mode_helper.dart';
+import 'dynamic_type_helper.dart';
 
 class A<X> {
   A(X x);
@@ -18,5 +18,5 @@ class C<Y> = A<Y> with B;
 void main() {
   var v = 0;
   checkNoDynamicTypeError(() => new C<int>(v));
-  checkDynamicTypeError(() => new C<String>(v));
+  checkDynamicTypeError(() => new C<String>(v)); //# 01: compile-time error
 }

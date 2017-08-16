@@ -4,7 +4,7 @@
 
 // Test that mixins don't interfere with type variable substitution.
 
-import 'checked_mode_helper.dart';
+import 'dynamic_type_helper.dart';
 
 class B<T> {
   B(T x);
@@ -21,5 +21,5 @@ class C<T> = B<T> with M;
 main() {
   new A(null);
   new C<String>(''); //# 01: ok
-  checkDynamicTypeError(() => new C<String>(0)); //# 02: static type warning
+  checkDynamicTypeError(() => new C<String>(0)); //# 02: compile-time error
 }

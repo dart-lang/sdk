@@ -5,7 +5,7 @@
 
 // Check function subtyping of inlined function typed parameters.
 
-import 'checked_mode_helper.dart';
+import 'dynamic_type_helper.dart';
 
 class C {
   var field;

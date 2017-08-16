@@ -21,6 +21,7 @@ bad_named_constructor_negative_test: CompileTimeError # Issue 18693
 body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
+function_subtype_inline2_test: RuntimeError
 
 [ $strong && $compiler == dartdevc ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626

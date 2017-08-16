@@ -18,14 +18,5 @@ var array = [new B()];
 
 main() {
   array[0].c = new C();
-  bool inCheckedMode = false;
-  try {
-    var i = 42;
-    String a = i;
-  } catch (e) {
-    inCheckedMode = true;
-  }
-  if (inCheckedMode) {
-    Expect.throws(() => array[0].c = new B(), (e) => e is TypeError);
-  }
+  array[0].c = new B(); /*@compile-error=unspecified*/
 }

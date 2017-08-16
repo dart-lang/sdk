@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that implicit setters in checked mode do a type check generic types.
-
-import "package:expect/expect.dart";
+// Test that implicit setters do a type check generic types.
 
 class A {
   C<int> c;
@@ -18,14 +16,5 @@ var array = [new B()];
 
 main() {
   array[0].c = new C();
-  bool inCheckedMode = false;
-  try {
-    var i = 42;
-    String a = i;
-  } catch (e) {
-    inCheckedMode = true;
-  }
-  if (inCheckedMode) {
-    Expect.throws(() => array[0].c = new C<bool>(), (e) => e is TypeError);
-  }
+  array[0].c = /*@compile-error=unspecified*/new C<bool>();
 }

@@ -7,8 +7,8 @@ import "package:expect/expect.dart";
 class A {
   Map a;
   Comparator b;
-  // This code exhibited a bug in dart2js checked mode, where the type
-  // of [a] was inferred to be [Comparator] or null;
+  // This code exhibited a bug in dart2js, where the type of [a] was inferred to
+  // be [Comparator] or null;
   A()
       : b = null,
         a = null;
@@ -23,5 +23,5 @@ bar() {
   // receiver type is a typedef. Some code in the dart2js backend were
   // not dealing correctly with typedefs and lead the compiler to
   // crash.
-  new A().a.foo(); //# 01: static type warning
+  new A().a.foo(); //# 01: compile-time error
 }

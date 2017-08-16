@@ -577,14 +577,6 @@ cha_deopt1_test: CompileTimeError
 cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
 check_member_static_test/02: MissingCompileTimeError
-checked_null_test/01: Crash
-checked_setter2_test: Crash
-checked_setter3_test/01: Crash
-checked_setter3_test/02: Crash
-checked_setter3_test/none: Crash
-checked_setter_test: Crash
-class_cycle_test/02: MissingCompileTimeError
-class_cycle_test/03: MissingCompileTimeError
 compile_time_constant_a_test: Crash
 compile_time_constant_b_test: Crash
 compile_time_constant_c_test/02: Crash
@@ -881,7 +873,6 @@ function_subtype_closure1_test: Crash
 function_subtype_factory1_test: Crash
 function_subtype_inline0_test: Crash
 function_subtype_inline1_test: Crash
-function_subtype_inline2_test: Crash
 function_subtype_local0_test: Crash
 function_subtype_local1_test: Crash
 function_subtype_local2_test: Crash
@@ -911,9 +902,6 @@ function_type_parameter_negative_test: Crash
 function_type_test: Crash
 generalized_void_syntax_test: CompileTimeError
 generic_closure_test: Crash
-generic_constructor_mixin2_test: Crash
-generic_constructor_mixin3_test: Crash
-generic_constructor_mixin_test: Crash
 generic_field_mixin2_test: Crash
 generic_field_mixin3_test: Crash
 generic_field_mixin4_test: Crash # Issue 18651
@@ -1906,14 +1894,6 @@ cha_deopt1_test: CompileTimeError
 cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
 check_member_static_test/02: MissingCompileTimeError
-checked_null_test/01: Crash
-checked_setter2_test: Crash
-checked_setter3_test/01: Crash
-checked_setter3_test/02: Crash
-checked_setter3_test/none: Crash
-checked_setter_test: Crash
-class_cycle_test/02: MissingCompileTimeError
-class_cycle_test/03: MissingCompileTimeError
 compile_time_constant_a_test: Crash
 compile_time_constant_b_test: Crash
 compile_time_constant_c_test/02: Crash
@@ -2211,7 +2191,6 @@ function_subtype_closure1_test: Crash
 function_subtype_factory1_test: Crash
 function_subtype_inline0_test: Crash
 function_subtype_inline1_test: Crash
-function_subtype_inline2_test: Crash
 function_subtype_local0_test: Crash
 function_subtype_local1_test: Crash
 function_subtype_local2_test: Crash
@@ -2240,9 +2219,6 @@ function_type_parameter_negative_test: Crash
 function_type_test: Crash
 generalized_void_syntax_test: CompileTimeError
 generic_closure_test: Crash
-generic_constructor_mixin2_test: Crash
-generic_constructor_mixin3_test: Crash
-generic_constructor_mixin_test: Crash
 generic_field_mixin2_test: Crash
 generic_field_mixin3_test: Crash
 generic_field_mixin4_test: Crash # Issue 18651
@@ -3095,7 +3071,6 @@ type_variable_nested_test: Crash
 type_variable_scope2_test: Crash
 typecheck_multifield_declaration_test: Crash
 typedef_is_test: Crash
-typevariable_substitution2_test/02: Crash
 unresolved_default_constructor_test/01: Crash
 value_range2_test: Crash
 value_range3_test: Crash

@@ -24,12 +24,6 @@ body_less_constructor_wrong_arg_negative_test: Skip
 callable_test: Skip
 check_member_static_test: Skip
 check_method_override_test: Skip
-checked_null_test: Skip
-checked_setter2_test: Skip
-checked_setter3_test: Skip
-checked_setter_test: Skip
-class_cycle2_test: Skip
-class_cycle_test: Skip
 compile_time_constant_arguments_test: Skip
 compile_time_constant_c_test: Skip
 compile_time_constant_checked2_test: Skip
@@ -196,7 +190,6 @@ function_subtype_closure0_test: Skip
 function_subtype_closure1_test: Skip
 function_subtype_factory1_test: Skip
 function_subtype_inline1_test: Skip
-function_subtype_inline2_test: Skip
 function_subtype_setter0_test: Skip
 function_syntax_test: Skip
 function_test: Skip
@@ -211,9 +204,6 @@ function_type_parameter2_negative_test: Skip
 function_type_parameter_negative_test: Skip
 function_type_test: Skip
 generic_closure_test: Skip
-generic_constructor_mixin2_test: Skip
-generic_constructor_mixin3_test: Skip
-generic_constructor_mixin_test: Skip
 generic_field_mixin6_test: Skip
 generic_list_checked_test: Skip
 generic_tearoff_test: Skip
@@ -620,7 +610,6 @@ type_variable_scope3_test: Skip
 type_variable_scope_test: Skip
 type_variable_static_context_negative_test: Skip
 typed_selector2_test: Skip
-typevariable_substitution2_test: Skip
 unary_plus_negative_test: Skip
 unbalanced_brace_test: Skip
 unbound_getter_test: Skip
