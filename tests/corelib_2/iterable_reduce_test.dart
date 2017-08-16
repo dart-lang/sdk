@@ -36,10 +36,10 @@ main() {
     new List.generate(3, (x) => x + 1),
     [0, 1, 2, 3].where((x) => x > 0),
     [0, 1, 2].map((x) => x + 1),
-    [
-      [1, 2],
-      [3]
-    ].expand(id),
+    [ //# 01: ok
+      [1, 2], //# 01: ok
+      [3]  //# 01: ok
+    ].expand(id), //# 01: ok
     [3, 2, 1].reversed,
     [0, 1, 2, 3].skip(1),
     [1, 2, 3, 4].take(3),
@@ -75,12 +75,12 @@ main() {
     new MyList([1, 2, 3]),
   ]) {
     int callCount = 0;
-    var result = iterable.reduce((x, y) {
-      callCount++;
-      return x + y;
-    });
-    Expect.equals(6, result, "${iterable.runtimeType}");
-    Expect.equals(2, callCount);
+    var result = iterable.reduce((x, y) { //# 01: ok
+      callCount++; //# 01: ok
+      return x + y; //# 01: ok
+    }); //# 01: ok
+    Expect.equals(6, result, "${iterable.runtimeType}"); //# 01: ok
+    Expect.equals(2, callCount); //# 01: ok
   }
 
   // Empty iterables not allowed.
@@ -94,7 +94,7 @@ main() {
     new List.generate(0, (x) => x + 1),
     [0, 1, 2, 3].where((x) => false),
     [].map((x) => x + 1),
-    [[], []].expand(id),
+    [[], []].expand(id), //# 01: ok
     [].reversed,
     [0, 1, 2, 3].skip(4),
     [1, 2, 3, 4].take(0),
@@ -126,10 +126,10 @@ main() {
     new List.generate(1, (x) => x + 1),
     [0, 1, 2, 3].where((x) => x == 1),
     [0].map((x) => x + 1),
-    [
-      [],
-      [1]
-    ].expand(id),
+    [ //# 01: ok
+      [], //# 01: ok
+      [1] //# 01: ok
+    ].expand(id), //# 01: ok
     [1].reversed,
     [0, 1].skip(1),
     [1, 2, 3, 4].take(1),
@@ -145,7 +145,7 @@ main() {
     "\x01".runes,
     new MyList([1]),
   ]) {
-    Expect.equals(1, iterable.reduce((x, y) => throw "Unreachable"));
+    Expect.equals(1, iterable.reduce((x, y) => throw "Unreachable")); //# 01: ok
   }
 
   // Concurrent modifications not allowed.

@@ -22,6 +22,9 @@ string_static_test: MissingCompileTimeError
 [ (!$checked && $runtime == vm) || (!$checked && $compiler == dart2js) || $compiler == precompiler ]
 int_parse_radix_test/badTypes: RuntimeError # wrong exception returned
 
+[ ($compiler == dart2analyzer && $strong) || $compiler == dartdevc ]
+iterable_reduce_test/01: CompileTimeError
+
 [ !$strong && !$checked ]
 core_runtime_types_static_test: MissingCompileTimeError
 splay_tree_test/01: MissingCompileTimeError
@@ -35,6 +38,9 @@ int_parse_radix_bad_handler_test: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && !$strong ]
 symbol_reserved_word_test/05: MissingCompileTimeError # Issue 30245
+
+[ $compiler != dartdevc && ($compiler != dart2analyzer || !$strong) ]
+iterable_mapping_test/01: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && !$strong && !$checked ]
 from_environment_const_type_test/02: MissingCompileTimeError
@@ -88,6 +94,7 @@ compare_to2_test: RuntimeError # Issue 30170
 date_time10_test: RuntimeError # Issue 29921
 growable_list_test: RuntimeError # Issue 29921
 hash_set_test/01: RuntimeError # Issue 29921
+iterable_reduce_test/none: RuntimeError
 iterable_to_list_test/*: RuntimeError
 list_test/none: RuntimeError
 list_test/01: RuntimeError
@@ -151,6 +158,7 @@ symbol_reserved_word_test/12: RuntimeError # Issue 29921
 int_parse_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
 typed_data_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
 int_modulo_arith_test/none: RuntimeError # Issue 29921
+iterable_return_type_test/02: RuntimeError # Issue 29921
 
 [ ($compiler == dart2js || $compiler == dartdevc) && $runtime != none ]
 big_integer_arith_vm_test: RuntimeError # Issues 10245, 30170
@@ -431,6 +439,7 @@ from_environment_const_type_undefined_test/04: MissingCompileTimeError
 from_environment_const_type_undefined_test/06: MissingCompileTimeError
 from_environment_const_type_undefined_test/07: MissingCompileTimeError
 from_environment_const_type_undefined_test/08: MissingCompileTimeError
+iterable_generate_test/01: RuntimeError
 
 
 [ ($compiler == none && $runtime == vm) || $compiler == dart2js ]
@@ -713,6 +722,19 @@ uri_path_test: Crash
 uri_query_test: Crash
 uri_scheme_test: Crash
 uri_test: Crash
+iterable_generate_test/01: Crash
+iterable_generate_test/none: Crash
+iterable_join_test: Crash
+iterable_last_test: Crash
+iterable_last_where_test: Crash
+iterable_length_test: Crash
+iterable_reduce_test: Crash
+iterable_return_type_test/01: Crash
+iterable_return_type_test/02: Crash
+iterable_return_type_test/none: Crash
+iterable_single_test: Crash
+iterable_single_where_test: Crash
+iterable_skip_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 stopwatch_test: Crash
@@ -1007,6 +1029,19 @@ uri_path_test: Crash
 uri_query_test: Crash
 uri_scheme_test: Crash
 uri_test: Crash
+iterable_generate_test/01: Crash
+iterable_generate_test/none: Crash
+iterable_join_test: Crash
+iterable_last_test: Crash
+iterable_last_where_test: Crash
+iterable_length_test: Crash
+iterable_reduce_test: Crash
+iterable_return_type_test/01: Crash
+iterable_return_type_test/02: Crash
+iterable_return_type_test/none: Crash
+iterable_single_test: Crash
+iterable_single_where_test: Crash
+iterable_skip_test: Crash
 
 [$arch == simdbc || $arch == simdbc64]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
@@ -1015,9 +1050,11 @@ regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interp
 splay_tree_from_iterable_test: RuntimeError
 
 [ ($compiler == none || $compiler == app_jit || $compiler == dartk) && $runtime == vm && !$checked ]
+iterable_generate_test/01: RuntimeError
 splay_tree_from_iterable_test: RuntimeError
 
 [ $compiler == precompiler && $runtime == dart_precompiled && !$checked ]
+iterable_generate_test/01: RuntimeError
 splay_tree_from_iterable_test: RuntimeError
 
 [ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter ]
@@ -1033,6 +1070,8 @@ package_resource_test: RuntimeError # Issue 26842
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
 iterable_to_list_test/01: RuntimeError # Issue 26501
+iterable_return_type_test/01: RuntimeError # Issue 20085
+iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
 
 [ $compiler == dart2analyzer ]
 int_parse_radix_bad_handler_test: MissingCompileTimeError

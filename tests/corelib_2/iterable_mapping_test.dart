@@ -24,11 +24,11 @@ main() {
   mapped = mapped.map((x) => x + 1);
   Expect.listEquals([6, 7], mapped.toList());
 
-  mapped = list3.map((x) => x + 1);
-  Expect.listEquals([], mapped.toList());
+  mapped = list3.map((x) => x + 1); //# 01: compile-time error
+  Expect.listEquals([], mapped.toList()); //# 01: continued
 
-  mapped = mapped.map((x) => x + 1);
-  Expect.listEquals([], mapped.toList());
+  mapped = mapped.map((x) => x + 1); //# 01: continued
+  Expect.listEquals([], mapped.toList()); //# 01: continued
 
   var expected = new Set<int>()..addAll([12, 13, 14]);
   mapped = set1.map((x) => x + 1);
