@@ -989,6 +989,7 @@ class FieldHelper {
             AlternativeReadingScope alt(builder_->reader_);
             Tag tag = builder_->ReadTag();
             ASSERT(tag == kFunctionExpression);
+            builder_->ReadPosition();  // read position.
 
             FunctionNodeHelper helper(builder_);
             helper.ReadUntilIncluding(FunctionNodeHelper::kEndPosition);

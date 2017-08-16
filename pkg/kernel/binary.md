@@ -713,6 +713,7 @@ type AwaitExpression extends Expression {
 
 type FunctionExpression extends Expression {
   Byte tag = 52;
+  FileOffset fileOffset;
   FunctionNode function;
 }
 

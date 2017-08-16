@@ -618,6 +618,7 @@ void StreamingScopeBuilder::VisitExpression() {
     case kFunctionExpression: {
       intptr_t offset =
           builder_->ReaderOffset() - 1;  // -1 to include tag byte.
+      builder_->ReadPosition();          // read position.
       HandleLocalFunction(offset);       // read function node.
       return;
     }
@@ -3956,6 +3957,7 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       return;
     }
     case kFunctionExpression:
+      ReadPosition();      // read position.
       SkipFunctionNode();  // read function node.
       return;
     case kLet:
@@ -5738,6 +5740,7 @@ Fragment StreamingFlowGraphBuilder::BuildMapLiteral(bool is_const,
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFunctionExpression() {
+  ReadPosition();  // read position.
   return BuildFunctionNode(TokenPosition::kNoSource, StringIndex());
 }
 

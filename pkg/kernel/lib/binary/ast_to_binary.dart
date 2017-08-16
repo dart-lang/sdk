@@ -829,6 +829,7 @@ class BinaryPrinter extends Visitor {
 
   visitFunctionExpression(FunctionExpression node) {
     writeByte(Tag.FunctionExpression);
+    writeOffset(node.fileOffset);
     writeNode(node.function);
   }
 

@@ -926,7 +926,8 @@ class BinaryBuilder {
       case Tag.AwaitExpression:
         return new AwaitExpression(readExpression());
       case Tag.FunctionExpression:
-        return new FunctionExpression(readFunctionNode());
+        int offset = readOffset();
+        return new FunctionExpression(readFunctionNode())..fileOffset = offset;
       case Tag.Let:
         var variable = readVariableDeclaration();
         int stackHeight = variableStack.length;
