@@ -6,6 +6,7 @@
 ///
 /// Use this to detect flakiness of failures, especially timeouts.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -26,7 +27,7 @@ void help(ArgParser argParser) {
   print(argParser.usage);
 }
 
-main(List<String> args) async {
+Future main(List<String> args) async {
   ArgParser argParser = createArgParser();
   argParser.addOption("run-count",
       defaultsTo: "10", help: "How many previous runs should be fetched");

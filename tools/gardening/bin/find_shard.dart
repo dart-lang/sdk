@@ -9,6 +9,7 @@
 // Example: `bin/find_shard.dart precomp-linux-debug-x64-be`
 // prints `vm-precomp(5): precomp-linux-debug-x64-be`.
 
+import 'dart:async';
 import 'dart:io';
 import 'package:args/args.dart';
 import 'package:gardening/src/shard_data.dart';
@@ -54,7 +55,7 @@ bool shard_enabled(String shard) {
   return true;
 }
 
-main(List<String> args) async {
+Future main(List<String> args) async {
   ArgParser argParser = createArgParser();
   argParser.addFlag("include-dev",
       abbr: "d",

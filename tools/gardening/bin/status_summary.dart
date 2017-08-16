@@ -21,7 +21,7 @@ void help(ArgParser argParser) {
   print(argParser.usage);
 }
 
-main(List<String> args) async {
+Future main(List<String> args) async {
   ArgParser argParser = createArgParser();
   ArgResults argResults = argParser.parse(args);
   processArgResults(argResults);

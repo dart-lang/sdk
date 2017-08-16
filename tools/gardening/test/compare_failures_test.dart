@@ -18,7 +18,6 @@ import 'package:gardening/src/util.dart';
 
 import 'test_client.dart';
 
-// TODO(johnniwinther): Use 'package:testing' to run all tests.
 main(List<String> args) async {
   ArgParser argParser = createArgParser();
   argParser.addFlag('force', abbr: 'f');

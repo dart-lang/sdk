@@ -13,7 +13,7 @@ import 'summary.dart' as summary;
 
 typedef Future MainFunction(List<String> args);
 
-help(List<String> args) async {
+Future help(List<String> args) async {
   if (args.length == 1 && args[0] == "--help") {
     print("This help");
     return null;

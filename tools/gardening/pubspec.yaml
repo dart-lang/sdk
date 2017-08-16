@@ -6,3 +6,5 @@ dependencies:
   args:
   expect:
     path: ../../pkg/expect/
+  testing:
+    path: ../../pkg/testing/
