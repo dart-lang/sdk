@@ -45,7 +45,6 @@ enum NullValue {
   Identifier,
   IdentifierList,
   Initializers,
-  InvalidTopLevelDeclaration,
   Metadata,
   Modifiers,
   ParameterDefaultValue,

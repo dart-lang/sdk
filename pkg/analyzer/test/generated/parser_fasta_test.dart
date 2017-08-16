@@ -467,12 +467,12 @@ class FastaParserTestCase extends Object
 
   @override
   CompilationUnitMember parseFullCompilationUnitMember() {
-    return _parserProxy.parseTopLevelDeclaration();
+    return _parserProxy.parseTopLevelDeclaration(false);
   }
 
   @override
   Directive parseFullDirective() {
-    return _parserProxy.parseTopLevelDeclaration();
+    return _parserProxy.parseTopLevelDeclaration(true);
   }
 
   @override
@@ -838,11 +838,18 @@ class ParserProxy implements analyzer.Parser {
     return result;
   }
 
-  AnnotatedNode parseTopLevelDeclaration() {
+  AnnotatedNode parseTopLevelDeclaration(bool isDirective) {
     _eventListener.begin('CompilationUnit');
-    var result = _run((parser) => parser.parseTopLevelDeclaration);
+    _currentFastaToken =
+        _fastaParser.parseTopLevelDeclaration(_currentFastaToken);
+    expect(_currentFastaToken.isEof, isTrue);
+    expect(_astBuilder.stack, hasLength(0));
+    expect(_astBuilder.scriptTag, isNull);
+    expect(_astBuilder.directives, hasLength(isDirective ? 1 : 0));
+    expect(_astBuilder.declarations, hasLength(isDirective ? 0 : 1));
     _eventListener.end('CompilationUnit');
-    return result;
+    return (isDirective ? _astBuilder.directives : _astBuilder.declarations)
+        .first;
   }
 
   /**
