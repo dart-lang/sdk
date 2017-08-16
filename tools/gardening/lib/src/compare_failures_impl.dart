@@ -37,7 +37,11 @@ Future<Map<BuildUri, List<BuildResult>>> loadBuildResults(
   Map<BuildUri, List<BuildResult>> pastResultsMap =
       <BuildUri, List<BuildResult>>{};
   List<BuildResult> buildResults = await bot.readResults(buildUriList);
-  for (int index = 0; index < buildUriList.length; index++) {
+  if (buildResults.length != buildUriList.length) {
+    print('Result mismatch: Pulled ${buildUriList.length} uris, '
+        'received ${buildResults.length} results.');
+  }
+  for (int index = 0; index < buildResults.length; index++) {
     BuildUri buildUri = buildUriList[index];
     BuildResult buildResult = buildResults[index];
     List<BuildResult> results =

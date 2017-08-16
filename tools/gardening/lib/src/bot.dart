@@ -40,6 +40,9 @@ class Bot {
     return _client.readResult(buildUri);
   }
 
+  /// Maximum number of [BuildResult]s read concurrently by [readResults].
+  static const maxParallel = 20;
+
   /// Reads the build results of all given uris.
   ///
   /// Returns a list of the results. If a uri couldn't be read, then the entry
@@ -47,7 +50,6 @@ class Bot {
   Future<List<BuildResult>> readResults(List<BuildUri> buildUris) async {
     var result = <BuildResult>[];
     int i = 0;
-    const maxParallel = 20;
     while (i < buildUris.length) {
       var end = i + maxParallel;
       if (end > buildUris.length) end = buildUris.length;
@@ -60,7 +62,7 @@ class Bot {
         }
         return result;
       })));
-      i = end + 1;
+      i = end;
     }
     return result;
   }
