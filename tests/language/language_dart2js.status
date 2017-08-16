@@ -872,7 +872,6 @@ function_getter_test: Crash
 function_literals2_test: Crash
 function_literals_test: Crash
 function_malformed_result_type_test: Crash
-function_propagation_test: Crash
 function_subtype2_test: Crash
 function_subtype3_test: Crash
 function_subtype_bound_closure0_test: Crash
@@ -2221,7 +2220,6 @@ function_getter_test: Crash
 function_literals2_test: Crash
 function_literals_test: Crash
 function_malformed_result_type_test: Crash
-function_propagation_test: RuntimeError
 function_subtype2_test: Crash
 function_subtype_bound_closure0_test: Crash
 function_subtype_bound_closure1_test: Crash
