@@ -20,6 +20,7 @@ main(List<String> args) async {
   Bot bot = new Bot(logdog: useLogdog);
 
   List<String> failingUris = <String>[];
+  List<String> missingBuildNumbers = <String>[];
   List<BuildUri> buildUris = <BuildUri>[];
   for (BuildGroup buildGroup in buildGroups) {
     for (BuildSubgroup buildSubgroup in buildGroup.subgroups) {
@@ -33,6 +34,11 @@ main(List<String> args) async {
     BuildResult result = buildResults[index];
     if (result == null) {
       failingUris.add('$buildUri');
+    } else {
+      if (result.buildNumber == null) {
+        missingBuildNumbers.add('$buildUri');
+      }
+      Expect.isNotNull(result.buildRevision, "No build revision in $buildUri");
     }
   }
   // TODO(johnniwinther): Find out why these steps cannot be read.
@@ -45,6 +51,12 @@ main(List<String> args) async {
         'third_party/pkg_tested unit tests',
   ], failingUris,
       "Unexpected failing buildbot uris:\n ${failingUris.join('\n ')}");
+
+  Expect.setEquals(
+      [],
+      missingBuildNumbers,
+      "Unexpected missing build numbers in:\n "
+      "${missingBuildNumbers.join('\n ')}");
 
   bot.close();
 }

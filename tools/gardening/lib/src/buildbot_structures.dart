@@ -107,12 +107,14 @@ class BuildResult {
   /// positive number, is read from the build results.
   final int buildNumber;
 
+  final String buildRevision;
+
   final List<TestStatus> _results;
   final List<TestFailure> _failures;
   final List<Timing> _timings;
 
-  BuildResult(this.buildUri, this.buildNumber, this._results, this._failures,
-      this._timings);
+  BuildResult(this.buildUri, this.buildNumber, this.buildRevision,
+      this._results, this._failures, this._timings);
 
   /// `true` of the build result has test failures.
   bool get hasFailures => _failures.isNotEmpty;
