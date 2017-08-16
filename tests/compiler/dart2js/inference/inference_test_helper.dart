@@ -17,7 +17,8 @@ import '../equivalence/id_equivalence_helper.dart';
 /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
 /// for the data origin.
 void computeMemberAstTypeMasks(Compiler compiler, MemberEntity _member,
-    Map<Id, String> actualMap, Map<Id, Spannable> spannableMap) {
+    Map<Id, String> actualMap, Map<Id, Spannable> spannableMap,
+    {bool verbose: false}) {
   MemberElement member = _member;
   ResolvedAst resolvedAst = member.resolvedAst;
   if (resolvedAst.kind != ResolvedAstKind.PARSED) return;

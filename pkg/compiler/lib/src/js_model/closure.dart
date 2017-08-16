@@ -182,9 +182,17 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   @override
   ClosureRepresentationInfo getClosureRepresentationInfo(Entity entity) {
     var closure = _closureRepresentationMap[entity];
-    assert(closure != null,
-        "Corresponding closure class not found for $entity. Closures found for ${_closureRepresentationMap.keys}");
+    assert(
+        closure != null,
+        "Corresponding closure class not found for $entity. "
+        "Closures found for ${_closureRepresentationMap.keys}");
     return closure;
+  }
+
+  @override
+  ClosureRepresentationInfo getClosureRepresentationInfoForTesting(
+      Entity member) {
+    return _closureRepresentationMap[member];
   }
 }
 

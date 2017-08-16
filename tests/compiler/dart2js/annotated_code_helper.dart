@@ -9,7 +9,7 @@ const int _LBRACE = 0x7B;
 const Pattern atBraceStart = '@{';
 const Pattern braceEnd = '}';
 
-final Pattern commentStart = new RegExp(r' */\*');
+final Pattern commentStart = new RegExp(r'/\*');
 final Pattern commentEnd = new RegExp(r'\*/ *');
 
 class Annotation {
