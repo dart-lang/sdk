@@ -116,6 +116,7 @@ class ArgumentsDescriptor : public ValueObject {
   friend class Serializer;
   friend class Deserializer;
   friend class Simulator;
+  friend class SimulatorHelpers;
   DISALLOW_COPY_AND_ASSIGN(ArgumentsDescriptor);
 };
 

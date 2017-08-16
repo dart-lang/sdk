@@ -174,6 +174,24 @@ class SimulatorHelpers {
             reinterpret_cast<intptr_t>(length));
   }
 
+  DART_FORCE_INLINE static intptr_t ArgDescTypeArgsLen(RawArray* argdesc) {
+    return Smi::Value(*reinterpret_cast<RawSmi**>(
+        reinterpret_cast<uword>(argdesc->ptr()) +
+        Array::element_offset(ArgumentsDescriptor::kTypeArgsLenIndex)));
+  }
+
+  DART_FORCE_INLINE static intptr_t ArgDescArgCount(RawArray* argdesc) {
+    return Smi::Value(*reinterpret_cast<RawSmi**>(
+        reinterpret_cast<uword>(argdesc->ptr()) +
+        Array::element_offset(ArgumentsDescriptor::kCountIndex)));
+  }
+
+  DART_FORCE_INLINE static intptr_t ArgDescPosCount(RawArray* argdesc) {
+    return Smi::Value(*reinterpret_cast<RawSmi**>(
+        reinterpret_cast<uword>(argdesc->ptr()) +
+        Array::element_offset(ArgumentsDescriptor::kPositionalCountIndex)));
+  }
+
   static bool ObjectArraySetIndexed(Thread* thread,
                                     RawObject** FP,
                                     RawObject** result) {
@@ -835,7 +853,10 @@ DART_FORCE_INLINE void Simulator::InstanceCall1(Thread* thread,
   RawObject** args = call_base;
   RawArray* cache = icdata->ptr()->ic_data_->ptr();
 
-  RawSmi* receiver_cid = SimulatorHelpers::GetClassIdAsSmi(args[0]);
+  const intptr_t type_args_len =
+      SimulatorHelpers::ArgDescTypeArgsLen(icdata->ptr()->args_descriptor_);
+  const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
+  RawSmi* receiver_cid = SimulatorHelpers::GetClassIdAsSmi(args[receiver_idx]);
 
   bool found = false;
   const intptr_t length = Smi::Value(cache->length_);
@@ -853,8 +874,8 @@ DART_FORCE_INLINE void Simulator::InstanceCall1(Thread* thread,
       SimulatorHelpers::IncrementICUsageCount(cache->data(), i, kCheckedArgs);
     }
   } else {
-    InlineCacheMiss(kCheckedArgs, thread, icdata, call_base, top, *pc, *FP,
-                    *SP);
+    InlineCacheMiss(kCheckedArgs, thread, icdata, call_base + receiver_idx, top,
+                    *pc, *FP, *SP);
   }
 
   *argdesc = icdata->ptr()->args_descriptor_;
@@ -877,8 +898,11 @@ DART_FORCE_INLINE void Simulator::InstanceCall2(Thread* thread,
   RawObject** args = call_base;
   RawArray* cache = icdata->ptr()->ic_data_->ptr();
 
-  RawSmi* receiver_cid = SimulatorHelpers::GetClassIdAsSmi(args[0]);
-  RawSmi* arg0_cid = SimulatorHelpers::GetClassIdAsSmi(args[1]);
+  const intptr_t type_args_len =
+      SimulatorHelpers::ArgDescTypeArgsLen(icdata->ptr()->args_descriptor_);
+  const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
+  RawSmi* receiver_cid = SimulatorHelpers::GetClassIdAsSmi(args[receiver_idx]);
+  RawSmi* arg0_cid = SimulatorHelpers::GetClassIdAsSmi(args[receiver_idx + 1]);
 
   bool found = false;
   const intptr_t length = Smi::Value(cache->length_);
@@ -897,8 +921,8 @@ DART_FORCE_INLINE void Simulator::InstanceCall2(Thread* thread,
       SimulatorHelpers::IncrementICUsageCount(cache->data(), i, kCheckedArgs);
     }
   } else {
-    InlineCacheMiss(kCheckedArgs, thread, icdata, call_base, top, *pc, *FP,
-                    *SP);
+    InlineCacheMiss(kCheckedArgs, thread, icdata, call_base + receiver_idx, top,
+                    *pc, *FP, *SP);
   }
 
   *argdesc = icdata->ptr()->args_descriptor_;
@@ -1261,6 +1285,7 @@ RawObject* Simulator::Call(const Code& code,
 
   // Load argument descriptor.
   argdesc = arguments_descriptor.raw();
+  ASSERT(ArgumentsDescriptor(arguments_descriptor).TypeArgsLen() == 0);
 
   // Ready to start executing bytecode. Load entry point and corresponding
   // object pool.
@@ -1289,9 +1314,7 @@ RawObject* Simulator::Call(const Code& code,
     const uint16_t context_reg = rC;
 
     // Decode arguments descriptor.
-    const intptr_t pos_count = Smi::Value(*reinterpret_cast<RawSmi**>(
-        reinterpret_cast<uword>(argdesc->ptr()) +
-        Array::element_offset(ArgumentsDescriptor::kPositionalCountIndex)));
+    const intptr_t pos_count = SimulatorHelpers::ArgDescPosCount(argdesc);
 
     // Check that we got the right number of positional parameters.
     if (pos_count != num_fixed_params) {
@@ -1319,9 +1342,7 @@ RawObject* Simulator::Call(const Code& code,
     const uint16_t num_registers = rD;
 
     // Decode arguments descriptor.
-    const intptr_t pos_count = Smi::Value(*reinterpret_cast<RawSmi**>(
-        reinterpret_cast<uword>(argdesc->ptr()) +
-        Array::element_offset(ArgumentsDescriptor::kPositionalCountIndex)));
+    const intptr_t pos_count = SimulatorHelpers::ArgDescPosCount(argdesc);
 
     // Check that we got the right number of positional parameters.
     if (pos_count != num_fixed_params) {
@@ -1344,12 +1365,8 @@ RawObject* Simulator::Call(const Code& code,
     const intptr_t max_num_pos_args = num_fixed_params + num_opt_pos_params;
 
     // Decode arguments descriptor.
-    const intptr_t arg_count = Smi::Value(*reinterpret_cast<RawSmi**>(
-        reinterpret_cast<uword>(argdesc->ptr()) +
-        Array::element_offset(ArgumentsDescriptor::kCountIndex)));
-    const intptr_t pos_count = Smi::Value(*reinterpret_cast<RawSmi**>(
-        reinterpret_cast<uword>(argdesc->ptr()) +
-        Array::element_offset(ArgumentsDescriptor::kPositionalCountIndex)));
+    const intptr_t arg_count = SimulatorHelpers::ArgDescArgCount(argdesc);
+    const intptr_t pos_count = SimulatorHelpers::ArgDescPosCount(argdesc);
     const intptr_t named_count = (arg_count - pos_count);
 
     // Check that got the right number of positional parameters.
@@ -1432,7 +1449,7 @@ RawObject* Simulator::Call(const Code& code,
 
       // Process the list of default values encoded as a sequence of
       // LoadConstant instructions after EntryOpt bytecode.
-      // Execute only those that correspond to parameters the were not passed.
+      // Execute only those that correspond to parameters that were not passed.
       for (intptr_t i = pos_count - num_fixed_params; i < num_opt_pos_params;
            i++) {
         const uint32_t load_value = pc[i];
@@ -1550,6 +1567,29 @@ RawObject* Simulator::Call(const Code& code,
       NativeArguments args(thread, 0, NULL, NULL);
       INVOKE_RUNTIME(DRT_StackOverflow, args);
     }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckFunctionTypeArgs, A_D);
+    const uint16_t declared_type_args_len = rA;
+    const uint16_t first_stack_local_index = rD;
+
+    // Decode arguments descriptor's type args len.
+    const intptr_t type_args_len =
+        SimulatorHelpers::ArgDescTypeArgsLen(argdesc);
+    if (type_args_len > 0) {
+      // Decode arguments descriptor's argument count (excluding type args).
+      const intptr_t arg_count = SimulatorHelpers::ArgDescArgCount(argdesc);
+      // Copy passed-in type args to first local slot.
+      FP[first_stack_local_index] = *FrameArguments(FP, arg_count + 1);
+    } else {
+      FP[first_stack_local_index] = Object::null();
+    }
+
+    // TODO(regis): Verify that type_args_len is correct.
+    USE(declared_type_args_len);
+
     DISPATCH();
   }
 

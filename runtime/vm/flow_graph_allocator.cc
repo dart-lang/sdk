@@ -704,16 +704,32 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
 
   } else if (defn->IsSpecialParameter()) {
     SpecialParameterInstr* param = defn->AsSpecialParameter();
-    if (param->kind() == SpecialParameterInstr::kContext) {
-#if !defined(TARGET_ARCH_DBC)
-      const Register context_reg = CTX;
+    Location loc;
+#if defined(TARGET_ARCH_DBC)
+    intptr_t slot_index = flow_graph_.num_copied_params();
+    if ((param->kind() == SpecialParameterInstr::kContext) &&
+        FLAG_reify_generic_functions && flow_graph_.function().IsGeneric()) {
+      // The first slot is used for function type arguments, either as their
+      // permanent location or as their temporary location when captured.
+      // So use the next one for the context.
+      // (see FlowGraphCompiler::EmitFrameEntry)
+      slot_index++;
+    }
+    loc = Location::RegisterLocation(slot_index);
 #else
-      const intptr_t context_reg = flow_graph_.num_copied_params();
-#endif
+    if (param->kind() == SpecialParameterInstr::kContext) {
+      loc = Location::RegisterLocation(CTX);
+    } else {
+      ASSERT(param->kind() == SpecialParameterInstr::kTypeArgs);
+      loc = Location::StackSlot(flow_graph_.num_copied_params(), FPREG);
+      range->set_assigned_location(loc);
+      range->set_spill_slot(loc);
+    }
+#endif  // defined(TARGET_ARCH_DBC)
 
+    if (loc.IsRegister()) {
       AssignSafepoints(defn, range);
-      range->finger()->Initialize(range);
-      range->set_assigned_location(Location::RegisterLocation(context_reg));
+      range->set_assigned_location(loc);
       if (range->End() > kNormalEntryPos) {
         LiveRange* tail = range->SplitAt(kNormalEntryPos);
         CompleteRange(tail, Location::kRegister);
@@ -721,13 +737,6 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
       ConvertAllUses(range);
       return;
     }
-    ASSERT(param->kind() == SpecialParameterInstr::kTypeArgs);
-#if defined(TARGET_ARCH_DBC)
-    UNIMPLEMENTED();
-#endif
-    const intptr_t slot_index = flow_graph_.num_copied_params();
-    range->set_assigned_location(Location::StackSlot(slot_index, FPREG));
-    range->set_spill_slot(Location::StackSlot(slot_index, FPREG));
   } else {
     ConstantInstr* constant = defn->AsConstant();
     ASSERT(constant != NULL);
