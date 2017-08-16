@@ -50,6 +50,7 @@ import '../../ast.dart'
         VariableDeclaration,
         VariableGet,
         VariableSet,
+        VectorCreation,
         VectorType,
         transformList;
 
@@ -445,6 +446,13 @@ class ClosureConverter extends Transformer {
         typeParameters: closureTypeParams,
         requiredParameterCount: function.requiredParameterCount - 1);
 
+    // If we capture type parameters but not regular variables, we still need to
+    // make a context.
+    if (capturedTypeVariables[function] != null &&
+        accessContext is NullLiteral) {
+      accessContext = new VectorCreation(1);
+    }
+
     return new ClosureCreation(
         closedTopLevelFunction, accessContext, closureType, fnTypeArgs);
   }
@@ -740,9 +748,7 @@ class ClosureConverter extends Transformer {
 
   /// Creates copies of the type variables in [original] and returns a
   /// substitution that can be passed to [substitute] to substitute all uses of
-  /// [original] with their copies. Additionally returns a list of new type
-  /// parameters to prefix to the enclosing function's type parameters and the
-  /// arguments to be passed for those parameters.
+  /// [original] with their copies.
   ///
   Map<TypeParameter, DartType> copyTypeVariables(
       Iterable<TypeParameter> original) {

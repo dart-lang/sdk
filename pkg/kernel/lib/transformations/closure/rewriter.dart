@@ -30,9 +30,10 @@ abstract class AstRewriter {
   void _createDeclaration() {
     assert(contextDeclaration == null && vectorCreation == null);
 
-    // Context size is set to 1 initially, because the 0-th element of it works
-    // as a link to the parent context.
-    vectorCreation = new VectorCreation(1);
+    // Context size is set to 2 initially, because the 0-th element of it holds
+    // the vector of type arguments that the VM creates, and the 1-st element
+    // works as a link to the parent context.
+    vectorCreation = new VectorCreation(2);
     contextDeclaration = new VariableDeclaration.forValue(vectorCreation,
         type: new VectorType());
     contextDeclaration.name = "#context";
@@ -74,9 +75,9 @@ class BlockRewriter extends AstRewriter {
     _createDeclaration();
     _insertStatement(contextDeclaration);
     if (accessParent is! NullLiteral) {
-      // Index 0 of a context always points to the parent.
+      // Index 1 of a context always points to the parent.
       _insertStatement(new ExpressionStatement(
-          new VectorSet(new VariableGet(contextDeclaration), 0, accessParent)));
+          new VectorSet(new VariableGet(contextDeclaration), 1, accessParent)));
     }
   }
 

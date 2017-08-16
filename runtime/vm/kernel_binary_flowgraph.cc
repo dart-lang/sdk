@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/kernel_binary_flowgraph.h"
-
 #include "vm/compiler.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
@@ -1102,9 +1101,14 @@ void StreamingScopeBuilder::VisitTypeParameterType() {
     // factory constructor function.
     HandleSpecialLoad(&result_->type_arguments_variable,
                       Symbols::TypeArgumentsParameter());
-  } else {
-    // The type argument vector is stored on the instance object. We therefore
-    // need to capture `this`.
+  } else if (!function.IsGeneric()) {
+    // TODO(30455): Kernel generic methods undone. Currently we only support
+    // generic toplevel methods. For no special load needs to be prepared for
+    // these, because the 'LocalVariable' for the type arguments is set on the
+    // 'ParsedFunction' directly. So we do nothing for generic methods.
+
+    // The type argument vector is stored on the
+    // instance object. We therefore need to capture `this`.
     HandleSpecialLoad(&result_->this_variable, Symbols::This());
   }
 
@@ -1631,13 +1635,13 @@ void StreamingDartTypeTranslator::BuildTypeParameterType() {
             : 0;
     if (procedure_type_parameter_count > 0) {
       if (procedure_type_parameter_count > parameter_index) {
-        // Here we technically could load the correct one via something like
-        //     result_ ^= dart::TypeArguments::Handle(
-        //                    Z, active_class_->member->type_parameters())
-        //                    .TypeAt(parameter_index);
-        // but that isn't currently supported elsewhere
-        // (FlowGraphBuilder::LoadFunctionTypeArguments()).
-        result_ ^= dart::Type::DynamicType();
+        if (FLAG_reify_generic_functions) {
+          result_ ^= dart::TypeArguments::Handle(
+                         Z, active_class_->member->type_parameters())
+                         .TypeAt(parameter_index);
+        } else {
+          result_ ^= dart::Type::DynamicType();
+        }
         return;
       }
       parameter_index -= procedure_type_parameter_count;
@@ -2987,11 +2991,21 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfConvertedClosureFunction(
 
   Fragment body(normal_entry);
   body += flow_graph_builder_->CheckStackOverflowInPrologue();
+  body += NullConstant();
+  LocalVariable* result = MakeTemporary();
 
   // Load all the arguments.
   ASSERT(target.is_static());
 
+  // TODO(30455): Kernel generic methods undone. Since the frontend can't yet
+  // emit generic methods into kernel, all type parameters to the target must
+  // come from the context. When generic methods are fully supported, we will
+  // need to get the type arguments provided by the caller and append them to
+  // the captured type arguments via 'prependTypeArguments'.
+
   FunctionNodeHelper function_node_helper(this);
+  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
+  intptr_t type_param_count = PeekUInt();
   function_node_helper.ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);
 
@@ -3005,6 +3019,15 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfConvertedClosureFunction(
   body += LoadLocal(LookupVariable(
       ReaderOffset() + relative_kernel_offset_));  // 0th variable offset.
   body += flow_graph_builder_->LoadField(Closure::context_offset());
+  LocalVariable* context = MakeTemporary();
+
+  if (type_param_count > 0) {
+    body += LoadLocal(context);
+    body += flow_graph_builder_->LoadField(Context::variable_offset(0));
+    body += PushArgument();
+  }
+
+  body += LoadLocal(context);
   body += PushArgument();
   SkipVariableDeclaration();  // read 0th variable.
 
@@ -3037,12 +3060,15 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfConvertedClosureFunction(
   }
 
   // Forward them to the target.
-  const intptr_t argument_count =
-      positional_argument_count + named_argument_count;
+  intptr_t argument_count = positional_argument_count + named_argument_count;
+  if (type_param_count) ++argument_count;
   body += StaticCall(TokenPosition::kNoSource, target, argument_count,
-                     argument_names);
+                     argument_names, type_param_count);
 
   // Return the result.
+  body += StoreLocal(TokenPosition::kNoSource, result);
+  body += Drop();
+  body += Drop();
   body += Return(function_node_helper.end_position_);
 
   return new (Z)
@@ -4471,9 +4497,10 @@ Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
 Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
                                                const Function& target,
                                                intptr_t argument_count,
-                                               const Array& argument_names) {
+                                               const Array& argument_names,
+                                               intptr_t type_args_count) {
   return flow_graph_builder_->StaticCall(position, target, argument_count,
-                                         argument_names);
+                                         argument_names, type_args_count);
 }
 
 Fragment StreamingFlowGraphBuilder::InstanceCall(
@@ -5893,8 +5920,25 @@ Fragment StreamingFlowGraphBuilder::BuildClosureCreation(
 
   instructions += Drop();
 
-  SkipDartType();         // skip function type of the closure.
-  SkipListOfDartTypes();  // skip list of type arguments.
+  SkipDartType();  // skip function type of the closure.
+
+  // TODO(30455): Kernel generic methods undone. When generic methods are
+  // fully supported in kernel, we'll need to store a NULL in the type arguments
+  // slot when type arguments are absent, so the wrapper for the target function
+  // can tell how many type args are captured vs. provided by the caller of the
+  // closure.
+
+  intptr_t types_count = ReadListLength();  // read type count.
+  if (types_count > 0) {
+    instructions += LoadLocal(context);
+
+    const TypeArguments& type_args =
+        T.BuildTypeArguments(types_count);  // read list of type arguments.
+    instructions += TranslateInstantiatedTypeArguments(type_args);
+
+    instructions += StoreInstanceField(TokenPosition::kNoSource,
+                                       Context::variable_offset(0));
+  }
 
   return instructions;
 }

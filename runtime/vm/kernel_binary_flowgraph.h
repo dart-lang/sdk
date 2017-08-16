@@ -483,7 +483,8 @@ class StreamingFlowGraphBuilder {
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,
-                      const Array& argument_names);
+                      const Array& argument_names,
+                      intptr_t type_args_len = 0);
   Fragment InstanceCall(TokenPosition position,
                         const dart::String& name,
                         Token::Kind kind,

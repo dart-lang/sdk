@@ -564,7 +564,8 @@ class FlowGraphBuilder {
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,
-                      const Array& argument_names);
+                      const Array& argument_names,
+                      intptr_t type_args_len = 0);
   Fragment StoreIndexed(intptr_t class_id);
   Fragment StoreInstanceFieldGuarded(const dart::Field& field,
                                      bool is_initialization_store);

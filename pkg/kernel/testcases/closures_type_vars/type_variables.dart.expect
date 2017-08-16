@@ -7,23 +7,23 @@ class C<T extends core::Object, S extends core::Object> extends core::Object {
     : super core::Object::•()
     ;
   method foo(self::C::S s) → dynamic {
-    final Vector #context = MakeVector(2);
-    #context[1] = this;
+    final Vector #context = MakeVector(3);
+    #context[2] = this;
     return MakeClosure<<T extends core::Object, S extends core::Object>(T) → T, self::C::T, self::C::S>(self::closure#C#foo#function, #context);
   }
   method bar() → dynamic {
     self::C<self::C::T, self::C::S> self = this;
   }
   method baz() → dynamic {
-    return MakeClosure<<T extends core::Object, S extends core::Object>() → () → self::C<T, S>, self::C::T, self::C::S>(self::closure#C#baz#function, null);
+    return MakeClosure<<T extends core::Object, S extends core::Object>() → () → self::C<T, S>, self::C::T, self::C::S>(self::closure#C#baz#function, MakeVector(1));
   }
   static factory •<T extends core::Object, S extends core::Object>() → self::C<self::C::•::T, self::C::•::S> {
-    final <T extends core::Object, S extends core::Object>() → self::C<self::C::•::T, self::C::•::S> local = MakeClosure<<T extends core::Object, S extends core::Object>() → self::C<T, S>, self::C::•::T, self::C::•::S>(self::closure#C#function#local, null);
+    final <T extends core::Object, S extends core::Object>() → self::C<self::C::•::T, self::C::•::S> local = MakeClosure<<T extends core::Object, S extends core::Object>() → self::C<T, S>, self::C::•::T, self::C::•::S>(self::closure#C#function#local, MakeVector(1));
     return local.call();
   }
 }
 static method fn<A extends core::Object>(self::fn::A x) → dynamic {
-  <A extends core::Object>(self::fn::A) → core::List<self::fn::A> fn2 = MakeClosure<<A extends core::Object>(A) → core::List<A>, self::fn::A>(self::closure#fn#function, null);
+  <A extends core::Object>(self::fn::A) → core::List<self::fn::A> fn2 = MakeClosure<<A extends core::Object>(A) → core::List<A>, self::fn::A>(self::closure#fn#function, MakeVector(1));
   return fn2.call(x);
 }
 static method main(dynamic arguments) → dynamic {
@@ -40,7 +40,7 @@ static method main(dynamic arguments) → dynamic {
 static method closure#C#foo#function<T extends core::Object, S extends core::Object>(Vector #contextParameter, self::closure#C#foo#function::T x) → self::closure#C#foo#function::T {
   self::closure#C#foo#function::T y = x;
   core::Object z = y;
-  self::C<self::closure#C#foo#function::T, self::closure#C#foo#function::S> self = #contextParameter[1];
+  self::C<self::closure#C#foo#function::T, self::closure#C#foo#function::S> self = #contextParameter[2];
   return z as self::closure#C#foo#function::T;
 }
 static method closure#C#baz#function#function<T extends core::Object, S extends core::Object>(Vector #contextParameter) → self::C<self::closure#C#baz#function#function::T, self::closure#C#baz#function#function::S> {

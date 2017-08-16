@@ -790,9 +790,14 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
   return instructions;
 }
 
+// TODO(30455): Kernel generic methods undone. This seems to work for static
+// top-level functions, but probably needs to be revisited when generic methods
+// are fully supported in kernel.
 Fragment FlowGraphBuilder::LoadFunctionTypeArguments() {
-  UNIMPLEMENTED();  // TODO(regis)
-  return Fragment(NULL);
+  Fragment instructions;
+  ASSERT(parsed_function_->function_type_arguments() != NULL);
+  instructions += LoadLocal(parsed_function_->function_type_arguments());
+  return instructions;
 }
 
 Fragment FlowGraphBuilder::InstantiateType(const AbstractType& type) {
@@ -1282,11 +1287,11 @@ static intptr_t GetResultCidOfListFactory(Zone* zone,
 Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       const Function& target,
                                       intptr_t argument_count,
-                                      const Array& argument_names) {
+                                      const Array& argument_names,
+                                      intptr_t type_args_count) {
   ArgumentArray arguments = GetArguments(argument_count);
-  const intptr_t kTypeArgsLen = 0;  // Generic static calls not yet supported.
   StaticCallInstr* call =
-      new (Z) StaticCallInstr(position, target, kTypeArgsLen, argument_names,
+      new (Z) StaticCallInstr(position, target, type_args_count, argument_names,
                               arguments, ic_data_array_, GetNextDeoptId());
   const intptr_t list_cid =
       GetResultCidOfListFactory(Z, target, argument_count);
