@@ -427,6 +427,7 @@ class ClassData {
   final ir.Class cls;
   final ClassDefinition definition;
   bool isMixinApplication;
+  bool isCallTypeComputed = false;
 
   InterfaceType thisType;
   InterfaceType rawType;
@@ -434,6 +435,7 @@ class ClassData {
   InterfaceType mixedInType;
   List<InterfaceType> interfaces;
   OrderedTypeSet orderedTypeSet;
+  DartType callType;
 
   Iterable<ConstantValue> _metadata;
 

@@ -124,9 +124,11 @@ class KernelImpactBuilder extends ir.Visitor {
     }
     if (field.isInstanceMember &&
         elementAdapter.isNativeClass(field.enclosingClass)) {
-      // TODO(redemption): Provide the correct value for [isJsInterop].
+      MemberEntity member = elementAdapter.getMember(field);
+      bool isJsInterop =
+          elementAdapter.nativeBasicData.isJsInteropMember(member);
       impactBuilder.registerNativeData(elementAdapter
-          .getNativeBehaviorForFieldLoad(field, isJsInterop: false));
+          .getNativeBehaviorForFieldLoad(field, isJsInterop: isJsInterop));
       impactBuilder.registerNativeData(
           elementAdapter.getNativeBehaviorForFieldStore(field));
     }
