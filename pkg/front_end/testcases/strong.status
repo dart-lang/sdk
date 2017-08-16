@@ -172,6 +172,5 @@ regress/issue_29984: Crash # Issue 29984.
 regress/issue_29985: Crash # Issue 29985.
 regress/issue_29987: Crash # Issue 29987.
 
-arrow_function: RuntimeError
 illegal_named_function_expression: RuntimeError
 local_generic_function: RuntimeError
