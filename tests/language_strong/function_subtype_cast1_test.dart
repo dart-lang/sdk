@@ -21,12 +21,12 @@ void main() {
   Expect.isNotNull(new Class().bar as Bar);
 
   Expect.isNotNull(new Class<int>().bar as Foo);
-  Expect.isNotNull(new Class<int>().bar as Foo<bool>);
+  Expect.throws(() => new Class<int>().bar as Foo<bool>, (e) => true);
   Expect.isNotNull(new Class<int>().bar as Foo<int>);
   Expect.isNotNull(new Class<int>().bar as Bar);
 
   Expect.isNotNull(new Class<bool>().bar as Foo);
   Expect.isNotNull(new Class<bool>().bar as Foo<bool>);
-  Expect.isNotNull(new Class<bool>().bar as Foo<int>);
-  Expect.isNotNull(new Class<bool>().bar as Bar);
+  Expect.throws(() => new Class<bool>().bar as Foo<int>, (e) => true);
+  Expect.throws(() => new Class<bool>().bar as Bar, (e) => true);
 }

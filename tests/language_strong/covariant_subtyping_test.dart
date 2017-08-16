@@ -221,32 +221,6 @@ testCallMethod() {
   }, isTypeError);
 }
 
-class TearOff<T> {
-  method1(T t) => null; // needs check
-  method2(Function(T) takesT) => null;
-  method3(T Function() returnsT) => null; // needs check
-  method4(Function(Function(T)) takesTakesT) => null; // needs check
-  method5(Function(T Function()) takesReturnsT) => null;
-  method6(Function(T) Function() returnsTakesT) => null;
-  method7(T Function() Function() returnsReturnsT) => null; // needs check
-}
-
-testTearOffRuntimeType() {
-  expectRTTI(tearoff, type) => Expect.equals('${tearoff.runtimeType}', type,
-      'covariant params should reify with Object as their type');
-
-  TearOff<num> t = new TearOff<int>();
-  expectRTTI(t.method1, '(Object) -> dynamic');
-
-  expectRTTI(t.method2, '((int) -> dynamic) -> dynamic');
-  expectRTTI(t.method3, '(Object) -> dynamic');
-
-  expectRTTI(t.method4, '(Object) -> dynamic');
-  expectRTTI(t.method5, '((() -> int) -> dynamic) -> dynamic');
-  expectRTTI(t.method6, '(() -> (int) -> dynamic) -> dynamic');
-  expectRTTI(t.method7, '(Object) -> dynamic');
-}
-
 main() {
   testField();
   testPrivateFields();
@@ -258,5 +232,4 @@ main() {
   testMixinApplication();
   testGenericMethodBounds();
   testCallMethod();
-  testTearOffRuntimeType();
 }

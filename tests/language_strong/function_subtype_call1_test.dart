@@ -26,10 +26,10 @@ main() {
   Expect.isFalse(new C1<bool>() is Baz, 'new C1<bool>() is Baz');
   Expect.isTrue(new C1<bool>() is Boz, 'new C1<bool>() is Boz');
 
-  Expect.isTrue(new C1<int>() is Foo, 'new C1<int>() is Foo');
-  Expect.isTrue(new C1<int>() is Bar, 'new C1<int>() is Bar');
+  Expect.isFalse(new C1<int>() is Foo, 'new C1<int>() is Foo');
+  Expect.isFalse(new C1<int>() is Bar, 'new C1<int>() is Bar');
   Expect.isFalse(new C1<int>() is Baz, 'new C1<int>() is Baz');
-  Expect.isTrue(new C1<int>() is Boz, 'new C1<int>() is Boz');
+  Expect.isFalse(new C1<int>() is Boz, 'new C1<int>() is Boz');
 
   Expect.isTrue(new C1() is Foo, 'new C1() is Foo');
   Expect.isTrue(new C1() is Bar, 'new C1() is Bar');
@@ -43,8 +43,8 @@ main() {
 
   Expect.isFalse(new C2<int>() is Foo, 'new C2<int>() is Foo');
   Expect.isFalse(new C2<int>() is Bar, 'new C2<int>() is Bar');
-  Expect.isTrue(new C2<int>() is Baz, 'new C2<int>() is Baz');
-  Expect.isTrue(new C2<int>() is Boz, 'new C2<int>() is Boz');
+  Expect.isFalse(new C2<int>() is Baz, 'new C2<int>() is Baz');
+  Expect.isFalse(new C2<int>() is Boz, 'new C2<int>() is Boz');
 
   Expect.isFalse(new C2() is Foo, 'new C2() is Foo');
   Expect.isFalse(new C2() is Bar, 'new C2() is Bar');

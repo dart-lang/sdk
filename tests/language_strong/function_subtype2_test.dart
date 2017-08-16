@@ -14,11 +14,11 @@ typedef void T4(int a, [int b, int c]);
 typedef void T5([int a, int b, int c]);
 
 class C<T, S, U> {
-  get m1 => (T a, S b) {};
-  get m2 => (T a, [S b]) {};
-  get m3 => ([T a, S b]) {};
-  get m4 => (T a, [S b, U c]) {};
-  get m5 => ([T a, S b, U c]) {};
+  void m1(T a, S b) {}
+  void m2(T a, [S b]) {}
+  void m3([T a, S b]) {}
+  void m4(T a, [S b, U c]) {}
+  void m5([T a, S b, U c]) {}
 }
 
 main() {

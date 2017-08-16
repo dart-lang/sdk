@@ -42,14 +42,12 @@ main() {
   Expect.isFalse(a.bar is f1);
   Expect.isTrue(a.bar is f3);
   Expect.isTrue(a.baz is f1);
-  Expect.isTrue(a.baz is f1<Object>);
-  Expect.isTrue(a.bar is f3<Object>);
   Expect.isTrue(a.baz is f1<int>);
   Expect.isTrue(a.bar is f3<int>);
-  Expect.isTrue(a.baz is f1<double>);
-  Expect.isTrue(a.bar is f3<double>);
+  Expect.isFalse(a.baz is f1<double>);
+  Expect.isFalse(a.bar is f3<double>);
   Expect.isTrue(a.baz is f2);
   Expect.isFalse(a.bar is f4);
-  Expect.isTrue(a.baz is f2<Object>);
-  Expect.isFalse(a.bar is f2<Object>);
+  Expect.isTrue(a.baz is f2<int>);
+  Expect.isFalse(a.bar is f2<int>);
 }
