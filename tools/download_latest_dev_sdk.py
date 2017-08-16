@@ -34,10 +34,18 @@ def host_os_for_sdk(host_os):
 # Python's zipfile doesn't preserve file permissions during extraction, so we
 # have to do it manually.
 def extract_file(zf, info, extract_dir):
-  zf.extract( info.filename, path=extract_dir )
-  out_path = os.path.join(extract_dir, info.filename)
-  perm = info.external_attr >> 16L
-  os.chmod(out_path, perm)
+  try:
+    zf.extract(info.filename, path=extract_dir)
+    out_path = os.path.join(extract_dir, info.filename)
+    perm = info.external_attr >> 16L
+    os.chmod(out_path, perm)
+  except IOError as err:
+    if 'dart-sdk/bin/dart' in err.filename:
+      print('Failed to extract the new Dart SDK dart binary. ' +
+            'Kill stale instances (like the analyzer) and try the update again')
+      return False
+    raise
+  return True
 
 def main(argv):
   host_os = host_os_for_sdk(HOST_OS)
@@ -76,9 +84,11 @@ def main(argv):
     urllib.urlretrieve(zip_url, zip_path)
     with zipfile.ZipFile(zip_path, 'r') as zf:
       for info in zf.infolist():
-        extract_file(zf, info, sdk_path)
+        if not extract_file(zf, info, sdk_path):
+          return -1
     with open(local_sha_path, 'w') as fp:
       fp.write(remote_sha)
+  return 0
 
 if __name__ == '__main__':
   sys.exit(main(sys.argv))
