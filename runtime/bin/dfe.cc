@@ -20,7 +20,6 @@ DFE::DFE()
       platform_binary_filename_(NULL),
       vmservice_io_binary_filename_(NULL),
       kernel_platform_(NULL),
-      kernel_vmservice_io_(NULL),
       kernel_file_specified_(false) {}
 
 DFE::~DFE() {
@@ -35,15 +34,6 @@ DFE::~DFE() {
     delete reinterpret_cast<kernel::Program*>(kernel_platform_);
     kernel_platform_ = NULL;
   }
-
-  if (kernel_vmservice_io_ != NULL) {
-    delete reinterpret_cast<kernel::Program*>(kernel_vmservice_io_);
-    kernel_vmservice_io_ = NULL;
-  }
-}
-
-void DFE::clear_kernel_vmservice_io() {
-  kernel_vmservice_io_ = NULL;
 }
 
 void DFE::SetKernelBinaries(const char* name) {
@@ -118,15 +108,15 @@ void* DFE::CompileAndReadScript(const char* script_uri,
   return NULL;
 }
 
-void* DFE::ReadPlatform() {
-  return kernel_platform_ = ReadScript(platform_binary_filename_);
+void* DFE::ReadPlatform() const {
+  return ReadScript(platform_binary_filename_);
 }
 
-void* DFE::ReadVMServiceIO() {
-  return kernel_vmservice_io_ = ReadScript(vmservice_io_binary_filename_);
+void* DFE::ReadVMServiceIO() const {
+  return ReadScript(vmservice_io_binary_filename_);
 }
 
-void* DFE::ReadScript(const char* script_uri) {
+void* DFE::ReadScript(const char* script_uri) const {
   const uint8_t* buffer = NULL;
   intptr_t buffer_length = -1;
   bool result = TryReadKernelFile(script_uri, &buffer, &buffer_length);
@@ -138,7 +128,7 @@ void* DFE::ReadScript(const char* script_uri) {
 
 bool DFE::TryReadKernelFile(const char* script_uri,
                             const uint8_t** kernel_ir,
-                            intptr_t* kernel_ir_size) {
+                            intptr_t* kernel_ir_size) const {
   *kernel_ir = NULL;
   *kernel_ir_size = -1;
   void* script_file = DartUtils::OpenFile(script_uri, false);

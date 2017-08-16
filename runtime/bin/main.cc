@@ -1047,9 +1047,16 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (dfe.UsePlatformBinary()) {
-    Dart_Handle library = Dart_LoadKernel(dfe.kernel_vmservice_io());
+    // Read vmservice_io kernel file independently of main thread
+    // as Dart_LoadKernel takes ownership.
+    void* kernel_vmservice_io = dfe.ReadVMServiceIO();
+    if (kernel_vmservice_io == NULL) {
+      Log::PrintErr("Could not read dart:vmservice_io binary file.");
+      Platform::Exit(kErrorExitCode);
+    }
+    // Dart_LoadKernel takes ownership.
+    Dart_Handle library = Dart_LoadKernel(kernel_vmservice_io);
     CHECK_RESULT_CLEANUP(library, isolate_data);
-    dfe.clear_kernel_vmservice_io();  // Dart_LoadKernel takes ownership.
     skip_library_load = true;
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -1454,16 +1461,24 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     result = Dart_LibraryImportLibrary(isolate_data->builtin_lib(), root_lib,
                                        Dart_Null());
     if ((gen_snapshot_kind == kAppAOT) || (gen_snapshot_kind == kAppJIT)) {
-// Load the embedder's portion of the VM service's Dart code so it will
-// be included in the app snapshot.
-#if defined(DART_PRECOMPILED_RUNTIME)
-      if (!VmService::LoadForGenPrecompiled(NULL)) {
-#else
-      if (!VmService::LoadForGenPrecompiled(dfe.kernel_vmservice_io())) {
+      // Load the embedder's portion of the VM service's Dart code so it will
+      // be included in the app snapshot.
+      void* kernel_vmservice_io = NULL;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (dfe.UsePlatformBinary()) {
+        // Do not cache vmservice_io kernel file as
+        // VmService::LoadForGenPrecompiled takes ownership.
+        kernel_vmservice_io = dfe.ReadVMServiceIO();
+        if (kernel_vmservice_io == NULL) {
+          Log::PrintErr("Could not read dart:vmservice_io binary file.");
+          Platform::Exit(kErrorExitCode);
+        }
+      }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
+      if (!VmService::LoadForGenPrecompiled(kernel_vmservice_io)) {
         Log::PrintErr("VM service loading failed: %s\n",
                       VmService::GetErrorMessage());
-        exit(kErrorExitCode);
+        Platform::Exit(kErrorExitCode);
       }
     }
 
@@ -1765,14 +1780,12 @@ void main(int argc, char** argv) {
   // step will become redundant once we have the snapshot version
   // of the kernel core/platform libraries.
   if (dfe.UsePlatformBinary()) {
-    if (dfe.ReadPlatform() == NULL) {
+    void* kernel_platform = dfe.ReadPlatform();
+    if (kernel_platform == NULL) {
       Log::PrintErr("The platform binary is not a valid Dart Kernel file.");
       Platform::Exit(kErrorExitCode);
     }
-    if (dfe.ReadVMServiceIO() == NULL) {
-      Log::PrintErr("Could not read dart:vmservice_io binary file.");
-      Platform::Exit(kErrorExitCode);
-    }
+    dfe.set_kernel_platform(kernel_platform);
   }
 #endif
 

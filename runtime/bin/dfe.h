@@ -31,10 +31,9 @@ class DFE {
   bool UsePlatformBinary() const { return platform_binary_filename_ != NULL; }
 
   void* kernel_platform() const { return kernel_platform_; }
-
-  void* kernel_vmservice_io() const { return kernel_vmservice_io_; }
-
-  void clear_kernel_vmservice_io();
+  void set_kernel_platform(void* kernel_platform) {
+    kernel_platform_ = kernel_platform;
+  }
 
   bool kernel_file_specified() const { return kernel_file_specified_; }
   void set_kernel_file_specified(bool value) { kernel_file_specified_ = value; }
@@ -55,16 +54,16 @@ class DFE {
 
   // Reads the platform kernel file.
   // Returns an in memory kernel representation of the platform kernel file.
-  void* ReadPlatform();
+  void* ReadPlatform() const;
 
   // Reads the vmservice_io kernel file.
   // Returns the in memory representation of the vmservice_io kernel file.
-  void* ReadVMServiceIO();
+  void* ReadVMServiceIO() const;
 
   // Reads the script kernel file if specified 'script_uri' is a kernel file.
   // Returns an in memory kernel representation of the specified script is a
   // valid kernel file, false otherwise.
-  void* ReadScript(const char* script_uri);
+  void* ReadScript(const char* script_uri) const;
 
  private:
   // Tries to read [script_uri] as a Kernel IR file.
@@ -74,13 +73,12 @@ class DFE {
   // was returned.
   bool TryReadKernelFile(const char* script_uri,
                          const uint8_t** kernel_ir,
-                         intptr_t* kernel_ir_size);
+                         intptr_t* kernel_ir_size) const;
 
   const char* frontend_filename_;
   char* platform_binary_filename_;
   char* vmservice_io_binary_filename_;
   void* kernel_platform_;
-  void* kernel_vmservice_io_;
   bool kernel_file_specified_;  // Kernel file was specified on the cmd line.
 
   DISALLOW_COPY_AND_ASSIGN(DFE);
