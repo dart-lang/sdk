@@ -261,8 +261,12 @@ class Parser {
       return parseExport(token);
     } else if (identical(value, 'part')) {
       return parsePartOrPartOf(token);
-    } else {
+    } else if (token.type == TokenType.IDENTIFIER || token.keyword != null) {
       return parseTopLevelMember(token);
+    } else {
+      reportRecoverableErrorWithToken(token, fasta.templateExpectedDeclaration);
+      listener.handleInvalidTopLevelDeclaration(token);
+      return token.next;
     }
   }
 

@@ -712,6 +712,17 @@ class Listener {
     logEvent("TopLevelDeclaration");
   }
 
+  /// Called by the [Parser] when it recovers from an invalid top level
+  /// declaration, where [endToken] is the last token in the declaration
+  /// This is called after the begin/end metadata star events,
+  /// and is followed by [endTopLevelDeclaration].
+  ///
+  /// Substructures:
+  /// - metadata
+  void handleInvalidTopLevelDeclaration(Token endToken) {
+    logEvent("InvalidTopLevelDeclaration");
+  }
+
   /// Marks the beginning of a top level field or method declaration.
   /// Doesn't have a corresponding end event.
   /// See [endTopLevelFields] and [endTopLevelMethod].

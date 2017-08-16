@@ -1124,6 +1124,16 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void handleInvalidTopLevelDeclaration(Token endToken) {
+    debugEvent("InvalidTopLevelDeclaration");
+    pop(); // metadata star
+    // TODO(danrubel): consider creating a AST node
+    // representing the invalid declaration to better support code completion,
+    // quick fixes, etc, rather than discarding the metadata and token
+    push(NullValue.InvalidTopLevelDeclaration);
+  }
+
+  @override
   void beginCompilationUnit(Token token) {
     push(token);
   }
@@ -1145,6 +1155,11 @@ class AstBuilder extends ScopeListener {
           directives.add(node);
         } else if (node is CompilationUnitMember) {
           declarations.add(node);
+        } else if (node == NullValue.InvalidTopLevelDeclaration) {
+          // TODO(danrubel): consider creating a AST node
+          // representing the invalid declaration
+          // to better support code completion, quick fixes, etc,
+          // rather than discarding the metadata and token
         } else {
           unhandled(
               "${node.runtimeType}", "compilation unit", node?.offset, uri);

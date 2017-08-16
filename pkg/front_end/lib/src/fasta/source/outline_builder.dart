@@ -124,6 +124,12 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void handleInvalidTopLevelDeclaration(Token endToken) {
+    debugEvent("InvalidTopLevelDeclaration");
+    pop(); // metadata star
+  }
+
+  @override
   void endHide(Token hideKeyword) {
     debugEvent("Hide");
     List<String> names = pop();

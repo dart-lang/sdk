@@ -403,6 +403,12 @@ class MiniAstBuilder extends StackListener {
     }
   }
 
+  @override
+  void handleInvalidTopLevelDeclaration(Token endToken) {
+    debugEvent("InvalidTopLevelDeclaration");
+    pop(); // metadata star
+  }
+
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
     push(new IntegerLiteral(int.parse(token.lexeme)));

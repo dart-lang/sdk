@@ -101,6 +101,12 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleInvalidTopLevelDeclaration(Token beginToken) {
+    debugEvent("InvalidTopLevelDeclaration");
+    pop(); // metadata star
+  }
+
+  @override
   void handleNoArguments(Token token) {
     debugEvent("NoArguments");
   }

@@ -1224,6 +1224,12 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
+  void handleInvalidTopLevelDeclaration(Token endToken) {
+    expectIn('CompilationUnit');
+    listener.handleInvalidTopLevelDeclaration(endToken);
+  }
+
+  @override
   void handleIsOperator(Token operator, Token not, Token endToken) {
     listener.handleIsOperator(operator, not, endToken);
     // TODO(danrubel): implement handleIsOperator
