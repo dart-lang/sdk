@@ -261,10 +261,9 @@ class DeferredLoadTask extends CompilerTask {
     _constantToOutputUnit[constant] = _getCanonicalUnit(outputUnit);
   }
 
-  /// Answers whether [element] is explicitly deferred when referred to from
-  /// [library].
-  bool _isExplicitlyDeferred(Element element, LibraryElement library) {
-    Iterable<ImportElement> imports = _getImports(element, library);
+  /// Given [imports] that refer to an element from a library, determine whether
+  /// the element is explicitly deferred.
+  static bool _isExplicitlyDeferred(Iterable<ImportElement> imports) {
     // If the element is not imported explicitly, it is implicitly imported
     // not deferred.
     if (imports.isEmpty) return false;
@@ -558,8 +557,9 @@ class DeferredLoadTask extends CompilerTask {
     }
 
     for (Element dependency in dependentElements) {
-      if (_isExplicitlyDeferred(dependency, library)) {
-        for (ImportElement deferredImport in _getImports(dependency, library)) {
+      Iterable<ImportElement> imports = _getImports(dependency, library);
+      if (_isExplicitlyDeferred(imports)) {
+        for (ImportElement deferredImport in imports) {
           _mapDependencies(
               element: dependency,
               import: new _DeclaredDeferredImport(deferredImport));
