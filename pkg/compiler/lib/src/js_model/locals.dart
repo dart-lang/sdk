@@ -6,6 +6,7 @@ library dart2js.js_model.locals;
 
 import 'package:kernel/ast.dart' as ir;
 
+import 'closure.dart' show JClosureClass;
 import '../closure.dart';
 import '../common.dart';
 import '../elements/entities.dart';
@@ -125,9 +126,18 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   }
 
   @override
-  Local getLocalVariable(ir.VariableDeclaration node) {
+  Local getLocalVariable(ir.VariableDeclaration node,
+      {bool isClosureCallMethod = false}) {
+    if (isClosureCallMethod && !_map.containsKey(node)) {
+      // Node might correspond to a free variable in the closure class.
+      assert(currentMember.enclosingClass is JClosureClass);
+      return (currentMember.enclosingClass as JClosureClass)
+          .localsMap
+          .getLocalVariable(node);
+    }
     return _map.putIfAbsent(node, () {
-      return new JLocal(node.name, currentMember);
+      return new JLocal(
+          node.name, currentMember, node.parent is ir.FunctionNode);
     });
   }
 
@@ -280,7 +290,11 @@ class JLocal implements Local {
   final String name;
   final MemberEntity memberContext;
 
-  JLocal(this.name, this.memberContext);
+  /// True if this local represents a local parameter.
+  final bool isRegularParameter;
+
+  JLocal(this.name, this.memberContext, [isParameter = false])
+      : isRegularParameter = isParameter;
 
   @override
   Entity get executableContext => memberContext;

@@ -547,9 +547,16 @@ class JField extends JMember implements FieldEntity, IndexedField {
 class JClosureCallMethod extends JMethod {
   JClosureCallMethod(int memberIndex, KernelClosureClass containingClass,
       ParameterStructure parameterStructure, AsyncMarker asyncMarker)
-      : super(memberIndex, containingClass.library, containingClass, Names.call,
-            parameterStructure, asyncMarker,
-            isStatic: false, isExternal: false, isAbstract: false);
+      : super(
+            memberIndex,
+            containingClass.closureClassEntity.library,
+            containingClass.closureClassEntity,
+            Names.call,
+            parameterStructure,
+            asyncMarker,
+            isStatic: false,
+            isExternal: false,
+            isAbstract: false);
 
   String get _kind => 'closure_call';
 }

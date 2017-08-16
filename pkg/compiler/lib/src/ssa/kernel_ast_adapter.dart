@@ -265,7 +265,8 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   }
 
   @override
-  Local getLocalVariable(ir.VariableDeclaration variable) {
+  Local getLocalVariable(ir.VariableDeclaration variable,
+      {bool isClosureCallMethod}) {
     // If this is a synthetic local, return the synthetic local
     if (variable.name == null) {
       return _syntheticLocals.putIfAbsent(

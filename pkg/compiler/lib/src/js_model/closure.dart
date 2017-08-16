@@ -113,8 +113,10 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       Map<ir.FunctionNode, KernelScopeInfo> closuresToGenerate =
           model.closuresToGenerate;
       for (ir.FunctionNode node in closuresToGenerate.keys) {
-        _produceSyntheticElements(
+        KernelClosureClass closureClass = _produceSyntheticElements(
             member, node, closuresToGenerate[node], closedWorldRefiner);
+        // Add also for the call method.
+        _scopeMap[closureClass.callMethod] = closureClass;
       }
     });
   }
@@ -125,8 +127,11 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   /// the closure accesses a variable that gets accessed at some point), then
   /// boxForCapturedVariables stores the local context for those variables.
   /// If no variables are captured, this parameter is null.
-  void _produceSyntheticElements(MemberEntity member, ir.FunctionNode node,
-      KernelScopeInfo info, JsClosedWorld closedWorldRefiner) {
+  KernelClosureClass _produceSyntheticElements(
+      MemberEntity member,
+      ir.FunctionNode node,
+      KernelScopeInfo info,
+      JsClosedWorld closedWorldRefiner) {
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
     KernelClosureClass closureClass = closedWorldRefiner.buildClosureClass(
         member, node, member.library, info, node.location, localsMap);
@@ -142,6 +147,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     }
     assert(entity != null);
     _closureRepresentationMap[entity] = closureClass;
+    return closureClass;
   }
 
   @override
@@ -334,24 +340,17 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
 
 // TODO(johnniwinther): Add unittest for the computed [ClosureClass].
 class KernelClosureClass extends JsScopeInfo
-    implements ClosureRepresentationInfo, JClass {
-  final String name;
-  final JLibrary library;
+    implements ClosureRepresentationInfo {
   JFunction callMethod;
   final Local closureEntity;
   final Local thisLocal;
-
-  /// Index into the classData, classList and classEnvironment lists where this
-  /// entity is stored in [JsToFrontendMapImpl].
-  final int classIndex;
+  final JClass closureClassEntity;
 
   final Map<Local, JField> localToFieldMap = new Map<Local, JField>();
 
   KernelClosureClass.fromScopeInfo(
+      this.closureClassEntity,
       ir.FunctionNode closureSourceNode,
-      this.name,
-      this.classIndex,
-      this.library,
       KernelScopeInfo info,
       KernelToLocalsMap localsMap)
       : closureEntity = closureSourceNode.parent is ir.Member
@@ -360,8 +359,6 @@ class KernelClosureClass extends JsScopeInfo
         thisLocal =
             info.hasThisLocal ? new ThisLocal(localsMap.currentMember) : null,
         super.from(info, localsMap);
-
-  ClassEntity get closureClassEntity => this;
 
   List<Local> get createdFieldEntities => localToFieldMap.keys.toList();
 
@@ -389,10 +386,6 @@ class KernelClosureClass extends JsScopeInfo
       localToFieldMap.keys.contains(variable);
 
   bool get isClosure => true;
-
-  bool get isAbstract => false;
-
-  String toString() => '${jsElementPrefix}class($name)';
 }
 
 /// A local variable to disambiguate between a variable that has been captured
@@ -404,12 +397,33 @@ class NodeBox {
   NodeBox(this.name, this.executableContext);
 }
 
+class JClosureClass extends JClass {
+  // TODO(efortuna): Storing this map here is so horrible. Instead store this on
+  // the ScopeModel (because all of the closures share that localsMap) and then
+  // set populate the getLocalVariable lookup with this localsMap for all the
+  // closures.
+  final KernelToLocalsMap localsMap;
+
+  JClosureClass(this.localsMap, JLibrary library, int classIndex, String name)
+      : super(library, classIndex, name, isAbstract: false);
+
+  @override
+  bool get isClosure => true;
+
+  String toString() => '${jsElementPrefix}closure_class($name)';
+}
+
 class JClosureField extends JField {
   JClosureField(String name, int memberIndex,
       KernelClosureClass containingClass, bool isConst, bool isAssignable)
-      : super(memberIndex, containingClass.library, containingClass,
-            new Name(name, containingClass.library),
-            isAssignable: isAssignable, isConst: isConst, isStatic: false);
+      : super(
+            memberIndex,
+            containingClass.closureClassEntity.library,
+            containingClass.closureClassEntity,
+            new Name(name, containingClass.closureClassEntity.library),
+            isAssignable: isAssignable,
+            isConst: isConst,
+            isStatic: false);
 }
 
 /// A ClosureField that has been "boxed" to prevent name shadowing with the
@@ -419,8 +433,8 @@ class JClosureField extends JField {
 /// algorithm to correspond to the actual name of the variable.
 class JBoxedField extends JField {
   final BoxLocal box;
-  JBoxedField(String name, int memberIndex, this.box,
-      KernelClosureClass containingClass, bool isConst, bool isAssignable)
+  JBoxedField(String name, int memberIndex, this.box, JClass containingClass,
+      bool isConst, bool isAssignable)
       : super(memberIndex, containingClass.library, containingClass,
             new Name(name, containingClass.library),
             isAssignable: isAssignable, isConst: isConst);

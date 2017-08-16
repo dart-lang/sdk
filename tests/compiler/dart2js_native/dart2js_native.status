@@ -139,7 +139,6 @@ bound_closure_test: Crash
 browser_compat_1_prepatched_test: Crash
 browser_compat_1_unpatched_test: Crash
 browser_compat_2_test: Crash
-catch_javascript_null_stack_trace_test: Crash
 compute_this_script_test: Crash
 core_type_check_native_test: Crash
 dispatch_property_initialization_test: Crash
@@ -152,7 +151,6 @@ field_type2_test: Crash
 field_type_test: Crash
 fixup_get_tag_test: Crash
 hash_code_test: Crash
-inference_of_helper_methods_test: Crash
 internal_library_test: Crash
 is_check_test: CompileTimeError
 issue9182_test: Crash
@@ -220,8 +218,7 @@ native_null_frog_test: Crash
 native_property_frog_test: CompileTimeError
 native_to_string_frog_test: Crash
 native_use_native_name_in_table_frog_test: Crash
-native_window1_frog_test: Crash
-native_window2_frog_test: Crash
+native_exception_test: RuntimeError
 native_wrapping_function3_frog_test: Crash
 native_wrapping_function_frog_test: Crash
 oddly_named_fields_test: Crash
@@ -251,7 +248,6 @@ bound_closure_test: Crash # NoSuchMethodError: The getter 'memberIndex' was call
 browser_compat_1_prepatched_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 browser_compat_1_unpatched_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 browser_compat_2_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-catch_javascript_null_stack_trace_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
 core_type_check_native_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 dispatch_property_initialization_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 downcast_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
@@ -263,7 +259,6 @@ field_type2_test: Crash # Assertion failure: Tag 'Node' already in use by 'Node'
 field_type_test: Crash # Assertion failure: Tag 'Node' already in use by 'Node'
 fixup_get_tag_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 hash_code_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-inference_of_helper_methods_test: Crash # Assertion failure: Cannot find value local(main_closure.call#a) in (local(main#)) for j:closure_call(main_closure.call).
 internal_library_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 is_check_test: CompileTimeError
 issue9182_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
@@ -330,8 +325,6 @@ native_null_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was c
 native_property_frog_test: CompileTimeError
 native_to_string_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 native_use_native_name_in_table_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_window1_frog_test: Crash # Assertion failure: Cannot find value local(main_closure.call#win) in (local(main#)) for j:closure_call(main_closure.call).
-native_window2_frog_test: Crash # Assertion failure: Cannot find value local(main_closure.call#win) in (local(main#)) for j:closure_call(main_closure.call).
 native_wrapping_function3_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 native_wrapping_function_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 oddly_named_fields_test: Crash # Assertion failure: Cannot find value local(initHooks_closure.call#prototypeForTag) in (local(initHooks_closure.call#tag), local(initHooks#)) for j:closure_call(initHooks_closure.call).
@@ -352,5 +345,6 @@ subclassing_super_field_2_test: Crash # NoSuchMethodError: The getter 'memberInd
 subclassing_type_test: Crash # Assertion failure: Cannot find value local(initHooks_closure.call#prototypeForTag) in (local(initHooks_closure.call#tag), local(initHooks#)) for j:closure_call(initHooks_closure.call).
 super_call_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 super_property_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-type_error_decode_test: Crash # Assertion failure: Cannot find value local(main_closure.call#f) in (local(main#)) for j:closure_call(main_closure.call).
+native_exception_test: RuntimeError
+subclassing_constructor_2_test: RuntimeError
 

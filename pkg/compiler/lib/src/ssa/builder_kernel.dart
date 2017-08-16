@@ -2219,7 +2219,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    Local local = localsMap.getLocalVariable(variableGet.variable);
+    Local local = localsMap.getLocalVariable(variableGet.variable,
+        isClosureCallMethod:
+            _elementMap.getMemberDefinition(targetElement).kind ==
+                MemberKind.closureCall);
     stack.add(localsHandler.readLocal(local));
   }
 

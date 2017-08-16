@@ -76,7 +76,6 @@ date_time4_test: Crash
 date_time7_test: Crash
 date_time_parse_test: Crash
 date_time_test: Crash
-double_ceil2_test: Crash
 double_floor2_test: Crash
 double_parse_test/01: Crash
 double_parse_test/02: Crash
@@ -180,7 +179,6 @@ date_time4_test: Crash
 date_time7_test: Crash
 date_time_parse_test: Crash
 date_time_test: Crash
-double_ceil2_test: Crash
 double_floor2_test: Crash
 double_parse_test/01: Crash
 double_parse_test/02: Crash

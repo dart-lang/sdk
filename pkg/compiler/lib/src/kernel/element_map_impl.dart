@@ -2165,27 +2165,31 @@ class JsKernelToElementMap extends KernelToElementMapBase
       KernelToLocalsMap localsMap,
       InterfaceType supertype) {
     String name = _computeClosureName(node);
-    KernelClosureClass cls = new KernelClosureClass.fromScopeInfo(
-        node, name, _classEnvs.length, enclosingLibrary, info, localsMap);
-    _classList.add(cls);
+    JClass classEntity =
+        new JClosureClass(localsMap, enclosingLibrary, _classEnvs.length, name);
+    _classList.add(classEntity);
     Map<String, MemberEntity> memberMap = <String, MemberEntity>{};
     _classEnvs.add(new ClosureClassEnv(memberMap));
 
     // Create a classData and set up the interfaces and subclass
     // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
-    var closureData = new ClassData(null,
-        new ClosureClassDefinition(cls, computeSourceSpanFromTreeNode(node)));
+    var closureData = new ClassData(
+        null,
+        new ClosureClassDefinition(
+            classEntity, computeSourceSpanFromTreeNode(node)));
     closureData
       ..isMixinApplication = false
-      ..thisType =
-          closureData.rawType = new InterfaceType(cls, const <DartType>[])
+      ..thisType = closureData.rawType =
+          new InterfaceType(classEntity, const <DartType>[])
       ..supertype = supertype
       ..interfaces = const <InterfaceType>[];
-    var setBuilder = new _KernelOrderedTypeSetBuilder(this, cls);
+    var setBuilder = new _KernelOrderedTypeSetBuilder(this, classEntity);
     _classData.add(closureData);
     closureData.orderedTypeSet = setBuilder.createOrderedTypeSet(
         closureData.supertype, const Link<InterfaceType>());
 
+    KernelClosureClass cls = new KernelClosureClass.fromScopeInfo(
+        classEntity, node, info, localsMap);
     int i = 0;
     for (ir.VariableDeclaration variable in info.freeVariables) {
       // Make a corresponding field entity in this closure class for every
@@ -2229,7 +2233,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
           _memberData.length,
           new BoxLocal(box.name,
               localsMap.getLocalVariable(box.executableContext), member),
-          cls,
+          cls.closureClassEntity,
           variable.isConst,
           variable.isFinal || variable.isConst);
       cls.localToFieldMap[capturedLocal] = boxedField;
