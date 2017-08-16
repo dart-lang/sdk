@@ -26,8 +26,11 @@ abstract class BuildbotClient {
 class HttpBuildbotClient implements BuildbotClient {
   final HttpClient _client = new HttpClient();
 
+  static const int maxSkips = 3;
+
   @override
   Future<BuildResult> readResult(BuildUri buildUri) async {
+    int skips = 0;
     Duration timeout;
     if (buildUri.buildNumber < 0) {
       timeout = new Duration(seconds: 1);
@@ -43,13 +46,15 @@ class HttpBuildbotClient implements BuildbotClient {
       try {
         return await readBuildResultFromHttp(_client, buildUri, timeout);
       } on TimeoutException {
-        if (timeout != null) {
+        if (timeout != null && skips < maxSkips) {
+          skips++;
           skipToPreviousBuildNumber();
           continue;
         }
         return null;
       } on HttpException {
-        if (timeout != null) {
+        if (timeout != null && skips < maxSkips) {
+          skips++;
           skipToPreviousBuildNumber();
           continue;
         }

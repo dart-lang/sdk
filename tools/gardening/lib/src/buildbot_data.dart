@@ -552,9 +552,27 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
     groupName: 'chrome',
     subgroups: const <BuildSubgroup>[
       const BuildSubgroup(shardNames: const <String>[
+        'dart2js-linux-drt-csp-minified-be'
+      ], testSteps: const <String>[
+        'dart2js-drt tests',
+        'dart2js-drt-observatory_ui tests',
+        'dart2js-drt-package tests',
+        'dart2js-drt-co19 tests',
+        'dart2js-drt-extra tests',
+        'dart2js-drt-fast-startup tests',
+        'dart2js-drt-observatory_ui-fast-startup tests',
+        'dart2js-drt-package-fast-startup tests',
+        'dart2js-drt-co19-fast-startup tests',
+        'dart2js-drt-extra-fast-startup tests',
+        'dart2js-drt-fast-startup-checked tests',
+        'dart2js-drt-observatory_ui-fast-startup-checked tests',
+        'dart2js-drt-package-fast-startup-checked tests',
+        'dart2js-drt-co19-fast-startup-checked tests',
+        'dart2js-drt-extra-fast-startup-checked tests',
+      ], isActive: false),
+      const BuildSubgroup(shardNames: const <String>[
         'dart2js-linux-drt-1-2-be',
         'dart2js-linux-drt-2-2-be',
-        'dart2js-linux-drt-csp-minified-be'
       ], testSteps: const <String>[
         'dart2js-drt tests',
         'dart2js-drt-observatory_ui tests',
