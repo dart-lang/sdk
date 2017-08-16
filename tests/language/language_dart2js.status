@@ -155,7 +155,6 @@ type_variable_bounds2_test/01: Fail # Issue 12702
 type_variable_bounds2_test/04: Fail # Issue 12702
 type_variable_bounds2_test/06: Pass # Issue 12702 (pass for the wrong reasons).
 type_variable_bounds3_test/00: Fail # Issue 12702
-closure_type_test: Fail # Issue 12745
 malbounded_redirecting_factory_test/02: Fail # Issue 12825
 malbounded_redirecting_factory_test/03: Fail # Issue 12825
 malbounded_redirecting_factory2_test/02: Fail # Issue 12825
@@ -586,20 +585,6 @@ checked_setter3_test/none: Crash
 checked_setter_test: Crash
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-closure_test: Crash
-closure_type_test/01: Crash
-closure_type_test/none: Crash
-closure_type_variable_test: Crash
-closure_type_variables_test: Crash
-closure_variable_shadow_test: Crash
-closure_with_super_field_test: Crash
-closure_with_super_send_test: Crash
-closures_initializer2_test: Crash
-closures_initializer_test: Crash
-closures_with_complex_params_test: Crash
-code_after_try_is_executed_test/01: Crash
-code_after_try_is_executed_test/none: Crash
-compile_time_constant10_test/none: Crash
 compile_time_constant_a_test: Crash
 compile_time_constant_b_test: Crash
 compile_time_constant_c_test/02: Crash
@@ -1930,20 +1915,6 @@ checked_setter3_test/none: Crash
 checked_setter_test: Crash
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-closure_test: Crash
-closure_type_test/01: Crash
-closure_type_test/none: Crash
-closure_type_variable_test: Crash
-closure_type_variables_test: Crash
-closure_variable_shadow_test: Crash
-closure_with_super_field_test: Crash
-closure_with_super_send_test: Crash
-closures_initializer2_test: Crash
-closures_initializer_test: Crash
-closures_with_complex_params_test: Crash
-code_after_try_is_executed_test/01: Crash
-code_after_try_is_executed_test/none: Crash
-compile_time_constant10_test/none: Crash
 compile_time_constant_a_test: Crash
 compile_time_constant_b_test: Crash
 compile_time_constant_c_test/02: Crash

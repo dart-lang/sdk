@@ -18,6 +18,9 @@ cha_deopt1_test: Crash # Requires deferred libraries
 cha_deopt2_test: Crash # Requires deferred libraries
 cha_deopt3_test: Crash # Requires deferred libraries
 
+[ ! $checked && ! $strong ]
+closure_type_test: RuntimeError
+
 [ ! $strong ]
 class_literal_static_test: MissingCompileTimeError # Requires strong mode
 class_literal_static_test/none: Pass

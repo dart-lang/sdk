@@ -172,6 +172,7 @@ accessor_conflict_import_test: StaticWarning # Issue 25626
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30207
+closure_type_test: Pass
 
 [ $compiler == dart2analyzer && $runtime == none ]
 assertion_initializer_const_error2_test/none: CompileTimeError
