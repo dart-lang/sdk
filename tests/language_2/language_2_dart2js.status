@@ -164,7 +164,10 @@ black_listed_test/14c: Crash # Issue 27394
 bootstrap_test: RuntimeError # Issue 27394
 call_nonexistent_static_test/10: Crash # Issue 27394
 
-[ $compiler == dart2js && $runtime != d8 ]
+[ $compiler == dart2js && $runtime != d8 && !$checked ]
+function_subtype_inline2_test: RuntimeError
+
+[ $compiler == dart2js && $runtime == d8 && !$checked && $minified ]
 function_subtype_inline2_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
