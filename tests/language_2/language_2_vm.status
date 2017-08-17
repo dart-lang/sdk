@@ -102,6 +102,7 @@ class_literal_test/22: MissingCompileTimeError
 class_literal_test/23: MissingCompileTimeError
 class_literal_test/24: MissingCompileTimeError
 class_literal_test/25: MissingCompileTimeError
+covariant_subtyping_with_substitution_test: RuntimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
