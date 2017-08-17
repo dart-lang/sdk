@@ -2968,6 +2968,7 @@ LayoutTests/fast/css/style-scoped/style-scoped-in-shadow_t01: RuntimeError # Ple
 LayoutTests/fast/css/style-scoped/style-scoped-nested_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/style-scoped/style-scoped-scoping-nodes-different-order_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/style-scoped/style-scoped-shadow-crash_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/style-scoped/style-scoped-with-dom-operation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/style-scoped/style-scoped-with-important-rule_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/test-setting-canvas-color_t01: Pass, RuntimeError # co19 issue 64 (depends on the FF version)
 LayoutTests/fast/css/text-align-webkit-match-parent-parse_t01: RuntimeError # Please triage this failure
@@ -2989,6 +2990,7 @@ LayoutTests/fast/css3-text/css3-text-justify/getComputedStyle/getComputedStyle-t
 LayoutTests/fast/dom/52776_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMException/dispatch-event-exception_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMImplementation/createDocument-namespace-err_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/DOMImplementation/createDocumentType-err_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/basic_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/caretRangeFromPoint-in-strict-mode-wtih-checkbox_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/caretRangeFromPoint-in-user-select-none_t01: RuntimeError # Please triage this failure
@@ -2997,6 +2999,7 @@ LayoutTests/fast/dom/Document/CaretRangeFromPoint/caretRangeFromPoint-with-first
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/hittest-relative-to-viewport_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/replace-element_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Document/createElement-valid-names_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/Document/createElementNS-namespace-err_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Document/document-title-get_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Element/attribute-uppercase_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Element/fixed-position-offset-parent_t01: RuntimeError # Please triage this failure
@@ -3005,6 +3008,7 @@ LayoutTests/fast/dom/Element/getClientRects_t01: Pass, RuntimeError # Please tri
 LayoutTests/fast/dom/Element/id-in-insert-hr_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Element/offsetTop-table-cell_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Element/scrollWidth_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/Element/setAttributeNS-namespace-err_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLAnchorElement/remove-href-from-focused-anchor_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-hash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-host_t01: RuntimeError # Please triage this failure
@@ -3455,6 +3459,7 @@ LayoutTests/fast/forms/select-list-box-mouse-focus_t01: RuntimeError # Please tr
 LayoutTests/fast/forms/select-max-length_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/select-namedItem_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/selection-direction_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/selection-start-end-readonly_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/selection-wrongtype_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/setCustomValidity-existence_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/setrangetext_t01: RuntimeError # Please triage this failure
@@ -3825,6 +3830,7 @@ WebPlatformTest/custom-elements/instantiating/localName_A01_t01: RuntimeError # 
 WebPlatformTest/custom-elements/instantiating/namespace_A01_t01: RuntimeError # Please triage this failure
 WebPlatformTest/dom/EventTarget/dispatchEvent_A02_t01: RuntimeError # Please triage this failure
 WebPlatformTest/dom/events/type_A01_t01: RuntimeError # Please triage this failure
+WebPlatformTest/dom/nodes/DOMImplementation-createDocumentType_t01: RuntimeError # Please triage this failure
 WebPlatformTest/dom/nodes/DOMImplementation-createDocument_t01: RuntimeError # Please triage this failure
 WebPlatformTest/dom/nodes/DOMImplementation-hasFeature_t01: RuntimeError # Please triage this failure
 WebPlatformTest/dom/nodes/Document-adoptNode_t01: RuntimeError # Please triage this failure
@@ -3837,6 +3843,7 @@ WebPlatformTest/dom/nodes/Node-insertBefore_t01: RuntimeError # Please triage th
 WebPlatformTest/dom/nodes/Node-isEqualNode_t01: RuntimeError # Please triage this failure
 WebPlatformTest/dom/nodes/Node-nodeName_t01: RuntimeError # Please triage this failure
 WebPlatformTest/dom/nodes/Node-replaceChild_t01: RuntimeError # Please triage this failure
+WebPlatformTest/dom/nodes/attributes/setAttributeNS_A02_t01: RuntimeError # Please triage this failure
 WebPlatformTest/dom/nodes/attributes/setAttributeNS_A05_t01: RuntimeError # Please triage this failure
 WebPlatformTest/dom/nodes/attributes/setAttributeNS_A06_t03: RuntimeError # Please triage this failure
 WebPlatformTest/dom/nodes/attributes/setAttributeNS_A07_t02: RuntimeError # Please triage this failure
@@ -4070,14 +4077,7 @@ Language/Classes/Constructors/Factories/return_wrong_type_t02: Pass, Slow # Issu
 LayoutTests/fast/canvas/webgl/draw-webgl-to-canvas-2d_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/drawingbuffer-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/style-scoped/style-scoped-with-dom-operation_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/DOMImplementation/createDocumentType-err_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/Document/createElementNS-namespace-err_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/Element/setAttributeNS-namespace-err_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/selection-start-end-readonly_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/media/media-query-list_t01: RuntimeError # Please triage this failure
-WebPlatformTest/dom/nodes/DOMImplementation-createDocumentType_t01: RuntimeError # Please triage this failure
-WebPlatformTest/dom/nodes/attributes/setAttributeNS_A02_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == ff && $system == linux]
 LayoutTests/fast/canvas/webgl/*: Timeout, Pass # Issue 26725
@@ -4087,16 +4087,9 @@ LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please tr
 LayoutTests/fast/canvas/webgl/tex-sub-image-2d-bad-args_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/texture-complete_t01: Skip # Times out sometimes
 LayoutTests/fast/canvas/webgl/texture-npot_t01: Skip # Times out sometimes
-LayoutTests/fast/css/getComputedStyle/getComputedStyle-border-image-slice_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/Range/13000_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/insert-span-into-long-text-bug-28245_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/text-control-crash-on-select_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/text-control-select-blurred_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/text/selection-exceptions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/whitespace/nowrap-line-break-after-white-space_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
-WebPlatformTest/html/semantics/forms/textfieldselection/selection-not-application-textarea_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == safari ]
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
