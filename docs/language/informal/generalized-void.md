@@ -270,7 +270,6 @@ following situations:
 *   In the initialization and increment expressions of a for-loop,
     `for (e1; e2; e3) {..}`, `e1` and `e3` may have type void.
 *   In a typeCast `e as T`, `e` may have type void.
-*   In a typeTest `e is T` or `e is! T`, `e` may have type void.
 *   In a parenthesized expression `(e)`, `e` may have type void.
 *   In a return statement `return e;`, when the return type of the innermost
     enclosing function is the type void, `e` may have type void.
@@ -311,6 +310,8 @@ the type void. This motivated the decision to treat such a void-valued
 bound as `Object`.
 
 ## Updates
+
+*   August 16h 2017: Removed exceptions allowing `e is T` and `e is! T`.
 
 *   August 9th 2017: Transferred to SDK repo, docs/language/informal.
 
