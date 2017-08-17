@@ -207,7 +207,6 @@ generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30207
 closure_type_test: Pass
-typevariable_substitution2_test/02: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && $runtime == none ]
 assertion_initializer_const_error2_test/none: CompileTimeError

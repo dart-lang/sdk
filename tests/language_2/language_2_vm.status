@@ -105,7 +105,6 @@ class_literal_test/25: MissingCompileTimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
-typevariable_substitution2_test/02: MissingCompileTimeError
 
 # The VM and does not implement the Dart 2.0 runtime checks yet unless
 # --checked is explicitly passed).
@@ -113,6 +112,7 @@ typevariable_substitution2_test/02: MissingCompileTimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
+typevariable_substitution2_test/02: RuntimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.

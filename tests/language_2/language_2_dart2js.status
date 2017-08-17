@@ -105,7 +105,6 @@ generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
-typevariable_substitution2_test/02: MissingCompileTimeError
 
 [ $compiler == dart2js && $runtime != none ]
 bit_operations_test: RuntimeError, OK # Issue 1533
@@ -139,6 +138,7 @@ branch_canonicalization_test: RuntimeError # Issue 638.
 
 [ $compiler == dart2js && ! $checked && ! $enable_asserts && ! $dart2js_with_kernel && $runtime != none ]
 assertion_test: RuntimeError # Issue 12748
+typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel_in_ssa ]
 abstract_beats_arguments_test: RuntimeError # Issue 27394
