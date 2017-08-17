@@ -269,10 +269,10 @@ class U22<T> {
       });
     }
     if (tIsInt || tIsBool) {
-      Expect.equals(true, m2 is F2<int>);
-      Expect.equals(true, m2 is F2<bool>);
-      Expect.equals(true, confuse(m2) is F2<int>);
-      Expect.equals(true, confuse(m2) is F2<bool>);
+      Expect.equals(tIsInt, m2 is F2<int>);
+      Expect.equals(tIsBool, m2 is F2<bool>);
+      Expect.equals(tIsInt, confuse(m2) is F2<int>);
+      Expect.equals(tIsBool, confuse(m2) is F2<bool>);
     }
   }
 

@@ -318,10 +318,10 @@ class U36<T> {
       });
     }
     if (tIsInt || tIsBool) {
-      Expect.equals(true, m4 is F4<int>);
-      Expect.equals(true, m4 is F4<bool>);
-      Expect.equals(true, confuse(m4) is F4<int>);
-      Expect.equals(true, confuse(m4) is F4<bool>);
+      Expect.equals(tIsInt, m4 is F4<int>);
+      Expect.equals(tIsBool, m4 is F4<bool>);
+      Expect.equals(tIsInt, confuse(m4) is F4<int>);
+      Expect.equals(tIsBool, confuse(m4) is F4<bool>);
     }
   }
 
