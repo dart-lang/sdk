@@ -170,6 +170,9 @@ function_subtype_inline2_test: RuntimeError
 [ $compiler == dart2js && $runtime == d8 && !$checked && $minified ]
 function_subtype_inline2_test: RuntimeError
 
+[ $compiler == dart2js && $runtime == d8 && $host_checked ]
+function_subtype_inline2_test: RuntimeError
+
 [ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
 assertion_initializer_const_function_test/none: RuntimeError
 
