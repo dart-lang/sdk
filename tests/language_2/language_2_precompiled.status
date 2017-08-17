@@ -121,7 +121,7 @@ function_subtype_inline2_test: RuntimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
-typevariable_substitution2_test/02: MissingCompileTimeError
+typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == precompiler && $runtime == dart_precompiled && $checked ]
 assertion_initializer_const_error2_test/cc01: Pass
