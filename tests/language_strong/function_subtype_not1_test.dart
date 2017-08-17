@@ -21,12 +21,12 @@ void main() {
   Expect.isFalse(new Class().bar is! Bar);
 
   Expect.isFalse(new Class<int>().bar is! Foo);
-  Expect.isTrue(new Class<int>().bar is! Foo<bool>);
+  Expect.isFalse(new Class<int>().bar is! Foo<bool>);
   Expect.isFalse(new Class<int>().bar is! Foo<int>);
   Expect.isFalse(new Class<int>().bar is! Bar);
 
   Expect.isFalse(new Class<bool>().bar is! Foo);
   Expect.isFalse(new Class<bool>().bar is! Foo<bool>);
-  Expect.isTrue(new Class<bool>().bar is! Foo<int>);
-  Expect.isTrue(new Class<bool>().bar is! Bar);
+  Expect.isFalse(new Class<bool>().bar is! Foo<int>);
+  Expect.isFalse(new Class<bool>().bar is! Bar);
 }

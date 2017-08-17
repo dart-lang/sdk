@@ -5,7 +5,7 @@
 import 'package:expect/expect.dart';
 
 class FunctionLike<T> {
-  call(T arg) {
+  T call(T arg) {
     return arg;
   }
 }
@@ -15,12 +15,12 @@ class Foo<T> {
   testInt() => new FunctionLike<int>() is T;
 }
 
-typedef TakeString(String arg);
-typedef TakeInt(int arg);
+typedef String ReturnString(Object arg);
+typedef int ReturnInt(Object arg);
 
 main() {
-  Foo<TakeString> stringFoo = new Foo<TakeString>();
-  Foo<TakeInt> intFoo = new Foo<TakeInt>();
+  var stringFoo = new Foo<ReturnString>();
+  var intFoo = new Foo<ReturnInt>();
 
   Expect.isTrue(stringFoo.testString());
   Expect.isFalse(stringFoo.testInt());

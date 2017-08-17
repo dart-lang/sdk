@@ -14,9 +14,8 @@ import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
-import 'package:analyzer/src/dart/element/element.dart'
-    show FieldElementImpl, LocalVariableElementImpl;
-import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart'
@@ -2021,11 +2020,9 @@ class CodeGenerator extends Object
         lookup = classElem.type.lookUpInheritedSetter;
         tMember = node.isStatic ? tStaticSetters : tInstanceSetters;
       } else {
-        // Method
-        // Swap in "Object" for parameter types that are covariant overrides.
-        var objectType = context.typeProvider.objectType;
-        elementToType =
-            (MethodElement element) => element.getReifiedType(objectType);
+        // Swap in "Object" for parameter types that are covariant, either via
+        // the `covariant` keyword or because of covariant generics.
+        elementToType = _getMemberRuntimeType;
         getOverride = classElem.lookUpInheritedConcreteMethod;
         lookup = classElem.type.lookUpInheritedMethod;
         tMember = node.isStatic ? tStaticMethods : tInstanceMethods;
@@ -2189,6 +2186,24 @@ class CodeGenerator extends Object
           }
           #
         }''', [params, params, body]);
+  }
+
+  FunctionType _getMemberRuntimeType(ExecutableElement element) {
+    // Check whether we have any covariant parameters.
+    // Usually we don't, so we can use the same type.
+    if (!element.parameters.any(_isCovariant)) return element.type;
+
+    var parameters = element.parameters
+        .map((p) => new ParameterElementImpl.synthetic(p.name,
+            _isCovariant(p) ? objectClass.type : p.type, p.parameterKind))
+        .toList();
+
+    var function = new FunctionElementImpl("", -1)
+      ..isSynthetic = true
+      ..returnType = element.returnType
+      ..shareTypeParameters(element.typeParameters)
+      ..parameters = parameters;
+    return function.type = new FunctionTypeImpl(function);
   }
 
   JS.Expression _constructorName(ConstructorElement ctor) {
@@ -2386,8 +2401,6 @@ class CodeGenerator extends Object
     var parameters = _parametersOf(node);
     if (parameters == null) return null;
 
-    var covariantParams = _classProperties?.covariantParameters;
-
     var body = <JS.Statement>[];
     for (var param in parameters.parameters) {
       var jsParam = _emitSimpleIdentifier(param.identifier);
@@ -2415,13 +2428,18 @@ class CodeGenerator extends Object
       }
 
       var paramElement = resolutionMap.elementDeclaredByFormalParameter(param);
-      if (paramElement.isCovariant ||
-          covariantParams != null && covariantParams.contains(paramElement)) {
+      if (_isCovariant(paramElement)) {
         var castType = _emitType(paramElement.type);
         body.add(js.statement('#._check(#);', [castType, jsParam]));
       }
     }
     return body.isEmpty ? null : _statement(body);
+  }
+
+  bool _isCovariant(ParameterElement p) {
+    if (p.isCovariant) return true;
+    var covariantParams = _classProperties?.covariantParameters;
+    return covariantParams != null && covariantParams.contains(p);
   }
 
   JS.Expression _defaultParamValue(FormalParameter param) {

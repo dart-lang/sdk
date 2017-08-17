@@ -727,11 +727,9 @@ function_subtype_optional1_test: RuntimeError # Issue 29920
 function_subtype_optional2_test: RuntimeError # Issue 29920
 function_subtype_typearg2_test: RuntimeError # Issue 29920
 function_subtype_typearg4_test: RuntimeError # Issue 29920
-function_type_alias3_test: RuntimeError # Issue 29920
 generic_instanceof2_test: RuntimeError # Issue 29920
 generic_instanceof_test: RuntimeError # Issue 29920
 generic_is_check_test: RuntimeError # Issue 29920
-generic_methods_generic_class_tearoff_test: RuntimeError # Issue 29920
 getter_closure_execution_order_test: RuntimeError # Issue 29920
 identical_closure2_test: RuntimeError # Issue 29920
 infinite_switch_label_test: RuntimeError # Issue 29920
