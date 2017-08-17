@@ -6,9 +6,7 @@ library dart2js.js_emitter.type_test_registry;
 
 import '../common.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart' show MethodElement;
 import '../elements/entities.dart';
-import '../elements/types.dart' show DartType;
 import '../elements/types.dart';
 import '../js_backend/runtime_types.dart'
     show
@@ -168,9 +166,8 @@ class TypeTestRegistry {
     liveMembers.where((MemberEntity element) {
       return canBeReflectedAsFunction(element) && canBeReified(element);
     }).forEach((_function) {
-      // TODO(redemption): Support entities.
-      MethodElement function = _function;
-      FunctionType type = function.type;
+      FunctionEntity function = _function;
+      FunctionType type = _elementEnvironment.getFunctionType(function);
       for (ClassEntity cls in _rtiChecks.getReferencedClasses(type)) {
         while (cls != null) {
           _rtiNeededClasses.add(cls);
