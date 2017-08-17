@@ -809,10 +809,15 @@ class FixProcessor {
           if (library != null) {
             targetUnit = library.definingCompilationUnit;
             Source targetSource = targetUnit.source;
-            offset = targetSource.contents.data.length;
-            filePath = targetSource.fullName;
-            prefix = '$eol';
-            suffix = '$eol';
+            try {
+              offset = targetSource.contents.data.length;
+              filePath = targetSource.fullName;
+              prefix = '$eol';
+              suffix = '$eol';
+            } on FileSystemException {
+              // If we can't read the file to get the offset, then we can't
+              // create a fix.
+            }
             break;
           }
         }
