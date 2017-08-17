@@ -348,9 +348,8 @@ class _Timer implements Timer {
     // callbacks will be enqueued now and notified in the next spin at the
     // earliest.
     _handlingCallbacks = true;
-    var i = 0;
     try {
-      for (; i < pendingTimers.length; i++) {
+      for (var i = 0; i < pendingTimers.length; i++) {
         // Next pending timer.
         var timer = pendingTimers[i];
         timer._indexOrNext = null;
@@ -379,12 +378,6 @@ class _Timer implements Timer {
       }
     } finally {
       _handlingCallbacks = false;
-      // Re-queue timers we didn't get to.
-      for (i++; i < pendingTimers.length; i++) {
-        var timer = pendingTimers[i];
-        timer._enqueue();
-      }
-      _notifyEventHandler();
     }
   }
 
