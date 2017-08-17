@@ -182,7 +182,6 @@ async/stream_periodic4_test: RuntimeError # Timer interface not supported; Issue
 async/stream_periodic5_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/stream_periodic6_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/run_zoned7_test: RuntimeError # Timer interface not supported: Issue 7728.
-async/catch_errors22_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/timer_isActive_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/zone_empty_description2_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/zone_create_timer2_test: RuntimeError # Timer interface not supported: Issue 7728.
@@ -191,10 +190,6 @@ async/catch_errors12_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors13_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors14_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors15_test: Fail # Timer interface not supported: Issue 7728.
-async/catch_errors18_test: Fail # Timer interface not supported: Issue 7728.
-async/catch_errors19_test: Fail # Timer interface not supported: Issue 7728.
-async/catch_errors20_test: Fail # Timer interface not supported: Issue 7728.
-async/catch_errors28_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors8_test: Fail # Timer interface not supported: Issue 7728.
 async/run_zoned8_test: Fail # Timer interface not supported: Issue 7728.
 async/zone_bind_test: Fail # Timer interface not supported: Issue 7728.
