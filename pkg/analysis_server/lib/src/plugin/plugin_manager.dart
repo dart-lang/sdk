@@ -423,7 +423,12 @@ class PluginManager {
       PluginSession session = plugin.currentSession;
       if (session != null &&
           plugin.isAnalyzing(filePath) &&
+          session.interestingFiles != null &&
           session.interestingFiles.any(matches)) {
+        // The list of interesting file globs is `null` if the plugin has not
+        // yet responded to the plugin.versionCheck request. If that happens
+        // then the plugin hasn't had a chance to analyze anything yet, and
+        // hence it does not needed to get watch events.
         event ??= _convertWatchEvent(watchEvent);
         AnalysisHandleWatchEventsParams params =
             new AnalysisHandleWatchEventsParams([event]);
