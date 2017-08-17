@@ -2,18 +2,14 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static method f_1_1_no_default(dynamic a, [dynamic b = null]) → dynamic {
+static method f_1_1_no_default(dynamic a, [dynamic b = null]) → dynamic
   return a.+(b);
-}
-static method f_1_1_default(dynamic a, [dynamic b = 2]) → dynamic {
+static method f_1_1_default(dynamic a, [dynamic b = 2]) → dynamic
   return a.+(b);
-}
-static method f_1_b_no_default(dynamic a, {dynamic b = null}) → dynamic {
+static method f_1_b_no_default(dynamic a, {dynamic b = null}) → dynamic
   return a.+(b);
-}
-static method f_1_b_default(dynamic a, {dynamic b = 2}) → dynamic {
+static method f_1_b_default(dynamic a, {dynamic b = 2}) → dynamic
   return a.+(b);
-}
 static method test_1_1(core::Function f, core::bool hasDefault) → dynamic {
   dynamic result = f.call(40, 2);
   if(!42.==(result))

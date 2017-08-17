@@ -26,18 +26,19 @@ import '../../visitor.dart' show RecursiveVisitor;
 class ClosureInfo extends RecursiveVisitor {
   FunctionNode currentFunction;
 
+  final Set<VariableDeclaration> variables = new Set<VariableDeclaration>();
+
+  // For captured constructor parameters, we need to distinquish the following
+  // states:
+  //
+  // - only used inside initializers (INSIDE_INITIALIZER)
+  // - only used in body (OUTSIDE_INITIALIZER)
+  // - used in body and initializers (OUTSIDE_INITIALIZER | INSIDE_INITIALIZER)
   static const int OUTSIDE_INITIALIZER = 1;
   static const int INSIDE_INITIALIZER = 2;
-
   int captureFlags = OUTSIDE_INITIALIZER;
-
-  // For function parameters, we need to distinquish the following states:
-  //
-  // - captured inside initializers, not used in body (INSIDE_INITIALIZER)
-  // - only used in body (OUTSIDE_INITIALIZER)
-  // - captured inside initializers and used in body (OUTSIDE_INITIALIZER |
-  //   INSIDE_INITIALIZER)
-  final Map<VariableDeclaration, int> variables = <VariableDeclaration, int>{};
+  final Map<VariableDeclaration, int> parameterUses =
+      <VariableDeclaration, int>{};
 
   final Map<VariableDeclaration, FunctionNode> function =
       <VariableDeclaration, FunctionNode>{};
@@ -129,6 +130,15 @@ class ClosureInfo extends RecursiveVisitor {
       visitList(node.initializers, this);
       captureFlags = OUTSIDE_INITIALIZER;
 
+      for (var decl in node.function.positionalParameters) {
+        var use = parameterUses[decl];
+        if (use == 0) parameterUses.remove(decl);
+      }
+      for (var decl in node.function.namedParameters) {
+        var use = parameterUses[decl];
+        if (use == 0) parameterUses.remove(decl);
+      }
+
       node.function.accept(this);
     });
     endMember();
@@ -202,20 +212,22 @@ class ClosureInfo extends RecursiveVisitor {
 
   visitVariableGet(VariableGet node) {
     if (function[node.variable] != currentFunction) {
-      variables.putIfAbsent(node.variable, () => 0);
+      variables.add(node.variable);
     }
-    if (variables.containsKey(node.variable)) {
-      variables[node.variable] |= captureFlags;
+    if (node.variable.parent.parent is Constructor) {
+      parameterUses.putIfAbsent(node.variable, () => 0);
+      parameterUses[node.variable] |= captureFlags;
     }
     node.visitChildren(this);
   }
 
   visitVariableSet(VariableSet node) {
     if (function[node.variable] != currentFunction) {
-      variables.putIfAbsent(node.variable, () => 0);
+      variables.add(node.variable);
     }
-    if (variables.containsKey(node.variable)) {
-      variables[node.variable] |= captureFlags;
+    if (node.variable.parent.parent is Constructor) {
+      parameterUses.putIfAbsent(node.variable, () => 0);
+      parameterUses[node.variable] |= captureFlags;
     }
     node.visitChildren(this);
   }

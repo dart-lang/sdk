@@ -7,63 +7,48 @@ class C extends core::Object {
   default constructor •() → void
     : super core::Object::•()
     ;
-  get g() → dynamic {
+  get g() → dynamic
     return MakeClosure<(dynamic) → dynamic>(self::closure#C#g#function, null);
-  }
-  method a() → dynamic {
+  method a() → dynamic
     return "a";
-  }
-  method b(dynamic x) → dynamic {
+  method b(dynamic x) → dynamic
     return x;
-  }
-  method c(dynamic x, [dynamic y = 2]) → dynamic {
+  method c(dynamic x, [dynamic y = 2]) → dynamic
     return x.+(y);
-  }
-  method d(dynamic x, {dynamic y = 2}) → dynamic {
+  method d(dynamic x, {dynamic y = 2}) → dynamic
     return x.+(y);
-  }
 }
 class D<T extends core::Object> extends core::Object {
   field dynamic f = MakeClosure<() → dynamic>(self::closure#D#f#function, null);
   default constructor •() → void
     : super core::Object::•()
     ;
-  get g() → dynamic {
+  get g() → dynamic
     return MakeClosure<(dynamic) → dynamic>(self::closure#D#g#function, null);
-  }
-  method a() → dynamic {
+  method a() → dynamic
     return "a";
-  }
-  method b(dynamic x) → dynamic {
+  method b(dynamic x) → dynamic
     return x;
-  }
-  method c(dynamic x, [dynamic y = 2]) → dynamic {
+  method c(dynamic x, [dynamic y = 2]) → dynamic
     return x.+(y);
-  }
-  method d(dynamic x, {dynamic y = 2}) → dynamic {
+  method d(dynamic x, {dynamic y = 2}) → dynamic
     return x.+(y);
-  }
 }
 class E<T extends core::Object> extends core::Object {
   field dynamic f = MakeClosure<() → dynamic>(self::closure#E#f#function, null);
   default constructor •() → void
     : super core::Object::•()
     ;
-  get g() → dynamic {
+  get g() → dynamic
     return MakeClosure<<T extends core::Object>(T) → dynamic, self::E::T>(self::closure#E#g#function, MakeVector(1));
-  }
-  method a() → dynamic {
+  method a() → dynamic
     return "a";
-  }
-  method b(self::E::T x) → dynamic {
+  method b(self::E::T x) → dynamic
     return x;
-  }
-  method c(self::E::T x, [self::E::T y = 2]) → dynamic {
+  method c(self::E::T x, [self::E::T y = 2]) → dynamic
     return x.+(y);
-  }
-  method d(self::E::T x, {self::E::T y = 2}) → dynamic {
+  method d(self::E::T x, {self::E::T y = 2}) → dynamic
     return x.+(y);
-  }
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   core::print("Expecting '${expected}' and got '${actual}'");

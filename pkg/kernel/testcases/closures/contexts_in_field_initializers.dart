@@ -14,6 +14,18 @@ class A {
   A(this.x) {}
 }
 
+class B {
+  X x;
+  B(X x) : x = x {
+    fn() {
+      print(x);
+    }
+
+    fn();
+  }
+}
+
 main() {
   A a = new A(new X());
+  B b = new B(new X());
 }

@@ -73,10 +73,12 @@ import 'rewriter.dart' show AstRewriter, BlockRewriter, InitializerListRewriter;
 class ClosureConverter extends Transformer {
   final CoreTypes coreTypes;
 
+  final Set<VariableDeclaration> capturedVariables;
+
   // This map pairs variables that are captured with flags indicating whether
-  // they are captured inside or outside an initializer. See
-  // [ClosureInfo.variables].
-  final Map<VariableDeclaration, int> capturedVariables;
+  // they are used inside or outside an initializer. See
+  // [ClosureInfo.parameterUses].
+  final Map<VariableDeclaration, int> parameterUses;
 
   final Map<FunctionNode, Set<TypeParameter>> capturedTypeVariables;
   final Map<FunctionNode, VariableDeclaration> thisAccess;
@@ -136,6 +138,7 @@ class ClosureConverter extends Transformer {
 
   ClosureConverter(this.coreTypes, ClosureInfo info)
       : this.capturedVariables = info.variables,
+        this.parameterUses = info.parameterUses,
         this.capturedTypeVariables = info.typeVariables,
         this.thisAccess = info.thisAccess,
         this.localNames = info.localNames;
@@ -191,19 +194,26 @@ class ClosureConverter extends Transformer {
 
   extendContextConditionally({bool inInitializer}) {
     return (VariableDeclaration parameter) {
-      int flags = capturedVariables[parameter];
+      if (!capturedVariables.contains(parameter)) return 0;
+
+      int flags = parameterUses[parameter];
+      if (flags == null) {
+        context.extend(parameter, new VariableGet(parameter));
+        return 0;
+      }
 
       // When moving variables into the context while scanning initializers,
       // we need to add the variable if it's captured in an initializer,
       // whether or not it's used/captured in the body. However, in the body,
       // we only need to add the variable into the context if it's *not*
       // captured in an initializer.
-      if (flags != null && inInitializer
+      if (inInitializer
           ? (flags & ClosureInfo.INSIDE_INITIALIZER) > 0
           : flags == ClosureInfo.OUTSIDE_INITIALIZER) {
         context.extend(parameter, new VariableGet(parameter));
       }
-      return flags ?? 0;
+
+      return flags;
     };
   }
 
@@ -229,12 +239,15 @@ class ClosureConverter extends Transformer {
           ClosureInfo.OUTSIDE_INITIALIZER | ClosureInfo.INSIDE_INITIALIZER;
 
       // TODO(karlklose): add a fine-grained analysis of captured parameters.
-      movingCtor = node.function.positionalParameters
-              .map(extendContextConditionally(inInitializer: true))
-              .any((flags) => flags == capturedBoth) ||
-          node.function.namedParameters
-              .map(extendContextConditionally(inInitializer: true))
-              .any((flags) => flags == capturedBoth);
+      handleParam(decl) {
+        if (extendContextConditionally(inInitializer: true)(decl) ==
+            capturedBoth) {
+          movingCtor = true;
+        }
+      }
+
+      node.function.positionalParameters.forEach(handleParam);
+      node.function.namedParameters.forEach(handleParam);
 
       transformList(node.initializers, this, node);
       node.initializers.insertAll(0, initRewriter.prefix);
@@ -363,7 +376,7 @@ class ClosureConverter extends Transformer {
 
   TreeNode visitFunctionDeclaration(FunctionDeclaration node) {
     /// Is this closure itself captured by a closure?
-    bool isCaptured = capturedVariables.containsKey(node.variable);
+    bool isCaptured = capturedVariables.contains(node.variable);
     if (isCaptured) {
       context.extend(node.variable, new InvalidExpression());
     }
@@ -464,6 +477,8 @@ class ClosureConverter extends Transformer {
 
     FunctionNode function = node.function;
     if (function.body != null) {
+      bool hadSingleStatementBody = function.body is! Block;
+
       setupRewriterForFunctionBody(function);
       // Start with no context.  This happens after setting up _currentBlock
       // so statements can be emitted into _currentBlock if necessary.
@@ -475,6 +490,22 @@ class ClosureConverter extends Transformer {
       }
       node.transformChildren(this);
       resetContext();
+
+      // Here a special case is handled: the body of the procedure was a single
+      // statement and after the transformation it is a block with a single
+      // statement inside.  In this case we make this statement the body of the
+      // procedure again.  It is required to follow the conventions imposed by
+      // [addClass] in [DillLibraryBuilder].
+      // See [dill_library_builder.dart]
+      // (../../../../front_end/lib/src/fasta/dill/dill_library_builder.dart)
+      // for details.
+      if (hadSingleStatementBody && function.body is Block) {
+        Block body = function.body;
+        if (body.statements.length == 1) {
+          function.body = body.statements[0];
+          function.body.parent = function;
+        }
+      }
     }
 
     return node;
@@ -500,7 +531,7 @@ class ClosureConverter extends Transformer {
   }
 
   TreeNode visitLocalInitializer(LocalInitializer node) {
-    assert(!capturedVariables.containsKey(node.variable));
+    assert(!capturedVariables.contains(node.variable));
     node.transformChildren(this);
     return node;
   }
@@ -531,7 +562,7 @@ class ClosureConverter extends Transformer {
   TreeNode visitVariableDeclaration(VariableDeclaration node) {
     node.transformChildren(this);
 
-    if (!capturedVariables.containsKey(node)) return node;
+    if (!capturedVariables.contains(node)) return node;
     if (node.initializer == null && node.parent is FunctionNode) {
       // If the variable is a function parameter and doesn't have an
       // initializer, just use this variable name to put it into the context.
@@ -551,7 +582,7 @@ class ClosureConverter extends Transformer {
   }
 
   TreeNode visitVariableGet(VariableGet node) {
-    return capturedVariables.containsKey(node.variable)
+    return capturedVariables.contains(node.variable)
         ? context.lookup(node.variable)
         : node;
   }
@@ -559,7 +590,7 @@ class ClosureConverter extends Transformer {
   TreeNode visitVariableSet(VariableSet node) {
     node.transformChildren(this);
 
-    return capturedVariables.containsKey(node.variable)
+    return capturedVariables.contains(node.variable)
         ? context.assign(node.variable, node.value,
             voidContext: isInVoidContext(node))
         : node;
@@ -595,7 +626,7 @@ class ClosureConverter extends Transformer {
   }
 
   TreeNode visitForStatement(ForStatement node) {
-    if (node.variables.any(capturedVariables.containsKey)) {
+    if (node.variables.any(capturedVariables.contains)) {
       // In Dart, loop variables are new variables on each iteration of the
       // loop. This is only observable when a loop variable is captured by a
       // closure, which is the situation we're in here. So we transform the
@@ -632,7 +663,7 @@ class ClosureConverter extends Transformer {
   }
 
   TreeNode visitForInStatement(ForInStatement node) {
-    if (capturedVariables.containsKey(node.variable)) {
+    if (capturedVariables.contains(node.variable)) {
       // In Dart, loop variables are new variables on each iteration of the
       // loop. This is only observable when the loop variable is captured by a
       // closure, so we need to transform the for-in loop when `node.variable`
@@ -669,7 +700,7 @@ class ClosureConverter extends Transformer {
   TreeNode visitCatch(Catch node) {
     VariableDeclaration exception = node.exception;
     VariableDeclaration stackTrace = node.stackTrace;
-    if (stackTrace != null && capturedVariables.containsKey(stackTrace)) {
+    if (stackTrace != null && capturedVariables.contains(stackTrace)) {
       Block block = node.body = ensureBlock(node.body);
       block.parent = node;
       node.stackTrace = new VariableDeclaration(null);
@@ -678,7 +709,7 @@ class ClosureConverter extends Transformer {
       block.statements.insert(0, stackTrace);
       stackTrace.parent = block;
     }
-    if (exception != null && capturedVariables.containsKey(exception)) {
+    if (exception != null && capturedVariables.contains(exception)) {
       Block block = node.body = ensureBlock(node.body);
       block.parent = node;
       node.exception = new VariableDeclaration(null);
