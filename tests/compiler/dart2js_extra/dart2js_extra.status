@@ -188,7 +188,6 @@ bound_closure_interceptor_type_test: Crash
 break_test: Crash
 closure3_test: Crash
 closure4_test: Crash
-closure5_test: Crash
 closure6_test: Crash
 closure7_test: Crash
 closure_capture2_test: Crash
@@ -287,9 +286,7 @@ private_symbol_literal_test/05: MissingCompileTimeError
 private_symbol_literal_test/06: MissingCompileTimeError
 recursive_import_test: CompileTimeError
 reflect_native_types_test: Crash
-regress/4515_1_test: Crash
 regress/4515_2_test: Crash
-regress/4515_3_test: Crash
 regress/4562_test/none: CompileTimeError
 regress/4639_test: Crash
 string_interpolation_dynamic_test: RuntimeError
@@ -330,7 +327,6 @@ bound_closure_interceptor_type_test: Crash # NoSuchMethodError: The getter 'clas
 break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 closure3_test: Crash # NoSuchMethodError: Class 'KernelClosureClass' has no instance getter 'supertype'.
 closure4_test: Crash # NoSuchMethodError: The getter 'classIndex' was called on null.
-closure5_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'type'.
 closure6_test: Crash # NoSuchMethodError: Class 'KernelClosureClass' has no instance getter 'supertype'.
 closure7_test: Crash # NoSuchMethodError: Class 'KernelClosureClass' has no instance getter 'supertype'.
 closure_capture2_test: Crash # Assertion failure: Cannot find value local(closure1_closure.call#$1) in (local(closure1#)) for j:closure_call(closure1_closure.call).
@@ -429,9 +425,7 @@ private_symbol_literal_test/05: MissingCompileTimeError
 private_symbol_literal_test/06: MissingCompileTimeError
 recursive_import_test: CompileTimeError
 reflect_native_types_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
-regress/4515_1_test: Crash # Assertion failure: Cannot find value local(main_closure.call#a) in (local(main#)) for j:closure_call(main_closure.call).
 regress/4515_2_test: Crash # NoSuchMethodError: The getter 'name' was called on null.
-regress/4515_3_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
 regress/4562_test/none: CompileTimeError
 regress/4639_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 runtime_type_test: Crash

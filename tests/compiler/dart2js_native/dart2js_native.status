@@ -239,7 +239,6 @@ subclassing_super_field_2_test: Crash
 subclassing_type_test: Crash
 super_call_test: Crash
 super_property_test: Crash
-type_error_decode_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 abstract_class_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.

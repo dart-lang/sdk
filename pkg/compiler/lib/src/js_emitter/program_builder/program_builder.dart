@@ -15,16 +15,8 @@ import '../../constants/values.dart'
 import '../../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import '../../elements/elements.dart'
-    show
-        ClassElement,
-        FieldElement,
-        FunctionSignature,
-        LibraryElement,
-        MemberElement,
-        MethodElement,
-        ParameterElement;
+    show ClassElement, FieldElement, LibraryElement, MethodElement;
 import '../../elements/entities.dart';
-import '../../elements/resolution_types.dart' show ResolutionDartType;
 import '../../elements/types.dart';
 import '../../js/js.dart' as js;
 import '../../js_backend/backend.dart' show SuperMemberData;
@@ -192,7 +184,7 @@ class ProgramBuilder {
   ///
   /// Also contains classes that are not tracked by the profile run (like
   /// interceptors, ...).
-  Set<ClassElement> _notSoftDeferred;
+  Set<ClassEntity> _notSoftDeferred;
 
   Program buildProgram({bool storeFunctionTypesInMetadata: false}) {
     collector.collect();
@@ -326,16 +318,17 @@ class ProgramBuilder {
 
       String data = new File(allocatedClassesPath).readAsStringSync();
       Set<String> allocatedClassesKeys = JSON.decode(data).keys.toSet();
-      Set<ClassElement> allocatedClasses = new Set<ClassElement>();
+      Set<ClassEntity> allocatedClasses = new Set<ClassEntity>();
 
       // Collects all super and mixin classes of a class.
-      void collect(ClassElement element) {
+      void collect(ClassEntity element) {
         allocatedClasses.add(element);
-        if (element.isMixinApplication) {
+        if (_elementEnvironment.isMixinApplication(element)) {
           collect(_elementEnvironment.getEffectiveMixinClass(element));
         }
-        if (element.superclass != null) {
-          collect(element.superclass);
+        ClassEntity superclass = _elementEnvironment.getSuperClass(element);
+        if (superclass != null) {
+          collect(superclass);
         }
       }
 
@@ -343,7 +336,7 @@ class ProgramBuilder {
       // collect its dependencies (supers and mixins) and mark them as
       // not-soft-deferrable.
       collector.outputClassLists.forEach((_, List<ClassEntity> elements) {
-        for (ClassElement element in elements) {
+        for (ClassEntity element in elements) {
           // TODO(29574): share the encoding of the element with the code
           // that emits the profile-run.
           var key = "${element.library.canonicalUri}:${element.name}";
@@ -562,7 +555,7 @@ class ProgramBuilder {
 
             if (member.isFunction) {
               MethodElement fn = member;
-              functionType = fn.type;
+              functionType = _elementEnvironment.getFunctionType(fn);
             } else if (member.isGetter) {
               if (_options.trustTypeAnnotations) {
                 DartType returnType =
@@ -786,7 +779,7 @@ class ProgramBuilder {
       for (Field field in instanceFields) {
         if (field.needsCheckedSetter) {
           assert(!field.needsUncheckedSetter);
-          FieldElement element = field.element;
+          FieldEntity element = field.element;
           js.Expression code = _generatedCode[element];
           assert(code != null);
           js.Name name = _namer.deriveSetterName(field.accessorName);
@@ -863,23 +856,28 @@ class ProgramBuilder {
         _closedWorld.getMightBePassedToApply(method);
   }
 
-  /* Map | List */ _computeParameterDefaultValues(FunctionSignature signature) {
+  /* Map | List */ _computeParameterDefaultValues(FunctionEntity method) {
     var /* Map | List */ optionalParameterDefaultValues;
-    if (signature.optionalParametersAreNamed) {
+    ParameterStructure parameterStructure = method.parameterStructure;
+    if (parameterStructure.namedParameters.isNotEmpty) {
       optionalParameterDefaultValues = new Map<String, ConstantValue>();
-      signature.forEachOptionalParameter((_parameter) {
-        ParameterElement parameter = _parameter;
-        ConstantValue def =
-            _constantHandler.getConstantValue(parameter.constant);
-        optionalParameterDefaultValues[parameter.name] = def;
+      _worldBuilder.forEachParameter(method,
+          (DartType type, String name, ConstantValue defaultValue) {
+        if (parameterStructure.namedParameters.contains(name)) {
+          assert(defaultValue != null);
+          optionalParameterDefaultValues[name] = defaultValue;
+        }
       });
     } else {
       optionalParameterDefaultValues = <ConstantValue>[];
-      signature.forEachOptionalParameter((_parameter) {
-        ParameterElement parameter = _parameter;
-        ConstantValue def =
-            _constantHandler.getConstantValue(parameter.constant);
-        optionalParameterDefaultValues.add(def);
+      int index = 0;
+      _worldBuilder.forEachParameter(method,
+          (DartType type, String name, ConstantValue defaultValue) {
+        if (index >= parameterStructure.requiredParameters) {
+          assert(defaultValue != null);
+          optionalParameterDefaultValues.add(defaultValue);
+        }
+        index++;
       });
     }
     return optionalParameterDefaultValues;
@@ -945,11 +943,10 @@ class ProgramBuilder {
     var /* List | Map */ optionalParameterDefaultValues;
     if (canBeApplied || canBeReflected) {
       // TODO(redemption): Handle function entities.
-      MethodElement method = element;
-      FunctionSignature signature = method.functionSignature;
-      requiredParameterCount = signature.requiredParameterCount;
-      optionalParameterDefaultValues =
-          _computeParameterDefaultValues(signature);
+      FunctionEntity method = element;
+      ParameterStructure parameterStructure = method.parameterStructure;
+      requiredParameterCount = parameterStructure.requiredParameters;
+      optionalParameterDefaultValues = _computeParameterDefaultValues(method);
     }
 
     return new InstanceMethod(element, name, code,
@@ -995,7 +992,7 @@ class ProgramBuilder {
   /// Stub methods may have an element that can be used for code-size
   /// attribution.
   Method _buildStubMethod(js.Name name, js.Expression code,
-      {MemberElement element}) {
+      {MemberEntity element}) {
     return new StubMethod(name, code, element: element);
   }
 
@@ -1085,8 +1082,15 @@ class ProgramBuilder {
           needsCheckedSetter));
     }
 
-    FieldVisitor visitor = new FieldVisitor(_options, _elementEnvironment,
-        _worldBuilder, _nativeData, _mirrorsData, _namer, _closedWorld);
+    FieldVisitor visitor = new FieldVisitor(
+        _options,
+        _elementEnvironment,
+        _commonElements,
+        _worldBuilder,
+        _nativeData,
+        _mirrorsData,
+        _namer,
+        _closedWorld);
     visitor.visitFields(visitField,
         visitStatics: visitStatics, library: library, cls: cls);
 
@@ -1152,11 +1156,10 @@ class ProgramBuilder {
     var /* List | Map */ optionalParameterDefaultValues;
     if (canBeApplied || canBeReflected) {
       // TODO(redemption): Support entities;
-      MethodElement method = element;
-      FunctionSignature signature = method.functionSignature;
-      requiredParameterCount = signature.requiredParameterCount;
-      optionalParameterDefaultValues =
-          _computeParameterDefaultValues(signature);
+      FunctionEntity method = element;
+      ParameterStructure parameterStructure = method.parameterStructure;
+      requiredParameterCount = parameterStructure.requiredParameters;
+      optionalParameterDefaultValues = _computeParameterDefaultValues(method);
     }
 
     // TODO(floitsch): we shouldn't update the registry in the middle of
