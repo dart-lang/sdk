@@ -715,11 +715,11 @@ class AlternativeReadingScope {
 // Use ReadUntilExcluding to read up to but not including a field.
 // One can then for instance read the field from the call-site (and remember to
 // call SetAt to inform this helper class), and then use this to read more.
-// "Dumb" fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a "non-dumb" field (e.g. an expression) it will be skipped.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
 class FunctionNodeHelper {
  public:
-  enum Fields {
+  enum Field {
     kStart,  // tag.
     kPosition,
     kEndPosition,
@@ -740,68 +740,14 @@ class FunctionNodeHelper {
     next_read_ = kStart;
   }
 
-  void ReadUntilIncluding(Fields field) {
-    ReadUntilExcluding(static_cast<Fields>(static_cast<int>(field) + 1));
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
   }
 
-  void ReadUntilExcluding(Fields field) {
-    if (field <= next_read_) return;
+  void ReadUntilExcluding(Field field);
 
-    // Ordered with fall-through.
-    switch (next_read_) {
-      case kStart: {
-        Tag tag = builder_->ReadTag();  // read tag.
-        ASSERT(tag == kFunctionNode);
-        if (++next_read_ == field) return;
-      }
-      case kPosition:
-        position_ = builder_->ReadPosition();  // read position.
-        if (++next_read_ == field) return;
-      case kEndPosition:
-        end_position_ = builder_->ReadPosition();  // read end position.
-        if (++next_read_ == field) return;
-      case kAsyncMarker:
-        async_marker_ = static_cast<FunctionNode::AsyncMarker>(
-            builder_->ReadByte());  // read async marker.
-        if (++next_read_ == field) return;
-      case kDartAsyncMarker:
-        dart_async_marker_ = static_cast<FunctionNode::AsyncMarker>(
-            builder_->ReadByte());  // read dart async marker.
-        if (++next_read_ == field) return;
-      case kTypeParameters:
-        builder_->SkipTypeParametersList();  // read type parameters.
-        if (++next_read_ == field) return;
-      case kTotalParameterCount:
-        total_parameter_count_ =
-            builder_->ReadUInt();  // read total parameter count.
-        if (++next_read_ == field) return;
-      case kRequiredParameterCount:
-        required_parameter_count_ =
-            builder_->ReadUInt();  // read required parameter count.
-        if (++next_read_ == field) return;
-      case kPositionalParameters:
-        builder_->SkipListOfVariableDeclarations();  // read positionals.
-        if (++next_read_ == field) return;
-      case kNamedParameters:
-        builder_->SkipListOfVariableDeclarations();  // read named.
-        if (++next_read_ == field) return;
-      case kReturnType:
-        builder_->SkipDartType();  // read return type.
-        if (++next_read_ == field) return;
-      case kBody:
-        if (builder_->ReadTag() == kSomething)
-          builder_->SkipStatement();  // read body.
-        if (++next_read_ == field) return;
-      case kEnd:
-        return;
-    }
-  }
-
-  void SetNext(Fields field) { next_read_ = field; }
-  void SetJustRead(Fields field) {
-    next_read_ = field;
-    ++next_read_;
-  }
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
 
   TokenPosition position_;
   TokenPosition end_position_;
@@ -820,11 +766,11 @@ class FunctionNodeHelper {
 // Use ReadUntilExcluding to read up to but not including a field.
 // One can then for instance read the field from the call-site (and remember to
 // call SetAt to inform this helper class), and then use this to read more.
-// "Dumb" fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a "non-dumb" field (e.g. an expression) it will be skipped.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
 class VariableDeclarationHelper {
  public:
-  enum Fields {
+  enum Field {
     kPosition,
     kEqualPosition,
     kFlags,
@@ -839,44 +785,14 @@ class VariableDeclarationHelper {
     next_read_ = kPosition;
   }
 
-  void ReadUntilIncluding(Fields field) {
-    ReadUntilExcluding(static_cast<Fields>(static_cast<int>(field) + 1));
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
   }
 
-  void ReadUntilExcluding(Fields field) {
-    if (field <= next_read_) return;
+  void ReadUntilExcluding(Field field);
 
-    // Ordered with fall-through.
-    switch (next_read_) {
-      case kPosition:
-        position_ = builder_->ReadPosition();  // read position.
-        if (++next_read_ == field) return;
-      case kEqualPosition:
-        equals_position_ = builder_->ReadPosition();  // read equals position.
-        if (++next_read_ == field) return;
-      case kFlags:
-        flags_ = builder_->ReadFlags();  // read flags.
-        if (++next_read_ == field) return;
-      case kNameIndex:
-        name_index_ = builder_->ReadStringReference();  // read name index.
-        if (++next_read_ == field) return;
-      case kType:
-        builder_->SkipDartType();  // read type.
-        if (++next_read_ == field) return;
-      case kInitializer:
-        if (builder_->ReadTag() == kSomething)
-          builder_->SkipExpression();  // read initializer.
-        if (++next_read_ == field) return;
-      case kEnd:
-        return;
-    }
-  }
-
-  void SetNext(Fields field) { next_read_ = field; }
-  void SetJustRead(Fields field) {
-    next_read_ = field;
-    ++next_read_;
-  }
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
 
   bool IsConst() {
     return (flags_ & VariableDeclaration::kFlagConst) ==
@@ -902,11 +818,11 @@ class VariableDeclarationHelper {
 // Use ReadUntilExcluding to read up to but not including a field.
 // One can then for instance read the field from the call-site (and remember to
 // call SetAt to inform this helper class), and then use this to read more.
-// "Dumb" fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a "non-dumb" field (e.g. an expression) it will be skipped.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
 class FieldHelper {
  public:
-  enum Fields {
+  enum Field {
     kStart,  // tag.
     kCanonicalName,
     kPosition,
@@ -933,90 +849,24 @@ class FieldHelper {
     builder_->SetOffset(offset);
   }
 
-  void ReadUntilIncluding(Fields field) {
-    ReadUntilExcluding(static_cast<Fields>(static_cast<int>(field) + 1));
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
   }
 
-  void ReadUntilExcluding(Fields field,
-                          bool detect_function_literal_initializer = false) {
-    if (field <= next_read_) return;
+  void ReadUntilExcluding(Field field,
+                          bool detect_function_literal_initializer = false);
 
-    // Ordered with fall-through.
-    switch (next_read_) {
-      case kStart: {
-        Tag tag = builder_->ReadTag();  // read tag.
-        ASSERT(tag == kField);
-        if (++next_read_ == field) return;
-      }
-      case kCanonicalName:
-        canonical_name_ =
-            builder_->ReadCanonicalNameReference();  // read canonical_name.
-        if (++next_read_ == field) return;
-      case kPosition:
-        position_ = builder_->ReadPosition(false);  // read position.
-        if (++next_read_ == field) return;
-      case kEndPosition:
-        end_position_ = builder_->ReadPosition(false);  // read end position.
-        if (++next_read_ == field) return;
-      case kFlags:
-        flags_ = builder_->ReadFlags();  // read flags.
-        if (++next_read_ == field) return;
-      case kName:
-        builder_->SkipName();  // read name.
-        if (++next_read_ == field) return;
-      case kSourceUriIndex:
-        source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
-        builder_->current_script_id_ = source_uri_index_;
-        builder_->record_token_position(position_);
-        builder_->record_token_position(end_position_);
-        if (++next_read_ == field) return;
-      case kDocumentationCommentIndex:
-        builder_->ReadStringReference();
-        if (++next_read_ == field) return;
-      case kAnnotations: {
-        annotation_count_ = builder_->ReadListLength();  // read list length.
-        for (intptr_t i = 0; i < annotation_count_; ++i) {
-          builder_->SkipExpression();  // read ith expression.
-        }
-        if (++next_read_ == field) return;
-      }
-      case kType:
-        builder_->SkipDartType();  // read type.
-        if (++next_read_ == field) return;
-      case kInitializer:
-        if (builder_->ReadTag() == kSomething) {
-          if (detect_function_literal_initializer &&
-              builder_->PeekTag() == kFunctionExpression) {
-            AlternativeReadingScope alt(builder_->reader_);
-            Tag tag = builder_->ReadTag();
-            ASSERT(tag == kFunctionExpression);
-            builder_->ReadPosition();  // read position.
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
 
-            FunctionNodeHelper helper(builder_);
-            helper.ReadUntilIncluding(FunctionNodeHelper::kEndPosition);
-
-            has_function_literal_initializer_ = true;
-            function_literal_start_ = helper.position_;
-            function_literal_end_ = helper.end_position_;
-          }
-          builder_->SkipExpression();  // read initializer.
-        }
-        if (++next_read_ == field) return;
-      case kEnd:
-        return;
-    }
+  bool IsConst() {
+    return (flags_ & kernel::Field::kFlagConst) == kernel::Field::kFlagConst;
   }
-
-  void SetNext(Fields field) { next_read_ = field; }
-  void SetJustRead(Fields field) {
-    next_read_ = field;
-    ++next_read_;
+  bool IsFinal() {
+    return (flags_ & kernel::Field::kFlagFinal) == kernel::Field::kFlagFinal;
   }
-
-  bool IsConst() { return (flags_ & Field::kFlagConst) == Field::kFlagConst; }
-  bool IsFinal() { return (flags_ & Field::kFlagFinal) == Field::kFlagFinal; }
   bool IsStatic() {
-    return (flags_ & Field::kFlagStatic) == Field::kFlagStatic;
+    return (flags_ & kernel::Field::kFlagStatic) == kernel::Field::kFlagStatic;
   }
 
   bool FieldHasFunctionLiteralInitializer(TokenPosition* start,
@@ -1049,11 +899,11 @@ class FieldHelper {
 // Use ReadUntilExcluding to read up to but not including a field.
 // One can then for instance read the field from the call-site (and remember to
 // call SetAt to inform this helper class), and then use this to read more.
-// "Dumb" fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a "non-dumb" field (e.g. an expression) it will be skipped.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
 class ProcedureHelper {
  public:
-  enum Fields {
+  enum Field {
     kStart,  // tag.
     kCanonicalName,
     kPosition,
@@ -1073,70 +923,14 @@ class ProcedureHelper {
     next_read_ = kStart;
   }
 
-  void ReadUntilIncluding(Fields field) {
-    ReadUntilExcluding(static_cast<Fields>(static_cast<int>(field) + 1));
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
   }
 
-  void ReadUntilExcluding(Fields field) {
-    if (field <= next_read_) return;
+  void ReadUntilExcluding(Field field);
 
-    // Ordered with fall-through.
-    switch (next_read_) {
-      case kStart: {
-        Tag tag = builder_->ReadTag();  // read tag.
-        ASSERT(tag == kProcedure);
-        if (++next_read_ == field) return;
-      }
-      case kCanonicalName:
-        canonical_name_ =
-            builder_->ReadCanonicalNameReference();  // read canonical_name.
-        if (++next_read_ == field) return;
-      case kPosition:
-        position_ = builder_->ReadPosition(false);  // read position.
-        if (++next_read_ == field) return;
-      case kEndPosition:
-        end_position_ = builder_->ReadPosition(false);  // read end position.
-        if (++next_read_ == field) return;
-      case kKind:
-        kind_ = static_cast<Procedure::ProcedureKind>(
-            builder_->ReadByte());  // read kind.
-        if (++next_read_ == field) return;
-      case kFlags:
-        flags_ = builder_->ReadFlags();  // read flags.
-        if (++next_read_ == field) return;
-      case kName:
-        builder_->SkipName();  // read name.
-        if (++next_read_ == field) return;
-      case kSourceUriIndex:
-        source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
-        builder_->current_script_id_ = source_uri_index_;
-        builder_->record_token_position(position_);
-        builder_->record_token_position(end_position_);
-        if (++next_read_ == field) return;
-      case kDocumentationCommentIndex:
-        builder_->ReadStringReference();
-        if (++next_read_ == field) return;
-      case kAnnotations: {
-        annotation_count_ = builder_->ReadListLength();  // read list length.
-        for (intptr_t i = 0; i < annotation_count_; ++i) {
-          builder_->SkipExpression();  // read ith expression.
-        }
-        if (++next_read_ == field) return;
-      }
-      case kFunction:
-        if (builder_->ReadTag() == kSomething)
-          builder_->SkipFunctionNode();  // read function node.
-        if (++next_read_ == field) return;
-      case kEnd:
-        return;
-    }
-  }
-
-  void SetNext(Fields field) { next_read_ = field; }
-  void SetJustRead(Fields field) {
-    next_read_ = field;
-    ++next_read_;
-  }
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
 
   bool IsStatic() {
     return (flags_ & Procedure::kFlagStatic) == Procedure::kFlagStatic;
@@ -1169,11 +963,11 @@ class ProcedureHelper {
 // Use ReadUntilExcluding to read up to but not including a field.
 // One can then for instance read the field from the call-site (and remember to
 // call SetAt to inform this helper class), and then use this to read more.
-// "Dumb" fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a "non-dumb" field (e.g. an expression) it will be skipped.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
 class ConstructorHelper {
  public:
-  enum Fields {
+  enum Field {
     kStart,  // tag.
     kCanonicalName,
     kPosition,
@@ -1192,89 +986,14 @@ class ConstructorHelper {
     next_read_ = kStart;
   }
 
-  void ReadUntilIncluding(Fields field) {
-    ReadUntilExcluding(static_cast<Fields>(static_cast<int>(field) + 1));
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
   }
 
-  void ReadUntilExcluding(Fields field) {
-    if (field <= next_read_) return;
+  void ReadUntilExcluding(Field field);
 
-    // Ordered with fall-through.
-    switch (next_read_) {
-      case kStart: {
-        Tag tag = builder_->ReadTag();  // read tag.
-        ASSERT(tag == kConstructor);
-        if (++next_read_ == field) return;
-      }
-      case kCanonicalName:
-        canonical_name_ =
-            builder_->ReadCanonicalNameReference();  // read canonical_name.
-        if (++next_read_ == field) return;
-      case kPosition:
-        position_ = builder_->ReadPosition();  // read position.
-        if (++next_read_ == field) return;
-      case kEndPosition:
-        end_position_ = builder_->ReadPosition();  // read end position.
-        if (++next_read_ == field) return;
-      case kFlags:
-        flags_ = builder_->ReadFlags();  // read flags.
-        if (++next_read_ == field) return;
-      case kName:
-        builder_->SkipName();  // read name.
-        if (++next_read_ == field) return;
-      case kDocumentationCommentIndex:
-        builder_->ReadStringReference();
-        if (++next_read_ == field) return;
-      case kAnnotations: {
-        annotation_count_ = builder_->ReadListLength();  // read list length.
-        for (intptr_t i = 0; i < annotation_count_; ++i) {
-          builder_->SkipExpression();  // read ith expression.
-        }
-        if (++next_read_ == field) return;
-      }
-      case kFunction:
-        builder_->SkipFunctionNode();  // read function.
-        if (++next_read_ == field) return;
-      case kInitializers: {
-        intptr_t list_length =
-            builder_->ReadListLength();  // read initializers list length.
-        for (intptr_t i = 0; i < list_length; i++) {
-          Tag tag = builder_->ReadTag();
-          builder_->ReadByte();  // read isSynthetic.
-          switch (tag) {
-            case kInvalidInitializer:
-              continue;
-            case kFieldInitializer:
-              builder_->SkipCanonicalNameReference();  // read field_reference.
-              builder_->SkipExpression();              // read value.
-              continue;
-            case kSuperInitializer:
-              builder_->SkipCanonicalNameReference();  // read target_reference.
-              builder_->SkipArguments();               // read arguments.
-              continue;
-            case kRedirectingInitializer:
-              builder_->SkipCanonicalNameReference();  // read target_reference.
-              builder_->SkipArguments();               // read arguments.
-              continue;
-            case kLocalInitializer:
-              builder_->SkipVariableDeclaration();  // read variable.
-              continue;
-            default:
-              UNREACHABLE();
-          }
-        }
-        if (++next_read_ == field) return;
-      }
-      case kEnd:
-        return;
-    }
-  }
-
-  void SetNext(Fields field) { next_read_ = field; }
-  void SetJustRead(Fields field) {
-    next_read_ = field;
-    ++next_read_;
-  }
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
 
   bool IsExternal() {
     return (flags_ & Constructor::kFlagExternal) == Constructor::kFlagExternal;
@@ -1299,11 +1018,11 @@ class ConstructorHelper {
 // Use ReadUntilExcluding to read up to but not including a field.
 // One can then for instance read the field from the call-site (and remember to
 // call SetAt to inform this helper class), and then use this to read more.
-// "Dumb" fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a "non-dumb" field (e.g. an expression) it will be skipped.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
 class ClassHelper {
  public:
-  enum Fields {
+  enum Field {
     kStart,  // tag.
     kCanonicalName,
     kPosition,
@@ -1328,110 +1047,14 @@ class ClassHelper {
     next_read_ = kStart;
   }
 
-  void ReadUntilIncluding(Fields field) {
-    ReadUntilExcluding(static_cast<Fields>(static_cast<int>(field) + 1));
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
   }
 
-  void ReadUntilExcluding(Fields field) {
-    if (field <= next_read_) return;
+  void ReadUntilExcluding(Field field);
 
-    // Ordered with fall-through.
-    switch (next_read_) {
-      case kStart: {
-        Tag tag = builder_->ReadTag();  // read tag.
-        ASSERT(tag == kClass);
-        if (++next_read_ == field) return;
-      }
-      case kCanonicalName:
-        canonical_name_ =
-            builder_->ReadCanonicalNameReference();  // read canonical_name.
-        if (++next_read_ == field) return;
-      case kPosition:
-        position_ = builder_->ReadPosition(false);  // read position.
-        if (++next_read_ == field) return;
-      case kEndPosition:
-        end_position_ = builder_->ReadPosition();  // read end position.
-        if (++next_read_ == field) return;
-      case kIsAbstract:
-        is_abstract_ = builder_->ReadBool();  // read is_abstract.
-        if (++next_read_ == field) return;
-      case kNameIndex:
-        name_index_ = builder_->ReadStringReference();  // read name index.
-        if (++next_read_ == field) return;
-      case kSourceUriIndex:
-        source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
-        builder_->current_script_id_ = source_uri_index_;
-        builder_->record_token_position(position_);
-        if (++next_read_ == field) return;
-      case kDocumentationCommentIndex:
-        builder_->ReadStringReference();
-        if (++next_read_ == field) return;
-      case kAnnotations: {
-        annotation_count_ = builder_->ReadListLength();  // read list length.
-        for (intptr_t i = 0; i < annotation_count_; ++i) {
-          builder_->SkipExpression();  // read ith expression.
-        }
-        if (++next_read_ == field) return;
-      }
-      case kTypeParameters:
-        builder_->SkipTypeParametersList();  // read type parameters.
-        if (++next_read_ == field) return;
-      case kSuperClass: {
-        Tag type_tag = builder_->ReadTag();  // read super class type (part 1).
-        if (type_tag == kSomething) {
-          builder_->SkipDartType();  // read super class type (part 2).
-        }
-        if (++next_read_ == field) return;
-      }
-      case kMixinType: {
-        Tag type_tag = builder_->ReadTag();  // read mixin type (part 1).
-        if (type_tag == kSomething) {
-          builder_->SkipDartType();  // read mixin type (part 2).
-        }
-        if (++next_read_ == field) return;
-      }
-      case kImplementedClasses:
-        builder_->SkipListOfDartTypes();  // read implemented_classes.
-        if (++next_read_ == field) return;
-      case kFields: {
-        intptr_t list_length =
-            builder_->ReadListLength();  // read fields list length.
-        for (intptr_t i = 0; i < list_length; i++) {
-          FieldHelper field_helper(builder_);
-          field_helper.ReadUntilExcluding(FieldHelper::kEnd);  // read field.
-        }
-        if (++next_read_ == field) return;
-      }
-      case kConstructors: {
-        intptr_t list_length =
-            builder_->ReadListLength();  // read constructors list length.
-        for (intptr_t i = 0; i < list_length; i++) {
-          ConstructorHelper constructor_helper(builder_);
-          constructor_helper.ReadUntilExcluding(
-              ConstructorHelper::kEnd);  // read constructor.
-        }
-        if (++next_read_ == field) return;
-      }
-      case kProcedures: {
-        intptr_t list_length =
-            builder_->ReadListLength();  // read procedures list length.
-        for (intptr_t i = 0; i < list_length; i++) {
-          ProcedureHelper procedure_helper(builder_);
-          procedure_helper.ReadUntilExcluding(
-              ProcedureHelper::kEnd);  // read procedure.
-        }
-        if (++next_read_ == field) return;
-      }
-      case kEnd:
-        return;
-    }
-  }
-
-  void SetNext(Fields field) { next_read_ = field; }
-  void SetJustRead(Fields field) {
-    next_read_ = field;
-    ++next_read_;
-  }
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
 
   NameIndex canonical_name_;
   TokenPosition position_;
@@ -1451,11 +1074,11 @@ class ClassHelper {
 // Use ReadUntilExcluding to read up to but not including a field.
 // One can then for instance read the field from the call-site (and remember to
 // call SetAt to inform this helper class), and then use this to read more.
-// "Dumb" fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a "non-dumb" field (e.g. an expression) it will be skipped.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
 class LibraryHelper {
  public:
-  enum Fields {
+  enum Field {
     kFlags,
     kCanonicalName,
     kName,
@@ -1475,91 +1098,14 @@ class LibraryHelper {
     next_read_ = kFlags;
   }
 
-  void ReadUntilIncluding(Fields field) {
-    ReadUntilExcluding(static_cast<Fields>(static_cast<int>(field) + 1));
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
   }
 
-  void ReadUntilExcluding(Fields field) {
-    if (field <= next_read_) return;
+  void ReadUntilExcluding(Field field);
 
-    // Ordered with fall-through.
-    switch (next_read_) {
-      case kFlags: {
-        word flags = builder_->ReadFlags();  // read flags.
-        ASSERT(flags == 0);                  // external libraries not supported
-        if (++next_read_ == field) return;
-      }
-      case kCanonicalName:
-        canonical_name_ =
-            builder_->ReadCanonicalNameReference();  // read canonical_name.
-        if (++next_read_ == field) return;
-      case kName:
-        name_index_ = builder_->ReadStringReference();  // read name index.
-        if (++next_read_ == field) return;
-      case kSourceUriIndex:
-        source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
-        builder_->current_script_id_ = source_uri_index_;
-        if (++next_read_ == field) return;
-      case kAnnotations:
-        builder_->SkipListOfExpressions();  // read annotations.
-        if (++next_read_ == field) return;
-      case kDependencies: {
-        intptr_t dependency_count = builder_->ReadUInt();  // read list length.
-        for (intptr_t i = 0; i < dependency_count; ++i) {
-          builder_->SkipLibraryDependency();
-        }
-        if (++next_read_ == field) return;
-      }
-      case kParts: {
-        intptr_t part_count = builder_->ReadUInt();  // read list length.
-        for (intptr_t i = 0; i < part_count; ++i) {
-          builder_->SkipLibraryPart();
-        }
-        if (++next_read_ == field) return;
-      }
-      case kTypedefs: {
-        intptr_t typedef_count =
-            builder_->ReadListLength();  // read list length.
-        for (intptr_t i = 0; i < typedef_count; i++) {
-          builder_->SkipLibraryTypedef();
-        }
-        if (++next_read_ == field) return;
-      }
-      case kClasses: {
-        int class_count = builder_->ReadListLength();  // read list length.
-        for (intptr_t i = 0; i < class_count; ++i) {
-          ClassHelper class_helper(builder_);
-          class_helper.ReadUntilExcluding(ClassHelper::kEnd);
-        }
-        if (++next_read_ == field) return;
-      }
-      case kToplevelField: {
-        intptr_t field_count = builder_->ReadListLength();  // read list length.
-        for (intptr_t i = 0; i < field_count; ++i) {
-          FieldHelper field_helper(builder_);
-          field_helper.ReadUntilExcluding(FieldHelper::kEnd);
-        }
-        if (++next_read_ == field) return;
-      }
-      case kToplevelProcedures: {
-        intptr_t procedure_count =
-            builder_->ReadListLength();  // read list length.
-        for (intptr_t i = 0; i < procedure_count; ++i) {
-          ProcedureHelper procedure_helper(builder_);
-          procedure_helper.ReadUntilExcluding(ProcedureHelper::kEnd);
-        }
-        if (++next_read_ == field) return;
-      }
-      case kEnd:
-        return;
-    }
-  }
-
-  void SetNext(Fields field) { next_read_ = field; }
-  void SetJustRead(Fields field) {
-    next_read_ = field;
-    ++next_read_;
-  }
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
 
   NameIndex canonical_name_;
   StringIndex name_index_;

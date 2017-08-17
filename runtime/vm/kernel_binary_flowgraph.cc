@@ -23,6 +23,457 @@ static bool IsStaticInitializer(const Function& function, Zone* zone) {
              .StartsWith(Symbols::InitPrefix());
 }
 
+void FunctionNodeHelper::ReadUntilExcluding(Field field) {
+  if (field <= next_read_) return;
+
+  // Ordered with fall-through.
+  switch (next_read_) {
+    case kStart: {
+      Tag tag = builder_->ReadTag();  // read tag.
+      ASSERT(tag == kFunctionNode);
+      if (++next_read_ == field) return;
+    }
+    case kPosition:
+      position_ = builder_->ReadPosition();  // read position.
+      if (++next_read_ == field) return;
+    case kEndPosition:
+      end_position_ = builder_->ReadPosition();  // read end position.
+      if (++next_read_ == field) return;
+    case kAsyncMarker:
+      async_marker_ = static_cast<FunctionNode::AsyncMarker>(
+          builder_->ReadByte());  // read async marker.
+      if (++next_read_ == field) return;
+    case kDartAsyncMarker:
+      dart_async_marker_ = static_cast<FunctionNode::AsyncMarker>(
+          builder_->ReadByte());  // read dart async marker.
+      if (++next_read_ == field) return;
+    case kTypeParameters:
+      builder_->SkipTypeParametersList();  // read type parameters.
+      if (++next_read_ == field) return;
+    case kTotalParameterCount:
+      total_parameter_count_ =
+          builder_->ReadUInt();  // read total parameter count.
+      if (++next_read_ == field) return;
+    case kRequiredParameterCount:
+      required_parameter_count_ =
+          builder_->ReadUInt();  // read required parameter count.
+      if (++next_read_ == field) return;
+    case kPositionalParameters:
+      builder_->SkipListOfVariableDeclarations();  // read positionals.
+      if (++next_read_ == field) return;
+    case kNamedParameters:
+      builder_->SkipListOfVariableDeclarations();  // read named.
+      if (++next_read_ == field) return;
+    case kReturnType:
+      builder_->SkipDartType();  // read return type.
+      if (++next_read_ == field) return;
+    case kBody:
+      if (builder_->ReadTag() == kSomething)
+        builder_->SkipStatement();  // read body.
+      if (++next_read_ == field) return;
+    case kEnd:
+      return;
+  }
+}
+
+void VariableDeclarationHelper::ReadUntilExcluding(Field field) {
+  if (field <= next_read_) return;
+
+  // Ordered with fall-through.
+  switch (next_read_) {
+    case kPosition:
+      position_ = builder_->ReadPosition();  // read position.
+      if (++next_read_ == field) return;
+    case kEqualPosition:
+      equals_position_ = builder_->ReadPosition();  // read equals position.
+      if (++next_read_ == field) return;
+    case kFlags:
+      flags_ = builder_->ReadFlags();  // read flags.
+      if (++next_read_ == field) return;
+    case kNameIndex:
+      name_index_ = builder_->ReadStringReference();  // read name index.
+      if (++next_read_ == field) return;
+    case kType:
+      builder_->SkipDartType();  // read type.
+      if (++next_read_ == field) return;
+    case kInitializer:
+      if (builder_->ReadTag() == kSomething)
+        builder_->SkipExpression();  // read initializer.
+      if (++next_read_ == field) return;
+    case kEnd:
+      return;
+  }
+}
+
+void FieldHelper::ReadUntilExcluding(Field field,
+                                     bool detect_function_literal_initializer) {
+  if (field <= next_read_) return;
+
+  // Ordered with fall-through.
+  switch (next_read_) {
+    case kStart: {
+      Tag tag = builder_->ReadTag();  // read tag.
+      ASSERT(tag == kField);
+      if (++next_read_ == field) return;
+    }
+    case kCanonicalName:
+      canonical_name_ =
+          builder_->ReadCanonicalNameReference();  // read canonical_name.
+      if (++next_read_ == field) return;
+    case kPosition:
+      position_ = builder_->ReadPosition(false);  // read position.
+      if (++next_read_ == field) return;
+    case kEndPosition:
+      end_position_ = builder_->ReadPosition(false);  // read end position.
+      if (++next_read_ == field) return;
+    case kFlags:
+      flags_ = builder_->ReadFlags();  // read flags.
+      if (++next_read_ == field) return;
+    case kName:
+      builder_->SkipName();  // read name.
+      if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      builder_->record_token_position(position_);
+      builder_->record_token_position(end_position_);
+      if (++next_read_ == field) return;
+    case kDocumentationCommentIndex:
+      builder_->ReadStringReference();
+      if (++next_read_ == field) return;
+    case kAnnotations: {
+      annotation_count_ = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < annotation_count_; ++i) {
+        builder_->SkipExpression();  // read ith expression.
+      }
+      if (++next_read_ == field) return;
+    }
+    case kType:
+      builder_->SkipDartType();  // read type.
+      if (++next_read_ == field) return;
+    case kInitializer:
+      if (builder_->ReadTag() == kSomething) {
+        if (detect_function_literal_initializer &&
+            builder_->PeekTag() == kFunctionExpression) {
+          AlternativeReadingScope alt(builder_->reader_);
+          Tag tag = builder_->ReadTag();
+          ASSERT(tag == kFunctionExpression);
+          builder_->ReadPosition();  // read position.
+
+          FunctionNodeHelper helper(builder_);
+          helper.ReadUntilIncluding(FunctionNodeHelper::kEndPosition);
+
+          has_function_literal_initializer_ = true;
+          function_literal_start_ = helper.position_;
+          function_literal_end_ = helper.end_position_;
+        }
+        builder_->SkipExpression();  // read initializer.
+      }
+      if (++next_read_ == field) return;
+    case kEnd:
+      return;
+  }
+}
+
+void ProcedureHelper::ReadUntilExcluding(Field field) {
+  if (field <= next_read_) return;
+
+  // Ordered with fall-through.
+  switch (next_read_) {
+    case kStart: {
+      Tag tag = builder_->ReadTag();  // read tag.
+      ASSERT(tag == kProcedure);
+      if (++next_read_ == field) return;
+    }
+    case kCanonicalName:
+      canonical_name_ =
+          builder_->ReadCanonicalNameReference();  // read canonical_name.
+      if (++next_read_ == field) return;
+    case kPosition:
+      position_ = builder_->ReadPosition(false);  // read position.
+      if (++next_read_ == field) return;
+    case kEndPosition:
+      end_position_ = builder_->ReadPosition(false);  // read end position.
+      if (++next_read_ == field) return;
+    case kKind:
+      kind_ = static_cast<Procedure::ProcedureKind>(
+          builder_->ReadByte());  // read kind.
+      if (++next_read_ == field) return;
+    case kFlags:
+      flags_ = builder_->ReadFlags();  // read flags.
+      if (++next_read_ == field) return;
+    case kName:
+      builder_->SkipName();  // read name.
+      if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      builder_->record_token_position(position_);
+      builder_->record_token_position(end_position_);
+      if (++next_read_ == field) return;
+    case kDocumentationCommentIndex:
+      builder_->ReadStringReference();
+      if (++next_read_ == field) return;
+    case kAnnotations: {
+      annotation_count_ = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < annotation_count_; ++i) {
+        builder_->SkipExpression();  // read ith expression.
+      }
+      if (++next_read_ == field) return;
+    }
+    case kFunction:
+      if (builder_->ReadTag() == kSomething)
+        builder_->SkipFunctionNode();  // read function node.
+      if (++next_read_ == field) return;
+    case kEnd:
+      return;
+  }
+}
+
+void ConstructorHelper::ReadUntilExcluding(Field field) {
+  if (field <= next_read_) return;
+
+  // Ordered with fall-through.
+  switch (next_read_) {
+    case kStart: {
+      Tag tag = builder_->ReadTag();  // read tag.
+      ASSERT(tag == kConstructor);
+      if (++next_read_ == field) return;
+    }
+    case kCanonicalName:
+      canonical_name_ =
+          builder_->ReadCanonicalNameReference();  // read canonical_name.
+      if (++next_read_ == field) return;
+    case kPosition:
+      position_ = builder_->ReadPosition();  // read position.
+      if (++next_read_ == field) return;
+    case kEndPosition:
+      end_position_ = builder_->ReadPosition();  // read end position.
+      if (++next_read_ == field) return;
+    case kFlags:
+      flags_ = builder_->ReadFlags();  // read flags.
+      if (++next_read_ == field) return;
+    case kName:
+      builder_->SkipName();  // read name.
+      if (++next_read_ == field) return;
+    case kDocumentationCommentIndex:
+      builder_->ReadStringReference();
+      if (++next_read_ == field) return;
+    case kAnnotations: {
+      annotation_count_ = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < annotation_count_; ++i) {
+        builder_->SkipExpression();  // read ith expression.
+      }
+      if (++next_read_ == field) return;
+    }
+    case kFunction:
+      builder_->SkipFunctionNode();  // read function.
+      if (++next_read_ == field) return;
+    case kInitializers: {
+      intptr_t list_length =
+          builder_->ReadListLength();  // read initializers list length.
+      for (intptr_t i = 0; i < list_length; i++) {
+        Tag tag = builder_->ReadTag();
+        builder_->ReadByte();  // read isSynthetic.
+        switch (tag) {
+          case kInvalidInitializer:
+            continue;
+          case kFieldInitializer:
+            builder_->SkipCanonicalNameReference();  // read field_reference.
+            builder_->SkipExpression();              // read value.
+            continue;
+          case kSuperInitializer:
+            builder_->SkipCanonicalNameReference();  // read target_reference.
+            builder_->SkipArguments();               // read arguments.
+            continue;
+          case kRedirectingInitializer:
+            builder_->SkipCanonicalNameReference();  // read target_reference.
+            builder_->SkipArguments();               // read arguments.
+            continue;
+          case kLocalInitializer:
+            builder_->SkipVariableDeclaration();  // read variable.
+            continue;
+          default:
+            UNREACHABLE();
+        }
+      }
+      if (++next_read_ == field) return;
+    }
+    case kEnd:
+      return;
+  }
+}
+
+void ClassHelper::ReadUntilExcluding(Field field) {
+  if (field <= next_read_) return;
+
+  // Ordered with fall-through.
+  switch (next_read_) {
+    case kStart: {
+      Tag tag = builder_->ReadTag();  // read tag.
+      ASSERT(tag == kClass);
+      if (++next_read_ == field) return;
+    }
+    case kCanonicalName:
+      canonical_name_ =
+          builder_->ReadCanonicalNameReference();  // read canonical_name.
+      if (++next_read_ == field) return;
+    case kPosition:
+      position_ = builder_->ReadPosition(false);  // read position.
+      if (++next_read_ == field) return;
+    case kEndPosition:
+      end_position_ = builder_->ReadPosition();  // read end position.
+      if (++next_read_ == field) return;
+    case kIsAbstract:
+      is_abstract_ = builder_->ReadBool();  // read is_abstract.
+      if (++next_read_ == field) return;
+    case kNameIndex:
+      name_index_ = builder_->ReadStringReference();  // read name index.
+      if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      builder_->record_token_position(position_);
+      if (++next_read_ == field) return;
+    case kDocumentationCommentIndex:
+      builder_->ReadStringReference();
+      if (++next_read_ == field) return;
+    case kAnnotations: {
+      annotation_count_ = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < annotation_count_; ++i) {
+        builder_->SkipExpression();  // read ith expression.
+      }
+      if (++next_read_ == field) return;
+    }
+    case kTypeParameters:
+      builder_->SkipTypeParametersList();  // read type parameters.
+      if (++next_read_ == field) return;
+    case kSuperClass: {
+      Tag type_tag = builder_->ReadTag();  // read super class type (part 1).
+      if (type_tag == kSomething) {
+        builder_->SkipDartType();  // read super class type (part 2).
+      }
+      if (++next_read_ == field) return;
+    }
+    case kMixinType: {
+      Tag type_tag = builder_->ReadTag();  // read mixin type (part 1).
+      if (type_tag == kSomething) {
+        builder_->SkipDartType();  // read mixin type (part 2).
+      }
+      if (++next_read_ == field) return;
+    }
+    case kImplementedClasses:
+      builder_->SkipListOfDartTypes();  // read implemented_classes.
+      if (++next_read_ == field) return;
+    case kFields: {
+      intptr_t list_length =
+          builder_->ReadListLength();  // read fields list length.
+      for (intptr_t i = 0; i < list_length; i++) {
+        FieldHelper field_helper(builder_);
+        field_helper.ReadUntilExcluding(FieldHelper::kEnd);  // read field.
+      }
+      if (++next_read_ == field) return;
+    }
+    case kConstructors: {
+      intptr_t list_length =
+          builder_->ReadListLength();  // read constructors list length.
+      for (intptr_t i = 0; i < list_length; i++) {
+        ConstructorHelper constructor_helper(builder_);
+        constructor_helper.ReadUntilExcluding(
+            ConstructorHelper::kEnd);  // read constructor.
+      }
+      if (++next_read_ == field) return;
+    }
+    case kProcedures: {
+      intptr_t list_length =
+          builder_->ReadListLength();  // read procedures list length.
+      for (intptr_t i = 0; i < list_length; i++) {
+        ProcedureHelper procedure_helper(builder_);
+        procedure_helper.ReadUntilExcluding(
+            ProcedureHelper::kEnd);  // read procedure.
+      }
+      if (++next_read_ == field) return;
+    }
+    case kEnd:
+      return;
+  }
+}
+
+void LibraryHelper::ReadUntilExcluding(Field field) {
+  if (field <= next_read_) return;
+
+  // Ordered with fall-through.
+  switch (next_read_) {
+    case kFlags: {
+      word flags = builder_->ReadFlags();  // read flags.
+      ASSERT(flags == 0);                  // external libraries not supported
+      if (++next_read_ == field) return;
+    }
+    case kCanonicalName:
+      canonical_name_ =
+          builder_->ReadCanonicalNameReference();  // read canonical_name.
+      if (++next_read_ == field) return;
+    case kName:
+      name_index_ = builder_->ReadStringReference();  // read name index.
+      if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      if (++next_read_ == field) return;
+    case kAnnotations:
+      builder_->SkipListOfExpressions();  // read annotations.
+      if (++next_read_ == field) return;
+    case kDependencies: {
+      intptr_t dependency_count = builder_->ReadUInt();  // read list length.
+      for (intptr_t i = 0; i < dependency_count; ++i) {
+        builder_->SkipLibraryDependency();
+      }
+      if (++next_read_ == field) return;
+    }
+    case kParts: {
+      intptr_t part_count = builder_->ReadUInt();  // read list length.
+      for (intptr_t i = 0; i < part_count; ++i) {
+        builder_->SkipLibraryPart();
+      }
+      if (++next_read_ == field) return;
+    }
+    case kTypedefs: {
+      intptr_t typedef_count = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < typedef_count; i++) {
+        builder_->SkipLibraryTypedef();
+      }
+      if (++next_read_ == field) return;
+    }
+    case kClasses: {
+      int class_count = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < class_count; ++i) {
+        ClassHelper class_helper(builder_);
+        class_helper.ReadUntilExcluding(ClassHelper::kEnd);
+      }
+      if (++next_read_ == field) return;
+    }
+    case kToplevelField: {
+      intptr_t field_count = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < field_count; ++i) {
+        FieldHelper field_helper(builder_);
+        field_helper.ReadUntilExcluding(FieldHelper::kEnd);
+      }
+      if (++next_read_ == field) return;
+    }
+    case kToplevelProcedures: {
+      intptr_t procedure_count =
+          builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < procedure_count; ++i) {
+        ProcedureHelper procedure_helper(builder_);
+        procedure_helper.ReadUntilExcluding(ProcedureHelper::kEnd);
+      }
+      if (++next_read_ == field) return;
+    }
+    case kEnd:
+      return;
+  }
+}
+
 StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function,
                                              intptr_t relative_kernel_offset,
                                              const TypedData& data)
