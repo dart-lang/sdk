@@ -710,26 +710,20 @@ static RawInstance* InvokeClassGetter(const Class& klass,
 
 static RawAbstractType* InstantiateType(const AbstractType& type,
                                         const AbstractType& instantiator) {
+  // Generic function type parameters are not reified, but mapped to dynamic.
   ASSERT(type.IsFinalized());
   PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsCanonical() || type.IsTypeParameter() || type.IsBoundedType());
 
-  // TODO(regis): Support uninstantiated type referring to function type params.
-  if (!type.IsInstantiated(kFunctions)) {
-    UNIMPLEMENTED();
-  }
-
-  if (type.IsInstantiated() || instantiator.IsNull()) {
-    // TODO(regis): Shouldn't type parameters be replaced by dynamic?
+  if (type.IsInstantiated()) {
     return type.Canonicalize();
   }
-
-  ASSERT(!instantiator.IsNull());
-  ASSERT(instantiator.IsFinalized());
-  PROPAGATE_IF_MALFORMED(instantiator);
-
-  const TypeArguments& instantiator_type_args =
-      TypeArguments::Handle(instantiator.arguments());
+  TypeArguments& instantiator_type_args = TypeArguments::Handle();
+  if (!instantiator.IsNull()) {
+    ASSERT(instantiator.IsFinalized());
+    PROPAGATE_IF_MALFORMED(instantiator);
+    instantiator_type_args = instantiator.arguments();
+  }
   Error& bound_error = Error::Handle();
   AbstractType& result = AbstractType::Handle(type.InstantiateFrom(
       instantiator_type_args, Object::null_type_arguments(), &bound_error, NULL,
@@ -891,6 +885,10 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
   } else if (decl.IsLibrary()) {
     library ^= decl.raw();
   } else if (decl.IsTypeParameter()) {
+    if (TypeParameter::Cast(decl).IsFunctionTypeParameter()) {
+      // TODO(regis): Fully support generic functions.
+      return Object::empty_array().raw();
+    }
     klass ^= TypeParameter::Cast(decl).parameterized_class();
     library = klass.library();
   } else {
@@ -1202,8 +1200,17 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 1) {
 
 DEFINE_NATIVE_ENTRY(TypeVariableMirror_owner, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(TypeParameter, param, arguments->NativeArgAt(0));
-  const Class& owner = Class::Handle(param.parameterized_class());
-  const AbstractType& type = AbstractType::Handle(owner.DeclarationType());
+  Class& owner = Class::Handle(param.parameterized_class());
+  AbstractType& type = AbstractType::Handle();
+  if (owner.IsNull()) {
+    // TODO(regis): Fully support generic functions. For now, reify function
+    // type parameters to dynamic and map their function owner to Null class.
+    ASSERT(param.IsFunctionTypeParameter());
+    type = Type::NullType();
+    owner = type.type_class();
+  } else {
+    type = owner.DeclarationType();
+  }
   return CreateClassMirror(owner, type,
                            Bool::True(),  // is_declaration
                            Instance::null_instance());
@@ -1950,6 +1957,10 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
     token_pos = field.token_pos();
   } else if (decl.IsTypeParameter()) {
     const TypeParameter& type_var = TypeParameter::Cast(decl);
+    if (type_var.IsFunctionTypeParameter()) {
+      // TODO(regis): Support generic functions.
+      return Instance::null();
+    }
     const Class& owner = Class::Handle(zone, type_var.parameterized_class());
     script = owner.script();
     token_pos = type_var.token_pos();
