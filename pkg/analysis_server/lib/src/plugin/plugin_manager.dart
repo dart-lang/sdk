@@ -892,8 +892,10 @@ class PluginSession {
    * Handle the fact that the plugin has stopped.
    */
   void handleOnDone() {
-    channel.close();
-    channel = null;
+    if (channel != null) {
+      channel.close();
+      channel = null;
+    }
     pluginStoppedCompleter.complete(null);
   }
 
