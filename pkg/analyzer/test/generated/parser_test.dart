@@ -57,6 +57,13 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   void set enableUriInPartOf(bool value);
 
   /**
+   * The error listener to which scanner and parser errors will be reported.
+   *
+   * This field is typically initialized by invoking [createParser].
+   */
+  GatheringErrorListener get listener;
+
+  /**
    * Get the parser used by the test.
    *
    * Caller must first invoke [createParser].
@@ -88,6 +95,8 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
    * Prepares to parse using tokens scanned from the given [content] string.
    */
   void createParser(String content);
+
+  void expectNotNullIfNoErrors(Object result);
 
   Expression parseAdditiveExpression(String code);
 
@@ -2042,11 +2051,14 @@ void f() {
 }
 
 /**
- * The class `ErrorParserTest` defines parser tests that test the parsing of code to ensure
- * that errors are correctly reported, and in some cases, not reported.
+ * The class `ErrorParserTest` defines parser tests that test the parsing
+ * of code to ensure that errors are correctly reported,
+ * and in some cases, not reported.
  */
 @reflectiveTest
-class ErrorParserTest extends ParserTestCase {
+class ErrorParserTest extends ParserTestCase with ErrorParserTestMixin {}
+
+abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   void test_abstractClassMember_constructor() {
     createParser('abstract C.c();');
     ClassMember member = parser.parseClassMember('C');
@@ -8306,11 +8318,7 @@ class ParserTestCase extends EngineTestCase
    */
   bool enableUriInPartOf = false;
 
-  /**
-   * The error listener to which scanner and parser errors will be reported.
-   *
-   * This field is typically initialized by invoking [createParser].
-   */
+  @override
   GatheringErrorListener listener;
 
   /**
@@ -8361,6 +8369,7 @@ class ParserTestCase extends EngineTestCase
     parser.currentToken = tokenStream;
   }
 
+  @override
   void expectNotNullIfNoErrors(Object result) {
     if (!listener.hasErrors) {
       expect(result, isNotNull);
