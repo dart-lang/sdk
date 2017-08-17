@@ -60,14 +60,10 @@ bool WeakCodeReferences::IsOptimizedCode(const Array& dependent_code,
 void WeakCodeReferences::DisableCode() {
   Thread* thread = Thread::Current();
   const Array& code_objects = Array::Handle(thread->zone(), array_.raw());
-#if defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(code_objects.IsNull());
-  return;
-#else
   if (code_objects.IsNull()) {
     return;
   }
-
+  ASSERT(!FLAG_precompiled_runtime);
   UpdateArrayTo(Object::null_array());
   // Disable all code on stack.
   Code& code = Code::Handle();
@@ -133,7 +129,6 @@ void WeakCodeReferences::DisableCode() {
       }
     }
   }
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 }  // namespace dart

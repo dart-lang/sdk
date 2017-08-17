@@ -36,7 +36,6 @@ uword RuntimeEntry::GetEntryPoint() const {
   return entry;
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 // Generate code to call into the stub which will call the runtime
 // function. Input for the stub is as follows:
 //   SP : points to the arguments and return value array.
@@ -54,7 +53,6 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     __ BranchLinkToRuntime();
   }
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart
 
