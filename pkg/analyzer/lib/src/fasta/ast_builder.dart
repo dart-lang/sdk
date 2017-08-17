@@ -1421,9 +1421,14 @@ class AstBuilder extends ScopeListener {
   @override
   void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
     debugEvent("PartOf");
-    List<SimpleIdentifier> libraryName = pop();
-    var name = ast.libraryIdentifier(libraryName);
-    StringLiteral uri = null; // TODO(paulberry)
+    var libraryNameOrUri = pop();
+    LibraryIdentifier name;
+    StringLiteral uri;
+    if (libraryNameOrUri is StringLiteral) {
+      uri = libraryNameOrUri;
+    } else {
+      name = ast.libraryIdentifier(libraryNameOrUri);
+    }
     // TODO(paulberry,ahe): seems hacky.  It would be nice if the parser passed
     // in a reference to the "of" keyword.
     var ofKeyword = partKeyword.next;

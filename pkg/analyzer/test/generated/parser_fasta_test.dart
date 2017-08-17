@@ -281,10 +281,9 @@ class FastaParserTestCase extends Object
 
   @override
   set enableUriInPartOf(bool value) {
-    if (value == true) {
-      // TODO(paulberry,ahe): URIs in "part of" declarations are not supported
-      // by Fasta.
-      throw new UnimplementedError();
+    if (value == false) {
+      throw new UnimplementedError(
+          'URIs in "part of" declarations cannot be disabled in Fasta.');
     }
   }
 
@@ -997,24 +996,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     // useful for quickly traversing an import graph.  Consider adding a similar
     // ability to Fasta's parser.
     super.test_parseDirectives_mixed();
-  }
-
-  @override
-  @failingTest
-  void test_parsePartOfDirective_name() {
-    // TODO(paulberry,ahe): Thes test verifies that even if URIs in "part of"
-    // declarations are enabled, a construct of the form "part of identifier;"
-    // is still properly handled.  URIs in "part of" declarations are not
-    // supported by Fasta yet.
-    super.test_parsePartOfDirective_name();
-  }
-
-  @override
-  @failingTest
-  void test_parsePartOfDirective_uri() {
-    // TODO(paulberry,ahe): URIs in "part of" declarations are not supported by
-    // Fasta.
-    super.test_parsePartOfDirective_uri();
   }
 
   @failingTest
