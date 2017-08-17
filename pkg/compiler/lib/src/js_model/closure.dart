@@ -509,12 +509,6 @@ class ClosureFieldData extends ClosureMemberData implements FieldData {
   ClosureFieldData(MemberDefinition definition) : super(definition);
 
   @override
-  DartType getFieldType(KernelToElementMap elementMap) {
-    // A closure field doesn't have a Dart type.
-    return null;
-  }
-
-  @override
   ConstantExpression getFieldConstant(
       KernelToElementMap elementMap, FieldEntity field) {
     failedAt(

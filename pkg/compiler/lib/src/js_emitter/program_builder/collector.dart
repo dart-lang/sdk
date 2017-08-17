@@ -48,7 +48,7 @@ class Collector {
   /// This flag is updated in [computeNeededConstants].
   bool outputContainsConstantList = false;
 
-  final List<ClassEntity> nativeClassesAndSubclasses = <ClassEntity>[];
+  final List<ClassElement> nativeClassesAndSubclasses = <ClassElement>[];
 
   List<TypedefEntity> typedefsNeededForReflection;
 
@@ -88,7 +88,7 @@ class Collector {
    */
   Function computeClassFilter() {
     if (_mirrorsData.isTreeShakingDisabled) {
-      return (ClassEntity cls) => true;
+      return (ClassElement cls) => true;
     }
 
     Set<ClassEntity> unneededClasses = new Set<ClassEntity>();
@@ -136,24 +136,17 @@ class Collector {
     if (_mirrorsData.mustRetainMetadata) {
       // TODO(floitsch): verify that we don't run through the same elements
       // multiple times.
-      for (MemberEntity element in _generatedCode.keys) {
+      for (MemberElement element in _generatedCode.keys) {
         if (_mirrorsData.isMemberAccessibleByReflection(element)) {
           _mirrorsData.retainMetadataOfMember(element);
         }
       }
-      for (ClassEntity cls in neededClasses) {
+      for (ClassElement cls in neededClasses) {
         final onlyForRti = classesOnlyNeededForRti.contains(cls);
         if (!onlyForRti) {
           _mirrorsData.retainMetadataOfClass(cls);
-          new FieldVisitor(
-                  _options,
-                  _elementEnvironment,
-                  _commonElements,
-                  _worldBuilder,
-                  _nativeData,
-                  _mirrorsData,
-                  _namer,
-                  _closedWorld)
+          new FieldVisitor(_options, _elementEnvironment, _worldBuilder,
+                  _nativeData, _mirrorsData, _namer, _closedWorld)
               .visitFields((FieldEntity member,
                   js.Name name,
                   js.Name accessorName,

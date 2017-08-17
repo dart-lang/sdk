@@ -9,7 +9,8 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements;
-import '../elements/elements.dart' show ClassElement, MethodElement;
+import '../elements/elements.dart'
+    show ClassElement, FieldElement, MethodElement;
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
@@ -1030,7 +1031,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction value = node.inputs.last;
     if (_options.enableTypeAssertions) {
       // TODO(redemption): Support field entities.
-      DartType type = _closedWorld.elementEnvironment.getFieldType(field);
+      FieldElement element = field;
+      DartType type = element.type;
       if (!type.treatAsRaw ||
           type.isTypeVariable ||
           type.unaliased.isFunctionType) {

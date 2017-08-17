@@ -619,12 +619,6 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     return data.getFunctionType(this);
   }
 
-  DartType _getFieldType(IndexedField field) {
-    assert(checkFamily(field));
-    FieldData data = _memberData[field.memberIndex];
-    return data.getFieldType(this);
-  }
-
   ClassEntity _getAppliedMixin(IndexedClass cls) {
     assert(checkFamily(cls));
     ClassData data = _classData[cls.classIndex];
@@ -1340,11 +1334,6 @@ class KernelElementEnvironment implements ElementEnvironment {
   @override
   FunctionType getFunctionType(FunctionEntity function) {
     return elementMap._getFunctionType(function);
-  }
-
-  @override
-  DartType getFieldType(FieldEntity field) {
-    return elementMap._getFieldType(field);
   }
 
   @override

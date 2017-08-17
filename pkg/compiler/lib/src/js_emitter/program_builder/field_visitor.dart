@@ -28,7 +28,6 @@ typedef void AcceptField(FieldEntity member, js.Name name, js.Name accessorName,
 class FieldVisitor {
   final CompilerOptions _options;
   final ElementEnvironment _elementEnvironment;
-  final CommonElements _commonElements;
   final CodegenWorldBuilder _codegenWorldBuilder;
   final NativeData _nativeData;
   final MirrorsData _mirrorsData;
@@ -38,7 +37,6 @@ class FieldVisitor {
   FieldVisitor(
       this._options,
       this._elementEnvironment,
-      this._commonElements,
       this._codegenWorldBuilder,
       this._nativeData,
       this._mirrorsData,
@@ -48,13 +46,13 @@ class FieldVisitor {
   /**
    * Invokes [f] for each of the fields of [element].
    *
-   * [element] must be a [ClassEntity] or a [LibraryEntity].
+   * [element] must be a [ClassElement] or a [LibraryElement].
    *
-   * If [element] is a [ClassEntity], the static fields of the class are
+   * If [element] is a [ClassElement], the static fields of the class are
    * visited if [visitStatics] is true and the instance fields are visited if
    * [visitStatics] is false.
    *
-   * If [element] is a [LibraryEntity], [visitStatics] must be true.
+   * If [element] is a [LibraryElement], [visitStatics] must be true.
    *
    * When visiting the instance fields of a class, the fields of its superclass
    * are also visited if the class is instantiated.
@@ -81,8 +79,8 @@ class FieldVisitor {
       isLibrary = true;
       assert(visitStatics, failedAt(library));
     } else {
-      failedAt(
-          NO_LOCATION_SPANNABLE, 'Expected a ClassEntity or a LibraryEntity.');
+      failedAt(NO_LOCATION_SPANNABLE,
+          'Expected a ClassElement or a LibraryElement.');
     }
 
     void visitField(FieldEntity field, {ClassEntity holder}) {
@@ -177,10 +175,10 @@ class FieldVisitor {
         field is ClosureFieldElement;
   }
 
-  bool canAvoidGeneratedCheckedSetter(FieldEntity member) {
+  bool canAvoidGeneratedCheckedSetter(FieldElement member) {
     // We never generate accessors for top-level/static fields.
     if (!member.isInstanceMember) return true;
-    DartType type = _elementEnvironment.getFieldType(member);
-    return type.treatAsDynamic || type == _commonElements.objectType;
+    ResolutionDartType type = member.type;
+    return type.treatAsDynamic || type.isObject;
   }
 }
