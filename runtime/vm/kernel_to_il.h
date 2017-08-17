@@ -612,7 +612,6 @@ class FlowGraphBuilder {
   intptr_t CurrentTryIndex();
   intptr_t AllocateTryIndex() { return next_used_try_index_++; }
 
-  dart::LocalVariable* LookupVariable(VariableDeclaration* var);
   dart::LocalVariable* LookupVariable(intptr_t kernel_offset);
 
   void SetTempIndex(Definition* definition);

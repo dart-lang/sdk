@@ -40,11 +40,10 @@ void FunctionNodeHelper::ReadUntilExcluding(Field field) {
       end_position_ = builder_->ReadPosition();  // read end position.
       if (++next_read_ == field) return;
     case kAsyncMarker:
-      async_marker_ = static_cast<FunctionNode::AsyncMarker>(
-          builder_->ReadByte());  // read async marker.
+      async_marker_ = static_cast<AsyncMarker>(builder_->ReadByte());
       if (++next_read_ == field) return;
     case kDartAsyncMarker:
-      dart_async_marker_ = static_cast<FunctionNode::AsyncMarker>(
+      dart_async_marker_ = static_cast<AsyncMarker>(
           builder_->ReadByte());  // read dart async marker.
       if (++next_read_ == field) return;
     case kTypeParameters:
@@ -103,6 +102,13 @@ void VariableDeclarationHelper::ReadUntilExcluding(Field field) {
     case kEnd:
       return;
   }
+}
+
+FieldHelper::FieldHelper(StreamingFlowGraphBuilder* builder, intptr_t offset)
+    : builder_(builder),
+      next_read_(kStart),
+      has_function_literal_initializer_(false) {
+  builder_->SetOffset(offset);
 }
 
 void FieldHelper::ReadUntilExcluding(Field field,
@@ -196,8 +202,7 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       end_position_ = builder_->ReadPosition(false);  // read end position.
       if (++next_read_ == field) return;
     case kKind:
-      kind_ = static_cast<Procedure::ProcedureKind>(
-          builder_->ReadByte());  // read kind.
+      kind_ = static_cast<Kind>(builder_->ReadByte());
       if (++next_read_ == field) return;
     case kFlags:
       flags_ = builder_->ReadFlags();  // read flags.
@@ -807,15 +812,16 @@ void StreamingScopeBuilder::VisitFunctionNode() {
   function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
 
   if (FLAG_causal_async_stacks &&
-      (function_node_helper.dart_async_marker_ == FunctionNode::kAsync ||
-       function_node_helper.dart_async_marker_ == FunctionNode::kAsyncStar)) {
+      (function_node_helper.dart_async_marker_ == FunctionNodeHelper::kAsync ||
+       function_node_helper.dart_async_marker_ ==
+           FunctionNodeHelper::kAsyncStar)) {
     LocalVariable* asyncStackTraceVar = MakeVariable(
         TokenPosition::kNoSource, TokenPosition::kNoSource,
         Symbols::AsyncStackTraceVar(), AbstractType::dynamic_type());
     scope_->AddVariable(asyncStackTraceVar);
   }
 
-  if (function_node_helper.async_marker_ == FunctionNode::kSyncYielding) {
+  if (function_node_helper.async_marker_ == FunctionNodeHelper::kSyncYielding) {
     LocalScope* scope = parsed_function_->node_sequence()->scope();
     intptr_t offset = parsed_function_->function().num_fixed_parameters();
     for (intptr_t i = 0;
@@ -837,7 +843,7 @@ void StreamingScopeBuilder::VisitFunctionNode() {
 
   // Ensure that :await_jump_var, :await_ctx_var, :async_op and
   // :async_stack_trace are captured.
-  if (function_node_helper.async_marker_ == FunctionNode::kSyncYielding) {
+  if (function_node_helper.async_marker_ == FunctionNodeHelper::kSyncYielding) {
     {
       LocalVariable* temp = NULL;
       LookupCapturedVariableByName(
@@ -1372,8 +1378,7 @@ void StreamingScopeBuilder::VisitStatement() {
       word flags = builder_->ReadByte();  // read flags.
       builder_->SkipExpression();         // read expression.
 
-      ASSERT((flags & YieldStatement::kFlagNative) ==
-             YieldStatement::kFlagNative);
+      ASSERT(flags == kNativeYieldFlags);
       if (depth_.function_ == 0) {
         AddSwitchVariable();
         // Promote all currently visible local variables into the context.
@@ -1576,9 +1581,9 @@ void StreamingScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
       FunctionNodeHelper::kPositionalParameters);
 
   LocalScope* saved_function_scope = current_function_scope_;
-  FunctionNode::AsyncMarker saved_function_async_marker =
+  FunctionNodeHelper::AsyncMarker saved_function_async_marker =
       current_function_async_marker_;
-  StreamingScopeBuilder::DepthState saved_depth_state = depth_;
+  DepthState saved_depth_state = depth_;
   depth_ = DepthState(depth_.function_ + 1);
   EnterScope(relative_kernel_offset_ + parent_kernel_offset);
   current_function_scope_ = scope_;
@@ -1679,7 +1684,7 @@ void StreamingScopeBuilder::AddExceptionVariable(
   // new local ones.
   // Note: function that wrap kSyncYielding function does not contain
   // its own try/catches.
-  if (current_function_async_marker_ == FunctionNode::kSyncYielding) {
+  if (current_function_async_marker_ == FunctionNodeHelper::kSyncYielding) {
     ASSERT(current_function_scope_->parent() != NULL);
     v = current_function_scope_->parent()->LocalLookupVariable(
         GenerateName(prefix, nesting_depth - 1));
@@ -2560,16 +2565,15 @@ void StreamingConstantEvaluator::EvaluateNot() {
 
 void StreamingConstantEvaluator::EvaluateLogicalExpression() {
   bool left = EvaluateBooleanExpressionHere();  // read left.
-  LogicalExpression::Operator op = static_cast<LogicalExpression::Operator>(
-      builder_->ReadByte());  // read operator.
-  if (op == LogicalExpression::kAnd) {
+  LogicalOperator op = static_cast<LogicalOperator>(builder_->ReadByte());
+  if (op == kAnd) {
     if (left) {
       EvaluateBooleanExpressionHere();  // read right.
     } else {
       builder_->SkipExpression();  // read right.
     }
   } else {
-    ASSERT(op == LogicalExpression::kOr);
+    ASSERT(op == kOr);
     if (!left) {
       EvaluateBooleanExpressionHere();  // read right.
     } else {
@@ -5809,10 +5813,9 @@ Fragment StreamingFlowGraphBuilder::BuildLogicalExpression(
 
   TargetEntryInstr* right_entry;
   TargetEntryInstr* constant_entry;
-  LogicalExpression::Operator op =
-      static_cast<LogicalExpression::Operator>(ReadByte());
+  LogicalOperator op = static_cast<LogicalOperator>(ReadByte());
 
-  if (op == LogicalExpression::kAnd) {
+  if (op == kAnd) {
     instructions += BranchIfTrue(&right_entry, &constant_entry, negate);
   } else {
     instructions += BranchIfTrue(&constant_entry, &right_entry, negate);
@@ -5831,7 +5834,7 @@ Fragment StreamingFlowGraphBuilder::BuildLogicalExpression(
 
   ASSERT(top == stack());
   Fragment constant_fragment(constant_entry);
-  constant_fragment += Constant(Bool::Get(op == LogicalExpression::kOr));
+  constant_fragment += Constant(Bool::Get(op == kOr));
   constant_fragment += StoreLocal(TokenPosition::kNoSource,
                                   parsed_function()->expression_temp_var());
   constant_fragment += Drop();
@@ -7214,8 +7217,7 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
   TokenPosition position = ReadPosition();  // read position.
   uint8_t flags = ReadByte();               // read flags.
 
-  ASSERT((flags & YieldStatement::kFlagNative) ==
-         YieldStatement::kFlagNative);  // Must have been desugared.
+  ASSERT(flags == kNativeYieldFlags);  // Must have been desugared.
 
   // Setup yield/continue point:
   //
@@ -7388,16 +7390,16 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           *name, parsed_function()->function(), position);
 
       function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
-                                 FunctionNode::kSync);
+                                 FunctionNodeHelper::kSync);
       switch (function_node_helper.dart_async_marker_) {
-        case FunctionNode::kSyncStar:
+        case FunctionNodeHelper::kSyncStar:
           function.set_modifier(RawFunction::kSyncGen);
           break;
-        case FunctionNode::kAsync:
+        case FunctionNodeHelper::kAsync:
           function.set_modifier(RawFunction::kAsync);
           function.set_is_inlinable(!FLAG_causal_async_stacks);
           break;
-        case FunctionNode::kAsyncStar:
+        case FunctionNodeHelper::kAsyncStar:
           function.set_modifier(RawFunction::kAsyncGen);
           function.set_is_inlinable(!FLAG_causal_async_stacks);
           break;
@@ -7406,7 +7408,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           break;
       }
       function.set_is_generated_body(function_node_helper.async_marker_ ==
-                                     FunctionNode::kSyncYielding);
+                                     FunctionNodeHelper::kSyncYielding);
       if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
         function.set_is_inlinable(!FLAG_causal_async_stacks);
       }

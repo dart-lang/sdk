@@ -136,8 +136,7 @@ class KernelReader {
   dart::Library& LookupLibrary(NameIndex library);
   dart::Class& LookupClass(NameIndex klass);
 
-  dart::RawFunction::Kind GetFunctionType(
-      Procedure::ProcedureKind procedure_kind);
+  dart::RawFunction::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
 
   Program* program_;
 

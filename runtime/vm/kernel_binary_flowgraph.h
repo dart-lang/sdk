@@ -17,6 +17,422 @@
 namespace dart {
 namespace kernel {
 
+// Helper class that reads a kernel FunctionNode from binary.
+//
+// Use ReadUntilExcluding to read up to but not including a field.
+// One can then for instance read the field from the call-site (and remember to
+// call SetAt to inform this helper class), and then use this to read more.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
+class FunctionNodeHelper {
+ public:
+  enum Field {
+    kStart,  // tag.
+    kPosition,
+    kEndPosition,
+    kAsyncMarker,
+    kDartAsyncMarker,
+    kTypeParameters,
+    kTotalParameterCount,
+    kRequiredParameterCount,
+    kPositionalParameters,
+    kNamedParameters,
+    kReturnType,
+    kBody,
+    kEnd,
+  };
+
+  enum AsyncMarker {
+    kSync = 0,
+    kSyncStar = 1,
+    kAsync = 2,
+    kAsyncStar = 3,
+    kSyncYielding = 4,
+  };
+
+  explicit FunctionNodeHelper(StreamingFlowGraphBuilder* builder) {
+    builder_ = builder;
+    next_read_ = kStart;
+  }
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field);
+
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
+
+  TokenPosition position_;
+  TokenPosition end_position_;
+  AsyncMarker async_marker_;
+  AsyncMarker dart_async_marker_;
+  intptr_t total_parameter_count_;
+  intptr_t required_parameter_count_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
+};
+
+// Helper class that reads a kernel VariableDeclaration from binary.
+//
+// Use ReadUntilExcluding to read up to but not including a field.
+// One can then for instance read the field from the call-site (and remember to
+// call SetAt to inform this helper class), and then use this to read more.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
+class VariableDeclarationHelper {
+ public:
+  enum Field {
+    kPosition,
+    kEqualPosition,
+    kFlags,
+    kNameIndex,
+    kType,
+    kInitializer,
+    kEnd,
+  };
+
+  enum Flag {
+    kFinal = 1 << 0,
+    kConst = 1 << 1,
+  };
+
+  explicit VariableDeclarationHelper(StreamingFlowGraphBuilder* builder) {
+    builder_ = builder;
+    next_read_ = kPosition;
+  }
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field);
+
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
+
+  bool IsConst() { return (flags_ & kConst) != 0; }
+  bool IsFinal() { return (flags_ & kFinal) != 0; }
+
+  TokenPosition position_;
+  TokenPosition equals_position_;
+  word flags_;
+  StringIndex name_index_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
+};
+
+// Helper class that reads a kernel Field from binary.
+//
+// Use ReadUntilExcluding to read up to but not including a field.
+// One can then for instance read the field from the call-site (and remember to
+// call SetAt to inform this helper class), and then use this to read more.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
+class FieldHelper {
+ public:
+  enum Field {
+    kStart,  // tag.
+    kCanonicalName,
+    kPosition,
+    kEndPosition,
+    kFlags,
+    kName,
+    kSourceUriIndex,
+    kDocumentationCommentIndex,
+    kAnnotations,
+    kType,
+    kInitializer,
+    kEnd,
+  };
+
+  enum Flag {
+    kFinal = 1 << 0,
+    kConst = 1 << 1,
+    kStatic = 1 << 2,
+  };
+
+  explicit FieldHelper(StreamingFlowGraphBuilder* builder)
+      : builder_(builder),
+        next_read_(kStart),
+        has_function_literal_initializer_(false) {}
+
+  FieldHelper(StreamingFlowGraphBuilder* builder, intptr_t offset);
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field,
+                          bool detect_function_literal_initializer = false);
+
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
+
+  bool IsConst() { return (flags_ & kConst) != 0; }
+  bool IsFinal() { return (flags_ & kFinal) != 0; }
+  bool IsStatic() { return (flags_ & kStatic) != 0; }
+
+  bool FieldHasFunctionLiteralInitializer(TokenPosition* start,
+                                          TokenPosition* end) {
+    if (has_function_literal_initializer_) {
+      *start = function_literal_start_;
+      *end = function_literal_end_;
+    }
+    return has_function_literal_initializer_;
+  }
+
+  NameIndex canonical_name_;
+  TokenPosition position_;
+  TokenPosition end_position_;
+  word flags_;
+  intptr_t source_uri_index_;
+  intptr_t annotation_count_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
+
+  bool has_function_literal_initializer_;
+  TokenPosition function_literal_start_;
+  TokenPosition function_literal_end_;
+};
+
+// Helper class that reads a kernel Procedure from binary.
+//
+// Use ReadUntilExcluding to read up to but not including a field.
+// One can then for instance read the field from the call-site (and remember to
+// call SetAt to inform this helper class), and then use this to read more.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
+class ProcedureHelper {
+ public:
+  enum Field {
+    kStart,  // tag.
+    kCanonicalName,
+    kPosition,
+    kEndPosition,
+    kKind,
+    kFlags,
+    kName,
+    kSourceUriIndex,
+    kDocumentationCommentIndex,
+    kAnnotations,
+    kFunction,
+    kEnd,
+  };
+
+  enum Kind {
+    kMethod,
+    kGetter,
+    kSetter,
+    kOperator,
+    kFactory,
+  };
+
+  enum Flag {
+    kStatic = 1 << 0,
+    kAbstract = 1 << 1,
+    kExternal = 1 << 2,
+    kConst = 1 << 3,  // Only for external const factories.
+  };
+
+  explicit ProcedureHelper(StreamingFlowGraphBuilder* builder) {
+    builder_ = builder;
+    next_read_ = kStart;
+  }
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field);
+
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
+
+  bool IsStatic() { return (flags_ & kStatic) != 0; }
+  bool IsAbstract() { return (flags_ & kAbstract) != 0; }
+  bool IsExternal() { return (flags_ & kExternal) != 0; }
+  bool IsConst() { return (flags_ & kConst) != 0; }
+
+  NameIndex canonical_name_;
+  TokenPosition position_;
+  TokenPosition end_position_;
+  Kind kind_;
+  word flags_;
+  intptr_t source_uri_index_;
+  intptr_t annotation_count_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
+};
+
+// Helper class that reads a kernel Constructor from binary.
+//
+// Use ReadUntilExcluding to read up to but not including a field.
+// One can then for instance read the field from the call-site (and remember to
+// call SetAt to inform this helper class), and then use this to read more.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
+class ConstructorHelper {
+ public:
+  enum Field {
+    kStart,  // tag.
+    kCanonicalName,
+    kPosition,
+    kEndPosition,
+    kFlags,
+    kName,
+    kDocumentationCommentIndex,
+    kAnnotations,
+    kFunction,
+    kInitializers,
+    kEnd,
+  };
+
+  enum Flag {
+    kConst = 1 << 0,
+    kExternal = 1 << 1,
+  };
+
+  explicit ConstructorHelper(StreamingFlowGraphBuilder* builder) {
+    builder_ = builder;
+    next_read_ = kStart;
+  }
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field);
+
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
+
+  bool IsExternal() { return (flags_ & kExternal) != 0; }
+  bool IsConst() { return (flags_ & kConst) != 0; }
+
+  NameIndex canonical_name_;
+  TokenPosition position_;
+  TokenPosition end_position_;
+  word flags_;
+  intptr_t annotation_count_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
+};
+
+// Helper class that reads a kernel Class from binary.
+//
+// Use ReadUntilExcluding to read up to but not including a field.
+// One can then for instance read the field from the call-site (and remember to
+// call SetAt to inform this helper class), and then use this to read more.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
+class ClassHelper {
+ public:
+  enum Field {
+    kStart,  // tag.
+    kCanonicalName,
+    kPosition,
+    kEndPosition,
+    kIsAbstract,
+    kNameIndex,
+    kSourceUriIndex,
+    kDocumentationCommentIndex,
+    kAnnotations,
+    kTypeParameters,
+    kSuperClass,
+    kMixinType,
+    kImplementedClasses,
+    kFields,
+    kConstructors,
+    kProcedures,
+    kEnd,
+  };
+
+  explicit ClassHelper(StreamingFlowGraphBuilder* builder) {
+    builder_ = builder;
+    next_read_ = kStart;
+  }
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field);
+
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
+
+  NameIndex canonical_name_;
+  TokenPosition position_;
+  TokenPosition end_position_;
+  bool is_abstract_;
+  StringIndex name_index_;
+  intptr_t source_uri_index_;
+  intptr_t annotation_count_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
+};
+
+// Helper class that reads a kernel Library from binary.
+//
+// Use ReadUntilExcluding to read up to but not including a field.
+// One can then for instance read the field from the call-site (and remember to
+// call SetAt to inform this helper class), and then use this to read more.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
+class LibraryHelper {
+ public:
+  enum Field {
+    kFlags,
+    kCanonicalName,
+    kName,
+    kSourceUriIndex,
+    kAnnotations,
+    kDependencies,
+    kParts,
+    kTypedefs,
+    kClasses,
+    kToplevelField,
+    kToplevelProcedures,
+    kEnd,
+  };
+
+  explicit LibraryHelper(StreamingFlowGraphBuilder* builder) {
+    builder_ = builder;
+    next_read_ = kFlags;
+  }
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field);
+
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
+
+  NameIndex canonical_name_;
+  StringIndex name_index_;
+  intptr_t source_uri_index_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
+};
+
 class StreamingDartTypeTranslator {
  public:
   StreamingDartTypeTranslator(StreamingFlowGraphBuilder* builder,
@@ -183,7 +599,7 @@ class StreamingScopeBuilder {
   TranslationHelper translation_helper_;
   Zone* zone_;
 
-  FunctionNode::AsyncMarker current_function_async_marker_;
+  FunctionNodeHelper::AsyncMarker current_function_async_marker_;
   LocalScope* current_function_scope_;
   LocalScope* scope_;
   DepthState depth_;
@@ -291,8 +707,6 @@ class StreamingConstantEvaluator {
   Script& script_;
   Instance& result_;
 };
-
-class FunctionNodeHelper;
 
 class StreamingFlowGraphBuilder {
  public:
@@ -708,412 +1122,6 @@ class AlternativeReadingScope {
   const uint8_t* saved_raw_buffer_;
   const TypedData* saved_typed_data_;
   intptr_t saved_offset_;
-};
-
-// Helper class that reads a kernel FunctionNode from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// Simple fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a compound field (e.g. an expression) it will be skipped.
-class FunctionNodeHelper {
- public:
-  enum Field {
-    kStart,  // tag.
-    kPosition,
-    kEndPosition,
-    kAsyncMarker,
-    kDartAsyncMarker,
-    kTypeParameters,
-    kTotalParameterCount,
-    kRequiredParameterCount,
-    kPositionalParameters,
-    kNamedParameters,
-    kReturnType,
-    kBody,
-    kEnd
-  };
-
-  explicit FunctionNodeHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kStart;
-  }
-
-  void ReadUntilIncluding(Field field) {
-    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Field field);
-
-  void SetNext(Field field) { next_read_ = field; }
-  void SetJustRead(Field field) { next_read_ = field + 1; }
-
-  TokenPosition position_;
-  TokenPosition end_position_;
-  FunctionNode::AsyncMarker async_marker_;
-  FunctionNode::AsyncMarker dart_async_marker_;
-  intptr_t total_parameter_count_;
-  intptr_t required_parameter_count_;
-
- private:
-  StreamingFlowGraphBuilder* builder_;
-  intptr_t next_read_;
-};
-
-// Helper class that reads a kernel VariableDeclaration from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// Simple fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a compound field (e.g. an expression) it will be skipped.
-class VariableDeclarationHelper {
- public:
-  enum Field {
-    kPosition,
-    kEqualPosition,
-    kFlags,
-    kNameIndex,
-    kType,
-    kInitializer,
-    kEnd
-  };
-
-  explicit VariableDeclarationHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kPosition;
-  }
-
-  void ReadUntilIncluding(Field field) {
-    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Field field);
-
-  void SetNext(Field field) { next_read_ = field; }
-  void SetJustRead(Field field) { next_read_ = field + 1; }
-
-  bool IsConst() {
-    return (flags_ & VariableDeclaration::kFlagConst) ==
-           VariableDeclaration::kFlagConst;
-  }
-  bool IsFinal() {
-    return (flags_ & VariableDeclaration::kFlagFinal) ==
-           VariableDeclaration::kFlagFinal;
-  }
-
-  TokenPosition position_;
-  TokenPosition equals_position_;
-  word flags_;
-  StringIndex name_index_;
-
- private:
-  StreamingFlowGraphBuilder* builder_;
-  intptr_t next_read_;
-};
-
-// Helper class that reads a kernel Field from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// Simple fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a compound field (e.g. an expression) it will be skipped.
-class FieldHelper {
- public:
-  enum Field {
-    kStart,  // tag.
-    kCanonicalName,
-    kPosition,
-    kEndPosition,
-    kFlags,
-    kName,
-    kSourceUriIndex,
-    kDocumentationCommentIndex,
-    kAnnotations,
-    kType,
-    kInitializer,
-    kEnd
-  };
-
-  explicit FieldHelper(StreamingFlowGraphBuilder* builder)
-      : builder_(builder),
-        next_read_(kStart),
-        has_function_literal_initializer_(false) {}
-
-  FieldHelper(StreamingFlowGraphBuilder* builder, intptr_t offset)
-      : builder_(builder),
-        next_read_(kStart),
-        has_function_literal_initializer_(false) {
-    builder_->SetOffset(offset);
-  }
-
-  void ReadUntilIncluding(Field field) {
-    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Field field,
-                          bool detect_function_literal_initializer = false);
-
-  void SetNext(Field field) { next_read_ = field; }
-  void SetJustRead(Field field) { next_read_ = field + 1; }
-
-  bool IsConst() {
-    return (flags_ & kernel::Field::kFlagConst) == kernel::Field::kFlagConst;
-  }
-  bool IsFinal() {
-    return (flags_ & kernel::Field::kFlagFinal) == kernel::Field::kFlagFinal;
-  }
-  bool IsStatic() {
-    return (flags_ & kernel::Field::kFlagStatic) == kernel::Field::kFlagStatic;
-  }
-
-  bool FieldHasFunctionLiteralInitializer(TokenPosition* start,
-                                          TokenPosition* end) {
-    if (has_function_literal_initializer_) {
-      *start = function_literal_start_;
-      *end = function_literal_end_;
-    }
-    return has_function_literal_initializer_;
-  }
-
-  NameIndex canonical_name_;
-  TokenPosition position_;
-  TokenPosition end_position_;
-  word flags_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
-
- private:
-  StreamingFlowGraphBuilder* builder_;
-  intptr_t next_read_;
-
-  bool has_function_literal_initializer_;
-  TokenPosition function_literal_start_;
-  TokenPosition function_literal_end_;
-};
-
-// Helper class that reads a kernel Procedure from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// Simple fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a compound field (e.g. an expression) it will be skipped.
-class ProcedureHelper {
- public:
-  enum Field {
-    kStart,  // tag.
-    kCanonicalName,
-    kPosition,
-    kEndPosition,
-    kKind,
-    kFlags,
-    kName,
-    kSourceUriIndex,
-    kDocumentationCommentIndex,
-    kAnnotations,
-    kFunction,
-    kEnd
-  };
-
-  explicit ProcedureHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kStart;
-  }
-
-  void ReadUntilIncluding(Field field) {
-    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Field field);
-
-  void SetNext(Field field) { next_read_ = field; }
-  void SetJustRead(Field field) { next_read_ = field + 1; }
-
-  bool IsStatic() {
-    return (flags_ & Procedure::kFlagStatic) == Procedure::kFlagStatic;
-  }
-  bool IsAbstract() {
-    return (flags_ & Procedure::kFlagAbstract) == Procedure::kFlagAbstract;
-  }
-  bool IsExternal() {
-    return (flags_ & Procedure::kFlagExternal) == Procedure::kFlagExternal;
-  }
-  bool IsConst() {
-    return (flags_ & Procedure::kFlagConst) == Procedure::kFlagConst;
-  }
-
-  NameIndex canonical_name_;
-  TokenPosition position_;
-  TokenPosition end_position_;
-  Procedure::ProcedureKind kind_;
-  word flags_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
-
- private:
-  StreamingFlowGraphBuilder* builder_;
-  intptr_t next_read_;
-};
-
-// Helper class that reads a kernel Constructor from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// Simple fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a compound field (e.g. an expression) it will be skipped.
-class ConstructorHelper {
- public:
-  enum Field {
-    kStart,  // tag.
-    kCanonicalName,
-    kPosition,
-    kEndPosition,
-    kFlags,
-    kName,
-    kDocumentationCommentIndex,
-    kAnnotations,
-    kFunction,
-    kInitializers,
-    kEnd
-  };
-
-  explicit ConstructorHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kStart;
-  }
-
-  void ReadUntilIncluding(Field field) {
-    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Field field);
-
-  void SetNext(Field field) { next_read_ = field; }
-  void SetJustRead(Field field) { next_read_ = field + 1; }
-
-  bool IsExternal() {
-    return (flags_ & Constructor::kFlagExternal) == Constructor::kFlagExternal;
-  }
-  bool IsConst() {
-    return (flags_ & Constructor::kFlagConst) == Constructor::kFlagConst;
-  }
-
-  NameIndex canonical_name_;
-  TokenPosition position_;
-  TokenPosition end_position_;
-  word flags_;
-  intptr_t annotation_count_;
-
- private:
-  StreamingFlowGraphBuilder* builder_;
-  intptr_t next_read_;
-};
-
-// Helper class that reads a kernel Class from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// Simple fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a compound field (e.g. an expression) it will be skipped.
-class ClassHelper {
- public:
-  enum Field {
-    kStart,  // tag.
-    kCanonicalName,
-    kPosition,
-    kEndPosition,
-    kIsAbstract,
-    kNameIndex,
-    kSourceUriIndex,
-    kDocumentationCommentIndex,
-    kAnnotations,
-    kTypeParameters,
-    kSuperClass,
-    kMixinType,
-    kImplementedClasses,
-    kFields,
-    kConstructors,
-    kProcedures,
-    kEnd
-  };
-
-  explicit ClassHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kStart;
-  }
-
-  void ReadUntilIncluding(Field field) {
-    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Field field);
-
-  void SetNext(Field field) { next_read_ = field; }
-  void SetJustRead(Field field) { next_read_ = field + 1; }
-
-  NameIndex canonical_name_;
-  TokenPosition position_;
-  TokenPosition end_position_;
-  bool is_abstract_;
-  StringIndex name_index_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
-
- private:
-  StreamingFlowGraphBuilder* builder_;
-  intptr_t next_read_;
-};
-
-// Helper class that reads a kernel Library from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// Simple fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a compound field (e.g. an expression) it will be skipped.
-class LibraryHelper {
- public:
-  enum Field {
-    kFlags,
-    kCanonicalName,
-    kName,
-    kSourceUriIndex,
-    kAnnotations,
-    kDependencies,
-    kParts,
-    kTypedefs,
-    kClasses,
-    kToplevelField,
-    kToplevelProcedures,
-    kEnd
-  };
-
-  explicit LibraryHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kFlags;
-  }
-
-  void ReadUntilIncluding(Field field) {
-    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Field field);
-
-  void SetNext(Field field) { next_read_ = field; }
-  void SetJustRead(Field field) { next_read_ = field + 1; }
-
-  NameIndex canonical_name_;
-  StringIndex name_index_;
-  intptr_t source_uri_index_;
-
- private:
-  StreamingFlowGraphBuilder* builder_;
-  intptr_t next_read_;
 };
 
 }  // namespace kernel

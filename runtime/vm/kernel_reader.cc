@@ -610,16 +610,16 @@ void KernelReader::ReadProcedure(const dart::Library& library,
   FunctionNodeHelper function_node_helper(&builder_);
   function_node_helper.ReadUntilIncluding(FunctionNodeHelper::kDartAsyncMarker);
   function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
-                             FunctionNode::kSync);
+                             FunctionNodeHelper::kSync);
   switch (function_node_helper.dart_async_marker_) {
-    case FunctionNode::kSyncStar:
+    case FunctionNodeHelper::kSyncStar:
       function.set_modifier(RawFunction::kSyncGen);
       break;
-    case FunctionNode::kAsync:
+    case FunctionNodeHelper::kAsync:
       function.set_modifier(RawFunction::kAsync);
       function.set_is_inlinable(!FLAG_causal_async_stacks);
       break;
-    case FunctionNode::kAsyncStar:
+    case FunctionNodeHelper::kAsyncStar:
       function.set_modifier(RawFunction::kAsyncGen);
       function.set_is_inlinable(!FLAG_causal_async_stacks);
       break;
@@ -627,7 +627,7 @@ void KernelReader::ReadProcedure(const dart::Library& library,
       // no special modifier
       break;
   }
-  ASSERT(function_node_helper.async_marker_ == FunctionNode::kSync);
+  ASSERT(function_node_helper.async_marker_ == FunctionNodeHelper::kSync);
 
   if (native_name != NULL) {
     function.set_native_name(*native_name);
@@ -919,7 +919,7 @@ dart::Class& KernelReader::LookupClass(NameIndex klass) {
 }
 
 RawFunction::Kind KernelReader::GetFunctionType(
-    Procedure::ProcedureKind procedure_kind) {
+    ProcedureHelper::Kind procedure_kind) {
   intptr_t lookuptable[] = {
       RawFunction::kRegularFunction,  // Procedure::kMethod
       RawFunction::kGetterFunction,   // Procedure::kGetter
@@ -928,12 +928,8 @@ RawFunction::Kind KernelReader::GetFunctionType(
       RawFunction::kConstructor,      // Procedure::kFactory
   };
   intptr_t kind = static_cast<int>(procedure_kind);
-  if (kind == Procedure::kIncompleteProcedure) {
-    return RawFunction::kSignatureFunction;
-  } else {
-    ASSERT(0 <= kind && kind <= Procedure::kFactory);
-    return static_cast<RawFunction::Kind>(lookuptable[kind]);
-  }
+  ASSERT(0 <= kind && kind <= ProcedureHelper::kFactory);
+  return static_cast<RawFunction::Kind>(lookuptable[kind]);
 }
 
 bool KernelReader::FieldHasFunctionLiteralInitializer(const dart::Field& field,

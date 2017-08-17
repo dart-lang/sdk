@@ -44,75 +44,9 @@ class NameIndex {
   int value_;
 };
 
-class Field {
- public:
-  enum Flags {
-    kFlagFinal = 1 << 0,
-    kFlagConst = 1 << 1,
-    kFlagStatic = 1 << 2,
-  };
-};
+const uint8_t kNativeYieldFlags = 0x2;
 
-class Constructor {
- public:
-  enum Flags {
-    kFlagConst = 1 << 0,
-    kFlagExternal = 1 << 1,
-  };
-};
-
-class Procedure {
- public:
-  enum Flags {
-    kFlagStatic = 1 << 0,
-    kFlagAbstract = 1 << 1,
-    kFlagExternal = 1 << 2,
-    kFlagConst = 1 << 3,  // Only for external const factories.
-  };
-
-  // Keep in sync with package:dynamo/lib/ast.dart:ProcedureKind
-  enum ProcedureKind {
-    kMethod,
-    kGetter,
-    kSetter,
-    kOperator,
-    kFactory,
-
-    kIncompleteProcedure = 255
-  };
-};
-
-class FunctionNode {
- public:
-  enum AsyncMarker {
-    kSync = 0,
-    kSyncStar = 1,
-    kAsync = 2,
-    kAsyncStar = 3,
-    kSyncYielding = 4,
-  };
-};
-
-class VariableDeclaration {
- public:
-  enum Flags {
-    kFlagFinal = 1 << 0,
-    kFlagConst = 1 << 1,
-  };
-};
-
-class YieldStatement {
- public:
-  enum {
-    kFlagYieldStar = 1 << 0,
-    kFlagNative = 1 << 1,
-  };
-};
-
-class LogicalExpression {
- public:
-  enum Operator { kAnd, kOr };
-};
+enum LogicalOperator { kAnd, kOr };
 
 class Program {
  public:
