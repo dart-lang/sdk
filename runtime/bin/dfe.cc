@@ -63,7 +63,10 @@ Dart_Handle DFE::ReloadScript(Dart_Isolate isolate, const char* url_string) {
     // TODO(asiva): We will have to change this API to pass in a list of files
     // that have changed. For now just pass in the main url_string and have it
     // recompile the script.
-    Dart_KernelCompilationResult kresult = Dart_CompileToKernel(url_string);
+    // TODO(aam): When Frontend is ready, VM should be passing outline.dill
+    // instead of platform.dill to Frontend for compilation.
+    Dart_KernelCompilationResult kresult =
+        Dart_CompileToKernel(url_string, platform_binary_filename_);
     if (kresult.status != Dart_KernelCompilationStatus_Ok) {
       return Dart_NewApiError(kresult.error);
     }
@@ -88,7 +91,10 @@ Dart_Handle DFE::ReloadScript(Dart_Isolate isolate, const char* url_string) {
 void* DFE::CompileAndReadScript(const char* script_uri,
                                 char** error,
                                 int* exit_code) {
-  Dart_KernelCompilationResult result = Dart_CompileToKernel(script_uri);
+  // TODO(aam): When Frontend is ready, VM should be passing outline.dill
+  // instead of platform.dill to Frontend for compilation.
+  Dart_KernelCompilationResult result =
+      Dart_CompileToKernel(script_uri, platform_binary_filename_);
   switch (result.status) {
     case Dart_KernelCompilationStatus_Ok:
       return Dart_ReadKernelBinary(result.kernel, result.kernel_size);

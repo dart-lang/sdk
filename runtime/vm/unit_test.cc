@@ -191,7 +191,8 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          bool incrementally) {
   Zone* zone = Thread::Current()->zone();
   Dart_KernelCompilationResult compilation_result = Dart_CompileSourcesToKernel(
-      url, sourcefiles_count, sourcefiles, incrementally);
+      url, NULL /* platform binary can be found at the default location */,
+      sourcefiles_count, sourcefiles, incrementally);
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
     return OS::SCreate(zone, "Compilation failed %s", compilation_result.error);
