@@ -583,6 +583,7 @@ class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 closure_in_field_test/01: Crash
 closure_in_field_test/02: Crash
+closure_in_field_test/none: Crash # 'file:///c:/Users/johnniwinther/dart-repo3/sdk/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 340 pos 14: 'value != null': No value for field j:field(Mixin.field)
 compile_time_constant_a_test: Crash
 compile_time_constant_b_test: Crash
 compile_time_constant_c_test/02: Crash
@@ -1498,6 +1499,7 @@ class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 closure_in_field_test/01: Crash
 closure_in_field_test/02: Crash
+closure_in_field_test/none: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 compile_time_constant_a_test: Crash
 compile_time_constant_b_test: Crash
 compile_time_constant_c_test/02: Crash
