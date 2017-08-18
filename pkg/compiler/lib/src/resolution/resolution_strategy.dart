@@ -6,6 +6,7 @@ library dart2js.resolution_strategy;
 
 import 'package:front_end/src/fasta/scanner.dart' show Token;
 
+import '../../compiler_new.dart' as api;
 import '../common.dart';
 import '../common_elements.dart';
 import '../common/backend_api.dart';
@@ -32,7 +33,9 @@ import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
 import '../library_loader.dart';
+import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
+import '../options.dart';
 import '../tree/tree.dart' show Node;
 import '../serialization/task.dart';
 import '../patch_parser.dart';
@@ -45,7 +48,8 @@ import 'no_such_method_resolver.dart';
 
 /// [FrontendStrategy] that loads '.dart' files and creates a resolved element
 /// model using the resolver.
-class ResolutionFrontEndStrategy implements FrontendStrategy {
+class ResolutionFrontEndStrategy extends FrontendStrategyBase
+    with ComputeSpannableMixin {
   final Compiler _compiler;
   final _CompilerElementEnvironment _elementEnvironment;
   final CommonElements commonElements;
@@ -70,6 +74,7 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
   LibraryLoaderTask createLibraryLoader(
       ResolvedUriTranslator uriTranslator,
       ScriptLoader scriptLoader,
+      api.CompilerInput compilerInput,
       ElementScanner scriptScanner,
       LibraryDeserializer deserializer,
       PatchResolverFunction patchResolverFunc,
@@ -89,8 +94,8 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
         measurer);
   }
 
-  AnnotationProcessor get annotationProcesser =>
-      _annotationProcessor ??= new _ElementAnnotationProcessor(_compiler);
+  AnnotationProcessor get annotationProcesser => _annotationProcessor ??=
+      new _ElementAnnotationProcessor(_compiler, nativeBasicDataBuilder);
 
   @override
   NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData) {
@@ -106,7 +111,8 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
       new ResolutionNoSuchMethodResolver();
 
   MirrorsDataBuilder createMirrorsDataBuilder() {
-    return new MirrorsDataImpl(_compiler, _compiler.options, commonElements);
+    return new ResolutionMirrorsData(
+        _compiler, _compiler.options, elementEnvironment, commonElements);
   }
 
   MirrorsResolutionAnalysis createMirrorsResolutionAnalysis(
@@ -123,6 +129,8 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
       NativeDataBuilder nativeDataBuilder,
       InterceptorDataBuilder interceptorDataBuilder,
       BackendUsageBuilder backendUsageBuilder,
+      RuntimeTypesNeedBuilder rtiNeedBuilder,
+      NativeResolutionEnqueuer nativeResolutionEnqueuer,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
     return new ElementResolutionWorldBuilder(
         _compiler.backend,
@@ -131,6 +139,8 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
         nativeDataBuilder,
         interceptorDataBuilder,
         backendUsageBuilder,
+        rtiNeedBuilder,
+        nativeResolutionEnqueuer,
         selectorConstraintsStrategy);
   }
 
@@ -217,7 +227,9 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
     _elementEnvironment._mainFunction = mainMethod;
     return mainMethod;
   }
+}
 
+class ComputeSpannableMixin {
   SourceSpan spanFromToken(Element currentElement, Token token) =>
       _spanFromTokens(currentElement, token, token);
 
@@ -460,7 +472,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
         member = abstractField.getter;
       }
       if (member == null && required) {
-        throw new SpannableAssertionFailure(
+        failedAt(
             cls,
             "The class '${cls.name}' does not contain required "
             "${setter ? 'setter' : 'getter'}: '$name'.");
@@ -515,6 +527,12 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  void forEachConstructorBody(
+      covariant ClassElement cls, void f(ConstructorBodyEntity constructor)) {
+    cls.forEachConstructorBody(f);
+  }
+
+  @override
   ClassEntity getSuperClass(covariant ClassElement cls,
       {bool skipUnnamedMixinApplications: false}) {
     cls.ensureResolved(_resolution);
@@ -556,14 +574,14 @@ class _CompilerElementEnvironment implements ElementEnvironment {
         member = abstractField.getter;
       }
       if (member == null && required) {
-        throw new SpannableAssertionFailure(
+        failedAt(
             library,
             "The library '${library.canonicalUri}' does not contain required "
             "${setter ? 'setter' : 'getter'}: '$name'.");
       }
     }
     if (member == null && required) {
-      throw new SpannableAssertionFailure(
+      failedAt(
           member,
           "The library '${library.libraryName}' does not "
           "contain required member: '$name'.");
@@ -587,7 +605,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
       {bool required: false}) {
     ClassElement cls = library.implementation.findLocal(name);
     if (cls == null && required) {
-      throw new SpannableAssertionFailure(
+      failedAt(
           library,
           "The library '${library.libraryName}' does not "
           "contain required class: '$name'.");
@@ -617,8 +635,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
       return null;
     }
     if (library == null && required) {
-      throw new SpannableAssertionFailure(
-          NO_LOCATION_SPANNABLE, "The library '${uri}' was not found.");
+      failedAt(NO_LOCATION_SPANNABLE, "The library '${uri}' was not found.");
     }
     return library;
   }
@@ -634,7 +651,26 @@ class _CompilerElementEnvironment implements ElementEnvironment {
       return method.constructor.type;
     }
     method.computeType(_resolution);
-    return method.type;
+    ResolutionFunctionType type = method.type;
+    if (method.isConstructor) {
+      ConstructorElement constructor = method;
+      if (constructor.definingConstructor != null) {
+        // The type of a defining constructor doesn't use the right type
+        // variables. Substitute the type variable of the defining class by the
+        // type variables of the enclosing class.
+        ClassElement definingClass =
+            constructor.definingConstructor.enclosingClass;
+        type = type.substByContext(
+            method.enclosingClass.thisType.asInstanceOf(definingClass));
+      }
+    }
+    return type;
+  }
+
+  @override
+  DartType getFieldType(covariant FieldElement field) {
+    field.computeType(_resolution);
+    return field.type;
   }
 
   @override
@@ -650,19 +686,53 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  Iterable<ConstantValue> getMemberMetadata(covariant MemberElement element) {
+  Iterable<ConstantValue> getMemberMetadata(covariant MemberElement element,
+      {bool includeParameterMetadata: false}) {
     List<ConstantValue> values = <ConstantValue>[];
+    values.addAll(_getMetadataOf(element));
+    if (includeParameterMetadata) {
+      if (element.isFunction || element.isConstructor || element.isSetter) {
+        MethodElement function = element.implementation;
+        function.functionSignature.forEachParameter(
+            (parameter) => values.addAll(_getMetadataOf(parameter)));
+      }
+    }
+    return values;
+  }
+
+  @override
+  Iterable<ConstantValue> getLibraryMetadata(covariant LibraryElement element) {
+    return _getMetadataOf(element);
+  }
+
+  @override
+  Iterable<ConstantValue> getClassMetadata(covariant ClassElement element) {
+    return _getMetadataOf(element);
+  }
+
+  @override
+  Iterable<ConstantValue> getTypedefMetadata(covariant TypedefElement element) {
+    return _getMetadataOf(element);
+  }
+
+  Iterable<ConstantValue> _getMetadataOf(Element element) {
+    List<ConstantValue> constants = <ConstantValue>[];
     _compiler.reporter.withCurrentElement(element, () {
       for (MetadataAnnotation metadata in element.implementation.metadata) {
         metadata.ensureResolved(_compiler.resolution);
         assert(metadata.constant != null,
             failedAt(metadata, "Unevaluated metadata constant."));
-        ConstantValue value =
-            _compiler.constants.getConstantValue(metadata.constant);
-        values.add(value);
+        constants.add(
+            _compiler.backend.constants.getConstantValue(metadata.constant));
       }
     });
-    return values;
+    return constants;
+  }
+
+  @override
+  ResolutionFunctionType getFunctionTypeOfTypedef(
+      covariant TypedefElement typedef) {
+    return typedef.alias;
   }
 }
 
@@ -673,39 +743,38 @@ class _CompilerElementEnvironment implements ElementEnvironment {
 /// syntax), and, once resolution completes, it validates that the parsed
 /// annotations correspond to the correct element.
 class _ElementAnnotationProcessor implements AnnotationProcessor {
-  Compiler _compiler;
+  final Compiler _compiler;
+  final NativeBasicDataBuilder _nativeBasicDataBuilder;
 
-  _ElementAnnotationProcessor(this._compiler);
+  _ElementAnnotationProcessor(this._compiler, this._nativeBasicDataBuilder);
 
   CommonElements get _commonElements => _compiler.resolution.commonElements;
 
   /// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
   /// native name from the annotation.
-  void extractNativeAnnotations(covariant LibraryElement library,
-      NativeBasicDataBuilder nativeBasicDataBuilder) {
+  void extractNativeAnnotations(covariant LibraryElement library) {
     library.forEachLocalMember((Element element) {
       if (element.isClass) {
         EagerAnnotationHandler.checkAnnotation(_compiler, element,
-            new NativeAnnotationHandler(nativeBasicDataBuilder));
+            new NativeAnnotationHandler(_nativeBasicDataBuilder));
       }
     });
   }
 
-  void extractJsInteropAnnotations(covariant LibraryElement library,
-      NativeBasicDataBuilder nativeBasicDataBuilder) {
+  void extractJsInteropAnnotations(covariant LibraryElement library) {
     bool checkJsInteropAnnotation(Element element) {
       return EagerAnnotationHandler.checkAnnotation(
           _compiler, element, const JsInteropAnnotationHandler());
     }
 
     if (checkJsInteropAnnotation(library)) {
-      nativeBasicDataBuilder.markAsJsInteropLibrary(library);
+      _nativeBasicDataBuilder.markAsJsInteropLibrary(library);
     }
     library.forEachLocalMember((Element element) {
       if (element.isClass) {
         ClassElement cls = element;
         if (checkJsInteropAnnotation(element)) {
-          nativeBasicDataBuilder.markAsJsInteropClass(cls);
+          _nativeBasicDataBuilder.markAsJsInteropClass(cls);
         }
       }
     });
@@ -842,7 +911,7 @@ class _ElementAnnotationProcessor implements AnnotationProcessor {
                       parameter,
                       MessageKind
                           .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
-                      {'parameter': parameter.name, 'cls': classElement.name});
+                      {'cls': classElement.name});
                 }
               });
             } else {
@@ -873,5 +942,26 @@ class ResolutionWorkItemBuilder extends WorkItemBuilder {
     assert(element is AnalyzableElement,
         failedAt(element, 'Element $element is not analyzable.'));
     return _resolution.createWorkItem(element);
+  }
+}
+
+class ResolutionMirrorsData extends MirrorsDataImpl {
+  ResolutionMirrorsData(Compiler compiler, CompilerOptions options,
+      ElementEnvironment elementEnvironment, CommonElements commonElements)
+      : super(compiler, options, elementEnvironment, commonElements);
+
+  @override
+  bool isClassInjected(covariant ClassElement cls) => cls.isInjected;
+
+  @override
+  bool isClassResolved(covariant ClassElement cls) => cls.isResolved;
+
+  @override
+  void forEachConstructor(
+      covariant ClassElement cls, void f(ConstructorEntity constructor)) {
+    cls.constructors.forEach((Element _constructor) {
+      ConstructorElement constructor = _constructor;
+      f(constructor);
+    });
   }
 }

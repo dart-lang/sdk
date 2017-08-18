@@ -26,7 +26,6 @@ class MutexLocker {
   DISALLOW_COPY_AND_ASSIGN(MutexLocker);
 };
 
-
 class MonitorLocker {
  public:
   explicit MonitorLocker(Monitor* monitor) : monitor_(monitor) {

@@ -81,33 +81,6 @@ class ServerPluginTest {
     expect(result, isNotNull);
   }
 
-  test_handleAnalysisReanalyze_all() async {
-    await plugin.handleAnalysisSetContextRoots(
-        new AnalysisSetContextRootsParams([contextRoot1]));
-    var result =
-        await plugin.handleAnalysisReanalyze(new AnalysisReanalyzeParams());
-    expect(result, isNotNull);
-  }
-
-  @failingTest
-  test_handleAnalysisReanalyze_subset() async {
-    await plugin.handleAnalysisSetContextRoots(
-        new AnalysisSetContextRootsParams([contextRoot1]));
-    await plugin.handleAnalysisSetContextRoots(
-        new AnalysisSetContextRootsParams([contextRoot2]));
-    var result = await plugin.handleAnalysisReanalyze(
-        new AnalysisReanalyzeParams(roots: [packagePath2]));
-    expect(result, isNotNull);
-  }
-
-  @failingTest
-  test_handleAnalysisSetContextBuilderOptions() async {
-    var result = await plugin.handleAnalysisSetContextBuilderOptions(
-        new AnalysisSetContextBuilderOptionsParams(
-            new ContextBuilderOptions()));
-    expect(result, isNotNull);
-  }
-
   test_handleAnalysisSetContextRoots() async {
     var result = await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
@@ -275,30 +248,6 @@ class ServerPluginTest {
   test_onRequest_analysisHandleWatchEvents() async {
     var result =
         await channel.sendRequest(new AnalysisHandleWatchEventsParams([]));
-    expect(result, isNotNull);
-  }
-
-  test_onRequest_analysisReanalyze_all() async {
-    await channel
-        .sendRequest(new AnalysisSetContextRootsParams([contextRoot1]));
-    var result = await channel.sendRequest(new AnalysisReanalyzeParams());
-    expect(result, isNotNull);
-  }
-
-  test_onRequest_analysisReanalyze_subset() async {
-    await channel
-        .sendRequest(new AnalysisSetContextRootsParams([contextRoot1]));
-    await channel
-        .sendRequest(new AnalysisSetContextRootsParams([contextRoot2]));
-    var result = await channel
-        .sendRequest(new AnalysisReanalyzeParams(roots: [packagePath2]));
-    expect(result, isNotNull);
-  }
-
-  test_onRequest_analysisSetContextBuilderOptions() async {
-    var result = await channel.sendRequest(
-        new AnalysisSetContextBuilderOptionsParams(
-            new ContextBuilderOptions()));
     expect(result, isNotNull);
   }
 

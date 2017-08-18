@@ -5,8 +5,8 @@
 #ifndef RUNTIME_VM_RANDOM_H_
 #define RUNTIME_VM_RANDOM_H_
 
-#include "vm/globals.h"
 #include "vm/allocation.h"
+#include "vm/globals.h"
 
 namespace dart {
 

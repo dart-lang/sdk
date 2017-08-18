@@ -176,26 +176,26 @@ abstract class Resolution {
   ResolvedAst getResolvedAst(ExecutableElement element);
 
   /// Returns `true` if the [ResolutionImpact] for [element] is cached.
-  bool hasResolutionImpact(Element element);
+  bool hasResolutionImpact(MemberElement element);
 
   /// Returns the precomputed [ResolutionImpact] for [element].
-  ResolutionImpact getResolutionImpact(Element element);
+  ResolutionImpact getResolutionImpact(MemberElement element);
 
   /// Returns the [ResolvedAst] for [element], computing it if necessary.
-  ResolvedAst computeResolvedAst(Element element);
+  ResolvedAst computeResolvedAst(MemberElement element);
 
   /// Returns the precomputed [WorldImpact] for [element].
-  WorldImpact getWorldImpact(Element element);
+  WorldImpact getWorldImpact(MemberElement element);
 
   /// Computes the [WorldImpact] for [element].
-  WorldImpact computeWorldImpact(Element element);
+  WorldImpact computeWorldImpact(MemberElement element);
 
   WorldImpact transformResolutionImpact(
-      Element element, ResolutionImpact resolutionImpact);
+      MemberElement element, ResolutionImpact resolutionImpact);
 
   /// Removes the [WorldImpact] for [element] from the resolution cache. Later
   /// calls to [getWorldImpact] or [computeWorldImpact] returns an empty impact.
-  void uncacheWorldImpact(Element element);
+  void uncacheWorldImpact(MemberElement element);
 
   /// Removes the [WorldImpact]s for all [Element]s in the resolution cache. ,
   /// Later calls to [getWorldImpact] or [computeWorldImpact] returns an empty

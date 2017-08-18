@@ -31,14 +31,12 @@ IsolateData::IsolateData(const char* url,
   }
 }
 
-
 void IsolateData::OnIsolateShutdown() {
   if (builtin_lib_ != NULL) {
     Dart_DeletePersistentHandle(builtin_lib_);
     builtin_lib_ = NULL;
   }
 }
-
 
 IsolateData::~IsolateData() {
   free(script_url);

@@ -19,7 +19,6 @@
 
 namespace dart {
 
-
 bool StackFrame::IsStubFrame() const {
   ASSERT(!(IsEntryFrame() || IsExitFrame()));
 #if !defined(HOST_OS_WINDOWS) && !defined(HOST_OS_FUCHSIA)
@@ -33,7 +32,6 @@ bool StackFrame::IsStubFrame() const {
   ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
   return cid == kNullCid || cid == kClassCid;
 }
-
 
 const char* StackFrame::ToCString() const {
   ASSERT(thread_ == Thread::Current());
@@ -61,11 +59,9 @@ const char* StackFrame::ToCString() const {
   }
 }
 
-
 void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // There are no objects to visit in this frame.
 }
-
 
 void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // Visit objects between SP and (FP - callee_save_area).
@@ -82,7 +78,6 @@ void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(first, last);
 #endif
 }
-
 
 void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
@@ -204,7 +199,6 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(first, last);
 }
 
-
 RawFunction* StackFrame::LookupDartFunction() const {
   const Code& code = Code::Handle(LookupDartCode());
   if (!code.IsNull()) {
@@ -212,7 +206,6 @@ RawFunction* StackFrame::LookupDartFunction() const {
   }
   return Function::null();
 }
-
 
 RawCode* StackFrame::LookupDartCode() const {
 // We add a no gc scope to ensure that the code below does not trigger
@@ -231,7 +224,6 @@ RawCode* StackFrame::LookupDartCode() const {
   return Code::null();
 }
 
-
 RawCode* StackFrame::GetCodeObject() const {
   const uword pc_marker =
       *(reinterpret_cast<uword*>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
@@ -240,7 +232,6 @@ RawCode* StackFrame::GetCodeObject() const {
          reinterpret_cast<RawObject*>(pc_marker) == Object::null());
   return reinterpret_cast<RawCode*>(pc_marker);
 }
-
 
 bool StackFrame::FindExceptionHandler(Thread* thread,
                                       uword* handler_pc,
@@ -291,7 +282,6 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
   return false;
 }
 
-
 TokenPosition StackFrame::GetTokenPos() const {
   const Code& code = Code::Handle(LookupDartCode());
   if (code.IsNull()) {
@@ -310,7 +300,6 @@ TokenPosition StackFrame::GetTokenPos() const {
   return TokenPosition::kNoSource;
 }
 
-
 bool StackFrame::IsValid() const {
   if (IsEntryFrame() || IsExitFrame() || IsStubFrame()) {
     return true;
@@ -318,13 +307,11 @@ bool StackFrame::IsValid() const {
   return (LookupDartCode() != Code::null());
 }
 
-
 void StackFrameIterator::SetupLastExitFrameData() {
   ASSERT(thread_ != NULL);
   uword exit_marker = thread_->top_exit_frame_info();
   frames_.fp_ = exit_marker;
 }
-
 
 void StackFrameIterator::SetupNextExitFrameData() {
   uword exit_address = entry_.fp() + (kExitLinkSlotFromEntryFp * kWordSize);
@@ -334,7 +321,6 @@ void StackFrameIterator::SetupNextExitFrameData() {
   frames_.pc_ = 0;
 }
 
-
 // Tell MemorySanitizer that generated code initializes part of the stack.
 // TODO(koda): Limit to frames that are actually written by generated code.
 static void UnpoisonStack(uword fp) {
@@ -342,7 +328,6 @@ static void UnpoisonStack(uword fp) {
   uword size = OSThread::GetSpecifiedStackSize();
   MSAN_UNPOISON(reinterpret_cast<void*>(fp - size), 2 * size);
 }
-
 
 StackFrameIterator::StackFrameIterator(ValidationPolicy validation_policy,
                                        Thread* thread,
@@ -357,7 +342,6 @@ StackFrameIterator::StackFrameIterator(ValidationPolicy validation_policy,
          thread_ == Thread::Current());
   SetupLastExitFrameData();  // Setup data for last exit frame.
 }
-
 
 StackFrameIterator::StackFrameIterator(uword last_fp,
                                        ValidationPolicy validation_policy,
@@ -375,7 +359,6 @@ StackFrameIterator::StackFrameIterator(uword last_fp,
   frames_.sp_ = 0;
   frames_.pc_ = 0;
 }
-
 
 #if !defined(TARGET_ARCH_DBC)
 StackFrameIterator::StackFrameIterator(uword fp,
@@ -397,7 +380,6 @@ StackFrameIterator::StackFrameIterator(uword fp,
   frames_.pc_ = pc;
 }
 #endif
-
 
 StackFrame* StackFrameIterator::NextFrame() {
   // When we are at the start of iteration after having created an
@@ -459,7 +441,6 @@ StackFrame* StackFrameIterator::NextFrame() {
   return current_frame_;
 }
 
-
 StackFrame* StackFrameIterator::FrameSetIterator::NextFrame(bool validate) {
   StackFrame* frame;
   ASSERT(HasNext());
@@ -474,7 +455,6 @@ StackFrame* StackFrameIterator::FrameSetIterator::NextFrame(bool validate) {
   return frame;
 }
 
-
 ExitFrame* StackFrameIterator::NextExitFrame() {
   exit_.sp_ = frames_.sp_;
   exit_.fp_ = frames_.fp_;
@@ -486,7 +466,6 @@ ExitFrame* StackFrameIterator::NextExitFrame() {
   return &exit_;
 }
 
-
 EntryFrame* StackFrameIterator::NextEntryFrame() {
   ASSERT(!frames_.HasNext());
   entry_.sp_ = frames_.sp_;
@@ -496,7 +475,6 @@ EntryFrame* StackFrameIterator::NextEntryFrame() {
   ASSERT(entry_.IsValid());
   return &entry_;
 }
-
 
 InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
     : index_(0),
@@ -511,6 +489,10 @@ InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
   ASSERT(code_.is_optimized());
   ASSERT(pc_ != 0);
   ASSERT(code.ContainsInstructionAt(pc));
+#if defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(deopt_info_.IsNull());
+  function_ = code_.function();
+#else
   ICData::DeoptReasonId deopt_reason = ICData::kDeoptUnknown;
   uint32_t deopt_flags = 0;
   deopt_info_ = code_.GetDeoptInfoAtPc(pc, &deopt_reason, &deopt_flags);
@@ -529,14 +511,19 @@ InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
     object_table_ = code_.GetObjectPool();
     Advance();
   }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
-
 
 void InlinedFunctionsIterator::Advance() {
   // Iterate over the deopt instructions and determine the inlined
   // functions if any and iterate over them.
   ASSERT(!Done());
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(deopt_info_.IsNull());
+  SetDone();
+  return;
+#else
   if (deopt_info_.IsNull()) {
     SetDone();
     return;
@@ -552,8 +539,8 @@ void InlinedFunctionsIterator::Advance() {
     }
   }
   SetDone();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
-
 
 // Finds the potential offset for the current function's FP if the
 // current frame were to be deoptimized.
@@ -576,7 +563,6 @@ intptr_t InlinedFunctionsIterator::GetDeoptFpOffset() const {
   return 0;
 }
 
-
 #if defined(DEBUG)
 void ValidateFrames() {
   StackFrameIterator frames(StackFrameIterator::kValidateFrames,
@@ -588,6 +574,5 @@ void ValidateFrames() {
   }
 }
 #endif
-
 
 }  // namespace dart

@@ -9,7 +9,6 @@ import '../common_elements.dart';
 import '../compiler.dart';
 import '../deferred_load.dart';
 import '../diagnostics/diagnostic_listener.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart' show Entity, Local, MemberEntity;
 import '../elements/jumps.dart';
 import '../elements/types.dart';
@@ -83,7 +82,7 @@ abstract class GraphBuilder {
 
   Namer get namer => backend.namer;
 
-  RuntimeTypesNeed get rtiNeed => backend.rtiNeed;
+  RuntimeTypesNeed get rtiNeed => closedWorld.rtiNeed;
 
   JavaScriptConstantCompiler get constants => backend.constants;
 
@@ -243,7 +242,7 @@ abstract class GraphBuilder {
   /// Returns the current source element.
   ///
   /// The returned element is a declaration element.
-  Element get sourceElement;
+  MemberEntity get sourceElement;
 
   // TODO(karlklose): this is needed to avoid a bug where the resolved type is
   // not stored on a type annotation in the closure translator. Remove when
@@ -251,6 +250,10 @@ abstract class GraphBuilder {
   bool hasDirectLocal(Local local) {
     return !localsHandler.isAccessedDirectly(local) ||
         localsHandler.directLocals[local] != null;
+  }
+
+  HLiteralList buildLiteralList(List<HInstruction> inputs) {
+    return new HLiteralList(inputs, commonMasks.extendableArrayType);
   }
 
   HInstruction callSetRuntimeTypeInfoWithTypeArguments(InterfaceType type,
@@ -261,7 +264,7 @@ abstract class GraphBuilder {
 
     HInstruction typeInfo = new HTypeInfoExpression(
         TypeInfoExpressionKind.INSTANCE,
-        (type.element as ClassElement).thisType,
+        closedWorld.elementEnvironment.getThisType(type.element),
         rtiInputs,
         closedWorld.commonMasks.dynamicType);
     add(typeInfo);

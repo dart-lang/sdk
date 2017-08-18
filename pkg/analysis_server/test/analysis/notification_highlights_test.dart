@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -96,7 +96,7 @@ class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
   }
 
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_HIGHLIGHTS) {
+    if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
       var params = new AnalysisHighlightsParams.fromNotification(notification);
       if (params.file == testFile) {
         regions = params.regions;
@@ -934,9 +934,7 @@ class A<T> {
   }
 
   void _addLibraryForTestPart() {
-    addFile(
-        '$testFolder/my_lib.dart',
-        '''
+    addFile('$testFolder/my_lib.dart', '''
 library lib;
 part 'test.dart';
     ''');

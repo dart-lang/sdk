@@ -12,11 +12,11 @@ TEST_CASE(InstructionTests) {
       1, CatchClauseNode::kInvalidTryIndex, Thread::kNoDeoptId);
   EXPECT(target_instr->IsBlockEntry());
   EXPECT(!target_instr->IsDefinition());
-  CurrentContextInstr* context = new CurrentContextInstr(Thread::kNoDeoptId);
+  SpecialParameterInstr* context = new SpecialParameterInstr(
+      SpecialParameterInstr::kContext, Thread::kNoDeoptId);
   EXPECT(context->IsDefinition());
   EXPECT(!context->IsBlockEntry());
 }
-
 
 TEST_CASE(OptimizationTests) {
   JoinEntryInstr* join = new JoinEntryInstr(
@@ -38,6 +38,5 @@ TEST_CASE(OptimizationTests) {
   EXPECT(c3->Equals(c4));
   EXPECT(!c3->Equals(c1));
 }
-
 
 }  // namespace dart

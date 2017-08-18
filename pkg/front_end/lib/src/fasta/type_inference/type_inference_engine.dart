@@ -4,7 +4,7 @@
 
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/dependency_walker.dart' as dependencyWalker;
-import 'package:front_end/src/fasta/errors.dart';
+import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
@@ -26,7 +26,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 
-import '../errors.dart' show Crash;
+import '../deprecated_problems.dart' show Crash;
 
 import '../messages.dart' show getLocationFromNode;
 
@@ -139,6 +139,10 @@ abstract class TypeInferenceEngine {
   /// with the given [uri].
   TypeInferrer createLocalTypeInferrer(
       Uri uri, TypeInferenceListener listener, InterfaceType thisType);
+
+  /// Creates a disabled type inferrer (intended for debugging and profiling
+  /// only).
+  TypeInferrer createDisabledTypeInferrer();
 
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
@@ -403,7 +407,9 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         // An method depends on itself (possibly by way of intermediate
         // methods).  This should never happen, because it would require a
         // circular class hierarchy (which Fasta prevents).
-        internalError('Circular method inference');
+        dynamic parent = methodNode.procedure.parent;
+        unhandled("Circular method inference", "inferMethodIfNeeded",
+            methodNode.procedure.fileOffset, Uri.parse(parent.fileUri));
         break;
       case InferenceState.NotInferredYet:
         methodNode.state = InferenceState.Inferring;
@@ -512,8 +518,12 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         overriddenType = override.setterType;
       }
     } else {
-      throw internalError(
-          'Unexpected overridden member type: ${override.runtimeType}');
+      dynamic parent = override.parent;
+      return unhandled(
+          "${override.runtimeType}",
+          "_computeOverriddenAccessorType",
+          override.fileOffset,
+          Uri.parse(parent.fileUri));
     }
     var superclass = override.enclosingClass;
     if (superclass.typeParameters.isEmpty) return overriddenType;

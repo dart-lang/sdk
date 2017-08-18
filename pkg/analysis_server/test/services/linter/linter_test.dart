@@ -34,43 +34,35 @@ class LinterRuleOptionsValidatorTest {
   }
 
   test_linter_defined_rules() {
-    validate(
-        '''
+    validate('''
 linter:
   rules:
     - camel_case_types
-    ''',
-        []);
+    ''', []);
   }
 
   test_linter_no_rules() {
-    validate(
-        '''
+    validate('''
 linter:
   rules:
-    ''',
-        []);
+    ''', []);
   }
 
   test_linter_null_rule() {
-    validate(
-        '''
+    validate('''
 linter:
   rules:
     -
 
-    ''',
-        []);
+    ''', []);
   }
 
   test_linter_undefined_rule() {
-    validate(
-        '''
+    validate('''
 linter:
   rules:
     - undefined
-    ''',
-        [UNDEFINED_LINT_WARNING]);
+    ''', [UNDEFINED_LINT_WARNING]);
   }
 
   validate(String source, List<ErrorCode> expected) {

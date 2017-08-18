@@ -93,12 +93,6 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t08: Runtime
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: RuntimeError # Issue 25748
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t10: RuntimeError # Issue 25748
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_sync_t05: RuntimeError # Issue 25662,25634
-Language/Classes/Getters/type_object_t01: RuntimeError # Issue 23721
-Language/Classes/Getters/type_object_t02: RuntimeError # Issue 23721
-Language/Classes/Setters/type_object_t01: RuntimeError # Issue 23721
-Language/Classes/Setters/type_object_t02: RuntimeError # Issue 23721
-Language/Classes/Static_Methods/type_object_t01: RuntimeError # Issue 23721
-Language/Classes/Static_Methods/type_object_t02: RuntimeError # Issue 23721
 Language/Expressions/Assignment/super_assignment_failed_t05: RuntimeError # Issue 25671
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
@@ -162,7 +156,7 @@ Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 Language/Statements/Labels/syntax_t03: fail # Dart issue 2238
 Language/Statements/Switch/syntax_t02: fail # Dart issue 12908
 
-[ $runtime == dart_precompiled || $mode == product ]
+[ $runtime == dart_precompiled ]
 Language/Metadata/*: SkipByDesign # Uses dart:mirrors
 Language/Expressions/Null/instance_of_class_null_t01: Skip # Uses dart:mirrors
 
@@ -275,7 +269,6 @@ Language/Classes/Constructors/Factories/redirecting_constructor_call_t02: Compil
 Language/Classes/Getters/override_t01: CompileTimeError
 Language/Classes/Getters/override_t02: CompileTimeError
 Language/Classes/Getters/override_t03: CompileTimeError
-Language/Classes/Getters/type_object_t02: CompileTimeError
 Language/Classes/Instance_Methods/override_fewer_parameters_t01: CompileTimeError
 Language/Classes/Instance_Methods/override_fewer_parameters_t02: CompileTimeError
 Language/Classes/Instance_Methods/override_more_parameters_t01: CompileTimeError
@@ -289,7 +282,6 @@ Language/Classes/Instance_Methods/override_subtype_t03: CompileTimeError
 Language/Classes/Instance_Methods/override_subtype_t04: CompileTimeError
 Language/Classes/Setters/override_t01: CompileTimeError
 Language/Classes/Setters/override_t02: CompileTimeError
-Language/Classes/Setters/type_object_t02: CompileTimeError
 Language/Errors_and_Warnings/static_warning_t01: CompileTimeError
 Language/Expressions/Assignment/expression_assignment_failed_t06: CompileTimeError
 Language/Expressions/Assignment/super_assignment_failed_t05: CompileTimeError

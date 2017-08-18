@@ -1,0 +1,56 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class X extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class A extends core::Object {
+  field self::X foo;
+  constructor •(self::X i) → void
+    : final Vector #context = MakeVector(2), dynamic #t1 = #context[1] = i, self::A::foo = (MakeClosure<() → dynamic>(self::closure#A#function#function, #context)).call(), super core::Object::•()
+    ;
+}
+class S extends self::A {
+  constructor •(self::X i) → void
+    : final Vector #context = MakeVector(2), dynamic #t2 = #context[1] = i, super self::A::•((MakeClosure<() → dynamic>(self::closure#S#function#function, #context)).call())
+    ;
+}
+class S2 extends core::Object {
+  field self::X foo_li;
+  constructor •(self::X foo) → void
+    : final Vector #context = MakeVector(2), dynamic #t3 = #context[1] = foo, dynamic #li_0 = (MakeClosure<() → dynamic>(self::closure#S2#function#function, #context)).call(), self::S2::foo_li = #li_0, super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  field self::X foo = null;
+  constructor named(self::X foo) → void
+    : super core::Object::•() {}
+  constructor •(self::X foo) → void
+    : final Vector #context = MakeVector(2), dynamic #t4 = #context[1] = foo, this self::B::named((MakeClosure<() → dynamic>(self::closure#B#function#function, #context)).call())
+    ;
+}
+static method main() → dynamic {
+  self::A a = new self::A::•(new self::X::•());
+  a.foo;
+  self::B b = new self::B::•(new self::X::•());
+  b.foo;
+  self::S s = new self::S::•(new self::X::•());
+  s.foo;
+  self::S2 s2 = new self::S2::•(new self::X::•());
+  s2.foo_li;
+}
+static method closure#A#function#function(Vector #contextParameter) → dynamic {
+  return #contextParameter[1];
+}
+static method closure#S#function#function(Vector #contextParameter) → dynamic {
+  return #contextParameter[1];
+}
+static method closure#S2#function#function(Vector #contextParameter) → dynamic {
+  return #contextParameter[1];
+}
+static method closure#B#function#function(Vector #contextParameter) → dynamic {
+  return #contextParameter[1];
+}

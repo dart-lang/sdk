@@ -7,9 +7,9 @@
 \usepackage{lmodern}
 \usepackage[T1]{fontenc}
 \newcommand{\code}[1]{{\sf #1}}
-\title{Dart Programming Language  Specification  \\
+\title{Dart Programming Language Specification  \\
 {5th edition draft}\\
-{\large Version 1.15.0}}
+{\large Version 2.0.0-dev}}
 
 % For information about Location Markers (and in particular the
 % commands \LMHash and \LMLabel), see the long comment at the
@@ -18,6 +18,10 @@
 % CHANGES
 % =======
 % Significant changes to the specification.
+%
+% 2.0
+% - Don't allow functions as assert test values.
+% - Start running "async" functions synchronously.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -29,6 +33,7 @@
 % - The Null type is now considered a subtype of all types in most cases.
 % - Specify what NEWLINE means in multiline strings.
 % - Specified the FutureOf type.
+% - Asserts can occur in initializer lists.
 %
 % 1.14
 % - The call "C()" where "C" is a class name, is a now compile-time error.
@@ -627,7 +632,7 @@ and let $T$ be the actual return type (\ref{actualTypeOfADeclaration})
 of the function that has this body.
 It is a static warning if $T$ is not \VOID{} and either
 the function is synchronous and the static type of $R$ is not assignable to $T$,
-or the function is asynchronous and \code{Future<$flatten${$R$}>}
+or the function is asynchronous and \code{Future<$flatten$($R$)>}
 is not assignable to $T$.
 
 \end{itemize}
@@ -1404,13 +1409,14 @@ An initializer list begins with a colon, and consists of a comma-separated list 
 
 \begin{grammar}
 {\bf initializers:}
-      `{\escapegrammar :}' superCallOrFieldInitializer (`,' superCallOrFieldInitializer)*
+      `{\escapegrammar :}' initializerListEntry (`,' initializerListEntry)*
     .
 
 
-{\bf superCallOrFieldInitializer:}\SUPER{} arguments;
+{\bf initializerListEntry:}\SUPER{} arguments;
       \SUPER{} `{\escapegrammar .}' identifier arguments;
-     fieldInitializer
+     fieldInitializer;
+     assertion
     .
 
    {\bf  fieldInitializer:}
@@ -1518,6 +1524,9 @@ In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interf
 
 \LMHash{}
 An initializer of the form \code{$v$ = $e$} is equivalent to an initializer of the form \code{\THIS{}.$v$ = $e$}.
+
+\LMHash{}
+Execution of an initializer that is an assertion proceeds by executing the assertion (\ref{assert}).
 
 \LMHash{}
 Execution of a superinitializer of the form
@@ -2623,6 +2632,7 @@ A constant expression is one of the following:
 
 \LMHash{}
 It is a compile-time error if an expression is required to be a constant expression but its evaluation would throw an exception.
+It is a compile-time error if an assertion is part of a compile-time constant constructor invocation and the assertion would throw an exception.
 
 % so, checked mode? analyzers? editor/development compilers?
 \commentary{
@@ -3209,7 +3219,8 @@ Of course, if a key repeats, the order is defined by first occurrence, but the v
 }
 
 \LMHash{}
-The static type of a map literal of the form  \CONST{}$ <K, V>\{k_1:e_1\ldots k_n :e_n\}$ or the form $<K, V>\{k_1:e_1\ldots k_n :e_n\}$ is $Map<K, V>$. The static type a map literal of the form  \CONST{}$\{k_1:e_1\ldots k_n :e_n\}$ or the form $\{k_1:e_1\ldots k_n :e_n\}$ is $Map<\DYNAMIC{},  \DYNAMIC{}>$.
+The static type of a map literal of the form \CONST{}$ <K, V>\{k_1:e_1\ldots k_n :e_n\}$ or the form $<K, V>\{k_1:e_1\ldots k_n :e_n\}$ is $Map<K, V>$.
+The static type of a map literal of the form \CONST{}$\{k_1:e_1\ldots k_n :e_n\}$ or the form $\{k_1:e_1\ldots k_n :e_n\}$ is $Map<\DYNAMIC{}, \DYNAMIC{}>$.
 
 
 \subsection{Throw}
@@ -3236,7 +3247,7 @@ Evaluation of a throw expression of the form  \code{\THROW{} $e$;} proceeds as f
 The expression $e$ is evaluated to a value $v$ (\ref{evaluation}).
 
 \commentary{
-There is no requirement that the expression $e$ evaluate to any special kind of object.
+There is no requirement that the expression $e$ must evaluate to any special kind of object.
 }
 
 \LMHash{}
@@ -3308,7 +3319,7 @@ In any other circumstance, $flatten(T) = T$.
 
 
 \rationale{
-We collapse multiple layers of futures into one. If $e$ evaluates to a future $f$, the future will not invoke its \code{then()} callback until f completes to a non-future value, and so the result of an await is never a future, and the result of an async function will never have type \code{Future$<X>$} where $X$ itself is an invocation of \code{Future}.
+We collapse multiple layers of futures into one. If $e$ evaluates to a future $f$, the future will not invoke its \code{then()} callback until f completes to a non-future value, and so the result of an await is never a future, and the result of an \ASYNC{} function will never have type \code{Future$<X>$} where $X$ itself is an invocation of \code{Future}.
 
 The  exception to that would be a type $X$ that extended or implemented \code{Future}. In that case, only one unwrapping takes place. As an example of why this is done, consider
 
@@ -3724,7 +3735,7 @@ Function invocation occurs in the following cases: when a function expression  (
 
 \LMHash{}
 Executing a body of the form \code{=> $e$} is equivalent to executing a body of the form \code{\{ return $e$; \}}.
-Execution a body of the form \code{async => $e$} is equivalent to executing a body of the form \code{async \{ return $e$; \}}.
+Execution a body of the form \code{\ASYNC{} => $e$} is equivalent to executing a body of the form \code{\ASYNC{} \{ return $e$; \}}.
 
 \LMHash{}
 If $f$ is synchronous and is not a generator (\ref{functions}) then execution of the body of $f$ begins immediately.
@@ -3778,7 +3789,19 @@ Two executions of an iterator interact only via state outside the function.
 % The alternative would be to cache the results of an iterator in the iterable, and check the cache at each \YIELD{}.  This would have strange issues as well. The yielded value might differ from the expression in the yield. And it is a potential memory leak as the cache is kept alive by any iterator.
 
 \LMHash{}
-If $f$ is marked \ASYNC{} (\ref{functions}), then a fresh instance (\ref{generativeConstructors}) $o$ implementing the built-in class \code{Future} is associated with the invocation and immediately returned to the caller. The body of $f$ is scheduled for execution at some future time. The future $o$ will be completed when execution of the body of $f$ completes (\ref{completion}). If execution of the body returns a value, $o$ is completed with that value, if it completes normally or returns without a value, $o$ is completed with the \NULL{} value, and if it throws an exception $e$ and stack trace $t$, $o$ is completed with the error $e$ and stack trace $t$.
+If $f$ is marked \ASYNC{} (\ref{functions}), then a fresh instance (\ref{generativeConstructors}) $o$ implementing the built-in class \code{Future} is associated with the invocation.
+Then the body of $f$ is executed until it either suspends or completes, at which point $o$ is returned.
+\commentary{The body of $f$ may suspend during the evaluation of an \AWAIT{} expression or execution of an asynchronous \FOR{} loop.}
+The future $o$ is completed when execution of the body of $f$ completes (\ref{completion}).
+If execution of the body returns a value, $o$ is completed with that value,
+if it completes normally or returns without a value,
+$o$ is completed with the \NULL{} value,
+and if it throws an exception $e$ and stack trace $t$,
+$o$ is completed with the error $e$ and stack trace $t$.
+If execution of the body throws before the body suspends the first time,
+completion of $o$ happens at some future time after the invocation has returned.
+\rationale{The caller needs time to set up error handling for the returned future,
+so the future is not completed with an error {\em before} it has been returned.}
 
 \LMHash{}
 If $f$ is marked \ASYNC* (\ref{functions}), then a fresh instance $s$ implementing the built-in class \code{Stream} is associated with the invocation and immediately returned. When $s$ is listened to, execution of the body of $f$ will begin.
@@ -4106,7 +4129,7 @@ Let $T$ be the  static type of $o$. It is a static type warning if $T$ does not 
 \item
 $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}.  Or
 \item  $T$ is \code{Type}, $e$ is a constant type literal and the class corresponding to $e$ has a static getter named $m$.
-\item $T$ is \code{Function} and $m$ is \CALL. \rationale {The type \code{Function} is treated as if it has a \code{call} method for any possible signature of \CALL. The expectation is that any concrete subclass of \code{Function} will implement \CALL. Note that a warning will be issue if this is not the case. Furthermore, any use of \CALL{} on a subclass of \code{Function} that fails to implement \CALL{} will also provoke a warning, as this exemption is limited to type \code{Function}, and does not apply to its subtypes.
+\item $T$ is \code{Function} and $m$ is \CALL. \rationale {The type \code{Function} is treated as if it has a \code{call} method for any possible signature of \CALL. The expectation is that any concrete subclass of \code{Function} will implement \CALL. Note that a warning will be issued if this is not the case. Furthermore, any use of \CALL{} on a subclass of \code{Function} that fails to implement \CALL{} will also provoke a warning, as this exemption is limited to type \code{Function}, and does not apply to its subtypes.
 }
 \end{itemize}
 
@@ -4777,7 +4800,7 @@ then the type of $v$ is known to be $T$ in $e_2$.
  \label{ifNull}
 
  \LMHash{}
- An {\em if-null expression}evaluates an expression and if the result is \NULL, evaluates another.
+ An {\em if-null expression} evaluates an expression and if the result is \NULL, evaluates another.
 
 \begin{grammar}
 {\bf ifNullExpression:}
@@ -6500,7 +6523,8 @@ In the case of a generator function, the value returned by the function is the i
 }
 
 \LMHash{}
-Let $f$ be the function immediately enclosing a return statement of the form \RETURN{}; It is a static warning  $f$ is neither a generator nor a generative constructor and either:
+Let $f$ be the function immediately enclosing a return statement of the form \RETURN{};.
+It is a static warning if $f$ is neither a generator nor a generative constructor and either:
 \begin{itemize}
 \item  $f$ is synchronous and the return type of $f$ may not be assigned to \VOID{} (\ref{typeVoid}) or,
 \item  $f$ is asynchronous and the return type of $f$ may not be assigned to \code{Future<Null>}.
@@ -6566,7 +6590,15 @@ The {\em break statement} consists of the reserved word \BREAK{} and an optional
  \end{grammar}
 
 \LMHash{}
-Let $s_b$ be a \BREAK{} statement. If $s_b$ is of the form  \code{\BREAK{} $L$;}, then let $s_E$ be the innermost labeled statement with label $L$ enclosing $s_b$. If $s_b$ is of the form \code{\BREAK{};},  then let $s_E$ be the innermost  \DO{} (\ref{do}), \FOR{} (\ref{for}), \SWITCH{} (\ref{switch}) or \WHILE{} (\ref{while}) statement enclosing  $s_b$. It is a compile-time error if no such statement $s_E$ exists within the innermost function in which  $s_b$ occurs.
+Let $s_b$ be a \BREAK{} statement.
+If $s_b$ is of the form \code{\BREAK{} $L$;},
+then it is a compile-time error if $s_b$ is not enclosed in a labeled statement
+with the label $L$ within the innermost function in which $s_b$ occurs.
+If $s_b$ is of the form \code{\BREAK{};},
+then it is a compile-time error if $s_b$ is not enclosed in an
+\code{\AWAIT{} \FOR{}} (\ref{asynchronousFor-in}),
+\DO{} (\ref{do}), \FOR{} (\ref{for}), \SWITCH{} (\ref{switch})
+or \WHILE{} (\ref{while}) statement within the innermost function in which $s_b$ occurs.
 
 \LMHash{}
 Execution of a \BREAK{} statement \code{\BREAK{} $L$;} breaks to the label $L$ (\ref{completion}).
@@ -6587,7 +6619,18 @@ The {\em continue statement} consists of the reserved word \CONTINUE{} and an op
  \end{grammar}
 
 \LMHash{}
-Let $s_c$ be a \CONTINUE{} statement. If $s_c$ is of the form  \code{\CONTINUE{} $L$;}, then let $s_E$ be the innermost labeled \DO{} (\ref{do}), \FOR{} (\ref{for}) or \WHILE{} (\ref{while}) statement or case clause with label $L$ enclosing $s_c$. If $s_c$ is of the form \code{\CONTINUE{};}  then let $s_E$ be the innermost  \DO{} (\ref{do}), \FOR{} (\ref{for}) or \WHILE{} (\ref{while}) statement enclosing  $s_c$. It is a compile-time error if no such statement or case clause $s_E$ exists within the innermost function in which  $s_c$ occurs.
+Let $s_c$ be a \CONTINUE{} statement.
+If $s_c$ is of the form \code{\CONTINUE{} $L$;},
+then it is a compile-time error if $s_c$ is not enclosed in either an
+\code{\AWAIT{} \FOR{}} (\ref{asynchronousFor-in}),
+\DO{} (\ref{do}), \FOR{} (\ref{for}), or \WHILE{} (\ref{while})
+statement labeled with $L$, or in a \SWITCH{} statement with a case clause
+labeled with $L$, within the innermost function in which $s_c$ occurs.
+If $s_c$ is of the form \code{\CONTINUE{};}
+then it is a compile-time error if $s_c$ is not enclosed in an
+\code{\AWAIT{} \FOR{}} (\ref{asynchronousFor-in})
+\DO{} (\ref{do}), \FOR{} (\ref{for}), or \WHILE{} (\ref{while}) statement
+within the innermost function in which $s_c$ occurs.
 
 Execution of a \CONTINUE{} statement \code{\CONTINUE{} $L$;} continues to the label $L$ (\ref{completion}).
 
@@ -6712,7 +6755,7 @@ It is a compile-time error if a yield-each statement appears in a function that 
 Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing function.  It is a static type warning if $T$ may not be assigned to the declared return type of $f$.  If $f$ is synchronous it is a static  type warning if $T$ may not be assigned to \code{Iterable}.  If $f$ is asynchronous it is a static  type warning if $T$ may not be assigned to \code{Stream}.
 
 
-\subsection{ Assert}
+\subsection{Assert}
 \LMLabel{assert}
 
 \LMHash{}
@@ -6720,35 +6763,44 @@ An {\em assert statement} is used to disrupt normal execution if a given boolean
 
 \begin{grammar}
 {\bf assertStatement:}
-   assert `(' expression ( `,' expression )? `,'? `)' `{\escapegrammar ;}'
-      .
+    assertion `{\escapegrammar ;}'
+    .
+{\bf assertion:}
+    \ASSERT{} `(' expression ( `,' expression )? `,'? `)'
+    .
 \end{grammar}
 
 \LMHash{}
 The grammar allows a trailing comma before the closing parenthesis,
 similarly to an argument list. That comma, if present, has no effect.
-An assert statement with a trailing comme is equivalent to one with that
+An assertion with a trailing comma is equivalent to one with that
 comma removed.
 
 \LMHash{}
-An assert statement on the form \code{\ASSERT($e$);)} is equivalent to a statment on the form \code{\ASSERT($e$, null);}.
+An assertion on the form \code{\ASSERT($e$))} is equivalent to an assertion on the form \code{\ASSERT($e$, null)}.
 
 \LMHash{}
-The assert statement has no effect in production mode. In checked mode, execution of an assert statement \code{\ASSERT{}($c$, $e$);} proceeds as follows:
+Execution of an assert statement executes the assertion as described below
+and completes in the same way as the assertion.
 
 \LMHash{}
-The expression $c$ is evaluated to an object $o$. If the class of $o$ is a subtype of \code{Function} then let $r$ be the result of invoking $o$ with no arguments. Otherwise, let $r$ be $o$.
-It is a dynamic type error if $o$ is not of type \code{bool} or of type \code{Function}, or if $r$ is not of type \code{bool}.
-If $r$ is \FALSE{}, we say that the assertion failed.
-If $r$ is \TRUE{}, we say that the assertion succeeded.
-If the assertion succeeded, execution of the assert statement completes normally (\ref{completion}).
-If the assertion failed, $e$ is evaluated to an object $m$.
-Then the execution of the assert statement throws (\ref{completion}) an \code{AssertionError} containing $m$ and with a stack trace corresponding to the current execution state at the \ASSERT{} statement.
+In production mode an assertion has no effect
+and its execution immediately completes normally (\ref{completion}).
+In checked mode,
+execution of an assertion \code{\ASSERT{}($c$, $e$)} proceeds as follows:
 
 \LMHash{}
-It is a static type warning if the type of $e$ may not be assigned to either  \code{bool} or $() \rightarrow$ \code{bool}.
+The expression $c$ is evaluated to an object $r$.
+It is a dynamic type error if $r$ is not of type \code{bool}.
+\commentary{Hence it is a compile-time error if that situation arises during evaluation of an assertion in a \CONST{} constructor invocation.}
+If $r$ is \TRUE{} then execution of the assert statement completes normally (\ref{completion}).
+Otherwise, $e$ is evaluated to an object $m$
+and then the execution of the assert statement throws (\ref{completion}) an \code{AssertionError} containing $m$ and with a stack trace corresponding to the current execution state at the assertion.
 
-\rationale{Why is this a statement, not a built in function call? Because it is handled magically so it has no effect and no overhead in production mode. Also, in the absence of final methods. one could not prevent it being overridden (though there is no real harm in that).  It cannot be viewed as a function call that is being optimized away because the argument might have side effects.
+\LMHash{}
+It is a static type warning if the type of $e$ may not be assigned to \code{bool}.
+
+\rationale{Why is this a statement, not a built in function call? Because it is handled magically so it has no effect and no overhead in production mode. Also, in the absence of final methods, one could not prevent it being overridden (though there is no real harm in that). It cannot be viewed as a function call that is being optimized away because the arguments might have side effects.
 }
 
 %If a lexically visible declaration named \code{assert} is in scope, an assert statement
@@ -7408,7 +7460,7 @@ main() \{
 \end{dartCode}
 
 \commentary{
-Since $i$ is not a type, a static warning will be issue at the declaration of $j$. However, the program can be executed without incident in production mode because he undeclared type $i$ is treated as \DYNAMIC{}. However, in checked mode, the implicit subtype test at the assignment will trigger an error at runtime.
+Since $i$ is not a type, a static warning will be issue at the declaration of $j$. However, the program can be executed without incident in production mode because the undeclared type $i$ is treated as \DYNAMIC{}. However, in checked mode, the implicit subtype test at the assignment will trigger an error at runtime.
 }
 
 
@@ -7795,7 +7847,7 @@ Type objects reify the runtime types of instances. No instance ever has type \VO
 A {\em parameterized type} is an invocation of a generic type declaration.
 
 \LMHash{}
-Let $T$ be a parameterized type  $G<S_1,  \ldots, S_n>$. If $G$ is not a generic type, the type arguments $S_i$, $1 \le i \le n$ are discarded. If $G$ has $m \ne n$ type parameters, $T$ is treated as as a parameterized type with $m$ arguments, all of which are \DYNAMIC{}.
+Let $T$ be a parameterized type  $G<S_1,  \ldots, S_n>$. If $G$ is not a generic type, the type arguments $S_i$, $1 \le i \le n$ are discarded. If $G$ has $m \ne n$ type parameters, $T$ is treated as a parameterized type with $m$ arguments, all of which are \DYNAMIC{}.
 
 \commentary{In short, any arity mismatch results in all type arguments being dropped, and replaced with the correct number of type arguments, all set to \DYNAMIC{}. Of course, a static warning will be issued.
 }

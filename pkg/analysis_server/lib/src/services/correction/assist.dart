@@ -5,6 +5,7 @@
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/utilities/assist/assist.dart';
 
 /**
  * The implementation of [AssistContext].
@@ -60,6 +61,8 @@ class DartAssistKind {
       const AssistKind('CONVERT_INTO_IS_NOT', 30, "Convert into is!");
   static const CONVERT_INTO_IS_NOT_EMPTY = const AssistKind(
       'CONVERT_INTO_IS_NOT_EMPTY', 30, "Convert into 'isNotEmpty'");
+  static const CONVERT_PART_OF_TO_URI =
+      const AssistKind('CONVERT_PART_OF_TO_URI', 30, "Convert to use a URI");
   static const CONVERT_TO_FIELD_PARAMETER = const AssistKind(
       'CONVERT_TO_FIELD_PARAMETER', 30, "Convert to field formal parameter");
   static const CONVERT_TO_NORMAL_PARAMETER = const AssistKind(

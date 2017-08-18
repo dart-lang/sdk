@@ -52,7 +52,7 @@ class Log {
  private:
   void TerminateString();
   void EnableManualFlush();
-  void DisableManualFlush();
+  void DisableManualFlush(const intptr_t cursor);
 
   // Returns false if we should drop log messages related to 'isolate'.
   static bool ShouldLogForIsolate(const Isolate* isolate);
@@ -66,7 +66,6 @@ class Log {
   friend class LogTestHelper;
   DISALLOW_COPY_AND_ASSIGN(Log);
 };
-
 
 // Causes all log messages to be buffered until destructor is called.
 // Can be nested.

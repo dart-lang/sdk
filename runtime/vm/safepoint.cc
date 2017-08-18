@@ -13,7 +13,6 @@ SafepointOperationScope::SafepointOperationScope(Thread* T) : StackResource(T) {
   ASSERT(T != NULL);
   Isolate* I = T->isolate();
   ASSERT(I != NULL);
-  ASSERT(T->no_safepoint_scope_depth() == 0);
 
   SafepointHandler* handler = I->safepoint_handler();
   ASSERT(handler != NULL);
@@ -22,7 +21,6 @@ SafepointOperationScope::SafepointOperationScope(Thread* T) : StackResource(T) {
   // get to a safepoint.
   handler->SafepointThreads(T);
 }
-
 
 SafepointOperationScope::~SafepointOperationScope() {
   Thread* T = thread();
@@ -36,14 +34,12 @@ SafepointOperationScope::~SafepointOperationScope() {
   handler->ResumeThreads(T);
 }
 
-
 SafepointHandler::SafepointHandler(Isolate* isolate)
     : isolate_(isolate),
       safepoint_lock_(new Monitor()),
       number_threads_not_at_safepoint_(0),
       safepoint_operation_count_(0),
       owner_(NULL) {}
-
 
 SafepointHandler::~SafepointHandler() {
   ASSERT(owner_ == NULL);
@@ -53,8 +49,10 @@ SafepointHandler::~SafepointHandler() {
   isolate_ = NULL;
 }
 
-
 void SafepointHandler::SafepointThreads(Thread* T) {
+  ASSERT(T->no_safepoint_scope_depth() == 0);
+  ASSERT(T->execution_state() == Thread::kThreadInVM);
+
   {
     // First grab the threads list lock for this isolate
     // and check if a safepoint is already in progress. This
@@ -120,7 +118,6 @@ void SafepointHandler::SafepointThreads(Thread* T) {
   }
 }
 
-
 void SafepointHandler::ResumeThreads(Thread* T) {
   // First resume all the threads which are blocked for the safepoint
   // operation.
@@ -153,7 +150,6 @@ void SafepointHandler::ResumeThreads(Thread* T) {
   sl.NotifyAll();
 }
 
-
 void SafepointHandler::EnterSafepointUsingLock(Thread* T) {
   MonitorLocker tl(T->thread_lock());
   T->SetAtSafepoint(true);
@@ -165,7 +161,6 @@ void SafepointHandler::EnterSafepointUsingLock(Thread* T) {
   }
 }
 
-
 void SafepointHandler::ExitSafepointUsingLock(Thread* T) {
   MonitorLocker tl(T->thread_lock());
   ASSERT(T->IsAtSafepoint());
@@ -176,7 +171,6 @@ void SafepointHandler::ExitSafepointUsingLock(Thread* T) {
   }
   T->SetAtSafepoint(false);
 }
-
 
 void SafepointHandler::BlockForSafepoint(Thread* T) {
   MonitorLocker tl(T->thread_lock());

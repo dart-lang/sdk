@@ -6,29 +6,25 @@ library object_super_test;
 
 /// Simple program creating an object with super constructor invocation.
 void main() {
+  print("Create A instance");
   var a = new A.withArgs(0);
   print(a.foo);
 
+  print("Create B instance");
   var b1 = new B.withSuper();
   print(b1.foo);
   print(b1.bar);
-
-  var b2 = new B();
-  print(b2.foo);
-  print(b2.bar);
 }
 
 class A {
   String foo;
 
-  A() : this.withArgs(0);
   A.withArgs(int i) : foo = fieldInitializer(i, 'A.foo');
 }
 
 class B extends A {
   String bar;
 
-  B();
   B.withSuper()
       : bar = fieldInitializer(0, 'B.bar'),
         super.withArgs(1);

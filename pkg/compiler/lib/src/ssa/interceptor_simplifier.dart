@@ -238,13 +238,13 @@ class SsaSimplifyInterceptors extends HBaseVisitor
           if (intercepted.contains(_commonElements.jsIntClass)) {
             // TODO(johnniwinther): Use type argument when all uses of
             // intercepted classes expect entities instead of elements.
-            required ??= new Set/*<ClassEntity>*/();
+            required ??= new Set<ClassEntity>();
             required.add(_commonElements.jsIntClass);
           }
           if (intercepted.contains(_commonElements.jsDoubleClass)) {
             // TODO(johnniwinther): Use type argument when all uses of
             // intercepted classes expect entities instead of elements.
-            required ??= new Set/*<ClassEntity>*/();
+            required ??= new Set<ClassEntity>();
             required.add(_commonElements.jsDoubleClass);
           }
         }
@@ -256,7 +256,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     } else {
       // TODO(johnniwinther): Use type argument when all uses of intercepted
       // classes expect entities instead of elements.
-      interceptedClasses = new Set/*<ClassEntity>*/();
+      interceptedClasses = new Set<ClassEntity>();
       for (HInstruction user in node.usedBy) {
         if (user is HInvokeDynamic &&
             user.isCallOnInterceptor(closedWorld) &&

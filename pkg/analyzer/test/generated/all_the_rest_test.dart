@@ -34,11 +34,11 @@ import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:mockito/mockito.dart' show Mock, when;
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart' show TypedMock, when;
 
 import 'parser_test.dart';
 import 'resolver_test_case.dart';
@@ -366,9 +366,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   test_locate_AssignmentExpression() async {
-    AstNode id = await _findNodeIn(
-        "+=",
-        r'''
+    AstNode id = await _findNodeIn("+=", r'''
 int x = 0;
 void main() {
   x += 1;
@@ -400,10 +398,7 @@ void main() {
   }
 
   test_locate_ConstructorDeclaration() async {
-    AstNode id = await _findNodeIndexedIn(
-        "bar",
-        0,
-        r'''
+    AstNode id = await _findNodeIndexedIn("bar", 0, r'''
 class A {
   A.bar() {}
 }''');
@@ -431,10 +426,7 @@ class A {
   }
 
   test_locate_Identifier_annotationClass_namedConstructor_forSimpleFormalParameter() async {
-    AstNode id = await _findNodeIndexedIn(
-        "Class",
-        2,
-        r'''
+    AstNode id = await _findNodeIndexedIn("Class", 2, r'''
 class Class {
   const Class.name();
 }
@@ -446,10 +438,7 @@ void main(@Class.name() parameter) {
   }
 
   test_locate_Identifier_annotationClass_unnamedConstructor_forSimpleFormalParameter() async {
-    AstNode id = await _findNodeIndexedIn(
-        "Class",
-        2,
-        r'''
+    AstNode id = await _findNodeIndexedIn("Class", 2, r'''
 class Class {
   const Class();
 }
@@ -468,10 +457,7 @@ void main(@Class() parameter) {
   }
 
   test_locate_Identifier_constructor_named() async {
-    AstNode id = await _findNodeIndexedIn(
-        "bar",
-        0,
-        r'''
+    AstNode id = await _findNodeIndexedIn("bar", 0, r'''
 class A {
   A.bar() {}
 }''');
@@ -481,10 +467,7 @@ class A {
   }
 
   test_locate_Identifier_constructor_unnamed() async {
-    AstNode id = await _findNodeIndexedIn(
-        "A",
-        1,
-        r'''
+    AstNode id = await _findNodeIndexedIn("A", 1, r'''
 class A {
   A() {}
 }''');
@@ -508,9 +491,7 @@ class A {
   }
 
   test_locate_Identifier_propertyAccess() async {
-    AstNode id = await _findNodeIn(
-        "length",
-        r'''
+    AstNode id = await _findNodeIn("length", r'''
 void main() {
  int x = 'foo'.length;
 }''');
@@ -527,10 +508,7 @@ void main() {
   }
 
   test_locate_IndexExpression() async {
-    AstNode id = await _findNodeIndexedIn(
-        "\\[",
-        1,
-        r'''
+    AstNode id = await _findNodeIndexedIn("\\[", 1, r'''
 void main() {
   List x = [1, 2];
   var y = x[0];
@@ -541,10 +519,7 @@ void main() {
   }
 
   test_locate_InstanceCreationExpression() async {
-    AstNode node = await _findNodeIndexedIn(
-        "A(",
-        0,
-        r'''
+    AstNode node = await _findNodeIndexedIn("A(", 0, r'''
 class A {}
 void main() {
  new A();
@@ -600,9 +575,7 @@ void main() {
   }
 
   test_locate_MethodDeclaration() async {
-    AstNode id = await _findNodeIn(
-        "m",
-        r'''
+    AstNode id = await _findNodeIn("m", r'''
 class A {
   void m() {}
 }''');
@@ -614,10 +587,7 @@ class A {
   }
 
   test_locate_MethodInvocation_method() async {
-    AstNode id = await _findNodeIndexedIn(
-        "bar",
-        1,
-        r'''
+    AstNode id = await _findNodeIndexedIn("bar", 1, r'''
 class A {
   int bar() => 42;
 }
@@ -646,15 +616,11 @@ void main() {
   }
 
   test_locate_PartOfDirective() async {
-    Source librarySource = addNamedSource(
-        '/lib.dart',
-        '''
+    Source librarySource = addNamedSource('/lib.dart', '''
 library my.lib;
 part 'part.dart';
 ''');
-    Source unitSource = addNamedSource(
-        '/part.dart',
-        '''
+    Source unitSource = addNamedSource('/part.dart', '''
 part of my.lib;
 ''');
     CompilationUnit unit =
@@ -673,9 +639,7 @@ part of my.lib;
   }
 
   test_locate_PrefixedIdentifier() async {
-    AstNode id = await _findNodeIn(
-        "int",
-        r'''
+    AstNode id = await _findNodeIn("int", r'''
 import 'dart:core' as core;
 core.int value;''');
     PrefixedIdentifier identifier =
@@ -2189,9 +2153,8 @@ class ResolveRelativeUriTest {
 @reflectiveTest
 class SDKLibrariesReaderTest extends EngineTestCase {
   test_readFrom_dart2js() async {
-    LibraryMap libraryMap = new SdkLibrariesReader(true).readFromFile(
-        FileUtilities2.createFile("/libs.dart"),
-        r'''
+    LibraryMap libraryMap = new SdkLibrariesReader(true)
+        .readFromFile(FileUtilities2.createFile("/libs.dart"), r'''
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',
@@ -2221,9 +2184,8 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   }
 
   test_readFrom_normal() async {
-    LibraryMap libraryMap = new SdkLibrariesReader(false).readFromFile(
-        FileUtilities2.createFile("/libs.dart"),
-        r'''
+    LibraryMap libraryMap = new SdkLibrariesReader(false)
+        .readFromFile(FileUtilities2.createFile("/libs.dart"), r'''
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',
@@ -2295,20 +2257,16 @@ const Map<String, LibraryInfo> libraries = const {
 };
 ''');
     coreCorePath = resourceProvider.convertPath('/sdk/lib/core/core.dart');
-    resourceProvider.newFile(
-        coreCorePath,
-        '''
+    resourceProvider.newFile(coreCorePath, '''
 library dart.core;
 part 'int.dart';
 ''');
     coreIntPath = resourceProvider.convertPath('/sdk/lib/core/int.dart');
-    resourceProvider.newFile(
-        coreIntPath,
-        '''
+    resourceProvider.newFile(coreIntPath, '''
 part of dart.core;
 ''');
     sdk = new FolderBasedDartSdk(resourceProvider, sdkFolder);
   }
 }
 
-class _SourceMock extends TypedMock implements Source {}
+class _SourceMock extends Mock implements Source {}

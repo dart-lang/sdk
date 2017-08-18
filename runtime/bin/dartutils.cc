@@ -47,18 +47,16 @@ const char* const DartUtils::kUriLibURL = "dart:uri";
 const char* const DartUtils::kHttpScheme = "http:";
 const char* const DartUtils::kVMServiceLibURL = "dart:vmservice";
 
-
 struct MagicNumberData {
-  static const intptr_t kLength = 4;
+  static const intptr_t kMaxLength = 4;
 
-  const uint8_t bytes[kLength];
-  bool should_skip;
+  intptr_t length;
+  const uint8_t bytes[kMaxLength];
 };
 
-
-MagicNumberData snapshot_magic_number = {{0xf5, 0xf5, 0xdc, 0xdc}, true};
-MagicNumberData kernel_magic_number = {{0x90, 0xab, 0xcd, 0xef}, false};
-
+MagicNumberData snapshot_magic_number = {4, {0xf5, 0xf5, 0xdc, 0xdc}};
+MagicNumberData kernel_magic_number = {4, {0x90, 0xab, 0xcd, 0xef}};
+MagicNumberData gzip_magic_number = {2, {0x1f, 0x8b, 0, 0}};
 
 static bool IsWindowsHost() {
 #if defined(HOST_OS_WINDOWS)
@@ -67,7 +65,6 @@ static bool IsWindowsHost() {
   return false;
 #endif  // defined(HOST_OS_WINDOWS)
 }
-
 
 const char* DartUtils::MapLibraryUrl(const char* url_string) {
   ASSERT(url_mapping != NULL);
@@ -86,14 +83,12 @@ const char* DartUtils::MapLibraryUrl(const char* url_string) {
   return NULL;  // Did not find a mapping for this URL.
 }
 
-
 int64_t DartUtils::GetIntegerValue(Dart_Handle value_obj) {
   int64_t value = 0;
   Dart_Handle result = Dart_IntegerToInt64(value_obj, &value);
   if (Dart_IsError(result)) Dart_PropagateError(result);
   return value;
 }
-
 
 int64_t DartUtils::GetInt64ValueCheckRange(Dart_Handle value_obj,
                                            int64_t lower,
@@ -105,7 +100,6 @@ int64_t DartUtils::GetInt64ValueCheckRange(Dart_Handle value_obj,
   return value;
 }
 
-
 intptr_t DartUtils::GetIntptrValue(Dart_Handle value_obj) {
   int64_t value = 0;
   Dart_Handle result = Dart_IntegerToInt64(value_obj, &value);
@@ -115,7 +109,6 @@ intptr_t DartUtils::GetIntptrValue(Dart_Handle value_obj) {
   }
   return static_cast<intptr_t>(value);
 }
-
 
 bool DartUtils::GetInt64Value(Dart_Handle value_obj, int64_t* value) {
   bool valid = Dart_IsInteger(value_obj);
@@ -129,14 +122,12 @@ bool DartUtils::GetInt64Value(Dart_Handle value_obj, int64_t* value) {
   return true;
 }
 
-
 const char* DartUtils::GetStringValue(Dart_Handle str_obj) {
   const char* cstring = NULL;
   Dart_Handle result = Dart_StringToCString(str_obj, &cstring);
   if (Dart_IsError(result)) Dart_PropagateError(result);
   return cstring;
 }
-
 
 bool DartUtils::GetBooleanValue(Dart_Handle bool_obj) {
   bool value = false;
@@ -145,20 +136,17 @@ bool DartUtils::GetBooleanValue(Dart_Handle bool_obj) {
   return value;
 }
 
-
 Dart_Handle DartUtils::SetIntegerField(Dart_Handle handle,
                                        const char* name,
                                        int64_t val) {
   return Dart_SetField(handle, NewString(name), Dart_NewInteger(val));
 }
 
-
 Dart_Handle DartUtils::SetStringField(Dart_Handle handle,
                                       const char* name,
                                       const char* val) {
   return Dart_SetField(handle, NewString(name), NewString(val));
 }
-
 
 bool DartUtils::IsDartSchemeURL(const char* url_name) {
   static const intptr_t kDartSchemeLen = strlen(kDartScheme);
@@ -167,12 +155,10 @@ bool DartUtils::IsDartSchemeURL(const char* url_name) {
   return (strncmp(url_name, kDartScheme, kDartSchemeLen) == 0);
 }
 
-
 bool DartUtils::IsHttpSchemeURL(const char* url_name) {
   static const intptr_t kHttpSchemeLen = strlen(kHttpScheme);
   return (strncmp(url_name, kHttpScheme, kHttpSchemeLen) == 0);
 }
-
 
 bool DartUtils::IsDartExtensionSchemeURL(const char* url_name) {
   static const intptr_t kDartExtensionSchemeLen = strlen(kDartExtensionScheme);
@@ -182,16 +168,13 @@ bool DartUtils::IsDartExtensionSchemeURL(const char* url_name) {
           0);
 }
 
-
 bool DartUtils::IsDartIOLibURL(const char* url_name) {
   return (strcmp(url_name, kIOLibURL) == 0);
 }
 
-
 bool DartUtils::IsDartBuiltinLibURL(const char* url_name) {
   return (strcmp(url_name, kBuiltinLibURL) == 0);
 }
-
 
 const char* DartUtils::RemoveScheme(const char* url) {
   const char* colon = strchr(url, ':');
@@ -202,7 +185,6 @@ const char* DartUtils::RemoveScheme(const char* url) {
   }
 }
 
-
 char* DartUtils::DirName(const char* url) {
   const char* slash = strrchr(url, File::PathSeparator()[0]);
   if (slash == NULL) {
@@ -212,12 +194,10 @@ char* DartUtils::DirName(const char* url) {
   }
 }
 
-
 void* DartUtils::OpenFile(const char* name, bool write) {
   File* file = File::Open(name, write ? File::kWriteTruncate : File::kRead);
   return reinterpret_cast<void*>(file);
 }
-
 
 void DartUtils::ReadFile(const uint8_t** data, intptr_t* len, void* stream) {
   ASSERT(data != NULL);
@@ -241,7 +221,6 @@ void DartUtils::ReadFile(const uint8_t** data, intptr_t* len, void* stream) {
   *data = text_buffer;
 }
 
-
 void DartUtils::WriteFile(const void* buffer,
                           intptr_t num_bytes,
                           void* stream) {
@@ -251,17 +230,14 @@ void DartUtils::WriteFile(const void* buffer,
   ASSERT(bytes_written);
 }
 
-
 void DartUtils::CloseFile(void* stream) {
   File* file = reinterpret_cast<File*>(stream);
   file->Release();
 }
 
-
 bool DartUtils::EntropySource(uint8_t* buffer, intptr_t length) {
   return Crypto::GetRandomBytes(length, buffer);
 }
-
 
 static Dart_Handle SingleArgDart_Invoke(Dart_Handle lib,
                                         const char* method,
@@ -272,7 +248,6 @@ static Dart_Handle SingleArgDart_Invoke(Dart_Handle lib,
   return Dart_Invoke(lib, DartUtils::NewString(method), kNumArgs, dart_args);
 }
 
-
 // TODO(iposva): Allocate from the zone instead of leaking error string
 // here. On the other hand the binary is about to exit anyway.
 #define SET_ERROR_MSG(error_msg, format, ...)                                  \
@@ -280,7 +255,6 @@ static Dart_Handle SingleArgDart_Invoke(Dart_Handle lib,
   char* msg = reinterpret_cast<char*>(malloc(len + 1));                        \
   snprintf(msg, len + 1, format, __VA_ARGS__);                                 \
   *error_msg = msg
-
 
 static const uint8_t* ReadFileFully(const char* filename,
                                     intptr_t* file_len,
@@ -301,7 +275,6 @@ static const uint8_t* ReadFileFully(const char* filename,
   return text_buffer;
 }
 
-
 Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
   const char* error_msg = NULL;
   intptr_t len;
@@ -313,7 +286,6 @@ Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
   free(const_cast<uint8_t*>(text_buffer));
   return str;
 }
-
 
 Dart_Handle DartUtils::MakeUint8Array(const uint8_t* buffer, intptr_t len) {
   Dart_Handle array = Dart_NewTypedData(Dart_TypedData_kUint8, len);
@@ -335,7 +307,6 @@ Dart_Handle DartUtils::MakeUint8Array(const uint8_t* buffer, intptr_t len) {
   return array;
 }
 
-
 Dart_Handle DartUtils::SetWorkingDirectory() {
   IsolateData* isolate_data =
       reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
@@ -343,7 +314,6 @@ Dart_Handle DartUtils::SetWorkingDirectory() {
   Dart_Handle directory = NewString(original_working_directory);
   return SingleArgDart_Invoke(builtin_lib, "_setWorkingDirectory", directory);
 }
-
 
 Dart_Handle DartUtils::ResolveUriInWorkingDirectory(Dart_Handle script_uri) {
   const int kNumArgs = 1;
@@ -354,7 +324,6 @@ Dart_Handle DartUtils::ResolveUriInWorkingDirectory(Dart_Handle script_uri) {
                      dart_args);
 }
 
-
 Dart_Handle DartUtils::LibraryFilePath(Dart_Handle library_uri) {
   const int kNumArgs = 1;
   Dart_Handle dart_args[kNumArgs];
@@ -362,7 +331,6 @@ Dart_Handle DartUtils::LibraryFilePath(Dart_Handle library_uri) {
   return Dart_Invoke(DartUtils::BuiltinLib(), NewString("_libraryFilePath"),
                      kNumArgs, dart_args);
 }
-
 
 Dart_Handle DartUtils::ResolveScript(Dart_Handle url) {
   const int kNumArgs = 1;
@@ -372,151 +340,44 @@ Dart_Handle DartUtils::ResolveScript(Dart_Handle url) {
                      kNumArgs, dart_args);
 }
 
-
-static Dart_Handle LoadDataAsync_Invoke(Dart_Handle tag,
-                                        Dart_Handle url,
-                                        Dart_Handle library_url) {
-  const int kNumArgs = 3;
-  Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = tag;
-  dart_args[1] = url;
-  dart_args[2] = library_url;
-  return Dart_Invoke(DartUtils::BuiltinLib(),
-                     DartUtils::NewString("_loadDataAsync"), kNumArgs,
-                     dart_args);
-}
-
-
-Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
-                                         Dart_Handle library,
-                                         Dart_Handle url) {
-  Dart_Handle library_url = Dart_LibraryUrl(library);
-  if (Dart_IsError(library_url)) {
-    return library_url;
-  }
-  if (tag == Dart_kCanonicalizeUrl) {
-    return Dart_DefaultCanonicalizeUrl(library_url, url);
-  }
-  if (!Dart_IsString(url)) {
-    return Dart_NewApiError("url is not a string");
-  }
-  const char* url_string = NULL;
-  Dart_Handle result = Dart_StringToCString(url, &url_string);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  const char* library_url_string = NULL;
-  result = Dart_StringToCString(library_url, &library_url_string);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-
-  bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_string);
-  bool is_dart_library = DartUtils::IsDartSchemeURL(library_url_string);
-
-  // Handle canonicalization, 'import' and 'part' of 'dart:' libraries.
-  if (is_dart_scheme_url || is_dart_library) {
-    if (tag == Dart_kImportTag) {
-      Builtin::BuiltinLibraryId id = Builtin::FindId(url_string);
-      if (id == Builtin::kInvalidLibrary) {
-        return NewError(
-            "The built-in library '%s' is not available"
-            " on the stand-alone VM.\n",
-            url_string);
-      }
-      return Builtin::LoadLibrary(url, id);
-    } else {
-      ASSERT(tag == Dart_kSourceTag);
-      Builtin::BuiltinLibraryId id = Builtin::FindId(library_url_string);
-      if (id == Builtin::kInvalidLibrary) {
-        return NewError(
-            "The built-in library '%s' is not available"
-            " on the stand-alone VM. Trying to load"
-            " '%s'.\n",
-            library_url_string, url_string);
-      }
-      // Prepend the library URI to form a unique script URI for the part.
-      intptr_t len = snprintf(NULL, 0, "%s/%s", library_url_string, url_string);
-      char* part_uri = reinterpret_cast<char*>(malloc(len + 1));
-      snprintf(part_uri, len + 1, "%s/%s", library_url_string, url_string);
-      Dart_Handle part_uri_obj = DartUtils::NewString(part_uri);
-      free(part_uri);
-      return Dart_LoadSource(library, part_uri_obj, Dart_Null(),
-                             Builtin::PartSource(id, url_string), 0, 0);
-    }
-    // All cases should have been handled above.
-    UNREACHABLE();
-  }
-
-  if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
-    // Load a native code shared library to use in a native extension
-    if (tag != Dart_kImportTag) {
-      return NewError("Dart extensions must use import: '%s'", url_string);
-    }
-    Dart_Handle library_file_path = DartUtils::LibraryFilePath(library_url);
-    const char* lib_path_str = NULL;
-    Dart_StringToCString(library_file_path, &lib_path_str);
-    const char* extension_path = DartUtils::RemoveScheme(url_string);
-    if (strchr(extension_path, '/') != NULL ||
-        (IsWindowsHost() && strchr(extension_path, '\\') != NULL)) {
-      return NewError(
-          "Relative paths for dart extensions are not supported: '%s'",
-          extension_path);
-    }
-    return Extensions::LoadExtension(lib_path_str, extension_path, library);
-  }
-
-  // Handle 'import' or 'part' requests for all other URIs. Call dart code to
-  // read the source code asynchronously.
-  return LoadDataAsync_Invoke(Dart_NewInteger(tag), url, library_url);
-}
-
-
-static bool CheckMagicNumber(const uint8_t** buf,
-                             intptr_t* len,
+static bool CheckMagicNumber(const uint8_t* buffer,
+                             intptr_t buffer_length,
                              const MagicNumberData& magic_number) {
-  if ((*len >= MagicNumberData::kLength) &&
-      (memcmp(*buf, magic_number.bytes, MagicNumberData::kLength) == 0)) {
-    if (magic_number.should_skip) {
-      *buf += MagicNumberData::kLength;
-      *len -= MagicNumberData::kLength;
-    }
-    return true;
+  if ((buffer_length >= magic_number.length)) {
+    return memcmp(buffer, magic_number.bytes, magic_number.length) == 0;
   }
   return false;
 }
 
-
-DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const uint8_t** buf,
-                                                      intptr_t* len) {
-  if (CheckMagicNumber(buf, len, snapshot_magic_number)) {
+DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const uint8_t* buffer,
+                                                      intptr_t buffer_length) {
+  if (CheckMagicNumber(buffer, buffer_length, snapshot_magic_number)) {
     return kSnapshotMagicNumber;
   }
 
-  if (CheckMagicNumber(buf, len, kernel_magic_number)) {
+  if (CheckMagicNumber(buffer, buffer_length, kernel_magic_number)) {
     return kKernelMagicNumber;
+  }
+
+  if (CheckMagicNumber(buffer, buffer_length, gzip_magic_number)) {
+    return kGzipMagicNumber;
   }
 
   return kUnknownMagicNumber;
 }
 
-
-void DartUtils::WriteMagicNumber(File* file) {
+void DartUtils::WriteSnapshotMagicNumber(File* file) {
   // Write a magic number and version information into the snapshot file.
-  bool bytes_written =
-      file->WriteFully(snapshot_magic_number.bytes, MagicNumberData::kLength);
+  bool bytes_written = file->WriteFully(snapshot_magic_number.bytes,
+                                        snapshot_magic_number.length);
   ASSERT(bytes_written);
 }
 
-
-Dart_Handle DartUtils::LoadScript(const char* script_uri) {
-  Dart_TimelineEvent("LoadScript", Dart_TimelineGetMicros(),
-                     Dart_GetMainPortId(), Dart_Timeline_Event_Async_Begin, 0,
-                     NULL, NULL);
-  Dart_Handle uri = Dart_NewStringFromCString(script_uri);
-  return LoadDataAsync_Invoke(Dart_Null(), uri, Dart_Null());
+void DartUtils::SkipSnapshotMagicNumber(const uint8_t** buffer,
+                                        intptr_t* buffer_length) {
+  *buffer += snapshot_magic_number.length;
+  *buffer_length -= snapshot_magic_number.length;
 }
-
 
 void FUNCTION_NAME(Builtin_GetCurrentDirectory)(Dart_NativeArguments args) {
   const char* current = Directory::Current();
@@ -527,7 +388,6 @@ void FUNCTION_NAME(Builtin_GetCurrentDirectory)(Dart_NativeArguments args) {
     Dart_PropagateError(err);
   }
 }
-
 
 Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                                              Dart_Handle internal_lib,
@@ -558,7 +418,6 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
   return Dart_True();
 }
 
-
 Dart_Handle DartUtils::PrepareCoreLibrary(Dart_Handle core_lib,
                                           Dart_Handle builtin_lib,
                                           bool is_service_isolate) {
@@ -574,7 +433,6 @@ Dart_Handle DartUtils::PrepareCoreLibrary(Dart_Handle core_lib,
   return Dart_True();
 }
 
-
 Dart_Handle DartUtils::PrepareAsyncLibrary(Dart_Handle async_lib,
                                            Dart_Handle isolate_lib) {
   Dart_Handle schedule_immediate_closure = Dart_Invoke(
@@ -586,16 +444,13 @@ Dart_Handle DartUtils::PrepareAsyncLibrary(Dart_Handle async_lib,
                      args);
 }
 
-
 Dart_Handle DartUtils::PrepareIOLibrary(Dart_Handle io_lib) {
   return Dart_Invoke(io_lib, NewString("_setupHooks"), 0, NULL);
 }
 
-
 Dart_Handle DartUtils::PrepareIsolateLibrary(Dart_Handle isolate_lib) {
   return Dart_Invoke(isolate_lib, NewString("_setupHooks"), 0, NULL);
 }
-
 
 Dart_Handle DartUtils::SetupServiceLoadPort() {
   // Wait for the service isolate to initialize the load port.
@@ -606,7 +461,6 @@ Dart_Handle DartUtils::SetupServiceLoadPort() {
   }
   return Builtin::SetLoadPort(load_port);
 }
-
 
 Dart_Handle DartUtils::SetupPackageRoot(const char* package_root,
                                         const char* packages_config) {
@@ -633,7 +487,6 @@ Dart_Handle DartUtils::SetupPackageRoot(const char* package_root,
   }
   return Dart_True();
 }
-
 
 Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,
                                                bool trace_loading) {
@@ -686,7 +539,6 @@ Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,
   return result;
 }
 
-
 Dart_Handle DartUtils::SetupIOLibrary(const char* script_uri) {
   Dart_Handle io_lib_url = NewString(kIOLibURL);
   RETURN_IF_ERROR(io_lib_url);
@@ -704,12 +556,10 @@ Dart_Handle DartUtils::SetupIOLibrary(const char* script_uri) {
   return Dart_Null();
 }
 
-
 bool DartUtils::PostNull(Dart_Port port_id) {
   // Post a message with just the null object.
   return Dart_PostCObject(port_id, CObject::Null()->AsApiCObject());
 }
-
 
 bool DartUtils::PostInt32(Dart_Port port_id, int32_t value) {
   // Post a message with the integer value.
@@ -722,7 +572,6 @@ bool DartUtils::PostInt32(Dart_Port port_id, int32_t value) {
   return Dart_PostCObject(port_id, &object);
 }
 
-
 bool DartUtils::PostInt64(Dart_Port port_id, int64_t value) {
   // Post a message with the integer value.
   Dart_CObject object;
@@ -731,20 +580,17 @@ bool DartUtils::PostInt64(Dart_Port port_id, int64_t value) {
   return Dart_PostCObject(port_id, &object);
 }
 
-
 Dart_Handle DartUtils::GetDartType(const char* library_url,
                                    const char* class_name) {
   return Dart_GetType(Dart_LookupLibrary(NewString(library_url)),
                       NewString(class_name), 0, NULL);
 }
 
-
 Dart_Handle DartUtils::NewDartOSError() {
   // Extract the current OS error.
   OSError os_error;
   return NewDartOSError(&os_error);
 }
-
 
 Dart_Handle DartUtils::NewDartOSError(OSError* os_error) {
   // Create a dart:io OSError object with the information retrieved from the OS.
@@ -755,7 +601,6 @@ Dart_Handle DartUtils::NewDartOSError(OSError* os_error) {
   args[1] = Dart_NewInteger(os_error->code());
   return Dart_New(type, Dart_Null(), 2, args);
 }
-
 
 Dart_Handle DartUtils::NewDartExceptionWithOSError(const char* library_url,
                                                    const char* exception_name,
@@ -769,7 +614,6 @@ Dart_Handle DartUtils::NewDartExceptionWithOSError(const char* library_url,
   args[1] = os_error;
   return Dart_New(type, Dart_Null(), 2, args);
 }
-
 
 Dart_Handle DartUtils::NewDartExceptionWithMessage(const char* library_url,
                                                    const char* exception_name,
@@ -786,16 +630,13 @@ Dart_Handle DartUtils::NewDartExceptionWithMessage(const char* library_url,
   }
 }
 
-
 Dart_Handle DartUtils::NewDartArgumentError(const char* message) {
   return NewDartExceptionWithMessage(kCoreLibURL, "ArgumentError", message);
 }
 
-
 Dart_Handle DartUtils::NewDartUnsupportedError(const char* message) {
   return NewDartExceptionWithMessage(kCoreLibURL, "UnsupportedError", message);
 }
-
 
 Dart_Handle DartUtils::NewDartIOException(const char* exception_name,
                                           const char* message,
@@ -804,7 +645,6 @@ Dart_Handle DartUtils::NewDartIOException(const char* exception_name,
   return NewDartExceptionWithOSError(kIOLibURL, exception_name, message,
                                      os_error);
 }
-
 
 Dart_Handle DartUtils::NewError(const char* format, ...) {
   va_list args;
@@ -822,17 +662,14 @@ Dart_Handle DartUtils::NewError(const char* format, ...) {
   return Dart_NewApiError(buffer);
 }
 
-
 Dart_Handle DartUtils::NewInternalError(const char* message) {
   return NewDartExceptionWithMessage(kCoreLibURL, "_InternalError", message);
 }
-
 
 bool DartUtils::SetOriginalWorkingDirectory() {
   original_working_directory = Directory::CurrentNoScope();
   return original_working_directory != NULL;
 }
-
 
 Dart_Handle DartUtils::GetCanonicalizableWorkingDirectory() {
   const char* str = DartUtils::original_working_directory;
@@ -845,7 +682,6 @@ Dart_Handle DartUtils::GetCanonicalizableWorkingDirectory() {
   return Dart_NewStringFromCString(new_str);
 }
 
-
 // Statically allocated Dart_CObject instances for immutable
 // objects. As these will be used by different threads the use of
 // these depends on the fact that the marking internally in the
@@ -857,26 +693,21 @@ CObject CObject::null_ = CObject(&api_null_);
 CObject CObject::true_ = CObject(&api_true_);
 CObject CObject::false_ = CObject(&api_false_);
 
-
 CObject* CObject::Null() {
   return &null_;
 }
-
 
 CObject* CObject::True() {
   return &true_;
 }
 
-
 CObject* CObject::False() {
   return &false_;
 }
 
-
 CObject* CObject::Bool(bool value) {
   return value ? &true_ : &false_;
 }
-
 
 Dart_CObject* CObject::New(Dart_CObject_Type type, int additional_bytes) {
   Dart_CObject* cobject = reinterpret_cast<Dart_CObject*>(
@@ -885,20 +716,17 @@ Dart_CObject* CObject::New(Dart_CObject_Type type, int additional_bytes) {
   return cobject;
 }
 
-
 Dart_CObject* CObject::NewInt32(int32_t value) {
   Dart_CObject* cobject = New(Dart_CObject_kInt32);
   cobject->value.as_int32 = value;
   return cobject;
 }
 
-
 Dart_CObject* CObject::NewInt64(int64_t value) {
   Dart_CObject* cobject = New(Dart_CObject_kInt64);
   cobject->value.as_int64 = value;
   return cobject;
 }
-
 
 Dart_CObject* CObject::NewIntptr(intptr_t value) {
   // Pointer values passed as intptr_t are always send as int64_t.
@@ -907,19 +735,16 @@ Dart_CObject* CObject::NewIntptr(intptr_t value) {
   return cobject;
 }
 
-
 static bool IsHexDigit(char c) {
   return (('0' <= c) && (c <= '9')) || (('A' <= c) && (c <= 'F')) ||
          (('a' <= c) && (c <= 'f'));
 }
-
 
 static int HexDigitToInt(char c) {
   if (('0' <= c) && (c <= '9')) return c - '0';
   if (('A' <= c) && (c <= 'F')) return 10 + (c - 'A');
   return 10 + (c - 'a');
 }
-
 
 Dart_CObject* CObject::NewBigint(const char* hex_value) {
   if (hex_value == NULL) {
@@ -976,13 +801,11 @@ Dart_CObject* CObject::NewBigint(const char* hex_value) {
   return cobject;
 }
 
-
 static char IntToHexDigit(int i) {
   ASSERT(0 <= i && i < 16);
   if (i < 10) return static_cast<char>('0' + i);
   return static_cast<char>('A' + (i - 10));
 }
-
 
 char* CObject::BigintToHexValue(Dart_CObject* bigint) {
   ASSERT(bigint->type == Dart_CObject_kBigint);
@@ -1037,13 +860,11 @@ char* CObject::BigintToHexValue(Dart_CObject* bigint) {
   return hex_value;
 }
 
-
 Dart_CObject* CObject::NewDouble(double value) {
   Dart_CObject* cobject = New(Dart_CObject_kDouble);
   cobject->value.as_double = value;
   return cobject;
 }
-
 
 Dart_CObject* CObject::NewString(intptr_t length) {
   Dart_CObject* cobject = New(Dart_CObject_kString, length + 1);
@@ -1051,14 +872,12 @@ Dart_CObject* CObject::NewString(intptr_t length) {
   return cobject;
 }
 
-
 Dart_CObject* CObject::NewString(const char* str) {
   intptr_t length = strlen(str);
   Dart_CObject* cobject = NewString(length);
   memmove(cobject->value.as_string, str, length + 1);
   return cobject;
 }
-
 
 Dart_CObject* CObject::NewArray(intptr_t length) {
   Dart_CObject* cobject =
@@ -1069,7 +888,6 @@ Dart_CObject* CObject::NewArray(intptr_t length) {
   return cobject;
 }
 
-
 Dart_CObject* CObject::NewUint8Array(intptr_t length) {
   Dart_CObject* cobject = New(Dart_CObject_kTypedData, length);
   cobject->value.as_typed_data.type = Dart_TypedData_kUint8;
@@ -1078,7 +896,6 @@ Dart_CObject* CObject::NewUint8Array(intptr_t length) {
   return cobject;
 }
 
-
 Dart_CObject* CObject::NewUint32Array(intptr_t length) {
   Dart_CObject* cobject = New(Dart_CObject_kTypedData, 4 * length);
   cobject->value.as_typed_data.type = Dart_TypedData_kUint32;
@@ -1086,7 +903,6 @@ Dart_CObject* CObject::NewUint32Array(intptr_t length) {
   cobject->value.as_typed_data.values = reinterpret_cast<uint8_t*>(cobject + 1);
   return cobject;
 }
-
 
 Dart_CObject* CObject::NewExternalUint8Array(
     intptr_t length,
@@ -1102,7 +918,6 @@ Dart_CObject* CObject::NewExternalUint8Array(
   return cobject;
 }
 
-
 Dart_CObject* CObject::NewIOBuffer(int64_t length) {
   // Make sure that we do not have an integer overflow here. Actual check
   // against max elements will be done at the time of writing, as the constant
@@ -1116,7 +931,6 @@ Dart_CObject* CObject::NewIOBuffer(int64_t length) {
                                IOBuffer::Finalizer);
 }
 
-
 void CObject::FreeIOBufferData(Dart_CObject* cobject) {
   ASSERT(cobject->type == Dart_CObject_kExternalTypedData);
   cobject->value.as_external_typed_data.callback(
@@ -1124,20 +938,17 @@ void CObject::FreeIOBufferData(Dart_CObject* cobject) {
   cobject->value.as_external_typed_data.data = NULL;
 }
 
-
 CObject* CObject::IllegalArgumentError() {
   CObjectArray* result = new CObjectArray(CObject::NewArray(1));
   result->SetAt(0, new CObjectInt32(CObject::NewInt32(kArgumentError)));
   return result;
 }
 
-
 CObject* CObject::FileClosedError() {
   CObjectArray* result = new CObjectArray(CObject::NewArray(1));
   result->SetAt(0, new CObjectInt32(CObject::NewInt32(kFileClosedError)));
   return result;
 }
-
 
 CObject* CObject::NewOSError() {
   OSError os_error;

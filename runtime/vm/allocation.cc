@@ -19,17 +19,14 @@ static void* Allocate(uword size, Zone* zone) {
   return reinterpret_cast<void*>(zone->AllocUnsafe(size));
 }
 
-
 void* ZoneAllocated::operator new(uword size) {
   return Allocate(size, Thread::Current()->zone());
 }
-
 
 void* ZoneAllocated::operator new(uword size, Zone* zone) {
   ASSERT(Thread::Current()->ZoneIsOwnedByThread(zone));
   return Allocate(size, zone);
 }
-
 
 StackResource::~StackResource() {
   if (thread_ != NULL) {
@@ -45,11 +42,9 @@ StackResource::~StackResource() {
 #endif
 }
 
-
 Isolate* StackResource::isolate() const {
   return thread_ == NULL ? NULL : thread_->isolate();
 }
-
 
 void StackResource::Init(Thread* thread) {
   // We can only have longjumps and exceptions when there is a current
@@ -65,7 +60,6 @@ void StackResource::Init(Thread* thread) {
   }
 }
 
-
 void StackResource::UnwindAbove(Thread* thread, StackResource* new_top) {
   StackResource* current_resource = thread->top_resource();
   while (current_resource != new_top) {
@@ -74,12 +68,10 @@ void StackResource::UnwindAbove(Thread* thread, StackResource* new_top) {
   }
 }
 
-
 #if defined(DEBUG)
 NoSafepointScope::NoSafepointScope() : StackResource(Thread::Current()) {
   thread()->IncrementNoSafepointScopeDepth();
 }
-
 
 NoSafepointScope::~NoSafepointScope() {
   thread()->DecrementNoSafepointScopeDepth();

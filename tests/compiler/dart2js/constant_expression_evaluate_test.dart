@@ -128,8 +128,7 @@ const List<TestData> DATA = const [
       const {'foo': 'foo'}: 'StringConstant("foo")'
     }),
   ]),
-  const TestData(
-      '''
+  const TestData('''
 const a = const bool.fromEnvironment("foo", defaultValue: true);
 const b = const int.fromEnvironment("bar", defaultValue: 42);
 
@@ -149,52 +148,50 @@ class D extends C {
   final field3 = 99;
   const D(a, b) : super(field2: a, field1: b);
 }
-''',
-      const [
-        const ConstantData('const Object()',
-            const {const {}: 'ConstructedConstant(Object())'}),
-        const ConstantData(
-            'const A()', const {const {}: 'ConstructedConstant(A())'}),
-        const ConstantData('const B(0)',
-            const {const {}: 'ConstructedConstant(B(field1=IntConstant(0)))'}),
-        const ConstantData('const B(const A())', const {
-          const {}: 'ConstructedConstant(B(field1=ConstructedConstant(A())))'
-        }),
-        const ConstantData('const C()', const {
-          const {}: 'ConstructedConstant(C(field1=IntConstant(42),'
-              'field2=BoolConstant(false)))'
-        }),
-        const ConstantData('const C(field1: 87)', const {
-          const {}: 'ConstructedConstant(C(field1=IntConstant(87),'
-              'field2=BoolConstant(false)))'
-        }),
-        const ConstantData('const C(field2: true)', const {
-          const {}: 'ConstructedConstant(C(field1=IntConstant(42),'
-              'field2=BoolConstant(true)))'
-        }),
-        const ConstantData('const C.named()', const {
-          const {}: 'ConstructedConstant(C(field1=BoolConstant(false),'
-              'field2=BoolConstant(false)))'
-        }),
-        const ConstantData('const C.named(87)', const {
-          const {}: 'ConstructedConstant(C(field1=IntConstant(87),'
-              'field2=IntConstant(87)))'
-        }),
-        const ConstantData('const C(field1: a, field2: b)', const {
-          const {}: 'ConstructedConstant(C(field1=BoolConstant(true),'
-              'field2=IntConstant(42)))',
-          const {'foo': 'false', 'bar': '87'}:
-              'ConstructedConstant(C(field1=BoolConstant(false),'
-              'field2=IntConstant(87)))',
-        }),
-        const ConstantData('const D(42, 87)', const {
-          const {}: 'ConstructedConstant(D(field1=IntConstant(87),'
-              'field2=IntConstant(42),'
-              'field3=IntConstant(99)))'
-        }),
-      ]),
-  const TestData(
-      '''
+''', const [
+    const ConstantData(
+        'const Object()', const {const {}: 'ConstructedConstant(Object())'}),
+    const ConstantData(
+        'const A()', const {const {}: 'ConstructedConstant(A())'}),
+    const ConstantData('const B(0)',
+        const {const {}: 'ConstructedConstant(B(field1=IntConstant(0)))'}),
+    const ConstantData('const B(const A())', const {
+      const {}: 'ConstructedConstant(B(field1=ConstructedConstant(A())))'
+    }),
+    const ConstantData('const C()', const {
+      const {}: 'ConstructedConstant(C(field1=IntConstant(42),'
+          'field2=BoolConstant(false)))'
+    }),
+    const ConstantData('const C(field1: 87)', const {
+      const {}: 'ConstructedConstant(C(field1=IntConstant(87),'
+          'field2=BoolConstant(false)))'
+    }),
+    const ConstantData('const C(field2: true)', const {
+      const {}: 'ConstructedConstant(C(field1=IntConstant(42),'
+          'field2=BoolConstant(true)))'
+    }),
+    const ConstantData('const C.named()', const {
+      const {}: 'ConstructedConstant(C(field1=BoolConstant(false),'
+          'field2=BoolConstant(false)))'
+    }),
+    const ConstantData('const C.named(87)', const {
+      const {}: 'ConstructedConstant(C(field1=IntConstant(87),'
+          'field2=IntConstant(87)))'
+    }),
+    const ConstantData('const C(field1: a, field2: b)', const {
+      const {}: 'ConstructedConstant(C(field1=BoolConstant(true),'
+          'field2=IntConstant(42)))',
+      const {'foo': 'false', 'bar': '87'}:
+          'ConstructedConstant(C(field1=BoolConstant(false),'
+          'field2=IntConstant(87)))',
+    }),
+    const ConstantData('const D(42, 87)', const {
+      const {}: 'ConstructedConstant(D(field1=IntConstant(87),'
+          'field2=IntConstant(42),'
+          'field3=IntConstant(99)))'
+    }),
+  ]),
+  const TestData('''
 class A<T> implements B {
   final field1;
   const A({this.field1:42});
@@ -206,32 +203,30 @@ class B<S> implements C {
 class C<U> {
   const factory C({field1}) = A<B<double>>;
 }
-''',
-      const [
-        const ConstantData('const A()', const {
-          const {}: 'ConstructedConstant(A<dynamic>(field1=IntConstant(42)))'
-        }),
-        const ConstantData('const A<int>(field1: 87)', const {
-          const {}: 'ConstructedConstant(A<int>(field1=IntConstant(87)))'
-        }),
-        const ConstantData('const B()', const {
-          const {}: 'ConstructedConstant(A<B<dynamic>>(field1=IntConstant(42)))'
-        }),
-        const ConstantData('const B<int>()', const {
-          const {}: 'ConstructedConstant(A<B<int>>(field1=IntConstant(42)))'
-        }),
-        const ConstantData('const B<int>(field1: 87)', const {
-          const {}: 'ConstructedConstant(A<B<int>>(field1=IntConstant(87)))'
-        }),
-        const ConstantData('const C<int>(field1: 87)', const {
-          const {}: 'ConstructedConstant(A<B<double>>(field1=IntConstant(87)))'
-        }),
-        const ConstantData('const B<int>.named()', const {
-          const {}: 'ConstructedConstant(A<int>(field1=IntConstant(42)))'
-        }),
-      ]),
-  const TestData(
-      '''
+''', const [
+    const ConstantData('const A()', const {
+      const {}: 'ConstructedConstant(A<dynamic>(field1=IntConstant(42)))'
+    }),
+    const ConstantData('const A<int>(field1: 87)', const {
+      const {}: 'ConstructedConstant(A<int>(field1=IntConstant(87)))'
+    }),
+    const ConstantData('const B()', const {
+      const {}: 'ConstructedConstant(A<B<dynamic>>(field1=IntConstant(42)))'
+    }),
+    const ConstantData('const B<int>()', const {
+      const {}: 'ConstructedConstant(A<B<int>>(field1=IntConstant(42)))'
+    }),
+    const ConstantData('const B<int>(field1: 87)', const {
+      const {}: 'ConstructedConstant(A<B<int>>(field1=IntConstant(87)))'
+    }),
+    const ConstantData('const C<int>(field1: 87)', const {
+      const {}: 'ConstructedConstant(A<B<double>>(field1=IntConstant(87)))'
+    }),
+    const ConstantData('const B<int>.named()', const {
+      const {}: 'ConstructedConstant(A<int>(field1=IntConstant(42)))'
+    }),
+  ]),
+  const TestData('''
 const c = const int.fromEnvironment("foo", defaultValue: 5);
 const d = const int.fromEnvironment("bar", defaultValue: 10);
 
@@ -243,18 +238,17 @@ class A {
 class B extends A {
   const B(a) : super(a, a * 2);
 }
-''',
-      const [
-        const ConstantData('const A(c, d)', const {
-          const {}: 'ConstructedConstant(A(field=IntConstant(15)))',
-          const {'foo': '7', 'bar': '11'}:
-              'ConstructedConstant(A(field=IntConstant(18)))',
-        }),
-        const ConstantData('const B(d)', const {
-          const {}: 'ConstructedConstant(B(field=IntConstant(30)))',
-          const {'bar': '42'}: 'ConstructedConstant(B(field=IntConstant(126)))',
-        }),
-      ]),
+''', const [
+    const ConstantData('const A(c, d)', const {
+      const {}: 'ConstructedConstant(A(field=IntConstant(15)))',
+      const {'foo': '7', 'bar': '11'}:
+          'ConstructedConstant(A(field=IntConstant(18)))',
+    }),
+    const ConstantData('const B(d)', const {
+      const {}: 'ConstructedConstant(B(field=IntConstant(30)))',
+      const {'bar': '42'}: 'ConstructedConstant(B(field=IntConstant(126)))',
+    }),
+  ]),
 ];
 
 main() {

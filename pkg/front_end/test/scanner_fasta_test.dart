@@ -225,6 +225,26 @@ main() {}
     }
   }
 
+  void test_double_error() {
+    String source = "3457e";
+    ErrorListener listener = new ErrorListener();
+    Token token = scanWithListener(source, listener);
+    expect(token, isNotNull);
+    expect(token.type, TokenType.DOUBLE);
+    expect(token.offset, 0);
+    expect(token.isSynthetic, isTrue);
+    // the invalid token is updated to be valid ...
+    expect(token.lexeme, source + "0");
+    // ... but the length does *not* include the additional character
+    // so as to be true to the original source.
+    expect(token.length, source.length);
+    expect(token.next.isEof, isTrue);
+    expect(listener.errors, hasLength(1));
+    TestError error = listener.errors[0];
+    expect(error.errorCode, ScannerErrorCode.MISSING_DIGIT);
+    expect(error.offset, source.length - 1);
+  }
+
   @override
   void test_mismatched_opener_in_interpolation() {
     // When openers and closers are mismatched,
@@ -684,6 +704,47 @@ class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
     expect(token.lexeme, 'var');
     var lineStarts = scanner.lineStarts;
     expect(lineStarts, orderedEquals([0, 5, 7, 9, 12, 13]));
+  }
+
+  void test_linestarts_synthetic_string() {
+    var scanner = createScanner("var\r\ns\n=\n'eh'\n'eh\n;\n");
+    Token firstToken = scanner.tokenize();
+    expect(firstToken.lexeme, 'var');
+    var lineStarts = scanner.lineStarts;
+    expect(lineStarts, orderedEquals([0, 5, 7, 9, 14, 18, 20, 21]));
+    var token = firstToken;
+    int index = 0;
+    while (!token.isEof) {
+      if (token is fasta.ErrorToken) {
+        expect(token.charOffset, 14,
+            reason: 'error token : $token, ${token.type}');
+        expect(token.charCount, 3,
+            reason: 'error token : $token, ${token.type}');
+      } else {
+        expect(token.charOffset, lineStarts[index],
+            reason: 'token # $index : $token, ${token.type}');
+        ++index;
+      }
+      token = token.next;
+    }
+  }
+
+  void test_linestarts_synthetic_string_utf8() {
+    var scanner = createScanner("var\r\ns\n=\n'éh'\n'éh\n;\n");
+    Token firstToken = scanner.tokenize();
+    expect(firstToken.lexeme, 'var');
+    var lineStarts = scanner.lineStarts;
+    expect(lineStarts, orderedEquals([0, 5, 7, 9, 14, 18, 20, 21]));
+    var token = firstToken;
+    int index = 0;
+    while (!token.isEof) {
+      if (token is! fasta.ErrorToken) {
+        expect(token.charOffset, lineStarts[index],
+            reason: 'token # $index : $token, ${token.type}');
+        ++index;
+      }
+      token = token.next;
+    }
   }
 }
 

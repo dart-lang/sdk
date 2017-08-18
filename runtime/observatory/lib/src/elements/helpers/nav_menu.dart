@@ -4,10 +4,9 @@
 
 import 'dart:html';
 
-navMenu(String label, {String link: '', Iterable<Element> content: const []}) {
+navMenu(String label, {String link, Iterable<Element> content: const []}) {
   assert(label != null);
   assert(content != null);
-  assert(link != null);
   return new LIElement()
     ..classes = ['nav-menu']
     ..children = [

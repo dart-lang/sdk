@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class X extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
@@ -12,6 +12,21 @@ class A extends core::Object {
   constructor •(self::X x) → void
     : self::A::x = x, super core::Object::•() {}
 }
+class B extends core::Object {
+  field self::X x;
+  constructor •(self::X x) → void
+    : final Vector #context = MakeVector(3), this self::B::#redir(x, #context)
+    ;
+  constructor #redir(self::X x, final Vector #context) → void
+    : dynamic #t1 = #context[2] = x, self::B::x = #context[2], super core::Object::•() {
+    final () → dynamic fn = MakeClosure<() → dynamic>(self::closure#B#function#fn, #context);
+    fn.call();
+  }
+}
 static method main() → dynamic {
   self::A a = new self::A::•(new self::X::•());
+  self::B b = new self::B::•(new self::X::•());
+}
+static method closure#B#function#fn(Vector #contextParameter) → dynamic {
+  core::print(#contextParameter[2]);
 }

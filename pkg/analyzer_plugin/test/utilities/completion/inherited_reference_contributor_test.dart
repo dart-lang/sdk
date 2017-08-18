@@ -29,9 +29,7 @@ class InheritedReferenceContributorTest extends DartCompletionContributorTest {
   /// Sanity check.  Permutations tested in local_ref_contributor.
   test_ArgDefaults_inherited_method_with_required_named() async {
     addMetaPackageSource();
-    resolveSource(
-        '/testB.dart',
-        '''
+    resolveSource('/testB.dart', '''
 import 'package:meta/meta.dart';
 
 lib libB;
@@ -52,9 +50,7 @@ class B extends A {
 
   test_AwaitExpression_inherited() async {
     // SimpleIdentifier  AwaitExpression  ExpressionStatement
-    resolveSource(
-        '/testB.dart',
-        '''
+    resolveSource('/testB.dart', '''
 lib libB;
 class A {
   Future y() async {return 0;}
@@ -80,9 +76,7 @@ class B extends A {
 
   test_Block_inherited_imported() async {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
-    resolveSource(
-        '/testB.dart',
-        '''
+    resolveSource('/testB.dart', '''
       lib B;
       class F { var f1; f2() { } get f3 => 0; set f4(fx) { } var _pf; }
       class E extends F { var e1; e2() { } }
@@ -132,9 +126,7 @@ class A extends E implements I with M {a() {^}}''');
   }
 
   test_inherited() async {
-    resolveSource(
-        '/testB.dart',
-        '''
+    resolveSource('/testB.dart', '''
 lib libB;
 class A2 {
   int x;
@@ -167,7 +159,7 @@ class B extends A1 with A2 {
     assertNotSuggested('foo');
     assertNotSuggested('A');
     assertSuggestField('x', 'int');
-    assertSuggestMethod('y', 'A2', 'int');
+    assertSuggestMethod('y', 'A1', 'int');
     assertSuggestField('x1', 'int');
     assertSuggestMethod('y1', 'A1', 'int');
     assertSuggestField('x2', 'int');
@@ -186,9 +178,7 @@ class A {
   }
 
   test_method_parameters_mixed_required_and_named() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   void m(x, {int y}) {}
 }
@@ -231,9 +221,7 @@ class B extends A {
   }
 
   test_method_parameters_mixed_required_and_positional() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   void m(x, [int y]) {}
 }
@@ -276,9 +264,7 @@ class B extends A {
   }
 
   test_method_parameters_named() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   void m({x, int y}) {}
 }
@@ -321,9 +307,7 @@ class B extends A {
   }
 
   test_method_parameters_none() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   void m() {}
 }
@@ -360,9 +344,7 @@ class B extends A {
   }
 
   test_method_parameters_positional() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   void m([x, int y]) {}
 }
@@ -405,9 +387,7 @@ class B extends A {
   }
 
   test_method_parameters_required() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   void m(x, int y) {}
 }
@@ -430,9 +410,7 @@ class B extends A {
   }
 
   test_mixin_ordering() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class B {}
 class M1 {
   void m() {}
@@ -454,9 +432,7 @@ class C extends B with M1, M2 {
   }
 
   test_no_parameters_field() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   int x;
 }
@@ -473,9 +449,7 @@ class B extends A {
   }
 
   test_no_parameters_getter() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   int get x => null;
 }
@@ -492,9 +466,7 @@ class B extends A {
   }
 
   test_no_parameters_setter() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   set x(int value) {};
 }
@@ -511,9 +483,7 @@ class B extends A {
   }
 
   test_outside_class() async {
-    resolveSource(
-        '/testB.dart',
-        '''
+    resolveSource('/testB.dart', '''
 lib libB;
 class A2 {
   int x;
@@ -554,9 +524,7 @@ foo() {^}
   }
 
   test_static_field() async {
-    resolveSource(
-        '/testB.dart',
-        '''
+    resolveSource('/testB.dart', '''
 lib libB;
 class A2 {
   int x;
@@ -597,9 +565,7 @@ class B extends A1 with A2 {
   }
 
   test_static_method() async {
-    resolveSource(
-        '/testB.dart',
-        '''
+    resolveSource('/testB.dart', '''
 lib libB;
 class A2 {
   int x;

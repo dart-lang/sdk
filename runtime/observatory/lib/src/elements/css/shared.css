@@ -327,6 +327,17 @@ select, button, input {
   border-width: 1px;
 }
 
+button.link {
+  background-color: transparent;
+  color: #0489c3;
+  border-style: none;
+  border-width: 0;
+}
+
+button.big {
+  font-size: 20px;
+}
+
 @-webkit-keyframes fadeIn {
   0%   { opacity: 0; }
   100% { opacity: 1; }
@@ -459,11 +470,23 @@ allocation-profile .collection.expanded {
   top: 160px;
 }
 
+allocation-profile .container {
+  padding-left: 5%;
+  padding-right: 5%;
+}
+
 allocation-profile .collection-item {
+  background-color: #FFFFFF;
   box-sizing: border-box;
   line-height: 20px;
-  margin-left: 5%;
-  margin-right: 5%;
+}
+
+allocation-profile .collection-item:hover {
+  background-color: #d2e7fe;
+}
+
+allocation-profile .header .collection-item:hover {
+  background-color: #FFFFFF;
 }
 
 allocation-profile .header .collection-item:last-child {
@@ -476,35 +499,30 @@ allocation-profile .header .collection-item span {
 }
 
 allocation-profile .collection-item :nth-child(2n+2).group,
-allocation-profile .collection-item :nth-child(4n+3).bytes,
-allocation-profile .collection-item :nth-child(4n+3).instances,
-allocation-profile .collection-item :nth-child(4n+4).bytes,
-allocation-profile .collection-item :nth-child(4n+4).instances {
+allocation-profile .collection-item :nth-child(4n+3),
+allocation-profile .collection-item :nth-child(4n+4) {
   background-color: #EEEEEE;
 }
 
 allocation-profile .collection-item:hover :nth-child(2n+2).group,
-allocation-profile .collection-item:hover :nth-child(4n+3).bytes,
-allocation-profile .collection-item:hover :nth-child(4n+3).instances,
-allocation-profile .collection-item:hover :nth-child(4n+4).bytes,
-allocation-profile .collection-item:hover :nth-child(4n+4).instances {
+allocation-profile .collection-item:hover :nth-child(4n+3),
+allocation-profile .collection-item:hover :nth-child(4n+4) {
   background-color: #afd5fd;
 }
 
+allocation-profile .header .collection-item :nth-child(2n+1).group,
+allocation-profile .header .collection-item :nth-child(4n+1),
+allocation-profile .header .collection-item :nth-child(4n+2) {
+  background-color: #FFFFFF;
+}
+
 allocation-profile .header .collection-item :nth-child(2n+2).group,
-allocation-profile .header .collection-item :nth-child(4n+3).bytes,
-allocation-profile .header .collection-item :nth-child(4n+3).instances,
-allocation-profile .header .collection-item :nth-child(4n+4).bytes,
-allocation-profile .header .collection-item :nth-child(4n+4).instances {
+allocation-profile .header .collection-item :nth-child(4n+3),
+allocation-profile .header .collection-item :nth-child(4n+4) {
   background-color: #DDDDDD;
 }
 
-allocation-profile .scroller .collection-item:hover {
-  background-color: #d2e7fe;
-}
-
 allocation-profile .collection-item .group {
-  background-color: white;
   display: inline-block;
   width: 12em;
   text-align: right;
@@ -514,7 +532,6 @@ allocation-profile .collection-item .group {
 }
 
 allocation-profile .collection-item .bytes {
-  background-color: white;
   display: inline-block;
   width: 6em;
   text-align: right;
@@ -523,7 +540,6 @@ allocation-profile .collection-item .bytes {
 }
 
 allocation-profile .collection-item .instances {
-  background-color: white;
   display: inline-block;
   width: 6em;
   text-align: right;
@@ -533,8 +549,9 @@ allocation-profile .collection-item .instances {
 }
 
 allocation-profile .collection-item .name {
-  background-color: white;
   padding-left: 0.5em;
+  padding-right: 0.5em;
+  display: inline-block;
 }
 
 allocation-profile .collection-item > button,
@@ -589,15 +606,19 @@ class-tree virtual-tree {
   right: 0;
 }
 
-class-tree virtual-tree .class-tree-item {
-  line-height: 25px;
-  height: 25px;
+class-tree virtual-tree .container {
   padding-left: 10%;
   padding-right: 10%;
 }
 
+class-tree virtual-tree .class-tree-item {
+  line-height: 25px;
+  height: 25px;
+}
+
 class-tree virtual-tree .class-tree-item .name {
   margin-left: 0.5em;
+  margin-right: 0.5em;
 }
 
 /* code-view */
@@ -782,27 +803,28 @@ cpu-profile-table .function-item .exclusive {
   padding-right: 0.5em;
   line-height: 20px;
 }
-cpu-profile-table .shifter .function-item .inclusive {
+cpu-profile-table .buffer .function-item .inclusive {
   background-color: #EEEEEE;
 }
-cpu-profile-table .shifter .function-item.selected .inclusive {
+cpu-profile-table .buffer .function-item.selected .inclusive {
   background-color: #51a3fb;
 }
-cpu-profile-table .shifter .function-item:hover .inclusive {
+cpu-profile-table .buffer .function-item:hover .inclusive {
   background-color: #afd5fd;
 }
 cpu-profile-table .header .function-item .inclusive {
   background-color: #DDDDDD;
 }
-cpu-profile-table .shifter .function-item.selected {
+cpu-profile-table .buffer .function-item.selected {
   background-color: #60abfb;
 }
-cpu-profile-table .shifter .function-item:hover {
+cpu-profile-table .buffer .function-item:hover {
   background-color: #d2e7fe;
 }
 cpu-profile-table .function-item .exclusive {
 }
 cpu-profile-table .function-item .name {
+  padding-left: 0.5em;
   padding-left: 0.5em;
 }
 cpu-profile-table .function-item > button,
@@ -847,6 +869,7 @@ cpu-profile-virtual-tree .tree-item > .exclusive {
 cpu-profile-virtual-tree .tree-item > .name {
   display: inline;
   margin-left: 0.5em;
+  margin-right: 0.5em;
 }
 
 /* curly-block */
@@ -1311,6 +1334,7 @@ heap-snapshot .tree-item > .percentage {
 heap-snapshot .tree-item > .name {
   display: inline;
   margin-left: 0.5em;
+  margin-right: 0.5em;
 }
 
 
@@ -1561,6 +1585,22 @@ logging-list .SHOUT {
   background-color: #FFCDD2;
 }
 
+/* memory-graph */
+
+memory-graph .chart-legend-row,
+memory-graph .chart-legend-row div {
+  display: inline;
+}
+
+memory-graph .chart-legend-row div.chart-legend-color {
+  display: inline-block;
+  margin: auto 8px;
+}
+
+memory-graph .chart-legend-row:nth-child(2n) div.chart-legend-color {
+  display: none;
+}
+
 /* megamorphic-cache-ref */
 
 megamorphic-cache-ref > a[href]:hover {
@@ -1577,11 +1617,30 @@ megamorphic-ref .emphasize {
   font-style: italic;
 }
 
+/* memory-dashboard */
+
+memory-dashboard {
+  display: block;
+  height: 100%;
+  margin-top: -30px;
+}
+
+memory-dashboard memory-graph {
+  height: 350px;
+}
+
+memory-dashboard memory-profile {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 340px;
+}
+
 /* metric-graph */
 
 metric-graph {
   display: block;
-  height: 100%;
 }
 
 metric-graph .graph {
@@ -1593,6 +1652,106 @@ metric-graph .graph {
 
 metric-graph .graph > div {
   height: 100%;
+}
+
+/* memory-profile */
+
+memory-profile .container {
+  padding-left: 5%;
+  padding-right: 5%;
+}
+
+memory-profile .collection-item {
+  background-color: #FFFFFF;
+  box-sizing: border-box;
+  line-height: 20px;
+}
+
+memory-profile .collection-item:hover {
+  background-color: #d2e7fe;
+}
+
+memory-profile .header .collection-item:hover {
+  background-color: #FFFFFF;
+}
+
+memory-profile .header .collection-item:last-child {
+  margin-bottom: -3px;
+  border-bottom: solid 1px #AAAAAA;
+}
+
+memory-profile .header .collection-item span {
+  font-weight: bolder;
+}
+
+memory-profile .collection-item :nth-child(2n+2).group,
+memory-profile .collection-item :nth-child(4n+3),
+memory-profile .collection-item :nth-child(4n+4) {
+  background-color: #EEEEEE;
+}
+
+memory-profile .collection-item:hover :nth-child(2n+2).group,
+memory-profile .collection-item:hover :nth-child(4n+3),
+memory-profile .collection-item:hover :nth-child(4n+4) {
+  background-color: #afd5fd;
+}
+
+memory-profile .header .collection-item :nth-child(2n+1).group,
+memory-profile .header .collection-item :nth-child(4n+1),
+memory-profile .header .collection-item :nth-child(4n+2) {
+  background-color: #FFFFFF;
+}
+
+memory-profile .header .collection-item :nth-child(2n+2).group,
+memory-profile .header .collection-item :nth-child(4n+3),
+memory-profile .header .collection-item :nth-child(4n+4) {
+  background-color: #DDDDDD;
+}
+
+memory-profile .collection-item .group {
+  display: inline-block;
+  width: 12em;
+  text-align: right;
+  padding-right: 0.5em;
+  line-height: 20px;
+  border-right: solid 1px #AAAAAA;
+}
+
+memory-profile .collection-item .bytes {
+  display: inline-block;
+  width: 6em;
+  text-align: right;
+  line-height: 20px;
+  padding-right: 0.5em;
+}
+
+memory-profile .collection-item .instances {
+  display: inline-block;
+  width: 6em;
+  text-align: right;
+  padding-right: 0.5em;
+  line-height: 20px;
+  border-right: solid 1px #AAAAAA;
+}
+
+memory-profile .collection-item .name {
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  display: inline-block;
+}
+
+memory-profile .collection-item > button,
+memory-profile .collection-item > button:active,
+memory-profile .collection-item .group button,
+memory-profile .collection-item .group button:active {
+  background-color: transparent;
+  color: #0489c3;
+  border-style: none;
+}
+
+memory-profile .collection-item > button:hover,
+memory-profile .collection-item .group button:hover {
+  text-decoration: underline;
 }
 
 /* metric-graph */
@@ -1638,7 +1797,8 @@ li.nav-menu:before {
   margin-left: 0.5em;
   margin-right: 0.5em;
 }
-nav.nav-bar > ul *:first-child li.nav-menu:before {
+nav.nav-bar > ul *:first-child li.nav-menu:before,
+nav.nav-bar > ul nav-reload > li:before {
   content: '';
   margin-left: 0;
   margin-right: 0;
@@ -1808,6 +1968,37 @@ nav-refresh > li {
   margin: 0;
 }
 
+/* nav-refresh */
+
+nav-reload > li > button {
+  color: #000;
+  margin: 3px;
+  padding: 8px;
+  border-width: 2px;
+  line-height: 13px;
+  font-size: 13px;
+  font: 400 'Montserrat', sans-serif;
+}
+nav-reload ul > li {
+  display: block;
+  width: 100%;
+  padding: 2px;
+}
+nav-reload ul > li > button {
+  display: inline-block;
+  padding: 8px;
+  width: 100%;
+}
+nav-reload > li > button[disabled],
+nav-reload ul > li > button[disabled] {
+  color: #aaa;
+  cursor: wait;
+}
+nav-reload > li {
+  float: right;
+  margin: 0;
+}
+
 /* object-common && class-instances */
 
 class-instances button:hover,
@@ -1874,9 +2065,6 @@ persistent-handles-page .weak-persistent-handles {
   padding-top: 70px;
   height: 50%;
 }
-persistent-handles-page virtual-collection {
-  overflow-y: scroll;
-}
 persistent-handles-page .weak-item,
 persistent-handles-page .collection-item {
   box-sizing: border-box;
@@ -1909,7 +2097,7 @@ persistent-handles-page .weak-item .object {
   text-align: left;
   width: 25em;
 }
-persistent-handles-page .shifter .weak-item:hover {
+persistent-handles-page .buffer .weak-item:hover {
   background-color: #d2e7fe;
 }
 persistent-handles-page .weak-item .finalizer {
@@ -2255,36 +2443,54 @@ view-footer > a {
 virtual-collection {
   position: relative;
   display: block;
-  overflow-y: auto;
+  overflow-x: hidden;
   width: 100%;
   height: 100%;
+}
+
+virtual-collection .viewport {
+  position: absolute;
+  display: block;
+  overflow-y: auto;
+  overflow-x: auto;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;  
 }
 
 virtual-collection .header {
   background: white;
   position: relative;
-  display: inline-block;
-  min-width: 100%;
+  display: block;
   z-index: +1;
 }
 
-virtual-collection .scroller {
+virtual-collection .spacer {
   overflow: hidden;
   background: transparent;
   display: inline-block;
   min-width: 100%;
 }
 
-virtual-collection .shifter {
+virtual-collection .buffer {
   background: transparent;
   position: relative;
   display: inline-block;
   min-width: 100%;
 }
 
-virtual-collection .header > *,
-virtual-collection .shifter > * {
+virtual-collection .header > div,
+virtual-collection .buffer > div {
+  white-space: nowrap;
+}
+
+virtual-collection .header.attached > div,
+virtual-collection .buffer > div {
   display: inline-block;
+}
+
+virtual-collection .buffer > div {
   min-width: 100%;
   white-space: nowrap;
 }
@@ -2346,6 +2552,15 @@ virtual-tree .lines > span:nth-child(5n+4) {
 }
 
 /* vm-connect-target */
+
+vm-connect-target > a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+vm-connect-target > a:hover {
+  text-decoration: underline;
+}
 
 vm-connect-target > button.delete-button {
   margin-left: 0.28em;

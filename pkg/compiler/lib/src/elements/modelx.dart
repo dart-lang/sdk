@@ -250,8 +250,8 @@ class ErroneousElementX extends ElementX
   get functionSignature => unsupported();
   get parameterStructure => unsupported();
   get parameters => unsupported();
-  Element get patch => null;
-  Element get origin => this;
+  FunctionElement get patch => null;
+  FunctionElement get origin => this;
   get immediateRedirectionTarget => unsupported();
   get nestedClosures => unsupported();
   get memberContext => unsupported();
@@ -338,6 +338,16 @@ class ErroneousConstructorElementX extends ErroneousElementX
   @override
   set asyncMarker(_) {
     throw new UnsupportedError("asyncMarker=");
+  }
+
+  @override
+  get _asyncMarker {
+    throw new UnsupportedError("_asyncMarker");
+  }
+
+  @override
+  set _asyncMarker(_) {
+    throw new UnsupportedError("_asyncMarker=");
   }
 
   @override
@@ -957,8 +967,7 @@ abstract class LibraryDependencyElementX extends ElementX {
 
   void set metadata(value) {
     // The metadata is stored on [libraryDependency].
-    throw new SpannableAssertionFailure(
-        this, 'Cannot set metadata on a import/export.');
+    failedAt(this, 'Cannot set metadata on a import/export.');
   }
 
   @override
@@ -1065,6 +1074,9 @@ class LibraryElementX extends ElementX
   final Map<LibraryDependency, LibraryElement> tagMapping =
       new Map<LibraryDependency, LibraryElement>();
 
+  final Map<String, MixinApplicationElementX> mixinApplicationCache =
+      <String, MixinApplicationElementX>{};
+
   LibraryElementX(Script script, [Uri canonicalUri, LibraryElementX origin])
       : this.canonicalUri =
             ((canonicalUri == null) ? script.readableUri : canonicalUri),
@@ -1085,7 +1097,7 @@ class LibraryElementX extends ElementX
 
   void set metadata(value) {
     // The metadata is stored on [libraryTag].
-    throw new SpannableAssertionFailure(this, 'Cannot set metadata on Library');
+    failedAt(this, 'Cannot set metadata on Library');
   }
 
   CompilationUnitElement get compilationUnit => entryCompilationUnit;
@@ -1934,6 +1946,7 @@ class InitializingFormalElementX extends ParameterElementX
   ConstructorElement get functionDeclaration => super.functionDeclaration;
 }
 
+// ignore: strong_mode_invalid_method_override_from_base
 class ErroneousInitializingFormalElementX extends ParameterElementX
     implements InitializingFormalElementX {
   final ErroneousFieldElementX fieldElement;
@@ -2045,12 +2058,28 @@ abstract class BaseFunctionElementX extends ElementX
 
   FunctionSignature _functionSignatureCache;
 
-  AsyncMarker asyncMarker = AsyncMarker.SYNC;
+  AsyncMarker _asyncMarker = AsyncMarker.SYNC;
 
   BaseFunctionElementX(String name, ElementKind kind, Modifiers this.modifiers,
       Element enclosing)
       : super(name, kind, enclosing) {
     assert(modifiers != null);
+  }
+
+  AsyncMarker get asyncMarker {
+    if (isPatched) {
+      return patch.asyncMarker;
+    }
+    return _asyncMarker;
+  }
+
+  void set asyncMarker(AsyncMarker value) {
+    if (isPatched) {
+      BaseFunctionElementX function = patch;
+      function.asyncMarker = value;
+    } else {
+      _asyncMarker = value;
+    }
   }
 
   bool get isExternal => modifiers.isExternal;
@@ -2229,6 +2258,8 @@ abstract class SetterElementX extends AccessorElementX
 class LocalFunctionElementX extends BaseFunctionElementX
     implements LocalFunctionElement {
   final FunctionExpression node;
+
+  MethodElement callMethod;
 
   LocalFunctionElementX(String name, FunctionExpression this.node,
       ElementKind kind, Modifiers modifiers, ExecutableElement enclosing)
@@ -2620,7 +2651,8 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
       : super('', ElementKind.GENERATIVE_CONSTRUCTOR, Modifiers.EMPTY,
             enclosing) {
     functionSignature = new FunctionSignatureX(
-        type: new ResolutionFunctionType.synthesized(enclosingClass.thisType));
+        type: new ResolutionFunctionType.synthesized(
+            const ResolutionDynamicType()));
     _resolvedAst =
         new SynthesizedResolvedAst(this, ResolvedAstKind.DEFAULT_CONSTRUCTOR);
   }
@@ -3295,7 +3327,7 @@ abstract class MixinApplicationElementX extends BaseClassElementX
   List<ResolutionDartType> computeTypeParameters(ParsingContext parsing) {
     NamedMixinApplication named = node.asNamedMixinApplication();
     if (named == null) {
-      throw new SpannableAssertionFailure(
+      failedAt(
           node,
           "Type variables on unnamed mixin applications must be set on "
           "creation.");
@@ -3523,9 +3555,8 @@ class ParameterMetadataAnnotation extends MetadataAnnotationX {
 ///
 /// See `patch_parser.dart` for a description of the terminology.
 abstract class PatchMixin<E extends Element> implements Element {
-  // TODO(johnniwinther): Use type variables.
-  Element /* E */ patch = null;
-  Element /* E */ origin = null;
+  E patch = null;
+  E origin = null;
 
   bool get isPatch => origin != null;
   bool get isPatched => patch != null;
@@ -3533,8 +3564,8 @@ abstract class PatchMixin<E extends Element> implements Element {
   bool get isImplementation => !isPatched;
   bool get isDeclaration => !isPatch;
 
-  Element /* E */ get implementation => isPatched ? patch : this;
-  Element /* E */ get declaration => isPatch ? origin : this;
+  E get implementation => isPatched ? patch : this;
+  E get declaration => isPatch ? origin : this;
 
   /// Applies a patch to this element. This method must be called at most once.
   void applyPatch(PatchMixin<E> patch) {
@@ -3542,8 +3573,8 @@ abstract class PatchMixin<E extends Element> implements Element {
     assert(this.origin == null, failedAt(this, "Origin element is a patch."));
     assert(patch.origin == null, failedAt(patch, "Element is patched twice."));
     assert(patch.patch == null, failedAt(patch, "Patch element is patched."));
-    this.patch = patch;
-    patch.origin = this;
+    this.patch = patch as E;
+    patch.origin = this as E;
   }
 }
 

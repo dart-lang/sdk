@@ -16,18 +16,15 @@ void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
       "ZLibInflater and Deflater not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(Filter_CreateZLibDeflate)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "ZLibInflater and Deflater not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(Filter_Process)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "ZLibInflater and Deflater not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(Filter_Processed)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(

@@ -6,7 +6,7 @@ class C extends core::Object {
   field dynamic a = null;
   field dynamic b = 0;
   field dynamic c = 1.+(2);
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }

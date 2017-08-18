@@ -15,7 +15,6 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
-import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -24,6 +23,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart' show ExitDetector;
@@ -72,6 +72,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       'execution flows exit. Semantics may not be preserved.';
 
   final SearchEngine searchEngine;
+  final AstProvider astProvider;
   final CompilationUnit unit;
   final int selectionOffset;
   final int selectionLength;
@@ -118,7 +119,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   List<_Occurrence> _occurrences = [];
   bool _staticContext = false;
 
-  ExtractMethodRefactoringImpl(this.searchEngine, this.unit,
+  ExtractMethodRefactoringImpl(this.searchEngine, this.astProvider, this.unit,
       this.selectionOffset, this.selectionLength) {
     unitElement = unit.element;
     libraryElement = unitElement.library;
@@ -418,7 +419,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     // method of class
     if (parent is ClassDeclaration) {
       ClassElement classElement = parent.element;
-      return validateCreateMethod(searchEngine, classElement, name);
+      return validateCreateMethod(
+          searchEngine, astProvider, classElement, name);
     }
     // OK
     return new Future<RefactoringStatus>.value(result);
@@ -803,19 +805,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
    */
   void _prepareExcludedNames() {
     _excludedNames.clear();
-    ExecutableElement enclosingExecutable =
-        getEnclosingExecutableElement(_parentMember);
-    if (enclosingExecutable != null) {
-      visitChildren(enclosingExecutable, (Element element) {
-        if (element is LocalElement) {
-          SourceRange elementRange = element.visibleRange;
-          if (elementRange != null) {
-            _excludedNames.add(element.displayName);
-          }
-        }
-        return true;
-      });
-    }
+    List<LocalElement> localElements = getDefinedLocalElements(_parentMember);
+    _excludedNames.addAll(localElements.map((e) => e.name));
   }
 
   void _prepareNames() {

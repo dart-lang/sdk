@@ -22,7 +22,6 @@ int SourceLabel::FunctionLevel() const {
   return owner()->function_level();
 }
 
-
 LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
     : parent_(parent),
       child_(NULL),
@@ -45,7 +44,6 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
   }
 }
 
-
 bool LocalScope::IsNestedWithin(LocalScope* scope) const {
   const LocalScope* current_scope = this;
   while (current_scope != NULL) {
@@ -56,7 +54,6 @@ bool LocalScope::IsNestedWithin(LocalScope* scope) const {
   }
   return false;
 }
-
 
 bool LocalScope::AddVariable(LocalVariable* variable) {
   ASSERT(variable != NULL);
@@ -72,7 +69,6 @@ bool LocalScope::AddVariable(LocalVariable* variable) {
   return true;
 }
 
-
 bool LocalScope::InsertParameterAt(intptr_t pos, LocalVariable* parameter) {
   ASSERT(parameter != NULL);
   if (LocalLookupVariable(parameter->name()) != NULL) {
@@ -84,7 +80,6 @@ bool LocalScope::InsertParameterAt(intptr_t pos, LocalVariable* parameter) {
   parameter->set_owner(this);
   return true;
 }
-
 
 bool LocalScope::AddLabel(SourceLabel* label) {
   if (LocalLookupLabel(label->name()) != NULL) {
@@ -99,14 +94,12 @@ bool LocalScope::AddLabel(SourceLabel* label) {
   return true;
 }
 
-
 void LocalScope::MoveLabel(SourceLabel* label) {
   ASSERT(LocalLookupLabel(label->name()) == NULL);
   ASSERT(label->kind() == SourceLabel::kForward);
   labels_.Add(label);
   label->set_owner(this);
 }
-
 
 NameReference* LocalScope::FindReference(const String& name) const {
   ASSERT(name.IsSymbol());
@@ -118,7 +111,6 @@ NameReference* LocalScope::FindReference(const String& name) const {
   }
   return NULL;
 }
-
 
 void LocalScope::AddReferencedName(TokenPosition token_pos,
                                    const String& name) {
@@ -141,7 +133,6 @@ void LocalScope::AddReferencedName(TokenPosition token_pos,
   }
 }
 
-
 TokenPosition LocalScope::PreviousReferencePos(const String& name) const {
   NameReference* ref = FindReference(name);
   if (ref != NULL) {
@@ -149,7 +140,6 @@ TokenPosition LocalScope::PreviousReferencePos(const String& name) const {
   }
   return TokenPosition::kNoSource;
 }
-
 
 void LocalScope::AllocateContextVariable(LocalVariable* variable,
                                          LocalScope** context_owner) {
@@ -190,7 +180,6 @@ void LocalScope::AllocateContextVariable(LocalVariable* variable,
   }
   variable->set_index((*context_owner)->num_context_variables_++);
 }
-
 
 int LocalScope::AllocateVariables(int first_parameter_index,
                                   int num_parameters,
@@ -266,7 +255,6 @@ int LocalScope::AllocateVariables(int first_parameter_index,
   return min_frame_index;
 }
 
-
 // The parser creates internal variables that start with ":"
 static bool IsFilteredIdentifier(const String& str) {
   ASSERT(str.Length() > 0);
@@ -292,7 +280,6 @@ static bool IsFilteredIdentifier(const String& str) {
   }
   return str.CharAt(0) == ':';
 }
-
 
 RawLocalVarDescriptors* LocalScope::GetVarDescriptors(
     const Function& func,
@@ -371,7 +358,6 @@ RawLocalVarDescriptors* LocalScope::GetVarDescriptors(
   return var_desc.raw();
 }
 
-
 // Add visible variables that are declared in this scope to vars, then
 // collect visible variables of children, followed by siblings.
 void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
@@ -420,7 +406,6 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
   }
 }
 
-
 SourceLabel* LocalScope::LocalLookupLabel(const String& name) const {
   ASSERT(name.IsSymbol());
   for (intptr_t i = 0; i < labels_.length(); i++) {
@@ -431,7 +416,6 @@ SourceLabel* LocalScope::LocalLookupLabel(const String& name) const {
   }
   return NULL;
 }
-
 
 LocalVariable* LocalScope::LocalLookupVariable(const String& name) const {
   ASSERT(name.IsSymbol());
@@ -444,7 +428,6 @@ LocalVariable* LocalScope::LocalLookupVariable(const String& name) const {
   }
   return NULL;
 }
-
 
 LocalVariable* LocalScope::LookupVariable(const String& name, bool test_only) {
   LocalScope* current_scope = this;
@@ -461,7 +444,6 @@ LocalVariable* LocalScope::LookupVariable(const String& name, bool test_only) {
   }
   return NULL;
 }
-
 
 void LocalScope::CaptureVariable(LocalVariable* variable) {
   ASSERT(variable != NULL);
@@ -488,7 +470,6 @@ void LocalScope::CaptureVariable(LocalVariable* variable) {
   }
 }
 
-
 SourceLabel* LocalScope::LookupLabel(const String& name) {
   LocalScope* current_scope = this;
   while (current_scope != NULL) {
@@ -500,7 +481,6 @@ SourceLabel* LocalScope::LookupLabel(const String& name) {
   }
   return NULL;
 }
-
 
 SourceLabel* LocalScope::LookupInnermostLabel(Token::Kind jump_kind) {
   ASSERT((jump_kind == Token::kCONTINUE) || (jump_kind == Token::kBREAK));
@@ -521,7 +501,6 @@ SourceLabel* LocalScope::LookupInnermostLabel(Token::Kind jump_kind) {
   return NULL;
 }
 
-
 LocalScope* LocalScope::LookupSwitchScope() {
   LocalScope* current_scope = this->parent();
   int this_level = this->function_level();
@@ -541,7 +520,6 @@ LocalScope* LocalScope::LookupSwitchScope() {
   return NULL;
 }
 
-
 SourceLabel* LocalScope::CheckUnresolvedLabels() {
   for (int i = 0; i < this->labels_.length(); i++) {
     SourceLabel* label = this->labels_[i];
@@ -556,7 +534,6 @@ SourceLabel* LocalScope::CheckUnresolvedLabels() {
   }
   return NULL;
 }
-
 
 int LocalScope::NumCapturedVariables() const {
   // It is not necessary to traverse parent scopes, since we are only interested
@@ -581,7 +558,6 @@ int LocalScope::NumCapturedVariables() const {
   }
   return num_captured;
 }
-
 
 RawContextScope* LocalScope::PreserveOuterScope(
     int current_context_level) const {
@@ -628,7 +604,6 @@ RawContextScope* LocalScope::PreserveOuterScope(
   return context_scope.raw();
 }
 
-
 LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
   // The function level of the outer scope is one less than the function level
   // of the current function, which is 0.
@@ -667,7 +642,6 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
   return outer_scope;
 }
 
-
 void LocalScope::CaptureLocalVariables(LocalScope* top_scope) {
   ASSERT(top_scope->function_level() == function_level());
   LocalScope* scope = this;
@@ -687,7 +661,6 @@ void LocalScope::CaptureLocalVariables(LocalScope* top_scope) {
     scope = scope->parent();
   }
 }
-
 
 RawContextScope* LocalScope::CreateImplicitClosureScope(const Function& func) {
   static const intptr_t kNumCapturedVars = 1;
@@ -710,7 +683,6 @@ RawContextScope* LocalScope::CreateImplicitClosureScope(const Function& func) {
   return context_scope.raw();
 }
 
-
 bool LocalVariable::Equals(const LocalVariable& other) const {
   if (HasIndex() && other.HasIndex() && (index() == other.index())) {
     if (is_captured() == other.is_captured()) {
@@ -724,7 +696,6 @@ bool LocalVariable::Equals(const LocalVariable& other) const {
   }
   return false;
 }
-
 
 int LocalVariable::BitIndexIn(intptr_t fixed_parameter_count) const {
   ASSERT(!is_captured());
@@ -740,6 +711,5 @@ int LocalVariable::BitIndexIn(intptr_t fixed_parameter_count) const {
     return fixed_parameter_count - (index() - kFirstLocalSlotFromFp);
   }
 }
-
 
 }  // namespace dart

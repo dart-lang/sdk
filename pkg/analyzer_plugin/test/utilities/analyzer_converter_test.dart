@@ -181,9 +181,7 @@ class AnalyzerConverterTest extends AbstractContextTest {
   }
 
   test_convertElement_class() async {
-    analyzer.Source source = addSource(
-        testFile,
-        '''
+    analyzer.Source source = addSource(testFile, '''
 @deprecated
 abstract class _A {}
 class B<K, V> {}''');
@@ -222,9 +220,7 @@ class B<K, V> {}''');
   }
 
   test_convertElement_constructor() async {
-    analyzer.Source source = addSource(
-        testFile,
-        '''
+    analyzer.Source source = addSource(testFile, '''
 class A {
   const A.myConstructor(int a, [String b]);
 }''');
@@ -262,9 +258,7 @@ class A {
   }
 
   test_convertElement_enum() async {
-    analyzer.Source source = addSource(
-        testFile,
-        '''
+    analyzer.Source source = addSource(testFile, '''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
@@ -303,9 +297,7 @@ enum E2 { three, four }''');
   }
 
   test_convertElement_enumConstant() async {
-    analyzer.Source source = addSource(
-        testFile,
-        '''
+    analyzer.Source source = addSource(testFile, '''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
@@ -354,7 +346,8 @@ enum E2 { three, four }''');
           plugin.Element.FLAG_CONST | plugin.Element.FLAG_STATIC);
     }
     {
-      analyzer.FieldElement engineElement = findElementInUnit(unit, 'index');
+      analyzer.FieldElement engineElement =
+          unit.element.enums[1].getField('index');
       // create notification Element
       plugin.Element element = converter.convertElement(engineElement);
       expect(element.kind, plugin.ElementKind.FIELD);
@@ -372,7 +365,9 @@ enum E2 { three, four }''');
       expect(element.flags, plugin.Element.FLAG_FINAL);
     }
     {
-      analyzer.FieldElement engineElement = findElementInUnit(unit, 'values');
+      analyzer.FieldElement engineElement =
+          unit.element.enums[1].getField('values');
+
       // create notification Element
       plugin.Element element = converter.convertElement(engineElement);
       expect(element.kind, plugin.ElementKind.FIELD);
@@ -393,9 +388,7 @@ enum E2 { three, four }''');
   }
 
   test_convertElement_field() async {
-    analyzer.Source source = addSource(
-        testFile,
-        '''
+    analyzer.Source source = addSource(testFile, '''
 class A {
   static const myField = 42;
 }''');
@@ -420,9 +413,7 @@ class A {
   }
 
   test_convertElement_functionTypeAlias() async {
-    analyzer.Source source = addSource(
-        testFile,
-        '''
+    analyzer.Source source = addSource(testFile, '''
 typedef int F<T>(String x);
 ''');
     analyzer.CompilationUnit unit = await resolveLibraryUnit(source);
@@ -447,9 +438,7 @@ typedef int F<T>(String x);
   }
 
   test_convertElement_getter() async {
-    analyzer.Source source = addSource(
-        testFile,
-        '''
+    analyzer.Source source = addSource(testFile, '''
 class A {
   String get myGetter => 42;
 }''');
@@ -474,9 +463,7 @@ class A {
   }
 
   test_convertElement_method() async {
-    analyzer.Source source = addSource(
-        testFile,
-        '''
+    analyzer.Source source = addSource(testFile, '''
 class A {
   static List<String> myMethod(int a, {String b, int c}) {
     return null;
@@ -502,16 +489,13 @@ class A {
   }
 
   test_convertElement_setter() async {
-    analyzer.Source source = addSource(
-        testFile,
-        '''
+    analyzer.Source source = addSource(testFile, '''
 class A {
   set mySetter(String x) {}
 }''');
     analyzer.CompilationUnit unit = await resolveLibraryUnit(source);
-    analyzer.FieldElement engineFieldElement =
-        findElementInUnit(unit, 'mySetter', analyzer.ElementKind.FIELD);
-    analyzer.PropertyAccessorElement engineElement = engineFieldElement.setter;
+    analyzer.PropertyAccessorElement engineElement =
+        findElementInUnit(unit, 'mySetter', analyzer.ElementKind.SETTER);
     // create notification Element
     plugin.Element element = converter.convertElement(engineElement);
     expect(element.kind, plugin.ElementKind.SETTER);
@@ -580,9 +564,7 @@ class A {
   }
 
   test_fromElement_LABEL() async {
-    analyzer.Source source = addSource(
-        testFile,
-        '''
+    analyzer.Source source = addSource(testFile, '''
 main() {
 myLabel:
   while (true) {

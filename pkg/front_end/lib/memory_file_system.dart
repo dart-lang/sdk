@@ -16,12 +16,7 @@ import 'file_system.dart';
 /// Not intended to be implemented or extended by clients.
 class MemoryFileSystem implements FileSystem {
   final Map<Uri, Uint8List> _files = {};
-  final Map<Uri, DateTime> _lastModified = {};
-
-  // Counter used to create mock last-modification timestamps. The memory
-  // file-system is mainly used for testing, so we use mock timestamps to avoid
-  // introducing non-determinism.
-  int _lastUpdate = 0;
+  final Set<Uri> _directories = new Set<Uri>();
 
   /// The "current directory" in the in-memory virtual file system.
   ///
@@ -66,16 +61,20 @@ class MemoryFileSystemEntity implements FileSystemEntity {
       other.uri == uri &&
       identical(other._fileSystem, _fileSystem);
 
-  @override
-  Future<bool> exists() async => _fileSystem._files[uri] != null;
+  /// Create a directory for this file system entry.
+  ///
+  /// If the entry is an existing file, this is an error.
+  void createDirectory() {
+    if (_fileSystem._files[uri] != null) {
+      throw new FileSystemException(uri, 'Entry $uri is a file.');
+    }
+    _fileSystem._directories.add(uri);
+  }
 
   @override
-  Future<DateTime> lastModified() async {
-    var lastModified = _fileSystem._lastModified[uri];
-    if (lastModified == null) {
-      throw new FileSystemException(uri, 'File $uri does not exist.');
-    }
-    return lastModified;
+  Future<bool> exists() async {
+    return _fileSystem._files[uri] != null ||
+        _fileSystem._directories.contains(uri);
   }
 
   @override
@@ -119,8 +118,9 @@ class MemoryFileSystemEntity implements FileSystemEntity {
   }
 
   void _update(Uri uri, Uint8List data) {
+    if (_fileSystem._directories.contains(uri)) {
+      throw new FileSystemException(uri, 'Entry $uri is a directory.');
+    }
     _fileSystem._files[uri] = data;
-    _fileSystem._lastModified[uri] =
-        new DateTime.fromMicrosecondsSinceEpoch(++_fileSystem._lastUpdate);
   }
 }

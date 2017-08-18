@@ -13,7 +13,7 @@ import 'builder.dart'
         Scope,
         TypeBuilder;
 
-import '../messages.dart' show warning;
+import '../messages.dart' show templateConstructorNotFound, warning;
 
 class ConstructorReferenceBuilder extends Builder {
   final String name;
@@ -58,8 +58,8 @@ class ConstructorReferenceBuilder extends Builder {
           suffix ?? "", charOffset, fileUri, accessingLibrary);
     }
     if (target == null) {
-      warning(fileUri, charOffset,
-          "Couldn't find constructor '$fullNameForErrors'.");
+      warning(templateConstructorNotFound.withArguments(fullNameForErrors),
+          charOffset, fileUri);
     }
   }
 }

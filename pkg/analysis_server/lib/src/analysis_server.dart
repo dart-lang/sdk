@@ -31,7 +31,6 @@ import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
@@ -59,9 +58,11 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
-import 'package:front_end/src/incremental/file_byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
+import 'package:front_end/src/byte_store/file_byte_store.dart';
 import 'package:plugin/plugin.dart';
+import 'package:telemetry/crash_reporting.dart';
+import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
@@ -99,7 +100,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.18.1';
+  static final String VERSION = '1.18.4';
 
   /**
    * The options of this server instance.
@@ -128,11 +129,6 @@ class AnalysisServer {
    * The [ResourceProvider] using which paths are converted into [Resource]s.
    */
   final ResourceProvider resourceProvider;
-
-  /**
-   * The [Index] for this server, may be `null` if indexing is disabled.
-   */
-  final Index index;
 
   /**
    * The [SearchEngine] for this server, may be `null` if indexing is disabled.
@@ -344,7 +340,6 @@ class AnalysisServer {
       this.channel,
       this.resourceProvider,
       PubPackageMapProvider packageMapProvider,
-      this.index,
       this.serverPlugin,
       this.options,
       this.sdkManager,
@@ -365,11 +360,6 @@ class AnalysisServer {
     PluginWatcher pluginWatcher =
         new PluginWatcher(resourceProvider, pluginManager);
 
-    defaultContextOptions.incremental = true;
-    defaultContextOptions.incrementalApi =
-        options.enableIncrementalResolutionApi;
-    defaultContextOptions.incrementalValidation =
-        options.enableIncrementalResolutionValidation;
     defaultContextOptions.generateImplicitErrors = false;
 
     {
@@ -419,7 +409,6 @@ class AnalysisServer {
         _performance = performanceAfterStartup;
       });
     });
-    _setupIndexInvalidation();
     searchEngine = new SearchEngineImpl(driverMap.values);
     Notification notification = new ServerConnectedParams(VERSION, io.pid,
             sessionId: instrumentationService.sessionId)
@@ -507,7 +496,6 @@ class AnalysisServer {
    * The socket from which requests are being read has been closed.
    */
   void done() {
-    index?.stop();
     running = false;
   }
 
@@ -572,14 +560,16 @@ class AnalysisServer {
    * analyzed in one of the analysis drivers to which the file was added,
    * otherwise in the first driver, otherwise `null` is returned.
    */
-  Future<nd.AnalysisResult> getAnalysisResult(String path) async {
+  Future<nd.AnalysisResult> getAnalysisResult(String path,
+      {bool sendCachedToStream: false}) async {
     if (!AnalysisEngine.isDartFileName(path)) {
       return null;
     }
 
     try {
       nd.AnalysisDriver driver = getAnalysisDriver(path);
-      return await driver?.getResult(path);
+      return await driver?.getResult(path,
+          sendCachedToStream: sendCachedToStream);
     } catch (e) {
       // Ignore the exception.
       // We don't want to log the same exception again and again.
@@ -593,6 +583,19 @@ class AnalysisServer {
   AstProvider getAstProvider(String path) {
     nd.AnalysisDriver analysisDriver = getAnalysisDriver(path);
     return new AstProviderForDriver(analysisDriver);
+  }
+
+  /**
+   * Return the cached analysis result for the file with the given [path].
+   * If there is no cached result, return `null`.
+   */
+  nd.AnalysisResult getCachedAnalysisResult(String path) {
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return null;
+    }
+
+    nd.AnalysisDriver driver = getAnalysisDriver(path);
+    return driver?.getCachedResult(path);
   }
 
   /**
@@ -779,6 +782,15 @@ class AnalysisServer {
         new ServerErrorParams(fatal, message, buffer.toString())
             .toNotification());
 
+    // send to crash reporting
+    if (options.crashReportSender != null) {
+      // Catch and ignore any exceptions when reporting exceptions (network
+      // errors or other).
+      options.crashReportSender
+          .sendReport(exception, stackTrace: stackTrace)
+          .catchError((_) {});
+    }
+
     // remember the last few exceptions
     if (exception is CaughtException) {
       stackTrace ??= exception.stackTrace;
@@ -861,7 +873,7 @@ class AnalysisServer {
       // the fully resolved unit, and processed with sending analysis
       // notifications as it happens after content changes.
       if (AnalysisEngine.isDartFileName(file)) {
-        getAnalysisResult(file);
+        getAnalysisResult(file, sendCachedToStream: true);
       }
     }
   }
@@ -905,11 +917,13 @@ class AnalysisServer {
     return contextManager.isInAnalysisRoot(file);
   }
 
-  void shutdown() {
+  Future<Null> shutdown() async {
     running = false;
-    if (index != null) {
-      index.stop();
-    }
+
+    await options.analytics
+        ?.waitForLastPing(timeout: new Duration(milliseconds: 200));
+    options.analytics?.close();
+
     // Defer closing the channel and shutting down the instrumentation server so
     // that the shutdown response can be sent and logged.
     new Future(() {
@@ -1045,61 +1059,31 @@ class AnalysisServer {
       scheduleImplementedNotification(this, files);
     }
   }
-
-  /**
-   * Listen for context events and invalidate index.
-   *
-   * It is possible that this method will do more in the future, e.g. listening
-   * for summary information and linking pre-indexed packages into the index,
-   * but for now we only invalidate project specific index information.
-   */
-  void _setupIndexInvalidation() {
-    if (index == null) {
-      return;
-    }
-    // TODO(brianwilkerson) onContextsChanged never has anything written to it.
-    // Figure out whether we need something like this under the new analysis
-    // driver, and remove this method if not.
-//    onContextsChanged.listen((ContextsChangedEvent event) {
-//      for (AnalysisContext context in event.added) {
-//        context
-//            .onResultChanged(RESOLVED_UNIT3)
-//            .listen((ResultChangedEvent event) {
-//          if (event.wasComputed) {
-//            Object value = event.value;
-//            if (value is CompilationUnit) {
-//              index.indexDeclarations(value);
-//            }
-//          }
-//        });
-//        context
-//            .onResultChanged(RESOLVED_UNIT)
-//            .listen((ResultChangedEvent event) {
-//          if (event.wasInvalidated) {
-//            LibrarySpecificUnit target = event.target;
-//            index.removeUnit(event.context, target.library, target.unit);
-//          }
-//        });
-//      }
-//      for (AnalysisContext context in event.removed) {
-//        index.removeContext(context);
-//      }
-//    });
-  }
 }
 
+/**
+ * Various IDE options.
+ */
 class AnalysisServerOptions {
-  bool enableIncrementalResolutionApi = false;
-  bool enableIncrementalResolutionValidation = false;
   bool useAnalysisHighlight2 = false;
+
   String fileReadMode = 'as-is';
   String newAnalysisDriverLog;
 
   String clientId;
   String clientVersion;
 
-  // IDE options
-  bool enableVerboseFlutterCompletions = false;
+  /**
+   * The analytics instance; note, this object can be `null`, and should be
+   * accessed via a null-aware operator.
+   */
+  telemetry.Analytics analytics;
+
+  /**
+   * The crash report sender instance; note, this object can be `null`, and
+   * should be accessed via a null-aware operator.
+   */
+  CrashReportSender crashReportSender;
 }
 
 /**
@@ -1205,6 +1189,13 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
               new_sendDartNotificationOccurrences(analysisServer, result);
             });
           }
+        }
+        if (analysisServer._hasAnalysisServiceSubscription(
+            AnalysisService.CLOSING_LABELS, path)) {
+          _runDelayed(() {
+            sendAnalysisNotificationClosingLabels(
+                analysisServer, path, result.lineInfo, unit);
+          });
         }
         if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.OUTLINE, path)) {
@@ -1356,6 +1347,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     return collector.allOccurrences;
   }
 
+  // ignore: unused_element
   server.AnalysisOutlineParams _computeOutlineParams(
       String path, CompilationUnit unit, LineInfo lineInfo) {
     // compute FileKind

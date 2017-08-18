@@ -7,8 +7,8 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
@@ -125,7 +125,7 @@ abstract class AbstractAnalysisServerIntegrationTest
   bool skipShutdown = false;
 
   /**
-   * True if we are currently subscribed to [SERVER_STATUS] updates.
+   * True if we are currently subscribed to [SERVER_NOTIFICATION_STATUS] updates.
    */
   bool _subscribedToServerStatus = false;
 
@@ -240,8 +240,8 @@ abstract class AbstractAnalysisServerIntegrationTest
   /**
    * Send the server an 'analysis.setAnalysisRoots' command directing it to
    * analyze [sourceDirectory].  If [subscribeStatus] is true (the default),
-   * then also enable [SERVER_STATUS] notifications so that [analysisFinished]
-   * can be used.
+   * then also enable [SERVER_NOTIFICATION_STATUS] notifications so that
+   * [analysisFinished] can be used.
    */
   Future standardAnalysisSetup({bool subscribeStatus: true}) {
     List<Future> futures = <Future>[];
@@ -694,6 +694,7 @@ class Server {
     //
     // Add server arguments.
     //
+    arguments.add('--suppress-analytics');
     if (diagnosticPort != null) {
       arguments.add('--port');
       arguments.add(diagnosticPort.toString());
@@ -707,11 +708,9 @@ class Server {
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
     }
-//    print('Launching $serverPath');
-//    print('$dartBinary ${arguments.join(' ')}');
     // TODO(devoncarew): We could experiment with instead launching the analysis
     // server in a separate isolate. This would make it easier to debug the
-    // integration tests, and would likely speed the tests up as well.
+    // integration tests, and would likely speed up the tests as well.
     _process = await Process.start(dartBinary, arguments);
     _process.exitCode.then((int code) {
       if (code != 0) {

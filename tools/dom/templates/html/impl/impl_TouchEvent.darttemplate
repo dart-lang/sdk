@@ -15,11 +15,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     if (view == null) {
       view = window;
     }
-$if DART2JS
     TouchEvent e = document._createEvent("TouchEvent");
-$else
-    TouchEvent e = _blink.BlinkTouchEvent.instance.constructorCallback_1_(type);
-$endif
     e._initTouchEvent(touches, targetTouches, changedTouches, type, view,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
     return e;
@@ -31,9 +27,5 @@ $!MEMBERS
    * Note that touch events are only supported if the user is using a touch
    * device.
    */
-$if DART2JS
   static bool get supported => Device.isEventTypeSupported('TouchEvent');
-$else
-  static bool get supported => true;
-$endif
 }

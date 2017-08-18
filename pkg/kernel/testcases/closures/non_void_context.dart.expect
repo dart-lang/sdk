@@ -3,29 +3,29 @@ import self as self;
 
 static field dynamic v;
 static method main(dynamic arguments) → dynamic {
-  final Vector #context = MakeVector(2);
-  #context[1] = null;
+  final Vector #context = MakeVector(3);
+  #context[2] = null;
   (MakeClosure<(dynamic) → dynamic>(self::closure#main#function, #context)).call(87);
   if(!self::v.==(87)) {
     throw "Unexpected value in v: ${self::v}";
   }
-  if(!(#context[1]).==(87)) {
-    throw "Unexpected value in w: ${#context[1]}";
+  if(!(#context[2]).==(87)) {
+    throw "Unexpected value in w: ${#context[2]}";
   }
   self::v = true;
   (MakeClosure<() → dynamic>(self::closure#main#function#1, #context)).call();
   if(!self::v.==(false)) {
     throw "Unexpected value in v: ${self::v}";
   }
-  if(!(#context[1]).==(false)) {
-    throw "Unexpected value in w: ${#context[1]}";
+  if(!(#context[2]).==(false)) {
+    throw "Unexpected value in w: ${#context[2]}";
   }
 }
 static method closure#main#function(Vector #contextParameter, dynamic x) → dynamic {
-  return self::v = #contextParameter[1] = x;
+  return self::v = #contextParameter[2] = x;
 }
 static method closure#main#function#1(Vector #contextParameter) → dynamic {
-  for (; #contextParameter[1] = self::v; ) {
+  for (; #contextParameter[2] = self::v; ) {
     self::v = false;
   }
 }

@@ -16,7 +16,7 @@ import 'package:observatory/debugger.dart';
 import 'package:observatory/event.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart' as S;
-import 'package:observatory/service_common.dart';
+import 'package:observatory/repositories.dart' as R;
 import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
@@ -440,7 +440,10 @@ class RewindCommand extends DebuggerCommand {
 }
 
 class ReloadCommand extends DebuggerCommand {
-  ReloadCommand(Debugger debugger) : super(debugger, 'reload', []);
+  final M.IsolateRepository _isolates;
+
+  ReloadCommand(Debugger debugger, this._isolates)
+      : super(debugger, 'reload', []);
 
   Future run(List<String> args) async {
     try {
@@ -448,7 +451,12 @@ class ReloadCommand extends DebuggerCommand {
         debugger.console.print('reload expects no arguments');
         return;
       }
-      await debugger.isolate.reloadSources();
+      if (_isolates.reloadSourcesServices.isEmpty) {
+        await _isolates.reloadSources(debugger.isolate);
+      } else {
+        await _isolates.reloadSources(debugger.isolate,
+            service: _isolates.reloadSourcesServices.first);
+      }
       debugger.console.print('reload complete');
       await debugger.refreshStack();
     } on S.ServerRpcException catch (e) {
@@ -1462,7 +1470,7 @@ class ObservatoryDebugger extends Debugger {
       new LogCommand(this),
       new PauseCommand(this),
       new PrintCommand(this),
-      new ReloadCommand(this),
+      new ReloadCommand(this, new R.IsolateRepository(this.isolate.vm)),
       new RefreshCommand(this),
       new RewindCommand(this),
       new SetCommand(this),

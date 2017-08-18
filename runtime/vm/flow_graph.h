@@ -43,7 +43,6 @@ class BlockIterator : public ValueObject {
   intptr_t current_;
 };
 
-
 struct ConstantPoolTrait {
   typedef ConstantInstr* Value;
   typedef const Object& Key;
@@ -74,7 +73,6 @@ struct ConstantPoolTrait {
     return kv->value().raw() == key.raw();
   }
 };
-
 
 // Class to encapsulate the construction and manipulation of the flow graph.
 class FlowGraph : public ZoneAllocated {
@@ -420,7 +418,6 @@ class FlowGraph : public ZoneAllocated {
   intptr_t inlining_id_;
 };
 
-
 class LivenessAnalysis : public ValueObject {
  public:
   LivenessAnalysis(intptr_t variable_count,
@@ -495,7 +492,6 @@ class LivenessAnalysis : public ValueObject {
   GrowableArray<BitVector*> live_in_;
 };
 
-
 // Information about side effect free paths between blocks.
 class BlockEffects : public ZoneAllocated {
  public:
@@ -522,7 +518,6 @@ class BlockEffects : public ZoneAllocated {
   // effects.
   GrowableArray<BitVector*> available_at_;
 };
-
 
 class DefinitionWorklist : public ValueObject {
  public:
@@ -563,7 +558,6 @@ class DefinitionWorklist : public ValueObject {
   GrowableArray<Definition*> defs_;
   BitVector* contains_vector_;
 };
-
 
 }  // namespace dart
 

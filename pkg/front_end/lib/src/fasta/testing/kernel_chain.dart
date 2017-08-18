@@ -15,6 +15,8 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:kernel/kernel.dart' show loadProgramFromBinary;
 
+import 'package:kernel/target/targets.dart' show Target;
+
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 
 import 'package:testing/testing.dart' show Result, StdioProcess, Step;
@@ -23,14 +25,23 @@ import 'package:kernel/ast.dart' show Library, Program;
 
 import '../kernel/verifier.dart' show verifyProgram;
 
+import '../compiler_context.dart';
+
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:testing/testing.dart'
-    show ChainContext, Result, StdioProcess, Step;
+    show ChainContext, Result, StdioProcess, Step, TestDescription;
 
 import 'package:kernel/ast.dart' show Program;
+
+import 'package:front_end/front_end.dart';
+
+import 'package:front_end/src/base/processed_options.dart'
+    show ProcessedOptions;
+
+import 'patched_sdk_location.dart' show computePatchedSdk;
 
 class Print extends Step<Program, Program, ChainContext> {
   const Print();
@@ -59,13 +70,17 @@ class Verify extends Step<Program, Program, ChainContext> {
   String get name => "verify";
 
   Future<Result<Program>> run(Program program, ChainContext context) async {
-    var errors = verifyProgram(program, isOutline: !fullCompile);
-    if (errors.isEmpty) {
-      return pass(program);
-    } else {
-      return new Result<Program>(
-          null, context.expectationSet["VerificationError"], errors, null);
-    }
+    var options =
+        new ProcessedOptions(new CompilerOptions()..throwOnErrors = false);
+    return await CompilerContext.runWithOptions(options, (_) async {
+      var errors = verifyProgram(program, isOutline: !fullCompile);
+      if (errors.isEmpty) {
+        return pass(program);
+      } else {
+        return new Result<Program>(
+            null, context.expectationSet["VerificationError"], errors, null);
+      }
+    });
   }
 }
 
@@ -105,9 +120,7 @@ class MatchExpectation extends Step<Program, Program, ChainContext> {
       });
       return pass(program);
     } else {
-      return fail(
-          program,
-          """
+      return fail(program, """
 Please create file ${expectedFile.path} with this content:
 $buffer""");
     }
@@ -168,6 +181,48 @@ class Copy extends Step<Program, Program, ChainContext> {
     new BinaryBuilder(bytes).readProgram(program);
     return pass(program);
   }
+}
+
+/// A `package:testing` step that runs the `package:front_end` compiler to
+/// generate a kernel program for an individual file.
+///
+/// Most options are hard-coded, but if necessary they could be moved to the
+/// [CompileContext] object in the future.
+class Compile extends Step<TestDescription, Program, CompileContext> {
+  const Compile();
+
+  String get name => "fasta compilation";
+
+  Future<Result<Program>> run(
+      TestDescription description, CompileContext context) async {
+    Result<Program> result;
+    reportError(CompilationMessage error) {
+      result ??= fail(null, error.message);
+    }
+
+    Uri sdk = await computePatchedSdk();
+    var options = new CompilerOptions()
+      ..sdkRoot = sdk
+      ..compileSdk = true
+      ..packagesFileUri = Uri.base.resolve('.packages')
+      ..strongMode = context.strongMode
+      ..onError = reportError;
+    if (context.target != null) {
+      options.target = context.target;
+      // Do not link platform.dill, but recompile the platform libraries. This
+      // ensures that if target defines extra libraries that those get included
+      // too.
+    } else {
+      options.linkedDependencies = [sdk.resolve('platform.dill')];
+    }
+    Program p = await kernelForProgram(description.uri, options);
+    return result ??= pass(p);
+  }
+}
+
+abstract class CompileContext implements ChainContext {
+  bool get strongMode;
+  Target get target;
 }
 
 class BytesCollector implements Sink<List<int>> {

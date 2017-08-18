@@ -7,11 +7,11 @@ static method foo() → dynamic {
   core::print(self::f.call(0));
 }
 static method main(dynamic arguments) → dynamic {
-  final Vector #context = MakeVector(2);
-  #context[1] = arguments;
+  final Vector #context = MakeVector(3);
+  #context[2] = arguments;
   self::f = MakeClosure<(dynamic) → dynamic>(self::closure#main#function, #context);
   self::foo();
 }
 static method closure#main#function(Vector #contextParameter, dynamic x) → dynamic {
-  return (#contextParameter[1]).[](x);
+  return (#contextParameter[2]).[](x);
 }

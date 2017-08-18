@@ -270,6 +270,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             options.generateImplicitErrors ||
         this._options.generateSdkErrors != options.generateSdkErrors ||
         this._options.dart2jsHint != options.dart2jsHint ||
+        _notEqual(
+            this._options.enabledPluginNames, options.enabledPluginNames) ||
         _notEqual(this._options.errorProcessors, options.errorProcessors) ||
         _notEqual(this._options.excludePatterns, options.excludePatterns) ||
         (this._options.hint && !options.hint) ||
@@ -283,6 +285,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             options.enableLazyAssignmentOperators ||
         ((options is AnalysisOptionsImpl)
             ? this._options.strongModeHints != options.strongModeHints
+            : false) ||
+        ((options is AnalysisOptionsImpl)
+            ? this._options.declarationCasts != options.declarationCasts
             : false) ||
         ((options is AnalysisOptionsImpl)
             ? this._options.implicitCasts != options.implicitCasts
@@ -308,12 +313,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         options.enableLazyAssignmentOperators;
     this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.enableTiming = options.enableTiming;
+    this._options.enabledPluginNames = options.enabledPluginNames;
     this._options.errorProcessors = options.errorProcessors;
     this._options.excludePatterns = options.excludePatterns;
     this._options.hint = options.hint;
-    this._options.incremental = options.incremental;
-    this._options.incrementalApi = options.incrementalApi;
-    this._options.incrementalValidation = options.incrementalValidation;
     this._options.lint = options.lint;
     this._options.lintRules = options.lintRules;
     this._options.preserveComments = options.preserveComments;
@@ -326,6 +329,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.patchPaths = options.patchPaths;
     if (options is AnalysisOptionsImpl) {
       this._options.strongModeHints = options.strongModeHints;
+      this._options.declarationCasts = options.declarationCasts;
       this._options.implicitCasts = options.implicitCasts;
       this._options.nonnullableTypes = options.nonnullableTypes;
       this._options.implicitDynamic = options.implicitDynamic;

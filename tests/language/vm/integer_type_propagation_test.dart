@@ -23,5 +23,5 @@ main() {
     testuint32(i);
   }
   Expect.equals(65535, testuint32(0x7fffffff));
-  Expect.equals(65535, testuint32(0x7fff23452435245ffff));
+  Expect.equals(65535, testuint32(0x7f3452435245ffff));
 }

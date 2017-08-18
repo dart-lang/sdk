@@ -64,8 +64,8 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
   bool _autoRefresh = false;
   bool _isCompacted = false;
   StreamSubscription _gcSubscription;
-  _SortingField _sortingField = _SortingField.className;
-  _SortingDirection _sortingDirection = _SortingDirection.ascending;
+  _SortingField _sortingField = _SortingField.currentSize;
+  _SortingDirection _sortingDirection = _SortingDirection.descending;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -356,67 +356,75 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
       new SpanElement()..classes = ['name']
     ];
 
-  Element _createCollectionHeader() => new DivElement()
-    ..children = [
-      new DivElement()
-        ..classes = ['collection-item']
-        ..children = [
-          new SpanElement()
-            ..classes = ['group']
-            ..text = 'Accumulated',
-          new SpanElement()
-            ..classes = ['group']
-            ..text = 'Current',
-          new SpanElement()
-            ..classes = ['group']
-            ..text = '(NEW) Accumulated',
-          new SpanElement()
-            ..classes = ['group']
-            ..text = '(NEW) Current',
-          new SpanElement()
-            ..classes = ['group']
-            ..text = '(OLD) Accumulated',
-          new SpanElement()
-            ..classes = ['group']
-            ..text = '(OLD) Current',
-        ],
-      new DivElement()
-        ..classes = ['collection-item']
-        ..children = [
-          _createHeaderButton(const ['bytes'], 'Size',
-              _SortingField.accumulatedSize, _SortingDirection.descending),
-          _createHeaderButton(const ['instances'], 'Instances',
-              _SortingField.accumulatedInstances, _SortingDirection.descending),
-          _createHeaderButton(const ['bytes'], 'Size',
-              _SortingField.currentSize, _SortingDirection.descending),
-          _createHeaderButton(const ['instances'], 'Instances',
-              _SortingField.currentInstances, _SortingDirection.descending),
-          _createHeaderButton(const ['bytes'], 'Size',
-              _SortingField.newAccumulatedSize, _SortingDirection.descending),
-          _createHeaderButton(
-              const ['instances'],
-              'Instances',
-              _SortingField.newAccumulatedInstances,
-              _SortingDirection.descending),
-          _createHeaderButton(const ['bytes'], 'Size',
-              _SortingField.newCurrentSize, _SortingDirection.descending),
-          _createHeaderButton(const ['instances'], 'Instances',
-              _SortingField.newCurrentInstances, _SortingDirection.descending),
-          _createHeaderButton(const ['bytes'], 'Size',
-              _SortingField.oldAccumulatedSize, _SortingDirection.descending),
-          _createHeaderButton(
-              const ['instances'],
-              'Instances',
-              _SortingField.oldAccumulatedInstances,
-              _SortingDirection.descending),
-          _createHeaderButton(const ['bytes'], 'Size',
-              _SortingField.oldCurrentSize, _SortingDirection.descending),
-          _createHeaderButton(const ['instances'], 'Instances',
-              _SortingField.oldCurrentInstances, _SortingDirection.descending),
-          _createHeaderButton(const ['name'], 'Class', _SortingField.className,
-              _SortingDirection.ascending)
-        ],
-    ];
+  List<HtmlElement> _createCollectionHeader() => [
+        new DivElement()
+          ..classes = ['collection-item']
+          ..children = [
+            new SpanElement()
+              ..classes = ['group']
+              ..text = 'Accumulated',
+            new SpanElement()
+              ..classes = ['group']
+              ..text = 'Current',
+            new SpanElement()
+              ..classes = ['group']
+              ..text = '(NEW) Accumulated',
+            new SpanElement()
+              ..classes = ['group']
+              ..text = '(NEW) Current',
+            new SpanElement()
+              ..classes = ['group']
+              ..text = '(OLD) Accumulated',
+            new SpanElement()
+              ..classes = ['group']
+              ..text = '(OLD) Current',
+          ],
+        new DivElement()
+          ..classes = ['collection-item']
+          ..children = [
+            _createHeaderButton(const ['bytes'], 'Size',
+                _SortingField.accumulatedSize, _SortingDirection.descending),
+            _createHeaderButton(
+                const ['instances'],
+                'Instances',
+                _SortingField.accumulatedInstances,
+                _SortingDirection.descending),
+            _createHeaderButton(const ['bytes'], 'Size',
+                _SortingField.currentSize, _SortingDirection.descending),
+            _createHeaderButton(const ['instances'], 'Instances',
+                _SortingField.currentInstances, _SortingDirection.descending),
+            _createHeaderButton(const ['bytes'], 'Size',
+                _SortingField.newAccumulatedSize, _SortingDirection.descending),
+            _createHeaderButton(
+                const ['instances'],
+                'Instances',
+                _SortingField.newAccumulatedInstances,
+                _SortingDirection.descending),
+            _createHeaderButton(const ['bytes'], 'Size',
+                _SortingField.newCurrentSize, _SortingDirection.descending),
+            _createHeaderButton(
+                const ['instances'],
+                'Instances',
+                _SortingField.newCurrentInstances,
+                _SortingDirection.descending),
+            _createHeaderButton(const ['bytes'], 'Size',
+                _SortingField.oldAccumulatedSize, _SortingDirection.descending),
+            _createHeaderButton(
+                const ['instances'],
+                'Instances',
+                _SortingField.oldAccumulatedInstances,
+                _SortingDirection.descending),
+            _createHeaderButton(const ['bytes'], 'Size',
+                _SortingField.oldCurrentSize, _SortingDirection.descending),
+            _createHeaderButton(
+                const ['instances'],
+                'Instances',
+                _SortingField.oldCurrentInstances,
+                _SortingDirection.descending),
+            _createHeaderButton(const ['name'], 'Class',
+                _SortingField.className, _SortingDirection.ascending)
+          ],
+      ];
 
   ButtonElement _createHeaderButton(List<String> classes, String text,
           _SortingField field, _SortingDirection direction) =>

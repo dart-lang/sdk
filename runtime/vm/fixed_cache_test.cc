@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/fixed_cache.h"
 #include <string.h>
 #include "platform/assert.h"
-#include "vm/fixed_cache.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -17,7 +17,6 @@ UNIT_TEST_CASE(FixedCacheEmpty) {
   EXPECT(*cache.Lookup(1) == 2);
   EXPECT(cache.Lookup(0) == NULL);
 }
-
 
 UNIT_TEST_CASE(FixedCacheHalfFull) {
   FixedCache<int, const char*, 8> cache;
@@ -41,7 +40,6 @@ UNIT_TEST_CASE(FixedCacheHalfFull) {
   EXPECT(cache.Lookup(35) == NULL);
   EXPECT(cache.Lookup(50) == NULL);
 }
-
 
 struct Resource {
   Resource() : id(0) { copies++; }

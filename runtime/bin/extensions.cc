@@ -23,7 +23,6 @@ static char PathSeparator() {
   return sep[0];
 }
 
-
 void* Extensions::MakePathAndResolve(const char* dir, const char* name) {
   // First try to find the library with a suffix specifying the architecture.
   {
@@ -59,7 +58,6 @@ void* Extensions::MakePathAndResolve(const char* dir, const char* name) {
   }
 }
 
-
 // IMPORTANT: In the absolute path case, do not extract the filename and search
 // for that by passing it to LoadLibrary. That can lead to confusion in
 // which the absolute path is wrong, and a different version of the library is
@@ -73,7 +71,6 @@ void* Extensions::ResolveAbsPathExtension(const char* extension_path) {
   free(name);
   return library_handle;
 }
-
 
 void* Extensions::ResolveExtension(const char* extension_directory,
                                    const char* extension_name) {
@@ -95,7 +92,6 @@ void* Extensions::ResolveExtension(const char* extension_directory,
   // own search in standard search locations.
   return MakePathAndResolve("", extension_name);
 }
-
 
 Dart_Handle Extensions::LoadExtension(const char* extension_directory,
                                       const char* extension_name,
@@ -122,7 +118,6 @@ Dart_Handle Extensions::LoadExtension(const char* extension_directory,
   InitFunctionType fn = reinterpret_cast<InitFunctionType>(init_function);
   return (*fn)(parent_library);
 }
-
 
 // Concatenates a NULL terminated array of strings.
 // The returned string is scope allocated.

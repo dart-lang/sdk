@@ -12,7 +12,7 @@ import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
 import 'dart:_interceptors' show JSArray;
 import 'dart:_js_helper'
     show
-        AssertionErrorWithMessage,
+        AssertionErrorImpl,
         BooleanConversionAssertionError,
         CastErrorImplementation,
         getTraceFromException,
@@ -36,68 +36,82 @@ part 'utils.dart';
 // TODO(vsm): Move polyfill code to dart:html.
 // Note, native extensions are registered onto types in dart.global.
 // This polyfill needs to run before the corresponding dart:html code is run.
+final _polyfilled = JS('', 'Symbol("_polyfilled")');
+
+bool polyfill(window) => JS(
+    '',
+    '''(() => {
+  if ($window[$_polyfilled]) return false;
+  $window[$_polyfilled] = true;  
+
+  if (typeof $window.NodeList !== "undefined") {
+    // TODO(vsm): Do we still need these?
+    $window.NodeList.prototype.get = function(i) { return this[i]; };
+    $window.NamedNodeMap.prototype.get = function(i) { return this[i]; };
+    $window.DOMTokenList.prototype.get = function(i) { return this[i]; };
+    $window.HTMLCollection.prototype.get = function(i) { return this[i]; };
+
+    // Expose constructors for DOM types dart:html needs to assume are
+    // available on window.
+    if (typeof $window.PannerNode == "undefined") {
+      let audioContext;
+      if (typeof $window.AudioContext == "undefined" &&
+          (typeof $window.webkitAudioContext != "undefined")) {
+        audioContext = new $window.webkitAudioContext();
+      } else {
+        audioContext = new $window.AudioContext();
+        $window.StereoPannerNode =
+            audioContext.createStereoPanner().constructor;
+      }
+      $window.PannerNode = audioContext.createPanner().constructor;
+    }
+    if (typeof $window.AudioSourceNode == "undefined") {
+      $window.AudioSourceNode = MediaElementAudioSourceNode.__proto__;
+    }
+    if (typeof $window.FontFaceSet == "undefined") {
+      // CSS Font Loading is not supported on Edge.
+      if (typeof $window.document.fonts != "undefined") {
+        $window.FontFaceSet = $window.document.fonts.__proto__.constructor;
+      }
+    }
+    if (typeof $window.MemoryInfo == "undefined") {
+      if (typeof $window.performance.memory != "undefined") {
+        $window.MemoryInfo = $window.performance.memory.constructor;
+      }
+    }
+    if (typeof $window.Geolocation == "undefined") {
+      $window.Geolocation == $window.navigator.geolocation.constructor;
+    }
+    if (typeof $window.Animation == "undefined") {
+      let d = $window.document.createElement('div');
+      if (typeof d.animate != "undefined") {
+        $window.Animation = d.animate(d).constructor;
+      }
+    }
+    if (typeof $window.SourceBufferList == "undefined") {
+      $window.SourceBufferList =
+        new $window.MediaSource().sourceBuffers.constructor;
+    }
+    if (typeof $window.SpeechRecognition == "undefined") {
+      $window.SpeechRecognition = $window.webkitSpeechRecognition;
+      $window.SpeechRecognitionError = $window.webkitSpeechRecognitionError;
+      $window.SpeechRecognitionEvent = $window.webkitSpeechRecognitionEvent;
+    }
+  }
+  return true;
+})()''');
+
 @JSExportName('global')
 final global_ = JS(
     '',
     '''
   function () {
-    if (typeof NodeList !== "undefined") {
-      // TODO(vsm): Do we still need these?
-      NodeList.prototype.get = function(i) { return this[i]; };
-      NamedNodeMap.prototype.get = function(i) { return this[i]; };
-      DOMTokenList.prototype.get = function(i) { return this[i]; };
-      HTMLCollection.prototype.get = function(i) { return this[i]; };
-
-      // Expose constructors for DOM types dart:html needs to assume are
-      // available on window.
-      if (typeof PannerNode == "undefined") {
-        let audioContext;
-        if (typeof AudioContext == "undefined" &&
-            (typeof webkitAudioContext != "undefined")) {
-          audioContext = new webkitAudioContext();
-        } else {
-          audioContext = new AudioContext();
-          window.StereoPannerNode =
-              audioContext.createStereoPanner().constructor;
-        }
-        window.PannerNode = audioContext.createPanner().constructor;
-      }
-      if (typeof AudioSourceNode == "undefined") {
-        window.AudioSourceNode = MediaElementAudioSourceNode.__proto__;
-      }
-      if (typeof FontFaceSet == "undefined") {
-        // CSS Font Loading is not supported on Edge.
-        if (typeof document.fonts != "undefined") {
-          window.FontFaceSet = document.fonts.__proto__.constructor;
-        }
-      }
-      if (typeof MemoryInfo == "undefined") {
-        if (typeof window.performance.memory != "undefined") {
-          window.MemoryInfo = window.performance.memory.constructor;
-        }
-      }
-      if (typeof Geolocation == "undefined") {
-        navigator.geolocation.constructor;
-      }
-      if (typeof Animation == "undefined") {
-        let d = document.createElement('div');
-        if (typeof d.animate != "undefined") {
-          window.Animation = d.animate(d).constructor;
-        }
-      }
-      if (typeof SourceBufferList == "undefined") {
-        window.SourceBufferList = new MediaSource().sourceBuffers.constructor;
-      }
-      if (typeof SpeechRecognition == "undefined") {
-        window.SpeechRecognition = window.webkitSpeechRecognition;
-        window.SpeechRecognitionError = window.webkitSpeechRecognitionError;
-        window.SpeechRecognitionEvent = window.webkitSpeechRecognitionEvent;
-      }
-    }
-
+    // Find global object.
     var globalState = (typeof window != "undefined") ? window
       : (typeof global != "undefined") ? global
       : (typeof self != "undefined") ? self : {};
+
+    $polyfill(globalState);
 
     // These settings must be configured before the application starts so that
     // user code runs with the correct configuration.
@@ -109,11 +123,8 @@ final global_ = JS(
             settings.ignoreWhitelistedErrors : true);
 
     $ignoreAllErrors(
-        'ignoreAllErrors' in settings ?settings.ignoreAllErrors : false);
+        'ignoreAllErrors' in settings ? settings.ignoreAllErrors : false);
 
-    $failForWeakModeIsChecks(
-        'failForWeakModeIsChecks' in settings ?
-            settings.failForWeakModeIsChecks : true);
     $trackProfile(
         'trackProfile' in settings ? settings.trackProfile : false);
 

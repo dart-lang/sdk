@@ -14,69 +14,42 @@ import 'type_test_helper.dart';
 void main() {
   asyncTest(() => Future.forEach([
         () => test("class Class {}", ["Class"]),
-        () => test(
-            """abstract class A {}
-                  class Class extends A {}""",
-            ["Class"]),
-        () => test(
-            """class A {}
-                  class Class extends A {}""",
-            ["Class"]),
-        () => test(
-            """class A {}
+        () => test("""abstract class A {}
+                  class Class extends A {}""", ["Class"]),
+        () => test("""class A {}
+                  class Class extends A {}""", ["Class"]),
+        () => test("""class A {}
                   class B {}
-                  class Class extends A {}""",
-            ["Class"]),
-        () => test(
-            """class A {}
-                  class Class implements A {}""",
-            ["Class"]),
-        () => test(
-            """class A {}
-                  class Class extends Object with A {}""",
-            ["Class"]),
-        () => test(
-            """class A {}
+                  class Class extends A {}""", ["Class"]),
+        () => test("""class A {}
+                  class Class implements A {}""", ["Class"]),
+        () => test("""class A {}
+                  class Class extends Object with A {}""", ["Class"]),
+        () => test("""class A {}
                   class B {}
                   class Class extends Object with B implements A {}""",
             ["Class"]),
 
-        () => test(
-            """class A {}
-                  class Class {}""",
-            ["Class", "A"],
+        () => test("""class A {}
+                  class Class {}""", ["Class", "A"], ["Class", "A"]),
+        () => test("""class A {}
+                  class Class extends A {}""", ["Class", "A"], ["Class", "A"]),
+        () => test("""class A {}
+                  class Class implements A {}""", ["Class", "A"],
             ["Class", "A"]),
-        () => test(
-            """class A {}
-                  class Class extends A {}""",
-            ["Class", "A"],
-            ["Class", "A"]),
-        () => test(
-            """class A {}
-                  class Class implements A {}""",
-            ["Class", "A"],
-            ["Class", "A"]),
-        () => test(
-            """class A {}
+        () => test("""class A {}
                   class B extends A {}
-                  class Class extends B {}""",
-            ["Class", "A"],
-            ["Class", "A"]),
-        () => test(
-            """class A {}
+                  class Class extends B {}""", ["Class", "A"], ["Class", "A"]),
+        () => test("""class A {}
                   class B {}
-                  class Class extends B with A {}""",
-            ["Class", "A"],
+                  class Class extends B with A {}""", ["Class", "A"],
             ["Class", "A"]),
 
         // TODO(johnniwinther): Avoid registration of `Class` as instantiated.
-        () => test(
-            """class A {}
+        () => test("""class A {}
                   class Class implements A {
                     factory Class() = A;
-                  }""",
-            ["Class", "A"],
-            ["Class"]),
+                  }""", ["Class", "A"], ["Class"]),
       ], (f) => f()));
 }
 
@@ -89,7 +62,8 @@ Future test(String source, List<String> directlyInstantiatedClasses,
   }
   mainSource.write('}');
   return TypeEnvironment
-      .create(source, mainSource: mainSource.toString(), useMockCompiler: true)
+      .create(source,
+          mainSource: mainSource.toString(), compileMode: CompileMode.mock)
       .then((dynamic env) {
     LibraryEntity mainLibrary =
         env.compiler.frontendStrategy.elementEnvironment.mainLibrary;

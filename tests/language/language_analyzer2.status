@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
-assert_trailing_comma_test/none: CompileTimeError # Issue 29959
+
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_local_functions_test: CompileTimeError # Issue 28515
 
@@ -15,7 +15,6 @@ regress_29349_test: CompileTimeError # Issue 29744
 regress_29481_test: Crash # Issue 29755
 
 # Runtime negative test. No static errors or warnings.
-closure_call_wrong_argument_count_negative_test: skip
 
 deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
@@ -60,7 +59,6 @@ const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 
-bad_initializer2_negative_test: fail # Issue 14880
 field3a_negative_test: Fail # Issue 11124
 final_syntax_test/01: Fail # Issue 11124
 final_syntax_test/04: Fail # Issue 11124
@@ -70,7 +68,6 @@ get_set_syntax_test/none: fail # Issue 11575
 implicit_this_test/none: fail # Issue 11575
 interface_test/none: fail # Issue 11575
 syntax_test/none: fail # Issue 11575
-cascade_test/none: fail # Issue 11577
 factory5_test/none: fail # Issue 11578
 type_variable_bounds_test/none: fail # Issue 11578
 type_variable_scope_test/none: fail # Issue 11578
@@ -112,7 +109,6 @@ malformed_test/none: fail # Issue 14079
 malformed_test/05: fail # Issue 14079
 malformed_test/06: fail # Issue 14079
 regress_22438_test: fail # Issue 14079
-black_listed_test/none: fail # Issue 14228
 setter4_test: StaticWarning # Issue 14736
 proxy_test/05: StaticWarning # Issue 15467
 proxy_test/06: StaticWarning # Issue 15467
@@ -130,10 +126,6 @@ factory_redirection_test/none: StaticWarning # Issue 18230
 
 # The following tests are currently assumed to be failing because the test is wrong.
 #
-application_negative_test: CompileTimeError # Issue 14528
-bad_initializer1_negative_test: CompileTimeError # Issue 14529
-bad_named_constructor_negative_test: CompileTimeError # Issue 18693
-body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
 empty_block_case_test: StaticWarning # Issue 18701
 error_stacktrace_test: StaticWarning # Issue 18702
 
@@ -450,8 +442,7 @@ regress_27572_test: StaticWarning # Warning about undefined method expected.
 
 part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
 
+# TODO: generalized_void_syntax_test: CompileTimeError # Issue #30177.
+
 [ $compiler == dart2analyzer && $builder_tag == strong ]
 *: Skip # Issue 28649
-
-[ $compiler == dart2analyzer && $system != windows ]
-bad_raw_string_test/03: MissingCompileTimeError # Issue 28664

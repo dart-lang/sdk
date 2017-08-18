@@ -20,6 +20,7 @@ class Flags {
   static const String dumpInfo = '--dump-info';
   static const String enableAssertMessage = '--assert-message';
   static const String enableCheckedMode = '--enable-checked-mode';
+  static const String enableAsserts = '--enable-asserts';
   static const String enableDiagnosticColors = '--enable-diagnostic-colors';
   static const String enableExperimentalMirrors =
       '--enable-experimental-mirrors';
@@ -34,9 +35,17 @@ class Flags {
   // Temporary flag to also integrate Kernel into global type inference.
   // TODO(efortuna): Remove when fully implemented and simply use "useKernel".
   static const String kernelGlobalInference = '--kernel-global-inference';
-  // Read input from a .dill file rather than a .dart input (use only in
-  // conjunction with --use-kernel=true).
-  static const String loadFromDill = '--read-dill';
+
+  /// Enable the unified front end, loading from .dill files, and compilation
+  /// using the kernel representation.
+  /// See [CompilerOptions.useKernel] for details.
+  static const String useKernel = '--use-kernel';
+
+  /// Only enable the kernel ssa builder, but continue using the old compiler
+  /// pipeline. Only used for testing the ssa builder.
+  // TODO(sigmund): delete.
+  static const String useKernelInSsa = '--use-kernel-in-ssa';
+
   static const String minify = '--minify';
   static const String noFrequencyBasedMinification =
       '--no-frequency-based-minification';
@@ -53,7 +62,6 @@ class Flags {
   static const String trustJSInteropTypeAnnotations =
       '--experimental-trust-js-interop-type-annotations';
   static const String useContentSecurityPolicy = '--csp';
-  static const String useKernel = '--use-kernel';
   static const String useMultiSourceInfo = '--use-multi-source-info';
   static const String useNewSourceInfo = '--use-new-source-info';
   static const String verbose = '--verbose';

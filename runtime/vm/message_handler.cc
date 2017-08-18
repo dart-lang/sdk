@@ -12,7 +12,6 @@
 #include "vm/port.h"
 #include "vm/thread_interrupter.h"
 
-
 namespace dart {
 
 DECLARE_FLAG(bool, trace_service_pause_events);
@@ -34,7 +33,6 @@ class MessageHandlerTask : public ThreadPool::Task {
   DISALLOW_COPY_AND_ASSIGN(MessageHandlerTask);
 };
 
-
 // static
 const char* MessageHandler::MessageStatusString(MessageStatus status) {
   switch (status) {
@@ -52,19 +50,20 @@ const char* MessageHandler::MessageStatusString(MessageStatus status) {
   }
 }
 
-
 MessageHandler::MessageHandler()
     : queue_(new MessageQueue()),
       oob_queue_(new MessageQueue()),
       oob_message_handling_allowed_(true),
       live_ports_(0),
       paused_(0),
+#if !defined(PRODUCT)
       should_pause_on_start_(false),
       should_pause_on_exit_(false),
       is_paused_on_start_(false),
       is_paused_on_exit_(false),
-      delete_me_(false),
       paused_timestamp_(-1),
+#endif
+      delete_me_(false),
       pool_(NULL),
       task_(NULL),
       start_callback_(NULL),
@@ -73,7 +72,6 @@ MessageHandler::MessageHandler()
   ASSERT(queue_ != NULL);
   ASSERT(oob_queue_ != NULL);
 }
-
 
 MessageHandler::~MessageHandler() {
   delete queue_;
@@ -84,11 +82,9 @@ MessageHandler::~MessageHandler() {
   task_ = NULL;
 }
 
-
 const char* MessageHandler::name() const {
   return "<unnamed>";
 }
-
 
 #if defined(DEBUG)
 void MessageHandler::CheckAccess() {
@@ -96,11 +92,9 @@ void MessageHandler::CheckAccess() {
 }
 #endif
 
-
 void MessageHandler::MessageNotify(Message::Priority priority) {
   // By default, there is no custom message notification.
 }
-
 
 void MessageHandler::Run(ThreadPool* pool,
                          StartCallback start_callback,
@@ -124,7 +118,6 @@ void MessageHandler::Run(ThreadPool* pool,
   task_running = pool_->Run(task_);
   ASSERT(task_running);
 }
-
 
 void MessageHandler::PostMessage(Message* message, bool before_events) {
   Message::Priority saved_priority;
@@ -167,7 +160,6 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
   MessageNotify(saved_priority);
 }
 
-
 Message* MessageHandler::DequeueMessage(Message::Priority min_priority) {
   // TODO(turnidge): Add assert that monitor_ is held here.
   Message* message = oob_queue_->Dequeue();
@@ -177,11 +169,9 @@ Message* MessageHandler::DequeueMessage(Message::Priority min_priority) {
   return message;
 }
 
-
 void MessageHandler::ClearOOBQueue() {
   oob_queue_->Clear();
 }
-
 
 MessageHandler::MessageStatus MessageHandler::HandleMessages(
     MonitorLocker* ml,
@@ -257,7 +247,6 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
   return max_status;
 }
 
-
 MessageHandler::MessageStatus MessageHandler::HandleNextMessage() {
   // We can only call HandleNextMessage when this handler is not
   // assigned to a thread pool.
@@ -269,7 +258,6 @@ MessageHandler::MessageStatus MessageHandler::HandleNextMessage() {
 #endif
   return HandleMessages(&ml, true, false);
 }
-
 
 MessageHandler::MessageStatus MessageHandler::HandleAllMessages() {
   // We can only call HandleAllMessages when this handler is not
@@ -283,7 +271,6 @@ MessageHandler::MessageStatus MessageHandler::HandleAllMessages() {
   return HandleMessages(&ml, true, true);
 }
 
-
 MessageHandler::MessageStatus MessageHandler::HandleOOBMessages() {
   if (!oob_message_handling_allowed_) {
     return kOK;
@@ -296,7 +283,7 @@ MessageHandler::MessageStatus MessageHandler::HandleOOBMessages() {
   return HandleMessages(&ml, false, false);
 }
 
-
+#if !defined(PRODUCT)
 bool MessageHandler::ShouldPauseOnStart(MessageStatus status) const {
   Isolate* owning_isolate = isolate();
   if (owning_isolate == NULL) {
@@ -309,7 +296,6 @@ bool MessageHandler::ShouldPauseOnStart(MessageStatus status) const {
          should_pause_on_start() && owning_isolate->is_runnable();
 }
 
-
 bool MessageHandler::ShouldPauseOnExit(MessageStatus status) const {
   Isolate* owning_isolate = isolate();
   if (owning_isolate == NULL) {
@@ -319,13 +305,12 @@ bool MessageHandler::ShouldPauseOnExit(MessageStatus status) const {
           status != MessageHandler::kShutdown) &&
          should_pause_on_exit() && owning_isolate->is_runnable();
 }
-
+#endif
 
 bool MessageHandler::HasOOBMessages() {
   MonitorLocker ml(&monitor_);
   return !oob_queue_->IsEmpty();
 }
-
 
 void MessageHandler::TaskCallback() {
   ASSERT(Isolate::Current() == NULL);
@@ -340,6 +325,7 @@ void MessageHandler::TaskCallback() {
     // all pending OOB messages, or we may miss a request for vm
     // shutdown.
     MonitorLocker ml(&monitor_);
+#if !defined(PRODUCT)
     if (ShouldPauseOnStart(kOK)) {
       if (!is_paused_on_start()) {
         PausedOnStartLocked(&ml, true);
@@ -355,6 +341,7 @@ void MessageHandler::TaskCallback() {
         PausedOnStartLocked(&ml, false);
       }
     }
+#endif
 
     if (status == kOK) {
       if (start_callback_) {
@@ -379,6 +366,7 @@ void MessageHandler::TaskCallback() {
     // The isolate exits when it encounters an error or when it no
     // longer has live ports.
     if (status != kOK || !HasLivePorts()) {
+#if !defined(PRODUCT)
       if (ShouldPauseOnExit(status)) {
         if (!is_paused_on_exit()) {
           if (FLAG_trace_service_pause_events) {
@@ -400,6 +388,7 @@ void MessageHandler::TaskCallback() {
           PausedOnExitLocked(&ml, false);
         }
       }
+#endif  // !defined(PRODUCT)
       if (FLAG_trace_isolates) {
         if (status != kOK && thread() != NULL) {
           const Error& error = Error::Handle(thread()->sticky_error());
@@ -445,7 +434,6 @@ void MessageHandler::TaskCallback() {
   }
 }
 
-
 void MessageHandler::ClosePort(Dart_Port port) {
   MonitorLocker ml(&monitor_);
   if (FLAG_trace_isolates) {
@@ -459,7 +447,6 @@ void MessageHandler::ClosePort(Dart_Port port) {
   }
 }
 
-
 void MessageHandler::CloseAllPorts() {
   MonitorLocker ml(&monitor_);
   if (FLAG_trace_isolates) {
@@ -471,7 +458,6 @@ void MessageHandler::CloseAllPorts() {
   queue_->Clear();
   oob_queue_->Clear();
 }
-
 
 void MessageHandler::RequestDeletion() {
   ASSERT(OwnedByPortMap());
@@ -488,7 +474,6 @@ void MessageHandler::RequestDeletion() {
   delete this;
 }
 
-
 void MessageHandler::increment_live_ports() {
   MonitorLocker ml(&monitor_);
 #if defined(DEBUG)
@@ -496,7 +481,6 @@ void MessageHandler::increment_live_ports() {
 #endif
   live_ports_++;
 }
-
 
 void MessageHandler::decrement_live_ports() {
   MonitorLocker ml(&monitor_);
@@ -506,17 +490,15 @@ void MessageHandler::decrement_live_ports() {
   live_ports_--;
 }
 
+#if !defined(PRODUCT)
+void MessageHandler::DebugDump() {
+  PortMap::DebugDumpForMessageHandler(this);
+}
 
 void MessageHandler::PausedOnStart(bool paused) {
   MonitorLocker ml(&monitor_);
   PausedOnStartLocked(&ml, paused);
 }
-
-
-void MessageHandler::DebugDump() {
-  PortMap::DebugDumpForMessageHandler(this);
-}
-
 
 void MessageHandler::PausedOnStartLocked(MonitorLocker* ml, bool paused) {
   if (paused) {
@@ -545,12 +527,10 @@ void MessageHandler::PausedOnStartLocked(MonitorLocker* ml, bool paused) {
   }
 }
 
-
 void MessageHandler::PausedOnExit(bool paused) {
   MonitorLocker ml(&monitor_);
   PausedOnExitLocked(&ml, paused);
 }
-
 
 void MessageHandler::PausedOnExitLocked(MonitorLocker* ml, bool paused) {
   if (paused) {
@@ -578,14 +558,13 @@ void MessageHandler::PausedOnExitLocked(MonitorLocker* ml, bool paused) {
     }
   }
 }
-
+#endif  // !defined(PRODUCT)
 
 MessageHandler::AcquiredQueues::AcquiredQueues(MessageHandler* handler)
     : handler_(handler), ml_(&handler->monitor_) {
   ASSERT(handler != NULL);
   handler_->oob_message_handling_allowed_ = false;
 }
-
 
 MessageHandler::AcquiredQueues::~AcquiredQueues() {
   ASSERT(handler_ != NULL);

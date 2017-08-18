@@ -4,14 +4,8 @@
 
 library fasta.kernel_procedure_builder;
 
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelProcedure;
-
-import 'package:front_end/src/fasta/source/source_library_builder.dart'
-    show SourceLibraryBuilder;
-
-import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart'
-    show TypeInferenceListener;
+import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
+    show TypeInferrer;
 
 import 'package:kernel/ast.dart'
     show
@@ -44,11 +38,24 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
 
-import '../errors.dart' show internalError;
-
-import '../messages.dart' show warning;
-
 import '../loader.dart' show Loader;
+
+import '../messages.dart'
+    show
+        messageConstConstructorWithBody,
+        messageExternalMethodWithBody,
+        messageInternalProblemBodyOnAbstractMethod,
+        messageNonInstanceTypeVariableUse,
+        warning;
+
+import '../problems.dart' show internalProblem;
+
+import '../deprecated_problems.dart' show deprecated_inputError;
+
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import '../type_inference/type_inference_listener.dart'
+    show TypeInferenceListener;
 
 import 'kernel_builder.dart'
     show
@@ -64,8 +71,9 @@ import 'kernel_builder.dart'
         MetadataBuilder,
         ProcedureBuilder,
         TypeVariableBuilder,
-        isRedirectingGenerativeConstructorImplementation,
-        memberError;
+        isRedirectingGenerativeConstructorImplementation;
+
+import 'kernel_shadow_ast.dart' show KernelProcedure;
 
 abstract class KernelFunctionBuilder
     extends ProcedureBuilder<KernelTypeBuilder> {
@@ -76,6 +84,7 @@ abstract class KernelFunctionBuilder
   Statement actualBody;
 
   KernelFunctionBuilder(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder returnType,
@@ -85,21 +94,22 @@ abstract class KernelFunctionBuilder
       KernelLibraryBuilder compilationUnit,
       int charOffset,
       this.nativeMethodName)
-      : super(metadata, modifiers, returnType, name, typeVariables, formals,
-            compilationUnit, charOffset);
+      : super(documentationComment, metadata, modifiers, returnType, name,
+            typeVariables, formals, compilationUnit, charOffset);
 
   void set body(Statement newBody) {
     if (newBody != null) {
       if (isAbstract) {
-        return internalError("Attempting to set body on abstract method.");
+        return internalProblem(messageInternalProblemBodyOnAbstractMethod,
+            newBody.fileOffset, fileUri);
       }
       if (isExternal) {
         return library.addCompileTimeError(
-            newBody.fileOffset, "An external method can't have a body.");
+            messageExternalMethodWithBody, newBody.fileOffset, fileUri);
       }
       if (isConstructor && isConst) {
         return library.addCompileTimeError(
-            newBody.fileOffset, "A const constructor can't have a body.");
+            messageConstConstructorWithBody, newBody.fileOffset, fileUri);
       }
     }
     actualBody = newBody;
@@ -150,8 +160,7 @@ abstract class KernelFunctionBuilder
               substitution[parameter] = const DynamicType();
             }
           }
-          warning(fileUri, charOffset,
-              "Can only use type variables in instance methods.");
+          warning(messageNonInstanceTypeVariableUse, charOffset, fileUri);
           return substitute(type, substitution);
         }
 
@@ -202,6 +211,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   final ConstructorReferenceBuilder redirectionTarget;
 
   KernelProcedureBuilder(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder returnType,
@@ -219,8 +229,17 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
             fileUri: compilationUnit?.relativeFileUri)
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,
-        super(metadata, modifiers, returnType, name, typeVariables, formals,
-            compilationUnit, charOffset, nativeMethodName);
+        super(
+            documentationComment,
+            metadata,
+            modifiers,
+            returnType,
+            name,
+            typeVariables,
+            formals,
+            compilationUnit,
+            charOffset,
+            nativeMethodName);
 
   ProcedureKind get kind => procedure.kind;
 
@@ -246,12 +265,15 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   }
 
   bool get isEligibleForTopLevelInference {
-    if (!isInstanceMember) return false;
-    if (returnType == null) return true;
-    if (formals != null) {
-      for (var formal in formals) {
-        if (formal.type == null) return true;
+    if (isInstanceMember) {
+      if (returnType == null) return true;
+      if (formals != null) {
+        for (var formal in formals) {
+          if (formal.type == null) return true;
+        }
       }
+    } else {
+      if (isSetter && returnType == null) return true;
     }
     return false;
   }
@@ -268,6 +290,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       procedure.isExternal = isExternal;
       procedure.isConst = isConst;
       procedure.name = new Name(name, library.target);
+      procedure.documentationComment = documentationComment;
     }
     if (isEligibleForTopLevelInference) {
       library.loader.typeInferenceEngine.recordMember(procedure);
@@ -302,6 +325,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   RedirectingInitializer redirectingInitializer;
 
   KernelConstructorBuilder(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder returnType,
@@ -316,8 +340,17 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       : constructor = new Constructor(null)
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,
-        super(metadata, modifiers, returnType, name, typeVariables, formals,
-            compilationUnit, charOffset, nativeMethodName);
+        super(
+            documentationComment,
+            metadata,
+            modifiers,
+            returnType,
+            name,
+            typeVariables,
+            formals,
+            compilationUnit,
+            charOffset,
+            nativeMethodName);
 
   bool get isInstanceMember => false;
 
@@ -340,6 +373,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       constructor.isConst = isConst;
       constructor.isExternal = isExternal;
       constructor.name = new Name(name, library.target);
+      constructor.documentationComment = documentationComment;
     }
     return constructor;
   }
@@ -353,14 +387,12 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
 
   void checkSuperOrThisInitializer(Initializer initializer) {
     if (superInitializer != null || redirectingInitializer != null) {
-      memberError(
-          target,
-          "Can't have more than one 'super' or 'this' initializer.",
-          initializer.fileOffset);
+      return deprecated_inputError(fileUri, initializer.fileOffset,
+          "Can't have more than one 'super' or 'this' initializer.");
     }
   }
 
-  void addInitializer(Initializer initializer) {
+  void addInitializer(Initializer initializer, TypeInferrer typeInferrer) {
     List<Initializer> initializers = constructor.initializers;
     if (initializer is SuperInitializer) {
       checkSuperOrThisInitializer(initializer);
@@ -369,12 +401,12 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       checkSuperOrThisInitializer(initializer);
       redirectingInitializer = initializer;
       if (constructor.initializers.isNotEmpty) {
-        memberError(target, "'this' initializer must be the only initializer.",
-            initializer.fileOffset);
+        deprecated_inputError(fileUri, initializer.fileOffset,
+            "'this' initializer must be the only initializer.");
       }
     } else if (redirectingInitializer != null) {
-      memberError(target, "'this' initializer must be the only initializer.",
-          initializer.fileOffset);
+      deprecated_inputError(fileUri, initializer.fileOffset,
+          "'this' initializer must be the only initializer.");
     } else if (superInitializer != null) {
       // If there is a super initializer ([initializer] isn't it), we need to
       // insert [initializer] before the super initializer (thus ensuring that
@@ -391,8 +423,13 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
         Arguments arguments = superInitializer.arguments;
         List<Expression> positional = arguments.positional;
         for (int i = 0; i < positional.length; i++) {
-          VariableDeclaration variable =
-              new VariableDeclaration.forValue(positional[i], isFinal: true);
+          var type = typeInferrer.typeSchemaEnvironment.strongMode
+              ? positional[i].getStaticType(typeInferrer.typeSchemaEnvironment)
+              : const DynamicType();
+          VariableDeclaration variable = new VariableDeclaration.forValue(
+              positional[i],
+              isFinal: true,
+              type: type);
           initializers
               .add(new LocalInitializer(variable)..parent = constructor);
           positional[i] = new VariableGet(variable)..parent = arguments;

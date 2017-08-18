@@ -629,7 +629,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       FunctionElement loadLibraryFunction =
           importedLibrary?.loadLibraryFunction;
       methodName.staticElement = loadLibraryFunction;
-      node.staticInvokeType = loadLibraryFunction.type;
+      node.staticInvokeType = loadLibraryFunction?.type;
       return null;
     } else {
       //
@@ -759,6 +759,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (errorCode == null) {
       return null;
     }
+
     if (identical(
             errorCode, StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) ||
         identical(errorCode,
@@ -816,10 +817,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             }
           }
         }
+
         targetTypeName = targetType?.displayName;
         ErrorCode proxyErrorCode = (generatedWithTypePropagation
             ? HintCode.UNDEFINED_METHOD
             : StaticTypeWarningCode.UNDEFINED_METHOD);
+
         _recordUndefinedNode(targetType.element, proxyErrorCode, methodName,
             [methodName.name, targetTypeName]);
       }
@@ -1415,11 +1418,15 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return `true` if the given [element] is not a proxy. See
-   * [ClassElement.isOrInheritsProxy].
+   * Return `true` if the given [element] is or inherits from a class marked
+   * with `@proxy`.
+   * 
+   * See [ClassElement.isOrInheritsProxy].
    */
-  bool _doesntHaveProxy(Element element) =>
-      !(element is ClassElement && element.isOrInheritsProxy);
+  bool _hasProxy(Element element) =>
+      !_resolver.strongMode &&
+      element is ClassElement &&
+      element.isOrInheritsProxy;
 
   /**
    * Look for any declarations of the given [identifier] that are imported using
@@ -1638,7 +1645,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       // treat it as an executable type.
       // example code: NonErrorResolverTest.
       // test_invocationOfNonFunction_proxyOnFunctionClass()
-      if (classElement.isProxy &&
+      if (!_resolver.strongMode &&
+          classElement.isProxy &&
           type.isSubtypeOf(_resolver.typeProvider.functionType)) {
         return true;
       }
@@ -1873,7 +1881,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    */
   void _recordUndefinedNode(Element declaringElement, ErrorCode errorCode,
       AstNode node, List<Object> arguments) {
-    if (_doesntHaveProxy(declaringElement)) {
+    if (!_hasProxy(declaringElement)) {
       _resolver.errorReporter.reportErrorForNode(errorCode, node, arguments);
     }
   }
@@ -1888,7 +1896,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    */
   void _recordUndefinedOffset(Element declaringElement, ErrorCode errorCode,
       int offset, int length, List<Object> arguments) {
-    if (_doesntHaveProxy(declaringElement)) {
+    if (!_hasProxy(declaringElement)) {
       _resolver.errorReporter
           .reportErrorForOffset(errorCode, offset, length, arguments);
     }
@@ -1904,7 +1912,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    */
   void _recordUndefinedToken(Element declaringElement, ErrorCode errorCode,
       Token token, List<Object> arguments) {
-    if (_doesntHaveProxy(declaringElement)) {
+    if (!_hasProxy(declaringElement)) {
       _resolver.errorReporter.reportErrorForToken(errorCode, token, arguments);
     }
   }

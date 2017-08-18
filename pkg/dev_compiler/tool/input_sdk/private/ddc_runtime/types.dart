@@ -56,109 +56,103 @@ final _typeObject = JS('', 'Symbol("typeObject")');
 // TODO(jmesserly): we shouldn't implement Type here. It should be moved down
 // to AbstractFunctionType.
 class TypeRep implements Type {
-  TypeRep() {
-    _initialize;
-  }
   String get name => this.toString();
+
+  @JSExportName('is')
+  bool is_T(object) => instanceOf(object, this);
+
+  @JSExportName('as')
+  as_T(object) => cast(object, this);
+
+  @JSExportName('_check')
+  check_T(object) => check(object, this);
 }
 
 class Dynamic extends TypeRep {
   toString() => 'dynamic';
+
+  @JSExportName('is')
+  bool is_T(object) => true;
+
+  @JSExportName('as')
+  as_T(object) => object;
+
+  @JSExportName('_check')
+  check_T(object) => object;
 }
 
 class LazyJSType extends TypeRep {
-  final _jsTypeCallback;
-  final _dartName;
+  final Function() _rawJSType;
+  final String _dartName;
 
-  LazyJSType(this._jsTypeCallback, this._dartName);
+  LazyJSType(this._rawJSType, this._dartName);
 
-  get _rawJSType => JS('', '#()', _jsTypeCallback);
+  toString() => typeName(_rawJSType());
 
-  toString() => _jsTypeCallback != null ? typeName(_rawJSType) : _dartName;
+  rawJSTypeForCheck() {
+    var raw = _rawJSType();
+    if (raw != null) return raw;
+    _warn('Cannot find native JavaScript type ($_dartName) for type check');
+    return _dynamic;
+  }
+
+  @JSExportName('is')
+  bool is_T(obj) => instanceOf(obj, rawJSTypeForCheck());
+
+  @JSExportName('as')
+  as_T(obj) => cast(obj, rawJSTypeForCheck());
+
+  @JSExportName('_check')
+  check_T(obj) => check(obj, rawJSTypeForCheck());
+}
+
+/// An anonymous JS type
+///
+/// For the purposes of subtype checks, these match any JS type.
+class AnonymousJSType extends TypeRep {
+  final String _dartName;
+  AnonymousJSType(this._dartName);
+  toString() => _dartName;
+
+  @JSExportName('is')
+  bool is_T(obj) => _isJSType(getReifiedType(obj));
+
+  @JSExportName('as')
+  as_T(obj) => is_T(obj) ? obj : cast(obj, this);
+
+  @JSExportName('_check')
+  check_T(obj) => is_T(obj) ? obj : check(obj, this);
 }
 
 void _warn(arg) {
   JS('void', 'console.warn(#)', arg);
 }
 
-_isInstanceOfLazyJSType(o, LazyJSType t) {
-  if (t._jsTypeCallback != null) {
-    if (t._rawJSType == null) {
-      var expected = t._dartName;
-      var actual = typeName(getReifiedType(o));
-      _warn('Cannot find native JavaScript type ($expected) '
-          'to type check $actual');
-      return true;
-    }
-    return JS('bool', 'dart.is(#, #)', o, t._rawJSType);
-  }
-  if (o == null) return false;
-  // Anonymous case: match any JS type.
-  return _isJSObject(o);
-}
-
-_asInstanceOfLazyJSType(o, LazyJSType t) {
-  if (t._jsTypeCallback != null) {
-    if (t._rawJSType == null) {
-      var expected = t._dartName;
-      var actual = typeName(getReifiedType(o));
-      _warn('Cannot find native JavaScript type ($expected) '
-          'to type check $actual');
-      return o;
-    }
-    return JS('bool', 'dart.as(#, #)', o, t._rawJSType);
-  }
-  // Anonymous case: allow any JS type.
-  if (o == null) return null;
-  if (!_isJSObject(o)) _throwCastError(o, t, true);
-  return o;
-}
-
-bool _isJSObject(o) =>
-    JS('bool', '!dart.getReifiedType(#)[dart._runtimeType]', o);
-
 bool _isJSType(t) => JS('bool', '!#[dart._runtimeType]', t);
+
+var _lazyJSTypes = JS('', 'new Map()');
+var _anonymousJSTypes = JS('', 'new Map()');
+
+lazyJSType(Function() getJSTypeCallback, String name) {
+  var ret = JS('', '#.get(#)', _lazyJSTypes, name);
+  if (ret == null) {
+    ret = new LazyJSType(getJSTypeCallback, name);
+    JS('', '#.set(#, #)', _lazyJSTypes, name, ret);
+  }
+  return ret;
+}
+
+anonymousJSType(String name) {
+  var ret = JS('', '#.get(#)', _anonymousJSTypes, name);
+  if (ret == null) {
+    ret = new AnonymousJSType(name);
+    JS('', '#.set(#, #)', _anonymousJSTypes, name, ret);
+  }
+  return ret;
+}
 
 @JSExportName('dynamic')
 final _dynamic = new Dynamic();
-
-final _initialize = _initialize2();
-
-_initialize2() => JS(
-    '',
-    '''(() => {
-  // JavaScript API forwards to runtime library.
-  $TypeRep.prototype.is = function is_T(object) {
-    return dart.is(object, this);
-  };
-  $TypeRep.prototype.as = function as_T(object) {
-    return dart.as(object, this);
-  };
-  $TypeRep.prototype._check = function check_T(object) {
-    return dart.check(object, this);
-  };
-
-  // Fast path for type `dynamic`.
-  $Dynamic.prototype.is = function is_Dynamic(object) {
-    return true;
-  };
-  $Dynamic.prototype.as = function as_Dynamic(object) {
-    return object;
-  };
-  $Dynamic.prototype._check = function check_Dynamic(object) {
-    return object;
-  };
-
-  $LazyJSType.prototype.is = function is_T(object) {
-    return $_isInstanceOfLazyJSType(object, this);
-  };
-  $LazyJSType.prototype.as = function as_T(object) {
-    return $_asInstanceOfLazyJSType(object, this);
-  };
-  $LazyJSType.prototype._check = function check_T(object) {
-    return $_asInstanceOfLazyJSType(object, this);
-  };
-})()''');
 
 class Void extends TypeRep {
   toString() => 'void';
@@ -335,7 +329,7 @@ class FunctionType extends AbstractFunctionType {
     // identical function types that don't canonicalize
     // to the same object since we won't fall into this
     // fast path.
-    if (JS('bool', '# === void 0', extra) && JS('', '#.length < 3', args)) {
+    if (JS('bool', '# === void 0', extra) && JS('bool', '#.length < 3', args)) {
       return _createSmall(JS('', '#.length', args), definite, returnType, args);
     }
     args = _canonicalizeArray(definite, args, _fnTypeArrayArgMap);
@@ -405,7 +399,7 @@ class FunctionType extends AbstractFunctionType {
       buffer += '{';
       var names = getOwnPropertyNames(named);
       JS('', '#.sort()', names);
-      for (var i = 0; JS('', '# < #.length', i, names); ++i) {
+      for (var i = 0; JS('bool', '# < #.length', i, names); ++i) {
         if (i > 0) {
           buffer += ', ';
         }
@@ -709,14 +703,6 @@ String typeName(type) => JS(
 bool _isFunctionType(type) => JS('bool', '# instanceof # || # === #', type,
     AbstractFunctionType, type, Function);
 
-isLazyJSSubtype(t1, LazyJSType t2, isCovariant) {
-  // All JS types are subtypes of anonymous JS types.
-  if (t2._jsTypeCallback == null) {
-    return _isJSType(t1);
-  }
-  return _isSubtype(t1, t2._rawJSType, isCovariant);
-}
-
 /// Returns true if [ft1] <: [ft2].
 /// Returns false if [ft1] </: [ft2] in both spec and strong mode
 /// Returns null if [ft1] </: [ft2] in strong mode, but spec mode
@@ -891,8 +877,12 @@ bool _isSubtype(t1, t2, isCovariant) => JS(
     if (result === true || result === null) return result;
   }
 
+  if ($t2 instanceof $AnonymousJSType) {
+    // All JS types are subtypes of anonymous JS types.
+    return $_isJSType($t1);
+  }
   if ($t2 instanceof $LazyJSType) {
-    return $isLazyJSSubtype($t1, $t2, $isCovariant);
+    return $_isSubtype($t1, $t2.rawJSTypeForCheck(), isCovariant);
   }
 
   // Function subtyping.
@@ -989,7 +979,7 @@ isClassSubType(t1, t2, isCovariant) => JS(
       if (typeArguments2.every($_isTop)) return true;
       return null;
     }
-    $assert_(length == typeArguments2.length);
+    if (length != typeArguments2.length) $assertFailed();
     for (let i = 0; i < length; ++i) {
       let result =
           $_isSubtype(typeArguments1[i], typeArguments2[i], $isCovariant);
@@ -1036,38 +1026,4 @@ isClassSubType(t1, t2, isCovariant) => JS(
   // We found no definite supertypes and no indefinite supertypes, so we
   // can return false.
   return false;
-})()''');
-
-// TODO(jmesserly): this isn't currently used, but it could be if we want
-// `obj is NonGroundType<T,S>` to be rejected at runtime instead of compile
-// time.
-isGroundType(type) => JS(
-    '',
-    '''(() => {
-  // TODO(vsm): Cache this if we start using it at runtime.
-
-  // TODO(jmesserly): implement for generic function types if we start using?
-  if ($type instanceof $Typedef) $type = $type.functionType;
-
-  if ($type instanceof $FunctionType) {
-    if (!$_isTop($type.returnType)) return false;
-    for (let i = 0; i < $type.args.length; ++i) {
-      if (!$_isBottom($type.args[i])) return false;
-    }
-    for (let i = 0; i < $type.optionals.length; ++i) {
-      if (!$_isBottom($type.optionals[i])) return false;
-    }
-    let names = $getOwnPropertyNames($type.named);
-    for (let i = 0; i < names.length; ++i) {
-      if (!$_isBottom($type.named[names[i]])) return false;
-    }
-    return true;
-  }
-
-  let typeArgs = $getGenericArgs($type);
-  if (!typeArgs) return true;
-  for (let t of typeArgs) {
-    if (t != $Object && t != $dynamic) return false;
-  }
-  return true;
 })()''');

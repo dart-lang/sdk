@@ -7,9 +7,5 @@ part of $LIBRARYNAME;
 @DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
-$if DARTIUM
-  // Override these methods for Dartium _ServiceWorker can't be abstract.
-  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
-$endif
 }
 

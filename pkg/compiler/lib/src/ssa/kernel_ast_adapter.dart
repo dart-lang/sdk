@@ -17,7 +17,9 @@ import '../elements/modelx.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js_backend/js_backend.dart';
+import '../js_backend/native_data.dart';
 import '../kernel/element_map.dart';
+import '../kernel/element_map_mixins.dart';
 import '../kernel/kernel.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
@@ -34,7 +36,8 @@ import 'types.dart';
 /// A helper class that abstracts all accesses of the AST from Kernel nodes.
 ///
 /// The goal is to remove all need for the AST from the Kernel SSA builder.
-class KernelAstAdapter extends KernelToElementMapMixin
+class KernelAstAdapter extends KernelToElementMapBaseMixin
+    with KernelToElementMapForBuildingMixin, KernelToElementMapForImpactMixin
     implements KernelToLocalsMap {
   final Kernel kernel;
   final JavaScriptBackend _backend;
@@ -61,7 +64,7 @@ class KernelAstAdapter extends KernelToElementMapMixin
   KernelAstAdapter(this.kernel, this._backend, this._resolvedAst,
       this._nodeToAst, this._nodeToElement)
       : nativeBehaviorBuilder = new native.ResolverBehaviorBuilder(
-            _backend.compiler, _backend.nativeBasicData) {
+            _backend.compiler, _backend.frontendStrategy.nativeBasicData) {
     KernelJumpTarget.index = 0;
     // TODO(het): Maybe just use all of the kernel maps directly?
     for (FieldElement fieldElement in kernel.fields.keys) {
@@ -83,6 +86,14 @@ class KernelAstAdapter extends KernelToElementMapMixin
       _nodeToElement[kernel.typeParameters[typeVariable]] = typeVariable;
     }
     _typeConverter = new DartTypeConverter(this);
+  }
+
+  @override
+  NativeBasicData get nativeBasicData =>
+      _backend.frontendStrategy.nativeBasicData;
+
+  void addProgram(ir.Program node) {
+    throw new UnsupportedError('KernelAstAdapter.addProgram');
   }
 
   @override
@@ -135,6 +146,28 @@ class KernelAstAdapter extends KernelToElementMapMixin
     }
     assert(target != null);
     return target;
+  }
+
+  MemberDefinition getMemberDefinition(MemberElement member) {
+    ir.Node node = getMemberNode(member);
+    if (member is ConstructorBodyElement) {
+      return new SpecialMemberDefinition(
+          member, node, MemberKind.constructorBody);
+    } else if (node is ir.Constructor) {
+      return new SpecialMemberDefinition(member, node, MemberKind.constructor);
+    } else if (node is ir.FunctionDeclaration ||
+        node is ir.FunctionExpression) {
+      return new SpecialMemberDefinition(member, node, MemberKind.closureCall);
+    }
+    return new RegularMemberDefinition(member, node);
+  }
+
+  ir.Node getClassNode(ClassElement cls) {
+    throw new UnsupportedError('KernelAstAdapter.getClassNode');
+  }
+
+  ClassDefinition getClassDefinition(ClassElement cls) {
+    throw new UnsupportedError('KernelAstAdapter.getClassDefinition');
   }
 
   @override
@@ -199,7 +232,19 @@ class KernelAstAdapter extends KernelToElementMapMixin
 
   LibraryElement getLibrary(ir.Library node) => getElement(node).declaration;
 
-  LocalFunctionElement getLocalFunction(ir.TreeNode node) => getElement(node);
+  LocalFunctionElement getLocalFunction(ir.TreeNode node) {
+    assert(
+        node is ir.FunctionDeclaration || node is ir.FunctionExpression,
+        failedAt(
+            CURRENT_ELEMENT_SPANNABLE, 'Invalid local function node: $node'));
+    return getElement(node);
+  }
+
+  /// Returns the uri for the deferred import [node].
+  String getDeferredUri(ir.LibraryDependency node) {
+    PrefixElement prefixElement = getElement(node);
+    return prefixElement.deferredImport.uri.toString();
+  }
 
   ast.Node getNode(ir.Node node) {
     ast.Node result = _nodeToAst[node];
@@ -220,7 +265,8 @@ class KernelAstAdapter extends KernelToElementMapMixin
   }
 
   @override
-  Local getLocal(ir.VariableDeclaration variable) {
+  Local getLocalVariable(ir.VariableDeclaration variable,
+      {bool isClosureCallMethod}) {
     // If this is a synthetic local, return the synthetic local
     if (variable.name == null) {
       return _syntheticLocals.putIfAbsent(
@@ -330,7 +376,12 @@ class KernelAstAdapter extends KernelToElementMapMixin
         getClass(cls), getDartTypes(typeArguments));
   }
 
-  MemberEntity getConstructorBodyEntity(ir.Constructor constructor) {
+  @override
+  TypedefType getTypedefType(ir.Typedef node) {
+    throw new UnsupportedError('KernelAstAdapter.getTypedefType');
+  }
+
+  FunctionEntity getConstructorBody(ir.Constructor constructor) {
     AstElement element = getElement(constructor);
     MemberEntity constructorBody =
         ConstructorBodyElementX.createFromResolvedAst(element.resolvedAst);
@@ -344,9 +395,9 @@ class KernelAstAdapter extends KernelToElementMapMixin
   }
 
   @override
-  LoopClosureScope getLoopClosureScope(
+  CapturedLoopScope getCapturedLoopScope(
       ClosureDataLookup closureLookup, ir.TreeNode node) {
-    return closureLookup.getLoopClosureScope(getNode(node));
+    return closureLookup.getCapturedLoopScope(getNode(node));
   }
 }
 

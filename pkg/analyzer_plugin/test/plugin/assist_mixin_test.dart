@@ -79,7 +79,7 @@ class _TestServerPlugin extends MockServerPlugin with AssistsMixin {
   }
 
   @override
-  List<AssistContributor> getAssistContributors(AnalysisDriverGeneric driver) {
+  List<AssistContributor> getAssistContributors(String path) {
     return <AssistContributor>[
       new _TestAssistContributor(<PrioritizedSourceChange>[createChange()]),
       new _TestAssistContributor(
@@ -89,7 +89,7 @@ class _TestServerPlugin extends MockServerPlugin with AssistsMixin {
 
   @override
   Future<AssistRequest> getAssistRequest(
-      EditGetAssistsParams parameters, covariant AnalysisDriver driver) async {
+      EditGetAssistsParams parameters) async {
     AnalysisResult result = new AnalysisResult(
         null, null, null, null, null, null, null, null, null, null, null);
     return new DartAssistRequestImpl(

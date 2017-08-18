@@ -35,7 +35,6 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
   return result;
 }
 
-
 LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -45,7 +44,6 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
   locs->set_in(0, Location::AnyOrConstant(value()));
   return locs;
 }
-
 
 void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
@@ -65,7 +63,6 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* ReturnInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -74,7 +71,6 @@ LocationSummary* ReturnInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   locs->set_in(0, Location::RegisterLocation(R0));
   return locs;
 }
-
 
 // Attempt optimized compilation at return instruction instead of at the entry.
 // The entry needs to be patchable, no inlined objects are allowed in the area
@@ -109,7 +105,6 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(true);
 }
 
-
 static Condition NegateCondition(Condition condition) {
   switch (condition) {
     case EQ:
@@ -142,20 +137,17 @@ static Condition NegateCondition(Condition condition) {
   }
 }
 
-
 // Detect pattern when one value is zero and another is a power of 2.
 static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
   return (Utils::IsPowerOfTwo(v1) && (v2 == 0)) ||
          (Utils::IsPowerOfTwo(v2) && (v1 == 0));
 }
 
-
 LocationSummary* IfThenElseInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   comparison()->InitializeLocationSummary(zone, opt);
   return comparison()->locs();
 }
-
 
 void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
@@ -208,7 +200,6 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -219,7 +210,6 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RegisterLocation(R0));
   return summary;
 }
-
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Load arguments descriptor in R4.
@@ -255,26 +245,22 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(argument_count);
 }
 
-
 LocationSummary* LoadLocalInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
   return LocationSummary::Make(zone, 0, Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
 
-
 void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
   __ LoadFromOffset(result, FP, local().index() * kWordSize);
 }
-
 
 LocationSummary* StoreLocalInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   return LocationSummary::Make(zone, 1, Location::SameAsFirstInput(),
                                LocationSummary::kNoCall);
 }
-
 
 void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
@@ -283,13 +269,11 @@ void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ StoreToOffset(value, FP, local().index() * kWordSize);
 }
 
-
 LocationSummary* ConstantInstr::MakeLocationSummary(Zone* zone,
                                                     bool opt) const {
   return LocationSummary::Make(zone, 0, Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
-
 
 void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
@@ -299,7 +283,6 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 0;
@@ -308,7 +291,6 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
                            : Location::RequiresFpuRegister();
   return LocationSummary::Make(zone, kNumInputs, out, LocationSummary::kNoCall);
 }
-
 
 void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!locs()->out(0).IsInvalid()) {
@@ -333,7 +315,6 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   const intptr_t kNumInputs = 3;
@@ -347,7 +328,6 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-
 LocationSummary* AssertBooleanInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -358,7 +338,6 @@ LocationSummary* AssertBooleanInstr::MakeLocationSummary(Zone* zone,
   locs->set_out(0, Location::RegisterLocation(R0));
   return locs;
 }
-
 
 static void EmitAssertBoolean(Register reg,
                               TokenPosition token_pos,
@@ -389,7 +368,6 @@ static void EmitAssertBoolean(Register reg,
   __ Bind(&done);
 }
 
-
 void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register obj = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
@@ -397,7 +375,6 @@ void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   EmitAssertBoolean(obj, token_pos(), deopt_id(), locs(), compiler);
   ASSERT(obj == result);
 }
-
 
 static Condition TokenKindToSmiCondition(Token::Kind kind) {
   switch (kind) {
@@ -418,7 +395,6 @@ static Condition TokenKindToSmiCondition(Token::Kind kind) {
       return VS;
   }
 }
-
 
 static Condition FlipCondition(Condition condition) {
   switch (condition) {
@@ -448,7 +424,6 @@ static Condition FlipCondition(Condition condition) {
   }
 }
 
-
 static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                   Condition true_condition,
                                   BranchLabels labels) {
@@ -466,7 +441,6 @@ static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
     }
   }
 }
-
 
 static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                      LocationSummary* locs,
@@ -487,7 +461,6 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   }
   return true_condition;
 }
-
 
 LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
@@ -519,7 +492,6 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
   return NULL;
 }
 
-
 static Condition TokenKindToDoubleCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ:
@@ -540,7 +512,6 @@ static Condition TokenKindToDoubleCondition(Token::Kind kind) {
   }
 }
 
-
 static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
                                         LocationSummary* locs,
                                         BranchLabels labels,
@@ -557,7 +528,6 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
   return true_condition;
 }
 
-
 Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                    BranchLabels labels) {
   if (operation_cid() == kSmiCid) {
@@ -567,7 +537,6 @@ Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     return EmitDoubleComparisonOp(compiler, locs(), labels, kind());
   }
 }
-
 
 LocationSummary* TestSmiInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -580,7 +549,6 @@ LocationSummary* TestSmiInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   locs->set_in(1, Location::RegisterOrConstant(right()));
   return locs;
 }
-
 
 Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                            BranchLabels labels) {
@@ -597,7 +565,6 @@ Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   return true_condition;
 }
 
-
 LocationSummary* TestCidsInstr::MakeLocationSummary(Zone* zone,
                                                     bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -610,18 +577,16 @@ LocationSummary* TestCidsInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-
 Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                             BranchLabels labels) {
   ASSERT((kind() == Token::kIS) || (kind() == Token::kISNOT));
   const Register val_reg = locs()->in(0).reg();
   const Register cid_reg = locs()->temp(0).reg();
 
-  Label* deopt =
-      CanDeoptimize()
-          ? compiler->AddDeoptStub(deopt_id(), ICData::kDeoptTestCids,
-                                   licm_hoisted_ ? ICData::kHoisted : 0)
-          : NULL;
+  Label* deopt = CanDeoptimize() ? compiler->AddDeoptStub(
+                                       deopt_id(), ICData::kDeoptTestCids,
+                                       licm_hoisted_ ? ICData::kHoisted : 0)
+                                 : NULL;
 
   const intptr_t true_result = (kind() == Token::kIS) ? 1 : 0;
   const ZoneGrowableArray<intptr_t>& data = cid_results();
@@ -655,7 +620,6 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   return kInvalidCondition;
 }
 
-
 LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -681,7 +645,6 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-
 Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                 BranchLabels labels) {
   if (operation_cid() == kSmiCid) {
@@ -692,12 +655,10 @@ Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   }
 }
 
-
 LocationSummary* NativeCallInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   return MakeCallSummary(zone);
 }
-
 
 void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   SetupNative();
@@ -754,7 +715,6 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Pop(result);
 }
 
-
 LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
@@ -763,7 +723,6 @@ LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(
   return LocationSummary::Make(zone, kNumInputs, Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
-
 
 void OneByteStringFromCharCodeInstr::EmitNativeCode(
     FlowGraphCompiler* compiler) {
@@ -777,14 +736,12 @@ void OneByteStringFromCharCodeInstr::EmitNativeCode(
   __ ldr(result, Address(result, TMP, UXTX, Address::Scaled));
 }
 
-
 LocationSummary* StringToCharCodeInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   const intptr_t kNumInputs = 1;
   return LocationSummary::Make(zone, kNumInputs, Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
-
 
 void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(cid_ == kOneByteStringCid);
@@ -798,7 +755,6 @@ void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ SmiTag(result);
 }
 
-
 LocationSummary* StringInterpolateInstr::MakeLocationSummary(Zone* zone,
                                                              bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -809,7 +765,6 @@ LocationSummary* StringInterpolateInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RegisterLocation(R0));
   return summary;
 }
-
 
 void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register array = locs()->in(0).reg();
@@ -823,14 +778,12 @@ void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->out(0).reg() == R0);
 }
 
-
 LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
   return LocationSummary::Make(zone, kNumInputs, Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
-
 
 void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register obj = locs()->in(0).reg();
@@ -843,14 +796,12 @@ void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* LoadClassIdInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
   return LocationSummary::Make(zone, kNumInputs, Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
-
 
 void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register object = locs()->in(0).reg();
@@ -864,7 +815,6 @@ void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ SmiTag(result);
   }
 }
-
 
 CompileType LoadIndexedInstr::ComputeType() const {
   switch (class_id_) {
@@ -903,7 +853,6 @@ CompileType LoadIndexedInstr::ComputeType() const {
   }
 }
 
-
 Representation LoadIndexedInstr::representation() const {
   switch (class_id_) {
     case kArrayCid:
@@ -939,7 +888,6 @@ Representation LoadIndexedInstr::representation() const {
   }
 }
 
-
 static bool CanBeImmediateIndex(Value* value, intptr_t cid, bool is_external) {
   ConstantInstr* constant = value->definition()->AsConstant();
   if ((constant == NULL) || !constant->value().IsSmi()) {
@@ -956,7 +904,6 @@ static bool CanBeImmediateIndex(Value* value, intptr_t cid, bool is_external) {
   return Address::CanHoldOffset(static_cast<int32_t>(offset), Address::Offset,
                                 Address::OperandSizeFor(cid));
 }
-
 
 LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
@@ -983,7 +930,6 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
   }
   return locs;
 }
-
 
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The array register points to the backing store for external arrays.
@@ -1122,7 +1068,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -1134,7 +1079,6 @@ LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
-
 
 void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The string register points to the backing store for external strings.
@@ -1184,7 +1128,6 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 Representation StoreIndexedInstr::RequiredInputRepresentation(
     intptr_t idx) const {
   // Array can be a Dart object or a pointer to external data.
@@ -1220,7 +1163,6 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kTagged;
   }
 }
-
 
 LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
@@ -1271,7 +1213,6 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   }
   return locs;
 }
-
 
 void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The array register points to the backing store for external arrays.
@@ -1412,7 +1353,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 static void LoadValueCid(FlowGraphCompiler* compiler,
                          Register value_cid_reg,
                          Register value_reg,
@@ -1430,7 +1370,6 @@ static void LoadValueCid(FlowGraphCompiler* compiler,
   __ LoadClassId(value_cid_reg, value_reg);
   __ Bind(&done);
 }
-
 
 LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
@@ -1464,7 +1403,6 @@ LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
 
   return summary;
 }
-
 
 void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(sizeof(classid_t) == kInt16Size);
@@ -1607,7 +1545,6 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&ok);
 }
 
-
 LocationSummary* GuardFieldLengthInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -1629,7 +1566,6 @@ LocationSummary* GuardFieldLengthInstr::MakeLocationSummary(Zone* zone,
   }
   UNREACHABLE();
 }
-
 
 void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (field().guarded_list_length() == Field::kNoFixedLength) {
@@ -1702,7 +1638,6 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 class BoxAllocationSlowPath : public SlowPathCode {
  public:
   BoxAllocationSlowPath(Instruction* instruction,
@@ -1756,7 +1691,6 @@ class BoxAllocationSlowPath : public SlowPathCode {
   const Register result_;
 };
 
-
 static void EnsureMutableBox(FlowGraphCompiler* compiler,
                              StoreInstanceFieldInstr* instruction,
                              Register box_reg,
@@ -1773,7 +1707,6 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
   __ StoreIntoObjectOffset(instance_reg, offset, temp);
   __ Bind(&done);
 }
-
 
 LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
                                                               bool opt) const {
@@ -1804,7 +1737,6 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
   }
   return summary;
 }
-
 
 void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(sizeof(classid_t) == kInt16Size);
@@ -1958,7 +1890,6 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&skip_store);
 }
 
-
 LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -1969,7 +1900,6 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
-
 
 // When the parser is building an implicit static getter for optimization,
 // it can generate a function body where deoptimization ids do not line up
@@ -1982,7 +1912,6 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadFieldFromOffset(result, field, Field::static_value_offset());
 }
 
-
 LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   LocationSummary* locs =
@@ -1992,7 +1921,6 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
   locs->set_temp(0, Location::RequiresRegister());
   return locs;
 }
-
 
 void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
@@ -2008,7 +1936,6 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   const intptr_t kNumInputs = 3;
@@ -2022,7 +1949,6 @@ LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-
 void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == R0);  // Value.
   ASSERT(locs()->in(1).reg() == R1);  // Instantiator type arguments.
@@ -2031,7 +1957,6 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), locs());
   ASSERT(locs()->out(0).reg() == R0);
 }
-
 
 LocationSummary* CreateArrayInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
@@ -2044,7 +1969,6 @@ LocationSummary* CreateArrayInstr::MakeLocationSummary(Zone* zone,
   locs->set_out(0, Location::RegisterLocation(R0));
   return locs;
 }
-
 
 // Inlines array allocation for known constant values.
 static void InlineArrayAllocation(FlowGraphCompiler* compiler,
@@ -2102,7 +2026,6 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   __ b(done);
 }
 
-
 void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register kLengthReg = R2;
   const Register kElemTypeReg = R1;
@@ -2139,16 +2062,15 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->out(0).reg() == kResultReg);
 }
 
-
 LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps =
       (IsUnboxedLoad() && opt) ? 1 : ((IsPotentialUnboxedLoad()) ? 1 : 0);
   LocationSummary* locs = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps, (opt && !IsPotentialUnboxedLoad())
-                                       ? LocationSummary::kNoCall
-                                       : LocationSummary::kCallOnSlowPath);
+      zone, kNumInputs, kNumTemps,
+      (opt && !IsPotentialUnboxedLoad()) ? LocationSummary::kNoCall
+                                         : LocationSummary::kCallOnSlowPath);
 
   locs->set_in(0, Location::RequiresRegister());
 
@@ -2160,7 +2082,6 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
   locs->set_out(0, Location::RequiresRegister());
   return locs;
 }
-
 
 void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(sizeof(classid_t) == kInt16Size);
@@ -2263,7 +2184,6 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&done);
 }
 
-
 LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -2275,7 +2195,6 @@ LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
   locs->set_out(0, Location::RegisterLocation(R0));
   return locs;
 }
-
 
 void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register instantiator_type_args_reg = locs()->in(0).reg();
@@ -2295,7 +2214,6 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(instantiator_type_args_reg == result_reg);
 }
 
-
 LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
@@ -2308,7 +2226,6 @@ LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
   locs->set_out(0, Location::RegisterLocation(R0));
   return locs;
 }
-
 
 void InstantiateTypeArgumentsInstr::EmitNativeCode(
     FlowGraphCompiler* compiler) {
@@ -2376,7 +2293,6 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   __ Bind(&type_arguments_instantiated);
 }
 
-
 LocationSummary* AllocateUninitializedContextInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
@@ -2391,7 +2307,6 @@ LocationSummary* AllocateUninitializedContextInstr::MakeLocationSummary(
   locs->set_out(0, Location::RegisterLocation(R0));
   return locs;
 }
-
 
 class AllocateContextSlowPath : public SlowPathCode {
  public:
@@ -2424,7 +2339,6 @@ class AllocateContextSlowPath : public SlowPathCode {
   AllocateUninitializedContextInstr* instruction_;
 };
 
-
 void AllocateUninitializedContextInstr::EmitNativeCode(
     FlowGraphCompiler* compiler) {
   Register temp0 = locs()->temp(0).reg();
@@ -2447,7 +2361,6 @@ void AllocateUninitializedContextInstr::EmitNativeCode(
   __ Bind(slow_path->exit_label());
 }
 
-
 LocationSummary* AllocateContextInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 0;
@@ -2458,7 +2371,6 @@ LocationSummary* AllocateContextInstr::MakeLocationSummary(Zone* zone,
   locs->set_out(0, Location::RegisterLocation(R0));
   return locs;
 }
-
 
 void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->temp(0).reg() == R1);
@@ -2479,7 +2391,6 @@ LocationSummary* InitStaticFieldInstr::MakeLocationSummary(Zone* zone,
   locs->set_temp(0, Location::RegisterLocation(R1));
   return locs;
 }
-
 
 void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register field = locs()->in(0).reg();
@@ -2502,7 +2413,6 @@ void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&no_call);
 }
 
-
 LocationSummary* CloneContextInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -2513,7 +2423,6 @@ LocationSummary* CloneContextInstr::MakeLocationSummary(Zone* zone,
   locs->set_out(0, Location::RegisterLocation(R0));
   return locs;
 }
-
 
 void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register context_value = locs()->in(0).reg();
@@ -2527,13 +2436,11 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Pop(result);  // Get result (cloned context).
 }
 
-
 LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   UNREACHABLE();
   return NULL;
 }
-
 
 void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
@@ -2598,7 +2505,6 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* CheckStackOverflowInstr::MakeLocationSummary(Zone* zone,
                                                               bool opt) const {
   const intptr_t kNumInputs = 0;
@@ -2608,7 +2514,6 @@ LocationSummary* CheckStackOverflowInstr::MakeLocationSummary(Zone* zone,
   summary->set_temp(0, Location::RequiresRegister());
   return summary;
 }
-
 
 class CheckStackOverflowSlowPath : public SlowPathCode {
  public:
@@ -2657,7 +2562,6 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
   Label osr_entry_label_;
 };
 
-
 void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
@@ -2684,7 +2588,6 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ Bind(slow_path->exit_label());
 }
-
 
 static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
                              BinarySmiOpInstr* shift_left) {
@@ -2783,7 +2686,6 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   }
 }
 
-
 class CheckedSmiSlowPath : public SlowPathCode {
  public:
   CheckedSmiSlowPath(CheckedSmiOpInstr* instruction, intptr_t try_index)
@@ -2825,7 +2727,6 @@ class CheckedSmiSlowPath : public SlowPathCode {
   intptr_t try_index_;
 };
 
-
 LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -2837,7 +2738,6 @@ LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
-
 
 void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckedSmiSlowPath* slow_path =
@@ -2923,7 +2823,6 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(slow_path->exit_label());
 }
 
-
 class CheckedSmiComparisonSlowPath : public SlowPathCode {
  public:
   CheckedSmiComparisonSlowPath(CheckedSmiComparisonInstr* instruction,
@@ -2982,7 +2881,6 @@ class CheckedSmiComparisonSlowPath : public SlowPathCode {
   bool merged_;
 };
 
-
 LocationSummary* CheckedSmiComparisonInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
@@ -2997,13 +2895,11 @@ LocationSummary* CheckedSmiComparisonInstr::MakeLocationSummary(
   return summary;
 }
 
-
 Condition CheckedSmiComparisonInstr::EmitComparisonCode(
     FlowGraphCompiler* compiler,
     BranchLabels labels) {
   return EmitSmiComparisonOp(compiler, locs(), kind());
 }
-
 
 #define EMIT_SMI_CHECK                                                         \
   Register left = locs()->in(0).reg();                                         \
@@ -3023,7 +2919,6 @@ Condition CheckedSmiComparisonInstr::EmitComparisonCode(
   }                                                                            \
   __ b(slow_path->entry_label(), NE)
 
-
 void CheckedSmiComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                                BranchInstr* branch) {
   BranchLabels labels = compiler->CreateBranchLabels(branch);
@@ -3037,7 +2932,6 @@ void CheckedSmiComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   EmitBranchOnCondition(compiler, true_condition, labels);
   __ Bind(slow_path->exit_label());
 }
-
 
 void CheckedSmiComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label true_label, false_label, done;
@@ -3059,7 +2953,6 @@ void CheckedSmiComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&done);
   __ Bind(slow_path->exit_label());
 }
-
 
 LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
@@ -3098,7 +2991,6 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
-
 
 void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (op_kind() == Token::kSHL) {
@@ -3336,7 +3228,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* CheckEitherNonSmiInstr::MakeLocationSummary(Zone* zone,
                                                              bool opt) const {
   intptr_t left_cid = left()->Type()->ToCid();
@@ -3350,7 +3241,6 @@ LocationSummary* CheckEitherNonSmiInstr::MakeLocationSummary(Zone* zone,
   summary->set_in(1, Location::RequiresRegister());
   return summary;
 }
-
 
 void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt =
@@ -3373,7 +3263,6 @@ void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ b(deopt, EQ);
 }
 
-
 LocationSummary* BoxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 1;
@@ -3384,7 +3273,6 @@ LocationSummary* BoxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
-
 
 void BoxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register out_reg = locs()->out(0).reg();
@@ -3410,7 +3298,6 @@ void BoxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* UnboxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -3421,12 +3308,11 @@ LocationSummary* UnboxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   return summary;
 }
 
-
 void UnboxInstr::EmitLoadFromBox(FlowGraphCompiler* compiler) {
   const Register box = locs()->in(0).reg();
 
   switch (representation()) {
-    case kUnboxedMint: {
+    case kUnboxedInt64: {
       UNIMPLEMENTED();
       break;
     }
@@ -3451,12 +3337,11 @@ void UnboxInstr::EmitLoadFromBox(FlowGraphCompiler* compiler) {
   }
 }
 
-
 void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
   const Register box = locs()->in(0).reg();
 
   switch (representation()) {
-    case kUnboxedMint: {
+    case kUnboxedInt64: {
       UNIMPLEMENTED();
       break;
     }
@@ -3473,7 +3358,6 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
       break;
   }
 }
-
 
 void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t value_cid = value()->Type()->ToCid();
@@ -3512,7 +3396,6 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* BoxInteger32Instr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   ASSERT((from_representation() == kUnboxedInt32) ||
@@ -3525,7 +3408,6 @@ LocationSummary* BoxInteger32Instr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
-
 
 void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
@@ -3543,9 +3425,7 @@ void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 DEFINE_UNIMPLEMENTED_INSTRUCTION(BoxInt64Instr)
-
 
 LocationSummary* UnboxInteger32Instr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
@@ -3558,15 +3438,13 @@ LocationSummary* UnboxInteger32Instr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-
 void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t value_cid = value()->Type()->ToCid();
   const Register out = locs()->out(0).reg();
   const Register value = locs()->in(0).reg();
-  Label* deopt =
-      CanDeoptimize()
-          ? compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptUnboxInteger)
-          : NULL;
+  Label* deopt = CanDeoptimize() ? compiler->AddDeoptStub(
+                                       GetDeoptId(), ICData::kDeoptUnboxInteger)
+                                 : NULL;
 
   if (value_cid == kSmiCid) {
     __ SmiUntag(out, value);
@@ -3603,7 +3481,6 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -3615,7 +3492,6 @@ LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister left = locs()->in(0).fpu_reg();
@@ -3639,7 +3515,6 @@ void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* DoubleTestOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -3654,7 +3529,6 @@ LocationSummary* DoubleTestOpInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
-
 
 Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                 BranchLabels labels) {
@@ -3676,7 +3550,6 @@ Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   }
 }
 
-
 LocationSummary* BinaryFloat32x4OpInstr::MakeLocationSummary(Zone* zone,
                                                              bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -3688,7 +3561,6 @@ LocationSummary* BinaryFloat32x4OpInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void BinaryFloat32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister left = locs()->in(0).fpu_reg();
@@ -3713,7 +3585,6 @@ void BinaryFloat32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* BinaryFloat64x2OpInstr::MakeLocationSummary(Zone* zone,
                                                              bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -3725,7 +3596,6 @@ LocationSummary* BinaryFloat64x2OpInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void BinaryFloat64x2OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister left = locs()->in(0).fpu_reg();
@@ -3750,7 +3620,6 @@ void BinaryFloat64x2OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* Simd32x4ShuffleInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -3761,7 +3630,6 @@ LocationSummary* Simd32x4ShuffleInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void Simd32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister value = locs()->in(0).fpu_reg();
@@ -3806,7 +3674,6 @@ void Simd32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* Simd32x4ShuffleMixInstr::MakeLocationSummary(Zone* zone,
                                                               bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -3818,7 +3685,6 @@ LocationSummary* Simd32x4ShuffleMixInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void Simd32x4ShuffleMixInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister left = locs()->in(0).fpu_reg();
@@ -3838,7 +3704,6 @@ void Simd32x4ShuffleMixInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* Simd32x4GetSignMaskInstr::MakeLocationSummary(Zone* zone,
                                                                bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -3850,7 +3715,6 @@ LocationSummary* Simd32x4GetSignMaskInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
-
 
 void Simd32x4GetSignMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister value = locs()->in(0).fpu_reg();
@@ -3876,7 +3740,6 @@ void Simd32x4GetSignMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ SmiTag(out);
 }
 
-
 LocationSummary* Float32x4ConstructorInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
@@ -3891,7 +3754,6 @@ LocationSummary* Float32x4ConstructorInstr::MakeLocationSummary(
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void Float32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister v0 = locs()->in(0).fpu_reg();
@@ -3910,7 +3772,6 @@ void Float32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ vinss(r, 3, VTMP, 0);
 }
 
-
 LocationSummary* Float32x4ZeroInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 0;
@@ -3921,12 +3782,10 @@ LocationSummary* Float32x4ZeroInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-
 void Float32x4ZeroInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister v = locs()->out(0).fpu_reg();
   __ veor(v, v, v);
 }
-
 
 LocationSummary* Float32x4SplatInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
@@ -3939,7 +3798,6 @@ LocationSummary* Float32x4SplatInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-
 void Float32x4SplatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister value = locs()->in(0).fpu_reg();
   const VRegister result = locs()->out(0).fpu_reg();
@@ -3950,7 +3808,6 @@ void Float32x4SplatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Splat across all lanes.
   __ vdups(result, VTMP, 0);
 }
-
 
 LocationSummary* Float32x4ComparisonInstr::MakeLocationSummary(Zone* zone,
                                                                bool opt) const {
@@ -3963,7 +3820,6 @@ LocationSummary* Float32x4ComparisonInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void Float32x4ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister left = locs()->in(0).fpu_reg();
@@ -3997,7 +3853,6 @@ void Float32x4ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* Float32x4MinMaxInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -4009,7 +3864,6 @@ LocationSummary* Float32x4MinMaxInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void Float32x4MinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister left = locs()->in(0).fpu_reg();
@@ -4028,7 +3882,6 @@ void Float32x4MinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* Float32x4SqrtInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -4039,7 +3892,6 @@ LocationSummary* Float32x4SqrtInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void Float32x4SqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister left = locs()->in(0).fpu_reg();
@@ -4060,7 +3912,6 @@ void Float32x4SqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* Float32x4ScaleInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -4072,7 +3923,6 @@ LocationSummary* Float32x4ScaleInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void Float32x4ScaleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister left = locs()->in(0).fpu_reg();
@@ -4090,7 +3940,6 @@ void Float32x4ScaleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* Float32x4ZeroArgInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -4101,7 +3950,6 @@ LocationSummary* Float32x4ZeroArgInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void Float32x4ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister left = locs()->in(0).fpu_reg();
@@ -4119,7 +3967,6 @@ void Float32x4ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* Float32x4ClampInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
   const intptr_t kNumInputs = 3;
@@ -4133,7 +3980,6 @@ LocationSummary* Float32x4ClampInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-
 void Float32x4ClampInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister left = locs()->in(0).fpu_reg();
   const VRegister lower = locs()->in(1).fpu_reg();
@@ -4142,7 +3988,6 @@ void Float32x4ClampInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ vmins(result, left, upper);
   __ vmaxs(result, result, lower);
 }
-
 
 LocationSummary* Float32x4WithInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
@@ -4155,7 +4000,6 @@ LocationSummary* Float32x4WithInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void Float32x4WithInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister replacement = locs()->in(0).fpu_reg();
@@ -4185,7 +4029,6 @@ void Float32x4WithInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* Float32x4ToInt32x4Instr::MakeLocationSummary(Zone* zone,
                                                               bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -4197,7 +4040,6 @@ LocationSummary* Float32x4ToInt32x4Instr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-
 void Float32x4ToInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister value = locs()->in(0).fpu_reg();
   const VRegister result = locs()->out(0).fpu_reg();
@@ -4206,7 +4048,6 @@ void Float32x4ToInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ vmov(result, value);
   }
 }
-
 
 LocationSummary* Simd64x2ShuffleInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
@@ -4218,7 +4059,6 @@ LocationSummary* Simd64x2ShuffleInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void Simd64x2ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister value = locs()->in(0).fpu_reg();
@@ -4236,7 +4076,6 @@ void Simd64x2ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* Float64x2ZeroInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 0;
@@ -4247,12 +4086,10 @@ LocationSummary* Float64x2ZeroInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-
 void Float64x2ZeroInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister v = locs()->out(0).fpu_reg();
   __ veor(v, v, v);
 }
-
 
 LocationSummary* Float64x2SplatInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
@@ -4265,13 +4102,11 @@ LocationSummary* Float64x2SplatInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-
 void Float64x2SplatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister value = locs()->in(0).fpu_reg();
   const VRegister result = locs()->out(0).fpu_reg();
   __ vdupd(result, value, 0);
 }
-
 
 LocationSummary* Float64x2ConstructorInstr::MakeLocationSummary(
     Zone* zone,
@@ -4286,7 +4121,6 @@ LocationSummary* Float64x2ConstructorInstr::MakeLocationSummary(
   return summary;
 }
 
-
 void Float64x2ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister v0 = locs()->in(0).fpu_reg();
   const VRegister v1 = locs()->in(1).fpu_reg();
@@ -4294,7 +4128,6 @@ void Float64x2ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ vinsd(r, 0, v0, 0);
   __ vinsd(r, 1, v1, 0);
 }
-
 
 LocationSummary* Float64x2ToFloat32x4Instr::MakeLocationSummary(
     Zone* zone,
@@ -4307,7 +4140,6 @@ LocationSummary* Float64x2ToFloat32x4Instr::MakeLocationSummary(
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void Float64x2ToFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister q = locs()->in(0).fpu_reg();
@@ -4325,7 +4157,6 @@ void Float64x2ToFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ vinss(r, 1, VTMP, 0);
 }
 
-
 LocationSummary* Float32x4ToFloat64x2Instr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
@@ -4337,7 +4168,6 @@ LocationSummary* Float32x4ToFloat64x2Instr::MakeLocationSummary(
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void Float32x4ToFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister q = locs()->in(0).fpu_reg();
@@ -4352,7 +4182,6 @@ void Float32x4ToFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ fcvtds(VTMP, VTMP);
   __ vinsd(r, 1, VTMP, 0);
 }
-
 
 LocationSummary* Float64x2ZeroArgInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
@@ -4371,7 +4200,6 @@ LocationSummary* Float64x2ZeroArgInstr::MakeLocationSummary(Zone* zone,
   }
   return summary;
 }
-
 
 void Float64x2ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister value = locs()->in(0).fpu_reg();
@@ -4408,7 +4236,6 @@ void Float64x2ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* Float64x2OneArgInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -4420,7 +4247,6 @@ LocationSummary* Float64x2OneArgInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
-
 
 void Float64x2OneArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister left = locs()->in(0).fpu_reg();
@@ -4450,7 +4276,6 @@ void Float64x2OneArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* Int32x4ConstructorInstr::MakeLocationSummary(Zone* zone,
                                                               bool opt) const {
   const intptr_t kNumInputs = 4;
@@ -4465,7 +4290,6 @@ LocationSummary* Int32x4ConstructorInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-
 void Int32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register v0 = locs()->in(0).reg();
   const Register v1 = locs()->in(1).reg();
@@ -4478,7 +4302,6 @@ void Int32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ vinsw(result, 2, v2);
   __ vinsw(result, 3, v3);
 }
-
 
 LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary(
     Zone* zone,
@@ -4495,7 +4318,6 @@ LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary(
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void Int32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register v0 = locs()->in(0).reg();
@@ -4530,7 +4352,6 @@ void Int32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ vinsw(result, 3, TMP);
 }
 
-
 LocationSummary* Int32x4GetFlagInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -4541,7 +4362,6 @@ LocationSummary* Int32x4GetFlagInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
-
 
 void Int32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister value = locs()->in(0).fpu_reg();
@@ -4570,7 +4390,6 @@ void Int32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ csel(result, TMP, result, EQ);
 }
 
-
 LocationSummary* Int32x4SelectInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 3;
@@ -4584,7 +4403,6 @@ LocationSummary* Int32x4SelectInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void Int32x4SelectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister mask = locs()->in(0).fpu_reg();
@@ -4605,7 +4423,6 @@ void Int32x4SelectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ vorr(out, mask, temp);
 }
 
-
 LocationSummary* Int32x4SetFlagInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -4617,7 +4434,6 @@ LocationSummary* Int32x4SetFlagInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void Int32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister mask = locs()->in(0).fpu_reg();
@@ -4649,7 +4465,6 @@ void Int32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* Int32x4ToFloat32x4Instr::MakeLocationSummary(Zone* zone,
                                                               bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -4661,7 +4476,6 @@ LocationSummary* Int32x4ToFloat32x4Instr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-
 void Int32x4ToFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister value = locs()->in(0).fpu_reg();
   const VRegister result = locs()->out(0).fpu_reg();
@@ -4670,7 +4484,6 @@ void Int32x4ToFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ vmov(result, value);
   }
 }
-
 
 LocationSummary* BinaryInt32x4OpInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
@@ -4683,7 +4496,6 @@ LocationSummary* BinaryInt32x4OpInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister left = locs()->in(0).fpu_reg();
@@ -4710,7 +4522,6 @@ void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* MathUnaryInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
   ASSERT((kind() == MathUnaryInstr::kSqrt) ||
@@ -4723,7 +4534,6 @@ LocationSummary* MathUnaryInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
-
 
 void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (kind() == MathUnaryInstr::kSqrt) {
@@ -4739,7 +4549,6 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* CaseInsensitiveCompareUC16Instr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
@@ -4754,13 +4563,11 @@ LocationSummary* CaseInsensitiveCompareUC16Instr::MakeLocationSummary(
   return summary;
 }
 
-
 void CaseInsensitiveCompareUC16Instr::EmitNativeCode(
     FlowGraphCompiler* compiler) {
   // Call the function.
   __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
 }
-
 
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
@@ -4786,7 +4593,6 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
-
 
 void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
@@ -4847,7 +4653,6 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* UnarySmiOpInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -4860,7 +4665,6 @@ LocationSummary* UnarySmiOpInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
-
 
 void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
@@ -4882,7 +4686,6 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* UnaryDoubleOpInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -4894,13 +4697,11 @@ LocationSummary* UnaryDoubleOpInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-
 void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister result = locs()->out(0).fpu_reg();
   const VRegister value = locs()->in(0).fpu_reg();
   __ fnegd(result, value);
 }
-
 
 LocationSummary* Int32ToDoubleInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
@@ -4913,13 +4714,11 @@ LocationSummary* Int32ToDoubleInstr::MakeLocationSummary(Zone* zone,
   return result;
 }
 
-
 void Int32ToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const VRegister result = locs()->out(0).fpu_reg();
   __ scvtfdw(result, value);
 }
-
 
 LocationSummary* SmiToDoubleInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
@@ -4932,7 +4731,6 @@ LocationSummary* SmiToDoubleInstr::MakeLocationSummary(Zone* zone,
   return result;
 }
 
-
 void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const VRegister result = locs()->out(0).fpu_reg();
@@ -4940,18 +4738,15 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ scvtfdx(result, TMP);
 }
 
-
 LocationSummary* MintToDoubleInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   UNIMPLEMENTED();
   return NULL;
 }
 
-
 void MintToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
-
 
 LocationSummary* DoubleToIntegerInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
@@ -4963,7 +4758,6 @@ LocationSummary* DoubleToIntegerInstr::MakeLocationSummary(Zone* zone,
   result->set_out(0, Location::RegisterLocation(R0));
   return result;
 }
-
 
 void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
@@ -5001,7 +4795,6 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&done);
 }
 
-
 LocationSummary* DoubleToSmiInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -5012,7 +4805,6 @@ LocationSummary* DoubleToSmiInstr::MakeLocationSummary(Zone* zone,
   result->set_out(0, Location::RequiresRegister());
   return result;
 }
-
 
 void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptDoubleToSmi);
@@ -5031,18 +4823,15 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ SmiTag(result);
 }
 
-
 LocationSummary* DoubleToDoubleInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
   UNIMPLEMENTED();
   return NULL;
 }
 
-
 void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
-
 
 LocationSummary* DoubleToFloatInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
@@ -5055,13 +4844,11 @@ LocationSummary* DoubleToFloatInstr::MakeLocationSummary(Zone* zone,
   return result;
 }
 
-
 void DoubleToFloatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister value = locs()->in(0).fpu_reg();
   const VRegister result = locs()->out(0).fpu_reg();
   __ fcvtsd(result, value);
 }
-
 
 LocationSummary* FloatToDoubleInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
@@ -5074,13 +4861,11 @@ LocationSummary* FloatToDoubleInstr::MakeLocationSummary(Zone* zone,
   return result;
 }
 
-
 void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister value = locs()->in(0).fpu_reg();
   const VRegister result = locs()->out(0).fpu_reg();
   __ fcvtds(result, value);
 }
-
 
 LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
                                                                bool opt) const {
@@ -5099,7 +4884,6 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
   result->set_out(0, Location::FpuRegisterLocation(V0));
   return result;
 }
-
 
 // Pseudo code:
 // if (exponent == 0.0) return 1.0;
@@ -5213,7 +4997,6 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ Bind(&skip_call);
 }
 
-
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
     InvokeDoublePow(compiler, this);
@@ -5221,7 +5004,6 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ CallRuntime(TargetFunction(), InputCount());
 }
-
 
 LocationSummary* ExtractNthOutputInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
@@ -5255,7 +5037,6 @@ LocationSummary* ExtractNthOutputInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-
 void ExtractNthOutputInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).IsPairLocation());
   PairLocation* pair = locs()->in(0).AsPairLocation();
@@ -5272,7 +5053,6 @@ void ExtractNthOutputInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* TruncDivModInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -5286,7 +5066,6 @@ LocationSummary* TruncDivModInstr::MakeLocationSummary(Zone* zone,
                                      Location::RequiresRegister()));
   return summary;
 }
-
 
 void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(CanDeoptimize());
@@ -5336,13 +5115,11 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&done);
 }
 
-
 LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
   return MakeCallSummary(zone);
 }
-
 
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   comparison()->InitializeLocationSummary(zone, opt);
@@ -5351,11 +5128,9 @@ LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   return comparison()->locs();
 }
 
-
 void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   comparison()->EmitBranchCode(compiler, this);
 }
-
 
 LocationSummary* CheckClassInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
@@ -5374,14 +5149,12 @@ LocationSummary* CheckClassInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-
 void CheckClassInstr::EmitNullCheck(FlowGraphCompiler* compiler, Label* deopt) {
   __ CompareObject(locs()->in(0).reg(), Object::null_object());
   ASSERT(IsDeoptIfNull() || IsDeoptIfNotNull());
   Condition cond = IsDeoptIfNull() ? EQ : NE;
   __ b(deopt, cond);
 }
-
 
 void CheckClassInstr::EmitBitTest(FlowGraphCompiler* compiler,
                                   intptr_t min,
@@ -5399,7 +5172,6 @@ void CheckClassInstr::EmitBitTest(FlowGraphCompiler* compiler,
   __ TestImmediate(bit_reg, mask);
   __ b(deopt, EQ);
 }
-
 
 int CheckClassInstr::EmitCheckCid(FlowGraphCompiler* compiler,
                                   int bias,
@@ -5432,7 +5204,6 @@ int CheckClassInstr::EmitCheckCid(FlowGraphCompiler* compiler,
   return bias;
 }
 
-
 LocationSummary* CheckClassIdInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -5443,7 +5214,6 @@ LocationSummary* CheckClassIdInstr::MakeLocationSummary(Zone* zone,
                                          : Location::WritableRegister());
   return summary;
 }
-
 
 void CheckClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
@@ -5458,7 +5228,6 @@ void CheckClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* CheckSmiInstr::MakeLocationSummary(Zone* zone,
                                                     bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -5469,14 +5238,12 @@ LocationSummary* CheckSmiInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-
 void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckSmi,
                                         licm_hoisted_ ? ICData::kHoisted : 0);
   __ BranchIfNotSmi(value, deopt);
 }
-
 
 LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
                                                              bool opt) const {
@@ -5488,7 +5255,6 @@ LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
   locs->set_in(kIndexPos, Location::RequiresRegister());
   return locs;
 }
-
 
 class RangeErrorSlowPath : public SlowPathCode {
  public:
@@ -5519,7 +5285,6 @@ class RangeErrorSlowPath : public SlowPathCode {
   intptr_t try_index_;
 };
 
-
 void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   RangeErrorSlowPath* slow_path =
       new RangeErrorSlowPath(this, compiler->CurrentTryIndex());
@@ -5537,7 +5302,6 @@ void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ b(slow_path->entry_label(), CS);
 }
 
-
 LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -5548,7 +5312,6 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Zone* zone,
   locs->set_in(kIndexPos, Location::RegisterOrSmiConstant(index()));
   return locs;
 }
-
 
 void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   uint32_t flags = generalized_ ? ICData::kGeneralized : 0;
@@ -5606,63 +5369,52 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
 
-LocationSummary* BinaryMintOpInstr::MakeLocationSummary(Zone* zone,
+void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+LocationSummary* ShiftInt64OpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   UNIMPLEMENTED();
   return NULL;
 }
 
-
-void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
-
-LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Zone* zone,
-                                                       bool opt) const {
+LocationSummary* UnaryInt64OpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
   UNIMPLEMENTED();
   return NULL;
 }
 
-
-void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
-
-
-LocationSummary* UnaryMintOpInstr::MakeLocationSummary(Zone* zone,
-                                                       bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
 
 CompileType BinaryUint32OpInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }
 
-
 CompileType ShiftUint32OpInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }
-
 
 CompileType UnaryUint32OpInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }
 
-
 DEFINE_UNIMPLEMENTED_INSTRUCTION(BinaryUint32OpInstr)
 DEFINE_UNIMPLEMENTED_INSTRUCTION(ShiftUint32OpInstr)
 DEFINE_UNIMPLEMENTED_INSTRUCTION(UnaryUint32OpInstr)
 DEFINE_UNIMPLEMENTED_INSTRUCTION(BinaryInt32OpInstr)
-
 
 LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Zone* zone,
                                                                bool opt) const {
@@ -5670,9 +5422,9 @@ LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  if (from() == kUnboxedMint) {
+  if (from() == kUnboxedInt64) {
     UNREACHABLE();
-  } else if (to() == kUnboxedMint) {
+  } else if (to() == kUnboxedInt64) {
     UNREACHABLE();
   } else {
     ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
@@ -5682,7 +5434,6 @@ LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Zone* zone,
   }
   return summary;
 }
-
 
 void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (from() == kUnboxedInt32 && to() == kUnboxedUint32) {
@@ -5710,9 +5461,9 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ cmp(out, Operand(value, UXTW, 0));
       __ b(deopt, NE);
     }
-  } else if (from() == kUnboxedMint) {
+  } else if (from() == kUnboxedInt64) {
     UNREACHABLE();
-  } else if (to() == kUnboxedMint) {
+  } else if (to() == kUnboxedInt64) {
     ASSERT((from() == kUnboxedUint32) || (from() == kUnboxedInt32));
     UNREACHABLE();
   } else {
@@ -5720,11 +5471,9 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* ThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   return new (zone) LocationSummary(zone, 0, 0, LocationSummary::kCall);
 }
-
 
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(), kThrowRuntimeEntry, 1,
@@ -5732,11 +5481,9 @@ void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ brk(0);
 }
 
-
 LocationSummary* ReThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   return new (zone) LocationSummary(zone, 0, 0, LocationSummary::kCall);
 }
-
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->SetNeedsStackTrace(catch_try_index());
@@ -5745,16 +5492,13 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ brk(0);
 }
 
-
 LocationSummary* StopInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   return new (zone) LocationSummary(zone, 0, 0, LocationSummary::kNoCall);
 }
 
-
 void StopInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Stop(message());
 }
-
 
 void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->CanFallThroughTo(normal_entry())) {
@@ -5762,11 +5506,9 @@ void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* GotoInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   return new (zone) LocationSummary(zone, 0, 0, LocationSummary::kNoCall);
 }
-
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
@@ -5789,7 +5531,6 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* IndirectGotoInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -5803,7 +5544,6 @@ LocationSummary* IndirectGotoInstr::MakeLocationSummary(Zone* zone,
 
   return summary;
 }
-
 
 void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register target_address_reg = locs()->temp_slot(0)->reg();
@@ -5828,7 +5568,6 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ br(target_address_reg);
 }
 
-
 LocationSummary* StrictCompareInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -5852,7 +5591,6 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary(Zone* zone,
   locs->set_out(0, Location::RequiresRegister());
   return locs;
 }
-
 
 Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                  BranchLabels labels) {
@@ -5879,7 +5617,6 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   return true_condition;
 }
 
-
 void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label is_true, is_false;
   BranchLabels labels = {&is_true, &is_false, &is_false};
@@ -5899,7 +5636,6 @@ void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&done);
 }
 
-
 void ComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                      BranchInstr* branch) {
   BranchLabels labels = compiler->CreateBranchLabels(branch);
@@ -5909,13 +5645,11 @@ void ComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   }
 }
 
-
 LocationSummary* BooleanNegateInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   return LocationSummary::Make(zone, 1, Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
-
 
 void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
@@ -5927,12 +5661,10 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ csel(result, TMP, result, EQ);
 }
 
-
 LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
   return MakeCallSummary(zone);
 }
-
 
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(
@@ -5944,14 +5676,12 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount());  // Discard arguments.
 }
 
-
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
   __ BranchLinkPatchable(*StubCode::DebugStepCheck_entry());
   compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, token_pos());
   compiler->RecordSafepoint(locs());
 }
-
 
 }  // namespace dart
 

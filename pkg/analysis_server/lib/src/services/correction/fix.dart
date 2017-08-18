@@ -9,6 +9,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 /**
  * Return true if this [errorCode] is likely to have a fix associated with it.
@@ -153,6 +154,8 @@ class DartFixKind {
       const FixKind('IMPORT_LIBRARY_SHOW', 45, "Update library '{0}' import");
   static const INSERT_SEMICOLON =
       const FixKind('INSERT_SEMICOLON', 50, "Insert ';'");
+  static const INVOKE_CONSTRUCTOR_USING_NEW = const FixKind(
+      'INVOKE_CONSTRUCTOR_USING_NEW', 50, "Invoke constructor using 'new'");
   static const LINT_ADD_OVERRIDE =
       const FixKind('LINT_ADD_OVERRIDE', 50, "Add '@override' annotation");
   static const LINT_REMOVE_INTERPOLATION_BRACES = const FixKind(

@@ -16,14 +16,15 @@ import '../equivalence/id_equivalence_helper.dart';
 ///
 /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
 /// for the data origin.
-void computeMemberAstTypeMasks(Compiler compiler, MemberEntity _member,
-    Map<Id, String> actualMap, Map<Id, Spannable> spannableMap) {
+void computeMemberAstTypeMasks(
+    Compiler compiler, MemberEntity _member, Map<Id, ActualData> actualMap,
+    {bool verbose: false}) {
   MemberElement member = _member;
   ResolvedAst resolvedAst = member.resolvedAst;
   if (resolvedAst.kind != ResolvedAstKind.PARSED) return;
   compiler.reporter.withCurrentElement(member.implementation, () {
-    new TypeMaskComputer(compiler.reporter, actualMap, spannableMap,
-            resolvedAst, compiler.globalInference.results)
+    new TypeMaskComputer(compiler.reporter, actualMap, resolvedAst,
+            compiler.globalInference.results)
         .run();
   });
 }
@@ -33,15 +34,25 @@ class TypeMaskComputer extends AbstractResolvedAstComputer {
   final GlobalTypeInferenceResults results;
   final GlobalTypeInferenceElementResult result;
 
-  TypeMaskComputer(DiagnosticReporter reporter, Map<Id, String> actualMap,
-      Map<Id, Spannable> spannableMap, ResolvedAst resolvedAst, this.results)
+  TypeMaskComputer(DiagnosticReporter reporter, Map<Id, ActualData> actualMap,
+      ResolvedAst resolvedAst, this.results)
       : result = results.resultOfMember(resolvedAst.element as MemberElement),
-        super(reporter, actualMap, spannableMap, resolvedAst);
+        super(reporter, actualMap, resolvedAst);
 
   @override
   String computeElementValue(AstElement element) {
-    GlobalTypeInferenceElementResult elementResult =
-        results.resultOfElement(element);
+    GlobalTypeInferenceElementResult elementResult;
+    if (element.isParameter) {
+      ParameterElement parameter = element;
+      elementResult = results.resultOfParameter(parameter);
+    } else if (element.isLocal) {
+      LocalFunctionElement localFunction = element;
+      elementResult = results.resultOfMember(localFunction.callMethod);
+    } else {
+      MemberElement member = element;
+      elementResult = results.resultOfMember(member);
+    }
+
     TypeMask value =
         element.isFunction ? elementResult.returnType : elementResult.type;
     return value != null ? '$value' : null;

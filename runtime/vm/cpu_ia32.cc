@@ -23,11 +23,9 @@ void CPU::FlushICache(uword start, uword size) {
   // Nothing to be done here.
 }
 
-
 const char* CPU::Id() {
   return "ia32";
 }
-
 
 bool HostCPUFeatures::sse2_supported_ = false;
 bool HostCPUFeatures::sse4_1_supported_ = false;
@@ -48,7 +46,6 @@ void HostCPUFeatures::InitOnce() {
   initialized_ = true;
 #endif
 }
-
 
 void HostCPUFeatures::Cleanup() {
   DEBUG_ASSERT(initialized_);

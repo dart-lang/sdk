@@ -4,14 +4,15 @@
 
 class C {
   var t;
-  C.foo(f) : t = (() => f()) {
-    print(1);
+  C.foo(f, x) : t = (() => f(x)) {
+    x = 1;
+    print(x);
   }
 }
 
 main() {
   print(0);
-  var c = new C.foo(() => print('hest'));
+  var c = new C.foo((x) => print('hest${x}'), 0);
   print(2);
   c.t();
   print(3);

@@ -235,7 +235,8 @@ class CloneVisitor extends TreeVisitor {
     return new ClosureCreation.byReference(
         node.topLevelFunctionReference,
         cloneOptional(node.contextVector),
-        visitOptionalType(node.functionType));
+        visitOptionalType(node.functionType),
+        node.typeArguments.map(visitType).toList());
   }
 
   visitVectorSet(VectorSet node) {
@@ -360,7 +361,8 @@ class CloneVisitor extends TreeVisitor {
         initializer: cloneOptional(node.initializer),
         type: visitType(node.type),
         isFinal: node.isFinal,
-        isConst: node.isConst);
+        isConst: node.isConst,
+        isFieldFormal: node.isFieldFormal);
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {

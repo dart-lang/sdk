@@ -19,8 +19,7 @@ String getName(Symbol symbol) {
 Symbol getSymbol(name, library) =>
     throw new UnimplementedError("MirrorSystem.getSymbol unimplemented");
 
-final currentJsMirrorSystem = throw new UnimplementedError(
-    "MirrorSystem.currentJsMirrorSystem unimplemented");
+final currentJsMirrorSystem = new JsMirrorSystem();
 
 final _typeMirror = JS('', 'Symbol("_typeMirror")');
 
@@ -225,6 +224,14 @@ dynamic _toJsMap(Map<Symbol, dynamic> map) {
   return obj;
 }
 
+class JsMirrorSystem implements MirrorSystem {
+  get libraries => const {};
+
+  noSuchMethod(Invocation i) {
+    _unimplemented(this.runtimeType, i);
+  }
+}
+
 class JsMirror implements Mirror {
   noSuchMethod(Invocation i) {
     _unimplemented(this.runtimeType, i);
@@ -341,7 +348,7 @@ class JsClassMirror extends JsMirror implements ClassMirror {
       // Only get metadata directly embedded on this class, not its
       // superclasses.
       var fn = JS(
-          'Function',
+          'Function|Null',
           'Object.hasOwnProperty.call(#, dart.metadata) ? #[dart.metadata] : null',
           unwrapped,
           unwrapped);
@@ -439,11 +446,19 @@ class JsClassMirror extends JsMirror implements ClassMirror {
 
   InstanceMirror newInstance(Symbol constructorName, List args,
       [Map<Symbol, dynamic> namedArgs]) {
-    // TODO(vsm): Support factory constructors and named arguments.
+    // TODO(vsm): Support named arguments.
     var name = getName(constructorName);
     assert(namedArgs == null || namedArgs.isEmpty);
+    // Default constructors are mapped to new.
     if (name == '') name = 'new';
-    var instance = JS('', 'new (#.#)(...#)', _unwrap(_cls), name, args);
+    var cls = _unwrap(_cls);
+    var ctr = JS('', '#.#', cls, name);
+    // Only generative Dart constructors are wired up as real JS constructors.
+    var instance = JS('bool', '#.prototype == #.prototype', cls, ctr)
+        // Generative
+        ? JS('', 'new #(...#)', ctr, args)
+        // Factory
+        : JS('', '#(...#)', ctr, args);
     return reflect(instance);
   }
 

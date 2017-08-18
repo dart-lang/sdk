@@ -1,0 +1,11 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F = (core::int) → core::Iterable<core::num>;
+typedef G = (core::double) → core::List<core::int>;
+static method generic<T extends core::Object>((self::generic::T) → dynamic a, (self::generic::T) → dynamic b) → self::generic::T
+  return null;
+static method main() → dynamic {
+  dynamic v = self::generic<dynamic>(((core::int) → core::Iterable<core::num> f) → dynamic => null, ((core::double) → core::List<core::int> g) → dynamic => null);
+}

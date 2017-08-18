@@ -40,7 +40,6 @@ static RawStackTrace* CurrentSyncStackTrace(Thread* thread,
   return StackTrace::New(code_array, pc_offset_array);
 }
 
-
 static RawStackTrace* CurrentStackTrace(
     Thread* thread,
     bool for_async_function,
@@ -98,45 +97,44 @@ static RawStackTrace* CurrentStackTrace(
   return StackTrace::New(code_array, pc_offset_array, async_stack_trace);
 }
 
-
 RawStackTrace* GetStackTraceForException() {
   Thread* thread = Thread::Current();
   return CurrentStackTrace(thread, false, 0);
 }
 
-
 DEFINE_NATIVE_ENTRY(StackTrace_current, 0) {
   return CurrentStackTrace(thread, false);
 }
 
-
 DEFINE_NATIVE_ENTRY(StackTrace_asyncStackTraceHelper, 1) {
-  GET_NATIVE_ARGUMENT(Closure, async_op, arguments->NativeArgAt(0));
-  if (!async_op.IsNull()) {
-    if (FLAG_support_debugger) {
-      Debugger* debugger = isolate->debugger();
-      if (debugger != NULL) {
-        debugger->MaybeAsyncStepInto(async_op);
-      }
-    }
+  if (!FLAG_causal_async_stacks) {
+    return Object::null();
   }
+#if !defined(PRODUCT)
+  GET_NATIVE_ARGUMENT(Closure, async_op, arguments->NativeArgAt(0));
+  Debugger* debugger = isolate->debugger();
+  if (debugger != NULL) {
+    debugger->MaybeAsyncStepInto(async_op);
+  }
+#endif
   return CurrentStackTrace(thread, true);
 }
-
 
 DEFINE_NATIVE_ENTRY(StackTrace_clearAsyncThreadStackTrace, 0) {
   thread->clear_async_stack_trace();
   return Object::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(StackTrace_setAsyncThreadStackTrace, 1) {
+  if (!FLAG_causal_async_stacks) {
+    return Object::null();
+  }
+
   GET_NON_NULL_NATIVE_ARGUMENT(StackTrace, stack_trace,
                                arguments->NativeArgAt(0));
   thread->set_async_stack_trace(stack_trace);
   return Object::null();
 }
-
 
 static void AppendFrames(const GrowableObjectArray& code_list,
                          const GrowableObjectArray& pc_offset_list,
@@ -163,7 +161,6 @@ static void AppendFrames(const GrowableObjectArray& code_list,
   }
 }
 
-
 // Creates a StackTrace object from the current stack.
 //
 // Skips the first skip_frames Dart frames.
@@ -179,30 +176,6 @@ const StackTrace& GetCurrentStackTrace(int skip_frames) {
   const StackTrace& stacktrace =
       StackTrace::Handle(StackTrace::New(code_array, pc_offset_array));
   return stacktrace;
-}
-
-
-// An utility method for convenient printing of dart stack traces when
-// inside 'gdb'. Note: This function will only work when there is a
-// valid exit frame information. It will not work when a breakpoint is
-// set in dart code and control is got inside 'gdb' without going through
-// the runtime or native transition stub.
-void _printCurrentStackTrace() {
-  const StackTrace& stacktrace = GetCurrentStackTrace(0);
-  OS::PrintErr("=== Current Trace:\n%s===\n", stacktrace.ToCString());
-}
-
-
-// Like _printCurrentStackTrace, but works in a NoSafepointScope.
-void _printCurrentStackTraceNoSafepoint() {
-  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
-                            Thread::Current(),
-                            StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = frames.NextFrame();
-  while (frame != NULL) {
-    OS::PrintErr("%s\n", frame->ToCString());
-    frame = frames.NextFrame();
-  }
 }
 
 }  // namespace dart

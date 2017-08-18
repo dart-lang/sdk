@@ -33,7 +33,7 @@ class ProgramVisitor : public AllStatic {
   static void ShareMegamorphicBuckets();
   static void DedupStackMaps();
   static void DedupPcDescriptors();
-  static void DedupDeoptEntries();
+  NOT_IN_PRECOMPILED(static void DedupDeoptEntries());
   static void DedupCodeSourceMaps();
   static void DedupLists();
   static void DedupInstructions();

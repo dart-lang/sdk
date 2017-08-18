@@ -46,16 +46,12 @@ main() {
   test_errorInPart() async {
     String libPath = '$testFolder/main.dart';
     String partPath = '$testFolder/main_part.dart';
-    addFile(
-        libPath,
-        r'''
+    addFile(libPath, r'''
 library main;
 part 'main_part.dart';
 class A {}
 ''');
-    addFile(
-        partPath,
-        r'''
+    addFile(partPath, r'''
 part of main;
 class A {}
 ''');
@@ -81,9 +77,7 @@ class A {}
   test_fileWithoutContext() {
     // Broken under the new driver.
     String file = '/outside.dart';
-    addFile(
-        file,
-        '''
+    addFile(file, '''
 main() {
   print(42);
 }

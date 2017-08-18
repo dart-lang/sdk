@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
@@ -41,7 +42,7 @@ Future<Null> scheduleImplementedNotification(
     return;
   }
   for (String file in files) {
-    CompilationUnit unit = await server.getResolvedCompilationUnit(file);
+    CompilationUnit unit = server.getCachedAnalysisResult(file)?.unit;
     CompilationUnitElement unitElement = unit?.element;
     if (unitElement != null) {
       try {
@@ -67,6 +68,11 @@ void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
         .map((driver) => driver.knownFiles)
         .expand((files) => files)
         .toSet();
+
+    // Exclude *.yaml files because IDEA Dart plugin attempts to index
+    // all the files in folders which contain analyzed files.
+    analyzedFiles.removeWhere((file) => file.endsWith('.yaml'));
+
     Set<String> prevAnalyzedFiles = server.prevAnalyzedFiles;
     if (prevAnalyzedFiles != null &&
         prevAnalyzedFiles.length == analyzedFiles.length &&
@@ -78,6 +84,16 @@ void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
     server.prevAnalyzedFiles = analyzedFiles;
     protocol.AnalysisAnalyzedFilesParams params =
         new protocol.AnalysisAnalyzedFilesParams(analyzedFiles.toList());
+    server.sendNotification(params.toNotification());
+  });
+}
+
+void sendAnalysisNotificationClosingLabels(AnalysisServer server, String file,
+    LineInfo lineInfo, CompilationUnit dartUnit) {
+  _sendNotification(server, () {
+    var labels =
+        new DartUnitClosingLabelsComputer(lineInfo, dartUnit).compute();
+    var params = new protocol.AnalysisClosingLabelsParams(file, labels);
     server.sendNotification(params.toNotification());
   });
 }

@@ -3044,17 +3044,22 @@ int _toUint32(int value) {
   return value & 0xFFFFFFFF;
 }
 
+// Note: in --limit-ints-to-64-bits mode all integers are 64-bit already.
+// Still, it is harmless to apply _uint64Mask because (1 << 64) is 0 (all bits
+// are shifted out), so _uint64Mask is -1 (its bit pattern is 0xffffffffffffffff).
+const _uint64Mask = (1 << 64) - 1;
+
 int _toInt64(int value) {
   // Avoid bigint mask when possible.
   return (ClassID.getID(value) == ClassID.cidBigint)
-      ? _toInt(value, 0xFFFFFFFFFFFFFFFF)
+      ? _toInt(value, _uint64Mask)
       : value;
 }
 
 int _toUint64(int value) {
   // Avoid bigint mask when possible.
   return (ClassID.getID(value) == ClassID.cidBigint)
-      ? _toInt(value, 0xFFFFFFFFFFFFFFFF)
+      ? _toInt(value, _uint64Mask)
       : value;
 }
 

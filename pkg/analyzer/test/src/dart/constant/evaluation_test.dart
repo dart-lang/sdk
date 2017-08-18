@@ -316,16 +316,12 @@ const int a = 0;''');
   }
 
   test_computeValues_multipleSources() async {
-    Source librarySource = addNamedSource(
-        "/lib.dart",
-        r'''
+    Source librarySource = addNamedSource("/lib.dart", r'''
 library lib;
 part 'part.dart';
 const int c = b;
 const int a = 0;''');
-    Source partSource = addNamedSource(
-        "/part.dart",
-        r'''
+    Source partSource = addNamedSource("/part.dart", r'''
 part of lib;
 const int b = a;
 const int d = c;''');
@@ -405,8 +401,7 @@ const A y = const A(x);''');
 
   test_dependencyOnConstructorArgument_unresolvedConstructor() async {
     // "const A.a(x)" depends on x even if the constructor A.a can't be found.
-    await _assertProperDependencies(
-        r'''
+    await _assertProperDependencies(r'''
 class A {
 }
 const int x = 1;
@@ -503,15 +498,13 @@ const A a = const A();
     // Even though non-static consts are not allowed by the language, we need
     // to handle them for error recovery purposes.
     // a depends on A() depends on A.x
-    await _assertProperDependencies(
-        '''
+    await _assertProperDependencies('''
 class A {
   const A();
   const int x = 1;
 }
 const A a = const A();
-''',
-        [CompileTimeErrorCode.CONST_INSTANCE_FIELD]);
+''', [CompileTimeErrorCode.CONST_INSTANCE_FIELD]);
   }
 
   test_dependencyOnNonFactoryRedirect() async {
@@ -551,13 +544,11 @@ class A {
   test_dependencyOnNonFactoryRedirect_toMissing() async {
     // a depends on A.foo() which depends on nothing, since A.bar() is
     // missing.
-    await _assertProperDependencies(
-        r'''
+    await _assertProperDependencies(r'''
 const A a = const A.foo();
 class A {
   const A.foo() : this.bar();
-}''',
-        [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR]);
+}''', [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR]);
   }
 
   test_dependencyOnNonFactoryRedirect_toNonConst() async {

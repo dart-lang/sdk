@@ -12,7 +12,6 @@
 #include "vm/object.h"
 #include "vm/visitor.h"
 
-
 namespace dart {
 
 void RawObject::Validate(Isolate* isolate) const {
@@ -30,10 +29,10 @@ void RawObject::Validate(Isolate* isolate) const {
     FATAL("RAW_NULL encountered");
   }
   // Validate that the tags_ field is sensible.
-  uword tags = ptr()->tags_;
+  uint32_t tags = ptr()->tags_;
   intptr_t reserved = ReservedBits::decode(tags);
   if (reserved != 0) {
-    FATAL1("Invalid tags field encountered %#" Px "\n", tags);
+    FATAL1("Invalid tags field encountered %x\n", tags);
   }
   intptr_t class_id = ClassIdTag::decode(tags);
   if (!isolate->class_table()->IsValidIndex(class_id)) {
@@ -49,7 +48,6 @@ void RawObject::Validate(Isolate* isolate) const {
     FATAL1("Inconsistent class size encountered %" Pd "\n", size);
   }
 }
-
 
 intptr_t RawObject::SizeFromClass() const {
   // Only reasonable to be called on heap objects.
@@ -185,7 +183,7 @@ intptr_t RawObject::SizeFromClass() const {
       ClassTable* class_table = isolate->class_table();
       if (!class_table->IsValidIndex(class_id) ||
           !class_table->HasValidClassAt(class_id)) {
-        FATAL2("Invalid class id: %" Pd " from tags %" Px "\n", class_id,
+        FATAL2("Invalid class id: %" Pd " from tags %x\n", class_id,
                ptr()->tags_);
       }
 #endif  // DEBUG
@@ -196,7 +194,7 @@ intptr_t RawObject::SizeFromClass() const {
   }
   ASSERT(instance_size != 0);
 #if defined(DEBUG)
-  uword tags = ptr()->tags_;
+  uint32_t tags = ptr()->tags_;
   intptr_t tags_size = SizeTag::decode(tags);
   if ((class_id == kArrayCid) && (instance_size > tags_size && tags_size > 0)) {
     // TODO(22501): Array::MakeFixedLength could be in the process of shrinking
@@ -211,13 +209,12 @@ intptr_t RawObject::SizeFromClass() const {
     } while ((instance_size > tags_size) && (--retries_remaining > 0));
   }
   if ((instance_size != tags_size) && (tags_size != 0)) {
-    FATAL3("Size mismatch: %" Pd " from class vs %" Pd " from tags %" Px "\n",
+    FATAL3("Size mismatch: %" Pd " from class vs %" Pd " from tags %x\n",
            instance_size, tags_size, tags);
   }
 #endif  // DEBUG
   return instance_size;
 }
-
 
 intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
                                             intptr_t class_id) {
@@ -288,12 +285,10 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
   return size;
 }
 
-
 bool RawObject::FindObject(FindObjectVisitor* visitor) {
   ASSERT(visitor != NULL);
   return visitor->FindObject(this);
 }
-
 
 intptr_t RawClass::VisitClassPointers(RawClass* raw_obj,
                                       ObjectPointerVisitor* visitor) {
@@ -301,14 +296,12 @@ intptr_t RawClass::VisitClassPointers(RawClass* raw_obj,
   return Class::InstanceSize();
 }
 
-
 intptr_t RawUnresolvedClass::VisitUnresolvedClassPointers(
     RawUnresolvedClass* raw_obj,
     ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return UnresolvedClass::InstanceSize();
 }
-
 
 intptr_t RawAbstractType::VisitAbstractTypePointers(
     RawAbstractType* raw_obj,
@@ -318,20 +311,17 @@ intptr_t RawAbstractType::VisitAbstractTypePointers(
   return 0;
 }
 
-
 intptr_t RawType::VisitTypePointers(RawType* raw_obj,
                                     ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return Type::InstanceSize();
 }
 
-
 intptr_t RawTypeRef::VisitTypeRefPointers(RawTypeRef* raw_obj,
                                           ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return TypeRef::InstanceSize();
 }
-
 
 intptr_t RawTypeParameter::VisitTypeParameterPointers(
     RawTypeParameter* raw_obj,
@@ -340,7 +330,6 @@ intptr_t RawTypeParameter::VisitTypeParameterPointers(
   return TypeParameter::InstanceSize();
 }
 
-
 intptr_t RawBoundedType::VisitBoundedTypePointers(
     RawBoundedType* raw_obj,
     ObjectPointerVisitor* visitor) {
@@ -348,14 +337,12 @@ intptr_t RawBoundedType::VisitBoundedTypePointers(
   return BoundedType::InstanceSize();
 }
 
-
 intptr_t RawMixinAppType::VisitMixinAppTypePointers(
     RawMixinAppType* raw_obj,
     ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return MixinAppType::InstanceSize();
 }
-
 
 intptr_t RawTypeArguments::VisitTypeArgumentsPointers(
     RawTypeArguments* raw_obj,
@@ -365,20 +352,17 @@ intptr_t RawTypeArguments::VisitTypeArgumentsPointers(
   return TypeArguments::InstanceSize(length);
 }
 
-
 intptr_t RawPatchClass::VisitPatchClassPointers(RawPatchClass* raw_obj,
                                                 ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return PatchClass::InstanceSize();
 }
 
-
 intptr_t RawClosure::VisitClosurePointers(RawClosure* raw_obj,
                                           ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return Closure::InstanceSize();
 }
-
 
 intptr_t RawClosureData::VisitClosureDataPointers(
     RawClosureData* raw_obj,
@@ -387,7 +371,6 @@ intptr_t RawClosureData::VisitClosureDataPointers(
   return ClosureData::InstanceSize();
 }
 
-
 intptr_t RawSignatureData::VisitSignatureDataPointers(
     RawSignatureData* raw_obj,
     ObjectPointerVisitor* visitor) {
@@ -395,14 +378,12 @@ intptr_t RawSignatureData::VisitSignatureDataPointers(
   return SignatureData::InstanceSize();
 }
 
-
 intptr_t RawRedirectionData::VisitRedirectionDataPointers(
     RawRedirectionData* raw_obj,
     ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return RedirectionData::InstanceSize();
 }
-
 
 bool RawFunction::CheckUsageCounter(RawFunction* raw_fun) {
   // NOTE: This code runs while GC is in progress and runs within
@@ -425,7 +406,6 @@ bool RawFunction::CheckUsageCounter(RawFunction* raw_fun) {
   return FLAG_always_drop_code || (fn.usage_counter() == 0);
 }
 
-
 bool RawFunction::ShouldVisitCode(RawCode* raw_code) {
   // NOTE: This code runs while GC is in progress and runs within
   // a NoHandleScope block. Hence it is not okay to use regular Zone or
@@ -440,7 +420,6 @@ bool RawFunction::ShouldVisitCode(RawCode* raw_code) {
   if (code.HasBreakpoint()) return true;
   return false;
 }
-
 
 intptr_t RawFunction::VisitFunctionPointers(RawFunction* raw_obj,
                                             ObjectPointerVisitor* visitor) {
@@ -470,13 +449,11 @@ intptr_t RawFunction::VisitFunctionPointers(RawFunction* raw_obj,
   return Function::InstanceSize();
 }
 
-
 intptr_t RawField::VisitFieldPointers(RawField* raw_obj,
                                       ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return Field::InstanceSize();
 }
-
 
 intptr_t RawLiteralToken::VisitLiteralTokenPointers(
     RawLiteralToken* raw_obj,
@@ -485,7 +462,6 @@ intptr_t RawLiteralToken::VisitLiteralTokenPointers(
   return LiteralToken::InstanceSize();
 }
 
-
 intptr_t RawTokenStream::VisitTokenStreamPointers(
     RawTokenStream* raw_obj,
     ObjectPointerVisitor* visitor) {
@@ -493,20 +469,17 @@ intptr_t RawTokenStream::VisitTokenStreamPointers(
   return TokenStream::InstanceSize();
 }
 
-
 intptr_t RawScript::VisitScriptPointers(RawScript* raw_obj,
                                         ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return Script::InstanceSize();
 }
 
-
 intptr_t RawLibrary::VisitLibraryPointers(RawLibrary* raw_obj,
                                           ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return Library::InstanceSize();
 }
-
 
 intptr_t RawLibraryPrefix::VisitLibraryPrefixPointers(
     RawLibraryPrefix* raw_obj,
@@ -515,23 +488,20 @@ intptr_t RawLibraryPrefix::VisitLibraryPrefixPointers(
   return LibraryPrefix::InstanceSize();
 }
 
-
 intptr_t RawNamespace::VisitNamespacePointers(RawNamespace* raw_obj,
                                               ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return Namespace::InstanceSize();
 }
 
-
 bool RawCode::ContainsPC(RawObject* raw_obj, uword pc) {
-  uword tags = raw_obj->ptr()->tags_;
+  uint32_t tags = raw_obj->ptr()->tags_;
   if (RawObject::ClassIdTag::decode(tags) == kCodeCid) {
     RawCode* raw_code = reinterpret_cast<RawCode*>(raw_obj);
     return RawInstructions::ContainsPC(raw_code->ptr()->instructions_, pc);
   }
   return false;
 }
-
 
 intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
                                     ObjectPointerVisitor* visitor) {
@@ -561,7 +531,6 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
 #endif
 }
 
-
 intptr_t RawObjectPool::VisitObjectPoolPointers(RawObjectPool* raw_obj,
                                                 ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(
@@ -579,13 +548,11 @@ intptr_t RawObjectPool::VisitObjectPoolPointers(RawObjectPool* raw_obj,
   return ObjectPool::InstanceSize(raw_obj->ptr()->length_);
 }
 
-
 intptr_t RawInstructions::VisitInstructionsPointers(
     RawInstructions* raw_obj,
     ObjectPointerVisitor* visitor) {
   return Instructions::InstanceSize(Instructions::Size(raw_obj));
 }
-
 
 bool RawInstructions::ContainsPC(RawInstructions* raw_instr, uword pc) {
   uword start_pc =
@@ -595,13 +562,11 @@ bool RawInstructions::ContainsPC(RawInstructions* raw_instr, uword pc) {
   return (pc >= start_pc) && (pc < end_pc);
 }
 
-
 intptr_t RawPcDescriptors::VisitPcDescriptorsPointers(
     RawPcDescriptors* raw_obj,
     ObjectPointerVisitor* visitor) {
   return PcDescriptors::InstanceSize(raw_obj->ptr()->length_);
 }
-
 
 intptr_t RawCodeSourceMap::VisitCodeSourceMapPointers(
     RawCodeSourceMap* raw_obj,
@@ -609,12 +574,10 @@ intptr_t RawCodeSourceMap::VisitCodeSourceMapPointers(
   return CodeSourceMap::InstanceSize(raw_obj->ptr()->length_);
 }
 
-
 intptr_t RawStackMap::VisitStackMapPointers(RawStackMap* raw_obj,
                                             ObjectPointerVisitor* visitor) {
   return StackMap::InstanceSize(raw_obj->ptr()->length_);
 }
-
 
 intptr_t RawLocalVarDescriptors::VisitLocalVarDescriptorsPointers(
     RawLocalVarDescriptors* raw_obj,
@@ -623,7 +586,6 @@ intptr_t RawLocalVarDescriptors::VisitLocalVarDescriptorsPointers(
   visitor->VisitPointers(raw_obj->from(), raw_obj->to(num_entries));
   return LocalVarDescriptors::InstanceSize(num_entries);
 }
-
 
 intptr_t RawExceptionHandlers::VisitExceptionHandlersPointers(
     RawExceptionHandlers* raw_obj,
@@ -635,14 +597,12 @@ intptr_t RawExceptionHandlers::VisitExceptionHandlersPointers(
   return ExceptionHandlers::InstanceSize(len);
 }
 
-
 intptr_t RawContext::VisitContextPointers(RawContext* raw_obj,
                                           ObjectPointerVisitor* visitor) {
   intptr_t num_variables = raw_obj->ptr()->num_variables_;
   visitor->VisitPointers(raw_obj->from(), raw_obj->to(num_variables));
   return Context::InstanceSize(num_variables);
 }
-
 
 intptr_t RawContextScope::VisitContextScopePointers(
     RawContextScope* raw_obj,
@@ -652,14 +612,12 @@ intptr_t RawContextScope::VisitContextScopePointers(
   return ContextScope::InstanceSize(num_variables);
 }
 
-
 intptr_t RawSingleTargetCache::VisitSingleTargetCachePointers(
     RawSingleTargetCache* raw_obj,
     ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return SingleTargetCache::InstanceSize();
 }
-
 
 intptr_t RawUnlinkedCall::VisitUnlinkedCallPointers(
     RawUnlinkedCall* raw_obj,
@@ -668,13 +626,11 @@ intptr_t RawUnlinkedCall::VisitUnlinkedCallPointers(
   return UnlinkedCall::InstanceSize();
 }
 
-
 intptr_t RawICData::VisitICDataPointers(RawICData* raw_obj,
                                         ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return ICData::InstanceSize();
 }
-
 
 intptr_t RawMegamorphicCache::VisitMegamorphicCachePointers(
     RawMegamorphicCache* raw_obj,
@@ -682,7 +638,6 @@ intptr_t RawMegamorphicCache::VisitMegamorphicCachePointers(
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return MegamorphicCache::InstanceSize();
 }
-
 
 intptr_t RawSubtypeTestCache::VisitSubtypeTestCachePointers(
     RawSubtypeTestCache* raw_obj,
@@ -693,7 +648,6 @@ intptr_t RawSubtypeTestCache::VisitSubtypeTestCachePointers(
   return SubtypeTestCache::InstanceSize();
 }
 
-
 intptr_t RawError::VisitErrorPointers(RawError* raw_obj,
                                       ObjectPointerVisitor* visitor) {
   // Error is an abstract class.
@@ -701,13 +655,11 @@ intptr_t RawError::VisitErrorPointers(RawError* raw_obj,
   return 0;
 }
 
-
 intptr_t RawApiError::VisitApiErrorPointers(RawApiError* raw_obj,
                                             ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return ApiError::InstanceSize();
 }
-
 
 intptr_t RawLanguageError::VisitLanguageErrorPointers(
     RawLanguageError* raw_obj,
@@ -716,14 +668,12 @@ intptr_t RawLanguageError::VisitLanguageErrorPointers(
   return LanguageError::InstanceSize();
 }
 
-
 intptr_t RawUnhandledException::VisitUnhandledExceptionPointers(
     RawUnhandledException* raw_obj,
     ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return UnhandledException::InstanceSize();
 }
-
 
 intptr_t RawUnwindError::VisitUnwindErrorPointers(
     RawUnwindError* raw_obj,
@@ -732,12 +682,11 @@ intptr_t RawUnwindError::VisitUnwindErrorPointers(
   return UnwindError::InstanceSize();
 }
 
-
 intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
                                             ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
-  uword tags = raw_obj->ptr()->tags_;
+  uint32_t tags = raw_obj->ptr()->tags_;
   intptr_t instance_size = SizeTag::decode(tags);
   if (instance_size == 0) {
     RawClass* cls =
@@ -754,14 +703,12 @@ intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
   return instance_size;
 }
 
-
 intptr_t RawNumber::VisitNumberPointers(RawNumber* raw_obj,
                                         ObjectPointerVisitor* visitor) {
   // Number is an abstract class.
   UNREACHABLE();
   return 0;
 }
-
 
 intptr_t RawInteger::VisitIntegerPointers(RawInteger* raw_obj,
                                           ObjectPointerVisitor* visitor) {
@@ -770,7 +717,6 @@ intptr_t RawInteger::VisitIntegerPointers(RawInteger* raw_obj,
   return 0;
 }
 
-
 intptr_t RawSmi::VisitSmiPointers(RawSmi* raw_obj,
                                   ObjectPointerVisitor* visitor) {
   // Smi does not have a heap representation.
@@ -778,14 +724,12 @@ intptr_t RawSmi::VisitSmiPointers(RawSmi* raw_obj,
   return 0;
 }
 
-
 intptr_t RawMint::VisitMintPointers(RawMint* raw_obj,
                                     ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
   return Mint::InstanceSize();
 }
-
 
 intptr_t RawBigint::VisitBigintPointers(RawBigint* raw_obj,
                                         ObjectPointerVisitor* visitor) {
@@ -795,7 +739,6 @@ intptr_t RawBigint::VisitBigintPointers(RawBigint* raw_obj,
   return Bigint::InstanceSize();
 }
 
-
 intptr_t RawDouble::VisitDoublePointers(RawDouble* raw_obj,
                                         ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
@@ -803,14 +746,12 @@ intptr_t RawDouble::VisitDoublePointers(RawDouble* raw_obj,
   return Double::InstanceSize();
 }
 
-
 intptr_t RawString::VisitStringPointers(RawString* raw_obj,
                                         ObjectPointerVisitor* visitor) {
   // String is an abstract class.
   UNREACHABLE();
   return 0;
 }
-
 
 intptr_t RawOneByteString::VisitOneByteStringPointers(
     RawOneByteString* raw_obj,
@@ -823,7 +764,6 @@ intptr_t RawOneByteString::VisitOneByteStringPointers(
   return OneByteString::InstanceSize(length);
 }
 
-
 intptr_t RawTwoByteString::VisitTwoByteStringPointers(
     RawTwoByteString* raw_obj,
     ObjectPointerVisitor* visitor) {
@@ -835,7 +775,6 @@ intptr_t RawTwoByteString::VisitTwoByteStringPointers(
   return TwoByteString::InstanceSize(length);
 }
 
-
 intptr_t RawExternalOneByteString::VisitExternalOneByteStringPointers(
     RawExternalOneByteString* raw_obj,
     ObjectPointerVisitor* visitor) {
@@ -844,7 +783,6 @@ intptr_t RawExternalOneByteString::VisitExternalOneByteStringPointers(
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return ExternalOneByteString::InstanceSize();
 }
-
 
 intptr_t RawExternalTwoByteString::VisitExternalTwoByteStringPointers(
     RawExternalTwoByteString* raw_obj,
@@ -855,14 +793,12 @@ intptr_t RawExternalTwoByteString::VisitExternalTwoByteStringPointers(
   return ExternalTwoByteString::InstanceSize();
 }
 
-
 intptr_t RawBool::VisitBoolPointers(RawBool* raw_obj,
                                     ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
   return Bool::InstanceSize();
 }
-
 
 intptr_t RawArray::VisitArrayPointers(RawArray* raw_obj,
                                       ObjectPointerVisitor* visitor) {
@@ -871,13 +807,11 @@ intptr_t RawArray::VisitArrayPointers(RawArray* raw_obj,
   return Array::InstanceSize(length);
 }
 
-
 intptr_t RawImmutableArray::VisitImmutableArrayPointers(
     RawImmutableArray* raw_obj,
     ObjectPointerVisitor* visitor) {
   return RawArray::VisitArrayPointers(raw_obj, visitor);
 }
-
 
 intptr_t RawGrowableObjectArray::VisitGrowableObjectArrayPointers(
     RawGrowableObjectArray* raw_obj,
@@ -886,7 +820,6 @@ intptr_t RawGrowableObjectArray::VisitGrowableObjectArrayPointers(
   return GrowableObjectArray::InstanceSize();
 }
 
-
 intptr_t RawLinkedHashMap::VisitLinkedHashMapPointers(
     RawLinkedHashMap* raw_obj,
     ObjectPointerVisitor* visitor) {
@@ -894,20 +827,17 @@ intptr_t RawLinkedHashMap::VisitLinkedHashMapPointers(
   return LinkedHashMap::InstanceSize();
 }
 
-
 intptr_t RawFloat32x4::VisitFloat32x4Pointers(RawFloat32x4* raw_obj,
                                               ObjectPointerVisitor* visitor) {
   ASSERT(raw_obj->IsHeapObject());
   return Float32x4::InstanceSize();
 }
 
-
 intptr_t RawInt32x4::VisitInt32x4Pointers(RawInt32x4* raw_obj,
                                           ObjectPointerVisitor* visitor) {
   ASSERT(raw_obj->IsHeapObject());
   return Int32x4::InstanceSize();
 }
-
 
 intptr_t RawFloat64x2::VisitFloat64x2Pointers(RawFloat64x2* raw_obj,
                                               ObjectPointerVisitor* visitor) {
@@ -926,7 +856,6 @@ intptr_t RawTypedData::VisitTypedDataPointers(RawTypedData* raw_obj,
   return TypedData::InstanceSize(lengthInBytes);
 }
 
-
 intptr_t RawExternalTypedData::VisitExternalTypedDataPointers(
     RawExternalTypedData* raw_obj,
     ObjectPointerVisitor* visitor) {
@@ -943,7 +872,6 @@ intptr_t RawCapability::VisitCapabilityPointers(RawCapability* raw_obj,
   return Capability::InstanceSize();
 }
 
-
 intptr_t RawReceivePort::VisitReceivePortPointers(
     RawReceivePort* raw_obj,
     ObjectPointerVisitor* visitor) {
@@ -953,14 +881,12 @@ intptr_t RawReceivePort::VisitReceivePortPointers(
   return ReceivePort::InstanceSize();
 }
 
-
 intptr_t RawSendPort::VisitSendPortPointers(RawSendPort* raw_obj,
                                             ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
   return SendPort::InstanceSize();
 }
-
 
 intptr_t RawStackTrace::VisitStackTracePointers(RawStackTrace* raw_obj,
                                                 ObjectPointerVisitor* visitor) {
@@ -970,7 +896,6 @@ intptr_t RawStackTrace::VisitStackTracePointers(RawStackTrace* raw_obj,
   return StackTrace::InstanceSize();
 }
 
-
 intptr_t RawRegExp::VisitRegExpPointers(RawRegExp* raw_obj,
                                         ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
@@ -978,7 +903,6 @@ intptr_t RawRegExp::VisitRegExpPointers(RawRegExp* raw_obj,
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return RegExp::InstanceSize();
 }
-
 
 intptr_t RawWeakProperty::VisitWeakPropertyPointers(
     RawWeakProperty* raw_obj,
@@ -989,7 +913,6 @@ intptr_t RawWeakProperty::VisitWeakPropertyPointers(
   return WeakProperty::InstanceSize();
 }
 
-
 intptr_t RawMirrorReference::VisitMirrorReferencePointers(
     RawMirrorReference* raw_obj,
     ObjectPointerVisitor* visitor) {
@@ -999,7 +922,6 @@ intptr_t RawMirrorReference::VisitMirrorReferencePointers(
   return MirrorReference::InstanceSize();
 }
 
-
 intptr_t RawUserTag::VisitUserTagPointers(RawUserTag* raw_obj,
                                           ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
@@ -1007,6 +929,5 @@ intptr_t RawUserTag::VisitUserTagPointers(RawUserTag* raw_obj,
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return UserTag::InstanceSize();
 }
-
 
 }  // namespace dart

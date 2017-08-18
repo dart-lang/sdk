@@ -4,7 +4,7 @@
 
 library fasta.class_builder;
 
-import '../errors.dart' show internalError;
+import '../problems.dart' show internalProblem;
 
 import 'builder.dart'
     show
@@ -20,6 +20,12 @@ import 'builder.dart'
         TypeBuilder,
         TypeDeclarationBuilder,
         TypeVariableBuilder;
+
+import '../fasta_codes.dart'
+    show
+        Message,
+        templateInternalProblemNotFoundIn,
+        templateInternalProblemSuperclassNotFound;
 
 abstract class ClassBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
@@ -51,6 +57,8 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
       : scopeBuilder = new ScopeBuilder(scope),
         constructorScopeBuilder = new ScopeBuilder(constructors),
         super(metadata, modifiers, name, parent, charOffset);
+
+  String get debugName => "ClassBuilder";
 
   /// Returns true if this class is the result of applying a mixin to its
   /// superclass.
@@ -162,8 +170,11 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
         }
         supertype = t.supertype;
       } else {
-        internalError("Superclass not found '${superclass.fullNameForErrors}'.",
-            fileUri, charOffset);
+        internalProblem(
+            templateInternalProblemSuperclassNotFound
+                .withArguments(superclass.fullNameForErrors),
+            charOffset,
+            fileUri);
       }
       if (variables != null) {
         Map<TypeVariableBuilder, TypeBuilder> directSubstitutionMap =
@@ -190,18 +201,23 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   /// (and isn't a setter).
   MemberBuilder operator [](String name) {
     // TODO(ahe): Rename this to getLocalMember.
-    return scope.local[name] ?? internalError("Not found: '$name'.");
+    return scope.local[name] ??
+        internalProblem(
+            templateInternalProblemNotFoundIn.withArguments(
+                name, fullNameForErrors),
+            -1,
+            null);
   }
 
-  void addCompileTimeError(int charOffset, String message) {
-    library.addCompileTimeError(charOffset, message, fileUri: fileUri);
+  void addCompileTimeError(Message message, int charOffset) {
+    library.addCompileTimeError(message, charOffset, fileUri);
   }
 
-  void addWarning(int charOffset, String message) {
-    library.addWarning(charOffset, message, fileUri: fileUri);
+  void addWarning(Message message, int charOffset) {
+    library.addWarning(message, charOffset, fileUri);
   }
 
-  void addNit(int charOffset, String message) {
-    library.addNit(charOffset, message, fileUri: fileUri);
+  void addNit(Message message, int charOffset) {
+    library.addNit(message, charOffset, fileUri);
   }
 }

@@ -4,31 +4,30 @@
 
 library fasta.kernel_field_builder;
 
-import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
-
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelField;
-
-import 'package:front_end/src/fasta/parser/parser.dart' show Parser;
-
-import 'package:front_end/src/scanner/token.dart' show Token;
-
-import 'package:front_end/src/fasta/builder/class_builder.dart'
-    show ClassBuilder;
-
-import 'package:front_end/src/fasta/source/source_library_builder.dart'
-    show SourceLibraryBuilder;
-
-import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart'
-    show TypeInferenceListener;
-
 import 'package:kernel/ast.dart'
     show DartType, Expression, Field, Name, NullLiteral;
 
-import '../errors.dart' show internalError;
+import '../../scanner/token.dart' show Token;
+
+import '../builder/class_builder.dart' show ClassBuilder;
+
+import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
+
+import '../parser/parser.dart' show Parser;
+
+import '../problems.dart' show internalProblem;
+
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import '../type_inference/type_inference_listener.dart'
+    show TypeInferenceListener;
+
+import 'body_builder.dart' show BodyBuilder;
 
 import 'kernel_builder.dart'
     show Builder, FieldBuilder, KernelTypeBuilder, MetadataBuilder;
+
+import 'kernel_shadow_ast.dart' show KernelField;
 
 class KernelFieldBuilder extends FieldBuilder<Expression> {
   final KernelField field;
@@ -38,6 +37,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   final bool hasInitializer;
 
   KernelFieldBuilder(
+      String documentationComment,
       this.metadata,
       this.type,
       String name,
@@ -48,11 +48,13 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       this.hasInitializer)
       : field = new KernelField(null, fileUri: compilationUnit?.relativeFileUri)
           ..fileOffset = charOffset,
-        super(name, modifiers, compilationUnit, charOffset);
+        super(
+            documentationComment, name, modifiers, compilationUnit, charOffset);
 
   void set initializer(Expression value) {
     if (!hasInitializer && value is! NullLiteral && !isConst && !isFinal) {
-      internalError("Attempt to set initializer on field without initializer.");
+      internalProblem(
+          messageInternalProblemAlreadyInitialized, charOffset, fileUri);
     }
     field.initializer = value..parent = field;
   }
@@ -61,6 +63,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       type == null && (hasInitializer || isInstanceMember);
 
   Field build(SourceLibraryBuilder library) {
+    field.documentationComment = documentationComment;
     field.name ??= new Name(name, library.target);
     if (type != null) {
       field.type = type.build(library);
@@ -72,7 +75,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       ..hasImplicitGetter = isInstanceMember
       ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
       ..isStatic = !isInstanceMember;
-    if (isEligibleForInference) {
+    if (!library.disableTypeInference && isEligibleForInference) {
       library.loader.typeInferenceEngine.recordMember(field);
     }
     return field;
@@ -83,11 +86,9 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   @override
   void prepareInitializerInference(
       SourceLibraryBuilder library, ClassBuilder currentClass) {
-    if (isEligibleForInference) {
+    if (!library.disableTypeInference && isEligibleForInference) {
       var memberScope =
           currentClass == null ? library.scope : currentClass.scope;
-      // TODO(paulberry): Is it correct to pass library.uri into BodyBuilder, or
-      // should it be the part URI?
       var typeInferenceEngine = library.loader.typeInferenceEngine;
       var listener = new TypeInferenceListener();
       var typeInferrer = typeInferenceEngine.createTopLevelTypeInferrer(
@@ -102,7 +103,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
             typeInferenceEngine.coreTypes,
             currentClass,
             isInstanceMember,
-            library.uri,
+            fileUri,
             typeInferrer);
         Parser parser = new Parser(bodyBuilder);
         Token token = parser.parseExpression(initializerTokenForInference);

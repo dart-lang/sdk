@@ -16,11 +16,14 @@ class B {
 
 makeA() native;
 
-setup() native """
+setup() {
+  JS('', r"""
+(function(){
   function A() {}
-  makeA = function() { return new A; }
+  makeA = function() { return new A(); };
   self.nativeConstructor(A);
-""";
+})()""");
+}
 
 main() {
   nativeTesting();

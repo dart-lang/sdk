@@ -188,6 +188,8 @@ namespace dart {
     0x604ec475)                                                                \
   V(_OneByteString, ==, OneByteString_equality, Bool, 0x4719e83f)              \
   V(_TwoByteString, ==, TwoByteString_equality, Bool, 0x4719e83f)              \
+  V(::, _getHash, Object_getHash, Smi, 0x2827856d)                             \
+  V(::, _setHash, Object_setHash, Object, 0x302d1fe8)                          \
 
 
 #define CORE_INTEGER_LIB_INTRINSIC_LIST(V)                                     \
@@ -539,7 +541,6 @@ class MethodRecognizer : public AllStatic {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #define CHECK_FINGERPRINT2(f, p0, p1, fp)                                      \
   ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1, fp))
@@ -547,7 +548,6 @@ class MethodRecognizer : public AllStatic {
 #define CHECK_FINGERPRINT3(f, p0, p1, p2, fp)                                  \
   ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1 ", " #p2, fp))
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 
 // clang-format off
 // List of recognized list factories:

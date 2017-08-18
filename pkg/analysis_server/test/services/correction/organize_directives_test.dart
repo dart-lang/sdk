@@ -34,17 +34,14 @@ main() {
   async2.Stream s;
 }''');
     // validate change
-    _assertOrganize(
-        r'''
+    _assertOrganize(r'''
 import 'dart:async' as async1;
 import 'dart:async' as async2;
 
 main() {
   async1.Future f;
   async2.Stream s;
-}''',
-        removeUnresolved: true,
-        removeUnused: true);
+}''', removeUnresolved: true, removeUnused: true);
   }
 
   test_remove_duplicateImports() async {
@@ -56,15 +53,12 @@ main() {
   Future f;
 }''');
     // validate change
-    _assertOrganize(
-        r'''
+    _assertOrganize(r'''
 import 'dart:async';
 
 main() {
   Future f;
-}''',
-        removeUnresolved: true,
-        removeUnused: true);
+}''', removeUnresolved: true, removeUnused: true);
   }
 
   test_remove_duplicateImports_differentText_uri() async {
@@ -76,15 +70,12 @@ main() {
   async.Future f;
 }''');
     // validate change
-    _assertOrganize(
-        r'''
+    _assertOrganize(r'''
 import 'dart:async' as async;
 
 main() {
   async.Future f;
-}''',
-        removeUnresolved: true,
-        removeUnused: true);
+}''', removeUnresolved: true, removeUnused: true);
   }
 
   test_remove_duplicateImports_withSamePrefix() async {
@@ -96,15 +87,12 @@ main() {
   async.Future f;
 }''');
     // validate change
-    _assertOrganize(
-        r'''
+    _assertOrganize(r'''
 import 'dart:async' as async;
 
 main() {
   async.Future f;
-}''',
-        removeUnresolved: true,
-        removeUnused: true);
+}''', removeUnresolved: true, removeUnused: true);
   }
 
   test_remove_unresolvedDirectives() async {
@@ -131,8 +119,7 @@ main() {
 }
 ''');
     // validate change
-    _assertOrganize(
-        r'''
+    _assertOrganize(r'''
 library lib;
 
 import 'dart:async';
@@ -146,8 +133,7 @@ part 'existing_part2.dart';
 
 main() {
 }
-''',
-        removeUnresolved: true);
+''', removeUnresolved: true);
   }
 
   test_remove_unusedImports() async {
@@ -165,8 +151,7 @@ main() {
 }
 ''');
     // validate change
-    _assertOrganize(
-        r'''
+    _assertOrganize(r'''
 library lib;
 
 import 'dart:collection';
@@ -176,8 +161,7 @@ main() {
   print(PI);
   new HashMap();
 }
-''',
-        removeUnused: true);
+''', removeUnused: true);
   }
 
   test_remove_unusedImports2() async {
@@ -191,17 +175,14 @@ main() {
   Future f;
 }''');
     // validate change
-    _assertOrganize(
-        r'''
+    _assertOrganize(r'''
 import 'dart:async';
 
 class A {}
 
 main() {
   Future f;
-}''',
-        removeUnresolved: true,
-        removeUnused: true);
+}''', removeUnresolved: true, removeUnused: true);
   }
 
   test_sort() async {

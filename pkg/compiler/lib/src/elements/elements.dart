@@ -1055,7 +1055,11 @@ abstract class PrefixElement extends Element {
 
 /// A type alias definition.
 abstract class TypedefElement extends Element
-    implements AstElement, TypeDeclarationElement, FunctionTypedElement {
+    implements
+        AstElement,
+        TypeDeclarationElement,
+        FunctionTypedElement,
+        TypedefEntity {
   /// The type defined by this typedef with the type variables as its type
   /// arguments.
   ///
@@ -1296,7 +1300,11 @@ abstract class MethodElement extends FunctionElement
 
 /// A local function or closure (anonymous local function).
 abstract class LocalFunctionElement extends FunctionElement
-    implements LocalElement {}
+    implements LocalElement {
+  /// The synthesized 'call' method created for this local function during
+  /// closure conversion.
+  MethodElement callMethod;
+}
 
 /// A constructor.
 abstract class ConstructorElement extends MethodElement
@@ -1408,7 +1416,8 @@ abstract class ConstructorElement extends MethodElement
 
 /// JavaScript backend specific element for the body of constructor.
 // TODO(johnniwinther): Remove this class from the element model.
-abstract class ConstructorBodyElement extends MethodElement {
+abstract class ConstructorBodyElement extends MethodElement
+    implements ConstructorBodyEntity {
   ConstructorElement get constructor;
 }
 

@@ -919,11 +919,14 @@ class ContextManagerImpl implements ContextManager {
       String contextRoot = info.folder.path;
       ContextBuilder builder =
           callbacks.createContextBuilder(info.folder, defaultContextOptions);
-      AnalysisOptions options = builder.getAnalysisOptions(contextRoot,
-          contextRoot: info.analysisDriver?.contextRoot);
-      SourceFactory factory = builder.createSourceFactory(contextRoot, options);
       AnalysisDriver driver = info.analysisDriver;
-      driver.configure(analysisOptions: options, sourceFactory: factory);
+      if (driver != null) {
+        AnalysisOptions options = builder.getAnalysisOptions(contextRoot,
+            contextRoot: driver.contextRoot);
+        SourceFactory factory =
+            builder.createSourceFactory(contextRoot, options);
+        driver.configure(analysisOptions: options, sourceFactory: factory);
+      }
     }
   }
 

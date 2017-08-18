@@ -199,21 +199,14 @@ class C extends B {
   }
 
   void test_bundle_refers_to_bundle() {
-    var bundle1 = createPackageBundle(
-        '''
+    var bundle1 = createPackageBundle('''
 var x = 0;
-''',
-        path: '/a.dart');
+''', path: '/a.dart');
     addBundle('/a.ds', bundle1);
-    var bundle2 = createPackageBundle(
-        '''
+    var bundle2 = createPackageBundle('''
 import "a.dart";
 var y = x;
-''',
-        path: '/b.dart');
-    expect(bundle2.dependencies, hasLength(1));
-    expect(bundle2.dependencies[0].summaryPath, '/a.ds');
-    expect(bundle2.dependencies[0].apiSignature, bundle1.apiSignature);
+''', path: '/b.dart');
     addBundle('/a.ds', bundle1);
     addBundle('/b.ds', bundle2);
     createLinker('''
@@ -266,16 +259,14 @@ class B<T> extends A<T> {
   }
 
   void test_createPackageBundle_withPackageUri() {
-    PackageBundle bundle = createPackageBundle(
-        '''
+    PackageBundle bundle = createPackageBundle('''
 class B {
   void f(int i) {}
 }
 class C extends B {
   f(i) {} // Inferred param type: int
 }
-''',
-        uri: 'package:foo/bar.dart');
+''', uri: 'package:foo/bar.dart');
     UnlinkedExecutable cf = bundle.unlinkedUnits[0].classes[1].executables[0];
     UnlinkedParam cfi = cf.parameters[0];
     expect(cfi.inferredTypeSlot, isNot(0));
@@ -314,11 +305,9 @@ class C extends B {
   }
 
   void test_inferredType_closure_fromBundle() {
-    var bundle = createPackageBundle(
-        '''
+    var bundle = createPackageBundle('''
 var x = () {};
-''',
-        path: '/a.dart');
+''', path: '/a.dart');
     addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
@@ -330,8 +319,7 @@ var y = x;
   }
 
   void test_inferredType_closure_fromBundle_identifierSequence() {
-    var bundle = createPackageBundle(
-        '''
+    var bundle = createPackageBundle('''
 class C {
   static final x = (D d) => d.e;
 }
@@ -339,8 +327,7 @@ class D {
   E e;
 }
 class E {}
-''',
-        path: '/a.dart');
+''', path: '/a.dart');
     addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
@@ -348,20 +335,18 @@ var y = C.x;
 ''');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
     expect(_getVariable(library.getContainedName('y')).inferredType.toString(),
-        '(D) → dynamic');
+        '(D) → E');
   }
 
   void test_inferredType_implicitFunctionTypeIndices() {
-    var bundle = createPackageBundle(
-        '''
+    var bundle = createPackageBundle('''
 class A {
   void foo(void bar(int arg)) {}
 }
 class B extends A {
   void foo(bar) {}
 }
-''',
-        path: '/a.dart');
+''', path: '/a.dart');
     addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
@@ -459,13 +444,11 @@ class C extends B {
   }
 
   void test_inferredType_parameter_genericFunctionType() {
-    var bundle = createPackageBundle(
-        '''
+    var bundle = createPackageBundle('''
 class A<T> {
   A<R> map<R>(R Function(T) f) => null;
 }
-''',
-        path: '/a.dart');
+''', path: '/a.dart');
     addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
@@ -516,12 +499,10 @@ var y = x;
   }
 
   void test_inferredTypeFromOutsideBuildUnit_dynamic() {
-    var bundle = createPackageBundle(
-        '''
+    var bundle = createPackageBundle('''
 var x;
 var y = x; // Inferred type: dynamic
-''',
-        path: '/a.dart');
+''', path: '/a.dart');
     addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
@@ -533,54 +514,48 @@ var z = y; // Inferred type: dynamic
   }
 
   void test_inferredTypeFromOutsideBuildUnit_instanceField() {
-    var bundle = createPackageBundle(
-        '''
+    var bundle = createPackageBundle('''
 class C {
   var f = 0; // Inferred type: int
 }
-''',
-        path: '/a.dart');
+''', path: '/a.dart');
     addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
-var x = new C().f; // Inferred type: dynamic
+var x = new C().f; // Inferred type: int
 ''');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
     expect(_getVariable(library.getContainedName('x')).inferredType.toString(),
-        'dynamic');
+        'int');
   }
 
   void test_inferredTypeFromOutsideBuildUnit_instanceField_toInstanceField() {
-    var bundle = createPackageBundle(
-        '''
+    var bundle = createPackageBundle('''
 class C {
   var f = 0; // Inferred type: int
 }
-''',
-        path: '/a.dart');
+''', path: '/a.dart');
     addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
 class D {
-  var g = new C().f; // Inferred type: dynamic
+  var g = new C().f; // Inferred type: int
 }
 ''');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
     ClassElementForLink_Class classD = library.getContainedName('D');
-    expect(classD.fields[0].inferredType.toString(), 'dynamic');
+    expect(classD.fields[0].inferredType.toString(), 'int');
   }
 
   void test_inferredTypeFromOutsideBuildUnit_methodParamType_viaInheritance() {
-    var bundle = createPackageBundle(
-        '''
+    var bundle = createPackageBundle('''
 class B {
   void f(int i) {}
 }
 class C extends B {
   f(i) {} // Inferred param type: int
 }
-''',
-        path: '/a.dart');
+''', path: '/a.dart');
     addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
@@ -598,16 +573,14 @@ class D extends C {
   }
 
   void test_inferredTypeFromOutsideBuildUnit_methodReturnType_viaCall() {
-    var bundle = createPackageBundle(
-        '''
+    var bundle = createPackageBundle('''
 class B {
   int f() => 0;
 }
 class C extends B {
   f() => 1; // Inferred return type: int
 }
-''',
-        path: '/a.dart');
+''', path: '/a.dart');
     addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
@@ -619,16 +592,14 @@ var x = new C().f(); // Inferred type: int
   }
 
   void test_inferredTypeFromOutsideBuildUnit_methodReturnType_viaInheritance() {
-    var bundle = createPackageBundle(
-        '''
+    var bundle = createPackageBundle('''
 class B {
   int f() => 0;
 }
 class C extends B {
   f() => 1; // Inferred return type: int
 }
-''',
-        path: '/a.dart');
+''', path: '/a.dart');
     addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
@@ -668,6 +639,37 @@ class D extends C {
             .inferredType
             .toString(),
         'int');
+  }
+
+  void test_inheritsCovariant_fromBundle() {
+    var bundle = createPackageBundle('''
+class X1 {}
+class X2 extends X1 {}
+class A {
+  void foo(covariant X1 x) {}
+}
+class B extends A {
+  void foo(X2 x) {}
+}
+''', path: '/a.dart');
+    addBundle('/a.ds', bundle);
+
+    // C.foo.x must inherit covariance from B.foo.x, even though it is
+    // resynthesized from the bundle.
+    createLinker('''
+import 'a.dart';
+class C extends B {
+  void foo(X2 x) {}
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+
+    ClassElementForLink_Class C = library.getContainedName('C');
+    expect(C.methods, hasLength(1));
+    MethodElementForLink foo = C.methods[0];
+    expect(foo.parameters, hasLength(1));
+    expect(foo.parameters[0].isCovariant, isTrue);
   }
 
   void test_instantiate_param_of_param_to_bounds() {

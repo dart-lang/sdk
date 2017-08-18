@@ -90,7 +90,6 @@ class InlineExitCollector : public ZoneAllocated {
   GrowableArray<Data> exits_;
 };
 
-
 // Build a flow graph from a parsed function's AST.
 class FlowGraphBuilder : public ValueObject {
  public:
@@ -229,7 +228,6 @@ class FlowGraphBuilder : public ValueObject {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
 };
-
 
 // Translate an AstNode to a control-flow graph fragment for its effects
 // (e.g., a statement or an expression in an effect context).  Implements a
@@ -468,7 +466,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
   Instruction* exit_;
 };
 
-
 // Translate an AstNode to a control-flow graph fragment for both its effects
 // and value (e.g., for an expression in a value context).  Implements a
 // function from an AstNode and next temporary index to a graph fragment (as
@@ -513,7 +510,6 @@ class ValueGraphVisitor : public EffectGraphVisitor {
     ReturnValue(Bind(definition));
   }
 };
-
 
 // Translate an AstNode to a control-flow graph fragment for both its
 // effects and true/false control flow (e.g., for an expression in a test

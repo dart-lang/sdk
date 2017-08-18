@@ -155,7 +155,6 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
  */
 DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id);
 
-
 /*
  * ==================
  * Verification Tools

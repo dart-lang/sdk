@@ -20,7 +20,7 @@
 
 namespace dart {
 
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 #define PROPAGATE_IF_MALFORMED(type)                                           \
   if (type.IsMalformed()) {                                                    \
@@ -37,7 +37,6 @@ static RawInstance* CreateMirror(const String& mirror_class_name,
   ASSERT(!result.IsError());
   return Instance::Cast(result).raw();
 }
-
 
 // Conventions:
 // * For throwing a NSM in a class klass we use its runtime type as receiver,
@@ -81,7 +80,6 @@ static void ThrowNoSuchMethod(const Instance& receiver,
   Exceptions::PropagateError(Error::Cast(result));
   UNREACHABLE();
 }
-
 
 static void EnsureConstructorsAreCompiled(const Function& func) {
   // Only generative constructors can have initializing formals.
@@ -197,7 +195,6 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
   return results.raw();
 }
 
-
 static RawInstance* CreateTypeVariableMirror(const TypeParameter& param,
                                              const Instance& owner_mirror) {
   const Array& args = Array::Handle(Array::New(3));
@@ -206,7 +203,6 @@ static RawInstance* CreateTypeVariableMirror(const TypeParameter& param,
   args.SetAt(2, owner_mirror);
   return CreateMirror(Symbols::_LocalTypeVariableMirror(), args);
 }
-
 
 // We create a list in native code and let Dart code create the type mirror
 // object and the ordered map.
@@ -230,7 +226,6 @@ static RawInstance* CreateTypeVariableList(const Class& cls) {
   return result.raw();
 }
 
-
 static RawInstance* CreateTypedefMirror(const Class& cls,
                                         const AbstractType& type,
                                         const Bool& is_declaration,
@@ -245,7 +240,6 @@ static RawInstance* CreateTypedefMirror(const Class& cls,
   return CreateMirror(Symbols::_LocalTypedefMirror(), args);
 }
 
-
 static RawInstance* CreateFunctionTypeMirror(const AbstractType& type) {
   ASSERT(type.IsFunctionType());
   const Class& cls = Class::Handle(Type::Cast(type).type_class());
@@ -256,7 +250,6 @@ static RawInstance* CreateFunctionTypeMirror(const AbstractType& type) {
   args.SetAt(2, type);
   return CreateMirror(Symbols::_LocalFunctionTypeMirror(), args);
 }
-
 
 static RawInstance* CreateMethodMirror(const Function& func,
                                        const Instance& owner_mirror,
@@ -289,7 +282,6 @@ static RawInstance* CreateMethodMirror(const Function& func,
   return CreateMirror(Symbols::_LocalMethodMirror(), args);
 }
 
-
 static RawInstance* CreateVariableMirror(const Field& field,
                                          const Instance& owner_mirror) {
   const MirrorReference& field_ref =
@@ -308,7 +300,6 @@ static RawInstance* CreateVariableMirror(const Field& field,
 
   return CreateMirror(Symbols::_LocalVariableMirror(), args);
 }
-
 
 static RawInstance* CreateClassMirror(const Class& cls,
                                       const AbstractType& type,
@@ -348,7 +339,6 @@ static RawInstance* CreateClassMirror(const Class& cls,
   return CreateMirror(Symbols::_LocalClassMirror(), args);
 }
 
-
 static RawInstance* CreateLibraryMirror(Thread* thread, const Library& lib) {
   Zone* zone = thread->zone();
   ASSERT(!lib.IsNull());
@@ -367,25 +357,9 @@ static RawInstance* CreateLibraryMirror(Thread* thread, const Library& lib) {
       return Instance::null();
     }
   }
-  if (str.Equals("dart:io")) {
-    // Hack around dart:io being loaded into non-service isolates in Dartium.
-    Isolate* isolate = thread->isolate();
-    const GrowableObjectArray& libraries =
-        GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
-    Library& other_lib = Library::Handle(zone);
-    String& other_uri = String::Handle(zone);
-    for (intptr_t i = 0; i < libraries.Length(); i++) {
-      other_lib ^= libraries.At(i);
-      other_uri = other_lib.url();
-      if (other_uri.Equals("dart:html")) {
-        return Instance::null();
-      }
-    }
-  }
   args.SetAt(2, str);
   return CreateMirror(Symbols::_LocalLibraryMirror(), args);
 }
-
 
 static RawInstance* CreateCombinatorMirror(const Object& identifiers,
                                            bool is_show) {
@@ -394,7 +368,6 @@ static RawInstance* CreateCombinatorMirror(const Object& identifiers,
   args.SetAt(1, Bool::Get(is_show));
   return CreateMirror(Symbols::_LocalCombinatorMirror(), args);
 }
-
 
 static RawInstance* CreateLibraryDependencyMirror(Thread* thread,
                                                   const Instance& importer,
@@ -453,7 +426,6 @@ static RawInstance* CreateLibraryDependencyMirror(Thread* thread,
   return CreateMirror(Symbols::_LocalLibraryDependencyMirror(), args);
 }
 
-
 DEFINE_NATIVE_ENTRY(LibraryMirror_fromPrefix, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(LibraryPrefix, prefix,
                                arguments->NativeArgAt(0));
@@ -463,7 +435,6 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_fromPrefix, 1) {
   }
   return CreateLibraryMirror(thread, deferred_lib);
 }
-
 
 DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, lib_mirror, arguments->NativeArgAt(0));
@@ -525,7 +496,6 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
   return deps.raw();
 }
 
-
 static RawInstance* CreateTypeMirror(const AbstractType& type) {
   if (type.IsTypeRef()) {
     AbstractType& ref_type = AbstractType::Handle(TypeRef::Cast(type).type());
@@ -571,7 +541,6 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
   return Instance::null();
 }
 
-
 static RawInstance* CreateIsolateMirror() {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
@@ -586,7 +555,6 @@ static RawInstance* CreateIsolateMirror() {
   args.SetAt(1, root_library_mirror);
   return CreateMirror(Symbols::_LocalIsolateMirror(), args);
 }
-
 
 static void VerifyMethodKindShifts() {
 #ifdef DEBUG
@@ -611,7 +579,6 @@ static void VerifyMethodKindShifts() {
 #endif
 }
 
-
 static RawInstance* ReturnResult(const Object& result) {
   if (result.IsError()) {
     Exceptions::PropagateError(Error::Cast(result));
@@ -623,7 +590,6 @@ static RawInstance* ReturnResult(const Object& result) {
   ASSERT(result.IsNull());
   return Instance::null();
 }
-
 
 // Invoke the function, or noSuchMethod if it is null. Propagate any unhandled
 // exceptions. Wrap and propagate any compilation errors.
@@ -645,7 +611,6 @@ static RawInstance* InvokeDynamicFunction(const Instance& receiver,
   }
   return ReturnResult(result);
 }
-
 
 static RawInstance* InvokeLibraryGetter(const Library& library,
                                         const String& getter_name,
@@ -702,7 +667,6 @@ static RawInstance* InvokeLibraryGetter(const Library& library,
   return Object::sentinel().raw();
 }
 
-
 static RawInstance* InvokeClassGetter(const Class& klass,
                                       const String& getter_name,
                                       const bool throw_nsm_if_absent) {
@@ -744,29 +708,22 @@ static RawInstance* InvokeClassGetter(const Class& klass,
   return field.StaticValue();
 }
 
-
 static RawAbstractType* InstantiateType(const AbstractType& type,
                                         const AbstractType& instantiator) {
+  // Generic function type parameters are not reified, but mapped to dynamic.
   ASSERT(type.IsFinalized());
   PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsCanonical() || type.IsTypeParameter() || type.IsBoundedType());
 
-  // TODO(regis): Support uninstantiated type referring to function type params.
-  if (!type.IsInstantiated(kFunctions)) {
-    UNIMPLEMENTED();
-  }
-
-  if (type.IsInstantiated() || instantiator.IsNull()) {
-    // TODO(regis): Shouldn't type parameters be replaced by dynamic?
+  if (type.IsInstantiated()) {
     return type.Canonicalize();
   }
-
-  ASSERT(!instantiator.IsNull());
-  ASSERT(instantiator.IsFinalized());
-  PROPAGATE_IF_MALFORMED(instantiator);
-
-  const TypeArguments& instantiator_type_args =
-      TypeArguments::Handle(instantiator.arguments());
+  TypeArguments& instantiator_type_args = TypeArguments::Handle();
+  if (!instantiator.IsNull()) {
+    ASSERT(instantiator.IsFinalized());
+    PROPAGATE_IF_MALFORMED(instantiator);
+    instantiator_type_args = instantiator.arguments();
+  }
   Error& bound_error = Error::Handle();
   AbstractType& result = AbstractType::Handle(type.InstantiateFrom(
       instantiator_type_args, Object::null_type_arguments(), &bound_error, NULL,
@@ -778,7 +735,6 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
   ASSERT(result.IsFinalized());
   return result.Canonicalize();
 }
-
 
 DEFINE_NATIVE_ENTRY(MirrorSystem_libraries, 0) {
   const GrowableObjectArray& libraries =
@@ -800,13 +756,11 @@ DEFINE_NATIVE_ENTRY(MirrorSystem_libraries, 0) {
   return library_mirrors.raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(MirrorSystem_isolate, 0) {
   VerifyMethodKindShifts();
 
   return CreateIsolateMirror();
 }
-
 
 DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
@@ -824,12 +778,10 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
                            Object::null_instance());
 }
 
-
 DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirror, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
   return CreateTypeMirror(type);
 }
-
 
 DEFINE_NATIVE_ENTRY(Mirrors_instantiateGenericType, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
@@ -893,7 +845,6 @@ DEFINE_NATIVE_ENTRY(Mirrors_instantiateGenericType, 2) {
   return instantiated_type.raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(Mirrors_mangleName, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
@@ -901,13 +852,11 @@ DEFINE_NATIVE_ENTRY(Mirrors_mangleName, 2) {
   return lib.IsPrivate(name) ? lib.PrivateName(name) : name.raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(MirrorReference_equals, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, a, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, b, arguments->NativeArgAt(1));
   return Bool::Get(a.referent() == b.referent()).raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(0));
@@ -936,6 +885,10 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
   } else if (decl.IsLibrary()) {
     library ^= decl.raw();
   } else if (decl.IsTypeParameter()) {
+    if (TypeParameter::Cast(decl).IsFunctionTypeParameter()) {
+      // TODO(regis): Fully support generic functions.
+      return Object::empty_array().raw();
+    }
     klass ^= TypeParameter::Cast(decl).parameterized_class();
     library = klass.library();
   } else {
@@ -949,7 +902,6 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
   return metadata.raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(FunctionTypeMirror_call_method, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, owner_mirror,
                                arguments->NativeArgAt(0));
@@ -961,14 +913,12 @@ DEFINE_NATIVE_ENTRY(FunctionTypeMirror_call_method, 2) {
   return CreateMethodMirror(func, owner_mirror, AbstractType::Handle());
 }
 
-
 DEFINE_NATIVE_ENTRY(FunctionTypeMirror_parameters, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, owner, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
   const Function& func = Function::Handle(ref.GetFunctionReferent());
   return CreateParameterMirrorList(func, owner);
 }
-
 
 DEFINE_NATIVE_ENTRY(FunctionTypeMirror_return_type, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
@@ -979,7 +929,6 @@ DEFINE_NATIVE_ENTRY(FunctionTypeMirror_return_type, 1) {
   return type.Canonicalize();
 }
 
-
 DEFINE_NATIVE_ENTRY(ClassMirror_libraryUri, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   const Class& klass = Class::Handle(ref.GetClassReferent());
@@ -987,7 +936,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_libraryUri, 1) {
   ASSERT(!library.IsNull());
   return library.url();
 }
-
 
 DEFINE_NATIVE_ENTRY(ClassMirror_supertype, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
@@ -999,7 +947,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_supertype, 1) {
   return super_type.raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(ClassMirror_supertype_instantiated, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
   PROPAGATE_IF_MALFORMED(type);
@@ -1008,7 +955,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_supertype_instantiated, 1) {
   const AbstractType& super_type = AbstractType::Handle(cls.super_type());
   return InstantiateType(super_type, type);
 }
-
 
 DEFINE_NATIVE_ENTRY(ClassMirror_interfaces, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
@@ -1046,7 +992,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_interfaces_instantiated, 1) {
   return interfaces_inst.raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(ClassMirror_mixin, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
   PROPAGATE_IF_MALFORMED(type);
@@ -1056,7 +1001,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_mixin, 1) {
   ASSERT(mixin_type.IsNull() || mixin_type.IsFinalized());
   return mixin_type.raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(ClassMirror_mixin_instantiated, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
@@ -1072,7 +1016,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_mixin_instantiated, 2) {
 
   return InstantiateType(mixin_type, instantiator);
 }
-
 
 DEFINE_NATIVE_ENTRY(ClassMirror_members, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, owner_mirror,
@@ -1122,7 +1065,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_members, 3) {
   return member_mirrors.raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(ClassMirror_constructors, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, owner_mirror,
                                arguments->NativeArgAt(0));
@@ -1155,7 +1097,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_constructors, 3) {
 
   return constructor_mirrors.raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, owner_mirror,
@@ -1209,7 +1150,6 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
   return member_mirrors.raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(ClassMirror_type_variables, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   const Class& klass = Class::Handle(ref.GetClassReferent());
@@ -1220,7 +1160,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_variables, 1) {
   }
   return CreateTypeVariableList(klass);
 }
-
 
 DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
@@ -1259,22 +1198,28 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 1) {
   return result.raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(TypeVariableMirror_owner, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(TypeParameter, param, arguments->NativeArgAt(0));
-  const Class& owner = Class::Handle(param.parameterized_class());
-  const AbstractType& type = AbstractType::Handle(owner.DeclarationType());
+  Class& owner = Class::Handle(param.parameterized_class());
+  AbstractType& type = AbstractType::Handle();
+  if (owner.IsNull()) {
+    // TODO(regis): Fully support generic functions. For now, reify function
+    // type parameters to dynamic and map their function owner to Null class.
+    ASSERT(param.IsFunctionTypeParameter());
+    type = Type::NullType();
+    owner = type.type_class();
+  } else {
+    type = owner.DeclarationType();
+  }
   return CreateClassMirror(owner, type,
                            Bool::True(),  // is_declaration
                            Instance::null_instance());
 }
 
-
 DEFINE_NATIVE_ENTRY(TypeVariableMirror_upper_bound, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(TypeParameter, param, arguments->NativeArgAt(0));
   return param.bound();
 }
-
 
 DEFINE_NATIVE_ENTRY(Mirrors_evalInLibraryWithPrivateKey, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, expression, arguments->NativeArgAt(0));
@@ -1382,7 +1327,6 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 5) {
                                args_descriptor);
 }
 
-
 DEFINE_NATIVE_ENTRY(InstanceMirror_invokeGetter, 3) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
@@ -1418,7 +1362,6 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeGetter, 3) {
                                args_descriptor);
 }
 
-
 DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 4) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
@@ -1445,7 +1388,6 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 4) {
                                args_descriptor);
 }
 
-
 DEFINE_NATIVE_ENTRY(InstanceMirror_computeType, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
   const AbstractType& type = AbstractType::Handle(instance.GetType(Heap::kNew));
@@ -1453,7 +1395,6 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_computeType, 1) {
   // runtime type of null is the Null type, which we correctly return here.
   return type.Canonicalize();
 }
-
 
 DEFINE_NATIVE_ENTRY(ClosureMirror_function, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(0));
@@ -1488,7 +1429,6 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_function, 1) {
   }
   return Instance::null();
 }
-
 
 DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
   // Argument 0 is the mirror, which is unused by the native. It exists
@@ -1570,7 +1510,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
   return result.raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(ClassMirror_invokeGetter, 3) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
@@ -1585,7 +1524,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeGetter, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
   return InvokeClassGetter(klass, getter_name, true);
 }
-
 
 DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
   // Argument 0 is the mirror, which is unused by the native. It exists
@@ -1646,7 +1584,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
   field.SetStaticValue(value);
   return value.raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
@@ -1800,7 +1737,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
   }
 }
 
-
 DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
@@ -1866,7 +1802,6 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
   return result.raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 3) {
   // Argument 0 is the mirror, which is unused by the native. It exists
   // because this native is an instance method in order to be polymorphic
@@ -1876,7 +1811,6 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeGetter, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
   return InvokeLibraryGetter(library, getter_name, true);
 }
-
 
 DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
   // Argument 0 is the mirror, which is unused by the native. It exists
@@ -1934,7 +1868,6 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
   return value.raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(MethodMirror_owner, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   GET_NATIVE_ARGUMENT(AbstractType, instantiator, arguments->NativeArgAt(1));
@@ -1952,14 +1885,12 @@ DEFINE_NATIVE_ENTRY(MethodMirror_owner, 2) {
   return CreateClassMirror(owner, type, Bool::True(), Object::null_instance());
 }
 
-
 DEFINE_NATIVE_ENTRY(MethodMirror_parameters, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, owner, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
   const Function& func = Function::Handle(ref.GetFunctionReferent());
   return CreateParameterMirrorList(func, owner);
 }
-
 
 DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
@@ -1972,13 +1903,11 @@ DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 2) {
   return InstantiateType(type, instantiator);
 }
 
-
 DEFINE_NATIVE_ENTRY(MethodMirror_source, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   const Function& func = Function::Handle(ref.GetFunctionReferent());
   return func.GetSource();
 }
-
 
 static RawInstance* CreateSourceLocation(const String& uri,
                                          intptr_t line,
@@ -1989,7 +1918,6 @@ static RawInstance* CreateSourceLocation(const String& uri,
   args.SetAt(2, Smi::Handle(Smi::New(column)));
   return CreateMirror(Symbols::_SourceLocation(), args);
 }
-
 
 DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(0));
@@ -2029,6 +1957,10 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
     token_pos = field.token_pos();
   } else if (decl.IsTypeParameter()) {
     const TypeParameter& type_var = TypeParameter::Cast(decl);
+    if (type_var.IsFunctionTypeParameter()) {
+      // TODO(regis): Support generic functions.
+      return Instance::null();
+    }
     const Class& owner = Class::Handle(zone, type_var.parameterized_class());
     script = owner.script();
     token_pos = type_var.token_pos();
@@ -2073,7 +2005,6 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
   return CreateSourceLocation(uri, from_line, from_col);
 }
 
-
 DEFINE_NATIVE_ENTRY(TypedefMirror_referent, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Type, type, arguments->NativeArgAt(0));
   ASSERT(type.IsFunctionType());
@@ -2086,7 +2017,6 @@ DEFINE_NATIVE_ENTRY(TypedefMirror_referent, 1) {
   return CreateFunctionTypeMirror(referent_type);
 }
 
-
 DEFINE_NATIVE_ENTRY(ParameterMirror_type, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, pos, arguments->NativeArgAt(1));
@@ -2097,7 +2027,6 @@ DEFINE_NATIVE_ENTRY(ParameterMirror_type, 3) {
   type ^= type.Canonicalize();  // Instantiated signatures are not canonical.
   return InstantiateType(type, instantiator);
 }
-
 
 DEFINE_NATIVE_ENTRY(VariableMirror_type, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
@@ -2113,6 +2042,6 @@ DEFINE_NATIVE_ENTRY(TypeMirror_subtypeTest, 2) {
   return Bool::Get(a.IsSubtypeOf(b, NULL, NULL, Heap::kNew)).raw();
 }
 
-#endif  // !PRODUCT && !DART_PRECOMPILED_RUNTIME
+#endif  // !DART_PRECOMPILED_RUNTIME
 
 }  // namespace dart

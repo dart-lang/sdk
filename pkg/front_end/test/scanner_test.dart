@@ -779,17 +779,34 @@ abstract class ScannerTestBase {
   }
 
   void test_mismatched_closer() {
-    // When openers and closers are mismatched, analyzer favors considering the
-    // closer to be mismatched, which means that `(])` parses as a pair of
-    // matched parentheses with an unmatched closing bracket between them.
+    // Normally when openers and closers are mismatched
+    // fasta favors considering the opener to be mismatched,
+    // and inserts synthetic closers as needed.
+    // In this particular case, fasta cannot find an opener for ']'
+    // and thus marks ']' as an error and moves on.
     ErrorListener listener = new ErrorListener();
     BeginToken openParen = scanWithListener('(])', listener);
+    var closeBracket = openParen.next;
+    var closeParen = closeBracket.next;
+    expect(closeParen.next.type, TokenType.EOF);
+    expect(openParen.endToken, same(closeParen));
+    listener.assertNoErrors();
+  }
+
+  void test_mismatched_closer2() {
+    // When openers and closers are mismatched, analyzer favors considering the
+    // closer to be mismatched, which means that `[(])` parses as a pair of
+    // matched parenthesis with an unmatched open bracket before them
+    // and an unmatched closing bracket between them.
+    ErrorListener listener = new ErrorListener();
+    BeginToken openBracket = scanWithListener('[(])', listener);
+    BeginToken openParen = openBracket.next;
     if (usingFasta) {
-      // When openers and closers are mismatched,
+      // When openers and closers are mismatched
       // fasta favors considering the opener to be mismatched,
       // and inserts synthetic closers as needed.
-      // `(])` is parsed as `()])` where the first `)` is synthetic
-      // and the trailing `])` are unmatched.
+      // `[(])` is parsed as `[()])` where the first `)` is synthetic
+      // and the trailing `)` is unmatched.
       var closeParen = openParen.next;
       expect(closeParen.isSynthetic, isTrue);
       var closeBracket = closeParen.next;
@@ -797,14 +814,16 @@ abstract class ScannerTestBase {
       var closeParen2 = closeBracket.next;
       expect(closeParen2.isSynthetic, isFalse);
       expect(closeParen2.next.type, TokenType.EOF);
+      expect(openBracket.endToken, same(closeBracket));
       expect(openParen.endToken, same(closeParen));
       listener.assertErrors([
-        new TestError(0, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+        new TestError(1, ScannerErrorCode.EXPECTED_TOKEN, [')']),
       ]);
     } else {
       var closeBracket = openParen.next;
       var closeParen = closeBracket.next;
       expect(closeParen.next.type, TokenType.EOF);
+      expect(openBracket.endToken, isNull);
       expect(openParen.endToken, same(closeParen));
       listener.assertNoErrors();
     }

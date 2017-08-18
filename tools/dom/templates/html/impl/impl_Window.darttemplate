@@ -5,12 +5,8 @@
 part of $LIBRARYNAME;
 
 @DocsEditable()
-$if DART2JS
 $(ANNOTATIONS)@Native("Window,DOMWindow")
 $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
-$else
-$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
-$endif
 
   /**
    * Returns a Future that completes just before the window is about to
@@ -35,7 +31,6 @@ $endif
     return completer.future;
   }
 
-$if DART2JS
   /**
    * The newest document in this window.
    *
@@ -182,28 +177,6 @@ $if DART2JS
   @DomName('Window.console')
   Console get console => Console._safeConsole;
 
-$else
-  /**
-   * Called to draw an animation frame and then request the window to repaint
-   * after [callback] has finished (creating the animation).
-   *
-   * Use this method only if you need to later call [cancelAnimationFrame]. If
-   * not, the preferred Dart idiom is to set animation frames by calling
-   * [animationFrame], which returns a Future.
-   *
-   * Returns a non-zero valued integer to represent the request id for this
-   * request. This value only needs to be saved if you intend to call
-   * [cancelAnimationFrame] so you can specify the particular animation to
-   * cancel.
-   *
-   * Note: The supplied [callback] needs to call [requestAnimationFrame] again
-   * for the animation to continue.
-   */
-  @DomName('Window.requestAnimationFrame')
-  int requestAnimationFrame(FrameRequestCallback callback) {
-    return _requestAnimationFrame(_wrapZone(callback));
-  }
-$endif
 
   /**
    * Access a sandboxed file system of the specified `size`. If `persistent` is
@@ -254,7 +227,6 @@ $!MEMBERS
     _moveTo(p.x, p.y);
   }
 
-$if DART2JS
   @DomName('Window.pageXOffset')
   @DocsEditable()
   int get pageXOffset => JS('num', '#.pageXOffset', this).round();
@@ -294,26 +266,8 @@ $if DART2JS
   int get scrollY => JS('bool', '("scrollY" in #)', this) ?
       JS('num', '#.scrollY', this).round() :
       document.documentElement.scrollTop;
-$else
-  @DomName('Window.pageXOffset')
-  @DocsEditable()
-  int get pageXOffset => _blink.BlinkWindow.instance.pageXOffset_Getter_(this).round();
-
-  @DomName('Window.pageYOffset')
-  @DocsEditable()
-  int get pageYOffset => _blink.BlinkWindow.instance.pageYOffset_Getter_(this).round();
-
-  @DomName('Window.scrollX')
-  @DocsEditable()
-  int get scrollX => _blink.BlinkWindow.instance.scrollX_Getter_(this).round();
-
-  @DomName('Window.scrollY')
-  @DocsEditable()
-  int get scrollY => _blink.BlinkWindow.instance.scrollY_Getter_(this).round();
-$endif
 }
 
-$if DART2JS
 class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
   String _returnValue;
 
@@ -330,7 +284,6 @@ class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
     }
   }
 }
-$endif
 
 class _BeforeUnloadEventStreamProvider implements
     EventStreamProvider<BeforeUnloadEvent> {
@@ -339,9 +292,7 @@ class _BeforeUnloadEventStreamProvider implements
   const _BeforeUnloadEventStreamProvider(this._eventType);
 
   Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
-$if DART2JS
-    // Specify the generic type for EventStream only in dart2js to avoid
-    // checked mode errors in dartium.
+    // Specify the generic type for EventStream only in dart2js.
     var stream = new _EventStream<BeforeUnloadEvent>(e, _eventType, useCapture);
     var controller = new StreamController<BeforeUnloadEvent>(sync: true);
 
@@ -351,10 +302,6 @@ $if DART2JS
     });
 
     return controller.stream;
-$else
-    var stream = new _EventStream(e, _eventType, useCapture);
-    return stream;
-$endif
   }
 
   String getEventType(EventTarget target) {
@@ -362,23 +309,13 @@ $endif
   }
 
   ElementStream<BeforeUnloadEvent> forElement(Element e, {bool useCapture: false}) {
-$if DART2JS
-    // Specify the generic type for _ElementEventStreamImpl only in dart2js to
-    // avoid checked mode errors in dartium.
+    // Specify the generic type for _ElementEventStreamImpl only in dart2js.
     return new _ElementEventStreamImpl<BeforeUnloadEvent>(e, _eventType, useCapture);
-$else
-    return new _ElementEventStreamImpl(e, _eventType, useCapture);
-$endif
   }
 
   ElementStream<BeforeUnloadEvent> _forElementList(ElementList e,
       {bool useCapture: false}) {
-$if DART2JS
-    // Specify the generic type for _ElementEventStreamImpl only in dart2js to
-    // avoid checked mode errors in dartium.
+    // Specify the generic type for _ElementEventStreamImpl only in dart2js.
     return new _ElementListEventStreamImpl<BeforeUnloadEvent>(e, _eventType, useCapture);
-$else
-    return new _ElementListEventStreamImpl(e, _eventType, useCapture);
-$endif
   }
 }

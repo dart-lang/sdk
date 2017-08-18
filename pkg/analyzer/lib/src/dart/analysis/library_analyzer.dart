@@ -86,6 +86,7 @@ class LibraryAnalyzer {
           _context, _sourceFactory, _analysisOptions.strongMode, _store);
       _typeProvider = _resynthesizer.typeProvider;
       _context.typeProvider = _typeProvider;
+      _resynthesizer.finishCoreAsyncLibraries();
 
       _libraryElement = _resynthesizer.getLibraryElement(_library.uriStr);
 
@@ -220,7 +221,7 @@ class LibraryAnalyzer {
           new UsedLocalElements.merge(_usedLocalElementsList);
       UnusedLocalElementsVerifier visitor =
           new UnusedLocalElementsVerifier(errorListener, usedElements);
-      unit.element.accept(visitor);
+      unit.accept(visitor);
     }
   }
 
@@ -271,6 +272,7 @@ class LibraryAnalyzer {
           _typeProvider,
           new StrongTypeSystemImpl(_typeProvider,
               implicitCasts: options.implicitCasts,
+              declarationCasts: options.declarationCasts,
               nonnullableTypes: options.nonnullableTypes),
           errorListener,
           options);

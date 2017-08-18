@@ -7,382 +7,538 @@ library fasta.analyzer.mock_element;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-
+import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/fasta/builder/builder.dart' show Builder;
 
-import 'package:front_end/src/fasta/errors.dart' show internalError;
-import 'package:analyzer/src/generated/source.dart';
+import 'package:front_end/src/fasta/problems.dart' show unsupported;
 
 abstract class MockElement extends Builder implements Element, LocalElement {
+  @override
   final ElementKind kind;
 
   MockElement(this.kind) : super(null, -1, null);
 
-  get librarySource => internalError("not supported.");
+  @override
+  get librarySource => unsupported("librarySource", charOffset, fileUri);
 
-  get source => internalError("not supported.");
+  @override
+  get source => unsupported("source", charOffset, fileUri);
 
-  get context => internalError("not supported.");
+  @override
+  get context => unsupported("context", charOffset, fileUri);
 
-  String get displayName => internalError("not supported.");
+  @override
+  String get displayName => unsupported("displayName", charOffset, fileUri);
 
-  String get documentationComment => internalError("not supported.");
+  @override
+  String get documentationComment =>
+      unsupported("documentationComment", charOffset, fileUri);
 
-  Element get enclosingElement => internalError("not supported.");
+  @override
+  Element get enclosingElement =>
+      unsupported("enclosingElement", charOffset, fileUri);
 
-  int get id => internalError("not supported.");
+  @override
+  int get id => unsupported("id", charOffset, fileUri);
 
-  bool get isDeprecated => internalError("not supported.");
+  @override
+  bool get isDeprecated => unsupported("isDeprecated", charOffset, fileUri);
 
-  bool get isFactory => internalError("not supported.");
+  @override
+  bool get isFactory => unsupported("isFactory", charOffset, fileUri);
 
-  bool get isJS => internalError("not supported.");
+  @override
+  bool get isJS => unsupported("isJS", charOffset, fileUri);
 
-  bool get isOverride => internalError("not supported.");
+  @override
+  bool get isOverride => unsupported("isOverride", charOffset, fileUri);
 
-  bool get isPrivate => internalError("not supported.");
+  @override
+  bool get isPrivate => unsupported("isPrivate", charOffset, fileUri);
 
-  bool get isProtected => internalError("not supported.");
+  @override
+  bool get isProtected => unsupported("isProtected", charOffset, fileUri);
 
-  bool get isPublic => internalError("not supported.");
+  @override
+  bool get isPublic => unsupported("isPublic", charOffset, fileUri);
 
-  bool get isRequired => internalError("not supported.");
+  @override
+  bool get isRequired => unsupported("isRequired", charOffset, fileUri);
 
-  bool get isSynthetic => internalError("not supported.");
+  @override
+  bool get isSynthetic => unsupported("isSynthetic", charOffset, fileUri);
 
-  LibraryElement get library => internalError("not supported.");
+  @override
+  LibraryElement get library => unsupported("library", charOffset, fileUri);
 
-  get location => internalError("not supported.");
+  @override
+  get location => unsupported("location", charOffset, fileUri);
 
-  get metadata => internalError("not supported.");
+  @override
+  get metadata => unsupported("metadata", charOffset, fileUri);
 
-  String get name => internalError("not supported.");
+  @override
+  String get name => unsupported("name", charOffset, fileUri);
 
+  @override
   String get fullNameForErrors => name;
 
-  int get nameLength => internalError("not supported.");
+  @override
+  int get nameLength => unsupported("nameLength", charOffset, fileUri);
 
+  @override
   int get nameOffset => -1;
 
-  get unit => internalError("not supported.");
+  @override
+  get unit => unsupported("unit", charOffset, fileUri);
 
-  accept<T>(visitor) => internalError("not supported.");
+  @override
+  accept<T>(visitor) => unsupported("accept", charOffset, fileUri);
 
-  String computeDocumentationComment() => internalError("not supported.");
+  @override
+  String computeDocumentationComment() =>
+      unsupported("computeDocumentationComment", charOffset, fileUri);
 
-  computeNode() => internalError("not supported.");
+  @override
+  computeNode() => unsupported("computeNode", charOffset, fileUri);
 
-  getAncestor<E>(predicate) => internalError("not supported.");
+  @override
+  getAncestor<E>(predicate) => unsupported("getAncestor", charOffset, fileUri);
 
+  @override
   String getExtendedDisplayName(String shortName) {
-    return internalError("not supported.");
+    return unsupported("getExtendedDisplayName", charOffset, fileUri);
   }
 
+  @override
   bool isAccessibleIn(LibraryElement library) {
-    return internalError("not supported.");
+    return unsupported("isAccessibleIn", charOffset, fileUri);
   }
 
-  void visitChildren(visitor) => internalError("not supported.");
+  @override
+  void visitChildren(visitor) =>
+      unsupported("visitChildren", charOffset, fileUri);
 
-  String get uri => internalError("not supported.");
+  String get uri => unsupported("uri", charOffset, fileUri);
 
-  int get uriEnd => internalError("not supported.");
+  int get uriEnd => unsupported("uriEnd", charOffset, fileUri);
 
-  int get uriOffset => internalError("not supported.");
+  int get uriOffset => unsupported("uriOffset", charOffset, fileUri);
 
-  List<ParameterElement> get parameters => internalError("not supported.");
+  List<ParameterElement> get parameters =>
+      unsupported("parameters", charOffset, fileUri);
 
-  List<FunctionElement> get functions => internalError("not supported.");
+  List<FunctionElement> get functions =>
+      unsupported("functions", charOffset, fileUri);
 
-  bool get hasImplicitReturnType => internalError("not supported.");
+  bool get hasImplicitReturnType =>
+      unsupported("hasImplicitReturnType", charOffset, fileUri);
 
-  bool get isAbstract => internalError("not supported.");
+  bool get isAbstract => unsupported("isAbstract", charOffset, fileUri);
 
-  bool get isAsynchronous => internalError("not supported.");
+  bool get isAsynchronous => unsupported("isAsynchronous", charOffset, fileUri);
 
-  bool get isExternal => internalError("not supported.");
+  bool get isExternal => unsupported("isExternal", charOffset, fileUri);
 
-  bool get isGenerator => internalError("not supported.");
+  bool get isGenerator => unsupported("isGenerator", charOffset, fileUri);
 
-  bool get isOperator => internalError("not supported.");
+  bool get isOperator => unsupported("isOperator", charOffset, fileUri);
 
-  bool get isStatic => internalError("not supported.");
+  @override
+  bool get isStatic => unsupported("isStatic", charOffset, fileUri);
 
-  bool get isSynchronous => internalError("not supported.");
+  bool get isSynchronous => unsupported("isSynchronous", charOffset, fileUri);
 
-  List<LabelElement> get labels => internalError("not supported.");
+  @override
+  get visibleRange => unsupported("visibleRange", charOffset, fileUri);
 
-  List<LocalVariableElement> get localVariables {
-    return internalError("not supported.");
-  }
+  bool get hasImplicitType =>
+      unsupported("hasImplicitType", charOffset, fileUri);
 
-  get visibleRange => internalError("not supported.");
+  FunctionElement get initializer =>
+      unsupported("initializer", charOffset, fileUri);
 
-  bool get hasImplicitType => internalError("not supported.");
+  @override
+  bool get isConst => unsupported("isConst", charOffset, fileUri);
 
-  FunctionElement get initializer => internalError("not supported.");
+  @override
+  bool get isFinal => unsupported("isFinal", charOffset, fileUri);
 
-  bool get isConst => internalError("not supported.");
+  bool get isPotentiallyMutatedInClosure =>
+      unsupported("isPotentiallyMutatedInClosure", charOffset, fileUri);
 
-  bool get isFinal => internalError("not supported.");
-
-  bool get isPotentiallyMutatedInClosure => internalError("not supported.");
-
-  bool get isPotentiallyMutatedInScope => internalError("not supported.");
+  bool get isPotentiallyMutatedInScope =>
+      unsupported("isPotentiallyMutatedInScope", charOffset, fileUri);
 }
 
 abstract class MockLibraryElement extends MockElement
     implements LibraryElement {
   MockLibraryElement() : super(ElementKind.LIBRARY);
 
+  @override
   CompilationUnitElement get definingCompilationUnit {
-    return internalError("not supported.");
+    return unsupported("definingCompilationUnit", charOffset, fileUri);
   }
 
-  FunctionElement get entryPoint => internalError("not supported.");
+  @override
+  FunctionElement get entryPoint =>
+      unsupported("entryPoint", charOffset, fileUri);
 
+  @override
   List<LibraryElement> get exportedLibraries {
-    return internalError("not supported.");
+    return unsupported("exportedLibraries", charOffset, fileUri);
   }
 
-  get exportNamespace => internalError("not supported.");
+  @override
+  get exportNamespace => unsupported("exportNamespace", charOffset, fileUri);
 
-  get exports => internalError("not supported.");
+  @override
+  get exports => unsupported("exports", charOffset, fileUri);
 
-  bool get hasExtUri => internalError("not supported.");
+  @override
+  bool get hasExtUri => unsupported("hasExtUri", charOffset, fileUri);
 
-  bool get hasLoadLibraryFunction => internalError("not supported.");
+  @override
+  bool get hasLoadLibraryFunction =>
+      unsupported("hasLoadLibraryFunction", charOffset, fileUri);
 
-  String get identifier => internalError("not supported.");
+  @override
+  String get identifier => unsupported("identifier", charOffset, fileUri);
 
+  @override
   List<LibraryElement> get importedLibraries {
-    return internalError("not supported.");
+    return unsupported("importedLibraries", charOffset, fileUri);
   }
 
-  get imports => internalError("not supported.");
+  @override
+  get imports => unsupported("imports", charOffset, fileUri);
 
-  bool get isBrowserApplication => internalError("not supported.");
+  @override
+  bool get isBrowserApplication =>
+      unsupported("isBrowserApplication", charOffset, fileUri);
 
-  bool get isDartAsync => internalError("not supported.");
+  @override
+  bool get isDartAsync => unsupported("isDartAsync", charOffset, fileUri);
 
-  bool get isDartCore => internalError("not supported.");
+  @override
+  bool get isDartCore => unsupported("isDartCore", charOffset, fileUri);
 
-  bool get isInSdk => internalError("not supported.");
+  @override
+  bool get isInSdk => unsupported("isInSdk", charOffset, fileUri);
 
-  List<LibraryElement> get libraryCycle => internalError("not supported.");
+  @override
+  List<LibraryElement> get libraryCycle =>
+      unsupported("libraryCycle", charOffset, fileUri);
 
-  FunctionElement get loadLibraryFunction => internalError("not supported.");
+  @override
+  FunctionElement get loadLibraryFunction =>
+      unsupported("loadLibraryFunction", charOffset, fileUri);
 
-  List<CompilationUnitElement> get parts => internalError("not supported.");
+  @override
+  List<CompilationUnitElement> get parts =>
+      unsupported("parts", charOffset, fileUri);
 
-  List<PrefixElement> get prefixes => internalError("not supported.");
+  @override
+  List<PrefixElement> get prefixes =>
+      unsupported("prefixes", charOffset, fileUri);
 
-  get publicNamespace => internalError("not supported.");
+  @override
+  get publicNamespace => unsupported("publicNamespace", charOffset, fileUri);
 
-  List<CompilationUnitElement> get units => internalError("not supported.");
+  @override
+  List<CompilationUnitElement> get units =>
+      unsupported("units", charOffset, fileUri);
 
+  @override
   getImportsWithPrefix(PrefixElement prefix) {
-    return internalError("not supported.");
+    return unsupported("getImportsWithPrefix", charOffset, fileUri);
   }
 
-  ClassElement getType(String className) => internalError("not supported.");
+  @override
+  ClassElement getType(String className) =>
+      unsupported("getType", charOffset, fileUri);
 }
 
 abstract class MockCompilationUnitElement extends MockElement
     implements CompilationUnitElement {
   MockCompilationUnitElement() : super(ElementKind.COMPILATION_UNIT);
 
+  @override
   List<PropertyAccessorElement> get accessors {
-    return internalError("not supported.");
+    return unsupported("accessors", charOffset, fileUri);
   }
-
-  LibraryElement get enclosingElement => internalError("not supported.");
-
-  List<ClassElement> get enums => internalError("not supported.");
-
-  List<FunctionElement> get functions => internalError("not supported.");
-
-  List<FunctionTypeAliasElement> get functionTypeAliases {
-    return internalError("not supported.");
-  }
-
-  bool get hasLoadLibraryFunction => internalError("not supported.");
 
   @override
-  LineInfo get lineInfo => internalError("not supported.");
+  LibraryElement get enclosingElement =>
+      unsupported("enclosingElement", charOffset, fileUri);
 
-  List<TopLevelVariableElement> get topLevelVariables {
-    return internalError("not supported.");
+  @override
+  List<ClassElement> get enums => unsupported("enums", charOffset, fileUri);
+
+  @override
+  List<FunctionElement> get functions =>
+      unsupported("functions", charOffset, fileUri);
+
+  @override
+  List<FunctionTypeAliasElement> get functionTypeAliases {
+    return unsupported("functionTypeAliases", charOffset, fileUri);
   }
 
-  List<ClassElement> get types => internalError("not supported.");
+  @override
+  bool get hasLoadLibraryFunction =>
+      unsupported("hasLoadLibraryFunction", charOffset, fileUri);
 
-  Element getElementAt(int offset) => internalError("not supported.");
+  @override
+  LineInfo get lineInfo => unsupported("lineInfo", charOffset, fileUri);
 
-  ClassElement getEnum(String name) => internalError("not supported.");
+  @override
+  List<TopLevelVariableElement> get topLevelVariables {
+    return unsupported("topLevelVariables", charOffset, fileUri);
+  }
 
-  ClassElement getType(String name) => internalError("not supported.");
+  @override
+  List<ClassElement> get types => unsupported("types", charOffset, fileUri);
 
-  CompilationUnit computeNode() => internalError("not supported.");
+  @override
+  ClassElement getEnum(String name) =>
+      unsupported("getEnum", charOffset, fileUri);
+
+  @override
+  ClassElement getType(String name) =>
+      unsupported("getType", charOffset, fileUri);
+
+  @override
+  CompilationUnit computeNode() =>
+      unsupported("computeNode", charOffset, fileUri);
 }
 
 abstract class MockClassElement extends MockElement implements ClassElement {
   MockClassElement() : super(ElementKind.CLASS);
 
   List<PropertyAccessorElement> get accessors {
-    return internalError("not supported.");
+    return unsupported("accessors", charOffset, fileUri);
   }
 
-  get allSupertypes => internalError("not supported.");
+  @override
+  get allSupertypes => unsupported("allSupertypes", charOffset, fileUri);
 
-  List<ConstructorElement> get constructors => internalError("not supported.");
+  @override
+  List<ConstructorElement> get constructors =>
+      unsupported("constructors", charOffset, fileUri);
 
-  List<FieldElement> get fields => internalError("not supported.");
+  @override
+  List<FieldElement> get fields => unsupported("fields", charOffset, fileUri);
 
-  bool get hasNonFinalField => internalError("not supported.");
+  @override
+  bool get hasNonFinalField =>
+      unsupported("hasNonFinalField", charOffset, fileUri);
 
-  bool get hasReferenceToSuper => internalError("not supported.");
+  @override
+  bool get hasReferenceToSuper =>
+      unsupported("hasReferenceToSuper", charOffset, fileUri);
 
-  bool get hasStaticMember => internalError("not supported.");
+  @override
+  bool get hasStaticMember =>
+      unsupported("hasStaticMember", charOffset, fileUri);
 
-  get interfaces => internalError("not supported.");
+  @override
+  get interfaces => unsupported("interfaces", charOffset, fileUri);
 
-  bool get isAbstract => internalError("not supported.");
+  @override
+  bool get isAbstract => unsupported("isAbstract", charOffset, fileUri);
 
-  bool get isEnum => internalError("not supported.");
+  @override
+  bool get isEnum => unsupported("isEnum", charOffset, fileUri);
 
-  bool get isMixinApplication => internalError("not supported.");
+  @override
+  bool get isMixinApplication =>
+      unsupported("isMixinApplication", charOffset, fileUri);
 
-  bool get isOrInheritsProxy => internalError("not supported.");
+  @override
+  bool get isOrInheritsProxy =>
+      unsupported("isOrInheritsProxy", charOffset, fileUri);
 
-  bool get isProxy => internalError("not supported.");
+  @override
+  bool get isProxy => unsupported("isProxy", charOffset, fileUri);
 
-  bool get isValidMixin => internalError("not supported.");
+  @override
+  bool get isValidMixin => unsupported("isValidMixin", charOffset, fileUri);
 
-  get typeParameters => internalError("not supported.");
+  @override
+  get typeParameters => unsupported("typeParameters", charOffset, fileUri);
 
-  List<MethodElement> get methods => internalError("not supported.");
+  @override
+  List<MethodElement> get methods =>
+      unsupported("methods", charOffset, fileUri);
 
-  get mixins => internalError("not supported.");
+  @override
+  get mixins => unsupported("mixins", charOffset, fileUri);
 
-  get supertype => internalError("not supported.");
+  @override
+  get supertype => unsupported("supertype", charOffset, fileUri);
 
-  ConstructorElement get unnamedConstructor => internalError("not supported.");
+  @override
+  ConstructorElement get unnamedConstructor =>
+      unsupported("unnamedConstructor", charOffset, fileUri);
 
-  FieldElement getField(String name) => internalError("not supported.");
+  @override
+  FieldElement getField(String name) =>
+      unsupported("getField", charOffset, fileUri);
 
+  @override
   PropertyAccessorElement getGetter(String name) {
-    return internalError("not supported.");
+    return unsupported("getGetter", charOffset, fileUri);
   }
 
-  MethodElement getMethod(String name) => internalError("not supported.");
+  @override
+  MethodElement getMethod(String name) =>
+      unsupported("getMethod", charOffset, fileUri);
 
+  @override
   ConstructorElement getNamedConstructor(String name) {
-    return internalError("not supported.");
+    return unsupported("getNamedConstructor", charOffset, fileUri);
   }
 
+  @override
   PropertyAccessorElement getSetter(String name) {
-    return internalError("not supported.");
+    return unsupported("getSetter", charOffset, fileUri);
   }
 
+  @override
   bool isSuperConstructorAccessible(ConstructorElement constructor) {
-    return internalError("not supported.");
+    return unsupported("isSuperConstructorAccessible", charOffset, fileUri);
   }
 
+  @override
   MethodElement lookUpConcreteMethod(
       String methodName, LibraryElement library) {
-    return internalError("not supported.");
+    return unsupported("lookUpConcreteMethod", charOffset, fileUri);
   }
 
+  @override
   PropertyAccessorElement lookUpGetter(
       String getterName, LibraryElement library) {
-    return internalError("not supported.");
+    return unsupported("lookUpGetter", charOffset, fileUri);
   }
 
+  @override
   PropertyAccessorElement lookUpInheritedConcreteGetter(
       String getterName, LibraryElement library) {
-    return internalError("not supported.");
+    return unsupported("lookUpInheritedConcreteGetter", charOffset, fileUri);
   }
 
+  @override
   MethodElement lookUpInheritedConcreteMethod(
       String methodName, LibraryElement library) {
-    return internalError("not supported.");
+    return unsupported("lookUpInheritedConcreteMethod", charOffset, fileUri);
   }
 
+  @override
   PropertyAccessorElement lookUpInheritedConcreteSetter(
       String setterName, LibraryElement library) {
-    return internalError("not supported.");
+    return unsupported("lookUpInheritedConcreteSetter", charOffset, fileUri);
   }
 
+  @override
   MethodElement lookUpInheritedMethod(
       String methodName, LibraryElement library) {
-    return internalError("not supported.");
+    return unsupported("lookUpInheritedMethod", charOffset, fileUri);
   }
 
+  @override
   MethodElement lookUpMethod(String methodName, LibraryElement library) {
-    return internalError("not supported.");
+    return unsupported("lookUpMethod", charOffset, fileUri);
   }
 
+  @override
   PropertyAccessorElement lookUpSetter(
       String setterName, LibraryElement library) {
-    return internalError("not supported.");
+    return unsupported("lookUpSetter", charOffset, fileUri);
   }
 
-  NamedCompilationUnitMember computeNode() => internalError("not supported.");
+  @override
+  NamedCompilationUnitMember computeNode() =>
+      unsupported("computeNode", charOffset, fileUri);
 
-  InterfaceType get type => internalError("not supported.");
+  @override
+  InterfaceType get type => unsupported("type", charOffset, fileUri);
 }
 
 abstract class MockFunctionElement extends MockElement
     implements FunctionElement {
   MockFunctionElement() : super(ElementKind.FUNCTION);
 
-  bool get isEntryPoint => internalError("not supported.");
+  @override
+  bool get isEntryPoint => unsupported("isEntryPoint", charOffset, fileUri);
 
-  get typeParameters => internalError("not supported.");
+  @override
+  get typeParameters => unsupported("typeParameters", charOffset, fileUri);
 
-  FunctionType get type => internalError("not supported.");
-  DartType get returnType => internalError("not supported.");
+  @override
+  FunctionType get type => unsupported("type", charOffset, fileUri);
 
-  FunctionDeclaration computeNode() => internalError("not supported.");
+  @override
+  DartType get returnType => unsupported("returnType", charOffset, fileUri);
+
+  @override
+  FunctionDeclaration computeNode() =>
+      unsupported("computeNode", charOffset, fileUri);
 }
 
 abstract class MockFunctionTypeAliasElement extends MockElement
     implements FunctionTypeAliasElement {
   MockFunctionTypeAliasElement() : super(ElementKind.FUNCTION_TYPE_ALIAS);
 
+  @override
   CompilationUnitElement get enclosingElement {
-    return internalError("not supported.");
+    return unsupported("enclosingElement", charOffset, fileUri);
   }
 
-  TypeAlias computeNode() => internalError("not supported.");
+  @override
+  TypeAlias computeNode() => unsupported("computeNode", charOffset, fileUri);
 }
 
 abstract class MockParameterElement extends MockElement
     implements ParameterElement {
   MockParameterElement() : super(ElementKind.PARAMETER);
 
-  String get defaultValueCode => internalError("not supported.");
+  @override
+  String get defaultValueCode =>
+      unsupported("defaultValueCode", charOffset, fileUri);
 
-  bool get isCovariant => internalError("not supported.");
+  @override
+  bool get isCovariant => unsupported("isCovariant", charOffset, fileUri);
 
-  bool get isInitializingFormal => internalError("not supported.");
+  @override
+  bool get isInitializingFormal =>
+      unsupported("isInitializingFormal", charOffset, fileUri);
 
-  get parameterKind => internalError("not supported.");
+  @override
+  get parameterKind => unsupported("parameterKind", charOffset, fileUri);
 
-  List<ParameterElement> get parameters => internalError("not supported.");
+  @override
+  List<ParameterElement> get parameters =>
+      unsupported("parameters", charOffset, fileUri);
 
+  @override
   get type => null;
 
-  get typeParameters => internalError("not supported.");
+  @override
+  get typeParameters => unsupported("typeParameters", charOffset, fileUri);
 
-  get constantValue => internalError("not supported.");
+  @override
+  get constantValue => unsupported("constantValue", charOffset, fileUri);
 
-  computeConstantValue() => internalError("not supported.");
+  @override
+  computeConstantValue() =>
+      unsupported("computeConstantValue", charOffset, fileUri);
 
+  @override
   void appendToWithoutDelimiters(StringBuffer buffer) {
-    return internalError("not supported.");
+    return unsupported("appendToWithoutDelimiters", charOffset, fileUri);
   }
 
-  FormalParameter computeNode() => internalError("not supported.");
+  @override
+  FormalParameter computeNode() =>
+      unsupported("computeNode", charOffset, fileUri);
 }

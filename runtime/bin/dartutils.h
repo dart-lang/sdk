@@ -33,7 +33,6 @@ static inline Dart_Handle ThrowIfError(Dart_Handle handle) {
   return handle;
 }
 
-
 class CommandLineOptions {
  public:
   explicit CommandLineOptions(int max_count)
@@ -77,7 +76,6 @@ class CommandLineOptions {
 
   DISALLOW_COPY_AND_ASSIGN(CommandLineOptions);
 };
-
 
 class DartUtils {
  public:
@@ -127,10 +125,6 @@ class DartUtils {
   static bool EntropySource(uint8_t* buffer, intptr_t length);
   static Dart_Handle ReadStringFromFile(const char* filename);
   static Dart_Handle MakeUint8Array(const uint8_t* buffer, intptr_t length);
-  static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
-                                       Dart_Handle library,
-                                       Dart_Handle url);
-  static Dart_Handle LoadScript(const char* script_uri);
   static Dart_Handle PrepareForScriptLoading(bool is_service_isolate,
                                              bool trace_loading);
   static Dart_Handle SetupServiceLoadPort();
@@ -206,21 +200,17 @@ class DartUtils {
   enum MagicNumber {
     kSnapshotMagicNumber,
     kKernelMagicNumber,
+    kGzipMagicNumber,
     kUnknownMagicNumber
   };
 
-  // static const uint8_t* GetMagicNumber(MagicNumber number);
-
-  // Sniffs the specified text_buffer to see if it contains the magic number
-  // representing a script snapshot. If the text_buffer is a script snapshot
-  // the return value is an updated pointer to the text_buffer pointing past
-  // the magic number value. The 'buffer_len' parameter is also appropriately
-  // adjusted.
-  static MagicNumber SniffForMagicNumber(const uint8_t** text_buffer,
-                                         intptr_t* buffer_len);
+  // Checks if the buffer is a script snapshot, kernel file, or gzip file.
+  static MagicNumber SniffForMagicNumber(const uint8_t* text_buffer,
+                                         intptr_t buffer_len);
 
   // Write a magic number to indicate a script snapshot file.
-  static void WriteMagicNumber(File* file);
+  static void WriteSnapshotMagicNumber(File* file);
+  static void SkipSnapshotMagicNumber(const uint8_t** buffer, intptr_t* length);
 
   // Global state that stores the original working directory..
   static const char* original_working_directory;
@@ -260,7 +250,6 @@ class DartUtils {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(DartUtils);
 };
-
 
 class CObject {
  public:
@@ -358,7 +347,6 @@ class CObject {
   DISALLOW_COPY_AND_ASSIGN(CObject);
 };
 
-
 #define DECLARE_COBJECT_CONSTRUCTORS(t)                                        \
   explicit CObject##t(Dart_CObject* cobject) : CObject(cobject) {              \
     ASSERT(type() == Dart_CObject_k##t);                                       \
@@ -369,7 +357,6 @@ class CObject {
     ASSERT(cobject->type() == Dart_CObject_k##t);                              \
     cobject_ = cobject->AsApiCObject();                                        \
   }
-
 
 #define DECLARE_COBJECT_TYPED_DATA_CONSTRUCTORS(t)                             \
   explicit CObject##t##Array(Dart_CObject* cobject) : CObject(cobject) {       \
@@ -383,7 +370,6 @@ class CObject {
     ASSERT(cobject->byte_array_type() == Dart_TypedData_k##t);                 \
     cobject_ = cobject->AsApiCObject();                                        \
   }
-
 
 #define DECLARE_COBJECT_EXTERNAL_TYPED_DATA_CONSTRUCTORS(t)                    \
   explicit CObjectExternal##t##Array(Dart_CObject* cobject)                    \
@@ -399,7 +385,6 @@ class CObject {
     cobject_ = cobject->AsApiCObject();                                        \
   }
 
-
 class CObjectBool : public CObject {
  public:
   DECLARE_COBJECT_CONSTRUCTORS(Bool)
@@ -409,7 +394,6 @@ class CObjectBool : public CObject {
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectBool);
 };
-
 
 class CObjectInt32 : public CObject {
  public:
@@ -421,7 +405,6 @@ class CObjectInt32 : public CObject {
   DISALLOW_COPY_AND_ASSIGN(CObjectInt32);
 };
 
-
 class CObjectInt64 : public CObject {
  public:
   DECLARE_COBJECT_CONSTRUCTORS(Int64)
@@ -431,7 +414,6 @@ class CObjectInt64 : public CObject {
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectInt64);
 };
-
 
 class CObjectIntptr : public CObject {
  public:
@@ -460,7 +442,6 @@ class CObjectIntptr : public CObject {
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectIntptr);
 };
-
 
 class CObjectBigint : public CObject {
  public:
@@ -492,7 +473,6 @@ class CObjectBigint : public CObject {
   DISALLOW_COPY_AND_ASSIGN(CObjectBigint);
 };
 
-
 class CObjectDouble : public CObject {
  public:
   DECLARE_COBJECT_CONSTRUCTORS(Double)
@@ -502,7 +482,6 @@ class CObjectDouble : public CObject {
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectDouble);
 };
-
 
 class CObjectString : public CObject {
  public:
@@ -514,7 +493,6 @@ class CObjectString : public CObject {
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectString);
 };
-
 
 class CObjectArray : public CObject {
  public:
@@ -532,7 +510,6 @@ class CObjectArray : public CObject {
   DISALLOW_COPY_AND_ASSIGN(CObjectArray);
 };
 
-
 class CObjectSendPort : public CObject {
  public:
   DECLARE_COBJECT_CONSTRUCTORS(SendPort)
@@ -543,7 +520,6 @@ class CObjectSendPort : public CObject {
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectSendPort);
 };
-
 
 class CObjectTypedData : public CObject {
  public:
@@ -567,7 +543,6 @@ class CObjectTypedData : public CObject {
   DISALLOW_COPY_AND_ASSIGN(CObjectTypedData);
 };
 
-
 class CObjectUint8Array : public CObject {
  public:
   DECLARE_COBJECT_TYPED_DATA_CONSTRUCTORS(Uint8)
@@ -578,7 +553,6 @@ class CObjectUint8Array : public CObject {
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectUint8Array);
 };
-
 
 class CObjectExternalUint8Array : public CObject {
  public:
@@ -600,7 +574,6 @@ class CObjectExternalUint8Array : public CObject {
   DISALLOW_COPY_AND_ASSIGN(CObjectExternalUint8Array);
 };
 
-
 class ScopedBlockingCall {
  public:
   ScopedBlockingCall() { Dart_ThreadDisableProfiling(); }
@@ -611,7 +584,6 @@ class ScopedBlockingCall {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(ScopedBlockingCall);
 };
-
 
 // Where the argument to the constructor is the handle for an object
 // implementing List<int>, this class creates a scope in which the memory

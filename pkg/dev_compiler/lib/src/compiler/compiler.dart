@@ -89,7 +89,6 @@ class ModuleCompiler {
     // Read the summaries.
     summaryData ??= new SummaryDataStore(options.summaryPaths,
         resourceProvider: resourceProvider,
-        recordDependencyInfo: true,
         // TODO(vsm): Reset this to true once we cleanup internal build rules.
         disallowOverlappingSummaries: false);
 
@@ -254,7 +253,7 @@ class CompilerOptions {
   /// The file extension for summaries.
   final String summaryExtension;
 
-  /// Whether to preserve metdata only accessible via mirrors
+  /// Whether to preserve metdata only accessible via mirrors.
   final bool emitMetadata;
 
   /// Whether to force compilation of code with static errors.
@@ -266,18 +265,6 @@ class CompilerOptions {
 
   /// Whether to emit Closure Compiler-friendly code.
   final bool closure;
-
-  /// Hoist the types at instance creation sites
-  final bool hoistInstanceCreation;
-
-  /// Hoist types from class signatures
-  final bool hoistSignatureTypes;
-
-  /// Name types in type tests
-  final bool nameTypeTests;
-
-  /// Hoist types in type tests
-  final bool hoistTypeTests;
 
   /// Enable ES6 destructuring of named parameters. Off by default.
   ///
@@ -314,10 +301,6 @@ class CompilerOptions {
       this.emitMetadata: false,
       this.closure: false,
       this.destructureNamedParams: false,
-      this.hoistInstanceCreation: true,
-      this.hoistSignatureTypes: false,
-      this.nameTypeTests: true,
-      this.hoistTypeTests: true,
       this.bazelMapping: const {},
       this.summaryOutPath});
 
@@ -332,10 +315,6 @@ class CompilerOptions {
         emitMetadata = args['emit-metadata'],
         closure = args['closure-experimental'],
         destructureNamedParams = args['destructure-named-params'],
-        hoistInstanceCreation = args['hoist-instance-creation'],
-        hoistSignatureTypes = args['hoist-signature-types'],
-        nameTypeTests = args['name-type-tests'],
-        hoistTypeTests = args['hoist-type-tests'],
         bazelMapping = _parseBazelMappings(args['bazel-mapping']),
         summaryOutPath = args['summary-out'];
 
@@ -372,18 +351,6 @@ class CompilerOptions {
               'allowing access to private members across library boundaries.',
           defaultsTo: false,
           hide: hide)
-      ..addFlag('hoist-instance-creation',
-          help: 'Hoist the class type from generic instance creations',
-          defaultsTo: true,
-          hide: hide)
-      ..addFlag('hoist-signature-types',
-          help: 'Hoist types from class signatures',
-          defaultsTo: false,
-          hide: hide)
-      ..addFlag('name-type-tests',
-          help: 'Name types used in type tests', defaultsTo: true, hide: hide)
-      ..addFlag('hoist-type-tests',
-          help: 'Hoist types used in type tests', defaultsTo: true, hide: hide)
       ..addOption('bazel-mapping',
           help:
               '--bazel-mapping=genfiles/to/library.dart,to/library.dart uses \n'
@@ -631,6 +598,7 @@ Uri _sourceToUri(String source) {
       return uri;
     default:
       // Assume a file path.
+      // TODO(jmesserly): shouldn't this be `path.toUri(path.absolute)`?
       return new Uri.file(path.absolute(source));
   }
 }

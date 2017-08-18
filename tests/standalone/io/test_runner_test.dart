@@ -4,9 +4,11 @@
 
 import "dart:io";
 import "dart:async";
+
+import "package:status_file/expectation.dart";
+
 import "../../../tools/testing/dart/command.dart";
 import "../../../tools/testing/dart/configuration.dart";
-import "../../../tools/testing/dart/expectation.dart";
 import "../../../tools/testing/dart/options.dart";
 import "../../../tools/testing/dart/test_runner.dart";
 import "../../../tools/testing/dart/test_suite.dart";

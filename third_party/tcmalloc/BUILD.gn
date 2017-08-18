@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("tcmalloc_sources.gni")
+
 config("internal_config") {
   visibility = [ ":*" ]  # Only targets in this file can depend on this.
   cflags = [
@@ -62,11 +64,6 @@ source_set("dynamic_annotations") {
   ]
 }
 
-tcmalloc_sources_list = exec_script("../../tools/gypi_to_gn.py",
-                                    [ rebase_path("tcmalloc_sources.gypi") ],
-                                    "scope",
-                                    [ "tcmalloc_sources.gypi" ])
-
 source_set("tcmalloc") {
   configs -= [ "//build/config/compiler:chromium_code" ]
   configs += [ ":internal_config" ]
@@ -97,9 +94,12 @@ source_set("tcmalloc") {
     "NDEBUG",
   ]
 
-  # Disable stack sampling for heap profiling in Product builds.
   if (is_product) {
+    # Disable stack sampling for heap profiling in Product builds.
     defines += [ "NO_TCMALLOC_SAMPLES" ]
+
+    # To override the C library functions, we can't hide symbols.
+    configs -= [ "//build/config/gcc:symbol_visibility_hidden" ]
   }
 
   cflags = [
@@ -130,5 +130,5 @@ source_set("tcmalloc") {
                                   "gperftools/src/profiler.cc",
                                 ])
 
-  sources = tcmalloc_sources_list.sources
+  sources = tcmalloc_sources
 }

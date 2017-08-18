@@ -36,18 +36,20 @@ main() {
             annotatedCode, computeAstMemberData, compileFromSource);
         IdData data2 = await computeData(
             annotatedCode, computeIrMemberData, compileFromDill);
-        data1.actualMap.forEach((Id id, String value1) {
-          String value2 = data2.actualMap[id];
+        data1.actualMap.forEach((Id id, ActualData actualData1) {
+          String value1 = actualData1.value;
+          String value2 = data2.actualMap[id]?.value;
           if (value1 != value2) {
-            reportHere(data1.compiler.reporter, data1.sourceSpanMap[id],
+            reportHere(data1.compiler.reporter, actualData1.sourceSpan,
                 '$id: from source:${value1},from dill:${value2}');
           }
           Expect.equals(value1, value2, 'Value mismatch for $id');
         });
-        data2.actualMap.forEach((Id id, String value2) {
-          String value1 = data1.actualMap[id];
+        data2.actualMap.forEach((Id id, ActualData actualData2) {
+          String value2 = actualData2.value;
+          String value1 = data1.actualMap[id]?.value;
           if (value1 != value2) {
-            reportHere(data2.compiler.reporter, data2.sourceSpanMap[id],
+            reportHere(data2.compiler.reporter, actualData2.sourceSpan,
                 '$id: from source:${value1},from dill:${value2}');
           }
           Expect.equals(value1, value2, 'Value mismatch for $id');
@@ -62,14 +64,13 @@ main() {
 ///
 /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
 /// for the data origin.
-void computeAstMemberData(Compiler compiler, MemberEntity _member,
-    Map<Id, String> actualMap, Map<Id, SourceSpan> sourceSpanMap) {
+void computeAstMemberData(
+    Compiler compiler, MemberEntity _member, Map<Id, ActualData> actualMap,
+    {bool verbose: false}) {
   MemberElement member = _member;
   ResolvedAst resolvedAst = member.resolvedAst;
   if (resolvedAst.kind != ResolvedAstKind.PARSED) return;
-  new ResolvedAstComputer(
-          compiler.reporter, actualMap, sourceSpanMap, resolvedAst)
-      .run();
+  new ResolvedAstComputer(compiler.reporter, actualMap, resolvedAst).run();
 }
 
 /// Mixin used for0computing a descriptive mapping of the [Id]s in a member.
@@ -97,9 +98,9 @@ class ComputerMixin {
 /// AST visitor for computing a descriptive mapping of the [Id]s in a member.
 class ResolvedAstComputer extends AbstractResolvedAstComputer
     with ComputerMixin {
-  ResolvedAstComputer(DiagnosticReporter reporter, Map<Id, String> actualMap,
-      Map<Id, SourceSpan> spannableMap, ResolvedAst resolvedAst)
-      : super(reporter, actualMap, spannableMap, resolvedAst);
+  ResolvedAstComputer(DiagnosticReporter reporter,
+      Map<Id, ActualData> actualMap, ResolvedAst resolvedAst)
+      : super(reporter, actualMap, resolvedAst);
 
   @override
   String computeNodeValue(ast.Node node, AstElement element) {
@@ -146,17 +147,20 @@ class ResolvedAstComputer extends AbstractResolvedAstComputer
 ///
 /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
 /// for the data origin.
-void computeIrMemberData(Compiler compiler, MemberEntity member,
-    Map<Id, String> actualMap, Map<Id, Spannable> spannableMap) {
+void computeIrMemberData(
+    Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+    {bool verbose: false}) {
   KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMap elementMap = backendStrategy.elementMap;
-  new IrComputer(actualMap, spannableMap).run(elementMap.getMemberNode(member));
+  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+  MemberDefinition definition = elementMap.getMemberDefinition(member);
+  assert(definition.kind == MemberKind.regular,
+      failedAt(member, "Unexpected member definition $definition"));
+  new IrComputer(actualMap).run(definition.node);
 }
 
 /// IR visitor for computing a descriptive mapping of the [Id]s in a member.
 class IrComputer extends AbstractIrComputer with ComputerMixin {
-  IrComputer(Map<Id, String> actualMap, Map<Id, SourceSpan> spannableMap)
-      : super(actualMap, spannableMap);
+  IrComputer(Map<Id, ActualData> actualMap) : super(actualMap);
 
   @override
   String computeNodeValue(ir.TreeNode node) {
@@ -164,6 +168,8 @@ class IrComputer extends AbstractIrComputer with ComputerMixin {
       return computeLocalName(node.name);
     } else if (node is ir.FunctionDeclaration) {
       return computeLocalName(node.variable.name);
+    } else if (node is ir.FunctionExpression) {
+      return computeLocalName('');
     } else if (node is ir.MethodInvocation) {
       return computeDynamicInvokeName(node.name.name);
     } else if (node is ir.PropertyGet) {

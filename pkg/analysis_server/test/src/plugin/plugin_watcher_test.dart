@@ -18,7 +18,7 @@ import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -45,22 +45,8 @@ class PluginWatcherTest {
 
   test_addedDriver() async {
     String pkg1Path = resourceProvider.convertPath('/pkg1');
-    ContextRoot contextRoot = new ContextRoot(pkg1Path, []);
-    TestDriver driver = new TestDriver(resourceProvider, contextRoot);
-    watcher.addedDriver(driver, contextRoot);
-    expect(manager.addedContextRoots, isEmpty);
-    //
-    // Test to see whether the listener was configured correctly.
-    //
-    // Use a file in the package being analyzed.
-    //
     resourceProvider.newFile(
         resourceProvider.convertPath('/pkg1/lib/test1.dart'), '');
-    await driver.computeResult('package:pkg1/test1.dart');
-    expect(manager.addedContextRoots, isEmpty);
-    //
-    // Use a file that imports a package with a plugin.
-    //
     resourceProvider.newFile(
         resourceProvider.convertPath('/pkg2/lib/pkg2.dart'), '');
     resourceProvider.newFile(
@@ -69,7 +55,23 @@ class PluginWatcherTest {
         resourceProvider.convertPath(
             '/pkg2/${PluginLocator.toolsFolderName}/${PluginLocator.defaultPluginFolderName}/bin/plugin.dart'),
         '');
-    await driver.computeResult('package:pkg2/pk2.dart');
+
+    ContextRoot contextRoot = new ContextRoot(pkg1Path, []);
+    TestDriver driver = new TestDriver(resourceProvider, contextRoot);
+    driver.analysisOptions.enabledPluginNames = ['pkg2'];
+    watcher.addedDriver(driver, contextRoot);
+    expect(manager.addedContextRoots, isEmpty);
+    //
+    // Test to see whether the listener was configured correctly.
+    //
+    // Use a file in the package being analyzed.
+    //
+//    await driver.computeResult('package:pkg1/test1.dart');
+//    expect(manager.addedContextRoots, isEmpty);
+    //
+    // Use a file that imports a package with a plugin.
+    //
+//    await driver.computeResult('package:pkg2/pk2.dart');
     //
     // Wait until the timer associated with the driver's FileSystemState is
     // guaranteed to have expired and the list of changed files will have been
@@ -100,6 +102,7 @@ class TestDriver implements AnalysisDriver {
   SourceFactory sourceFactory;
   FileSystemState fsState;
   AnalysisSession currentSession;
+  AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
 
   final _resultController = new StreamController<AnalysisResult>();
 

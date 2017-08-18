@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/verified_memory.h"
 #include "platform/assert.h"
 #include "vm/unit_test.h"
-#include "vm/verified_memory.h"
 
 namespace dart {
 
@@ -14,7 +14,6 @@ void Init() {
 #endif
 }
 
-
 void Shutdown() {
 #if defined(DEBUG)
   // We must reset this to false to avoid checking some assumptions in
@@ -22,7 +21,6 @@ void Shutdown() {
   FLAG_verified_mem = false;
 #endif
 }
-
 
 VM_UNIT_TEST_CASE(VerifiedMemoryReserve) {
   Init();
@@ -33,7 +31,6 @@ VM_UNIT_TEST_CASE(VerifiedMemoryReserve) {
   Shutdown();
 }
 
-
 VM_UNIT_TEST_CASE(VerifiedMemoryCommit) {
   Init();
   const intptr_t kReservationSize = 64 * KB;
@@ -43,7 +40,6 @@ VM_UNIT_TEST_CASE(VerifiedMemoryCommit) {
   delete vm;
   Shutdown();
 }
-
 
 VM_UNIT_TEST_CASE(VerifiedMemoryBasic) {
   Init();
@@ -67,7 +63,6 @@ VM_UNIT_TEST_CASE(VerifiedMemoryBasic) {
   Shutdown();
 }
 
-
 VM_UNIT_TEST_CASE(VerifiedMemoryAccept) {
   Init();
   const intptr_t kReservationSize = 64 * KB;
@@ -87,7 +82,6 @@ VM_UNIT_TEST_CASE(VerifiedMemoryAccept) {
   Shutdown();
 }
 
-
 // Negative tests below.
 
 VM_UNIT_TEST_CASE(VerifyImplicit_Crash) {
@@ -101,7 +95,6 @@ VM_UNIT_TEST_CASE(VerifyImplicit_Crash) {
   VerifiedMemory::Write(&addr[0], 1.5);
   Shutdown();
 }
-
 
 VM_UNIT_TEST_CASE(VerifyExplicit_Crash) {
   Init();

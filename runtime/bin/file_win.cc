@@ -7,13 +7,13 @@
 
 #include "bin/file.h"
 
+#include <WinIoCtl.h>  // NOLINT
 #include <fcntl.h>     // NOLINT
 #include <io.h>        // NOLINT
 #include <stdio.h>     // NOLINT
 #include <string.h>    // NOLINT
 #include <sys/stat.h>  // NOLINT
 #include <sys/utime.h>  // NOLINT
-#include <WinIoCtl.h>  // NOLINT
 
 #include "bin/builtin.h"
 #include "bin/log.h"
@@ -37,7 +37,6 @@ class FileHandle {
   DISALLOW_COPY_AND_ASSIGN(FileHandle);
 };
 
-
 File::~File() {
   if (!IsClosed() && handle_->fd() != _fileno(stdout) &&
       handle_->fd() != _fileno(stderr)) {
@@ -45,7 +44,6 @@ File::~File() {
   }
   delete handle_;
 }
-
 
 void File::Close() {
   ASSERT(handle_->fd() >= 0);
@@ -64,16 +62,13 @@ void File::Close() {
   handle_->set_fd(kClosedFd);
 }
 
-
 intptr_t File::GetFD() {
   return handle_->fd();
 }
 
-
 bool File::IsClosed() {
   return handle_->fd() == kClosedFd;
 }
-
 
 MappedMemory* File::Map(File::MapType type, int64_t position, int64_t length) {
   DWORD prot_alloc;
@@ -114,7 +109,6 @@ MappedMemory* File::Map(File::MapType type, int64_t position, int64_t length) {
   return new MappedMemory(addr, length);
 }
 
-
 void MappedMemory::Unmap() {
   BOOL result = VirtualFree(address_, 0, MEM_RELEASE);
   ASSERT(result);
@@ -122,12 +116,10 @@ void MappedMemory::Unmap() {
   size_ = 0;
 }
 
-
 int64_t File::Read(void* buffer, int64_t num_bytes) {
   ASSERT(handle_->fd() >= 0);
   return read(handle_->fd(), buffer, num_bytes);
 }
-
 
 int64_t File::Write(const void* buffer, int64_t num_bytes) {
   int fd = handle_->fd();
@@ -161,7 +153,6 @@ int64_t File::Write(const void* buffer, int64_t num_bytes) {
   return bytes_written;
 }
 
-
 bool File::VPrint(const char* format, va_list args) {
   // Measure.
   va_list measure_args;
@@ -182,30 +173,25 @@ bool File::VPrint(const char* format, va_list args) {
   return result;
 }
 
-
 int64_t File::Position() {
   ASSERT(handle_->fd() >= 0);
   return _lseeki64(handle_->fd(), 0, SEEK_CUR);
 }
-
 
 bool File::SetPosition(int64_t position) {
   ASSERT(handle_->fd() >= 0);
   return _lseeki64(handle_->fd(), position, SEEK_SET) >= 0;
 }
 
-
 bool File::Truncate(int64_t length) {
   ASSERT(handle_->fd() >= 0);
   return _chsize_s(handle_->fd(), length) == 0;
 }
 
-
 bool File::Flush() {
   ASSERT(handle_->fd());
   return _commit(handle_->fd()) != -1;
 }
-
 
 bool File::Lock(File::LockType lock, int64_t start, int64_t end) {
   ASSERT(handle_->fd() >= 0);
@@ -250,7 +236,6 @@ bool File::Lock(File::LockType lock, int64_t start, int64_t end) {
   return rc;
 }
 
-
 int64_t File::Length() {
   ASSERT(handle_->fd() >= 0);
   struct __stat64 st;
@@ -259,7 +244,6 @@ int64_t File::Length() {
   }
   return -1;
 }
-
 
 File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
   int flags = O_RDONLY | O_BINARY | O_NOINHERIT;
@@ -288,13 +272,11 @@ File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
   return new File(new FileHandle(fd));
 }
 
-
 File* File::Open(const char* path, FileOpenMode mode) {
   Utf8ToWideScope system_name(path);
   File* file = FileOpenW(system_name.wide(), mode);
   return file;
 }
-
 
 File* File::OpenStdio(int fd) {
   int stdio_fd = -1;
@@ -312,7 +294,6 @@ File* File::OpenStdio(int fd) {
   return new File(new FileHandle(stdio_fd));
 }
 
-
 static bool StatHelper(wchar_t* path, struct __stat64* st) {
   int stat_status = _wstat64(path, st);
   if (stat_status != 0) {
@@ -325,13 +306,11 @@ static bool StatHelper(wchar_t* path, struct __stat64* st) {
   return true;
 }
 
-
 bool File::Exists(const char* name) {
   struct __stat64 st;
   Utf8ToWideScope system_name(name);
   return StatHelper(system_name.wide(), &st);
 }
-
 
 bool File::Create(const char* name) {
   Utf8ToWideScope system_name(name);
@@ -341,7 +320,6 @@ bool File::Create(const char* name) {
   }
   return (close(fd) == 0);
 }
-
 
 // This structure is needed for creating and reading Junctions.
 typedef struct _REPARSE_DATA_BUFFER {
@@ -373,10 +351,8 @@ typedef struct _REPARSE_DATA_BUFFER {
   };
 } REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
 
-
 static const int kReparseDataHeaderSize = sizeof ULONG + 2 * sizeof USHORT;
 static const int kMountPointHeaderSize = 4 * sizeof USHORT;
-
 
 bool File::CreateLink(const char* utf8_name, const char* utf8_target) {
   Utf8ToWideScope name(utf8_name);
@@ -435,13 +411,11 @@ bool File::CreateLink(const char* utf8_name, const char* utf8_target) {
   return (result != 0);
 }
 
-
 bool File::Delete(const char* name) {
   Utf8ToWideScope system_name(name);
   int status = _wremove(system_name.wide());
   return status != -1;
 }
-
 
 bool File::DeleteLink(const char* name) {
   Utf8ToWideScope system_name(name);
@@ -456,7 +430,6 @@ bool File::DeleteLink(const char* name) {
   }
   return result;
 }
-
 
 bool File::Rename(const char* old_path, const char* new_path) {
   File::Type type = GetType(old_path, false);
@@ -473,7 +446,6 @@ bool File::Rename(const char* old_path, const char* new_path) {
   return false;
 }
 
-
 bool File::RenameLink(const char* old_path, const char* new_path) {
   File::Type type = GetType(old_path, false);
   if (type == kIsLink) {
@@ -489,7 +461,6 @@ bool File::RenameLink(const char* old_path, const char* new_path) {
   return false;
 }
 
-
 bool File::Copy(const char* old_path, const char* new_path) {
   File::Type type = GetType(old_path, false);
   if (type == kIsFile) {
@@ -504,7 +475,6 @@ bool File::Copy(const char* old_path, const char* new_path) {
   return false;
 }
 
-
 int64_t File::LengthFromPath(const char* name) {
   struct __stat64 st;
   Utf8ToWideScope system_name(name);
@@ -513,7 +483,6 @@ int64_t File::LengthFromPath(const char* name) {
   }
   return st.st_size;
 }
-
 
 const char* File::LinkTarget(const char* pathname) {
   const wchar_t* name = StringUtilsWin::Utf8ToWide(pathname);
@@ -578,7 +547,6 @@ const char* File::LinkTarget(const char* pathname) {
   return utf8_target;
 }
 
-
 void File::Stat(const char* name, int64_t* data) {
   File::Type type = GetType(name, false);
   data[kType] = type;
@@ -598,7 +566,6 @@ void File::Stat(const char* name, int64_t* data) {
   }
 }
 
-
 time_t File::LastAccessed(const char* name) {
   struct __stat64 st;
   Utf8ToWideScope system_name(name);
@@ -608,7 +575,6 @@ time_t File::LastAccessed(const char* name) {
   return st.st_atime;
 }
 
-
 time_t File::LastModified(const char* name) {
   struct __stat64 st;
   Utf8ToWideScope system_name(name);
@@ -617,7 +583,6 @@ time_t File::LastModified(const char* name) {
   }
   return st.st_mtime;
 }
-
 
 bool File::SetLastAccessed(const char* name, int64_t millis) {
   // First get the current times.
@@ -634,7 +599,6 @@ bool File::SetLastAccessed(const char* name, int64_t millis) {
   return _wutime64(system_name.wide(), &times) == 0;
 }
 
-
 bool File::SetLastModified(const char* name, int64_t millis) {
   // First get the current times.
   struct __stat64 st;
@@ -650,7 +614,6 @@ bool File::SetLastModified(const char* name, int64_t millis) {
   return _wutime64(system_name.wide(), &times) == 0;
 }
 
-
 bool File::IsAbsolutePath(const char* pathname) {
   // Should we consider network paths?
   if (pathname == NULL) {
@@ -659,7 +622,6 @@ bool File::IsAbsolutePath(const char* pathname) {
   return ((strlen(pathname) > 2) && (pathname[1] == ':') &&
           ((pathname[2] == '\\') || (pathname[2] == '/')));
 }
-
 
 const char* File::GetCanonicalPath(const char* pathname) {
   Utf8ToWideScope system_name(pathname);
@@ -697,25 +659,21 @@ const char* File::GetCanonicalPath(const char* pathname) {
   return result;
 }
 
-
 const char* File::PathSeparator() {
   // This is already UTF-8 encoded.
   return "\\";
 }
-
 
 const char* File::StringEscapedPathSeparator() {
   // This is already UTF-8 encoded.
   return "\\\\";
 }
 
-
 File::StdioHandleType File::GetStdioHandleType(int fd) {
   // Treat all stdio handles as pipes. The Windows event handler and
   // socket code will handle the different handle types.
   return kPipe;
 }
-
 
 File::Type File::GetType(const char* pathname, bool follow_links) {
   // Convert to wchar_t string.
@@ -744,7 +702,6 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
   }
   return result;
 }
-
 
 File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
   BY_HANDLE_FILE_INFORMATION file_info[2];

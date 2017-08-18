@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -46,12 +46,153 @@ class SearchEngineImpl2Test {
     scheduler.start();
   }
 
+  test_membersOfSubtypes_hasMembers() async {
+    var a = _p('/test/a.dart');
+    var b = _p('/test/b.dart');
+    var c = _p('/test/c.dart');
+
+    provider.newFile(a, '''
+class A {
+  void a() {}
+  void b() {}
+  void c() {}
+}
+''');
+    provider.newFile(b, '''
+import 'a.dart';
+class B extends A {
+  void a() {}
+}
+''');
+    provider.newFile(c, '''
+import 'a.dart';
+class C extends A {
+  void b() {}
+}
+''');
+
+    var driver1 = _newDriver();
+    var driver2 = _newDriver();
+
+    driver1.addFile(a);
+    driver2.addFile(b);
+    driver2.addFile(c);
+    await scheduler.waitForIdle();
+
+    var resultA = await driver1.getResult(a);
+    ClassElement elementA = resultA.unit.element.types[0];
+
+    var searchEngine = new SearchEngineImpl([driver1, driver2]);
+    Set<String> members = await searchEngine.membersOfSubtypes(elementA);
+    expect(members, unorderedEquals(['a', 'b']));
+  }
+
+  test_membersOfSubtypes_noMembers() async {
+    var a = _p('/test/a.dart');
+    var b = _p('/test/b.dart');
+
+    provider.newFile(a, '''
+class A {
+  void a() {}
+  void b() {}
+  void c() {}
+}
+''');
+    provider.newFile(b, '''
+import 'a.dart';
+class B extends A {}
+''');
+
+    var driver = _newDriver();
+
+    driver.addFile(a);
+    driver.addFile(b);
+    await scheduler.waitForIdle();
+
+    var resultA = await driver.getResult(a);
+    ClassElement elementA = resultA.unit.element.types[0];
+
+    var searchEngine = new SearchEngineImpl([driver]);
+    Set<String> members = await searchEngine.membersOfSubtypes(elementA);
+    expect(members, isEmpty);
+  }
+
+  test_membersOfSubtypes_noSubtypes() async {
+    var a = _p('/test/a.dart');
+    var b = _p('/test/b.dart');
+
+    provider.newFile(a, '''
+class A {
+  void a() {}
+  void b() {}
+  void c() {}
+}
+''');
+    provider.newFile(b, '''
+import 'a.dart';
+class B {
+  void a() {}
+}
+''');
+
+    var driver = _newDriver();
+
+    driver.addFile(a);
+    driver.addFile(b);
+    await scheduler.waitForIdle();
+
+    var resultA = await driver.getResult(a);
+    ClassElement elementA = resultA.unit.element.types[0];
+
+    var searchEngine = new SearchEngineImpl([driver]);
+    Set<String> members = await searchEngine.membersOfSubtypes(elementA);
+    expect(members, isNull);
+  }
+
+  test_membersOfSubtypes_private() async {
+    var a = _p('/test/a.dart');
+    var b = _p('/test/b.dart');
+
+    provider.newFile(a, '''
+class A {
+  void a() {}
+  void _b() {}
+  void _c() {}
+}
+class B extends A {
+  void _b() {}
+}
+''');
+    provider.newFile(b, '''
+import 'a.dart';
+class C extends A {
+  void a() {}
+  void _c() {}
+}
+class D extends B {
+  void _c() {}
+}
+''');
+
+    var driver1 = _newDriver();
+    var driver2 = _newDriver();
+
+    driver1.addFile(a);
+    driver2.addFile(b);
+    await scheduler.waitForIdle();
+
+    var resultA = await driver1.getResult(a);
+    ClassElement elementA = resultA.unit.element.types[0];
+
+    var searchEngine = new SearchEngineImpl([driver1, driver2]);
+    Set<String> members = await searchEngine.membersOfSubtypes(elementA);
+    expect(members, unorderedEquals(['a', '_b']));
+  }
+
   test_searchAllSubtypes() async {
     var p = _p('/test.dart');
 
-    provider.newFile(
-        p,
-        '''
+    provider.newFile(p, '''
 class T {}
 class A extends T {}
 class B extends A {}
@@ -76,15 +217,11 @@ class C implements B {}
     var a = _p('/test/a.dart');
     var b = _p('/test/b.dart');
 
-    provider.newFile(
-        a,
-        '''
+    provider.newFile(a, '''
 class T {}
 class A extends T {}
 ''');
-    provider.newFile(
-        b,
-        '''
+    provider.newFile(b, '''
 import 'a.dart';
 class B extends A {}
 class C extends B {}
@@ -160,9 +297,7 @@ int test;
     var a = _p('/test/a.dart');
     var b = _p('/test/b.dart');
 
-    provider.newFile(
-        a,
-        '''
+    provider.newFile(a, '''
 class A {
   int test;
 }
@@ -170,9 +305,7 @@ foo(p) {
   p.test;
 }
 ''');
-    provider.newFile(
-        b,
-        '''
+    provider.newFile(b, '''
 import 'a.dart';
 bar(p) {
   p.test = 1;
@@ -203,15 +336,11 @@ bar(p) {
     var a = _p('/test/a.dart');
     var b = _p('/test/b.dart');
 
-    provider.newFile(
-        a,
-        '''
+    provider.newFile(a, '''
 class T {}
 T a;
 ''');
-    provider.newFile(
-        b,
-        '''
+    provider.newFile(b, '''
 import 'a.dart';
 T b;
 ''');
@@ -238,15 +367,11 @@ T b;
     var a = _p('/test/a.dart');
     var b = _p('/test/b.dart');
 
-    provider.newFile(
-        a,
-        '''
+    provider.newFile(a, '''
 class A {}
 int a;
 ''');
-    provider.newFile(
-        b,
-        '''
+    provider.newFile(b, '''
 class B {}
 get b => 42;
 ''');

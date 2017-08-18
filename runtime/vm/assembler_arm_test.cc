@@ -15,31 +15,26 @@ namespace dart {
 
 #define __ assembler->
 
-
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
   __ mov(R0, Operand(42));
   __ bx(LR);
 }
-
 
 ASSEMBLER_TEST_RUN(Simple, test) {
   typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
-
 ASSEMBLER_TEST_GENERATE(MoveNegated, assembler) {
   __ mvn(R0, Operand(42));
   __ bx(LR);
 }
-
 
 ASSEMBLER_TEST_RUN(MoveNegated, test) {
   EXPECT(test != NULL);
   typedef int (*MoveNegated)() DART_UNUSED;
   EXPECT_EQ(~42, EXECUTE_TEST_CODE_INT32(MoveNegated, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(MoveRotImm, assembler) {
   Operand o;
@@ -50,13 +45,11 @@ ASSEMBLER_TEST_GENERATE(MoveRotImm, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(MoveRotImm, test) {
   EXPECT(test != NULL);
   typedef int (*MoveRotImm)() DART_UNUSED;
   EXPECT_EQ(0x30550003, EXECUTE_TEST_CODE_INT32(MoveRotImm, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(MovImm16, assembler) {
 #if defined(USING_SIMULATOR)
@@ -73,13 +66,11 @@ ASSEMBLER_TEST_GENERATE(MovImm16, assembler) {
 #endif
 }
 
-
 ASSEMBLER_TEST_RUN(MovImm16, test) {
   EXPECT(test != NULL);
   typedef int (*MovImm16)() DART_UNUSED;
   EXPECT_EQ(0x12345678, EXECUTE_TEST_CODE_INT32(MovImm16, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(LoadImmediate, assembler) {
   __ mov(R0, Operand(0));
@@ -89,20 +80,17 @@ ASSEMBLER_TEST_GENERATE(LoadImmediate, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(LoadImmediate, test) {
   EXPECT(test != NULL);
   typedef int (*LoadImmediate)() DART_UNUSED;
   EXPECT_EQ(0x12345678, EXECUTE_TEST_CODE_INT32(LoadImmediate, test->entry()));
 }
 
-
 ASSEMBLER_TEST_GENERATE(LoadHalfWordUnaligned, assembler) {
   __ LoadHalfWordUnaligned(R1, R0, TMP);
   __ mov(R0, Operand(R1));
   __ bx(LR);
 }
-
 
 ASSEMBLER_TEST_RUN(LoadHalfWordUnaligned, test) {
   EXPECT(test != NULL);
@@ -121,13 +109,11 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnaligned, test) {
                                       reinterpret_cast<intptr_t>(&buffer[1])));
 }
 
-
 ASSEMBLER_TEST_GENERATE(LoadHalfWordUnsignedUnaligned, assembler) {
   __ LoadHalfWordUnsignedUnaligned(R1, R0, TMP);
   __ mov(R0, Operand(R1));
   __ bx(LR);
 }
-
 
 ASSEMBLER_TEST_RUN(LoadHalfWordUnsignedUnaligned, test) {
   EXPECT(test != NULL);
@@ -144,14 +130,12 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnsignedUnaligned, test) {
                         reinterpret_cast<intptr_t>(&buffer[1])));
 }
 
-
 ASSEMBLER_TEST_GENERATE(StoreHalfWordUnaligned, assembler) {
   __ LoadImmediate(R1, 0xABCD);
   __ StoreWordUnaligned(R1, R0, TMP);
   __ mov(R0, Operand(R1));
   __ bx(LR);
 }
-
 
 ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
   EXPECT(test != NULL);
@@ -175,13 +159,11 @@ ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
   EXPECT_EQ(0, buffer[3]);
 }
 
-
 ASSEMBLER_TEST_GENERATE(LoadWordUnaligned, assembler) {
   __ LoadWordUnaligned(R1, R0, TMP);
   __ mov(R0, Operand(R1));
   __ bx(LR);
 }
-
 
 ASSEMBLER_TEST_RUN(LoadWordUnaligned, test) {
   EXPECT(test != NULL);
@@ -206,14 +188,12 @@ ASSEMBLER_TEST_RUN(LoadWordUnaligned, test) {
                                       reinterpret_cast<intptr_t>(&buffer[3])));
 }
 
-
 ASSEMBLER_TEST_GENERATE(StoreWordUnaligned, assembler) {
   __ LoadImmediate(R1, 0x12345678);
   __ StoreWordUnaligned(R1, R0, TMP);
   __ mov(R0, Operand(R1));
   __ bx(LR);
 }
-
 
 ASSEMBLER_TEST_RUN(StoreWordUnaligned, test) {
   EXPECT(test != NULL);
@@ -253,7 +233,6 @@ ASSEMBLER_TEST_RUN(StoreWordUnaligned, test) {
   EXPECT_EQ(0x12, buffer[6]);
 }
 
-
 ASSEMBLER_TEST_GENERATE(Vmov, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     __ mov(R3, Operand(43));
@@ -271,7 +250,6 @@ ASSEMBLER_TEST_GENERATE(Vmov, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vmov, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -279,7 +257,6 @@ ASSEMBLER_TEST_RUN(Vmov, test) {
     EXPECT_EQ(2, EXECUTE_TEST_CODE_INT32(Vmov, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(SingleVLoadStore, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
@@ -294,7 +271,6 @@ ASSEMBLER_TEST_GENERATE(SingleVLoadStore, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(SingleVLoadStore, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -303,7 +279,6 @@ ASSEMBLER_TEST_RUN(SingleVLoadStore, test) {
     EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(SingleVShiftLoadStore, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
@@ -323,7 +298,6 @@ ASSEMBLER_TEST_GENERATE(SingleVShiftLoadStore, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(SingleVShiftLoadStore, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -332,7 +306,6 @@ ASSEMBLER_TEST_RUN(SingleVShiftLoadStore, test) {
     EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(DoubleVLoadStore, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
@@ -351,7 +324,6 @@ ASSEMBLER_TEST_GENERATE(DoubleVLoadStore, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(DoubleVLoadStore, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -360,7 +332,6 @@ ASSEMBLER_TEST_RUN(DoubleVLoadStore, test) {
     EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(SingleFPOperations, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
@@ -377,7 +348,6 @@ ASSEMBLER_TEST_GENERATE(SingleFPOperations, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(SingleFPOperations, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -386,7 +356,6 @@ ASSEMBLER_TEST_RUN(SingleFPOperations, test) {
     EXPECT_FLOAT_EQ(3.8340579f, res, 0.001f);
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(DoubleFPOperations, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
@@ -403,7 +372,6 @@ ASSEMBLER_TEST_GENERATE(DoubleFPOperations, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(DoubleFPOperations, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -412,7 +380,6 @@ ASSEMBLER_TEST_RUN(DoubleFPOperations, test) {
     EXPECT_FLOAT_EQ(3.8340579, res, 0.001);
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(DoubleSqrtNeg, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
@@ -427,7 +394,6 @@ ASSEMBLER_TEST_GENERATE(DoubleSqrtNeg, assembler) {
   __ Ret();
 }
 
-
 ASSEMBLER_TEST_RUN(DoubleSqrtNeg, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -435,7 +401,6 @@ ASSEMBLER_TEST_RUN(DoubleSqrtNeg, test) {
     EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(DoubleSqrtNeg, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(IntToDoubleConversion, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
@@ -446,7 +411,6 @@ ASSEMBLER_TEST_GENERATE(IntToDoubleConversion, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(IntToDoubleConversion, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -456,7 +420,6 @@ ASSEMBLER_TEST_RUN(IntToDoubleConversion, test) {
     EXPECT_FLOAT_EQ(6.0, res, 0.001);
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(LongToDoubleConversion, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
@@ -473,7 +436,6 @@ ASSEMBLER_TEST_GENERATE(LongToDoubleConversion, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(LongToDoubleConversion, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -484,7 +446,6 @@ ASSEMBLER_TEST_RUN(LongToDoubleConversion, test) {
   }
 }
 
-
 ASSEMBLER_TEST_GENERATE(IntToFloatConversion, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     __ mov(R3, Operand(6));
@@ -493,7 +454,6 @@ ASSEMBLER_TEST_GENERATE(IntToFloatConversion, assembler) {
   }
   __ bx(LR);
 }
-
 
 ASSEMBLER_TEST_RUN(IntToFloatConversion, test) {
   EXPECT(test != NULL);
@@ -505,7 +465,6 @@ ASSEMBLER_TEST_RUN(IntToFloatConversion, test) {
   }
 }
 
-
 ASSEMBLER_TEST_GENERATE(FloatToIntConversion, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     __ vcvtis(S1, S0);
@@ -513,7 +472,6 @@ ASSEMBLER_TEST_GENERATE(FloatToIntConversion, assembler) {
   }
   __ bx(LR);
 }
-
 
 ASSEMBLER_TEST_RUN(FloatToIntConversion, test) {
   EXPECT(test != NULL);
@@ -528,7 +486,6 @@ ASSEMBLER_TEST_RUN(FloatToIntConversion, test) {
   }
 }
 
-
 ASSEMBLER_TEST_GENERATE(DoubleToIntConversion, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     __ vcvtid(S0, D0);
@@ -536,7 +493,6 @@ ASSEMBLER_TEST_GENERATE(DoubleToIntConversion, assembler) {
   }
   __ bx(LR);
 }
-
 
 ASSEMBLER_TEST_RUN(DoubleToIntConversion, test) {
   if (TargetCPUFeatures::vfp_supported()) {
@@ -551,7 +507,6 @@ ASSEMBLER_TEST_RUN(DoubleToIntConversion, test) {
   }
 }
 
-
 ASSEMBLER_TEST_GENERATE(FloatToDoubleConversion, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     __ LoadSImmediate(S2, 12.8f);
@@ -559,7 +514,6 @@ ASSEMBLER_TEST_GENERATE(FloatToDoubleConversion, assembler) {
   }
   __ bx(LR);
 }
-
 
 ASSEMBLER_TEST_RUN(FloatToDoubleConversion, test) {
   if (TargetCPUFeatures::vfp_supported()) {
@@ -571,7 +525,6 @@ ASSEMBLER_TEST_RUN(FloatToDoubleConversion, test) {
   }
 }
 
-
 ASSEMBLER_TEST_GENERATE(DoubleToFloatConversion, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     __ LoadDImmediate(D1, 12.8, R0);
@@ -579,7 +532,6 @@ ASSEMBLER_TEST_GENERATE(DoubleToFloatConversion, assembler) {
   }
   __ bx(LR);
 }
-
 
 ASSEMBLER_TEST_RUN(DoubleToFloatConversion, test) {
   EXPECT(test != NULL);
@@ -590,7 +542,6 @@ ASSEMBLER_TEST_RUN(DoubleToFloatConversion, test) {
     EXPECT_FLOAT_EQ(12.8, res, 0.001);
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(FloatCompare, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
@@ -620,7 +571,6 @@ ASSEMBLER_TEST_GENERATE(FloatCompare, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(FloatCompare, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -628,7 +578,6 @@ ASSEMBLER_TEST_RUN(FloatCompare, test) {
     EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(FloatCompare, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(DoubleCompare, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
@@ -658,7 +607,6 @@ ASSEMBLER_TEST_GENERATE(DoubleCompare, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(DoubleCompare, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -666,7 +614,6 @@ ASSEMBLER_TEST_RUN(DoubleCompare, test) {
     EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(DoubleCompare, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Loop, assembler) {
   Label loop_entry;
@@ -679,13 +626,11 @@ ASSEMBLER_TEST_GENERATE(Loop, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Loop, test) {
   EXPECT(test != NULL);
   typedef int (*Loop)() DART_UNUSED;
   EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Loop, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(ForwardBranch, assembler) {
   Label skip;
@@ -696,13 +641,11 @@ ASSEMBLER_TEST_GENERATE(ForwardBranch, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(ForwardBranch, test) {
   EXPECT(test != NULL);
   typedef int (*ForwardBranch)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(ForwardBranch, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Loop2, assembler) {
   Label loop_entry;
@@ -716,13 +659,11 @@ ASSEMBLER_TEST_GENERATE(Loop2, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Loop2, test) {
   EXPECT(test != NULL);
   typedef int (*Loop)() DART_UNUSED;
   EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Loop, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Loop3, assembler) {
   Label loop_entry;
@@ -739,13 +680,11 @@ ASSEMBLER_TEST_GENERATE(Loop3, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Loop3, test) {
   EXPECT(test != NULL);
   typedef int (*Loop)() DART_UNUSED;
   EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Loop, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(LoadStore, assembler) {
   __ mov(R1, Operand(123));
@@ -754,13 +693,11 @@ ASSEMBLER_TEST_GENERATE(LoadStore, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(LoadStore, test) {
   EXPECT(test != NULL);
   typedef int (*LoadStore)() DART_UNUSED;
   EXPECT_EQ(123, EXECUTE_TEST_CODE_INT32(LoadStore, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
   if (TargetCPUFeatures::arm_version() != ARMv5TE) {
@@ -778,7 +715,6 @@ ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Semaphore, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::arm_version() != ARMv5TE) {
@@ -786,7 +722,6 @@ ASSEMBLER_TEST_RUN(Semaphore, test) {
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Semaphore, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(FailedSemaphore, assembler) {
   if (TargetCPUFeatures::arm_version() != ARMv5TE) {
@@ -802,7 +737,6 @@ ASSEMBLER_TEST_GENERATE(FailedSemaphore, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(FailedSemaphore, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::arm_version() != ARMv5TE) {
@@ -810,7 +744,6 @@ ASSEMBLER_TEST_RUN(FailedSemaphore, test) {
     EXPECT_EQ(41, EXECUTE_TEST_CODE_INT32(FailedSemaphore, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(AddSub, assembler) {
   __ mov(R1, Operand(40));
@@ -821,13 +754,11 @@ ASSEMBLER_TEST_GENERATE(AddSub, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(AddSub, test) {
   EXPECT(test != NULL);
   typedef int (*AddSub)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(AddSub, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AddCarry, assembler) {
   __ LoadImmediate(R2, 0xFFFFFFFF);
@@ -838,13 +769,11 @@ ASSEMBLER_TEST_GENERATE(AddCarry, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(AddCarry, test) {
   EXPECT(test != NULL);
   typedef int (*AddCarry)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(AddCarry, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AddCarryInOut, assembler) {
   __ LoadImmediate(R2, 0xFFFFFFFF);
@@ -856,13 +785,11 @@ ASSEMBLER_TEST_GENERATE(AddCarryInOut, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(AddCarryInOut, test) {
   EXPECT(test != NULL);
   typedef int (*AddCarryInOut)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(AddCarryInOut, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(SubCarry, assembler) {
   __ LoadImmediate(R2, 0x0);
@@ -873,13 +800,11 @@ ASSEMBLER_TEST_GENERATE(SubCarry, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(SubCarry, test) {
   EXPECT(test != NULL);
   typedef int (*SubCarry)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SubCarry, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(SubCarryInOut, assembler) {
   __ mov(R1, Operand(1));
@@ -890,13 +815,11 @@ ASSEMBLER_TEST_GENERATE(SubCarryInOut, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(SubCarryInOut, test) {
   EXPECT(test != NULL);
   typedef int (*SubCarryInOut)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SubCarryInOut, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Overflow, assembler) {
   __ LoadImmediate(R0, 0xFFFFFFFF);
@@ -907,13 +830,11 @@ ASSEMBLER_TEST_GENERATE(Overflow, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Overflow, test) {
   EXPECT(test != NULL);
   typedef int (*Overflow)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Overflow, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AndOrr, assembler) {
   __ mov(R1, Operand(40));
@@ -924,13 +845,11 @@ ASSEMBLER_TEST_GENERATE(AndOrr, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(AndOrr, test) {
   EXPECT(test != NULL);
   typedef int (*AndOrr)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(AndOrr, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Orrs, assembler) {
   __ mov(R0, Operand(0));
@@ -943,13 +862,11 @@ ASSEMBLER_TEST_GENERATE(Orrs, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Orrs, test) {
   EXPECT(test != NULL);
   typedef int (*Orrs)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Orrs, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Multiply, assembler) {
   __ mov(R1, Operand(20));
@@ -959,13 +876,11 @@ ASSEMBLER_TEST_GENERATE(Multiply, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Multiply, test) {
   EXPECT(test != NULL);
   typedef int (*Multiply)() DART_UNUSED;
   EXPECT_EQ(800, EXECUTE_TEST_CODE_INT32(Multiply, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(QuotientRemainder, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
@@ -981,7 +896,6 @@ ASSEMBLER_TEST_GENERATE(QuotientRemainder, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(QuotientRemainder, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -992,7 +906,6 @@ ASSEMBLER_TEST_RUN(QuotientRemainder, test) {
                                          0x12345678, 0x1234));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Multiply64To64, assembler) {
   __ Push(R4);
@@ -1005,7 +918,6 @@ ASSEMBLER_TEST_GENERATE(Multiply64To64, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Multiply64To64, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Multiply64To64)(int64_t operand0, int64_t operand1)
@@ -1014,12 +926,10 @@ ASSEMBLER_TEST_RUN(Multiply64To64, test) {
             EXECUTE_TEST_CODE_INT64_LL(Multiply64To64, test->entry(), -3, -2));
 }
 
-
 ASSEMBLER_TEST_GENERATE(Multiply32To64, assembler) {
   __ smull(R0, R1, R0, R2);
   __ bx(LR);
 }
-
 
 ASSEMBLER_TEST_RUN(Multiply32To64, test) {
   EXPECT(test != NULL);
@@ -1029,12 +939,10 @@ ASSEMBLER_TEST_RUN(Multiply32To64, test) {
             EXECUTE_TEST_CODE_INT64_LL(Multiply32To64, test->entry(), -3, -2));
 }
 
-
 ASSEMBLER_TEST_GENERATE(MultiplyAccumAccum32To64, assembler) {
   __ umaal(R0, R1, R2, R3);
   __ bx(LR);
 }
-
 
 ASSEMBLER_TEST_RUN(MultiplyAccumAccum32To64, test) {
   EXPECT(test != NULL);
@@ -1044,7 +952,6 @@ ASSEMBLER_TEST_RUN(MultiplyAccumAccum32To64, test) {
             EXECUTE_TEST_CODE_INT64_LL(MultiplyAccumAccum32To64, test->entry(),
                                        (3LL << 32) + 7, (5LL << 32) + 11));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Clz, assembler) {
   Label error;
@@ -1072,13 +979,11 @@ ASSEMBLER_TEST_GENERATE(Clz, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Clz, test) {
   EXPECT(test != NULL);
   typedef int (*Clz)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Clz, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Tst, assembler) {
   Label skip;
@@ -1092,13 +997,11 @@ ASSEMBLER_TEST_GENERATE(Tst, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Tst, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Lsl, assembler) {
   Label skip;
@@ -1110,13 +1013,11 @@ ASSEMBLER_TEST_GENERATE(Lsl, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Lsl, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Lsr, assembler) {
   Label skip;
@@ -1128,13 +1029,11 @@ ASSEMBLER_TEST_GENERATE(Lsr, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Lsr, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Lsr1, assembler) {
   Label skip;
@@ -1145,13 +1044,11 @@ ASSEMBLER_TEST_GENERATE(Lsr1, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Lsr1, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Asr1, assembler) {
   Label skip;
@@ -1162,13 +1059,11 @@ ASSEMBLER_TEST_GENERATE(Asr1, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Asr1, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Rsb, assembler) {
   __ mov(R3, Operand(10));
@@ -1176,13 +1071,11 @@ ASSEMBLER_TEST_GENERATE(Rsb, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Rsb, test) {
   EXPECT(test != NULL);
   typedef int (*Rsb)() DART_UNUSED;
   EXPECT_EQ(32, EXECUTE_TEST_CODE_INT32(Rsb, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Ldrh, assembler) {
   Label Test1, Test2, Test3, Done;
@@ -1222,13 +1115,11 @@ ASSEMBLER_TEST_GENERATE(Ldrh, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Ldrh, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Ldrsb, assembler) {
   __ mov(R1, Operand(0xFF));
@@ -1239,13 +1130,11 @@ ASSEMBLER_TEST_GENERATE(Ldrsb, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Ldrsb, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Ldrb, assembler) {
   __ mov(R1, Operand(0xFF));
@@ -1256,13 +1145,11 @@ ASSEMBLER_TEST_GENERATE(Ldrb, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Ldrb, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(0xff, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Ldrsh, assembler) {
   __ mov(R1, Operand(0xFF));
@@ -1273,13 +1160,11 @@ ASSEMBLER_TEST_GENERATE(Ldrsh, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Ldrsh, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(0xff, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Ldrh1, assembler) {
   __ mov(R1, Operand(0xFF));
@@ -1290,13 +1175,11 @@ ASSEMBLER_TEST_GENERATE(Ldrh1, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Ldrh1, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(0xff, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Ldrd, assembler) {
   __ mov(IP, Operand(SP));
@@ -1311,7 +1194,6 @@ ASSEMBLER_TEST_GENERATE(Ldrd, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Ldrd, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Tst)(int64_t r0r1, int64_t r2r3) DART_UNUSED;
@@ -1319,7 +1201,6 @@ ASSEMBLER_TEST_RUN(Ldrd, test) {
             EXECUTE_TEST_CODE_INT64_LL(Tst, test->entry(), 0x0000111100000000LL,
                                        0x0000333300002222LL));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Ldm_stm_da, assembler) {
   __ mov(R0, Operand(1));
@@ -1356,13 +1237,11 @@ ASSEMBLER_TEST_GENERATE(Ldm_stm_da, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Ldm_stm_da, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(-52, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AddressShiftStrLSL1NegOffset, assembler) {
   __ mov(R2, Operand(42));
@@ -1372,13 +1251,11 @@ ASSEMBLER_TEST_GENERATE(AddressShiftStrLSL1NegOffset, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(AddressShiftStrLSL1NegOffset, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSL5NegOffset, assembler) {
   __ mov(R2, Operand(42));
@@ -1388,13 +1265,11 @@ ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSL5NegOffset, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(AddressShiftLdrLSL5NegOffset, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AddressShiftStrLRS1NegOffset, assembler) {
   __ mov(R2, Operand(42));
@@ -1404,13 +1279,11 @@ ASSEMBLER_TEST_GENERATE(AddressShiftStrLRS1NegOffset, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(AddressShiftStrLRS1NegOffset, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AddressShiftLdrLRS1NegOffset, assembler) {
   __ mov(R2, Operand(42));
@@ -1420,13 +1293,11 @@ ASSEMBLER_TEST_GENERATE(AddressShiftLdrLRS1NegOffset, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(AddressShiftLdrLRS1NegOffset, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AddressShiftStrLSLNegPreIndex, assembler) {
   __ mov(R2, Operand(42));
@@ -1438,13 +1309,11 @@ ASSEMBLER_TEST_GENERATE(AddressShiftStrLSLNegPreIndex, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(AddressShiftStrLSLNegPreIndex, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSLNegPreIndex, assembler) {
   __ mov(R2, Operand(42));
@@ -1454,13 +1323,11 @@ ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSLNegPreIndex, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(AddressShiftLdrLSLNegPreIndex, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 // Make sure we can store and reload the D registers using vstmd and vldmd
 ASSEMBLER_TEST_GENERATE(VstmdVldmd, assembler) {
@@ -1493,7 +1360,6 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd, assembler) {
     __ vmstat();
     __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
-
     // Check that 2.0 is back in D2
     __ LoadDImmediate(D5, 2.0, R1);
     __ vcmpd(D2, D5);
@@ -1509,7 +1375,6 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(VstmdVldmd, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -1517,7 +1382,6 @@ ASSEMBLER_TEST_RUN(VstmdVldmd, test) {
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 // Make sure we can store and reload the S registers using vstms and vldms
 ASSEMBLER_TEST_GENERATE(VstmsVldms, assembler) {
@@ -1565,7 +1429,6 @@ ASSEMBLER_TEST_GENERATE(VstmsVldms, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(VstmsVldms, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -1573,7 +1436,6 @@ ASSEMBLER_TEST_RUN(VstmsVldms, test) {
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 // Make sure we can start somewhere other than D0
 ASSEMBLER_TEST_GENERATE(VstmdVldmd1, assembler) {
@@ -1604,7 +1466,6 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd1, assembler) {
     __ vmstat();
     __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
-
     // Check that 2.0 is back in D2
     __ LoadDImmediate(D5, 2.0, R1);
     __ vcmpd(D2, D5);
@@ -1620,7 +1481,6 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd1, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(VstmdVldmd1, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -1628,7 +1488,6 @@ ASSEMBLER_TEST_RUN(VstmdVldmd1, test) {
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 // Make sure we can start somewhere other than S0
 ASSEMBLER_TEST_GENERATE(VstmsVldms1, assembler) {
@@ -1674,7 +1533,6 @@ ASSEMBLER_TEST_GENERATE(VstmsVldms1, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(VstmsVldms1, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -1682,7 +1540,6 @@ ASSEMBLER_TEST_RUN(VstmsVldms1, test) {
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 // Make sure we can store the D registers using vstmd and
 // load them into a different set using vldmd
@@ -1714,7 +1571,6 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd_off, assembler) {
     __ vmstat();
     __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
-
     // Check that 2.0 is in D7
     __ LoadDImmediate(D10, 2.0, R1);
     __ vcmpd(D7, D10);
@@ -1739,7 +1595,6 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd_off, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(VstmdVldmd_off, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -1747,7 +1602,6 @@ ASSEMBLER_TEST_RUN(VstmdVldmd_off, test) {
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 // Make sure we can start somewhere other than S0
 ASSEMBLER_TEST_GENERATE(VstmsVldms_off, assembler) {
@@ -1797,7 +1651,6 @@ ASSEMBLER_TEST_GENERATE(VstmsVldms_off, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(VstmsVldms_off, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
@@ -1805,7 +1658,6 @@ ASSEMBLER_TEST_RUN(VstmsVldms_off, test) {
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Udiv, assembler) {
   if (TargetCPUFeatures::integer_division_supported()) {
@@ -1817,7 +1669,6 @@ ASSEMBLER_TEST_GENERATE(Udiv, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Udiv, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::integer_division_supported()) {
@@ -1825,7 +1676,6 @@ ASSEMBLER_TEST_RUN(Udiv, test) {
     EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Sdiv, assembler) {
   if (TargetCPUFeatures::integer_division_supported()) {
@@ -1837,7 +1687,6 @@ ASSEMBLER_TEST_GENERATE(Sdiv, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Sdiv, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::integer_division_supported()) {
@@ -1845,7 +1694,6 @@ ASSEMBLER_TEST_RUN(Sdiv, test) {
     EXPECT_EQ(-3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Udiv_zero, assembler) {
   if (TargetCPUFeatures::integer_division_supported()) {
@@ -1857,7 +1705,6 @@ ASSEMBLER_TEST_GENERATE(Udiv_zero, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Udiv_zero, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::integer_division_supported()) {
@@ -1865,7 +1712,6 @@ ASSEMBLER_TEST_RUN(Udiv_zero, test) {
     EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Sdiv_zero, assembler) {
   if (TargetCPUFeatures::integer_division_supported()) {
@@ -1877,7 +1723,6 @@ ASSEMBLER_TEST_GENERATE(Sdiv_zero, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Sdiv_zero, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::integer_division_supported()) {
@@ -1885,7 +1730,6 @@ ASSEMBLER_TEST_RUN(Sdiv_zero, test) {
     EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Udiv_corner, assembler) {
   if (TargetCPUFeatures::integer_division_supported()) {
@@ -1897,7 +1741,6 @@ ASSEMBLER_TEST_GENERATE(Udiv_corner, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Udiv_corner, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::integer_division_supported()) {
@@ -1905,7 +1748,6 @@ ASSEMBLER_TEST_RUN(Udiv_corner, test) {
     EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Sdiv_corner, assembler) {
   if (TargetCPUFeatures::integer_division_supported()) {
@@ -1917,7 +1759,6 @@ ASSEMBLER_TEST_GENERATE(Sdiv_corner, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Sdiv_corner, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::integer_division_supported()) {
@@ -1926,7 +1767,6 @@ ASSEMBLER_TEST_RUN(Sdiv_corner, test) {
               EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(IntDiv_supported, assembler) {
 #if defined(USING_SIMULATOR)
@@ -1947,7 +1787,6 @@ ASSEMBLER_TEST_GENERATE(IntDiv_supported, assembler) {
 #endif
 }
 
-
 ASSEMBLER_TEST_RUN(IntDiv_supported, test) {
   EXPECT(test != NULL);
 #if defined(USING_SIMULATOR)
@@ -1965,7 +1804,6 @@ ASSEMBLER_TEST_RUN(IntDiv_supported, test) {
   }
 #endif
 }
-
 
 ASSEMBLER_TEST_GENERATE(IntDiv_unsupported, assembler) {
 #if defined(USING_SIMULATOR)
@@ -1988,7 +1826,6 @@ ASSEMBLER_TEST_GENERATE(IntDiv_unsupported, assembler) {
 #endif
 }
 
-
 ASSEMBLER_TEST_RUN(IntDiv_unsupported, test) {
   EXPECT(test != NULL);
 #if defined(USING_SIMULATOR)
@@ -2007,7 +1844,6 @@ ASSEMBLER_TEST_RUN(IntDiv_unsupported, test) {
 #endif
 }
 
-
 ASSEMBLER_TEST_GENERATE(Muls, assembler) {
   __ mov(R0, Operand(3));
   __ LoadImmediate(R1, -9);
@@ -2016,13 +1852,11 @@ ASSEMBLER_TEST_GENERATE(Muls, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Muls, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vaddqi8, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2057,7 +1891,6 @@ ASSEMBLER_TEST_GENERATE(Vaddqi8, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vaddqi8, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2065,7 +1898,6 @@ ASSEMBLER_TEST_RUN(Vaddqi8, test) {
     EXPECT_EQ(36, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vaddqi16, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2100,7 +1932,6 @@ ASSEMBLER_TEST_GENERATE(Vaddqi16, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vaddqi16, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2108,7 +1939,6 @@ ASSEMBLER_TEST_RUN(Vaddqi16, test) {
     EXPECT_EQ(36, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vaddqi32, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2143,7 +1973,6 @@ ASSEMBLER_TEST_GENERATE(Vaddqi32, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vaddqi32, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2151,7 +1980,6 @@ ASSEMBLER_TEST_RUN(Vaddqi32, test) {
     EXPECT_EQ(36, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vaddqi64, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2174,7 +2002,6 @@ ASSEMBLER_TEST_GENERATE(Vaddqi64, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vaddqi64, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2182,7 +2009,6 @@ ASSEMBLER_TEST_RUN(Vaddqi64, test) {
     EXPECT_EQ(10, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vshlqu64, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2211,7 +2037,6 @@ ASSEMBLER_TEST_GENERATE(Vshlqu64, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vshlqu64, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2219,7 +2044,6 @@ ASSEMBLER_TEST_RUN(Vshlqu64, test) {
     EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vshlqi64, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2248,7 +2072,6 @@ ASSEMBLER_TEST_GENERATE(Vshlqi64, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vshlqi64, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2256,7 +2079,6 @@ ASSEMBLER_TEST_RUN(Vshlqi64, test) {
     EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Mint_shl_ok, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2305,7 +2127,6 @@ ASSEMBLER_TEST_GENERATE(Mint_shl_ok, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Mint_shl_ok, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2313,7 +2134,6 @@ ASSEMBLER_TEST_RUN(Mint_shl_ok, test) {
     EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Mint_shl_overflow, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2362,7 +2182,6 @@ ASSEMBLER_TEST_GENERATE(Mint_shl_overflow, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Mint_shl_overflow, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2370,7 +2189,6 @@ ASSEMBLER_TEST_RUN(Mint_shl_overflow, test) {
     EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vsubqi8, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2405,7 +2223,6 @@ ASSEMBLER_TEST_GENERATE(Vsubqi8, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vsubqi8, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2413,7 +2230,6 @@ ASSEMBLER_TEST_RUN(Vsubqi8, test) {
     EXPECT_EQ(10, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vsubqi16, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2448,7 +2264,6 @@ ASSEMBLER_TEST_GENERATE(Vsubqi16, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vsubqi16, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2456,7 +2271,6 @@ ASSEMBLER_TEST_RUN(Vsubqi16, test) {
     EXPECT_EQ(10, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vsubqi32, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2491,7 +2305,6 @@ ASSEMBLER_TEST_GENERATE(Vsubqi32, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vsubqi32, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2499,7 +2312,6 @@ ASSEMBLER_TEST_RUN(Vsubqi32, test) {
     EXPECT_EQ(10, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vsubqi64, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2522,7 +2334,6 @@ ASSEMBLER_TEST_GENERATE(Vsubqi64, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vsubqi64, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2530,7 +2341,6 @@ ASSEMBLER_TEST_RUN(Vsubqi64, test) {
     EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vmulqi8, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2565,7 +2375,6 @@ ASSEMBLER_TEST_GENERATE(Vmulqi8, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vmulqi8, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2573,7 +2382,6 @@ ASSEMBLER_TEST_RUN(Vmulqi8, test) {
     EXPECT_EQ(70, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vmulqi16, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2608,7 +2416,6 @@ ASSEMBLER_TEST_GENERATE(Vmulqi16, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vmulqi16, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2616,7 +2423,6 @@ ASSEMBLER_TEST_RUN(Vmulqi16, test) {
     EXPECT_EQ(70, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vmulqi32, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2651,7 +2457,6 @@ ASSEMBLER_TEST_GENERATE(Vmulqi32, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vmulqi32, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2659,7 +2464,6 @@ ASSEMBLER_TEST_RUN(Vmulqi32, test) {
     EXPECT_EQ(70, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vaddqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2684,7 +2488,6 @@ ASSEMBLER_TEST_GENERATE(Vaddqs, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vaddqs, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2692,7 +2495,6 @@ ASSEMBLER_TEST_RUN(Vaddqs, test) {
     EXPECT_EQ(36, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vsubqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2717,7 +2519,6 @@ ASSEMBLER_TEST_GENERATE(Vsubqs, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vsubqs, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2725,7 +2526,6 @@ ASSEMBLER_TEST_RUN(Vsubqs, test) {
     EXPECT_EQ(10, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vmulqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2750,7 +2550,6 @@ ASSEMBLER_TEST_GENERATE(Vmulqs, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vmulqs, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2758,7 +2557,6 @@ ASSEMBLER_TEST_RUN(Vmulqs, test) {
     EXPECT_EQ(70, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(VtblX, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2792,7 +2590,6 @@ ASSEMBLER_TEST_GENERATE(VtblX, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(VtblX, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2800,7 +2597,6 @@ ASSEMBLER_TEST_RUN(VtblX, test) {
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(VtblY, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2834,7 +2630,6 @@ ASSEMBLER_TEST_GENERATE(VtblY, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(VtblY, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2842,7 +2637,6 @@ ASSEMBLER_TEST_RUN(VtblY, test) {
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(VtblZ, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2876,7 +2670,6 @@ ASSEMBLER_TEST_GENERATE(VtblZ, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(VtblZ, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2884,7 +2677,6 @@ ASSEMBLER_TEST_RUN(VtblZ, test) {
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(VtblW, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2918,7 +2710,6 @@ ASSEMBLER_TEST_GENERATE(VtblW, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(VtblW, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2926,7 +2717,6 @@ ASSEMBLER_TEST_RUN(VtblW, test) {
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Veorq, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -2959,7 +2749,6 @@ ASSEMBLER_TEST_GENERATE(Veorq, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Veorq, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -2967,7 +2756,6 @@ ASSEMBLER_TEST_RUN(Veorq, test) {
     EXPECT_EQ(-8, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vornq, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3000,7 +2788,6 @@ ASSEMBLER_TEST_GENERATE(Vornq, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vornq, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3008,7 +2795,6 @@ ASSEMBLER_TEST_RUN(Vornq, test) {
     EXPECT_EQ(60, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vorrq, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3041,7 +2827,6 @@ ASSEMBLER_TEST_GENERATE(Vorrq, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vorrq, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3049,7 +2834,6 @@ ASSEMBLER_TEST_RUN(Vorrq, test) {
     EXPECT_EQ(-4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vandq, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3082,7 +2866,6 @@ ASSEMBLER_TEST_GENERATE(Vandq, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vandq, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3090,7 +2873,6 @@ ASSEMBLER_TEST_RUN(Vandq, test) {
     EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vmovq, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3118,7 +2900,6 @@ ASSEMBLER_TEST_GENERATE(Vmovq, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vmovq, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3126,7 +2907,6 @@ ASSEMBLER_TEST_RUN(Vmovq, test) {
     EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vmvnq, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3139,7 +2919,6 @@ ASSEMBLER_TEST_GENERATE(Vmvnq, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vmvnq, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3147,7 +2926,6 @@ ASSEMBLER_TEST_RUN(Vmvnq, test) {
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vdupb, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3171,7 +2949,6 @@ ASSEMBLER_TEST_GENERATE(Vdupb, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vdupb, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3179,7 +2956,6 @@ ASSEMBLER_TEST_RUN(Vdupb, test) {
     EXPECT_EQ(-4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vduph, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3203,7 +2979,6 @@ ASSEMBLER_TEST_GENERATE(Vduph, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vduph, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3211,7 +2986,6 @@ ASSEMBLER_TEST_RUN(Vduph, test) {
     EXPECT_EQ(-4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vdupw, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3235,7 +3009,6 @@ ASSEMBLER_TEST_GENERATE(Vdupw, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vdupw, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3243,7 +3016,6 @@ ASSEMBLER_TEST_RUN(Vdupw, test) {
     EXPECT_EQ(-4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vzipqw, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3267,7 +3039,6 @@ ASSEMBLER_TEST_GENERATE(Vzipqw, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vzipqw, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3276,7 +3047,6 @@ ASSEMBLER_TEST_RUN(Vzipqw, test) {
     EXPECT_FLOAT_EQ(8.0, res, 0.0001f);
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vceqqi32, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3311,7 +3081,6 @@ ASSEMBLER_TEST_GENERATE(Vceqqi32, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vceqqi32, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3319,7 +3088,6 @@ ASSEMBLER_TEST_RUN(Vceqqi32, test) {
     EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vceqqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3346,7 +3114,6 @@ ASSEMBLER_TEST_GENERATE(Vceqqs, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vceqqs, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3354,7 +3121,6 @@ ASSEMBLER_TEST_RUN(Vceqqs, test) {
     EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vcgeqi32, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3389,7 +3155,6 @@ ASSEMBLER_TEST_GENERATE(Vcgeqi32, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vcgeqi32, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3397,7 +3162,6 @@ ASSEMBLER_TEST_RUN(Vcgeqi32, test) {
     EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vcugeqi32, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3432,7 +3196,6 @@ ASSEMBLER_TEST_GENERATE(Vcugeqi32, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vcugeqi32, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3440,7 +3203,6 @@ ASSEMBLER_TEST_RUN(Vcugeqi32, test) {
     EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vcgeqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3467,7 +3229,6 @@ ASSEMBLER_TEST_GENERATE(Vcgeqs, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vcgeqs, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3475,7 +3236,6 @@ ASSEMBLER_TEST_RUN(Vcgeqs, test) {
     EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vcgtqi32, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3510,7 +3270,6 @@ ASSEMBLER_TEST_GENERATE(Vcgtqi32, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vcgtqi32, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3518,7 +3277,6 @@ ASSEMBLER_TEST_RUN(Vcgtqi32, test) {
     EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vcugtqi32, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3553,7 +3311,6 @@ ASSEMBLER_TEST_GENERATE(Vcugtqi32, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vcugtqi32, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3561,7 +3318,6 @@ ASSEMBLER_TEST_RUN(Vcugtqi32, test) {
     EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vcgtqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3588,7 +3344,6 @@ ASSEMBLER_TEST_GENERATE(Vcgtqs, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vcgtqs, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3596,7 +3351,6 @@ ASSEMBLER_TEST_RUN(Vcgtqs, test) {
     EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vminqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3622,7 +3376,6 @@ ASSEMBLER_TEST_GENERATE(Vminqs, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vminqs, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3630,7 +3383,6 @@ ASSEMBLER_TEST_RUN(Vminqs, test) {
     EXPECT_EQ(8, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vmaxqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3656,7 +3408,6 @@ ASSEMBLER_TEST_GENERATE(Vmaxqs, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vmaxqs, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3664,7 +3415,6 @@ ASSEMBLER_TEST_RUN(Vmaxqs, test) {
     EXPECT_EQ(14, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
-
 
 // This is the same function as in the Simulator.
 static float arm_recip_estimate(float a) {
@@ -3703,7 +3453,6 @@ static float arm_recip_estimate(float a) {
   return bit_cast<float, int32_t>(result_bits);
 }
 
-
 ASSEMBLER_TEST_GENERATE(Vrecpeqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S4, 147.0);
@@ -3715,7 +3464,6 @@ ASSEMBLER_TEST_GENERATE(Vrecpeqs, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vrecpeqs, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3724,7 +3472,6 @@ ASSEMBLER_TEST_RUN(Vrecpeqs, test) {
     EXPECT_FLOAT_EQ(arm_recip_estimate(147.0), res, 0.0001f);
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vrecpsqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3743,7 +3490,6 @@ ASSEMBLER_TEST_GENERATE(Vrecpsqs, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vrecpsqs, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3752,7 +3498,6 @@ ASSEMBLER_TEST_RUN(Vrecpsqs, test) {
     EXPECT_FLOAT_EQ(2.0 - 10.0 * 5.0, res, 0.0001f);
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Reciprocal, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3772,7 +3517,6 @@ ASSEMBLER_TEST_GENERATE(Reciprocal, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Reciprocal, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3781,7 +3525,6 @@ ASSEMBLER_TEST_RUN(Reciprocal, test) {
     EXPECT_FLOAT_EQ(1.0 / 147000.0, res, 0.0001f);
   }
 }
-
 
 static float arm_reciprocal_sqrt_estimate(float a) {
   // From the ARM Architecture Reference Manual A2-87.
@@ -3837,7 +3580,6 @@ static float arm_reciprocal_sqrt_estimate(float a) {
   return bit_cast<float, int32_t>(result_bits);
 }
 
-
 ASSEMBLER_TEST_GENERATE(Vrsqrteqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S4, 147.0);
@@ -3850,7 +3592,6 @@ ASSEMBLER_TEST_GENERATE(Vrsqrteqs, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vrsqrteqs, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3859,7 +3600,6 @@ ASSEMBLER_TEST_RUN(Vrsqrteqs, test) {
     EXPECT_FLOAT_EQ(arm_reciprocal_sqrt_estimate(147.0), res, 0.0001f);
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vrsqrtsqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3878,7 +3618,6 @@ ASSEMBLER_TEST_GENERATE(Vrsqrtsqs, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vrsqrtsqs, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3887,7 +3626,6 @@ ASSEMBLER_TEST_RUN(Vrsqrtsqs, test) {
     EXPECT_FLOAT_EQ((3.0 - 10.0 * 5.0) / 2.0, res, 0.0001f);
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(ReciprocalSqrt, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3911,7 +3649,6 @@ ASSEMBLER_TEST_GENERATE(ReciprocalSqrt, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(ReciprocalSqrt, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3920,7 +3657,6 @@ ASSEMBLER_TEST_RUN(ReciprocalSqrt, test) {
     EXPECT_FLOAT_EQ(1.0 / sqrt(147000.0), res, 0.0001f);
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(SIMDSqrt, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -3954,7 +3690,6 @@ ASSEMBLER_TEST_GENERATE(SIMDSqrt, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(SIMDSqrt, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -3963,7 +3698,6 @@ ASSEMBLER_TEST_RUN(SIMDSqrt, test) {
     EXPECT_FLOAT_EQ(sqrt(147000.0), res, 0.0001f);
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(SIMDSqrt2, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -4001,7 +3735,6 @@ ASSEMBLER_TEST_GENERATE(SIMDSqrt2, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(SIMDSqrt2, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -4010,7 +3743,6 @@ ASSEMBLER_TEST_RUN(SIMDSqrt2, test) {
     EXPECT_FLOAT_EQ(10.0, res, 0.0001f);
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(SIMDDiv, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -4040,7 +3772,6 @@ ASSEMBLER_TEST_GENERATE(SIMDDiv, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(SIMDDiv, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -4049,7 +3780,6 @@ ASSEMBLER_TEST_RUN(SIMDDiv, test) {
     EXPECT_FLOAT_EQ(16.0, res, 0.0001f);
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vabsqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -4067,7 +3797,6 @@ ASSEMBLER_TEST_GENERATE(Vabsqs, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vabsqs, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -4076,7 +3805,6 @@ ASSEMBLER_TEST_RUN(Vabsqs, test) {
     EXPECT_FLOAT_EQ(4.0, res, 0.0001f);
   }
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vnegqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
@@ -4094,7 +3822,6 @@ ASSEMBLER_TEST_GENERATE(Vnegqs, assembler) {
   __ bx(LR);
 }
 
-
 ASSEMBLER_TEST_RUN(Vnegqs, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::neon_supported()) {
@@ -4103,7 +3830,6 @@ ASSEMBLER_TEST_RUN(Vnegqs, test) {
     EXPECT_FLOAT_EQ(2.0, res, 0.0001f);
   }
 }
-
 
 // Called from assembler_test.cc.
 // LR: return address.

@@ -22,6 +22,11 @@ import 'package:analyzer/src/generated/source.dart';
  */
 abstract class AnalysisSession {
   /**
+   * Return the source factory used to resolve URIs.
+   */
+  SourceFactory get sourceFactory;
+
+  /**
    * Return a type provider that is consistent with the results returned by this
    * session.
    */

@@ -57,6 +57,7 @@ enum_const_test/02: RuntimeError # Issue 21817
 error_exit_at_spawn_test: Skip # Issue 23876
 error_at_spawn_test: Skip # Issue 23876
 exit_at_spawn_test: Skip # Issue 23876
+message4_test: Skip # Issue 30247
 
 [ $compiler == dart2js && $jscl ]
 spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
@@ -105,63 +106,6 @@ unresolved_ports_test: Pass, Timeout # Issue 15610
 [ $jscl ]
 spawn_uri_multi_test/none: RuntimeError # Issue 13544
 
-[ ($compiler == none) && $runtime == dartium && $arch == x64 ]
-spawn_uri_multi_test/01: Skip # Times out. Issue 24795
-
-[ ($compiler == none) && ( $runtime == dartium || $runtime == drt) ]
-spawn_uri_nested_vm_test: Skip # Issue 14479: This test is timing out. Issue 14463
-typed_message_test: Skip # Issue 13921, 14400
-isolate_stress_test: Skip # Issue 13921 Dom isolates don't support spawnFunction
-object_leak_test: Skip # Issue 13921 Dom isolates don't support spawnFunction
-send_private_test: Skip # Issue 13921 Dom isolates don't support spawnFunction
-spawn_uri_missing_from_isolate_test: Skip # Issue 17649
-spawn_uri_missing_test: SkipSlow # Times out.
-kill3_test: Fail, OK  # 13921 Dom isolates don't support spawnFunction
-timer_isolate_test: Fail, Pass # Issue 15487. Issue 13921: Dom isolates don't support spawnFunction
-deferred_in_isolate2_test: Skip  # Issue 16209, 13921 Dom isolates don't support spawnFunction
-bool_from_environment_default_value_test: Skip
-int_from_environment_default_value_test: Skip
-string_from_environment_default_value_test: Skip
-error_exit_at_spawn_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
-error_at_spawn_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
-exit_at_spawn_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
-error_exit_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
-error_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
-exit_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
-issue_21398_parent_isolate2_test/01: SkipByDesign  # Uses spawnFunction
-compile_time_error_test/none: RuntimeError, OK  # Uses Isolate.spawn.
-function_send_test: RuntimeError, OK  # Uses Isolate.spawn.
-handle_error2_test: RuntimeError, OK  # Uses Isolate.spawn.
-handle_error3_test: RuntimeError, OK  # Uses Isolate.spawn.
-handle_error_test: RuntimeError, OK  # Uses Isolate.spawn.
-isolate_current_test: RuntimeError, OK  # Uses Isolate.spawn.
-isolate_import_test/none: RuntimeError, OK  # Uses Isolate.spawn.
-issue_21398_parent_isolate1_test: RuntimeError, OK  # Uses Isolate.spawn.
-issue_21398_parent_isolate_test: RuntimeError, OK  # Uses Isolate.spawn.
-kill2_test: RuntimeError, OK  # Uses Isolate.spawn.
-kill_self_test: RuntimeError, OK  # Uses Isolate.spawn.
-kill_test: RuntimeError, OK  # Uses Isolate.spawn.
-message3_test/byteBuffer: RuntimeError, OK  # Uses Isolate.spawn.
-message3_test/constInstance: RuntimeError, OK  # Uses Isolate.spawn.
-message3_test/constList: RuntimeError, OK  # Uses Isolate.spawn.
-message3_test/constList_identical: RuntimeError, OK  # Uses Isolate.spawn.
-message3_test/constMap: RuntimeError, OK  # Uses Isolate.spawn.
-message3_test/fun: RuntimeError, OK  # Uses Isolate.spawn.
-message3_test/none: RuntimeError, OK  # Uses Isolate.spawn.
-message_enum_test: RuntimeError, OK  # Uses Isolate.spawn.
-ondone_test: RuntimeError, OK  # Uses Isolate.spawn.
-pause_test: RuntimeError, OK  # Uses Isolate.spawn.
-simple_message_test/none: RuntimeError, OK  # Uses Isolate.spawn.
-start_paused_test: RuntimeError, OK  # Uses Isolate.spawn.
-message3_test/int32x4: RuntimeError, OK  # Uses Isolate.spawn.
-browser/package_resolve_browser_hook*: Skip # Tests that use defaultPackagesBase (not supported in Dartium).
-
-[ ($compiler == none) && ( $runtime == dartium || $runtime == drt) ]
-browser/package_resolve_browser_test: Fail # Issue 28382
-
-[ ($compiler == none) && ( $runtime == dartium || $runtime == drt) && ($system == windows) ]
-browser/package_resolve_browser_test: Skip # Temporarily disabled working on CL to fix under Windows.
-
 [ $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
 mint_maker_test: StaticWarning
@@ -179,7 +123,7 @@ package_resolve_test: SkipByDesign  # Uses Isolate.resolvePackageUri
 spawn_uri_fail_test: SkipByDesign  # Uses dart:io.
 scenarios/*: SkipByDesign  # Use automatic package resolution, spawnFunction and .dart URIs.
 
-[ $compiler == precompiler || $mode == product || $runtime == flutter ]
+[ $compiler == precompiler || $runtime == flutter ]
 # Imports dart:mirrors
 count_test: SkipByDesign
 cross_isolate_message_test: SkipByDesign
@@ -255,6 +199,9 @@ ping_pause_test: Pass, Timeout
 spawn_function_custom_class_test: Pass, Timeout
 spawn_uri_exported_main_test: RuntimeError
 spawn_uri_nested_vm_test: Pass, Timeout
+
+[ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
+static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
 
 [ $runtime == flutter ]
 issue_21398_parent_isolate2_test/01: Skip # Flutter Issue 9114

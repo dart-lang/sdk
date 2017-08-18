@@ -5,8 +5,8 @@
 import 'dart:typed_data';
 
 import 'package:front_end/src/base/api_signature.dart';
-import 'package:front_end/src/fasta/parser/listener.dart' show Listener;
-import 'package:front_end/src/fasta/parser/parser.dart' show Parser, optional;
+import 'package:front_end/src/fasta/parser.dart'
+    show Listener, Parser, optional;
 import 'package:front_end/src/fasta/parser/top_level_parser.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/scanner/token_constants.dart'
@@ -110,13 +110,14 @@ class _BodySkippingParser extends Parser {
   _BodySkippingParser() : super(new Listener());
 
   @override
-  Token parseFunctionBody(Token token, bool isExpression, bool allowAbstract) {
+  Token parseFunctionBody(
+      Token token, bool ofFunctionExpression, bool allowAbstract) {
     if (identical('{', token.lexeme)) {
       Token close = skipBlock(token);
       bodyRanges.add(new _BodyRange(token.charOffset, close.charOffset));
-      return close;
+      return ofFunctionExpression ? close.next : close;
     }
-    return super.parseFunctionBody(token, isExpression, allowAbstract);
+    return super.parseFunctionBody(token, ofFunctionExpression, allowAbstract);
   }
 
   Token parseMixinApplicationRest(Token token) {

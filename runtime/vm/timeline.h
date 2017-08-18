@@ -9,7 +9,9 @@
 
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
+#include "vm/growable_array.h"
 #include "vm/os.h"
+#include "vm/os_thread.h"
 
 namespace dart {
 
@@ -25,6 +27,7 @@ class TimelineEvent;
 class TimelineEventBlock;
 class TimelineEventRecorder;
 class TimelineStream;
+class VirtualMemory;
 class Zone;
 
 // (name, enabled by default for isolate).
@@ -137,12 +140,10 @@ class Timeline : public AllStatic {
   friend class ReclaimBlocksIsolateVisitor;
 };
 
-
 struct TimelineEventArgument {
   const char* name;
   char* value;
 };
-
 
 // You should get a |TimelineEvent| from a |TimelineStream|.
 class TimelineEvent {
@@ -158,6 +159,9 @@ class TimelineEvent {
     kAsyncInstant,
     kAsyncEnd,
     kCounter,
+    kFlowBegin,
+    kFlowStep,
+    kFlowEnd,
     kMetadata,
     kNumEventTypes,
   };
@@ -208,6 +212,16 @@ class TimelineEvent {
            int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
 
   void Counter(const char* label,
+               int64_t micros = OS::GetCurrentMonotonicMicros());
+
+  void FlowBegin(const char* label,
+                 int64_t async_id,
+                 int64_t micros = OS::GetCurrentMonotonicMicros());
+  void FlowStep(const char* label,
+                int64_t async_id,
+                int64_t micros = OS::GetCurrentMonotonicMicros());
+  void FlowEnd(const char* label,
+               int64_t async_id,
                int64_t micros = OS::GetCurrentMonotonicMicros());
 
   void Metadata(const char* label,
@@ -315,8 +329,9 @@ class TimelineEvent {
     state_ = OwnsLabelBit::update(owns_label, state_);
   }
 
-  // Returns the number of bytes written into |buffer|.
-  intptr_t PrintSystrace(char* buffer, intptr_t buffer_size);
+  TimelineEventArgument* arguments() const { return arguments_; }
+
+  intptr_t arguments_length() const { return arguments_length_; }
 
  private:
   void FreeArguments();
@@ -385,12 +400,11 @@ class TimelineEvent {
   friend class TimelineEventEndlessRecorder;
   friend class TimelineEventRingRecorder;
   friend class TimelineEventStartupRecorder;
-  friend class TimelineEventSystraceRecorder;
+  friend class TimelineEventPlatformRecorder;
   friend class TimelineStream;
   friend class TimelineTestHelper;
   DISALLOW_COPY_AND_ASSIGN(TimelineEvent);
 };
-
 
 #ifndef PRODUCT
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)         \
@@ -433,6 +447,10 @@ class TimelineEventScope : public StackResource {
 
   const char* label() const { return label_; }
 
+  TimelineEventArgument* arguments() const { return arguments_; }
+
+  intptr_t arguments_length() const { return arguments_length_; }
+
   TimelineStream* stream() const { return stream_; }
 
   virtual ~TimelineEventScope();
@@ -452,7 +470,6 @@ class TimelineEventScope : public StackResource {
   DISALLOW_COPY_AND_ASSIGN(TimelineEventScope);
 };
 
-
 class TimelineDurationScope : public TimelineEventScope {
  public:
   TimelineDurationScope(TimelineStream* stream, const char* label);
@@ -470,7 +487,6 @@ class TimelineDurationScope : public TimelineEventScope {
   DISALLOW_COPY_AND_ASSIGN(TimelineDurationScope);
 };
 
-
 class TimelineBeginEndScope : public TimelineEventScope {
  public:
   TimelineBeginEndScope(TimelineStream* stream, const char* label);
@@ -487,7 +503,6 @@ class TimelineBeginEndScope : public TimelineEventScope {
 
   DISALLOW_COPY_AND_ASSIGN(TimelineBeginEndScope);
 };
-
 
 // A block of |TimelineEvent|s. Not thread safe.
 class TimelineEventBlock {
@@ -559,14 +574,13 @@ class TimelineEventBlock {
   friend class TimelineEventEndlessRecorder;
   friend class TimelineEventRingRecorder;
   friend class TimelineEventStartupRecorder;
-  friend class TimelineEventSystraceRecorder;
+  friend class TimelineEventPlatformRecorder;
   friend class TimelineTestHelper;
   friend class JSONStream;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TimelineEventBlock);
 };
-
 
 class TimelineEventFilter : public ValueObject {
  public:
@@ -599,7 +613,6 @@ class TimelineEventFilter : public ValueObject {
   int64_t time_extent_micros_;
 };
 
-
 class IsolateTimelineEventFilter : public TimelineEventFilter {
  public:
   explicit IsolateTimelineEventFilter(Dart_Port isolate_id,
@@ -621,7 +634,6 @@ class IsolateTimelineEventFilter : public TimelineEventFilter {
  private:
   Dart_Port isolate_id_;
 };
-
 
 // Recorder of |TimelineEvent|s.
 class TimelineEventRecorder {
@@ -674,7 +686,6 @@ class TimelineEventRecorder {
   DISALLOW_COPY_AND_ASSIGN(TimelineEventRecorder);
 };
 
-
 // An abstract recorder that stores events in a buffer of fixed capacity.
 class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
  public:
@@ -695,12 +706,12 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
 
   void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter);
 
-  TimelineEventBlock** blocks_;
+  VirtualMemory* memory_;
+  TimelineEventBlock* blocks_;
   intptr_t capacity_;
   intptr_t num_blocks_;
   intptr_t block_cursor_;
 };
-
 
 // A recorder that stores events in a buffer of fixed capacity. When the buffer
 // is full, new events overwrite old events.
@@ -716,25 +727,6 @@ class TimelineEventRingRecorder : public TimelineEventFixedBufferRecorder {
   TimelineEventBlock* GetNewBlockLocked();
 };
 
-
-// A recorder that writes events to Android Systrace. Events are also stored in
-// a buffer of fixed capacity. When the buffer is full, new events overwrite
-// old events.
-class TimelineEventSystraceRecorder : public TimelineEventFixedBufferRecorder {
- public:
-  explicit TimelineEventSystraceRecorder(intptr_t capacity = kDefaultCapacity);
-  virtual ~TimelineEventSystraceRecorder();
-
-  const char* name() const { return "Systrace"; }
-
- protected:
-  TimelineEventBlock* GetNewBlockLocked();
-  void CompleteEvent(TimelineEvent* event);
-
-  int systrace_fd_;
-};
-
-
 // A recorder that stores events in a buffer of fixed capacity. When the buffer
 // is full, new events are dropped.
 class TimelineEventStartupRecorder : public TimelineEventFixedBufferRecorder {
@@ -748,7 +740,6 @@ class TimelineEventStartupRecorder : public TimelineEventFixedBufferRecorder {
  protected:
   TimelineEventBlock* GetNewBlockLocked();
 };
-
 
 // An abstract recorder that calls |OnEvent| whenever an event is complete.
 // This should only be used for testing.
@@ -773,7 +764,6 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
 };
-
 
 // A recorder that stores events in chains of blocks of events.
 // NOTE: This recorder will continue to allocate blocks until it exhausts
@@ -803,7 +793,6 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   friend class TimelineTestHelper;
 };
 
-
 // An iterator for blocks.
 class TimelineEventBlockIterator {
  public:
@@ -823,6 +812,131 @@ class TimelineEventBlockIterator {
   TimelineEventRecorder* recorder_;
 };
 
+// The TimelineEventPlatformRecorder records timeline events to a platform
+// specific destination. It's implementation is in the timeline_{linux,...}.cc
+// files.
+class TimelineEventPlatformRecorder : public TimelineEventFixedBufferRecorder {
+ public:
+  explicit TimelineEventPlatformRecorder(intptr_t capacity = kDefaultCapacity);
+  virtual ~TimelineEventPlatformRecorder();
+
+  static TimelineEventPlatformRecorder* CreatePlatformRecorder(
+      intptr_t capacity = kDefaultCapacity);
+
+  const char* name() const;
+
+ protected:
+  TimelineEventBlock* GetNewBlockLocked();
+  virtual void CompleteEvent(TimelineEvent* event);
+};
+
+#if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
+// A recorder that writes events to Android Systrace. Events are also stored in
+// a buffer of fixed capacity. When the buffer is full, new events overwrite
+// old events. This class is exposed in this header file only so that
+// PrintSystrace can be visible to timeline_test.cc.
+class TimelineEventSystraceRecorder : public TimelineEventPlatformRecorder {
+ public:
+  explicit TimelineEventSystraceRecorder(intptr_t capacity = kDefaultCapacity);
+  virtual ~TimelineEventSystraceRecorder();
+
+  static intptr_t PrintSystrace(TimelineEvent* event,
+                                char* buffer,
+                                intptr_t buffer_size);
+
+ private:
+  virtual void CompleteEvent(TimelineEvent* event);
+
+  int systrace_fd_;
+};
+#endif  // defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
+
+// These helper functions have platform specific implementations defined in
+// the timeline_{linux,...}.cc files. They are called from the runtime calls
+// that implement the dart:developer Timeline API.
+class DartTimelineEventHelpers : public AllStatic {
+ public:
+  static void ReportTaskEvent(Thread* thread,
+                              Zone* zone,
+                              TimelineEvent* event,
+                              int64_t start,
+                              int64_t id,
+                              const char* phase,
+                              const char* category,
+                              const char* name,
+                              const char* args);
+
+  static void ReportCompleteEvent(Thread* thread,
+                                  Zone* zone,
+                                  TimelineEvent* event,
+                                  int64_t start,
+                                  int64_t start_cpu,
+                                  const char* category,
+                                  const char* name,
+                                  const char* args);
+
+  static void ReportFlowEvent(Thread* thread,
+                              Zone* zone,
+                              TimelineEvent* event,
+                              int64_t start,
+                              int64_t start_cpu,
+                              const char* category,
+                              const char* name,
+                              int64_t type,
+                              int64_t flow_id,
+                              const char* args);
+
+  static void ReportInstantEvent(Thread* thread,
+                                 Zone* zone,
+                                 TimelineEvent* event,
+                                 int64_t start,
+                                 const char* category,
+                                 const char* name,
+                                 const char* args);
+};
+
+// These are common implementations of the DartTimelineEventHelpers that should
+// be used when there is nothing platform-specific needed.
+class DartCommonTimelineEventHelpers : public AllStatic {
+ public:
+  static void ReportTaskEvent(Thread* thread,
+                              Zone* zone,
+                              TimelineEvent* event,
+                              int64_t start,
+                              int64_t id,
+                              const char* phase,
+                              const char* category,
+                              const char* name,
+                              const char* args);
+
+  static void ReportCompleteEvent(Thread* thread,
+                                  Zone* zone,
+                                  TimelineEvent* event,
+                                  int64_t start,
+                                  int64_t start_cpu,
+                                  const char* category,
+                                  const char* name,
+                                  const char* args);
+
+  static void ReportFlowEvent(Thread* thread,
+                              Zone* zone,
+                              TimelineEvent* event,
+                              int64_t start,
+                              int64_t start_cpu,
+                              const char* category,
+                              const char* name,
+                              int64_t type,
+                              int64_t flow_id,
+                              const char* args);
+
+  static void ReportInstantEvent(Thread* thread,
+                                 Zone* zone,
+                                 TimelineEvent* event,
+                                 int64_t start,
+                                 const char* category,
+                                 const char* name,
+                                 const char* args);
+};
 
 }  // namespace dart
 

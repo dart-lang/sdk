@@ -22,7 +22,6 @@ namespace dart {
 // Facilitate quick access to the current zone once we have the current thread.
 #define Z (T->zone())
 
-
 // --- Classes and Interfaces Reflection ---
 
 DART_EXPORT Dart_Handle Dart_TypeName(Dart_Handle object) {
@@ -35,7 +34,6 @@ DART_EXPORT Dart_Handle Dart_TypeName(Dart_Handle object) {
     RETURN_TYPE_ERROR(Z, object, Class / Type);
   }
 }
-
 
 DART_EXPORT Dart_Handle Dart_QualifiedTypeName(Dart_Handle object) {
   DARTSCOPE(Thread::Current());
@@ -55,7 +53,6 @@ DART_EXPORT Dart_Handle Dart_QualifiedTypeName(Dart_Handle object) {
   }
 }
 
-
 // --- Function and Variable Reflection ---
 
 // Outside of the vm, we expose setter names with a trailing '='.
@@ -63,12 +60,10 @@ static bool HasExternalSetterSuffix(const String& name) {
   return name.CharAt(name.Length() - 1) == '=';
 }
 
-
 static RawString* RemoveExternalSetterSuffix(const String& name) {
   ASSERT(HasExternalSetterSuffix(name));
   return String::SubString(name, 0, name.Length() - 1);
 }
-
 
 DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target) {
   DARTSCOPE(Thread::Current());
@@ -126,7 +121,6 @@ DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target) {
   }
   return Api::NewHandle(T, Array::MakeFixedLength(names));
 }
-
 
 DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
                                             Dart_Handle function_name) {
@@ -207,7 +201,6 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
   return Api::NewHandle(T, func.raw());
 }
 
-
 DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function) {
   DARTSCOPE(Thread::Current());
   const Function& func = Api::UnwrapFunctionHandle(Z, function);
@@ -216,7 +209,6 @@ DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function) {
   }
   return Api::NewHandle(T, func.UserVisibleName());
 }
-
 
 DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function) {
   DARTSCOPE(Thread::Current());
@@ -245,7 +237,6 @@ DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function) {
   }
 }
 
-
 DART_EXPORT Dart_Handle Dart_FunctionIsStatic(Dart_Handle function,
                                               bool* is_static) {
   DARTSCOPE(Thread::Current());
@@ -259,7 +250,6 @@ DART_EXPORT Dart_Handle Dart_FunctionIsStatic(Dart_Handle function,
   *is_static = func.is_static();
   return Api::Success();
 }
-
 
 DART_EXPORT Dart_Handle Dart_FunctionIsConstructor(Dart_Handle function,
                                                    bool* is_constructor) {
@@ -275,7 +265,6 @@ DART_EXPORT Dart_Handle Dart_FunctionIsConstructor(Dart_Handle function,
   return Api::Success();
 }
 
-
 DART_EXPORT Dart_Handle Dart_FunctionIsGetter(Dart_Handle function,
                                               bool* is_getter) {
   DARTSCOPE(Thread::Current());
@@ -290,7 +279,6 @@ DART_EXPORT Dart_Handle Dart_FunctionIsGetter(Dart_Handle function,
   return Api::Success();
 }
 
-
 DART_EXPORT Dart_Handle Dart_FunctionIsSetter(Dart_Handle function,
                                               bool* is_setter) {
   DARTSCOPE(Thread::Current());
@@ -304,7 +292,6 @@ DART_EXPORT Dart_Handle Dart_FunctionIsSetter(Dart_Handle function,
   *is_setter = (func.kind() == RawFunction::kSetterFunction);
   return Api::Success();
 }
-
 
 // --- Libraries Reflection ---
 
@@ -338,7 +325,6 @@ DART_EXPORT Dart_Handle Dart_LibraryGetClassNames(Dart_Handle library) {
   }
   return Api::NewHandle(T, Array::MakeFixedLength(names));
 }
-
 
 // --- Closures Reflection ---
 

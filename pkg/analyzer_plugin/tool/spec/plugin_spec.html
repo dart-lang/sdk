@@ -237,42 +237,6 @@
       </field>
     </params>
   </request>
-  <request method="reanalyze">
-    <p>
-      Used to force the re-analysis of everything contained in the specified
-      context roots. This should cause all previously computed analysis results
-      to be discarded and recomputed, and should cause all subscribed
-      notifications to be re-sent.
-    </p>
-    <params>
-      <field name="roots" optional="true">
-        <list>
-          <ref>FilePath</ref>
-        </list>
-        <p>
-          A list of the context roots that are to be re-analyzed.
-        </p>
-        <p>
-          If no context roots are provided, then all current context roots
-          should be re-analyzed.
-        </p>
-      </field>
-    </params>
-  </request>
-  <request method="setContextBuilderOptions">
-    <p>
-      Used to set the options used to build analysis contexts. This request will
-      be sent exactly once before any context roots have been specified.
-    </p>
-    <params>
-      <field name="options">
-        <ref>ContextBuilderOptions</ref>
-        <p>
-          The options used to build the analysis contexts.
-        </p>
-      </field>
-    </params>
-  </request>
   <request method="setContextRoots">
     <p>
       Set the list of context roots that should be analyzed.
@@ -679,7 +643,7 @@
       </field>
     </result>
   </request>
-  <request method="getAvailableRefactorings">
+  <request method="getAvailableRefactorings" experimental="true">
     <p>
       Used to request a list of the kinds of refactorings that are valid for the
       given selection in the given file.
@@ -751,7 +715,7 @@
       </field>
     </result>
   </request>
-  <request method="getRefactoring">
+  <request method="getRefactoring" experimental="true">
     <p>
       Used to request the changes required to perform a refactoring.
     </p>
@@ -865,6 +829,48 @@
     </result>
   </request>
 </domain>
+<domain name="kythe" experimental="true">
+  <p>
+    The kythe domain contains APIs related to generating Dart content in the
+    <a href="http://kythe.io/">Kythe</a> format.
+  </p>
+  <request method="getKytheEntries">
+    <p>
+      Return the list of <tt>KytheEntry</tt> objects for some file, given the
+      current state of the file system populated by "analysis.updateContent".
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the code for which the Kythe Entry objects are
+          being requested.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="entries">
+        <list>
+          <ref>KytheEntry</ref>
+        </list>
+        <p>
+          The list of <tt>KytheEntry</tt> objects for the queried file.
+        </p>
+      </field>
+      <field name="files">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          The set of files paths that were required, but not in the file system,
+          to give a complete and accurate Kythe graph for the file. This could
+          be due to a referenced file that does not exist or generated files not
+          being generated or passed before the call to "getKytheEntries".
+        </p>
+      </field>
+    </result>
+  </request>
+</domain>
 <types>
   <h2 class="domain"><a name="types">Types</a></h2>
   <p>
@@ -906,80 +912,6 @@
       <value><code>OCCURRENCES</code></value>
       <value><code>OUTLINE</code></value>
     </enum>
-  </type>
-  <type name="ContextBuilderOptions">
-    <p>
-      The options used to build an analysis context.
-    </p>
-    <object>
-      <field name="dartSdkSummaryPath" optional="true">
-        <ref>FilePath</ref>
-        <p>
-          The file path of the file containing the summary of the SDK that
-          should be used to "analyze" the SDK. The field will be omitted if the
-          summary should be found in the SDK.
-        </p>
-      </field>
-      <field name="defaultAnalysisOptionsFilePath" optional="true">
-        <list>
-          <ref>FilePath</ref>
-        </list>
-        <p>
-          The file path of the analysis options file that should be used in
-          place of any file in the root directory or a parent of the root
-          directory. The field will be omitted if the normal lookup mechanism
-          should be used.
-        </p>
-      </field>
-      <field name="declaredVariables" optional="true">
-        <map>
-          <key>
-            <ref>String</ref>
-          </key>
-          <value>
-            <ref>String</ref>
-          </value>
-        </map>
-        <p>
-          A table mapping variable names to values for the declared variables.
-          The field will be omitted if no additional variables need to be
-          declared.
-        </p>
-      </field>
-      <!--
-      TODO(brianwilkerson) Figure out how to handle analysis options.
-      <field name="defaultOptions" optional="true">
-        <ref>AnalysisOptions</ref>
-        <p>
-          The default analysis options that should be used unless some or all of
-          them are overridden in the analysis options file. The field will be
-          omitted if the default defaults should be used.
-        </p>
-      </field>
-      -->
-      <field name="defaultPackageFilePath" optional="true">
-        <list>
-          <ref>FilePath</ref>
-        </list>
-        <p>
-          The file path of the .packages file that should be used in place of
-          any file found using the normal (Package Specification DEP) lookup
-          mechanism. The field will be omitted if the normal lookup mechanism
-          should be used.
-        </p>
-      </field>
-      <field name="defaultPackagesDirectoryPath" optional="true">
-        <list>
-          <ref>FilePath</ref>
-        </list>
-        <p>
-          The file path of the packages directory that should be used in place
-          of any file found using the normal (Package Specification DEP) lookup
-          mechanism. The field will be omitted if the normal lookup mechanism
-          should be used.
-        </p>
-      </field>
-    </object>
   </type>
   <type name="ContextRoot">
     <p>
@@ -1031,14 +963,14 @@
       </field>
     </object>
   </type>
-  <type name="RefactoringFeedback">
+  <type name="RefactoringFeedback" experimental="true">
     <p>
       An abstract superclass of all refactoring feedbacks.
     </p>
     <object>
     </object>
   </type>
-  <type name="RefactoringOptions">
+  <type name="RefactoringOptions" experimental="true">
     <p>
       An abstract superclass of all refactoring options.
     </p>

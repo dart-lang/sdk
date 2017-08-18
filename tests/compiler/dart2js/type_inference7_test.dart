@@ -26,14 +26,14 @@ Future runTest() async {
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var closedWorld = typesInferrer.closedWorld;
     var commonMasks = closedWorld.commonMasks;
-    dynamic foo = findElement(compiler, "foo");
+    MethodElement foo = findElement(compiler, "foo");
     // Return type is null|bool.
-    var mask = typesInferrer.getReturnTypeOfElement(foo);
+    var mask = typesInferrer.getReturnTypeOfMember(foo);
     Expect.isTrue(mask.isNullable);
     Expect.equals(
         commonMasks.boolType, simplify(mask.nonNullable(), closedWorld));
     // First parameter is uint31|String|bool.
-    dynamic mask1 = typesInferrer.getTypeOfElement(foo.parameters[0]);
+    dynamic mask1 = typesInferrer.getTypeOfParameter(foo.parameters[0]);
     Expect.isTrue(mask1.isUnion);
     var expectedTypes = new Set.from(
         [commonMasks.uint31Type, commonMasks.stringType, commonMasks.boolType]);
@@ -44,7 +44,7 @@ Future runTest() async {
     }
     Expect.isTrue(expectedTypes.isEmpty);
     // Second parameter is bool or null.
-    var mask2 = typesInferrer.getTypeOfElement(foo.parameters[1]);
+    var mask2 = typesInferrer.getTypeOfParameter(foo.parameters[1]);
     Expect.isTrue(mask2.isNullable);
     Expect.equals(
         commonMasks.boolType, simplify(mask2.nonNullable(), closedWorld));
@@ -57,17 +57,17 @@ Future runTest() async {
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var closedWorld = typesInferrer.closedWorld;
     var commonMasks = closedWorld.commonMasks;
-    dynamic foo = findElement(compiler, "foo");
+    MethodElement foo = findElement(compiler, "foo");
     // Return type is null.
-    var mask = typesInferrer.getReturnTypeOfElement(foo);
+    var mask = typesInferrer.getReturnTypeOfMember(foo);
     Expect.isTrue(mask.isNullable);
     Expect.isTrue(mask.nonNullable().isEmpty);
     // First parameter is uint31.
-    var mask1 = typesInferrer.getTypeOfElement(foo.parameters[0]);
+    var mask1 = typesInferrer.getTypeOfParameter(foo.parameters[0]);
     Expect.isFalse(mask1.isNullable);
     Expect.equals(commonMasks.uint31Type, simplify(mask1, closedWorld));
     // Second parameter is null.
-    var mask2 = typesInferrer.getTypeOfElement(foo.parameters[1]);
+    var mask2 = typesInferrer.getTypeOfParameter(foo.parameters[1]);
     Expect.isTrue(mask2.isNullable);
     Expect.isTrue(simplify(mask2.nonNullable(), closedWorld).isEmpty);
   }

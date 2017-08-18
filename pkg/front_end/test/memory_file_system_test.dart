@@ -37,6 +37,22 @@ class FileTest extends _BaseTestNative {
     file = entityForPath(path);
   }
 
+  test_createDirectory_doesNotExist() async {
+    file.createDirectory();
+    expect(await file.exists(), true);
+  }
+
+  test_createDirectory_exists_asDirectory() async {
+    file.createDirectory();
+    file.createDirectory();
+    expect(await file.exists(), true);
+  }
+
+  test_createDirectory_exists_asFile() async {
+    file.writeAsStringSync('');
+    expect(() => file.createDirectory(), _throwsFileSystemException);
+  }
+
   test_equals_differentPaths() {
     expect(file == entityForPath(join(tempPath, 'file2.txt')), isFalse);
   }
@@ -45,34 +61,22 @@ class FileTest extends _BaseTestNative {
     expect(file == entityForPath(join(tempPath, 'file.txt')), isTrue);
   }
 
+  test_exists_directory_exists() async {
+    file.createDirectory();
+    expect(await file.exists(), true);
+  }
+
   test_exists_doesNotExist() async {
     expect(await file.exists(), false);
   }
 
-  test_exists_exists() async {
+  test_exists_file_exists() async {
     file.writeAsStringSync('x');
     expect(await file.exists(), true);
   }
 
   test_hashCode_samePath() {
     expect(file.hashCode, entityForPath(join(tempPath, 'file.txt')).hashCode);
-  }
-
-  test_lastModified_doesNotExist() async {
-    expect(file.lastModified(), _throwsFileSystemException);
-  }
-
-  test_lastModified_increasesOnEachChange() async {
-    file.writeAsStringSync('x');
-    var mod1 = await file.lastModified();
-    file.writeAsStringSync('y');
-    var mod2 = await file.lastModified();
-    expect(mod2.isAfter(mod1), isTrue);
-
-    var file2 = entityForPath(join(tempPath, 'file2.txt'));
-    file2.writeAsStringSync('z');
-    var mod3 = await file2.lastModified();
-    expect(mod3.isAfter(mod2), isTrue);
   }
 
   test_path() {
@@ -116,6 +120,11 @@ class FileTest extends _BaseTestNative {
     expect(await file.readAsString(), '\u20ac');
   }
 
+  test_writeAsBytesSync_directory() async {
+    file.createDirectory();
+    expect(() => file.writeAsBytesSync([0]), _throwsFileSystemException);
+  }
+
   test_writeAsBytesSync_modifyAfterRead() async {
     file.writeAsBytesSync([1]);
     (await file.readAsBytes())[0] = 2;
@@ -133,6 +142,11 @@ class FileTest extends _BaseTestNative {
     file.writeAsBytesSync([1]);
     file.writeAsBytesSync([2]);
     expect(await file.readAsBytes(), [2]);
+  }
+
+  test_writeAsStringSync_directory() async {
+    file.createDirectory();
+    expect(() => file.writeAsStringSync(''), _throwsFileSystemException);
   }
 
   test_writeAsStringSync_overwrite() async {

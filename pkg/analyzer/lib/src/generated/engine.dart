@@ -37,6 +37,7 @@ import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/timestamped_data.dart';
+import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
 import 'package:plugin/manager.dart';
@@ -840,6 +841,8 @@ class AnalysisEngine {
    */
   void clearCaches() {
     partitionManager.clearCache();
+    // See https://github.com/dart-lang/sdk/issues/30314.
+    StringToken.canonicalizer.clear();
   }
 
   /**
@@ -1189,6 +1192,12 @@ abstract class AnalysisOptions {
   bool get enableConditionalDirectives;
 
   /**
+   * Return a list of the names of the packages for which, if they define a
+   * plugin, the plugin should be enabled.
+   */
+  List<String> get enabledPluginNames;
+
+  /**
    * Return `true` to enable generic methods (DEP 22).
    */
   @deprecated
@@ -1258,23 +1267,6 @@ abstract class AnalysisOptions {
    * based information and pub best practices).
    */
   bool get hint;
-
-  /**
-   * Return `true` if incremental analysis should be used.
-   */
-  bool get incremental;
-
-  /**
-   * A flag indicating whether incremental analysis should be used for API
-   * changes.
-   */
-  bool get incrementalApi;
-
-  /**
-   * A flag indicating whether validation should be performed after incremental
-   * analysis.
-   */
-  bool get incrementalValidation;
 
   /**
    * Return `true` if analysis is to generate lint warnings.
@@ -1378,6 +1370,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   Uint32List _signature;
 
+  /**
+   * A flag indicating whether declaration casts are allowed in [strongMode]
+   * (they are always allowed in Dart 1.0 mode).
+   *
+   * This option is experimental and subject to change.
+   */
+  bool declarationCasts = true;
+
   @override
   @deprecated
   int cacheSize = 64;
@@ -1387,6 +1387,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   bool enableAssertInitializer = false;
+
+  @override
+  List<String> enabledPluginNames = const <String>[];
 
   @override
   bool enableLazyAssignmentOperators = false;
@@ -1422,15 +1425,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   bool hint = true;
-
-  @override
-  bool incremental = false;
-
-  @override
-  bool incrementalApi = false;
-
-  @override
-  bool incrementalValidation = false;
 
   @override
   bool lint = false;
@@ -1502,6 +1496,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   AnalysisOptionsImpl.from(AnalysisOptions options) {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     dart2jsHint = options.dart2jsHint;
+    enabledPluginNames = options.enabledPluginNames;
     enableAssertInitializer = options.enableAssertInitializer;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
@@ -1512,14 +1507,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
-    incremental = options.incremental;
-    incrementalApi = options.incrementalApi;
-    incrementalValidation = options.incrementalValidation;
     lint = options.lint;
     lintRules = options.lintRules;
     preserveComments = options.preserveComments;
     strongMode = options.strongMode;
     if (options is AnalysisOptionsImpl) {
+      declarationCasts = options.declarationCasts;
       strongModeHints = options.strongModeHints;
       implicitCasts = options.implicitCasts;
       nonnullableTypes = options.nonnullableTypes;
@@ -1636,6 +1629,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       ApiSignature buffer = new ApiSignature();
 
       // Append boolean flags.
+      buffer.addBool(declarationCasts);
       buffer.addBool(enableAssertInitializer);
       buffer.addBool(enableLazyAssignmentOperators);
       buffer.addBool(enableStrictCallChecks);
@@ -1658,6 +1652,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
         buffer.addString(lintRule.lintCode.uniqueName);
       }
 
+      // Append plugin names.
+      buffer.addInt(enabledPluginNames.length);
+      for (String enabledPluginName in enabledPluginNames) {
+        buffer.addString(enabledPluginName);
+      }
+
       // Hash and convert to Uint32List.
       List<int> bytes = buffer.toByteList();
       _signature = new Uint8List.fromList(bytes).buffer.asUint32List();
@@ -1667,8 +1667,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   void resetToDefaults() {
+    declarationCasts = true;
     dart2jsHint = false;
     disableCacheFlushing = false;
+    enabledPluginNames = const <String>[];
     enableAssertInitializer = false;
     enableLazyAssignmentOperators = false;
     enableStrictCallChecks = false;
@@ -1682,9 +1684,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     hint = true;
     implicitCasts = true;
     implicitDynamic = true;
-    incremental = false;
-    incrementalApi = false;
-    incrementalValidation = false;
     lint = false;
     _lintRules = null;
     nonnullableTypes = NONNULLABLE_TYPES;
@@ -1704,6 +1703,21 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
+  }
+
+  /**
+   * Return whether the given lists of lints are equal.
+   */
+  static bool compareLints(List<Linter> a, List<Linter> b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (int i = 0; i < a.length; i++) {
+      if (a[i].lintCode != b[i].lintCode) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**

@@ -225,7 +225,7 @@ Future<Isolate> markDartColonLibrariesDebuggable(Isolate isolate) async {
 IsolateTest reloadSources([bool pause = false]) {
   return (Isolate isolate) async {
     Map<String, dynamic> params = <String, dynamic>{};
-    if (pause == true) {
+    if (pause) {
       params['pause'] = pause;
     }
     return isolate.invokeRpc('reloadSources', params);

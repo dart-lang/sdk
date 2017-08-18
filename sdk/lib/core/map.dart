@@ -93,7 +93,7 @@ abstract class Map<K, V> {
    *     List<int> list = [1, 2, 3];
    *     Map<String, int> map = new Map.fromIterable(list,
    *         key: (item) => item.toString(),
-   *         value: (item) => item * item));
+   *         value: (item) => item * item);
    *
    *     map['1'] + map['2']; // 1 + 4
    *     map['3'] - map['2']; // 9 - 4

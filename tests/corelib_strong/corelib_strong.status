@@ -8,132 +8,23 @@
 
 # Skip tests that are not yet strong-mode clean.
 [ $strong ]
-big_integer_arith_vm_test: Skip
-bool_from_environment2_test: Skip
-core_runtime_types_test: Skip
-data_resource_test: Skip
 duration2_test: Skip
 error_stack_trace_test: Skip
-file_resource_test: Skip
-from_environment_const_type_test: Skip
-from_environment_const_type_undefined_test: Skip
-growable_list_test: Skip
-hash_set_type_check_test: Skip
 http_resource_test: Skip
-int_from_environment3_test: Skip
-iterable_contains2_test: Skip
-iterable_element_at_test: Skip
-iterable_fold_test: Skip
-iterable_mapping_test: Skip
-iterable_reduce_test: Skip
-iterable_to_list_test: Skip
-iterable_to_set_test: Skip
 linked_hash_map_from_iterable_test: Skip
-list_contains_argument_order_test: Skip
-list_filled_type_argument_test: Skip
-list_index_of2_test: Skip
-list_test: Skip
-list_unmodifiable_test: Skip
-map_test: Skip
-num_clamp_test: Skip
-package_resource_test: Skip
-print_test: Skip
-queue_test: Skip
-regexp/global_test: Skip
-regexp/regexp_test: Skip
 regexp/regress-regexp-codeflush_test: Skip
 regexp/standalones_test: Skip
-splay_tree_test: Skip
-string_base_vm_test: Skip
-string_from_environment3_test: Skip
-string_from_list_test: Skip
 string_replace_test: Skip
-string_test: Skip
-symbol_operator_test: Skip
-symbol_reserved_word_test: Skip
-symbol_test: Skip
-uri_path_test: Skip
-uri_query_test: Skip
 
-[ $compiler == dartdevc ]
-apply2_test: RuntimeError # Issue 29921
-apply3_test: RuntimeError # Issue 29921
-big_integer_parsed_arith_vm_test: RuntimeError # Issue 29921
-big_integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921
-big_integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
-bit_twiddling_bigint_test: RuntimeError # Issue 29921
-bool_from_environment_test: RuntimeError # Issue 29921
-compare_to2_test: RuntimeError # Issue 29921
-const_list_literal_test: RuntimeError # Issue 29921
-const_list_remove_range_test: RuntimeError # Issue 29921
-const_list_set_range_test: RuntimeError # Issue 29921
-data_uri_test: RuntimeError # Issue 29921
-double_parse_test/01: RuntimeError # Issue 29921
+[ $compiler == dartdevc && $runtime != none ]
 hash_set_test/01: RuntimeError # Issue 29921
-int_from_environment_test: RuntimeError # Issue 29921
-int_modulo_arith_test/bignum: RuntimeError # Issue 29921
-int_modulo_arith_test/modPow: RuntimeError # Issue 29921
-int_modulo_arith_test/none: RuntimeError # Issue 29921
-int_parse_radix_test/01: RuntimeError # Issue 29921
-int_parse_radix_test/02: RuntimeError # Issue 29921
-integer_to_radix_string_test: RuntimeError # Issue 29921
-integer_to_string_test/01: RuntimeError # Issue 29921
-iterable_generate_test: RuntimeError # Issue 29921
-iterable_return_type_test/02: RuntimeError # Issue 29921
-json_map_test: RuntimeError # Issue 29921
-list_fill_range_test: RuntimeError # Issue 29921
-list_insert_test: RuntimeError # Issue 29921
-list_removeat_test: RuntimeError # Issue 29921
-list_replace_range_test: RuntimeError # Issue 29921
-list_set_all_test: RuntimeError # Issue 29921
-list_to_string2_test: RuntimeError # Issue 29921
-main_test: RuntimeError # Issue 29921
-map_keys2_test: RuntimeError # Issue 29921
-map_to_string_test: RuntimeError # Issue 29921
-nan_infinity_test/01: RuntimeError # Issue 29921
-null_nosuchmethod_test: RuntimeError # Issue 29921
-null_test: RuntimeError # Issue 29921
-regexp/alternative-length-miscalculation_test: RuntimeError # Issue 29921
-regexp/ascii-regexp-subject_test: RuntimeError # Issue 29921
-regexp/bol-with-multiline_test: RuntimeError # Issue 29921
-regexp/capture-3_test: RuntimeError # Issue 29921
-regexp/char-insensitive_test: RuntimeError # Issue 29921
-regexp/character-match-out-of-order_test: RuntimeError # Issue 29921
-regexp/compile-crash_test: RuntimeError # Issue 29921
-regexp/default_arguments_test: RuntimeError # Issue 29921
-regexp/early-acid3-86_test: RuntimeError # Issue 29921
-regexp/ecma-regex-examples_test: RuntimeError # Issue 29921
-regexp/extended-characters-match_test: RuntimeError # Issue 29921
-regexp/extended-characters-more_test: RuntimeError # Issue 29921
-regexp/find-first-asserted_test: RuntimeError # Issue 29921
-regexp/invalid-range-in-class_test: RuntimeError # Issue 29921
-regexp/look-ahead_test: RuntimeError # Issue 29921
-regexp/loop-capture_test: RuntimeError # Issue 29921
-regexp/malformed-escapes_test: RuntimeError # Issue 29921
-regexp/many-brackets_test: RuntimeError # Issue 29921
-regexp/negative-special-characters_test: RuntimeError # Issue 29921
-regexp/no-extensions_test: RuntimeError # Issue 29921
-regexp/non-bmp_test: RuntimeError # Issue 29921
-regexp/non-capturing-backtracking_test: RuntimeError # Issue 29921
-regexp/non-capturing-groups_test: RuntimeError # Issue 29921
-regexp/non-character_test: RuntimeError # Issue 29921
-regexp/non-greedy-parentheses_test: RuntimeError # Issue 29921
-regexp/pcre-test-4_test: RuntimeError # Issue 29921
-regexp/quantified-assertions_test: RuntimeError # Issue 29921
-regexp/range-bound-ffff_test: RuntimeError # Issue 29921
-regexp/range-out-of-order_test: RuntimeError # Issue 29921
-regexp/ranges-and-escaped-hyphens_test: RuntimeError # Issue 29921
-regexp/regress-6-9-regexp_test: RuntimeError # Issue 29921
-regexp/regress-regexp-construct-result_test: RuntimeError # Issue 29921
-regexp/repeat-match-waldemar_test: RuntimeError # Issue 29921
-regexp/results-cache_test: RuntimeError # Issue 29921
-regexp/stack-overflow2_test: RuntimeError # Issue 29921
-regexp/stack-overflow_test: RuntimeError # Issue 29921
-regexp/unicode-handling_test: RuntimeError # Issue 29921
-regexp/zero-length-alternatives_test: RuntimeError # Issue 29921
 regress_r21715_test: RuntimeError # Issue 29921
-string_from_environment2_test: RuntimeError # Issue 29921
-string_from_environment_test: RuntimeError # Issue 29921
 string_operations_with_null_test: RuntimeError # Issue 29921
-string_trimlr_test/01: RuntimeError # Issue 29921
-string_trimlr_test/none: RuntimeError # Issue 29921
+from_environment_const_type_test/01: RuntimeError # Issue 29921
+from_environment_const_type_test/05: RuntimeError # Issue 29921
+from_environment_const_type_test/10: RuntimeError # Issue 29921
+from_environment_const_type_test/15: RuntimeError # Issue 29921
+from_environment_const_type_test/none: RuntimeError # Issue 29921
+growable_list_test: RuntimeError # Issue 29921
+list_test/01: RuntimeError # Issue 29921
+list_test/none: RuntimeError # Issue 29921

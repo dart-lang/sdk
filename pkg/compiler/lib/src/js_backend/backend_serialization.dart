@@ -10,6 +10,7 @@ import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../native/native.dart';
+import '../resolution/resolution_strategy.dart';
 import '../serialization/keys.dart';
 import '../serialization/serialization.dart'
     show DeserializerPlugin, ObjectDecoder, ObjectEncoder, SerializerPlugin;
@@ -53,7 +54,8 @@ class JavaScriptBackendSerializer implements SerializerPlugin {
 
   JavaScriptBackendSerializer(this._backend);
 
-  NativeBasicDataImpl get nativeBasicData => _backend.nativeBasicData;
+  NativeBasicDataImpl get nativeBasicData =>
+      _backend.compiler.frontendStrategy.nativeBasicData;
   NativeDataBuilderImpl get nativeData => _backend.nativeDataBuilder;
 
   @override
@@ -63,15 +65,15 @@ class JavaScriptBackendSerializer implements SerializerPlugin {
       return encoder ??= createEncoder(_BACKEND_DATA_TAG);
     }
 
-    String jsInteropLibraryName = nativeData.jsInteropLibraryNames[element];
+    String jsInteropLibraryName = nativeData.jsInteropLibraries[element];
     if (jsInteropLibraryName != null) {
       getEncoder().setString(JS_INTEROP_LIBRARY_NAME, jsInteropLibraryName);
     }
-    String jsInteropClassName = nativeData.jsInteropClassNames[element];
+    String jsInteropClassName = nativeData.jsInteropClasses[element];
     if (jsInteropClassName != null) {
       getEncoder().setString(JS_INTEROP_CLASS_NAME, jsInteropClassName);
     }
-    String jsInteropMemberName = nativeData.jsInteropMemberNames[element];
+    String jsInteropMemberName = nativeData.jsInteropMembers[element];
     if (jsInteropMemberName != null) {
       getEncoder().setString(JS_INTEROP_MEMBER_NAME, jsInteropMemberName);
     }
@@ -117,8 +119,12 @@ class JavaScriptBackendDeserializer implements DeserializerPlugin {
 
   JavaScriptBackendDeserializer(this._backend);
 
-  NativeBasicDataBuilderImpl get nativeBasicData =>
-      _backend.nativeBasicDataBuilder;
+  NativeBasicDataBuilderImpl get nativeBasicData {
+    ResolutionFrontEndStrategy frontendStrategy =
+        _backend.compiler.frontendStrategy;
+    return frontendStrategy.nativeBasicDataBuilder;
+  }
+
   NativeDataBuilderImpl get nativeData => _backend.nativeDataBuilder;
 
   @override
@@ -129,13 +135,13 @@ class JavaScriptBackendDeserializer implements DeserializerPlugin {
         String jsInteropLibraryName =
             decoder.getString(JS_INTEROP_LIBRARY_NAME, isOptional: true);
         if (jsInteropLibraryName != null) {
-          nativeData.jsInteropLibraryNames[element] = jsInteropLibraryName;
+          nativeData.jsInteropLibraries[element] = jsInteropLibraryName;
         }
       } else if (element is ClassElement) {
         String jsInteropClassName =
             decoder.getString(JS_INTEROP_CLASS_NAME, isOptional: true);
         if (jsInteropClassName != null) {
-          nativeData.jsInteropClassNames[element] = jsInteropClassName;
+          nativeData.jsInteropClasses[element] = jsInteropClassName;
         }
         String nativeClassTagInfo =
             decoder.getString(NATIVE_CLASS_TAG_INFO, isOptional: true);
@@ -147,7 +153,7 @@ class JavaScriptBackendDeserializer implements DeserializerPlugin {
         String jsInteropMemberName =
             decoder.getString(JS_INTEROP_MEMBER_NAME, isOptional: true);
         if (jsInteropMemberName != null) {
-          nativeData.jsInteropMemberNames[element] = jsInteropMemberName;
+          nativeData.jsInteropMembers[element] = jsInteropMemberName;
         }
         String nativeMemberName =
             decoder.getString(NATIVE_MEMBER_NAME, isOptional: true);

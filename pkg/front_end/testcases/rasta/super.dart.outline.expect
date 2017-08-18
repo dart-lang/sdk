@@ -8,7 +8,7 @@ class A extends core::Object {
   field dynamic c;
   field dynamic d;
   final field dynamic f;
-  constructor •() → void
+  default constructor •() → void
     ;
   get e() → dynamic
     ;
@@ -39,7 +39,7 @@ class A extends core::Object {
 }
 class B extends self::A {
   final field dynamic d;
-  constructor •() → void
+  default constructor •() → void
     ;
   get b() → dynamic
     ;
@@ -49,7 +49,7 @@ class B extends self::A {
     ;
 }
 class C extends self::B {
-  constructor •() → void
+  default constructor •() → void
     ;
   method test() → dynamic
     ;

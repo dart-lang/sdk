@@ -418,7 +418,10 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
       node.object.then((object) {
         wrapper
           ..text = ''
-          ..children = [anyRef(_isolate, object, _objects, queue: _r.queue)];
+          ..children = [
+            anyRef(_isolate, object, _objects,
+                queue: _r.queue, expandable: false)
+          ];
       });
     }
   }
@@ -450,7 +453,8 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
           ..text = ''
           ..children = [
             new SpanElement()..text = '${node.instanceCount} instances of ',
-            anyRef(_isolate, klass, _objects, queue: _r.queue)
+            anyRef(_isolate, klass, _objects,
+                queue: _r.queue, expandable: false)
           ];
       });
     }

@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -237,9 +238,7 @@ List<A> v2 = null;
   }
 
   test_searchReferences_ClassElement_definedOutside() async {
-    provider.newFile(
-        _p('$testProject/lib.dart'),
-        r'''
+    provider.newFile(_p('$testProject/lib.dart'), r'''
 class A {};
 ''');
     await _resolveTestUnit('''
@@ -474,7 +473,7 @@ main() {
   print(test);
 }
 ''');
-    FunctionElement element = _findElement('test');
+    FunctionElement element = findElementsByName(testUnit, 'test').single;
     Element main = _findElement('main');
     var expected = [
       _expectId(main, SearchResultKind.INVOCATION, 'test();'),
@@ -572,7 +571,7 @@ label:
   }
 }
 ''');
-    Element element = _findElement('label');
+    Element element = findElementsByName(testUnit, 'label').single;
     Element main = _findElement('main');
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'label; // 1'),
@@ -613,7 +612,7 @@ main() {
   v();
 }
 ''');
-    Element element = _findElement('v');
+    Element element = findElementsByName(testUnit, 'v').single;
     Element main = _findElement('main');
     var expected = [
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
@@ -635,7 +634,7 @@ main() {
   }
 }
 ''');
-    Element element = _findElementAtString('v in []');
+    Element element = findElementsByName(testUnit, 'v').single;
     Element main = _findElement('main');
     var expected = [
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
@@ -751,13 +750,14 @@ main() {
   foo(42);
 }
 ''');
-    ParameterElement element = _findElement('p');
-    Element fooElement = _findElement('foo');
+    Element main = _findElement('main');
+    FunctionElement foo = findElementsByName(testUnit, 'foo').single;
+    ParameterElement element = foo.parameters.single;
     var expected = [
-      _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
-      _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
-      _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();')
+      _expectId(main, SearchResultKind.WRITE, 'p = 1;'),
+      _expectId(main, SearchResultKind.READ_WRITE, 'p += 2;'),
+      _expectId(main, SearchResultKind.READ, 'p);'),
+      _expectId(main, SearchResultKind.INVOCATION, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -826,12 +826,11 @@ main() {
 }
 ''');
     PrefixElement element = _findElementAtString('ppp;');
-    Element a = _findElement('a');
-    Element b = _findElement('b');
+    Element main = _findElement('main');
     Element c = findChildElement(testLibraryElement, 'c');
     var expected = [
-      _expectId(a, SearchResultKind.REFERENCE, 'ppp.Future'),
-      _expectId(b, SearchResultKind.REFERENCE, 'ppp.Stream'),
+      _expectId(main, SearchResultKind.REFERENCE, 'ppp.Future'),
+      _expectId(main, SearchResultKind.REFERENCE, 'ppp.Stream'),
       new ExpectedResult(c, SearchResultKind.REFERENCE,
           partCode.indexOf('ppp.Future c'), 'ppp'.length)
     ];
@@ -963,9 +962,7 @@ class A {
   }
 
   test_searchReferences_TopLevelVariableElement() async {
-    provider.newFile(
-        _p('$testProject/lib.dart'),
-        '''
+    provider.newFile(_p('$testProject/lib.dart'), '''
 library lib;
 var V;
 ''');
@@ -1023,12 +1020,12 @@ main() {
   }
 }
 ''');
-    TypeParameterElement element = _findElement('T');
-    Element a = _findElement('a');
-    Element b = _findElement('b');
+    Element main = _findElement('main');
+    FunctionElement foo = findElementsByName(testUnit, 'foo').single;
+    TypeParameterElement element = foo.typeParameters.single;
     var expected = [
-      _expectId(a, SearchResultKind.REFERENCE, 'T a'),
-      _expectId(b, SearchResultKind.REFERENCE, 'T b'),
+      _expectId(main, SearchResultKind.REFERENCE, 'T a'),
+      _expectId(main, SearchResultKind.REFERENCE, 'T b'),
     ];
     await _verifyReferences(element, expected);
   }
@@ -1053,12 +1050,12 @@ foo<T>(T a) {
   bar(T b) {}
 }
 ''');
+    FunctionElement foo = _findElement('foo');
     TypeParameterElement element = _findElement('T');
     Element a = _findElement('a');
-    Element b = _findElement('b');
     var expected = [
       _expectId(a, SearchResultKind.REFERENCE, 'T a'),
-      _expectId(b, SearchResultKind.REFERENCE, 'T b'),
+      _expectId(foo, SearchResultKind.REFERENCE, 'T b'),
     ];
     await _verifyReferences(element, expected);
   }
@@ -1080,6 +1077,91 @@ class C implements T {} // C
       _expectId(c, SearchResultKind.REFERENCE, 'T {} // C'),
     ];
     await _verifyReferences(element, expected);
+  }
+
+  test_subtypes() async {
+    await _resolveTestUnit('''
+class A {}
+
+class B extends A {
+  void methodB() {}
+}
+
+class C extends Object with A {
+  void methodC() {}
+}
+
+class D implements A {
+  void methodD() {}
+}
+
+class E extends B {
+  void methodE() {}
+}
+
+class F {}
+''');
+    ClassElement a = _findElement('A');
+
+    // Search by 'type'.
+    List<SubtypeResult> subtypes = await driver.search.subtypes(type: a);
+    expect(subtypes, hasLength(3));
+
+    SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
+    SubtypeResult c = subtypes.singleWhere((r) => r.name == 'C');
+    SubtypeResult d = subtypes.singleWhere((r) => r.name == 'D');
+
+    expect(b.libraryUri, testUri);
+    expect(b.id, '$testUri;$testUri;B');
+    expect(b.members, ['methodB']);
+
+    expect(c.libraryUri, testUri);
+    expect(c.id, '$testUri;$testUri;C');
+    expect(c.members, ['methodC']);
+
+    expect(d.libraryUri, testUri);
+    expect(d.id, '$testUri;$testUri;D');
+    expect(d.members, ['methodD']);
+
+    // Search by 'id'.
+    {
+      List<SubtypeResult> subtypes = await driver.search.subtypes(subtype: b);
+      expect(subtypes, hasLength(1));
+      SubtypeResult e = subtypes.singleWhere((r) => r.name == 'E');
+      expect(e.members, ['methodE']);
+    }
+  }
+
+  test_subtypes_files() async {
+    String pathB = _p('$testProject/b.dart');
+    String pathC = _p('$testProject/c.dart');
+    provider.newFile(pathB, r'''
+import 'test.dart';
+class B extends A {}
+''');
+    provider.newFile(pathC, r'''
+import 'test.dart';
+class C extends A {}
+class D {}
+''');
+
+    await _resolveTestUnit('''
+class A {}
+''');
+    ClassElement a = _findElement('A');
+
+    driver.addFile(pathB);
+    driver.addFile(pathC);
+    await scheduler.waitForIdle();
+
+    List<SubtypeResult> subtypes = await driver.search.subtypes(type: a);
+    expect(subtypes, hasLength(2));
+
+    SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
+    SubtypeResult c = subtypes.singleWhere((r) => r.name == 'C');
+
+    expect(b.id, endsWith('b.dart;B'));
+    expect(c.id, endsWith('c.dart;C'));
   }
 
   test_topLevelElements() async {

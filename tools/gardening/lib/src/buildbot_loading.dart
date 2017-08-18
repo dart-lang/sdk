@@ -11,6 +11,7 @@ import 'cache.dart';
 import 'logdog.dart';
 
 const String BUILDBOT_BUILDNUMBER = ' BUILDBOT_BUILDNUMBER: ';
+const String BUILDBOT_REVISION = ' BUILDBOT_REVISION: ';
 
 /// Read the build result for [buildUri].
 ///
@@ -32,12 +33,13 @@ Future<BuildResult> _readBuildResult(
 }
 
 /// Fetches test data for [buildUri] through the buildbot stdio.
-Future<BuildResult> readBuildResult(
-    HttpClient client, BuildUri buildUri) async {
+Future<BuildResult> readBuildResultFromHttp(
+    HttpClient client, BuildUri buildUri,
+    [Duration timeout]) {
   Future<String> read() async {
     Uri uri = buildUri.toUri();
     log('Reading buildbot results: $uri');
-    return await readUriAsText(client, uri);
+    return readUriAsText(client, uri, timeout);
   }
 
   return _readBuildResult(buildUri, read);
@@ -46,7 +48,7 @@ Future<BuildResult> readBuildResult(
 /// Fetches test data for [buildUri] through logdog.
 ///
 /// The build number of [buildUri] most be non-negative.
-Future<BuildResult> readLogDogResult(BuildUri buildUri) {
+Future<BuildResult> readBuildResultFromLogDog(BuildUri buildUri) {
   Future<String> read() async {
     log('Reading logdog results: $buildUri');
     return cat(buildUri.logdogPath);
@@ -77,6 +79,7 @@ TestStatus parseTestStatus(String line) {
 BuildResult parseTestStepResult(BuildUri buildUri, String text) {
   log('Parsing results: $buildUri (${text.length} bytes)');
   int buildNumber;
+  String buildRevision;
   List<String> currentFailure;
   bool parsingTimingBlock = false;
 
@@ -87,6 +90,10 @@ BuildResult parseTestStepResult(BuildUri buildUri, String text) {
     if (line.startsWith(BUILDBOT_BUILDNUMBER)) {
       buildNumber =
           int.parse(line.substring(BUILDBOT_BUILDNUMBER.length).trim());
+      buildUri = buildUri.withBuildNumber(buildNumber);
+    }
+    if (line.startsWith(BUILDBOT_REVISION)) {
+      buildRevision = line.substring(BUILDBOT_REVISION.length).trim();
     }
     if (currentFailure != null) {
       if (line.startsWith('Done ')) {
@@ -102,6 +109,11 @@ BuildResult parseTestStepResult(BuildUri buildUri, String text) {
     } else if (line.startsWith('FAILED:')) {
       currentFailure = <String>[];
       currentFailure.add(line);
+    } else if (line.startsWith('Done ')) {
+      TestStatus status = parseTestStatus(line);
+      if (status != null) {
+        results.add(status);
+      }
     }
     if (line.startsWith('--- Total time:')) {
       parsingTimingBlock = true;
@@ -114,7 +126,7 @@ BuildResult parseTestStepResult(BuildUri buildUri, String text) {
     }
   }
   return new BuildResult(buildUri, buildNumber ?? buildUri.absoluteBuildNumber,
-      results, failures, timings);
+      buildRevision, results, failures, timings);
 }
 
 /// Create the [Timing]s for the [line] as found in the top-20 timings of a

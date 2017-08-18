@@ -3,23 +3,47 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/memory_file_system.dart';
+import 'package:front_end/src/base/libraries_specification.dart';
 
-/// Create SDK libraries which are used by Fasta to perform kernel generation.
-/// Return the mapping from the simple names of these library to the URIs
-/// in the given [fileSystem].  The root of the SDK is `file:///sdk`.
-Map<String, Uri> createSdkFiles(MemoryFileSystem fileSystem) {
-  Map<String, Uri> dartLibraries = {};
+final _ASYNC = r'''
+library dart.async;
 
-  void addSdkLibrary(String name, String contents) {
-    String path = '$name/$name.dart';
-    Uri uri = Uri.parse('file:///sdk/lib/$path');
-    fileSystem.entityForUri(uri).writeAsStringSync(contents);
-    dartLibraries[name] = uri;
-  }
+class Future<T> {
+  factory Future(computation()) => null;
+  factory Future.delayed(Duration duration, [T computation()]) => null;
+  factory Future.microtask(FutureOr<T> computation()) => null;
+  factory Future.value([value]) => null;
 
-  addSdkLibrary(
-      'core',
-      r'''
+  static Future<List<T>> wait<T>(Iterable<Future<T>> futures) => null;
+  Future<R> then<R>(FutureOr<R> onValue(T value)) => null;
+
+  Future<T> whenComplete(action());
+}
+
+
+class FutureOr<T> {}
+class Stream<T> {}
+abstract class StreamIterator<T> {}
+
+abstract class Completer<T> {
+  factory Completer() => null;
+  factory Completer.sync() => null;
+  Future<T> get future;
+  void complete([FutureOr<T> value]);
+  void completeError(Object error, [StackTrace stackTrace]);
+  bool get isCompleted;
+}
+
+class _StreamIterator<T> implements StreamIterator<T> {}
+class _AsyncStarStreamController {}
+Object _asyncStackTraceHelper(Function async_op) { }
+Function _asyncThenWrapperHelper(continuation) {}
+Function _asyncErrorWrapperHelper(continuation) {}
+Future _awaitHelper(
+    object, Function thenCallback, Function errorCallback, var awaiter) {}
+''';
+
+final _CORE = r'''
 library dart.core;
 import 'dart:_internal';
 import 'dart:async';
@@ -202,68 +226,43 @@ external bool identical(Object a, Object b);
 void print(Object o) {}
 
 abstract class _SyncIterable implements Iterable {}
-''');
+''';
 
-  addSdkLibrary(
-      'async',
-      r'''
-library dart.async;
+/// Create SDK libraries which are used by Fasta to perform kernel generation.
+/// The root of the SDK is `file:///sdk`, it will contain a libraries
+/// specification file at `lib/libraries.json`.
+///
+/// Returns the [TargetLibrariesSpecification] whose contents are in
+/// libraries.json.
+TargetLibrariesSpecification createSdkFiles(MemoryFileSystem fileSystem) {
+  Map<String, LibraryInfo> dartLibraries = {};
+  void addSdkLibrary(String name, String contents) {
+    String path = '$name/$name.dart';
+    Uri uri = Uri.parse('file:///sdk/lib/$path');
+    fileSystem.entityForUri(uri).writeAsStringSync(contents);
+    dartLibraries[name] = new LibraryInfo(name, uri, const []);
+  }
 
-class Future<T> {
-  factory Future(computation()) => null;
-  factory Future.delayed(Duration duration, [T computation()]) => null;
-  factory Future.microtask(FutureOr<T> computation()) => null;
-  factory Future.value([value]) => null;
+  fileSystem.entityForUri(Uri.parse('file:///sdk/')).createDirectory();
 
-  static Future<List<T>> wait<T>(Iterable<Future<T>> futures) => null;
-  Future<R> then<R>(FutureOr<R> onValue(T value)) => null;
-
-  Future<T> whenComplete(action());
-}
-
-
-class FutureOr<T> {}
-class Stream<T> {}
-abstract class StreamIterator<T> {}
-
-abstract class Completer<T> {
-  factory Completer() => null;
-  factory Completer.sync() => null;
-  Future<T> get future;
-  void complete([FutureOr<T> value]);
-  void completeError(Object error, [StackTrace stackTrace]);
-  bool get isCompleted;
-}
-
-class _StreamIterator<T> implements StreamIterator<T> {}
-class _AsyncStarStreamController {}
-Function _asyncThenWrapperHelper(continuation) {}
-Function _asyncErrorWrapperHelper(continuation) {}
-Future _awaitHelper(
-    object, Function thenCallback, Function errorCallback, var awaiter) {}
-''');
+  addSdkLibrary('core', _CORE);
+  addSdkLibrary('async', _ASYNC);
 
   addSdkLibrary('collection', 'library dart.collection;');
   addSdkLibrary('convert', 'library dart.convert;');
   addSdkLibrary('developer', 'library dart.developer;');
   addSdkLibrary('io', 'library dart.io;');
   addSdkLibrary('isolate', 'library dart.isolate;');
-  addSdkLibrary(
-      'math',
-      '''
+  addSdkLibrary('math', '''
 library dart.math;
-double sin(num radians) => _sin(radians.toDouble());
-double _sin(double x) native "Math_sin";
+external double sin(num radians);
 ''');
   addSdkLibrary('mirrors', 'library dart.mirrors;');
   addSdkLibrary('nativewrappers', 'library dart.nativewrappers;');
   addSdkLibrary('profiler', 'library dart.profiler;');
   addSdkLibrary('typed_data', 'library dart.typed_data;');
-  addSdkLibrary('vmservice_io', 'library dart.vmservice_io;');
   addSdkLibrary('_builtin', 'library dart._builtin;');
-  addSdkLibrary(
-      '_internal',
-      '''
+  addSdkLibrary('_internal', '''
 library dart._internal;
 class Symbol {}
 class ExternalName {
@@ -271,7 +270,11 @@ class ExternalName {
   const ExternalName(this.name);
 }
 ''');
-  addSdkLibrary('_vmservice', 'library dart._vmservice;');
 
-  return dartLibraries;
+  var targetSpec = new TargetLibrariesSpecification(null, dartLibraries);
+  var spec = new LibrariesSpecification({'none': targetSpec, 'vm': targetSpec});
+
+  Uri uri = Uri.parse('file:///sdk/lib/libraries.json');
+  fileSystem.entityForUri(uri).writeAsStringSync(spec.toJsonString(uri));
+  return targetSpec;
 }

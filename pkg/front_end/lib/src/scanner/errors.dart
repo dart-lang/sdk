@@ -141,6 +141,9 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
         if (type == TokenType.OPEN_PAREN) {
           return _makeError(ScannerErrorCode.EXPECTED_TOKEN, [')']);
         }
+        if (type == TokenType.LT) {
+          return _makeError(ScannerErrorCode.EXPECTED_TOKEN, ['>']);
+        }
       } else if (errorCode == codeUnexpectedDollarInString) {
         return _makeError(ScannerErrorCode.MISSING_IDENTIFIER, null);
       }

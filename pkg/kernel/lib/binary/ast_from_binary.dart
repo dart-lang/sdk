@@ -68,7 +68,7 @@ class BinaryBuilder {
     }
   }
 
-  int readMagicWord() {
+  int readUint32() {
     return (readByte() << 24) |
         (readByte() << 16) |
         (readByte() << 8) |
@@ -159,16 +159,27 @@ class BinaryBuilder {
 
   void _fillTreeNodeList(
       List<TreeNode> list, TreeNode buildObject(), TreeNode parent) {
-    list.length = readUInt();
-    for (int i = 0; i < list.length; ++i) {
-      list[i] = buildObject()..parent = parent;
+    var length = readUInt();
+    list.length = length;
+    for (int i = 0; i < length; ++i) {
+      TreeNode object = buildObject();
+      list[i] = object..parent = parent;
     }
   }
 
   void _fillNonTreeNodeList(List<Node> list, Node buildObject()) {
-    list.length = readUInt();
-    for (int i = 0; i < list.length; ++i) {
-      list[i] = buildObject();
+    var length = readUInt();
+    list.length = length;
+    for (int i = 0; i < length; ++i) {
+      Node object = buildObject();
+      list[i] = object;
+    }
+  }
+
+  void _skipNodeList(Node skipObject()) {
+    var length = readUInt();
+    for (int i = 0; i < length; ++i) {
+      skipObject();
     }
   }
 
@@ -237,7 +248,7 @@ class BinaryBuilder {
     _readOneProgram(program);
     if (_byteIndex < _bytes.length) {
       if (_byteIndex + 3 < _bytes.length) {
-        int magic = readMagicWord();
+        int magic = readUint32();
         if (magic == Tag.ProgramFile) {
           throw 'Concatenated program file given when a single program '
               'was expected.';
@@ -248,7 +259,7 @@ class BinaryBuilder {
   }
 
   void _readOneProgram(Program program) {
-    int magic = readMagicWord();
+    int magic = readUint32();
     if (magic != Tag.ProgramFile) {
       throw fail('This is not a binary dart file. '
           'Magic number was: ${magic.toRadixString(16)}');
@@ -264,6 +275,20 @@ class BinaryBuilder {
     }
     var mainMethod = readMemberReference(allowNull: true);
     program.mainMethodName ??= mainMethod;
+
+    // Read the program index.
+    readUint32(); // binary offset for source table.
+    readUint32(); // binary offset for link table.
+    readUint32(); // main
+    for (int i = 0; i < numberOfLibraries; i++) {
+      readUint32(); // binary offset for library #i.
+    }
+    int numberOfLibrariesCheck = readUint32();
+    if (numberOfLibraries != numberOfLibrariesCheck) {
+      throw 'Malformed binary: the program index indicates there are '
+          '$numberOfLibrariesCheck libraries but the binary contains '
+          '$numberOfLibraries.';
+    }
   }
 
   Map<String, Source> readUriToSource() {
@@ -318,7 +343,7 @@ class BinaryBuilder {
   }
 
   Reference readTypedefReference() {
-    return readCanonicalNameReference().getReference();
+    return readCanonicalNameReference()?.getReference();
   }
 
   Name readName() {
@@ -356,8 +381,13 @@ class BinaryBuilder {
 
     debugPath.add(library.name ?? library.importUri?.toString() ?? 'library');
 
-    _fillTreeNodeList(library.annotations, readExpression, library);
+    if (shouldWriteData) {
+      _fillTreeNodeList(library.annotations, readExpression, library);
+    } else {
+      _skipNodeList(readExpression);
+    }
     _readLibraryDependencies(library);
+    _readLibraryParts(library);
     _mergeNamedNodeList(library.typedefs, readTypedef, library);
     _mergeNamedNodeList(library.classes, readClass, library);
     _mergeNamedNodeList(library.fields, readField, library);
@@ -397,6 +427,17 @@ class BinaryBuilder {
     return new List<Combinator>.generate(readUInt(), (i) => readCombinator());
   }
 
+  void _readLibraryParts(Library library) {
+    int length = readUInt();
+    library.parts.length = length;
+    for (int i = 0; i < length; ++i) {
+      var annotations = readExpressionList();
+      var fileUri = readStringOrNullIfEmpty();
+      library.parts[i] = new LibraryPart(annotations, fileUri)
+        ..parent = library;
+    }
+  }
+
   Typedef readTypedef() {
     var canonicalName = readCanonicalNameReference();
     var reference = canonicalName.getReference();
@@ -431,21 +472,29 @@ class BinaryBuilder {
       node = new Class(reference: reference)..level = ClassLevel.Temporary;
     }
     node.fileOffset = readOffset();
+    node.fileEndOffset = readOffset();
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
-    int levelIndex = (flags >> 1) & 0x3;
+    node.isEnum = flags & 0x2 != 0;
+    node.isSyntheticMixinImplementation = flags & 0x4 != 0;
+    int levelIndex = (flags >> 3) & 0x3;
     var level = ClassLevel.values[levelIndex + 1];
     if (level.index >= node.level.index) {
       node.level = level;
     }
     var name = readStringOrNullIfEmpty();
     var fileUri = readUriReference();
+    var documentationComment = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name ?? 'normal-class');
     readAndPushTypeParameterList(node.typeParameters, node);
     var supertype = readSupertypeOption();
     var mixedInType = readSupertypeOption();
-    _fillNonTreeNodeList(node.implementedTypes, readSupertype);
+    if (shouldWriteData) {
+      _fillNonTreeNodeList(node.implementedTypes, readSupertype);
+    } else {
+      _skipNodeList(readSupertype);
+    }
     _mergeNamedNodeList(node.fields, readField, node);
     _mergeNamedNodeList(node.constructors, readConstructor, node);
     _mergeNamedNodeList(node.procedures, readProcedure, node);
@@ -454,6 +503,7 @@ class BinaryBuilder {
     if (shouldWriteData) {
       node.name = name;
       node.fileUri = fileUri;
+      node.documentationComment = documentationComment;
       node.annotations = annotations;
       node.supertype = supertype;
       node.mixedInType = mixedInType;
@@ -485,9 +535,9 @@ class BinaryBuilder {
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readByte();
-    readUInt(); // parent class binary offset.
     var name = readName();
     var fileUri = readUriReference();
+    var documentationComment = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'field');
     var type = readDartType();
@@ -500,6 +550,7 @@ class BinaryBuilder {
       node.flags = flags;
       node.name = name;
       node.fileUri = fileUri;
+      node.documentationComment = documentationComment;
       node.annotations = annotations;
       node.type = type;
       node.initializer = initializer;
@@ -522,14 +573,18 @@ class BinaryBuilder {
     var fileOffset = readOffset();
     var fileEndOffset = readOffset();
     var flags = readByte();
-    readUInt(); // parent class binary offset.
     var name = readName();
+    var documentationComment = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'constructor');
     var function = readFunctionNode();
     pushVariableDeclarations(function.positionalParameters);
     pushVariableDeclarations(function.namedParameters);
-    _fillTreeNodeList(node.initializers, readInitializer, node);
+    if (shouldWriteData) {
+      _fillTreeNodeList(node.initializers, readInitializer, node);
+    } else {
+      _skipNodeList(readInitializer);
+    }
     variableStack.length = 0;
     var transformerFlags = getAndResetTransformerFlags();
     debugPath.removeLast();
@@ -538,6 +593,7 @@ class BinaryBuilder {
       node.fileEndOffset = fileEndOffset;
       node.flags = flags;
       node.name = name;
+      node.documentationComment = documentationComment;
       node.annotations = annotations;
       node.function = function..parent = node;
       node.transformerFlags = transformerFlags;
@@ -560,9 +616,9 @@ class BinaryBuilder {
     int kindIndex = readByte();
     var kind = ProcedureKind.values[kindIndex];
     var flags = readByte();
-    readUInt(); // parent class binary offset.
     var name = readName();
     var fileUri = readUriReference();
+    var documentationComment = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'procedure');
     var function = readFunctionNodeOption();
@@ -575,6 +631,7 @@ class BinaryBuilder {
       node.flags = flags;
       node.name = name;
       node.fileUri = fileUri;
+      node.documentationComment = documentationComment;
       node.annotations = annotations;
       node.function = function;
       node.function?.parent = node;
@@ -585,15 +642,20 @@ class BinaryBuilder {
 
   Initializer readInitializer() {
     int tag = readByte();
+    bool isSynthetic = readByte() == 1;
     switch (tag) {
       case Tag.InvalidInitializer:
         return new InvalidInitializer();
       case Tag.FieldInitializer:
-        return new FieldInitializer.byReference(
-            readMemberReference(), readExpression());
+        var reference = readMemberReference();
+        var value = readExpression();
+        return new FieldInitializer.byReference(reference, value)
+          ..isSynthetic = isSynthetic;
       case Tag.SuperInitializer:
-        return new SuperInitializer.byReference(
-            readMemberReference(), readArguments());
+        var reference = readMemberReference();
+        var arguments = readArguments();
+        return new SuperInitializer.byReference(reference, arguments)
+          ..isSynthetic = isSynthetic;
       case Tag.RedirectingInitializer:
         return new RedirectingInitializer.byReference(
             readMemberReference(), readArguments());
@@ -864,7 +926,8 @@ class BinaryBuilder {
       case Tag.AwaitExpression:
         return new AwaitExpression(readExpression());
       case Tag.FunctionExpression:
-        return new FunctionExpression(readFunctionNode());
+        int offset = readOffset();
+        return new FunctionExpression(readFunctionNode())..fileOffset = offset;
       case Tag.Let:
         var variable = readVariableDeclaration();
         int stackHeight = variableStack.length;
@@ -891,8 +954,9 @@ class BinaryBuilder {
         var topLevelFunctionReference = readMemberReference();
         var contextVector = readExpression();
         var functionType = readDartType();
+        var typeArgs = readDartTypeList();
         return new ClosureCreation.byReference(
-            topLevelFunctionReference, contextVector, functionType);
+            topLevelFunctionReference, contextVector, functionType, typeArgs);
       default:
         throw fail('Invalid expression tag: $tag');
     }
@@ -951,28 +1015,36 @@ class BinaryBuilder {
         return new BreakStatement(labelStack[labelStackBase + index])
           ..fileOffset = offset;
       case Tag.WhileStatement:
-        return new WhileStatement(readExpression(), readStatement());
+        var offset = readOffset();
+        return new WhileStatement(readExpression(), readStatement())
+          ..fileOffset = offset;
       case Tag.DoStatement:
-        return new DoStatement(readStatement(), readExpression());
+        var offset = readOffset();
+        return new DoStatement(readStatement(), readExpression())
+          ..fileOffset = offset;
       case Tag.ForStatement:
         int variableStackHeight = variableStack.length;
+        var offset = readOffset();
         var variables = readAndPushVariableDeclarationList();
         var condition = readExpressionOption();
         var updates = readExpressionList();
         var body = readStatement();
         variableStack.length = variableStackHeight;
-        return new ForStatement(variables, condition, updates, body);
+        return new ForStatement(variables, condition, updates, body)
+          ..fileOffset = offset;
       case Tag.ForInStatement:
       case Tag.AsyncForInStatement:
         bool isAsync = tag == Tag.AsyncForInStatement;
         int variableStackHeight = variableStack.length;
         var offset = readOffset();
+        var bodyOffset = readOffset();
         var variable = readAndPushVariableDeclaration();
         var iterable = readExpression();
         var body = readStatement();
         variableStack.length = variableStackHeight;
         return new ForInStatement(variable, iterable, body, isAsync: isAsync)
-          ..fileOffset = offset;
+          ..fileOffset = offset
+          ..bodyOffset = bodyOffset;
       case Tag.SwitchStatement:
         var expression = readExpression();
         int count = readUInt();
@@ -1109,21 +1181,25 @@ class BinaryBuilder {
         var totalParameterCount = readUInt();
         var positional = readDartTypeList();
         var named = readNamedTypeList();
+        var positionalNames = readStringReferenceList();
+        var typedefReference = readTypedefReference();
         assert(positional.length + named.length == totalParameterCount);
         var returnType = readDartType();
         typeParameterStack.length = typeParameterStackHeight;
         return new FunctionType(positional, returnType,
             typeParameters: typeParameters,
             requiredParameterCount: requiredParameterCount,
-            namedParameters: named);
+            namedParameters: named,
+            positionalParameterNames: positionalNames,
+            typedefReference: typedefReference);
       case Tag.SimpleFunctionType:
         var positional = readDartTypeList();
+        var positionalNames = readStringReferenceList();
         var returnType = readDartType();
-        return new FunctionType(positional, returnType);
+        return new FunctionType(positional, returnType,
+            positionalParameterNames: positionalNames);
       case Tag.TypeParameterType:
         int index = readUInt();
-        readUInt(); // offset of parameter list in the binary.
-        readUInt(); // index in the list.
         var bound = readDartTypeOption();
         return new TypeParameterType(typeParameterStack[index], bound);
       default:

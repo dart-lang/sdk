@@ -5,8 +5,8 @@
 #ifndef RUNTIME_VM_REDUNDANCY_ELIMINATION_H_
 #define RUNTIME_VM_REDUNDANCY_ELIMINATION_H_
 
-#include "vm/intermediate_language.h"
 #include "vm/flow_graph.h"
+#include "vm/intermediate_language.h"
 
 namespace dart {
 
@@ -79,7 +79,6 @@ class AllocationSinking : public ZoneAllocated {
   ExitsCollector exits_collector_;
 };
 
-
 // A simple common subexpression elimination based
 // on the dominator tree.
 class DominatorBasedCSE : public AllStatic {
@@ -94,18 +93,15 @@ class DominatorBasedCSE : public AllStatic {
                                 CSEInstructionMap* map);
 };
 
-
 class DeadStoreElimination : public AllStatic {
  public:
   static void Optimize(FlowGraph* graph);
 };
 
-
 class DeadCodeElimination : public AllStatic {
  public:
   static void EliminateDeadPhis(FlowGraph* graph);
 };
-
 
 // Optimize spill stores inside try-blocks by identifying values that always
 // contain a single known constant at catch block entry.
@@ -113,7 +109,6 @@ class TryCatchAnalyzer : public AllStatic {
  public:
   static void Optimize(FlowGraph* flow_graph);
 };
-
 
 // Loop invariant code motion.
 class LICM : public ValueObject {

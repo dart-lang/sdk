@@ -962,7 +962,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _checkForMismatchedAccessorTypes(node, methodName);
       }
       if (node.isGetter) {
-        _checkForVoidReturnType(node);
         _checkForConflictingStaticGetterAndInstanceSetter(node);
       } else if (node.isSetter) {
         _checkForInvalidModifierOnBody(
@@ -1205,7 +1204,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     SimpleIdentifier nameNode = node.name;
     Expression initializerNode = node.initializer;
     // do checks
-    _checkForInvalidAssignment(nameNode, initializerNode);
+    _checkForInvalidAssignment(nameNode, initializerNode,
+        isDeclarationCast: true);
     _checkForImplicitDynamicIdentifier(node, nameNode);
     // visit name
     nameNode.accept(this);
@@ -2504,20 +2504,24 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   bool _checkForAssignableExpression(
-      Expression expression, DartType expectedStaticType, ErrorCode errorCode) {
+      Expression expression, DartType expectedStaticType, ErrorCode errorCode,
+      {bool isDeclarationCast = false}) {
     DartType actualStaticType = getStaticType(expression);
     return actualStaticType != null &&
         _checkForAssignableExpressionAtType(
-            expression, actualStaticType, expectedStaticType, errorCode);
+            expression, actualStaticType, expectedStaticType, errorCode,
+            isDeclarationCast: isDeclarationCast);
   }
 
   bool _checkForAssignableExpressionAtType(
       Expression expression,
       DartType actualStaticType,
       DartType expectedStaticType,
-      ErrorCode errorCode) {
+      ErrorCode errorCode,
+      {bool isDeclarationCast = false}) {
     if (!_expressionIsAssignableAtType(
-        expression, actualStaticType, expectedStaticType)) {
+        expression, actualStaticType, expectedStaticType,
+        isDeclarationCast: isDeclarationCast)) {
       _errorReporter.reportTypeErrorForNode(
           errorCode, expression, [actualStaticType, expectedStaticType]);
       return false;
@@ -3566,9 +3570,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_isInSystemLibrary) {
       return;
     }
+
+    LibraryElement exportedLibrary = exportElement.exportedLibrary;
+    if (exportedLibrary == null) {
+      return;
+    }
+
     // should be private
     DartSdk sdk = _currentLibrary.context.sourceFactory.dartSdk;
-    String uri = exportElement.uri;
+    String uri = exportedLibrary.source.uri.toString();
     SdkLibrary sdkLibrary = sdk.getSdkLibrary(uri);
     if (sdkLibrary == null) {
       return;
@@ -4179,9 +4189,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_isInSystemLibrary) {
       return;
     }
+
+    LibraryElement importedLibrary = importElement.importedLibrary;
+    if (importedLibrary == null) {
+      return;
+    }
+
     // should be private
     DartSdk sdk = _currentLibrary.context.sourceFactory.dartSdk;
-    String uri = importElement.uri;
+    String uri = importedLibrary.source.uri.toString();
     SdkLibrary sdkLibrary = sdk.getSdkLibrary(uri);
     if (sdkLibrary == null || !sdkLibrary.isInternal) {
       return;
@@ -4260,7 +4276,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
           node.iterable,
           [iterableType, loopTypeName]);
-    } else if (!_typeSystem.isAssignableTo(bestIterableType, variableType)) {
+    } else if (!_typeSystem.isAssignableTo(bestIterableType, variableType,
+        isDeclarationCast: true)) {
       _errorReporter.reportTypeErrorForNode(
           StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
           node.iterable,
@@ -4414,7 +4431,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * See [StaticTypeWarningCode.INVALID_ASSIGNMENT].
    */
-  void _checkForInvalidAssignment(Expression lhs, Expression rhs) {
+  void _checkForInvalidAssignment(Expression lhs, Expression rhs,
+      {bool isDeclarationCast = false}) {
     if (lhs == null || rhs == null) {
       return;
     }
@@ -4423,7 +4441,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         ? getStaticType(lhs)
         : leftVariableElement.type;
     _checkForAssignableExpression(
-        rhs, leftType, StaticTypeWarningCode.INVALID_ASSIGNMENT);
+        rhs, leftType, StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        isDeclarationCast: isDeclarationCast);
   }
 
   /**
@@ -6021,19 +6040,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Verify that the given [getter] does not have a return type of 'void'.
-   *
-   * See [StaticWarningCode.VOID_RETURN_FOR_GETTER].
-   */
-  void _checkForVoidReturnType(MethodDeclaration getter) {
-    TypeAnnotation returnType = getter.returnType;
-    if (returnType is TypeName && returnType.name.name == "void") {
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode.VOID_RETURN_FOR_GETTER, returnType);
-    }
-  }
-
-  /**
    * Verify the given operator-method [declaration], has correct number of
    * parameters.
    *
@@ -6306,13 +6312,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   bool _expressionIsAssignableAtType(Expression expression,
-      DartType actualStaticType, DartType expectedStaticType) {
+      DartType actualStaticType, DartType expectedStaticType,
+      {isDeclarationCast: false}) {
     bool concrete = _options.strongMode && checker.hasStrictArrow(expression);
     if (concrete && actualStaticType is FunctionType) {
       actualStaticType =
           _typeSystem.functionTypeToConcreteType(actualStaticType);
     }
-    return _typeSystem.isAssignableTo(actualStaticType, expectedStaticType);
+    return _typeSystem.isAssignableTo(actualStaticType, expectedStaticType,
+        isDeclarationCast: isDeclarationCast);
   }
 
   MethodElement _findOverriddenMemberThatMustCallSuper(MethodDeclaration node) {

@@ -4,20 +4,22 @@
 
 library fasta.source_class_builder;
 
-import 'package:front_end/src/fasta/builder/class_builder.dart'
-    show ClassBuilder;
-
-import 'package:front_end/src/fasta/source/source_library_builder.dart'
-    show SourceLibraryBuilder;
-
 import 'package:kernel/ast.dart'
     show Class, Constructor, Supertype, TreeNode, setParents;
 
-import '../errors.dart' show internalError;
+import '../dill/dill_member_builder.dart' show DillMemberBuilder;
+
+import '../fasta_codes.dart'
+    show
+        templateConflictsWithConstructor,
+        templateConflictsWithFactory,
+        templateConflictsWithMember,
+        templateConflictsWithSetter;
 
 import '../kernel/kernel_builder.dart'
     show
         Builder,
+        ClassBuilder,
         ConstructorReferenceBuilder,
         KernelClassBuilder,
         KernelFieldBuilder,
@@ -31,7 +33,9 @@ import '../kernel/kernel_builder.dart'
         TypeVariableBuilder,
         compareProcedures;
 
-import '../dill/dill_member_builder.dart' show DillMemberBuilder;
+import '../problems.dart' show unhandled;
+
+import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 Class initializeClass(
     Class cls, String name, KernelLibraryBuilder parent, int charOffset) {
@@ -45,12 +49,14 @@ Class initializeClass(
 
 class SourceClassBuilder extends KernelClassBuilder {
   final Class cls;
+  final String documentationComment;
 
   final List<ConstructorReferenceBuilder> constructorReferences;
 
   KernelTypeBuilder mixedInType;
 
   SourceClassBuilder(
+      this.documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       String name,
@@ -82,6 +88,8 @@ class SourceClassBuilder extends KernelClassBuilder {
   }
 
   Class build(KernelLibraryBuilder library, LibraryBuilder coreLibrary) {
+    cls.documentationComment = documentationComment;
+
     void buildBuilders(String name, Builder builder) {
       do {
         if (builder is KernelFieldBuilder) {
@@ -91,7 +99,8 @@ class SourceClassBuilder extends KernelClassBuilder {
         } else if (builder is KernelFunctionBuilder) {
           cls.addMember(builder.build(library));
         } else {
-          internalError("Unhandled builder: ${builder.runtimeType}");
+          unhandled("${builder.runtimeType}", "buildBuilders",
+              builder.charOffset, builder.fileUri);
         }
         builder = builder.next;
       } while (builder != null);
@@ -118,14 +127,17 @@ class SourceClassBuilder extends KernelClassBuilder {
       Builder member = scopeBuilder[name];
       if (member == null) return;
       // TODO(ahe): charOffset is missing.
-      addCompileTimeError(
-          constructor.charOffset, "Conflicts with member '${name}'.");
+      addCompileTimeError(templateConflictsWithMember.withArguments(name),
+          constructor.charOffset);
       if (constructor.isFactory) {
-        addCompileTimeError(member.charOffset,
-            "Conflicts with factory '${this.name}.${name}'.");
+        addCompileTimeError(
+            templateConflictsWithFactory.withArguments("${this.name}.${name}"),
+            member.charOffset);
       } else {
-        addCompileTimeError(member.charOffset,
-            "Conflicts with constructor '${this.name}.${name}'.");
+        addCompileTimeError(
+            templateConflictsWithConstructor
+                .withArguments("${this.name}.${name}"),
+            member.charOffset);
       }
     });
 
@@ -136,8 +148,10 @@ class SourceClassBuilder extends KernelClassBuilder {
       var report = member.isInstanceMember != setter.isInstanceMember
           ? addWarning
           : addCompileTimeError;
-      report(setter.charOffset, "Conflicts with member '${name}'.");
-      report(member.charOffset, "Conflicts with setter '${name}'.");
+      report(
+          templateConflictsWithMember.withArguments(name), setter.charOffset);
+      report(
+          templateConflictsWithSetter.withArguments(name), member.charOffset);
     });
 
     cls.procedures.sort(compareProcedures);

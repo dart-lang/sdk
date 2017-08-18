@@ -16,45 +16,55 @@ import 'analyze_helper.dart';
 // Do not remove WHITE_LIST even if it's empty.  The error message for
 // unused members refers to WHITE_LIST by name.
 const Map<String, List<String>> WHITE_LIST = const {
-  // Helper methods for debugging should never be called from production code:
-  "lib/src/helpers/": const [" is never "],
+  // TODO(johnniwinther): uncomment when [Compiler.reportUnusedCode] is
+  // reenabled.
+  // // Helper methods for debugging should never be called from production code:
+  // "lib/src/helpers/": const [" is never "],
 
-  // Node.asAssert, Node.asLiteralBool is never used.
-  "lib/src/tree/nodes.dart": const [
-    "The method 'asAssert' is never called.",
-    "The method 'asLiteralBool' is never called."
+  // // Node.asAssert, Node.asLiteralBool is never used.
+  // "lib/src/tree/nodes.dart": const [
+  //   "The method 'asAssert' is never called.",
+  //   "The method 'asLiteralBool' is never called."
+  // ],
+
+  // // Uncalled methods in SemanticSendVisitor and subclasses.
+  // "lib/src/resolution/semantic_visitor.dart": const ["The method 'error"],
+  // "lib/src/resolution/semantic_visitor_mixins.dart": const [
+  //   "The class 'SuperBulkMixin'",
+  //   "The class 'Base",
+  //   "The method 'error",
+  //   "The method 'visit"
+  // ],
+
+  // // Uncalled type predicate.  Keep while related predicates are used.
+  // "lib/src/ssa/nodes.dart": const ["The method 'isArray' is never called"],
+
+  // // Serialization code is only used in test.
+  // "lib/src/serialization/": const ["is never"],
+
+  // "lib/src/universe/world_builder.dart": const [
+  //   "The method 'getterInvocationsByName' is never called.",
+  //   "The method 'setterInvocationsByName' is never called."
+  // ],
+
+  "pkg/front_end/lib/src/fasta/kernel/kernel_library_builder.dart": const [
+    "The getter 'iterator' is not defined for the class 'Object'.",
   ],
 
-  // Uncalled methods in SemanticSendVisitor and subclasses.
-  "lib/src/resolution/semantic_visitor.dart": const ["The method 'error"],
-  "lib/src/resolution/semantic_visitor_mixins.dart": const [
-    "The class 'SuperBulkMixin'",
-    "The class 'Base",
-    "The method 'error",
-    "The method 'visit"
+  "pkg/front_end/lib/src/fasta/type_inference/type_schema.dart": const [
+    "The class 'UnknownType' overrides 'operator==', but not 'get hashCode'."
   ],
 
-  // Uncalled type predicate.  Keep while related predicates are used.
-  "lib/src/ssa/nodes.dart": const ["The method 'isArray' is never called"],
-
-  // Serialization code is only used in test.
-  "lib/src/serialization/": const ["is never"],
-
-  "lib/src/universe/world_builder.dart": const [
-    "The method 'getterInvocationsByName' is never called.",
-    "The method 'setterInvocationsByName' is never called."
+  "pkg/kernel/lib/transformations/closure/": const [
+    "Duplicated library name 'kernel.transformations.closure.converter'",
   ],
 };
 
 void main() {
   var uri =
       currentDirectory.resolve('pkg/compiler/lib/src/use_unused_api.dart');
-  asyncTest(() => analyze([uri],
-      // TODO(johnniwinther): Use [WHITE_LIST] again when
-      // [Compiler.reportUnusedCode] is reenabled.
-      const {}, // WHITE_LIST
-      mode: AnalysisMode.TREE_SHAKING,
-      checkResults: checkResults));
+  asyncTest(() => analyze([uri], WHITE_LIST,
+      mode: AnalysisMode.TREE_SHAKING, checkResults: checkResults));
 }
 
 bool checkResults(Compiler compiler, CollectingDiagnosticHandler handler) {

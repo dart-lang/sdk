@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for a function type test that cannot be eliminated at compile time.
 
+// VMOptions=--generic-method-syntax --no-reify-generic-functions
+
 import "package:expect/expect.dart";
 
 class A {}

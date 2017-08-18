@@ -1,0 +1,12 @@
+print(String: Finally with i=0)
+print(int: 0)
+print(String: Finally with i=1)
+print(int: 1)
+print(String: Finally with i=2)
+print(int: 2)
+print(String: Finally with i=3)
+print(int: 3)
+print(String: Finally with i=4)
+print(int: 4)
+if-then
+print(String: Finally with i=5)

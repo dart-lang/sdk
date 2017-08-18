@@ -1,3 +1,29 @@
+## 1.1.1
+* Update SDK constraint to be 2.0.0 dev friendly.
+
+## 1.1.0
+* Introduce `@alwaysThrows` to declare that a function always throws
+    (SDK issue [17999](https://github.com/dart-lang/sdk/issues/17999)). This
+    is first available in Dart SDK 1.25.0-dev.1.0.
+
+    ```dart
+    import 'package:meta/meta.dart';
+
+    // Without knowing that [failBigTime] always throws, it looks like this
+    // function might return without returning a bool.
+    bool fn(expected, actual) {
+      if (expected != actual)
+        failBigTime(expected, actual);
+      else
+        return True;
+    }
+
+    @alwaysThrows
+    void failBigTime(expected, actual) {
+      throw new StateError('Expected $expected, but was $actual.');
+    }
+    ```
+
 ## 1.0.4
 * Introduce `@virtual` to allow field overrides in strong mode
     (SDK issue [27384](https://github.com/dart-lang/sdk/issues/27384)).

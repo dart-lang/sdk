@@ -8,8 +8,8 @@
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/bit_set.h"
-#include "vm/raw_object.h"
 #include "vm/os_thread.h"
+#include "vm/raw_object.h"
 
 namespace dart {
 
@@ -56,7 +56,10 @@ class FreeListElement {
 
  private:
   // This layout mirrors the layout of RawObject.
-  uword tags_;
+  uint32_t tags_;
+#if defined(HASH_IN_OBJECT_HEADER)
+  uint32_t hash_;
+#endif
   FreeListElement* next_;
 
   // Returns the address of the embedded size.
@@ -70,7 +73,6 @@ class FreeListElement {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(FreeListElement);
 };
-
 
 class FreeList {
  public:

@@ -23,7 +23,6 @@ template <typename T>
 class GrowableArray;
 class ParsedFunction;
 
-
 class ParallelMoveResolver : public ValueObject {
  public:
   explicit ParallelMoveResolver(FlowGraphCompiler* compiler);
@@ -58,7 +57,6 @@ class ParallelMoveResolver : public ValueObject {
     Register reg_;
     bool spilled_;
   };
-
 
   bool IsScratchLocation(Location loc);
   intptr_t AllocateScratchRegister(Location::Kind kind,
@@ -109,7 +107,6 @@ class ParallelMoveResolver : public ValueObject {
   GrowableArray<MoveOperands*> moves_;
 };
 
-
 // Used for describing a deoptimization point after call (lazy deoptimization).
 // For deoptimization before instruction use class CompilerDeoptInfoWithStub.
 class CompilerDeoptInfo : public ZoneAllocated {
@@ -133,7 +130,6 @@ class CompilerDeoptInfo : public ZoneAllocated {
   RawTypedData* CreateDeoptInfo(FlowGraphCompiler* compiler,
                                 DeoptInfoBuilder* builder,
                                 const Array& deopt_table);
-
 
   // No code needs to be generated.
   virtual void GenerateCode(FlowGraphCompiler* compiler, intptr_t stub_ix) {}
@@ -176,7 +172,6 @@ class CompilerDeoptInfo : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(CompilerDeoptInfo);
 };
 
-
 class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
  public:
   CompilerDeoptInfoWithStub(intptr_t deopt_id,
@@ -209,7 +204,6 @@ class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
   DISALLOW_COPY_AND_ASSIGN(CompilerDeoptInfoWithStub);
 };
 
-
 class SlowPathCode : public ZoneAllocated {
  public:
   SlowPathCode() : entry_label_(), exit_label_() {}
@@ -231,7 +225,6 @@ class SlowPathCode : public ZoneAllocated {
 
   DISALLOW_COPY_AND_ASSIGN(SlowPathCode);
 };
-
 
 class FlowGraphCompiler : public ValueObject {
  private:
@@ -608,7 +601,8 @@ class FlowGraphCompiler : public ValueObject {
   static bool LookupMethodFor(int class_id,
                               const String& name,
                               const ArgumentsDescriptor& args_desc,
-                              Function* fn_return);
+                              Function* fn_return,
+                              bool* class_is_abstract_return = NULL);
 
 #if defined(TARGET_ARCH_DBC)
   enum CallResult {

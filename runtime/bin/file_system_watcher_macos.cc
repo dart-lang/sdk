@@ -11,10 +11,10 @@
 
 #if !HOST_OS_IOS
 
+#include <CoreServices/CoreServices.h>  // NOLINT
 #include <errno.h>                      // NOLINT
 #include <fcntl.h>                      // NOLINT
 #include <unistd.h>                     // NOLINT
-#include <CoreServices/CoreServices.h>  // NOLINT
 
 #include "bin/eventhandler.h"
 #include "bin/fdutils.h"
@@ -51,7 +51,6 @@ union FSEvent {
   } data;
   uint8_t bytes[PATH_MAX + 8];
 };
-
 
 class FSEventsWatcher {
  public:
@@ -177,7 +176,6 @@ class FSEventsWatcher {
     DISALLOW_COPY_AND_ASSIGN(Node);
   };
 
-
   FSEventsWatcher() : run_loop_(0) { Start(); }
 
   void Start() {
@@ -299,22 +297,18 @@ class FSEventsWatcher {
   DISALLOW_COPY_AND_ASSIGN(FSEventsWatcher);
 };
 
-
 #define kCFCoreFoundationVersionNumber10_7 635.00
 bool FileSystemWatcher::IsSupported() {
   return kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber10_7;
 }
 
-
 intptr_t FileSystemWatcher::Init() {
   return reinterpret_cast<intptr_t>(new FSEventsWatcher());
 }
 
-
 void FileSystemWatcher::Close(intptr_t id) {
   delete reinterpret_cast<FSEventsWatcher*>(id);
 }
-
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                                       const char* path,
@@ -324,17 +318,14 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
   return reinterpret_cast<intptr_t>(watcher->AddPath(path, events, recursive));
 }
 
-
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
   USE(id);
   delete reinterpret_cast<FSEventsWatcher::Node*>(path_id);
 }
 
-
 intptr_t FileSystemWatcher::GetSocketId(intptr_t id, intptr_t path_id) {
   return reinterpret_cast<FSEventsWatcher::Node*>(path_id)->read_fd();
 }
-
 
 Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
   intptr_t fd = GetSocketId(id, path_id);
@@ -407,27 +398,21 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
   return DartUtils::NewDartOSError();
 }
 
-
 intptr_t FileSystemWatcher::GetSocketId(intptr_t id, intptr_t path_id) {
   return -1;
 }
-
 
 bool FileSystemWatcher::IsSupported() {
   return false;
 }
 
-
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {}
-
 
 intptr_t FileSystemWatcher::Init() {
   return -1;
 }
 
-
 void FileSystemWatcher::Close(intptr_t id) {}
-
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                                       const char* path,

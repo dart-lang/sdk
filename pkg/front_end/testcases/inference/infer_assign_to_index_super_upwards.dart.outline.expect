@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class Base<T extends core::Object, U extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   operator [](core::String s) → self::Base::T
     ;
@@ -13,55 +13,55 @@ abstract class Base<T extends core::Object, U extends core::Object> extends core
   abstract method setValue(core::String s, self::Base::U v) → void;
 }
 abstract class Test1 extends self::Base<core::int, core::int> {
-  constructor •() → void
+  default constructor •() → void
     ;
   method test() → void
     ;
 }
 abstract class Test2 extends self::Base<core::int, core::num> {
-  constructor •() → void
+  default constructor •() → void
     ;
   method test() → void
     ;
 }
 abstract class Test3 extends self::Base<core::int, core::double> {
-  constructor •() → void
+  default constructor •() → void
     ;
   method test() → void
     ;
 }
 abstract class Test4 extends self::Base<core::num, core::int> {
-  constructor •() → void
+  default constructor •() → void
     ;
   method test() → void
     ;
 }
 abstract class Test5 extends self::Base<core::num, core::num> {
-  constructor •() → void
+  default constructor •() → void
     ;
   method test() → void
     ;
 }
 abstract class Test6 extends self::Base<core::num, core::double> {
-  constructor •() → void
+  default constructor •() → void
     ;
   method test() → void
     ;
 }
 abstract class Test7 extends self::Base<core::double, core::int> {
-  constructor •() → void
+  default constructor •() → void
     ;
   method test() → void
     ;
 }
 abstract class Test8 extends self::Base<core::double, core::num> {
-  constructor •() → void
+  default constructor •() → void
     ;
   method test() → void
     ;
 }
 abstract class Test9 extends self::Base<core::double, core::double> {
-  constructor •() → void
+  default constructor •() → void
     ;
   method test() → void
     ;

@@ -373,7 +373,6 @@ class DeoptInstr : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(DeoptInstr);
 };
 
-
 // Helper class that allows to read a value of the given register from
 // the DeoptContext as the specified type.
 // It calls different method depending on which kind of register (cpu/fpu) and
@@ -395,14 +394,12 @@ struct RegisterReader<FpuRegister, double> {
   }
 };
 
-
 template <>
 struct RegisterReader<FpuRegister, simd128_value_t> {
   static simd128_value_t Read(DeoptContext* context, FpuRegister reg) {
     return context->FpuRegisterValueAsSimd128(reg);
   }
 };
-
 
 // Class that encapsulates reading and writing of values that were either in
 // the registers in the optimized code or were spilled from those registers
@@ -473,10 +470,8 @@ class RegisterSource {
   const intptr_t source_index_;
 };
 
-
 typedef RegisterSource<Register> CpuRegisterSource;
 typedef RegisterSource<FpuRegister> FpuRegisterSource;
-
 
 // Builds a deoptimization info table, one DeoptInfo at a time.  Call AddXXX
 // methods in the order of their target, starting wih deoptimized code
@@ -564,7 +559,6 @@ class DeoptInfoBuilder : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(DeoptInfoBuilder);
 };
 
-
 // Utilities for managing the deopt table and its entries.  The table is
 // stored in an Array in the heap.  It consists of triples of (PC offset,
 // info, reason).  Elements of each entry are stored consecutively in the
@@ -604,6 +598,51 @@ class DeoptTable : public AllStatic {
 
  private:
   static const intptr_t kEntrySize = 3;
+};
+
+
+// Holds deopt information at one deoptimization point. The information consists
+// of two parts:
+//  - first a prefix consisting of kMaterializeObject instructions describing
+//    objects which had their allocation removed as part of AllocationSinking
+//    pass and have to be materialized;
+//  - followed by a list of DeoptInstr objects, specifying transformation
+//    information for each slot in unoptimized frame(s).
+// Arguments for object materialization (class of instance to be allocated and
+// field-value pairs) are added as artificial slots to the expression stack
+// of the bottom-most frame. They are removed from the stack at the very end
+// of deoptimization by the deoptimization stub.
+class DeoptInfo : public AllStatic {
+ public:
+  // Size of the frame part of the translation not counting kMaterializeObject
+  // instructions in the prefix.
+  static intptr_t FrameSize(const TypedData& packed);
+
+  // Returns the number of kMaterializeObject instructions in the prefix.
+  static intptr_t NumMaterializations(const GrowableArray<DeoptInstr*>&);
+
+  // Unpack the entire translation into an array of deoptimization
+  // instructions.  This copies any shared suffixes into the array.
+  static void Unpack(const Array& table,
+                     const TypedData& packed,
+                     GrowableArray<DeoptInstr*>* instructions);
+
+  // Size of the frame part of the translation not counting kMaterializeObject
+  // instructions in the prefix.
+  static const char* ToCString(const Array& table, const TypedData& packed);
+
+  // Returns true iff decompression yields the same instructions as the
+  // original.
+  static bool VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
+                                  const Array& deopt_table,
+                                  const TypedData& packed);
+
+
+ private:
+  static void UnpackInto(const Array& table,
+                         const TypedData& packed,
+                         GrowableArray<DeoptInstr*>* instructions,
+                         intptr_t length);
 };
 
 }  // namespace dart

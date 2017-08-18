@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/incremental_kernel_generator_impl.dart';
 import 'package:kernel/kernel.dart';
 
@@ -47,11 +48,17 @@ class DeltaProgram {
 /// Interface for generating an initial kernel representation of a program and
 /// keeping it up to date as incremental changes are made.
 ///
-/// This class maintains an internal "previous program state"; each
-/// time [computeDelta] is called, it updates the previous program state and
-/// produces a representation of what has changed.  When there are few changes,
-/// a call to [computeDelta] should be much faster than compiling the whole
-/// program from scratch.
+/// This class maintains an internal "current program state"; each time
+/// [computeDelta] is called, it computes the "last program state" and libraries
+/// that were affected relative to the "current program state".  When there are
+/// few changes, a call to [computeDelta] should be much faster than compiling
+/// the whole program from scratch.
+///
+/// Each invocation of [computeDelta] must be followed by invocation of either
+/// [acceptLastDelta] or [rejectLastDelta].  [acceptLastDelta] makes the
+/// "last program state" the "current program state".  [rejectLastDelta] simply
+/// discards the "last program state", so that the "current program state"
+/// stays the same.
 ///
 /// This class also maintains a set of "valid sources", which is a (possibly
 /// empty) subset of the sources constituting the previous program state.  Files
@@ -61,11 +68,18 @@ class DeltaProgram {
 /// Behavior is undefined if the client does not obey the following concurrency
 /// restrictions:
 /// - no two invocations of [computeDelta] may be outstanding at any given time.
-/// - neither [invalidate] nor [invalidateAll] may be called while an invocation
-///   of [computeDelta] is outstanding.
+/// - [invalidate] may not be called while an invocation of [computeDelta] is
+///   outstanding.
 ///
 /// Not intended to be implemented or extended by clients.
 abstract class IncrementalKernelGenerator {
+  /// Notify the generator that the last [DeltaProgram] returned from the
+  /// [computeDelta] was accepted.  So, the "last program state" becomes the
+  /// "current program state", and the next invocation of [computeDelta] will
+  /// not include the libraries of the last delta, unless these libraries are
+  /// affected by [invalidate] since the last [computeDelta].
+  void acceptLastDelta();
+
   /// Generates a kernel representation of the changes to the program, assuming
   /// that all valid sources are unchanged since the last call to
   /// [computeDelta].
@@ -82,6 +96,9 @@ abstract class IncrementalKernelGenerator {
   /// source code), the caller may consider the previous file state and the set
   /// of valid sources to be unchanged; this means that once the user fixes the
   /// errors, it is safe to call [computeDelta] again.
+  ///
+  /// Each invocation of [computeDelta] must be followed by invocation of
+  /// either [acceptLastDelta] or [rejectLastDelta].
   Future<DeltaProgram> computeDelta();
 
   /// Remove the file associated with the given file [uri] from the set of
@@ -89,14 +106,10 @@ abstract class IncrementalKernelGenerator {
   /// next call to [computeDelta]).
   void invalidate(Uri uri);
 
-  /// Remove all source files from the set of valid sources.  This guarantees
-  /// that all files will be re-read on the next call to [computeDelta].
-  ///
-  /// Note that this does not erase the previous program state; the next time
-  /// [computeDelta] is called, if parts of the program are discovered to be
-  /// unchanged, parts of the previous program state will still be re-used to
-  /// speed up compilation.
-  void invalidateAll();
+  /// Notify the generator that the last [DeltaProgram] returned from the
+  /// [computeDelta] was rejected.  The "last program state" is discared and
+  /// the "current program state" is kept unchanged.
+  void rejectLastDelta();
 
   /// Creates an [IncrementalKernelGenerator] which is prepared to generate
   /// kernel representations of the program whose main library is in the given
@@ -108,10 +121,13 @@ abstract class IncrementalKernelGenerator {
   static Future<IncrementalKernelGenerator> newInstance(
       CompilerOptions options, Uri entryPoint,
       {WatchUsedFilesFn watch}) async {
-    var processedOptions = new ProcessedOptions(options);
-    var uriTranslator = await processedOptions.getUriTranslator();
-    return new IncrementalKernelGeneratorImpl(
-        processedOptions, uriTranslator, entryPoint,
-        watch: watch);
+    var processedOptions = new ProcessedOptions(options, false, [entryPoint]);
+    return await CompilerContext.runWithOptions(processedOptions, (_) async {
+      var uriTranslator = await processedOptions.getUriTranslator();
+      var sdkOutlineBytes = await processedOptions.loadSdkSummaryBytes();
+      return new IncrementalKernelGeneratorImpl(
+          processedOptions, uriTranslator, sdkOutlineBytes, entryPoint,
+          watch: watch);
+    });
   }
 }

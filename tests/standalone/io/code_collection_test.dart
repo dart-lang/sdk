@@ -37,6 +37,7 @@ doTest() {
       // foo is called again to make sure we can still run it even after
       // its code has been detached.
       var ret = foo(2);
+      // GC after here may collect the second compilation of foo.
     }
   });
 }
@@ -74,21 +75,28 @@ main(List<String> arguments) {
     // Code drops are logged with --log-code-drop. Look through stdout for the
     // message that foo's code was dropped.
     print(pr.stdout);
-    var count = 0;
+    bool saw_foo2 = false;
+    bool saw_detaching_foo = false;
+    bool saw_foo3 = false;
     pr.stdout.split("\n").forEach((line) {
       if (line.contains("foo=2")) {
-        Expect.equals(0, count);
-        count++;
+        Expect.isFalse(saw_foo2, "foo=2 ran twice");
+        saw_foo2 = true;
       }
       if (line.contains("Detaching code") && line.contains("foo")) {
-        Expect.equals(1, count);
-        count++;
+        Expect.isTrue(saw_foo2, "foo detached before running");
+        // May detach twice.
+        saw_detaching_foo = true;
       }
       if (line.contains("foo=3")) {
-        Expect.equals(2, count);
-        count++;
+        Expect.isFalse(saw_foo3, "foo=3 ran twice");
+        Expect.isTrue(saw_detaching_foo, "foo should have been collected");
+        saw_foo3 = true;
       }
     });
-    Expect.equals(3, count);
+
+    Expect.isTrue(saw_foo2, "Missing foo=2");
+    Expect.isTrue(saw_detaching_foo, "Missing code collection for foo");
+    Expect.isTrue(saw_foo3, "Missing foo=3");
   }
 }

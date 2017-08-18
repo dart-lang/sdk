@@ -7,15 +7,5 @@ part of $LIBRARYNAME;
 @DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
-$if DARTIUM
-  // Override these methods for Dartium _HTMLFrameSetElement can't be abstract.
-  Stream<Event> get onHashChange => hashChangeEvent.forTarget(this);
-  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
-  Stream<Event> get onOffline => offlineEvent.forTarget(this);
-  Stream<Event> get onOnline => onlineEvent.forTarget(this);
-  Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
-  Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
-  Stream<Event> get onUnload => unloadEvent.forTarget(this);
-$endif
 }
 

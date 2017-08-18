@@ -2,17 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:io' as io;
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart'
     show File, Folder, ResourceProvider, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -22,6 +24,8 @@ import 'package:analyzer/src/lint/project.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/util/sdk.dart';
+import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
@@ -41,7 +45,7 @@ void printAndFail(String message, {int exitCode: 15}) {
   io.exit(exitCode);
 }
 
-AnalysisOptions _buildAnalyzerOptions(DriverOptions options) {
+AnalysisOptions _buildAnalyzerOptions(LinterOptions options) {
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
   analysisOptions.strongMode = options.strongMode;
   analysisOptions.hint = false;
@@ -49,6 +53,7 @@ AnalysisOptions _buildAnalyzerOptions(DriverOptions options) {
   analysisOptions.generateSdkErrors = options.showSdkWarnings;
   analysisOptions.enableAssertInitializer = options.enableAssertInitializer;
   analysisOptions.enableTiming = options.enableTiming;
+  analysisOptions.lintRules = options.enabledLints?.toList(growable: false);
   return analysisOptions;
 }
 
@@ -84,10 +89,6 @@ class DriverOptions {
 
   /// The mock SDK (to speed up testing) or `null` to use the actual SDK.
   DartSdk mockSdk;
-
-  /// Whether to show lints for the transitive closure of imported and exported
-  /// libraries.
-  bool visitTransitiveClosure = false;
 }
 
 class LintDriver {
@@ -111,8 +112,8 @@ class LintDriver {
     ContextBuilder builder = new ContextBuilder(resourceProvider, null, null);
 
     DartSdk sdk = options.mockSdk ??
-        new FolderBasedDartSdk(
-            resourceProvider, resourceProvider.getFolder(sdkDir));
+        new FolderBasedDartSdk(resourceProvider,
+            resourceProvider.getFolder(sdkDir), options.strongMode);
 
     List<UriResolver> resolvers = [new DartUriResolver(sdk)];
 
@@ -138,42 +139,51 @@ class LintDriver {
     return resolvers;
   }
 
+  ResourceProvider get resourceProvider => options.resourceProvider;
+
   String get sdkDir {
     // In case no SDK has been specified, fall back to inferring it.
     return options.dartSdkPath ?? getSdkPath();
   }
 
-  List<AnalysisErrorInfo> analyze(Iterable<io.File> files) {
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-    context.analysisOptions = _buildAnalyzerOptions(options);
-    registerLinters(context);
-
-    Packages packages = _getPackageConfig();
-
-    context.sourceFactory = new SourceFactory(resolvers, packages);
+  Future<List<AnalysisErrorInfo>> analyze(Iterable<io.File> files) async {
     AnalysisEngine.instance.logger = new StdLogger();
 
+    SourceFactory sourceFactory =
+        new SourceFactory(resolvers, _getPackageConfig());
+
+    PerformanceLog log = new PerformanceLog(null);
+    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
+    AnalysisDriver analysisDriver = new AnalysisDriver(
+        scheduler,
+        log,
+        resourceProvider,
+        new MemoryByteStore(),
+        new FileContentOverlay(),
+        null,
+        sourceFactory,
+        _buildAnalyzerOptions(options));
+    analysisDriver.results.listen((_) {});
+    analysisDriver.exceptions.listen((_) {});
+    scheduler.start();
+
     List<Source> sources = [];
-    ChangeSet changeSet = new ChangeSet();
     for (io.File file in files) {
-      File sourceFile = PhysicalResourceProvider.INSTANCE
-          .getFile(p.normalize(file.absolute.path));
+      File sourceFile =
+          resourceProvider.getFile(p.normalize(file.absolute.path));
       Source source = sourceFile.createSource();
-      Uri uri = context.sourceFactory.restoreUri(source);
+      Uri uri = sourceFactory.restoreUri(source);
       if (uri != null) {
         // Ensure that we analyze the file using its canonical URI (e.g. if
         // it's in "/lib", analyze it using a "package:" URI).
         source = sourceFile.createSource(uri);
       }
-      sources.add(source);
-      changeSet.addedSource(source);
-    }
-    context.applyChanges(changeSet);
 
-    // Temporary location
-    var project = new DartProject(context, sources);
-    // This will get pushed into the generator (or somewhere comparable) when
-    // we have a proper plugin.
+      sources.add(source);
+      analysisDriver.addFile(source.fullName);
+    }
+
+    DartProject project = await DartProject.create(analysisDriver, sources);
     Registry.ruleRegistry.forEach((lint) {
       if (lint is ProjectVisitor) {
         (lint as ProjectVisitor).visit(project);
@@ -181,28 +191,12 @@ class LintDriver {
     });
 
     List<AnalysisErrorInfo> errors = [];
-
     for (Source source in sources) {
-      context.computeErrors(source);
-      errors.add(context.getErrors(source));
+      ErrorsResult errorsResult =
+          await analysisDriver.getErrors(source.fullName);
+      errors.add(new AnalysisErrorInfoImpl(
+          errorsResult.errors, errorsResult.lineInfo));
       _sourcesAnalyzed.add(source);
-    }
-
-    if (options.visitTransitiveClosure) {
-      // In the process of computing errors for all the sources in [sources],
-      // the analyzer has visited the transitive closure of all libraries
-      // referenced by those sources.  So now we simply need to visit all
-      // library sources known to the analysis context, and all parts they
-      // refer to.
-      for (Source librarySource in context.librarySources) {
-        for (Source source in _getAllUnitSources(context, librarySource)) {
-          if (!_sourcesAnalyzed.contains(source)) {
-            context.computeErrors(source);
-            errors.add(context.getErrors(source));
-            _sourcesAnalyzed.add(source);
-          }
-        }
-      }
     }
 
     return errors;
@@ -212,18 +206,6 @@ class LintDriver {
     if (options.enableLints) {
       setLints(context, options.enabledLints?.toList(growable: false));
     }
-  }
-
-  /// Yield the sources for all the compilation units constituting
-  /// [librarySource] (including the defining compilation unit).
-  Iterable<Source> _getAllUnitSources(
-      AnalysisContext context, Source librarySource) {
-    List<Source> result = <Source>[librarySource];
-    result.addAll(context
-        .getLibraryElement(librarySource)
-        .parts
-        .map((CompilationUnitElement e) => e.source));
-    return result;
   }
 
   Packages _getPackageConfig() {

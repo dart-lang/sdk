@@ -6,9 +6,9 @@ static const field dynamic numbers = const <core::int>[0, 1, 2, 3, 4, 5, 6, 7, 8
 static method main() → dynamic {
   dynamic closures = <dynamic>[];
   for (core::int i in self::numbers) {
-    final Vector #context = MakeVector(2);
-    #context[1] = i;
-    closures.add(MakeClosure<() → core::int>(self::closure#main#function, #context));
+    final Vector #context = MakeVector(3);
+    #context[2] = i;
+    closures.add(MakeClosure<() → dynamic>(self::closure#main#function, #context));
   }
   core::int sum = 0;
   for (core::Function f in closures) {
@@ -19,6 +19,6 @@ static method main() → dynamic {
     throw core::Exception::•("Unexpected sum = ${sum} != ${expectedSum}");
   }
 }
-static method closure#main#function(Vector #contextParameter) → core::int {
-  return #contextParameter[1];
+static method closure#main#function(Vector #contextParameter) → dynamic {
+  return #contextParameter[2];
 }

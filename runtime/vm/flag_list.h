@@ -70,13 +70,14 @@
     "Emit DWARF line number and inlining info"                                 \
     "in dylib snapshots and don't symbolize stack traces.")                    \
   R(enable_asserts, false, bool, false, "Enable assert statements.")           \
-  C(enable_mirrors, false, false, bool, true,                                  \
+  P(enable_mirrors, bool, true,                                                \
     "Disable to make importing dart:mirrors an error.")                        \
   R(enable_type_checks, false, bool, false, "Enable type checks.")             \
   R(error_on_bad_override, false, bool, false,                                 \
     "Report error for bad overrides.")                                         \
   R(error_on_bad_type, false, bool, false,                                     \
     "Report error for malformed types.")                                       \
+  P(experimental_strong_mode, bool, false, "Enable experimental strong mode.") \
   P(external_max_size, int, (kWordSize <= 4) ? 512 : 1024,                     \
     "Max total size of external allocations in MB, or 0 for unlimited,"        \
     "e.g: --external_max_size=1024 allows up to 1024MB of externals")          \
@@ -94,8 +95,7 @@
   P(interpret_irregexp, bool, USING_DBC, "Use irregexp bytecode interpreter")  \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
-  R(limit_ints_to_64_bits, false, bool, false,                                 \
-    "Throw a RangeError on 64-bit integer overflow");                          \
+  P(limit_ints_to_64_bits, bool, false, "Truncate integers to 64 bits")        \
   C(load_deferred_eagerly, true, true, bool, false,                            \
     "Load deferred libraries eagerly.")                                        \
   R(log_marker_tasks, false, bool, false,                                      \
@@ -135,7 +135,7 @@
   C(print_stop_message, false, false, bool, false, "Print stop message.")      \
   D(print_variable_descriptors, bool, false,                                   \
     "Print variable descriptors in disassembly.")                              \
-  R(profiler, false, bool, !USING_DBC, "Enable the profiler.")                 \
+  R(profiler, false, bool, false, "Enable the profiler.")                      \
   R(profiler_native_memory, false, bool, false,                                \
     "Enable native memory statistic collection.")                              \
   P(reify_generic_functions, bool, false,                                      \
@@ -148,7 +148,6 @@
     "Debugger support async functions.")                                       \
   R(support_ast_printer, false, bool, true, "Support the AST printer.")        \
   R(support_compiler_stats, false, bool, true, "Support compiler stats.")      \
-  C(support_debugger, false, false, bool, true, "Support the debugger.")       \
   R(support_disassembler, false, bool, true, "Support the disassembler.")      \
   R(support_il_printer, false, bool, true, "Support the IL printer.")          \
   C(support_reload, false, false, bool, true, "Support isolate reload.")       \
@@ -156,6 +155,7 @@
   R(support_timeline, false, bool, true, "Support timeline.")                  \
   D(trace_cha, bool, false, "Trace CHA operations")                            \
   D(trace_field_guards, bool, false, "Trace changes in field's cids.")         \
+  C(trace_irregexp, false, false, bool, false, "Trace irregexps.")             \
   D(trace_isolates, bool, false, "Trace isolate creation and shut down.")      \
   D(trace_handles, bool, false, "Traces allocation of handles.")               \
   D(trace_kernel_binary, bool, false, "Trace Kernel reader/writer.")           \
@@ -171,8 +171,8 @@
   P(use_field_guards, bool, !USING_DBC,                                        \
     "Use field guards and track field types")                                  \
   C(use_osr, false, true, bool, true, "Use OSR")                               \
-  P(verbose_gc, bool, false, "Enables verbose GC.")                            \
-  P(verbose_gc_hdr, int, 40, "Print verbose GC header interval.")              \
+  R(verbose_gc, false, bool, false, "Enables verbose GC.")                     \
+  R(verbose_gc_hdr, 40, int, 40, "Print verbose GC header interval.")          \
   R(verify_after_gc, false, bool, false,                                       \
     "Enables heap verification after GC.")                                     \
   R(verify_before_gc, false, bool, false,                                      \

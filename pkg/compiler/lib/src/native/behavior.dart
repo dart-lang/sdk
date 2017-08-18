@@ -7,13 +7,14 @@ import '../common/backend_api.dart' show ForeignResolver;
 import '../common/resolution.dart' show ParsingContext, Resolution;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../common_elements.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/native_data.dart' show NativeBasicData;
+import '../resolution/resolution_strategy.dart';
 import '../tree/tree.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
@@ -131,11 +132,11 @@ class NativeThrowBehavior {
  * `null` may be returned.
  */
 class NativeBehavior {
-  /// [ResolutionDartType]s or [SpecialType]s returned or yielded by the native
+  /// [DartType]s or [SpecialType]s returned or yielded by the native
   /// element.
   final List typesReturned = [];
 
-  /// [ResolutionDartType]s or [SpecialType]s instantiated by the native
+  /// [DartType]s or [SpecialType]s instantiated by the native
   /// element.
   final List typesInstantiated = [];
 
@@ -774,8 +775,8 @@ class NativeBehavior {
       metadata.add(compiler.constants.getConstantValue(annotation.constant));
     }
 
-    BehaviorBuilder builder =
-        new ResolverBehaviorBuilder(compiler, compiler.backend.nativeBasicData);
+    BehaviorBuilder builder = new ResolverBehaviorBuilder(
+        compiler, compiler.frontendStrategy.nativeBasicData);
     return builder.buildMethodBehavior(
         type, metadata, lookupFromElement(compiler.resolution, element),
         isJsInterop: isJsInterop);
@@ -792,8 +793,8 @@ class NativeBehavior {
       metadata.add(compiler.constants.getConstantValue(annotation.constant));
     }
 
-    BehaviorBuilder builder =
-        new ResolverBehaviorBuilder(compiler, compiler.backend.nativeBasicData);
+    BehaviorBuilder builder = new ResolverBehaviorBuilder(
+        compiler, compiler.frontendStrategy.nativeBasicData);
     return builder.buildFieldLoadBehavior(
         type, metadata, lookupFromElement(resolution, element),
         isJsInterop: isJsInterop);
@@ -801,8 +802,8 @@ class NativeBehavior {
 
   static NativeBehavior ofFieldElementStore(
       MemberElement field, Compiler compiler) {
-    BehaviorBuilder builder =
-        new ResolverBehaviorBuilder(compiler, compiler.backend.nativeBasicData);
+    BehaviorBuilder builder = new ResolverBehaviorBuilder(
+        compiler, compiler.frontendStrategy.nativeBasicData);
     ResolutionDartType type = field.computeType(compiler.resolution);
     return builder.buildFieldStoreBehavior(type);
   }
@@ -851,8 +852,7 @@ abstract class BehaviorBuilder {
   DiagnosticReporter get reporter;
   NativeBasicData get nativeBasicData;
   bool get trustJSInteropTypeAnnotations;
-
-  Resolution get resolution => null;
+  ElementEnvironment get elementEnvironment;
 
   NativeBehavior _behavior;
 
@@ -910,10 +910,7 @@ abstract class BehaviorBuilder {
   /// Models the behavior of having instances of [type] escape from Dart code
   /// into native code.
   void _escape(DartType type) {
-    if (type is ResolutionDartType) {
-      type.computeUnaliased(resolution);
-    }
-    type = type.unaliased;
+    type = elementEnvironment.getUnaliasedType(type);
     if (type is FunctionType) {
       FunctionType functionType = type;
       // A function might be called from native code, passing us novel
@@ -932,10 +929,7 @@ abstract class BehaviorBuilder {
   /// We assume that JS-interop APIs cannot instantiate Dart types or
   /// non-JSInterop native types.
   void _capture(DartType type, {bool isInterop: false}) {
-    if (type is ResolutionDartType) {
-      type.computeUnaliased(resolution);
-    }
-    type = type.unaliased;
+    type = elementEnvironment.getUnaliasedType(type);
     if (type is FunctionType) {
       FunctionType functionType = type;
       _capture(functionType.returnType, isInterop: isInterop);
@@ -962,9 +956,8 @@ abstract class BehaviorBuilder {
           // annotations. This means that to some degree we still use the return
           // type to decide whether to include native types, even if we don't
           // trust the type annotation.
-          ClassElement cls = commonElements.jsJavaScriptObjectClass;
-          cls.ensureResolved(resolution);
-          _behavior.typesInstantiated.add(cls.thisType);
+          ClassEntity cls = commonElements.jsJavaScriptObjectClass;
+          _behavior.typesInstantiated.add(elementEnvironment.getThisType(cls));
         } else {
           // Otherwise, when the declared type is a Dart type, we do not
           // register an allocation because we assume it cannot be instantiated
@@ -1040,7 +1033,7 @@ class ResolverBehaviorBuilder extends BehaviorBuilder {
   ResolverBehaviorBuilder(this.compiler, this.nativeBasicData);
 
   @override
-  CommonElements get commonElements => resolution.commonElements;
+  CommonElements get commonElements => compiler.resolution.commonElements;
 
   @override
   bool get trustJSInteropTypeAnnotations =>
@@ -1050,5 +1043,8 @@ class ResolverBehaviorBuilder extends BehaviorBuilder {
   DiagnosticReporter get reporter => compiler.reporter;
 
   @override
-  Resolution get resolution => compiler.resolution;
+  ElementEnvironment get elementEnvironment {
+    ResolutionFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
+    return frontendStrategy.elementEnvironment;
+  }
 }

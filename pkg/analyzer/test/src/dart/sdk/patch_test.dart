@@ -34,11 +34,9 @@ class SdkPatcherTest {
 
   test_class_constructor_append_fail_notPrivate_named() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {}
-''',
-          r'''
+''', r'''
 @patch
 class C {
   C.named() {}
@@ -49,11 +47,9 @@ class C {
 
   test_class_constructor_append_fail_notPrivate_unnamed() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {}
-''',
-          r'''
+''', r'''
 @patch
 class C {
   C() {}
@@ -63,12 +59,10 @@ class C {
   }
 
   test_class_constructor_append_named() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 class C {
 }
-''',
-        r'''
+''', r'''
 @patch
 class C {
   C._named() {}
@@ -82,12 +76,10 @@ class C {
   }
 
   test_class_constructor_append_unnamed() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 class _C {
 }
-''',
-        r'''
+''', r'''
 @patch
 class _C {
   _C() {}
@@ -101,13 +93,11 @@ class _C {
   }
 
   test_class_constructor_patch() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 class C {
   external C.named();
 }
-''',
-        r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -127,13 +117,11 @@ class C {
 
   test_class_constructor_patch_fail_baseFactory_patchGenerative() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   external factory C.named();
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -145,13 +133,11 @@ class C {
 
   test_class_constructor_patch_fail_baseGenerative_patchFactory() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   external C.named();
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -163,14 +149,12 @@ class C {
 
   test_class_constructor_patch_fail_fieldFormalParam_inBase() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   int f;
   external C.named(this.f);
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -182,14 +166,12 @@ class C {
 
   test_class_constructor_patch_fail_fieldFormalParam_inPatch() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   int f;
   external C.named(int f);
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -201,14 +183,12 @@ class C {
 
   test_class_constructor_patch_fail_fieldFormalParam_inPatchAndBase() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   int f;
   external C.named(this.f);
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -220,14 +200,12 @@ class C {
 
   test_class_constructor_patch_fail_hasInitializers() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   int f;
   external C.named() : f = 1;
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -239,13 +217,11 @@ class C {
 
   test_class_constructor_patch_fail_noExternalKeyword() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   C.named();
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -257,13 +233,11 @@ class C {
 
   test_class_constructor_patch_fail_signatureChange() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   external C.named(int x);
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -275,13 +249,11 @@ class C {
 
   test_class_constructor_patch_fail_signatureChange_nameOnly() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   external C.named(int x);
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -292,14 +264,12 @@ class C {
   }
 
   test_class_constructor_patch_initializers() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 class C {
   int f;
   external C.named();
 }
-''',
-        r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -318,13 +288,11 @@ class C {
   }
 
   test_class_field_append() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 class C {
   void a() {}
 }
-''',
-        r'''
+''', r'''
 @patch
 class C {
   int _b = 42;
@@ -340,11 +308,9 @@ class C {
 
   test_class_field_append_fail_moreThanOne() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class A {}
-''',
-          r'''
+''', r'''
 @patch
 class A {
   @patch
@@ -356,11 +322,9 @@ class A {
 
   test_class_field_append_fail_notPrivate() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class A {}
-''',
-          r'''
+''', r'''
 @patch
 class A {
   @patch
@@ -371,13 +335,11 @@ class A {
   }
 
   test_class_field_append_publicInPrivateClass() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 class _C {
   void a() {}
 }
-''',
-        r'''
+''', r'''
 @patch
 class _C {
   int b = 42;
@@ -393,11 +355,9 @@ class _C {
 
   test_class_field_patch_fail() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class A {}
-''',
-          r'''
+''', r'''
 @patch
 class A {
   @patch
@@ -408,13 +368,11 @@ class A {
   }
 
   test_class_getter_append() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 class C {
   void a() {}
 }
-''',
-        r'''
+''', r'''
 @patch
 class C {
   int get _b => 2;
@@ -424,13 +382,11 @@ class C {
   }
 
   test_class_method_append() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 class C {
   void a() {}
 }
-''',
-        r'''
+''', r'''
 @patch
 class C {
   void _b() {}
@@ -449,11 +405,9 @@ class C {
 
   test_class_method_fail_notPrivate() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class A {}
-''',
-          r'''
+''', r'''
 @patch
 class A {
   void m() {}
@@ -463,13 +417,11 @@ class A {
   }
 
   test_class_method_patch() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 class C {
   external int m();
 }
-''',
-        r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -486,13 +438,11 @@ class C {
 
   test_class_method_patch_fail_noExternalKeyword() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   int m();
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -504,13 +454,11 @@ class C {
 
   test_class_method_patch_fail_signatureChange() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   external void f(int x);
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -522,13 +470,11 @@ class C {
 
   test_class_method_patch_fail_signatureChange_extraArgument() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   external void f();
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -540,13 +486,11 @@ class C {
 
   test_class_method_patch_fail_signatureChange_extraTypeTokens() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   external List f();
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -558,13 +502,11 @@ class C {
 
   test_class_method_patch_fail_signatureChange_functionTypedParam_paramType() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   external void f(void x(int y));
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -576,13 +518,11 @@ class C {
 
   test_class_method_patch_fail_signatureChange_functionTypedParam_returnType() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   external void f(int x());
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -594,13 +534,11 @@ class C {
 
   test_class_method_patch_fail_signatureChange_makeReturnTypeExplicit() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   external f();
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -612,13 +550,11 @@ class C {
 
   test_class_method_patch_fail_signatureChange_missingArgument() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   external void f(int x);
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -630,13 +566,11 @@ class C {
 
   test_class_method_patch_fail_signatureChange_missingTypeTokens() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   external List<int> f();
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -648,13 +582,11 @@ class C {
 
   test_class_method_patch_fail_signatureChange_nameOnly() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   external void f(int x);
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -666,13 +598,11 @@ class C {
 
   test_class_method_patch_fail_signatureChange_returnTypeOnly() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class C {
   external void f(int x);
 }
-''',
-          r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -683,13 +613,11 @@ class C {
   }
 
   test_class_method_patch_success_defaultFormalParameter() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 class C {
   external void f(int x = 0);
 }
-''',
-        r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -703,13 +631,11 @@ class C {
   }
 
   test_class_method_patch_success_implicitReturnType() {
-    _doTopLevelPatching(
-        r'''
+    _doTopLevelPatching(r'''
 class C {
   external f();
 }
-''',
-        r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -719,13 +645,11 @@ class C {
   }
 
   test_class_method_patch_success_multiTokenReturnType() {
-    _doTopLevelPatching(
-        r'''
+    _doTopLevelPatching(r'''
 class C {
   external List<int> f();
 }
-''',
-        r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -735,13 +659,11 @@ class C {
   }
 
   test_class_method_patch_success_signatureChange_functionTypedParam_matching() {
-    _doTopLevelPatching(
-        r'''
+    _doTopLevelPatching(r'''
 class C {
   external void f(void x(int y));
 }
-''',
-        r'''
+''', r'''
 @patch
 class C {
   @patch
@@ -751,13 +673,11 @@ class C {
   }
 
   test_class_setter_append() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 class C {
   void a() {}
 }
-''',
-        r'''
+''', r'''
 @patch
 class C {
   void set _b(_) {}
@@ -768,24 +688,20 @@ class C {
 
   test_directive_fail_export() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 import 'a.dart';
-''',
-          r'''
+''', r'''
 export 'c.dart';
 ''');
     }, throwsArgumentError);
   }
 
   test_directive_import() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 import 'a.dart';
 part 'b.dart';
 int bar() => 0;
-''',
-        r'''
+''', r'''
 import 'c.dart';
 ''');
     _assertUnitCode(unit,
@@ -819,18 +735,14 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     var patchPaths = {
       'dart:_internal': [_p('/sdk/lib/internal/internal_patch.dart')]
     };
-    File file = provider.newFile(
-        _p('/sdk/lib/internal/internal.dart'),
-        r'''
+    File file = provider.newFile(_p('/sdk/lib/internal/internal.dart'), r'''
 library dart._internal;
 class A {}
 class B {
   B();
 }
 ''');
-    provider.newFile(
-        _p('/sdk/lib/internal/internal_patch.dart'),
-        r'''
+    provider.newFile(_p('/sdk/lib/internal/internal_patch.dart'), r'''
 @patch
 class B {
   int newField;
@@ -875,9 +787,7 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     File fileLib = provider.newFile(_p('/sdk/lib/test/test.dart'), baseLibCode);
     File filePart =
         provider.newFile(_p('/sdk/lib/test/test_part.dart'), basePartCode);
-    provider.newFile(
-        _p('/sdk/lib/test/test_patch.dart'),
-        r'''
+    provider.newFile(_p('/sdk/lib/test/test_patch.dart'), r'''
 import 'foo.dart';
 
 @patch
@@ -916,11 +826,9 @@ class _C {}
   }
 
   test_topLevel_class_append() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 class A {}
-''',
-        r'''
+''', r'''
 class _B {
   void mmm() {}
 }
@@ -933,11 +841,9 @@ class _B {
 
   test_topLevel_class_fail_mixinApplication() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class A {}
-''',
-          r'''
+''', r'''
 class _B {}
 class _C = Object with _B;
 ''');
@@ -946,22 +852,18 @@ class _C = Object with _B;
 
   test_topLevel_class_fail_notPrivate() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 class A {}
-''',
-          r'''
+''', r'''
 class B {}
 ''');
     }, throwsArgumentError);
   }
 
   test_topLevel_function_append() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 int foo() => 0;
-''',
-        r'''
+''', r'''
 int _bar1() => 1;
 int _bar2() => 2;
 ''');
@@ -978,11 +880,9 @@ int _bar2() => 2;
 
   test_topLevel_function_fail_noExternalKeyword() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 int foo();
-''',
-          r'''
+''', r'''
 @patch
 int foo() => 1;
 ''');
@@ -991,22 +891,18 @@ int foo() => 1;
 
   test_topLevel_function_fail_notPrivate() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 int foo() => 1;
-''',
-          r'''
+''', r'''
 int bar() => 2;
 ''');
     }, throwsArgumentError);
   }
 
   test_topLevel_functionTypeAlias_append() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 int foo() => 0;
-''',
-        r'''
+''', r'''
 typedef int _bar1();
 typedef int _bar2();
 ''');
@@ -1025,11 +921,9 @@ typedef int _bar2();
 
   test_topLevel_functionTypeAlias_fail_hasAnnotation() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 int foo() => 0;
-''',
-          r'''
+''', r'''
 @patch
 typedef int _bar();
 ''');
@@ -1038,23 +932,19 @@ typedef int _bar();
 
   test_topLevel_functionTypeAlias_fail_notPrivate() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 int foo() => 0;
-''',
-          r'''
+''', r'''
 typedef int bar();
 ''');
     }, throwsArgumentError);
   }
 
   test_topLevel_patch_function() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 external int foo();
 int bar() => 2;
-''',
-        r'''
+''', r'''
 @patch
 int foo() => 1;
 ''');
@@ -1082,11 +972,9 @@ int foo() => 1;
   }
 
   test_topLevel_patch_function_blockBody() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 external int foo();
-''',
-        r'''
+''', r'''
 @patch
 int foo() {int v = 1; return v + 2;}
 ''');
@@ -1095,11 +983,9 @@ int foo() {int v = 1; return v + 2;}
 
   test_topLevel_patch_function_fail_signatureChange() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 external void f(int x);
-''',
-          r'''
+''', r'''
 @patch
 void f(double x) {}
 ''');
@@ -1108,11 +994,9 @@ void f(double x) {}
 
   test_topLevel_patch_function_fail_signatureChange_nameOnly() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 external void f(int x);
-''',
-          r'''
+''', r'''
 @patch
 void f(int y) {}
 ''');
@@ -1121,11 +1005,9 @@ void f(int y) {}
 
   test_topLevel_patch_function_fail_signatureChange_returnTypeOnly() {
     expect(() {
-      _doTopLevelPatching(
-          r'''
+      _doTopLevelPatching(r'''
 external void f(int x);
-''',
-          r'''
+''', r'''
 @patch
 int f(int x) {}
 ''');
@@ -1133,12 +1015,10 @@ int f(int x) {}
   }
 
   test_topLevel_patch_getter() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 external int get foo;
 int bar() => 2;
-''',
-        r'''
+''', r'''
 @patch
 int get foo => 1;
 ''');
@@ -1146,12 +1026,10 @@ int get foo => 1;
   }
 
   test_topLevel_patch_setter() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 external void set foo(int val);
 int bar() => 2;
-''',
-        r'''
+''', r'''
 @patch
 void set foo(int val) {}
 ''');
@@ -1159,11 +1037,9 @@ void set foo(int val) {}
   }
 
   test_topLevel_topLevelVariable_append() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
+    CompilationUnit unit = _doTopLevelPatching(r'''
 int foo() => 0;
-''',
-        r'''
+''', r'''
 int _bar;
 ''');
     _assertUnitCode(unit, 'int foo() => 0; int _bar;');

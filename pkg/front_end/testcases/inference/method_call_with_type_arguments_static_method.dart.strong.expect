@@ -3,14 +3,14 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   static method f<T extends core::Object>() → self::D<self::C::f::T>
     return null;
 }
 class D<T extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }

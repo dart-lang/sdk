@@ -6,9 +6,10 @@ import 'dart:async';
 import 'dart:core';
 
 import 'package:analysis_server/plugin/analysis/analysis_domain.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
-import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/computer/imported_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
@@ -97,6 +98,32 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     // Send the response.
     server.sendResponse(
         new AnalysisGetHoverResult(hovers).toResponse(request.id));
+  }
+
+  /**
+   * Implement the `analysis.getImportedElements` request.
+   */
+  Future<Null> getImportedElements(Request request) async {
+    AnalysisGetImportedElementsParams params =
+        new AnalysisGetImportedElementsParams.fromRequest(request);
+    //
+    // Prepare the resolved unit.
+    //
+    AnalysisResult result = await server.getAnalysisResult(params.file);
+    if (result == null) {
+      server.sendResponse(new Response.getImportedElementsInvalidFile(request));
+    }
+    //
+    // Compute the list of imported elements.
+    //
+    List<ImportedElements> elements =
+        new ImportedElementsComputer(result.unit, params.offset, params.length)
+            .compute();
+    //
+    // Send the response.
+    //
+    server.sendResponse(
+        new AnalysisGetImportedElementsResult(elements).toResponse(request.id));
   }
 
   /**
@@ -210,32 +237,35 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == ANALYSIS_GET_ERRORS) {
+      if (requestName == ANALYSIS_REQUEST_GET_ERRORS) {
         getErrors(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == ANALYSIS_GET_HOVER) {
+      } else if (requestName == ANALYSIS_REQUEST_GET_HOVER) {
         getHover(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == ANALYSIS_GET_LIBRARY_DEPENDENCIES) {
+      } else if (requestName == ANALYSIS_REQUEST_GET_IMPORTED_ELEMENTS) {
+        getImportedElements(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName == ANALYSIS_REQUEST_GET_LIBRARY_DEPENDENCIES) {
         return getLibraryDependencies(request);
-      } else if (requestName == ANALYSIS_GET_NAVIGATION) {
+      } else if (requestName == ANALYSIS_REQUEST_GET_NAVIGATION) {
         getNavigation(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == ANALYSIS_GET_REACHABLE_SOURCES) {
+      } else if (requestName == ANALYSIS_REQUEST_GET_REACHABLE_SOURCES) {
         return getReachableSources(request);
-      } else if (requestName == ANALYSIS_REANALYZE) {
+      } else if (requestName == ANALYSIS_REQUEST_REANALYZE) {
         return reanalyze(request);
-      } else if (requestName == ANALYSIS_SET_ANALYSIS_ROOTS) {
+      } else if (requestName == ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS) {
         return setAnalysisRoots(request);
-      } else if (requestName == ANALYSIS_SET_GENERAL_SUBSCRIPTIONS) {
+      } else if (requestName == ANALYSIS_REQUEST_SET_GENERAL_SUBSCRIPTIONS) {
         return setGeneralSubscriptions(request);
-      } else if (requestName == ANALYSIS_SET_PRIORITY_FILES) {
+      } else if (requestName == ANALYSIS_REQUEST_SET_PRIORITY_FILES) {
         return setPriorityFiles(request);
-      } else if (requestName == ANALYSIS_SET_SUBSCRIPTIONS) {
+      } else if (requestName == ANALYSIS_REQUEST_SET_SUBSCRIPTIONS) {
         return setSubscriptions(request);
-      } else if (requestName == ANALYSIS_UPDATE_CONTENT) {
+      } else if (requestName == ANALYSIS_REQUEST_UPDATE_CONTENT) {
         return updateContent(request);
-      } else if (requestName == ANALYSIS_UPDATE_OPTIONS) {
+      } else if (requestName == ANALYSIS_REQUEST_UPDATE_OPTIONS) {
         return updateOptions(request);
       }
     } on RequestFailure catch (exception) {
@@ -248,6 +278,8 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    * Implement the 'analysis.reanalyze' request.
    */
   Response reanalyze(Request request) {
+    server.options.analytics?.sendEvent('analysis', 'reanalyze');
+
     AnalysisReanalyzeParams params =
         new AnalysisReanalyzeParams.fromRequest(request);
     List<String> roots = params.roots;
@@ -266,11 +298,10 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       server.reanalyze(rootResources);
     }
     //
-    // Forward the request to the plugins.
+    // Restart all of the plugins. This is an async operation that will happen
+    // in the background.
     //
-    RequestConverter converter = new RequestConverter();
-    server.pluginManager
-        .broadcastRequest(converter.convertAnalysisReanalyzeParams(params));
+    server.pluginManager.restartPlugins();
     //
     // Send the response.
     //
@@ -284,6 +315,10 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     var params = new AnalysisSetAnalysisRootsParams.fromRequest(request);
     List<String> includedPathList = params.included;
     List<String> excludedPathList = params.excluded;
+
+    server.options.analytics?.sendEvent('analysis', 'setAnalysisRoots',
+        value: includedPathList.length);
+
     // validate
     for (String path in includedPathList) {
       if (!server.isValidFilePath(path)) {

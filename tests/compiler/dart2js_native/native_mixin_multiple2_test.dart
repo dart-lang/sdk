@@ -26,12 +26,15 @@ class M3 {}
 
 makeB() native;
 
-void setup() native """
-function B() {}
-makeB = function(){return new B;};
+void setup() {
+  JS('', r"""
+(function(){
+  function B() {}
+  makeB = function(){return new B()};
 
-self.nativeConstructor(B);
-""";
+  self.nativeConstructor(B);
+})()""");
+}
 
 main() {
   nativeTesting();

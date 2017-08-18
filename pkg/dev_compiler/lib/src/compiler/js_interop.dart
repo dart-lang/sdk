@@ -74,11 +74,8 @@ bool isNativeAnnotation(DartObjectImpl value) =>
 /// the SDK), or `null` if there's none. This is used to control the name
 /// under which functions are compiled and exported.
 String getJSExportName(Element e) {
-  var original = e;
-  if (original is PropertyAccessorElement) e = original.variable;
-  if (e.source.isInSystemLibrary) {
-    var real = original.isSynthetic ? e : original;
-    return getAnnotationName(real, isJSExportNameAnnotation) ?? e.name;
-  }
-  return e.name;
+  if (!e.source.isInSystemLibrary) return null;
+
+  e = e is PropertyAccessorElement && e.isSynthetic ? e.variable : e;
+  return getAnnotationName(e, isJSExportNameAnnotation);
 }

@@ -78,8 +78,7 @@ Future testRequiredParameters() {
             method(b, a, d, c) => null; // testRequiredParameters:4
           }
           """),
-    check(
-        """
+    check("""
           class A {
             method() => null; // testRequiredParameters:5
           }
@@ -89,8 +88,7 @@ Future testRequiredParameters() {
           """,
         warnings: MessageKind.INVALID_OVERRIDE_METHOD,
         infos: MessageKind.INVALID_OVERRIDDEN_METHOD),
-    check(
-        """
+    check("""
           class A {
             method() => null; // testRequiredParameters:7
           }
@@ -100,8 +98,7 @@ Future testRequiredParameters() {
           """,
         warnings: MessageKind.INVALID_OVERRIDE_METHOD,
         infos: MessageKind.INVALID_OVERRIDDEN_METHOD),
-    check(
-        """
+    check("""
           class A {
             method(a, b, c) => null; // testRequiredParameters:9
           }
@@ -148,8 +145,7 @@ Future testPositionalParameters() {
             method([a]) => null; // testPositionalParameters:8
           }
           """),
-    check(
-        """
+    check("""
           class A {
             method(a) => null; // testPositionalParameters:9
           }
@@ -159,8 +155,7 @@ Future testPositionalParameters() {
           """,
         warnings: MessageKind.INVALID_OVERRIDE_METHOD,
         infos: MessageKind.INVALID_OVERRIDDEN_METHOD),
-    check(
-        """
+    check("""
           class A {
             method(a, [b]) => null; // testPositionalParameters:11
           }
@@ -170,8 +165,7 @@ Future testPositionalParameters() {
           """,
         warnings: MessageKind.INVALID_OVERRIDE_METHOD,
         infos: MessageKind.INVALID_OVERRIDDEN_METHOD),
-    check(
-        """
+    check("""
           class A {
             method(a, [b]) => null; // testPositionalParameters:13
           }
@@ -181,8 +175,7 @@ Future testPositionalParameters() {
           """,
         warnings: MessageKind.INVALID_OVERRIDE_METHOD,
         infos: MessageKind.INVALID_OVERRIDDEN_METHOD),
-    check(
-        """
+    check("""
           class A {
             method(a, b, [c, d, e]) => null; // testPositionalParameters:15
           }
@@ -229,8 +222,7 @@ Future testNamedParameters() {
             method(e, {b, c, a, d}) => null; // testNamedParameters:8
           }
           """),
-    check(
-        """
+    check("""
           class A {
             method({a}) => null; // testNamedParameters:9
           }
@@ -240,8 +232,7 @@ Future testNamedParameters() {
           """,
         warnings: MessageKind.INVALID_OVERRIDE_METHOD,
         infos: MessageKind.INVALID_OVERRIDDEN_METHOD),
-    check(
-        """
+    check("""
           class A {
             method({a, b}) => null; // testNamedParameters:11
           }
@@ -251,8 +242,7 @@ Future testNamedParameters() {
           """,
         warnings: MessageKind.INVALID_OVERRIDE_METHOD,
         infos: MessageKind.INVALID_OVERRIDDEN_METHOD),
-    check(
-        """
+    check("""
           class A {
             method({a, b, c, d}) => null; // testNamedParameters:13
           }
@@ -312,8 +302,7 @@ Future testNotSubtype() {
           }
           """),
 
-    check(
-        """
+    check("""
           class A {
             int method() => null; // testNotSubtype:11
           }
@@ -348,8 +337,7 @@ Future testNotSubtype() {
           }
           """),
 
-    check(
-        """
+    check("""
           class A {
             method(int a) => null; // testNotSubtype:19
           }
@@ -361,8 +349,7 @@ Future testNotSubtype() {
         infos: MessageKind.INVALID_OVERRIDDEN_METHOD),
 
     // TODO(johnniwinther): These are unclear. Issue 16443 has been filed.
-    check(
-        """
+    check("""
           class A {
             method(int a) => null; // testNotSubtype:23
           }
@@ -378,8 +365,7 @@ Future testNotSubtype() {
         warnings: MessageKind.INVALID_OVERRIDE_METHOD,
         infos: MessageKind.INVALID_OVERRIDDEN_METHOD),
 
-    check(
-        """
+    check("""
           class A {
             method(num a) => null; // testNotSubtype:29
           }
@@ -395,8 +381,7 @@ Future testNotSubtype() {
         warnings: MessageKind.INVALID_OVERRIDE_METHOD,
         infos: MessageKind.INVALID_OVERRIDDEN_METHOD),
 
-    check(
-        """
+    check("""
           class A {
             method(int a) => null; // testNotSubtype:26
           }
@@ -408,15 +393,13 @@ Future testNotSubtype() {
           class Class implements C {
             method(String a) => null; // testNotSubtype:28
           }
-          """,
-        warnings: [
-          MessageKind.INVALID_OVERRIDE_METHOD,
-          MessageKind.INVALID_OVERRIDE_METHOD
-        ],
-        infos: [
-          MessageKind.INVALID_OVERRIDDEN_METHOD,
-          MessageKind.INVALID_OVERRIDDEN_METHOD
-        ]),
+          """, warnings: [
+      MessageKind.INVALID_OVERRIDE_METHOD,
+      MessageKind.INVALID_OVERRIDE_METHOD
+    ], infos: [
+      MessageKind.INVALID_OVERRIDDEN_METHOD,
+      MessageKind.INVALID_OVERRIDDEN_METHOD
+    ]),
   ]);
 }
 
@@ -458,8 +441,7 @@ Future testGetterNotSubtype() {
           }
           """),
 
-    check(
-        """
+    check("""
           class A {
             int get getter => null; // testGetterNotSubtype:9
           }
@@ -482,8 +464,7 @@ Future testGetterNotSubtype() {
           }
           """),
 
-    check(
-        """
+    check("""
           class A {
             int get getter => null; // testGetterNotSubtype:14
           }
@@ -497,8 +478,7 @@ Future testGetterNotSubtype() {
         warnings: MessageKind.INVALID_OVERRIDE_GETTER,
         infos: MessageKind.INVALID_OVERRIDDEN_GETTER),
 
-    check(
-        """
+    check("""
           class A {
             int get getter => null; // testGetterNotSubtype:17
           }
@@ -508,18 +488,15 @@ Future testGetterNotSubtype() {
           class Class extends A implements B {
             double get getter => null; // testGetterNotSubtype:19
           }
-          """,
-        warnings: [
-          MessageKind.INVALID_OVERRIDE_GETTER,
-          MessageKind.INVALID_OVERRIDE_GETTER
-        ],
-        infos: [
-          MessageKind.INVALID_OVERRIDDEN_GETTER,
-          MessageKind.INVALID_OVERRIDDEN_GETTER
-        ]),
+          """, warnings: [
+      MessageKind.INVALID_OVERRIDE_GETTER,
+      MessageKind.INVALID_OVERRIDE_GETTER
+    ], infos: [
+      MessageKind.INVALID_OVERRIDDEN_GETTER,
+      MessageKind.INVALID_OVERRIDDEN_GETTER
+    ]),
 
-    check(
-        """
+    check("""
           class A {
             int get getter => null; // testGetterNotSubtype:20
           }
@@ -529,19 +506,16 @@ Future testGetterNotSubtype() {
           class Class implements A, B {
             double get getter => null; // testGetterNotSubtype:22
           }
-          """,
-        warnings: [
-          MessageKind.INVALID_OVERRIDE_GETTER,
-          MessageKind.INVALID_OVERRIDE_GETTER
-        ],
-        infos: [
-          MessageKind.INVALID_OVERRIDDEN_GETTER,
-          MessageKind.INVALID_OVERRIDDEN_GETTER
-        ]),
+          """, warnings: [
+      MessageKind.INVALID_OVERRIDE_GETTER,
+      MessageKind.INVALID_OVERRIDE_GETTER
+    ], infos: [
+      MessageKind.INVALID_OVERRIDDEN_GETTER,
+      MessageKind.INVALID_OVERRIDDEN_GETTER
+    ]),
 
     // TODO(johnniwinther): These are unclear. Issue 16443 has been filed.
-    check(
-        """
+    check("""
           class A {
             int get getter => null; // testGetterNotSubtype:23
           }
@@ -557,8 +531,7 @@ Future testGetterNotSubtype() {
         warnings: MessageKind.INVALID_OVERRIDE_GETTER,
         infos: MessageKind.INVALID_OVERRIDDEN_GETTER),
 
-    check(
-        """
+    check("""
           class A {
             int get getter => null; // testGetterNotSubtype:26
           }
@@ -570,15 +543,13 @@ Future testGetterNotSubtype() {
           class Class implements C {
             String get getter => null; // testGetterNotSubtype:28
           }
-          """,
-        warnings: [
-          MessageKind.INVALID_OVERRIDE_GETTER,
-          MessageKind.INVALID_OVERRIDE_GETTER
-        ],
-        infos: [
-          MessageKind.INVALID_OVERRIDDEN_GETTER,
-          MessageKind.INVALID_OVERRIDDEN_GETTER
-        ]),
+          """, warnings: [
+      MessageKind.INVALID_OVERRIDE_GETTER,
+      MessageKind.INVALID_OVERRIDE_GETTER
+    ], infos: [
+      MessageKind.INVALID_OVERRIDDEN_GETTER,
+      MessageKind.INVALID_OVERRIDDEN_GETTER
+    ]),
   ]);
 }
 
@@ -614,8 +585,7 @@ Future testGenericNotSubtype() {
           }
           """),
 
-    check(
-        """
+    check("""
           class A<T> {
             method(T t) => null; // testGenericNotSubtype:8
           }
@@ -638,8 +608,7 @@ Future testGenericNotSubtype() {
           }
           """),
 
-    check(
-        """
+    check("""
           class A<T> {
             method(T t) => null; // testGenericNotSubtype:12
           }
@@ -653,8 +622,7 @@ Future testGenericNotSubtype() {
         warnings: MessageKind.INVALID_OVERRIDE_METHOD,
         infos: MessageKind.INVALID_OVERRIDDEN_METHOD),
 
-    check(
-        """
+    check("""
           class A<T> {
             method(T t) => null; // testGenericNotSubtype:15
           }
@@ -664,18 +632,15 @@ Future testGenericNotSubtype() {
           class Class extends A<int> implements B<String> {
             method(double d) => null; // testGenericNotSubtype:17
           }
-          """,
-        warnings: [
-          MessageKind.INVALID_OVERRIDE_METHOD,
-          MessageKind.INVALID_OVERRIDE_METHOD
-        ],
-        infos: [
-          MessageKind.INVALID_OVERRIDDEN_METHOD,
-          MessageKind.INVALID_OVERRIDDEN_METHOD
-        ]),
+          """, warnings: [
+      MessageKind.INVALID_OVERRIDE_METHOD,
+      MessageKind.INVALID_OVERRIDE_METHOD
+    ], infos: [
+      MessageKind.INVALID_OVERRIDDEN_METHOD,
+      MessageKind.INVALID_OVERRIDDEN_METHOD
+    ]),
 
-    check(
-        """
+    check("""
           class A<T> {
             method(T t) => null; // testGenericNotSubtype:18
           }
@@ -685,19 +650,16 @@ Future testGenericNotSubtype() {
           class Class implements A<int>, B<String> {
             method(double d) => null; // testGenericNotSubtype:20
           }
-          """,
-        warnings: [
-          MessageKind.INVALID_OVERRIDE_METHOD,
-          MessageKind.INVALID_OVERRIDE_METHOD
-        ],
-        infos: [
-          MessageKind.INVALID_OVERRIDDEN_METHOD,
-          MessageKind.INVALID_OVERRIDDEN_METHOD
-        ]),
+          """, warnings: [
+      MessageKind.INVALID_OVERRIDE_METHOD,
+      MessageKind.INVALID_OVERRIDE_METHOD
+    ], infos: [
+      MessageKind.INVALID_OVERRIDDEN_METHOD,
+      MessageKind.INVALID_OVERRIDDEN_METHOD
+    ]),
 
     // TODO(johnniwinther): These are unclear. Issue 16443 has been filed.
-    check(
-        """
+    check("""
           class A<T> {
             method(T t) => null; // testGenericNotSubtype:21
           }
@@ -713,8 +675,7 @@ Future testGenericNotSubtype() {
         warnings: MessageKind.INVALID_OVERRIDE_METHOD,
         infos: MessageKind.INVALID_OVERRIDDEN_METHOD),
 
-    check(
-        """
+    check("""
           class A<T> {
             method(T t) => null; // testGenericNotSubtype:24
           }
@@ -726,15 +687,13 @@ Future testGenericNotSubtype() {
           class Class implements C {
             method(String s) => null; // testGenericNotSubtype:26
           }
-          """,
-        warnings: [
-          MessageKind.INVALID_OVERRIDE_METHOD,
-          MessageKind.INVALID_OVERRIDE_METHOD
-        ],
-        infos: [
-          MessageKind.INVALID_OVERRIDDEN_METHOD,
-          MessageKind.INVALID_OVERRIDDEN_METHOD
-        ]),
+          """, warnings: [
+      MessageKind.INVALID_OVERRIDE_METHOD,
+      MessageKind.INVALID_OVERRIDE_METHOD
+    ], infos: [
+      MessageKind.INVALID_OVERRIDDEN_METHOD,
+      MessageKind.INVALID_OVERRIDDEN_METHOD
+    ]),
   ]);
 }
 
@@ -803,8 +762,7 @@ Future testSetterNotSubtype() {
         }
         """),
 
-    check(
-        """
+    check("""
         class A {
           set setter(int _) => null; // testSetterNotSubtype:15
         }
@@ -827,8 +785,7 @@ Future testSetterNotSubtype() {
         }
         """),
 
-    check(
-        """
+    check("""
         class A {
           set setter(int _) => null; // testSetterNotSubtype:20
         }
@@ -842,8 +799,7 @@ Future testSetterNotSubtype() {
         warnings: MessageKind.INVALID_OVERRIDE_SETTER,
         infos: MessageKind.INVALID_OVERRIDDEN_SETTER),
 
-    check(
-        """
+    check("""
         class A {
           set setter(int _) => null; // testSetterNotSubtype:23
         }
@@ -853,18 +809,15 @@ Future testSetterNotSubtype() {
         class Class extends A implements B {
           set setter(double _) => null; // testSetterNotSubtype:25
         }
-        """,
-        warnings: [
-          MessageKind.INVALID_OVERRIDE_SETTER,
-          MessageKind.INVALID_OVERRIDE_SETTER
-        ],
-        infos: [
-          MessageKind.INVALID_OVERRIDDEN_SETTER,
-          MessageKind.INVALID_OVERRIDDEN_SETTER
-        ]),
+        """, warnings: [
+      MessageKind.INVALID_OVERRIDE_SETTER,
+      MessageKind.INVALID_OVERRIDE_SETTER
+    ], infos: [
+      MessageKind.INVALID_OVERRIDDEN_SETTER,
+      MessageKind.INVALID_OVERRIDDEN_SETTER
+    ]),
 
-    check(
-        """
+    check("""
         class A {
           set setter(int _) => null; // testSetterNotSubtype:26
         }
@@ -874,19 +827,16 @@ Future testSetterNotSubtype() {
         class Class implements A, B {
           set setter(double _) => null; // testSetterNotSubtype:28
         }
-        """,
-        warnings: [
-          MessageKind.INVALID_OVERRIDE_SETTER,
-          MessageKind.INVALID_OVERRIDE_SETTER
-        ],
-        infos: [
-          MessageKind.INVALID_OVERRIDDEN_SETTER,
-          MessageKind.INVALID_OVERRIDDEN_SETTER
-        ]),
+        """, warnings: [
+      MessageKind.INVALID_OVERRIDE_SETTER,
+      MessageKind.INVALID_OVERRIDE_SETTER
+    ], infos: [
+      MessageKind.INVALID_OVERRIDDEN_SETTER,
+      MessageKind.INVALID_OVERRIDDEN_SETTER
+    ]),
 
     // TODO(johnniwinther): These are unclear. Issue 16443 has been filed.
-    check(
-        """
+    check("""
         class A {
           set setter(int _) => null; // testSetterNotSubtype:29
         }
@@ -902,8 +852,7 @@ Future testSetterNotSubtype() {
         warnings: MessageKind.INVALID_OVERRIDE_SETTER,
         infos: MessageKind.INVALID_OVERRIDDEN_SETTER),
 
-    check(
-        """
+    check("""
         class A {
           set setter(int _) => null; // testSetterNotSubtype:32
         }
@@ -915,15 +864,13 @@ Future testSetterNotSubtype() {
         class Class implements C {
           set setter(String _) => null; // testSetterNotSubtype:34
         }
-        """,
-        warnings: [
-          MessageKind.INVALID_OVERRIDE_SETTER,
-          MessageKind.INVALID_OVERRIDE_SETTER
-        ],
-        infos: [
-          MessageKind.INVALID_OVERRIDDEN_SETTER,
-          MessageKind.INVALID_OVERRIDDEN_SETTER
-        ]),
+        """, warnings: [
+      MessageKind.INVALID_OVERRIDE_SETTER,
+      MessageKind.INVALID_OVERRIDE_SETTER
+    ], infos: [
+      MessageKind.INVALID_OVERRIDDEN_SETTER,
+      MessageKind.INVALID_OVERRIDDEN_SETTER
+    ]),
   ]);
 }
 
@@ -953,8 +900,7 @@ Future testFieldNotSubtype() {
             num field; // testFieldNotSubtype:6
           }
           """),
-    check(
-        """
+    check("""
           class A {
             int field; // testFieldNotSubtype:7
           }
@@ -983,8 +929,7 @@ Future testFieldNotSubtype() {
             int get field => null; // testFieldNotSubtype:13
           }
           """),
-    check(
-        """
+    check("""
           class A {
             num field; // testFieldNotSubtype:14
           }
@@ -994,8 +939,7 @@ Future testFieldNotSubtype() {
           """,
         warnings: MessageKind.INVALID_OVERRIDE_FIELD_WITH_GETTER,
         infos: MessageKind.INVALID_OVERRIDDEN_FIELD),
-    check(
-        """
+    check("""
           class A {
             num get field => null; // testFieldNotSubtype:16
           }
@@ -1037,8 +981,7 @@ Future testFieldNotSubtype() {
             num field; // testFieldNotSubtype:24
           }
           """),
-    check(
-        """
+    check("""
           class A {
             num field; // testFieldNotSubtype:25
           }
@@ -1048,8 +991,7 @@ Future testFieldNotSubtype() {
           """,
         warnings: MessageKind.INVALID_OVERRIDE_FIELD_WITH_SETTER,
         infos: MessageKind.INVALID_OVERRIDDEN_FIELD),
-    check(
-        """
+    check("""
           class A {
             set field(num _) {} // testFieldNotSubtype:27
           }
@@ -1059,8 +1001,7 @@ Future testFieldNotSubtype() {
           """,
         warnings: MessageKind.INVALID_OVERRIDE_SETTER_WITH_FIELD,
         infos: MessageKind.INVALID_OVERRIDDEN_SETTER),
-    check(
-        """
+    check("""
           class A {
             int field; // testFieldNotSubtype:29
           }
@@ -1068,17 +1009,14 @@ Future testFieldNotSubtype() {
             String get field => null; // testFieldNotSubtype:30
             void set field(String s) {} // testFieldNotSubtype:31
           }
-          """,
-        warnings: [
-          MessageKind.INVALID_OVERRIDE_FIELD_WITH_GETTER,
-          MessageKind.INVALID_OVERRIDE_FIELD_WITH_SETTER
-        ],
-        infos: [
-          MessageKind.INVALID_OVERRIDDEN_FIELD,
-          MessageKind.INVALID_OVERRIDDEN_FIELD
-        ]),
-    check(
-        """
+          """, warnings: [
+      MessageKind.INVALID_OVERRIDE_FIELD_WITH_GETTER,
+      MessageKind.INVALID_OVERRIDE_FIELD_WITH_SETTER
+    ], infos: [
+      MessageKind.INVALID_OVERRIDDEN_FIELD,
+      MessageKind.INVALID_OVERRIDDEN_FIELD
+    ]),
+    check("""
           class A {
             String get field => null; // testFieldNotSubtype:32
             void set field(String s) {} // testFieldNotSubtype:33
@@ -1086,22 +1024,19 @@ Future testFieldNotSubtype() {
           class Class implements A {
             int field; // testFieldNotSubtype:34
           }
-          """,
-        warnings: [
-          MessageKind.INVALID_OVERRIDE_GETTER_WITH_FIELD,
-          MessageKind.INVALID_OVERRIDE_SETTER_WITH_FIELD
-        ],
-        infos: [
-          MessageKind.INVALID_OVERRIDDEN_GETTER,
-          MessageKind.INVALID_OVERRIDDEN_SETTER
-        ]),
+          """, warnings: [
+      MessageKind.INVALID_OVERRIDE_GETTER_WITH_FIELD,
+      MessageKind.INVALID_OVERRIDE_SETTER_WITH_FIELD
+    ], infos: [
+      MessageKind.INVALID_OVERRIDDEN_GETTER,
+      MessageKind.INVALID_OVERRIDDEN_SETTER
+    ]),
   ]);
 }
 
 Future testMixedOverride() {
   return Future.wait([
-    check(
-        """
+    check("""
           class A {
             var member; // testMixedOverride:1
           }
@@ -1111,8 +1046,7 @@ Future testMixedOverride() {
           """,
         errors: MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD,
         infos: MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD_CONT),
-    check(
-        """
+    check("""
           class A {
             member() {} // testMixedOverride:3
           }
@@ -1122,8 +1056,7 @@ Future testMixedOverride() {
           """,
         errors: MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD,
         infos: MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD_CONT),
-    check(
-        """
+    check("""
           class A {
             get member => null; // testMixedOverride:5
           }
@@ -1133,8 +1066,7 @@ Future testMixedOverride() {
           """,
         errors: MessageKind.CANNOT_OVERRIDE_GETTER_WITH_METHOD,
         infos: MessageKind.CANNOT_OVERRIDE_GETTER_WITH_METHOD_CONT),
-    check(
-        """
+    check("""
           class A {
             member() {} // testMixedOverride:7
           }
@@ -1306,8 +1238,7 @@ Future testAbstractMethods() {
             method([a]) {} // testAbstractMethod:8
           }
           """),
-    check(
-        """
+    check("""
           abstract class A {
             method(); // testAbstractMethod:9
           }
@@ -1316,8 +1247,7 @@ Future testAbstractMethods() {
           """,
         warnings: MessageKind.UNIMPLEMENTED_METHOD_ONE,
         infos: MessageKind.UNIMPLEMENTED_METHOD_CONT),
-    check(
-        """
+    check("""
           abstract class A {
             get getter; // testAbstractMethod:10
           }
@@ -1326,8 +1256,7 @@ Future testAbstractMethods() {
           """,
         warnings: MessageKind.UNIMPLEMENTED_GETTER_ONE,
         infos: MessageKind.UNIMPLEMENTED_EXPLICIT_GETTER),
-    check(
-        """
+    check("""
           abstract class A {
             set setter(_); // testAbstractMethod:11
           }
@@ -1441,8 +1370,7 @@ Future testAbstractMethods() {
             method([a]) {} // testAbstractMethod:27
           }
           """),
-    check(
-        """
+    check("""
           class A {
             method() {} // testAbstractMethod:28
           }
@@ -1461,24 +1389,20 @@ Future testAbstractMethods() {
           class Class extends A implements B {
           }
           """),
-    check(
-        """
+    check("""
           class A {
             var member; // testAbstractMethod:31
           }
           class Class implements A {
           }
-          """,
-        warnings: [
-          MessageKind.UNIMPLEMENTED_GETTER_ONE,
-          MessageKind.UNIMPLEMENTED_SETTER_ONE
-        ],
-        infos: [
-          MessageKind.UNIMPLEMENTED_IMPLICIT_GETTER,
-          MessageKind.UNIMPLEMENTED_IMPLICIT_SETTER
-        ]),
-    check(
-        """
+          """, warnings: [
+      MessageKind.UNIMPLEMENTED_GETTER_ONE,
+      MessageKind.UNIMPLEMENTED_SETTER_ONE
+    ], infos: [
+      MessageKind.UNIMPLEMENTED_IMPLICIT_GETTER,
+      MessageKind.UNIMPLEMENTED_IMPLICIT_SETTER
+    ]),
+    check("""
           class A {
             var member; // testAbstractMethod:32
           }
@@ -1488,19 +1412,16 @@ Future testAbstractMethods() {
           }
           class Class implements A, B {
           }
-          """,
-        warnings: [
-          MessageKind.UNIMPLEMENTED_GETTER,
-          MessageKind.UNIMPLEMENTED_SETTER
-        ],
-        infos: [
-          MessageKind.UNIMPLEMENTED_EXPLICIT_GETTER,
-          MessageKind.UNIMPLEMENTED_IMPLICIT_GETTER,
-          MessageKind.UNIMPLEMENTED_EXPLICIT_SETTER,
-          MessageKind.UNIMPLEMENTED_IMPLICIT_SETTER
-        ]),
-    check(
-        """
+          """, warnings: [
+      MessageKind.UNIMPLEMENTED_GETTER,
+      MessageKind.UNIMPLEMENTED_SETTER
+    ], infos: [
+      MessageKind.UNIMPLEMENTED_EXPLICIT_GETTER,
+      MessageKind.UNIMPLEMENTED_IMPLICIT_GETTER,
+      MessageKind.UNIMPLEMENTED_EXPLICIT_SETTER,
+      MessageKind.UNIMPLEMENTED_IMPLICIT_SETTER
+    ]),
+    check("""
           class A {
             var member; // testAbstractMethod:35
           }
@@ -1509,19 +1430,16 @@ Future testAbstractMethods() {
           }
           class Class implements A, B {
           }
-          """,
-        warnings: [
-          MessageKind.UNIMPLEMENTED_GETTER,
-          MessageKind.UNIMPLEMENTED_SETTER
-        ],
-        infos: [
-          MessageKind.UNIMPLEMENTED_IMPLICIT_GETTER,
-          MessageKind.UNIMPLEMENTED_IMPLICIT_GETTER,
-          MessageKind.UNIMPLEMENTED_IMPLICIT_SETTER,
-          MessageKind.UNIMPLEMENTED_IMPLICIT_SETTER
-        ]),
-    check(
-        """
+          """, warnings: [
+      MessageKind.UNIMPLEMENTED_GETTER,
+      MessageKind.UNIMPLEMENTED_SETTER
+    ], infos: [
+      MessageKind.UNIMPLEMENTED_IMPLICIT_GETTER,
+      MessageKind.UNIMPLEMENTED_IMPLICIT_GETTER,
+      MessageKind.UNIMPLEMENTED_IMPLICIT_SETTER,
+      MessageKind.UNIMPLEMENTED_IMPLICIT_SETTER
+    ]),
+    check("""
           class A {
             get member => 0; // testAbstractMethod:37
           }
@@ -1530,8 +1448,7 @@ Future testAbstractMethods() {
           """,
         warnings: MessageKind.UNIMPLEMENTED_GETTER_ONE,
         infos: MessageKind.UNIMPLEMENTED_EXPLICIT_GETTER),
-    check(
-        """
+    check("""
           class A {
             set member(_) {} // testAbstractMethod:38
           }
@@ -1540,8 +1457,7 @@ Future testAbstractMethods() {
           """,
         warnings: MessageKind.UNIMPLEMENTED_SETTER_ONE,
         infos: MessageKind.UNIMPLEMENTED_EXPLICIT_SETTER),
-    check(
-        """
+    check("""
           class A {
             var member; // testAbstractMethod:39
           }
@@ -1551,8 +1467,7 @@ Future testAbstractMethods() {
           """,
         warnings: MessageKind.UNIMPLEMENTED_SETTER_ONE,
         infos: MessageKind.UNIMPLEMENTED_IMPLICIT_SETTER),
-    check(
-        """
+    check("""
           class A {
             var field; // testAbstractMethod:40
           }
@@ -1562,8 +1477,7 @@ Future testAbstractMethods() {
           """,
         warnings: MessageKind.UNIMPLEMENTED_SETTER_ONE,
         infos: MessageKind.UNIMPLEMENTED_IMPLICIT_SETTER),
-    check(
-        """
+    check("""
           class A {
             var member; // testAbstractMethod:42
           }
@@ -1621,8 +1535,7 @@ Future testNoSuchMethod() {
             method(); // testNoSuchMethod:5
           }
           """),
-    check(
-        """
+    check("""
           abstract class A {
             method(); // testNoSuchMethod:6
           }
@@ -1631,8 +1544,7 @@ Future testNoSuchMethod() {
           """,
         warnings: MessageKind.UNIMPLEMENTED_METHOD_ONE,
         infos: MessageKind.UNIMPLEMENTED_METHOD_CONT),
-    check(
-        """
+    check("""
           abstract class A {
             method(); // testNoSuchMethod:7
           }
@@ -1650,8 +1562,7 @@ Future testNoSuchMethod() {
             noSuchMethod(_) => null;
           }
           """),
-    check(
-        """
+    check("""
           class A {
             method() {} // testNoSuchMethod:9
           }
@@ -1660,8 +1571,7 @@ Future testNoSuchMethod() {
           """,
         warnings: MessageKind.UNIMPLEMENTED_METHOD_ONE,
         infos: MessageKind.UNIMPLEMENTED_METHOD_CONT),
-    check(
-        """
+    check("""
           class A {
             method() {} // testNoSuchMethod:10
           }
@@ -1670,8 +1580,7 @@ Future testNoSuchMethod() {
           """,
         warnings: MessageKind.UNIMPLEMENTED_METHOD_ONE,
         infos: MessageKind.UNIMPLEMENTED_METHOD_CONT),
-    check(
-        """
+    check("""
           class A {
             method() {} // testNoSuchMethod:11
           }

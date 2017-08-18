@@ -74,7 +74,6 @@ class PointerBlock {
   DISALLOW_COPY_AND_ASSIGN(PointerBlock);
 };
 
-
 // A synchronized collection of pointer blocks of a particular size.
 // This class is meant to be used as a base (note PushBlockImpl is protected).
 // The global list of cached empty blocks is currently per-size.
@@ -139,7 +138,6 @@ class BlockStack {
   DISALLOW_COPY_AND_ASSIGN(BlockStack);
 };
 
-
 static const int kStoreBufferBlockSize = 1024;
 class StoreBuffer : public BlockStack<kStoreBufferBlockSize> {
  public:
@@ -158,9 +156,7 @@ class StoreBuffer : public BlockStack<kStoreBufferBlockSize> {
   bool Overflowed();
 };
 
-
 typedef StoreBuffer::Block StoreBufferBlock;
-
 
 static const int kMarkingStackBlockSize = 64;
 class MarkingStack : public BlockStack<kMarkingStackBlockSize> {
@@ -170,7 +166,6 @@ class MarkingStack : public BlockStack<kMarkingStackBlockSize> {
     BlockStack<Block::kSize>::PushBlockImpl(block);
   }
 };
-
 
 }  // namespace dart
 

@@ -75,7 +75,6 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
   return cls.raw();
 }
 
-
 void RawClass::WriteTo(SnapshotWriter* writer,
                        intptr_t object_id,
                        Snapshot::Kind kind,
@@ -131,7 +130,6 @@ void RawClass::WriteTo(SnapshotWriter* writer,
   }
 }
 
-
 RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
                                               intptr_t object_id,
                                               intptr_t tags,
@@ -155,7 +153,6 @@ RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
   return unresolved_class.raw();
 }
 
-
 void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
                                  intptr_t object_id,
                                  Snapshot::Kind kind,
@@ -177,7 +174,6 @@ void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
   visitor.VisitPointers(from(), to());
 }
 
-
 RawAbstractType* AbstractType::ReadFrom(SnapshotReader* reader,
                                         intptr_t object_id,
                                         intptr_t tags,
@@ -187,14 +183,12 @@ RawAbstractType* AbstractType::ReadFrom(SnapshotReader* reader,
   return NULL;
 }
 
-
 void RawAbstractType::WriteTo(SnapshotWriter* writer,
                               intptr_t object_id,
                               Snapshot::Kind kind,
                               bool as_reference) {
   UNREACHABLE();  // AbstractType is an abstract class.
 }
-
 
 RawType* Type::ReadFrom(SnapshotReader* reader,
                         intptr_t object_id,
@@ -234,7 +228,6 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
 
   return type.raw();
 }
-
 
 void RawType::WriteTo(SnapshotWriter* writer,
                       intptr_t object_id,
@@ -285,7 +278,6 @@ void RawType::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectImpl(type_class, kAsReference);
 }
 
-
 RawTypeRef* TypeRef::ReadFrom(SnapshotReader* reader,
                               intptr_t object_id,
                               intptr_t tags,
@@ -304,7 +296,6 @@ RawTypeRef* TypeRef::ReadFrom(SnapshotReader* reader,
   return type_ref.raw();
 }
 
-
 void RawTypeRef::WriteTo(SnapshotWriter* writer,
                          intptr_t object_id,
                          Snapshot::Kind kind,
@@ -322,7 +313,6 @@ void RawTypeRef::WriteTo(SnapshotWriter* writer,
   SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
-
 
 RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
@@ -353,7 +343,6 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
 
   return type_parameter.raw();
 }
-
 
 void RawTypeParameter::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
@@ -386,7 +375,6 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectImpl(param_class, kAsReference);
 }
 
-
 RawBoundedType* BoundedType::ReadFrom(SnapshotReader* reader,
                                       intptr_t object_id,
                                       intptr_t tags,
@@ -406,7 +394,6 @@ RawBoundedType* BoundedType::ReadFrom(SnapshotReader* reader,
   return bounded_type.raw();
 }
 
-
 void RawBoundedType::WriteTo(SnapshotWriter* writer,
                              intptr_t object_id,
                              Snapshot::Kind kind,
@@ -425,7 +412,6 @@ void RawBoundedType::WriteTo(SnapshotWriter* writer,
   visitor.VisitPointers(from(), to());
 }
 
-
 RawMixinAppType* MixinAppType::ReadFrom(SnapshotReader* reader,
                                         intptr_t object_id,
                                         intptr_t tags,
@@ -435,14 +421,12 @@ RawMixinAppType* MixinAppType::ReadFrom(SnapshotReader* reader,
   return MixinAppType::null();
 }
 
-
 void RawMixinAppType::WriteTo(SnapshotWriter* writer,
                               intptr_t object_id,
                               Snapshot::Kind kind,
                               bool as_reference) {
   UNREACHABLE();  // MixinAppType objects do not survive finalization.
 }
-
 
 RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
@@ -481,7 +465,6 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
 
   return type_arguments.raw();
 }
-
 
 void RawTypeArguments::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
@@ -524,7 +507,6 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
   }
 }
 
-
 RawPatchClass* PatchClass::ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
@@ -542,7 +524,6 @@ RawPatchClass* PatchClass::ReadFrom(SnapshotReader* reader,
 
   return cls.raw();
 }
-
 
 void RawPatchClass::WriteTo(SnapshotWriter* writer,
                             intptr_t object_id,
@@ -562,7 +543,6 @@ void RawPatchClass::WriteTo(SnapshotWriter* writer,
   visitor.VisitPointers(from(), to());
 }
 
-
 RawClosure* Closure::ReadFrom(SnapshotReader* reader,
                               intptr_t object_id,
                               intptr_t tags,
@@ -571,7 +551,6 @@ RawClosure* Closure::ReadFrom(SnapshotReader* reader,
   UNREACHABLE();
   return Closure::null();
 }
-
 
 void RawClosure::WriteTo(SnapshotWriter* writer,
                          intptr_t object_id,
@@ -591,7 +570,6 @@ void RawClosure::WriteTo(SnapshotWriter* writer,
   UNREACHABLE();
 }
 
-
 RawClosureData* ClosureData::ReadFrom(SnapshotReader* reader,
                                       intptr_t object_id,
                                       intptr_t tags,
@@ -606,13 +584,11 @@ RawClosureData* ClosureData::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &data, kIsDeserialized);
 
   // Set all the object fields.
-  // Cached hash is null-initialized by ClosureData::New()
   READ_OBJECT_FIELDS(data, data.raw()->from(), data.raw()->to_snapshot(),
                      kAsInlinedObject);
 
   return data.raw();
 }
-
 
 void RawClosureData::WriteTo(SnapshotWriter* writer,
                              intptr_t object_id,
@@ -648,7 +624,6 @@ void RawClosureData::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectImpl(ptr()->closure_, kAsInlinedObject);
 }
 
-
 RawSignatureData* SignatureData::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           intptr_t tags,
@@ -669,7 +644,6 @@ RawSignatureData* SignatureData::ReadFrom(SnapshotReader* reader,
   return data.raw();
 }
 
-
 void RawSignatureData::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind,
@@ -688,7 +662,6 @@ void RawSignatureData::WriteTo(SnapshotWriter* writer,
   SnapshotWriterVisitor visitor(writer, kAsInlinedObject);
   visitor.VisitPointers(from(), to());
 }
-
 
 RawRedirectionData* RedirectionData::ReadFrom(SnapshotReader* reader,
                                               intptr_t object_id,
@@ -709,7 +682,6 @@ RawRedirectionData* RedirectionData::ReadFrom(SnapshotReader* reader,
   return data.raw();
 }
 
-
 void RawRedirectionData::WriteTo(SnapshotWriter* writer,
                                  intptr_t object_id,
                                  Snapshot::Kind kind,
@@ -729,7 +701,6 @@ void RawRedirectionData::WriteTo(SnapshotWriter* writer,
   visitor.VisitPointers(from(), to());
 }
 
-
 RawFunction* Function::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,
@@ -748,16 +719,20 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
     // don't set them until after setting the kind.
     const int32_t token_pos = reader->Read<int32_t>();
     const int32_t end_token_pos = reader->Read<uint32_t>();
+    int32_t kernel_offset = 0;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    kernel_offset = reader->Read<int32_t>();
+#endif
     func.set_num_fixed_parameters(reader->Read<int16_t>());
     func.set_num_optional_parameters(reader->Read<int16_t>());
     func.set_kind_tag(reader->Read<uint32_t>());
     func.set_token_pos(TokenPosition::SnapshotDecode(token_pos));
     func.set_end_token_pos(TokenPosition::SnapshotDecode(end_token_pos));
+    func.set_kernel_offset(kernel_offset);
     func.set_usage_counter(reader->Read<int32_t>());
     func.set_deoptimization_counter(reader->Read<int8_t>());
     func.set_optimized_instruction_count(reader->Read<uint16_t>());
     func.set_optimized_call_site_count(reader->Read<uint16_t>());
-    func.set_kernel_offset(0);
     func.set_was_compiled(false);
 
     // Set all the object fields.
@@ -778,7 +753,6 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
     return reader->ReadFunctionId(object_id);
   }
 }
-
 
 void RawFunction::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
@@ -818,6 +792,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
 #if !defined(DART_PRECOMPILED_RUNTIME)
     writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
     writer->Write<int32_t>(ptr()->end_token_pos_.SnapshotEncode());
+    writer->Write<int32_t>(ptr()->kernel_offset_);
 #endif
     writer->Write<int16_t>(ptr()->num_fixed_parameters_);
     writer->Write<int16_t>(ptr()->num_optional_parameters_);
@@ -845,7 +820,6 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   }
 }
 
-
 RawField* Field::ReadFrom(SnapshotReader* reader,
                           intptr_t object_id,
                           intptr_t tags,
@@ -862,8 +836,10 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   field.set_token_pos(TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
   field.set_guarded_cid(reader->Read<int32_t>());
   field.set_is_nullable(reader->Read<int32_t>());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  field.set_kernel_offset(reader->Read<int32_t>());
+#endif
   field.set_kind_bits(reader->Read<uint8_t>());
-  field.set_kernel_offset(0);
 
   // Set all the object fields.
   READ_OBJECT_FIELDS(field, field.raw()->from(), field.raw()->to_snapshot(kind),
@@ -881,7 +857,6 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
 
   return field.raw();
 }
-
 
 void RawField::WriteTo(SnapshotWriter* writer,
                        intptr_t object_id,
@@ -901,6 +876,9 @@ void RawField::WriteTo(SnapshotWriter* writer,
   writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
   writer->Write<int32_t>(ptr()->guarded_cid_);
   writer->Write<int32_t>(ptr()->is_nullable_);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  writer->Write<int32_t>(ptr()->kernel_offset_);
+#endif
   writer->Write<uint8_t>(ptr()->kind_bits_);
 
   // Write out the name.
@@ -909,6 +887,8 @@ void RawField::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectImpl(ptr()->owner_, kAsReference);
   // Write out the type.
   writer->WriteObjectImpl(ptr()->type_, kAsReference);
+  // Write out the kernel_data.
+  writer->WriteObjectImpl(ptr()->kernel_data_, kAsReference);
   // Write out the initial static value or field offset.
   if (Field::StaticBit::decode(ptr()->kind_bits_)) {
     if (Field::ConstBit::decode(ptr()->kind_bits_)) {
@@ -926,7 +906,6 @@ void RawField::WriteTo(SnapshotWriter* writer,
   // Write out the guarded list length.
   writer->WriteObjectImpl(ptr()->guarded_list_length_, kAsReference);
 }
-
 
 RawLiteralToken* LiteralToken::ReadFrom(SnapshotReader* reader,
                                         intptr_t object_id,
@@ -952,7 +931,6 @@ RawLiteralToken* LiteralToken::ReadFrom(SnapshotReader* reader,
   return literal_token.raw();
 }
 
-
 void RawLiteralToken::WriteTo(SnapshotWriter* writer,
                               intptr_t object_id,
                               Snapshot::Kind kind,
@@ -974,7 +952,6 @@ void RawLiteralToken::WriteTo(SnapshotWriter* writer,
   SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
-
 
 RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
                                       intptr_t object_id,
@@ -1010,7 +987,6 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   return token_stream.raw();
 }
 
-
 void RawTokenStream::WriteTo(SnapshotWriter* writer,
                              intptr_t object_id,
                              Snapshot::Kind kind,
@@ -1037,7 +1013,6 @@ void RawTokenStream::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectImpl(ptr()->private_key_, kAsInlinedObject);
 }
 
-
 RawScript* Script::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
                             intptr_t tags,
@@ -1055,6 +1030,8 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
   script.StoreNonPointer(&script.raw_ptr()->col_offset_,
                          reader->Read<int32_t>());
   script.StoreNonPointer(&script.raw_ptr()->kind_, reader->Read<int8_t>());
+  script.StoreNonPointer(&script.raw_ptr()->kernel_script_index_,
+                         reader->Read<int32_t>());
 
   *reader->StringHandle() ^= String::null();
   script.set_source(*reader->StringHandle());
@@ -1077,7 +1054,6 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
   return script.raw();
 }
 
-
 void RawScript::WriteTo(SnapshotWriter* writer,
                         intptr_t object_id,
                         Snapshot::Kind kind,
@@ -1097,12 +1073,12 @@ void RawScript::WriteTo(SnapshotWriter* writer,
   writer->Write<int32_t>(ptr()->line_offset_);
   writer->Write<int32_t>(ptr()->col_offset_);
   writer->Write<int8_t>(ptr()->kind_);
+  writer->Write<int32_t>(ptr()->kernel_script_index_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to_snapshot(kind));
 }
-
 
 RawLibrary* Library::ReadFrom(SnapshotReader* reader,
                               intptr_t object_id,
@@ -1162,7 +1138,6 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
   return library.raw();
 }
 
-
 void RawLibrary::WriteTo(SnapshotWriter* writer,
                          intptr_t object_id,
                          Snapshot::Kind kind,
@@ -1207,7 +1182,6 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
   }
 }
 
-
 RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           intptr_t tags,
@@ -1237,7 +1211,6 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
   return prefix.raw();
 }
 
-
 void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind,
@@ -1261,7 +1234,6 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
   visitor.VisitPointers(from(), to_snapshot(kind));
 }
 
-
 RawNamespace* Namespace::ReadFrom(SnapshotReader* reader,
                                   intptr_t object_id,
                                   intptr_t tags,
@@ -1279,7 +1251,6 @@ RawNamespace* Namespace::ReadFrom(SnapshotReader* reader,
 
   return ns.raw();
 }
-
 
 void RawNamespace::WriteTo(SnapshotWriter* writer,
                            intptr_t object_id,
@@ -1300,7 +1271,6 @@ void RawNamespace::WriteTo(SnapshotWriter* writer,
   visitor.VisitPointers(from(), to());
 }
 
-
 RawCode* Code::ReadFrom(SnapshotReader* reader,
                         intptr_t object_id,
                         intptr_t tags,
@@ -1310,14 +1280,12 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
   return Code::null();
 }
 
-
 void RawCode::WriteTo(SnapshotWriter* writer,
                       intptr_t object_id,
                       Snapshot::Kind kind,
                       bool as_reference) {
   UNREACHABLE();
 }
-
 
 RawInstructions* Instructions::ReadFrom(SnapshotReader* reader,
                                         intptr_t object_id,
@@ -1328,14 +1296,12 @@ RawInstructions* Instructions::ReadFrom(SnapshotReader* reader,
   return Instructions::null();
 }
 
-
 void RawInstructions::WriteTo(SnapshotWriter* writer,
                               intptr_t object_id,
                               Snapshot::Kind kind,
                               bool as_reference) {
   UNREACHABLE();
 }
-
 
 RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
@@ -1346,14 +1312,12 @@ RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
   return ObjectPool::null();
 }
 
-
 void RawObjectPool::WriteTo(SnapshotWriter* writer,
                             intptr_t object_id,
                             Snapshot::Kind kind,
                             bool as_reference) {
   UNREACHABLE();
 }
-
 
 RawPcDescriptors* PcDescriptors::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
@@ -1364,14 +1328,12 @@ RawPcDescriptors* PcDescriptors::ReadFrom(SnapshotReader* reader,
   return PcDescriptors::null();
 }
 
-
 void RawPcDescriptors::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind,
                                bool as_reference) {
   UNREACHABLE();
 }
-
 
 RawCodeSourceMap* CodeSourceMap::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
@@ -1382,14 +1344,12 @@ RawCodeSourceMap* CodeSourceMap::ReadFrom(SnapshotReader* reader,
   return CodeSourceMap::null();
 }
 
-
 void RawCodeSourceMap::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind,
                                bool as_reference) {
   UNREACHABLE();
 }
-
 
 RawStackMap* StackMap::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
@@ -1400,14 +1360,12 @@ RawStackMap* StackMap::ReadFrom(SnapshotReader* reader,
   return StackMap::null();
 }
 
-
 void RawStackMap::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           Snapshot::Kind kind,
                           bool as_reference) {
   UNREACHABLE();
 }
-
 
 RawLocalVarDescriptors* LocalVarDescriptors::ReadFrom(SnapshotReader* reader,
                                                       intptr_t object_id,
@@ -1418,14 +1376,12 @@ RawLocalVarDescriptors* LocalVarDescriptors::ReadFrom(SnapshotReader* reader,
   return LocalVarDescriptors::null();
 }
 
-
 void RawLocalVarDescriptors::WriteTo(SnapshotWriter* writer,
                                      intptr_t object_id,
                                      Snapshot::Kind kind,
                                      bool as_reference) {
   UNREACHABLE();
 }
-
 
 RawExceptionHandlers* ExceptionHandlers::ReadFrom(SnapshotReader* reader,
                                                   intptr_t object_id,
@@ -1436,14 +1392,12 @@ RawExceptionHandlers* ExceptionHandlers::ReadFrom(SnapshotReader* reader,
   return ExceptionHandlers::null();
 }
 
-
 void RawExceptionHandlers::WriteTo(SnapshotWriter* writer,
                                    intptr_t object_id,
                                    Snapshot::Kind kind,
                                    bool as_reference) {
   UNREACHABLE();
 }
-
 
 RawContext* Context::ReadFrom(SnapshotReader* reader,
                               intptr_t object_id,
@@ -1474,7 +1428,6 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
   return context.raw();
 }
 
-
 void RawContext::WriteTo(SnapshotWriter* writer,
                          intptr_t object_id,
                          Snapshot::Kind kind,
@@ -1497,7 +1450,6 @@ void RawContext::WriteTo(SnapshotWriter* writer,
     visitor.VisitPointers(from(), to(num_variables));
   }
 }
-
 
 RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
                                         intptr_t object_id,
@@ -1530,7 +1482,6 @@ RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
   return NULL;
 }
 
-
 void RawContextScope::WriteTo(SnapshotWriter* writer,
                               intptr_t object_id,
                               Snapshot::Kind kind,
@@ -1559,7 +1510,6 @@ void RawContextScope::WriteTo(SnapshotWriter* writer,
   UNREACHABLE();
 }
 
-
 RawSingleTargetCache* SingleTargetCache::ReadFrom(SnapshotReader* reader,
                                                   intptr_t object_id,
                                                   intptr_t tags,
@@ -1569,14 +1519,12 @@ RawSingleTargetCache* SingleTargetCache::ReadFrom(SnapshotReader* reader,
   return SingleTargetCache::null();
 }
 
-
 void RawSingleTargetCache::WriteTo(SnapshotWriter* writer,
                                    intptr_t object_id,
                                    Snapshot::Kind kind,
                                    bool as_reference) {
   UNREACHABLE();
 }
-
 
 RawUnlinkedCall* UnlinkedCall::ReadFrom(SnapshotReader* reader,
                                         intptr_t object_id,
@@ -1587,14 +1535,12 @@ RawUnlinkedCall* UnlinkedCall::ReadFrom(SnapshotReader* reader,
   return UnlinkedCall::null();
 }
 
-
 void RawUnlinkedCall::WriteTo(SnapshotWriter* writer,
                               intptr_t object_id,
                               Snapshot::Kind kind,
                               bool as_reference) {
   UNREACHABLE();
 }
-
 
 RawICData* ICData::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
@@ -1618,7 +1564,6 @@ RawICData* ICData::ReadFrom(SnapshotReader* reader,
 
   return result.raw();
 }
-
 
 void RawICData::WriteTo(SnapshotWriter* writer,
                         intptr_t object_id,
@@ -1647,7 +1592,6 @@ void RawICData::WriteTo(SnapshotWriter* writer,
   visitor.VisitPointers(from(), to_snapshot(kind));
 }
 
-
 RawMegamorphicCache* MegamorphicCache::ReadFrom(SnapshotReader* reader,
                                                 intptr_t object_id,
                                                 intptr_t tags,
@@ -1657,14 +1601,12 @@ RawMegamorphicCache* MegamorphicCache::ReadFrom(SnapshotReader* reader,
   return MegamorphicCache::null();
 }
 
-
 void RawMegamorphicCache::WriteTo(SnapshotWriter* writer,
                                   intptr_t object_id,
                                   Snapshot::Kind kind,
                                   bool as_reference) {
   UNREACHABLE();
 }
-
 
 RawSubtypeTestCache* SubtypeTestCache::ReadFrom(SnapshotReader* reader,
                                                 intptr_t object_id,
@@ -1675,14 +1617,12 @@ RawSubtypeTestCache* SubtypeTestCache::ReadFrom(SnapshotReader* reader,
   return SubtypeTestCache::null();
 }
 
-
 void RawSubtypeTestCache::WriteTo(SnapshotWriter* writer,
                                   intptr_t object_id,
                                   Snapshot::Kind kind,
                                   bool as_reference) {
   UNREACHABLE();
 }
-
 
 RawError* Error::ReadFrom(SnapshotReader* reader,
                           intptr_t object_id,
@@ -1693,14 +1633,12 @@ RawError* Error::ReadFrom(SnapshotReader* reader,
   return Error::null();  // Error is an abstract class.
 }
 
-
 void RawError::WriteTo(SnapshotWriter* writer,
                        intptr_t object_id,
                        Snapshot::Kind kind,
                        bool as_reference) {
   UNREACHABLE();  // Error is an abstract class.
 }
-
 
 RawApiError* ApiError::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
@@ -1720,7 +1658,6 @@ RawApiError* ApiError::ReadFrom(SnapshotReader* reader,
   return api_error.raw();
 }
 
-
 void RawApiError::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           Snapshot::Kind kind,
@@ -1738,7 +1675,6 @@ void RawApiError::WriteTo(SnapshotWriter* writer,
   SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
-
 
 RawLanguageError* LanguageError::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
@@ -1765,7 +1701,6 @@ RawLanguageError* LanguageError::ReadFrom(SnapshotReader* reader,
   return language_error.raw();
 }
 
-
 void RawLanguageError::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind,
@@ -1789,7 +1724,6 @@ void RawLanguageError::WriteTo(SnapshotWriter* writer,
   visitor.VisitPointers(from(), to());
 }
 
-
 RawUnhandledException* UnhandledException::ReadFrom(SnapshotReader* reader,
                                                     intptr_t object_id,
                                                     intptr_t tags,
@@ -1806,7 +1740,6 @@ RawUnhandledException* UnhandledException::ReadFrom(SnapshotReader* reader,
   return result.raw();
 }
 
-
 void RawUnhandledException::WriteTo(SnapshotWriter* writer,
                                     intptr_t object_id,
                                     Snapshot::Kind kind,
@@ -1822,7 +1755,6 @@ void RawUnhandledException::WriteTo(SnapshotWriter* writer,
   visitor.VisitPointers(from(), to());
 }
 
-
 RawUnwindError* UnwindError::ReadFrom(SnapshotReader* reader,
                                       intptr_t object_id,
                                       intptr_t tags,
@@ -1832,14 +1764,12 @@ RawUnwindError* UnwindError::ReadFrom(SnapshotReader* reader,
   return UnwindError::null();
 }
 
-
 void RawUnwindError::WriteTo(SnapshotWriter* writer,
                              intptr_t object_id,
                              Snapshot::Kind kind,
                              bool as_reference) {
   UNREACHABLE();
 }
-
 
 RawInstance* Instance::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
@@ -1861,7 +1791,6 @@ RawInstance* Instance::ReadFrom(SnapshotReader* reader,
   return obj.raw();
 }
 
-
 void RawInstance::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           Snapshot::Kind kind,
@@ -1875,7 +1804,6 @@ void RawInstance::WriteTo(SnapshotWriter* writer,
   writer->WriteIndexedObject(kInstanceCid);
   writer->WriteTags(writer->GetObjectTags(this));
 }
-
 
 RawInteger* Mint::ReadFrom(SnapshotReader* reader,
                            intptr_t object_id,
@@ -1913,7 +1841,6 @@ RawInteger* Mint::ReadFrom(SnapshotReader* reader,
   return mint.raw();
 }
 
-
 void RawMint::WriteTo(SnapshotWriter* writer,
                       intptr_t object_id,
                       Snapshot::Kind kind,
@@ -1930,7 +1857,6 @@ void RawMint::WriteTo(SnapshotWriter* writer,
   // Write out the 64 bit value.
   writer->Write<int64_t>(ptr()->value_);
 }
-
 
 RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
@@ -1959,7 +1885,6 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   return obj.raw();
 }
 
-
 void RawBigint::WriteTo(SnapshotWriter* writer,
                         intptr_t object_id,
                         Snapshot::Kind kind,
@@ -1977,7 +1902,6 @@ void RawBigint::WriteTo(SnapshotWriter* writer,
   SnapshotWriterVisitor visitor(writer, kAsInlinedObject);
   visitor.VisitPointers(from(), to());
 }
-
 
 RawDouble* Double::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
@@ -2005,7 +1929,6 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
   return dbl.raw();
 }
 
-
 void RawDouble::WriteTo(SnapshotWriter* writer,
                         intptr_t object_id,
                         Snapshot::Kind kind,
@@ -2023,7 +1946,6 @@ void RawDouble::WriteTo(SnapshotWriter* writer,
   writer->WriteDouble(ptr()->value_);
 }
 
-
 RawString* String::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
                             intptr_t tags,
@@ -2033,14 +1955,12 @@ RawString* String::ReadFrom(SnapshotReader* reader,
   return String::null();
 }
 
-
 void RawString::WriteTo(SnapshotWriter* writer,
                         intptr_t object_id,
                         Snapshot::Kind kind,
                         bool as_reference) {
   UNREACHABLE();  // String is an abstract class.
 }
-
 
 template <typename StringType, typename CharacterType, typename CallbackType>
 void String::ReadFromImpl(SnapshotReader* reader,
@@ -2074,7 +1994,6 @@ void String::ReadFromImpl(SnapshotReader* reader,
   }
 }
 
-
 RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           intptr_t tags,
@@ -2091,7 +2010,6 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
   return raw(str_obj);
 }
 
-
 RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           intptr_t tags,
@@ -2107,7 +2025,6 @@ RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &str_obj, kIsDeserialized);
   return raw(str_obj);
 }
-
 
 template <typename T>
 static void StringWriteTo(SnapshotWriter* writer,
@@ -2142,7 +2059,6 @@ static void StringWriteTo(SnapshotWriter* writer,
   }
 }
 
-
 void RawOneByteString::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind,
@@ -2151,7 +2067,6 @@ void RawOneByteString::WriteTo(SnapshotWriter* writer,
                 writer->GetObjectTags(this), ptr()->length_, ptr()->data());
 }
 
-
 void RawTwoByteString::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind,
@@ -2159,7 +2074,6 @@ void RawTwoByteString::WriteTo(SnapshotWriter* writer,
   StringWriteTo(writer, object_id, kind, kTwoByteStringCid,
                 writer->GetObjectTags(this), ptr()->length_, ptr()->data());
 }
-
 
 RawExternalOneByteString* ExternalOneByteString::ReadFrom(
     SnapshotReader* reader,
@@ -2171,7 +2085,6 @@ RawExternalOneByteString* ExternalOneByteString::ReadFrom(
   return ExternalOneByteString::null();
 }
 
-
 RawExternalTwoByteString* ExternalTwoByteString::ReadFrom(
     SnapshotReader* reader,
     intptr_t object_id,
@@ -2181,7 +2094,6 @@ RawExternalTwoByteString* ExternalTwoByteString::ReadFrom(
   UNREACHABLE();
   return ExternalTwoByteString::null();
 }
-
 
 void RawExternalOneByteString::WriteTo(SnapshotWriter* writer,
                                        intptr_t object_id,
@@ -2193,7 +2105,6 @@ void RawExternalOneByteString::WriteTo(SnapshotWriter* writer,
                 ptr()->external_data_->data());
 }
 
-
 void RawExternalTwoByteString::WriteTo(SnapshotWriter* writer,
                                        intptr_t object_id,
                                        Snapshot::Kind kind,
@@ -2204,7 +2115,6 @@ void RawExternalTwoByteString::WriteTo(SnapshotWriter* writer,
                 ptr()->external_data_->data());
 }
 
-
 RawBool* Bool::ReadFrom(SnapshotReader* reader,
                         intptr_t object_id,
                         intptr_t tags,
@@ -2214,14 +2124,12 @@ RawBool* Bool::ReadFrom(SnapshotReader* reader,
   return Bool::null();
 }
 
-
 void RawBool::WriteTo(SnapshotWriter* writer,
                       intptr_t object_id,
                       Snapshot::Kind kind,
                       bool as_reference) {
   UNREACHABLE();
 }
-
 
 RawArray* Array::ReadFrom(SnapshotReader* reader,
                           intptr_t object_id,
@@ -2252,7 +2160,6 @@ RawArray* Array::ReadFrom(SnapshotReader* reader,
   }
   return array->raw();
 }
-
 
 RawImmutableArray* ImmutableArray::ReadFrom(SnapshotReader* reader,
                                             intptr_t object_id,
@@ -2286,7 +2193,6 @@ RawImmutableArray* ImmutableArray::ReadFrom(SnapshotReader* reader,
   return raw(*array);
 }
 
-
 void RawArray::WriteTo(SnapshotWriter* writer,
                        intptr_t object_id,
                        Snapshot::Kind kind,
@@ -2297,7 +2203,6 @@ void RawArray::WriteTo(SnapshotWriter* writer,
                        as_reference);
 }
 
-
 void RawImmutableArray::WriteTo(SnapshotWriter* writer,
                                 intptr_t object_id,
                                 Snapshot::Kind kind,
@@ -2306,7 +2211,6 @@ void RawImmutableArray::WriteTo(SnapshotWriter* writer,
                        writer->GetObjectTags(this), ptr()->length_,
                        ptr()->type_arguments_, ptr()->data(), as_reference);
 }
-
 
 RawGrowableObjectArray* GrowableObjectArray::ReadFrom(SnapshotReader* reader,
                                                       intptr_t object_id,
@@ -2339,7 +2243,6 @@ RawGrowableObjectArray* GrowableObjectArray::ReadFrom(SnapshotReader* reader,
   return array.raw();
 }
 
-
 void RawGrowableObjectArray::WriteTo(SnapshotWriter* writer,
                                      intptr_t object_id,
                                      Snapshot::Kind kind,
@@ -2362,7 +2265,6 @@ void RawGrowableObjectArray::WriteTo(SnapshotWriter* writer,
   // Write out the Array object.
   writer->WriteObjectImpl(ptr()->data_, kAsReference);
 }
-
 
 RawLinkedHashMap* LinkedHashMap::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
@@ -2420,7 +2322,6 @@ RawLinkedHashMap* LinkedHashMap::ReadFrom(SnapshotReader* reader,
   return map.raw();
 }
 
-
 void RawLinkedHashMap::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind,
@@ -2471,7 +2372,6 @@ void RawLinkedHashMap::WriteTo(SnapshotWriter* writer,
   DEBUG_ASSERT(deleted_keys_found == deleted_keys);
 }
 
-
 RawFloat32x4* Float32x4::ReadFrom(SnapshotReader* reader,
                                   intptr_t object_id,
                                   intptr_t tags,
@@ -2490,7 +2390,6 @@ RawFloat32x4* Float32x4::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &simd, kIsDeserialized);
   return simd.raw();
 }
-
 
 void RawFloat32x4::WriteTo(SnapshotWriter* writer,
                            intptr_t object_id,
@@ -2512,7 +2411,6 @@ void RawFloat32x4::WriteTo(SnapshotWriter* writer,
   writer->Write<float>(ptr()->value_[3]);
 }
 
-
 RawInt32x4* Int32x4::ReadFrom(SnapshotReader* reader,
                               intptr_t object_id,
                               intptr_t tags,
@@ -2531,7 +2429,6 @@ RawInt32x4* Int32x4::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &simd, kIsDeserialized);
   return simd.raw();
 }
-
 
 void RawInt32x4::WriteTo(SnapshotWriter* writer,
                          intptr_t object_id,
@@ -2553,7 +2450,6 @@ void RawInt32x4::WriteTo(SnapshotWriter* writer,
   writer->Write<uint32_t>(ptr()->value_[3]);
 }
 
-
 RawFloat64x2* Float64x2::ReadFrom(SnapshotReader* reader,
                                   intptr_t object_id,
                                   intptr_t tags,
@@ -2570,7 +2466,6 @@ RawFloat64x2* Float64x2::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &simd, kIsDeserialized);
   return simd.raw();
 }
-
 
 void RawFloat64x2::WriteTo(SnapshotWriter* writer,
                            intptr_t object_id,
@@ -2590,12 +2485,10 @@ void RawFloat64x2::WriteTo(SnapshotWriter* writer,
   writer->Write<double>(ptr()->value_[1]);
 }
 
-
 #define TYPED_DATA_READ(setter, type)                                          \
   for (intptr_t i = 0; i < length_in_bytes; i += element_size) {               \
     result.Set##setter(i, reader->Read<type>());                               \
   }
-
 
 RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
                                   intptr_t object_id,
@@ -2663,7 +2556,6 @@ RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
 }
 #undef TYPED_DATA_READ
 
-
 RawExternalTypedData* ExternalTypedData::ReadFrom(SnapshotReader* reader,
                                                   intptr_t object_id,
                                                   intptr_t tags,
@@ -2685,7 +2577,6 @@ RawExternalTypedData* ExternalTypedData::ReadFrom(SnapshotReader* reader,
   return obj.raw();
 }
 
-
 #define TYPED_DATA_WRITE(type)                                                 \
   {                                                                            \
     type* data = reinterpret_cast<type*>(ptr()->data());                       \
@@ -2693,7 +2584,6 @@ RawExternalTypedData* ExternalTypedData::ReadFrom(SnapshotReader* reader,
       writer->Write(data[i]);                                                  \
     }                                                                          \
   }
-
 
 void RawTypedData::WriteTo(SnapshotWriter* writer,
                            intptr_t object_id,
@@ -2751,7 +2641,6 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
   }
 }
 
-
 #define TYPED_EXT_DATA_WRITE(type)                                             \
   {                                                                            \
     type* data = reinterpret_cast<type*>(ptr()->data_);                        \
@@ -2760,13 +2649,11 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
     }                                                                          \
   }
 
-
 #define EXT_TYPED_DATA_WRITE(cid, type)                                        \
   writer->WriteIndexedObject(cid);                                             \
   writer->WriteTags(writer->GetObjectTags(this));                              \
   writer->Write<RawObject*>(ptr()->length_);                                   \
   TYPED_EXT_DATA_WRITE(type)
-
 
 void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
                                    intptr_t object_id,
@@ -2820,7 +2707,6 @@ void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
 #undef TYPED_DATA_WRITE
 #undef EXT_TYPED_DATA_WRITE
 
-
 RawCapability* Capability::ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
@@ -2833,7 +2719,6 @@ RawCapability* Capability::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &result, kIsDeserialized);
   return result.raw();
 }
-
 
 void RawCapability::WriteTo(SnapshotWriter* writer,
                             intptr_t object_id,
@@ -2849,7 +2734,6 @@ void RawCapability::WriteTo(SnapshotWriter* writer,
   writer->Write<uint64_t>(ptr()->id_);
 }
 
-
 RawReceivePort* ReceivePort::ReadFrom(SnapshotReader* reader,
                                       intptr_t object_id,
                                       intptr_t tags,
@@ -2858,7 +2742,6 @@ RawReceivePort* ReceivePort::ReadFrom(SnapshotReader* reader,
   UNREACHABLE();
   return ReceivePort::null();
 }
-
 
 void RawReceivePort::WriteTo(SnapshotWriter* writer,
                              intptr_t object_id,
@@ -2873,7 +2756,6 @@ void RawReceivePort::WriteTo(SnapshotWriter* writer,
     UNREACHABLE();
   }
 }
-
 
 RawSendPort* SendPort::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
@@ -2891,7 +2773,6 @@ RawSendPort* SendPort::ReadFrom(SnapshotReader* reader,
   return result.raw();
 }
 
-
 void RawSendPort::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           Snapshot::Kind kind,
@@ -2907,7 +2788,6 @@ void RawSendPort::WriteTo(SnapshotWriter* writer,
   writer->Write<uint64_t>(ptr()->origin_id_);
 }
 
-
 RawStackTrace* StackTrace::ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
@@ -2916,7 +2796,6 @@ RawStackTrace* StackTrace::ReadFrom(SnapshotReader* reader,
   UNREACHABLE();  // StackTraces are not sent in a snapshot.
   return StackTrace::null();
 }
-
 
 void RawStackTrace::WriteTo(SnapshotWriter* writer,
                             intptr_t object_id,
@@ -2927,7 +2806,6 @@ void RawStackTrace::WriteTo(SnapshotWriter* writer,
                             "Illegal argument in isolate message"
                             " : (object is a stacktrace)");
 }
-
 
 RawRegExp* RegExp::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
@@ -2959,7 +2837,6 @@ RawRegExp* RegExp::ReadFrom(SnapshotReader* reader,
   return regex.raw();
 }
 
-
 void RawRegExp::WriteTo(SnapshotWriter* writer,
                         intptr_t object_id,
                         Snapshot::Kind kind,
@@ -2980,7 +2857,6 @@ void RawRegExp::WriteTo(SnapshotWriter* writer,
   writer->Write<int8_t>(ptr()->type_flags_);
 }
 
-
 RawWeakProperty* WeakProperty::ReadFrom(SnapshotReader* reader,
                                         intptr_t object_id,
                                         intptr_t tags,
@@ -3000,7 +2876,6 @@ RawWeakProperty* WeakProperty::ReadFrom(SnapshotReader* reader,
   return weak_property.raw();
 }
 
-
 void RawWeakProperty::WriteTo(SnapshotWriter* writer,
                               intptr_t object_id,
                               Snapshot::Kind kind,
@@ -3019,7 +2894,6 @@ void RawWeakProperty::WriteTo(SnapshotWriter* writer,
   visitor.VisitPointers(from(), to());
 }
 
-
 RawMirrorReference* MirrorReference::ReadFrom(SnapshotReader* reader,
                                               intptr_t object_id,
                                               intptr_t tags,
@@ -3028,7 +2902,6 @@ RawMirrorReference* MirrorReference::ReadFrom(SnapshotReader* reader,
   UNREACHABLE();
   return MirrorReference::null();
 }
-
 
 void RawMirrorReference::WriteTo(SnapshotWriter* writer,
                                  intptr_t object_id,
@@ -3044,7 +2917,6 @@ void RawMirrorReference::WriteTo(SnapshotWriter* writer,
   }
 }
 
-
 RawUserTag* UserTag::ReadFrom(SnapshotReader* reader,
                               intptr_t object_id,
                               intptr_t tags,
@@ -3053,7 +2925,6 @@ RawUserTag* UserTag::ReadFrom(SnapshotReader* reader,
   UNREACHABLE();
   return UserTag::null();
 }
-
 
 void RawUserTag::WriteTo(SnapshotWriter* writer,
                          intptr_t object_id,

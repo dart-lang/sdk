@@ -14,9 +14,7 @@ import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/world.dart';
 
 void main() {
-  asyncTest(() => TypeEnvironment
-          .create(
-              r"""
+  asyncTest(() => TypeEnvironment.create(r"""
       ///        A
       ///       / \
       ///      B   C
@@ -34,8 +32,7 @@ void main() {
       class G extends C {}
       class H implements C {}
       class I implements H {}
-      """,
-              mainSource: r"""
+      """, mainSource: r"""
       main() {
         new A();
         new C();
@@ -44,9 +41,7 @@ void main() {
         new F();
         new G();
       }
-      """,
-              useMockCompiler: false)
-          .then((env) {
+      """, compileMode: CompileMode.memory).then((env) {
         ClosedWorld world = env.closedWorld;
 
         ClassElement A = env.getElement("A");

@@ -21,7 +21,6 @@ class NativeSymbolResolver : public AllStatic {
   static void FreeSymbolName(char* name);
 };
 
-
 }  // namespace dart
 
 #endif  // RUNTIME_VM_NATIVE_SYMBOL_H_

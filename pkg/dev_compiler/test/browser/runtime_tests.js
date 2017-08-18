@@ -133,7 +133,7 @@ define(['dart_sdk'], function(dart_sdk) {
 
     test('proper type constructor is called', () => {
       // This tests https://github.com/dart-lang/dev_compiler/issues/178
-      let l = dart.list([1, 2, 3], core.int);
+      let l = dart_sdk._interceptors.JSArray$(core.int).of([1, 2, 3]);
       let s = l[dartx.join]();
       assert.equal(s, '123');
     });
@@ -143,16 +143,7 @@ define(['dart_sdk'], function(dart_sdk) {
   suite('instanceOf', () => {
     "use strict";
 
-    setup(() => {
-      dart_sdk.dart.failForWeakModeIsChecks(true);
-    });
-
-    teardown(() => {
-      dart_sdk.dart.failForWeakModeIsChecks(false);
-    });
-
     let expect = assert.equal;
-    let isGroundType = dart.isGroundType;
     let generic = dart.generic;
     let intIsNonNullable = false;
     let cast = dart.as;
@@ -257,26 +248,15 @@ define(['dart_sdk'], function(dart_sdk) {
       dart.fn((b, s, o) => { return null; },
               dart.fnType(B, [B, String], {p: Object}));
 
-    function checkType(x, type, expectedTrue, strongOnly) {
+    function checkType(x, type, expectedTrue) {
       if (expectedTrue === undefined) expectedTrue = true;
-      if (strongOnly === undefined) strongOnly = false;
-      if (!strongOnly) {
-        assert.doesNotThrow(() => instanceOf(x, type));
-        expect(instanceOf(x, type), expectedTrue,
-          '"' + x + '" ' +
-          (expectedTrue ? 'should' : 'should not') +
-          ' be an instance of "' + dart.typeName(type) + '"');
-      } else {
-        assert.throws(() => instanceOf(x, type), dart.StrongModeError);
-        expect(expectedTrue, false);
-        expect(strongInstanceOf(x, type), null);
-      }
+      expect(instanceOf(x, type), expectedTrue,
+        '"' + x + '" ' +
+        (expectedTrue ? 'should' : 'should not') +
+        ' be an instance of "' + dart.typeName(type) + '"');
     }
 
     test('int', () => {
-      expect(isGroundType(int), true);
-      expect(isGroundType(getReifiedType(5)), true);
-
       checkType(5, int);
       checkType(5, dynamic);
       checkType(5, Object);
@@ -294,7 +274,6 @@ define(['dart_sdk'], function(dart_sdk) {
     });
 
     test('dynamic', () => {
-      expect(isGroundType(dynamic), true);
       checkType(new Object.new(), dynamic);
       checkType(null, dynamic);
 
@@ -302,7 +281,6 @@ define(['dart_sdk'], function(dart_sdk) {
     });
 
     test('Object', () => {
-      expect(isGroundType(Object), true);
       checkType(new Object.new(), dynamic);
       checkType(null, Object);
 
@@ -321,8 +299,6 @@ define(['dart_sdk'], function(dart_sdk) {
     });
 
     test('String', () => {
-      expect(isGroundType(String), true);
-      expect(isGroundType(getReifiedType("foo")), true);
       checkType("foo", String);
       checkType("foo", Object);
       checkType("foo", dynamic);
@@ -355,19 +331,6 @@ define(['dart_sdk'], function(dart_sdk) {
       let m5 = collection.LinkedHashMap.new();
       let m6 = Map$(String, dart.dynamic).new();
 
-      expect(isGroundType(Map), true);
-      expect(isGroundType(getReifiedType(m1)), false);
-      expect(isGroundType(Map$(String, String)), false);
-      expect(isGroundType(getReifiedType(m2)), true);
-      expect(isGroundType(Map$(Object, Object)), true);
-      expect(isGroundType(getReifiedType(m3)), true);
-      expect(isGroundType(Map), true);
-      expect(isGroundType(getReifiedType(m4)), true);
-      expect(isGroundType(collection.HashMap$(dynamic, dynamic)), true);
-      expect(isGroundType(getReifiedType(m5)), true);
-      expect(isGroundType(collection.LinkedHashMap), true);
-      expect(isGroundType(collection.LinkedHashMap), true);
-
       // Map<T1,T2> <: Map
       checkType(m1, Map);
       checkType(m1, Object);
@@ -392,10 +355,8 @@ define(['dart_sdk'], function(dart_sdk) {
       checkType(m4, Map);
 
       // Is checks
-      assert.throws(() => dart.is(m3, Map$(String, String)),
-        dart.StrongModeError);
-      assert.throws(() => dart.is(m6, Map$(String, String)),
-        dart.StrongModeError);
+      assert.isFalse(dart.is(m3, Map$(String, String)));
+      assert.isFalse(dart.is(m6, Map$(String, String)));
       assert.isTrue(dart.is(m1, Map$(String, String)));
       assert.isFalse(dart.is(m2, Map$(String, String)));
 
@@ -448,12 +409,6 @@ define(['dart_sdk'], function(dart_sdk) {
       let aabad = new (AA$(dart.dynamic, dart.dynamic).new)();
       let aabadtype = getReifiedType(aabad);
 
-      expect(isGroundType(aatype), false);
-      expect(isGroundType(AA$(String, List)), false);
-      expect(isGroundType(bbtype), false);
-      expect(isGroundType(BB$(String, List)), false);
-      expect(isGroundType(cctype), true);
-      expect(isGroundType(CC), true);
       checkType(cc, aatype, false);
       checkType(cc, AA$(String, List), false);
       checkType(cc, bbtype);
@@ -466,8 +421,8 @@ define(['dart_sdk'], function(dart_sdk) {
       checkType(bb, CC, false);
       checkType(aa, aabadtype);
       checkType(aa, dynamic);
-      checkType(aabad, aatype, false, true);
-      checkType(aabad, AA$(String, List), false, true);
+      checkType(aabad, aatype, false);
+      checkType(aabad, AA$(String, List), false);
       checkType(aabad, aarawtype);
       checkType(aabad, AA);
       checkType(aaraw, aabadtype);
@@ -516,17 +471,14 @@ define(['dart_sdk'], function(dart_sdk) {
     test('Functions', () => {
       // - return type: Dart is bivariant.  We're covariant.
       // - param types: Dart is bivariant.  We're contravariant.
-      expect(isGroundType(Func2), true);
-      expect(isGroundType(Foo), false);
-      expect(isGroundType(fnTypeFuzzy(B, [B, String])), false);
-      checkType(bar1, Foo, false, true);
-      checkType(cls1, Foo, false, true);
-      checkType(bar1, fnTypeFuzzy(B, [B, String]), false, true);
-      checkType(cls1, fnTypeFuzzy(B, [B, String]), false, true);
-      checkType(bar2, Foo, false, true);
-      checkType(cls2, Foo, false, true);
-      checkType(bar2, fnTypeFuzzy(B, [B, String]), false, true);
-      checkType(cls2, fnTypeFuzzy(B, [B, String]), false, true);
+      checkType(bar1, Foo, false);
+      checkType(cls1, Foo, false);
+      checkType(bar1, fnTypeFuzzy(B, [B, String]), false);
+      checkType(cls1, fnTypeFuzzy(B, [B, String]), false);
+      checkType(bar2, Foo, false);
+      checkType(cls2, Foo, false);
+      checkType(bar2, fnTypeFuzzy(B, [B, String]), false);
+      checkType(cls2, fnTypeFuzzy(B, [B, String]), false);
       checkType(bar3, Foo);
       checkType(cls3, Foo);
       checkType(bar3, fnTypeFuzzy(B, [B, String]));
@@ -561,10 +513,8 @@ define(['dart_sdk'], function(dart_sdk) {
       checkType(cls8, getReifiedType(bar7), false);
 
       // Parameterized typedefs
-      expect(isGroundType(FuncG), true);
-      expect(isGroundType(FuncG$(B, String)), false);
-      checkType(bar1, FuncG$(B, String), false, true);
-      checkType(cls1, FuncG$(B, String), false, true);
+      checkType(bar1, FuncG$(B, String), false);
+      checkType(cls1, FuncG$(B, String), false);
       checkType(bar3, FuncG$(B, String));
       checkType(cls3, FuncG$(B, String));
     });
@@ -808,7 +758,7 @@ define(['dart_sdk'], function(dart_sdk) {
       var obj = new O.new();
       var m = dart.bind(obj, 'm');
       checkType(m, dart.fnTypeFuzzy(core.Object, [core.int]));
-      checkType(m, dart.fnTypeFuzzy(core.int, [core.int]), false, true);
+      checkType(m, dart.fnTypeFuzzy(core.int, [core.int]), false);
 
       // Test inherited signatures
       class P extends O {
@@ -819,7 +769,7 @@ define(['dart_sdk'], function(dart_sdk) {
       var obj = new P.new();
       var m = dart.bind(obj, 'm');
       checkType(m, dart.fnTypeFuzzy(core.Object, [core.int]));
-      checkType(m, dart.fnTypeFuzzy(core.int, [core.int]), false, true);
+      checkType(m, dart.fnTypeFuzzy(core.int, [core.int]), false);
     });
 
     test('Object members', () => {

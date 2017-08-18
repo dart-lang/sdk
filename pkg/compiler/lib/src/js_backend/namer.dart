@@ -12,22 +12,15 @@ import '../closure.dart';
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Selectors;
 import '../constants/values.dart';
-import '../common_elements.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/elements.dart'
     show
         ClassElement,
-        ConstructorBodyElement,
         Element,
         Elements,
-        FieldElement,
-        FormalElement,
-        FunctionElement,
-        FunctionSignature,
         MemberElement,
-        TypeDeclarationElement,
-        MixinApplicationElement,
-        TypedefElement;
+        MixinApplicationElement;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/jumps.dart';
@@ -35,6 +28,7 @@ import '../elements/names.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
+import '../js_model/closure.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector, SelectorKind;
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
@@ -584,6 +578,8 @@ class Namer {
     _literalLazyGetterPrefix = new StringBackedName(lazyGetterPrefix);
   }
 
+  ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
+
   CommonElements get _commonElements => _closedWorld.commonElements;
 
   NativeData get _nativeData => _closedWorld.nativeData;
@@ -671,8 +667,7 @@ class Namer {
       case JsGetName.FUNCTION_CLASS_TYPE_NAME:
         return runtimeTypeName(_commonElements.functionClass);
       default:
-        throw new SpannableAssertionFailure(
-            spannable, 'Error: Namer has no name for "$name".');
+        throw failedAt(spannable, 'Error: Namer has no name for "$name".');
     }
   }
 
@@ -769,26 +764,26 @@ class Namer {
     }
   }
 
-  String _proposeNameForConstructorBody(ConstructorBodyElement method) {
+  String _proposeNameForConstructorBody(ConstructorBodyEntity method) {
     String name = Elements.reconstructConstructorNameSourceString(method);
     // We include the method suffix on constructor bodies. It has no purpose,
     // but this way it produces the same names as previous versions of the
     // Namer class did.
-    List<String> suffix = callSuffixForSignature(method.functionSignature);
+    List<String> suffix = callSuffixForSignature(method.parameterStructure);
     return '$name\$${suffix.join(r'$')}';
   }
 
   /// Name for a constructor body.
-  jsAst.Name constructorBodyName(ConstructorBodyElement ctor) {
+  jsAst.Name constructorBodyName(ConstructorBodyEntity ctor) {
     return _disambiguateInternalMember(
         ctor, () => _proposeNameForConstructorBody(ctor));
   }
 
   /// Annotated name for [method] encoding arity and named parameters.
   jsAst.Name instanceMethodName(FunctionEntity method) {
-    // TODO(redemption): Avoid the use of [ConstructorBodyElement]. The
+    // TODO(johnniwinther): Avoid the use of [ConstructorBodyEntity]. The
     // codegen model should be explicit about its constructor body elements.
-    if (method is ConstructorBodyElement) {
+    if (method is ConstructorBodyEntity) {
       return constructorBodyName(method);
     }
     return invocationName(new Selector.fromElement(method));
@@ -824,13 +819,9 @@ class Namer {
   ///
   /// This is used for the annotated names of `call`, and for the proposed name
   /// for other instance methods.
-  List<String> callSuffixForSignature(FunctionSignature sig) {
-    List<String> suffixes = ['${sig.parameterCount}'];
-    if (sig.optionalParametersAreNamed) {
-      for (FormalElement param in sig.orderedOptionalParameters) {
-        suffixes.add(param.name);
-      }
-    }
+  List<String> callSuffixForSignature(ParameterStructure parameterStructure) {
+    List<String> suffixes = ['${parameterStructure.totalParameters}'];
+    suffixes.addAll(parameterStructure.namedParameters);
     return suffixes;
   }
 
@@ -863,7 +854,7 @@ class Namer {
         return disambiguatedName; // Methods other than call are not annotated.
 
       default:
-        throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+        throw failedAt(CURRENT_ELEMENT_SPANNABLE,
             'Unexpected selector kind: ${selector.kind}');
     }
   }
@@ -915,7 +906,7 @@ class Namer {
   ///
   /// Should be used together with [globalObjectForType], which denotes the
   /// object on which the returned property name should be used.
-  jsAst.Name globalPropertyNameForType(TypeDeclarationElement element) =>
+  jsAst.Name globalPropertyNameForType(Entity element) =>
       _disambiguateGlobalType(element);
 
   /**
@@ -964,11 +955,26 @@ class Namer {
   }
 
   bool _isShadowingSuperField(FieldEntity element) {
-    ClassEntity cls = element.enclosingClass;
-    if (cls is ClassElement) {
-      return cls.hasFieldShadowedBy(element);
+    assert(element.isField);
+    String fieldName = element.name;
+    bool isPrivate = Name.isPrivateName(fieldName);
+    LibraryEntity memberLibrary = element.library;
+    ClassEntity lookupClass =
+        _elementEnvironment.getSuperClass(element.enclosingClass);
+    while (lookupClass != null) {
+      MemberEntity foundMember =
+          _elementEnvironment.lookupClassMember(lookupClass, fieldName);
+      if (foundMember != null) {
+        if (foundMember.isField) {
+          if (!isPrivate || memberLibrary == foundMember.library) {
+            // Private fields can only be shadowed by a field declared in the
+            // same library.
+            return true;
+          }
+        }
+      }
+      lookupClass = _elementEnvironment.getSuperClass(lookupClass);
     }
-    // TODO(redemption): Support class entities.
     return false;
   }
 
@@ -1297,8 +1303,10 @@ class Namer {
   /// Returns a proposed name for the given typedef or class [element].
   /// The returned id is guaranteed to be a valid JavaScript identifier.
   String _proposeNameForType(Entity element) {
-    return element.name.replaceAll('+', '_');
+    return element.name.replaceAll(_nonIdentifierRE, '_');
   }
+
+  static RegExp _nonIdentifierRE = new RegExp(r'[^A-Za-z0-9_$]');
 
   /// Returns a proposed name for the given top-level or static member
   /// [element]. The returned id is guaranteed to be a valid JavaScript
@@ -1541,7 +1549,7 @@ class Namer {
   }
 
   String globalObjectForType(Entity element) {
-    if (element is TypedefElement) {
+    if (element is TypedefEntity) {
       return globalObjectForLibrary(element.library);
     }
     return globalObjectForClass(element);
@@ -1944,8 +1952,13 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
     // Generates something like 'Type_String_k8F', using the simple name of the
     // type and a hash to disambiguate the same name in different libraries.
     addRoot('Type');
-    ResolutionDartType type = constant.representedType;
-    String name = type.element?.name;
+    DartType type = constant.representedType;
+    String name;
+    if (type is InterfaceType) {
+      name = type.element.name;
+    } else if (type is TypedefType) {
+      name = type.element.name;
+    }
     if (name == null) {
       // e.g. DartType 'dynamic' has no element.
       name = rtiEncoder.getTypeRepresentationForTypeConstant(type);
@@ -1974,7 +1987,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
         add('name');
         break;
       default:
-        throw new SpannableAssertionFailure(
+        failedAt(
             CURRENT_ELEMENT_SPANNABLE, "Unexpected SyntheticConstantValue");
     }
   }
@@ -2068,7 +2081,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitType(TypeConstantValue constant, [_]) {
-    ResolutionDartType type = constant.representedType;
+    DartType type = constant.representedType;
     // This name includes the library name and type parameters.
     String name = rtiEncoder.getTypeRepresentationForTypeConstant(type);
     return _hashString(4, name);
@@ -2089,7 +2102,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
         // resolve to integer indexes, they're always part of a larger constant.
         return 0;
       default:
-        throw new SpannableAssertionFailure(
+        throw failedAt(
             NO_LOCATION_SPANNABLE,
             'SyntheticConstantValue should never be named and '
             'never be subconstant');

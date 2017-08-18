@@ -28,12 +28,9 @@ struct BootstrapLibProps {
   const char** patch_paths;
 };
 
-
 enum { kPathsUriOffset = 0, kPathsSourceOffset = 1, kPathsEntryLength = 2 };
 
-
 const char** Bootstrap::profiler_patch_paths_ = NULL;
-
 
 #define MAKE_PROPERTIES(CamelName, name)                                       \
   {ObjectStore::k##CamelName, "dart:" #name, Bootstrap::name##_source_paths_,  \
@@ -44,9 +41,7 @@ static const BootstrapLibProps bootstrap_libraries[] = {
 
 #undef MAKE_PROPERTIES
 
-
 static const intptr_t kBootstrapLibraryCount = ARRAY_SIZE(bootstrap_libraries);
-
 
 static RawString* GetLibrarySourceByIndex(intptr_t index,
                                           const String& uri,
@@ -84,7 +79,6 @@ static RawString* GetLibrarySourceByIndex(intptr_t index,
   return String::FromUTF8(utf8_array, file_length);
 }
 
-
 static RawString* GetLibrarySource(const Library& lib,
                                    const String& uri,
                                    bool patch) {
@@ -104,7 +98,6 @@ static RawString* GetLibrarySource(const Library& lib,
   return GetLibrarySourceByIndex(index, uri, patch);
 }
 
-
 static RawError* Compile(const Library& library, const Script& script) {
   bool update_lib_status = (script.kind() == RawScript::kScriptTag ||
                             script.kind() == RawScript::kLibraryTag);
@@ -123,7 +116,6 @@ static RawError* Compile(const Library& library, const Script& script) {
   }
   return error.raw();
 }
-
 
 static Dart_Handle LoadPartSource(Thread* thread,
                                   const Library& lib,
@@ -150,7 +142,6 @@ static Dart_Handle LoadPartSource(Thread* thread,
   const Error& error = Error::Handle(zone, Compile(lib, part_script));
   return Api::NewHandle(thread, error.raw());
 }
-
 
 static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
                                               Dart_Handle library,
@@ -186,7 +177,6 @@ static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
   ASSERT(!lib.IsNull());
   return LoadPartSource(thread, lib, uri_str);
 }
-
 
 static RawError* LoadPatchFiles(Thread* thread,
                                 const Library& lib,
@@ -225,7 +215,6 @@ static RawError* LoadPatchFiles(Thread* thread,
   return Error::null();
 }
 
-
 static void Finish(Thread* thread, bool from_kernel) {
   Bootstrap::SetupNativeResolver();
   if (!ClassFinalizer::ProcessPendingClasses(from_kernel)) {
@@ -243,7 +232,7 @@ static void Finish(Thread* thread, bool from_kernel) {
 #if defined(DEBUG)
   // Verify that closure field offsets are identical in Dart and C++.
   const Array& fields = Array::Handle(zone, cls.fields());
-  ASSERT(fields.Length() == 4);
+  ASSERT(fields.Length() == 5);
   Field& field = Field::Handle(zone);
   field ^= fields.At(0);
   ASSERT(field.Offset() == Closure::instantiator_type_arguments_offset());
@@ -253,13 +242,14 @@ static void Finish(Thread* thread, bool from_kernel) {
   ASSERT(field.Offset() == Closure::function_offset());
   field ^= fields.At(3);
   ASSERT(field.Offset() == Closure::context_offset());
+  field ^= fields.At(4);
+  ASSERT(field.Offset() == Closure::hash_offset());
 #endif  // defined(DEBUG)
 
   // Eagerly compile Bool class, bool constants are used from within compiler.
   cls = object_store->bool_class();
   Compiler::CompileClass(cls);
 }
-
 
 static RawError* BootstrapFromSource(Thread* thread) {
   Isolate* isolate = thread->isolate();
@@ -310,7 +300,6 @@ static RawError* BootstrapFromSource(Thread* thread) {
   return error.raw();
 }
 
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
 static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   Zone* zone = thread->zone();
@@ -321,7 +310,7 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   // adding classes to the list more than once.
   GrowableObjectArray& pending_classes = GrowableObjectArray::Handle(
       zone, isolate->object_store()->pending_classes());
-  dart::Class& pending = dart::Class::Handle(zone);
+  Class& pending = Class::Handle(zone);
   for (intptr_t i = 0; i < pending_classes.Length(); ++i) {
     pending ^= pending_classes.At(i);
     pending.set_is_marked_for_parsing();
@@ -334,12 +323,10 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
     ObjectStore::BootstrapLibraryId id = bootstrap_libraries[i].index;
     library = isolate->object_store()->bootstrap_library(id);
     dart_name = library.url();
-    for (intptr_t j = 0; j < program->libraries().length(); ++j) {
-      kernel::Library* kernel_library = program->libraries()[j];
-      kernel::StringIndex uri_index = kernel_library->import_uri();
-      const String& kernel_name = reader.DartSymbol(uri_index);
+    for (intptr_t j = 0; j < program->library_count(); ++j) {
+      const String& kernel_name = reader.LibraryUri(j);
       if (kernel_name.Equals(dart_name)) {
-        reader.ReadLibrary(kernel_library->kernel_offset());
+        reader.ReadLibrary(reader.library_offset(j));
         library.SetLoaded();
         break;
       }
@@ -366,7 +353,6 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   return Error::null();
 }
 #endif
-
 
 RawError* Bootstrap::DoBootstrapping(kernel::Program* kernel_program) {
   Thread* thread = Thread::Current();

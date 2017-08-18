@@ -4,15 +4,12 @@
 
 library fasta.diet_parser;
 
-import '../fasta_codes.dart' show codeExpectedOpenParens;
+import '../../scanner/token.dart' show Token;
 
-import '../parser/class_member_parser.dart' show ClassMemberParser;
+import '../fasta_codes.dart' show messageExpectedOpenParens;
 
-import '../parser/listener.dart' show Listener;
-
-import '../parser/parser.dart' show MemberKind, optional;
-
-import '../../scanner/token.dart' show BeginToken, Token;
+import '../parser.dart'
+    show ClassMemberParser, Listener, MemberKind, closeBraceTokenFor, optional;
 
 // TODO(ahe): Move this to parser package.
 class DietParser extends ClassMemberParser {
@@ -26,14 +23,13 @@ class DietParser extends ClassMemberParser {
     listener.beginOptionalFormalParameters(token);
     if (!optional('(', token)) {
       if (optional(';', token)) {
-        reportRecoverableErrorCode(token, codeExpectedOpenParens);
+        reportRecoverableError(token, messageExpectedOpenParens);
         return token;
       }
       return reportUnexpectedToken(token).next;
     }
-    BeginToken beginGroupToken = token;
-    Token endToken = beginGroupToken.endGroup;
-    listener.endFormalParameters(0, token, endToken, kind);
-    return endToken.next;
+    Token closeBrace = closeBraceTokenFor(token);
+    listener.endFormalParameters(0, token, closeBrace, kind);
+    return closeBrace.next;
   }
 }

@@ -7,14 +7,5 @@ part of $LIBRARYNAME;
 @DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
-$if JSINTEROP
-  factory AudioElement([String src]) {
-    if (src == null)
-      return _blink.BlinkHTMLAudioElement.instance.constructorCallback_0_();
-    else
-      return _blink.BlinkHTMLAudioElement.instance.constructorCallback_1_(src);
-  }
-$else
   factory AudioElement([String src]) => new AudioElement._(src);
-$endif
 }

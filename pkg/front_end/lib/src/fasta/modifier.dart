@@ -4,7 +4,7 @@
 
 library fasta.modifier;
 
-import 'errors.dart' show internalError;
+import 'problems.dart' show unhandled;
 
 enum ModifierEnum {
   Abstract,
@@ -67,7 +67,7 @@ class Modifier {
     if (identical('final', string)) return Final;
     if (identical('static', string)) return Static;
     if (identical('var', string)) return Var;
-    return internalError("Unhandled modifier: $string");
+    return unhandled(string, "Modifier.fromString", -1, null);
   }
 
   toString() => "modifier(${'$kind'.substring('ModifierEnum.'.length)})";

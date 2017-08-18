@@ -26,9 +26,7 @@ class BufferFormatter : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(BufferFormatter);
 };
 
-
 class ParsedFunction;
-
 
 // Graph printing.
 class FlowGraphPrinter : public ValueObject {

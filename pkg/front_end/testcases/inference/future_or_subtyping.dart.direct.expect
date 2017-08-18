@@ -1,0 +1,13 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method add(core::int x) → void {}
+static method add2(core::int y) → dynamic {}
+static method test() → dynamic {
+  asy::Future<core::int> f;
+  dynamic a = f.then(self::add);
+  dynamic b = f.then(self::add2);
+}
+static method main() → dynamic {}

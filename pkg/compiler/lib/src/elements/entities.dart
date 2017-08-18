@@ -51,6 +51,11 @@ abstract class ClassEntity extends Entity {
   bool get isAbstract;
 }
 
+abstract class TypedefEntity extends Entity {
+  /// The library in which the typedef was declared.
+  LibraryEntity get library;
+}
+
 abstract class TypeVariableEntity extends Entity {
   /// The class or generic method that declared this type variable.
   Entity get typeDeclaration;
@@ -206,6 +211,17 @@ abstract class ConstructorEntity extends FunctionEntity {
   bool get isFromEnvironmentConstructor;
 }
 
+/// The constructor body for a [ConstructorEntity].
+///
+/// This is used only in the backend to split encoding of a Dart constructor
+/// into two JavaScript functions; the constructor and the constructor body.
+// TODO(johnniwinther): Remove this when modelx is removed. Constructor bodies
+// should then be created directly with the J-model.
+abstract class ConstructorBodyEntity extends FunctionEntity {
+  /// The constructor for which this constructor body was created.
+  ConstructorEntity get constructor;
+}
+
 /// An entity that defines a local entity (memory slot) in generated code.
 ///
 /// Parameters, local variables and local functions (can) define local entity
@@ -219,6 +235,8 @@ abstract class ConstructorEntity extends FunctionEntity {
 // TODO(johnniwinther): Should [Local] have `isAssignable` or `type`?
 abstract class Local extends Entity {
   /// The context in which this local is defined.
+  // TODO(johnniwinther): Remove this. It is only used in the AST based closure
+  // converter.
   Entity get executableContext;
 
   /// The outermost member that contains this element.

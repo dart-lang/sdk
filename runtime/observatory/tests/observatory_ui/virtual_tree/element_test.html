@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="dart.unittest" content="full-stack-traces">
+  <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
+  <style>
+     .unittest-table { font-family:monospace; border:1px; }
+     .unittest-pass { background: #6b3;}
+     .unittest-fail { background: #d55;}
+     .unittest-error { background: #a11;}
+
+     .test_container {
+       height: 100px;
+       width: 100%;
+     }
+
+     .test_item {
+       height: 20px;
+     }
+  </style>
+  <script src="/root_dart/runtime/observatory/packages/web_components/webcomponents-lite.min.js"></script>
+</head>
+<body>
+  <div class="test_container">
+  </div>
+  <script type="text/javascript"
+      src="/root_dart/tools/testing/dart/test_controller.js"></script>
+  %TEST_SCRIPTS%
+</body>
+</html>

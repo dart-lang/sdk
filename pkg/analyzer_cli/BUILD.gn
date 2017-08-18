@@ -11,6 +11,7 @@ dart_package("analyzer_cli") {
 
   deps = [
     "//dart/pkg/analyzer",
+    "//dart/pkg/telemetry",
     "//dart/third_party/pkg/linter",
     "//third_party/dart-pkg/pub/args",
     "//third_party/dart-pkg/pub/bazel_worker",

@@ -17,16 +17,13 @@ void FUNCTION_NAME(Platform_NumberOfProcessors)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewInteger(Platform::NumberOfProcessors()));
 }
 
-
 void FUNCTION_NAME(Platform_OperatingSystem)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, DartUtils::NewString(Platform::OperatingSystem()));
 }
 
-
 void FUNCTION_NAME(Platform_PathSeparator)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, DartUtils::NewString(File::PathSeparator()));
 }
-
 
 void FUNCTION_NAME(Platform_LocalHostname)(Dart_NativeArguments args) {
   const intptr_t HOSTNAME_LENGTH = 256;
@@ -38,7 +35,6 @@ void FUNCTION_NAME(Platform_LocalHostname)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Platform_ExecutableName)(Dart_NativeArguments args) {
   if (Platform::GetExecutableName() != NULL) {
     Dart_SetReturnValue(
@@ -48,7 +44,6 @@ void FUNCTION_NAME(Platform_ExecutableName)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Platform_ResolvedExecutableName)(Dart_NativeArguments args) {
   if (Platform::GetResolvedExecutableName() != NULL) {
     Dart_SetReturnValue(
@@ -57,7 +52,6 @@ void FUNCTION_NAME(Platform_ResolvedExecutableName)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, Dart_Null());
   }
 }
-
 
 void FUNCTION_NAME(Platform_ExecutableArguments)(Dart_NativeArguments args) {
   int end = Platform::GetScriptIndex();
@@ -72,7 +66,6 @@ void FUNCTION_NAME(Platform_ExecutableArguments)(Dart_NativeArguments args) {
   }
   Dart_SetReturnValue(args, result);
 }
-
 
 void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
   intptr_t count = 0;
@@ -104,11 +97,9 @@ void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Platform_GetVersion)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewStringFromCString(Dart_VersionString()));
 }
-
 
 void FUNCTION_NAME(Platform_LocaleName)(Dart_NativeArguments args) {
   const char* locale = Platform::LocaleName();

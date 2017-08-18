@@ -5,12 +5,9 @@
 #include "vm/flow_graph_inliner.h"
 
 #include "vm/aot_optimizer.h"
-#include "vm/precompiler.h"
 #include "vm/block_scheduler.h"
 #include "vm/branch_optimizer.h"
 #include "vm/compiler.h"
-#include "vm/kernel.h"
-#include "vm/kernel_to_il.h"
 #include "vm/flags.h"
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_builder.h"
@@ -18,9 +15,12 @@
 #include "vm/flow_graph_type_propagator.h"
 #include "vm/il_printer.h"
 #include "vm/jit_optimizer.h"
+#include "vm/kernel.h"
+#include "vm/kernel_to_il.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/precompiler.h"
 #include "vm/timer.h"
 
 namespace dart {
@@ -96,7 +96,6 @@ DECLARE_FLAG(bool, compiler_stats);
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
-DECLARE_FLAG(bool, support_externalizable_strings);
 DECLARE_FLAG(bool, verify_compiler);
 
 // Quick access to the current zone.
@@ -116,7 +115,6 @@ DECLARE_FLAG(bool, verify_compiler);
     }                                                                          \
   } while (false)
 
-
 // Test if a call is recursive by looking in the deoptimization environment.
 static bool IsCallRecursive(const Function& function, Definition* call) {
   Environment* env = call->env();
@@ -129,13 +127,11 @@ static bool IsCallRecursive(const Function& function, Definition* call) {
   return false;
 }
 
-
 // Helper to get the default value of a formal parameter.
 static ConstantInstr* GetDefaultValue(intptr_t i,
                                       const ParsedFunction& parsed_function) {
   return new ConstantInstr(parsed_function.DefaultParameterValueAt(i));
 }
-
 
 // Pair of an argument name and its value.
 struct NamedArgument {
@@ -143,7 +139,6 @@ struct NamedArgument {
   Value* value;
   NamedArgument(String* name, Value* value) : name(name), value(value) {}
 };
-
 
 // Helper to collect information about a callee graph when considering it for
 // inlining.
@@ -194,7 +189,6 @@ class GraphInfoCollector : public ValueObject {
   intptr_t instruction_count_;
 };
 
-
 // Structure for collecting inline data needed to print inlining tree.
 struct InlinedInfo {
   const Function* caller;
@@ -213,7 +207,6 @@ struct InlinedInfo {
         call_instr(call),
         bailout_reason(reason) {}
 };
-
 
 // A collection of call sites to consider for inlining.
 class CallSites : public ValueObject {
@@ -352,7 +345,6 @@ class CallSites : public ValueObject {
     }
   }
 
-
   void FindCallSites(FlowGraph* graph,
                      intptr_t depth,
                      GrowableArray<InlinedInfo>* inlined_info) {
@@ -429,29 +421,30 @@ class CallSites : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(CallSites);
 };
 
-
 struct InlinedCallData {
   InlinedCallData(Definition* call,
+                  intptr_t first_param_index,  // 1 if type args are passed.
                   GrowableArray<Value*>* arguments,
                   const Function& caller,
                   intptr_t caller_inlining_id)
       : call(call),
+        first_param_index(first_param_index),
         arguments(arguments),
         callee_graph(NULL),
         parameter_stubs(NULL),
         exit_collector(NULL),
         caller(caller),
-        caller_inlining_id_(caller_inlining_id) {}
+        caller_inlining_id(caller_inlining_id) {}
 
   Definition* call;
+  const intptr_t first_param_index;
   GrowableArray<Value*>* arguments;
   FlowGraph* callee_graph;
   ZoneGrowableArray<Definition*>* parameter_stubs;
   InlineExitCollector* exit_collector;
   const Function& caller;
-  const intptr_t caller_inlining_id_;
+  const intptr_t caller_inlining_id;
 };
-
 
 class CallSiteInliner;
 
@@ -494,7 +487,6 @@ class PolymorphicInliner : public ValueObject {
   const intptr_t caller_inlining_id_;
 };
 
-
 static bool HasAnnotation(const Function& function, const char* annotation) {
   const Class& owner = Class::Handle(function.Owner());
   const Library& library = Library::Handle(owner.library());
@@ -513,6 +505,94 @@ static bool HasAnnotation(const Function& function, const char* annotation) {
   return false;
 }
 
+static void ReplaceParameterStubs(Zone* zone,
+                                  FlowGraph* caller_graph,
+                                  InlinedCallData* call_data,
+                                  const TargetInfo* target_info) {
+  CSTAT_TIMER_SCOPE(Thread::Current(), graphinliner_subst_timer);
+  const bool is_polymorphic = call_data->call->IsPolymorphicInstanceCall();
+  ASSERT(is_polymorphic == (target_info != NULL));
+  FlowGraph* callee_graph = call_data->callee_graph;
+  TargetEntryInstr* callee_entry = callee_graph->graph_entry()->normal_entry();
+
+  // Replace each stub with the actual argument or the caller's constant.
+  // Nulls denote optional parameters for which no actual was given.
+  const intptr_t first_param_index = call_data->first_param_index;
+  // When first_param_index > 0, the stub and actual argument processed in the
+  // first loop iteration represent a passed-in type argument vector.
+  GrowableArray<Value*>* arguments = call_data->arguments;
+  intptr_t first_arg_stub_index = 0;
+  if (arguments->length() != call_data->parameter_stubs->length()) {
+    ASSERT(arguments->length() == call_data->parameter_stubs->length() - 1);
+    ASSERT(first_param_index == 0);
+    // The first parameter stub accepts an optional type argument vector, but
+    // none was provided in arguments.
+    first_arg_stub_index = 1;
+  }
+  for (intptr_t i = 0; i < arguments->length(); ++i) {
+    Value* actual = (*arguments)[i];
+    Definition* defn = NULL;
+    if (is_polymorphic && (i == first_param_index)) {
+      // Replace the receiver argument with a redefinition to prevent code from
+      // the inlined body from being hoisted above the inlined entry.
+      RedefinitionInstr* redefinition =
+          new (zone) RedefinitionInstr(actual->Copy(zone));
+      redefinition->set_ssa_temp_index(caller_graph->alloc_ssa_temp_index());
+      if (target_info->IsSingleCid()) {
+        redefinition->UpdateType(CompileType::FromCid(target_info->cid_start));
+      }
+      redefinition->InsertAfter(callee_entry);
+      defn = redefinition;
+    } else if (actual != NULL) {
+      defn = actual->definition();
+    }
+    if (defn != NULL) {
+      call_data->parameter_stubs->At(first_arg_stub_index + i)
+          ->ReplaceUsesWith(defn);
+    }
+  }
+
+  // Replace remaining constants with uses by constants in the caller's
+  // initial definitions.
+  GrowableArray<Definition*>* defns =
+      callee_graph->graph_entry()->initial_definitions();
+  for (intptr_t i = 0; i < defns->length(); ++i) {
+    ConstantInstr* constant = (*defns)[i]->AsConstant();
+    if ((constant != NULL) && constant->HasUses()) {
+      constant->ReplaceUsesWith(caller_graph->GetConstant(constant->value()));
+    }
+    SpecialParameterInstr* param = (*defns)[i]->AsSpecialParameter();
+    if ((param != NULL) && param->HasUses()) {
+      if (param->kind() == SpecialParameterInstr::kContext) {
+        ASSERT(!is_polymorphic);
+        // We do not support polymorphic inlining of closure calls (we did when
+        // there was a class per closure).
+        ASSERT(call_data->call->IsClosureCall());
+        LoadFieldInstr* context_load = new (zone) LoadFieldInstr(
+            new Value((*arguments)[first_param_index]->definition()),
+            Closure::context_offset(),
+            AbstractType::ZoneHandle(zone, AbstractType::null()),
+            call_data->call->token_pos());
+        context_load->set_is_immutable(true);
+        context_load->set_ssa_temp_index(caller_graph->alloc_ssa_temp_index());
+        context_load->InsertBefore(callee_entry->next());
+        param->ReplaceUsesWith(context_load);
+      } else {
+        ASSERT(param->kind() == SpecialParameterInstr::kTypeArgs);
+        Definition* type_args;
+        if (first_param_index > 0) {
+          type_args = (*arguments)[0]->definition();
+        } else {
+          type_args = callee_graph->constant_null();
+        }
+        param->ReplaceUsesWith(type_args);
+      }
+    }
+  }
+
+  // Check that inlining maintains use lists.
+  DEBUG_ASSERT(!FLAG_verify_compiler || caller_graph->VerifyUseLists());
+}
 
 class CallSiteInliner : public ValueObject {
  public:
@@ -573,7 +653,7 @@ class CallSiteInliner : public ValueObject {
   }
 
   void InlineCalls() {
-    // If inlining depth is less then one abort.
+    // If inlining depth is less than one abort.
     if (inlining_depth_threshold_ < 1) return;
     if (caller_graph_->function().deoptimization_counter() >=
         FLAG_deoptimization_counter_inlining_threshold) {
@@ -790,7 +870,6 @@ class CallSiteInliner : public ValueObject {
           }
         }
 
-
         // Build the callee graph.
         InlineExitCollector* exit_collector =
             new (Z) InlineExitCollector(caller_graph_, call);
@@ -829,13 +908,28 @@ class CallSiteInliner : public ValueObject {
         // concrete information about the values, for example constant values,
         // without linking between the caller and callee graphs.
         // TODO(zerny): Put more information in the stubs, eg, type information.
+        const intptr_t first_actual_param_index = call_data->first_param_index;
+        const intptr_t inlined_type_args_param =
+            (FLAG_reify_generic_functions && function.IsGeneric()) ? 1 : 0;
+        const intptr_t num_inlined_params =
+            inlined_type_args_param + function.NumParameters();
         ZoneGrowableArray<Definition*>* param_stubs =
-            new (Z) ZoneGrowableArray<Definition*>(function.NumParameters());
+            new (Z) ZoneGrowableArray<Definition*>(num_inlined_params);
 
+        // Create a ConstantInstr as Definition for the type arguments, if any.
+        if (first_actual_param_index > 0) {
+          // A type argument vector is explicitly passed.
+          param_stubs->Add(
+              CreateParameterStub(-1, (*arguments)[0], callee_graph));
+        } else if (inlined_type_args_param > 0) {
+          // No type argument vector is passed to the generic function,
+          // pass a null vector, which is the same as a vector of dynamic types.
+          param_stubs->Add(callee_graph->GetConstant(Object::ZoneHandle()));
+        }
         // Create a parameter stub for each fixed positional parameter.
         for (intptr_t i = 0; i < function.num_fixed_parameters(); ++i) {
-          param_stubs->Add(
-              CreateParameterStub(i, (*arguments)[i], callee_graph));
+          param_stubs->Add(CreateParameterStub(
+              i, (*arguments)[first_actual_param_index + i], callee_graph));
         }
 
         // If the callee has optional parameters, rebuild the argument and stub
@@ -843,9 +937,9 @@ class CallSiteInliner : public ValueObject {
         // parameters.
         if (function.HasOptionalParameters()) {
           TRACE_INLINING(THR_Print("     adjusting for optional parameters\n"));
-          if (!AdjustForOptionalParameters(*parsed_function, argument_names,
-                                           arguments, param_stubs,
-                                           callee_graph)) {
+          if (!AdjustForOptionalParameters(
+                  *parsed_function, first_actual_param_index, argument_names,
+                  arguments, param_stubs, callee_graph)) {
             function.set_is_inlinable(false);
             TRACE_INLINING(THR_Print("     Bailout: optional arg mismatch\n"));
             PRINT_INLINING_TREE("Optional arg mismatch", &call_data->caller,
@@ -856,17 +950,10 @@ class CallSiteInliner : public ValueObject {
 
         // After treating optional parameters the actual/formal count must
         // match.
-        // TODO(regis): Consider type arguments in arguments.
-        if (arguments->length() != function.NumParameters()) {
-          ASSERT(function.IsGeneric());
-          ASSERT(arguments->length() == function.NumParameters() + 1);
-          TRACE_INLINING(
-              THR_Print("     Bailout: unsupported type arguments\n"));
-          PRINT_INLINING_TREE("Unsupported type arguments", &call_data->caller,
-                              &function, call_data->call);
-          return false;
-        }
-        ASSERT(param_stubs->length() == callee_graph->parameter_count());
+        ASSERT(arguments->length() ==
+               first_actual_param_index + function.NumParameters());
+        ASSERT(param_stubs->length() ==
+               inlined_type_args_param + callee_graph->parameter_count());
 
         // Update try-index of the callee graph.
         BlockEntryInstr* call_block = call_data->call->GetBlock();
@@ -1020,7 +1107,7 @@ class CallSiteInliner : public ValueObject {
             callee_graph,
             inliner_->NextInlineId(callee_graph->function(),
                                    call_data->call->token_pos(),
-                                   call_data->caller_inlining_id_));
+                                   call_data->caller_inlining_id));
         TRACE_INLINING(THR_Print("     Success\n"));
         TRACE_INLINING(THR_Print("       with size %" Pd "\n",
                                  function.optimized_instruction_count()));
@@ -1131,14 +1218,7 @@ class CallSiteInliner : public ValueObject {
     exit_collector->PrepareGraphs(callee_graph);
     exit_collector->ReplaceCall(callee_entry);
 
-    // Replace each stub with the actual argument or the caller's constant.
-    // Nulls denote optional parameters for which no actual was given.
-    GrowableArray<Value*>* arguments = call_data->arguments;
-    for (intptr_t i = 0; i < arguments->length(); ++i) {
-      Definition* stub = (*call_data->parameter_stubs)[i];
-      Value* actual = (*arguments)[i];
-      if (actual != NULL) stub->ReplaceUsesWith(actual->definition());
-    }
+    ReplaceParameterStubs(zone(), caller_graph_, call_data, NULL);
 
     // Remove push arguments of the call.
     Definition* call = call_data->call;
@@ -1147,33 +1227,6 @@ class CallSiteInliner : public ValueObject {
       push->ReplaceUsesWith(push->value()->definition());
       push->RemoveFromGraph();
     }
-
-    // Replace remaining constants with uses by constants in the caller's
-    // initial definitions.
-    GrowableArray<Definition*>* defns =
-        callee_graph->graph_entry()->initial_definitions();
-    for (intptr_t i = 0; i < defns->length(); ++i) {
-      ConstantInstr* constant = (*defns)[i]->AsConstant();
-      if ((constant != NULL) && constant->HasUses()) {
-        constant->ReplaceUsesWith(
-            caller_graph_->GetConstant(constant->value()));
-      }
-      CurrentContextInstr* context = (*defns)[i]->AsCurrentContext();
-      if ((context != NULL) && context->HasUses()) {
-        ASSERT(call->IsClosureCall());
-        LoadFieldInstr* context_load = new (Z) LoadFieldInstr(
-            new Value((*arguments)[0]->definition()), Closure::context_offset(),
-            AbstractType::ZoneHandle(zone(), AbstractType::null()),
-            call_data->call->token_pos());
-        context_load->set_is_immutable(true);
-        context_load->set_ssa_temp_index(caller_graph_->alloc_ssa_temp_index());
-        context_load->InsertBefore(callee_entry->next());
-        context->ReplaceUsesWith(context_load);
-      }
-    }
-
-    // Check that inlining maintains use lists.
-    DEBUG_ASSERT(!FLAG_verify_compiler || caller_graph_->VerifyUseLists());
   }
 
   static intptr_t CountConstants(const GrowableArray<Value*>& arguments) {
@@ -1228,7 +1281,8 @@ class CallSiteInliner : public ValueObject {
         arguments.Add(call->PushArgumentAt(i)->value());
       }
       InlinedCallData call_data(
-          call, &arguments, call_info[call_idx].caller(),
+          call, call->FirstParamIndex(), &arguments,
+          call_info[call_idx].caller(),
           call_info[call_idx].caller_graph->inlining_id());
       if (TryInlining(call->function(), call->argument_names(), &call_data)) {
         InlineCall(&call_data);
@@ -1274,7 +1328,8 @@ class CallSiteInliner : public ValueObject {
         arguments.Add(call->PushArgumentAt(i)->value());
       }
       InlinedCallData call_data(
-          call, &arguments, call_info[call_idx].caller(),
+          call, call->FirstParamIndex(), &arguments,
+          call_info[call_idx].caller(),
           call_info[call_idx].caller_graph->inlining_id());
       if (TryInlining(target, call->argument_names(), &call_data)) {
         InlineCall(&call_data);
@@ -1305,6 +1360,7 @@ class CallSiteInliner : public ValueObject {
   }
 
   bool AdjustForOptionalParameters(const ParsedFunction& parsed_function,
+                                   intptr_t first_param_index,
                                    const Array& argument_names,
                                    GrowableArray<Value*>* arguments,
                                    ZoneGrowableArray<Definition*>* param_stubs,
@@ -1315,23 +1371,23 @@ class CallSiteInliner : public ValueObject {
     ASSERT(!function.HasOptionalPositionalParameters() ||
            !function.HasOptionalNamedParameters());
 
-    // TODO(regis): Consider type arguments in arguments.
     intptr_t arg_count = arguments->length();
     intptr_t param_count = function.NumParameters();
     intptr_t fixed_param_count = function.num_fixed_parameters();
-    ASSERT(fixed_param_count <= arg_count);
-    ASSERT(arg_count <= param_count);
+    ASSERT(fixed_param_count <= arg_count - first_param_index);
+    ASSERT(arg_count - first_param_index <= param_count);
 
     if (function.HasOptionalPositionalParameters()) {
       // Create a stub for each optional positional parameters with an actual.
-      for (intptr_t i = fixed_param_count; i < arg_count; ++i) {
+      for (intptr_t i = first_param_index + fixed_param_count; i < arg_count;
+           ++i) {
         param_stubs->Add(CreateParameterStub(i, (*arguments)[i], callee_graph));
       }
       ASSERT(function.NumOptionalPositionalParameters() ==
              (param_count - fixed_param_count));
       // For each optional positional parameter without an actual, add its
       // default value.
-      for (intptr_t i = arg_count; i < param_count; ++i) {
+      for (intptr_t i = arg_count - first_param_index; i < param_count; ++i) {
         const Instance& object =
             parsed_function.DefaultParameterValueAt(i - fixed_param_count);
         ConstantInstr* constant = new (Z) ConstantInstr(object);
@@ -1343,10 +1399,12 @@ class CallSiteInliner : public ValueObject {
 
     ASSERT(function.HasOptionalNamedParameters());
 
-    // Passed arguments must match fixed parameters plus named arguments.
+    // Passed arguments (not counting optional type args) must match fixed
+    // parameters plus named arguments.
     intptr_t argument_names_count =
         (argument_names.IsNull()) ? 0 : argument_names.Length();
-    ASSERT(arg_count == (fixed_param_count + argument_names_count));
+    ASSERT((arg_count - first_param_index) ==
+           (fixed_param_count + argument_names_count));
 
     // Fast path when no optional named parameters are given.
     if (argument_names_count == 0) {
@@ -1362,12 +1420,12 @@ class CallSiteInliner : public ValueObject {
     for (intptr_t i = 0; i < argument_names.Length(); ++i) {
       String& arg_name = String::Handle(caller_graph_->zone());
       arg_name ^= argument_names.At(i);
-      named_args.Add(
-          NamedArgument(&arg_name, (*arguments)[i + fixed_param_count]));
+      named_args.Add(NamedArgument(
+          &arg_name, (*arguments)[first_param_index + fixed_param_count + i]));
     }
 
-    // Truncate the arguments array to just fixed parameters.
-    arguments->TruncateTo(fixed_param_count);
+    // Truncate the arguments array to just type args and fixed parameters.
+    arguments->TruncateTo(first_param_index + fixed_param_count);
 
     // For each optional named parameter, add the actual argument or its
     // default if no argument is passed.
@@ -1386,7 +1444,8 @@ class CallSiteInliner : public ValueObject {
       arguments->Add(arg);
       // Create a stub for the argument or use the parameter's default value.
       if (arg != NULL) {
-        param_stubs->Add(CreateParameterStub(i, arg, callee_graph));
+        param_stubs->Add(
+            CreateParameterStub(first_param_index + i, arg, callee_graph));
       } else {
         param_stubs->Add(
             GetDefaultValue(i - fixed_param_count, parsed_function));
@@ -1412,7 +1471,6 @@ class CallSiteInliner : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(CallSiteInliner);
 };
 
-
 PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
                                        PolymorphicInstanceCallInstr* call,
                                        const Function& caller_function,
@@ -1428,21 +1486,17 @@ PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
       caller_function_(caller_function),
       caller_inlining_id_(caller_inlining_id) {}
 
-
 Isolate* PolymorphicInliner::isolate() const {
   return owner_->caller_graph()->isolate();
 }
-
 
 Zone* PolymorphicInliner::zone() const {
   return owner_->caller_graph()->zone();
 }
 
-
 intptr_t PolymorphicInliner::AllocateBlockId() const {
   return owner_->caller_graph()->allocate_block_id();
 }
-
 
 // Inlined bodies are shared if two different class ids have the same
 // inlined target.  This sharing is represented by using three different
@@ -1504,7 +1558,6 @@ bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
   return false;
 }
 
-
 bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
   for (intptr_t i = 0; i < non_inlined_variants_->length(); ++i) {
     if (target.raw() == non_inlined_variants_->TargetAt(i)->target->raw()) {
@@ -1514,7 +1567,6 @@ bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
 
   return false;
 }
-
 
 bool PolymorphicInliner::TryInliningPoly(const TargetInfo& target_info) {
   if ((!FLAG_precompiled_mode ||
@@ -1529,8 +1581,8 @@ bool PolymorphicInliner::TryInliningPoly(const TargetInfo& target_info) {
   for (int i = 0; i < call_->ArgumentCount(); ++i) {
     arguments.Add(call_->PushArgumentAt(i)->value());
   }
-  InlinedCallData call_data(call_, &arguments, caller_function_,
-                            caller_inlining_id_);
+  InlinedCallData call_data(call_, call_->instance_call()->FirstParamIndex(),
+                            &arguments, caller_function_, caller_inlining_id_);
   Function& target = Function::ZoneHandle(zone(), target_info.target->raw());
   if (!owner_->TryInlining(target, call_->instance_call()->argument_names(),
                            &call_data)) {
@@ -1542,53 +1594,10 @@ bool PolymorphicInliner::TryInliningPoly(const TargetInfo& target_info) {
   inlined_entries_.Add(callee_graph->graph_entry());
   exit_collector_->Union(call_data.exit_collector);
 
-  // Replace parameter stubs and constants.  Replace the receiver argument
-  // with a redefinition to prevent code from the inlined body from being
-  // hoisted above the inlined entry.
-  ASSERT(arguments.length() > 0);
-  Value* actual = arguments[0];
-  RedefinitionInstr* redefinition = new (Z) RedefinitionInstr(actual->Copy(Z));
-  redefinition->set_ssa_temp_index(
-      owner_->caller_graph()->alloc_ssa_temp_index());
-  if (target_info.IsSingleCid()) {
-    redefinition->UpdateType(CompileType::FromCid(target_info.cid_start));
-  }
-  redefinition->InsertAfter(callee_graph->graph_entry()->normal_entry());
-  Definition* stub = (*call_data.parameter_stubs)[0];
-  stub->ReplaceUsesWith(redefinition);
-
-  for (intptr_t i = 1; i < arguments.length(); ++i) {
-    actual = arguments[i];
-    if (actual != NULL) {
-      stub = (*call_data.parameter_stubs)[i];
-      stub->ReplaceUsesWith(actual->definition());
-    }
-  }
-  GrowableArray<Definition*>* defns =
-      callee_graph->graph_entry()->initial_definitions();
-  for (intptr_t i = 0; i < defns->length(); ++i) {
-    ConstantInstr* constant = (*defns)[i]->AsConstant();
-    if ((constant != NULL) && constant->HasUses()) {
-      constant->ReplaceUsesWith(
-          owner_->caller_graph()->GetConstant(constant->value()));
-    }
-    CurrentContextInstr* context = (*defns)[i]->AsCurrentContext();
-    if ((context != NULL) && context->HasUses()) {
-      ASSERT(call_data.call->IsClosureCall());
-      LoadFieldInstr* context_load = new (Z)
-          LoadFieldInstr(new Value(redefinition), Closure::context_offset(),
-                         AbstractType::ZoneHandle(zone(), AbstractType::null()),
-                         call_data.call->token_pos());
-      context_load->set_is_immutable(true);
-      context_load->set_ssa_temp_index(
-          owner_->caller_graph()->alloc_ssa_temp_index());
-      context_load->InsertAfter(redefinition);
-      context->ReplaceUsesWith(context_load);
-    }
-  }
+  ReplaceParameterStubs(zone(), owner_->caller_graph(), &call_data,
+                        &target_info);
   return true;
 }
-
 
 static Instruction* AppendInstruction(Instruction* first, Instruction* second) {
   for (intptr_t i = second->InputCount() - 1; i >= 0; --i) {
@@ -1598,7 +1607,6 @@ static Instruction* AppendInstruction(Instruction* first, Instruction* second) {
   first->LinkTo(second);
   return second;
 }
-
 
 bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
                                                    const Function& target) {
@@ -1641,7 +1649,6 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
   }
   return false;
 }
-
 
 // Build a DAG to dispatch to the inlined function bodies.  Load the class
 // id of the receiver and make explicit comparisons for each inlined body,
@@ -1888,7 +1895,6 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
   return entry;
 }
 
-
 static void TracePolyInlining(const CallTargets& targets,
                               intptr_t idx,
                               intptr_t total,
@@ -1901,11 +1907,9 @@ static void TracePolyInlining(const CallTargets& targets,
             targets.TargetAt(idx)->count, total, percent, message);
 }
 
-
 bool PolymorphicInliner::trace_inlining() const {
   return owner_->trace_inlining();
 }
-
 
 void PolymorphicInliner::Inline() {
   ASSERT(&variants_ == &call_->targets_);
@@ -1988,17 +1992,14 @@ void PolymorphicInliner::Inline() {
   exit_collector_->ReplaceCall(entry);
 }
 
-
 static uint16_t ClampUint16(intptr_t v) {
   return (v > 0xFFFF) ? 0xFFFF : static_cast<uint16_t>(v);
 }
-
 
 static bool ShouldTraceInlining(FlowGraph* flow_graph) {
   const Function& top = flow_graph->parsed_function().function();
   return FLAG_trace_inlining && FlowGraphPrinter::ShouldPrint(top);
 }
-
 
 FlowGraphInliner::FlowGraphInliner(
     FlowGraph* flow_graph,
@@ -2019,7 +2020,6 @@ FlowGraphInliner::FlowGraphInliner(
   ASSERT(!use_speculative_inlining || (inlining_black_list != NULL));
 }
 
-
 void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph, bool force) {
   const Function& function = flow_graph->function();
   if (force || (function.optimized_instruction_count() == 0)) {
@@ -2031,7 +2031,6 @@ void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph, bool force) {
     function.set_optimized_call_site_count(ClampUint16(info.call_site_count()));
   }
 }
-
 
 // TODO(srdjan): This is only needed when disassembling and/or profiling.
 // Sets inlining id for all instructions of this flow-graph, as well for the
@@ -2052,7 +2051,6 @@ void FlowGraphInliner::SetInliningId(FlowGraph* flow_graph,
   }
 }
 
-
 // Use function name to determine if inlineable operator.
 // Add names as necessary.
 static bool IsInlineableOperator(const Function& function) {
@@ -2061,7 +2059,6 @@ static bool IsInlineableOperator(const Function& function) {
          (function.name() == Symbols::Plus().raw()) ||
          (function.name() == Symbols::Minus().raw());
 }
-
 
 bool FlowGraphInliner::AlwaysInline(const Function& function) {
   const char* kAlwaysInlineAnnotation = "AlwaysInline";
@@ -2092,7 +2089,6 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
   }
   return MethodRecognizer::AlwaysInline(function);
 }
-
 
 void FlowGraphInliner::Inline() {
   // Collect graph info and store it on the function.
@@ -2145,7 +2141,6 @@ void FlowGraphInliner::Inline() {
   }
 }
 
-
 intptr_t FlowGraphInliner::NextInlineId(const Function& function,
                                         TokenPosition tp,
                                         intptr_t parent_id) {
@@ -2162,16 +2157,13 @@ intptr_t FlowGraphInliner::NextInlineId(const Function& function,
   return id;
 }
 
-
 static bool ShouldInlineSimd() {
   return FlowGraphCompiler::SupportsUnboxedSimd128();
 }
 
-
 static bool CanUnboxDouble() {
   return FlowGraphCompiler::SupportsUnboxedDoubles();
 }
-
 
 static bool ShouldInlineInt64ArrayOps() {
 #if defined(TARGET_ARCH_X64)
@@ -2181,13 +2173,11 @@ static bool ShouldInlineInt64ArrayOps() {
 #endif
 }
 
-
 static bool CanUnboxInt32() {
   // Int32/Uint32 can be unboxed if it fits into a smi or the platform
   // supports unboxed mints.
   return (kSmiBits >= 32) || FlowGraphCompiler::SupportsUnboxedMints();
 }
-
 
 // Quick access to the current one.
 #undef Z
@@ -2235,7 +2225,6 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
   return array_cid;
 }
 
-
 static bool InlineGetIndexed(FlowGraph* flow_graph,
                              MethodRecognizer::Kind kind,
                              Instruction* call,
@@ -2279,7 +2268,6 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
   }
   return true;
 }
-
 
 static bool InlineSetIndexed(FlowGraph* flow_graph,
                              MethodRecognizer::Kind kind,
@@ -2421,7 +2409,6 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
   return true;
 }
 
-
 static bool InlineDoubleOp(FlowGraph* flow_graph,
                            Token::Kind op_kind,
                            Instruction* call,
@@ -2448,7 +2435,6 @@ static bool InlineDoubleOp(FlowGraph* flow_graph,
   return true;
 }
 
-
 static bool InlineDoubleTestOp(FlowGraph* flow_graph,
                                Instruction* call,
                                Definition* receiver,
@@ -2473,7 +2459,6 @@ static bool InlineDoubleTestOp(FlowGraph* flow_graph,
   return true;
 }
 
-
 static bool InlineSmiBitAndFromSmi(FlowGraph* flow_graph,
                                    Instruction* call,
                                    Definition* receiver,
@@ -2495,7 +2480,6 @@ static bool InlineSmiBitAndFromSmi(FlowGraph* flow_graph,
 
   return true;
 }
-
 
 static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
                                       intptr_t offset,
@@ -2521,7 +2505,6 @@ static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
 
   return true;
 }
-
 
 static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
                                          Instruction* call,
@@ -2583,7 +2566,6 @@ static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
   }
 }
 
-
 static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
                                     Instruction* call,
                                     Definition* receiver,
@@ -2625,7 +2607,6 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
   }
   return true;
 }
-
 
 static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
                                      const Function& target,
@@ -2739,7 +2720,6 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
   return true;
 }
 
-
 // Returns the LoadIndexedInstr.
 static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
                                               Instruction* call,
@@ -2747,15 +2727,11 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
                                               Definition* str,
                                               Definition* index,
                                               Instruction* cursor) {
-  // Load the length of the string.
-  // Treat length loads as mutable (i.e. affected by side effects) to avoid
-  // hoisting them since we can't hoist the preceding class-check. This
-  // is because of externalization of strings that affects their class-id.
   LoadFieldInstr* length = new (Z)
       LoadFieldInstr(new (Z) Value(str), String::length_offset(),
                      Type::ZoneHandle(Z, Type::SmiType()), str->token_pos());
   length->set_result_cid(kSmiCid);
-  length->set_is_immutable(!FLAG_support_externalizable_strings);
+  length->set_is_immutable(true);
   length->set_recognized_kind(MethodRecognizer::kStringBaseLength);
 
   cursor = flow_graph->AppendTo(cursor, length, NULL, FlowGraph::kValue);
@@ -2792,7 +2768,6 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
   return load_indexed;
 }
 
-
 static bool InlineStringBaseCharAt(FlowGraph* flow_graph,
                                    Instruction* call,
                                    Definition* receiver,
@@ -2821,7 +2796,6 @@ static bool InlineStringBaseCharAt(FlowGraph* flow_graph,
   return true;
 }
 
-
 static bool InlineStringCodeUnitAt(FlowGraph* flow_graph,
                                    Instruction* call,
                                    Definition* receiver,
@@ -2843,7 +2817,6 @@ static bool InlineStringCodeUnitAt(FlowGraph* flow_graph,
 
   return true;
 }
-
 
 // Only used for monomorphic calls.
 bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
@@ -2898,7 +2871,6 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
   return false;
 }
 
-
 bool FlowGraphInliner::TryReplaceStaticCallWithInline(
     FlowGraph* flow_graph,
     ForwardInstructionIterator* iterator,
@@ -2936,7 +2908,6 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
   }
   return false;
 }
-
 
 static bool InlineFloat32x4Method(FlowGraph* flow_graph,
                                   Instruction* call,
@@ -3043,7 +3014,6 @@ static bool InlineFloat32x4Method(FlowGraph* flow_graph,
   return true;
 }
 
-
 static bool CheckMask(Definition* definition, intptr_t* mask_ptr) {
   if (!definition->IsConstant()) return false;
   ConstantInstr* constant_instruction = definition->AsConstant();
@@ -3056,7 +3026,6 @@ static bool CheckMask(Definition* definition, intptr_t* mask_ptr) {
   *mask_ptr = mask;
   return true;
 }
-
 
 static bool InlineSimdShuffleMethod(FlowGraph* flow_graph,
                                     Instruction* call,
@@ -3086,7 +3055,6 @@ static bool InlineSimdShuffleMethod(FlowGraph* flow_graph,
   return true;
 }
 
-
 static bool InlineSimdShuffleMixMethod(FlowGraph* flow_graph,
                                        Instruction* call,
                                        Definition* receiver,
@@ -3115,7 +3083,6 @@ static bool InlineSimdShuffleMixMethod(FlowGraph* flow_graph,
       FlowGraph::kValue);
   return true;
 }
-
 
 static bool InlineInt32x4Method(FlowGraph* flow_graph,
                                 Instruction* call,
@@ -3173,7 +3140,6 @@ static bool InlineInt32x4Method(FlowGraph* flow_graph,
   return true;
 }
 
-
 static bool InlineFloat64x2Method(FlowGraph* flow_graph,
                                   Instruction* call,
                                   Definition* receiver,
@@ -3225,7 +3191,6 @@ static bool InlineFloat64x2Method(FlowGraph* flow_graph,
       FlowGraph::kValue);
   return true;
 }
-
 
 static bool InlineSimdConstructor(FlowGraph* flow_graph,
                                   Instruction* call,
@@ -3308,7 +3273,6 @@ static bool InlineSimdConstructor(FlowGraph* flow_graph,
   return true;
 }
 
-
 static bool InlineMathCFunction(FlowGraph* flow_graph,
                                 Instruction* call,
                                 MethodRecognizer::Kind kind,
@@ -3347,7 +3311,6 @@ static bool InlineMathCFunction(FlowGraph* flow_graph,
       FlowGraph::kValue);
   return true;
 }
-
 
 bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
                                                  intptr_t receiver_cid,
@@ -3770,7 +3733,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
       return false;
   }
 }
-
 
 }  // namespace dart
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

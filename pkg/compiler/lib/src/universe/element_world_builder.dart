@@ -19,8 +19,11 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
       NativeDataBuilder nativeDataBuilder,
       InterceptorDataBuilder interceptorDataBuilder,
       BackendUsageBuilder backendUsageBuilder,
+      RuntimeTypesNeedBuilder rtiNeedBuilder,
+      NativeResolutionEnqueuer nativeResolutionEnqueuer,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(
+            backend.compiler.options,
             _resolution.elementEnvironment,
             _resolution.types,
             _resolution.commonElements,
@@ -29,6 +32,8 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
             nativeDataBuilder,
             interceptorDataBuilder,
             backendUsageBuilder,
+            rtiNeedBuilder,
+            nativeResolutionEnqueuer,
             selectorConstraintsStrategy);
 
   bool isImplemented(ClassElement cls) {
@@ -175,7 +180,9 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
         populateHierarchyNodes();
     _closed = true;
+
     return _closedWorldCache = new ClosedWorldImpl(
+        options: _options,
         elementEnvironment: _elementEnvironment,
         dartTypes: _dartTypes,
         commonElements: _commonElements,
@@ -184,8 +191,11 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
         interceptorData: _interceptorDataBuilder.close(),
         backendUsage: _backendUsageBuilder.close(),
         resolutionWorldBuilder: this,
+        rtiNeedBuilder: _rtiNeedBuilder,
         implementedClasses: _implementedClasses,
-        functionSet: _allFunctions.close(),
+        liveNativeClasses: _nativeResolutionEnqueuer.liveNativeClasses,
+        liveInstanceMembers: _liveInstanceMembers,
+        assignedInstanceMembers: computeAssignedInstanceMembers(),
         allTypedefs: _allTypedefs,
         mixinUses: _mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,

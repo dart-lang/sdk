@@ -65,9 +65,7 @@ abstract class RuntimeTypesNeedBuilder {
 
   /// Computes the [RuntimeTypesNeed] for the data registered with this builder.
   RuntimeTypesNeed computeRuntimeTypesNeed(
-      ResolutionWorldBuilder resolutionWorldBuilder,
-      ClosedWorld closedWorld,
-      DartTypes types,
+      ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
       {bool enableTypeAssertions});
 }
 
@@ -218,7 +216,7 @@ abstract class _RuntimeTypesBase {
   }
 }
 
-class _RuntimeTypesNeed implements RuntimeTypesNeed {
+class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   final ElementEnvironment _elementEnvironment;
   final BackendUsage _backendUsage;
   final Set<ClassEntity> classesNeedingRti;
@@ -229,7 +227,7 @@ class _RuntimeTypesNeed implements RuntimeTypesNeed {
   /// to get the runtime type.
   final Set<ClassEntity> classesUsingTypeVariableExpression;
 
-  _RuntimeTypesNeed(
+  RuntimeTypesNeedImpl(
       this._elementEnvironment,
       this._backendUsage,
       this.classesNeedingRti,
@@ -268,7 +266,7 @@ class _RuntimeTypesNeed implements RuntimeTypesNeed {
   }
 }
 
-class _ResolutionRuntimeTypesNeed extends _RuntimeTypesNeed {
+class _ResolutionRuntimeTypesNeed extends RuntimeTypesNeedImpl {
   _ResolutionRuntimeTypesNeed(
       ElementEnvironment elementEnvironment,
       BackendUsage backendUsage,
@@ -318,12 +316,8 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
 
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
-      ResolutionWorldBuilder resolutionWorldBuilder,
-      ClosedWorld closedWorld,
-      DartTypes types,
+      ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
       {bool enableTypeAssertions}) {
-    CommonElements commonElements = closedWorld.commonElements;
-
     Set<ClassEntity> classesNeedingRti = new Set<ClassEntity>();
     Set<FunctionEntity> methodsNeedingRti = new Set<FunctionEntity>();
     Set<Local> localFunctionsNeedingRti = new Set<Local>();
@@ -374,9 +368,9 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     // the calls of the list constructor whenever we determine that
     // JSArray needs type arguments.
     // TODO(karlklose): make this dependency visible from code.
-    if (commonElements.jsArrayClass != null) {
-      ClassEntity listClass = commonElements.listClass;
-      registerRtiDependency(commonElements.jsArrayClass, listClass);
+    if (closedWorld.commonElements.jsArrayClass != null) {
+      ClassEntity listClass = closedWorld.commonElements.listClass;
+      registerRtiDependency(closedWorld.commonElements.jsArrayClass, listClass);
     }
 
     // Check local functions and closurized members.
@@ -385,7 +379,8 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         ClassEntity contextClass = DartTypes.getClassContext(functionType);
         if (contextClass != null &&
             (potentialSubtypeOf == null ||
-                types.isPotentialSubtype(functionType, potentialSubtypeOf))) {
+                closedWorld.dartTypes
+                    .isPotentialSubtype(functionType, potentialSubtypeOf))) {
           potentiallyAddForRti(contextClass);
           return true;
         }
@@ -452,7 +447,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       Set<FunctionEntity> methodsNeedingRti,
       Set<Local> localFunctionsNeedingRti,
       Set<ClassEntity> classesUsingTypeVariableExpression) {
-    return new _RuntimeTypesNeed(
+    return new RuntimeTypesNeedImpl(
         _elementEnvironment,
         backendUsage,
         classesNeedingRti,
@@ -927,7 +922,7 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
   @override
   String getTypeRepresentationForTypeConstant(DartType type) {
     if (type.isDynamic) return "dynamic";
-    if (type is ResolutionTypedefType) {
+    if (type is TypedefType) {
       return namer.uniqueNameForTypeConstantElement(
           type.element.library, type.element);
     }
@@ -953,7 +948,7 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
 }
 
 class TypeRepresentationGenerator
-    implements ResolutionDartTypeVisitor<dynamic, Emitter> {
+    implements ResolutionDartTypeVisitor<jsAst.Expression, Emitter> {
   final Namer namer;
   OnVariableCallback onVariable;
   ShouldEncodeTypedefCallback shouldEncodeTypedef;
@@ -988,9 +983,11 @@ class TypeRepresentationGenerator
   jsAst.Expression getDynamicValue() => js('null');
 
   @override
-  visit(DartType type, Emitter emitter) => type.accept(this, emitter);
+  jsAst.Expression visit(DartType type, Emitter emitter) =>
+      type.accept(this, emitter);
 
-  visitTypeVariableType(TypeVariableType type, Emitter emitter) {
+  jsAst.Expression visitTypeVariableType(
+      TypeVariableType type, Emitter emitter) {
     if (type.element.typeDeclaration is! ClassEntity) {
       /// A [TypeVariableType] from a generic method is replaced by a
       /// [DynamicType].
@@ -1004,11 +1001,11 @@ class TypeRepresentationGenerator
     return onVariable(type);
   }
 
-  visitDynamicType(DynamicType type, Emitter emitter) {
+  jsAst.Expression visitDynamicType(DynamicType type, Emitter emitter) {
     return getDynamicValue();
   }
 
-  visitInterfaceType(InterfaceType type, Emitter emitter) {
+  jsAst.Expression visitInterfaceType(InterfaceType type, Emitter emitter) {
     jsAst.Expression name = getJavaScriptClassName(type.element, emitter);
     return type.treatAsRaw
         ? name
@@ -1047,7 +1044,7 @@ class TypeRepresentationGenerator
         .expressionTemplateFor('{ ${namer.functionTypeTag}: "dynafunc" }');
   }
 
-  visitFunctionType(FunctionType type, Emitter emitter) {
+  jsAst.Expression visitFunctionType(FunctionType type, Emitter emitter) {
     List<jsAst.Property> properties = <jsAst.Property>[];
 
     void addProperty(String name, jsAst.Expression value) {
@@ -1087,17 +1084,18 @@ class TypeRepresentationGenerator
     return new jsAst.ObjectInitializer(properties);
   }
 
-  visitMalformedType(MalformedType type, Emitter emitter) {
+  jsAst.Expression visitMalformedType(MalformedType type, Emitter emitter) {
     // Treat malformed types as dynamic at runtime.
     return js('null');
   }
 
-  visitVoidType(VoidType type, Emitter emitter) {
+  jsAst.Expression visitVoidType(VoidType type, Emitter emitter) {
     // TODO(ahe): Reify void type ("null" means "dynamic").
     return js('null');
   }
 
-  visitTypedefType(ResolutionTypedefType type, Emitter emitter) {
+  jsAst.Expression visitTypedefType(
+      ResolutionTypedefType type, Emitter emitter) {
     bool shouldEncode = shouldEncodeTypedef(type);
     DartType unaliasedType = type.unaliased;
 

@@ -49,11 +49,7 @@ $!MEMBERS
 
   /// Checks if [registerElement] is supported on the current platform.
   bool get supportsRegisterElement {
-$if DART2JS
     return JS('bool', '("registerElement" in #)', this);
-$else
-    return true;
-$endif
   }
 
   /// *Deprecated*: use [supportsRegisterElement] instead.
@@ -62,18 +58,11 @@ $endif
 
   @DomName('Document.createElement')
   Element createElement(String tagName, [String typeExtension]) {
-$if DART2JS
     return (typeExtension == null)
         ? _createElement_2(tagName)
         : _createElement(tagName, typeExtension);
-$else
-    return (typeExtension == null) ?
-      _blink.BlinkDocument.instance.createElement_Callback_1_(this, tagName) :
-      _blink.BlinkDocument.instance.createElement_Callback_2_(this, tagName, typeExtension);
-$endif
   }
 
-$if DART2JS
   // The two-argument version of this is automatically generated, but we need to
   // omit the typeExtension if it's null on Firefox or we get an is="null" attribute.
   @DomName('Document.createElement')
@@ -86,22 +75,14 @@ $if DART2JS
   _createElementNS_2(String namespaceURI, String qualifiedName) =>
       JS('Element', '#.createElementNS(#, #)', this, namespaceURI, qualifiedName);
 
-$endif
   @DomName('Document.createElementNS')
   @DocsEditable()
   Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) {
-$if DART2JS
     return (typeExtension == null)
         ? _createElementNS_2(namespaceURI, qualifiedName)
         : _createElementNS(namespaceURI, qualifiedName, typeExtension);
-$else
-    return (typeExtension == null) ?
-      _blink.BlinkDocument.instance.createElementNS_Callback_2_(this, namespaceURI, qualifiedName) :
-      _blink.BlinkDocument.instance.createElementNS_Callback_3_(this, namespaceURI, qualifiedName, typeExtension);    
-$endif
   }
 
-$if DART2JS
   @DomName('Document.createNodeIterator')
   NodeIterator _createNodeIterator(Node root,
       [int whatToShow, NodeFilter filter])
@@ -113,18 +94,13 @@ $if DART2JS
       [int whatToShow, NodeFilter filter])
       => JS('TreeWalker', '#.createTreeWalker(#, #, #, false)',
           this, root, whatToShow, filter);
-$endif
 
   @DomName('Document.visibilityState')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @Experimental()
-$if DART2JS
   String get visibilityState => JS('String',
     '(#.visibilityState || #.mozVisibilityState || #.msVisibilityState ||'
       '#.webkitVisibilityState)', this, this, this, this);
-$else
-  String get visibilityState => _visibilityState;
-$endif
 }

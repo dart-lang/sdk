@@ -446,12 +446,10 @@ void main() {
   }
 
   test_conversionAndDynamicInvoke() async {
-    addFile(
-        '''
+    addFile('''
 dynamic toString = (int x) => x + 42;
 dynamic hashCode = "hello";
-''',
-        name: '/helper.dart');
+''', name: '/helper.dart');
     await checkFile('''
 import 'helper.dart' as helper;
 
@@ -642,8 +640,8 @@ class G_error extends E implements D {
     ''');
   }
 
-  test_dynamicInvocation() async {
-    await checkFile('''
+  test_dynamicInvocation() {
+    return checkFile(r'''
 typedef dynamic A(dynamic x);
 class B {
   int call(int x) => x;
@@ -666,13 +664,13 @@ void main() {
     int x;
     double y;
     x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f(3);
-    x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f.col(3.0);
+    x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(3.0);
     y = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f(3);
-    y = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f.col(3.0);
+    y = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(3.0);
     /*info:DYNAMIC_INVOKE*/f(3.0);
     // Through type propagation, we know f is actually a B, hence the
     // hint.
-    /*info:DYNAMIC_INVOKE*/f.col(3);
+    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(3);
   }
   {
     A f = new B();
@@ -689,8 +687,8 @@ void main() {
     /*info:DYNAMIC_INVOKE*/g.foo(42.0);
     /*info:DYNAMIC_INVOKE*/g.x;
     A f = new B();
-    /*info:DYNAMIC_INVOKE*/f.col(42.0);
-    /*info:DYNAMIC_INVOKE*/f.foo(42.0);
+    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(42.0);
+    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/foo(42.0);
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_GETTER*/x;
   }
 }
@@ -1136,8 +1134,8 @@ dynamic aTop(A x) => x;
 A aa(A x) => x;
 dynamic topTop(dynamic x) => x;
 A topA(dynamic x) => /*info:DYNAMIC_CAST*/x;
-void apply/*<T>*/(/*=T*/ f0, /*=T*/ f1, /*=T*/ f2,
-                  /*=T*/ f3, /*=T*/ f4, /*=T*/ f5) {}
+void apply<T>(T f0, T f1, T f2,
+                  T f3, T f4, T f5) {}
 void main() {
   BotTop botTop;
   BotA botA;
@@ -1149,7 +1147,7 @@ void main() {
     f = aTop;
     f = botA;
     f = botTop;
-    apply/*<BotTop>*/(
+    apply<BotTop>(
         topA,
         topTop,
         aa,
@@ -1157,7 +1155,7 @@ void main() {
         botA,
         botTop
                       );
-    apply/*<BotTop>*/(
+    apply<BotTop>(
         (dynamic x) => new A(),
         (dynamic x) => (x as Object),
         (A x) => x,
@@ -1174,7 +1172,7 @@ void main() {
     f = aTop;
     f = /*error:INVALID_ASSIGNMENT*/botA;
     f = /*info:DOWN_CAST_COMPOSITE*/botTop;
-    apply/*<ATop>*/(
+    apply<ATop>(
         topA,
         topTop,
         aa,
@@ -1182,7 +1180,7 @@ void main() {
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
         /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
-    apply/*<ATop>*/(
+    apply<ATop>(
         (dynamic x) => new A(),
         (dynamic x) => (x as Object),
         (A x) => x,
@@ -1199,7 +1197,7 @@ void main() {
     f = /*error:INVALID_ASSIGNMENT*/aTop;
     f = botA;
     f = /*info:DOWN_CAST_COMPOSITE*/botTop;
-    apply/*<BotA>*/(
+    apply<BotA>(
         topA,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/topTop,
         aa,
@@ -1207,7 +1205,7 @@ void main() {
         botA,
         /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
-    apply/*<BotA>*/(
+    apply<BotA>(
         (dynamic x) => new A(),
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(dynamic x) => (x as Object),
         (A x) => x,
@@ -1224,7 +1222,7 @@ void main() {
     f = /*error:INVALID_CAST_FUNCTION*/aTop; // known function
     f = /*info:DOWN_CAST_COMPOSITE*/botA;
     f = /*info:DOWN_CAST_COMPOSITE*/botTop;
-    apply/*<AA>*/(
+    apply<AA>(
         topA,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/topTop,
         aa,
@@ -1232,7 +1230,7 @@ void main() {
         /*info:DOWN_CAST_COMPOSITE*/botA,
         /*info:DOWN_CAST_COMPOSITE*/botTop
                   );
-    apply/*<AA>*/(
+    apply<AA>(
         (dynamic x) => new A(),
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(dynamic x) => (x as Object),
         (A x) => x,
@@ -1249,7 +1247,7 @@ void main() {
     f = /*error:INVALID_CAST_FUNCTION*/aTop; // known function
     f = /*error:INVALID_ASSIGNMENT*/botA;
     f = /*info:DOWN_CAST_COMPOSITE*/botTop;
-    apply/*<TopTop>*/(
+    apply<TopTop>(
         topA,
         topTop,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/aa,
@@ -1257,7 +1255,7 @@ void main() {
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
         /*info:DOWN_CAST_COMPOSITE*/botTop
                       );
-    apply/*<TopTop>*/(
+    apply<TopTop>(
         (dynamic x) => new A(),
         (dynamic x) => (x as Object),
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(A x) => x,
@@ -1274,7 +1272,7 @@ void main() {
     f = /*error:INVALID_CAST_FUNCTION*/aTop; // known function
     f = /*info:DOWN_CAST_COMPOSITE*/botA;
     f = /*info:DOWN_CAST_COMPOSITE*/botTop;
-    apply/*<TopA>*/(
+    apply<TopA>(
         topA,
         /*error:INVALID_CAST_FUNCTION*/topTop, // known function
         /*error:INVALID_CAST_FUNCTION*/aa, // known function
@@ -1282,7 +1280,7 @@ void main() {
         /*info:DOWN_CAST_COMPOSITE*/botA,
         /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
-    apply/*<TopA>*/(
+    apply<TopA>(
         (dynamic x) => new A(),
         /*error:INVALID_CAST_FUNCTION_EXPR*/(dynamic x) => (x as Object), // known function
         /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => x, // known function
@@ -1357,7 +1355,7 @@ void test1() {
 
 void test2() {
   int x;
-  int f/*<T>*/(/*=T*/ t, callback(/*=T*/ x)) { return 3; }
+  int f<T>(T t, callback(T x)) { return 3; }
   f(x, (y) => 3);
 }
 ''');
@@ -1971,8 +1969,8 @@ void main() {
 void main() {
   nonGenericFn(x) => null;
   {
-    /*=R*/ f/*<P, R>*/(/*=P*/ p) => null;
-    /*=T*/ g/*<S, T>*/(/*=S*/ s) => null;
+    R f<P, R>(P p) => null;
+    T g<S, T>(S s) => null;
 
     var local = f;
     local = g; // valid
@@ -1982,8 +1980,8 @@ void main() {
     local = /*error:INVALID_ASSIGNMENT*/nonGenericFn;
   }
   {
-    Iterable/*<R>*/ f/*<P, R>*/(List/*<P>*/ p) => null;
-    List/*<T>*/ g/*<S, T>*/(Iterable/*<S>*/ s) => null;
+    Iterable<R> f<P, R>(List<P> p) => null;
+    List<T> g<S, T>(Iterable<S> s) => null;
 
     var local = f;
     local = g; // valid
@@ -2041,8 +2039,8 @@ class Derived2<S extends B> extends Base<B> {
 
   test_genericFunctionWrongNumberOfArguments() async {
     await checkFile(r'''
-/*=T*/ foo/*<T>*/(/*=T*/ x, /*=T*/ y) => x;
-/*=T*/ bar/*<T>*/({/*=T*/ x, /*=T*/ y}) => x;
+T foo<T>(T x, T y) => x;
+T bar<T>({T x, T y}) => x;
 
 main() {
   String x;
@@ -2068,23 +2066,23 @@ main() {
   test_genericMethodOverride() async {
     await checkFile('''
 class Future<T> {
-  /*=S*/ then/*<S>*/(/*=S*/ onValue(T t)) => null;
+  S then<S>(S onValue(T t)) => null;
 }
 
 class DerivedFuture<T> extends Future<T> {
-  /*=S*/ then/*<S>*/(/*=S*/ onValue(T t)) => null;
+  S then<S>(S onValue(T t)) => null;
 }
 
 class DerivedFuture2<A> extends Future<A> {
-  /*=B*/ then/*<B>*/(/*=B*/ onValue(A a)) => null;
+  B then<B>(B onValue(A a)) => null;
 }
 
 class DerivedFuture3<T> extends Future<T> {
-  /*=S*/ then/*<S>*/(Object onValue(T t)) => null;
+  S then<S>(Object onValue(T t)) => null;
 }
 
 class DerivedFuture4<A> extends Future<A> {
-  /*=B*/ then/*<B>*/(Object onValue(A a)) => null;
+  B then<B>(Object onValue(A a)) => null;
 }
 ''');
   }
@@ -2198,11 +2196,96 @@ main() {
 ''');
   }
 
-  test_implicitCasts() async {
-    addFile('num n; int i = /*info:ASSIGNMENT_CAST*/n;');
+  test_implicitCasts_assignment() async {
+    addFile(
+        'num n; int i; void main() { i = /*info:DOWN_CAST_IMPLICIT*/n;}//yy');
     await check();
-    addFile('num n; int i = /*error:INVALID_ASSIGNMENT*/n;');
-    await check(implicitCasts: false);
+    addFile(
+        'num n; int i; void main() { i = /*error:INVALID_ASSIGNMENT*/n;}//ny');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile(
+        'num n; int i; void main() { i = /*info:DOWN_CAST_IMPLICIT*/n;}//yn');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile(
+        'num n; int i; void main() { i = /*error:INVALID_ASSIGNMENT*/n;}//nn');
+    await check(implicitCasts: false, declarationCasts: false);
+  }
+
+  test_implicitCasts_compoundAssignment() async {
+    addFile('''f(num n, int i) {
+               /*info:DOWN_CAST_IMPLICIT_ASSIGN*/i += n;}//yy''');
+    await check();
+    addFile('''f(num n, int i) {
+               i += /*error:INVALID_ASSIGNMENT*/n;}//ny''');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile('''f(num n, int i) {
+               /*info:DOWN_CAST_IMPLICIT_ASSIGN*/i += n;}//yn''');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile('''f(num n, int i) {
+               i += /*error:INVALID_ASSIGNMENT*/n;}//nn''');
+    await check(implicitCasts: false, declarationCasts: false);
+  }
+
+  test_implicitCasts_constructorInitializer() async {
+    addFile(
+        'class A { int i; A(num n) : i = /*info:DOWN_CAST_IMPLICIT*/n;}//yy');
+    await check();
+    addFile(
+        'class A { int i; A(num n) : i = /*error:FIELD_INITIALIZER_NOT_ASSIGNABLE*/n;}//ny');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile(
+        'class A { int i; A(num n) : i = /*info:DOWN_CAST_IMPLICIT*/n;}//yn');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile(
+        'class A { int i; A(num n) : i = /*error:FIELD_INITIALIZER_NOT_ASSIGNABLE*/n;}//nn');
+    await check(implicitCasts: false, declarationCasts: false);
+  }
+
+  test_implicitCasts_defaultValue() async {
+    addFile('''const num n = 0;
+               f({int i = /*info:DOWN_CAST_IMPLICIT*/n}) => i;//yy''');
+    await check();
+    addFile('''const num n = 0;
+               f({int i = /*error:INVALID_ASSIGNMENT*/n}) => i;//ny''');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile('''const num n = 0;
+               f({int i = /*info:DOWN_CAST_IMPLICIT*/n}) => i;//yn''');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile('''const num n = 0;
+               f({int i = /*error:INVALID_ASSIGNMENT*/n}) => i;//nn''');
+    await check(implicitCasts: false, declarationCasts: false);
+  }
+
+  test_implicitCasts_fieldInitializer() async {
+    addFile('class A { static num n; int i = /*info:ASSIGNMENT_CAST*/n;}//yy');
+    await check();
+    addFile('class A { static num n; int i = /*info:ASSIGNMENT_CAST*/n;}//ny');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile(
+        'class A { static num n; int i = /*error:INVALID_ASSIGNMENT*/n;}//yn');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile(
+        'class A { static num n; int i = /*error:INVALID_ASSIGNMENT*/n;}//nn');
+    await check(implicitCasts: false, declarationCasts: false);
+  }
+
+  test_implicitCasts_functionCall() async {
+    addFile('''num n;
+               f(int i) => i;
+               var i = f(/*info:DOWN_CAST_IMPLICIT*/n);//yy''');
+    await check();
+    addFile('''num n;
+               f(int i) => i;
+               var i = f(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/n);//ny''');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile('''num n;
+               f(int i) => i;
+               var i = f(/*info:DOWN_CAST_IMPLICIT*/n);//yn''');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile('''num n;
+             f(int i) => i;
+             var i = f(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/n);//nn''');
+    await check(implicitCasts: false, declarationCasts: false);
   }
 
   test_implicitCasts_genericMethods() async {
@@ -2210,6 +2293,17 @@ main() {
 var x = <String>[].map<String>((x) => "");
 ''');
     await check(implicitCasts: false);
+  }
+
+  test_implicitCasts_initializer() async {
+    addFile('num n; int i = /*info:ASSIGNMENT_CAST*/n;//yy');
+    await check();
+    addFile('num n; int i = /*info:ASSIGNMENT_CAST*/n;//ny');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile('num n; int i = /*error:INVALID_ASSIGNMENT*/n;//yn');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile('num n; int i = /*error:INVALID_ASSIGNMENT*/n;//nn');
+    await check(implicitCasts: false, declarationCasts: false);
   }
 
   test_implicitCasts_numericOps() async {
@@ -2224,7 +2318,37 @@ void f() {
     await check(implicitCasts: false);
   }
 
+  test_implicitCasts_operator() async {
+    addFile('''num n;
+             int i;
+             var r = i & /*info:DOWN_CAST_IMPLICIT*/n;//yy''');
+    await check();
+    addFile('''num n;
+             int i;
+             var r = i & /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/n;//ny''');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile('''num n;
+             int i;
+             var r = i & /*info:DOWN_CAST_IMPLICIT*/n;//yn''');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile('''num n;
+             int i;
+             var r = i & /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/n;//nn''');
+    await check(implicitCasts: false, declarationCasts: false);
+  }
+
   test_implicitCasts_return() async {
+    addFile('int f(num n) => /*info:DOWN_CAST_IMPLICIT*/n;//yy');
+    await check();
+    addFile('int f(num n) => /*error:RETURN_OF_INVALID_TYPE*/n;//ny');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile('int f(num n) => /*info:DOWN_CAST_IMPLICIT*/n;//yn');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile('int f(num n) => /*error:RETURN_OF_INVALID_TYPE*/n;//nn');
+    await check(implicitCasts: false, declarationCasts: false);
+  }
+
+  test_implicitCasts_return_async() async {
     addFile(r'''
 import 'dart:async';
 
@@ -2253,10 +2377,10 @@ class C {
 
   test_implicitDynamic_function() async {
     addFile(r'''
-/*=T*/ a/*<T>*/(/*=T*/ t) => t;
-/*=T*/ b/*<T>*/() => null;
+T a<T>(T t) => t;
+T b<T>() => null;
 
-void main/*<S>*/() {
+void main<S>() {
   dynamic d;
   int i;
   /*error:IMPLICIT_DYNAMIC_FUNCTION*/a(d);
@@ -2265,8 +2389,8 @@ void main/*<S>*/() {
   d = /*error:IMPLICIT_DYNAMIC_FUNCTION*/b();
   i = b();
 
-  void f/*<T>*/(/*=T*/ t) {};
-  /*=T*/ g/*<T>*/() => null;
+  void f<T>(T t) {};
+  T g<T>() => null;
 
   /*error:IMPLICIT_DYNAMIC_FUNCTION*/f(d);
   f(42);
@@ -2274,9 +2398,9 @@ void main/*<S>*/() {
   d = /*error:IMPLICIT_DYNAMIC_FUNCTION*/g();
   i = g();
 
-  /*error:IMPLICIT_DYNAMIC_INVOKE*/(/*<T>*/(/*=T*/ t) => t)(d);
-  (/*<T>*/(/*=T*/ t) => t)(42);
-  (/*<T>*/() => /*info:UNNECESSARY_CAST*/null as dynamic/*=T*/)/*<int>*/();
+  /*error:IMPLICIT_DYNAMIC_INVOKE*/(<T>(T t) => t)(d);
+  (<T>(T t) => t)(42);
+  (<T>() => /*info:UNNECESSARY_CAST*/null as T)<int>();
 }
     ''');
     await check(implicitDynamic: false);
@@ -2320,12 +2444,12 @@ var m9 = /*info:INFERRED_TYPE_LITERAL*/{'hi': 'there'};
   test_implicitDynamic_method() async {
     addFile(r'''
 class C {
-  /*=T*/ m/*<T>*/(/*=T*/ s) => s;
-  /*=T*/ n/*<T>*/() => null;
+  T m<T>(T s) => s;
+  T n<T>() => null;
 }
 class D<E> {
-  /*=T*/ m/*<T>*/(/*=T*/ s) => s;
-  /*=T*/ n/*<T>*/() => null;
+  T m<T>(T s) => s;
+  T n<T>() => null;
 }
 void f() {
   dynamic d;
@@ -2478,6 +2602,79 @@ dynamic y0;
 dynamic y1 = (<dynamic>[])[0];
     ''');
     await check(implicitDynamic: false);
+  }
+
+  test_interfaceOverridesAreAllChecked() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/29766
+    return checkFile(r'''
+class B {
+  set x(int y) {}
+}
+class C {
+  set x(Object y) {}
+}
+class D implements B, C {
+  /*error:INVALID_METHOD_OVERRIDE*/int x;
+}
+    ''');
+  }
+
+  test_interfacesFromMixinsAreChecked() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/29782
+    return checkFile(r'''
+abstract class I {
+  set x(int v);
+}
+abstract class M implements I {}
+
+class C extends Object with M {
+  /*error:INVALID_METHOD_OVERRIDE*/String x;
+}
+
+abstract class M2 = Object with M;
+
+class C2 extends Object with M2 {
+  /*error:INVALID_METHOD_OVERRIDE*/String x;
+}
+    ''');
+  }
+
+  test_interfacesFromMixinsOnlyConsiderMostDerivedMember() {
+    // Regression test for dart2js interface pattern in strong mode.
+    return checkFile(r'''
+abstract class I1 { num get x; }
+abstract class I2 extends I1 { int get x; }
+
+class M1 { num get x => 0; }
+class M2 { int get x => 0; }
+
+class Base extends Object with M1 implements I1 {}
+class Child extends Base with M2 implements I2 {}
+
+class C extends Object with M1, M2 implements I1, I2 {}
+    ''');
+  }
+
+  test_interfacesFromMixinsUsedTwiceAreChecked() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/29782
+    return checkFile(r'''
+abstract class I<E> {
+  set x(E v);
+}
+abstract class M<E> implements I<E> {}
+
+class C extends Object with M<int> {
+  /*error:INVALID_METHOD_OVERRIDE*/String x;
+}
+
+abstract class D extends Object with M<num> {}
+class E extends D with M<int> {
+  /*error:INVALID_METHOD_OVERRIDE*/int x;
+}
+class F extends D with M<int> {
+  num x;
+}
+    ''');
   }
 
   test_invalidOverrides_baseClassOverrideToChildInterface() async {
@@ -2973,6 +3170,22 @@ class A {
     ''');
   }
 
+  test_mixinApplicationIsConcrete() {
+    return checkFile(r'''
+class A {
+  int get foo => 3;
+}
+
+class B {
+  num get foo => 3.0;
+}
+
+class C = Object with B;
+
+class D extends Object with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/C implements A {}
+    ''');
+  }
+
   test_mixinOverrideOfGrandInterface_interfaceOfAbstractSuperclass() async {
     await checkFile('''
 class A {}
@@ -3106,20 +3319,16 @@ class M {
     m(B a) {}
 }
 
-// Here we want to report both, because the error location is
-// different.
-// TODO(sigmund): should we merge these as well?
+// TODO(jmesserly): the `INCONSISTENT_METHOD_INHERITANCE` message is from the
+// Dart 1 checking logic (using strong mode type system), it is not produced
+// by the strong mode OverrideChecker.
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1
-    /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends Base
+    extends Base
     with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
     implements I1 {}
 
-
-// Here we want to report both, because the error location is
-// different.
-// TODO(sigmund): should we merge these as well?
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/U1 =
-    /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/Base
+    Base
     with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
     implements I1;
 ''');
@@ -3170,11 +3379,8 @@ class M2 {
     m(B a) {}
 }
 
-// Here we want to report both, because the error location is
-// different.
-// TODO(sigmund): should we merge these as well?
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Object
-    with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M1,
+    with M1,
     /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M2
     implements I1 {}
 ''');
@@ -3326,27 +3532,29 @@ class D extends B implements A { }
     ''');
   }
 
-  test_overrideNarrowsType_noDuplicateError() async {
+  test_overrideNarrowsType_noDuplicateError() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25232
-    _addMetaLibrary();
-    await checkFile(r'''
-import 'meta.dart';
+    return checkFile(r'''
 abstract class A { void test(A arg) { } }
 abstract class B extends A {
   /*error:INVALID_METHOD_OVERRIDE*/void test(B arg) { }
 }
 abstract class X implements A { }
-class C extends B with X { }
+
+class C extends B {}
+
+// We treat "with X" as asking for another check.
+// This feels inconsistent.
+class D /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends B with X { }
 
 // We treat "implements A" as asking for another check.
-// This feels inconsistent to me.
-class D /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends B implements A { }
+// This feels inconsistent.
+class E /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends B implements A { }
     ''');
   }
 
   test_privateOverride() async {
-    addFile(
-        '''
+    addFile('''
 import 'main.dart' as main;
 
 class Base {
@@ -3365,8 +3573,7 @@ class GrandChild extends main.Child {
 
   /*error:INVALID_METHOD_OVERRIDE*/String _m1() => null;
 }
-''',
-        name: '/helper.dart');
+''', name: '/helper.dart');
     await checkFile('''
 import 'helper.dart' as helper;
 
@@ -3380,8 +3587,8 @@ class Child extends helper.Base {
 ''');
   }
 
-  test_proxy() async {
-    await checkFile(r'''
+  test_proxy() {
+    return checkFile(r'''
 @proxy class C {}
 @proxy class D {
   var f;
@@ -3405,15 +3612,15 @@ m() {
   d();
 
   C c = new C();
-  /*info:DYNAMIC_INVOKE*/c.m();
-  /*info:DYNAMIC_INVOKE*/c.m;
-  /*info:DYNAMIC_INVOKE*/-c;
-  /*info:DYNAMIC_INVOKE*/c + 7;
-  /*info:DYNAMIC_INVOKE*/c[7];
+  /*info:DYNAMIC_INVOKE*/c./*error:UNDEFINED_METHOD*/m();
+  /*info:DYNAMIC_INVOKE*/c./*error:UNDEFINED_GETTER*/m;
+  /*info:DYNAMIC_INVOKE,error:UNDEFINED_OPERATOR*/-c;
+  /*info:DYNAMIC_INVOKE*/c /*error:UNDEFINED_OPERATOR*/+ 7;
+  /*info:DYNAMIC_INVOKE*/c /*error:UNDEFINED_OPERATOR*/[7];
   /*error:INVOCATION_OF_NON_FUNCTION,info:DYNAMIC_INVOKE*/c();
 
   F f = new F();
-  /*info:DYNAMIC_INVOKE*/f();
+  /*error:INVOCATION_OF_NON_FUNCTION,info:DYNAMIC_INVOKE*/f();
 }
     ''');
   }
@@ -3722,6 +3929,52 @@ class B extends A {
 ''');
   }
 
+  @failingTest
+  test_superMixin_invalidApplication() {
+    // Failing: https://github.com/dart-lang/sdk/issues/30283
+    return checkFile(r'''
+    class A {
+  int get foo => 3;
+}
+
+// This expects a super class which satisfies the contract of A
+class B extends A {}
+
+class C {
+  num get foo => null;
+}
+
+// This mixin application doesn't provide a valid superclass for B
+class D extends C with /*error:INCONSISTENT_METHOD_INHERITANCE*/B {}
+}
+    ''', superMixins: true);
+  }
+
+  test_superMixinsMakeSuperclassMethodsAbstract() {
+    return checkFile(r'''
+  abstract class A {}
+
+abstract class B extends A {}
+
+abstract class ProvidesConcreteAGetter {
+  A get constraints => null;
+}
+
+abstract class ProvidesConcreteBGetter extends ProvidesConcreteAGetter {
+  @override
+  B get constraints => null;
+}
+
+abstract class ProvidesAbstractBGetter implements ProvidesConcreteBGetter {}
+
+abstract class ProvidesAbstractAGetterMixin extends ProvidesConcreteAGetter {}
+
+abstract class HasConcreteBGetterButMixesinAbstractAGetter
+    extends ProvidesConcreteBGetter
+    with ProvidesAbstractAGetterMixin, ProvidesAbstractBGetter {}
+    ''', superMixins: true);
+  }
+
   test_tearOffTreatedConsistentlyAsStrictArrow() async {
     await checkFile(r'''
 void foo(void f(String x)) {}
@@ -3894,25 +4147,25 @@ g() {
     // https://github.com/dart-lang/sdk/issues/26965
     // https://github.com/dart-lang/sdk/issues/27040
     await checkFile(r'''
-void f/*<T>*/(/*=T*/ object) {
+void f<T>(T object) {
   if (object is String) print(object.substring(1));
 }
-void g/*<T extends num>*/(/*=T*/ object) {
+void g<T extends num>(T object) {
   if (object is int) print(object.isEven);
-  if (object is String) print(/*info:DYNAMIC_INVOKE*/object.substring(1));
+  if (object is String) print(/*info:DYNAMIC_INVOKE*/object./*error:UNDEFINED_METHOD*/substring(1));
 }
 class Clonable<T> {}
 class SubClonable<T> extends Clonable<T> {
   T m(T t) => t;
 }
-void takesSubClonable/*<A>*/(SubClonable/*<A>*/ t) {}
+void takesSubClonable<A>(SubClonable<A> t) {}
 
-void h/*<T extends Clonable<T>>*/(/*=T*/ object) {
-  if (/*info:NON_GROUND_TYPE_CHECK_INFO*/object is SubClonable/*<T>*/) {
+void h<T extends Clonable<T>>(T object) {
+  if (/*info:NON_GROUND_TYPE_CHECK_INFO*/object is SubClonable<T>) {
     print(object.m(object));
 
-    SubClonable/*<T>*/ s = object;
-    takesSubClonable/*<T>*/(object);
+    SubClonable<T> s = object;
+    takesSubClonable<T>(object);
     h(object);
   }
 }
@@ -3923,7 +4176,7 @@ void h/*<T extends Clonable<T>>*/(/*=T*/ object) {
     // Regression test for:
     // https://github.com/dart-lang/sdk/issues/27040
     await checkFile(r'''
-void f/*<T extends num>*/(T x, T y) {
+void f<T extends num>(T x, T y) {
   var z = x;
   var f = () => x;
   f = () => y;
@@ -4190,16 +4443,14 @@ void main () {
   }
 
   void _addMetaLibrary() {
-    addFile(
-        r'''
+    addFile(r'''
 library meta;
 class _Checked { const _Checked(); }
 const Object checked = const _Checked();
 
 class _Virtual { const _Virtual(); }
 const Object virtual = const _Virtual();
-    ''',
-        name: '/meta.dart');
+    ''', name: '/meta.dart');
   }
 }
 

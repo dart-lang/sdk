@@ -80,8 +80,7 @@ const List<TestData> DATA = const [
         'const String.fromEnvironment("foo", defaultValue: "bar")',
         ConstantExpressionKind.STRING_FROM_ENVIRONMENT),
   ]),
-  const TestData(
-      '''
+  const TestData('''
 class A {
   const A();
 }
@@ -94,54 +93,49 @@ class C extends B {
   const C({field1: 42, this.field2: false}) : super(field1);
   const C.named([field = false]) : this(field1: field, field2: field);
 }
-''',
-      const [
-        const ConstantData('const Object()', ConstantExpressionKind.CONSTRUCTED,
-            type: 'Object', fields: const {}),
-        const ConstantData('const A()', ConstantExpressionKind.CONSTRUCTED,
-            type: 'A', fields: const {}),
-        const ConstantData('const B(0)', ConstantExpressionKind.CONSTRUCTED,
-            type: 'B', fields: const {'field(B#field1)': '0'}),
-        const ConstantData(
-            'const B(const A())', ConstantExpressionKind.CONSTRUCTED,
-            type: 'B', fields: const {'field(B#field1)': 'const A()'}),
-        const ConstantData('const C()', ConstantExpressionKind.CONSTRUCTED,
-            type: 'C',
-            fields: const {
-              'field(B#field1)': '42',
-              'field(C#field2)': 'false',
-            }),
-        const ConstantData(
-            'const C(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
-            type: 'C',
-            fields: const {
-              'field(B#field1)': '87',
-              'field(C#field2)': 'false',
-            }),
-        const ConstantData(
-            'const C(field2: true)', ConstantExpressionKind.CONSTRUCTED,
-            type: 'C',
-            fields: const {
-              'field(B#field1)': '42',
-              'field(C#field2)': 'true',
-            }),
-        const ConstantData(
-            'const C.named()', ConstantExpressionKind.CONSTRUCTED,
-            type: 'C',
-            fields: const {
-              'field(B#field1)': 'false',
-              'field(C#field2)': 'false',
-            }),
-        const ConstantData(
-            'const C.named(87)', ConstantExpressionKind.CONSTRUCTED,
-            type: 'C',
-            fields: const {
-              'field(B#field1)': '87',
-              'field(C#field2)': '87',
-            }),
-      ]),
-  const TestData(
-      '''
+''', const [
+    const ConstantData('const Object()', ConstantExpressionKind.CONSTRUCTED,
+        type: 'Object', fields: const {}),
+    const ConstantData('const A()', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A', fields: const {}),
+    const ConstantData('const B(0)', ConstantExpressionKind.CONSTRUCTED,
+        type: 'B', fields: const {'field(B#field1)': '0'}),
+    const ConstantData('const B(const A())', ConstantExpressionKind.CONSTRUCTED,
+        type: 'B', fields: const {'field(B#field1)': 'const A()'}),
+    const ConstantData('const C()', ConstantExpressionKind.CONSTRUCTED,
+        type: 'C',
+        fields: const {
+          'field(B#field1)': '42',
+          'field(C#field2)': 'false',
+        }),
+    const ConstantData(
+        'const C(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
+        type: 'C',
+        fields: const {
+          'field(B#field1)': '87',
+          'field(C#field2)': 'false',
+        }),
+    const ConstantData(
+        'const C(field2: true)', ConstantExpressionKind.CONSTRUCTED,
+        type: 'C',
+        fields: const {
+          'field(B#field1)': '42',
+          'field(C#field2)': 'true',
+        }),
+    const ConstantData('const C.named()', ConstantExpressionKind.CONSTRUCTED,
+        type: 'C',
+        fields: const {
+          'field(B#field1)': 'false',
+          'field(C#field2)': 'false',
+        }),
+    const ConstantData('const C.named(87)', ConstantExpressionKind.CONSTRUCTED,
+        type: 'C',
+        fields: const {
+          'field(B#field1)': '87',
+          'field(C#field2)': '87',
+        }),
+  ]),
+  const TestData('''
 class A<T> implements B {
   final field1;
   const A({this.field1:42});
@@ -153,42 +147,41 @@ class B<S> implements C {
 class C<U> {
   const factory C({field1}) = A<B<double>>;
 }
-''',
-      const [
-        const ConstantData('const A()', ConstantExpressionKind.CONSTRUCTED,
-            type: 'A<dynamic>', fields: const {'field(A#field1)': '42'}),
-        const ConstantData(
-            'const A<int>(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
-            type: 'A<int>', fields: const {'field(A#field1)': '87'}),
-        const ConstantData('const B()', ConstantExpressionKind.CONSTRUCTED,
-            type: 'A<B<dynamic>>',
-            fields: const {
-              'field(A#field1)': '42',
-            }),
-        const ConstantData('const B<int>()', ConstantExpressionKind.CONSTRUCTED,
-            type: 'A<B<int>>',
-            fields: const {
-              'field(A#field1)': '42',
-            }),
-        const ConstantData(
-            'const B<int>(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
-            type: 'A<B<int>>',
-            fields: const {
-              'field(A#field1)': '87',
-            }),
-        const ConstantData(
-            'const C<int>(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
-            type: 'A<B<double>>',
-            fields: const {
-              'field(A#field1)': '87',
-            }),
-        const ConstantData(
-            'const B<int>.named()', ConstantExpressionKind.CONSTRUCTED,
-            type: 'A<int>',
-            fields: const {
-              'field(A#field1)': '42',
-            }),
-      ]),
+''', const [
+    const ConstantData('const A()', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A<dynamic>', fields: const {'field(A#field1)': '42'}),
+    const ConstantData(
+        'const A<int>(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A<int>', fields: const {'field(A#field1)': '87'}),
+    const ConstantData('const B()', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A<B<dynamic>>',
+        fields: const {
+          'field(A#field1)': '42',
+        }),
+    const ConstantData('const B<int>()', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A<B<int>>',
+        fields: const {
+          'field(A#field1)': '42',
+        }),
+    const ConstantData(
+        'const B<int>(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A<B<int>>',
+        fields: const {
+          'field(A#field1)': '87',
+        }),
+    const ConstantData(
+        'const C<int>(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A<B<double>>',
+        fields: const {
+          'field(A#field1)': '87',
+        }),
+    const ConstantData(
+        'const B<int>.named()', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A<int>',
+        fields: const {
+          'field(A#field1)': '42',
+        }),
+  ]),
 ];
 
 main() {

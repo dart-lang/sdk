@@ -13,7 +13,7 @@ import 'warnings_checker.dart';
 /// can contain a list of line numbers for keys 'missing' and 'unexpected' for
 /// the warnings of each category.
 const Map<String, dynamic> TESTS = const {
-  'language/typevariable_substitution2_test.dart': null,
+  'language_2/typevariable_substitution2_test.dart': null,
 };
 
 void main(List<String> arguments) {

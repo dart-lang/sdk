@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../constants/values.dart';
-import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../js_backend/js_backend.dart';
 import '../js_backend/interceptor_data.dart';
 import '../options.dart';
@@ -425,7 +425,7 @@ class SsaInstructionMerger extends HBaseVisitor {
   }
 
   void visitInvokeSuper(HInvokeSuper instruction) {
-    MemberElement superMethod = instruction.element;
+    MemberEntity superMethod = instruction.element;
     Selector selector = instruction.selector;
     // If aliased super members cannot be used, we will generate code like
     //

@@ -16,48 +16,40 @@ void FUNCTION_NAME(Directory_Current)(Dart_NativeArguments args) {
       "Directory is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(Directory_SetCurrent)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "Directory is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "Directory is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "Directory is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(Directory_SystemTemp)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "Directory is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "Directory is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(Directory_Delete)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "Directory is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(Directory_Rename)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "Directory is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(Directory_FillWithDirectoryListing)(
     Dart_NativeArguments args) {
@@ -65,13 +57,11 @@ void FUNCTION_NAME(Directory_FillWithDirectoryListing)(
       "Directory is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(Directory_GetAsyncDirectoryListerPointer)(
     Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "Directory is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(Directory_SetAsyncDirectoryListerPointer)(
     Dart_NativeArguments args) {

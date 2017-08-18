@@ -1,0 +1,21 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::num> extends core::Object {
+  field self::C::T a = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method op(self::C::T b) → void {
+    self::C::T r1 = this.a.+(b);
+    self::C::T r2 = this.a.-(b);
+    self::C::T r3 = this.a.*(b);
+  }
+  method opEq(self::C::T b) → void {
+    this.a = this.a.+(b);
+    this.a = this.a.-(b);
+    this.a = this.a.*(b);
+  }
+}
+static method main() → dynamic {}

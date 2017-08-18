@@ -22,6 +22,11 @@ char* Platform::resolved_executable_name_ = NULL;
 int Platform::script_index_ = 1;
 char** Platform::argv_ = NULL;
 
+static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
+  Dart_DumpNativeStackTrace(context);
+  abort();
+}
+
 bool Platform::Initialize() {
   // Turn off the signal handler for SIGPIPE as it causes the process
   // to terminate on writing to a closed pipe. Without the signal
@@ -33,29 +38,48 @@ bool Platform::Initialize() {
     perror("Setting signal handler failed");
     return false;
   }
+
+  act.sa_flags = SA_SIGINFO;
+  act.sa_sigaction = &segv_handler;
+  if (sigemptyset(&act.sa_mask) != 0) {
+    perror("sigemptyset() failed.");
+    return false;
+  }
+  if (sigaddset(&act.sa_mask, SIGPROF) != 0) {
+    perror("sigaddset() failed");
+    return false;
+  }
+  if (sigaction(SIGSEGV, &act, NULL) != 0) {
+    perror("sigaction() failed.");
+    return false;
+  }
+  if (sigaction(SIGBUS, &act, NULL) != 0) {
+    perror("sigaction() failed.");
+    return false;
+  }
+  if (sigaction(SIGTRAP, &act, NULL) != 0) {
+    perror("sigaction() failed.");
+    return false;
+  }
+
   return true;
 }
-
 
 int Platform::NumberOfProcessors() {
   return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
-
 const char* Platform::OperatingSystem() {
   return "android";
 }
-
 
 const char* Platform::LibraryPrefix() {
   return "lib";
 }
 
-
 const char* Platform::LibraryExtension() {
   return "so";
 }
-
 
 const char* Platform::LocaleName() {
   char* lang = getenv("LANG");
@@ -65,11 +89,9 @@ const char* Platform::LocaleName() {
   return lang;
 }
 
-
 bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
   return gethostname(buffer, buffer_length) == 0;
 }
-
 
 char** Platform::Environment(intptr_t* count) {
   // Using environ directly is only safe as long as we do not
@@ -88,16 +110,13 @@ char** Platform::Environment(intptr_t* count) {
   return result;
 }
 
-
 const char* Platform::GetExecutableName() {
   return executable_name_;
 }
 
-
 const char* Platform::ResolveExecutablePath() {
   return NULL;
 }
-
 
 void Platform::Exit(int exit_code) {
   exit(exit_code);

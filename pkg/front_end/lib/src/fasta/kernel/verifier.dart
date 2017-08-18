@@ -4,9 +4,6 @@
 
 library fasta.verifier;
 
-import 'package:front_end/src/fasta/type_inference/type_schema.dart'
-    show TypeSchemaVisitor, UnknownType;
-
 import 'package:kernel/ast.dart'
     show
         InvalidExpression,
@@ -20,14 +17,20 @@ import 'package:kernel/ast.dart'
         Program,
         TreeNode;
 
-import 'package:kernel/verifier.dart' show VerificationError, VerifyingVisitor;
+import 'package:kernel/verifier.dart' show VerifyingVisitor;
 
-import '../errors.dart' show printUnexpected;
+import '../compiler_context.dart' show CompilerContext;
+
+import '../fasta_codes.dart'
+    show LocatedMessage, templateInternalVerificationError;
+
+import '../severity.dart' show Severity;
+
+import '../type_inference/type_schema.dart' show TypeSchemaVisitor, UnknownType;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
-List<VerificationError> verifyProgram(Program program,
-    {bool isOutline: false}) {
+List<LocatedMessage> verifyProgram(Program program, {bool isOutline: false}) {
   FastaVerifyingVisitor verifier = new FastaVerifyingVisitor(isOutline);
   program.accept(verifier);
   return verifier.errors;
@@ -35,7 +38,7 @@ List<VerificationError> verifyProgram(Program program,
 
 class FastaVerifyingVisitor extends VerifyingVisitor
     implements TypeSchemaVisitor {
-  final List<VerificationError> errors = <VerificationError>[];
+  final List<LocatedMessage> errors = <LocatedMessage>[];
 
   String fileUri;
 
@@ -45,10 +48,13 @@ class FastaVerifyingVisitor extends VerifyingVisitor
 
   @override
   problem(TreeNode node, String details, {TreeNode context}) {
-    context ??= this.context;
-    VerificationError error = new VerificationError(context, node, details);
-    printUnexpected(Uri.parse(fileUri), node?.fileOffset ?? -1, "$error");
-    errors.add(error);
+    node ??= (context ?? this.context);
+    int offset = node?.fileOffset ?? -1;
+    LocatedMessage message = templateInternalVerificationError
+        .withArguments(details)
+        .withLocation(Uri.parse(fileUri), offset);
+    CompilerContext.current.report(message, Severity.error);
+    errors.add(message);
   }
 
   @override

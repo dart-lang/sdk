@@ -69,6 +69,13 @@ abstract class Target {
 
   bool get strongMode;
 
+  /// A derived class may change this to `true` to disable type inference and
+  /// type promotion phases of analysis.
+  ///
+  /// This is intended for profiling, to ensure that type inference and type
+  /// promotion do not slow down compilation too much.
+  bool get disableTypeInference => false;
+
   /// If true, the SDK should be loaded in strong mode.
   bool get strongModeSdk => strongMode;
 
@@ -113,6 +120,38 @@ abstract class Target {
   /// transformations is assumed to be retrieved from a [Program] instance.
   void performGlobalTransformations(CoreTypes coreTypes, Program program,
       {void logger(String msg)});
+
+  /// Whether a platform library may define a restricted type, such as `bool`,
+  /// `int`, `double`, `num`, and `String`.
+  ///
+  /// By default only `dart:core` may define restricted types, but some target
+  /// implementations override this.
+  bool mayDefineRestrictedType(Uri uri) =>
+      uri.scheme == 'dart' && uri.path == 'core';
+
+  /// Whether a library is allowed to import a platform private library.
+  ///
+  /// By default only `dart:*` libraries are allowed. May be overriden for
+  /// testing purposes.
+  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
+      imported.scheme != "dart" ||
+      !imported.path.startsWith("_") ||
+      importer.scheme == "dart";
+
+  /// Whether the `native` language extension is supported within [library].
+  ///
+  /// The `native` language extension is not part of the language specification,
+  /// it means something else to each target, and it is enabled under different
+  /// circumstances for each target implementation. For example, the VM target
+  /// enables it everywhere because of existing support for "dart-ext:" native
+  /// extensions, but targets like dart2js only enable it on the core libraries.
+  bool enableNative(Uri uri) => false;
+
+  /// There are two variants of the `native` language extension. The VM expects
+  /// the native token to be followed by string, whereas dart2js and DDC do not.
+  // TODO(sigmund, ahe): ideally we should remove the `native` syntax, if not,
+  // we should at least unify the VM and non-VM variants.
+  bool get nativeExtensionExpectsString => false;
 
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].

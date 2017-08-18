@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:front_end/src/fasta/errors.dart';
+import 'package:front_end/src/fasta/problems.dart' show internalProblem;
+import 'package:front_end/src/fasta/fasta_codes.dart'
+    show templateInternalProblemStackNotEmpty;
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:kernel/ast.dart';
 
@@ -70,6 +72,44 @@ abstract class TypePromoter {
   /// Updates the state to reflect the fact that the given [variable] was
   /// mutated.
   void mutateVariable(VariableDeclaration variable, int functionNestingLevel);
+}
+
+/// Implementation of [TypePromoter] which doesn't do any type promotion.
+///
+/// This is intended for profiling, to ensure that type inference and type
+/// promotion do not slow down compilation too much.
+class TypePromoterDisabled extends TypePromoter {
+  @override
+  TypePromotionScope get currentScope => null;
+
+  @override
+  DartType computePromotedType(TypePromotionFact fact, TypePromotionScope scope,
+          bool mutatedInClosure) =>
+      null;
+
+  @override
+  void enterElse() {}
+
+  @override
+  void enterThen(Expression condition) {}
+
+  @override
+  void exitConditional() {}
+
+  @override
+  void finished() {}
+
+  @override
+  TypePromotionFact getFactForAccess(
+          VariableDeclaration variable, int functionNestingLevel) =>
+      null;
+
+  @override
+  void handleIsCheck(Expression isExpression, bool isInverted,
+      VariableDeclaration variable, DartType type, int functionNestingLevel) {}
+
+  @override
+  void mutateVariable(VariableDeclaration variable, int functionNestingLevel) {}
 }
 
 /// Derived class containing generic implementations of [TypePromoter].
@@ -179,7 +219,11 @@ abstract class TypePromoterImpl extends TypePromoter {
   void finished() {
     debugEvent('finished');
     if (_currentScope is! _TopLevelScope) {
-      internalError('Stack not empty');
+      internalProblem(
+          templateInternalProblemStackNotEmpty.withArguments(
+              "$runtimeType", "$_currentScope"),
+          -1,
+          null);
     }
   }
 

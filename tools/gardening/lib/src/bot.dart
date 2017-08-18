@@ -10,16 +10,18 @@ import 'client.dart';
 import 'util.dart';
 
 class Bot {
-  final bool usesLogdog;
   final BuildbotClient _client;
 
   /// Instantiates a Bot.
   ///
   /// Bots must be [close]d when they aren't needed anymore.
   Bot({bool logdog = false})
-      : usesLogdog = logdog,
-        _client =
-            logdog ? new LogdogBuildbotClient() : new HttpBuildbotClient();
+      : this.internal(
+            logdog ? new LogdogBuildbotClient() : new HttpBuildbotClient());
+
+  Bot.internal(this._client);
+
+  int get mostRecentBuildNumber => _client.mostRecentBuildNumber;
 
   /// Reads the build result of [buildUri] and the [previousCount] earlier
   /// builds.
@@ -38,17 +40,29 @@ class Bot {
     return _client.readResult(buildUri);
   }
 
+  /// Maximum number of [BuildResult]s read concurrently by [readResults].
+  static const maxParallel = 20;
+
+  /// Reads the build results of all given uris.
+  ///
+  /// Returns a list of the results. If a uri couldn't be read, then the entry
+  /// in the list is `null`.
   Future<List<BuildResult>> readResults(List<BuildUri> buildUris) async {
     var result = <BuildResult>[];
     int i = 0;
-    const maxParallel = 20;
     while (i < buildUris.length) {
       var end = i + maxParallel;
       if (end > buildUris.length) end = buildUris.length;
       var parallelChunk = buildUris.sublist(i, end);
       log("Fetching ${end - i} uris in parallel");
-      result.addAll(await Future.wait(parallelChunk.map(_client.readResult)));
-      i = end + 1;
+      result.addAll(await Future.wait(parallelChunk.map((uri) {
+        var result = _client.readResult(uri);
+        if (result == null) {
+          log("Error while reading $uri");
+        }
+        return result;
+      })));
+      i = end;
     }
     return result;
   }
@@ -57,7 +71,7 @@ class Bot {
   List<BuildUri> get mostRecentUris {
     List<BuildUri> result = [];
     for (BuildGroup group in buildGroups) {
-      result.addAll(group.createUris(_client.mostRecentBuildNumber));
+      result.addAll(group.createUris(mostRecentBuildNumber));
     }
     return result;
   }

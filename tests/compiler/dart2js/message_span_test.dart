@@ -12,8 +12,7 @@ import 'memory_compiler.dart';
 import 'memory_source_file_helper.dart';
 
 const List<Test> TESTS = const <Test>[
-  const Test(
-      '''
+  const Test('''
 class A { A(b); }
 class B extends A {
   a() {}
@@ -24,14 +23,12 @@ class B extends A {
 
   var members;
 }
-main() => new B();''',
-      const {
-        MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT: '''
+main() => new B();''', const {
+    MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT: '''
 class B extends A {
 ^^^^^^^^^^^^^^^^^'''
-      }),
-  const Test(
-      '''
+  }),
+  const Test('''
 class I {}
 class A { A(b); }
 class B extends A implements I {
@@ -43,14 +40,12 @@ class B extends A implements I {
 
   var members;
 }
-main() => new B();''',
-      const {
-        MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT: '''
+main() => new B();''', const {
+    MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT: '''
 class B extends A implements I {
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'''
-      }),
-  const Test(
-      '''
+  }),
+  const Test('''
 class M<T> {}
 class A { A(b); }
 class B extends A with M<int> {
@@ -62,14 +57,12 @@ class B extends A with M<int> {
 
   var members;
 }
-main() => new B();''',
-      const {
-        MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT: '''
+main() => new B();''', const {
+    MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT: '''
 class B extends A with M<int> {
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'''
-      }),
-  const Test(
-      '''
+  }),
+  const Test('''
 class A { A(b); }
 class B
     extends A {
@@ -81,43 +74,37 @@ class B
 
   var members;
 }
-main() => new B();''',
-      const {
-        MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT: '''
+main() => new B();''', const {
+    MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT: '''
 class B
     extends A {
 '''
-      }),
-  const Test(
-      '''
+  }),
+  const Test('''
 void foo(int a) {
   // a
   // non-empty
   // body
 }
-main() => foo('');''',
-      const {
-        MessageKind.THIS_IS_THE_METHOD: '''
+main() => foo('');''', const {
+    MessageKind.THIS_IS_THE_METHOD: '''
 void foo(int a) {
 ^^^^^^^^^^^^^^^'''
-      }),
-  const Test(
-      '''
+  }),
+  const Test('''
 void foo(int a,
          int b) {
   // a
   // non-empty
   // body
 }
-main() => foo('', 0);''',
-      const {
-        MessageKind.THIS_IS_THE_METHOD: '''
+main() => foo('', 0);''', const {
+    MessageKind.THIS_IS_THE_METHOD: '''
 void foo(int a,
          int b) {
 '''
-      }),
-  const Test(
-      '''
+  }),
+  const Test('''
 class A {
   int foo() {
     // a
@@ -133,15 +120,14 @@ class B extends A {
     return 0;
   }
 }
-main() => new B();''',
-      const {
-        MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER: '''
+main() => new B();''', const {
+    MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER: '''
   int get foo {
   ^^^^^^^^^^^''',
-        MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER_CONT: '''
+    MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER_CONT: '''
   int foo() {
   ^^^^^^^^^'''
-      }),
+  }),
 ];
 
 class Test {

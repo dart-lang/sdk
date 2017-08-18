@@ -35,7 +35,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       'relatedTarget': relatedTarget,
     };
 
-$if DART2JS
     if (view == null) {
       view = window;
     }
@@ -43,14 +42,10 @@ $if DART2JS
     return JS('WheelEvent', 'new WheelEvent(#, #)',
         type, convertDartToNative_Dictionary(options));
 
-$else
-    return _blink.BlinkWheelEvent.instance.constructorCallback_2_(type, convertDartToNative_Dictionary(options));
-$endif
   }
 
 $!MEMBERS
 
-$if DART2JS
   /**
    * The amount that is expected to scroll vertically, in units determined by
    * [deltaMode].
@@ -143,27 +138,4 @@ $if DART2JS
       int deltaZ,
       int deltaMode) native;
 
-$else
-  /**
-   * The amount that is expected to scroll horizontally, in units determined by
-   * [deltaMode].
-   *
-   * See also:
-   *
-   * * [WheelEvent.deltaX](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaX) from the W3C.
-   */
-  @DomName('WheelEvent.deltaX')
-  num get deltaX => _deltaX;
-
-  /**
-   * The amount that is expected to scroll vertically, in units determined by
-   * [deltaMode].
-   *
-   * See also:
-   *
-   * * [WheelEvent.deltaY](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaY) from the W3C.
-   */
-  @DomName('WheelEvent.deltaY')
-  num get deltaY => _deltaY;
-$endif
 }

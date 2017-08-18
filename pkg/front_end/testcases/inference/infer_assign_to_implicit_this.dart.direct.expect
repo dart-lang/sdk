@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  constructor •() → void
+  default constructor •() → void
     : super self::A::•()
     ;
   operator +(self::C v) → self::A
@@ -21,13 +21,13 @@ class B extends self::A {
     return null;
 }
 class C extends self::B {
-  constructor •() → void
+  default constructor •() → void
     : super self::B::•()
     ;
 }
 class Test extends core::Object {
   field self::B member = null;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method test() → void {

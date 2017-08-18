@@ -69,9 +69,7 @@ class B extends A {
     await indexTestUnit('''
 class Test {}
 ''');
-    await indexUnit(
-        '/lib.dart',
-        '''
+    await indexUnit('/lib.dart', '''
 library my.lib;
 import 'test.dart';
 
@@ -111,9 +109,7 @@ class A {
     await indexTestUnit('''
 class Test {}
 ''');
-    await indexUnit(
-        '/lib.dart',
-        '''
+    await indexUnit('/lib.dart', '''
 library my.lib;
 import 'test.dart';
 class A {
@@ -137,9 +133,7 @@ class B extends A {
     await indexTestUnit('''
 class Test {}
 ''');
-    await indexUnit(
-        '/lib.dart',
-        '''
+    await indexUnit('/lib.dart', '''
 library my.lib;
 import 'test.dart' hide Test;
 class A {
@@ -180,9 +174,7 @@ class B extends A {
   }
 
   test_checkFinalConditions_shadowsInSubClass_notImportedLib() async {
-    await indexUnit(
-        '/lib.dart',
-        '''
+    await indexUnit('/lib.dart', '''
 library my.lib;
 class A {
   NewName() {}
@@ -223,9 +215,7 @@ class B {
   }
 
   test_checkInitialConditions_inPubCache_posix() async {
-    addSource(
-        '/.pub-cache/lib.dart',
-        r'''
+    addSource('/.pub-cache/lib.dart', r'''
 class A {}
 ''');
     await indexTestUnit('''
@@ -244,9 +234,7 @@ main() {
   }
 
   test_checkInitialConditions_inPubCache_windows() async {
-    addSource(
-        '/Pub/Cache/lib.dart',
-        r'''
+    addSource('/Pub/Cache/lib.dart', r'''
 class A {}
 ''');
     await indexTestUnit('''
@@ -495,9 +483,7 @@ main() {
   }
 
   test_createChange_FunctionElement_imported() async {
-    await indexUnit(
-        '/foo.dart',
-        r'''
+    await indexUnit('/foo.dart', r'''
 test() {}
 foo() {}
 ''');
@@ -524,9 +510,7 @@ main() {
   foo();
 }
 ''');
-    assertFileChangeResult(
-        '/foo.dart',
-        '''
+    assertFileChangeResult('/foo.dart', '''
 newName() {}
 foo() {}
 ''');

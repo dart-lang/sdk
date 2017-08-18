@@ -48,9 +48,9 @@ class Collector {
   /// This flag is updated in [computeNeededConstants].
   bool outputContainsConstantList = false;
 
-  final List<ClassElement> nativeClassesAndSubclasses = <ClassElement>[];
+  final List<ClassEntity> nativeClassesAndSubclasses = <ClassEntity>[];
 
-  List<TypedefElement> typedefsNeededForReflection;
+  List<TypedefEntity> typedefsNeededForReflection;
 
   Collector(
       this._options,
@@ -88,7 +88,7 @@ class Collector {
    */
   Function computeClassFilter() {
     if (_mirrorsData.isTreeShakingDisabled) {
-      return (ClassElement cls) => true;
+      return (ClassEntity cls) => true;
     }
 
     Set<ClassEntity> unneededClasses = new Set<ClassEntity>();
@@ -136,26 +136,24 @@ class Collector {
     if (_mirrorsData.mustRetainMetadata) {
       // TODO(floitsch): verify that we don't run through the same elements
       // multiple times.
-      for (MemberElement element in _generatedCode.keys) {
+      for (MemberEntity element in _generatedCode.keys) {
         if (_mirrorsData.isMemberAccessibleByReflection(element)) {
-          bool shouldRetainMetadata =
-              _mirrorsData.retainMetadataOfMember(element);
-          if (shouldRetainMetadata &&
-              (element.isFunction ||
-                  element.isConstructor ||
-                  element.isSetter)) {
-            MethodElement function = element;
-            function.functionSignature.forEachParameter((parameter) =>
-                _mirrorsData.retainMetadataOfParameter(parameter));
-          }
+          _mirrorsData.retainMetadataOfMember(element);
         }
       }
-      for (ClassElement cls in neededClasses) {
+      for (ClassEntity cls in neededClasses) {
         final onlyForRti = classesOnlyNeededForRti.contains(cls);
         if (!onlyForRti) {
           _mirrorsData.retainMetadataOfClass(cls);
-          new FieldVisitor(_options, _elementEnvironment, _worldBuilder,
-                  _nativeData, _mirrorsData, _namer, _closedWorld)
+          new FieldVisitor(
+                  _options,
+                  _elementEnvironment,
+                  _commonElements,
+                  _worldBuilder,
+                  _nativeData,
+                  _mirrorsData,
+                  _namer,
+                  _closedWorld)
               .visitFields((FieldEntity member,
                   js.Name name,
                   js.Name accessorName,
@@ -197,8 +195,7 @@ class Collector {
   /// Compute all the classes and typedefs that must be emitted.
   void computeNeededDeclarations() {
     // Compute needed typedefs.
-    typedefsNeededForReflection = Elements.sortedByPosition(_closedWorld
-        .allTypedefs
+    typedefsNeededForReflection = _sorter.sortTypedefs(_closedWorld.allTypedefs
         .where(_mirrorsData.isTypedefAccessibleByReflection)
         .toList());
 
@@ -242,11 +239,11 @@ class Collector {
     // these are thought to not have been instantiated, so we neeed to be able
     // to identify them later and make sure we only emit "empty shells" without
     // fields, etc.
-    classesOnlyNeededForRti = new Set<ClassElement>();
-    for (ClassElement cls in _rtiNeededClasses) {
+    classesOnlyNeededForRti = new Set<ClassEntity>();
+    for (ClassEntity cls in _rtiNeededClasses) {
       while (cls != null && !neededClasses.contains(cls)) {
         if (!classesOnlyNeededForRti.add(cls)) break;
-        cls = cls.superclass;
+        cls = _elementEnvironment.getSuperClass(cls);
       }
     }
 

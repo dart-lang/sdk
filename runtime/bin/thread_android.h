@@ -37,7 +37,6 @@ class ThreadInlineImpl {
   DISALLOW_COPY_AND_ASSIGN(ThreadInlineImpl);
 };
 
-
 class MutexData {
  private:
   MutexData() {}
@@ -52,7 +51,6 @@ class MutexData {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(MutexData);
 };
-
 
 class MonitorData {
  private:

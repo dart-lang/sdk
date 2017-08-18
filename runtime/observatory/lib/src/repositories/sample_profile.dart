@@ -32,7 +32,7 @@ class SampleProfileLoadingProgress extends M.SampleProfileLoadingProgress {
   Stream<SampleProfileLoadingProgressEvent> get onProgress =>
       _onProgress.stream;
 
-  final M.ServiceObjectOwner owner;
+  final S.ServiceObjectOwner owner;
   final S.Class cls;
   final M.SampleProfileTag tag;
   final bool clear;
@@ -42,13 +42,13 @@ class SampleProfileLoadingProgress extends M.SampleProfileLoadingProgress {
   double _progress = 0.0;
   final Stopwatch _fetchingTime = new Stopwatch();
   final Stopwatch _loadingTime = new Stopwatch();
-  CpuProfile _profile;
+  SampleProfile _profile;
 
   M.SampleProfileLoadingStatus get status => _status;
   double get progress => _progress;
   Duration get fetchingTime => _fetchingTime.elapsed;
   Duration get loadingTime => _loadingTime.elapsed;
-  CpuProfile get profile => _profile;
+  SampleProfile get profile => _profile;
 
   SampleProfileLoadingProgress(this.owner, this.tag, this.clear,
       {this.type: M.SampleProfileType.cpu, this.cls}) {
@@ -81,7 +81,7 @@ class SampleProfileLoadingProgress extends M.SampleProfileLoadingProgress {
       _status = M.SampleProfileLoadingStatus.loading;
       _triggerOnProgress();
 
-      CpuProfile profile = new CpuProfile();
+      SampleProfile profile = new SampleProfile();
 
       Stream<double> progress = profile.loadProgress(owner, response);
       progress.listen((value) {
@@ -146,7 +146,8 @@ class IsolateSampleProfileRepository
 
 class ClassSampleProfileRepository implements M.ClassSampleProfileRepository {
   Stream<SampleProfileLoadingProgressEvent> get(
-      M.Isolate i, M.ClassRef c, M.SampleProfileTag t) {
+      M.Isolate i, M.ClassRef c, M.SampleProfileTag t,
+      {bool clear: false, bool forceFetch: false}) {
     S.Isolate isolate = i as S.Isolate;
     S.Class cls = c as S.Class;
     assert(isolate != null);
@@ -175,10 +176,13 @@ class NativeMemorySampleProfileRepository
   Stream<SampleProfileLoadingProgressEvent> get(M.VM vm, M.SampleProfileTag t,
       {bool forceFetch: false, bool clear: false}) {
     assert(forceFetch != null);
+    S.VM owner = vm as S.VM;
+    assert(owner != null);
+
     if ((_last != null) && !forceFetch) {
       _last.reuse();
     } else {
-      _last = new SampleProfileLoadingProgress(vm, t, false,
+      _last = new SampleProfileLoadingProgress(owner, t, false,
           type: M.SampleProfileType.memory);
     }
     return _last.onProgress;

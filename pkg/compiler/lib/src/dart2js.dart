@@ -131,7 +131,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
   bool showWarnings;
   bool showHints;
   bool enableColors;
-  bool loadFromDill = false;
+  bool useKernel = false;
   // List of provided options that imply that output is expected.
   List<String> optionsImplyCompilation = <String>[];
   bool hasDisallowUnsafeEval = false;
@@ -278,8 +278,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
     passThrough('--categories=${categories.join(",")}');
   }
 
-  void setLoadFromDill(String argument) {
-    loadFromDill = true;
+  void setPreviewDart2(String argument) {
+    useKernel = true;
     passThrough(argument);
   }
 
@@ -334,8 +334,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
     // TODO(efortuna): Remove this once kernel global inference is fully
     // implemented.
     new OptionHandler(Flags.kernelGlobalInference, passThrough),
-    new OptionHandler(Flags.useKernel, passThrough),
-    new OptionHandler(Flags.loadFromDill, setLoadFromDill),
+    new OptionHandler(Flags.useKernelInSsa, passThrough),
+    new OptionHandler(Flags.useKernel, setPreviewDart2),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
     new OptionHandler(Flags.version, (_) => wantVersion = true),
@@ -356,6 +356,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     }),
     new OptionHandler('--enable[_-]checked[_-]mode|--checked',
         (_) => setCheckedMode(Flags.enableCheckedMode)),
+    new OptionHandler(Flags.enableAsserts, passThrough),
     new OptionHandler(Flags.trustTypeAnnotations,
         (_) => setTrustTypeAnnotations(Flags.trustTypeAnnotations)),
     new OptionHandler(Flags.trustPrimitives,
@@ -459,9 +460,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
   for (String hint in hints) {
     diagnosticHandler.info(hint, api.Diagnostic.HINT);
-  }
-  if (loadFromDill) {
-    diagnosticHandler.autoReadFileUri = true;
   }
 
   if (wantHelp || wantVersion) {
@@ -580,6 +578,9 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
 
   Uri script = currentDirectory.resolve(arguments[0]);
+  if (useKernel && script.path.endsWith('.dill')) {
+    diagnosticHandler.autoReadFileUri = true;
+  }
   CompilerOptions compilerOptions = new CompilerOptions.parse(
       entryPoint: script,
       libraryRoot: libraryRoot,
@@ -737,11 +738,33 @@ Supported options:
     `uri` getter for `LibraryMirror`s is mangled in minified mode.
 
   --csp
-    Disables dynamic generation of code in the generated output. This is
+    Disable dynamic generation of code in the generated output. This is
     necessary to satisfy CSP restrictions (see http://www.w3.org/TR/CSP/).
 
   --no-source-maps
     Do not generate a source map file.
+
+  --fast-startup
+    Produce JavaScript that can be parsed more quickly by VMs. This option
+    usually results in larger JavaScript files with faster startup.
+    Note: the dart:mirrors library is not supported with this option.
+
+The following advanced options can help reduce the size of the generated code,
+but they may cause programs to behave unexpectedly if assumptions are not met.
+Only turn on these flags if you have enough test coverage to ensure they are
+safe to use:
+
+  --trust-type-annotations
+    Assume that all types are correct. This option allows the compiler to drop
+    type checks and to rely on local type information for optimizations. Use
+    this option only if you have enough testing to ensure that your program
+    works in strong mode or checked mode.
+
+  --trust-primitives
+    Assume that operations on numbers, strings, and lists have valid inputs.
+    This option allows the compiler to drop runtime checks for those operations.
+    Note: a well-typed program is not guaranteed to have valid inputs. For
+    example, an int index argument may be null or out of range.
 
 The following options are only used for compiler development and may
 be removed in a future version:

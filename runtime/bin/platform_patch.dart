@@ -32,18 +32,22 @@ class _Platform {
   @patch
   static String _packageConfig() => VMLibraryHooks.packageConfigString;
 
+  @patch
+  static Uri _script() => VMLibraryHooks.platformScript;
+
   // This script singleton is written to by the embedder if applicable.
   static void set _nativeScript(String path) {
-    if (path.startsWith('http:') ||
-        path.startsWith('https:') ||
-        path.startsWith('package:') ||
-        path.startsWith('dart:') ||
-        path.startsWith('data:') ||
-        path.startsWith('file:')) {
-      script = Uri.parse(path);
-    } else {
-      script = Uri.base.resolveUri(new Uri.file(path));
-    }
-    VMLibraryHooks.platformScript = script;
+    VMLibraryHooks.platformScript = (() {
+      if (path.startsWith('http:') ||
+          path.startsWith('https:') ||
+          path.startsWith('package:') ||
+          path.startsWith('dart:') ||
+          path.startsWith('data:') ||
+          path.startsWith('file:')) {
+        return Uri.parse(path);
+      } else {
+        return Uri.base.resolveUri(new Uri.file(path));
+      }
+    });
   }
 }

@@ -29,14 +29,16 @@ main(List<String> arguments) async {
 part of fasta.codes;
 """);
 
-  yaml.forEach((String name, description) {
+  List<String> keys = yaml.keys.toList()..sort();
+  for (String name in keys) {
+    var description = yaml[name];
     while (description is String) {
       description = yaml[description];
     }
     Map map = description;
     sb.writeln(compileTemplate(name, map['template'], map['tip'],
         map['analyzerCode'], map['dart2jsCode']));
-  });
+  }
 
   String dartfmtedText = new DartFormatter().format("$sb");
 
@@ -51,11 +53,14 @@ final RegExp placeholderPattern = new RegExp("#[a-zA-Z0-9_]+");
 
 String compileTemplate(String name, String template, String tip,
     String analyzerCode, String dart2jsCode) {
+  if (template == null) {
+    print('Error: missing template for message: $name');
+    exitCode = 1;
+    return '';
+  }
   var parameters = new Set<String>();
   var conversions = new Set<String>();
   var arguments = new Set<String>();
-  parameters.add("Uri uri");
-  parameters.add("int charOffset");
   for (Match match in placeholderPattern.allMatches("$template${tip ?? ''}")) {
     switch (match[0]) {
       case "#character":
@@ -75,6 +80,16 @@ String compileTemplate(String name, String template, String tip,
         arguments.add("'name': name");
         break;
 
+      case "#name2":
+        parameters.add("String name2");
+        arguments.add("'name2': name2");
+        break;
+
+      case "#name3":
+        parameters.add("String name3");
+        arguments.add("'name3': name3");
+        break;
+
       case "#lexeme":
         parameters.add("Token token");
         conversions.add("String lexeme = token.lexeme;");
@@ -86,6 +101,29 @@ String compileTemplate(String name, String template, String tip,
         arguments.add("'string': string");
         break;
 
+      case "#string2":
+        parameters.add("String string2");
+        arguments.add("'string2': string2");
+        break;
+
+      case "#uri":
+        parameters.add("Uri uri_");
+        conversions.add("String uri = relativizeUri(uri_);");
+        arguments.add("'uri': uri_");
+        break;
+
+      case "#uri2":
+        parameters.add("Uri uri2_");
+        conversions.add("String uri2 = relativizeUri(uri2_);");
+        arguments.add("'uri2': uri2_");
+        break;
+
+      case "#uri3":
+        parameters.add("Uri uri3_");
+        conversions.add("String uri3 = relativizeUri(uri3_);");
+        arguments.add("'uri3': uri3_");
+        break;
+
       default:
         throw "Unhandled placeholder in template: ${match[0]}";
     }
@@ -93,16 +131,10 @@ String compileTemplate(String name, String template, String tip,
 
   String interpolate(String name, String text) {
     return "$name: "
-        "\"${text.replaceAll(r'$', r'\$').replaceAll('#', '\$')}\"";
+        "\"\"\"${text.replaceAll(r'$', r'\$').replaceAll('#', '\$')}\"\"\"";
   }
 
   List<String> codeArguments = <String>[];
-  if (template != null) {
-    codeArguments.add('template: r"$template"');
-  }
-  if (tip != null) {
-    codeArguments.add('tip: r"$tip"');
-  }
   if (analyzerCode != null) {
     codeArguments.add('analyzerCode: "$analyzerCode"');
   }
@@ -110,7 +142,33 @@ String compileTemplate(String name, String template, String tip,
     codeArguments.add('dart2jsCode: "$dart2jsCode"');
   }
 
-  codeArguments.add("format: _format$name");
+  if (parameters.isEmpty && conversions.isEmpty && arguments.isEmpty) {
+    if (template != null) {
+      codeArguments.add('message: r"""$template"""');
+    }
+    if (tip != null) {
+      codeArguments.add('tip: r"""$tip"""');
+    }
+
+    return """
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> code$name = message$name;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode message$name =
+    const MessageCode(\"$name\", ${codeArguments.join(', ')});
+""";
+  }
+
+  List<String> templateArguments = <String>[];
+  if (template != null) {
+    templateArguments.add('messageTemplate: r"""$template"""');
+  }
+  if (tip != null) {
+    templateArguments.add('tipTemplate: r"""$tip"""');
+  }
+
+  templateArguments.add("withArguments: _withArguments$name");
 
   List<String> messageArguments = <String>[];
   messageArguments.add(interpolate("message", template));
@@ -121,17 +179,19 @@ String compileTemplate(String name, String template, String tip,
 
   return """
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_$name> code$name =
-    const FastaCode<_$name>(\"$name\", ${codeArguments.join(', ')});
-
-typedef FastaMessage _$name(${parameters.join(', ')});
+const Template<Message Function(${parameters.join(', ')})> template$name =
+    const Template<Message Function(${parameters.join(', ')})>(
+        ${templateArguments.join(', ')});
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _format$name(${parameters.join(', ')}) {
+const Code<Message Function(${parameters.join(', ')})> code$name =
+    const Code<Message Function(${parameters.join(', ')})>(
+        \"$name\", template$name, ${codeArguments.join(', ')});
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArguments$name(${parameters.join(', ')}) {
   ${conversions.join('\n  ')}
-  return new FastaMessage(
-     uri,
-     charOffset,
+  return new Message(
      code$name,
      ${messageArguments.join(', ')});
 }

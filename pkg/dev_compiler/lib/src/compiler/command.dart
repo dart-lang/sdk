@@ -180,8 +180,12 @@ void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
     modulePath = path.basenameWithoutExtension(firstOutPath);
   }
 
-  var unit = new BuildUnit(modulePath, libraryRoot, argResults.rest,
-      (source) => _moduleForLibrary(moduleRoot, source, compilerOpts));
+  var unit = new BuildUnit(
+      modulePath,
+      libraryRoot,
+      argResults.rest,
+      (source) =>
+          _moduleForLibrary(moduleRoot, source, analyzerOptions, compilerOpts));
 
   var module = compiler.compile(unit, compilerOpts);
   module.errors.forEach(printFn);
@@ -217,10 +221,15 @@ void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
   }
 }
 
-String _moduleForLibrary(
-    String moduleRoot, Source source, CompilerOptions compilerOpts) {
+String _moduleForLibrary(String moduleRoot, Source source,
+    AnalyzerOptions analyzerOptions, CompilerOptions compilerOpts) {
   if (source is InSummarySource) {
     var summaryPath = source.summaryPath;
+
+    if (analyzerOptions.customSummaryModules.containsKey(summaryPath)) {
+      return analyzerOptions.customSummaryModules[summaryPath];
+    }
+
     var ext = '.${compilerOpts.summaryExtension}';
     if (path.isWithin(moduleRoot, summaryPath) && summaryPath.endsWith(ext)) {
       var buildUnitPath =
@@ -271,4 +280,39 @@ class CompileErrorException implements Exception {
 class ForceCompileErrorException extends CompileErrorException {
   toString() =>
       '\nForce-compilation not successful. Please check static errors.';
+}
+
+// TODO(jmesserly): fix this function in analyzer
+List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
+  Set<String> knownOptions = new Set<String>();
+  Set<String> knownAbbreviations = new Set<String>();
+  parser.options.forEach((String name, option) {
+    knownOptions.add(name);
+    String abbreviation = option.abbreviation;
+    if (abbreviation != null) {
+      knownAbbreviations.add(abbreviation);
+    }
+  });
+  List<String> filtered = <String>[];
+  for (int i = 0; i < args.length; i++) {
+    String argument = args[i];
+    if (argument.startsWith('--') && argument.length > 2) {
+      int equalsOffset = argument.lastIndexOf('=');
+      int end = equalsOffset < 0 ? argument.length : equalsOffset;
+      if (knownOptions.contains(argument.substring(2, end))) {
+        filtered.add(argument);
+      }
+    } else if (argument.startsWith('-') && argument.length > 1) {
+      // TODO(jmesserly): fix this line in analyzer
+      // It was discarding abbreviations such as -Da=b
+      // Abbreviations must be 1-character (this is enforced by ArgParser),
+      // so we don't need to use `optionName`
+      if (knownAbbreviations.contains(argument[1])) {
+        filtered.add(argument);
+      }
+    } else {
+      filtered.add(argument);
+    }
+  }
+  return filtered;
 }

@@ -4,6 +4,8 @@
 
 library analyzer.test.src.summary.resynthesize_ast_test;
 
+import 'dart:async';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -59,18 +61,6 @@ class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
   @override
   AnalysisOptionsImpl createOptions() =>
       super.createOptions()..strongMode = true;
-
-  @override
-  @failingTest
-  test_const_invokeConstructor_generic_noTypeArguments() async {
-    await super.test_const_invokeConstructor_generic_noTypeArguments();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_boundRefersToItself() async {
-    await super.test_instantiateToBounds_boundRefersToItself();
-  }
 
   @override
   @failingTest
@@ -250,8 +240,8 @@ abstract class _ResynthesizeAstTest extends ResynthesizeTest
   bool get shouldCompareLibraryElements;
 
   @override
-  LibraryElementImpl checkLibrary(String text,
-      {bool allowErrors: false, bool dumpSummaries: false}) {
+  Future<LibraryElementImpl> checkLibrary(String text,
+      {bool allowErrors: false, bool dumpSummaries: false}) async {
     Source source = addTestSource(text);
     LibraryElementImpl resynthesized = _encodeDecodeLibraryElement(source);
     LibraryElementImpl original = context.computeLibraryElement(source);

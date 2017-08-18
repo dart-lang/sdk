@@ -4,7 +4,7 @@
 
 library fasta.builder;
 
-import '../errors.dart' show internalError;
+import '../problems.dart' show unhandled, unsupported;
 
 export 'class_builder.dart' show ClassBuilder;
 
@@ -124,7 +124,7 @@ abstract class Builder {
 
   bool get isSynthetic => false;
 
-  get target => internalError("Unsupported operation $runtimeType.");
+  get target => unsupported("target", charOffset, fileUri);
 
   bool get hasProblem => false;
 
@@ -136,7 +136,7 @@ abstract class Builder {
       if (builder is LibraryBuilder) return builder.uri;
       builder = builder.parent;
     } while (builder != null);
-    return internalError("No library parent.");
+    return unhandled("no library parent", "${runtimeType}", -1, null);
   }
 
   void prepareInitializerInference(

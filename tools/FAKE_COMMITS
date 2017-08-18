@@ -22,3 +22,4 @@ Trigger bots after master restart.
 Trigger mirroring of github repository
 Trigger mirroring of github repository
 Trigger mirroring of github repository
+Force build after DEPS format revert

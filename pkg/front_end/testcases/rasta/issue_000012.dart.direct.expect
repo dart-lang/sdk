@@ -4,16 +4,16 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field dynamic field = null;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  constructor •() → void
+  default constructor •() → void
     : super self::A::•()
     ;
   method m() → dynamic {
-    super.field = 42;
+    super.{self::A::field} = 42;
   }
 }
 static method main() → dynamic {

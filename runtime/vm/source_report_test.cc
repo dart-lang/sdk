@@ -21,7 +21,6 @@ static RawObject* ExecuteScript(const char* script) {
   return Api::UnwrapHandle(h_lib);
 }
 
-
 TEST_CASE(SourceReport_Coverage_NoCalls) {
   char buffer[1024];
   const char* kScript =
@@ -50,7 +49,6 @@ TEST_CASE(SourceReport_Coverage_NoCalls) {
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
       buffer);
 }
-
 
 TEST_CASE(SourceReport_Coverage_SimpleCall) {
   char buffer[1024];
@@ -95,7 +93,6 @@ TEST_CASE(SourceReport_Coverage_SimpleCall) {
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
       buffer);
 }
-
 
 TEST_CASE(SourceReport_Coverage_ForceCompile) {
   char buffer[1024];
@@ -142,7 +139,6 @@ TEST_CASE(SourceReport_Coverage_ForceCompile) {
       buffer);
 }
 
-
 TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
   char buffer[1024];
   const char* kScript =
@@ -184,7 +180,6 @@ TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
       buffer);
 }
-
 
 TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
   char buffer[1024];
@@ -228,7 +223,6 @@ TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
       buffer);
 }
-
 
 TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
   char buffer[1024];
@@ -275,7 +269,6 @@ TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
       buffer);
 }
-
 
 TEST_CASE(SourceReport_Coverage_NestedFunctions) {
   char buffer[1024];
@@ -332,7 +325,6 @@ TEST_CASE(SourceReport_Coverage_NestedFunctions) {
       buffer);
 }
 
-
 TEST_CASE(SourceReport_Coverage_RestrictedRange) {
   char buffer[1024];
   const char* kScript =
@@ -384,7 +376,6 @@ TEST_CASE(SourceReport_Coverage_RestrictedRange) {
       buffer);
 }
 
-
 TEST_CASE(SourceReport_Coverage_AllFunctions) {
   const char* kScript =
       "helper0() {}\n"
@@ -423,7 +414,6 @@ TEST_CASE(SourceReport_Coverage_AllFunctions) {
   EXPECT_SUBSTRING("\"scriptIndex\":1", result);
   EXPECT_SUBSTRING("\"scriptIndex\":2", result);
 }
-
 
 TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
   const char* kScript =
@@ -466,7 +456,6 @@ TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
   EXPECT_SUBSTRING("\"scriptIndex\":1", result);
   EXPECT_SUBSTRING("\"scriptIndex\":2", result);
 }
-
 
 TEST_CASE(SourceReport_CallSites_SimpleCall) {
   char buffer[1024];
@@ -588,7 +577,6 @@ TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       buffer);
 }
 
-
 TEST_CASE(SourceReport_MultipleReports) {
   char buffer[1024];
   const char* kScript =
@@ -636,7 +624,6 @@ TEST_CASE(SourceReport_MultipleReports) {
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
       buffer);
 }
-
 
 TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
   char buffer[1024];

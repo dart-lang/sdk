@@ -135,12 +135,10 @@ Future testPatchFunction() async {
 }
 
 Future testPatchFunctionMetadata() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       const a = 0;
       @a external test();
-      """,
-      """
+      """, """
       const _b = 1;
       @patch @_b test() {}
       """);
@@ -220,13 +218,11 @@ Future testPatchFunctionGenericDifferentNames() async {
 }
 
 Future testPatchConstructor() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       class Class {
         external Class();
       }
-      """,
-      """
+      """, """
       @patch class Class {
         @patch Class();
       }
@@ -260,15 +256,13 @@ Future testPatchConstructor() async {
 }
 
 Future testPatchRedirectingConstructor() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       class Class {
         Class(x) : this._(x, false);
 
         external Class._(x, y);
       }
-      """,
-      r"""
+      """, r"""
       @patch class Class {
         @patch Class._(x, y) { print('$x,$y'); }
       }
@@ -306,13 +300,11 @@ Future testPatchRedirectingConstructor() async {
 }
 
 Future testPatchMember() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       class Class {
         external String toString();
       }
-      """,
-      """
+      """, """
       @patch class Class {
         @patch String toString() => 'string';
       }
@@ -338,13 +330,11 @@ Future testPatchMember() async {
 }
 
 Future testPatchGetter() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       class Class {
         external int get field;
       }
-      """,
-      """
+      """, """
       @patch class Class {
         @patch int get field => 5;
       }
@@ -366,13 +356,11 @@ Future testPatchGetter() async {
 }
 
 Future testRegularMember() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       class Class {
         void regular() {}
       }
-      """,
-      """
+      """, """
       @patch class Class {
       }
       """);
@@ -397,12 +385,10 @@ Future testRegularMember() async {
 }
 
 Future testInjectedMember() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       class Class {
       }
-      """,
-      """
+      """, """
       @patch class Class {
         void _injected() {}
       }
@@ -428,12 +414,10 @@ Future testInjectedMember() async {
 }
 
 Future testInjectedPublicMember() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       class Class {
       }
-      """,
-      """
+      """, """
       @patch class Class {
         void injected() {}
       }
@@ -495,8 +479,7 @@ Future testInjectedPublicFunction() async {
 }
 
 Future testPatchSignatureCheck() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       class Class {
         external String method1();
         external void method2(String str);
@@ -510,8 +493,7 @@ Future testPatchSignatureCheck() async {
         external void method10([String str]);
         external void method11({String str});
       }
-      """,
-      """
+      """, """
       @patch class Class {
         @patch int method1() => 0;
         @patch void method2() {}
@@ -571,11 +553,9 @@ Future testPatchSignatureCheck() async {
 }
 
 Future testExternalWithoutImplementationTopLevel() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       external void foo();
-      """,
-      """
+      """, """
       // @patch void foo() {}
       """);
   dynamic function = ensure(
@@ -593,13 +573,11 @@ Future testExternalWithoutImplementationTopLevel() async {
 }
 
 Future testExternalWithoutImplementationMember() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       class Class {
         external void foo();
       }
-      """,
-      """
+      """, """
       @patch class Class {
         // @patch void foo() {}
       }
@@ -623,11 +601,9 @@ Future testExternalWithoutImplementationMember() async {
 }
 
 Future testIsSubclass() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       class A {}
-      """,
-      """
+      """, """
       @patch class A {}
       """);
   ClassElement cls = ensure(
@@ -640,11 +616,9 @@ Future testIsSubclass() async {
 }
 
 Future testPatchNonExistingTopLevel() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       // class Class {}
-      """,
-      """
+      """, """
       @patch class Class {}
       """);
   DiagnosticCollector collector = compiler.diagnosticCollector;
@@ -657,11 +631,9 @@ Future testPatchNonExistingTopLevel() async {
 }
 
 Future testPatchNonExistingMember() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       class Class {}
-      """,
-      """
+      """, """
       @patch class Class {
         @patch void foo() {}
       }
@@ -681,11 +653,9 @@ Future testPatchNonExistingMember() async {
 }
 
 Future testPatchNonPatchablePatch() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       external get foo;
-      """,
-      """
+      """, """
       @patch var foo;
       """);
   ensure(compiler, "foo", compiler.resolution.commonElements.coreLibrary.find);
@@ -700,11 +670,9 @@ Future testPatchNonPatchablePatch() async {
 }
 
 Future testPatchNonPatchableOrigin() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       external var foo;
-      """,
-      """
+      """, """
       @patch get foo => 0;
       """);
   ensure(compiler, "foo", compiler.resolution.commonElements.coreLibrary.find);
@@ -724,11 +692,9 @@ Future testPatchNonPatchableOrigin() async {
 }
 
 Future testPatchNonExternalTopLevel() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       void foo() {}
-      """,
-      """
+      """, """
       @patch void foo() {}
       """);
   DiagnosticCollector collector = compiler.diagnosticCollector;
@@ -744,13 +710,11 @@ Future testPatchNonExternalTopLevel() async {
 }
 
 Future testPatchNonExternalMember() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       class Class {
         void foo() {}
       }
-      """,
-      """
+      """, """
       @patch class Class {
         @patch void foo() {}
       }
@@ -773,11 +737,9 @@ Future testPatchNonExternalMember() async {
 }
 
 Future testPatchNonClass() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       external void Class() {}
-      """,
-      """
+      """, """
       @patch class Class {}
       """);
   DiagnosticCollector collector = compiler.diagnosticCollector;
@@ -793,11 +755,9 @@ Future testPatchNonClass() async {
 }
 
 Future testPatchNonGetter() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       external void foo() {}
-      """,
-      """
+      """, """
       @patch get foo => 0;
       """);
   DiagnosticCollector collector = compiler.diagnosticCollector;
@@ -813,11 +773,9 @@ Future testPatchNonGetter() async {
 }
 
 Future testPatchNoGetter() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       external set foo(var value) {}
-      """,
-      """
+      """, """
       @patch get foo => 0;
       """);
   DiagnosticCollector collector = compiler.diagnosticCollector;
@@ -833,11 +791,9 @@ Future testPatchNoGetter() async {
 }
 
 Future testPatchNonSetter() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       external void foo() {}
-      """,
-      """
+      """, """
       @patch set foo(var value) {}
       """);
   DiagnosticCollector collector = compiler.diagnosticCollector;
@@ -853,11 +809,9 @@ Future testPatchNonSetter() async {
 }
 
 Future testPatchNoSetter() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       external get foo;
-      """,
-      """
+      """, """
       @patch set foo(var value) {}
       """);
   DiagnosticCollector collector = compiler.diagnosticCollector;
@@ -873,11 +827,9 @@ Future testPatchNoSetter() async {
 }
 
 Future testPatchNonFunction() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       external get foo;
-      """,
-      """
+      """, """
       @patch void foo() {}
       """);
   DiagnosticCollector collector = compiler.diagnosticCollector;
@@ -893,28 +845,23 @@ Future testPatchNonFunction() async {
 }
 
 Future testPatchAndSelector() async {
-  dynamic compiler = await applyPatch(
-      """
+  dynamic compiler = await applyPatch("""
       class A {
         external void clear();
       }
       class B extends A {
       }
-      """,
-      """
+      """, """
       @patch class A {
         int method() => 0;
         @patch void clear() {}
       }
-      """,
-      main: """
+      """, main: """
       main () {
         new A(); // ensure A and B are instantiated
         new B();
       }
-      """,
-      runCompiler: true,
-      analyzeOnly: true);
+      """, runCompiler: true, analyzeOnly: true);
   compiler.closeResolution(
       compiler.frontendStrategy.elementEnvironment.mainFunction);
   ClosedWorld world = compiler.resolutionWorldBuilder.closedWorldForTesting;
@@ -979,22 +926,18 @@ Future testAnalyzeAllInjectedMembers() async {
 
   await expect('String s = 0;', MessageKind.NOT_ASSIGNABLE);
   await expect('void method() { String s = 0; }', MessageKind.NOT_ASSIGNABLE);
-  await expect(
-      '''
+  await expect('''
          class Class {
            String s = 0;
          }
-         ''',
-      MessageKind.NOT_ASSIGNABLE);
-  await expect(
-      '''
+         ''', MessageKind.NOT_ASSIGNABLE);
+  await expect('''
          class Class {
            void method() {
              String s = 0;
            }
          }
-         ''',
-      MessageKind.NOT_ASSIGNABLE);
+         ''', MessageKind.NOT_ASSIGNABLE);
 }
 
 Future testEffectiveTarget() async {

@@ -57,6 +57,14 @@ class _Bigint extends _IntegerImplementation implements int {
   static const int _DIGIT2_BITS = _DIGIT_BITS >> 1;
   static const int _DIGIT2_MASK = (1 << _DIGIT2_BITS) - 1;
 
+  // Bits per 2 digits. Used to perform modulo 2^64 arithmetic.
+  // Note: in --limit-ints-to-64-bits mode most arithmetic operations are
+  // already modulo 2^64. Still, it is harmless to apply _TWO_DIGITS_MASK:
+  // (1 << _TWO_DIGITS_BITS) is 0 (all bits are shifted out), so
+  // _TWO_DIGITS_MASK is -1 (its bit pattern is 0xffffffffffffffff).
+  static const int _TWO_DIGITS_BITS = _DIGIT_BITS << 1;
+  static const int _TWO_DIGITS_MASK = (1 << _TWO_DIGITS_BITS) - 1;
+
   // Min and max of non bigint values.
   static const int _MIN_INT64 = (-1) << 63;
   static const int _MAX_INT64 = 0x7fffffffffffffff;
@@ -1932,7 +1940,8 @@ class _Montgomery implements _Reduction {
         0xffff; // y == 1/x mod 2^16
     y = (y * (2 - ((xl * y) & 0xffffffff))) & 0xffffffff; // y == 1/x mod 2^32
     var x = (args[_X_HI] << _Bigint._DIGIT_BITS) | xl;
-    y = (y * (2 - ((x * y) & 0xffffffffffffffff))) & 0xffffffffffffffff;
+    y = (y * (2 - ((x * y) & _Bigint._TWO_DIGITS_MASK))) &
+        _Bigint._TWO_DIGITS_MASK;
     // y == 1/x mod _DIGIT_BASE^2
     y = -y; // We really want the negative inverse.
     args[_RHO] = y & _Bigint._DIGIT_MASK;

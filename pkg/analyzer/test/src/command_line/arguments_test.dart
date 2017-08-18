@@ -35,6 +35,7 @@ class ArgumentsTest {
       '-Dfoo=1',
       '-Dbar=2',
       '--enable-strict-call-checks',
+      '--no-declaration-casts',
       '--no-implicit-casts',
       '--no-implicit-dynamic',
       '--options=$defaultAnalysisOptionsFilePath',
@@ -59,6 +60,7 @@ class ArgumentsTest {
     expect(defaultOptions, isNotNull);
     expect(defaultOptions.enableStrictCallChecks, true);
     expect(defaultOptions.strongMode, true);
+    expect(defaultOptions.declarationCasts, false);
     expect(defaultOptions.implicitCasts, false);
     expect(defaultOptions.implicitDynamic, false);
   }
@@ -80,6 +82,7 @@ class ArgumentsTest {
     expect(defaultOptions, isNotNull);
     expect(defaultOptions.enableStrictCallChecks, false);
     expect(defaultOptions.strongMode, false);
+    expect(defaultOptions.declarationCasts, true);
     expect(defaultOptions.implicitCasts, true);
     expect(defaultOptions.implicitDynamic, true);
   }
@@ -134,10 +137,27 @@ class ArgumentsTest {
     expect(manager.canUseSummaries, true);
   }
 
+  void test_declarationCast_noImplicitCast() {
+    MemoryResourceProvider provider = new MemoryResourceProvider();
+    ArgParser parser = new ArgParser();
+    defineAnalysisArguments(parser);
+    List<String> args = [
+      '--declaration-casts',
+      '--no-implicit-casts',
+    ];
+    ArgResults result = parse(provider, parser, args);
+    ContextBuilderOptions options = createContextBuilderOptions(result);
+    expect(options, isNotNull);
+    AnalysisOptionsImpl defaultOptions = options.defaultOptions;
+    expect(defaultOptions, isNotNull);
+    expect(defaultOptions.declarationCasts, true);
+    expect(defaultOptions.implicitCasts, false);
+  }
+
   void test_defineAnalysisArguments() {
     ArgParser parser = new ArgParser();
     defineAnalysisArguments(parser);
-    expect(parser.options, hasLength(14));
+    expect(parser.options, hasLength(15));
   }
 
   void test_extractDefinedVariables() {
@@ -166,6 +186,55 @@ class ArgumentsTest {
     expect(result, orderedEquals(['--a', '--c=0', '-e=2', '-f', 'bar']));
   }
 
+  void test_noAssignmentCast() {
+    MemoryResourceProvider provider = new MemoryResourceProvider();
+    ArgParser parser = new ArgParser();
+    defineAnalysisArguments(parser);
+    List<String> args = [
+      '--no-declaration-casts',
+    ];
+    ArgResults result = parse(provider, parser, args);
+    ContextBuilderOptions options = createContextBuilderOptions(result);
+    expect(options, isNotNull);
+    AnalysisOptionsImpl defaultOptions = options.defaultOptions;
+    expect(defaultOptions, isNotNull);
+    expect(defaultOptions.declarationCasts, false);
+    expect(defaultOptions.implicitCasts, true);
+  }
+
+  void test_noAssignmentCast_implicitCast() {
+    MemoryResourceProvider provider = new MemoryResourceProvider();
+    ArgParser parser = new ArgParser();
+    defineAnalysisArguments(parser);
+    List<String> args = [
+      '--no-declaration-casts',
+      '--implicit-casts',
+    ];
+    ArgResults result = parse(provider, parser, args);
+    ContextBuilderOptions options = createContextBuilderOptions(result);
+    expect(options, isNotNull);
+    AnalysisOptionsImpl defaultOptions = options.defaultOptions;
+    expect(defaultOptions, isNotNull);
+    expect(defaultOptions.declarationCasts, false);
+    expect(defaultOptions.implicitCasts, true);
+  }
+
+  void test_noImplicitCast() {
+    MemoryResourceProvider provider = new MemoryResourceProvider();
+    ArgParser parser = new ArgParser();
+    defineAnalysisArguments(parser);
+    List<String> args = [
+      '--no-implicit-casts',
+    ];
+    ArgResults result = parse(provider, parser, args);
+    ContextBuilderOptions options = createContextBuilderOptions(result);
+    expect(options, isNotNull);
+    AnalysisOptionsImpl defaultOptions = options.defaultOptions;
+    expect(defaultOptions, isNotNull);
+    expect(defaultOptions.declarationCasts, false);
+    expect(defaultOptions.implicitCasts, false);
+  }
+
   void test_parse_noReplacement_noIgnored() {
     MemoryResourceProvider provider = new MemoryResourceProvider();
     ArgParser parser = new ArgParser();
@@ -190,9 +259,7 @@ class ArgumentsTest {
   void test_preprocessArgs_replacement_exists() {
     MemoryResourceProvider provider = new MemoryResourceProvider();
     String filePath = provider.convertPath('/args.txt');
-    provider.newFile(
-        filePath,
-        '''
+    provider.newFile(filePath, '''
 -a
 --xx
 

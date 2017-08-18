@@ -6,9 +6,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:front_end/src/base/instrumentation.dart';
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/messages.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/scanner/io.dart';
+import 'package:front_end/src/fasta/severity.dart' show Severity;
 import 'package:front_end/src/scanner/token.dart' as analyzer;
 
 /// Implementation of [Instrumentation] which checks property/value pairs
@@ -200,8 +202,11 @@ class ValidatingInstrumentation implements Instrumentation {
 
   String _formatProblem(
       Uri uri, int offset, String desc, StackTrace stackTrace) {
-    return format(
-        uri, offset, '$desc${stackTrace == null ? '' : '\n$stackTrace'}');
+    return CompilerContext.current.format(
+        templateUnspecified
+            .withArguments('$desc${stackTrace == null ? '' : '\n$stackTrace'}')
+            .withLocation(uri, offset),
+        Severity.internalProblem);
   }
 
   String _makeExpectationComment(String property, InstrumentationValue value) {

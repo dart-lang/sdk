@@ -203,14 +203,10 @@ String name(E e) {
 library L;
 export 'lib1.dart';
 export 'lib2.dart';''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class N {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class N {}''');
     await computeAnalysisResult(source);
@@ -237,9 +233,7 @@ main() {
   }
 
   test_annotationWithNotClass_prefixed() async {
-    addNamedSource(
-        "/annotations.dart",
-        r'''
+    addNamedSource("/annotations.dart", r'''
 class Property {
   final int value;
   const Property(this.value);
@@ -511,9 +505,7 @@ f() async {
   }
 
   test_async_used_as_identifier_in_suffix() async {
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 int async;
 ''');
@@ -887,6 +879,21 @@ foo(var p) {
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
+  }
+
+  test_const_invalid_constructorFieldInitializer_fromLibrary() async {
+    addNamedSource('/lib.dart', r'''
+class A<T> {
+  final int f;
+  const A() : f = T.foo;
+}
+''');
+    Source source = addSource(r'''
+import 'lib.dart';
+const a = const A();
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
   }
 
   test_constConstructor_redirect_generic() async {
@@ -1545,9 +1552,7 @@ f() {
 
   test_constWithNonType_fromLibrary() async {
     Source source1 = addNamedSource("/lib.dart", "");
-    Source source2 = addNamedSource(
-        "/lib2.dart",
-        r'''
+    Source source2 = addNamedSource("/lib2.dart", r'''
 import 'lib.dart' as lib;
 void f() {
   const lib.A();
@@ -1654,6 +1659,23 @@ class B implements A {
     verify([source]);
   }
 
+  test_deferredImportWithInvalidUri() async {
+    Source source = addSource(r'''
+import '[invalid uri]' deferred as p;
+main() {
+  p.loadLibrary();
+}''');
+    await computeAnalysisResult(source);
+    if (enableNewAnalysisDriver) {
+      assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+        StaticWarningCode.UNDEFINED_IDENTIFIER
+      ]);
+    }
+  }
+
   test_duplicateConstructorName_named() async {
     Source source = addSource(r'''
 class A {
@@ -1683,22 +1705,16 @@ class A {
   }
 
   test_duplicateDefinition_acrossLibraries() async {
-    Source librarySource = addNamedSource(
-        "/lib.dart",
-        r'''
+    Source librarySource = addNamedSource("/lib.dart", r'''
 library lib;
 
 part 'a.dart';
 part 'b.dart';''');
-    Source sourceA = addNamedSource(
-        "/a.dart",
-        r'''
+    Source sourceA = addNamedSource("/a.dart", r'''
 part of lib;
 
 class A {}''');
-    Source sourceB = addNamedSource(
-        "/b.dart",
-        r'''
+    Source sourceB = addNamedSource("/b.dart", r'''
 part of lib;
 
 class A {}''');
@@ -1754,15 +1770,11 @@ class A {
   }
 
   test_duplicateDefinition_inPart() async {
-    Source librarySource = addNamedSource(
-        "/lib.dart",
-        r'''
+    Source librarySource = addNamedSource("/lib.dart", r'''
 library test;
 part 'a.dart';
 class A {}''');
-    Source sourceA = addNamedSource(
-        "/a.dart",
-        r'''
+    Source sourceA = addNamedSource("/a.dart", r'''
 part of test;
 class A {}''');
     await computeAnalysisResult(librarySource);
@@ -2518,29 +2530,6 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);''');
     verify([source]);
   }
 
-  test_genericFunctionTypedParameter_commentSyntax() async {
-    // Once dartbug.com/28515 is fixed, this syntax should no longer generate an
-    // error.
-    // TODO(paulberry): When dartbug.com/28515 is fixed, convert this into a
-    // NonErrorResolverTest.
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
-    Source source = addSource('void g(/*=T*/ f/*<T>*/(/*=T*/ x)) {}');
-    await computeAnalysisResult(source);
-    var expectedErrorCodes = <ErrorCode>[
-      CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED
-    ];
-    if (enableNewAnalysisDriver) {
-      // Due to dartbug.com/28515, some additional errors appear when using the
-      // new analysis driver.
-      expectedErrorCodes.addAll([
-        StaticWarningCode.UNDEFINED_CLASS,
-        StaticWarningCode.UNDEFINED_CLASS
-      ]);
-    }
-    assertErrors(source, expectedErrorCodes);
-    verify([source]);
-  }
-
   test_getterAndMethodWithSameName() async {
     Source source = addSource(r'''
 class A {
@@ -2898,9 +2887,7 @@ class B extends A {
 library lib;
 import 'part.dart';
 A a;''');
-    addNamedSource(
-        "/part.dart",
-        r'''
+    addNamedSource("/part.dart", r'''
 part of lib;
 class A{}''');
     await computeAnalysisResult(source);
@@ -3174,9 +3161,7 @@ main() {
   }
 
   test_invalidAnnotation_importWithPrefix_getter() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 get V => 0;''');
     Source source = addSource(r'''
@@ -3190,9 +3175,7 @@ main() {
   }
 
   test_invalidAnnotation_importWithPrefix_notConstantVariable() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 final V = 0;''');
     Source source = addSource(r'''
@@ -3206,9 +3189,7 @@ main() {
   }
 
   test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 typedef V();''');
     Source source = addSource(r'''
@@ -4823,15 +4804,11 @@ var b = const B();''');
 
   test_nonConstValueInInitializer_instanceCreation_inDifferentFile() async {
     resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
-    Source source = addNamedSource(
-        '/a.dart',
-        r'''
+    Source source = addNamedSource('/a.dart', r'''
 import 'b.dart';
 const v = const MyClass();
 ''');
-    addNamedSource(
-        '/b.dart',
-        r'''
+    addNamedSource('/b.dart', r'''
 class MyClass {
   const MyClass([p = foo]);
 }
@@ -5106,9 +5083,7 @@ f() {
   }
 
   test_prefix_conditionalPropertyAccess_call() async {
-    addNamedSource(
-        '/lib.dart',
-        '''
+    addNamedSource('/lib.dart', '''
 library lib;
 g() {}
 ''');
@@ -5125,9 +5100,7 @@ f() {
   }
 
   test_prefix_conditionalPropertyAccess_call_loadLibrary() async {
-    addNamedSource(
-        '/lib.dart',
-        '''
+    addNamedSource('/lib.dart', '''
 library lib;
 ''');
     Source source = addSource('''
@@ -5143,9 +5116,7 @@ f() {
   }
 
   test_prefix_conditionalPropertyAccess_get() async {
-    addNamedSource(
-        '/lib.dart',
-        '''
+    addNamedSource('/lib.dart', '''
 library lib;
 var x;
 ''');
@@ -5162,9 +5133,7 @@ f() {
   }
 
   test_prefix_conditionalPropertyAccess_get_loadLibrary() async {
-    addNamedSource(
-        '/lib.dart',
-        '''
+    addNamedSource('/lib.dart', '''
 library lib;
 ''');
     Source source = addSource('''
@@ -5180,9 +5149,7 @@ f() {
   }
 
   test_prefix_conditionalPropertyAccess_set() async {
-    addNamedSource(
-        '/lib.dart',
-        '''
+    addNamedSource('/lib.dart', '''
 library lib;
 var x;
 ''');
@@ -5199,9 +5166,7 @@ f() {
   }
 
   test_prefix_conditionalPropertyAccess_set_loadLibrary() async {
-    addNamedSource(
-        '/lib.dart',
-        '''
+    addNamedSource('/lib.dart', '''
 library lib;
 ''');
     Source source = addSource('''
@@ -5247,9 +5212,7 @@ f() {
   }
 
   test_prefixCollidesWithTopLevelMembers_functionTypeAlias() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 class A{}''');
     Source source = addSource(r'''
@@ -5263,9 +5226,7 @@ p.A a;''');
   }
 
   test_prefixCollidesWithTopLevelMembers_topLevelFunction() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 class A{}''');
     Source source = addSource(r'''
@@ -5279,9 +5240,7 @@ p.A a;''');
   }
 
   test_prefixCollidesWithTopLevelMembers_topLevelVariable() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 class A{}''');
     Source source = addSource(r'''
@@ -5295,9 +5254,7 @@ p.A a;''');
   }
 
   test_prefixCollidesWithTopLevelMembers_type() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 class A{}''');
     Source source = addSource(r'''
@@ -5339,9 +5296,7 @@ f() {
   }
 
   test_prefixNotFollowedByDot_conditionalMethodInvocation() async {
-    addNamedSource(
-        '/lib.dart',
-        '''
+    addNamedSource('/lib.dart', '''
 library lib;
 g() {}
 ''');
@@ -6650,9 +6605,7 @@ class A {
 
   Future<Null> _privateCollisionInMixinApplicationTest(String testCode) async {
     resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
-    addNamedSource(
-        '/lib1.dart',
-        '''
+    addNamedSource('/lib1.dart', '''
 class A {
   int _x;
 }

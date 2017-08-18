@@ -9,9 +9,9 @@ define(['dart_sdk'], function(dart_sdk) {
   (unresolved_names.C.new = function() {
   }).prototype = unresolved_names.C.prototype;
   unresolved_names.main = function() {
-    new (dart.throw(Error("compile error: unresolved constructor: " + "dynamic" + "." + "<unnamed>")))();
-    new (dart.throw(Error("compile error: unresolved constructor: " + "C" + "." + "bar")))();
-    core.print(dart.throw(Error("compile error: unresolved identifier: " + "baz")));
+    new (dart.throw(Error("compile error: unresolved constructor: dynamic.<unnamed>")))();
+    new (dart.throw(Error("compile error: unresolved constructor: C.bar")))();
+    core.print(dart.throw(Error("compile error: unresolved identifier: baz")));
     core.print(dart.dload(unresolved_names.C, 'quux'));
   };
   dart.fn(unresolved_names.main, VoidTodynamic());

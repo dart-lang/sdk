@@ -228,7 +228,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
     if (!enqueuer.queueIsEmpty) return false;
 
-    if (_options.useKernel) {
+    if (!_options.useKernel && _options.useKernelInSsa) {
       _kernelTask?.buildKernelIr();
     }
 

@@ -37,7 +37,6 @@ FlowGraphCompiler::~FlowGraphCompiler() {
   }
 }
 
-
 bool FlowGraphCompiler::SupportsUnboxedDoubles() {
 #if defined(ARCH_IS_64_BIT)
   return true;
@@ -47,38 +46,31 @@ bool FlowGraphCompiler::SupportsUnboxedDoubles() {
 #endif
 }
 
-
 bool FlowGraphCompiler::SupportsUnboxedMints() {
   return false;
 }
-
 
 bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   return false;
 }
 
-
 bool FlowGraphCompiler::SupportsHardwareDivision() {
   return true;
 }
 
-
 bool FlowGraphCompiler::CanConvertUnboxedMintToDouble() {
   return false;
 }
-
 
 void FlowGraphCompiler::EnterIntrinsicMode() {
   ASSERT(!intrinsic_mode());
   intrinsic_mode_ = true;
 }
 
-
 void FlowGraphCompiler::ExitIntrinsicMode() {
   ASSERT(intrinsic_mode());
   intrinsic_mode_ = false;
 }
-
 
 RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder,
@@ -166,7 +158,6 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   builder->AddPcMarker(previous->function(), slot_ix++);
   builder->AddConstant(previous->function(), slot_ix++);
 
-
   // For the outermost environment, set the incoming arguments.
   for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
     builder->AddCopy(previous->ValueAt(i), previous->LocationAt(i), slot_ix++);
@@ -174,7 +165,6 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   return builder->CreateDeoptInfo(deopt_table);
 }
-
 
 void FlowGraphCompiler::RecordAfterCallHelper(TokenPosition token_pos,
                                               intptr_t deopt_id,
@@ -204,21 +194,17 @@ void FlowGraphCompiler::RecordAfterCallHelper(TokenPosition token_pos,
   }
 }
 
-
 void FlowGraphCompiler::RecordAfterCall(Instruction* instr, CallResult result) {
   RecordAfterCallHelper(instr->token_pos(), instr->deopt_id(),
                         instr->ArgumentCount(), result, instr->locs());
 }
-
 
 void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
                                              intptr_t stub_ix) {
   UNREACHABLE();
 }
 
-
 #define __ assembler()->
-
 
 void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
                                                  intptr_t deopt_id,
@@ -279,7 +265,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   }
 }
 
-
 void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   if (!is_optimizing()) {
     Definition* defn = instr->AsDefinition();
@@ -294,7 +279,6 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   }
 }
 
-
 void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   __ Move(0, -(1 + kParamEndSlotFromFp));
   ASSERT(offset % kWordSize == 0);
@@ -306,7 +290,6 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   }
   __ Return(0);
 }
-
 
 void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   __ Move(0, -(2 + kParamEndSlotFromFp));
@@ -321,7 +304,6 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   __ LoadConstant(0, Object::Handle());
   __ Return(0);
 }
-
 
 void FlowGraphCompiler::EmitFrameEntry() {
   const Function& function = parsed_function().function();
@@ -388,7 +370,6 @@ void FlowGraphCompiler::EmitFrameEntry() {
     }
   }
 
-
   if (has_optional_params) {
     if (!is_optimizing()) {
       ASSERT(num_locals > 0);  // There is always at least context_var.
@@ -400,14 +381,22 @@ void FlowGraphCompiler::EmitFrameEntry() {
     }
   }
 
+  const bool has_type_arguments =
+      FLAG_reify_generic_functions && function.IsGeneric();
   if (function.IsClosureFunction()) {
     // In optimized mode the register allocator expects CurrentContext in the
-    // flow_graph_.num_copied_params() register at function entry.
+    // flow_graph_.num_copied_params() register at function entry, unless that
+    // register is used for function type arguments, either as their
+    // permanent location or as their temporary location when captured.
+    // In that case, the next register holds CurrentContext.
     // (see FlowGraphAllocator::ProcessInitialDefinition)
     Register context_reg =
-        is_optimizing() ? flow_graph_.num_copied_params() : context_index;
+        is_optimizing()
+            ? (has_type_arguments ? flow_graph_.num_copied_params() + 1
+                                  : flow_graph_.num_copied_params())
+            : context_index;
     LocalScope* scope = parsed_function().node_sequence()->scope();
-    LocalVariable* local = scope->VariableAt(0);
+    LocalVariable* local = scope->VariableAt(0);  // Closure instance receiver.
 
     Register closure_reg;
     if (local->index() > 0) {
@@ -423,12 +412,16 @@ void FlowGraphCompiler::EmitFrameEntry() {
   }
 
   // Check for a passed type argument vector if the function is generic.
-  if (FLAG_reify_generic_functions && function.IsGeneric()) {
-    __ Comment("Check passed-in type args");
-    UNIMPLEMENTED();  // TODO(regis): Not yet supported.
+  if (has_type_arguments && !flow_graph().IsCompiledForOsr()) {
+    ASSERT(-parsed_function().first_stack_local_index() - 1 ==
+           flow_graph_.num_copied_params());
+    __ CheckFunctionTypeArgs(function.NumTypeParameters(),
+                             flow_graph_.num_copied_params());
   }
-}
 
+  // TODO(regis): Verify that no vector is passed if not generic, unless already
+  // checked during resolution.
+}
 
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
@@ -442,7 +435,6 @@ void FlowGraphCompiler::CompileGraph() {
   VisitBlocks();
 }
 
-
 uint16_t FlowGraphCompiler::ToEmbeddableCid(intptr_t cid,
                                             Instruction* instruction) {
   if (!Utils::IsUint(16, cid)) {
@@ -452,7 +444,6 @@ uint16_t FlowGraphCompiler::ToEmbeddableCid(intptr_t cid,
   return static_cast<uint16_t>(cid);
 }
 
-
 intptr_t FlowGraphCompiler::CatchEntryRegForVariable(const LocalVariable& var) {
   ASSERT(is_optimizing());
   ASSERT(var.index() <= 0);
@@ -460,10 +451,8 @@ intptr_t FlowGraphCompiler::CatchEntryRegForVariable(const LocalVariable& var) {
          (flow_graph().num_non_copied_params() - var.index());
 }
 
-
 #undef __
 #define __ compiler_->assembler()->
-
 
 void ParallelMoveResolver::EmitMove(int index) {
   MoveOperands* move = moves_[index];
@@ -497,7 +486,6 @@ void ParallelMoveResolver::EmitMove(int index) {
   move->Eliminate();
 }
 
-
 void ParallelMoveResolver::EmitSwap(int index) {
   MoveOperands* move = moves_[index];
   const Location source = move->src();
@@ -522,17 +510,14 @@ void ParallelMoveResolver::EmitSwap(int index) {
   }
 }
 
-
 void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
                                               const Address& src) {
   UNREACHABLE();
 }
 
-
 void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
   UNREACHABLE();
 }
-
 
 // Do not call or implement this function. Instead, use the form below that
 // uses an offset from the frame pointer instead of an Address.
@@ -540,20 +525,17 @@ void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {
   UNREACHABLE();
 }
 
-
 // Do not call or implement this function. Instead, use the form below that
 // uses offsets from the frame pointer instead of Addresses.
 void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
   UNREACHABLE();
 }
 
-
 void ParallelMoveResolver::Exchange(Register reg,
                                     Register base_reg,
                                     intptr_t stack_offset) {
   UNIMPLEMENTED();
 }
-
 
 void ParallelMoveResolver::Exchange(Register base_reg1,
                                     intptr_t stack_offset1,
@@ -562,26 +544,21 @@ void ParallelMoveResolver::Exchange(Register base_reg1,
   UNIMPLEMENTED();
 }
 
-
 void ParallelMoveResolver::SpillScratch(Register reg) {
   UNIMPLEMENTED();
 }
-
 
 void ParallelMoveResolver::RestoreScratch(Register reg) {
   UNIMPLEMENTED();
 }
 
-
 void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
   UNIMPLEMENTED();
 }
 
-
 void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
   UNIMPLEMENTED();
 }
-
 
 #undef __
 

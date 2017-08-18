@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
 #include "vm/object_graph.h"
+#include "platform/assert.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -37,7 +37,6 @@ class CounterVisitor : public ObjectGraph::Visitor {
   RawObject* expected_parent_;
 };
 
-
 ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
   Isolate* isolate = thread->isolate();
   // Create a simple object graph with objects a, b, c, d:
@@ -59,7 +58,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
   intptr_t d_size = d.raw()->Size();
   {
     // No more allocation; raw pointers ahead.
-    NoSafepointScope no_safepoint_scope;
+    SafepointOperationScope safepoint(thread);
     RawObject* b_raw = b.raw();
     // Clear handles to cut unintended retained paths.
     b = Array::null();
@@ -67,7 +66,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
     d = Array::null();
     ObjectGraph graph(thread);
     {
-      HeapIterationScope iteration_scope(true);
+      HeapIterationScope iteration_scope(thread, true);
       {
         // Compare count and size when 'b' is/isn't skipped.
         CounterVisitor with(Object::null(), Object::null());

@@ -14,9 +14,11 @@ import 'package:compiler/src/common/work.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend.dart';
+import 'package:compiler/src/js_backend/backend_impact.dart';
 import 'package:compiler/src/js_backend/backend_usage.dart';
 import 'package:compiler/src/js_backend/interceptor_data.dart';
 import 'package:compiler/src/js_backend/resolution_listener.dart';
+import 'package:compiler/src/js_backend/runtime_types.dart';
 import 'package:compiler/src/js_backend/type_variable_handler.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/world_builder.dart';
@@ -73,7 +75,7 @@ main(List<String> args) {
         memorySourceFiles: memorySourceFiles,
         options: [
           Flags.analyzeOnly,
-          Flags.useKernel,
+          Flags.useKernelInSsa,
           Flags.enableAssertMessage
         ]);
     ElementResolutionWorldBuilder.useInstantiationMap = true;
@@ -88,6 +90,7 @@ main(List<String> args) {
     ResolutionEnqueuerListener resolutionEnqueuerListener = list[0];
     BackendUsageBuilder backendUsageBuilder = list[1];
     InterceptorDataBuilder interceptorDataBuilder = list[2];
+    RuntimeTypesNeedBuilder rtiNeedBuilder = list[3];
     ResolutionEnqueuer enqueuer = new ResolutionEnqueuer(
         compiler.enqueuer,
         compiler.options,
@@ -97,10 +100,12 @@ main(List<String> args) {
         new ElementResolutionWorldBuilder(
             backend,
             compiler.resolution,
-            backend.nativeBasicData,
+            compiler.frontendStrategy.nativeBasicData,
             backend.nativeDataBuilder,
             interceptorDataBuilder,
             backendUsageBuilder,
+            rtiNeedBuilder,
+            backend.nativeResolutionEnqueuerForTesting,
             const OpenWorldStrategy()),
         new KernelTestWorkItemBuilder(compiler),
         'enqueuer from kernel');
@@ -127,18 +132,22 @@ List createResolutionEnqueuerListener(Compiler compiler) {
       new BackendUsageBuilderImpl(compiler.frontendStrategy.commonElements);
   InterceptorDataBuilder interceptorDataBuilder =
       new InterceptorDataBuilderImpl(
-          backend.nativeBasicData,
+          compiler.frontendStrategy.nativeBasicData,
           compiler.frontendStrategy.elementEnvironment,
           compiler.frontendStrategy.commonElements);
+  RuntimeTypesNeedBuilder rtiNeedBuilder =
+      compiler.frontendStrategy.createRuntimeTypesNeedBuilder();
+  BackendImpacts impacts = new BackendImpacts(
+      compiler.options, compiler.frontendStrategy.commonElements);
   ResolutionEnqueuerListener listener = new ResolutionEnqueuerListener(
       compiler.options,
       compiler.frontendStrategy.elementEnvironment,
       compiler.frontendStrategy.commonElements,
-      backend.impacts,
-      backend.nativeBasicData,
+      impacts,
+      compiler.frontendStrategy.nativeBasicData,
       interceptorDataBuilder,
       backendUsageBuilder,
-      backend.rtiNeedBuilder,
+      rtiNeedBuilder,
       backend.mirrorsDataBuilder,
       backend.noSuchMethodRegistry,
       backend.customElementsResolutionAnalysis,
@@ -146,12 +155,17 @@ List createResolutionEnqueuerListener(Compiler compiler) {
       backend.mirrorsResolutionAnalysis,
       new TypeVariableResolutionAnalysis(
           compiler.frontendStrategy.elementEnvironment,
-          backend.impacts,
+          impacts,
           backendUsageBuilder),
       backend.nativeResolutionEnqueuerForTesting,
       compiler.deferredLoadTask,
       backend.kernelTask);
-  return [listener, backendUsageBuilder, interceptorDataBuilder];
+  return [
+    listener,
+    backendUsageBuilder,
+    interceptorDataBuilder,
+    rtiNeedBuilder
+  ];
 }
 
 ClosedWorld computeClosedWorld(DiagnosticReporter reporter,

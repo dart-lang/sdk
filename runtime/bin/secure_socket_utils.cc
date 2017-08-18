@@ -45,7 +45,6 @@ void SecureSocketUtils::FetchErrorString(const SSL* ssl,
   }
 }
 
-
 // Handle an error reported from the BoringSSL library.
 void SecureSocketUtils::ThrowIOException(int status,
                                          const char* exception_type,
@@ -65,7 +64,6 @@ void SecureSocketUtils::ThrowIOException(int status,
   UNREACHABLE();
 }
 
-
 void SecureSocketUtils::CheckStatusSSL(int status,
                                        const char* type,
                                        const char* message,
@@ -84,7 +82,6 @@ void SecureSocketUtils::CheckStatusSSL(int status,
   }
   SecureSocketUtils::ThrowIOException(status, type, message, ssl);
 }
-
 
 void SecureSocketUtils::CheckStatus(int status,
                                     const char* type,

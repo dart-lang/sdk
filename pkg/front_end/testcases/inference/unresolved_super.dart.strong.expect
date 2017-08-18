@@ -1,0 +1,19 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method test() → void {
+    dynamic v1 = super.foo(self::f<dynamic>());
+    dynamic v2 = super.bar;
+    dynamic v3 = super.[](0);
+    dynamic v4 = super.bar = self::f<dynamic>();
+    dynamic v5 = let final dynamic #t1 = 0 in let final dynamic #t2 = self::f<dynamic>() in let final dynamic #t3 = super.[]=(#t1, #t2) in #t2;
+  }
+}
+static method f<T extends core::Object>() → self::f::T
+  return null;
+static method main() → dynamic {}

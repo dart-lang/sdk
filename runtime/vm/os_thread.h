@@ -48,7 +48,6 @@ class BaseThread {
   DISALLOW_IMPLICIT_CONSTRUCTORS(BaseThread);
 };
 
-
 // Low-level operations on OS platform threads.
 class OSThread : public BaseThread {
  public:
@@ -255,7 +254,6 @@ class OSThread : public BaseThread {
   friend class ThreadInterrupterFuchsia;
 };
 
-
 // Note that this takes the thread list lock, prohibiting threads from coming
 // on- or off-line.
 class OSThreadIterator : public ValueObject {
@@ -272,7 +270,6 @@ class OSThreadIterator : public ValueObject {
  private:
   OSThread* next_;
 };
-
 
 class Mutex {
  public:
@@ -310,7 +307,6 @@ class Mutex {
   friend void Dart_TestMutex();
   DISALLOW_COPY_AND_ASSIGN(Mutex);
 };
-
 
 class Monitor {
  public:
@@ -356,8 +352,6 @@ class Monitor {
   DISALLOW_COPY_AND_ASSIGN(Monitor);
 };
 
-
 }  // namespace dart
-
 
 #endif  // RUNTIME_VM_OS_THREAD_H_

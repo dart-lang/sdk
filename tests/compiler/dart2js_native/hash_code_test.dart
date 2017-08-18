@@ -15,15 +15,18 @@ class B {
 makeA() native;
 makeB() native;
 
-void setup() native """
-function A() {}
-function B() {}
-makeA = function(){return new A;};
-makeB = function(){return new B;};
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {}
+  function B() {}
+  makeA = function(){return new A()};
+  makeB = function(){return new B()};
 
-self.nativeConstructor(A);
-self.nativeConstructor(B);
-""";
+  self.nativeConstructor(A);
+  self.nativeConstructor(B);
+})()""");
+}
 
 main() {
   nativeTesting();

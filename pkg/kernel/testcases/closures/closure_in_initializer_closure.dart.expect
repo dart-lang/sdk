@@ -5,30 +5,28 @@ import "dart:core" as core;
 class C extends core::Object {
   field dynamic t;
   constructor foo(dynamic f) → void
-    : self::C::t = let final Vector #context = MakeVector(2) in let dynamic #t1 = #context[1] = f in MakeClosure<() → dynamic>(self::closure#C#foo#function, #context), super core::Object::•() {
-    final Vector #context = MakeVector(2);
-    #context[1] = f;
+    : final Vector #context = MakeVector(3), dynamic #t1 = #context[2] = f, self::C::t = MakeClosure<() → dynamic>(self::closure#C#foo#function, #context), super core::Object::•() {
     core::print(1);
   }
 }
 static method main() → dynamic {
   core::print(0);
-  dynamic c = new self::C::foo(MakeClosure<(dynamic) → void>(self::closure#main#function, null));
+  dynamic c = new self::C::foo(MakeClosure<(dynamic) → dynamic>(self::closure#main#function, null));
   core::print(2);
   c.t().call("fisk");
   core::print(3);
 }
 static method closure#C#foo#function#function(Vector #contextParameter, dynamic x) → dynamic {
-  (#contextParameter[0][1]).call("${#contextParameter[1]}${x}");
+  (#contextParameter[1][2]).call("${#contextParameter[2]}${x}");
 }
 static method closure#C#foo#function(Vector #contextParameter) → dynamic {
-  final Vector #context = MakeVector(2);
-  #context[0] = #contextParameter;
-  #context[1] = null;
+  final Vector #context = MakeVector(3);
+  #context[1] = #contextParameter;
+  #context[2] = null;
   dynamic g = MakeClosure<(dynamic) → dynamic>(self::closure#C#foo#function#function, #context);
-  #context[1] = "hest";
+  #context[2] = "hest";
   return g;
 }
-static method closure#main#function(Vector #contextParameter, dynamic x) → void {
+static method closure#main#function(Vector #contextParameter, dynamic x) → dynamic {
   return core::print(x);
 }

@@ -9,14 +9,10 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * Checks to see if Indexed DB is supported on the current platform.
    */
   static bool get supported {
-$if DARTIUM
-    return true;
-$else
     return JS('bool',
         '!!(window.indexedDB || '
         'window.webkitIndexedDB || '
         'window.mozIndexedDB)');
-$endif
   }
 
   @DomName('IDBFactory.open')
@@ -84,12 +80,8 @@ $endif
    * Checks to see if getDatabaseNames is supported by the current platform.
    */
   bool get supportsDatabaseNames {
-$if DART2JS
     return supported && JS('bool',
         '!!(#.getDatabaseNames || #.webkitGetDatabaseNames)', this, this);
-$else
-    return true;
-$endif
   }
 
 $!MEMBERS

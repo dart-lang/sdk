@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   abstract method f(core::int x, core::int y) → core::int;
@@ -11,7 +11,7 @@ abstract class A extends core::Object {
   abstract method h(core::int x, {core::int y = null}) → core::int;
 }
 abstract class B extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   abstract method f(core::int x) → core::int;
@@ -19,7 +19,7 @@ abstract class B extends core::Object {
   abstract method h(core::int x) → core::int;
 }
 abstract class C extends core::Object implements self::A, self::B {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   abstract method f(core::int x, dynamic y) → core::int;

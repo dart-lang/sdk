@@ -5,22 +5,25 @@
 import 'dart:io';
 
 import 'configuration.dart';
-import 'drt_updater.dart';
 import 'path.dart';
+import 'runtime_updater.dart';
 import 'utils.dart';
 
 const _defaultTestSelectors = const [
   'samples',
   'standalone',
   'corelib',
+  'corelib_2',
   'co19',
   'language',
+  'language_2',
   'isolate',
   'vm',
   'html',
   'benchmark_smoke',
   'utils',
   'lib',
+  'lib_2',
   'analyze_library',
   'service',
   'kernel',
@@ -127,12 +130,8 @@ jsshell:          Run JavaScript from the command line using
 drt:              Run Dart or JavaScript in the headless version
                   of Chrome, Content shell.
 
-dartium:          Run Dart or JavaScript in Dartium.
-
-ContentShellOnAndroid: Run Dart or JavaScript in Dartium content
-                  shell on Android.
-
-DartiumOnAndroid: Run Dart or Javascript in Dartium on Android.
+ContentShellOnAndroid: Run Dart or JavaScript in content shell
+                  on Android.
 
 ff:
 chrome:
@@ -177,8 +176,12 @@ simdbc, simdbc64''',
         'csp', 'Run tests under Content Security Policy restrictions.'),
     new _Option.bool(
         'fast_startup', 'Pass the --fast-startup flag to dart2js.'),
-    new _Option.bool('dart2js_with_kernel',
-        'Enable the internal pipeline in dart2js to use kernel.'),
+    new _Option.bool('enable_asserts',
+        'Pass the --enable-asserts flag to dart2js or to the vm.'),
+    new _Option.bool(
+        'dart2js_with_kernel', 'Pass the --use-kernel flag to dart2js.'),
+    new _Option.bool('dart2js_with_kernel_in_ssa',
+        'Pass the --use-kernel-in-ssa flag to dart2js.'),
     new _Option.bool('hot_reload', 'Run hot reload stress tests.'),
     new _Option.bool(
         'hot_reload_rollback', 'Run hot reload rollback stress tests.'),
@@ -217,13 +220,10 @@ compact, color, line, verbose, silent, status, buildbot, diff
     new _Option('dart', 'Path to dart executable.'),
     new _Option('flutter', 'Path to flutter executable.'),
     new _Option('drt', 'Path to content shell executable.'),
-    new _Option('dartium', 'Path to Dartium Chrome executable.'),
     new _Option('firefox', 'Path to firefox browser executable.'),
     new _Option('chrome', 'Path to chrome browser executable.'),
     new _Option('safari', 'Path to safari browser executable.'),
-    new _Option.bool(
-        'use_sdk',
-        '''Use compiler or runtime from the SDK.
+    new _Option.bool('use_sdk', '''Use compiler or runtime from the SDK.
 
 Normally, the compiler or runtimes in PRODUCT_DIR is tested, with
 this option, the compiler or runtime in PRODUCT_DIR/dart-sdk/bin
@@ -241,14 +241,12 @@ is tested.
         'Don\'t write debug messages to stdout but rather to a logfile.'),
     new _Option.bool('write_test_outcome_log',
         'Write test outcomes to a "${TestUtils.testOutcomeFileName}" file.'),
-    new _Option.bool(
-        'reset_browser_configuration',
+    new _Option.bool('reset_browser_configuration',
         '''Browser specific reset of configuration.
 
 Warning: Using this option may remove your bookmarks and other
 settings.'''),
-    new _Option.bool(
-        'copy_coredumps',
+    new _Option.bool('copy_coredumps',
         '''If we see a crash that we did not expect, copy the core dumps to
 "/tmp".'''),
     new _Option(
@@ -266,8 +264,7 @@ used for browsers to connect to.''',
     new _Option.int(
         'test_driver_error_port', 'Port for http test driver server errors.',
         defaultsTo: 0),
-    new _Option(
-        'builder_tag',
+    new _Option('builder_tag',
         '''Machine specific options that is not captured by the regular test
 options. Used to be able to make sane updates to the status files.'''),
     new _Option('vm_options', 'Extra options to send to the vm when running.'),
@@ -277,13 +274,10 @@ options. Used to be able to make sane updates to the status files.'''),
         'suite_dir', 'Additional directory to add to the testing matrix.'),
     new _Option('package_root', 'The package root to use for testing.'),
     new _Option('packages', 'The package spec file to use for testing.'),
-    new _Option(
-        'exclude_suite',
+    new _Option('exclude_suite',
         '''Exclude suites from default selector, only works when no selector
 has been specified on the command line.'''),
-    new _Option.bool(
-        'skip_compilation',
-        '''
+    new _Option.bool('skip_compilation', '''
 Skip the compilation step, using the compilation artifacts left in
 the output folder from a previous run. This flag will often cause
 false positves and negatives, but can be useful for quick and
@@ -300,7 +294,6 @@ compiler.''')
     'copy_coredumps',
     'dart',
     'flutter',
-    'dartium',
     'drt',
     'exclude_suite',
     'firefox',
@@ -547,11 +540,9 @@ compiler.''')
     for (var runtimeName in (data["runtime"] as String).split(",")) {
       var runtime = Runtime.find(runtimeName);
 
-      // Install the runtime if needed.
-      var updater = runtimeUpdater(
-          runtime, data["drt"] as String, data["dartium"] as String);
-      if (updater != null) {
-        updater.update();
+      // Start installing the runtime if needed.
+      if (runtime == Runtime.drt && !(data["list"] as bool)) {
+        updateContentShell(data["drt"] as String);
       }
 
       // Expand architectures.
@@ -603,11 +594,13 @@ compiler.''')
                 useBlobs: data["use_blobs"] as bool,
                 useSdk: data["use_sdk"] as bool,
                 useFastStartup: data["fast_startup"] as bool,
+                useEnableAsserts: data["enable_asserts"] as bool,
                 useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
+                useDart2JSWithKernelInSsa:
+                    data["dart2js_with_kernel_in_ssa"] as bool,
                 writeDebugLog: data["write_debug_log"] as bool,
                 writeTestOutcomeLog: data["write_test_outcome_log"] as bool,
                 drtPath: data["drt"] as String,
-                dartiumPath: data["dartium"] as String,
                 chromePath: data["chrome"] as String,
                 safariPath: data["safari"] as String,
                 firefoxPath: data["firefox"] as String,

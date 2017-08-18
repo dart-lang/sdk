@@ -9,7 +9,7 @@
 
 #include "bin/socket.h"
 
-#include <errno.h>        // NOLINT
+#include <errno.h>  // NOLINT
 
 #include "bin/fdutils.h"
 #include "platform/signal_blocker.h"
@@ -20,11 +20,9 @@ namespace bin {
 Socket::Socket(intptr_t fd)
     : ReferenceCounted(), fd_(fd), port_(ILLEGAL_PORT) {}
 
-
 void Socket::SetClosedFd() {
   fd_ = kClosedFd;
 }
-
 
 static intptr_t Create(const RawAddr& addr) {
   intptr_t fd;
@@ -36,7 +34,6 @@ static intptr_t Create(const RawAddr& addr) {
   return fd;
 }
 
-
 static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   intptr_t result = TEMP_FAILURE_RETRY(
       connect(fd, &addr.addr, SocketAddress::GetAddrLength(addr)));
@@ -47,7 +44,6 @@ static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   return -1;
 }
 
-
 intptr_t Socket::CreateConnect(const RawAddr& addr) {
   intptr_t fd = Create(addr);
   if (fd < 0) {
@@ -55,7 +51,6 @@ intptr_t Socket::CreateConnect(const RawAddr& addr) {
   }
   return Connect(fd, addr);
 }
-
 
 intptr_t Socket::CreateBindConnect(const RawAddr& addr,
                                    const RawAddr& source_addr) {
@@ -73,7 +68,6 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
 
   return Connect(fd, addr);
 }
-
 
 intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
   intptr_t fd;
@@ -98,7 +92,6 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
   }
   return fd;
 }
-
 
 intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
                                         intptr_t backlog,
@@ -145,12 +138,10 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
   return fd;
 }
 
-
 bool ServerSocket::StartAccept(intptr_t fd) {
   USE(fd);
   return true;
 }
-
 
 static bool IsTemporaryAcceptError(int error) {
   // On Linux a number of protocol errors should be treated as EAGAIN.
@@ -160,7 +151,6 @@ static bool IsTemporaryAcceptError(int error) {
          (error == EHOSTUNREACH) || (error == EOPNOTSUPP) ||
          (error == ENETUNREACH);
 }
-
 
 intptr_t ServerSocket::Accept(intptr_t fd) {
   intptr_t socket;

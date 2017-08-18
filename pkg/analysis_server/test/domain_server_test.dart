@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -19,9 +20,10 @@ import 'mocks.dart';
 main() {
   AnalysisServer server;
   ServerDomainHandler handler;
+  MockServerChannel serverChannel;
 
   setUp(() {
-    var serverChannel = new MockServerChannel();
+    serverChannel = new MockServerChannel();
     var resourceProvider = new MemoryResourceProvider();
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
@@ -30,7 +32,6 @@ main() {
         serverChannel,
         resourceProvider,
         new MockPackageMapProvider(),
-        null,
         serverPlugin,
         new AnalysisServerOptions(),
         new DartSdkManager('', false),
@@ -52,7 +53,7 @@ main() {
 
     group('setSubscriptions', () {
       test('invalid service name', () {
-        Request request = new Request('0', SERVER_SET_SUBSCRIPTIONS, {
+        Request request = new Request('0', SERVER_REQUEST_SET_SUBSCRIPTIONS, {
           SUBSCRIPTIONS: ['noSuchService']
         });
         var response = handler.handleRequest(request);
@@ -72,12 +73,13 @@ main() {
       });
     });
 
-    test('shutdown', () {
+    test('shutdown', () async {
       expect(server.running, isTrue);
       // send request
       var request = new ServerShutdownParams().toRequest('0');
-      var response = handler.handleRequest(request);
+      var response = await serverChannel.sendRequest(request);
       expect(response, isResponseSuccess('0'));
+
       // server is down
       expect(server.running, isFalse);
     });

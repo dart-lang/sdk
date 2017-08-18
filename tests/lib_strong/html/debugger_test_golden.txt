@@ -353,6 +353,34 @@ Value:
             {
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
+            "==: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
             "add: "
         ],
         [
@@ -1910,6 +1938,34 @@ Value:
                     "style": ""
                 },
                 "[[Instance Methods]]"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "==: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
             ]
         ]
     ],

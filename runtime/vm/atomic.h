@@ -8,7 +8,6 @@
 #include "platform/globals.h"
 
 #include "vm/allocation.h"
-#include "vm/simulator.h"
 
 namespace dart {
 
@@ -16,37 +15,23 @@ class AtomicOperations : public AllStatic {
  public:
   // Atomically fetch the value at p and increment the value at p.
   // Returns the original value at p.
-  //
-  // NOTE: Not to be used for any atomic operations involving memory locations
-  // that are accessed by generated code.
   static uintptr_t FetchAndIncrement(uintptr_t* p);
   static intptr_t FetchAndIncrement(intptr_t* p);
 
   // Atomically increment the value at p by 'value'.
-  //
-  // NOTE: Not to be used for any atomic operations involving memory locations
-  // that are accessed by generated code.
   static void IncrementBy(intptr_t* p, intptr_t value);
   static void IncrementInt64By(int64_t* p, int64_t value);
 
   // Atomically fetch the value at p and decrement the value at p.
   // Returns the original value at p.
-  //
-  // NOTE: Not to be used for any atomic operations involving memory locations
-  // that are accessed by generated code.
   static uintptr_t FetchAndDecrement(uintptr_t* p);
   static intptr_t FetchAndDecrement(intptr_t* p);
 
   // Atomically decrement the value at p by 'value'.
-  //
-  // NOTE: Not to be used for any atomic operations involving memory locations
-  // that are accessed by generated code.
   static void DecrementBy(intptr_t* p, intptr_t value);
 
   // Atomically compare *ptr to old_value, and if equal, store new_value.
   // Returns the original value at ptr.
-  //
-  // NOTE: OK to use with memory locations that are accessed by generated code
   static uword CompareAndSwapWord(uword* ptr, uword old_value, uword new_value);
   static uint32_t CompareAndSwapUint32(uint32_t* ptr,
                                        uint32_t old_value,
@@ -60,18 +45,7 @@ class AtomicOperations : public AllStatic {
   }
 };
 
-
 }  // namespace dart
-
-#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
-#define USING_SIMULATOR_ATOMICS
-#endif
-
-#if defined(USING_SIMULATOR_ATOMICS)
-// We need to use the simulator to ensure that atomic operations are observed
-// both in C++ and in generated code if the simulator is active.
-#include "vm/atomic_simulator.h"
-#endif
 
 #if defined(HOST_OS_ANDROID)
 #include "vm/atomic_android.h"

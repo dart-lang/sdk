@@ -5,9 +5,9 @@
 #include "vm/program_visitor.h"
 
 #include "vm/deopt_instructions.h"
+#include "vm/hash_map.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
-#include "vm/hash_map.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -33,7 +33,6 @@ void ProgramVisitor::VisitClasses(ClassVisitor* visitor) {
     }
   }
 }
-
 
 void ProgramVisitor::VisitFunctions(FunctionVisitor* visitor) {
   Thread* thread = Thread::Current();
@@ -95,7 +94,6 @@ void ProgramVisitor::VisitFunctions(FunctionVisitor* visitor) {
   }
 }
 
-
 void ProgramVisitor::ShareMegamorphicBuckets() {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
@@ -122,7 +120,6 @@ void ProgramVisitor::ShareMegamorphicBuckets() {
   }
 }
 
-
 class StackMapKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -142,7 +139,6 @@ class StackMapKeyValueTrait {
 };
 
 typedef DirectChainedHashMap<StackMapKeyValueTrait> StackMapSet;
-
 
 void ProgramVisitor::DedupStackMaps() {
   class DedupStackMapsVisitor : public FunctionVisitor {
@@ -192,7 +188,6 @@ void ProgramVisitor::DedupStackMaps() {
   ProgramVisitor::VisitFunctions(&visitor);
 }
 
-
 class PcDescriptorsKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -212,7 +207,6 @@ class PcDescriptorsKeyValueTrait {
 };
 
 typedef DirectChainedHashMap<PcDescriptorsKeyValueTrait> PcDescriptorsSet;
-
 
 void ProgramVisitor::DedupPcDescriptors() {
   class DedupPcDescriptorsVisitor : public FunctionVisitor {
@@ -257,7 +251,6 @@ void ProgramVisitor::DedupPcDescriptors() {
   ProgramVisitor::VisitFunctions(&visitor);
 }
 
-
 class TypedDataKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -280,7 +273,7 @@ class TypedDataKeyValueTrait {
 
 typedef DirectChainedHashMap<TypedDataKeyValueTrait> TypedDataSet;
 
-
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void ProgramVisitor::DedupDeoptEntries() {
   class DedupDeoptEntriesVisitor : public FunctionVisitor {
    public:
@@ -337,7 +330,7 @@ void ProgramVisitor::DedupDeoptEntries() {
   DedupDeoptEntriesVisitor visitor(Thread::Current()->zone());
   ProgramVisitor::VisitFunctions(&visitor);
 }
-
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 class CodeSourceMapKeyValueTrait {
  public:
@@ -358,7 +351,6 @@ class CodeSourceMapKeyValueTrait {
 };
 
 typedef DirectChainedHashMap<CodeSourceMapKeyValueTrait> CodeSourceMapSet;
-
 
 void ProgramVisitor::DedupCodeSourceMaps() {
   class DedupCodeSourceMapsVisitor : public FunctionVisitor {
@@ -403,7 +395,6 @@ void ProgramVisitor::DedupCodeSourceMaps() {
   ProgramVisitor::VisitFunctions(&visitor);
 }
 
-
 class ArrayKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -431,7 +422,6 @@ class ArrayKeyValueTrait {
 };
 
 typedef DirectChainedHashMap<ArrayKeyValueTrait> ArraySet;
-
 
 void ProgramVisitor::DedupLists() {
   class DedupListsVisitor : public FunctionVisitor {
@@ -530,7 +520,6 @@ void ProgramVisitor::DedupLists() {
   ProgramVisitor::VisitFunctions(&visitor);
 }
 
-
 class InstructionsKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -550,7 +539,6 @@ class InstructionsKeyValueTrait {
 };
 
 typedef DirectChainedHashMap<InstructionsKeyValueTrait> InstructionsSet;
-
 
 void ProgramVisitor::DedupInstructions() {
   class DedupInstructionsVisitor : public FunctionVisitor {
@@ -596,7 +584,6 @@ void ProgramVisitor::DedupInstructions() {
   ProgramVisitor::VisitFunctions(&visitor);
 }
 
-
 void ProgramVisitor::Dedup() {
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
@@ -607,14 +594,14 @@ void ProgramVisitor::Dedup() {
   ShareMegamorphicBuckets();
   DedupStackMaps();
   DedupPcDescriptors();
-  DedupDeoptEntries();
+  NOT_IN_PRECOMPILED(DedupDeoptEntries());
   DedupCodeSourceMaps();
   DedupLists();
 
-  if (!FLAG_profiler) {
-    // Reduces binary size but obfuscates profiler results.
-    DedupInstructions();
-  }
+#if defined(PRODUCT)
+  // Reduces binary size but obfuscates profiler results.
+  DedupInstructions();
+#endif
 }
 
 }  // namespace dart

@@ -242,6 +242,9 @@ class Reference {
 // ------------------------------------------------------------------------
 
 class Library extends NamedNode implements Comparable<Library> {
+  /// Offset of the declaration, set and used when writing the binary.
+  int binaryOffset = -1;
+
   /// An import path to this library.
   ///
   /// The [Uri] should have the `dart`, `package`, `app`, or `file` scheme.
@@ -266,6 +269,8 @@ class Library extends NamedNode implements Comparable<Library> {
   String name;
   final List<Expression> annotations;
   final List<LibraryDependency> dependencies;
+  @informative
+  final List<LibraryPart> parts;
   final List<Typedef> typedefs;
   final List<Class> classes;
   final List<Procedure> procedures;
@@ -276,6 +281,7 @@ class Library extends NamedNode implements Comparable<Library> {
       this.isExternal: false,
       List<Expression> annotations,
       List<LibraryDependency> dependencies,
+      List<LibraryPart> parts,
       List<Typedef> typedefs,
       List<Class> classes,
       List<Procedure> procedures,
@@ -284,12 +290,14 @@ class Library extends NamedNode implements Comparable<Library> {
       Reference reference})
       : this.annotations = annotations ?? <Expression>[],
         this.dependencies = dependencies ?? <LibraryDependency>[],
+        this.parts = parts ?? <LibraryPart>[],
         this.typedefs = typedefs ?? <Typedef>[],
         this.classes = classes ?? <Class>[],
         this.procedures = procedures ?? <Procedure>[],
         this.fields = fields ?? <Field>[],
         super(reference) {
     setParents(this.dependencies, this);
+    setParents(this.parts, this);
     setParents(this.typedefs, this);
     setParents(this.classes, this);
     setParents(this.procedures, this);
@@ -350,10 +358,15 @@ class Library extends NamedNode implements Comparable<Library> {
     dependencies.add(node..parent = this);
   }
 
+  void addPart(LibraryPart node) {
+    parts.add(node..parent = this);
+  }
+
   accept(TreeVisitor v) => v.visitLibrary(this);
 
   visitChildren(Visitor v) {
     visitList(dependencies, v);
+    visitList(parts, v);
     visitList(typedefs, v);
     visitList(classes, v);
     visitList(procedures, v);
@@ -362,6 +375,7 @@ class Library extends NamedNode implements Comparable<Library> {
 
   transformChildren(Transformer v) {
     transformList(dependencies, v, this);
+    transformList(parts, v, this);
     transformList(typedefs, v, this);
     transformList(classes, v, this);
     transformList(procedures, v, this);
@@ -457,6 +471,37 @@ class LibraryDependency extends TreeNode {
   transformChildren(Transformer v) {
     transformList(annotations, v, this);
     transformList(combinators, v, this);
+  }
+}
+
+/// A part declaration in a library.
+///
+///     part <url>;
+///
+/// optionally with metadata.
+class LibraryPart extends TreeNode {
+  final List<Expression> annotations;
+  final String fileUri;
+
+  LibraryPart(List<Expression> annotations, String fileUri)
+      : this.byReference(annotations, fileUri);
+
+  LibraryPart.byReference(this.annotations, this.fileUri) {
+    setParents(annotations, this);
+  }
+
+  void addAnnotation(Expression annotation) {
+    annotations.add(annotation..parent = this);
+  }
+
+  accept(TreeVisitor v) => v.visitLibraryPart(this);
+
+  visitChildren(Visitor v) {
+    visitList(annotations, v);
+  }
+
+  transformChildren(Transformer v) {
+    transformList(annotations, v, this);
   }
 }
 
@@ -582,11 +627,17 @@ enum ClassLevel {
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
 class Class extends NamedNode {
-  /// Offset of the declaration, set and used when writing the binary.
-  int binaryOffset = -1;
+  /// End offset in the source file it comes from. Valid values are from 0 and
+  /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
+  /// (this is the default if none is specifically set).
+  int fileEndOffset = TreeNode.noOffset;
 
   /// The degree to which the contents of the class have been loaded.
   ClassLevel level = ClassLevel.Body;
+
+  /// Documentation comment of the class, or `null`.
+  @informative
+  String documentationComment;
 
   /// List of metadata annotations on the class.
   ///
@@ -603,6 +654,25 @@ class Class extends NamedNode {
   /// applications.
   String name;
   bool isAbstract;
+
+  /// Whether this class is an enum.
+  @informative
+  bool isEnum = false;
+
+  /// Whether this class is a synthetic implementation created for each
+  /// mixed-in class. For example the following code:
+  /// class Z extends A with B, C, D {}
+  /// class A {}
+  /// class B {}
+  /// class C {}
+  /// class D {}
+  /// ...creates:
+  /// abstract class A&B extends A mixedIn B {}
+  /// abstract class A&B&C extends A&B mixedIn C {}
+  /// abstract class A&B&C&D extends A&B&C mixedIn D {}
+  /// class Z extends A&B&C&D {}
+  /// All X&Y classes are marked as synthetic.
+  bool isSyntheticMixinImplementation;
 
   /// The uri of the source file this class was loaded from.
   String fileUri;
@@ -634,6 +704,7 @@ class Class extends NamedNode {
   Class(
       {this.name,
       this.isAbstract: false,
+      this.isSyntheticMixinImplementation: false,
       this.supertype,
       this.mixedInType,
       List<TypeParameter> typeParameters,
@@ -805,6 +876,10 @@ abstract class Member extends NamedNode {
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
   /// (this is the default if none is specifically set).
   int fileEndOffset = TreeNode.noOffset;
+
+  /// Documentation comment of the member, or `null`.
+  @informative
+  String documentationComment;
 
   /// List of metadata annotations on the member.
   ///
@@ -1085,17 +1160,17 @@ class Constructor extends Member {
   visitChildren(Visitor v) {
     visitList(annotations, v);
     name?.accept(v);
-    function?.accept(v);
     visitList(initializers, v);
+    function?.accept(v);
   }
 
   transformChildren(Transformer v) {
     transformList(annotations, v, this);
+    transformList(initializers, v, this);
     if (function != null) {
       function = function.accept(v);
       function?.parent = this;
     }
-    transformList(initializers, v, this);
   }
 
   DartType get getterType => const BottomType();
@@ -1226,6 +1301,10 @@ enum ProcedureKind {
 
 /// Part of an initializer list in a constructor.
 abstract class Initializer extends TreeNode {
+  /// True if this is a synthetic constructor initializer.
+  @informative
+  bool isSynthetic = false;
+
   accept(InitializerVisitor v);
 }
 
@@ -1457,13 +1536,16 @@ class FunctionNode extends TreeNode {
     List<NamedType> named =
         namedParameters.map(_getNamedTypeOfVariable).toList(growable: false);
     named.sort();
+    // We need create a copy of the list of type parameters, otherwise
+    // transformations like erasure don't work.
+    var typeParametersCopy = new List<TypeParameter>.from(parent is Constructor
+        ? parent.enclosingClass.typeParameters
+        : typeParameters);
     return new FunctionType(
         positionalParameters.map(_getTypeOfVariable).toList(growable: false),
         returnType,
         namedParameters: named,
-        typeParameters: parent is Constructor
-            ? parent.enclosingClass.typeParameters
-            : typeParameters,
+        typeParameters: typeParametersCopy,
         requiredParameterCount: requiredParameterCount);
   }
 
@@ -3048,14 +3130,15 @@ class ClosureCreation extends Expression {
   Reference topLevelFunctionReference;
   Expression contextVector;
   FunctionType functionType;
+  List<DartType> typeArguments;
 
   ClosureCreation(Member topLevelFunction, Expression contextVector,
-      FunctionType functionType)
-      : this.byReference(
-            getMemberReference(topLevelFunction), contextVector, functionType);
+      FunctionType functionType, List<DartType> typeArguments)
+      : this.byReference(getMemberReference(topLevelFunction), contextVector,
+            functionType, typeArguments);
 
-  ClosureCreation.byReference(
-      this.topLevelFunctionReference, this.contextVector, this.functionType) {
+  ClosureCreation.byReference(this.topLevelFunctionReference,
+      this.contextVector, this.functionType, this.typeArguments) {
     contextVector?.parent = this;
   }
 
@@ -3070,6 +3153,8 @@ class ClosureCreation extends Expression {
 
   visitChildren(Visitor v) {
     contextVector?.accept(v);
+    functionType.accept(v);
+    visitList(typeArguments, v);
   }
 
   transformChildren(Transformer v) {
@@ -3077,6 +3162,8 @@ class ClosureCreation extends Expression {
       contextVector = contextVector.accept(v);
       contextVector?.parent = this;
     }
+    functionType = v.visitDartType(functionType);
+    transformTypeList(typeArguments, v);
   }
 
   DartType getStaticType(TypeEnvironment types) {
@@ -3345,6 +3432,12 @@ class ForStatement extends Statement {
 }
 
 class ForInStatement extends Statement {
+  /// Offset in the source file it comes from.
+  ///
+  /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
+  /// offset is not available (this is the default if none is specifically set).
+  int bodyOffset = TreeNode.noOffset;
+
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
   Statement body;
@@ -3704,30 +3797,40 @@ class VariableDeclaration extends Statement {
       {this.initializer,
       this.type: const DynamicType(),
       bool isFinal: false,
-      bool isConst: false}) {
+      bool isConst: false,
+      bool isFieldFormal: false}) {
     assert(type != null);
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
+    this.isFieldFormal = isFieldFormal;
   }
 
   /// Creates a synthetic variable with the given expression as initializer.
   VariableDeclaration.forValue(this.initializer,
       {bool isFinal: true,
       bool isConst: false,
+      bool isFieldFormal: false,
       this.type: const DynamicType()}) {
     assert(type != null);
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
+    this.isFieldFormal = isFieldFormal;
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
   static const int FlagConst = 1 << 1;
-  static const int FlagInScope = 1 << 2; // Temporary flag used by verifier.
+  static const int FlagFieldFormal = 1 << 2;
+  static const int FlagInScope = 1 << 3; // Temporary flag used by verifier.
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
+
+  /// Whether the variable is declared as a field formal parameter of
+  /// a constructor.
+  @informative
+  bool get isFieldFormal => flags & FlagFieldFormal != 0;
 
   void set isFinal(bool value) {
     flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
@@ -3735,6 +3838,11 @@ class VariableDeclaration extends Statement {
 
   void set isConst(bool value) {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
+  }
+
+  @informative
+  void set isFieldFormal(bool value) {
+    flags = value ? (flags | FlagFieldFormal) : (flags & ~FlagFieldFormal);
   }
 
   accept(StatementVisitor v) => v.visitVariableDeclaration(this);
@@ -4035,16 +4143,30 @@ class FunctionType extends DartType {
   final int requiredParameterCount;
   final List<DartType> positionalParameters;
   final List<NamedType> namedParameters; // Must be sorted.
+
+  /// The optional names of [positionalParameters], not `null`, but might be
+  /// empty if information is not available.
+  @informative
+  final List<String> positionalParameterNames;
+
+  /// The [Typedef] this function type is created for.
+  Reference typedefReference;
+
   final DartType returnType;
   int _hashCode;
 
   FunctionType(List<DartType> positionalParameters, this.returnType,
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
-      int requiredParameterCount})
+      int requiredParameterCount,
+      this.positionalParameterNames: const <String>[],
+      this.typedefReference})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =
             requiredParameterCount ?? positionalParameters.length;
+
+  /// The [Typedef] this function type is created for.
+  Typedef get typedef => typedefReference?.asTypedef;
 
   accept(DartTypeVisitor v) => v.visitFunctionType(this);
 
@@ -4279,9 +4401,6 @@ class TypeParameter extends TreeNode {
   /// Should not be null except temporarily during IR construction.  Should
   /// be set to the root class for type parameters without an explicit bound.
   DartType bound;
-
-  /// Offset of the declaration, set and used when writing the binary.
-  int binaryOffset = 0;
 
   TypeParameter([this.name, this.bound]);
 
@@ -4626,3 +4745,8 @@ CanonicalName getCanonicalNameOfTypedef(Typedef typedef_) {
   }
   return typedef_.canonicalName;
 }
+
+/// Annotation describing information which is not part of Dart semantics; in
+/// other words, if this information (or any information it refers to) changes,
+/// static analysis and runtime behavior of the library are unaffected.
+const informative = null;

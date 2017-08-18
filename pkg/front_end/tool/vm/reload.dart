@@ -8,10 +8,10 @@
 /// Usage:
 ///
 /// ```
-///     var reloader = new VmReloader();
-///     await reloader.reload(uriToEntryScript);
+///     var remoteVm = new RemoteVm();
+///     await remoteVm.reload(uriToEntryScript);
 ///     ...
-///     await reloader.disconnect();
+///     await remoteVm.disconnect();
 /// ```
 library front_end.src.vm.reload;
 
@@ -20,9 +20,11 @@ import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/io.dart';
 
-/// A user API to trigger hot reloads on a running VM via the VM's service
-/// protocol.
-class VmReloader {
+/// APIs to communicate with a remote VM via the VM's service protocol.
+///
+/// Only supports APIs to resume the program execution (when isolates are paused
+/// at startup) and to trigger hot reloads.
+class RemoteVm {
   /// Port used to connect to the vm service protocol, typically 8181.
   final int port;
 
@@ -36,7 +38,7 @@ class VmReloader {
   FutureOr<String> get mainId async => _mainId ??= await _computeMainId();
   String _mainId;
 
-  VmReloader([this.port = 8181]);
+  RemoteVm([this.port = 8181]);
 
   /// Establishes the JSON rpc connection.
   json_rpc.Peer _createPeer() {
@@ -80,6 +82,11 @@ class VmReloader {
     return result;
   }
 
+  Future resume() async {
+    var id = await mainId;
+    await rpc.sendRequest('resume', {'isolateId': id});
+  }
+
   /// Close any connections used to communicate with the VM.
   Future disconnect() async {
     if (_rpc == null) return null;
@@ -106,7 +113,7 @@ main(List<String> args) async {
     return;
   }
 
-  var reloader = new VmReloader();
-  await reloader.reload(Uri.base.resolve(args.first));
-  await reloader.disconnect();
+  var remoteVm = new RemoteVm();
+  await remoteVm.reload(Uri.base.resolve(args.first));
+  await remoteVm.disconnect();
 }

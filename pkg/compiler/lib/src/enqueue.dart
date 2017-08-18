@@ -14,7 +14,6 @@ import 'constants/values.dart';
 import 'compiler.dart' show Compiler;
 import 'options.dart';
 import 'elements/entities.dart';
-import 'elements/resolution_types.dart' show ResolutionTypedefType;
 import 'elements/types.dart';
 import 'js_backend/enqueuer.dart';
 import 'universe/world_builder.dart';
@@ -230,8 +229,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   @override
   void checkQueueIsEmpty() {
     if (_queue.isNotEmpty) {
-      throw new SpannableAssertionFailure(
-          _queue.first.element, "$name queue is not empty.");
+      failedAt(_queue.first.element, "$name queue is not empty.");
     }
   }
 
@@ -368,7 +366,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         break;
       case TypeUseKind.TYPE_LITERAL:
         if (type.isTypedef) {
-          ResolutionTypedefType typedef = type;
+          TypedefType typedef = type;
           worldBuilder.registerTypedef(typedef.element);
         }
         break;
@@ -435,7 +433,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     if (workItem == null) return;
 
     if (queueIsClosed) {
-      throw new SpannableAssertionFailure(
+      failedAt(
           entity, "Resolution work list is closed. Trying to add $entity.");
     }
 
@@ -452,7 +450,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   /// The queue is processed in FIFO order.
   void addDeferredAction(DeferredAction deferredAction) {
     if (queueIsClosed) {
-      throw new SpannableAssertionFailure(
+      failedAt(
           deferredAction.element,
           "Resolution work list is closed. "
           "Trying to add deferred action for ${deferredAction.element}");

@@ -34,7 +34,6 @@ void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
   }
 }
 
-
 RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
   if (encoded_data_.length() == 0) {
     return Object::empty_descriptors().raw();
@@ -42,14 +41,12 @@ RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
   return PcDescriptors::New(&encoded_data_);
 }
 
-
 void StackMapTableBuilder::AddEntry(intptr_t pc_offset,
                                     BitmapBuilder* bitmap,
                                     intptr_t register_bit_count) {
   stack_map_ = StackMap::New(pc_offset, bitmap, register_bit_count);
   list_.Add(stack_map_, Heap::kOld);
 }
-
 
 bool StackMapTableBuilder::Verify() {
   intptr_t num_entries = Length();
@@ -66,7 +63,6 @@ bool StackMapTableBuilder::Verify() {
   return true;
 }
 
-
 RawArray* StackMapTableBuilder::FinalizeStackMaps(const Code& code) {
   ASSERT(Verify());
   intptr_t num_entries = Length();
@@ -76,13 +72,11 @@ RawArray* StackMapTableBuilder::FinalizeStackMaps(const Code& code) {
   return Array::MakeFixedLength(list_);
 }
 
-
 RawStackMap* StackMapTableBuilder::MapAt(intptr_t index) const {
   StackMap& map = StackMap::Handle();
   map ^= list_.At(index);
   return map.raw();
 }
-
 
 RawExceptionHandlers* ExceptionHandlerList::FinalizeExceptionHandlers(
     uword entry_point) const {
@@ -116,14 +110,12 @@ RawExceptionHandlers* ExceptionHandlerList::FinalizeExceptionHandlers(
   return handlers.raw();
 }
 
-
 static uint8_t* zone_allocator(uint8_t* ptr,
                                intptr_t old_size,
                                intptr_t new_size) {
   Zone* zone = Thread::Current()->zone();
   return zone->Realloc<uint8_t>(ptr, old_size, new_size);
 }
-
 
 class CatchEntryStateMapBuilder::TrieNode : public ZoneAllocated {
  public:
@@ -158,24 +150,20 @@ CatchEntryStateMapBuilder::CatchEntryStateMapBuilder()
       buffer_(NULL),
       stream_(&buffer_, zone_allocator, 64) {}
 
-
 void CatchEntryStateMapBuilder::AppendMove(intptr_t src_slot,
                                            intptr_t dest_slot) {
   moves_.Add(CatchEntryStatePair::FromMove(src_slot, dest_slot));
 }
-
 
 void CatchEntryStateMapBuilder::AppendConstant(intptr_t pool_id,
                                                intptr_t dest_slot) {
   moves_.Add(CatchEntryStatePair::FromConstant(pool_id, dest_slot));
 }
 
-
 void CatchEntryStateMapBuilder::NewMapping(intptr_t pc_offset) {
   moves_.Clear();
   current_pc_offset_ = pc_offset;
 }
-
 
 void CatchEntryStateMapBuilder::EndMapping() {
   intptr_t suffix_length = 0;
@@ -208,7 +196,6 @@ void CatchEntryStateMapBuilder::EndMapping() {
   }
 }
 
-
 RawTypedData* CatchEntryStateMapBuilder::FinalizeCatchEntryStateMap() {
   TypedData& td = TypedData::Handle(TypedData::New(
       kTypedDataInt8ArrayCid, stream_.bytes_written(), Heap::kOld));
@@ -221,10 +208,8 @@ RawTypedData* CatchEntryStateMapBuilder::FinalizeCatchEntryStateMap() {
   return td.raw();
 }
 
-
 const TokenPosition CodeSourceMapBuilder::kInitialPosition =
     TokenPosition(TokenPosition::kDartCodeProloguePos);
-
 
 CodeSourceMapBuilder::CodeSourceMapBuilder(
     bool stack_traces_only,
@@ -251,13 +236,11 @@ CodeSourceMapBuilder::CodeSourceMapBuilder(
   written_token_pos_stack_.Add(kInitialPosition);
 }
 
-
 void CodeSourceMapBuilder::FlushBuffer() {
   FlushBufferStack();
   FlushBufferPosition();
   FlushBufferPC();
 }
-
 
 void CodeSourceMapBuilder::FlushBufferStack() {
   for (intptr_t i = buffered_inline_id_stack_.length() - 1; i >= 0; i--) {
@@ -285,7 +268,6 @@ void CodeSourceMapBuilder::FlushBufferStack() {
   UNREACHABLE();
 }
 
-
 void CodeSourceMapBuilder::FlushBufferPosition() {
   ASSERT(buffered_token_pos_stack_.length() ==
          written_token_pos_stack_.length());
@@ -298,13 +280,11 @@ void CodeSourceMapBuilder::FlushBufferPosition() {
   }
 }
 
-
 void CodeSourceMapBuilder::FlushBufferPC() {
   if (buffered_pc_offset_ != written_pc_offset_) {
     WriteAdvancePC(buffered_pc_offset_ - written_pc_offset_);
   }
 }
-
 
 void CodeSourceMapBuilder::StartInliningInterval(int32_t pc_offset,
                                                  intptr_t inline_id) {
@@ -357,9 +337,7 @@ void CodeSourceMapBuilder::StartInliningInterval(int32_t pc_offset,
   }
 }
 
-
 void CodeSourceMapBuilder::BeginCodeSourceRange(int32_t pc_offset) {}
-
 
 void CodeSourceMapBuilder::EndCodeSourceRange(int32_t pc_offset,
                                               TokenPosition pos) {
@@ -375,7 +353,6 @@ void CodeSourceMapBuilder::EndCodeSourceRange(int32_t pc_offset,
   BufferAdvancePC(pc_offset - buffered_pc_offset_);
 }
 
-
 void CodeSourceMapBuilder::NoteDescriptor(RawPcDescriptors::Kind kind,
                                           int32_t pc_offset,
                                           TokenPosition pos) {
@@ -389,7 +366,6 @@ void CodeSourceMapBuilder::NoteDescriptor(RawPcDescriptors::Kind kind,
   }
 }
 
-
 intptr_t CodeSourceMapBuilder::GetFunctionId(intptr_t inline_id) {
   const Function& function = *inline_id_to_function_[inline_id];
   for (intptr_t i = 0; i < inlined_functions_.Length(); i++) {
@@ -401,14 +377,12 @@ intptr_t CodeSourceMapBuilder::GetFunctionId(intptr_t inline_id) {
   return inlined_functions_.Length() - 1;
 }
 
-
 RawArray* CodeSourceMapBuilder::InliningIdToFunction() {
   if (inlined_functions_.Length() == 0) {
     return Object::empty_array().raw();
   }
   return Array::MakeFixedLength(inlined_functions_);
 }
-
 
 RawCodeSourceMap* CodeSourceMapBuilder::Finalize() {
   if (!stack_traces_only_) {
@@ -420,7 +394,6 @@ RawCodeSourceMap* CodeSourceMapBuilder::Finalize() {
   memmove(map.Data(), buffer_, length);
   return map.raw();
 }
-
 
 void CodeSourceMapBuilder::WriteChangePosition(TokenPosition pos) {
   stream_.Write<uint8_t>(kChangePosition);
@@ -438,7 +411,6 @@ void CodeSourceMapBuilder::WriteChangePosition(TokenPosition pos) {
   }
   written_token_pos_stack_.Last() = pos;
 }
-
 
 void CodeSourceMapReader::GetInlinedFunctionsAt(
     int32_t pc_offset,
@@ -491,7 +463,6 @@ void CodeSourceMapReader::GetInlinedFunctionsAt(
     }
   }
 }
-
 
 #ifndef PRODUCT
 void CodeSourceMapReader::PrintJSONInlineIntervals(JSONObject* jsobj) {
@@ -551,7 +522,6 @@ void CodeSourceMapReader::PrintJSONInlineIntervals(JSONObject* jsobj) {
 }
 #endif  // !PRODUCT
 
-
 void CodeSourceMapReader::DumpInlineIntervals(uword start) {
   GrowableArray<const Function*> function_stack;
   LogBlock lb;
@@ -598,7 +568,6 @@ void CodeSourceMapReader::DumpInlineIntervals(uword start) {
   }
   THR_Print("}\n");
 }
-
 
 void CodeSourceMapReader::DumpSourcePositions(uword start) {
   GrowableArray<const Function*> function_stack;

@@ -62,12 +62,12 @@ Future<ResultKind> mainInternal(List<String> args,
   }
 
   Uri dillFile =
-      await createTemp(entryPoint, memorySourceFiles, printSteps: true);
+      await generateDill(entryPoint, memorySourceFiles, printSteps: true);
   String output = uriPathToNative(dillFile.resolve('out.js').path);
   List<String> dart2jsArgs = [
     dillFile.toString(),
     '-o$output',
-    Flags.loadFromDill,
+    Flags.useKernel,
     Flags.disableTypeInference,
     Flags.disableInlining,
     Flags.enableAssertMessage

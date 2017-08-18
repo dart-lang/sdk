@@ -32,10 +32,11 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
     return units.map(cr.visitCompilationUnit).toList(growable: false);
   }
 
-  /// Returns true if the `as` [node] was created by this class.
+  /// True if the `as` [node] is a required runtime check for soundness.
   // TODO(sra): Find a better way to recognize reified coercion, since we
   // can't set the isSynthetic attribute.
-  static bool isImplicitCast(AsExpression node) => node.asOperator.offset == 0;
+  static bool isRequiredForSoundness(AsExpression node) =>
+      node.asOperator.offset == 0;
 
   /// Creates an implicit cast for expression [e] to [toType].
   static Expression castExpression(Expression e, DartType toType) {
@@ -132,8 +133,16 @@ class _TreeCloner extends analyzer.AstCloner {
     if (clone is Expression) {
       ast_properties.setImplicitCast(
           clone, ast_properties.getImplicitCast(node));
+      ast_properties.setImplicitOperationCast(
+          clone, ast_properties.getImplicitOperationCast(node));
       ast_properties.setIsDynamicInvoke(
           clone, ast_properties.isDynamicInvoke(node));
+    }
+    if (clone is ClassDeclaration) {
+      ast_properties.setClassCovariantParameters(
+          clone, ast_properties.getClassCovariantParameters(node));
+      ast_properties.setSuperclassCovariantParameters(
+          clone, ast_properties.getSuperclassCovariantParameters(node));
     }
   }
 

@@ -6,6 +6,16 @@ library dart2js.library_loader;
 
 import 'dart:async';
 
+import 'package:front_end/front_end.dart' as fe;
+import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
+import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;
+import 'package:kernel/target/targets.dart';
+
+import '../compiler_new.dart' as api;
+import 'kernel/front_end_adapter.dart';
+import 'kernel/dart2js_target.dart' show Dart2jsTarget;
+
 import 'common/names.dart' show Uris;
 import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'common.dart';
@@ -31,16 +41,13 @@ import 'elements/modelx.dart'
 import 'enqueue.dart' show DeferredAction;
 import 'environment.dart';
 import 'io/source_file.dart' show Binary;
-import 'kernel/element_map_impl.dart' show KernelToElementMapImpl;
+import 'kernel/element_map_impl.dart' show KernelToElementMapForImpactImpl;
 import 'patch_parser.dart' show PatchParserTask;
 import 'resolved_uri_translator.dart';
 import 'script.dart';
 import 'serialization/serialization.dart' show LibraryDeserializer;
 import 'tree/tree.dart';
 import 'util/util.dart' show Link, LinkBuilder;
-
-import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 typedef Future<Iterable<LibraryElement>> ReuseLibrariesFunction(
     Iterable<LibraryElement> libraries);
@@ -807,25 +814,28 @@ class ResolutionLibraryLoaderTask extends CompilerTask
   }
 }
 
-/// A task for loading a pre-processed .dill file into memory rather than
-/// parsing Dart source. Use of this task only makes sense when used in
-/// conjunction with --use-kernel.
-class DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
+/// A loader that builds a kernel IR representation of the program (or set of
+/// libraries).
+///
+/// It supports loading both .dart source files or pre-compiled .dill files.
+/// When given .dart source files, it invokes the shared frontend
+/// (`package:front_end`) to produce the corresponding kernel IR representation.
+// TODO(sigmund): move this class to a new file under src/kernel/.
+class KernelLibraryLoaderTask extends CompilerTask
+    implements LibraryLoaderTask {
+  final Uri sdkRoot;
+
   final DiagnosticReporter reporter;
 
-  final ResolvedUriTranslator uriTranslator;
-
-  /// Loads the contents of a script file (a .dart file). Used when loading
-  /// libraries from source.
-  final ScriptLoader scriptLoader;
+  final api.CompilerInput compilerInput;
 
   /// Holds the mapping of Kernel IR to KElements that is constructed as a
   /// result of loading a program.
-  final KernelToElementMapImpl _elementMap;
+  final KernelToElementMapForImpactImpl _elementMap;
 
   List<LibraryEntity> _allLoadedLibraries;
 
-  DillLibraryLoaderTask(this._elementMap, this.uriTranslator, this.scriptLoader,
+  KernelLibraryLoaderTask(this.sdkRoot, this._elementMap, this.compilerInput,
       this.reporter, Measurer measurer)
       : _allLoadedLibraries = new List<LibraryEntity>(),
         super(measurer);
@@ -836,40 +846,75 @@ class DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   // away.
   Future<LoadedLibraries> loadLibrary(Uri resolvedUri,
       {bool skipFileWithPartOfTag: false}) {
-    assert(resolvedUri.pathSegments.last.endsWith('.dill'),
-        'Invalid uri: $resolvedUri');
-    Uri readableUri = uriTranslator.translate(null, resolvedUri, null);
     return measure(() async {
-      Binary binary = await scriptLoader.readBinary(readableUri, null);
-      ir.Program program = new ir.Program();
-      new BinaryBuilder(binary.data).readProgram(program);
-      return measure(() {
-        return createLoadedLibraries(program);
-      });
+      var isDill = resolvedUri.path.endsWith('.dill');
+      ir.Program program;
+      if (isDill) {
+        api.Input input = await compilerInput.readFromUri(resolvedUri,
+            inputKind: api.InputKind.binary);
+        program = new ir.Program();
+        new BinaryBuilder(input.data).readProgram(program);
+      } else {
+        var options = new fe.CompilerOptions()
+          ..fileSystem = new CompilerFileSystem(compilerInput)
+          ..target = new Dart2jsTarget(new TargetFlags())
+          ..linkedDependencies = [
+            sdkRoot.resolve('_internal/dart2js_platform.dill')
+          ]
+          ..onError = (e) => reportFrontEndMessage(reporter, e);
+
+        program = await fe.kernelForProgram(resolvedUri, options);
+      }
+      if (program == null) return null;
+      return createLoadedLibraries(program);
     });
   }
 
+  // Only visible for unit testing.
   LoadedLibraries createLoadedLibraries(ir.Program program) {
     _elementMap.addProgram(program);
-    program.libraries.forEach((ir.Library library) =>
-        _allLoadedLibraries.add(_elementMap.lookupLibrary(library.importUri)));
     LibraryEntity rootLibrary = null;
+    Iterable<ir.Library> libraries = program.libraries;
     if (program.mainMethod != null) {
-      rootLibrary = _elementMap
-          .lookupLibrary(program.mainMethod.enclosingLibrary.importUri);
+      var root = program.mainMethod.enclosingLibrary;
+      rootLibrary = _elementMap.lookupLibrary(root.importUri);
+
+      // Filter unreachable libraries: [Program] was built by linking in the
+      // entire SDK libraries, not all of them are used. We include anything
+      // that is reachable from `main`. Note that all internal libraries that
+      // the compiler relies on are reachable from `dart:core`.
+      var seen = new Set<Library>();
+      search(ir.Library current) {
+        if (!seen.add(current)) return;
+        for (ir.LibraryDependency dep in current.dependencies) {
+          search(dep.targetLibrary);
+        }
+      }
+
+      search(root);
+
+      // Libraries dependencies do not show implicit imports to `dart:core`.
+      var dartCore = program.libraries.firstWhere((lib) {
+        return lib.importUri.scheme == 'dart' && lib.importUri.path == 'core';
+      });
+      search(dartCore);
+
+      libraries = libraries.where(seen.contains);
     }
+    _allLoadedLibraries.addAll(
+        libraries.map((lib) => _elementMap.lookupLibrary(lib.importUri)));
     return new _LoadedLibrariesAdapter(
         rootLibrary, _allLoadedLibraries, _elementMap);
   }
 
-  KernelToElementMapImpl get elementMap => _elementMap;
+  KernelToElementMapForImpactImpl get elementMap => _elementMap;
 
   void reset({bool reuseLibrary(LibraryElement library)}) {
-    throw new UnimplementedError('DillLibraryLoaderTask.reset');
+    throw new UnimplementedError('KernelLibraryLoaderTask.reset');
   }
 
   Future resetAsync(Future<bool> reuseLibrary(LibraryElement library)) {
-    throw new UnimplementedError('DillLibraryLoaderTask.resetAsync');
+    throw new UnimplementedError('KernelLibraryLoaderTask.resetAsync');
   }
 
   Iterable<LibraryEntity> get libraries => _allLoadedLibraries;
@@ -879,12 +924,12 @@ class DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   }
 
   Future<Null> resetLibraries(ReuseLibrariesFunction reuseLibraries) {
-    throw new UnimplementedError('DillLibraryLoaderTask.reuseLibraries');
+    throw new UnimplementedError('KernelLibraryLoaderTask.reuseLibraries');
   }
 
   void registerDeferredAction(DeferredAction action) {
     throw new UnimplementedError(
-        'DillLibraryLoaderTask.registerDeferredAction');
+        'KernelLibraryLoaderTask.registerDeferredAction');
   }
 
   Iterable<DeferredAction> pullDeferredActions() => const <DeferredAction>[];
@@ -1596,7 +1641,7 @@ class _LoadedLibraries implements LoadedLibraries {
 class _LoadedLibrariesAdapter implements LoadedLibraries {
   final LibraryEntity rootLibrary;
   final List<LibraryEntity> _newLibraries;
-  final KernelToElementMapImpl worldBuilder;
+  final KernelToElementMapForImpactImpl worldBuilder;
 
   _LoadedLibrariesAdapter(
       this.rootLibrary, this._newLibraries, this.worldBuilder) {

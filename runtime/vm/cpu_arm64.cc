@@ -13,9 +13,11 @@
 
 #if !defined(USING_SIMULATOR)
 #if !defined(HOST_OS_FUCHSIA)
-#include <sys/syscall.h> /* NOLINT */
+#include <sys/syscall.h>
+#else
+#include <magenta/syscalls.h>
 #endif
-#include <unistd.h>      /* NOLINT */
+#include <unistd.h>
 #endif
 
 namespace dart {
@@ -34,19 +36,21 @@ void CPU::FlushICache(uword start, uword size) {
 
 // ARM recommends using the gcc intrinsic __clear_cache on Linux and Android.
 // blogs.arm.com/software-enablement/141-caches-and-self-modifying-code/
-#if defined(HOST_OS_ANDROID) || defined(HOST_OS_FUCHSIA) ||                    \
-    defined(HOST_OS_LINUX)
+#if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
   extern void __clear_cache(char*, char*);
   char* beg = reinterpret_cast<char*>(start);
   char* end = reinterpret_cast<char*>(start + size);
   ::__clear_cache(beg, end);
+#elif defined(HOST_OS_FUCHSIA)
+  mx_status_t result = mx_cache_flush(reinterpret_cast<const void*>(start),
+                                      size, MX_CACHE_FLUSH_INSN);
+  ASSERT(result == MX_OK);
 #else
 #error FlushICache only tested/supported on Android, Fuchsia, and Linux
 #endif
 
 #endif
 }
-
 
 const char* CPU::Id() {
   return
@@ -56,12 +60,10 @@ const char* CPU::Id() {
       "arm64";
 }
 
-
 const char* HostCPUFeatures::hardware_ = NULL;
 #if defined(DEBUG)
 bool HostCPUFeatures::initialized_ = false;
 #endif
-
 
 #if !defined(USING_SIMULATOR)
 void HostCPUFeatures::InitOnce() {
@@ -71,7 +73,6 @@ void HostCPUFeatures::InitOnce() {
   initialized_ = true;
 #endif
 }
-
 
 void HostCPUFeatures::Cleanup() {
   DEBUG_ASSERT(initialized_);
@@ -93,7 +94,6 @@ void HostCPUFeatures::InitOnce() {
   initialized_ = true;
 #endif
 }
-
 
 void HostCPUFeatures::Cleanup() {
   DEBUG_ASSERT(initialized_);

@@ -11,7 +11,6 @@ import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -79,6 +78,7 @@ class InputPackagesResultProvider extends ResynthesizerResultProvider {
       : super(context, dataStore) {
     createResynthesizer();
     context.typeProvider = resynthesizer.typeProvider;
+    resynthesizer.finishCoreAsyncLibraries();
   }
 
   @override
@@ -368,15 +368,6 @@ class SummaryDataStore {
   final List<PackageBundle> bundles = <PackageBundle>[];
 
   /**
-   * List of dependency information for the package bundles in this
-   * [SummaryDataStore], in a form that is ready to store in a newly generated
-   * summary.  Computing this information has nonzero cost, so it is only
-   * recorded if the [SummaryDataStore] is constructed with the argument
-   * `recordDependencies`.  Otherwise `null`.
-   */
-  final List<PackageDependencyInfoBuilder> dependencies;
-
-  /**
    * Map from the URI of a compilation unit to the unlinked summary of that
    * compilation unit.
    */
@@ -404,18 +395,13 @@ class SummaryDataStore {
 
   /**
    * Create a [SummaryDataStore] and populate it with the summaries in
-   * [summaryPaths].  If [recordDependencyInfo] is `true`, record
-   * [PackageDependencyInfo] for each summary, for later access via
-   * [dependencies].
+   * [summaryPaths].
    */
   SummaryDataStore(Iterable<String> summaryPaths,
-      {bool recordDependencyInfo: false,
-      bool disallowOverlappingSummaries: false,
+      {bool disallowOverlappingSummaries: false,
       ResourceProvider resourceProvider})
       : _summaryPaths = summaryPaths,
-        _disallowOverlappingSummaries = disallowOverlappingSummaries,
-        dependencies =
-            recordDependencyInfo ? <PackageDependencyInfoBuilder>[] : null {
+        _disallowOverlappingSummaries = disallowOverlappingSummaries {
     summaryPaths.forEach((String path) => _fillMaps(path, resourceProvider));
   }
 
@@ -424,29 +410,6 @@ class SummaryDataStore {
    */
   void addBundle(String path, PackageBundle bundle) {
     bundles.add(bundle);
-    if (dependencies != null) {
-      Set<String> includedPackageNames = new Set<String>();
-      bool includesDartUris = false;
-      bool includesFileUris = false;
-      for (String uriString in bundle.unlinkedUnitUris) {
-        Uri uri = Uri.parse(uriString);
-        String scheme = uri.scheme;
-        if (scheme == 'package') {
-          List<String> pathSegments = uri.pathSegments;
-          includedPackageNames.add(pathSegments.isEmpty ? '' : pathSegments[0]);
-        } else if (scheme == 'file') {
-          includesFileUris = true;
-        } else if (scheme == 'dart') {
-          includesDartUris = true;
-        }
-      }
-      dependencies.add(new PackageDependencyInfoBuilder(
-          includedPackageNames: includedPackageNames.toList()..sort(),
-          includesDartUris: includesDartUris,
-          includesFileUris: includesFileUris,
-          apiSignature: bundle.apiSignature,
-          summaryPath: path));
-    }
     for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
       String uri = bundle.unlinkedUnitUris[i];
       if (_disallowOverlappingSummaries &&

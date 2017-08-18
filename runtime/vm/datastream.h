@@ -287,7 +287,6 @@ class ReadStream : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(ReadStream);
 };
 
-
 // Stream for writing various types into a buffer.
 class WriteStream : public ValueObject {
  public:

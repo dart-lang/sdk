@@ -6,16 +6,18 @@ library fasta.kernel_invalid_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, InvalidType;
 
+import '../fasta_codes.dart' show Message, templateTypeNotFound;
+
 import 'kernel_builder.dart'
     show InvalidTypeBuilder, KernelTypeBuilder, LibraryBuilder;
 
 class KernelInvalidTypeBuilder
     extends InvalidTypeBuilder<KernelTypeBuilder, DartType> {
-  final String message;
+  final Message message;
 
   KernelInvalidTypeBuilder(String name, int charOffset, Uri fileUri,
-      [String message])
-      : message = message ?? "No type for: '$name'.",
+      [Message message])
+      : message = message ?? templateTypeNotFound.withArguments(name),
         super(name, charOffset, fileUri);
 
   DartType buildType(
@@ -26,7 +28,7 @@ class KernelInvalidTypeBuilder
   /// [Arguments] have already been built.
   DartType buildTypesWithBuiltArguments(
       LibraryBuilder library, List<DartType> arguments) {
-    library.addWarning(charOffset, message, fileUri: fileUri);
+    library.addWarning(message, charOffset, fileUri);
     return const InvalidType();
   }
 }

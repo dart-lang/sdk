@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
@@ -10,8 +11,8 @@ import 'package:crypto/crypto.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/resolve_relative_uri.dart';
 import 'package:front_end/src/dependency_walker.dart' as graph;
-import 'package:front_end/src/fasta/translate_uri.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/fasta/uri_translator.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/incremental/format.dart';
 import 'package:front_end/src/incremental/unlinked_unit.dart';
 import 'package:kernel/target/vm.dart';
@@ -32,6 +33,9 @@ class FileState {
 
   /// The absolute URI of the file.
   final Uri uri;
+
+  /// The UTF8 bytes of the [uri].
+  final List<int> uriBytes;
 
   /// The resolved URI of the file in the file system.
   final Uri fileUri;
@@ -55,7 +59,8 @@ class FileState {
   /// and set back to `false` for survived instances.
   bool _gcMarked = false;
 
-  FileState._(this._fsState, this.uri, this.fileUri);
+  FileState._(this._fsState, this.uri, this.fileUri)
+      : uriBytes = UTF8.encode(uri.toString());
 
   /// The MD5 signature of the file API as a byte array.
   /// It depends on all non-comment tokens outside the block bodies.
@@ -108,7 +113,7 @@ class FileState {
   /// directly or indirectly referenced files.
   Set<FileState> get transitiveFiles {
     if (_transitiveFiles == null) {
-      _transitiveFiles = new Set<FileState>();
+      _transitiveFiles = new Set<FileState>.identity();
 
       void appendReferenced(FileState file) {
         if (_transitiveFiles.add(file)) {
@@ -262,7 +267,7 @@ class FileState {
 class FileSystemState {
   final ByteStore _byteStore;
   final FileSystem fileSystem;
-  final TranslateUri uriTranslator;
+  final UriTranslator uriTranslator;
   final List<int> _salt;
   final NewFileFn _newFileFn;
 
@@ -275,6 +280,10 @@ class FileSystemState {
   /// Mapping from file URIs to corresponding [FileState]s. This map should only
   /// contain `file:*` URIs as keys.
   final Map<Uri, FileState> _fileUriToFile = {};
+
+  /// The set of absolute URIs with the `dart` scheme that should be skipped.
+  /// We do this when we use SDK outline instead of compiling SDK sources.
+  final Set<Uri> skipSdkLibraries = new Set<Uri>();
 
   FileSystemState(this._byteStore, this.fileSystem, this.uriTranslator,
       this._salt, this._newFileFn);
@@ -328,6 +337,11 @@ class FileSystemState {
   ///
   /// The returned file has the last known state since it was last refreshed.
   Future<FileState> getFile(Uri absoluteUri) async {
+    // We don't need to process SDK libraries if we have SDK outline.
+    if (skipSdkLibraries.contains(absoluteUri)) {
+      return null;
+    }
+
     // Resolve the absolute URI into the absolute file URI.
     Uri fileUri;
     if (absoluteUri.isScheme('file')) {
@@ -429,9 +443,6 @@ class _FileSystemViewEntry implements FileSystemEntity {
 
   @override
   Future<bool> exists() async => _shouldNotBeQueried();
-
-  @override
-  Future<DateTime> lastModified() async => _shouldNotBeQueried();
 
   @override
   Future<List<int>> readAsBytes() async {

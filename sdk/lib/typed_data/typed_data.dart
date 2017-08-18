@@ -10,8 +10,6 @@
 ///     import 'dart:typed_data';
 library dart.typed_data;
 
-import 'dart:collection';
-
 /**
  * A sequence of bytes underlying a typed data object.
  *

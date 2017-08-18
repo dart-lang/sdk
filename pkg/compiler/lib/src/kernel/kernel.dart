@@ -176,6 +176,15 @@ class Kernel {
         // above gives them in reversed order.
         classes.forEach(libraryNode.addClass);
         members.forEach(libraryNode.addMember);
+        // TODO(sigmund): include combinators, etc.
+        library.imports.forEach((ImportElement import) {
+          libraryNode.addDependency(new ir.LibraryDependency.import(
+              libraryToIr(import.importedLibrary)));
+        });
+        library.exports.forEach((ExportElement export) {
+          libraryNode.addDependency(new ir.LibraryDependency.export(
+              libraryToIr(export.exportedLibrary)));
+        });
       });
       return libraryNode;
     });
@@ -431,11 +440,13 @@ class Kernel {
       ir.Name name = irName(function.name, function);
       bool isNative = isNativeMethod(function);
       if (function.isGenerativeConstructor) {
+        ConstructorElement constructorElement = function;
         member = constructor = new ir.Constructor(null,
             name: name,
-            isConst: function.isConst,
-            isExternal: isNative || function.isExternal,
-            initializers: null);
+            isConst: constructorElement.isConst,
+            isExternal: isNative || constructorElement.isExternal,
+            initializers: null,
+            isSyntheticDefault: constructorElement.isDefaultConstructor);
       } else {
         member = procedure = new ir.Procedure(name, null, null,
             isAbstract: function.isAbstract,

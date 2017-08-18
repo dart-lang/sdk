@@ -4,6 +4,8 @@
 
 part of dart._vmservice;
 
+enum MessageType { Request, Notification, Response }
+
 class Message {
   final Completer _completer = new Completer.sync();
   bool get completed => _completer.isCompleted;
@@ -11,6 +13,9 @@ class Message {
   /// Future of response.
   Future<String> get response => _completer.future;
   Client client;
+
+  // Is a notification message (no serial)
+  final MessageType type;
 
   // Client-side identifier for this message.
   final serial;
@@ -22,6 +27,8 @@ class Message {
   final List path = new List();
 
   final Map params = new Map();
+  final Map result = new Map();
+  final Map error = new Map();
 
   void _setPath(List<String> pathSegments) {
     if (pathSegments == null) {
@@ -35,12 +42,65 @@ class Message {
     });
   }
 
-  Message.fromJsonRpc(this.client, Map map)
-      : serial = map['id'],
+  factory Message.fromJsonRpc(Client client, Map map) {
+    if (map.containsKey('id')) {
+      final id = map['id'];
+      if (id != null && id is! num && id is! String) {
+        throw new Exception('"id" must be a number, string, or null.');
+      }
+      if (map.containsKey('method')) {
+        return new Message._fromJsonRpcRequest(client, map);
+      }
+      if (map.containsKey('result')) {
+        return new Message._fromJsonRpcResult(client, map);
+      }
+      if (map.containsKey('error')) {
+        return new Message._fromJsonRpcError(client, map);
+      }
+    } else if (map.containsKey('method')) {
+      return new Message._fromJsonRpcNotification(client, map);
+    }
+    throw new Exception('Invalid message format');
+  }
+
+  // http://www.jsonrpc.org/specification#request_object
+  Message._fromJsonRpcRequest(Client client, Map map)
+      : client = client,
+        type = MessageType.Request,
+        serial = map['id'],
         method = map['method'] {
     if (map['params'] != null) {
       params.addAll(map['params']);
     }
+  }
+
+  // http://www.jsonrpc.org/specification#notification
+  Message._fromJsonRpcNotification(Client client, Map map)
+      : client = client,
+        type = MessageType.Notification,
+        method = map['method'],
+        serial = null {
+    if (map['params'] != null) {
+      params.addAll(map['params']);
+    }
+  }
+
+  // http://www.jsonrpc.org/specification#response_object
+  Message._fromJsonRpcResult(Client client, Map map)
+      : client = client,
+        type = MessageType.Response,
+        serial = map['id'],
+        method = null {
+    result.addAll(map['result']);
+  }
+
+  // http://www.jsonrpc.org/specification#response_object
+  Message._fromJsonRpcError(Client client, Map map)
+      : client = client,
+        type = MessageType.Response,
+        serial = map['id'],
+        method = null {
+    error.addAll(map['error']);
   }
 
   static String _methodNameFromUri(Uri uri) {
@@ -56,16 +116,19 @@ class Message {
   Message.forMethod(String method)
       : client = null,
         method = method,
+        type = MessageType.Request,
         serial = '';
 
   Message.fromUri(this.client, Uri uri)
-      : serial = '',
+      : type = MessageType.Request,
+        serial = '',
         method = _methodNameFromUri(uri) {
     params.addAll(uri.queryParameters);
   }
 
   Message.forIsolate(this.client, Uri uri, RunningIsolate isolate)
-      : serial = '',
+      : type = MessageType.Request,
+        serial = '',
         method = _methodNameFromUri(uri) {
     params.addAll(uri.queryParameters);
     params['isolateId'] = isolate.serviceId;
@@ -77,6 +140,30 @@ class Message {
 
   dynamic toJson() {
     return {'path': path, 'params': params};
+  }
+
+  dynamic forwardToJson([Map overloads]) {
+    var json = {'jsonrpc': '2.0', 'id': serial};
+    switch (type) {
+      case MessageType.Request:
+      case MessageType.Notification:
+        json['method'] = method;
+        if (params.isNotEmpty) {
+          json['params'] = params;
+        }
+        break;
+      case MessageType.Response:
+        if (result.isNotEmpty) {
+          json['result'] = result;
+        }
+        if (error.isNotEmpty) {
+          json['error'] = error;
+        }
+    }
+    if (overloads != null) {
+      json.addAll(overloads);
+    }
+    return json;
   }
 
   // Calls toString on all non-String elements of [list]. We do this so all

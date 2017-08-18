@@ -6,29 +6,26 @@ library fasta.outline_builder;
 
 import 'package:kernel/ast.dart' show ProcedureKind;
 
-import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
-
-import '../parser/parser.dart' show FormalParameterType, MemberKind, optional;
-
-import '../parser/identifier_context.dart' show IdentifierContext;
-
 import '../../scanner/token.dart' show Token;
-
-import '../util/link.dart' show Link;
-
-import '../combinator.dart' show Combinator;
-
-import '../errors.dart' show internalError;
 
 import '../builder/builder.dart';
 
+import '../combinator.dart' show Combinator;
+
+import '../fasta_codes.dart'
+    show
+        Message,
+        codeExpectedBlockToSkip,
+        messageOperatorWithOptionalFormals,
+        messageTypedefNotFunction,
+        templateDuplicatedParameterName,
+        templateDuplicatedParameterNameCause,
+        templateOperatorMinusParameterMismatch,
+        templateOperatorParameterMismatch0,
+        templateOperatorParameterMismatch1,
+        templateOperatorParameterMismatch2;
+
 import '../modifier.dart' show abstractMask, externalMask, Modifier;
-
-import 'source_library_builder.dart' show SourceLibraryBuilder;
-
-import 'unhandled_listener.dart' show NullValue, Unhandled, UnhandledListener;
-
-import '../parser/dart_vm_native.dart' show removeNativeClause;
 
 import '../operator.dart'
     show
@@ -37,7 +34,21 @@ import '../operator.dart'
         operatorToString,
         operatorRequiredArgumentCount;
 
+import '../parser/native_support.dart'
+    show extractNativeMethodName, removeNativeClause, skipNativeClause;
+
+import '../parser.dart'
+    show FormalParameterKind, IdentifierContext, MemberKind, optional;
+
+import '../problems.dart' show unhandled, unimplemented;
+
 import '../quote.dart' show unescapeString;
+
+import '../util/link.dart' show Link;
+
+import 'source_library_builder.dart' show SourceLibraryBuilder;
+
+import 'unhandled_listener.dart' show NullValue, Unhandled, UnhandledListener;
 
 enum MethodBody {
   Abstract,
@@ -49,6 +60,7 @@ class OutlineBuilder extends UnhandledListener {
   final SourceLibraryBuilder library;
 
   final bool enableNative;
+  final bool stringExpectedAfterNative;
 
   /// When true, recoverable parser errors are silently ignored. This is
   /// because they will be reported by the BodyBuilder later. However, typedefs
@@ -60,7 +72,10 @@ class OutlineBuilder extends UnhandledListener {
 
   OutlineBuilder(SourceLibraryBuilder library)
       : library = library,
-        enableNative = library.loader.target.enableNative(library);
+        enableNative =
+            library.loader.target.backendTarget.enableNative(library.uri),
+        stringExpectedAfterNative =
+            library.loader.target.backendTarget.nativeExtensionExpectsString;
 
   @override
   Uri get uri => library.fileUri;
@@ -100,6 +115,18 @@ class OutlineBuilder extends UnhandledListener {
           library,
           beginToken.charOffset));
     }
+  }
+
+  @override
+  void endMetadataStar(int count, bool forParameter) {
+    debugEvent("MetadataStar");
+    push(popList(count) ?? NullValue.Metadata);
+  }
+
+  @override
+  void handleInvalidTopLevelDeclaration(Token endToken) {
+    debugEvent("InvalidTopLevelDeclaration");
+    pop(); // metadata star
   }
 
   @override
@@ -156,7 +183,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void handleRecoverExpression(Token token, FastaMessage message) {
+  void handleRecoverExpression(Token token, Message message) {
     debugEvent("RecoverExpression");
     push(NullValue.Expression);
     push(token.charOffset);
@@ -185,6 +212,10 @@ class OutlineBuilder extends UnhandledListener {
   void handleIdentifier(Token token, IdentifierContext context) {
     super.handleIdentifier(token, context);
     push(token.charOffset);
+    if (context == IdentifierContext.enumValueDeclaration) {
+      String documentationComment = _getDocumentationComment(token);
+      push(documentationComment ?? NullValue.DocumentationComment);
+    }
   }
 
   @override
@@ -201,7 +232,7 @@ class OutlineBuilder extends UnhandledListener {
       push(unescapeString(token.lexeme));
       push(token.charOffset);
     } else {
-      internalError("String interpolation not implemented.");
+      unimplemented("string interpolation", endToken.charOffset, uri);
     }
   }
 
@@ -270,6 +301,7 @@ class OutlineBuilder extends UnhandledListener {
       Token implementsKeyword,
       Token endToken) {
     debugEvent("endClassDeclaration");
+    String documentationComment = _getDocumentationComment(beginToken);
     List<TypeBuilder> interfaces = popList(interfacesCount);
     TypeBuilder supertype = pop();
     List<TypeVariableBuilder> typeVariables = pop();
@@ -281,8 +313,8 @@ class OutlineBuilder extends UnhandledListener {
     }
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addClass(metadata, modifiers, name, typeVariables, supertype,
-        interfaces, charOffset);
+    library.addClass(documentationComment, metadata, modifiers, name,
+        typeVariables, supertype, interfaces, charOffset);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -290,7 +322,8 @@ class OutlineBuilder extends UnhandledListener {
     if (token == null) return ProcedureKind.Method;
     if (optional("get", token)) return ProcedureKind.Getter;
     if (optional("set", token)) return ProcedureKind.Setter;
-    return internalError("Unhandled: ${token.lexeme}");
+    return unhandled(
+        token.lexeme, "computeProcedureKind", token.charOffset, uri);
   }
 
   @override
@@ -311,8 +344,10 @@ class OutlineBuilder extends UnhandledListener {
     int modifiers =
         Modifier.validate(pop(), isAbstract: kind == MethodBody.Abstract);
     List<MetadataBuilder> metadata = pop();
+    String documentationComment = _getDocumentationComment(beginToken);
     checkEmpty(beginToken.charOffset);
     library.addProcedure(
+        documentationComment,
         metadata,
         modifiers,
         returnType,
@@ -368,16 +403,35 @@ class OutlineBuilder extends UnhandledListener {
       kind = ProcedureKind.Operator;
       int requiredArgumentCount = operatorRequiredArgumentCount(nameOrOperator);
       if ((formals?.length ?? 0) != requiredArgumentCount) {
-        library.addCompileTimeError(
-            charOffset,
-            "Operator '$name' must have exactly $requiredArgumentCount "
-            "parameters.");
+        var template;
+        switch (requiredArgumentCount) {
+          case 0:
+            template = templateOperatorParameterMismatch0;
+            break;
+
+          case 1:
+            if (Operator.subtract == nameOrOperator) {
+              template = templateOperatorMinusParameterMismatch;
+            } else {
+              template = templateOperatorParameterMismatch1;
+            }
+            break;
+
+          case 2:
+            template = templateOperatorParameterMismatch2;
+            break;
+
+          default:
+            unhandled("$requiredArgumentCount", "operatorRequiredArgumentCount",
+                charOffset, uri);
+        }
+        addCompileTimeError(template.withArguments(name), charOffset);
       } else {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {
             if (!formal.isRequired) {
-              library.addCompileTimeError(formal.charOffset,
-                  "An operator can't have optional parameters.");
+              addCompileTimeError(
+                  messageOperatorWithOptionalFormals, formal.charOffset);
             }
           }
         }
@@ -393,7 +447,9 @@ class OutlineBuilder extends UnhandledListener {
       modifiers &= ~abstractMask;
     }
     List<MetadataBuilder> metadata = pop();
+    String documentationComment = _getDocumentationComment(beginToken);
     library.addProcedure(
+        documentationComment,
         metadata,
         modifiers,
         returnType,
@@ -422,6 +478,7 @@ class OutlineBuilder extends UnhandledListener {
   void endNamedMixinApplication(Token beginToken, Token classKeyword,
       Token equals, Token implementsKeyword, Token endToken) {
     debugEvent("endNamedMixinApplication");
+    String documentationComment = _getDocumentationComment(beginToken);
     List<TypeBuilder> interfaces = popIfNotNull(implementsKeyword);
     TypeBuilder mixinApplication = pop();
     List<TypeVariableBuilder> typeVariables = pop();
@@ -429,8 +486,8 @@ class OutlineBuilder extends UnhandledListener {
     String name = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addNamedMixinApplication(metadata, name, typeVariables, modifiers,
-        mixinApplication, interfaces, charOffset);
+    library.addNamedMixinApplication(documentationComment, metadata, name,
+        typeVariables, modifiers, mixinApplication, interfaces, charOffset);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -474,7 +531,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterType kind, MemberKind memberKind) {
+      FormalParameterKind kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     int charOffset = pop();
     String name = pop();
@@ -498,28 +555,12 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endFunctionTypedFormalParameter(
-      Token thisKeyword, FormalParameterType kind) {
-    debugEvent("FunctionTypedFormalParameter");
-    List<FormalParameterBuilder> formals = pop();
-    int formalsOffset = pop();
-    List<TypeVariableBuilder> typeVariables = pop();
-    int charOffset = pop();
-    String name = pop();
-    TypeBuilder returnType = pop();
-    push(library.addFunctionType(
-        returnType, typeVariables, formals, formalsOffset));
-    push(name);
-    push(charOffset);
-  }
-
-  @override
   void endOptionalFormalParameters(
       int count, Token beginToken, Token endToken) {
     debugEvent("OptionalFormalParameters");
-    FormalParameterType kind = optional("{", beginToken)
-        ? FormalParameterType.NAMED
-        : FormalParameterType.POSITIONAL;
+    FormalParameterKind kind = optional("{", beginToken)
+        ? FormalParameterKind.optionalNamed
+        : FormalParameterKind.optionalPositional;
     // When recovering from an empty list of optional arguments, count may be
     // 0. It might be simpler if the parser didn't call this method in that
     // case, however, then [beginOptionalFormalParameters] wouldn't always be
@@ -563,10 +604,13 @@ class OutlineBuilder extends UnhandledListener {
       if (formals.length == 2) {
         // The name may be null for generalized function types.
         if (formals[0].name != null && formals[0].name == formals[1].name) {
-          library.addCompileTimeError(formals[1].charOffset,
-              "Duplicated parameter name '${formals[1].name}'.");
-          library.addCompileTimeError(formals[0].charOffset,
-              "Other parameter named '${formals[1].name}'.");
+          addCompileTimeError(
+              templateDuplicatedParameterName.withArguments(formals[1].name),
+              formals[1].charOffset);
+          addCompileTimeError(
+              templateDuplicatedParameterNameCause
+                  .withArguments(formals[1].name),
+              formals[0].charOffset);
         }
       } else if (formals.length > 2) {
         Map<String, FormalParameterBuilder> seenNames =
@@ -574,10 +618,12 @@ class OutlineBuilder extends UnhandledListener {
         for (FormalParameterBuilder formal in formals) {
           if (formal.name == null) continue;
           if (seenNames.containsKey(formal.name)) {
-            library.addCompileTimeError(formal.charOffset,
-                "Duplicated parameter name '${formal.name}'.");
-            library.addCompileTimeError(seenNames[formal.name].charOffset,
-                "Other parameter named '${formal.name}'.");
+            addCompileTimeError(
+                templateDuplicatedParameterName.withArguments(formal.name),
+                formal.charOffset);
+            addCompileTimeError(
+                templateDuplicatedParameterNameCause.withArguments(formal.name),
+                seenNames[formal.name].charOffset);
           } else {
             seenNames[formal.name] = formal;
           }
@@ -596,48 +642,76 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void endEnum(Token enumKeyword, Token endBrace, int count) {
-    List constantNamesAndOffsets = popList(count * 2);
+    String documentationComment = _getDocumentationComment(enumKeyword);
+    List constantNamesAndOffsets = popList(count * 3);
     int charOffset = pop();
     String name = pop();
     List<MetadataBuilder> metadata = pop();
-    library.addEnum(metadata, name, constantNamesAndOffsets, charOffset,
-        endBrace.charOffset);
+    library.addEnum(documentationComment, metadata, name,
+        constantNamesAndOffsets, charOffset, endBrace.charOffset);
     checkEmpty(enumKeyword.charOffset);
   }
 
   @override
   void beginFunctionTypeAlias(Token token) {
-    library.beginNestedDeclaration(null, hasMembers: false);
+    library.beginNestedDeclaration("#typedef", hasMembers: false);
     silenceParserErrors = false;
   }
 
   @override
-  void handleFunctionType(Token functionToken, Token endToken) {
+  void beginFunctionType(Token beginToken) {
+    debugEvent("beginFunctionType");
+    library.beginNestedDeclaration("#function_type", hasMembers: false);
+  }
+
+  @override
+  void beginFunctionTypedFormalParameter(Token token) {
+    debugEvent("beginFunctionTypedFormalParameter");
+    library.beginNestedDeclaration("#function_type", hasMembers: false);
+  }
+
+  @override
+  void endFunctionType(Token functionToken, Token endToken) {
     debugEvent("FunctionType");
     List<FormalParameterBuilder> formals = pop();
     pop(); // formals offset
-    List<TypeVariableBuilder> typeVariables = pop();
     TypeBuilder returnType = pop();
+    List<TypeVariableBuilder> typeVariables = pop();
     push(library.addFunctionType(
         returnType, typeVariables, formals, functionToken.charOffset));
+  }
+
+  @override
+  void endFunctionTypedFormalParameter() {
+    debugEvent("FunctionTypedFormalParameter");
+    List<FormalParameterBuilder> formals = pop();
+    int formalsOffset = pop();
+    TypeBuilder returnType = pop();
+    List<TypeVariableBuilder> typeVariables = pop();
+    push(library.addFunctionType(
+        returnType, typeVariables, formals, formalsOffset));
   }
 
   @override
   void endFunctionTypeAlias(
       Token typedefKeyword, Token equals, Token endToken) {
     debugEvent("endFunctionTypeAlias");
-    List<FormalParameterBuilder> formals;
     List<TypeVariableBuilder> typeVariables;
     String name;
-    TypeBuilder returnType;
     int charOffset;
+    FunctionTypeBuilder functionType;
     if (equals == null) {
-      formals = pop();
+      List<FormalParameterBuilder> formals = pop();
       pop(); // formals offset
       typeVariables = pop();
       charOffset = pop();
       name = pop();
-      returnType = pop();
+      TypeBuilder returnType = pop();
+      // Create a nested declaration that is ended below by
+      // `library.addFunctionType`.
+      library.beginNestedDeclaration("#function_type", hasMembers: false);
+      functionType =
+          library.addFunctionType(returnType, null, formals, charOffset);
     } else {
       var type = pop();
       typeVariables = pop();
@@ -649,17 +723,15 @@ class OutlineBuilder extends UnhandledListener {
         // `type.typeVariables`. A typedef can have type variables, and a new
         // function type can also have type variables (representing the type of
         // a generic function).
-        formals = type.formals;
-        returnType = type.returnType;
+        functionType = type;
       } else {
         // TODO(ahe): Improve this error message.
-        library.addCompileTimeError(
-            equals.charOffset, "Can't create typedef from non-function type.");
+        addCompileTimeError(messageTypedefNotFunction, equals.charOffset);
       }
     }
     List<MetadataBuilder> metadata = pop();
     library.addFunctionTypeAlias(
-        metadata, returnType, name, typeVariables, formals, charOffset);
+        metadata, name, typeVariables, functionType, charOffset);
     checkEmpty(typedefKeyword.charOffset);
     silenceParserErrors = true;
   }
@@ -671,7 +743,9 @@ class OutlineBuilder extends UnhandledListener {
     TypeBuilder type = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addFields(metadata, modifiers, type, fieldsInfo);
+    String documentationComment = _getDocumentationComment(beginToken);
+    library.addFields(
+        documentationComment, metadata, modifiers, type, fieldsInfo);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -682,7 +756,9 @@ class OutlineBuilder extends UnhandledListener {
     TypeBuilder type = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addFields(metadata, modifiers, type, fieldsInfo);
+    String documentationComment = _getDocumentationComment(beginToken);
+    library.addFields(
+        documentationComment, metadata, modifiers, type, fieldsInfo);
   }
 
   @override
@@ -725,7 +801,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginFactoryMethod(Token token) {
-    library.beginNestedDeclaration(null, hasMembers: false);
+    library.beginNestedDeclaration("#factory_method", hasMembers: false);
   }
 
   @override
@@ -742,7 +818,9 @@ class OutlineBuilder extends UnhandledListener {
     var name = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
+    String documentationComment = _getDocumentationComment(beginToken);
     library.addFactoryMethod(
+        documentationComment,
         metadata,
         modifiers,
         name,
@@ -828,7 +906,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void handleRecoverableError(Token token, FastaMessage message) {
+  void handleRecoverableError(Token token, Message message) {
     if (silenceParserErrors) {
       debugEvent("RecoverableError");
     } else {
@@ -837,12 +915,12 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  Token handleUnrecoverableError(Token token, FastaMessage message) {
+  Token handleUnrecoverableError(Token token, Message message) {
     if (enableNative && message.code == codeExpectedBlockToSkip) {
-      var target = library.loader.target;
-      Token recover = target.skipNativeClause(token);
+      Token recover = skipNativeClause(token, stringExpectedAfterNative);
       if (recover != null) {
-        nativeMethodName = target.extractNativeMethodName(token);
+        nativeMethodName =
+            stringExpectedAfterNative ? extractNativeMethodName(token) : "";
         return recover;
       }
     }
@@ -850,15 +928,42 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void addCompileTimeErrorFromMessage(FastaMessage message) {
-    library.addCompileTimeError(message.charOffset, message.message,
-        fileUri: message.uri);
+  void addCompileTimeError(Message message, int charOffset) {
+    library.addCompileTimeError(message, charOffset, uri);
   }
 
   @override
   Link<Token> handleMemberName(Link<Token> identifiers) {
     if (!enableNative || identifiers.isEmpty) return identifiers;
-    return removeNativeClause(identifiers);
+    return removeNativeClause(identifiers, stringExpectedAfterNative);
+  }
+
+  /// Return the documentation comment for the entity that starts at the
+  /// given [token], or `null` if there is no preceding documentation comment.
+  static String _getDocumentationComment(Token token) {
+    Token docToken = token.precedingComments;
+    if (docToken == null) return null;
+    bool inSlash = false;
+    var buffer = new StringBuffer();
+    while (docToken != null) {
+      String lexeme = docToken.lexeme;
+      if (lexeme.startsWith('/**')) {
+        inSlash = false;
+        buffer.clear();
+        buffer.write(lexeme);
+      } else if (lexeme.startsWith('///')) {
+        if (!inSlash) {
+          inSlash = true;
+          buffer.clear();
+        }
+        if (buffer.isNotEmpty) {
+          buffer.writeln();
+        }
+        buffer.write(lexeme);
+      }
+      docToken = docToken.next;
+    }
+    return buffer.toString();
   }
 
   @override

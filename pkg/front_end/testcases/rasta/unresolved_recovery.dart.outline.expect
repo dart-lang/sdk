@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class E extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   method foo() → dynamic
     ;

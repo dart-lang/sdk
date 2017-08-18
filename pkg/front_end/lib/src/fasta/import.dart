@@ -44,13 +44,13 @@ class Import {
           new PrefixBuilder(this.prefix, deferred, importer, prefixCharOffset);
       add = (String name, Builder member) {
         if (member.isSetter) {
-          prefix.exports.setters[name] = member;
+          prefix.exportScope.setters[name] = member;
         } else {
-          prefix.exports.local[name] = member;
+          prefix.exportScope.local[name] = member;
         }
       };
     }
-    imported.exports.forEach((String name, Builder member) {
+    imported.exportScope.forEach((String name, Builder member) {
       if (combinators != null) {
         for (Combinator combinator in combinators) {
           if (combinator.isShow && !combinator.names.contains(name)) return;

@@ -10,7 +10,7 @@ import 'dart:typed_data';
 import 'dart:math' as math;
 
 import 'package:logging/logging.dart';
-import 'package:observatory/cpu_profile.dart';
+import 'package:observatory/sample_profile.dart';
 import 'package:observatory/event.dart' show createEventFromServiceEvent;
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/tracer.dart';

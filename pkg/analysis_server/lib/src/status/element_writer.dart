@@ -147,9 +147,6 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
     if (element is TypeParameterizedElement) {
       properties['typeParameters'] = element.typeParameters;
     }
-    if (element is UriReferencedElement) {
-      properties['uri'] = element.uri;
-    }
     if (element is VariableElement) {
       properties['constantValue'] = element.constantValue;
       properties['hasImplicitType'] = element.hasImplicitType;

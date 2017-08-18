@@ -63,9 +63,7 @@ main() {
   @failingTest
   test_updateContent_multipleAdds() async {
     String pathname = sourcePath('test.dart');
-    writeFile(
-        pathname,
-        r'''
+    writeFile(pathname, r'''
 class Person {
   String _name;
   Person(this._name);

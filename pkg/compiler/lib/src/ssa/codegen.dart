@@ -1083,7 +1083,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         currentContainer = oldContainer;
         break;
       default:
-        throw new SpannableAssertionFailure(condition.conditionExpression,
+        failedAt(condition.conditionExpression,
             'Unexpected loop kind: ${info.kind}.');
     }
     js.Statement result = loop;
@@ -1497,12 +1497,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // is responsible for visiting the successor.
     if (dominated.isEmpty) return;
     if (dominated.length > 2) {
-      throw new SpannableAssertionFailure(
-          node, 'dominated.length = ${dominated.length}');
+      failedAt(node, 'dominated.length = ${dominated.length}');
     }
     if (dominated.length == 2 && block != currentGraph.entry) {
-      throw new SpannableAssertionFailure(
-          node, 'node.block != currentGraph.entry');
+      failedAt(node, 'node.block != currentGraph.entry');
     }
     assert(dominated[0] == block.successors[0]);
     continueSubGraph(dominated.first);
@@ -1590,7 +1588,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitTry(HTry node) {
     // We should never get here. Try/catch/finally is always handled using block
     // information in [visitTryInfo].
-    throw new SpannableAssertionFailure(node, 'visitTry should not be called.');
+    failedAt(node, 'visitTry should not be called.');
   }
 
   bool tryControlFlowOperation(HIf node) {
@@ -2104,9 +2102,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.callMethod != null) {
       _registry
           ?.registerStaticUse(new StaticUse.implicitInvoke(node.callMethod));
-    }
-    if (node.localFunction != null) {
-      _registry?.registerInstantiatedClosure(node.localFunction);
+      _registry?.registerInstantiatedClosure(node.callMethod);
     }
   }
 
@@ -2897,8 +2893,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkString(input, '!==', input.sourceInformation);
       return pop();
     }
-    throw new SpannableAssertionFailure(
-        input, 'Unexpected check: $checkedType.');
+    throw failedAt(input, 'Unexpected check: $checkedType.');
   }
 
   void visitTypeConversion(HTypeConversion node) {

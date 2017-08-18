@@ -8,7 +8,7 @@
 
 rasta/unsupported_platform_library: RuntimeError # OK, this must report an error at runtime.
 
-DeltaBlue: Fail # Missing types on constructor parameters.
+DeltaBlue: Fail # Fasta and dartk disagree on static initializers
 call: Fail # Test can't run.
 fallthrough: Fail # Missing FallThroughError.
 function_type_recovery: Fail
@@ -19,274 +19,22 @@ optional: Fail # Unnecessary default values.
 redirecting_factory: Fail # Missing types on constructor parameters.
 statements: Fail # Make async tranformer optional for golden file testing.
 type_variable_as_super: Fail
-uninitialized_fields: Fail # Missing types and unnecessary default values.
+uninitialized_fields: Fail # Fasta and dartk disagree on static initializers
 void-methods: Fail # Bad return from setters.
 
-inference/async_closure_return_type_flatten: Fail
-inference/async_closure_return_type_future: Fail
-inference/async_closure_return_type_future_or: Fail
-inference/block_bodied_lambdas_async_all_returns_are_futures: Fail
-inference/block_bodied_lambdas_async_all_returns_are_values: Fail
-inference/block_bodied_lambdas_async_mix_of_values_and_futures: Fail
-inference/block_bodied_lambdas_async_star: Fail
-inference/block_bodied_lambdas_basic: Fail
-inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference: Fail
-inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference_top_level: Fail
-inference/block_bodied_lambdas_infer_bottom_async: Fail
-inference/block_bodied_lambdas_infer_bottom_async_star: Fail
-inference/block_bodied_lambdas_infer_bottom_sync: Fail
-inference/block_bodied_lambdas_infer_bottom_sync_star: Fail
-inference/block_bodied_lambdas_lub: Fail
-inference/block_bodied_lambdas_nested_lambdas: Fail
-inference/block_bodied_lambdas_no_return: Fail
-inference/block_bodied_lambdas_sync_star: Fail
-inference/bottom: Fail
-inference/bottom_in_closure: Fail
-inference/circular_reference_via_closures: Fail
-inference/circular_reference_via_closures_initializer_types: Fail
-inference/conflicts_can_happen: Fail
-inference/conflicts_can_happen2: Fail
-inference/constructors_downwards_with_constraint: Fail
-inference/constructors_infer_from_arguments: Fail
-inference/constructors_infer_from_arguments_argument_not_assignable: Fail
-inference/constructors_infer_from_arguments_const: Fail
-inference/constructors_infer_from_arguments_const_with_upper_bound: Fail
-inference/constructors_infer_from_arguments_downwards_from_constructor: Fail
-inference/constructors_infer_from_arguments_factory: Fail
-inference/constructors_infer_from_arguments_factory_calls_constructor: Fail
-inference/constructors_infer_from_arguments_named: Fail
-inference/constructors_infer_from_arguments_named_factory: Fail
-inference/constructors_infer_from_arguments_redirecting: Fail
-inference/constructors_infer_from_arguments_redirecting_factory: Fail
-inference/constructors_inference_f_bounded: Fail
-inference/constructors_reverse_type_parameters: Fail
 inference/constructors_too_many_positional_arguments: Fail
-inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: Fail
-inference/dont_infer_field_type_when_initializer_is_null: Fail
-inference/dont_infer_type_on_dynamic: Fail
-inference/dont_infer_type_when_initializer_is_null: Fail
-inference/downward_inference_fixes_no_upwards_errors: Fail
-inference/downward_inference_miscellaneous: Fail
-inference/downwards_inference_annotations: Fail
-inference/downwards_inference_assignment_statements: Fail
-inference/downwards_inference_async_await: Fail
-inference/downwards_inference_for_each: Fail
-inference/downwards_inference_initializing_formal_default_formal: Fail
-inference/downwards_inference_inside_top_level: Fail
-inference/downwards_inference_on_constructor_arguments_infer_downwards: Fail
-inference/downwards_inference_on_function_arguments_infer_downwards: Fail
-inference/downwards_inference_on_function_expressions: Fail
-inference/downwards_inference_on_function_of_t_using_the_t: Fail
-inference/downwards_inference_on_generic_constructor_arguments_empty_list: Fail
-inference/downwards_inference_on_generic_constructor_arguments_infer_downwards: Fail
-inference/downwards_inference_on_generic_function_expressions: Fail
-inference/downwards_inference_on_instance_creations_infer_downwards: Fail
-inference/downwards_inference_on_list_literals_infer_downwards: Fail
-inference/downwards_inference_on_list_literals_infer_if_value_types_match_context: Fail
-inference/downwards_inference_on_map_literals: Fail
-inference/downwards_inference_yield_yield_star: Fail
-inference/field_refers_to_static_getter: Fail
-inference/field_refers_to_top_level_getter: Fail
-inference/future_or_subtyping: Fail
-inference/future_then: Fail
-inference/future_then_2: Fail
-inference/future_then_3: Fail
-inference/future_then_4: Fail
-inference/future_then_5: Fail
-inference/future_then_6: Fail
-inference/future_then_conditional: Fail
-inference/future_then_conditional_2: Fail
-inference/future_then_conditional_3: Fail
-inference/future_then_conditional_4: Fail
-inference/future_then_conditional_5: Fail
-inference/future_then_conditional_6: Fail
-inference/future_then_downwards_method_target: Fail
+inference/downwards_inference_annotations_locals: Fail # Issue #30031
 inference/future_then_explicit_future: Fail
-inference/future_then_upwards: Fail
-inference/future_then_upwards_2: Fail
-inference/future_then_upwards_3: Fail
-inference/future_then_upwards_from_block: Fail
-inference/future_union_async_conditional: Fail
-inference/future_union_async_conditional_2: Fail
-inference/future_union_downwards: Fail
-inference/future_union_downwards_2: Fail
-inference/future_union_downwards_3: Fail
-inference/future_union_downwards_4: Fail
-inference/future_union_downwards_generic_method_with_future_return: Fail
-inference/future_union_downwards_generic_method_with_generic_return: Fail
-inference/future_union_upwards_generic_methods: Fail
-inference/generic_functions_return_typedef: Fail
-inference/generic_methods_basic_downward_inference: Fail
-inference/generic_methods_correctly_recognize_generic_upper_bound: Fail
-inference/generic_methods_dart_math_min_max: Fail
-inference/generic_methods_do_not_infer_invalid_override_of_generic_method: Fail
-inference/generic_methods_downwards_inference_affects_arguments: Fail
-inference/generic_methods_downwards_inference_fold: Fail
-inference/generic_methods_handle_override_of_non_generic_with_generic: Fail
-inference/generic_methods_infer_generic_function_parameter_type: Fail
-inference/generic_methods_infer_generic_function_parameter_type2: Fail
-inference/generic_methods_infer_generic_function_return_type: Fail
-inference/generic_methods_infer_generic_instantiation: Fail
-inference/generic_methods_infer_generic_method_type: Fail
 inference/generic_methods_infer_js_builtin: Fail
-inference/generic_methods_inference_error: Fail
-inference/generic_methods_iterable_and_future: Fail
-inference/generic_methods_nested_generic_instantiation: Fail
-inference/generic_methods_uses_greatest_lower_bound: Fail
 inference/infer_assign_to_index: Fail
 inference/infer_assign_to_property: Fail
 inference/infer_assign_to_property_custom: Fail
-inference/infer_assign_to_ref: Fail
-inference/infer_binary_custom: Fail
-inference/infer_binary_double_double: Fail
-inference/infer_binary_double_int: Fail
-inference/infer_binary_int_double: Fail
-inference/infer_binary_int_int: Fail
-inference/infer_conditional: Fail
-inference/infer_consts_transitively_2: Fail
-inference/infer_consts_transitively_2_a: Fail
-inference/infer_consts_transitively_2_b: Fail
-inference/infer_consts_transitively_b: Fail
-inference/infer_correctly_on_multiple_variables_declared_together: Fail
-inference/infer_from_complex_expressions_if_outer_most_value_is_precise: Fail
-inference/infer_from_rhs_only_if_it_wont_conflict_with_overridden_fields: Fail
-inference/infer_from_rhs_only_if_it_wont_conflict_with_overridden_fields2: Fail
-inference/infer_from_variables_in_cycle_libs_when_flag_is_on: Fail
-inference/infer_from_variables_in_cycle_libs_when_flag_is_on2: Fail
-inference/infer_from_variables_in_cycle_libs_when_flag_is_on2_a: Fail
-inference/infer_from_variables_in_cycle_libs_when_flag_is_on_a: Fail
-inference/infer_from_variables_in_non_cycle_imports_with_flag: Fail
-inference/infer_from_variables_in_non_cycle_imports_with_flag2: Fail
-inference/infer_from_variables_in_non_cycle_imports_with_flag2_a: Fail
-inference/infer_from_variables_in_non_cycle_imports_with_flag_a: Fail
-inference/infer_generic_method_type_named: Fail
-inference/infer_generic_method_type_positional: Fail
-inference/infer_generic_method_type_positional2: Fail
-inference/infer_generic_method_type_required: Fail
-inference/infer_list_literal_nested_in_map_literal: Fail
-inference/infer_local_function_return_type: Fail
-inference/infer_parameter_type_setter_from_field: Fail
-inference/infer_parameter_type_setter_from_setter: Fail
-inference/infer_prefix_expression: Fail
-inference/infer_prefix_expression_custom: Fail
-inference/infer_return_of_statement_lambda: Fail
-inference/infer_statics_transitively: Fail
-inference/infer_statics_transitively2: Fail
-inference/infer_statics_transitively3: Fail
-inference/infer_statics_transitively3_a: Fail
-inference/infer_statics_transitively_2_a: Fail
-inference/infer_statics_transitively_a: Fail
-inference/infer_statics_transitively_b: Fail
-inference/infer_statics_with_method_invocations: Fail
-inference/infer_statics_with_method_invocations_a: Fail
-inference/infer_throw: Fail
 inference/infer_type_cast: Fail
-inference/infer_type_on_overridden_fields2: Fail
-inference/infer_type_on_overridden_fields4: Fail
-inference/infer_type_on_var: Fail
-inference/infer_type_on_var2: Fail
-inference/infer_type_on_var_from_field: Fail
-inference/infer_type_on_var_from_top_level: Fail
-inference/infer_type_regardless_of_declaration_order_or_cycles: Fail
-inference/infer_type_regardless_of_declaration_order_or_cycles_b: Fail
 inference/infer_typed_list_literal: Fail
-inference/infer_typed_map_literal: Fail
-inference/infer_types_on_generic_instantiations_3: Fail
-inference/infer_types_on_generic_instantiations_4: Fail
-inference/infer_types_on_generic_instantiations_5: Fail
-inference/infer_types_on_generic_instantiations_in_library_cycle: Fail
-inference/infer_types_on_generic_instantiations_in_library_cycle_a: Fail
-inference/infer_types_on_generic_instantiations_infer: Fail
-inference/infer_types_on_loop_indices_for_each_loop: Fail
-inference/infer_types_on_loop_indices_for_loop_with_inference: Fail
-inference/infer_variable_void: Fail
-inference/inferred_initializing_formal_checks_default_value: Fail
-inference/inferred_nonstatic_field_depends_on_static_field_complex: Fail
-inference/inferred_nonstatic_field_depends_on_top_level_var_simple: Fail
-inference/inferred_type_block_closure_no_args_no_return: Fail
-inference/inferred_type_cascade: Fail
-inference/inferred_type_custom_binary_op: Fail
-inference/inferred_type_custom_binary_op_via_interface: Fail
-inference/inferred_type_custom_index_op: Fail
-inference/inferred_type_custom_index_op_via_interface: Fail
-inference/inferred_type_custom_unary_op: Fail
-inference/inferred_type_custom_unary_op_via_interface: Fail
-inference/inferred_type_extract_method_tear_off: Fail
-inference/inferred_type_extract_method_tear_off_via_interface: Fail
-inference/inferred_type_from_top_level_executable_tear_off: Fail
-inference/inferred_type_invoke_method: Fail
-inference/inferred_type_invoke_method_via_interface: Fail
-inference/inferred_type_is_enum: Fail
-inference/inferred_type_is_enum_values: Fail
-inference/inferred_type_is_typedef: Fail
-inference/inferred_type_is_typedef_parameterized: Fail
-inference/inferred_type_uses_synthetic_function_type: Fail
-inference/inferred_type_uses_synthetic_function_type_function_typed_param: Fail
-inference/inferred_type_uses_synthetic_function_type_named_param: Fail
-inference/inferred_type_uses_synthetic_function_type_positional_param: Fail
-inference/inferred_type_uses_synthetic_function_type_required_param: Fail
-inference/inferred_type_via_closure_multiple_levels_of_nesting: Fail
-inference/inferred_type_via_closure_type_depends_on_args: Fail
-inference/inferred_type_via_closure_type_independent_of_args_field: Fail
-inference/inferred_type_via_closure_type_independent_of_args_top_level: Fail
-inference/instantiate_to_bounds_generic2_has_bound_defined_after: Fail
-inference/instantiate_to_bounds_generic2_has_bound_defined_before: Fail
-inference/instantiate_to_bounds_generic2_no_bound: Fail
-inference/instantiate_to_bounds_generic_has_bound_defined_after: Fail
-inference/instantiate_to_bounds_generic_has_bound_defined_before: Fail
-inference/instantiate_to_bounds_invoke_constructor_no_bound: Fail
-inference/instantiate_to_bounds_invoke_constructor_type_args_exact: Fail
-inference/instantiate_to_bounds_not_generic: Fail
-inference/lambda_does_not_have_propagated_type_hint: Fail
-inference/list_literals: Fail
-inference/list_literals_can_infer_null_bottom: Fail
-inference/list_literals_top_level: Fail
-inference/map_literals: Fail
-inference/map_literals_can_infer_null: Fail
-inference/map_literals_top_level: Fail
-inference/method_call_with_type_arguments_instance_method: Fail
-inference/method_call_with_type_arguments_instance_method_identifier_sequence: Fail
-inference/method_call_with_type_arguments_static_method: Fail
-inference/method_call_with_type_arguments_top_level_function: Fail
-inference/no_error_when_declared_type_is_num_and_assigned_null: Fail
-inference/null_coalescing_operator: Fail
-inference/null_coalescing_operator_2: Fail
-inference/null_literal_should_not_infer_as_bottom: Fail
-inference/propagate_inference_to_field_in_class: Fail
-inference/propagate_inference_to_field_in_class_dynamic_warnings: Fail
-inference/propagate_inference_transitively: Fail
-inference/propagate_inference_transitively2: Fail
-inference/reference_to_typedef: Fail
-inference/refine_binary_expression_type_type_parameter_t_double: Fail
-inference/refine_binary_expression_type_type_parameter_t_int: Fail
-inference/refine_binary_expression_type_type_parameter_t_t: Fail
-inference/static_method_tear_off: Fail
-inference/unsafe_block_closure_inference_closure_call: Fail
-inference/unsafe_block_closure_inference_constructor_call_explicit_dynamic_param: Fail
-inference/unsafe_block_closure_inference_constructor_call_explicit_type_param: Fail
-inference/unsafe_block_closure_inference_constructor_call_implicit_type_param: Fail
-inference/unsafe_block_closure_inference_constructor_call_no_type_param: Fail
-inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param: Fail
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: Fail
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Fail
-inference/unsafe_block_closure_inference_function_call_explicit_type_param: Fail
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: Fail
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Fail
-inference/unsafe_block_closure_inference_function_call_implicit_type_param: Fail
-inference/unsafe_block_closure_inference_function_call_implicit_type_param_via_expr: Fail
-inference/unsafe_block_closure_inference_function_call_no_type_param: Fail
-inference/unsafe_block_closure_inference_function_call_no_type_param_via_expr: Fail
-inference/unsafe_block_closure_inference_in_list_dynamic: Fail
-inference/unsafe_block_closure_inference_in_list_typed: Fail
-inference/unsafe_block_closure_inference_in_list_untyped: Fail
-inference/unsafe_block_closure_inference_in_map_dynamic: Fail
-inference/unsafe_block_closure_inference_in_map_typed: Fail
-inference/unsafe_block_closure_inference_in_map_untyped: Fail
-inference/unsafe_block_closure_inference_method_call_explicit_dynamic_param: Fail
-inference/unsafe_block_closure_inference_method_call_explicit_type_param: Fail
-inference/unsafe_block_closure_inference_method_call_implicit_type_param: Fail
-inference/unsafe_block_closure_inference_method_call_no_type_param: Fail
-inference/void_return_type_subtypes_dynamic: Fail
 
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail
@@ -327,14 +75,12 @@ rasta/issue_000047: Fail
 rasta/issue_000081: Fail
 rasta/malformed_const_constructor: Fail
 rasta/malformed_function: Fail
-rasta/malformed_function_type: Fail
 rasta/mandatory_parameter_initializer: Fail
 rasta/mixin_library: Fail
 rasta/native_is_illegal: Fail
 rasta/parser_error: Fail
 rasta/super: Fail
 rasta/super_initializer: Fail
-rasta/super_mixin: Fail
 rasta/super_operator: Fail
 rasta/supports_reflection: VerificationError
 rasta/try_label: Fail
@@ -346,21 +92,17 @@ rasta/unresolved_constructor: Fail
 rasta/unresolved_for_in: Fail
 rasta/unresolved_recovery: Fail
 
-regress/issue_29937: Crash # Issue 29937.
 regress/issue_29940: Crash # Issue 29940.
 regress/issue_29941: Crash # Issue 29941.
-regress/issue_29942: Crash # Issue 29942.
 regress/issue_29943: Crash # Issue 29943.
 regress/issue_29944: Crash # Issue 29944.
 regress/issue_29945: Crash # Issue 29945.
 regress/issue_29975: Fail # Issue 29975.
-regress/issue_29976: Crash # Issue 29976.
+regress/issue_29976: RuntimeError
 regress/issue_29977: Crash # Issue 29977.
-regress/issue_29978: Crash # Issue 29978.
-regress/issue_29979: Crash # Issue 29979.
 regress/issue_29980: Crash # Issue 29980.
 regress/issue_29981: Crash # Issue 29981.
-regress/issue_29982: Crash # Issue 29982.
+regress/issue_29982: RuntimeError
 regress/issue_29983: Crash # Issue 29983.
 regress/issue_29984: Crash # Issue 29984.
 regress/issue_29985: Crash # Issue 29985.

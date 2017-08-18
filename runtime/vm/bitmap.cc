@@ -30,7 +30,6 @@ void BitmapBuilder::SetLength(intptr_t new_length) {
   length_ = new_length;
 }
 
-
 bool BitmapBuilder::Get(intptr_t bit_offset) const {
   if (!InRange(bit_offset)) {
     return false;
@@ -39,7 +38,6 @@ bool BitmapBuilder::Get(intptr_t bit_offset) const {
   // Bits not covered by the backing store are implicitly false.
   return (byte_offset < data_size_in_bytes_) && GetBit(bit_offset);
 }
-
 
 void BitmapBuilder::Set(intptr_t bit_offset, bool value) {
   if (!InRange(bit_offset)) {
@@ -63,13 +61,11 @@ void BitmapBuilder::Set(intptr_t bit_offset, bool value) {
   SetBit(bit_offset, value);
 }
 
-
 void BitmapBuilder::SetRange(intptr_t min, intptr_t max, bool value) {
   for (intptr_t i = min; i <= max; i++) {
     Set(i, value);
   }
 }
-
 
 void BitmapBuilder::Print() const {
   for (intptr_t i = 0; i < Length(); i++) {
@@ -80,7 +76,6 @@ void BitmapBuilder::Print() const {
     }
   }
 }
-
 
 bool BitmapBuilder::GetBit(intptr_t bit_offset) const {
   if (!InRange(bit_offset)) {
@@ -93,7 +88,6 @@ bool BitmapBuilder::GetBit(intptr_t bit_offset) const {
   ASSERT(data_ != NULL);
   return ((data_[byte_offset] & mask) != 0);
 }
-
 
 void BitmapBuilder::SetBit(intptr_t bit_offset, bool value) {
   if (!InRange(bit_offset)) {

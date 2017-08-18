@@ -3,11 +3,11 @@ import self as self;
 import "dart:core" as core;
 
 class A<T extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 class B<T extends core::Object> extends self::A<self::B::T> {
-  constructor •() → void
+  default constructor •() → void
     ;
   method foo() → dynamic
     ;

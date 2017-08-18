@@ -51,7 +51,6 @@ class ARM64Decoder : public ValueObject {
   APPLY_OP_LIST(DECODE_OP)
 #undef DECODE_OP
 
-
   // Convenience functions.
   char* get_buffer() const { return buffer_; }
   char* current_position_in_buffer() { return buffer_ + buffer_pos_; }
@@ -65,11 +64,9 @@ class ARM64Decoder : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(ARM64Decoder);
 };
 
-
 // Support for assertions in the ARM64Decoder formatting functions.
 #define STRING_STARTS_WITH(string, compare_string)                             \
   (strncmp(string, compare_string, strlen(compare_string)) == 0)
-
 
 // Append the str to the output buffer.
 void ARM64Decoder::Print(const char* str) {
@@ -81,7 +78,6 @@ void ARM64Decoder::Print(const char* str) {
   buffer_[buffer_pos_] = '\0';
 }
 
-
 // These register names are defined in a way to match the native disassembler
 // formatting, except for register aliases ctx (r9), pp (r10) and sp (r19).
 // See for example the command "objdump -d <binary file>".
@@ -90,7 +86,6 @@ static const char* reg_names[kNumberOfCpuRegisters] = {
     "r11", "r12", "r13", "r14", "r15", "ip0", "ip1", "r18", "sp", "r20", "r21",
     "r22", "r23", "r24", "r25", "thr", "pp",  "ctx", "fp",  "lr", "r31",
 };
-
 
 // Print the register name according to the active name converter.
 void ARM64Decoder::PrintRegister(int reg, R31Type r31t) {
@@ -104,7 +99,6 @@ void ARM64Decoder::PrintRegister(int reg, R31Type r31t) {
   }
 }
 
-
 void ARM64Decoder::PrintVRegister(int reg) {
   ASSERT(0 <= reg);
   ASSERT(reg < kNumberOfVRegisters);
@@ -112,16 +106,13 @@ void ARM64Decoder::PrintVRegister(int reg) {
                              remaining_size_in_buffer(), "v%d", reg);
 }
 
-
 // These shift names are defined in a way to match the native disassembler
 // formatting. See for example the command "objdump -d <binary file>".
 static const char* shift_names[kMaxShift] = {"lsl", "lsr", "asr", "ror"};
 
-
 static const char* extend_names[kMaxExtend] = {
     "uxtb", "uxth", "uxtw", "uxtx", "sxtb", "sxth", "sxtw", "sxtx",
 };
-
 
 // These condition names are defined in a way to match the native disassembler
 // formatting. See for example the command "objdump -d <binary file>".
@@ -129,7 +120,6 @@ static const char* cond_names[kNumberOfConditions] = {
     "eq", "ne", "cs", "cc", "mi", "pl", "vs", "vc",
     "hi", "ls", "ge", "lt", "gt", "le", "",   "invalid",
 };
-
 
 // Print the condition guarding the instruction.
 void ARM64Decoder::PrintCondition(Instr* instr) {
@@ -139,7 +129,6 @@ void ARM64Decoder::PrintCondition(Instr* instr) {
     Print(cond_names[instr->ConditionField()]);
   }
 }
-
 
 // Print the register shift operands for the instruction. Generally used for
 // data processing instructions.
@@ -182,7 +171,6 @@ void ARM64Decoder::PrintShiftExtendRm(Instr* instr) {
     }
   }
 }
-
 
 void ARM64Decoder::PrintMemOperand(Instr* instr) {
   const Register rn = instr->RnField();
@@ -252,7 +240,6 @@ void ARM64Decoder::PrintMemOperand(Instr* instr) {
   }
 }
 
-
 void ARM64Decoder::PrintPairMemOperand(Instr* instr) {
   const Register rn = instr->RnField();
   const int32_t simm7 = instr->SImm7Field();
@@ -282,7 +269,6 @@ void ARM64Decoder::PrintPairMemOperand(Instr* instr) {
       break;
   }
 }
-
 
 // Handle all register based formatting in these functions to reduce the
 // complexity of FormatOption.
@@ -317,7 +303,6 @@ int ARM64Decoder::FormatRegister(Instr* instr, const char* format) {
   return -1;
 }
 
-
 int ARM64Decoder::FormatVRegister(Instr* instr, const char* format) {
   ASSERT(format[0] == 'v');
   if (format[1] == 'd') {
@@ -340,7 +325,6 @@ int ARM64Decoder::FormatVRegister(Instr* instr, const char* format) {
   UNREACHABLE();
   return -1;
 }
-
 
 // FormatOption takes a formatting string and interprets it based on
 // the current instructions. The format string points to the first
@@ -639,7 +623,6 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
   return -1;
 }
 
-
 // Format takes a formatting string for a whole instruction and prints it into
 // the output buffer. All escaped options are handed to FormatOption to be
 // parsed further.
@@ -656,13 +639,11 @@ void ARM64Decoder::Format(Instr* instr, const char* format) {
   buffer_[buffer_pos_] = '\0';
 }
 
-
 // For currently unimplemented decodings the disassembler calls Unknown(instr)
 // which will just print "unknown" of the instruction bits.
 void ARM64Decoder::Unknown(Instr* instr) {
   Format(instr, "unknown");
 }
-
 
 void ARM64Decoder::DecodeMoveWide(Instr* instr) {
   switch (instr->Bits(29, 2)) {
@@ -680,7 +661,6 @@ void ARM64Decoder::DecodeMoveWide(Instr* instr) {
       break;
   }
 }
-
 
 void ARM64Decoder::DecodeLoadStoreReg(Instr* instr) {
   if (instr->Bit(26) == 1) {
@@ -700,7 +680,6 @@ void ARM64Decoder::DecodeLoadStoreReg(Instr* instr) {
   }
 }
 
-
 void ARM64Decoder::DecodeLoadStoreRegPair(Instr* instr) {
   if (instr->Bit(22) == 1) {
     // Load.
@@ -710,7 +689,6 @@ void ARM64Decoder::DecodeLoadStoreRegPair(Instr* instr) {
     Format(instr, "stp'sf 'rt, 'ra, 'pmemop");
   }
 }
-
 
 void ARM64Decoder::DecodeLoadRegLiteral(Instr* instr) {
   if ((instr->Bit(31) != 0) || (instr->Bit(29) != 0) ||
@@ -723,7 +701,6 @@ void ARM64Decoder::DecodeLoadRegLiteral(Instr* instr) {
     Format(instr, "ldrw 'rt, 'pcldr");
   }
 }
-
 
 void ARM64Decoder::DecodeLoadStoreExclusive(Instr* instr) {
   if ((instr->Bit(23) != 0) || (instr->Bit(21) != 0) || (instr->Bit(15) != 0)) {
@@ -741,7 +718,6 @@ void ARM64Decoder::DecodeLoadStoreExclusive(Instr* instr) {
     Format(instr, "stxr 'rs, 'rt, 'rn");
   }
 }
-
 
 void ARM64Decoder::DecodeAddSubImm(Instr* instr) {
   switch (instr->Bit(30)) {
@@ -772,7 +748,6 @@ void ARM64Decoder::DecodeAddSubImm(Instr* instr) {
   }
 }
 
-
 void ARM64Decoder::DecodeLogicalImm(Instr* instr) {
   int op = instr->Bits(29, 2);
   switch (op) {
@@ -799,7 +774,6 @@ void ARM64Decoder::DecodeLogicalImm(Instr* instr) {
   }
 }
 
-
 void ARM64Decoder::DecodePCRel(Instr* instr) {
   const int op = instr->Bit(31);
   if (op == 0) {
@@ -808,7 +782,6 @@ void ARM64Decoder::DecodePCRel(Instr* instr) {
     Unknown(instr);
   }
 }
-
 
 void ARM64Decoder::DecodeDPImmediate(Instr* instr) {
   if (instr->IsMoveWideOp()) {
@@ -823,7 +796,6 @@ void ARM64Decoder::DecodeDPImmediate(Instr* instr) {
     Unknown(instr);
   }
 }
-
 
 void ARM64Decoder::DecodeExceptionGen(Instr* instr) {
   if ((instr->Bits(0, 2) == 1) && (instr->Bits(2, 3) == 0) &&
@@ -847,7 +819,6 @@ void ARM64Decoder::DecodeExceptionGen(Instr* instr) {
   }
 }
 
-
 void ARM64Decoder::DecodeSystem(Instr* instr) {
   if (instr->InstructionBits() == CLREX) {
     Format(instr, "clrex");
@@ -866,7 +837,6 @@ void ARM64Decoder::DecodeSystem(Instr* instr) {
     Unknown(instr);
   }
 }
-
 
 void ARM64Decoder::DecodeUnconditionalBranchReg(Instr* instr) {
   if ((instr->Bits(0, 5) == 0) && (instr->Bits(10, 5) == 0) &&
@@ -888,7 +858,6 @@ void ARM64Decoder::DecodeUnconditionalBranchReg(Instr* instr) {
   }
 }
 
-
 void ARM64Decoder::DecodeCompareAndBranch(Instr* instr) {
   const int op = instr->Bit(24);
   if (op == 0) {
@@ -898,7 +867,6 @@ void ARM64Decoder::DecodeCompareAndBranch(Instr* instr) {
   }
 }
 
-
 void ARM64Decoder::DecodeConditionalBranch(Instr* instr) {
   if ((instr->Bit(24) != 0) || (instr->Bit(4) != 0)) {
     Unknown(instr);
@@ -906,7 +874,6 @@ void ARM64Decoder::DecodeConditionalBranch(Instr* instr) {
   }
   Format(instr, "b'cond 'dest19");
 }
-
 
 void ARM64Decoder::DecodeTestAndBranch(Instr* instr) {
   const int op = instr->Bit(24);
@@ -916,7 +883,6 @@ void ARM64Decoder::DecodeTestAndBranch(Instr* instr) {
     Format(instr, "tbnz'sf 'rt, 'bitpos, 'dest14");
   }
 }
-
 
 void ARM64Decoder::DecodeUnconditionalBranch(Instr* instr) {
   const int op = instr->Bit(31);
@@ -947,7 +913,6 @@ void ARM64Decoder::DecodeCompareBranch(Instr* instr) {
   }
 }
 
-
 void ARM64Decoder::DecodeLoadStore(Instr* instr) {
   if (instr->IsLoadStoreRegOp()) {
     DecodeLoadStoreReg(instr);
@@ -961,7 +926,6 @@ void ARM64Decoder::DecodeLoadStore(Instr* instr) {
     Unknown(instr);
   }
 }
-
 
 void ARM64Decoder::DecodeAddSubShiftExt(Instr* instr) {
   switch (instr->Bit(30)) {
@@ -987,7 +951,6 @@ void ARM64Decoder::DecodeAddSubShiftExt(Instr* instr) {
   }
 }
 
-
 void ARM64Decoder::DecodeAddSubWithCarry(Instr* instr) {
   switch (instr->Bit(30)) {
     case 0: {
@@ -1003,7 +966,6 @@ void ARM64Decoder::DecodeAddSubWithCarry(Instr* instr) {
       break;
   }
 }
-
 
 void ARM64Decoder::DecodeLogicalShift(Instr* instr) {
   const int op = (instr->Bits(29, 2) << 1) | instr->Bit(21);
@@ -1044,7 +1006,6 @@ void ARM64Decoder::DecodeLogicalShift(Instr* instr) {
   }
 }
 
-
 void ARM64Decoder::DecodeMiscDP1Source(Instr* instr) {
   if (instr->Bit(29) != 0) {
     Unknown(instr);
@@ -1060,7 +1021,6 @@ void ARM64Decoder::DecodeMiscDP1Source(Instr* instr) {
       break;
   }
 }
-
 
 void ARM64Decoder::DecodeMiscDP2Source(Instr* instr) {
   if (instr->Bit(29) != 0) {
@@ -1090,7 +1050,6 @@ void ARM64Decoder::DecodeMiscDP2Source(Instr* instr) {
   }
 }
 
-
 void ARM64Decoder::DecodeMiscDP3Source(Instr* instr) {
   if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 0) &&
       (instr->Bit(15) == 0)) {
@@ -1116,7 +1075,6 @@ void ARM64Decoder::DecodeMiscDP3Source(Instr* instr) {
   }
 }
 
-
 void ARM64Decoder::DecodeConditionalSelect(Instr* instr) {
   if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 0)) {
     Format(instr, "mov'sf'cond 'rd, 'rn, 'rm");
@@ -1128,7 +1086,6 @@ void ARM64Decoder::DecodeConditionalSelect(Instr* instr) {
     Unknown(instr);
   }
 }
-
 
 void ARM64Decoder::DecodeDPRegister(Instr* instr) {
   if (instr->IsAddSubShiftExtOp()) {
@@ -1149,7 +1106,6 @@ void ARM64Decoder::DecodeDPRegister(Instr* instr) {
     Unknown(instr);
   }
 }
-
 
 void ARM64Decoder::DecodeSIMDCopy(Instr* instr) {
   const int32_t Q = instr->Bit(30);
@@ -1174,7 +1130,6 @@ void ARM64Decoder::DecodeSIMDCopy(Instr* instr) {
     Unknown(instr);
   }
 }
-
 
 void ARM64Decoder::DecodeSIMDThreeSame(Instr* instr) {
   const int32_t Q = instr->Bit(30);
@@ -1233,7 +1188,6 @@ void ARM64Decoder::DecodeSIMDThreeSame(Instr* instr) {
   }
 }
 
-
 void ARM64Decoder::DecodeSIMDTwoReg(Instr* instr) {
   const int32_t Q = instr->Bit(30);
   const int32_t U = instr->Bit(29);
@@ -1288,7 +1242,6 @@ void ARM64Decoder::DecodeSIMDTwoReg(Instr* instr) {
   }
 }
 
-
 void ARM64Decoder::DecodeDPSimd1(Instr* instr) {
   if (instr->IsSIMDCopyOp()) {
     DecodeSIMDCopy(instr);
@@ -1300,7 +1253,6 @@ void ARM64Decoder::DecodeDPSimd1(Instr* instr) {
     Unknown(instr);
   }
 }
-
 
 void ARM64Decoder::DecodeFPImm(Instr* instr) {
   if ((instr->Bit(31) != 0) || (instr->Bit(29) != 0) || (instr->Bit(23) != 0) ||
@@ -1316,7 +1268,6 @@ void ARM64Decoder::DecodeFPImm(Instr* instr) {
     Unknown(instr);
   }
 }
-
 
 void ARM64Decoder::DecodeFPIntCvt(Instr* instr) {
   if ((instr->Bit(29) != 0)) {
@@ -1348,7 +1299,6 @@ void ARM64Decoder::DecodeFPIntCvt(Instr* instr) {
     Unknown(instr);
   }
 }
-
 
 void ARM64Decoder::DecodeFPOneSource(Instr* instr) {
   const int opc = instr->Bits(15, 6);
@@ -1385,7 +1335,6 @@ void ARM64Decoder::DecodeFPOneSource(Instr* instr) {
   }
 }
 
-
 void ARM64Decoder::DecodeFPTwoSource(Instr* instr) {
   if (instr->Bits(22, 2) != 1) {
     Unknown(instr);
@@ -1412,7 +1361,6 @@ void ARM64Decoder::DecodeFPTwoSource(Instr* instr) {
   }
 }
 
-
 void ARM64Decoder::DecodeFPCompare(Instr* instr) {
   if ((instr->Bit(22) == 1) && (instr->Bits(3, 2) == 0)) {
     Format(instr, "fcmpd 'vn, 'vm");
@@ -1426,7 +1374,6 @@ void ARM64Decoder::DecodeFPCompare(Instr* instr) {
     Unknown(instr);
   }
 }
-
 
 void ARM64Decoder::DecodeFP(Instr* instr) {
   if (instr->IsFPImmOp()) {
@@ -1444,7 +1391,6 @@ void ARM64Decoder::DecodeFP(Instr* instr) {
   }
 }
 
-
 void ARM64Decoder::DecodeDPSimd2(Instr* instr) {
   if (instr->IsFPOp()) {
     DecodeFP(instr);
@@ -1452,7 +1398,6 @@ void ARM64Decoder::DecodeDPSimd2(Instr* instr) {
     Unknown(instr);
   }
 }
-
 
 void ARM64Decoder::InstructionDecode(uword pc) {
   Instr* instr = Instr::At(pc);
@@ -1473,7 +1418,6 @@ void ARM64Decoder::InstructionDecode(uword pc) {
     Unknown(instr);
   }
 }
-
 
 void Disassembler::DecodeInstruction(char* hex_buffer,
                                      intptr_t hex_size,

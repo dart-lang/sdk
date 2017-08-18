@@ -40,6 +40,16 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   final Map<String, Source> _sources = <String, Source>{};
 
   /**
+   * The `dart:core` library for the context.
+   */
+  LibraryElementImpl _coreLibrary;
+
+  /**
+   * The `dart:async` library for the context.
+   */
+  LibraryElementImpl _asyncLibrary;
+
+  /**
    * The [TypeProvider] used to obtain SDK types during resynthesis.
    */
   TypeProvider _typeProvider;
@@ -88,6 +98,16 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
    * The [TypeProvider] used to obtain SDK types during resynthesis.
    */
   TypeProvider get typeProvider => _typeProvider;
+
+  /**
+   * The client installed this resynthesizer into the context, and set its
+   * type provider, so it is not safe to access type provider to create
+   * additional types.
+   */
+  void finishCoreAsyncLibraries() {
+    _coreLibrary.createLoadLibraryFunction(_typeProvider);
+    _asyncLibrary.createLoadLibraryFunction(_typeProvider);
+  }
 
   @override
   Element getElement(ElementLocation location) {
@@ -261,13 +281,11 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   bool hasLibrarySummary(String uri);
 
   void _buildTypeProvider() {
-    var coreLibrary = getLibraryElement('dart:core') as LibraryElementImpl;
-    var asyncLibrary = getLibraryElement('dart:async') as LibraryElementImpl;
+    _coreLibrary = getLibraryElement('dart:core') as LibraryElementImpl;
+    _asyncLibrary = getLibraryElement('dart:async') as LibraryElementImpl;
     SummaryTypeProvider summaryTypeProvider = new SummaryTypeProvider();
-    summaryTypeProvider.initializeCore(coreLibrary);
-    summaryTypeProvider.initializeAsync(asyncLibrary);
-    coreLibrary.createLoadLibraryFunction(summaryTypeProvider);
-    asyncLibrary.createLoadLibraryFunction(summaryTypeProvider);
+    summaryTypeProvider.initializeCore(_coreLibrary);
+    summaryTypeProvider.initializeAsync(_asyncLibrary);
     _typeProvider = summaryTypeProvider;
   }
 
@@ -312,7 +330,7 @@ class _ConstExprBuilder {
 
   Expression build() {
     if (!uc.isValidConst) {
-      return AstTestFactory.identifier3(r'$$invalidConstExpr$$');
+      return null;
     }
     for (UnlinkedExprOperation operation in uc.operations) {
       switch (operation) {
@@ -817,38 +835,6 @@ class _DeferredLocalFunctionElement extends FunctionElementHandle {
       return enclosingElement.functions[_localIndex];
     }
   }
-
-  @override
-  AnalysisContext get context => enclosingElement.context;
-
-  @override
-  ElementLocation get location => actualElement.location;
-}
-
-/**
- * Local variable element that has been resynthesized from a summary.  The
- * actual element won't be constructed until it is requested.  But properties
- * [context] and [enclosingElement] can be used without creating the actual
- * element.
- */
-class _DeferredLocalVariableElement extends LocalVariableElementHandle {
-  /**
-   * The executable element containing this element.
-   */
-  @override
-  final ExecutableElement enclosingElement;
-
-  /**
-   * The index of this variable within [ExecutableElement.localVariables].
-   */
-  final int _localIndex;
-
-  _DeferredLocalVariableElement(this.enclosingElement, this._localIndex)
-      : super(null, null);
-
-  @override
-  LocalVariableElement get actualElement =>
-      enclosingElement.localVariables[_localIndex];
 
   @override
   AnalysisContext get context => enclosingElement.context;
@@ -1586,7 +1572,9 @@ class _UnitResynthesizer {
   ElementAnnotationImpl buildAnnotation(ElementImpl context, UnlinkedExpr uc) {
     ElementAnnotationImpl elementAnnotation = new ElementAnnotationImpl(unit);
     Expression constExpr = _buildConstExpression(context, uc);
-    if (constExpr is Identifier) {
+    if (constExpr == null) {
+      // Invalid constant expression.
+    } else if (constExpr is Identifier) {
       ArgumentList arguments =
           constExpr.getProperty(_ConstExprBuilder.ARGUMENT_LIST);
       elementAnnotation.element = constExpr.staticElement;
@@ -1687,7 +1675,7 @@ class _UnitResynthesizer {
       GenericFunctionTypeElement element =
           new GenericFunctionTypeElementImpl.forSerialized(context, type);
       return element.type;
-    } else if (type.syntheticReturnType != null) {
+    } else if (type.syntheticReturnType != null && type.reference == 0) {
       FunctionElementImpl element =
           new FunctionElementImpl_forLUB(context, type);
       return element.type;
@@ -1890,16 +1878,6 @@ class _UnitResynthesizer {
                 summaryResynthesizer, location);
             isDeclarableType = true;
             break;
-          case ReferenceKind.variable:
-            Element enclosingElement = enclosingInfo.element;
-            if (enclosingElement is ExecutableElement) {
-              element = new _DeferredLocalVariableElement(
-                  enclosingElement, linkedReference.localIndex);
-            } else {
-              throw new StateError('Unexpected element enclosing variable:'
-                  ' ${enclosingElement.runtimeType}');
-            }
-            break;
           case ReferenceKind.function:
             Element enclosingElement = enclosingInfo.element;
             if (enclosingElement is VariableElement) {
@@ -1915,6 +1893,7 @@ class _UnitResynthesizer {
           case ReferenceKind.prefix:
             element = new PrefixElementHandle(summaryResynthesizer, location);
             break;
+          case ReferenceKind.variable:
           case ReferenceKind.unresolved:
             break;
         }

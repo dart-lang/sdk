@@ -38,18 +38,21 @@ makeA() native;
 makeB() native;
 makeC() native;
 
-void setup() native """
-function A() {}
-function B() {}
-function C() {}
-makeA = function(){return new A;};
-makeB = function(){return new B;};
-makeC = function(){return new C;};
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {}
+  function B() {}
+  function C() {}
+  makeA = function(){return new A()};
+  makeB = function(){return new B()};
+  makeC = function(){return new C()};
 
-self.nativeConstructor(A);
-self.nativeConstructor(B);
-self.nativeConstructor(C);
-""";
+  self.nativeConstructor(A);
+  self.nativeConstructor(B);
+  self.nativeConstructor(C);
+})()""");
+}
 
 var g;
 

@@ -23,16 +23,6 @@ import 'package:analyzer/src/summary/link.dart'
     show FieldElementForLink_ClassField, ParameterElementForLink;
 
 /**
- * Return `true` if the given [expression] is an immediately-evident expression,
- * so can be used to infer the type for a top-level variable or a class field.
- */
-bool isValidForTypeInference(Expression expression) {
-  var visitor = new _IsValidForTypeInferenceVisitor();
-  expression.accept(visitor);
-  return visitor.isValid;
-}
-
-/**
  * Sets the type of the field. The types in implicit accessors are updated
  * implicitly, and the types of explicit accessors should be updated separately.
  */
@@ -71,13 +61,6 @@ class InstanceMemberInferrer {
   final InheritanceManagerProvider inheritanceManagerProvider;
 
   /**
-   * The set of fields for which type inference from initializer should be
-   * disabled, because their initializers are not immediately-evident
-   * expressions.
-   */
-  final Set<FieldElement> fieldsWithDisabledInitializerInference;
-
-  /**
    * The classes that have been visited while attempting to infer the types of
    * instance members of some base class.
    */
@@ -88,9 +71,7 @@ class InstanceMemberInferrer {
    * Initialize a newly create inferrer.
    */
   InstanceMemberInferrer(
-      TypeProvider typeProvider,
-      this.inheritanceManagerProvider,
-      this.fieldsWithDisabledInitializerInference,
+      TypeProvider typeProvider, this.inheritanceManagerProvider,
       {TypeSystem typeSystem})
       : typeSystem = (typeSystem != null)
             ? typeSystem
@@ -430,9 +411,7 @@ class InstanceMemberInferrer {
 
     if (field.hasImplicitType) {
       DartType newType = typeResult.type;
-      if (newType == null &&
-          field.initializer != null &&
-          !fieldsWithDisabledInitializerInference.contains(field)) {
+      if (newType == null && field.initializer != null) {
         newType = field.initializer.returnType;
       }
 
@@ -607,94 +586,4 @@ class _FieldOverrideInferenceResult {
   final bool isError;
 
   _FieldOverrideInferenceResult(this.isCovariant, this.type, this.isError);
-}
-
-/**
- * The visitor for [isValidForTypeInference].
- */
-class _IsValidForTypeInferenceVisitor extends RecursiveAstVisitor {
-  bool isValid = true;
-
-  @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    isValid = false;
-  }
-
-  @override
-  void visitCascadeExpression(CascadeExpression node) {
-    node.target.accept(this);
-  }
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    FunctionBody body = node.body;
-    if (body is ExpressionFunctionBody) {
-      body.accept(this);
-    } else {
-      isValid = false;
-    }
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    node.function?.accept(this);
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    isValid = false;
-  }
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    ConstructorElement constructor = node.staticElement;
-    if (constructor != null) {
-      ClassElement clazz = constructor?.enclosingElement;
-      if (clazz.typeParameters.isNotEmpty &&
-          node.constructorName.type.typeArguments == null) {
-        isValid = false;
-        return;
-      }
-    }
-  }
-
-  @override
-  void visitListLiteral(ListLiteral node) {
-    if (node.typeArguments == null) {
-      super.visitListLiteral(node);
-    }
-  }
-
-  @override
-  void visitMapLiteral(MapLiteral node) {
-    if (node.typeArguments == null) {
-      super.visitMapLiteral(node);
-    }
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    Element element = node.methodName.staticElement;
-    if (element is ExecutableElement) {
-      if (element.type.typeFormals.isNotEmpty && node.typeArguments == null) {
-        isValid = false;
-        return;
-      }
-    }
-    node.target?.accept(this);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    if (element == null) {
-      AstNode parent = node.parent;
-      if (parent is PropertyAccess && parent.propertyName == node ||
-          parent is PrefixedIdentifier && parent.identifier == node) {
-        isValid = false;
-      }
-    } else if (element is PropertyAccessorElement && !element.isStatic) {
-      isValid = false;
-    }
-  }
 }

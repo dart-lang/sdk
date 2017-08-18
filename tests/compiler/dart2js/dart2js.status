@@ -71,8 +71,6 @@ check_elements_invariants_test: Slow, Pass, Timeout # Slow due to inlining in th
 
 uri_retention_test: Fail # Issue 26504
 
-dill_loader_test: Fail # Issue 29856
-
 [ ! $checked ]
 exit_code_test: Skip # This tests requires checked mode.
 serialization*: Slow, Pass
@@ -124,7 +122,7 @@ source_map_pub_build_validity_test: Pass, Slow
 analyze_api_test: Pass, Slow # DON'T CHANGE THIS LINE -- SEE ABOVE.
 analyze_dart2js_test: Pass, Slow # DON'T CHANGE THIS LINE -- SEE ABOVE.
 
-[ $jscl || $runtime == drt || $runtime == dartium || $runtime == ff || $runtime == firefox || $runtime == chrome || $runtime == safari ]
+[ $jscl || $runtime == ff || $runtime == firefox || $runtime == chrome || $runtime == safari ]
 *: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).
 
 [ $system == linux ]

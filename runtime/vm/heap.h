@@ -33,7 +33,14 @@ class Heap {
     kCode,
   };
 
-  enum WeakSelector { kPeers = 0, kHashes, kObjectIds, kNumWeakSelectors };
+  enum WeakSelector {
+    kPeers = 0,
+#if !defined(HASH_IN_OBJECT_HEADER)
+    kHashes,
+#endif
+    kObjectIds,
+    kNumWeakSelectors
+  };
 
   enum ApiCallbacks { kIgnoreApiCallbacks, kInvokeApiCallbacks };
 
@@ -86,11 +93,6 @@ class Heap {
   bool CodeContains(uword addr) const;
   bool DataContains(uword addr) const;
 
-  void IterateObjects(ObjectVisitor* visitor) const;
-  void IterateOldObjects(ObjectVisitor* visitor) const;
-  void IterateOldObjectsNoImagePages(ObjectVisitor* visitor) const;
-  void IterateObjectPointers(ObjectVisitor* visitor) const;
-
   // Find an object by visiting all pointers in the specified heap space,
   // the 'visitor' is used to determine if an object is found or not.
   // The 'visitor' function should be set up to return true if the
@@ -127,10 +129,6 @@ class Heap {
   void WriteProtectCode(bool read_only) {
     old_space_.WriteProtectCode(read_only);
   }
-
-  // Accessors for inlined allocation in generated code.
-  static intptr_t TopOffset(Space space);
-  static intptr_t EndOffset(Space space);
 
   // Initialize the heap and register it with the isolate.
   static void Init(Isolate* isolate,
@@ -173,6 +171,7 @@ class Heap {
   }
   int64_t PeerCount() const;
 
+#if !defined(HASH_IN_OBJECT_HEADER)
   // Associate an identity hashCode with an object. An non-existent hashCode
   // is equal to 0.
   void SetHash(RawObject* raw_obj, intptr_t hash) {
@@ -181,6 +180,7 @@ class Heap {
   intptr_t GetHash(RawObject* raw_obj) const {
     return GetWeakEntry(raw_obj, kHashes);
   }
+#endif
   int64_t HashCount() const;
 
   // Associate an id with an object (used when serializing an object).
@@ -251,6 +251,10 @@ class Heap {
     old_space_.SetupImagePage(pointer, size, is_executable);
   }
 
+  intptr_t CalculateTLABSize();
+  void MakeTLABIterable(Thread* thread);
+  void AbandonRemainingTLAB(Thread* thread);
+
  private:
   class GCStats : public ValueObject {
    public:
@@ -313,6 +317,7 @@ class Heap {
   void CollectOldSpaceGarbage(Thread* thread,
                               ApiCallbacks api_callbacks,
                               GCReason reason);
+  void EvacuateNewSpace(Thread* thread, GCReason reason);
 
   // GC stats collection.
   void RecordBeforeGC(Space space, GCReason reason);
@@ -332,7 +337,7 @@ class Heap {
   Isolate* isolate_;
 
   // The different spaces used for allocation.
-  ALIGN8 Scavenger new_space_;
+  Scavenger new_space_;
   PageSpace old_space_;
 
   WeakTable* new_weak_tables_[kNumWeakSelectors];
@@ -354,30 +359,40 @@ class Heap {
 
   friend class Become;       // VisitObjectPointers
   friend class Precompiler;  // VisitObjects
-  friend class ObjectGraph;  // VisitObjects
   friend class Unmarker;     // VisitObjects
   friend class ServiceEvent;
   friend class PageSpace;             // VerifyGC
   friend class IsolateReloadContext;  // VisitObjects
   friend class ClassFinalizer;        // VisitObjects
+  friend class HeapIterationScope;    // VisitObjects
 
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };
 
-
 class HeapIterationScope : public StackResource {
  public:
-  explicit HeapIterationScope(bool writable = false);
+  explicit HeapIterationScope(Thread* thread, bool writable = false);
   ~HeapIterationScope();
 
+  void IterateObjects(ObjectVisitor* visitor) const;
+  void IterateObjectsNoImagePages(ObjectVisitor* visitor) const;
+  void IterateOldObjects(ObjectVisitor* visitor) const;
+  void IterateOldObjectsNoImagePages(ObjectVisitor* visitor) const;
+
+  void IterateVMIsolateObjects(ObjectVisitor* visitor) const;
+
+  void IterateObjectPointers(ObjectPointerVisitor* visitor,
+                             bool validate_frames);
+  void IterateStackPointers(ObjectPointerVisitor* visitor,
+                            bool validate_frames);
+
  private:
-  NoSafepointScope no_safepoint_scope_;
+  Heap* heap_;
   PageSpace* old_space_;
   bool writable_;
 
   DISALLOW_COPY_AND_ASSIGN(HeapIterationScope);
 };
-
 
 class NoHeapGrowthControlScope : public StackResource {
  public:
@@ -388,7 +403,6 @@ class NoHeapGrowthControlScope : public StackResource {
   bool current_growth_controller_state_;
   DISALLOW_COPY_AND_ASSIGN(NoHeapGrowthControlScope);
 };
-
 
 // Note: During this scope, the code pages are non-executable.
 class WritableVMIsolateScope : StackResource {

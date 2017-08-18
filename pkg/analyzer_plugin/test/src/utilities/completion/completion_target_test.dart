@@ -377,7 +377,8 @@ class CompletionTargetTest extends AbstractContextTest {
   test_MapLiteralEntry() async {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
     await addTestSource('foo = {^');
-    await assertTarget(' : ', '{ : }');
+    // fasta scanner inserts synthetic closing '}'
+    await assertTarget('}', '{}');
   }
 
   test_MapLiteralEntry1() async {

@@ -80,7 +80,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
   static const int MAX_ANALYSIS_COUNT =
       const int.fromEnvironment('dart2js.tracing.limit', defaultValue: 32);
-  final Setlet<Element> analyzedElements = new Setlet<Element>();
+  final Setlet<MemberEntity> analyzedElements = new Setlet<MemberEntity>();
 
   TracerVisitor(this.tracedType, InferrerEngine inferrer)
       : this.inferrer = inferrer,
@@ -209,8 +209,9 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       ClosureCallSiteTypeInformation info) {}
 
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
-    Element called = info.calledElement;
-    if (inferrer.types.getInferredTypeOf(called) == currentUser) {
+    MemberElement called = info.calledElement;
+    TypeInformation inferred = inferrer.types.getInferredTypeOfMember(called);
+    if (inferred == currentUser) {
       addNewEscapeInformation(info);
     }
   }
@@ -297,10 +298,10 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     return isIndexSetArgument(info, 1);
   }
 
-  void bailoutIfReaches(bool predicate(Element e)) {
+  void bailoutIfReaches(bool predicate(ParameterElement e)) {
     for (var user in currentUser.users) {
       if (user is ParameterTypeInformation) {
-        if (predicate(user.element)) {
+        if (predicate(user.parameter)) {
           bailout('Reached suppressed parameter without precise receiver');
           break;
         }
@@ -393,8 +394,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
     Iterable<TypeInformation> inferredTargetTypes =
         info.targets.map((MemberEntity entity) {
-      MemberElement element = entity;
-      return inferrer.types.getInferredTypeOf(element);
+      return inferrer.types.getInferredTypeOfMember(entity);
     });
     if (inferredTargetTypes.any((user) => user == currentUser)) {
       addNewEscapeInformation(info);
@@ -406,7 +406,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
    * The definition of what a list adding method is has to stay in sync with
    * [mightAddToContainer].
    */
-  bool isParameterOfListAddingMethod(Element element) {
+  bool isParameterOfListAddingMethod(ParameterElement element) {
     if (!element.isRegularParameter) return false;
     if (element.enclosingClass !=
         inferrer.closedWorld.commonElements.jsArrayClass) {
@@ -421,7 +421,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
    * The definition of what a list adding method is has to stay in sync with
    * [isIndexSetKey] and [isIndexSetValue].
    */
-  bool isParameterOfMapAddingMethod(Element element) {
+  bool isParameterOfMapAddingMethod(ParameterElement element) {
     if (!element.isRegularParameter) return false;
     if (element.enclosingClass !=
         inferrer.closedWorld.commonElements.mapLiteralClass) {
@@ -431,7 +431,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     return (name == '[]=');
   }
 
-  bool isClosure(Element element) {
+  bool isClosure(MemberEntity element) {
     if (!element.isFunction) return false;
 
     /// Creating an instance of a class that implements [Function] also
@@ -442,37 +442,36 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     if (element.isInstanceMember && element.name == Identifiers.call) {
       return true;
     }
-    Element outermost = element.outermostEnclosingMemberOrTopLevel;
-    return outermost.declaration != element.declaration;
+    ClassEntity cls = element.enclosingClass;
+    return cls != null && cls.isClosure;
   }
 
   void visitMemberTypeInformation(MemberTypeInformation info) {
     if (info.isClosurized) {
       bailout('Returned from a closurized method');
     }
-    if (isClosure(info.element)) {
+    if (isClosure(info.member)) {
       bailout('Returned from a closure');
     }
-    if (info.element.isField &&
+    if (info.member.isField &&
         !inferrer.compiler.backend.canFieldBeUsedForGlobalOptimizations(
-            info.element, inferrer.closedWorld)) {
+            info.member, inferrer.closedWorld)) {
       bailout('Escape to code that has special backend treatment');
     }
     addNewEscapeInformation(info);
   }
 
   void visitParameterTypeInformation(ParameterTypeInformation info) {
-    ParameterElement element = info.element;
-    if (inferrer.isNativeMember(element.functionDeclaration)) {
+    if (inferrer.closedWorld.nativeData.isNativeMember(info.method)) {
       bailout('Passed to a native method');
     }
     if (!inferrer.compiler.backend
         .canFunctionParametersBeUsedForGlobalOptimizations(
-            element.functionDeclaration, inferrer.closedWorld)) {
+            info.method, inferrer.closedWorld)) {
       bailout('Escape to code that has special backend treatment');
     }
-    if (isParameterOfListAddingMethod(element) ||
-        isParameterOfMapAddingMethod(element)) {
+    if (isParameterOfListAddingMethod(info.parameter) ||
+        isParameterOfMapAddingMethod(info.parameter)) {
       // These elements are being handled in
       // [visitDynamicCallSiteTypeInformation].
       return;

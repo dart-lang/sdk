@@ -26,6 +26,9 @@ class BinaryPrinter extends Visitor {
 
   final BufferedSink _sink;
 
+  int _binaryOffsetForSourceTable = -1;
+  int _binaryOffsetForLinkTable = -1;
+
   /// Create a printer that writes to the given [sink].
   ///
   /// The BinaryPrinter will use its own buffer, so the [sink] does not need
@@ -65,7 +68,7 @@ class BinaryPrinter extends Visitor {
     }
   }
 
-  void writeMagicWord(int value) {
+  void writeUInt32(int value) {
     writeByte((value >> 24) & 0xFF);
     writeByte((value >> 16) & 0xFF);
     writeByte((value >> 8) & 0xFF);
@@ -131,6 +134,7 @@ class BinaryPrinter extends Visitor {
   }
 
   void writeLinkTable(Program program) {
+    _binaryOffsetForLinkTable = _sink.flushedLength + _sink.length;
     List<CanonicalName> list = <CanonicalName>[];
     void visitCanonicalName(CanonicalName node) {
       node.index = list.length;
@@ -174,13 +178,15 @@ class BinaryPrinter extends Visitor {
 
   void writeProgramFile(Program program) {
     computeCanonicalNames(program);
-    writeMagicWord(Tag.ProgramFile);
+    writeUInt32(Tag.ProgramFile);
     buildStringIndex(program);
     writeStringTable(stringIndexer);
     writeUriToSource(program);
     writeLinkTable(program);
     writeLibraries(program);
     writeMemberReference(program.mainMethod, allowNull: true);
+    writeProgramIndex(program, program.libraries);
+
     _flush();
   }
 
@@ -194,7 +200,25 @@ class BinaryPrinter extends Visitor {
     writeList(program.libraries, writeNode);
   }
 
+  void writeProgramIndex(Program program, List<Library> libraries) {
+    // Fixed-size ints at the end used as an index.
+    writeUInt32(_binaryOffsetForSourceTable);
+    writeUInt32(_binaryOffsetForLinkTable);
+
+    CanonicalName main = getCanonicalNameOfMember(program.mainMethod);
+    if (main == null) {
+      writeUInt32(0);
+    } else {
+      writeUInt32(main.index + 1);
+    }
+    for (Library library in libraries) {
+      writeUInt32(library.binaryOffset);
+    }
+    writeUInt32(libraries.length);
+  }
+
   void writeUriToSource(Program program) {
+    _binaryOffsetForSourceTable = _sink.flushedLength + _sink.length;
     program.uriToSource.keys.forEach((uri) {
       _sourceUriIndexer.put(uri);
     });
@@ -280,6 +304,7 @@ class BinaryPrinter extends Visitor {
 
   visitLibrary(Library node) {
     insideExternalLibrary = node.isExternal;
+    node.binaryOffset = _sink.flushedLength + _sink.length;
     writeByte(insideExternalLibrary ? 1 : 0);
     writeCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
@@ -287,6 +312,7 @@ class BinaryPrinter extends Visitor {
     writeUriReference(node.fileUri ?? '');
     writeAnnotationList(node.annotations);
     writeLibraryDependencies(node);
+    writeLibraryParts(node);
     writeNodeList(node.typedefs);
     writeNodeList(node.classes);
     writeNodeList(node.fields);
@@ -318,13 +344,28 @@ class BinaryPrinter extends Visitor {
     writeStringReferenceList(node.names);
   }
 
+  void writeLibraryParts(Library library) {
+    writeUInt30(library.parts.length);
+    for (int i = 0; i < library.parts.length; ++i) {
+      var partNode = library.parts[i];
+      writeLibraryPart(partNode);
+    }
+  }
+
+  void writeLibraryPart(LibraryPart node) {
+    writeNodeList(node.annotations);
+    writeStringReference(node.fileUri ?? '');
+  }
+
   void visitTypedef(Typedef node) {
     writeCanonicalNameReference(getCanonicalNameOfTypedef(node));
     writeOffset(node.fileOffset);
     writeStringReference(node.name);
     writeUriReference(node.fileUri ?? '');
+    _typeParameterIndexer.enter(node.typeParameters);
     writeNodeList(node.typeParameters);
     writeNode(node.type);
+    _typeParameterIndexer.exit(node.typeParameters);
   }
 
   void writeAnnotation(Expression annotation) {
@@ -336,24 +377,33 @@ class BinaryPrinter extends Visitor {
     writeList(annotations, writeAnnotation);
   }
 
-  int _encodeClassFlags(bool isAbstract, ClassLevel level) {
-    int abstactFlag = isAbstract ? 1 : 0;
-    int levelFlags = (level.index - 1) << 1;
-    return abstactFlag | levelFlags;
+  int _encodeClassFlags(bool isAbstract, bool isEnum,
+      bool isSyntheticMixinImplementation, ClassLevel level) {
+    int abstractFlag = isAbstract ? 1 : 0;
+    int isEnumFlag = isSyntheticMixinImplementation ? 2 : 0;
+    int isSyntheticMixinImplementationFlag =
+        isSyntheticMixinImplementation ? 4 : 0;
+    int levelFlags = (level.index - 1) << 3;
+    return abstractFlag |
+        isEnumFlag |
+        isSyntheticMixinImplementationFlag |
+        levelFlags;
   }
 
   visitClass(Class node) {
-    int flags = _encodeClassFlags(node.isAbstract, node.level);
+    int flags = _encodeClassFlags(node.isAbstract, node.isEnum,
+        node.isSyntheticMixinImplementation, node.level);
     if (node.canonicalName == null) {
       throw 'Missing canonical name for $node';
     }
-    node.binaryOffset = _sink.flushedLength + _sink.length;
     writeByte(Tag.Class);
     writeCanonicalNameReference(getCanonicalNameOfClass(node));
     writeOffset(node.fileOffset);
+    writeOffset(node.fileEndOffset);
     writeByte(flags);
     writeStringReference(node.name ?? '');
     writeUriReference(node.fileUri ?? '');
+    writeStringReference(node.documentationComment ?? '');
     writeAnnotationList(node.annotations);
     _typeParameterIndexer.enter(node.typeParameters);
     writeNodeList(node.typeParameters);
@@ -378,10 +428,8 @@ class BinaryPrinter extends Visitor {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
-    assert(node.parent is Class);
-    Class parent = node.parent;
-    writeUInt30(parent.binaryOffset);
     writeName(node.name ?? _emptyName);
+    writeStringReference(node.documentationComment ?? '');
     writeAnnotationList(node.annotations);
     assert(node.function.typeParameters.isEmpty);
     writeNode(node.function);
@@ -403,14 +451,9 @@ class BinaryPrinter extends Visitor {
     writeOffset(node.fileEndOffset);
     writeByte(node.kind.index);
     writeByte(node.flags);
-    if (node.parent is Class) {
-      Class parent = node.parent;
-      writeUInt30(parent.binaryOffset);
-    } else {
-      writeUInt30(0); // 0 is a valid offset, but not for a class.
-    }
     writeName(node.name ?? '');
     writeUriReference(node.fileUri ?? '');
+    writeStringReference(node.documentationComment ?? '');
     writeAnnotationList(node.annotations);
     writeOptionalNode(node.function);
     _variableIndexer = null;
@@ -426,14 +469,9 @@ class BinaryPrinter extends Visitor {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
-    if (node.parent is Class) {
-      Class parent = node.parent;
-      writeUInt30(parent.binaryOffset);
-    } else {
-      writeUInt30(0); // 0 is a valid offset, but not for a class.
-    }
     writeName(node.name);
     writeUriReference(node.fileUri ?? '');
+    writeStringReference(node.documentationComment ?? '');
     writeAnnotationList(node.annotations);
     writeNode(node.type);
     writeOptionalNode(node.initializer);
@@ -442,28 +480,33 @@ class BinaryPrinter extends Visitor {
 
   visitInvalidInitializer(InvalidInitializer node) {
     writeByte(Tag.InvalidInitializer);
+    writeByte(node.isSynthetic ? 1 : 0);
   }
 
   visitFieldInitializer(FieldInitializer node) {
     writeByte(Tag.FieldInitializer);
+    writeByte(node.isSynthetic ? 1 : 0);
     writeReference(node.fieldReference);
     writeNode(node.value);
   }
 
   visitSuperInitializer(SuperInitializer node) {
     writeByte(Tag.SuperInitializer);
+    writeByte(node.isSynthetic ? 1 : 0);
     writeReference(node.targetReference);
     writeNode(node.arguments);
   }
 
   visitRedirectingInitializer(RedirectingInitializer node) {
     writeByte(Tag.RedirectingInitializer);
+    writeByte(node.isSynthetic ? 1 : 0);
     writeReference(node.targetReference);
     writeNode(node.arguments);
   }
 
   visitLocalInitializer(LocalInitializer node) {
     writeByte(Tag.LocalInitializer);
+    writeByte(node.isSynthetic ? 1 : 0);
     writeVariableDeclaration(node.variable);
   }
 
@@ -786,6 +829,7 @@ class BinaryPrinter extends Visitor {
 
   visitFunctionExpression(FunctionExpression node) {
     writeByte(Tag.FunctionExpression);
+    writeOffset(node.fileOffset);
     writeNode(node.function);
   }
 
@@ -834,6 +878,7 @@ class BinaryPrinter extends Visitor {
     writeReference(node.topLevelFunctionReference);
     writeNode(node.contextVector);
     writeNode(node.functionType);
+    writeNodeList(node.typeArguments);
   }
 
   writeStatementOrEmpty(Statement node) {
@@ -887,12 +932,14 @@ class BinaryPrinter extends Visitor {
 
   visitWhileStatement(WhileStatement node) {
     writeByte(Tag.WhileStatement);
+    writeOffset(node.fileOffset);
     writeNode(node.condition);
     writeNode(node.body);
   }
 
   visitDoStatement(DoStatement node) {
     writeByte(Tag.DoStatement);
+    writeOffset(node.fileOffset);
     writeNode(node.body);
     writeNode(node.condition);
   }
@@ -900,6 +947,7 @@ class BinaryPrinter extends Visitor {
   visitForStatement(ForStatement node) {
     _variableIndexer.pushScope();
     writeByte(Tag.ForStatement);
+    writeOffset(node.fileOffset);
     writeVariableDeclarationList(node.variables);
     writeOptionalNode(node.condition);
     writeNodeList(node.updates);
@@ -911,6 +959,7 @@ class BinaryPrinter extends Visitor {
     _variableIndexer.pushScope();
     writeByte(node.isAsync ? Tag.AsyncForInStatement : Tag.ForInStatement);
     writeOffset(node.fileOffset);
+    writeOffset(node.bodyOffset);
     writeVariableDeclaration(node.variable);
     writeNode(node.iterable);
     writeNode(node.body);
@@ -1070,9 +1119,11 @@ class BinaryPrinter extends Visitor {
   visitFunctionType(FunctionType node) {
     if (node.requiredParameterCount == node.positionalParameters.length &&
         node.typeParameters.isEmpty &&
-        node.namedParameters.isEmpty) {
+        node.namedParameters.isEmpty &&
+        node.typedefReference == null) {
       writeByte(Tag.SimpleFunctionType);
       writeNodeList(node.positionalParameters);
+      writeStringReferenceList(node.positionalParameterNames);
       writeNode(node.returnType);
     } else {
       writeByte(Tag.FunctionType);
@@ -1083,6 +1134,8 @@ class BinaryPrinter extends Visitor {
           node.positionalParameters.length + node.namedParameters.length);
       writeNodeList(node.positionalParameters);
       writeNodeList(node.namedParameters);
+      writeStringReferenceList(node.positionalParameterNames);
+      writeReference(node.typedefReference);
       writeNode(node.returnType);
       _typeParameterIndexer.exit(node.typeParameters);
     }
@@ -1096,10 +1149,6 @@ class BinaryPrinter extends Visitor {
   visitTypeParameterType(TypeParameterType node) {
     writeByte(Tag.TypeParameterType);
     writeUInt30(_typeParameterIndexer[node.parameter]);
-    List<TypeParameter> typeParameters =
-        _typeParameterIndexer.indexList[node.parameter];
-    writeUInt30(typeParameters[0].binaryOffset);
-    writeUInt30(typeParameters.indexOf(node.parameter));
     writeOptionalNode(node.promotedBound);
   }
 
@@ -1114,7 +1163,6 @@ class BinaryPrinter extends Visitor {
   }
 
   visitTypeParameter(TypeParameter node) {
-    node.binaryOffset = _sink.flushedLength + _sink.length;
     writeStringReference(node.name ?? '');
     writeNode(node.bound);
   }
@@ -1140,13 +1188,17 @@ class LibraryFilteringBinaryPrinter extends BinaryPrinter {
 
   void writeProgramFile(Program program) {
     program.computeCanonicalNames();
-    writeMagicWord(Tag.ProgramFile);
+    writeUInt32(Tag.ProgramFile);
     stringIndexer.scanProgram(program);
     writeStringTable(stringIndexer);
     writeUriToSource(program);
     writeLinkTable(program);
-    writeList(program.libraries.where(predicate).toList(), writeNode);
+    final List<Library> filteredLibraries =
+        program.libraries.where(predicate).toList();
+    writeList(filteredLibraries, writeNode);
     writeMemberReference(program.mainMethod, allowNull: true);
+    writeProgramIndex(program, filteredLibraries);
+
     _flush();
   }
 }
@@ -1211,14 +1263,11 @@ class SwitchCaseIndexer {
 
 class TypeParameterIndexer {
   final Map<TypeParameter, int> index = <TypeParameter, int>{};
-  final Map<TypeParameter, List<TypeParameter>> indexList =
-      <TypeParameter, List<TypeParameter>>{};
   int stackHeight = 0;
 
   void enter(List<TypeParameter> typeParameters) {
     for (var parameter in typeParameters) {
       index[parameter] = stackHeight;
-      indexList[parameter] = typeParameters;
       ++stackHeight;
     }
   }
@@ -1312,6 +1361,12 @@ class StringIndexer extends RecursiveVisitor<Null> {
     node.visitChildren(this);
   }
 
+  @override
+  visitLibraryPart(LibraryPart node) {
+    put(node.fileUri);
+    node.visitChildren(this);
+  }
+
   visitCombinator(Combinator node) {
     node.names.forEach(put);
   }
@@ -1322,13 +1377,38 @@ class StringIndexer extends RecursiveVisitor<Null> {
   }
 
   visitClass(Class node) {
+    putOptional(node.documentationComment);
     putOptional(node.name);
     node.visitChildren(this);
+  }
+
+  @override
+  visitConstructor(Constructor node) {
+    putOptional(node.documentationComment);
+    super.visitConstructor(node);
+  }
+
+  @override
+  visitField(Field node) {
+    putOptional(node.documentationComment);
+    super.visitField(node);
+  }
+
+  @override
+  visitFunctionType(FunctionType node) {
+    node.positionalParameterNames.forEach(put);
+    super.visitFunctionType(node);
   }
 
   visitNamedExpression(NamedExpression node) {
     put(node.name);
     node.visitChildren(this);
+  }
+
+  @override
+  visitProcedure(Procedure node) {
+    putOptional(node.documentationComment);
+    super.visitProcedure(node);
   }
 
   visitStringLiteral(StringLiteral node) {

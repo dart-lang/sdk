@@ -48,7 +48,6 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   __ Ret();
 }
 
-
 ASSEMBLER_TEST_RUN(IcDataAccess, test) {
   uword end = test->payload_start() + test->code().Size();
   uword return_address = end - Instr::kInstrSize;

@@ -36,11 +36,9 @@ namespace dart {
 
 #define __ assembler->
 
-
 intptr_t Intrinsifier::ParameterSlotFromSp() {
   return 0;
 }
-
 
 void Intrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
   COMPILE_ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
@@ -49,12 +47,10 @@ void Intrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
   assembler->movl(CALLEE_SAVED_TEMP, ARGS_DESC_REG);
 }
 
-
 void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
   assembler->Comment("IntrinsicCallEpilogue");
   assembler->movl(ARGS_DESC_REG, CALLEE_SAVED_TEMP);
 }
-
 
 static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
@@ -66,7 +62,6 @@ static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
   ASSERT(field_offset != Class::kNoTypeArguments);
   return field_offset;
 }
-
 
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
 // update. Array length is always a Smi.
@@ -123,7 +118,6 @@ void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 // Allocate a GrowableObjectArray using the backing array specified.
 // On stack: type argument (+2), data (+1), return-address (+0).
 void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
@@ -158,7 +152,6 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 // Add an element to growable array if it doesn't need to grow, otherwise
 // call into regular code.
 // On stack: growable array (+2), value (+1), return-address (+0).
@@ -188,7 +181,6 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
@@ -216,9 +208,8 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
       sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
   __ leal(EDI, Address(EDI, scale_factor, fixed_size_plus_alignment_padding)); \
   __ andl(EDI, Immediate(-kObjectAlignment));                                  \
-  Heap::Space space = Heap::kNew;                                              \
-  __ movl(ECX, Address(THR, Thread::heap_offset()));                           \
-  __ movl(EAX, Address(ECX, Heap::TopOffset(space)));                          \
+  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);                              \
+  __ movl(EAX, Address(THR, Thread::top_offset()));                            \
   __ movl(EBX, EAX);                                                           \
                                                                                \
   /* EDI: allocation size. */                                                  \
@@ -229,13 +220,12 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* EAX: potential new object start. */                                       \
   /* EBX: potential next object start. */                                      \
   /* EDI: allocation size. */                                                  \
-  /* ECX: heap. */                                                             \
-  __ cmpl(EBX, Address(ECX, Heap::EndOffset(space)));                          \
+  __ cmpl(EBX, Address(THR, Thread::end_offset()));                            \
   __ j(ABOVE_EQUAL, &fall_through);                                            \
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ movl(Address(ECX, Heap::TopOffset(space)), EBX);                          \
+  __ movl(Address(THR, Thread::top_offset()), EBX);                            \
   __ addl(EAX, Immediate(kHeapObjectTag));                                     \
   NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX, space));      \
                                                                                \
@@ -284,7 +274,6 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ ret();                                                                    \
   __ Bind(&fall_through);
 
-
 static ScaleFactor GetScaleFactor(intptr_t size) {
   switch (size) {
     case 1:
@@ -302,7 +291,6 @@ static ScaleFactor GetScaleFactor(intptr_t size) {
   return static_cast<ScaleFactor>(0);
 }
 
-
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \
   void Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {       \
     intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);     \
@@ -312,7 +300,6 @@ static ScaleFactor GetScaleFactor(intptr_t size) {
   }
 CLASS_LIST_TYPED_DATA(TYPED_DATA_ALLOCATOR)
 #undef TYPED_DATA_ALLOCATOR
-
 
 // Tests if two top most arguments are smis, jumps to label not_smi if not.
 // Topmost argument is in EAX.
@@ -324,7 +311,6 @@ static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
   __ j(NOT_ZERO, not_smi, Assembler::kNearJump);
 }
 
-
 void Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
@@ -335,11 +321,9 @@ void Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::Integer_add(Assembler* assembler) {
   Integer_addFromInteger(assembler);
 }
-
 
 void Intrinsifier::Integer_subFromInteger(Assembler* assembler) {
   Label fall_through;
@@ -350,7 +334,6 @@ void Intrinsifier::Integer_subFromInteger(Assembler* assembler) {
   __ ret();
   __ Bind(&fall_through);
 }
-
 
 void Intrinsifier::Integer_sub(Assembler* assembler) {
   Label fall_through;
@@ -364,7 +347,6 @@ void Intrinsifier::Integer_sub(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
@@ -377,11 +359,9 @@ void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::Integer_mul(Assembler* assembler) {
   Integer_mulFromInteger(assembler);
 }
-
 
 // Optimizations:
 // - result is 0 if:
@@ -421,7 +401,6 @@ static void EmitRemainderOperation(Assembler* assembler) {
   __ cdq();
   __ idivl(EBX);
 }
-
 
 // Implementation:
 //  res = left % right;
@@ -465,7 +444,6 @@ void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
@@ -489,7 +467,6 @@ void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::Integer_negate(Assembler* assembler) {
   Label fall_through;
   __ movl(EAX, Address(ESP, +1 * kWordSize));
@@ -502,7 +479,6 @@ void Intrinsifier::Integer_negate(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
@@ -513,11 +489,9 @@ void Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::Integer_bitAnd(Assembler* assembler) {
   Integer_bitAndFromInteger(assembler);
 }
-
 
 void Intrinsifier::Integer_bitOrFromInteger(Assembler* assembler) {
   Label fall_through;
@@ -529,11 +503,9 @@ void Intrinsifier::Integer_bitOrFromInteger(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::Integer_bitOr(Assembler* assembler) {
   Integer_bitOrFromInteger(assembler);
 }
-
 
 void Intrinsifier::Integer_bitXorFromInteger(Assembler* assembler) {
   Label fall_through;
@@ -545,11 +517,9 @@ void Intrinsifier::Integer_bitXorFromInteger(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::Integer_bitXor(Assembler* assembler) {
   Integer_bitXorFromInteger(assembler);
 }
-
 
 void Intrinsifier::Integer_shl(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
@@ -599,7 +569,6 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 static void Push64SmiOrMint(Assembler* assembler,
                             Register reg,
                             Register tmp,
@@ -622,7 +591,6 @@ static void Push64SmiOrMint(Assembler* assembler,
   __ pushl(FieldAddress(reg, Mint::value_offset()));
   __ Bind(&done);
 }
-
 
 static void CompareIntegers(Assembler* assembler, Condition true_condition) {
   Label try_mint_smi, is_true, is_false, drop_two_fall_through, fall_through;
@@ -682,31 +650,25 @@ static void CompareIntegers(Assembler* assembler, Condition true_condition) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler) {
   CompareIntegers(assembler, LESS);
 }
-
 
 void Intrinsifier::Integer_lessThan(Assembler* assembler) {
   Integer_greaterThanFromInt(assembler);
 }
 
-
 void Intrinsifier::Integer_greaterThan(Assembler* assembler) {
   CompareIntegers(assembler, GREATER);
 }
-
 
 void Intrinsifier::Integer_lessEqualThan(Assembler* assembler) {
   CompareIntegers(assembler, LESS_EQUAL);
 }
 
-
 void Intrinsifier::Integer_greaterEqualThan(Assembler* assembler) {
   CompareIntegers(assembler, GREATER_EQUAL);
 }
-
 
 // This is called for Smi, Mint and Bigint receivers. The right argument
 // can be Smi, Mint, Bigint or double.
@@ -758,11 +720,9 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::Integer_equal(Assembler* assembler) {
   Integer_equalToInteger(assembler);
 }
-
 
 void Intrinsifier::Integer_sar(Assembler* assembler) {
   Label fall_through, shift_count_ok;
@@ -789,7 +749,6 @@ void Intrinsifier::Integer_sar(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 // Argument is Smi (receiver).
 void Intrinsifier::Smi_bitNegate(Assembler* assembler) {
   __ movl(EAX, Address(ESP, +1 * kWordSize));  // Receiver.
@@ -797,7 +756,6 @@ void Intrinsifier::Smi_bitNegate(Assembler* assembler) {
   __ andl(EAX, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
   __ ret();
 }
-
 
 void Intrinsifier::Smi_bitLength(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
@@ -814,11 +772,9 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
   __ ret();
 }
 
-
 void Intrinsifier::Smi_bitAndFromSmi(Assembler* assembler) {
   Integer_bitAndFromInteger(assembler);
 }
-
 
 void Intrinsifier::Bigint_lsh(Assembler* assembler) {
   // static void _lsh(Uint32List x_digits, int x_used, int n,
@@ -864,7 +820,6 @@ void Intrinsifier::Bigint_lsh(Assembler* assembler) {
   __ ret();
 }
 
-
 void Intrinsifier::Bigint_rsh(Assembler* assembler) {
   // static void _rsh(Uint32List x_digits, int x_used, int n,
   //                  Uint32List r_digits)
@@ -909,7 +864,6 @@ void Intrinsifier::Bigint_rsh(Assembler* assembler) {
   // Returning Object::null() is not required, since this method is private.
   __ ret();
 }
-
 
 void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   // static void _absAdd(Uint32List digits, int used,
@@ -970,7 +924,6 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   __ ret();
 }
 
-
 void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   // static void _absSub(Uint32List digits, int used,
   //                     Uint32List a_digits, int a_used,
@@ -1025,7 +978,6 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   // Returning Object::null() is not required, since this method is private.
   __ ret();
 }
-
 
 void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // Pseudo code:
@@ -1145,7 +1097,6 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   __ movl(EAX, Immediate(Smi::RawValue(1)));  // One digit processed.
   __ ret();
 }
-
 
 void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // Pseudo code:
@@ -1279,7 +1230,6 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ ret();
 }
 
-
 void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
   // Pseudo code:
   // static int _estQuotientDigit(Uint32List args, Uint32List digits, int i) {
@@ -1336,7 +1286,6 @@ void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
   __ ret();
 }
 
-
 void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
   // Pseudo code:
   // static int _mulMod(Uint32List args, Uint32List digits, int i) {
@@ -1371,7 +1320,6 @@ void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
   __ ret();
 }
 
-
 // Check if the last argument is a double, jump to label 'is_smi' if smi
 // (easy to convert to double), otherwise jump to label 'not_double_smi',
 // Returns the last argument in EAX.
@@ -1385,7 +1333,6 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
   __ j(NOT_EQUAL, not_double_smi, Assembler::kNearJump);
   // Fall through if double.
 }
-
 
 // Both arguments on stack, arg0 (left) is a double, arg1 (right) is of unknown
 // type. Return true or false object in the register EAX. Any NaN argument
@@ -1416,36 +1363,30 @@ static void CompareDoubles(Assembler* assembler, Condition true_condition) {
   __ Bind(&fall_through);
 }
 
-
 // arg0 is Double, arg1 is unknown.
 void Intrinsifier::Double_greaterThan(Assembler* assembler) {
   CompareDoubles(assembler, ABOVE);
 }
-
 
 // arg0 is Double, arg1 is unknown.
 void Intrinsifier::Double_greaterEqualThan(Assembler* assembler) {
   CompareDoubles(assembler, ABOVE_EQUAL);
 }
 
-
 // arg0 is Double, arg1 is unknown.
 void Intrinsifier::Double_lessThan(Assembler* assembler) {
   CompareDoubles(assembler, BELOW);
 }
-
 
 // arg0 is Double, arg1 is unknown.
 void Intrinsifier::Double_equal(Assembler* assembler) {
   CompareDoubles(assembler, EQUAL);
 }
 
-
 // arg0 is Double, arg1 is unknown.
 void Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
   CompareDoubles(assembler, BELOW_EQUAL);
 }
-
 
 // Expects left argument to be double (receiver). Right argument is unknown.
 // Both arguments are on stack.
@@ -1487,26 +1428,21 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::Double_add(Assembler* assembler) {
   DoubleArithmeticOperations(assembler, Token::kADD);
 }
-
 
 void Intrinsifier::Double_mul(Assembler* assembler) {
   DoubleArithmeticOperations(assembler, Token::kMUL);
 }
 
-
 void Intrinsifier::Double_sub(Assembler* assembler) {
   DoubleArithmeticOperations(assembler, Token::kSUB);
 }
 
-
 void Intrinsifier::Double_div(Assembler* assembler) {
   DoubleArithmeticOperations(assembler, Token::kDIV);
 }
-
 
 // Left is double right is integer (Bigint, Mint or Smi)
 void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
@@ -1531,7 +1467,6 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
   Label fall_through;
   __ movl(EAX, Address(ESP, +1 * kWordSize));
@@ -1550,7 +1485,6 @@ void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::Double_getIsNaN(Assembler* assembler) {
   Label is_true;
   __ movl(EAX, Address(ESP, +1 * kWordSize));
@@ -1563,7 +1497,6 @@ void Intrinsifier::Double_getIsNaN(Assembler* assembler) {
   __ LoadObject(EAX, Bool::True());
   __ ret();
 }
-
 
 void Intrinsifier::Double_getIsInfinite(Assembler* assembler) {
   Label not_inf;
@@ -1588,7 +1521,6 @@ void Intrinsifier::Double_getIsInfinite(Assembler* assembler) {
   __ ret();
 }
 
-
 void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   Label is_false, is_true, is_zero;
   __ movl(EAX, Address(ESP, +1 * kWordSize));
@@ -1612,7 +1544,6 @@ void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   __ jmp(&is_false, Assembler::kNearJump);
 }
 
-
 void Intrinsifier::DoubleToInteger(Assembler* assembler) {
   __ movl(EAX, Address(ESP, +1 * kWordSize));
   __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
@@ -1626,7 +1557,6 @@ void Intrinsifier::DoubleToInteger(Assembler* assembler) {
   __ ret();
   __ Bind(&fall_through);
 }
-
 
 // Argument type is not known
 void Intrinsifier::MathSqrt(Assembler* assembler) {
@@ -1649,7 +1579,6 @@ void Intrinsifier::MathSqrt(Assembler* assembler) {
   __ jmp(&double_op);
   __ Bind(&fall_through);
 }
-
 
 //    var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
 //    _state[kSTATE_LO] = state & _MASK_32;
@@ -1696,7 +1625,6 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
   __ ret();
 }
 
-
 // Identity comparison.
 void Intrinsifier::ObjectEquals(Assembler* assembler) {
   Label is_true;
@@ -1710,7 +1638,6 @@ void Intrinsifier::ObjectEquals(Assembler* assembler) {
   __ ret();
 }
 
-
 static void RangeCheck(Assembler* assembler,
                        Register reg,
                        intptr_t low,
@@ -1722,15 +1649,12 @@ static void RangeCheck(Assembler* assembler,
   __ j(cc, target);
 }
 
-
 const Condition kIfNotInRange = ABOVE;
 const Condition kIfInRange = BELOW_EQUAL;
-
 
 static void JumpIfInteger(Assembler* assembler, Register cid, Label* target) {
   RangeCheck(assembler, cid, kSmiCid, kBigintCid, kIfInRange, target);
 }
-
 
 static void JumpIfNotInteger(Assembler* assembler,
                              Register cid,
@@ -1738,18 +1662,15 @@ static void JumpIfNotInteger(Assembler* assembler,
   RangeCheck(assembler, cid, kSmiCid, kBigintCid, kIfNotInRange, target);
 }
 
-
 static void JumpIfString(Assembler* assembler, Register cid, Label* target) {
   RangeCheck(assembler, cid, kOneByteStringCid, kExternalTwoByteStringCid,
              kIfInRange, target);
 }
 
-
 static void JumpIfNotString(Assembler* assembler, Register cid, Label* target) {
   RangeCheck(assembler, cid, kOneByteStringCid, kExternalTwoByteStringCid,
              kIfNotInRange, target);
 }
-
 
 // Return type quickly for simple types (not parameterized and not signature).
 void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
@@ -1806,7 +1727,6 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
 
   __ Bind(&fall_through);
 }
-
 
 void Intrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler) {
   Label fall_through, different_cids, equal, not_equal, not_integer;
@@ -1871,7 +1791,6 @@ void Intrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::String_getHashCode(Assembler* assembler) {
   Label fall_through;
   __ movl(EAX, Address(ESP, +1 * kWordSize));  // String object.
@@ -1883,12 +1802,18 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
   // Hash not yet computed.
 }
 
-
 // bool _substringMatches(int start, String other)
 void Intrinsifier::StringBaseSubstringMatches(Assembler* assembler) {
   // For precompilation, not implemented on IA32.
 }
 
+void Intrinsifier::Object_getHash(Assembler* assembler) {
+  UNREACHABLE();
+}
+
+void Intrinsifier::Object_setHash(Assembler* assembler) {
+  UNREACHABLE();
+}
 
 void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   Label fall_through, try_two_byte_string;
@@ -1928,7 +1853,6 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::StringBaseIsEmpty(Assembler* assembler) {
   Label is_true;
   // Get length.
@@ -1942,7 +1866,6 @@ void Intrinsifier::StringBaseIsEmpty(Assembler* assembler) {
   __ LoadObject(EAX, Bool::True());
   __ ret();
 }
-
 
 void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   Label compute_hash;
@@ -2012,7 +1935,6 @@ void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   __ ret();
 }
 
-
 // Allocates one-byte string of length 'end - start'. The content is not
 // initialized. 'length-reg' contains tagged length.
 // Returns new string as tagged pointer in EAX.
@@ -2035,9 +1957,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ andl(EDI, Immediate(-kObjectAlignment));
 
   const intptr_t cid = kOneByteStringCid;
-  Heap::Space space = Heap::kNew;
-  __ movl(ECX, Address(THR, Thread::heap_offset()));
-  __ movl(EAX, Address(ECX, Heap::TopOffset(space)));
+  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
+  __ movl(EAX, Address(THR, Thread::top_offset()));
   __ movl(EBX, EAX);
 
   // EDI: allocation size.
@@ -2048,13 +1969,12 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // EAX: potential new object start.
   // EBX: potential next object start.
   // EDI: allocation size.
-  // ECX: heap.
-  __ cmpl(EBX, Address(ECX, Heap::EndOffset(space)));
+  __ cmpl(EBX, Address(THR, Thread::end_offset()));
   __ j(ABOVE_EQUAL, &pop_and_fail);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movl(Address(ECX, Heap::TopOffset(space)), EBX);
+  __ movl(Address(THR, Thread::top_offset()), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
 
   NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX, space));
@@ -2091,7 +2011,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ popl(EDI);
   __ jmp(failure);
 }
-
 
 // Arg0: OneByteString (receiver)
 // Arg1: Start index as Smi.
@@ -2141,7 +2060,6 @@ void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::OneByteStringSetAt(Assembler* assembler) {
   __ movl(ECX, Address(ESP, +1 * kWordSize));  // Value.
   __ movl(EBX, Address(ESP, +2 * kWordSize));  // Index.
@@ -2151,7 +2069,6 @@ void Intrinsifier::OneByteStringSetAt(Assembler* assembler) {
   __ movb(FieldAddress(EAX, EBX, TIMES_1, OneByteString::data_offset()), CL);
   __ ret();
 }
-
 
 void Intrinsifier::OneByteString_allocate(Assembler* assembler) {
   __ movl(EDI, Address(ESP, +1 * kWordSize));  // Length.
@@ -2164,7 +2081,6 @@ void Intrinsifier::OneByteString_allocate(Assembler* assembler) {
 
   __ Bind(&fall_through);
 }
-
 
 // TODO(srdjan): Add combinations (one-byte/two-byte/external strings).
 static void StringEquality(Assembler* assembler, intptr_t string_cid) {
@@ -2222,16 +2138,13 @@ static void StringEquality(Assembler* assembler, intptr_t string_cid) {
   __ Bind(&fall_through);
 }
 
-
 void Intrinsifier::OneByteString_equality(Assembler* assembler) {
   StringEquality(assembler, kOneByteStringCid);
 }
 
-
 void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
   StringEquality(assembler, kTwoByteStringCid);
 }
-
 
 void Intrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
                                                 bool sticky) {
@@ -2252,8 +2165,9 @@ void Intrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ movl(EDI, Address(ESP, kStringParamOffset));
   __ LoadClassId(EDI, EDI);
   __ SubImmediate(EDI, Immediate(kOneByteStringCid));
-  __ movl(EAX, FieldAddress(EBX, EDI, TIMES_4, RegExp::function_offset(
-                                                   kOneByteStringCid, sticky)));
+  __ movl(EAX,
+          FieldAddress(EBX, EDI, TIMES_4,
+                       RegExp::function_offset(kOneByteStringCid, sticky)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in EAX, the argument descriptor in EDX, and IC-Data in ECX.
@@ -2263,7 +2177,6 @@ void Intrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ movl(EDI, FieldAddress(EAX, Function::entry_point_offset()));
   __ jmp(EDI);
 }
-
 
 // On stack: user tag (+1), return-address (+0).
 void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
@@ -2282,20 +2195,17 @@ void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
   __ ret();
 }
 
-
 void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
   __ LoadIsolate(EAX);
   __ movl(EAX, Address(EAX, Isolate::default_tag_offset()));
   __ ret();
 }
 
-
 void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
   __ LoadIsolate(EAX);
   __ movl(EAX, Address(EAX, Isolate::current_tag_offset()));
   __ ret();
 }
-
 
 void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler) {
   if (!FLAG_support_timeline) {
@@ -2319,13 +2229,11 @@ void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler) {
   __ ret();
 }
 
-
 void Intrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler) {
   __ LoadObject(EAX, Object::null_object());
   __ movl(Address(THR, Thread::async_stack_trace_offset()), EAX);
   __ ret();
 }
-
 
 void Intrinsifier::SetAsyncThreadStackTrace(Assembler* assembler) {
   __ movl(Address(THR, Thread::async_stack_trace_offset()), EAX);

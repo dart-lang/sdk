@@ -441,8 +441,7 @@ class RetainingObject implements M.RetainingObject {
   RetainingObject(this.object);
 }
 
-abstract class ServiceObjectOwner extends ServiceObject
-    implements M.ServiceObjectOwner {
+abstract class ServiceObjectOwner extends ServiceObject {
   /// Creates an empty [ServiceObjectOwner].
   ServiceObjectOwner._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -665,9 +664,12 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   // The list of live isolates, ordered by isolate start time.
   final List<Isolate> isolates = <Isolate>[];
 
+  final List<Service> services = <Service>[];
+
   String version = 'unknown';
   String hostCPU;
   String targetCPU;
+  String embedder;
   int architectureBits;
   bool assertsEnabled = false;
   bool typeChecksEnabled = false;
@@ -675,7 +677,8 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   int pid = 0;
   int heapAllocatedMemoryUsage = 0;
   int heapAllocationCount = 0;
-  int maxRSS = 0;
+  int maxRSS;
+  int currentRSS;
   bool profileVM = false;
   DateTime startTime;
   DateTime refreshTime;
@@ -855,6 +858,17 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     }
   }
 
+  void _updateService(ServiceEvent event) {
+    switch (event.kind) {
+      case ServiceEvent.kServiceRegistered:
+        services.add(new Service(event.alias, event.method, event.service));
+        break;
+      case ServiceEvent.kServiceUnregistered:
+        services.removeWhere((s) => s.method == event.method);
+        break;
+    }
+  }
+
   Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) async {
     if (!loaded) {
       // The vm service relies on these events to keep the VM and
@@ -864,6 +878,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
         await listenEventStream(kIsolateStream, _dispatchEventToIsolate);
         await listenEventStream(kDebugStream, _dispatchEventToIsolate);
         await listenEventStream(_kGraphStream, _dispatchEventToIsolate);
+        await listenEventStream(kServiceStream, _updateService);
       } on FakeVMRpcException catch (_) {
         // ignore FakeVMRpcExceptions here.
       } on NetworkRpcException catch (_) {
@@ -879,6 +894,10 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
 
   Future<ServiceObject> getFlagList() {
     return invokeRpc('getFlagList', {});
+  }
+
+  Future enableProfiler() {
+    return invokeRpc("_enableProfiler", {});
   }
 
   Future<ServiceObject> _streamListen(String streamId) {
@@ -911,6 +930,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   static const kStdoutStream = 'Stdout';
   static const kStderrStream = 'Stderr';
   static const _kGraphStream = '_Graph';
+  static const kServiceStream = '_Service';
 
   /// Returns a single-subscription Stream object for a VM event stream.
   Future<Stream> getEventStream(String streamId) async {
@@ -960,13 +980,11 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       nativeZoneMemoryUsage = map['_nativeZoneMemoryUsage'];
     }
     pid = map['pid'];
-    if (map['_heapAllocatedMemoryUsage'] != null) {
-      heapAllocatedMemoryUsage = map['_heapAllocatedMemoryUsage'];
-    }
-    if (map['_heapAllocationCount'] != null) {
-      heapAllocationCount = map['_heapAllocationCount'];
-    }
+    heapAllocatedMemoryUsage = map['_heapAllocatedMemoryUsage'];
+    heapAllocationCount = map['_heapAllocationCount'];
+    embedder = map['_embedder'];
     maxRSS = map['_maxRSS'];
+    currentRSS = map['_currentRSS'];
     profileVM = map['_profilerMode'] == 'VM';
     assertsEnabled = map['_assertsEnabled'];
     typeChecksEnabled = map['_typeChecksEnabled'];
@@ -2125,6 +2143,8 @@ class ServiceEvent extends ServiceObject {
   static const kConnectionClosed = 'ConnectionClosed';
   static const kLogging = '_Logging';
   static const kExtension = 'Extension';
+  static const kServiceRegistered = 'ServiceRegistered';
+  static const kServiceUnregistered = 'ServiceUnregistered';
 
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -2154,6 +2174,11 @@ class ServiceEvent extends ServiceObject {
   List timelineEvents;
   String spawnToken;
   String spawnError;
+  String editor;
+  ServiceObject object;
+  String method;
+  String service;
+  String alias;
 
   int chunkIndex, chunkCount, nodeCount;
 
@@ -2243,6 +2268,21 @@ class ServiceEvent extends ServiceObject {
     }
     if (map['spawnError'] != null) {
       spawnError = map['spawnError'];
+    }
+    if (map['editor'] != null) {
+      editor = map['editor'];
+    }
+    if (map['object'] != null) {
+      object = map['object'];
+    }
+    if (map['service'] != null) {
+      service = map['service'];
+    }
+    if (map['method'] != null) {
+      method = map['method'];
+    }
+    if (map['alias'] != null) {
+      alias = map['alias'];
     }
   }
 
@@ -2970,6 +3010,8 @@ M.FunctionKind stringToFunctionKind(String value) {
       return M.FunctionKind.regular;
     case 'ClosureFunction':
       return M.FunctionKind.closure;
+    case 'ImplicitClosureFunction':
+      return M.FunctionKind.implicitClosure;
     case 'GetterFunction':
       return M.FunctionKind.getter;
     case 'SetterFunction':
@@ -4653,5 +4695,17 @@ void _upgradeList(List list, ServiceObjectOwner owner) {
     } else if (v is Map) {
       _upgradeMap(v, owner);
     }
+  }
+}
+
+class Service implements M.Service {
+  final String alias;
+  final String method;
+  final String service;
+
+  Service(this.alias, this.method, this.service) {
+    assert(this.alias != null);
+    assert(this.method != null);
+    assert(this.service != null);
   }
 }

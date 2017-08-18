@@ -51,7 +51,7 @@ closure.Foo$ = dart.generic(T => {
       return this[v$];
     }
     set v(value) {
-      this[v$] = value;
+      this[v$] = T._check(value);
     }
     static build() {
       return new (FooOfT()).new(1, null);
@@ -102,7 +102,7 @@ closure.Foo$ = dart.generic(T => {
     setters: () => ({prop: dart.fnType(dart.void, [core.String])}),
     methods: () => ({
       untyped_method: dart.fnType(dart.dynamic, [dart.dynamic, dart.dynamic]),
-      pass: dart.fnType(T, [T]),
+      pass: dart.fnType(T, [core.Object]),
       typed_method: dart.fnType(core.String, [closure.Foo, core.List, core.int, core.num, core.double, core.bool, core.String, js.JsArray, js.JsObject, js.JsFunction]),
       optional_params: dart.fnType(dart.dynamic, [dart.dynamic], [dart.dynamic, core.int]),
       nullary_method: dart.fnType(dart.dynamic, []),

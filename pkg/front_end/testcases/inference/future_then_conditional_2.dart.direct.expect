@@ -1,0 +1,26 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class MyFuture<T extends core::Object> extends core::Object implements asy::Future<self::MyFuture::T> {
+  constructor •() → void
+    : super core::Object::•() {}
+  constructor value(self::MyFuture::T x) → void
+    : super core::Object::•() {}
+  abstract method noSuchMethod(dynamic invocation) → dynamic;
+  method then<S extends core::Object>((self::MyFuture::T) → asy::FutureOr<self::MyFuture::then::S> f, {core::Function onError = null}) → self::MyFuture<self::MyFuture::then::S>
+    return null;
+}
+static method test() → void {
+  self::MyFuture<core::bool> f;
+  asy::Future<core::int> t1 = f.then((dynamic x) → dynamic async => x ? 2 : await new self::MyFuture::value<core::int>(3));
+  asy::Future<core::int> t2 = f.then((dynamic x) → dynamic async {
+    return await x ? 2 : new self::MyFuture::value<core::int>(3);
+  });
+  asy::Future<core::int> t5 = f.then((dynamic x) → dynamic => x ? 2 : new self::MyFuture::value<core::int>(3));
+  asy::Future<core::int> t6 = f.then((dynamic x) → dynamic {
+    return x ? 2 : new self::MyFuture::value<core::int>(3);
+  });
+}
+static method main() → dynamic {}

@@ -252,10 +252,8 @@ abstract class Node {
   /// setting this after construction.
   Object sourceInformation;
 
-  ClosureAnnotation _closureAnnotation;
-
   /// Closure annotation of this node.
-  ClosureAnnotation get closureAnnotation => _closureAnnotation;
+  ClosureAnnotation closureAnnotation;
 
   accept(NodeVisitor visitor);
   void visitChildren(NodeVisitor visitor);
@@ -263,14 +261,6 @@ abstract class Node {
   // Shallow clone of node.  Does not clone positions since the only use of this
   // private method is create a copy with a new position.
   Node _clone();
-
-  withClosureAnnotation(ClosureAnnotation closureAnnotation) {
-    if (this.closureAnnotation == closureAnnotation) return this;
-
-    return _clone()
-      ..sourceInformation = sourceInformation
-      .._closureAnnotation = closureAnnotation;
-  }
 
   // Returns a node equivalent to [this], but with new source position and end
   // source position.
@@ -719,11 +709,16 @@ abstract class Expression extends Node {
 
   Statement toStatement() => new ExpressionStatement(toVoidExpression());
   Statement toReturn() => new Return(this);
+
+  // TODO(jmesserly): make this return a Yield?
   Statement toYieldStatement({bool star: false}) =>
       new ExpressionStatement(new Yield(this, star: star));
 
   Expression toVoidExpression() => this;
-  Expression toAssignExpression(Expression left) => new Assignment(left, this);
+  Expression toAssignExpression(Expression left, [String op]) =>
+      new Assignment.compound(left, op, this);
+
+  // TODO(jmesserly): make this work for more cases?
   Statement toVariableDeclaration(Identifier name) =>
       new VariableDeclarationList(
           'let', [new VariableInitialization(name, this)]).toStatement();

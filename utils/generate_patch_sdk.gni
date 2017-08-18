@@ -43,8 +43,10 @@ template("generate_patched_sdk") {
     depfile = "$root_out_dir/${target_name}.d"
 
     outputs = [
-      # Instead of listing all outputs we list a single well-known one.
+      # Instead of listing all outputs we list those consumed by
+      # other BUILD rules.
       "$root_out_dir/${invoker.patched_sdk_dir}/platform.dill",
+      "$root_out_dir/${invoker.patched_sdk_dir}/outline.dill",
     ]
 
     args = [ "--quiet" ]

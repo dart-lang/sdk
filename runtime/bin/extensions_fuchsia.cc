@@ -8,8 +8,10 @@
 #include "bin/extensions.h"
 
 #include <dlfcn.h>
+#include <fcntl.h>
 #include <launchpad/vmo.h>
 #include <magenta/dlfcn.h>
+#include <mxio/io.h>
 
 #include "platform/assert.h"
 
@@ -23,26 +25,29 @@ const char* kIsolateSnapshotInstructionsSymbolName =
     "_kDartIsolateSnapshotInstructions";
 
 void* Extensions::LoadExtensionLibrary(const char* library_file) {
-  mx_handle_t vmo = launchpad_vmo_from_file(library_file);
-  if (vmo <= 0) {
+  int fd = open(library_file, O_RDONLY);
+  if (fd < 0) {
+    return NULL;
+  }
+  mx_handle_t vmo;
+  mx_status_t status = mxio_get_vmo(fd, &vmo);
+  close(fd);
+  if (status != MX_OK) {
     return NULL;
   }
   return dlopen_vmo(vmo, RTLD_LAZY);
 }
-
 
 void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {
   dlerror();
   return dlsym(lib_handle, symbol);
 }
 
-
 void Extensions::UnloadLibrary(void* lib_handle) {
   dlerror();
   int result = dlclose(lib_handle);
   ASSERT(result == 0);
 }
-
 
 Dart_Handle Extensions::GetError() {
   const char* err_str = dlerror();

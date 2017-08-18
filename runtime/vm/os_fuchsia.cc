@@ -31,11 +31,9 @@ const char* OS::Name() {
   return "fuchsia";
 }
 
-
 intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(getpid());
 }
-
 
 static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   time_t seconds = static_cast<time_t>(seconds_since_epoch);
@@ -46,14 +44,12 @@ static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   return error_code != NULL;
 }
 
-
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   tm decomposed;
   bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
   // If unsuccessful, return an empty string like V8 does.
   return (succeeded && (decomposed.tm_zone != NULL)) ? decomposed.tm_zone : "";
 }
-
 
 int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
   tm decomposed;
@@ -63,7 +59,6 @@ int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
   return succeeded ? static_cast<int>(decomposed.tm_gmtoff) : 0;
 }
 
-
 int OS::GetLocalTimeZoneAdjustmentInSeconds() {
   // TODO(floitsch): avoid excessive calls to tzset?
   tzset();
@@ -72,26 +67,21 @@ int OS::GetLocalTimeZoneAdjustmentInSeconds() {
   return static_cast<int>(-timezone);
 }
 
-
 int64_t OS::GetCurrentTimeMillis() {
   return GetCurrentTimeMicros() / 1000;
 }
-
 
 int64_t OS::GetCurrentTimeMicros() {
   return mx_time_get(MX_CLOCK_UTC) / kNanosecondsPerMicrosecond;
 }
 
-
 int64_t OS::GetCurrentMonotonicTicks() {
   return mx_time_get(MX_CLOCK_MONOTONIC);
 }
 
-
 int64_t OS::GetCurrentMonotonicFrequency() {
   return kNanosecondsPerSecond;
 }
-
 
 int64_t OS::GetCurrentMonotonicMicros() {
   int64_t ticks = GetCurrentMonotonicTicks();
@@ -99,11 +89,9 @@ int64_t OS::GetCurrentMonotonicMicros() {
   return ticks / kNanosecondsPerMicrosecond;
 }
 
-
 int64_t OS::GetCurrentThreadCPUMicros() {
   return mx_time_get(MX_CLOCK_THREAD) / kNanosecondsPerMicrosecond;
 }
-
 
 // TODO(5411554):  May need to hoist these architecture dependent code
 // into a architecture specific file e.g: os_ia32_fuchsia.cc
@@ -125,7 +113,6 @@ intptr_t OS::ActivationFrameAlignment() {
   return alignment;
 }
 
-
 intptr_t OS::PreferredCodeAlignment() {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
     defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
@@ -145,53 +132,34 @@ intptr_t OS::PreferredCodeAlignment() {
   return alignment;
 }
 
-
 int OS::NumberOfAvailableProcessors() {
   return sysconf(_SC_NPROCESSORS_CONF);
 }
-
-
-uintptr_t OS::MaxRSS() {
-  mx_info_task_stats_t task_stats;
-  mx_handle_t process = mx_process_self();
-  mx_status_t status = mx_object_get_info(
-      process, MX_INFO_TASK_STATS, &task_stats, sizeof(task_stats), NULL, NULL);
-  return (status == MX_OK)
-             ? (task_stats.mem_private_bytes + task_stats.mem_shared_bytes)
-             : 0;
-}
-
 
 void OS::Sleep(int64_t millis) {
   SleepMicros(millis * kMicrosecondsPerMillisecond);
 }
 
-
 void OS::SleepMicros(int64_t micros) {
   mx_nanosleep(mx_deadline_after(micros * kNanosecondsPerMicrosecond));
 }
 
-
 void OS::DebugBreak() {
   UNIMPLEMENTED();
 }
-
 
 uintptr_t DART_NOINLINE OS::GetProgramCounter() {
   return reinterpret_cast<uintptr_t>(
       __builtin_extract_return_addr(__builtin_return_address(0)));
 }
 
-
 char* OS::StrNDup(const char* s, intptr_t n) {
   return strndup(s, n);
 }
 
-
 intptr_t OS::StrNLen(const char* s, intptr_t n) {
   return strnlen(s, n);
 }
-
 
 void OS::Print(const char* format, ...) {
   va_list args;
@@ -200,12 +168,10 @@ void OS::Print(const char* format, ...) {
   va_end(args);
 }
 
-
 void OS::VFPrint(FILE* stream, const char* format, va_list args) {
   vfprintf(stream, format, args);
   fflush(stream);
 }
-
 
 int OS::SNPrint(char* str, size_t size, const char* format, ...) {
   va_list args;
@@ -215,7 +181,6 @@ int OS::SNPrint(char* str, size_t size, const char* format, ...) {
   return retval;
 }
 
-
 int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
   int retval = vsnprintf(str, size, format, args);
   if (retval < 0) {
@@ -224,7 +189,6 @@ int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
   return retval;
 }
 
-
 char* OS::SCreate(Zone* zone, const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -232,7 +196,6 @@ char* OS::SCreate(Zone* zone, const char* format, ...) {
   va_end(args);
   return buffer;
 }
-
 
 char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Measure.
@@ -257,7 +220,6 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   return buffer;
 }
 
-
 bool OS::StringToInt64(const char* str, int64_t* value) {
   ASSERT(str != NULL && strlen(str) > 0 && value != NULL);
   int32_t base = 10;
@@ -275,7 +237,6 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
   return ((errno == 0) && (endptr != str) && (*endptr == 0));
 }
 
-
 void OS::RegisterCodeObservers() {
 #ifndef PRODUCT
   if (FLAG_generate_perf_events_symbols) {
@@ -284,14 +245,12 @@ void OS::RegisterCodeObservers() {
 #endif  // !PRODUCT
 }
 
-
 void OS::PrintErr(const char* format, ...) {
   va_list args;
   va_start(args, format);
   VFPrint(stderr, format, args);
   va_end(args);
 }
-
 
 void OS::InitOnce() {
   // TODO(5411554): For now we check that initonce is called only once,
@@ -302,14 +261,11 @@ void OS::InitOnce() {
   init_once_called = true;
 }
 
-
 void OS::Shutdown() {}
-
 
 void OS::Abort() {
   abort();
 }
-
 
 void OS::Exit(int code) {
   UNIMPLEMENTED();

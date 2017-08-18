@@ -53,7 +53,6 @@ namespace dart {
 #define I (isolate())
 #define Z (zone())
 
-
 DEFINE_FLAG(bool, print_unique_targets, false, "Print unique dynamic targets");
 DEFINE_FLAG(bool, trace_precompiler, false, "Trace precompiler.");
 DEFINE_FLAG(
@@ -78,7 +77,6 @@ DECLARE_FLAG(bool, verify_compiler);
 DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_inlining_intervals);
-DECLARE_FLAG(bool, trace_irregexp);
 DECLARE_FLAG(int, inlining_hotness);
 DECLARE_FLAG(int, inlining_size_threshold);
 DECLARE_FLAG(int, inlining_callee_size_threshold);
@@ -87,7 +85,6 @@ DECLARE_FLAG(int, inlining_depth_threshold);
 DECLARE_FLAG(int, inlining_caller_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
-
 
 #ifdef DART_PRECOMPILER
 
@@ -168,7 +165,6 @@ class DartPrecompilationPipeline : public DartCompilationPipeline {
   FieldTypeMap* field_map_;
 };
 
-
 class PrecompileParsedFunctionHelper : public ValueObject {
  public:
   PrecompileParsedFunctionHelper(Precompiler* precompiler,
@@ -199,11 +195,9 @@ class PrecompileParsedFunctionHelper : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(PrecompileParsedFunctionHelper);
 };
 
-
 static void Jump(const Error& error) {
   Thread::Current()->long_jump_base()->Jump(1, error);
 }
-
 
 TypeRangeCache::TypeRangeCache(Precompiler* precompiler,
                                Thread* thread,
@@ -220,12 +214,10 @@ TypeRangeCache::TypeRangeCache(Precompiler* precompiler,
   precompiler->set_type_range_cache(this);
 }
 
-
 TypeRangeCache::~TypeRangeCache() {
   ASSERT(precompiler_->type_range_cache() == this);
   precompiler_->set_type_range_cache(NULL);
 }
-
 
 RawError* Precompiler::CompileAll(
     Dart_QualifiedFunctionName embedder_entry_points[],
@@ -245,7 +237,6 @@ RawError* Precompiler::CompileAll(
   }
 }
 
-
 bool TypeRangeCache::InstanceOfHasClassRange(const AbstractType& type,
                                              intptr_t* lower_limit,
                                              intptr_t* upper_limit) {
@@ -262,7 +253,6 @@ bool TypeRangeCache::InstanceOfHasClassRange(const AbstractType& type,
       !type_arguments.IsRaw(0, type_arguments.Length()))
     return false;
 
-
   intptr_t type_cid = type.type_class_id();
   if (lower_limits_[type_cid] == kNotContiguous) return false;
   if (lower_limits_[type_cid] != kNotComputed) {
@@ -270,7 +260,6 @@ bool TypeRangeCache::InstanceOfHasClassRange(const AbstractType& type,
     *upper_limit = upper_limits_[type_cid];
     return true;
   }
-
 
   *lower_limit = -1;
   *upper_limit = -1;
@@ -339,7 +328,6 @@ bool TypeRangeCache::InstanceOfHasClassRange(const AbstractType& type,
   return true;
 }
 
-
 Precompiler::Precompiler(Thread* thread)
     : thread_(thread),
       zone_(NULL),
@@ -371,7 +359,6 @@ Precompiler::Precompiler(Thread* thread)
       type_range_cache_(NULL),
       error_(Error::Handle()),
       get_runtime_type_is_unique_(false) {}
-
 
 void Precompiler::LoadFeedback(uint8_t* buffer, intptr_t length) {
   if (buffer == NULL) {
@@ -412,7 +399,6 @@ void Precompiler::LoadFeedback(uint8_t* buffer, intptr_t length) {
     jit_feedback_ = static_cast<ParsedJSONObject*>(root);
   }
 }
-
 
 void Precompiler::DoCompileAll(
     Dart_QualifiedFunctionName embedder_entry_points[]) {
@@ -534,17 +520,21 @@ void Precompiler::DoCompileAll(
   }
 }
 
-
 static void CompileStaticInitializerIgnoreErrors(const Field& field) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Precompiler::CompileStaticInitializer(field, /* compute_type = */ true);
+    const Function& initializer =
+        Function::Handle(Precompiler::CompileStaticInitializer(
+            field, /* compute_type = */ true));
+    // This function may have become a canonical signature function. Clear
+    // its code while we have a chance.
+    initializer.ClearCode();
+    initializer.ClearICDataArray();
   } else {
     // Ignore compile-time errors here. If the field is actually used,
     // the error will be reported later during Iterate().
   }
 }
-
 
 void Precompiler::PrecompileStaticInitializers() {
   class StaticInitializerVisitor : public ClassVisitor {
@@ -577,7 +567,6 @@ void Precompiler::PrecompileStaticInitializers() {
   StaticInitializerVisitor visitor(Z);
   ProgramVisitor::VisitClasses(&visitor);
 }
-
 
 void Precompiler::PrecompileConstructors() {
   class ConstructorVisitor : public FunctionVisitor {
@@ -621,7 +610,6 @@ void Precompiler::PrecompileConstructors() {
   }
 }
 
-
 void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   // Note that <rootlibrary>.main is not a root. The appropriate main will be
   // discovered through _getMainClosure.
@@ -648,6 +636,7 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   Dart_QualifiedFunctionName vm_entry_points[] = {
     // Functions
     {"dart:core", "::", "_completeDeferredLoads"},
+    {"dart:core", "::", "identityHashCode"},
     {"dart:core", "AbstractClassInstantiationError",
      "AbstractClassInstantiationError._create"},
     {"dart:core", "ArgumentError", "ArgumentError."},
@@ -712,7 +701,6 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     UNREACHABLE();
   }
 }
-
 
 void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
   Library& lib = Library::Handle(Z);
@@ -793,7 +781,6 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
   }
 }
 
-
 void Precompiler::Iterate() {
   Function& function = Function::Handle(Z);
 
@@ -812,7 +799,6 @@ void Precompiler::Iterate() {
     CollectCallbackFields();
   }
 }
-
 
 void Precompiler::CollectCallbackFields() {
   Library& lib = Library::Handle(Z);
@@ -875,7 +861,6 @@ void Precompiler::CollectCallbackFields() {
   }
 }
 
-
 void Precompiler::ProcessFunction(const Function& function) {
   if (!function.HasCode()) {
     function_count_++;
@@ -910,7 +895,6 @@ void Precompiler::ProcessFunction(const Function& function) {
   ASSERT(function.HasCode());
   AddCalleesOf(function);
 }
-
 
 void Precompiler::AddCalleesOf(const Function& function) {
   ASSERT(function.HasCode());
@@ -1003,7 +987,6 @@ void Precompiler::AddCalleesOf(const Function& function) {
   }
 }
 
-
 void Precompiler::AddTypesOf(const Class& cls) {
   if (cls.IsNull()) return;
   if (classes_to_retain_.HasKey(&cls)) return;
@@ -1028,7 +1011,6 @@ void Precompiler::AddTypesOf(const Class& cls) {
     AddTypesOf(Function::Handle(Z, cls.signature_function()));
   }
 }
-
 
 void Precompiler::AddTypesOf(const Function& function) {
   if (function.IsNull()) return;
@@ -1079,7 +1061,6 @@ void Precompiler::AddTypesOf(const Function& function) {
   AddTypesOf(owner);
 }
 
-
 void Precompiler::AddType(const AbstractType& abstype) {
   if (abstype.IsNull()) return;
 
@@ -1116,7 +1097,6 @@ void Precompiler::AddType(const AbstractType& abstype) {
   }
 }
 
-
 void Precompiler::AddTypeArguments(const TypeArguments& args) {
   if (args.IsNull()) return;
 
@@ -1129,7 +1109,6 @@ void Precompiler::AddTypeArguments(const TypeArguments& args) {
     AddType(arg);
   }
 }
-
 
 void Precompiler::AddConstObject(const Instance& instance) {
   const Class& cls = Class::Handle(Z, instance.clazz());
@@ -1190,7 +1169,6 @@ void Precompiler::AddConstObject(const Instance& instance) {
   instance.raw()->VisitPointers(&visitor);
 }
 
-
 void Precompiler::AddClosureCall(const Array& arguments_descriptor) {
   const Class& cache_class =
       Class::Handle(Z, I->object_store()->closure_class());
@@ -1200,7 +1178,6 @@ void Precompiler::AddClosureCall(const Array& arguments_descriptor) {
              RawFunction::kInvokeFieldDispatcher, true /* create_if_absent */));
   AddFunction(dispatcher);
 }
-
 
 void Precompiler::AddField(const Field& field) {
   if (fields_to_retain_.HasKey(&field)) return;
@@ -1233,7 +1210,6 @@ void Precompiler::AddField(const Field& field) {
   }
 }
 
-
 RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
                                                    bool compute_type) {
   ASSERT(field.is_static());
@@ -1249,7 +1225,6 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
     parsed_function = Parser::ParseStaticFieldInitializer(field);
     parsed_function->AllocateVariables();
   }
-
 
   DartPrecompilationPipeline pipeline(zone);
   PrecompileParsedFunctionHelper helper(/* precompiler = */ NULL,
@@ -1280,7 +1255,6 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
   return parsed_function->function().raw();
 }
 
-
 RawObject* Precompiler::EvaluateStaticInitializer(const Field& field) {
   ASSERT(field.is_static());
   // The VM sets the field's value to transiton_sentinel prior to
@@ -1310,7 +1284,6 @@ RawObject* Precompiler::EvaluateStaticInitializer(const Field& field) {
   UNREACHABLE();
   return Object::null();
 }
-
 
 RawObject* Precompiler::ExecuteOnce(SequenceNode* fragment) {
   LongJumpScope jump;
@@ -1375,7 +1348,6 @@ RawObject* Precompiler::ExecuteOnce(SequenceNode* fragment) {
   return Object::null();
 }
 
-
 void Precompiler::AddFunction(const Function& function) {
   if (enqueued_functions_.HasKey(&function)) return;
 
@@ -1384,14 +1356,12 @@ void Precompiler::AddFunction(const Function& function) {
   changed_ = true;
 }
 
-
 bool Precompiler::IsSent(const String& selector) {
   if (selector.IsNull()) {
     return false;
   }
   return sent_selectors_.HasKey(&selector);
 }
-
 
 void Precompiler::AddSelector(const String& selector) {
   ASSERT(!selector.IsNull());
@@ -1407,7 +1377,6 @@ void Precompiler::AddSelector(const String& selector) {
     }
   }
 }
-
 
 void Precompiler::AddInstantiatedClass(const Class& cls) {
   if (cls.is_allocated()) return;
@@ -1430,7 +1399,6 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
     AddInstantiatedClass(superclass);
   }
 }
-
 
 void Precompiler::CheckForNewDynamicFunctions() {
   Library& lib = Library::Handle(Z);
@@ -1533,7 +1501,6 @@ void Precompiler::CheckForNewDynamicFunctions() {
   }
 }
 
-
 class NameFunctionsTraits {
  public:
   static const char* Name() { return "NameFunctionsTraits"; }
@@ -1549,7 +1516,6 @@ class NameFunctionsTraits {
 
 typedef UnorderedHashMap<NameFunctionsTraits> Table;
 
-
 static void AddNameToFunctionsTable(Zone* zone,
                                     Table* table,
                                     const String& fname,
@@ -1560,7 +1526,6 @@ static void AddNameToFunctionsTable(Zone* zone,
   farray.SetAt(farray.Length() - 1, function);
   table->UpdateValue(fname, farray);
 }
-
 
 void Precompiler::CollectDynamicFunctionNames() {
   if (!FLAG_collect_dynamic_function_names) {
@@ -1646,7 +1611,6 @@ void Precompiler::CollectDynamicFunctionNames() {
   table.Release();
 }
 
-
 void Precompiler::TraceConstFunctions() {
   // Compilation of const accessors happens outside of the treeshakers
   // queue, so we haven't previously scanned its literal pool.
@@ -1675,7 +1639,6 @@ void Precompiler::TraceConstFunctions() {
     }
   }
 }
-
 
 void Precompiler::TraceForRetainedFunctions() {
   Library& lib = Library::Handle(Z);
@@ -1735,7 +1698,6 @@ void Precompiler::TraceForRetainedFunctions() {
     }
   }
 }
-
 
 void Precompiler::DropFunctions() {
   Library& lib = Library::Handle(Z);
@@ -1798,7 +1760,6 @@ void Precompiler::DropFunctions() {
   isolate()->object_store()->set_closure_functions(retained_functions);
 }
 
-
 void Precompiler::DropFields() {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
@@ -1843,7 +1804,6 @@ void Precompiler::DropFields() {
   }
 }
 
-
 void Precompiler::DropTypes() {
   ObjectStore* object_store = I->object_store();
   GrowableObjectArray& retained_types =
@@ -1879,7 +1839,6 @@ void Precompiler::DropTypes() {
   }
   object_store->set_canonical_types(types_table.Release());
 }
-
 
 void Precompiler::DropTypeArguments() {
   ObjectStore* object_store = I->object_store();
@@ -1919,7 +1878,6 @@ void Precompiler::DropTypeArguments() {
   object_store->set_canonical_type_arguments(typeargs_table.Release());
 }
 
-
 void Precompiler::DropScriptData() {
   Library& lib = Library::Handle(Z);
   Array& scripts = Array::Handle(Z);
@@ -1936,7 +1894,6 @@ void Precompiler::DropScriptData() {
     }
   }
 }
-
 
 void Precompiler::TraceTypesFromRetainedClasses() {
   Library& lib = Library::Handle(Z);
@@ -2011,7 +1968,6 @@ void Precompiler::TraceTypesFromRetainedClasses() {
   }
 }
 
-
 void Precompiler::DropLibraryEntries() {
   Library& lib = Library::Handle(Z);
   Array& dict = Array::Handle(Z);
@@ -2056,7 +2012,6 @@ void Precompiler::DropLibraryEntries() {
     }
   }
 }
-
 
 void Precompiler::DropClasses() {
   Class& cls = Class::Handle(Z);
@@ -2120,7 +2075,6 @@ void Precompiler::DropClasses() {
   }
 }
 
-
 void Precompiler::DropLibraries() {
   const GrowableObjectArray& retained_libraries =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
@@ -2179,7 +2133,6 @@ void Precompiler::DropLibraries() {
   libraries_ = retained_libraries.raw();
 }
 
-
 void Precompiler::BindStaticCalls() {
   class BindStaticCallsVisitor : public FunctionVisitor {
    public:
@@ -2235,7 +2188,6 @@ void Precompiler::BindStaticCalls() {
   BindStaticCallsVisitor visitor(Z);
   ProgramVisitor::VisitFunctions(&visitor);
 }
-
 
 void Precompiler::SwitchICCalls() {
 #if !defined(TARGET_ARCH_DBC)
@@ -2326,7 +2278,6 @@ void Precompiler::SwitchICCalls() {
 #endif
 }
 
-
 void Precompiler::FinalizeAllClasses() {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
@@ -2357,8 +2308,6 @@ void Precompiler::FinalizeAllClasses() {
   }
   I->set_all_classes_finalized(true);
 }
-
-
 
 void Precompiler::VerifyJITFeedback() {
   if (jit_feedback_ == NULL) return;
@@ -2490,7 +2439,6 @@ void Precompiler::VerifyJITFeedback() {
   ProgramVisitor::VisitFunctions(&visitor);
 }
 
-
 ParsedJSONObject* Precompiler::LookupFeedback(const Function& function) {
   const Class& owner = Class::Handle(Z, function.Owner());
 
@@ -2502,7 +2450,6 @@ ParsedJSONObject* Precompiler::LookupFeedback(const Function& function) {
   }
   return pair->value_;
 }
-
 
 RawScript* Precompiler::LookupScript(const char* uri) {
   String& dart_uri = String::Handle(Z, String::New(uri));
@@ -2518,7 +2465,6 @@ RawScript* Precompiler::LookupScript(const char* uri) {
   return Script::null();
 }
 
-
 intptr_t Precompiler::MapCid(intptr_t feedback_cid) {
   if (feedback_cid < kNumPredefinedCids) {
     return feedback_cid;
@@ -2527,7 +2473,6 @@ intptr_t Precompiler::MapCid(intptr_t feedback_cid) {
   if (pair == NULL) return kIllegalCid;
   return pair->value_;
 }
-
 
 void Precompiler::PopulateWithICData(const Function& function,
                                      FlowGraph* graph) {
@@ -2579,7 +2524,6 @@ void Precompiler::PopulateWithICData(const Function& function,
   }
 }
 
-
 void Precompiler::TryApplyFeedback(const Function& function, FlowGraph* graph) {
   ParsedJSONObject* js_function = LookupFeedback(function);
   if (js_function == NULL) {
@@ -2608,7 +2552,6 @@ void Precompiler::TryApplyFeedback(const Function& function, FlowGraph* graph) {
     }
   }
 }
-
 
 void Precompiler::TryApplyFeedback(ParsedJSONArray* js_icdatas,
                                    const ICData& ic) {
@@ -2693,7 +2636,6 @@ void Precompiler::TryApplyFeedback(ParsedJSONArray* js_icdatas,
   }
 }
 
-
 void Precompiler::ResetPrecompilerState() {
   changed_ = false;
   function_count_ = 0;
@@ -2727,7 +2669,6 @@ void Precompiler::ResetPrecompilerState() {
     }
   }
 }
-
 
 void PrecompileParsedFunctionHelper::FinalizeCompilation(
     Assembler* assembler,
@@ -2776,7 +2717,6 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   ASSERT(!parsed_function()->HasDeferredPrefixes());
   ASSERT(FLAG_load_deferred_eagerly);
 }
-
 
 // Return false if bailed out.
 // If optimized_result_code is not NULL then it is caller's responsibility
@@ -3288,7 +3228,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   return is_compiled;
 }
 
-
 static RawError* PrecompileFunctionHelper(Precompiler* precompiler,
                                           CompilationPipeline* pipeline,
                                           const Function& function,
@@ -3376,7 +3315,6 @@ static RawError* PrecompileFunctionHelper(Precompiler* precompiler,
   UNREACHABLE();
   return Error::null();
 }
-
 
 RawError* Precompiler::CompileFunction(Precompiler* precompiler,
                                        Thread* thread,

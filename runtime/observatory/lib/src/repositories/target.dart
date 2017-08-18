@@ -4,6 +4,8 @@
 
 part of repositories;
 
+typedef bool IsConnectedVMTargetDelegate(Target);
+
 class TargetChangeEvent implements M.TargetChangeEvent {
   final TargetRepository repository;
   final bool disconnected;
@@ -19,21 +21,25 @@ class TargetRepository implements M.TargetRepository {
 
   final List<SC.WebSocketVMTarget> _list = <SC.WebSocketVMTarget>[];
   SC.WebSocketVMTarget current;
+  final IsConnectedVMTargetDelegate _isConnectedVMTarget;
 
-  factory TargetRepository() {
+  factory TargetRepository(IsConnectedVMTargetDelegate isConnectedVMTarget) {
     var controller = new StreamController<TargetChangeEvent>();
     var stream = controller.stream.asBroadcastStream();
-    return new TargetRepository._(controller, stream);
+    return new TargetRepository._(isConnectedVMTarget, controller, stream);
   }
 
-  TargetRepository._(this._onChange, this.onChange) {
+  TargetRepository._(this._isConnectedVMTarget, this._onChange, this.onChange) {
     _restore();
+    final defaultAddress = _networkAddressOfDefaultTarget();
+    var defaultTarget = find(defaultAddress);
     // Add the default address if it doesn't already exist.
-    if (find(_networkAddressOfDefaultTarget()) == null) {
-      add(_networkAddressOfDefaultTarget());
+    if (defaultTarget == null) {
+      defaultTarget = new SC.WebSocketVMTarget(defaultAddress);
+      _list.insert(0, defaultTarget);
     }
     // Set the current target to the default target.
-    current = find(_networkAddressOfDefaultTarget());
+    current = defaultTarget;
   }
 
   void add(String address) {
@@ -108,4 +114,6 @@ class TargetRepository implements M.TargetRepository {
     Uri serverAddress = Uri.parse(window.location.toString());
     return 'ws://${serverAddress.authority}${serverAddress.path}ws';
   }
+
+  bool isConnectedVMTarget(M.Target target) => _isConnectedVMTarget(target);
 }

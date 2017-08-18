@@ -12,6 +12,7 @@ library dev_compiler.test.codegen_test;
 // compiles stuff. This should be changed to not use unittest and just be a
 // regular program that outputs files.
 
+import 'dart:convert';
 import 'dart:io' show Directory, File, Platform;
 import 'package:analyzer/analyzer.dart'
     show
@@ -32,11 +33,15 @@ import 'package:dev_compiler/src/compiler/module_builder.dart'
     show ModuleFormat, addModuleFormatOptions, parseModuleFormatOption;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart' show expect, isFalse, isTrue, test;
+import 'package:status_file/expectation.dart';
+import 'package:test_dart/path.dart' as test_dart;
+import 'package:test_dart/test_suite.dart' show StandardTestSuite;
+import 'package:test_dart/utils.dart';
+import 'package:test_dart/options.dart';
 
 import '../tool/build_sdk.dart' as build_sdk;
-import 'testing.dart' show repoDirectory, testDirectory;
 import 'multitest.dart' show extractTestsFromMultitest, isMultiTest;
-import 'not_yet_strong_tests.dart';
+import 'testing.dart' show repoDirectory, testDirectory;
 
 final ArgParser argParser = new ArgParser()
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null);
@@ -82,22 +87,13 @@ main(List<String> arguments) {
   var sharedCompiler = new ModuleCompiler(new AnalyzerOptions.basic(
       dartSdkSummaryPath: sdkSummaryFile, summaryPaths: summaryPaths));
 
-  var testDirs = [
-    'language',
-    'corelib',
-    path.join('corelib', 'regexp'),
-    path.join('lib', 'async'),
-    path.join('lib', 'collection'),
-    path.join('lib', 'convert'),
-    path.join('lib', 'html'),
-    path.join('lib', 'math'),
-    path.join('lib', 'mirrors'),
-    path.join('lib', 'typed_data'),
-  ];
+  var testDirs = ['language', 'corelib', 'lib'];
 
   // Copy all of the test files and expanded multitest files to
   // gen/codegen_tests. We'll compile from there.
+  TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
   var testFiles = _setUpTests(testDirs);
+  _writeRuntimeStatus(testFiles);
 
   // Our default compiler options. Individual tests can override these.
   var defaultOptions = ['--no-source-map', '--no-summarize'];
@@ -119,12 +115,17 @@ main(List<String> arguments) {
   ];
 
   // Compile each test file to JS and put the result in gen/codegen_output.
-  for (var testFile in testFiles) {
+  testFiles.forEach((testFile, status) {
     var relativePath = path.relative(testFile, from: codegenTestDir);
 
     // Only compile the top-level files for generating coverage.
     bool isTopLevelTest = path.dirname(relativePath) == ".";
-    if (codeCoverage && !isTopLevelTest) continue;
+    if (codeCoverage && !isTopLevelTest) return;
+
+    if (status.contains(Expectation.skip) ||
+        status.contains(Expectation.skipByDesign)) {
+      return;
+    }
 
     var name = path.withoutExtension(relativePath);
     test('dartdevc $name', () {
@@ -165,43 +166,46 @@ main(List<String> arguments) {
         stackTrace = st;
       }
 
-      bool expectedCompileTimeError = contents.contains(': compile-time error');
-      bool notStrong = notYetStrongTests.contains(name);
-      bool crashing = _crashingTests.contains(name);
-      bool inconsistent = _inconsistentTests.contains(name);
+      // This covers tests where the intent of the test is to validate that
+      // some static error is produced.
+      var intentionalCompileError =
+          (contents.contains(': compile-time error') ||
+                  contents.contains('/*@compile-error=')) &&
+              !status.contains(Expectation.missingCompileTimeError);
 
+      var crashing = status.contains(Expectation.crash);
       if (module == null) {
         expect(crashing, isTrue,
             reason: "test $name crashes during compilation.\n"
                 "$exception\n$stackTrace");
-      } else if (inconsistent) {
-        // An inconsistent test will only compile on some platforms (see
-        // comment below).  It should not crash however.
-        expect(crashing, isFalse, reason: "test $name no longer crashes.");
-      } else if (module.isValid) {
-        _writeModule(
-            path.join(codegenOutputDir, name),
-            isTopLevelTest ? path.join(codegenExpectDir, name) : null,
-            moduleFormat,
-            module);
+        return;
+      }
 
-        expect(crashing, isFalse, reason: "test $name no longer crashes.");
-        // TODO(vsm): We don't seem to trip on non-strong errors?
-        // expect(expectedCompileTimeError, isFalse,
-        //    reason: "test $name expected compilation errors, but compiled.");
-        expect(notStrong, isFalse,
-            reason: "test $name expected strong mode errors, but compiled.");
+      // Write out JavaScript and/or compilation errors/warnings.
+      _writeModule(
+          path.join(codegenOutputDir, name),
+          isTopLevelTest ? path.join(codegenExpectDir, name) : null,
+          moduleFormat,
+          module);
+
+      expect(crashing, isFalse, reason: "test $name no longer crashes.");
+
+      var knownCompileError = status.contains(Expectation.compileTimeError) ||
+          status.contains(Expectation.fail);
+      // TODO(jmesserly): we could also invert negative_test, however analyzer
+      // in test.dart does not do this.
+      //   name.endsWith('negative_test') && !status.contains(Expectation.fail)
+      if (module.isValid) {
+        expect(knownCompileError, isFalse,
+            reason: "test $name expected static errors, but compiled.");
       } else {
-        expect(crashing, isFalse, reason: "test $name no longer crashes.");
-        var reason = expectedCompileTimeError
-            ? "expected"
-            : inconsistent ? "platform consistency" : "untriaged strong mode";
-        expect(expectedCompileTimeError || inconsistent || notStrong, isTrue,
+        var reason = intentionalCompileError ? "intended" : "unexpected";
+        expect(intentionalCompileError || knownCompileError, isTrue,
             reason: "test $name failed to compile due to $reason errors:"
                 "\n\n${module.errors.join('\n')}.");
       }
     });
-  }
+  });
 
   if (filePattern.hasMatch('sunflower')) {
     test('sunflower', () {
@@ -224,7 +228,9 @@ void _writeModule(String outPath, String expectPath, ModuleFormat format,
   if (errors.isNotEmpty && !errors.endsWith('\n')) errors += '\n';
   new File(outPath + '.txt').writeAsStringSync(errors);
 
-  result.writeCodeSync(format, outPath + '.js');
+  if (result.isValid) {
+    result.writeCodeSync(format, outPath + '.js');
+  }
 
   if (result.summaryBytes != null) {
     new File(outPath + '.sum').writeAsBytesSync(result.summaryBytes);
@@ -267,49 +273,118 @@ String _moduleForLibrary(Source source) {
   throw new Exception('Module not found for library "${source.fullName}"');
 }
 
-List<String> _setUpTests(List<String> testDirs) {
-  var testFiles = <String>[];
+void _writeRuntimeStatus(Map<String, Set<Expectation>> testFiles) {
+  var runtimeStatus = <String, String>{};
+  testFiles.forEach((name, status) {
+    name = path.withoutExtension(path.relative(name, from: codegenTestDir));
+    // Skip tests that we don't expect to compile.
+    if (status.contains(Expectation.compileTimeError) ||
+        status.contains(Expectation.crash) ||
+        status.contains(Expectation.skip) ||
+        status.contains(Expectation.fail) ||
+        status.contains(Expectation.skipByDesign)) {
+      return;
+    }
+    // Normalize the expectations for the Karma language_test.js runner.
+    if (status.remove(Expectation.ok)) assert(status.isNotEmpty);
+    if (status.remove(Expectation.missingCompileTimeError) ||
+        status.remove(Expectation.missingRuntimeError)) {
+      status.add(Expectation.pass);
+    }
 
+    // Don't include status for passing tests, as that is the default.
+    // TODO(jmesserly): we could record these for extra sanity checks.
+    if (status.length == 1 && status.contains(Expectation.pass)) {
+      return;
+    }
+
+    runtimeStatus[name] = status.map((s) => '$s').join(',');
+  });
+  new File(path.join(codegenOutputDir, 'test_status.js')).writeAsStringSync('''
+define([], function() {
+  'use strict';
+  return ${new JsonEncoder.withIndent(' ').convert(runtimeStatus)};
+});
+''');
+}
+
+Map<String, Set<Expectation>> _setUpTests(List<String> testDirs) {
+  var testFiles = <String, Set<Expectation>>{};
   for (var testDir in testDirs) {
-    // Look for the tests in the "_strong" directories in the SDK's main
-    // "tests" directory.
+    // TODO(rnystrom): Simplify this when the Dart 2.0 test migration is
+    // complete (#30183).
+    // Look for the tests in the "_strong" and "_2" directories in the SDK's
+    // main "tests" directory.
     var dirParts = path.split(testDir);
-    var sdkTestDir =
-        path.join(dirParts[0] + "_strong", path.joinAll(dirParts.skip(1)));
-    var inputPath =
-        path.join(testDirectory, '..', '..', '..', 'tests', sdkTestDir);
 
-    for (var file in _listFiles(inputPath, recursive: true)) {
-      var relativePath = path.relative(file, from: inputPath);
-      var outputPath = path.join(codegenTestDir, testDir, relativePath);
+    for (var suffix in const ["_2", "_strong"]) {
+      var sdkTestDir = path.join(
+          'tests', dirParts[0] + suffix, path.joinAll(dirParts.skip(1)));
+      var inputPath = path.join(testDirectory, '..', '..', '..', sdkTestDir);
 
-      _ensureDirectory(path.dirname(outputPath));
+      if (!new Directory(inputPath).existsSync()) continue;
 
-      // Copy it over. We do this even for multitests because import_self_test
-      // is a multitest, yet imports its own unexpanded form (!).
-      new File(file).copySync(outputPath);
+      var browsers = Platform.environment['DDC_BROWSERS'];
+      var runtime = browsers == 'Firefox' ? 'firefox' : 'chrome';
+      var config = new OptionsParser()
+          .parse('-m release -c dartdevc --use-sdk --strong'.split(' ')
+            ..addAll(['-r', runtime, '--suite_dir', sdkTestDir]))
+          .single;
 
-      if (file.endsWith("_test.dart")) {
-        var contents = new File(file).readAsStringSync();
+      var testSuite = new StandardTestSuite.forDirectory(
+          config, new test_dart.Path(sdkTestDir));
+      var expectations = testSuite.readExpectations();
 
-        if (isMultiTest(contents)) {
-          // It's a multitest, so expand it and add all of the variants.
-          var tests = <String, String>{};
-          var outcomes = <String, Set<String>>{};
-          extractTestsFromMultitest(file, contents, tests, outcomes);
+      for (var file in _listFiles(inputPath, recursive: true)) {
+        var relativePath = path.relative(file, from: inputPath);
+        var outputPath = path.join(codegenTestDir, testDir, relativePath);
 
-          var fileName = path.basenameWithoutExtension(file);
-          var outputDir = path.dirname(outputPath);
-          tests.forEach((name, contents) {
-            var multiFile =
-                path.join(outputDir, '${fileName}_${name}_multi.dart');
-            testFiles.add(multiFile);
+        _ensureDirectory(path.dirname(outputPath));
 
-            new File(multiFile).writeAsStringSync(contents);
-          });
+        if (file.endsWith("_test.dart")) {
+          var statusPath = path.withoutExtension(relativePath);
+
+          void _writeTest(String outputPath, String contents) {
+            if (contents.contains('package:unittest/')) {
+              // TODO(jmesserly): we could use directive parsing, but that
+              // feels like overkill.
+              // Alternatively, we could detect "unittest" use at runtime.
+              // We really need a better solution for Karma+mocha+unittest
+              // integration.
+              contents += '\nfinal _usesUnittestPackage = true;\n';
+            }
+            new File(outputPath).writeAsStringSync(contents);
+          }
+
+          var contents = new File(file).readAsStringSync();
+          if (isMultiTest(contents)) {
+            // It's a multitest, so expand it and add all of the variants.
+            var tests = <String, String>{};
+            extractTestsFromMultitest(file, contents, tests);
+
+            var fileName = path.basenameWithoutExtension(file);
+            var outputDir = path.dirname(outputPath);
+            tests.forEach((name, contents) {
+              var multiFile =
+                  path.join(outputDir, '${fileName}_${name}_multi.dart');
+              testFiles[multiFile] =
+                  expectations.expectations("$statusPath/$name");
+
+              _writeTest(multiFile, contents);
+            });
+          } else {
+            // It's a single test suite.
+            testFiles[outputPath] = expectations.expectations(statusPath);
+          }
+
+          // Write the test file.
+          //
+          // We do this even for multitests because import_self_test
+          // is a multitest, yet imports its own unexpanded form (!).
+          _writeTest(outputPath, contents);
         } else {
-          // It's a single test suite.
-          testFiles.add(outputPath);
+          // Copy the non-test file over, in case it is used as an import.
+          new File(file).copySync(outputPath);
         }
       }
     }
@@ -322,7 +397,7 @@ List<String> _setUpTests(List<String> testDirs) {
 
     new File(file).copySync(outputPath);
     if (file.endsWith(".dart")) {
-      testFiles.add(outputPath);
+      testFiles[outputPath] = new Set()..add(Expectation.pass);
     }
   }
 
@@ -338,14 +413,8 @@ void _ensureDirectory(String dir) {
 Iterable<String> _listFiles(String dir, {bool recursive: false}) {
   return new Directory(dir)
       .listSync(recursive: recursive, followLinks: false)
-      .where((entry) {
-    if (entry is! File) return false;
-
-    var filePath = entry.path;
-    if (!filePattern.hasMatch(filePath)) return false;
-
-    return true;
-  }).map((file) => file.path);
+      .where((e) => e is File && filePattern.hasMatch(e.path))
+      .map((f) => f.path);
 }
 
 /// Parse directives from [contents] and find the complete set of transitive
@@ -391,21 +460,3 @@ String _resolveDirective(UriBasedDirective directive) {
       ? uriContent
       : null;
 }
-
-/// Tests that, due to bugs, are strong-mode clean only on some platforms.
-final _inconsistentTests = new Set<String>.from([
-  // This test is clean on windows, but not linux/mac due to newline encoding.
-  // See: https://github.com/dart-lang/sdk/issues/27224
-  'language/multiline_newline_test_02_multi',
-].map((p) => p.replaceAll('/', path.separator)));
-
-final _crashingTests = new Set<String>.from([
-  // TODO(vsm): Fix these - they import files from a different directory
-  // - this triggers an invalid library root build error.
-  'lib/html/custom/attribute_changed_callback_test',
-  'lib/html/custom/constructor_calls_created_synchronously_test',
-  'lib/html/custom/entered_left_view_test',
-  'lib/html/custom/js_custom_test',
-  'lib/html/custom/mirrors_test',
-  'lib/html/custom/regress_194523002_test',
-].map((p) => p.replaceAll('/', path.separator)));

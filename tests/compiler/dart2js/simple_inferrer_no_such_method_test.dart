@@ -162,10 +162,10 @@ main() {
 
 checkReturn(MockCompiler compiler, String name, type) {
   var typesInferrer = compiler.globalInference.typesInferrerInternal;
-  var element = findElement(compiler, name);
+  MemberElement element = findElement(compiler, name);
   Expect.equals(
       type,
-      simplify(typesInferrer.getReturnTypeOfElement(element),
+      simplify(typesInferrer.getReturnTypeOfMember(element),
           typesInferrer.closedWorld),
       name);
 }

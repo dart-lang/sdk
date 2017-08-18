@@ -3,11 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
@@ -15,7 +12,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 import '../analysis_abstract.dart';
 
@@ -25,54 +21,26 @@ main() {
   });
 }
 
-compilationUnitMatcher(String file) {
-  return new _ArgumentMatcher_CompilationUnit(file);
-}
-
 @reflectiveTest
 class UpdateContentTest extends AbstractAnalysisTest {
   Map<String, List<String>> filesErrors = {};
   int serverErrorCount = 0;
   int navigationCount = 0;
 
-  Index createIndex() {
-    return new _MockIndex();
-  }
-
   @override
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_ERRORS) {
+    if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = new AnalysisErrorsParams.fromNotification(notification);
       String _format(AnalysisError e) =>
           "${e.location.startLine}: ${e.message}";
       filesErrors[decoded.file] = decoded.errors.map(_format).toList();
     }
-    if (notification.event == ANALYSIS_NAVIGATION) {
+    if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
       navigationCount++;
     }
-    if (notification.event == SERVER_ERROR) {
+    if (notification.event == SERVER_NOTIFICATION_ERROR) {
       serverErrorCount++;
     }
-  }
-
-  test_discardNotifications_onSourceChange() async {
-    createProject();
-    addTestFile('');
-    await server.onAnalysisComplete;
-    server.setAnalysisSubscriptions({
-      AnalysisService.NAVIGATION: [testFile].toSet()
-    });
-    // update file, analyze, but don't sent notifications
-    navigationCount = 0;
-    server.updateContent('1', {testFile: new AddContentOverlay('foo() {}')});
-    expect(serverErrorCount, 0);
-    expect(navigationCount, 0);
-    // replace the file contents,
-    // should discard any pending notification operations
-    server.updateContent('2', {testFile: new AddContentOverlay('bar() {}')});
-    await server.onAnalysisComplete;
-    expect(serverErrorCount, 0);
-    expect(navigationCount, 1);
   }
 
   test_illegal_ChangeContentOverlay() {
@@ -94,23 +62,17 @@ class UpdateContentTest extends AbstractAnalysisTest {
 
   test_multiple_contexts() async {
     String fooPath = '/project1/foo.dart';
-    resourceProvider.newFile(
-        fooPath,
-        '''
+    resourceProvider.newFile(fooPath, '''
 library foo;
 import '../project2/baz.dart';
 main() { f(); }''');
     String barPath = '/project2/bar.dart';
-    resourceProvider.newFile(
-        barPath,
-        '''
+    resourceProvider.newFile(barPath, '''
 library bar;
 import 'baz.dart';
 main() { f(); }''');
     String bazPath = '/project2/baz.dart';
-    resourceProvider.newFile(
-        bazPath,
-        '''
+    resourceProvider.newFile(bazPath, '''
 library baz;
 f(int i) {}
 ''');
@@ -302,18 +264,3 @@ f() {}
     return sources;
   }
 }
-
-class _ArgumentMatcher_CompilationUnit extends ArgumentMatcher {
-  final String file;
-
-  _ArgumentMatcher_CompilationUnit(this.file);
-
-  @override
-  bool matches(arg) {
-    return arg is CompilationUnit &&
-        resolutionMap.elementDeclaredByCompilationUnit(arg).source.fullName ==
-            file;
-  }
-}
-
-class _MockIndex extends TypedMock implements Index {}

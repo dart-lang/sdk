@@ -28,11 +28,9 @@ SourceReport::SourceReport(intptr_t report_set, CompileMode compile_mode)
       profile_(Isolate::Current()),
       next_script_index_(0) {}
 
-
 SourceReport::~SourceReport() {
   ClearScriptTable();
 }
-
 
 void SourceReport::ClearScriptTable() {
   for (intptr_t i = 0; i < script_table_entries_.length(); i++) {
@@ -43,7 +41,6 @@ void SourceReport::ClearScriptTable() {
   script_table_.Clear();
   next_script_index_ = 0;
 }
-
 
 void SourceReport::Init(Thread* thread,
                         const Script* script,
@@ -58,15 +55,14 @@ void SourceReport::Init(Thread* thread,
     // Build the profile.
     SampleFilter samplesForIsolate(thread_->isolate()->main_port(),
                                    Thread::kMutatorTask, -1, -1);
-    profile_.Build(thread, &samplesForIsolate, Profile::kNoTags);
+    profile_.Build(thread, &samplesForIsolate, Profiler::sample_buffer(),
+                   Profile::kNoTags);
   }
 }
-
 
 bool SourceReport::IsReportRequested(ReportKind report_kind) {
   return (report_set_ & report_kind) != 0;
 }
-
 
 bool SourceReport::ShouldSkipFunction(const Function& func) {
   if (script_ != NULL && !script_->IsNull()) {
@@ -86,6 +82,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
   switch (func.kind()) {
     case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:
+    case RawFunction::kImplicitClosureFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
     case RawFunction::kConstructor:
@@ -107,7 +104,6 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
   return false;
 }
 
-
 intptr_t SourceReport::GetScriptIndex(const Script& script) {
   const String& url = String::Handle(zone(), script.url());
   ScriptTableEntry* pair = script_table_.LookupValue(&url);
@@ -127,7 +123,6 @@ intptr_t SourceReport::GetScriptIndex(const Script& script) {
   return tmp->index;
 }
 
-
 #if defined(DEBUG)
 void SourceReport::VerifyScriptTable() {
   for (intptr_t i = 0; i < script_table_entries_.length(); i++) {
@@ -143,7 +138,6 @@ void SourceReport::VerifyScriptTable() {
 }
 #endif
 
-
 bool SourceReport::ScriptIsLoadedByLibrary(const Script& script,
                                            const Library& lib) {
   const Array& scripts = Array::Handle(zone(), lib.LoadedScripts());
@@ -154,7 +148,6 @@ bool SourceReport::ScriptIsLoadedByLibrary(const Script& script,
   }
   return false;
 }
-
 
 void SourceReport::PrintCallSitesData(JSONObject* jsobj,
                                       const Function& function,
@@ -194,7 +187,6 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
     }
   }
 }
-
 
 void SourceReport::PrintCoverageData(JSONObject* jsobj,
                                      const Function& function,
@@ -272,7 +264,6 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   }
 }
 
-
 void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
                                                 const Function& func,
                                                 const Code& code) {
@@ -311,7 +302,6 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
     }
   }
 }
-
 
 void SourceReport::PrintProfileData(JSONObject* jsobj,
                                     ProfileFunction* profile_function) {
@@ -363,14 +353,12 @@ void SourceReport::PrintProfileData(JSONObject* jsobj,
   }
 }
 
-
 void SourceReport::PrintScriptTable(JSONArray* scripts) {
   for (intptr_t i = 0; i < script_table_entries_.length(); i++) {
     const Script* script = script_table_entries_[i]->script;
     scripts->AddValue(*script);
   }
 }
-
 
 void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   if (ShouldSkipFunction(func)) {
@@ -441,7 +429,6 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   }
 }
 
-
 void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
   Class& cls = Class::Handle(zone());
   Array& functions = Array::Handle(zone());
@@ -484,7 +471,6 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
   }
 }
 
-
 void SourceReport::VisitClosures(JSONArray* jsarr) {
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
       thread()->isolate()->object_store()->closure_functions());
@@ -497,7 +483,6 @@ void SourceReport::VisitClosures(JSONArray* jsarr) {
     VisitFunction(jsarr, func);
   }
 }
-
 
 void SourceReport::PrintJSON(JSONStream* js,
                              const Script& script,

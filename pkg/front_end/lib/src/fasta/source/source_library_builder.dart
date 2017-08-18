@@ -4,21 +4,11 @@
 
 library fasta.source_library_builder;
 
-import 'package:front_end/src/scanner/token.dart' show Token;
-
 import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
-import '../combinator.dart' show Combinator;
-
-import '../errors.dart' show inputError, internalError;
-
-import '../export.dart' show Export;
-
-import '../import.dart' show Import;
-
-import 'source_loader.dart' show SourceLoader;
+import '../../scanner/token.dart' show Token;
 
 import '../builder/builder.dart'
     show
@@ -39,6 +29,32 @@ import '../builder/builder.dart'
         TypeVariableBuilder,
         Unhandled;
 
+import '../combinator.dart' show Combinator;
+
+import '../deprecated_problems.dart' show deprecated_inputError;
+
+import '../export.dart' show Export;
+
+import '../fasta_codes.dart'
+    show
+        messagePartOfSelf,
+        templateConflictsWithMember,
+        templateConflictsWithSetter,
+        templateDeferredPrefixDuplicated,
+        templateDeferredPrefixDuplicatedCause,
+        templateDuplicatedDefinition,
+        templateMissingPartOf,
+        templatePartOfLibraryNameMismatch,
+        templatePartOfUriMismatch,
+        templatePartOfUseUri,
+        templatePartTwice;
+
+import '../import.dart' show Import;
+
+import '../problems.dart' show unhandled;
+
+import 'source_loader.dart' show SourceLoader;
+
 abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     extends LibraryBuilder<T, R> {
   final SourceLoader loader;
@@ -52,17 +68,23 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   final List<Import> imports = <Import>[];
 
+  final List<Export> exports = <Export>[];
+
   final Scope importScope;
 
   final Uri fileUri;
 
   final List<List> implementationBuilders = <List<List>>[];
 
+  /// Indicates whether type inference (and type promotion) should be disabled
+  /// for this library.
+  final bool disableTypeInference;
+
   String name;
 
   String partOfName;
 
-  Uri partOfUri;
+  String partOfUri;
 
   List<MetadataBuilder> metadata;
 
@@ -80,7 +102,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   SourceLibraryBuilder.fromScopes(
       this.loader, this.fileUri, this.libraryDeclaration, this.importScope)
-      : currentDeclaration = libraryDeclaration,
+      : disableTypeInference = loader.target.disableTypeInference,
+        currentDeclaration = libraryDeclaration,
         super(
             fileUri, libraryDeclaration.toScope(importScope), new Scope.top());
 
@@ -115,7 +138,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     currentDeclaration = currentDeclaration.createNested(name, hasMembers);
   }
 
-  DeclarationBuilder<T> endNestedDeclaration() {
+  DeclarationBuilder<T> endNestedDeclaration(String name) {
+    assert(
+        (name?.startsWith(currentDeclaration.name) ??
+                (name == currentDeclaration.name)) ||
+            currentDeclaration.name == "operator",
+        "${name} != ${currentDeclaration.name}");
     DeclarationBuilder<T> previous = currentDeclaration;
     currentDeclaration = currentDeclaration.parent;
     return previous;
@@ -125,9 +153,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void addExport(List<MetadataBuilder> metadata, String uri,
       Unhandled conditionalUris, List<Combinator> combinators, int charOffset) {
-    loader
-        .read(resolve(uri), charOffset, accessor: this)
-        .addExporter(this, combinators, charOffset);
+    var exportedLibrary = loader.read(resolve(uri), charOffset, accessor: this);
+    exportedLibrary.addExporter(this, combinators, charOffset);
+    exports.add(new Export(this, exportedLibrary, combinators, charOffset));
   }
 
   void addImport(
@@ -167,10 +195,11 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void addPartOf(List<MetadataBuilder> metadata, String name, String uri) {
     partOfName = name;
-    partOfUri = uri == null ? null : this.uri.resolve(uri);
+    partOfUri = uri;
   }
 
   void addClass(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       String name,
@@ -180,6 +209,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOffset);
 
   void addNamedMixinApplication(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,
@@ -189,6 +219,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOffset);
 
   void addField(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       T type,
@@ -197,8 +228,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       Token initializerTokenForInference,
       bool hasInitializer);
 
-  void addFields(List<MetadataBuilder> metadata, int modifiers, T type,
-      List<Object> fieldsInfo) {
+  void addFields(String documentationComment, List<MetadataBuilder> metadata,
+      int modifiers, T type, List<Object> fieldsInfo) {
     for (int i = 0; i < fieldsInfo.length; i += 4) {
       String name = fieldsInfo[i];
       int charOffset = fieldsInfo[i + 1];
@@ -209,12 +240,13 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         Token beforeLast = fieldsInfo[i + 3];
         beforeLast.setNext(new Token.eof(beforeLast.next.offset));
       }
-      addField(metadata, modifiers, type, name, charOffset,
-          initializerTokenForInference, hasInitializer);
+      addField(documentationComment, metadata, modifiers, type, name,
+          charOffset, initializerTokenForInference, hasInitializer);
     }
   }
 
   void addProcedure(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       T returnType,
@@ -228,15 +260,19 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String nativeMethodName,
       {bool isTopLevel});
 
-  void addEnum(List<MetadataBuilder> metadata, String name,
-      List<Object> constantNamesAndOffsets, int charOffset, int charEndOffset);
+  void addEnum(
+      String documentationComment,
+      List<MetadataBuilder> metadata,
+      String name,
+      List<Object> constantNamesAndOffsets,
+      int charOffset,
+      int charEndOffset);
 
   void addFunctionTypeAlias(
       List<MetadataBuilder> metadata,
-      T returnType,
       String name,
       List<TypeVariableBuilder> typeVariables,
-      List<FormalParameterBuilder> formals,
+      FunctionTypeBuilder type,
       int charOffset);
 
   FunctionTypeBuilder addFunctionType(
@@ -246,6 +282,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOffset);
 
   void addFactoryMethod(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       ConstructorReferenceBuilder name,
@@ -273,7 +310,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       } else if (builder is PrefixBuilder) {
         assert(builder.parent == this);
       } else {
-        return internalError("Unhandled: ${builder.runtimeType}");
+        return unhandled(
+            "${builder.runtimeType}", "addBuilder", charOffset, fileUri);
       }
     } else {
       assert(currentDeclaration.parent == libraryDeclaration);
@@ -300,18 +338,22 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       }
       if (deferred != null) {
         addCompileTimeError(
+            templateDeferredPrefixDuplicated.withArguments(name),
             deferred.charOffset,
-            "Can't use the name '$name' for a deferred library, "
-            "as the name is used elsewhere.");
-        addCompileTimeError(other.charOffset, "'$name' is used here.");
+            fileUri);
+        addCompileTimeError(
+            templateDeferredPrefixDuplicatedCause.withArguments(name),
+            other.charOffset,
+            fileUri);
       }
       return existing
-        ..exports.merge(builder.exports,
+        ..exportScope.merge(builder.exportScope,
             (String name, Builder existing, Builder member) {
           return buildAmbiguousBuilder(name, existing, member, charOffset);
         });
     } else if (isDuplicatedDefinition(existing, builder)) {
-      addCompileTimeError(charOffset, "Duplicated definition of '$name'.");
+      addCompileTimeError(templateDuplicatedDefinition.withArguments(name),
+          charOffset, fileUri);
     }
     return members[name] = builder;
   }
@@ -359,10 +401,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       Builder member = scopeBuilder[name];
       if (member == null || !member.isField || member.isFinal) return;
       // TODO(ahe): charOffset is missing.
-      addCompileTimeError(
-          setter.charOffset, "Conflicts with member '${name}'.");
-      addCompileTimeError(
-          member.charOffset, "Conflicts with setter '${name}'.");
+      addCompileTimeError(templateConflictsWithMember.withArguments(name),
+          setter.charOffset, fileUri);
+      addCompileTimeError(templateConflictsWithSetter.withArguments(name),
+          member.charOffset, fileUri);
     });
 
     return null;
@@ -379,12 +421,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void validatePart() {
     if (parts.isNotEmpty) {
-      inputError(fileUri, -1,
+      deprecated_inputError(fileUri, -1,
           "A file that's a part of a library can't have parts itself.");
     }
     if (exporters.isNotEmpty) {
       Export export = exporters.first;
-      inputError(
+      deprecated_inputError(
           export.fileUri, export.charOffset, "A part can't be exported.");
     }
   }
@@ -393,35 +435,51 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     Set<Uri> seenParts = new Set<Uri>();
     for (SourceLibraryBuilder<T, R> part in parts.toList()) {
       if (part == this) {
-        addCompileTimeError(-1, "A file can't be a part of itself.");
+        addCompileTimeError(messagePartOfSelf, -1, fileUri);
       } else if (seenParts.add(part.fileUri)) {
         includePart(part);
       } else {
         addCompileTimeError(
-            -1, "Can't use '${part.fileUri}' as a part more than once.");
+            templatePartTwice.withArguments(part.fileUri), -1, fileUri);
       }
     }
   }
 
   void includePart(SourceLibraryBuilder<T, R> part) {
-    if (name != null) {
-      if (!part.isPart) {
-        addCompileTimeError(
-            -1,
-            "Can't use ${part.fileUri} as a part, because it has no 'part of'"
-            " declaration.");
-        parts.remove(part);
-        return;
-      }
-      if (part.partOfName != name && part.partOfUri != uri) {
-        String partName = part.partOfName ?? "${part.partOfUri}";
-        String myName = name == null ? "'$uri'" : "'${name}' ($uri)";
+    if (part.partOfUri != null) {
+      if (uri.resolve(part.partOfUri) != uri) {
+        // This is a warning, but the part is still included.
         addWarning(
+            templatePartOfUriMismatch.withArguments(
+                part.fileUri, uri, part.partOfUri),
             -1,
-            "Using '${part.fileUri}' as part of '$myName' but it's 'part of'"
-            " declaration says '$partName'.");
-        // The part is still included.
+            fileUri);
       }
+    } else if (part.partOfName != null) {
+      if (name != null) {
+        if (part.partOfName != name) {
+          // This is a warning, but the part is still included.
+          addWarning(
+              templatePartOfLibraryNameMismatch.withArguments(
+                  part.fileUri, name, part.partOfName),
+              -1,
+              fileUri);
+        }
+      } else {
+        // This is a warning, but the part is still included.
+        addWarning(
+            templatePartOfUseUri.withArguments(
+                part.fileUri, fileUri, part.partOfName),
+            -1,
+            fileUri);
+      }
+    } else if (name != null) {
+      // This is an error, and the part isn't included.
+      assert(!part.isPart);
+      addCompileTimeError(
+          templateMissingPartOf.withArguments(part.fileUri), -1, fileUri);
+      parts.remove(part);
+      return;
     }
     part.forEach((String name, Builder builder) {
       if (builder.next != null) {
@@ -450,7 +508,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       import.finalizeImports(this);
     }
     if (!explicitCoreImport) {
-      loader.coreLibrary.exports.forEach((String name, Builder member) {
+      loader.coreLibrary.exportScope.forEach((String name, Builder member) {
         addToScope(name, member, -1, true);
       });
     }

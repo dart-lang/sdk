@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  function f<T extends core::Object>(core::List<T> l) → T
+    return l.[](0);
+  dynamic x = f.call(<dynamic>[0]);
+}

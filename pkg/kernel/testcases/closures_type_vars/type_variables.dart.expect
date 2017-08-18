@@ -1,0 +1,60 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object, S extends core::Object> extends core::Object {
+  constructor internal() → void
+    : super core::Object::•()
+    ;
+  method foo(self::C::S s) → dynamic {
+    final Vector #context = MakeVector(3);
+    #context[2] = this;
+    return MakeClosure<<T extends core::Object, S extends core::Object>(T) → T, self::C::T, self::C::S>(self::closure#C#foo#function, #context);
+  }
+  method bar() → dynamic {
+    self::C<self::C::T, self::C::S> self = this;
+  }
+  method baz() → dynamic {
+    return MakeClosure<<T extends core::Object, S extends core::Object>() → () → self::C<T, S>, self::C::T, self::C::S>(self::closure#C#baz#function, MakeVector(1));
+  }
+  static factory •<T extends core::Object, S extends core::Object>() → self::C<self::C::•::T, self::C::•::S> {
+    final <T extends core::Object, S extends core::Object>() → self::C<self::C::•::T, self::C::•::S> local = MakeClosure<<T extends core::Object, S extends core::Object>() → self::C<T, S>, self::C::•::T, self::C::•::S>(self::closure#C#function#local, MakeVector(1));
+    return local.call();
+  }
+}
+static method fn<A extends core::Object>(self::fn::A x) → dynamic {
+  <A extends core::Object>(self::fn::A) → core::List<self::fn::A> fn2 = MakeClosure<<A extends core::Object>(A) → core::List<A>, self::fn::A>(self::closure#fn#function, MakeVector(1));
+  return fn2.call(x);
+}
+static method main(dynamic arguments) → dynamic {
+  core::print(self::C::•<core::String, core::String>().{self::C::foo}(null).call(arguments.first));
+  dynamic c = self::C::•<core::int, core::int>().{self::C::baz}().call().call();
+  if(!(c is self::C<core::int, core::int>))
+    throw "${c} fails type test 'is C<int, int>'";
+  if(c is self::C<core::String, core::String>) {
+    throw "${c{self::C<core::String, core::String>}} passes type test 'is C<String, String>'";
+  }
+  core::print(c);
+  core::print(self::fn<core::int>(3));
+}
+static method closure#C#foo#function<T extends core::Object, S extends core::Object>(Vector #contextParameter, self::closure#C#foo#function::T x) → self::closure#C#foo#function::T {
+  self::closure#C#foo#function::T y = x;
+  core::Object z = y;
+  self::C<self::closure#C#foo#function::T, self::closure#C#foo#function::S> self = #contextParameter[2];
+  return z as self::closure#C#foo#function::T;
+}
+static method closure#C#baz#function#function<T extends core::Object, S extends core::Object>(Vector #contextParameter) → self::C<self::closure#C#baz#function#function::T, self::closure#C#baz#function#function::S> {
+  return self::C::•<self::closure#C#baz#function#function::T, self::closure#C#baz#function#function::S>();
+}
+static method closure#C#baz#function<T extends core::Object, S extends core::Object>(Vector #contextParameter) → () → self::C<self::closure#C#baz#function::T, self::closure#C#baz#function::S> {
+  return MakeClosure<<T extends core::Object, S extends core::Object>() → self::C<T, S>, self::closure#C#baz#function::T, self::closure#C#baz#function::S>(self::closure#C#baz#function#function, #contextParameter);
+}
+static method closure#C#function#local<T extends core::Object, S extends core::Object>(Vector #contextParameter) → self::C<self::closure#C#function#local::T, self::closure#C#function#local::S> {
+  self::C<self::closure#C#function#local::T, self::closure#C#function#local::S> self = new self::C::internal<self::closure#C#function#local::T, self::closure#C#function#local::S>();
+  return self;
+}
+static method closure#fn#function<A extends core::Object>(Vector #contextParameter, self::closure#fn#function::A x2) → core::List<self::closure#fn#function::A> {
+  core::List<self::closure#fn#function::A> l = <self::closure#fn#function::A>[];
+  l.{core::List::add}(x2);
+  return l;
+}

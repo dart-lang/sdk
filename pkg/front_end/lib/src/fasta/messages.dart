@@ -10,70 +10,22 @@ import 'util/relativize.dart' show relativizeUri;
 
 import 'compiler_context.dart' show CompilerContext;
 
-import 'errors.dart' show InputError;
+import 'fasta_codes.dart' show Message;
 
-import 'colors.dart' show cyan, magenta;
+import 'severity.dart' show Severity;
 
-const bool hideWarnings = false;
-
-bool get errorsAreFatal => CompilerContext.current.options.errorsAreFatal;
-
-bool get nitsAreFatal => CompilerContext.current.options.nitsAreFatal;
-
-bool get warningsAreFatal => CompilerContext.current.options.warningsAreFatal;
+export 'fasta_codes.dart';
 
 bool get isVerbose => CompilerContext.current.options.verbose;
 
-bool get hideNits => !isVerbose;
-
-void warning(Uri uri, int charOffset, String message) {
-  if (hideWarnings) return;
-  print(format(uri, charOffset, colorWarning("Warning: $message")));
-  if (warningsAreFatal) {
-    if (isVerbose) print(StackTrace.current);
-    throw new InputError(
-        uri, charOffset, "Compilation aborted due to fatal warnings.");
-  }
+void warning(Message message, int charOffset, Uri uri) {
+  CompilerContext.current
+      .report(message.withLocation(uri, charOffset), Severity.warning);
 }
 
-void nit(Uri uri, int charOffset, String message) {
-  if (hideNits) return;
-  print(format(uri, charOffset, colorNit("Nit: $message")));
-  if (nitsAreFatal) {
-    if (isVerbose) print(StackTrace.current);
-    throw new InputError(
-        uri, charOffset, "Compilation aborted due to fatal nits.");
-  }
-}
-
-String colorWarning(String message) {
-  // TODO(ahe): Colors need to be optional. Doesn't work well in Emacs or on
-  // Windows.
-  return magenta(message);
-}
-
-String colorNit(String message) {
-  // TODO(ahe): Colors need to be optional. Doesn't work well in Emacs or on
-  // Windows.
-  return cyan(message);
-}
-
-String format(Uri uri, int charOffset, String message) {
-  if (uri != null) {
-    String path = relativizeUri(uri);
-    Location location = charOffset == -1 ? null : getLocation(path, charOffset);
-    String sourceLine = getSourceLine(location);
-    if (sourceLine == null) {
-      sourceLine = "";
-    } else {
-      sourceLine = "\n$sourceLine\n"
-          "${' ' * (location.column - 1)}^";
-    }
-    String position = location?.toString() ?? path;
-    return "$position: $message$sourceLine";
-  } else {
-    return message;
-  }
+void nit(Message message, int charOffset, Uri uri) {
+  CompilerContext.current
+      .report(message.withLocation(uri, charOffset), Severity.nit);
 }
 
 Location getLocation(String path, int charOffset) {

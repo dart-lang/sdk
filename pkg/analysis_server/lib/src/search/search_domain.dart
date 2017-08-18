@@ -4,12 +4,11 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 
@@ -22,11 +21,6 @@ class SearchDomainHandler implements protocol.RequestHandler {
    * The analysis server that is using this handler to process requests.
    */
   final AnalysisServer server;
-
-  /**
-   * The [Index] for this server.
-   */
-  final Index index;
 
   /**
    * The [SearchEngine] for this server.
@@ -43,7 +37,6 @@ class SearchDomainHandler implements protocol.RequestHandler {
    */
   SearchDomainHandler(AnalysisServer server)
       : server = server,
-        index = server.index,
         searchEngine = server.searchEngine;
 
   Future findElementReferences(protocol.Request request) async {
@@ -169,19 +162,19 @@ class SearchDomainHandler implements protocol.RequestHandler {
   protocol.Response handleRequest(protocol.Request request) {
     try {
       String requestName = request.method;
-      if (requestName == SEARCH_FIND_ELEMENT_REFERENCES) {
+      if (requestName == SEARCH_REQUEST_FIND_ELEMENT_REFERENCES) {
         findElementReferences(request);
         return protocol.Response.DELAYED_RESPONSE;
-      } else if (requestName == SEARCH_FIND_MEMBER_DECLARATIONS) {
+      } else if (requestName == SEARCH_REQUEST_FIND_MEMBER_DECLARATIONS) {
         findMemberDeclarations(request);
         return protocol.Response.DELAYED_RESPONSE;
-      } else if (requestName == SEARCH_FIND_MEMBER_REFERENCES) {
+      } else if (requestName == SEARCH_REQUEST_FIND_MEMBER_REFERENCES) {
         findMemberReferences(request);
         return protocol.Response.DELAYED_RESPONSE;
-      } else if (requestName == SEARCH_FIND_TOP_LEVEL_DECLARATIONS) {
+      } else if (requestName == SEARCH_REQUEST_FIND_TOP_LEVEL_DECLARATIONS) {
         findTopLevelDeclarations(request);
         return protocol.Response.DELAYED_RESPONSE;
-      } else if (requestName == SEARCH_GET_TYPE_HIERARCHY) {
+      } else if (requestName == SEARCH_REQUEST_GET_TYPE_HIERARCHY) {
         getTypeHierarchy(request);
         return protocol.Response.DELAYED_RESPONSE;
       }

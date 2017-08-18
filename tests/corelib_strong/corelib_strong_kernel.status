@@ -10,23 +10,6 @@ const_list_remove_range_test: DartkCompileTimeError
 const_list_set_range_test: DartkCompileTimeError
 hash_map2_test: Crash # VM does not support BottomType
 int_from_environment_test: RuntimeError
-iterable_return_type_test/01: RuntimeError
-iterable_return_type_test/02: RuntimeError
-iterable_return_type_test/none: RuntimeError
-iterable_skip_test: DartkCompileTimeError
-iterable_skip_while_test: DartkCompileTimeError
-iterable_take_test: DartkCompileTimeError
-iterable_take_while_test: DartkCompileTimeError
-list_fill_range_test: DartkCompileTimeError
-list_get_range_test: DartkCompileTimeError
-list_insert_all_test: DartkCompileTimeError
-list_map_test: DartkCompileTimeError
-list_remove_range_test: DartkCompileTimeError
-list_replace_range_test: DartkCompileTimeError
-list_set_all_test: DartkCompileTimeError
-list_set_range_test: DartkCompileTimeError
-list_sublist_test: DartkCompileTimeError
-map_keys2_test: RuntimeError
 set_test: DartkCompileTimeError
 shuffle_test: DartkCompileTimeError
 sort_test: DartkCompileTimeError

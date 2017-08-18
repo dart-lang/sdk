@@ -250,6 +250,17 @@ class FolderBasedDartSdkTest {
     expect(version.length > 0, isTrue);
   }
 
+  /**
+   * The "part" format should result in the same source as the non-part format
+   * when the file is the library file.
+   */
+  void test_mapDartUri_partFormatForLibrary() {
+    FolderBasedDartSdk sdk = _createDartSdk();
+    Source normalSource = sdk.mapDartUri('dart:core');
+    Source partSource = sdk.mapDartUri('dart:core/core.dart');
+    expect(partSource, normalSource);
+  }
+
   void test_useSummary_afterContextCreation() {
     FolderBasedDartSdk sdk = _createDartSdk();
     sdk.context;
@@ -335,9 +346,7 @@ class SdkExtensionFinderTest {
     resourceProvider = new MemoryResourceProvider();
     resourceProvider.newFolder(resourceProvider.convertPath('/empty'));
     resourceProvider.newFolder(resourceProvider.convertPath('/tmp'));
-    resourceProvider.newFile(
-        resourceProvider.convertPath('/tmp/_sdkext'),
-        r'''
+    resourceProvider.newFile(resourceProvider.convertPath('/tmp/_sdkext'), r'''
 {
   "dart:fox": "slippy.dart",
   "dart:bear": "grizzly.dart",
@@ -395,9 +404,8 @@ class SdkLibrariesReaderTest extends EngineTestCase {
   }
 
   void test_readFrom_dart2js() {
-    LibraryMap libraryMap = new SdkLibrariesReader(true).readFromFile(
-        resourceProvider.getFile("/libs.dart"),
-        r'''
+    LibraryMap libraryMap = new SdkLibrariesReader(true)
+        .readFromFile(resourceProvider.getFile("/libs.dart"), r'''
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',
@@ -427,9 +435,8 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   }
 
   void test_readFrom_normal() {
-    LibraryMap libraryMap = new SdkLibrariesReader(false).readFromFile(
-        resourceProvider.getFile("/libs.dart"),
-        r'''
+    LibraryMap libraryMap = new SdkLibrariesReader(false)
+        .readFromFile(resourceProvider.getFile("/libs.dart"), r'''
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',

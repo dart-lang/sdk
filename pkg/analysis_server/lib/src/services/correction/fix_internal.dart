@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -44,6 +45,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart';
 
@@ -105,7 +107,6 @@ class FixProcessor {
   AnalysisDriver driver;
 
   String file;
-  int fileStamp;
   CompilationUnitElement unitElement;
   Source unitSource;
   LibraryElement unitLibraryElement;
@@ -136,7 +137,6 @@ class FixProcessor {
     unitSource = unitElement.source;
     // file
     file = unitSource.fullName;
-    fileStamp = _modificationStamp(file);
     // library
     unitLibraryElement = unitElement.library;
     String unitLibraryPath = unitLibraryElement.source.fullName;
@@ -152,6 +152,11 @@ class FixProcessor {
    * Returns the EOL to use for this [CompilationUnit].
    */
   String get eol => utils.endOfLine;
+
+  /**
+   * Return the analysis session to be used to create the change builder.
+   */
+  AnalysisSession get session => driver.currentSession;
 
   TypeProvider get typeProvider {
     if (_typeProvider == null) {
@@ -172,12 +177,6 @@ class FixProcessor {
   }
 
   Future<List<Fix>> compute() async {
-    // If the source was changed between the constructor and running
-    // this asynchronous method, it is not safe to use the unit.
-    if (_modificationStamp(unitSource.fullName) != fileStamp) {
-      return const <Fix>[];
-    }
-
     try {
       utils = new CorrectionUtils(unit);
     } catch (e) {
@@ -349,6 +348,9 @@ class FixProcessor {
       await _addFix_importLibrary_withTopLevelVariable();
       await _addFix_createLocalVariable();
     }
+    if (errorCode == StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR) {
+      await _addFix_undefinedMethodWithContructor();
+    }
     if (errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE) {
       await _addFix_illegalAsyncReturnType();
     }
@@ -453,9 +455,8 @@ class FixProcessor {
     FunctionBody body = node.getAncestor((n) => n is FunctionBody);
     if (body != null && body.keyword == null) {
       TypeProvider typeProvider = await this.typeProvider;
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.convertFunctionFromSyncToAsync(body, typeProvider);
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.ADD_ASYNC);
@@ -468,9 +469,8 @@ class FixProcessor {
     // prepare environment
     String prefix = utils.getIndent(1);
     String prefix2 = utils.getIndent(2);
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addInsertion(insertOffset, (DartEditBuilder builder) {
         builder.selectHere();
         builder.write(prefix);
@@ -542,10 +542,9 @@ class FixProcessor {
         }
         Source targetSource = targetElement.source;
         String targetFile = targetSource.fullName;
-        DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-        await changeBuilder
-            .addFileEdit(targetFile, targetSource.modificationStamp,
-                (DartFileEditBuilder builder) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(targetFile,
+            (DartFileEditBuilder builder) {
           builder.addInsertion(targetOffset, (DartEditBuilder builder) {
             if (numRequired != 0) {
               builder.write(', ');
@@ -560,10 +559,9 @@ class FixProcessor {
         _addFixFromBuilder(
             changeBuilder, DartFixKind.ADD_MISSING_PARAMETER_REQUIRED);
         if (optionalParameters.isEmpty) {
-          DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-          await changeBuilder
-              .addFileEdit(targetFile, targetSource.modificationStamp,
-                  (DartFileEditBuilder builder) {
+          DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+          await changeBuilder.addFileEdit(targetFile,
+              (DartFileEditBuilder builder) {
             builder.addInsertion(targetOffset, (DartEditBuilder builder) {
               if (numRequired != 0) {
                 builder.write(', ');
@@ -612,9 +610,8 @@ class FixProcessor {
       final List<Expression> args = argumentList.arguments;
       int offset =
           args.isEmpty ? argumentList.leftParenthesis.end : args.last.end;
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addInsertion(offset, (DartEditBuilder builder) {
           if (args.isNotEmpty) {
             builder.write(', ');
@@ -654,9 +651,8 @@ class FixProcessor {
 
     Position exitPosition = new Position(file, token.offset - 1);
     String indent = utils.getIndent(1);
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addSimpleReplacement(
           range.startLength(token, 0), '@override$eol$indent');
     });
@@ -665,9 +661,8 @@ class FixProcessor {
   }
 
   Future<Null> _addFix_boolInsteadOfBoolean() async {
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addSimpleReplacement(range.error(error), 'bool');
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_BOOLEAN_WITH_BOOL);
@@ -676,9 +671,8 @@ class FixProcessor {
   Future<Null> _addFix_canBeNullAfterNullAware() async {
     AstNode node = coveredNode;
     if (node is Expression) {
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         AstNode parent = node.parent;
         while (parent != null) {
           if (parent is MethodInvocation && parent.target == node) {
@@ -708,8 +702,8 @@ class FixProcessor {
           Expression initializer = coveredNode;
           DartType newType = initializer.bestType;
           if (newType is InterfaceType || newType is FunctionType) {
-            DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-            await changeBuilder.addFileEdit(file, fileStamp,
+            DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+            await changeBuilder.addFileEdit(file,
                 (DartFileEditBuilder builder) {
               builder.addReplacement(range.node(typeNode),
                   (DartEditBuilder builder) {
@@ -734,9 +728,8 @@ class FixProcessor {
     }
     InstanceCreationExpression childArg = getChildWidget(namedExp, false);
     if (childArg != null) {
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         convertFlutterChildToChildren2(
             builder,
             childArg,
@@ -753,9 +746,8 @@ class FixProcessor {
     }
     ListLiteral listArg = getChildList(namedExp);
     if (listArg != null) {
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addSimpleInsertion(namedExp.offset + 'child'.length, 'ren');
         if (listArg.typeArguments == null) {
           builder.addSimpleInsertion(listArg.offset, '<Widget>');
@@ -800,7 +792,6 @@ class FixProcessor {
     String suffix = '';
     int offset = -1;
     String filePath;
-    int modificationTime = 0;
     if (prefixElement == null) {
       targetUnit = unitElement;
       CompilationUnitMember enclosingMember =
@@ -810,7 +801,6 @@ class FixProcessor {
       }
       offset = enclosingMember.end;
       filePath = file;
-      modificationTime = fileStamp;
       prefix = '$eol$eol';
     } else {
       for (ImportElement import in unitLibraryElement.imports) {
@@ -819,11 +809,15 @@ class FixProcessor {
           if (library != null) {
             targetUnit = library.definingCompilationUnit;
             Source targetSource = targetUnit.source;
-            offset = targetSource.contents.data.length;
-            filePath = targetSource.fullName;
-            modificationTime = targetSource.modificationStamp;
-            prefix = '$eol';
-            suffix = '$eol';
+            try {
+              offset = targetSource.contents.data.length;
+              filePath = targetSource.fullName;
+              prefix = '$eol';
+              suffix = '$eol';
+            } on FileSystemException {
+              // If we can't read the file to get the offset, then we can't
+              // create a fix.
+            }
             break;
           }
         }
@@ -832,9 +826,8 @@ class FixProcessor {
     if (offset < 0) {
       return;
     }
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(filePath, modificationTime,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(filePath, (DartFileEditBuilder builder) {
       builder.addInsertion(offset, (DartEditBuilder builder) {
         builder.write(prefix);
         builder.writeClassDeclaration(name, nameGroupName: 'NAME');
@@ -875,9 +868,8 @@ class FixProcessor {
     // prepare location for a new constructor
     ClassMemberLocation targetLocation =
         utils.prepareNewConstructorLocation(classDeclaration);
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
         builder.write(targetLocation.prefix);
         builder.writeConstructorDeclaration(classDeclaration.name.name,
@@ -919,9 +911,8 @@ class FixProcessor {
         utils.prepareNewConstructorLocation(targetTypeNode);
     Source targetSource = targetElement.source;
     String targetFile = targetSource.fullName;
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(targetFile, targetSource.modificationStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
       builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
         builder.write(targetLocation.prefix);
         builder.writeConstructorDeclaration(targetElement.name,
@@ -973,9 +964,8 @@ class FixProcessor {
     ClassMemberLocation targetLocation =
         utils.prepareNewConstructorLocation(targetTypeNode);
     String targetFile = targetElement.source.fullName;
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
         builder.write(targetLocation.prefix);
         builder.writeConstructorDeclaration(targetElement.name,
@@ -1024,9 +1014,8 @@ class FixProcessor {
         prefix = ', ';
       }
       String proposalName = _getConstructorProposalName(superConstructor);
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addInsertion(insertOffset, (DartEditBuilder builder) {
           builder.write(prefix);
           // add super constructor name
@@ -1083,9 +1072,8 @@ class FixProcessor {
       ClassMemberLocation targetLocation =
           utils.prepareNewConstructorLocation(targetClassNode);
       String proposalName = _getConstructorProposalName(superConstructor);
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
           void writeParameters(bool includeType) {
             bool firstParameter = true;
@@ -1184,13 +1172,12 @@ class FixProcessor {
     ClassDeclaration targetClassNode = targetTypeNode;
     // prepare location
     ClassMemberLocation targetLocation =
-        utils.prepareNewFieldLocation(targetClassNode);
+        _getUtilsFor(targetClassNode).prepareNewFieldLocation(targetClassNode);
     // build field source
     Source targetSource = targetClassElement.source;
     String targetFile = targetSource.fullName;
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(targetFile, targetSource.modificationStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
       Expression fieldTypeNode = climbPropertyAccess(nameNode);
       DartType fieldType = _inferUndefinedExpressionType(fieldTypeNode);
       builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
@@ -1227,9 +1214,8 @@ class FixProcessor {
     //
     // Add proposal.
     //
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       DartType fieldType = parameter.type?.type;
       builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
         builder.write(targetLocation.prefix);
@@ -1343,13 +1329,12 @@ class FixProcessor {
     ClassDeclaration targetClassNode = targetTypeNode;
     // prepare location
     ClassMemberLocation targetLocation =
-        utils.prepareNewGetterLocation(targetClassNode);
+        _getUtilsFor(targetClassNode).prepareNewGetterLocation(targetClassNode);
     // build method source
     Source targetSource = targetClassElement.source;
     String targetFile = targetSource.fullName;
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(targetFile, targetSource.modificationStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
       builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
         Expression fieldTypeNode = climbPropertyAccess(nameNode);
         DartType fieldType = _inferUndefinedExpressionType(fieldTypeNode);
@@ -1375,8 +1360,8 @@ class FixProcessor {
         String file = source.fullName;
         if (isAbsolute(file) && AnalysisEngine.isDartFileName(file)) {
           String libName = _computeLibraryName(file);
-          DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-          await changeBuilder.addFileEdit(source.fullName, -1,
+          DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+          await changeBuilder.addFileEdit(source.fullName,
               (DartFileEditBuilder builder) {
             builder.addSimpleInsertion(0, 'library $libName;$eol$eol');
           });
@@ -1399,9 +1384,8 @@ class FixProcessor {
       if (assignment.leftHandSide == node &&
           assignment.operator.type == TokenType.EQ &&
           assignment.parent is ExpressionStatement) {
-        DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-        await changeBuilder.addFileEdit(file, fileStamp,
-            (DartFileEditBuilder builder) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
           builder.addSimpleInsertion(node.offset, 'var ');
         });
         _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_LOCAL_VARIABLE,
@@ -1425,9 +1409,8 @@ class FixProcessor {
       return;
     }
     // build variable declaration source
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addInsertion(target.offset, (DartEditBuilder builder) {
         builder.writeLocalVariableDeclaration(name,
             nameGroupName: 'NAME', type: type, typeGroupName: 'TYPE');
@@ -1467,9 +1450,8 @@ class FixProcessor {
     int numElements = elements.length;
     int insertOffset = targetClass.end - 1;
     String prefix = utils.getIndent(1);
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addInsertion(insertOffset, (DartEditBuilder builder) {
         // TODO(brianwilkerson) Compare with builder.writeOverrideOfInheritedMember
         // The builder method doesn't merge getter/setter pairs into fields.
@@ -1587,9 +1569,8 @@ class FixProcessor {
     // prepare environment
     String prefix = utils.getIndent(1);
     int insertOffset = targetClass.end - 1;
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addInsertion(insertOffset, (DartEditBuilder builder) {
         builder.selectHere();
         // insert empty line before existing member
@@ -1613,8 +1594,8 @@ class FixProcessor {
       Source source = partDirective.uriSource;
       if (source != null) {
         String libName = unitLibraryElement.name;
-        DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-        await changeBuilder.addFileEdit(source.fullName, -1,
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(source.fullName,
             (DartFileEditBuilder builder) {
           // TODO(brianwilkerson) Consider using the URI rather than name
           builder.addSimpleInsertion(0, 'part of $libName;$eol$eol');
@@ -1629,9 +1610,8 @@ class FixProcessor {
     // prepare the existing type
     TypeAnnotation typeName = node.getAncestor((n) => n is TypeAnnotation);
     TypeProvider typeProvider = this.typeProvider;
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.replaceTypeWithFuture(typeName, typeProvider);
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_RETURN_TYPE_FUTURE);
@@ -1639,9 +1619,8 @@ class FixProcessor {
 
   Future<Null> _addFix_importLibrary(FixKind kind, Source library) async {
     String libraryUri = getLibrarySourceUri(unitLibraryElement, library);
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.importLibraries([library]);
     });
     _addFixFromBuilder(changeBuilder, kind, args: [libraryUri]);
@@ -1672,9 +1651,8 @@ class FixProcessor {
       // may be apply prefix
       PrefixElement prefix = imp.prefix;
       if (prefix != null) {
-        DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-        await changeBuilder.addFileEdit(file, fileStamp,
-            (DartFileEditBuilder builder) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
           builder.addSimpleReplacement(
               range.startLength(node, 0), '${prefix.displayName}.');
         });
@@ -1694,7 +1672,7 @@ class FixProcessor {
         // prepare library name - unit name or 'dart:name' for SDK library
         String libraryName = libraryElement.definingCompilationUnit.displayName;
         if (libraryElement.isInSdk) {
-          libraryName = imp.uri;
+          libraryName = libraryElement.source.shortName;
         }
         // don't add this library again
         alreadyImportedWithPrefix.add(libraryElement.source);
@@ -1703,10 +1681,8 @@ class FixProcessor {
         int offset = showCombinator.offset;
         int length = showCombinator.end - offset;
         String libraryFile = unitLibraryElement.source.fullName;
-        int libraryStamp = unitLibraryElement.context
-            .getModificationStamp(unitLibraryElement.source);
-        DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-        await changeBuilder.addFileEdit(libraryFile, libraryStamp,
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(libraryFile,
             (DartFileEditBuilder builder) {
           builder.addSimpleReplacement(
               new SourceRange(offset, length), newShowCode);
@@ -1789,9 +1765,8 @@ class FixProcessor {
         return;
       }
       int insertOffset = error.offset + error.length;
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addSimpleInsertion(insertOffset, ';');
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.INSERT_SEMICOLON);
@@ -1801,9 +1776,8 @@ class FixProcessor {
   Future<Null> _addFix_isNotNull() async {
     if (coveredNode is IsExpression) {
       IsExpression isExpression = coveredNode as IsExpression;
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder
             .addReplacement(range.endEnd(isExpression.expression, isExpression),
                 (DartEditBuilder builder) {
@@ -1817,9 +1791,8 @@ class FixProcessor {
   Future<Null> _addFix_isNull() async {
     if (coveredNode is IsExpression) {
       IsExpression isExpression = coveredNode as IsExpression;
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder
             .addReplacement(range.endEnd(isExpression.expression, isExpression),
                 (DartEditBuilder builder) {
@@ -1837,9 +1810,8 @@ class FixProcessor {
       return;
     }
     String className = enclosingClass.name.name;
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addSimpleInsertion(
           enclosingClass.classKeyword.offset, 'abstract ');
     });
@@ -1867,8 +1839,8 @@ class FixProcessor {
           Token keywordToken = declarationList.keyword;
           if (declarationList.variables.length == 1 &&
               keywordToken.keyword == Keyword.FINAL) {
-            DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-            await changeBuilder.addFileEdit(file, fileStamp,
+            DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+            await changeBuilder.addFileEdit(file,
                 (DartFileEditBuilder builder) {
               if (declarationList.type != null) {
                 builder.addReplacement(
@@ -1891,9 +1863,8 @@ class FixProcessor {
   }
 
   Future<Null> _addFix_nonBoolCondition_addNotNull() async {
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addSimpleInsertion(error.offset + error.length, ' != null');
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_NE_NULL);
@@ -1903,9 +1874,8 @@ class FixProcessor {
     final awaitExpression = node;
     if (awaitExpression is AwaitExpression) {
       final awaitToken = awaitExpression.awaitKeyword;
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addDeletion(range.startStart(awaitToken, awaitToken.next));
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_AWAIT);
@@ -1918,9 +1888,8 @@ class FixProcessor {
       AstNode parent = coveredNode.parent;
       if (parent is BinaryExpression) {
         if (parent.rightOperand == coveredNode) {
-          DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-          await changeBuilder.addFileEdit(file, fileStamp,
-              (DartFileEditBuilder builder) {
+          DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+          await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
             builder.addDeletion(range.endEnd(parent.leftOperand, coveredNode));
           });
           _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_DEAD_CODE);
@@ -1937,9 +1906,8 @@ class FixProcessor {
       if (statementsToRemove.isNotEmpty) {
         SourceRange rangeToRemove =
             utils.getLinesRangeStatements(statementsToRemove);
-        DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-        await changeBuilder.addFileEdit(file, fileStamp,
-            (DartFileEditBuilder builder) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
           builder.addDeletion(rangeToRemove);
         });
         _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_DEAD_CODE);
@@ -1947,9 +1915,8 @@ class FixProcessor {
     } else if (coveringNode is Statement) {
       SourceRange rangeToRemove =
           utils.getLinesRangeStatements(<Statement>[coveringNode]);
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addDeletion(rangeToRemove);
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_DEAD_CODE);
@@ -1959,16 +1926,14 @@ class FixProcessor {
   Future<Null> _addFix_removeEmptyStatement() async {
     EmptyStatement emptyStatement = node;
     if (emptyStatement.parent is Block) {
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addDeletion(utils.getLinesRange(range.node(emptyStatement)));
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_EMPTY_STATEMENT);
     } else {
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addSimpleReplacement(
             range.endEnd(emptyStatement.beginToken.previous, emptyStatement),
             ' {}');
@@ -1984,9 +1949,8 @@ class FixProcessor {
     if (ancestor == null) {
       return;
     }
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addDeletion(range.endEnd(ancestor.name, ancestor.initializer));
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_INITIALIZER);
@@ -1997,9 +1961,8 @@ class FixProcessor {
     if (node is InterpolationExpression) {
       Token right = node.rightBracket;
       if (node.expression != null && right != null) {
-        DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-        await changeBuilder.addFileEdit(file, fileStamp,
-            (DartFileEditBuilder builder) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
           builder.addSimpleReplacement(
               range.startStart(node, node.expression), r'$');
           builder.addDeletion(range.token(right));
@@ -2014,9 +1977,8 @@ class FixProcessor {
     MethodDeclaration declaration =
         node.getAncestor((node) => node is MethodDeclaration);
     if (declaration != null) {
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addDeletion(utils.getLinesRange(range.node(declaration)));
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_METHOD_DECLARATION);
@@ -2029,9 +1991,8 @@ class FixProcessor {
       SimpleIdentifier name = method.name;
       FunctionBody body = method.body;
       if (name != null && body != null) {
-        DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-        await changeBuilder.addFileEdit(file, fileStamp,
-            (DartFileEditBuilder builder) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
           builder.addSimpleReplacement(range.endStart(name, body), ' ');
         });
         _addFixFromBuilder(
@@ -2044,9 +2005,8 @@ class FixProcessor {
     if (node is SimpleIdentifier && node.parent is MethodInvocation) {
       MethodInvocation invocation = node.parent as MethodInvocation;
       if (invocation.methodName == node && invocation.target != null) {
-        DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-        await changeBuilder.addFileEdit(file, fileStamp,
-            (DartFileEditBuilder builder) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
           builder.addDeletion(range.endEnd(node, invocation));
         });
         _addFixFromBuilder(
@@ -2061,16 +2021,14 @@ class FixProcessor {
         : node.getAncestor((node) => node is ThisExpression);
     final parent = thisExpression.parent;
     if (parent is PropertyAccess) {
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addDeletion(range.startEnd(parent, parent.operator));
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_THIS_EXPRESSION);
     } else if (parent is MethodInvocation) {
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addDeletion(range.startEnd(parent, parent.operator));
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_THIS_EXPRESSION);
@@ -2080,9 +2038,8 @@ class FixProcessor {
   Future<Null> _addFix_removeTypeName() async {
     final TypeName type = node.getAncestor((node) => node is TypeName);
     if (type != null) {
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addDeletion(range.startStart(type, type.endToken.next));
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_TYPE_NAME);
@@ -2097,9 +2054,8 @@ class FixProcessor {
     Expression expression = asExpression.expression;
     int expressionPrecedence = getExpressionPrecedence(expression);
     // remove 'as T' from 'e as T'
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addDeletion(range.endEnd(expression, asExpression));
       _removeEnclosingParentheses(builder, asExpression, expressionPrecedence);
     });
@@ -2111,9 +2067,8 @@ class FixProcessor {
       AstNode catchClause = node.parent;
       if (catchClause is CatchClause &&
           catchClause.exceptionParameter == node) {
-        DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-        await changeBuilder.addFileEdit(file, fileStamp,
-            (DartFileEditBuilder builder) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
           builder.addDeletion(
               range.startStart(catchClause.catchKeyword, catchClause.body));
         });
@@ -2129,9 +2084,8 @@ class FixProcessor {
       if (catchClause is CatchClause &&
           catchClause.stackTraceParameter == node &&
           catchClause.exceptionParameter != null) {
-        DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-        await changeBuilder.addFileEdit(file, fileStamp,
-            (DartFileEditBuilder builder) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
           builder
               .addDeletion(range.endEnd(catchClause.exceptionParameter, node));
         });
@@ -2149,18 +2103,16 @@ class FixProcessor {
       return;
     }
     // remove the whole line with import
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addDeletion(utils.getLinesRange(range.node(importDirective)));
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_IMPORT);
   }
 
   Future<Null> _addFix_replaceVarWithDynamic() async {
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addSimpleReplacement(range.error(error), 'dynamic');
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_VAR_WITH_DYNAMIC);
@@ -2182,9 +2134,8 @@ class FixProcessor {
     if (thenStatement is ExpressionStatement) {
       final expression = thenStatement.expression.unParenthesized;
       if (expression is AssignmentExpression) {
-        DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-        await changeBuilder.addFileEdit(file, fileStamp,
-            (DartFileEditBuilder builder) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
           builder.addReplacement(range.node(ifStatement),
               (DartEditBuilder builder) {
             builder.write(utils.getNodeText(expression.leftHandSide));
@@ -2202,9 +2153,8 @@ class FixProcessor {
   Future<Null> _addFix_replaceWithConstInstanceCreation() async {
     if (coveredNode is InstanceCreationExpression) {
       var instanceCreation = coveredNode as InstanceCreationExpression;
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addSimpleReplacement(
             range.token(instanceCreation.keyword), 'const');
       });
@@ -2216,9 +2166,8 @@ class FixProcessor {
     final FunctionTypedFormalParameter functionTyped =
         node.getAncestor((node) => node is FunctionTypedFormalParameter);
     if (functionTyped != null) {
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addSimpleReplacement(range.node(functionTyped),
             utils.getNodeText(functionTyped.identifier));
       });
@@ -2233,9 +2182,8 @@ class FixProcessor {
         node.getAncestor((node) => node is InstanceCreationExpression);
     final InterfaceType type = instanceCreation.staticType;
     final generics = instanceCreation.constructorName.type.typeArguments;
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(instanceCreation),
           (DartEditBuilder builder) {
         if (generics != null) {
@@ -2258,9 +2206,8 @@ class FixProcessor {
       return;
     }
     Future<Null> addFixOfExpression(InvocationExpression expression) async {
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addReplacement(range.node(ancestor), (DartEditBuilder builder) {
           if (expression is MethodInvocation && expression.target != null) {
             builder.write(utils.getNodeText(expression.target));
@@ -2326,9 +2273,8 @@ class FixProcessor {
       if (finder._element != null) {
         String closestName = finder._element.name;
         if (closestName != null) {
-          DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-          await changeBuilder.addFileEdit(file, fileStamp,
-              (DartFileEditBuilder builder) {
+          DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+          await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
             builder.addSimpleReplacement(range.node(node), closestName);
           });
           _addFixFromBuilder(changeBuilder, DartFixKind.CHANGE_TO,
@@ -2390,9 +2336,8 @@ class FixProcessor {
       // if we have close enough element, suggest to use it
       if (finder._element != null) {
         String closestName = finder._element.name;
-        DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-        await changeBuilder.addFileEdit(file, fileStamp,
-            (DartFileEditBuilder builder) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
           builder.addSimpleReplacement(range.node(node), closestName);
         });
         _addFixFromBuilder(changeBuilder, DartFixKind.CHANGE_TO,
@@ -2422,9 +2367,8 @@ class FixProcessor {
     sourcePrefix = '$eol$eol';
     utils.targetClassElement = null;
     // build method source
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addInsertion(insertOffset, (DartEditBuilder builder) {
         builder.write(sourcePrefix);
         // append return type
@@ -2484,9 +2428,8 @@ class FixProcessor {
       // If we have a close enough element, suggest to use it.
       if (finder._element != null) {
         String closestName = finder._element.name;
-        DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-        await changeBuilder.addFileEdit(file, fileStamp,
-            (DartFileEditBuilder builder) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
           builder.addSimpleReplacement(range.node(node), closestName);
         });
         _addFixFromBuilder(changeBuilder, DartFixKind.CHANGE_TO,
@@ -2544,11 +2487,9 @@ class FixProcessor {
       ClassMemberLocation targetLocation =
           utils.prepareNewMethodLocation(targetClassNode);
       String targetFile = targetElement.source.fullName;
-      int targetStamp =
-          targetElement.context.getModificationStamp(targetElement.source);
       // build method source
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(targetFile, targetStamp,
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(targetFile,
           (DartFileEditBuilder builder) {
         builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
           builder.write(targetLocation.prefix);
@@ -2589,6 +2530,20 @@ class FixProcessor {
     }
   }
 
+  Future<Null> _addFix_undefinedMethodWithContructor() async {
+    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addSimpleInsertion(node.parent.offset, 'new ');
+      });
+      _addFixFromBuilder(
+          changeBuilder, DartFixKind.INVOKE_CONSTRUCTOR_USING_NEW);
+      // TODO(brianwilkerson) Figure out whether the constructor is a `const`
+      // constructor and all of the parameters are constant expressions, and
+      // suggest inserting 'const ' if so.
+    }
+  }
+
   /**
    * Here we handle cases when a constructors does not initialize all of the
    * final fields.
@@ -2613,9 +2568,8 @@ class FixProcessor {
         lastRequiredParameter = parameter;
       }
     }
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       // append new field formal initializers
       if (lastRequiredParameter != null) {
         builder.addSimpleInsertion(
@@ -2637,9 +2591,8 @@ class FixProcessor {
           n.offset == errorOffset &&
           n.length == errorLength) {
         Expression target = (n as MethodInvocation).target.unParenthesized;
-        DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-        await changeBuilder.addFileEdit(file, fileStamp,
-            (DartFileEditBuilder builder) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
           // replace "/" with "~/"
           BinaryExpression binary = target as BinaryExpression;
           builder.addSimpleReplacement(range.token(binary.operator), '~/');
@@ -2663,9 +2616,8 @@ class FixProcessor {
     Element declaringElement = element.enclosingElement;
     if (declaringElement is ClassElement) {
       DartType declaringType = declaringElement.type;
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         // replace "target" with class name
         builder.addReplacement(range.node(target), (DartEditBuilder builder) {
           builder.writeType(declaringType);
@@ -2724,10 +2676,8 @@ class FixProcessor {
       Element target) async {
     // build method source
     String targetFile = targetSource.fullName;
-    int timeStamp = target.context.getModificationStamp(targetSource);
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(targetFile, timeStamp,
-        (DartFileEditBuilder builder) {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
       builder.addInsertion(insertOffset, (DartEditBuilder builder) {
         builder.write(sourcePrefix);
         builder.write(prefix);
@@ -2921,6 +2871,26 @@ class FixProcessor {
   }
 
   /**
+   * Return the correction utilities that should be used when creating an edit
+   * in the compilation unit containing the given [node].
+   */
+  CorrectionUtils _getUtilsFor(AstNode node) {
+    CompilationUnit targetUnit =
+        node.getAncestor((node) => node is CompilationUnit);
+    CompilationUnitElement targetUnitElement = targetUnit?.element;
+    CorrectionUtils realUtils = utils;
+    if (targetUnitElement != utils.unit.element) {
+      realUtils = new CorrectionUtils(targetUnit);
+      ClassDeclaration targetClass =
+          node.getAncestor((node) => node is ClassDeclaration);
+      if (targetClass != null) {
+        realUtils.targetClassElement = targetClass.element;
+      }
+    }
+    return realUtils;
+  }
+
+  /**
    * Returns an expected [DartType] of [expression], may be `null` if cannot be
    * inferred.
    */
@@ -3108,12 +3078,6 @@ class FixProcessor {
     // We cannot use relative URIs to reference files outside of our package.
     return resourceProvider.pathContext
         .isWithin(packageRoot.path, source.fullName);
-  }
-
-  int _modificationStamp(String filePath) {
-    // TODO(brianwilkerson) We have lost the ability for clients to know whether
-    // it is safe to apply an edit.
-    return driver.fsState.getFileForPath(filePath).exists ? 0 : -1;
   }
 
   /**

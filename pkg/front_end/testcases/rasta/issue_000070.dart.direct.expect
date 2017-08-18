@@ -25,12 +25,12 @@ class A<N extends core::Object, S extends core::Object, U extends core::Object> 
   set setter(self::A::S s) → void {}
 }
 abstract class J<Aa extends core::Object, B extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 abstract class I<H extends core::Object, C extends core::Object, K extends core::Object> extends self::J<self::I::C, self::I::K> {
-  constructor •() → void
+  default constructor •() → void
     : super self::J::•()
     ;
 }

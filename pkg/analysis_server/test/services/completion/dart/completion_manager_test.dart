@@ -30,9 +30,7 @@ class CompletionManagerTest extends DartCompletionContributorTest {
   }
 
   test_resolveDirectives() async {
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
 library libA;
 /// My class.
 /// Short description.
@@ -40,9 +38,7 @@ library libA;
 /// Longer description.
 class A {}
 ''');
-    addSource(
-        '/libB.dart',
-        '''
+    addSource('/libB.dart', '''
 library libB;
 import "/libA.dart" as foo;
 part '$testFile';
@@ -71,10 +67,16 @@ part '$testFile';
     expect(imports, hasLength(directives.length + 1));
 
     ImportElement importNamed(String expectedUri) {
-      return imports.firstWhere((elem) => elem.uri == expectedUri, orElse: () {
-        var importedNames = imports.map((elem) => elem.uri);
-        fail('Failed to find $expectedUri in $importedNames');
-      });
+      List<String> uriList = <String>[];
+      for (ImportElement importElement in imports) {
+        String uri = importElement.importedLibrary.source.uri.toString();
+        uriList.add(uri);
+        if (uri.endsWith(expectedUri)) {
+          return importElement;
+        }
+      }
+      fail('Failed to find $expectedUri in $uriList');
+      return null;
     }
 
     void assertImportedLib(String expectedUri) {
@@ -83,7 +85,7 @@ part '$testFile';
     }
 
     // Assert that the new imports each have an export namespace
-    assertImportedLib(null /* dart:core */);
-    assertImportedLib('/libA.dart');
+    assertImportedLib('dart:core');
+    assertImportedLib('libA.dart');
   }
 }

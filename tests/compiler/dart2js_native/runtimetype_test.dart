@@ -16,25 +16,28 @@ class B extends A {}
 makeA() native;
 makeB() native;
 
-void setup() native """
-// This code is all inside 'setup' and so not accessible from the global scope.
-function inherits(child, parent) {
-  function tmp() {};
-  tmp.prototype = parent.prototype;
-  child.prototype = new tmp();
-  child.prototype.constructor = child;
+void setup() {
+  JS('', r"""
+(function(){
+  // This code is inside 'setup' and so not accessible from the global scope.
+  function inherits(child, parent) {
+    function tmp() {};
+    tmp.prototype = parent.prototype;
+    child.prototype = new tmp();
+    child.prototype.constructor = child;
+  }
+
+  function TAGX(){}
+  function TAGY(){}
+  inherits(TAGY, TAGX);
+
+  makeA = function(){return new TAGX()};
+  makeB = function(){return new TAGY()};
+
+  self.nativeConstructor(TAGX);
+  self.nativeConstructor(TAGY);
+})()""");
 }
-
-function TAGX(){}
-function TAGY(){}
-inherits(TAGY, TAGX);
-
-makeA = function(){return new TAGX};
-makeB = function(){return new TAGY};
-
-self.nativeConstructor(TAGX);
-self.nativeConstructor(TAGY);
-""";
 
 testDynamicContext() {
   var a = makeA();

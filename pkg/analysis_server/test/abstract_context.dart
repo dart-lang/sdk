@@ -18,7 +18,7 @@ import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 
 import 'mock_sdk.dart';
 
@@ -56,10 +56,7 @@ class AbstractContextTest {
 
   AnalysisDriver get driver => _driver;
 
-  Source addMetaPackageSource() => addPackageSource(
-      'meta',
-      'meta.dart',
-      r'''
+  Source addMetaPackageSource() => addPackageSource('meta', 'meta.dart', r'''
 library meta;
 
 const Required required = const Required();
@@ -71,8 +68,8 @@ class Required {
 ''');
 
   Source addPackageSource(String packageName, String filePath, String content) {
-    packageMap[packageName] = [(newFolder('/pubcache/$packageName'))];
-    File file = newFile('/pubcache/$packageName/$filePath', content);
+    packageMap[packageName] = [(newFolder('/pubcache/$packageName/lib'))];
+    File file = newFile('/pubcache/$packageName/lib/$filePath', content);
     return file.createSource();
   }
 

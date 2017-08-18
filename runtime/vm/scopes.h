@@ -18,7 +18,6 @@ namespace dart {
 
 class LocalScope;
 
-
 class LocalVariable : public ZoneAllocated {
  public:
   LocalVariable(TokenPosition declaration_pos,
@@ -132,7 +131,6 @@ class LocalVariable : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(LocalVariable);
 };
 
-
 class NameReference : public ZoneAllocated {
  public:
   NameReference(TokenPosition token_pos, const String& name)
@@ -147,7 +145,6 @@ class NameReference : public ZoneAllocated {
   TokenPosition token_pos_;
   const String& name_;
 };
-
 
 class SourceLabel : public ZoneAllocated {
  public:
@@ -198,7 +195,6 @@ class SourceLabel : public ZoneAllocated {
 
   DISALLOW_COPY_AND_ASSIGN(SourceLabel);
 };
-
 
 class LocalScope : public ZoneAllocated {
  public:

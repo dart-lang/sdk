@@ -23,7 +23,6 @@ RawCode* CodeBreakpoint::OrigStubAddress() const {
   return saved_value_;
 }
 
-
 void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
   const Code& code = Code::Handle(code_);
@@ -50,7 +49,6 @@ void CodeBreakpoint::PatchCode() {
   }
   is_enabled_ = true;
 }
-
 
 void CodeBreakpoint::RestoreCode() {
   ASSERT(is_enabled_);

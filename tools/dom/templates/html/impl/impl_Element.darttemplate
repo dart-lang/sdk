@@ -81,8 +81,7 @@ class _ChildrenElementList extends ListBase<Element>
     for (var e in removed) e.remove();
   }
 
-  void setRange(int start, int end, Iterable<Element> iterable,
-                [int skipCount = 0]) {
+  void fillRange(int start, int end, [Element fillValue]) {
     throw new UnimplementedError();
   }
 
@@ -90,19 +89,19 @@ class _ChildrenElementList extends ListBase<Element>
     throw new UnimplementedError();
   }
 
-  void fillRange(int start, int end, [Element fillValue]) {
+  void removeRange(int start, int end) {
+    throw new UnimplementedError();
+  }
+
+  void setRange(int start, int end, Iterable<Element> iterable,
+                [int skipCount = 0]) {
     throw new UnimplementedError();
   }
 
   bool remove(Object object) {
     if (object is Element) {
       Element element = object;
-$if JSINTEROP
-      // We aren't preserving identity of nodes in JSINTEROP mode
-      if (element.parentNode == _element) {
-$else
       if (identical(element.parentNode, _element)) {
-$endif
         _element._removeChild(element);
         return true;
       }
@@ -268,15 +267,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
     implements ElementList<E>, NodeListWrapper {
   final List<Node> _nodeList;
 
-$if JSINTEROP
-  var dartClass_instance;
-
-  _FrozenElementList._wrap(this._nodeList) {
-      this.dartClass_instance = this._nodeList;
-  }
-$else
   _FrozenElementList._wrap(this._nodeList);
-$endif
 
   int get length => _nodeList.length;
 
@@ -380,15 +371,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *     }
    *     document.registerElement('x-custom', CustomElement);
    */
-$if DART2JS
   Element.created() : super._created();
-$else
-  Element.created() : super._created() {
-    // Validate that this is a custom element & possibly perform additional
-    // initialization.
-    _blink.Blink_Utils.initializeCustomElement(this);
-  }
-$endif
 
   /**
    * Creates the HTML element specified by the tag name.
@@ -835,12 +818,7 @@ $endif
     }
     var convertedFrames;
     if (frames is Iterable) {
-$if DART2JS
       convertedFrames = frames.map(convertDartToNative_Dictionary).toList();
-$else
-      convertedFrames = convertDartToNative_List(
-          frames.map(convertDartToNative_Dictionary).toList());
-$endif
     } else {
       convertedFrames = frames;
     }
@@ -850,12 +828,10 @@ $endif
       : _animate(convertedFrames, convertedTiming);
   }
 
-$if DART2JS
   @DomName('Element.animate')
   @JSName('animate')
   @Experimental() // untriaged
   Animation _animate(Object effect, [timing]) native;
-$endif
   /**
    * Called by the DOM whenever an attribute on this has been changed.
    */
@@ -863,9 +839,7 @@ $endif
 
   // Hooks to support custom WebComponents.
 
-$if DART2JS
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
-$endif
   Element _xtag;
 
   /**
@@ -890,13 +864,9 @@ $endif
 
   @DomName('Element.localName')
   @DocsEditable()
-$if DART2JS
   @Returns('String')
   // Non-null for Elements.
   String get localName => JS('String', '#', _localName);
-$else
-  String get localName => _localName;
-$endif
 
   /**
    * A URI that identifies the XML namespace of this element.
@@ -937,10 +907,8 @@ $endif
    */
   void scrollIntoView([ScrollAlignment alignment]) {
     var hasScrollIntoViewIfNeeded = true;
-$if DART2JS
     hasScrollIntoViewIfNeeded =
         JS('bool', '!!(#.scrollIntoViewIfNeeded)', this);
-$endif
     if (alignment == ScrollAlignment.TOP) {
       this._scrollIntoView(true);
     } else if (alignment == ScrollAlignment.BOTTOM) {
@@ -956,7 +924,6 @@ $endif
     }
   }
 
-$if DART2JS
   /**
    * Static factory designed to expose `mousewheel` events to event
    * handlers that are not necessarily instances of [Element].
@@ -1011,8 +978,6 @@ $if DART2JS
   @JSName('insertAdjacentText')
   void _insertAdjacentText(String where, String text) native;
 
-$else
-$endif
 
   /**
    * Parses text as an HTML fragment and inserts it into the DOM at the
@@ -1046,7 +1011,6 @@ $endif
       }
   }
 
-$if DART2JS
 
   @JSName('insertAdjacentHTML')
   void _insertAdjacentHtml(String where, String text) native;
@@ -1072,8 +1036,6 @@ $if DART2JS
 
   @JSName('insertAdjacentElement')
   void _insertAdjacentElement(String where, Element element) native;
-$else
-$endif
 
   void _insertAdjacentNode(String where, Node node) {
     switch (where.toLowerCase()) {
@@ -1095,7 +1057,6 @@ $endif
     }
   }
 
-$if DART2JS
   /**
    * Checks if this element matches the CSS selectors.
    */
@@ -1115,8 +1076,6 @@ $if DART2JS
       throw new UnsupportedError("Not supported on this platform");
     }
   }
-$else
-$endif
 
   /** Checks if this element or any of its parents match the CSS selectors. */
   @Experimental()
@@ -1129,7 +1088,6 @@ $endif
     return false;
   }
 
-$if DART2JS
   /**
    * Creates a new shadow root for this shadow host.
    *
@@ -1163,7 +1121,6 @@ $if DART2JS
   @Experimental()
   ShadowRoot get shadowRoot =>
       JS('ShadowRoot|Null', '#.shadowRoot || #.webkitShadowRoot', this, this);
-$endif
 
   /**
    * Access this element's content position.
@@ -1270,11 +1227,7 @@ $endif
     // offsetParent, "tops out" at BODY. But people could conceivably pass in
     // the document.documentElement and I want it to return an absolute offset,
     // so we have the special case checking for HTML.
-$if JSINTEROP
-    bool sameAsParent = current == parent;
-$else
     bool sameAsParent = identical(current, parent);
-$endif
     bool foundAsParent = sameAsParent || parent.tagName == 'HTML';
     if (current == null || sameAsParent) {
       if (foundAsParent) return new Point/*<num>*/(0, 0);
@@ -1451,7 +1404,6 @@ $endif
    *
    * Those attributes are: attributes, lastChild, children, previousNode and tagName.
    */
-$if DART2JS
   static bool _hasCorruptedAttributes(Element element) {
      return JS('bool', r'''
        (function(element) {
@@ -1495,35 +1447,7 @@ $if DART2JS
   static bool _hasCorruptedAttributesAdditionalCheck(Element element) {
     return JS('bool', r'!(#.attributes instanceof NamedNodeMap)', element);
   }
-$else
 
-  static var _namedNodeMap = js.context["NamedNodeMap"];
-  static var _htmlCollection = js.context["HTMLCollection"];
-  static var _nodeList = js.context["NodeList"];
-
-  static const _evilAttributeNames =
-      const ['attributes', 'lastChild', 'children', 'childNodes'];
-
-  static bool _hasCorruptedAttributes(Element element) {
-    // We have trusted access to children and to attributes of objects,
-    // so we can inspect directly for attempts at DOM clobbering.
-    var child = element.firstChild;
-    while( child != null)  {
-      if (child is Element) {
-      for (var attributeName in ["id", "name"]) {
-        var childAttribute = child.getAttribute(attributeName);
-        if (_evilAttributeNames.contains(childAttribute)) return true;
-      }}
-      child = child.nextNode;
-    }
-    return false;
-  }
-
-  /// A secondary check for corruption, needed on IE
-  static bool _hasCorruptedAttributesAdditionalCheck(Element element) => false;
-$endif
-
-$if DART2JS
   static String _safeTagName(element) {
     String result = 'element tag unavailable';
     try {
@@ -1533,17 +1457,7 @@ $if DART2JS
     } catch (e) {}
     return result;
   }
-$else
-  static String _safeTagName(element) {
-    try {
-      // Safe as we plumb directly to a C++ native method.
-      return element.tagName;
-    } catch (e) {}
-    return 'element tag unavailable';
-  }
-$endif  
 
-$if DART2JS
   @DomName('Element.offsetParent')
   @DocsEditable()
   final Element offsetParent;
@@ -1592,56 +1506,6 @@ $if DART2JS
   @DocsEditable()
   int get scrollWidth => JS('num', '#.scrollWidth', this).round();
 
-$else
-  // Need to explicitly delegate because Element is no longer abstract for Dartium.
-  bool get isContentEditable => _blink.BlinkHTMLElement.instance.isContentEditable_Getter_(this);
-  void click() => _blink.BlinkHTMLElement.instance.click_Callback_0_(this);
-
-  @DomName('Element.offsetParent')
-  @DocsEditable()
-  Element get offsetParent => _blink.BlinkHTMLElement.instance.offsetParent_Getter_(this);
-
-  @DomName('Element.offsetHeight')
-  @DocsEditable()
-  int get offsetHeight => _blink.BlinkHTMLElement.instance.offsetHeight_Getter_(this);
-
-  @DomName('Element.offsetLeft')
-  @DocsEditable()
-  int get offsetLeft => _blink.BlinkHTMLElement.instance.offsetLeft_Getter_(this);
-
-  @DomName('Element.offsetTop')
-  @DocsEditable()
-  int get offsetTop => _blink.BlinkHTMLElement.instance.offsetTop_Getter_(this);
-
-  @DomName('Element.offsetWidth')
-  @DocsEditable()
-  int get offsetWidth => _blink.BlinkHTMLElement.instance.offsetWidth_Getter_(this);
-
-  @DomName('Element.scrollHeight')
-  @DocsEditable()
-  int get scrollHeight => _blink.BlinkElement.instance.scrollHeight_Getter_(this).round();
-
-  @DomName('Element.scrollLeft')
-  @DocsEditable()
-  int get scrollLeft => _blink.BlinkElement.instance.scrollLeft_Getter_(this).round();
-
-  @DomName('Element.scrollLeft')
-  @DocsEditable()
-  set scrollLeft(int value) => _blink.BlinkElement.instance.scrollLeft_Setter_(this, value.round());
-
-  @DomName('Element.scrollTop')
-  @DocsEditable()
-  int get scrollTop => _blink.BlinkElement.instance.scrollTop_Getter_(this).round();
-
-  @DomName('Element.scrollTop')
-  @DocsEditable()
-  set scrollTop(int value) => _blink.BlinkElement.instance.scrollTop_Setter_(this, value.round());
-
-  @DomName('Element.scrollWidth')
-  @DocsEditable()
-  int get scrollWidth => _blink.BlinkElement.instance.scrollWidth_Getter_(this).round();
-$endif
-
 $!MEMBERS
 }
 
@@ -1649,7 +1513,6 @@ $!MEMBERS
 class _ElementFactoryProvider {
 
   @DomName('Document.createElement')
-$if DART2JS
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
   static dynamic createElement_tag(String tag, String typeExtension) {
@@ -1665,10 +1528,6 @@ $if DART2JS
     return JS('Element|=Object', 'document.createElement(#)', tag);
   }
 
-$else
-  static Element createElement_tag(String tag, String typeExtension) =>
-      document.createElement(tag, typeExtension);
-$endif
 }
 
 

@@ -541,7 +541,7 @@ class FragmentEmitter {
       'nativeSupport': program.needsNativeSupport
           ? emitNativeSupport(fragment)
           : new js.EmptyStatement(),
-      'jsInteropSupport': backend.nativeBasicData.isJsInteropUsed
+      'jsInteropSupport': _closedWorld.nativeData.isJsInteropUsed
           ? backend.jsInteropAnalysis.buildJsInteropBootstrap()
           : new js.EmptyStatement(),
       'invokeMain': fragment.invokeMain,
@@ -782,7 +782,7 @@ class FragmentEmitter {
         .map((Class cls) {
       var proto = js.js.statement(
           '#.prototype = #;', [classReference(cls), emitPrototype(cls)]);
-      ClassElement element = cls.element;
+      ClassEntity element = cls.element;
       compiler.dumpInfoTask.registerElementAst(element, proto);
       compiler.dumpInfoTask.registerElementAst(element.library, proto);
       return proto;
@@ -1121,23 +1121,21 @@ class FragmentEmitter {
           _encodeOptionalParameterDefaultValues(method);
     }
 
-    return js.js.statement(
-        '''
+    return js.js.statement('''
         installTearOff(#container, #getterName, #isStatic, #isIntercepted,
                        #requiredParameterCount, #optionalParameterDefaultValues,
-                       #callNames, #funsOrNames, #funType)''',
-        {
-          "container": container,
-          "getterName": js.quoteName(method.tearOffName),
-          // 'Truthy' values are ok for `isStatic` and `isIntercepted`.
-          "isStatic": js.number(method.isStatic ? 1 : 0),
-          "isIntercepted": js.number(isIntercepted ? 1 : 0),
-          "requiredParameterCount": js.number(requiredParameterCount),
-          "optionalParameterDefaultValues": optionalParameterDefaultValues,
-          "callNames": callNameArray,
-          "funsOrNames": funsOrNamesArray,
-          "funType": method.functionType,
-        });
+                       #callNames, #funsOrNames, #funType)''', {
+      "container": container,
+      "getterName": js.quoteName(method.tearOffName),
+      // 'Truthy' values are ok for `isStatic` and `isIntercepted`.
+      "isStatic": js.number(method.isStatic ? 1 : 0),
+      "isIntercepted": js.number(isIntercepted ? 1 : 0),
+      "requiredParameterCount": js.number(requiredParameterCount),
+      "optionalParameterDefaultValues": optionalParameterDefaultValues,
+      "callNames": callNameArray,
+      "funsOrNames": funsOrNamesArray,
+      "funType": method.functionType,
+    });
   }
 
   /// Wraps the statement in a named function to that it shows up as a unit in
@@ -1303,16 +1301,18 @@ class FragmentEmitter {
 
     /// See [emitEmbeddedGlobalsForDeferredLoading] for the format of the
     /// deferred hunk.
-    js.Expression initializeLoadedHunkFunction = js.js(
-        """
+    js.Expression initializeLoadedHunkFunction = js.js("""
             function(hash) {
-              initializeDeferredHunk($deferredGlobal[hash]);
+              var hunk = $deferredGlobal[hash];
+              if (hunk == null) {
+                throw "DeferredLoading state error: code with hash '" +
+                    hash + "' was not loaded";
+              }
+              initializeDeferredHunk(hunk);
               #deferredInitialized[hash] = true;
-            }""",
-        {
-          'deferredInitialized':
-              generateEmbeddedGlobalAccess(DEFERRED_INITIALIZED)
-        });
+            }""", {
+      'deferredInitialized': generateEmbeddedGlobalAccess(DEFERRED_INITIALIZED)
+    });
 
     globals.add(new js.Property(
         js.string(INITIALIZE_LOADED_HUNK), initializeLoadedHunkFunction));
@@ -1505,18 +1505,14 @@ class FragmentEmitter {
         NativeGenerator
             .needsIsolateAffinityTagInitialization(_closedWorld.backendUsage)) {
       statements.add(NativeGenerator.generateIsolateAffinityTagInitialization(
-          _closedWorld.backendUsage,
-          generateEmbeddedGlobalAccess,
-          js.js(
-              """
+          _closedWorld.backendUsage, generateEmbeddedGlobalAccess, js.js("""
         // On V8, the 'intern' function converts a string to a symbol, which
         // makes property access much faster.
         function (s) {
           var o = {};
           o[s] = 1;
           return Object.keys(convertToFastObject(o))[0];
-        }""",
-              [])));
+        }""", [])));
     }
 
     Map<String, js.Expression> interceptorsByTag = <String, js.Expression>{};

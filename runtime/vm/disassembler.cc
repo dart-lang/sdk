@@ -5,6 +5,7 @@
 #include "vm/disassembler.h"
 
 #include "vm/assembler.h"
+#include "vm/code_patcher.h"
 #include "vm/deopt_instructions.h"
 #include "vm/globals.h"
 #include "vm/il_printer.h"
@@ -12,8 +13,6 @@
 #include "vm/json_stream.h"
 #include "vm/log.h"
 #include "vm/os.h"
-#include "vm/code_patcher.h"
-
 
 namespace dart {
 
@@ -45,14 +44,12 @@ void DisassembleToStdout::ConsumeInstruction(const Code& code,
   THR_Print("\n");
 }
 
-
 void DisassembleToStdout::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
   THR_VPrint(format, args);
   va_end(args);
 }
-
 
 void DisassembleToJSONStream::ConsumeInstruction(const Code& code,
                                                  char* hex_buffer,
@@ -75,7 +72,6 @@ void DisassembleToJSONStream::ConsumeInstruction(const Code& code,
     jsarr_.AddValueNull();  // Not a reference to null.
   }
 }
-
 
 void DisassembleToJSONStream::Print(const char* format, ...) {
   va_list args;
@@ -100,7 +96,6 @@ void DisassembleToJSONStream::Print(const char* format, ...) {
   jsarr_.AddValueNull();
   free(p);
 }
-
 
 void Disassembler::Disassemble(uword start,
                                uword end,
@@ -158,7 +153,6 @@ void Disassembler::Disassemble(uword start,
     pc += instruction_length;
   }
 }
-
 
 void Disassembler::DisassembleCodeHelper(const char* function_fullname,
                                          const Code& code,
@@ -302,14 +296,12 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   }
 }
 
-
 void Disassembler::DisassembleCode(const Function& function,
                                    const Code& code,
                                    bool optimized) {
   const char* function_fullname = function.ToFullyQualifiedCString();
   DisassembleCodeHelper(function_fullname, code, optimized);
 }
-
 
 #endif  // !PRODUCT
 

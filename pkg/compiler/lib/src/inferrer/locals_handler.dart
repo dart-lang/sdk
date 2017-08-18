@@ -104,7 +104,7 @@ class VariableScope {
 
 /// Tracks initializers via initializations and assignments.
 class FieldInitializationScope {
-  final TypeSystem types;
+  final TypeSystem<Node> types;
   Map<Element, TypeInformation> fields;
   bool isThisExposed;
 
@@ -243,7 +243,7 @@ class ArgumentsTypesIterator implements Iterator<TypeInformation> {
  */
 class LocalsHandler {
   final CompilerOptions options;
-  final TypeSystem types;
+  final TypeSystem<Node> types;
   final InferrerEngine inferrer;
   final VariableScope locals;
   final Map<Local, FieldEntity> captured;
@@ -299,12 +299,11 @@ class LocalsHandler {
         options = other.options;
 
   TypeInformation use(Local local) {
+    assert(!(local is LocalElement && !local.isImplementation));
     if (capturedAndBoxed.containsKey(local)) {
-      return inferrer.typeOfElement(capturedAndBoxed[local]);
+      FieldElement field = capturedAndBoxed[local];
+      return inferrer.typeOfMember(field);
     } else {
-      if (captured.containsKey(local)) {
-        inferrer.recordCapturedLocalRead(local);
-      }
       return locals[local];
     }
   }
@@ -324,17 +323,15 @@ class LocalsHandler {
         type = types.addPhiInput(
             local,
             types.allocatePhi(
-                locals.block, local, types.narrowNotNull(currentType)),
+                locals.block, local, types.narrowNotNull(currentType),
+                isTry: locals.block is TryStatement),
             type);
       }
       locals[local] = type;
-      if (currentType != type) {
-        inferrer.recordLocalUpdate(local, type);
-      }
     }
 
     if (capturedAndBoxed.containsKey(local)) {
-      inferrer.recordTypeOfNonFinalField(node, capturedAndBoxed[local], type);
+      inferrer.recordTypeOfField(capturedAndBoxed[local], type);
     } else if (inTryBlock) {
       // We don'TypeInformation know if an assignment in a try block
       // will be executed, so all assignments in that block are
@@ -343,8 +340,9 @@ class LocalsHandler {
       // the right phi for it.
       TypeInformation existing = tryBlock.locals.parent[local];
       if (existing != null) {
-        TypeInformation phiType =
-            types.allocatePhi(tryBlock.locals.block, local, existing);
+        TypeInformation phiType = types.allocatePhi(
+            tryBlock.locals.block, local, existing,
+            isTry: tryBlock.locals.block is TryStatement);
         TypeInformation inputType = types.addPhiInput(local, phiType, type);
         tryBlock.locals.parent[local] = inputType;
       }
@@ -503,7 +501,8 @@ class LocalsHandler {
       if (myType == null) return;
       TypeInformation newType;
       if (seen != null && !seen.contains(local)) {
-        newType = types.allocatePhi(locals.block, local, otherType);
+        newType = types.allocatePhi(locals.block, local, otherType,
+            isTry: locals.block is TryStatement);
         seen.add(local);
       } else {
         newType = types.addPhiInput(local, myType, otherType);
@@ -531,7 +530,8 @@ class LocalsHandler {
 
   void startLoop(Node loop) {
     locals.forEachLocal((Local variable, TypeInformation type) {
-      TypeInformation newType = types.allocateLoopPhi(loop, variable, type);
+      TypeInformation newType = types.allocateLoopPhi(loop, variable, type,
+          isTry: loop is TryStatement);
       if (newType != type) {
         locals[variable] = newType;
       }

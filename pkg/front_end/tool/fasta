@@ -37,6 +37,7 @@ case "${1//_/-}" in
   parser) SCRIPT="${TOOL_DIR}/parser.dart";;
   run) SCRIPT="${TOOL_DIR}/run.dart";;
   scanner) SCRIPT="${TOOL_DIR}/scanner.dart";;
+  dump-partial) SCRIPT="${TOOL_DIR}/dump_partial.dart";;
   dump-ir)
     SCRIPT="${KERNEL_BIN}/dump.dart"
     if [ "$#" = "2" ]; then

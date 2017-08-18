@@ -58,6 +58,7 @@ class AnalyzerOptions {
   static const String strong_mode = 'strong-mode';
 
   // Strong mode options, see AnalysisOptionsImpl for documentation.
+  static const String declarationCasts = 'declaration-casts';
   static const String implicitCasts = 'implicit-casts';
   static const String implicitDynamic = 'implicit-dynamic';
 
@@ -410,6 +411,14 @@ class OptionsFileValidator {
   List<AnalysisError> validate(Map<String, YamlNode> options) {
     RecordingErrorListener recorder = new RecordingErrorListener();
     ErrorReporter reporter = new ErrorReporter(recorder, source);
+    if (AnalysisEngine.ANALYSIS_OPTIONS_FILE == source.shortName) {
+      reporter.reportError(new AnalysisError(
+          source,
+          0, // offset
+          1, // length
+          AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
+          [source.shortName]));
+    }
     _validators.forEach((OptionsValidator v) => v.validate(reporter, options));
     return recorder.errors;
   }
@@ -515,6 +524,26 @@ class _OptionsProcessor {
       // Process excludes.
       var excludes = analyzer[AnalyzerOptions.exclude];
       _applyExcludes(options, excludes);
+
+      // Process plugins.
+      var names = analyzer[AnalyzerOptions.plugins];
+      List<String> pluginNames = <String>[];
+      if (names is String) {
+        pluginNames.add(names);
+      } else if (names is YamlList) {
+        for (var element in names) {
+          if (element is String) {
+            pluginNames.add(element);
+          }
+        }
+      } else if (names is YamlMap) {
+        for (var key in names.keys) {
+          if (key is String) {
+            pluginNames.add(key);
+          }
+        }
+      }
+      options.enabledPluginNames = pluginNames;
     }
 
     LintConfig config = parseConfig(optionMap);
@@ -573,6 +602,9 @@ class _OptionsProcessor {
       AnalysisOptionsImpl options, Object feature, Object value) {
     bool boolValue = toBool(value);
     if (boolValue != null) {
+      if (feature == AnalyzerOptions.declarationCasts) {
+        options.declarationCasts = boolValue;
+      }
       if (feature == AnalyzerOptions.implicitCasts) {
         options.implicitCasts = boolValue;
       }

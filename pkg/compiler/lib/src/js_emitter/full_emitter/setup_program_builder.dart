@@ -129,7 +129,7 @@ jsAst.Statement buildSetupProgram(
     'finishedClassesAccess': finishedClassesAccess,
     'needsMixinSupport': emitter.needsMixinSupport,
     'needsNativeSupport': program.needsNativeSupport,
-    'enabledJsInterop': backend.nativeBasicData.isJsInteropUsed,
+    'enabledJsInterop': closedWorld.nativeData.isJsInteropUsed,
     'jsInteropBoostrap': backend.jsInteropAnalysis.buildJsInteropBootstrap(),
     'isInterceptorClass':
         namer.operatorIs(closedWorld.commonElements.jsInterceptorClass),
@@ -138,11 +138,10 @@ jsAst.Statement buildSetupProgram(
     'trivialNsmHandlers': emitter.buildTrivialNsmHandlers(),
     'hasRetainedMetadata': backend.mirrorsData.hasRetainedMetadata,
     'types': typesAccess,
-    'objectClassName': js.quoteName(namer.runtimeTypeName(
-        // ignore: UNNECESSARY_CAST
-        closedWorld.commonElements.objectClass as Entity)),
+    'objectClassName': js.quoteName(
+        namer.runtimeTypeName(closedWorld.commonElements.objectClass)),
     'needsStructuredMemberInfo': emitter.needsStructuredMemberInfo,
-    'usesMangledNames': closedWorld.commonElements.mirrorsLibrary != null ||
+    'usesMangledNames': closedWorld.backendUsage.isMirrorsUsed ||
         closedWorld.backendUsage.isFunctionApplyUsed,
     'tearOffCode': buildTearOffCode(
         compiler.options, emitter, namer, closedWorld.commonElements),

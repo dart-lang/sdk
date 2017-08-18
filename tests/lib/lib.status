@@ -156,7 +156,7 @@ typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for Typed
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 
-[ $compiler == dart2js && ($runtime == d8 || $runtime == drt || $runtime == ie11) ]
+[ $compiler == dart2js && ($runtime == drt || $runtime == ie11) ]
 math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
@@ -182,7 +182,6 @@ async/stream_periodic4_test: RuntimeError # Timer interface not supported; Issue
 async/stream_periodic5_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/stream_periodic6_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/run_zoned7_test: RuntimeError # Timer interface not supported: Issue 7728.
-async/catch_errors22_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/timer_isActive_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/zone_empty_description2_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/zone_create_timer2_test: RuntimeError # Timer interface not supported: Issue 7728.
@@ -191,10 +190,6 @@ async/catch_errors12_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors13_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors14_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors15_test: Fail # Timer interface not supported: Issue 7728.
-async/catch_errors18_test: Fail # Timer interface not supported: Issue 7728.
-async/catch_errors19_test: Fail # Timer interface not supported: Issue 7728.
-async/catch_errors20_test: Fail # Timer interface not supported: Issue 7728.
-async/catch_errors28_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors8_test: Fail # Timer interface not supported: Issue 7728.
 async/run_zoned8_test: Fail # Timer interface not supported: Issue 7728.
 async/zone_bind_test: Fail # Timer interface not supported: Issue 7728.
@@ -338,39 +333,6 @@ mirrors/library_uri_package_test: RuntimeError
 # fstat bug, MG-479.
 mirrors/invocation_fuzz_test: Crash
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
-async/future_or_bad_type_test/implements: Pass # Issue 28084
-
-mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21
-async/schedule_microtask6_test: Fail # Issue 10910
-async/timer_test: Fail, Pass # Issue 15487
-async/multiple_timer_test: Fail, Pass # Issue 15487
-async/stream_periodic3_test: Fail, Pass # Issue 15487
-async/timer_isActive_test: Fail, Pass # Issue 22352
-mirrors/immutable_collections_test: SkipSlow # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
-mirrors/mirrors_reader_test: SkipSlow # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
-mirrors/library_uri_io_test: SkipByDesign # Uses dart:io.
-mirrors/spawn_function_root_library_test: SkipByDesign # Uses spawnFunction.
-mirrors/local_isolate_test: RuntimeError # Issue 12188
-mirrors/deferred_type_test: RuntimeError, OK # Should be CompileTimeError. Issue 22072
-
-[ $compiler == none && $runtime == dartium && $system == macos ]
-convert/streamed_conversion_utf8_decode_test: Pass, Slow
-
-[ $compiler == none && $runtime == drt && $system == windows ]
-async/multiple_timer_test: Fail, Pass # See Issue 10982
-async/timer_test: Fail, Pass # See Issue 10982
-
-[ $compiler == none && $runtime == drt && $checked ]
-async/slow_consumer_test: Fail, Pass # Dartium JsInterop failure, dartbug.com/24460
-
-[ $compiler == none && ($runtime == drt || $runtime == dartium) && $checked ]
-# TODO(terry): Failing tests with Dartium 50 roll (NEED TO FIX All)
-# ---------------------------------------------
-mirrors/regress_16321_test/01: Timeout, Pass # Roll 50 crash works on full build
-# ---------------------------------------------
-# TODO(terry): End of Dartium 50 roll failures
-
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.
 mirrors/null_test: Fail # Issue 16831
@@ -456,8 +418,13 @@ mirrors/metadata_allowed_values_test/31: Crash # Issue 25911
 [ $compiler != dart2js ]
 async/dart2js_uncaught_error_test: Skip  # JS-integration only test
 
-[ $compiler == precompiler || $mode == product ]
+[ $compiler == precompiler ]
 mirrors/*: SkipByDesign
+
+[ $compiler == none && $mode == product ]
+mirrors/load_library_test: RuntimeError,OK # Deferred loaded eagerly
+mirrors/library_import_deferred_loading_test: RuntimeError,OK # Deferred loaded eagerly
+mirrors/library_enumeration_deferred_loading_test: RuntimeError,OK # Deferred loaded eagerly
 
 [ $compiler == precompiler ]
 convert/chunked_conversion_utf88_test: Pass, Timeout
@@ -483,6 +450,9 @@ mirrors/generic_bounded_test/02: Fail # Type equality - Issue 26869
 mirrors/generic_bounded_by_type_parameter_test/02: Fail # Type equality - Issue 26869
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
 
+[ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
+mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
+
 [ $compiler == dartk || $compiler == dartkp ]
 async/future_or_strong_test: RuntimeError
 async/future_test/01: RuntimeError
@@ -499,30 +469,18 @@ mirrors/constructor_optional_args_test: Crash # Issue 29201
 mirrors/constructor_private_name_test: RuntimeError
 mirrors/dart2js_mirrors_test: Crash
 mirrors/deferred_type_test: RuntimeError
-mirrors/delegate_class_test: RuntimeError
 mirrors/empty_test: Crash
 mirrors/enum_test: RuntimeError
 mirrors/equality_test: RuntimeError
-mirrors/field_type_test: RuntimeError
 mirrors/function_type_mirror_test: RuntimeError
-mirrors/generic_class_declaration_test: RuntimeError
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError
 mirrors/generic_interface_test/01: RuntimeError
 mirrors/generic_interface_test/none: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
-mirrors/generic_type_mirror_test: RuntimeError
-mirrors/generics_double_substitution_test/01: RuntimeError
-mirrors/generics_double_substitution_test/none: RuntimeError
-mirrors/generics_dynamic_test: RuntimeError
-mirrors/generics_substitution_test: RuntimeError
 mirrors/hot_get_field_test: RuntimeError
 mirrors/hot_set_field_test: RuntimeError
-mirrors/inherit_field_test: RuntimeError
-mirrors/instance_members_easier_test: RuntimeError
-mirrors/instance_members_test: RuntimeError
-mirrors/instance_members_with_override_test: RuntimeError
 mirrors/intercepted_object_test: RuntimeError
 mirrors/invocation_fuzz_test/emptyarray: Crash
 mirrors/invocation_fuzz_test/false: Crash
@@ -531,9 +489,7 @@ mirrors/invocation_fuzz_test/smi: RuntimeError
 mirrors/invocation_fuzz_test/string: Crash
 mirrors/invoke_private_test: RuntimeError
 mirrors/invoke_private_wrong_library_test: RuntimeError
-mirrors/invoke_test: RuntimeError
 mirrors/invoke_throws_test: Crash
-mirrors/lazy_static_test: RuntimeError
 mirrors/library_declarations_test/none: RuntimeError
 mirrors/library_exports_hidden_test: RuntimeError
 mirrors/library_exports_shown_test: RuntimeError
@@ -549,19 +505,14 @@ mirrors/library_metadata_test: RuntimeError
 mirrors/list_constructor_test/01: Crash
 mirrors/list_constructor_test/none: Crash
 mirrors/load_library_test: RuntimeError
-mirrors/metadata_allowed_values_test/01: Crash
 mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
-mirrors/metadata_allowed_values_test/10: Crash
-mirrors/metadata_allowed_values_test/11: Crash
 mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
-mirrors/metadata_allowed_values_test/15: Crash
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
 mirrors/metadata_allowed_values_test/27: Crash
 mirrors/metadata_constructed_constant_test: Crash
 mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError
 mirrors/metadata_scope_test/none: RuntimeError
-mirrors/metadata_test: RuntimeError
 mirrors/method_mirror_location_test: RuntimeError
 mirrors/method_mirror_source_line_ending_test: Crash
 mirrors/method_mirror_source_test: Crash
@@ -579,7 +530,6 @@ mirrors/parameter_annotation_mirror_test: RuntimeError
 mirrors/parameter_metadata_test: RuntimeError
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError
 mirrors/private_class_field_test: RuntimeError
-mirrors/private_symbol_mangling_test: RuntimeError
 mirrors/private_symbol_test: RuntimeError
 mirrors/private_types_test: RuntimeError
 mirrors/redirecting_factory_test/01: Crash
@@ -588,9 +538,6 @@ mirrors/redirecting_factory_test/none: Crash
 mirrors/reflect_class_test/01: RuntimeError
 mirrors/reflect_class_test/02: RuntimeError
 mirrors/reflect_class_test/none: RuntimeError
-mirrors/reflect_model_test: RuntimeError
-mirrors/reflect_runtime_type_test: RuntimeError
-mirrors/reflect_uninstantiated_class_test: RuntimeError
 mirrors/reflected_type_classes_test/01: RuntimeError
 mirrors/reflected_type_function_type_test: RuntimeError
 mirrors/reflected_type_generics_test/01: RuntimeError
@@ -598,7 +545,6 @@ mirrors/reflected_type_generics_test/02: RuntimeError
 mirrors/reflected_type_test/01: RuntimeError
 mirrors/reflected_type_typedefs_test: RuntimeError
 mirrors/reflected_type_typevars_test: RuntimeError
-mirrors/regress_19731_test: RuntimeError
 mirrors/regress_26187_test: RuntimeError
 mirrors/relation_assignable_test: RuntimeError
 mirrors/relation_subclass_test: RuntimeError
@@ -606,11 +552,8 @@ mirrors/relation_subtype_test: RuntimeError
 mirrors/repeated_private_anon_mixin_app_test: RuntimeError
 mirrors/static_members_easier_test: RuntimeError
 mirrors/static_members_test: RuntimeError
-mirrors/static_test: RuntimeError
 mirrors/symbol_validation_test/01: RuntimeError
 mirrors/symbol_validation_test/none: RuntimeError
-mirrors/synthetic_accessor_properties_test: RuntimeError
-mirrors/to_string_test: RuntimeError
 mirrors/type_variable_is_static_test: RuntimeError
 mirrors/type_variable_owner_test/01: RuntimeError
 mirrors/typedef_in_signature_test: RuntimeError
@@ -621,7 +564,6 @@ mirrors/typedef_reflected_type_test/none: RuntimeError
 mirrors/typedef_test: RuntimeError
 mirrors/typevariable_mirror_metadata_test: RuntimeError
 mirrors/variable_is_const_test/01: MissingCompileTimeError
-mirrors/variable_is_const_test/none: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 mirrors/variable_is_const_test/01: Crash

@@ -2797,9 +2797,7 @@ void res() {
   }
 
   void _addLibraryReturningAsync() {
-    addSource(
-        '/asyncLib.dart',
-        r'''
+    addSource('/asyncLib.dart', r'''
 library asyncLib;
 import 'dart:async';
 Future<int> newFuture() => null;
@@ -2841,8 +2839,8 @@ Future<int> newFuture() => null;
   }
 
   void _createRefactoring(int offset, int length) {
-    refactoring =
-        new ExtractMethodRefactoring(searchEngine, testUnit, offset, length);
+    refactoring = new ExtractMethodRefactoring(
+        searchEngine, astProvider, testUnit, offset, length);
     refactoring.name = 'res';
   }
 

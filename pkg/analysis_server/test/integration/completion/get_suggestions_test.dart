@@ -33,9 +33,7 @@ class GetSuggestionsTest extends AbstractAnalysisServerIntegrationTest {
   }
 
   test_getSuggestions() async {
-    setTestSource(
-        'test.dart',
-        r'''
+    setTestSource('test.dart', r'''
 String test = '';
 main() {
   test.^
@@ -57,9 +55,7 @@ main() {
   }
 
   test_getSuggestions_onlyOverlay() async {
-    setTestSource(
-        'test.dart',
-        r'''
+    setTestSource('test.dart', r'''
 String test = '';
 main() {
   test.^
@@ -83,9 +79,7 @@ main() {
   }
 
   test_getSuggestions_onlyOverlay_noWait() async {
-    setTestSource(
-        'test.dart',
-        r'''
+    setTestSource('test.dart', r'''
 String test = '';
 main() {
   test.^

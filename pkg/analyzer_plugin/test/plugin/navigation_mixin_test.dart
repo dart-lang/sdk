@@ -79,8 +79,7 @@ class _TestServerPlugin extends MockServerPlugin with NavigationMixin {
       : super(resourceProvider);
 
   @override
-  List<NavigationContributor> getNavigationContributors(
-      AnalysisDriverGeneric driver) {
+  List<NavigationContributor> getNavigationContributors(String path) {
     return <NavigationContributor>[
       new _TestNavigationContributor(2),
       new _TestNavigationContributor(1)
@@ -89,8 +88,7 @@ class _TestServerPlugin extends MockServerPlugin with NavigationMixin {
 
   @override
   Future<NavigationRequest> getNavigationRequest(
-      AnalysisGetNavigationParams parameters,
-      covariant AnalysisDriver driver) async {
+      AnalysisGetNavigationParams parameters) async {
     AnalysisResult result = new AnalysisResult(
         null, null, null, null, null, null, null, null, null, null, null);
     return new DartNavigationRequestImpl(

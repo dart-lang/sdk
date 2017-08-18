@@ -21,13 +21,11 @@ ASSEMBLER_TEST_GENERATE(Call, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Call, test) {
   CallPattern call(test->entry());
   EXPECT_EQ(StubCode::InvokeDartCode_entry()->EntryPoint(),
             call.TargetAddress());
 }
-
 
 }  // namespace dart
 

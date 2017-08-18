@@ -122,11 +122,11 @@ void main() {
         var closedWorld = typesInferrer.closedWorld;
 
         checkReturn(String name, type) {
-          var element = findElement(compiler, name);
+          MemberElement element = findElement(compiler, name);
           Expect.equals(
               type,
               simplify(
-                  typesInferrer.getReturnTypeOfElement(element), closedWorld),
+                  typesInferrer.getReturnTypeOfMember(element), closedWorld),
               name);
         }
 
@@ -151,7 +151,7 @@ void main() {
           Expect.equals(
               type,
               simplify(
-                  typesInferrer.getReturnTypeOfElement(element), closedWorld));
+                  typesInferrer.getReturnTypeOfMember(element), closedWorld));
         }
 
         dynamic cls = findElement(compiler, 'A');

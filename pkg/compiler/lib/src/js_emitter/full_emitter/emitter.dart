@@ -16,12 +16,10 @@ import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
 import '../../common_elements.dart' show CommonElements, ElementEnvironment;
-import '../../elements/resolution_types.dart' show ResolutionDartType;
 import '../../deferred_load.dart' show OutputUnit;
-import '../../elements/elements.dart'
-    show ConstructorBodyElement, LibraryElement, TypedefElement;
 import '../../elements/entities.dart';
 import '../../elements/entity_utils.dart' as utils;
+import '../../elements/types.dart';
 import '../../elements/names.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
@@ -76,10 +74,10 @@ class EmitterFactory implements js_emitter.EmitterFactory {
   bool get supportsReflection => true;
 
   @override
-  Emitter createEmitter(
-      CodeEmitterTask task, Namer namer, ClosedWorld closedWorld) {
-    return new Emitter(task.compiler, namer, closedWorld, generateSourceMap,
-        task, task.sorter);
+  Emitter createEmitter(CodeEmitterTask task, Namer namer,
+      ClosedWorld closedWorld, Sorter sorter) {
+    return new Emitter(
+        task.compiler, namer, closedWorld, generateSourceMap, task, sorter);
   }
 }
 
@@ -92,7 +90,7 @@ class Emitter extends js_emitter.EmitterBase {
   // collector.
   Map<OutputUnit, List<FieldEntity>> outputStaticNonFinalFieldLists;
   Map<OutputUnit, Set<LibraryEntity>> outputLibraryLists;
-  List<TypedefElement> typedefsNeededForReflection;
+  List<TypedefEntity> typedefsNeededForReflection;
 
   final ContainerBuilder containerBuilder = new ContainerBuilder();
   final ClassEmitter classEmitter;
@@ -179,7 +177,7 @@ class Emitter extends js_emitter.EmitterBase {
         compiler.options,
         _closedWorld.commonElements,
         compiler.codegenWorldBuilder,
-        compiler.backend.rtiNeed,
+        _closedWorld.rtiNeed,
         compiler.backend.rtiEncoder,
         namer,
         task,
@@ -465,7 +463,7 @@ class Emitter extends js_emitter.EmitterBase {
 
   String getReflectionMemberNameInternal(
       MemberEntity member, jsAst.Name mangledName) {
-    if (member is ConstructorBodyElement) {
+    if (member is ConstructorBodyEntity) {
       return null;
     }
     if (member.isGetter) {
@@ -514,13 +512,13 @@ class Emitter extends js_emitter.EmitterBase {
     return null;
   }
 
-  /// Returns the "reflection name" of a [TypedefElement], if needed.
+  /// Returns the "reflection name" of a [TypedefEntity], if needed.
   ///
   /// The reflection name of typedef 'F' is 'F'.
   ///
   /// This is used by js_mirrors.dart.
   String getReflectionTypedefName(
-      TypedefElement typedef, jsAst.Name mangledName) {
+      TypedefEntity typedef, jsAst.Name mangledName) {
     String name = typedef.name;
     if (backend.mirrorsData.shouldRetainName(name)) {
       // TODO(ahe): Enable the next line when I can tell the difference between
@@ -579,22 +577,19 @@ class Emitter extends js_emitter.EmitterBase {
       // constructor-functions and getter/setter functions can be stored in the
       // library-description table. Setting properties on these can be moved to
       // finishClasses.
-      return js.statement(
-          r"""
+      return js.statement(r"""
         #precompiled = function ($collectedClasses$) {
           #norename;
           var $desc;
           #functions;
           return #result;
-        };""",
-          {
-            'norename': new jsAst.Comment("// ::norenaming:: "),
-            'precompiled':
-                generateEmbeddedGlobalAccess(embeddedNames.PRECOMPILED),
-            'functions': cspPrecompiledFunctionFor(outputUnit),
-            'result': new jsAst.ArrayInitializer(
-                cspPrecompiledConstructorNamesFor(outputUnit))
-          });
+        };""", {
+        'norename': new jsAst.Comment("// ::norenaming:: "),
+        'precompiled': generateEmbeddedGlobalAccess(embeddedNames.PRECOMPILED),
+        'functions': cspPrecompiledFunctionFor(outputUnit),
+        'result': new jsAst.ArrayInitializer(
+            cspPrecompiledConstructorNamesFor(outputUnit))
+      });
     } else {
       return js.comment("Constructors are generated at runtime.");
     }
@@ -673,8 +668,7 @@ class Emitter extends js_emitter.EmitterBase {
       needsLazyInitializer = true;
       List<jsAst.Expression> laziesInfo =
           buildLaziesInfo(lazyFields, isMainFragment);
-      return js.statement(
-          '''
+      return js.statement('''
       (function(lazies) {
         for (var i = 0; i < lazies.length; ) {
           var fieldName = lazies[i++];
@@ -705,14 +699,13 @@ class Emitter extends js_emitter.EmitterBase {
           }
         }
       })(#laziesInfo)
-      ''',
-          {
-            'notMinified': !compiler.options.enableMinification,
-            'laziesInfo': new jsAst.ArrayInitializer(laziesInfo),
-            'lazy': js(lazyInitializerName),
-            'isMainFragment': isMainFragment,
-            'isDeferredFragment': !isMainFragment
-          });
+      ''', {
+        'notMinified': !compiler.options.enableMinification,
+        'laziesInfo': new jsAst.ArrayInitializer(laziesInfo),
+        'lazy': js(lazyInitializerName),
+        'isMainFragment': isMainFragment,
+        'isDeferredFragment': !isMainFragment
+      });
     } else {
       return js.comment("No lazy statics.");
     }
@@ -787,8 +780,7 @@ class Emitter extends js_emitter.EmitterBase {
 
   jsAst.Statement buildMakeConstantList(bool outputContainsConstantList) {
     if (outputContainsConstantList) {
-      return js.statement(
-          r'''
+      return js.statement(r'''
           // Functions are stored in the hidden class and not as properties in
           // the object. We never actually look at the value, but only want
           // to know if the property exists.
@@ -796,8 +788,7 @@ class Emitter extends js_emitter.EmitterBase {
             list.immutable$list = Array;
             list.fixed$length = Array;
             return list;
-          }''',
-          [namer.isolateName, makeConstListProperty]);
+          }''', [namer.isolateName, makeConstListProperty]);
     } else {
       return js.comment("Output contains no constant list.");
     }
@@ -821,18 +812,14 @@ class Emitter extends js_emitter.EmitterBase {
     if (NativeGenerator
         .needsIsolateAffinityTagInitialization(_closedWorld.backendUsage)) {
       parts.add(NativeGenerator.generateIsolateAffinityTagInitialization(
-          _closedWorld.backendUsage,
-          generateEmbeddedGlobalAccess,
-          js(
-              """
+          _closedWorld.backendUsage, generateEmbeddedGlobalAccess, js("""
         // On V8, the 'intern' function converts a string to a symbol, which
         // makes property access much faster.
         function (s) {
           var o = {};
           o[s] = 1;
           return Object.keys(convertToFastObject(o))[0];
-        }""",
-              [])));
+        }""", [])));
     }
 
     parts
@@ -859,8 +846,7 @@ class Emitter extends js_emitter.EmitterBase {
     jsAst.Expression laziesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.LAZIES);
 
-    return js.statement(
-        '''
+    return js.statement('''
       function init() {
         $isolatePropertiesName = Object.create(null);
         #allClasses = map();
@@ -964,22 +950,21 @@ class Emitter extends js_emitter.EmitterBase {
           return Isolate;
       }
 
-      }''',
-        {
-          'allClasses': allClassesAccess,
-          'getTypeFromName': getTypeFromNameAccess,
-          'interceptorsByTag': interceptorsByTagAccess,
-          'leafTags': leafTagsAccess,
-          'finishedClasses': finishedClassesAccess,
-          'needsLazyInitializer': needsLazyInitializer,
-          'lazies': laziesAccess,
-          'cyclicThrow': cyclicThrow,
-          'isolatePropertiesName': namer.isolatePropertiesName,
-          'outputContainsConstantList': outputContainsConstantList,
-          'makeConstListProperty': makeConstListProperty,
-          'functionThatReturnsNullProperty':
-              backend.rtiEncoder.getFunctionThatReturnsNullName,
-        });
+      }''', {
+      'allClasses': allClassesAccess,
+      'getTypeFromName': getTypeFromNameAccess,
+      'interceptorsByTag': interceptorsByTagAccess,
+      'leafTags': leafTagsAccess,
+      'finishedClasses': finishedClassesAccess,
+      'needsLazyInitializer': needsLazyInitializer,
+      'lazies': laziesAccess,
+      'cyclicThrow': cyclicThrow,
+      'isolatePropertiesName': namer.isolatePropertiesName,
+      'outputContainsConstantList': outputContainsConstantList,
+      'makeConstListProperty': makeConstListProperty,
+      'functionThatReturnsNullProperty':
+          backend.rtiEncoder.getFunctionThatReturnsNullName,
+    });
   }
 
   jsAst.Statement buildConvertToFastObjectFunction() {
@@ -998,8 +983,7 @@ class Emitter extends js_emitter.EmitterBase {
         }'''));
     }
 
-    return js.statement(
-        r'''
+    return js.statement(r'''
       function convertToFastObject(properties) {
         // Create an instance that uses 'properties' as prototype. This should
         // make 'properties' a fast object.
@@ -1008,8 +992,7 @@ class Emitter extends js_emitter.EmitterBase {
         new MyClass();
         #;
         return properties;
-      }''',
-        [debugCode]);
+      }''', [debugCode]);
   }
 
   jsAst.Statement buildConvertToSlowObjectFunction() {
@@ -1158,10 +1141,10 @@ class Emitter extends js_emitter.EmitterBase {
     // Emit all required typedef declarations into the main output unit.
     // TODO(karlklose): unify required classes and typedefs to declarations
     // and have builders for each kind.
-    for (TypedefElement typedef in typedefsNeededForReflection) {
-      LibraryElement library = typedef.library;
+    for (TypedefEntity typedef in typedefsNeededForReflection) {
+      LibraryEntity library = typedef.library;
       // TODO(karlklose): add a TypedefBuilder and move this code there.
-      ResolutionDartType type = typedef.alias;
+      FunctionType type = _elementEnvironment.getFunctionTypeOfTypedef(typedef);
       // TODO(zarah): reify type variables once reflection on type arguments of
       // typedefs is supported.
       jsAst.Expression typeIndex =
@@ -1264,15 +1247,13 @@ class Emitter extends js_emitter.EmitterBase {
        '''));
 
       for (String object in Namer.userGlobalObjects) {
-        parts.add(js.statement(
-            '''
+        parts.add(js.statement('''
           if (typeof print === "function") {
             print("Size of " + #objectString + ": "
                   + String(Object.getOwnPropertyNames(#object).length)
                   + ", fast properties " + HasFastProperties(#object));
           }
-        ''',
-            {"object": object, "objectString": js.string(object)}));
+        ''', {"object": object, "objectString": js.string(object)}));
       }
     }
 
@@ -1405,8 +1386,7 @@ class Emitter extends js_emitter.EmitterBase {
 
     // Using a named function here produces easier to read stack traces in
     // Chrome/V8.
-    statements.add(js.statement(
-        """
+    statements.add(js.statement("""
     (function() {
        // No renaming in the top-level function to save the locals for the
        // nested context where they will be used more. We have to put the
@@ -1503,48 +1483,44 @@ class Emitter extends js_emitter.EmitterBase {
 
        #main;
     })();
-    """,
-        {
-          "disableVariableRenaming": js.comment("/* ::norenaming:: */"),
-          "isProgramSplit": isProgramSplit,
-          "supportsDirectProtoAccess": buildSupportsDirectProtoAccess(),
-          "globalsHolder": globalsHolder,
-          "globalObjectSetup": buildGlobalObjectSetup(isProgramSplit),
-          "isolateName": namer.isolateName,
-          "isolatePropertiesName": js(isolatePropertiesName),
-          "initName": initName,
-          "functionThatReturnsNull": buildFunctionThatReturnsNull(),
-          "mangledNames": buildMangledNames(),
-          "setupProgram": buildSetupProgram(
-              program, compiler, backend, namer, this, _closedWorld),
-          "setupProgramName": setupProgramName,
-          "descriptors": descriptorsAst,
-          "cspPrecompiledFunctions":
-              buildCspPrecompiledFunctionFor(mainOutputUnit),
-          "getInterceptorMethods":
-              interceptorEmitter.buildGetInterceptorMethods(),
-          "oneShotInterceptors": interceptorEmitter.buildOneShotInterceptors(),
-          "makeConstantList":
-              buildMakeConstantList(program.outputContainsConstantList),
-          "compileTimeConstants": buildCompileTimeConstants(
-              mainFragment.constants,
-              isMainFragment: true),
-          "deferredBoilerPlate": buildDeferredBoilerPlate(deferredLoadHashes),
-          "staticNonFinalInitializers":
-              buildStaticNonFinalFieldInitializations(mainOutputUnit),
-          "typeToInterceptorMap":
-              interceptorEmitter.buildTypeToInterceptorMap(program),
-          "lazyStaticFields": buildLazilyInitializedStaticFields(
-              mainFragment.staticLazilyInitializedFields),
-          "metadata": buildMetadata(program, mainOutputUnit),
-          "convertToFastObject": buildConvertToFastObjectFunction(),
-          "convertToSlowObject": buildConvertToSlowObjectFunction(),
-          "convertGlobalObjectsToFastObjects":
-              buildConvertGlobalObjectToFastObjects(),
-          "debugFastObjects": buildDebugFastObjectCode(),
-          "init": buildInitFunction(program.outputContainsConstantList),
-          "main": buildMain(mainFragment.invokeMain)
-        }));
+    """, {
+      "disableVariableRenaming": js.comment("/* ::norenaming:: */"),
+      "isProgramSplit": isProgramSplit,
+      "supportsDirectProtoAccess": buildSupportsDirectProtoAccess(),
+      "globalsHolder": globalsHolder,
+      "globalObjectSetup": buildGlobalObjectSetup(isProgramSplit),
+      "isolateName": namer.isolateName,
+      "isolatePropertiesName": js(isolatePropertiesName),
+      "initName": initName,
+      "functionThatReturnsNull": buildFunctionThatReturnsNull(),
+      "mangledNames": buildMangledNames(),
+      "setupProgram": buildSetupProgram(
+          program, compiler, backend, namer, this, _closedWorld),
+      "setupProgramName": setupProgramName,
+      "descriptors": descriptorsAst,
+      "cspPrecompiledFunctions": buildCspPrecompiledFunctionFor(mainOutputUnit),
+      "getInterceptorMethods": interceptorEmitter.buildGetInterceptorMethods(),
+      "oneShotInterceptors": interceptorEmitter.buildOneShotInterceptors(),
+      "makeConstantList":
+          buildMakeConstantList(program.outputContainsConstantList),
+      "compileTimeConstants": buildCompileTimeConstants(mainFragment.constants,
+          isMainFragment: true),
+      "deferredBoilerPlate": buildDeferredBoilerPlate(deferredLoadHashes),
+      "staticNonFinalInitializers":
+          buildStaticNonFinalFieldInitializations(mainOutputUnit),
+      "typeToInterceptorMap":
+          interceptorEmitter.buildTypeToInterceptorMap(program),
+      "lazyStaticFields": buildLazilyInitializedStaticFields(
+          mainFragment.staticLazilyInitializedFields),
+      "metadata": buildMetadata(program, mainOutputUnit),
+      "convertToFastObject": buildConvertToFastObjectFunction(),
+      "convertToSlowObject": buildConvertToSlowObjectFunction(),
+      "convertGlobalObjectsToFastObjects":
+          buildConvertGlobalObjectToFastObjects(),
+      "debugFastObjects": buildDebugFastObjectCode(),
+      "init": buildInitFunction(program.outputContainsConstantList),
+      "main": buildMain(mainFragment.invokeMain)
+    }));
 
     return new jsAst.Program(statements);
   }
@@ -1719,8 +1695,7 @@ class Emitter extends js_emitter.EmitterBase {
       Map<OutputUnit, _DeferredOutputUnitHash> deferredLoadHashes) {
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
-    parts.add(js.statement(
-        '''
+    parts.add(js.statement('''
         {
           // Function for checking if a hunk is loaded given its hash.
           #isHunkLoaded = function(hunkHash) {
@@ -1733,23 +1708,26 @@ class Emitter extends js_emitter.EmitterBase {
           };
           // Function for initializing a loaded hunk, given its hash.
           #initializeLoadedHunk = function(hunkHash) {
-            $deferredInitializers[hunkHash](
-            #globalsHolder, ${namer.staticStateHolder});
+            var hunk = $deferredInitializers[hunkHash];
+            if (hunk == null) {
+                throw "DeferredLoading state error: code with hash '" +
+                    hunkHash + "' was not loaded";
+            }
+            hunk(#globalsHolder, ${namer.staticStateHolder});
             #deferredInitialized[hunkHash] = true;
           };
         }
-        ''',
-        {
-          "globalsHolder": globalsHolder,
-          "isHunkLoaded":
-              generateEmbeddedGlobalAccess(embeddedNames.IS_HUNK_LOADED),
-          "isHunkInitialized":
-              generateEmbeddedGlobalAccess(embeddedNames.IS_HUNK_INITIALIZED),
-          "initializeLoadedHunk": generateEmbeddedGlobalAccess(
-              embeddedNames.INITIALIZE_LOADED_HUNK),
-          "deferredInitialized":
-              generateEmbeddedGlobalAccess(embeddedNames.DEFERRED_INITIALIZED)
-        }));
+        ''', {
+      "globalsHolder": globalsHolder,
+      "isHunkLoaded":
+          generateEmbeddedGlobalAccess(embeddedNames.IS_HUNK_LOADED),
+      "isHunkInitialized":
+          generateEmbeddedGlobalAccess(embeddedNames.IS_HUNK_INITIALIZED),
+      "initializeLoadedHunk":
+          generateEmbeddedGlobalAccess(embeddedNames.INITIALIZE_LOADED_HUNK),
+      "deferredInitialized":
+          generateEmbeddedGlobalAccess(embeddedNames.DEFERRED_INITIALIZED)
+    }));
 
     // Write a javascript mapping from Deferred import load ids (derrived
     // from the import prefix.) to a list of lists of uris of hunks to load,
@@ -1951,10 +1929,7 @@ class Emitter extends js_emitter.EmitterBase {
 
   jsAst.Comment buildGeneratedBy() {
     List<String> options = [];
-    if (commonElements.mirrorsLibrary != null &&
-        !compiler.options.loadFromDill) {
-      // TODO(johnniwinther): Add `isMirrorsUsed` to [BackendData] instead
-      // of checking `mirrorsLibrary`.
+    if (_closedWorld.backendUsage.isMirrorsUsed) {
       options.add('mirrors');
     }
     if (compiler.options.useContentSecurityPolicy) options.add("CSP");

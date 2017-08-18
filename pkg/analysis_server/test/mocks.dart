@@ -16,8 +16,8 @@ import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 /**
  * Answer the absolute path the SDK relative to the currently running
@@ -68,16 +68,16 @@ class MockAnalysisContext extends StringTypedMock implements AnalysisContext {
   MockAnalysisContext(String name) : super(name);
 }
 
-class MockClassElement extends TypedMock implements ClassElement {
+class MockClassElement extends Mock implements ClassElement {
   final ElementKind kind = ElementKind.CLASS;
 }
 
-class MockCompilationUnitElement extends TypedMock
+class MockCompilationUnitElement extends Mock
     implements CompilationUnitElement {
   final ElementKind kind = ElementKind.COMPILATION_UNIT;
 }
 
-class MockConstructorElement extends TypedMock implements ConstructorElement {
+class MockConstructorElement extends Mock implements ConstructorElement {
   final kind = ElementKind.CONSTRUCTOR;
 }
 
@@ -91,33 +91,32 @@ class MockElement extends StringTypedMock implements Element {
   String get name => _toString;
 }
 
-class MockFieldElement extends TypedMock implements FieldElement {
+class MockFieldElement extends Mock implements FieldElement {
   final ElementKind kind = ElementKind.FIELD;
 }
 
-class MockFunctionElement extends TypedMock implements FunctionElement {
+class MockFunctionElement extends Mock implements FunctionElement {
   final ElementKind kind = ElementKind.FUNCTION;
 }
 
-class MockFunctionTypeAliasElement extends TypedMock
+class MockFunctionTypeAliasElement extends Mock
     implements FunctionTypeAliasElement {
   final ElementKind kind = ElementKind.FUNCTION_TYPE_ALIAS;
 }
 
-class MockImportElement extends TypedMock implements ImportElement {
+class MockImportElement extends Mock implements ImportElement {
   final ElementKind kind = ElementKind.IMPORT;
 }
 
-class MockLibraryElement extends TypedMock implements LibraryElement {
+class MockLibraryElement extends Mock implements LibraryElement {
   final ElementKind kind = ElementKind.LIBRARY;
 }
 
-class MockLocalVariableElement extends TypedMock
-    implements LocalVariableElement {
+class MockLocalVariableElement extends Mock implements LocalVariableElement {
   final ElementKind kind = ElementKind.LOCAL_VARIABLE;
 }
 
-class MockLogger extends TypedMock implements Logger {}
+class MockLogger extends Mock implements Logger {}
 
 class MockMethodElement extends StringTypedMock implements MethodElement {
   final kind = ElementKind.METHOD;
@@ -164,11 +163,11 @@ class MockPackageMapProvider implements PubPackageMapProvider {
   }
 }
 
-class MockParameterElement extends TypedMock implements ParameterElement {
+class MockParameterElement extends Mock implements ParameterElement {
   final ElementKind kind = ElementKind.PARAMETER;
 }
 
-class MockPropertyAccessorElement extends TypedMock
+class MockPropertyAccessorElement extends Mock
     implements PropertyAccessorElement {
   final ElementKind kind;
   MockPropertyAccessorElement(this.kind);
@@ -293,13 +292,12 @@ class MockSource extends StringTypedMock implements Source {
   MockSource([String name = 'mocked.dart']) : super(name);
 }
 
-class MockTopLevelVariableElement extends TypedMock
+class MockTopLevelVariableElement extends Mock
     implements TopLevelVariableElement {
   final ElementKind kind = ElementKind.TOP_LEVEL_VARIABLE;
 }
 
-class MockTypeParameterElement extends TypedMock
-    implements TypeParameterElement {
+class MockTypeParameterElement extends Mock implements TypeParameterElement {
   final ElementKind kind = ElementKind.TYPE_PARAMETER;
 }
 
@@ -316,7 +314,7 @@ class NoResponseException implements Exception {
   }
 }
 
-class StringTypedMock extends TypedMock {
+class StringTypedMock extends Mock {
   String _toString;
 
   StringTypedMock(this._toString);

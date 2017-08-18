@@ -127,6 +127,41 @@ analyzer:
     expect(excludes, unorderedEquals(['foo/bar.dart', 'test/**']));
   }
 
+  test_configure_plugins_list() {
+    configureContext('''
+analyzer:
+  plugins:
+    - angular2
+    - intl
+''');
+
+    List<String> names = analysisOptions.enabledPluginNames;
+    expect(names, ['angular2', 'intl']);
+  }
+
+  test_configure_plugins_map() {
+    configureContext('''
+analyzer:
+  plugins:
+    angular2:
+      enabled: true
+''');
+
+    List<String> names = analysisOptions.enabledPluginNames;
+    expect(names, ['angular2']);
+  }
+
+  test_configure_plugins_string() {
+    configureContext('''
+analyzer:
+  plugins:
+    angular2
+''');
+
+    List<String> names = analysisOptions.enabledPluginNames;
+    expect(names, ['angular2']);
+  }
+
   test_configure_strong_mode() {
     configureContext('''
 analyzer:
@@ -261,19 +296,44 @@ class ErrorCodeValuesTest {
 }
 
 @reflectiveTest
-class GenerateNewOptionsErrorsTaskTest extends GenerateOptionsErrorsTaskTest {
-  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+class GenerateOldOptionsErrorsTaskTest extends AbstractContextTest {
+  final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
+
+  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
+
+  test_does_analyze_old_options_files() {
+    validate('''
+analyzer:
+  strong-mode: true
+    ''', [AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME]);
+  }
+
+  test_finds_issues_in_old_options_files() {
+    validate('''
+analyzer:
+  strong_mode: true
+    ''', [
+      AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
+      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES
+    ]);
+  }
+
+  void validate(String content, List<ErrorCode> expected) {
+    final Source source = newSource(optionsFilePath, content);
+    var options = optionsProvider.getOptionsFromSource(source);
+    final OptionsFileValidator validator = new OptionsFileValidator(source);
+    var errors = validator.validate(options);
+    expect(errors.map((AnalysisError e) => e.errorCode),
+        unorderedEquals(expected));
+  }
 }
 
 @reflectiveTest
-class GenerateOldOptionsErrorsTaskTest extends GenerateOptionsErrorsTaskTest {
-  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
-}
-
-abstract class GenerateOptionsErrorsTaskTest extends AbstractContextTest {
+class GenerateNewOptionsErrorsTaskTest extends AbstractContextTest {
   Source source;
 
-  String get optionsFilePath;
+  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+
   LineInfo lineInfo(String source) =>
       GenerateOptionsErrorsTask.computeLineInfo(source);
 
@@ -357,9 +417,7 @@ include: other_options.yaml
   }
 
   test_perform_include_bad_value() {
-    newSource(
-        '/other_options.yaml',
-        '''
+    newSource('/other_options.yaml', '''
 analyzer:
   errors:
     unused_local_variable: ftw
@@ -454,133 +512,107 @@ class OptionsFileValidatorTest {
   final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
 
   test_analyzer_error_code_supported() {
-    validate(
-        '''
+    validate('''
 analyzer:
   errors:
     unused_local_variable: ignore
     invalid_assignment: warning
     missing_return: error
     dead_code: info
-''',
-        []);
+''', []);
   }
 
   test_analyzer_error_code_supported_bad_value() {
-    validate(
-        '''
+    validate('''
 analyzer:
   errors:
     unused_local_variable: ftw
-    ''',
-        [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
+    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
   }
 
   test_analyzer_error_code_unsupported() {
-    validate(
-        '''
+    validate('''
 analyzer:
   errors:
     not_supported: ignore
-    ''',
-        [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE]);
+    ''', [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE]);
   }
 
   test_analyzer_language_supported() {
-    validate(
-        '''
+    validate('''
 analyzer:
   language:
     enableSuperMixins: true
-''',
-        []);
+''', []);
   }
 
   test_analyzer_language_unsupported_key() {
-    validate(
-        '''
+    validate('''
 analyzer:
   language:
     unsupported: true
-''',
-        [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
   }
 
   test_analyzer_language_unsupported_value() {
-    validate(
-        '''
+    validate('''
 analyzer:
   language:
     enableSuperMixins: foo
-''',
-        [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 
   test_analyzer_strong_mode_error_code_supported() {
-    validate(
-        '''
+    validate('''
 analyzer:
   errors:
     strong_mode_assignment_cast: ignore
-''',
-        []);
+''', []);
   }
 
   test_analyzer_supported_exclude() {
-    validate(
-        '''
+    validate('''
 analyzer:
   exclude:
     - test/_data/p4/lib/lib1.dart
-    ''',
-        []);
+    ''', []);
   }
 
   test_analyzer_supported_strong_mode() {
-    validate(
-        '''
+    validate('''
 analyzer:
   strong-mode: true
-    ''',
-        []);
+    ''', []);
   }
 
   test_analyzer_supported_strong_mode_supported_bad_value() {
-    validate(
-        '''
+    validate('''
 analyzer:
   strong-mode: w00t
-    ''',
-        [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
+    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 
   test_analyzer_unsupported_option() {
-    validate(
-        '''
+    validate('''
 analyzer:
   not_supported: true
-    ''',
-        [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
+    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
   }
 
   test_linter_supported_rules() {
     Registry.ruleRegistry.register(new TestRule());
-    validate(
-        '''
+    validate('''
 linter:
   rules:
     - fantastic_test_rule
-    ''',
-        []);
+    ''', []);
   }
 
   test_linter_unsupported_option() {
-    validate(
-        '''
+    validate('''
 linter:
   unsupported: true
-    ''',
-        [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
+    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
   }
 
   void validate(String source, List<ErrorCode> expected) {

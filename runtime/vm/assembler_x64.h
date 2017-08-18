@@ -42,7 +42,6 @@ class Immediate : public ValueObject {
   // And remove the unnecessary copy constructor.
 };
 
-
 class Operand : public ValueObject {
  public:
   uint8_t rex() const { return rex_; }
@@ -158,7 +157,6 @@ class Operand : public ValueObject {
   friend class Assembler;
 };
 
-
 class Address : public Operand {
  public:
   Address(Register base, int32_t disp) {
@@ -252,7 +250,6 @@ class Address : public Operand {
   }
 };
 
-
 class FieldAddress : public Address {
  public:
   FieldAddress(Register base, int32_t disp)
@@ -274,7 +271,6 @@ class FieldAddress : public Address {
     return *this;
   }
 };
-
 
 class Label : public ValueObject {
  public:
@@ -343,7 +339,6 @@ class Label : public ValueObject {
   friend class Assembler;
   DISALLOW_COPY_AND_ASSIGN(Label);
 };
-
 
 class Assembler : public ValueObject {
  public:
@@ -690,16 +685,8 @@ class Assembler : public ValueObject {
 
   void lock();
   void cmpxchgl(const Address& address, Register reg);
-  void lock_cmpxchgl(const Address& address, Register reg) {
-    lock();
-    cmpxchgl(address, reg);
-  }
 
   void cmpxchgq(const Address& address, Register reg);
-  void lock_cmpxchgq(const Address& address, Register reg) {
-    lock();
-    cmpxchgq(address, reg);
-  }
 
   void cpuid();
 
@@ -799,6 +786,11 @@ class Assembler : public ValueObject {
   void LockCmpxchgq(const Address& address, Register reg) {
     lock();
     cmpxchgq(address, reg);
+  }
+
+  void LockCmpxchgl(const Address& address, Register reg) {
+    lock();
+    cmpxchgl(address, reg);
   }
 
   void PushRegisters(intptr_t cpu_register_set, intptr_t xmm_register_set);
@@ -1081,21 +1073,17 @@ class Assembler : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(Assembler);
 };
 
-
 inline void Assembler::EmitUint8(uint8_t value) {
   buffer_.Emit<uint8_t>(value);
 }
-
 
 inline void Assembler::EmitInt32(int32_t value) {
   buffer_.Emit<int32_t>(value);
 }
 
-
 inline void Assembler::EmitInt64(int64_t value) {
   buffer_.Emit<int64_t>(value);
 }
-
 
 inline void Assembler::EmitRegisterREX(Register reg, uint8_t rex) {
   ASSERT(reg != kNoRegister);
@@ -1103,14 +1091,12 @@ inline void Assembler::EmitRegisterREX(Register reg, uint8_t rex) {
   if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
 }
 
-
 inline void Assembler::EmitOperandREX(int rm,
                                       const Operand& operand,
                                       uint8_t rex) {
   rex |= (rm > 7 ? REX_R : REX_NONE) | operand.rex();
   if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
 }
-
 
 inline void Assembler::EmitREX_RB(XmmRegister reg,
                                   XmmRegister base,
@@ -1120,7 +1106,6 @@ inline void Assembler::EmitREX_RB(XmmRegister reg,
   if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
 }
 
-
 inline void Assembler::EmitREX_RB(XmmRegister reg,
                                   const Operand& operand,
                                   uint8_t rex) {
@@ -1129,13 +1114,11 @@ inline void Assembler::EmitREX_RB(XmmRegister reg,
   if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
 }
 
-
 inline void Assembler::EmitREX_RB(XmmRegister reg, Register base, uint8_t rex) {
   if (reg > 7) rex |= REX_R;
   if (base > 7) rex |= REX_B;
   if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
 }
-
 
 inline void Assembler::EmitREX_RB(Register reg, XmmRegister base, uint8_t rex) {
   if (reg > 7) rex |= REX_R;
@@ -1143,11 +1126,9 @@ inline void Assembler::EmitREX_RB(Register reg, XmmRegister base, uint8_t rex) {
   if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
 }
 
-
 inline void Assembler::EmitFixup(AssemblerFixup* fixup) {
   buffer_.EmitFixup(fixup);
 }
-
 
 inline void Assembler::EmitOperandSizeOverride() {
   EmitUint8(0x66);

@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/errors.dart';
-import 'package:front_end/src/scanner/token.dart' show BeginToken, Token;
+import '../../scanner/token.dart' show BeginToken, Token;
+
+import '../problems.dart' show internalProblem;
+
+import '../fasta_codes.dart' show messageInternalProblemPreviousTokenNotFound;
 
 /// Provides the capability of inserting tokens into a token stream by rewriting
 /// the previous token to point to the inserted token.
@@ -33,11 +36,11 @@ class TokenStreamRewriter {
   Token get firstToken => _head.next;
 
   /// Inserts [newToken] into the token stream just before [insertionPoint], and
-  /// fixes up all "next" and "previous" pointers.
+  /// fixes up all "next" and "previous" pointers. Returns [newToken].
   ///
   /// Caller is required to ensure that [insertionPoint] is actually present in
   /// the token stream.
-  void insertTokenBefore(Token newToken, Token insertionPoint) {
+  Token insertTokenBefore(Token newToken, Token insertionPoint) {
     Token previous = _findPreviousToken(insertionPoint);
     _lastPreviousToken = previous;
     newToken.next = insertionPoint;
@@ -49,6 +52,7 @@ class TokenStreamRewriter {
       insertionPoint.previous = newToken;
       newToken.previous = previous;
     }
+    return newToken;
   }
 
   /// Finds the token that immediately precedes [target].
@@ -73,7 +77,8 @@ class TokenStreamRewriter {
     // Otherwise scan forward from the start of the token stream.
     Token previous = _scanForPreviousToken(target, _head);
     if (previous == null) {
-      internalError('Could not find previous token');
+      internalProblem(
+          messageInternalProblemPreviousTokenNotFound, target.charOffset, null);
     }
     return previous;
   }

@@ -473,11 +473,6 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   CompilationUnit computeNode();
 
   /**
-   * Return the element at the given [offset], maybe `null` if no such element.
-   */
-  Element getElementAt(int offset);
-
-  /**
    * Return the enum defined in this compilation unit that has the given [name],
    * or `null` if this compilation unit does not define an enum with the given
    * name.
@@ -1159,18 +1154,6 @@ abstract class ExecutableElement implements FunctionTypedElement {
    * synchronous.
    */
   bool get isSynchronous;
-
-  /**
-   * Return a list containing all of the labels defined within this executable
-   * element.
-   */
-  List<LabelElement> get labels;
-
-  /**
-   * Return a list containing all of the local variables defined within this
-   * executable element.
-   */
-  List<LocalVariableElement> get localVariables;
 }
 
 /**

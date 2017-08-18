@@ -9,6 +9,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/kernel_binary.h"
 #include "vm/kernel_binary_flowgraph.h"
+#include "vm/kernel_to_il.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -32,19 +33,24 @@ class SimpleExpressionConverter {
         simple_value_(NULL),
         builder_(builder) {}
 
-
   bool IsSimple(intptr_t kernel_offset) {
     AlternativeReadingScope alt(builder_->reader_, kernel_offset);
     uint8_t payload = 0;
     Tag tag = builder_->ReadTag(&payload);  // read tag.
     switch (tag) {
-      case kBigIntLiteral:
-        simple_value_ = &Integer::ZoneHandle(
-            Z, Integer::New(
-                   H.DartString(builder_->ReadStringReference(),
-                                Heap::kOld)));  // read index into string table.
+      case kBigIntLiteral: {
+        const String& literal_str =
+            H.DartString(builder_->ReadStringReference(),
+                         Heap::kOld);  // read index into string table.
+        simple_value_ = &Integer::ZoneHandle(Z, Integer::New(literal_str));
+        if (simple_value_->IsNull()) {
+          H.ReportError("Integer literal %s is out of range",
+                        literal_str.ToCString());
+          UNREACHABLE();
+        }
         *simple_value_ = H.Canonicalize(*simple_value_);
         return true;
+      }
       case kStringLiteral:
         simple_value_ = &H.DartSymbol(
             builder_->ReadStringReference());  // read index into string table.
@@ -81,23 +87,22 @@ class SimpleExpressionConverter {
         simple_value_ = &Bool::Handle(Z, Bool::Get(false).raw());
         return true;
       case kNullLiteral:
-        simple_value_ = &dart::Instance::ZoneHandle(Z, dart::Instance::null());
+        simple_value_ = &Instance::ZoneHandle(Z, Instance::null());
         return true;
       default:
         return false;
     }
   }
 
-  const dart::Instance& SimpleValue() { return *simple_value_; }
-  dart::Zone* zone() const { return zone_; }
+  const Instance& SimpleValue() { return *simple_value_; }
+  Zone* zone() const { return zone_; }
 
  private:
   TranslationHelper& translation_helper_;
-  dart::Zone* zone_;
-  dart::Instance* simple_value_;
+  Zone* zone_;
+  Instance* simple_value_;
   StreamingFlowGraphBuilder* builder_;
 };
-
 
 RawArray* KernelReader::MakeFunctionsArray() {
   const intptr_t len = functions_.length();
@@ -108,42 +113,36 @@ RawArray* KernelReader::MakeFunctionsArray() {
   return res.raw();
 }
 
-
 RawLibrary* BuildingTranslationHelper::LookupLibraryByKernelLibrary(
     NameIndex library) {
   return reader_->LookupLibrary(library).raw();
 }
 
-
 RawClass* BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass) {
   return reader_->LookupClass(klass).raw();
 }
 
-
 KernelReader::KernelReader(Program* program)
     : program_(program),
-      thread_(dart::Thread::Current()),
+      thread_(Thread::Current()),
       zone_(thread_->zone()),
       isolate_(thread_->isolate()),
       scripts_(Array::ZoneHandle(zone_)),
+      patch_classes_(Array::ZoneHandle(zone_)),
       translation_helper_(this, thread_),
       builder_(&translation_helper_,
                zone_,
-               program_->libraries()[0]->kernel_data(),
-               program_->libraries()[0]->kernel_data_size()) {
+               program_->kernel_data(),
+               program_->kernel_data_size()) {
   T.active_class_ = &active_class_;
   T.finalize_ = false;
 
-  intptr_t source_file_count = program->source_table().size();
-  scripts_ = Array::New(source_file_count, Heap::kOld);
-
-  // We need at least one library to get access to the binary.
-  ASSERT(program->libraries().length() > 0);
-  Library* library = program->libraries()[0];
-  Reader reader(library->kernel_data(), library->kernel_data_size());
+  scripts_ = Array::New(builder_.SourceTableSize(), Heap::kOld);
+  patch_classes_ = Array::New(builder_.SourceTableSize(), Heap::kOld);
 
   // Copy the Kernel string offsets out of the binary and into the VM's heap.
   ASSERT(program->string_table_offset() >= 0);
+  Reader reader(program->kernel_data(), program->kernel_data_size());
   reader.set_offset(program->string_table_offset());
   intptr_t count = reader.ReadUInt() + 1;
   TypedData& offsets = TypedData::Handle(
@@ -156,12 +155,8 @@ KernelReader::KernelReader(Program* program)
   }
 
   // Copy the string data out of the binary and into the VM's heap.
-  TypedData& data = TypedData::Handle(
-      Z, TypedData::New(kTypedDataUint8ArrayCid, end_offset, Heap::kOld));
-  {
-    NoSafepointScope no_safepoint;
-    memmove(data.DataAddr(0), reader.buffer() + reader.offset(), end_offset);
-  }
+  TypedData& data =
+      reader.CopyDataToVMHeap(Z, reader.offset(), reader.offset() + end_offset);
 
   // Copy the canonical names into the VM's heap.  Encode them as unsigned, so
   // the parent indexes are adjusted when extracted.
@@ -178,19 +173,16 @@ KernelReader::KernelReader(Program* program)
   H.SetCanonicalNames(names);
 }
 
-
 Object& KernelReader::ReadProgram() {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    intptr_t length = program_->libraries().length();
+    intptr_t length = program_->library_count();
     for (intptr_t i = 0; i < length; i++) {
-      Library* kernel_library = program_->libraries()[i];
-      ReadLibrary(kernel_library->kernel_offset());
+      ReadLibrary(library_offset(i));
     }
 
     for (intptr_t i = 0; i < length; i++) {
-      dart::Library& library =
-          LookupLibrary(program_->libraries()[i]->canonical_name());
+      Library& library = LookupLibrary(library_canonical_name(i));
       if (!library.Loaded()) library.SetLoaded();
     }
 
@@ -199,11 +191,11 @@ Object& KernelReader::ReadProgram() {
       // when bootstrapping is in progress.
       NameIndex main = program_->main_method();
       if (main == -1) {
-        return dart::Library::Handle(Z);
+        return Library::Handle(Z);
       }
 
       NameIndex main_library = H.EnclosingName(main);
-      dart::Library& library = LookupLibrary(main_library);
+      Library& library = LookupLibrary(main_library);
       // Sanity check that we can find the main entrypoint.
       ASSERT(library.LookupObjectAllowPrivate(H.DartSymbol("main")) !=
              Object::null());
@@ -219,19 +211,52 @@ Object& KernelReader::ReadProgram() {
   return error;
 }
 
+void KernelReader::FindModifiedLibraries(Isolate* isolate,
+                                         BitVector* modified_libs,
+                                         bool force_reload) {
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    if (force_reload) {
+      // If a reload is being forced we mark all libraries as having
+      // been modified.
+      const GrowableObjectArray& libs =
+          GrowableObjectArray::Handle(isolate->object_store()->libraries());
+      intptr_t num_libs = libs.Length();
+      Library& lib = dart::Library::Handle(Z);
+      for (intptr_t i = 0; i < num_libs; i++) {
+        lib ^= libs.At(i);
+        if (!lib.is_dart_scheme()) {
+          modified_libs->Add(lib.index());
+        }
+      }
+      return;
+    }
+    // Now go through all the libraries that are present in the incremental
+    // kernel files, these will constitute the modified libraries.
+    intptr_t length = program_->library_count();
+    for (intptr_t i = 0; i < length; i++) {
+      intptr_t kernel_offset = library_offset(i);
+      builder_.SetOffset(kernel_offset);
+      LibraryHelper library_helper(&builder_);
+      library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
+      dart::Library& lib = LookupLibrary(library_helper.canonical_name_);
+      if (!lib.IsNull() && !lib.is_dart_scheme()) {
+        // This is a library that already exists so mark it as being modified.
+        modified_libs->Add(lib.index());
+      }
+    }
+  }
+}
 
 void KernelReader::ReadLibrary(intptr_t kernel_offset) {
   builder_.SetOffset(kernel_offset);
-
-  int flags = builder_.ReadFlags();
-  ASSERT(flags == 0);  // external libraries not supported
-
-  NameIndex canonical_name =
-      builder_.ReadCanonicalNameReference();  // read canonical name.
-  dart::Library& library = LookupLibrary(canonical_name);
+  LibraryHelper library_helper(&builder_);
+  library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
+  Library& library = LookupLibrary(library_helper.canonical_name_);
   if (library.Loaded()) return;
-  StringIndex name = builder_.ReadStringReference();  // read name.
-  library.SetName(H.DartSymbol(name));
+
+  library_helper.ReadUntilIncluding(LibraryHelper::kName);
+  library.SetName(H.DartSymbol(library_helper.name_index_));
 
   // The bootstrapper will take care of creating the native wrapper classes, but
   // we will add the synthetic constructors to them here.
@@ -243,53 +268,21 @@ void KernelReader::ReadLibrary(intptr_t kernel_offset) {
   }
   // Setup toplevel class (which contains library fields/procedures).
 
-  StringIndex import_uri_index = H.CanonicalNameString(canonical_name);
-  intptr_t source_uri_index = builder_.ReadUInt();  // read source uri index.
+  StringIndex import_uri_index =
+      H.CanonicalNameString(library_helper.canonical_name_);
+  library_helper.ReadUntilIncluding(LibraryHelper::kSourceUriIndex);
+  Script& script = ScriptAt(library_helper.source_uri_index_, import_uri_index);
 
-  Script& script = ScriptAt(source_uri_index, import_uri_index);
-  dart::Class& toplevel_class = dart::Class::Handle(
-      Z, dart::Class::New(library, Symbols::TopLevel(), script,
-                          TokenPosition::kNoSource));
+  Class& toplevel_class =
+      Class::Handle(Z, Class::New(library, Symbols::TopLevel(), script,
+                                  TokenPosition::kNoSource));
   toplevel_class.set_is_cycle_free();
   library.set_toplevel_class(toplevel_class);
 
-  intptr_t annotation_count = builder_.ReadUInt();  // read list length.
-  for (intptr_t i = 0; i < annotation_count; ++i) {
-    builder_.SkipExpression();  // read ith annotation expression.
-  }
-
-  intptr_t dependency_count = builder_.ReadUInt();  // read list length.
-  for (intptr_t i = 0; i < dependency_count; ++i) {
-    builder_.ReadFlags();                    // read flags.
-    annotation_count = builder_.ReadUInt();  // read list length.
-    for (intptr_t i = 0; i < annotation_count; ++i) {
-      builder_.SkipExpression();  // read ith annotation expression.
-    }
-    builder_.ReadCanonicalNameReference();  // read target_reference.
-    builder_.ReadStringReference();         // read name_index.
-    intptr_t combinator_count = builder_.ReadListLength();  // read list length.
-    for (intptr_t i = 0; i < combinator_count; ++i) {
-      builder_.ReadBool();                        // read is_show.
-      intptr_t name_count = builder_.ReadUInt();  // read list length.
-      for (intptr_t j = 0; j < name_count; ++j) {
-        builder_.ReadUInt();  // read ith entry of name_indices.
-      }
-    }
-  }
-
-  // Skip typedefs.
-  intptr_t typedef_count = builder_.ReadListLength();  // read list length.
-  for (intptr_t i = 0; i < typedef_count; i++) {
-    builder_.SkipCanonicalNameReference();  // read canonical name.
-    builder_.ReadPosition();                // read position.
-    builder_.SkipStringReference();         // read name index.
-    builder_.ReadUInt();                    // read source_uri_index.
-    builder_.SkipListOfDartTypes();         // read type parameters.
-    builder_.SkipDartType();                // read type.
-  }
-
   const GrowableObjectArray& classes =
       GrowableObjectArray::Handle(Z, I->object_store()->pending_classes());
+
+  library_helper.ReadUntilExcluding(LibraryHelper::kClasses);
 
   // Load all classes.
   int class_count = builder_.ReadListLength();  // read list length.
@@ -299,32 +292,45 @@ void KernelReader::ReadLibrary(intptr_t kernel_offset) {
 
   fields_.Clear();
   functions_.Clear();
-  ActiveClassScope active_class_scope(&active_class_, 0, -1, &toplevel_class);
+  ActiveClassScope active_class_scope(&active_class_, &toplevel_class);
   // Load toplevel fields.
   intptr_t field_count = builder_.ReadListLength();  // read list length.
   for (intptr_t i = 0; i < field_count; ++i) {
     intptr_t field_offset = builder_.ReaderOffset();
-    ActiveMemberScope active_member_scope(&active_class_, false, false, 0, -1);
+    ActiveMemberScope active_member_scope(&active_class_, NULL);
     FieldHelper field_helper(&builder_);
     field_helper.ReadUntilExcluding(FieldHelper::kName);
 
-    const dart::String& name = builder_.ReadNameAsFieldName();
+    const String& name = builder_.ReadNameAsFieldName();
     field_helper.SetJustRead(FieldHelper::kName);
     field_helper.ReadUntilExcluding(FieldHelper::kType);
     const Object& script_class =
         ClassForScriptAt(toplevel_class, field_helper.source_uri_index_);
-    dart::Field& field = dart::Field::Handle(
-        Z, dart::Field::NewTopLevel(name, field_helper.IsFinal(),
-                                    field_helper.IsConst(), script_class,
-                                    field_helper.position_));
+    Field& field = Field::Handle(
+        Z,
+        Field::NewTopLevel(name, field_helper.IsFinal(), field_helper.IsConst(),
+                           script_class, field_helper.position_));
     field.set_kernel_offset(field_offset);
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
     field_helper.SetJustRead(FieldHelper::kType);
     field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
+    intptr_t field_initializer_offset = builder_.ReaderOffset();
     field.set_has_initializer(builder_.PeekTag() == kSomething);
-    GenerateFieldAccessors(toplevel_class, field, &field_helper, field_offset);
     field_helper.ReadUntilExcluding(FieldHelper::kEnd);
+    TypedData& kernel_data = builder_.reader_->CopyDataToVMHeap(
+        Z, field_offset, builder_.ReaderOffset());
+    field.set_kernel_data(kernel_data);
+    {
+      // GenerateFieldAccessors reads (some of) the initializer.
+      AlternativeReadingScope alt(builder_.reader_, field_initializer_offset);
+      GenerateFieldAccessors(toplevel_class, field, &field_helper,
+                             field_offset);
+    }
+    if (FLAG_enable_mirrors && field_helper.annotation_count_ > 0) {
+      library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset,
+                               &kernel_data);
+    }
     fields_.Add(&field);
     library.AddObject(field, name);
   }
@@ -341,8 +347,7 @@ void KernelReader::ReadLibrary(intptr_t kernel_offset) {
   classes.Add(toplevel_class, Heap::kOld);
 }
 
-
-void KernelReader::ReadPreliminaryClass(dart::Class* klass,
+void KernelReader::ReadPreliminaryClass(Class* klass,
                                         ClassHelper* class_helper,
                                         intptr_t type_parameter_count) {
   // Note: This assumes that ClassHelper is exactly at the position where
@@ -350,51 +355,9 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
   // the binary is as follows: [...], kTypeParameters, kSuperClass, kMixinType,
   // kImplementedClasses, [...].
 
-  // First setup the type parameters, so if any of the following code uses it
-  // (in a recursive way) we're fine.
-  TypeArguments& type_parameters =
-      TypeArguments::Handle(Z, TypeArguments::null());
-  if (type_parameter_count > 0) {
-    dart::TypeParameter& parameter = dart::TypeParameter::Handle(Z);
-    Type& null_bound = Type::Handle(Z, Type::null());
-
-    // Step a) Create array of [TypeParameter] objects (without bound).
-    type_parameters = TypeArguments::New(type_parameter_count);
-    {
-      AlternativeReadingScope alt(builder_.reader_);
-      for (intptr_t i = 0; i < type_parameter_count; i++) {
-        parameter = dart::TypeParameter::New(
-            *klass, Function::Handle(Z), i,
-            H.DartSymbol(
-                builder_.ReadStringReference()),  // read ith name index.
-            null_bound, TokenPosition::kNoSource);
-        type_parameters.SetTypeAt(i, parameter);
-        builder_.SkipDartType();  // read guard.
-      }
-    }
-    klass->set_type_parameters(type_parameters);
-
-    // Step b) Fill in the bounds of all [TypeParameter]s.
-    for (intptr_t i = 0; i < type_parameter_count; i++) {
-      builder_.SkipStringReference();  // read ith name index.
-
-      // TODO(github.com/dart-lang/kernel/issues/42): This should be handled
-      // by the frontend.
-      parameter ^= type_parameters.TypeAt(i);
-      Tag tag = builder_.PeekTag();  // peek ith bound type.
-      if (tag == kDynamicType) {
-        builder_.SkipDartType();  // read ith bound.
-        parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
-      } else {
-        AbstractType& bound =
-            T.BuildTypeWithoutFinalization();  // read ith bound.
-        if (bound.IsMalformedOrMalbounded()) {
-          bound = I->object_store()->object_type();
-        }
-        parameter.set_bound(bound);
-      }
-    }
-  }
+  // Set type parameters.
+  ReadAndSetupTypeParameters(*klass, type_parameter_count, *klass,
+                             Function::Handle(Z));
 
   // Set super type.  Some classes (e.g., Object) do not have one.
   Tag type_tag = builder_.ReadTag();  // read super class type (part 1).
@@ -410,8 +373,8 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
 
   // Build implemented interface types
   intptr_t interface_count = builder_.ReadListLength();
-  const dart::Array& interfaces =
-      dart::Array::Handle(Z, dart::Array::New(interface_count, Heap::kOld));
+  const Array& interfaces =
+      Array::Handle(Z, Array::New(interface_count, Heap::kOld));
   for (intptr_t i = 0; i < interface_count; i++) {
     const AbstractType& type =
         T.BuildTypeWithoutFinalization();  // read ith type.
@@ -424,13 +387,12 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
   if (class_helper->is_abstract_) klass->set_is_abstract();
 }
 
-
-dart::Class& KernelReader::ReadClass(const dart::Library& library,
-                                     const dart::Class& toplevel_class) {
+Class& KernelReader::ReadClass(const Library& library,
+                               const Class& toplevel_class) {
   ClassHelper class_helper(&builder_);
   intptr_t class_offset = builder_.ReaderOffset();
   class_helper.ReadUntilIncluding(ClassHelper::kCanonicalName);
-  dart::Class& klass = LookupClass(class_helper.canonical_name_);
+  Class& klass = LookupClass(class_helper.canonical_name_);
 
   // The class needs to have a script because all the functions in the class
   // will inherit it.  The predicate Function::IsOptimizable uses the absence of
@@ -444,17 +406,17 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
     klass.set_token_pos(class_helper.position_);
   }
 
+  class_helper.ReadUntilIncluding(ClassHelper::kAnnotations);
+  intptr_t class_offset_after_annotations = builder_.ReaderOffset();
   class_helper.ReadUntilExcluding(ClassHelper::kTypeParameters);
-  intptr_t type_paremeter_counts =
+  intptr_t type_parameter_counts =
       builder_.ReadListLength();  // read type_parameters list length.
-  intptr_t type_paremeter_offset = builder_.ReaderOffset();
 
-  ActiveClassScope active_class_scope(&active_class_, type_paremeter_counts,
-                                      type_paremeter_offset, &klass);
+  ActiveClassScope active_class_scope(&active_class_, &klass);
   if (!klass.is_cycle_free()) {
-    ReadPreliminaryClass(&klass, &class_helper, type_paremeter_counts);
+    ReadPreliminaryClass(&klass, &class_helper, type_parameter_counts);
   } else {
-    for (intptr_t i = 0; i < type_paremeter_counts; ++i) {
+    for (intptr_t i = 0; i < type_parameter_counts; ++i) {
       builder_.SkipStringReference();  // read ith name index.
       builder_.SkipDartType();         // read ith bound.
     }
@@ -464,7 +426,7 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
   fields_.Clear();
   functions_.Clear();
 
-  if (library.raw() == dart::Library::InternalLibrary() &&
+  if (library.raw() == Library::InternalLibrary() &&
       klass.Name() == Symbols::ClassID().raw()) {
     // If this is a dart:internal.ClassID class ignore field declarations
     // contained in the Kernel file and instead inject our own const
@@ -475,11 +437,11 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
     int field_count = builder_.ReadListLength();  // read list length.
     for (intptr_t i = 0; i < field_count; ++i) {
       intptr_t field_offset = builder_.ReaderOffset();
-      ActiveMemberScope active_member(&active_class_, false, false, 0, -1);
+      ActiveMemberScope active_member(&active_class_, NULL);
       FieldHelper field_helper(&builder_);
       field_helper.ReadUntilExcluding(FieldHelper::kName);
 
-      const dart::String& name = builder_.ReadNameAsFieldName();
+      const String& name = builder_.ReadNameAsFieldName();
       field_helper.SetJustRead(FieldHelper::kName);
       field_helper.ReadUntilExcluding(FieldHelper::kType);
       const AbstractType& type =
@@ -487,21 +449,35 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
       field_helper.SetJustRead(FieldHelper::kType);
       const Object& script_class =
           ClassForScriptAt(klass, field_helper.source_uri_index_);
-      dart::Field& field = dart::Field::Handle(
-          Z,
-          dart::Field::New(name, field_helper.IsStatic(),
-                           // In the VM all const fields are implicitly final
-                           // whereas in Kernel they are not final because they
-                           // are not explicitly declared that way.
-                           field_helper.IsFinal() || field_helper.IsConst(),
-                           field_helper.IsConst(),
-                           false,  // is_reflectable
-                           script_class, type, field_helper.position_));
+
+      const bool is_reflectable =
+          field_helper.position_.IsReal() &&
+          !(library.is_dart_scheme() && library.IsPrivate(name));
+      Field& field = Field::Handle(
+          Z, Field::New(name, field_helper.IsStatic(),
+                        // In the VM all const fields are implicitly final
+                        // whereas in Kernel they are not final because they
+                        // are not explicitly declared that way.
+                        field_helper.IsFinal() || field_helper.IsConst(),
+                        field_helper.IsConst(), is_reflectable, script_class,
+                        type, field_helper.position_));
       field.set_kernel_offset(field_offset);
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
+      intptr_t field_initializer_offset = builder_.ReaderOffset();
       field.set_has_initializer(builder_.PeekTag() == kSomething);
-      GenerateFieldAccessors(klass, field, &field_helper, field_offset);
       field_helper.ReadUntilExcluding(FieldHelper::kEnd);
+      TypedData& kernel_data = builder_.reader_->CopyDataToVMHeap(
+          Z, field_offset, builder_.ReaderOffset());
+      field.set_kernel_data(kernel_data);
+      {
+        // GenerateFieldAccessors reads (some of) the initializer.
+        AlternativeReadingScope alt(builder_.reader_, field_initializer_offset);
+        GenerateFieldAccessors(klass, field, &field_helper, field_offset);
+      }
+      if (FLAG_enable_mirrors && field_helper.annotation_count_ > 0) {
+        library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset,
+                                 &kernel_data);
+      }
       fields_.Add(&field);
     }
     klass.AddFields(fields_);
@@ -512,20 +488,20 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
   int constructor_count = builder_.ReadListLength();  // read list length.
   for (intptr_t i = 0; i < constructor_count; ++i) {
     intptr_t constructor_offset = builder_.ReaderOffset();
-    ActiveMemberScope active_member_scope(&active_class_, false, false, 0, -1);
+    ActiveMemberScope active_member_scope(&active_class_, NULL);
     ConstructorHelper constructor_helper(&builder_);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
 
-    const dart::String& name =
+    const String& name =
         H.DartConstructorName(constructor_helper.canonical_name_);
-    Function& function = dart::Function::ZoneHandle(
-        Z, dart::Function::New(name, RawFunction::kConstructor,
-                               false,  // is_static
-                               constructor_helper.IsConst(),
-                               false,  // is_abstract
-                               constructor_helper.IsExternal(),
-                               false,  // is_native
-                               klass, constructor_helper.position_));
+    Function& function = Function::ZoneHandle(
+        Z, Function::New(name, RawFunction::kConstructor,
+                         false,  // is_static
+                         constructor_helper.IsConst(),
+                         false,  // is_abstract
+                         constructor_helper.IsExternal(),
+                         false,  // is_native
+                         klass, constructor_helper.position_));
     function.set_end_token_pos(constructor_helper.end_position_);
     functions_.Add(&function);
     function.set_kernel_offset(constructor_offset);
@@ -541,10 +517,13 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
     function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
     constructor_helper.SetJustRead(ConstructorHelper::kFunction);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kEnd);
+    TypedData& kernel_data = builder_.reader_->CopyDataToVMHeap(
+        Z, constructor_offset, builder_.ReaderOffset());
+    function.set_kernel_data(kernel_data);
 
-    if (FLAG_enable_mirrors) {
+    if (FLAG_enable_mirrors && constructor_helper.annotation_count_ > 0) {
       library.AddFunctionMetadata(function, TokenPosition::kNoSource,
-                                  constructor_offset);
+                                  constructor_offset, &kernel_data);
     }
   }
   class_helper.SetJustRead(ClassHelper::kConstructors);
@@ -562,9 +541,11 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
     klass.set_is_marked_for_parsing();
   }
 
-  if (FLAG_enable_mirrors) {
+  if (FLAG_enable_mirrors && class_helper.annotation_count_ > 0) {
+    TypedData& header_data = builder_.reader_->CopyDataToVMHeap(
+        Z, class_offset, class_offset_after_annotations);
     library.AddClassMetadata(klass, toplevel_class, TokenPosition::kNoSource,
-                             class_offset);
+                             class_offset, &header_data);
   }
 
   class_helper.ReadUntilExcluding(ClassHelper::kEnd);
@@ -572,37 +553,24 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
   return klass;
 }
 
-
-void KernelReader::ReadProcedure(const dart::Library& library,
-                                 const dart::Class& owner,
+void KernelReader::ReadProcedure(const Library& library,
+                                 const Class& owner,
                                  bool in_class) {
   intptr_t procedure_offset = builder_.ReaderOffset();
   ProcedureHelper procedure_helper(&builder_);
 
-  bool member_is_procedure = false;
-  bool is_factory_procedure = false;
-  intptr_t member_type_parameters = 0;
-  intptr_t member_type_parameters_offset_start = -1;
-  builder_.GetTypeParameterInfoForPossibleProcedure(
-      builder_.ReaderOffset(), &member_is_procedure, &is_factory_procedure,
-      &member_type_parameters, &member_type_parameters_offset_start);
-
-  ActiveMemberScope active_member(&active_class_, member_is_procedure,
-                                  is_factory_procedure, member_type_parameters,
-                                  member_type_parameters_offset_start);
-
   procedure_helper.ReadUntilExcluding(ProcedureHelper::kAnnotations);
-  const dart::String& name =
-      H.DartProcedureName(procedure_helper.canonical_name_);
+  const String& name = H.DartProcedureName(procedure_helper.canonical_name_);
   bool is_method = in_class && !procedure_helper.IsStatic();
   bool is_abstract = procedure_helper.IsAbstract();
   bool is_external = procedure_helper.IsExternal();
-  dart::String* native_name = NULL;
+  String* native_name = NULL;
+  intptr_t annotation_count;
   if (is_external) {
     // Maybe it has a native implementation, which is not external as far as
     // the VM is concerned because it does have an implementation.  Check for
     // an ExternalName annotation and extract the string from it.
-    intptr_t annotation_count = builder_.ReadListLength();  // read list length.
+    annotation_count = builder_.ReadListLength();  // read list length.
     for (int i = 0; i < annotation_count; ++i) {
       if (builder_.PeekTag() != kConstructorInvocation &&
           builder_.PeekTag() != kConstConstructorInvocation) {
@@ -652,10 +620,13 @@ void KernelReader::ReadProcedure(const dart::Library& library,
       break;
     }
     procedure_helper.SetJustRead(ProcedureHelper::kAnnotations);
+  } else {
+    procedure_helper.ReadUntilIncluding(ProcedureHelper::kAnnotations);
+    annotation_count = procedure_helper.annotation_count_;
   }
   const Object& script_class =
       ClassForScriptAt(owner, procedure_helper.source_uri_index_);
-  dart::Function& function = dart::Function::ZoneHandle(
+  Function& function = Function::ZoneHandle(
       Z, Function::New(name, GetFunctionType(procedure_helper.kind_),
                        !is_method,  // is_static
                        false,       // is_const
@@ -666,22 +637,24 @@ void KernelReader::ReadProcedure(const dart::Library& library,
   functions_.Add(&function);
   function.set_kernel_offset(procedure_offset);
 
+  ActiveMemberScope active_member(&active_class_, &function);
+
   procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
   Tag function_node_tag = builder_.ReadTag();
   ASSERT(function_node_tag == kSomething);
   FunctionNodeHelper function_node_helper(&builder_);
   function_node_helper.ReadUntilIncluding(FunctionNodeHelper::kDartAsyncMarker);
   function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
-                             FunctionNode::kSync);
+                             FunctionNodeHelper::kSync);
   switch (function_node_helper.dart_async_marker_) {
-    case FunctionNode::kSyncStar:
+    case FunctionNodeHelper::kSyncStar:
       function.set_modifier(RawFunction::kSyncGen);
       break;
-    case FunctionNode::kAsync:
+    case FunctionNodeHelper::kAsync:
       function.set_modifier(RawFunction::kAsync);
       function.set_is_inlinable(!FLAG_causal_async_stacks);
       break;
-    case FunctionNode::kAsyncStar:
+    case FunctionNodeHelper::kAsyncStar:
       function.set_modifier(RawFunction::kAsyncGen);
       function.set_is_inlinable(!FLAG_causal_async_stacks);
       break;
@@ -689,10 +662,20 @@ void KernelReader::ReadProcedure(const dart::Library& library,
       // no special modifier
       break;
   }
-  ASSERT(function_node_helper.async_marker_ == FunctionNode::kSync);
+  ASSERT(function_node_helper.async_marker_ == FunctionNodeHelper::kSync);
 
   if (native_name != NULL) {
     function.set_native_name(*native_name);
+  }
+
+  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
+  if (!function.IsFactory()) {
+    // Read type_parameters list length.
+    intptr_t type_parameter_count = builder_.ReadListLength();
+    // Set type parameters.
+    ReadAndSetupTypeParameters(function, type_parameter_count, Class::Handle(Z),
+                               function);
+    function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
   }
 
   function_node_helper.ReadUntilExcluding(
@@ -710,62 +693,91 @@ void KernelReader::ReadProcedure(const dart::Library& library,
                        H.DartProcedureName(procedure_helper.canonical_name_)))
                 .IsNull());
   }
-  if (FLAG_enable_mirrors) {
-    library.AddFunctionMetadata(function, TokenPosition::kNoSource,
-                                procedure_offset);
-  }
 
   procedure_helper.ReadUntilExcluding(ProcedureHelper::kEnd);
+  TypedData& kernel_data = builder_.reader_->CopyDataToVMHeap(
+      Z, procedure_offset, builder_.ReaderOffset());
+  function.set_kernel_data(kernel_data);
+
+  if (FLAG_enable_mirrors && annotation_count > 0) {
+    library.AddFunctionMetadata(function, TokenPosition::kNoSource,
+                                procedure_offset, &kernel_data);
+  }
 }
 
-const Object& KernelReader::ClassForScriptAt(const dart::Class& klass,
+void KernelReader::ReadAndSetupTypeParameters(
+    const Object& set_on,
+    intptr_t type_parameter_count,
+    const Class& parameterized_class,
+    const Function& parameterized_function) {
+  ASSERT(type_parameter_count >= 0);
+  if (type_parameter_count == 0) {
+    return;
+  }
+  // First setup the type parameters, so if any of the following code uses it
+  // (in a recursive way) we're fine.
+  TypeArguments& type_parameters =
+      TypeArguments::Handle(Z, TypeArguments::null());
+  TypeParameter& parameter = TypeParameter::Handle(Z);
+  Type& null_bound = Type::Handle(Z, Type::null());
+
+  // Step a) Create array of [TypeParameter] objects (without bound).
+  type_parameters = TypeArguments::New(type_parameter_count);
+  {
+    AlternativeReadingScope alt(builder_.reader_);
+    for (intptr_t i = 0; i < type_parameter_count; i++) {
+      parameter = TypeParameter::New(
+          parameterized_class, parameterized_function, i,
+          H.DartSymbol(builder_.ReadStringReference()),  // read ith name index.
+          null_bound, TokenPosition::kNoSource);
+      type_parameters.SetTypeAt(i, parameter);
+      builder_.SkipDartType();  // read guard.
+    }
+  }
+
+  ASSERT(set_on.IsClass() || set_on.IsFunction());
+  if (set_on.IsClass()) {
+    Class::Cast(set_on).set_type_parameters(type_parameters);
+  } else {
+    Function::Cast(set_on).set_type_parameters(type_parameters);
+  }
+
+  // Step b) Fill in the bounds of all [TypeParameter]s.
+  for (intptr_t i = 0; i < type_parameter_count; i++) {
+    builder_.SkipStringReference();  // read ith name index.
+
+    // TODO(github.com/dart-lang/kernel/issues/42): This should be handled
+    // by the frontend.
+    parameter ^= type_parameters.TypeAt(i);
+    Tag tag = builder_.PeekTag();  // peek ith bound type.
+    if (tag == kDynamicType) {
+      builder_.SkipDartType();  // read ith bound.
+      parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
+    } else {
+      AbstractType& bound =
+          T.BuildTypeWithoutFinalization();  // read ith bound.
+      if (bound.IsMalformedOrMalbounded()) {
+        bound = I->object_store()->object_type();
+      }
+      parameter.set_bound(bound);
+    }
+  }
+}
+
+const Object& KernelReader::ClassForScriptAt(const Class& klass,
                                              intptr_t source_uri_index) {
   Script& correct_script = ScriptAt(source_uri_index);
   if (klass.script() != correct_script.raw()) {
-    // TODO(jensj): We could probably cache this so we don't create
-    // new PatchClasses all the time
-    return PatchClass::ZoneHandle(Z, PatchClass::New(klass, correct_script));
+    // Use cache for patch classes. This works best for in-order usages.
+    PatchClass& patch_class = PatchClass::ZoneHandle(Z);
+    patch_class ^= patch_classes_.At(source_uri_index);
+    if (patch_class.IsNull() || patch_class.origin_class() != klass.raw()) {
+      patch_class = PatchClass::New(klass, correct_script);
+      patch_classes_.SetAt(source_uri_index, patch_class);
+    }
+    return patch_class;
   }
   return klass;
-}
-
-static int LowestFirst(const intptr_t* a, const intptr_t* b) {
-  return *a - *b;
-}
-
-/**
- * If index exists as sublist in list, sort the sublist from lowest to highest,
- * then copy it, as Smis and without duplicates,
- * to a new Array in Heap::kOld which is returned.
- * Note that the source list is both sorted and de-duplicated as well, but will
- * possibly contain duplicate and unsorted data at the end.
- * Otherwise (when sublist doesn't exist in list) return new empty array.
- */
-static RawArray* AsSortedDuplicateFreeArray(
-    intptr_t index,
-    MallocGrowableArray<MallocGrowableArray<intptr_t>*>* list) {
-  if ((index < list->length()) && (list->At(index)->length() > 0)) {
-    MallocGrowableArray<intptr_t>* source = list->At(index);
-    source->Sort(LowestFirst);
-
-    intptr_t size = source->length();
-    intptr_t last = 0;
-    for (intptr_t current = 1; current < size; ++current) {
-      if (source->At(last) != source->At(current)) {
-        (*source)[++last] = source->At(current);
-      }
-    }
-    Array& array_object = Array::Handle();
-    array_object = Array::New(last + 1, Heap::kOld);
-    Smi& smi_value = Smi::Handle();
-    for (intptr_t i = 0; i <= last; ++i) {
-      smi_value = Smi::New(source->At(i));
-      array_object.SetAt(i, smi_value);
-    }
-    return array_object.raw();
-  } else {
-    return Array::New(0);
-  }
 }
 
 Script& KernelReader::ScriptAt(intptr_t index, StringIndex import_uri) {
@@ -773,50 +785,26 @@ Script& KernelReader::ScriptAt(intptr_t index, StringIndex import_uri) {
   script ^= scripts_.At(index);
   if (script.IsNull()) {
     // Create script with correct uri(s).
-    uint8_t* uri_buffer = program_->source_table().UriFor(index);
-    intptr_t uri_size = program_->source_table().UriSizeFor(index);
-    dart::String& uri_string = H.DartString(uri_buffer, uri_size, Heap::kOld);
-    dart::String& import_uri_string =
+    String& uri_string = builder_.SourceTableUriFor(index);
+    String& import_uri_string =
         import_uri == -1 ? uri_string : H.DartString(import_uri, Heap::kOld);
-    uint8_t* source_buffer = program_->source_table().SourceCodeFor(index);
-    intptr_t source_size = program_->source_table().SourceCodeSizeFor(index);
-    dart::String& source_code =
-        H.DartString(source_buffer, source_size, Heap::kOld);
-    script = Script::New(import_uri_string, uri_string, source_code,
-                         RawScript::kKernelTag);
-    script.set_kernel_data(program_->libraries()[0]->kernel_data());
-    script.set_kernel_data_size(program_->libraries()[0]->kernel_data_size());
+    script = Script::New(import_uri_string, uri_string,
+                         builder_.GetSourceFor(index), RawScript::kKernelTag);
+    script.set_kernel_script_index(index);
     script.set_kernel_string_offsets(H.string_offsets());
     script.set_kernel_string_data(H.string_data());
     script.set_kernel_canonical_names(H.canonical_names());
     scripts_.SetAt(index, script);
 
-    // Create line_starts array for the script.
-    intptr_t* line_starts = program_->source_table().LineStartsFor(index);
-    intptr_t line_count = program_->source_table().LineCountFor(index);
-    Array& array_object = Array::Handle(Z, Array::New(line_count, Heap::kOld));
-    Smi& value = Smi::Handle(Z);
-    for (intptr_t i = 0; i < line_count; ++i) {
-      value = Smi::New(line_starts[i]);
-      array_object.SetAt(i, value);
-    }
-    script.set_line_starts(array_object);
-
-    // Create tokens_seen array for the script.
-    array_object =
-        AsSortedDuplicateFreeArray(index, &program_->valid_token_positions);
-    script.set_debug_positions(array_object);
-
-    // Create yield_positions array for the script.
-    array_object =
-        AsSortedDuplicateFreeArray(index, &program_->yield_token_positions);
-    script.set_yield_positions(array_object);
+    script.set_line_starts(builder_.GetLineStartsFor(index));
+    script.set_debug_positions(Array::Handle(Array::null()));
+    script.set_yield_positions(Array::Handle(Array::null()));
   }
   return script;
 }
 
-void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
-                                          const dart::Field& field,
+void KernelReader::GenerateFieldAccessors(const Class& klass,
+                                          const Field& field,
                                           FieldHelper* field_helper,
                                           intptr_t field_offset) {
   Tag tag = builder_.PeekTag();
@@ -852,8 +840,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
     }
   }
 
-  const dart::String& getter_name =
-      H.DartGetterName(field_helper->canonical_name_);
+  const String& getter_name = H.DartGetterName(field_helper->canonical_name_);
   const Object& script_class =
       ClassForScriptAt(klass, field_helper->source_uri_index_);
   Function& getter = Function::ZoneHandle(
@@ -874,6 +861,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
           false,  // is_native
           script_class, field_helper->position_));
   functions_.Add(&getter);
+  getter.set_kernel_data(TypedData::Handle(Z, field.kernel_data()));
   getter.set_end_token_pos(field_helper->end_position_);
   getter.set_kernel_offset(field_offset);
   getter.set_result_type(AbstractType::Handle(Z, field.type()));
@@ -883,8 +871,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
   if (!field_helper->IsStatic() && !field_helper->IsFinal()) {
     // Only static fields can be const.
     ASSERT(!field_helper->IsConst());
-    const dart::String& setter_name =
-        H.DartSetterName(field_helper->canonical_name_);
+    const String& setter_name = H.DartSetterName(field_helper->canonical_name_);
     Function& setter = Function::ZoneHandle(
         Z, Function::New(setter_name, RawFunction::kImplicitSetter,
                          false,  // is_static
@@ -894,6 +881,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
                          false,  // is_native
                          script_class, field_helper->position_));
     functions_.Add(&setter);
+    setter.set_kernel_data(TypedData::Handle(Z, field.kernel_data()));
     setter.set_end_token_pos(field_helper->end_position_);
     setter.set_kernel_offset(field_offset);
     setter.set_result_type(Object::void_type());
@@ -902,19 +890,18 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
   }
 }
 
-
-void KernelReader::SetupFieldAccessorFunction(const dart::Class& klass,
-                                              const dart::Function& function) {
+void KernelReader::SetupFieldAccessorFunction(const Class& klass,
+                                              const Function& function) {
   bool is_setter = function.IsImplicitSetterFunction();
   bool is_method = !function.IsStaticFunction();
-  intptr_t num_parameters = (is_method ? 1 : 0) + (is_setter ? 1 : 0);
+  intptr_t parameter_count = (is_method ? 1 : 0) + (is_setter ? 1 : 0);
 
   function.SetNumOptionalParameters(0, false);
-  function.set_num_fixed_parameters(num_parameters);
+  function.set_num_fixed_parameters(parameter_count);
   function.set_parameter_types(
-      Array::Handle(Z, Array::New(num_parameters, Heap::kOld)));
+      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
   function.set_parameter_names(
-      Array::Handle(Z, Array::New(num_parameters, Heap::kOld)));
+      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
 
   intptr_t pos = 0;
   if (is_method) {
@@ -929,15 +916,13 @@ void KernelReader::SetupFieldAccessorFunction(const dart::Class& klass,
   }
 }
 
-
-dart::Library& KernelReader::LookupLibrary(NameIndex library) {
-  dart::Library* handle = NULL;
+Library& KernelReader::LookupLibrary(NameIndex library) {
+  Library* handle = NULL;
   if (!libraries_.Lookup(library, &handle)) {
-    const dart::String& url = H.DartSymbol(H.CanonicalNameString(library));
-    handle =
-        &dart::Library::Handle(Z, dart::Library::LookupLibrary(thread_, url));
+    const String& url = H.DartSymbol(H.CanonicalNameString(library));
+    handle = &Library::Handle(Z, Library::LookupLibrary(thread_, url));
     if (handle->IsNull()) {
-      *handle = dart::Library::New(url);
+      *handle = Library::New(url);
       handle->Register(thread_);
     }
     ASSERT(!handle->IsNull());
@@ -946,16 +931,15 @@ dart::Library& KernelReader::LookupLibrary(NameIndex library) {
   return *handle;
 }
 
-
-dart::Class& KernelReader::LookupClass(NameIndex klass) {
-  dart::Class* handle = NULL;
+Class& KernelReader::LookupClass(NameIndex klass) {
+  Class* handle = NULL;
   if (!classes_.Lookup(klass, &handle)) {
-    dart::Library& library = LookupLibrary(H.CanonicalNameParent(klass));
-    const dart::String& name = H.DartClassName(klass);
-    handle = &dart::Class::Handle(Z, library.LookupClass(name));
+    Library& library = LookupLibrary(H.CanonicalNameParent(klass));
+    const String& name = H.DartClassName(klass);
+    handle = &Class::Handle(Z, library.LookupClass(name));
     if (handle->IsNull()) {
-      *handle = dart::Class::New(library, name, Script::Handle(Z),
-                                 TokenPosition::kNoSource);
+      *handle = Class::New(library, name, Script::Handle(Z),
+                           TokenPosition::kNoSource);
       library.AddClass(*handle);
     }
     // Insert the class in the cache before calling ReadPreliminaryClass so
@@ -966,9 +950,8 @@ dart::Class& KernelReader::LookupClass(NameIndex klass) {
   return *handle;
 }
 
-
 RawFunction::Kind KernelReader::GetFunctionType(
-    Procedure::ProcedureKind procedure_kind) {
+    ProcedureHelper::Kind procedure_kind) {
   intptr_t lookuptable[] = {
       RawFunction::kRegularFunction,  // Procedure::kMethod
       RawFunction::kGetterFunction,   // Procedure::kGetter
@@ -977,33 +960,45 @@ RawFunction::Kind KernelReader::GetFunctionType(
       RawFunction::kConstructor,      // Procedure::kFactory
   };
   intptr_t kind = static_cast<int>(procedure_kind);
-  if (kind == Procedure::kIncompleteProcedure) {
-    return RawFunction::kSignatureFunction;
-  } else {
-    ASSERT(0 <= kind && kind <= Procedure::kFactory);
-    return static_cast<RawFunction::Kind>(lookuptable[kind]);
-  }
+  ASSERT(0 <= kind && kind <= ProcedureHelper::kFactory);
+  return static_cast<RawFunction::Kind>(lookuptable[kind]);
 }
 
+bool KernelReader::FieldHasFunctionLiteralInitializer(const Field& field,
+                                                      TokenPosition* start,
+                                                      TokenPosition* end) {
+  Zone* zone = Thread::Current()->zone();
+  const Script& script = Script::Handle(zone, field.Script());
 
-ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
-                                            const dart::Field& field) {
+  TranslationHelper translation_helper(
+      Thread::Current(), script.kernel_string_offsets(),
+      script.kernel_string_data(), script.kernel_canonical_names());
+
+  StreamingFlowGraphBuilder builder(
+      &translation_helper, zone, field.kernel_offset(),
+      TypedData::Handle(zone, field.kernel_data()));
+  kernel::FieldHelper field_helper(&builder);
+  field_helper.ReadUntilExcluding(kernel::FieldHelper::kEnd, true);
+  return field_helper.FieldHasFunctionLiteralInitializer(start, end);
+}
+
+ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field) {
   Thread* thread = Thread::Current();
 
-  dart::String& init_name = dart::String::Handle(zone, field.name());
+  String& init_name = String::Handle(zone, field.name());
   init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
 
   // Create a static initializer.
   const Object& owner = Object::Handle(field.RawOwner());
   const Function& initializer_fun = Function::ZoneHandle(
-      zone,
-      dart::Function::New(init_name, RawFunction::kImplicitStaticFinalGetter,
+      zone, Function::New(init_name, RawFunction::kImplicitStaticFinalGetter,
                           true,   // is_static
                           false,  // is_const
                           false,  // is_abstract
                           false,  // is_external
                           false,  // is_native
                           owner, TokenPosition::kNoSource));
+  initializer_fun.set_kernel_data(TypedData::Handle(zone, field.kernel_data()));
   initializer_fun.set_kernel_offset(field.kernel_offset());
   initializer_fun.set_result_type(AbstractType::Handle(zone, field.type()));
   initializer_fun.set_is_debuggable(false);
@@ -1011,7 +1006,6 @@ ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
   initializer_fun.set_is_inlinable(false);
   return new (zone) ParsedFunction(thread, initializer_fun);
 }
-
 
 }  // namespace kernel
 }  // namespace dart

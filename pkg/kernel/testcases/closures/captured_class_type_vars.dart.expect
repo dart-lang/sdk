@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Isgen<B extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method getfn() → dynamic {
+    return MakeClosure<<B extends core::Object>(dynamic) → dynamic, self::Isgen::B>(self::closure#Isgen#getfn#function, MakeVector(1));
+  }
+}
+static method main() → dynamic {
+  core::int x = 3;
+  dynamic isgen = new self::Isgen::•<core::String>();
+  dynamic iser = isgen.getfn();
+  assert(!iser.call(x));
+}
+static method closure#Isgen#getfn#function<B extends core::Object>(Vector #contextParameter, dynamic x) → dynamic {
+  return x is self::closure#Isgen#getfn#function::B;
+}

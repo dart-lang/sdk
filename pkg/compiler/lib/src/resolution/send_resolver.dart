@@ -51,8 +51,7 @@ class ConstructorDeclStructure<R, A> extends DeclStructure<R, A> {
       default:
         break;
     }
-    throw new SpannableAssertionFailure(
-        node, "Unhandled constructor declaration kind: ${kind}");
+    throw failedAt(node, "Unhandled constructor declaration kind: ${kind}");
   }
 }
 
@@ -288,8 +287,7 @@ abstract class DeclarationResolverMixin {
     Node node = definitions.definitions.nodes.single;
     ParameterElement element = elements[node];
     if (element == null) {
-      throw new SpannableAssertionFailure(
-          node, "No parameter structure for $node.");
+      throw failedAt(node, "No parameter structure for $node.");
     }
     if (isRequired) {
       return new RequiredParameterStructure(definitions, node, element, index);

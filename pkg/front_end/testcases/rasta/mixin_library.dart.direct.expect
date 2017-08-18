@@ -7,11 +7,11 @@ class Mixin<T extends core::Object> extends core::Object {
   field dynamic y = null;
   field dynamic z = null;
   field self::Mixin::T t = null;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method foo() → dynamic
-    return this.{=core::Object::noSuchMethod}(new core::_InvocationMirror::•("foo", <dynamic>[0, 1, 1].toList(growable: false), <dynamic>[this].toList(growable: false), true)).+(self::f());
+    return super.foo().+(self::f());
   method g(self::Mixin::T a) → self::Mixin::T
     return null;
   method h() → dynamic

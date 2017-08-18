@@ -7,15 +7,14 @@
 
 #include "vm/native_symbol.h"
 
-#include <dlfcn.h>  // NOLINT
+#include <cxxabi.h>  // NOLINT
+#include <dlfcn.h>   // NOLINT
 
 namespace dart {
 
 void NativeSymbolResolver::InitOnce() {}
 
-
 void NativeSymbolResolver::ShutdownOnce() {}
-
 
 char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {
   Dl_info info;
@@ -29,14 +28,19 @@ char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {
   if (start != NULL) {
     *start = reinterpret_cast<uintptr_t>(info.dli_saddr);
   }
+  int status = 0;
+  size_t len = 0;
+  char* demangled = abi::__cxa_demangle(info.dli_sname, NULL, &len, &status);
+  MSAN_UNPOISON(demangled, len);
+  if (status == 0) {
+    return demangled;
+  }
   return strdup(info.dli_sname);
 }
-
 
 void NativeSymbolResolver::FreeSymbolName(char* name) {
   free(name);
 }
-
 
 bool NativeSymbolResolver::LookupSharedObject(uword pc,
                                               uword* dso_base,

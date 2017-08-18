@@ -575,6 +575,6 @@ class _SyncStarIterable extends IterableBase {
 @patch
 void _rethrow(Object error, StackTrace stackTrace) {
   error = wrapException(error);
-  JS("void", "#.stack = #", error, stackTrace.toString());
-  JS("void", "throw #", error);
+  JS('void', '#.stack = #', error, stackTrace.toString());
+  JS('void', 'throw #', error);
 }

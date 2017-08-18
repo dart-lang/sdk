@@ -63,7 +63,7 @@ ir.Member getIrMember(Compiler compiler, ResolvedAst resolvedAst) {
 }
 
 ResolutionImpact buildKernelImpact(
-    ir.Member member, KernelToElementMap elementAdapter) {
+    ir.Member member, KernelToElementMapForImpact elementAdapter) {
   KernelImpactBuilder builder = new KernelImpactBuilder(elementAdapter, member);
   if (member is ir.Procedure) {
     return builder.buildProcedure(member);
@@ -77,7 +77,7 @@ ResolutionImpact buildKernelImpact(
 
 class KernelImpactBuilder extends ir.Visitor {
   final ResolutionWorldImpactBuilder impactBuilder;
-  final KernelToElementMap elementAdapter;
+  final KernelToElementMapForImpact elementAdapter;
   final ir.Member currentMember;
 
   KernelImpactBuilder(this.elementAdapter, this.currentMember)
@@ -124,9 +124,11 @@ class KernelImpactBuilder extends ir.Visitor {
     }
     if (field.isInstanceMember &&
         elementAdapter.isNativeClass(field.enclosingClass)) {
-      // TODO(redemption): Provide the correct value for [isJsInterop].
+      MemberEntity member = elementAdapter.getMember(field);
+      bool isJsInterop =
+          elementAdapter.nativeBasicData.isJsInteropMember(member);
       impactBuilder.registerNativeData(elementAdapter
-          .getNativeBehaviorForFieldLoad(field, isJsInterop: false));
+          .getNativeBehaviorForFieldLoad(field, isJsInterop: isJsInterop));
       impactBuilder.registerNativeData(
           elementAdapter.getNativeBehaviorForFieldStore(field));
     }
@@ -137,6 +139,14 @@ class KernelImpactBuilder extends ir.Visitor {
     handleSignature(constructor.function, checkReturnType: false);
     visitNodes(constructor.initializers);
     visitNode(constructor.function.body);
+    if (constructor.isExternal &&
+        !elementAdapter.isForeignLibrary(constructor.enclosingLibrary)) {
+      MemberEntity member = elementAdapter.getMember(constructor);
+      bool isJsInterop =
+          elementAdapter.nativeBasicData.isJsInteropMember(member);
+      impactBuilder.registerNativeData(elementAdapter
+          .getNativeBehaviorForMethod(constructor, isJsInterop: isJsInterop));
+    }
     return impactBuilder;
   }
 
@@ -154,7 +164,7 @@ class KernelImpactBuilder extends ir.Visitor {
         impactBuilder.registerFeature(Feature.ASYNC_STAR);
         break;
       case ir.AsyncMarker.SyncYielding:
-        throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+        failedAt(CURRENT_ELEMENT_SPANNABLE,
             "Unexpected async marker: ${asyncMarker}");
     }
   }
@@ -165,9 +175,11 @@ class KernelImpactBuilder extends ir.Visitor {
     handleAsyncMarker(procedure.function.asyncMarker);
     if (procedure.isExternal &&
         !elementAdapter.isForeignLibrary(procedure.enclosingLibrary)) {
-      // TODO(redemption): Provide the correct value for [isJsInterop].
+      MemberEntity member = elementAdapter.getMember(procedure);
+      bool isJsInterop =
+          elementAdapter.nativeBasicData.isJsInteropMember(member);
       impactBuilder.registerNativeData(elementAdapter
-          .getNativeBehaviorForMethod(procedure, isJsInterop: false));
+          .getNativeBehaviorForMethod(procedure, isJsInterop: isJsInterop));
     }
     return impactBuilder;
   }
@@ -299,7 +311,7 @@ class KernelImpactBuilder extends ir.Visitor {
       ConstantValue value =
           elementAdapter.getConstantValue(node.arguments.positional.first);
       if (!value.isString) {
-        throw new SpannableAssertionFailure(
+        failedAt(
             CURRENT_ELEMENT_SPANNABLE,
             "Unexpected constant value in const Symbol(...) call: "
             "${value.toStructuredText()}");

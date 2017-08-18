@@ -13,9 +13,11 @@ abstract class FieldBuilder<T> extends MemberBuilder {
 
   final int modifiers;
 
-  FieldBuilder(
-      this.name, this.modifiers, LibraryBuilder compilationUnit, int charOffset)
-      : super(compilationUnit, charOffset);
+  FieldBuilder(String documentationComment, this.name, this.modifiers,
+      LibraryBuilder compilationUnit, int charOffset)
+      : super(compilationUnit, charOffset, documentationComment);
+
+  String get debugName => "FieldBuilder";
 
   DartType get builtType;
 

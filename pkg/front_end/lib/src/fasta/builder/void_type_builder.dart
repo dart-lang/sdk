@@ -10,4 +10,6 @@ class VoidTypeBuilder<T extends TypeBuilder, R>
     extends BuiltinTypeBuilder<T, R> {
   VoidTypeBuilder(R type, LibraryBuilder compilationUnit, int charOffset)
       : super("void", type, compilationUnit, charOffset);
+
+  String get debugName => "VoidTypeBuilder";
 }

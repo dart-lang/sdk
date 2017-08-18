@@ -322,7 +322,7 @@ generateKernel(Uri entryUri) async {
       libraryRoot: _libraryRoot,
       packagesDiscoveryProvider: findPackages,
       platformConfigUri: _platformConfigUri,
-      useKernel: true,
+      useKernelInSsa: true,
       verbose: false); // set to true to debug internal timings
   var inputProvider = new CompilerSourceFileProvider();
   var diagnosticHandler = new FormattingDiagnosticHandler(inputProvider)

@@ -19,16 +19,13 @@ RawCode* CodeBreakpoint::OrigStubAddress() const {
   return reinterpret_cast<RawCode*>(static_cast<uintptr_t>(saved_value_));
 }
 
-
 static Instr* CallInstructionFromReturnAddress(uword pc) {
   return reinterpret_cast<Instr*>(pc) - 1;
 }
 
-
 static Instr* FastSmiInstructionFromReturnAddress(uword pc) {
   return reinterpret_cast<Instr*>(pc) - 2;
 }
-
 
 void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
@@ -70,7 +67,6 @@ void CodeBreakpoint::PatchCode() {
   }
   is_enabled_ = true;
 }
-
 
 void CodeBreakpoint::RestoreCode() {
   ASSERT(is_enabled_);

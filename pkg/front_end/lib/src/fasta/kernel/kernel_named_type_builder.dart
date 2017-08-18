@@ -6,7 +6,12 @@ library fasta.kernel_interface_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, DynamicType, Supertype;
 
-import '../messages.dart' show warning;
+import '../messages.dart'
+    show
+        templateSupertypeIsIllegal,
+        templateSupertypeIsTypeVariable,
+        templateTypeNotFound,
+        warning;
 
 import 'kernel_builder.dart'
     show
@@ -27,26 +32,27 @@ class KernelNamedTypeBuilder
 
   KernelInvalidTypeBuilder buildInvalidType(String name) {
     // TODO(ahe): Record error instead of printing.
-    warning(fileUri, charOffset, "Type not found: '$name'.");
+    warning(templateTypeNotFound.withArguments(name), charOffset, fileUri);
     return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
   }
 
   DartType handleMissingType() {
     // TODO(ahe): Record error instead of printing.
-    warning(fileUri, charOffset, "No type for: '$name'.");
+    warning(templateTypeNotFound.withArguments(name), charOffset, fileUri);
     return const DynamicType();
   }
 
   Supertype handleMissingSupertype() {
-    warning(fileUri, charOffset, "No type for: '$name'.");
+    warning(templateTypeNotFound.withArguments(name), charOffset, fileUri);
     return null;
   }
 
   Supertype handleInvalidSupertype(LibraryBuilder library) {
-    String message = builder.isTypeVariable
-        ? "The type variable '$name' can't be used as supertype."
-        : "The type '$name' can't be used as supertype.";
-    library.addCompileTimeError(charOffset, message, fileUri: fileUri);
+    var template = builder.isTypeVariable
+        ? templateSupertypeIsTypeVariable
+        : templateSupertypeIsIllegal;
+    library.addCompileTimeError(
+        template.withArguments(name), charOffset, fileUri);
     return null;
   }
 

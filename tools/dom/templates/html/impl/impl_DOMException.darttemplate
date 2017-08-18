@@ -30,7 +30,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   // Is TypeError class derived from DomException but name is 'TypeError'
   static const String TYPE_ERROR = 'TypeError';
 
-$if DART2JS
   String get name {
     var errorName = JS('String', '#.name', this);
     // Although Safari nightly has updated the name to SecurityError, Safari 5
@@ -41,49 +40,8 @@ $if DART2JS
     if (Device.isWebKit && errorName == 'SYNTAX_ERR') return 'SyntaxError';
     return errorName;
   }
-$endif
-$if JSINTEROP
-  String _name;
-  String _message;
-
-  // To suppress missing implicit constructor warnings.
-  factory DomException._() { throw new UnsupportedError("Not supported"); }
-
-  @Deprecated("Internal Use Only")
-  DomException.internal_() { }
-
-  @Deprecated("Internal Use Only")
-  DomException.jsInterop(String m) {
-    var name_index = m.indexOf(': ');
-    if (name_index < 0) {
-      _name = "";
-      _message = m;
-    } else {
-      _name = m.substring(0, name_index);
-      _message = m.substring(name_index + 1).trim();
-    }
-  }
-
-  @DomName('DOMException.message')
-  @DocsEditable()
-  String get message => _message ??
-     (_message = _blink.BlinkDOMException.instance.message_Getter_(this));
-
-  @DomName('DOMException.name')
-  @DocsEditable()
-  String get name => _name ??
-      (_name = _blink.BlinkDOMException.instance.name_Getter_(this));
-
-  @DomName('DOMException.toString')
-  @DocsEditable()
-  String toString() => "$name: $message";
-
-$else
 $!MEMBERS
-$endif
-$if DART2JS
   @DomName('DOMException.toString')
   @DocsEditable()
   String toString() => JS('String', 'String(#)', this);
-$endif
 }

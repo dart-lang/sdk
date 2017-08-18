@@ -85,7 +85,7 @@ class _TestServerPlugin extends MockServerPlugin with FixesMixin {
   }
 
   @override
-  List<FixContributor> getFixContributors(AnalysisDriverGeneric driver) {
+  List<FixContributor> getFixContributors(String path) {
     return <FixContributor>[
       new _TestFixContributor(<PrioritizedSourceChange>[createChange()]),
       new _TestFixContributor(
@@ -94,8 +94,7 @@ class _TestServerPlugin extends MockServerPlugin with FixesMixin {
   }
 
   @override
-  Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters,
-      covariant AnalysisDriverGeneric driver) async {
+  Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters) async {
     int offset = parameters.offset;
     AnalysisError error = new AnalysisError(
         new MockSource(), 0, 0, CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT);

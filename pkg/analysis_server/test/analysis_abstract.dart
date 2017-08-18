@@ -5,16 +5,15 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/context/context_root.dart' as analyzer;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -114,7 +113,7 @@ class AbstractAnalysisTest {
     return testFile;
   }
 
-  AnalysisServer createAnalysisServer(Index index) {
+  AnalysisServer createAnalysisServer() {
     //
     // Collect plugins
     //
@@ -143,15 +142,10 @@ class AbstractAnalysisTest {
         serverChannel,
         resourceProvider,
         packageMapProvider,
-        index,
         serverPlugin,
         options,
         new DartSdkManager(resourceProvider.convertPath('/'), true),
         InstrumentationService.NULL_SERVICE);
-  }
-
-  Index createIndex() {
-    return null;
   }
 
   /**
@@ -205,7 +199,7 @@ class AbstractAnalysisTest {
   }
 
   void processNotification(Notification notification) {
-    if (notification.event == SERVER_ERROR) {
+    if (notification.event == SERVER_NOTIFICATION_ERROR) {
       var params = new ServerErrorParams.fromNotification(notification);
       serverErrors.add(params);
     }
@@ -218,6 +212,11 @@ class AbstractAnalysisTest {
     handleSuccessfulRequest(request);
   }
 
+  void setPriorityFiles(List<String> files) {
+    var request = new AnalysisSetPriorityFilesParams(files).toRequest('0');
+    handleSuccessfulRequest(request);
+  }
+
   void setUp() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
@@ -226,8 +225,7 @@ class AbstractAnalysisTest {
     testFile = resourceProvider.convertPath('/project/bin/test.dart');
     packageMapProvider = new MockPackageMapProvider();
     pluginManager = new TestPluginManager();
-    Index index = createIndex();
-    server = createAnalysisServer(index);
+    server = createAnalysisServer();
     server.pluginManager = pluginManager;
     handler = analysisHandler;
     // listen for notifications
@@ -331,6 +329,12 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
+  List<String> pathsFor(String pluginPath) {
+    fail('Unexpected invocation of pathsFor');
+    return null;
+  }
+
+  @override
   List<PluginInfo> pluginsForContextRoot(analyzer.ContextRoot contextRoot) {
     fail('Unexpected invocation of pluginsForContextRoot');
     return null;
@@ -339,6 +343,12 @@ class TestPluginManager implements PluginManager {
   @override
   void removedContextRoot(analyzer.ContextRoot contextRoot) {
     fail('Unexpected invocation of removedContextRoot');
+  }
+
+  @override
+  Future<Null> restartPlugins() async {
+    // Nothing to restart.
+    return null;
   }
 
   @override

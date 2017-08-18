@@ -8,12 +8,12 @@ library test;
 void main() {
   {
     T f<T>(T x) => null;
-    var /*@type=(main::f::T) -> main::f::T*/ v1 = f;
+    var /*@type=<T extends Object>(main::f::T) -> main::f::T*/ v1 = f;
     v1 = <S> /*@returnType=main::::S*/ (/*@type=main::::S*/ x) => x;
   }
   {
     List<T> f<T>(T x) => null;
-    var /*@type=(main::f::T) -> List<main::f::T>*/ v2 = f;
+    var /*@type=<T extends Object>(main::f::T) -> List<main::f::T>*/ v2 = f;
     v2 = <S> /*@returnType=List<main::::S>*/
         (/*@type=main::::S*/ x) => /*@typeArgs=main::::S*/ [x];
     Iterable<int> r = /*@typeArgs=int*/ v2(42);

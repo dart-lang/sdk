@@ -591,7 +591,7 @@ class ConstantEvaluationEngine {
 
         DartObjectImpl fieldValue;
         if (strongMode) {
-          fieldValue = field.constantInitializer.accept(fieldInitVisitor);
+          fieldValue = field.constantInitializer?.accept(fieldInitVisitor);
         } else {
           fieldValue = field.evaluationResult?.value;
         }
@@ -709,7 +709,7 @@ class ConstantEvaluationEngine {
       if (initializer is ConstructorFieldInitializer) {
         Expression initializerExpression = initializer.expression;
         DartObjectImpl evaluationResult =
-            initializerExpression.accept(initializerVisitor);
+            initializerExpression?.accept(initializerVisitor);
         if (evaluationResult != null) {
           String fieldName = initializer.fieldName.name;
           if (fieldMap.containsKey(fieldName)) {
@@ -728,6 +728,9 @@ class ConstantEvaluationEngine {
                   [evaluationResult.type, fieldName, field.type]);
             }
           }
+        } else {
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
         }
       } else if (initializer is SuperConstructorInvocation) {
         SimpleIdentifier name = initializer.constructorName;

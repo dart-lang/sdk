@@ -42,4 +42,12 @@ abstract class ModifierBuilder extends Builder {
   String get name;
 
   bool get isNative => false;
+
+  String get debugName;
+
+  StringBuffer printOn(StringBuffer buffer) {
+    return buffer..write(name ?? fullNameForErrors);
+  }
+
+  String toString() => "$debugName(${printOn(new StringBuffer())})";
 }

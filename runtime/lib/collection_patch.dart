@@ -828,93 +828,15 @@ class _HashSetIterator<E> implements Iterator<E> {
   E get current => _current;
 }
 
-class _LinkedHashMapEntry extends _HashMapEntry {
-  /// Double-linked list of entries of a linked hash map.
-  /// The _LinkedHashMap itself is the head of the list, so the type is "var".
-  /// Both are initialized to `this` when initialized.
-  var _nextEntry;
-  var _previousEntry;
-  _LinkedHashMapEntry(key, value, int hashCode, _LinkedHashMapEntry next,
-      this._previousEntry, this._nextEntry)
-      : super(key, value, hashCode, next) {
-    _previousEntry._nextEntry = this;
-    _nextEntry._previousEntry = this;
-  }
-}
-
-class _LinkedHashMapKeyIterable<K> extends EfficientLengthIterable<K> {
-  LinkedHashMap<K, dynamic> _map;
-  _LinkedHashMapKeyIterable(this._map);
-  Iterator<K> get iterator => new _LinkedHashMapKeyIterator<K>(_map);
-  bool contains(Object key) => _map.containsKey(key);
-  bool get isEmpty => _map.isEmpty;
-  bool get isNotEmpty => _map.isNotEmpty;
-  int get length => _map.length;
-  Set<K> toSet() => _map._newKeySet()..addAll(this);
-}
-
-class _LinkedHashMapValueIterable<V> extends EfficientLengthIterable<V> {
-  LinkedHashMap<dynamic, V> _map;
-  _LinkedHashMapValueIterable(this._map);
-  Iterator<V> get iterator => new _LinkedHashMapValueIterator<V>(_map);
-  bool contains(Object value) => _map.containsValue(value);
-  bool get isEmpty => _map.isEmpty;
-  bool get isNotEmpty => _map.isNotEmpty;
-  int get length => _map.length;
-}
-
-abstract class _LinkedHashMapIterator<T> implements Iterator<T> {
-  final LinkedHashMap _map;
-  var _next;
-  T _current;
-  int _modificationCount;
-  _LinkedHashMapIterator(LinkedHashMap map)
-      : _map = map,
-        _next = map._nextEntry,
-        _modificationCount = map._modificationCount;
-
-  bool moveNext() {
-    if (_modificationCount != _map._modificationCount) {
-      throw new ConcurrentModificationError(_map);
-    }
-    if (identical(_map, _next)) {
-      _current = null;
-      return false;
-    }
-    _LinkedHashMapEntry entry = _next;
-    _next = entry._nextEntry;
-    _current = _getValue(entry);
-    return true;
-  }
-
-  T _getValue(_LinkedHashMapEntry entry);
-
-  T get current => _current;
-}
-
-class _LinkedHashMapKeyIterator<K> extends _LinkedHashMapIterator<K> {
-  _LinkedHashMapKeyIterator(LinkedHashMap map) : super(map);
-  K _getValue(_LinkedHashMapEntry entry) => entry.key;
-}
-
-class _LinkedHashMapValueIterator<V> extends _LinkedHashMapIterator<V> {
-  _LinkedHashMapValueIterator(LinkedHashMap map) : super(map);
-  V _getValue(_LinkedHashMapEntry entry) => entry.value;
-}
-
 /**
  * A hash-based map that iterates keys and values in key insertion order.
+ * This is never actually instantiated any more - the constructor always
+ * returns an instance of _CompactLinkedHashMap or _InternalLinkedHashMap,
+ * which despite the names do not use links (but are insertion-ordered as if
+ * they did).
  */
 @patch
 class LinkedHashMap<K, V> {
-  /// Holds a double-linked list of entries in insertion order.
-  /// The fields have the same name as the ones in [_LinkedHashMapEntry],
-  /// and this map is itself used as the head entry of the list.
-  /// Set to `this` when initialized, representing the empty list (containing
-  /// only the head entry itself).
-  var _nextEntry;
-  var _previousEntry;
-
   @patch
   factory LinkedHashMap(
       {bool equals(K key1, K key2),

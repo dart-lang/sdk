@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/thread_barrier.h"
 #include "platform/assert.h"
 #include "vm/random.h"
-#include "vm/thread_barrier.h"
 #include "vm/thread_pool.h"
 #include "vm/unit_test.h"
 
@@ -35,7 +35,6 @@ class FuzzTask : public ThreadPool::Task {
   ThreadBarrier* barrier_;
   Random rng_;
 };
-
 
 VM_UNIT_TEST_CASE(ThreadBarrier) {
   static const intptr_t kNumTasks = 5;

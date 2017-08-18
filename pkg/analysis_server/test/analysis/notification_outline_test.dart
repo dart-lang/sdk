@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -25,21 +25,29 @@ class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
   String libraryName;
   Outline outline;
 
-  Completer _resultsAvailable = new Completer();
+  Completer _outlineReceived = new Completer();
+  Completer _highlightsReceived = new Completer();
 
   Future prepareOutline() {
     addAnalysisSubscription(AnalysisService.OUTLINE, testFile);
-    return _resultsAvailable.future;
+    return _outlineReceived.future;
   }
 
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_OUTLINE) {
+    if (notification.event == ANALYSIS_NOTIFICATION_OUTLINE) {
       var params = new AnalysisOutlineParams.fromNotification(notification);
       if (params.file == testFile) {
         fileKind = params.kind;
         libraryName = params.libraryName;
         outline = params.outline;
-        _resultsAvailable.complete(null);
+        _outlineReceived.complete(null);
+      }
+    }
+    if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
+      var params = new AnalysisHighlightsParams.fromNotification(notification);
+      if (params.file == testFile) {
+        _highlightsReceived?.complete(null);
+        _highlightsReceived = null;
       }
     }
   }
@@ -715,6 +723,27 @@ int fieldD; // marker2
         expect(outline.length, end - offset);
       }
     }
+  }
+
+  test_subscribeWhenCachedResultIsAvailable() async {
+    // https://github.com/dart-lang/sdk/issues/30238
+    // We need to get notifications for new subscriptions even when the
+    // file is a priority file, and there is a cached result available.
+    addTestFile('''
+class A {}
+class B {}
+''');
+
+    // Make the file a priority one and subscribe for other notification.
+    // This will pre-cache the analysis result for the file.
+    setPriorityFiles([testFile]);
+    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
+    await _highlightsReceived.future;
+
+    // Now subscribe for outline notification, we must get it even though
+    // the result which is used is pre-cached, and not a newly computed.
+    await prepareOutline();
+    expect(outline.children, hasLength(2));
   }
 
   test_topLevel() async {

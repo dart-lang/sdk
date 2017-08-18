@@ -206,26 +206,6 @@ final Matcher isCompletionSuggestionKind =
 ]);
 
 /**
- * ContextBuilderOptions
- *
- * {
- *   "dartSdkSummaryPath": optional FilePath
- *   "defaultAnalysisOptionsFilePath": optional List<FilePath>
- *   "declaredVariables": optional Map<String, String>
- *   "defaultPackageFilePath": optional List<FilePath>
- *   "defaultPackagesDirectoryPath": optional List<FilePath>
- * }
- */
-final Matcher isContextBuilderOptions = new LazyMatcher(
-    () => new MatchesJsonObject("ContextBuilderOptions", null, optionalFields: {
-          "dartSdkSummaryPath": isFilePath,
-          "defaultAnalysisOptionsFilePath": isListOf(isFilePath),
-          "declaredVariables": isMapOf(isString, isString),
-          "defaultPackageFilePath": isListOf(isFilePath),
-          "defaultPackagesDirectoryPath": isListOf(isFilePath)
-        }));
-
-/**
  * ContextRoot
  *
  * {
@@ -524,6 +504,46 @@ final Matcher isHighlightRegionType = new MatchesEnum("HighlightRegionType", [
   "UNRESOLVED_INSTANCE_MEMBER_REFERENCE",
   "VALID_STRING_ESCAPE"
 ]);
+
+/**
+ * KytheEntry
+ *
+ * {
+ *   "source": KytheVName
+ *   "kind": String
+ *   "target": KytheVName
+ *   "fact": String
+ *   "value": List<int>
+ * }
+ */
+final Matcher isKytheEntry =
+    new LazyMatcher(() => new MatchesJsonObject("KytheEntry", {
+          "source": isKytheVName,
+          "kind": isString,
+          "target": isKytheVName,
+          "fact": isString,
+          "value": isListOf(isInt)
+        }));
+
+/**
+ * KytheVName
+ *
+ * {
+ *   "signature": String
+ *   "corpus": String
+ *   "root": String
+ *   "path": String
+ *   "language": String
+ * }
+ */
+final Matcher isKytheVName =
+    new LazyMatcher(() => new MatchesJsonObject("KytheVName", {
+          "signature": isString,
+          "corpus": isString,
+          "root": isString,
+          "path": isString,
+          "language": isString
+        }));
 
 /**
  * LinkedEditGroup
@@ -1009,38 +1029,6 @@ final Matcher isAnalysisOutlineParams = new LazyMatcher(() =>
         {"file": isFilePath, "outline": isListOf(isOutline)}));
 
 /**
- * analysis.reanalyze params
- *
- * {
- *   "roots": optional List<FilePath>
- * }
- */
-final Matcher isAnalysisReanalyzeParams = new LazyMatcher(() =>
-    new MatchesJsonObject("analysis.reanalyze params", null,
-        optionalFields: {"roots": isListOf(isFilePath)}));
-
-/**
- * analysis.reanalyze result
- */
-final Matcher isAnalysisReanalyzeResult = isNull;
-
-/**
- * analysis.setContextBuilderOptions params
- *
- * {
- *   "options": ContextBuilderOptions
- * }
- */
-final Matcher isAnalysisSetContextBuilderOptionsParams = new LazyMatcher(() =>
-    new MatchesJsonObject("analysis.setContextBuilderOptions params",
-        {"options": isContextBuilderOptions}));
-
-/**
- * analysis.setContextBuilderOptions result
- */
-final Matcher isAnalysisSetContextBuilderOptionsResult = isNull;
-
-/**
  * analysis.setContextRoots params
  *
  * {
@@ -1397,6 +1385,29 @@ final Matcher isInlineMethodFeedback = new LazyMatcher(() =>
 final Matcher isInlineMethodOptions = new LazyMatcher(() =>
     new MatchesJsonObject(
         "inlineMethod options", {"deleteSource": isBool, "inlineAll": isBool}));
+
+/**
+ * kythe.getKytheEntries params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ */
+final Matcher isKytheGetKytheEntriesParams = new LazyMatcher(() =>
+    new MatchesJsonObject(
+        "kythe.getKytheEntries params", {"file": isFilePath}));
+
+/**
+ * kythe.getKytheEntries result
+ *
+ * {
+ *   "entries": List<KytheEntry>
+ *   "files": List<FilePath>
+ * }
+ */
+final Matcher isKytheGetKytheEntriesResult = new LazyMatcher(() =>
+    new MatchesJsonObject("kythe.getKytheEntries result",
+        {"entries": isListOf(isKytheEntry), "files": isListOf(isFilePath)}));
 
 /**
  * moveFile feedback

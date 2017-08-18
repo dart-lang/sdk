@@ -22,7 +22,6 @@ enum Register {
   kNoRegister = -1,  // Signals an illegal register.
 };
 
-
 enum ByteRegister {
   AL = 0,
   CL = 1,
@@ -34,7 +33,6 @@ enum ByteRegister {
   BH = 7,
   kNoByteRegister = -1  // Signals an illegal register.
 };
-
 
 enum XmmRegister {
   XMM0 = 0,
@@ -49,13 +47,11 @@ enum XmmRegister {
   kNoXmmRegister = -1  // Signals an illegal register.
 };
 
-
 // Architecture independent aliases.
 typedef XmmRegister FpuRegister;
 const FpuRegister FpuTMP = XMM0;
 const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
-
 
 // Register aliases.
 const Register TMP = kNoRegister;   // No scratch register used by assembler.
@@ -79,7 +75,6 @@ const Register kExceptionObjectReg = EAX;
 // an exception is thrown.
 const Register kStackTraceObjectReg = EDX;
 
-
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFF;
 
@@ -87,7 +82,6 @@ const intptr_t kReservedCpuRegisters = (1 << SPREG) | (1 << FPREG) | (1 << THR);
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
-
 
 enum ScaleFactor {
   TIMES_1 = 0,
@@ -97,7 +91,6 @@ enum ScaleFactor {
   TIMES_16 = 4,
   TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
 };
-
 
 enum Condition {
   OVERFLOW = 0,
@@ -127,7 +120,6 @@ enum Condition {
   INVALID_CONDITION = 16
 };
 
-
 class Instr {
  public:
   static const uint8_t kHltInstruction = 0xF4;
@@ -151,7 +143,6 @@ class Instr {
   // We need to prevent the creation of instances of class Instr.
   DISALLOW_IMPLICIT_CONSTRUCTORS(Instr);
 };
-
 
 // The largest multibyte nop we will emit.  This could go up to 15 if it
 // becomes important to us.

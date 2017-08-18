@@ -134,6 +134,7 @@ class _ServiceTesteeLauncher {
     if (pause_on_unhandled_exceptions) {
       fullArgs.add('--pause-isolates-on-unhandled-exceptions');
     }
+    fullArgs.add('--profiler');
     if (extraArgs != null) {
       fullArgs.addAll(extraArgs);
     }
@@ -170,6 +171,7 @@ class _ServiceTesteeLauncher {
     if (pause_on_unhandled_exceptions) {
       dartFlags.add('--pause_isolates_on_unhandled_exceptions');
     }
+    dartFlags.add('--profiler');
     // Override mirrors.
     dartFlags.add('--enable_mirrors=true');
     if (extraArgs != null) {

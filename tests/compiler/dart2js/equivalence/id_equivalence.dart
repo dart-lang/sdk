@@ -213,6 +213,9 @@ abstract class IrEnumeratorMixin {
     } else if (node is ir.VariableDeclaration) {
       assert(node.fileOffset != ir.TreeNode.noOffset);
       return new NodeId(node.fileOffset);
+    } else if (node is ir.FunctionExpression) {
+      assert(node.fileOffset != ir.TreeNode.noOffset);
+      return new NodeId(node.fileOffset);
     } else if (node is ir.FunctionDeclaration) {
       assert(node.fileOffset != ir.TreeNode.noOffset);
       return new NodeId(node.fileOffset);

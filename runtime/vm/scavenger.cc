@@ -9,8 +9,8 @@
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/object.h"
-#include "vm/object_set.h"
 #include "vm/object_id_ring.h"
+#include "vm/object_set.h"
 #include "vm/safepoint.h"
 #include "vm/stack_frame.h"
 #include "vm/store_buffer.h"
@@ -42,26 +42,22 @@ enum {
   kForwarded = kForwardingMask,
 };
 
-
 static inline bool IsForwarding(uword header) {
   uword bits = header & kForwardingMask;
   ASSERT((bits == kNotForwarded) || (bits == kForwarded));
   return bits == kForwarded;
 }
 
-
 static inline uword ForwardedAddr(uword header) {
   ASSERT(IsForwarding(header));
   return header & ~kForwardingMask;
 }
-
 
 static inline void ForwardTo(uword original, uword target) {
   // Make sure forwarding can be encoded.
   ASSERT((target & kForwardingMask) == 0);
   *reinterpret_cast<uword*>(original) = target | kForwarded;
 }
-
 
 class ScavengerVisitor : public ObjectPointerVisitor {
  public:
@@ -73,7 +69,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         scavenger_(scavenger),
         from_(from),
         heap_(scavenger->heap_),
-        vm_heap_(Dart::vm_isolate()->heap()),
         page_space_(scavenger->heap_->old_space()),
         bytes_promoted_(0),
         visiting_old_object_(NULL) {}
@@ -138,7 +133,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       if (scavenger_->survivor_end_ <= raw_addr) {
         // Not a survivor of a previous scavenge. Just copy the object into the
         // to space.
-        new_addr = scavenger_->TryAllocate(size);
+        new_addr = scavenger_->AllocateGC(size);
         NOT_IN_PRODUCT(class_table->UpdateLiveNew(cid, size));
       } else {
         // TODO(iposva): Experiment with less aggressive promotion. For example
@@ -157,7 +152,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
           NOT_IN_PRODUCT(class_table->UpdateAllocatedOld(cid, size));
         } else {
           // Promotion did not succeed. Copy into the to space instead.
-          new_addr = scavenger_->TryAllocate(size);
+          scavenger_->failed_to_promote_ = true;
+          new_addr = scavenger_->AllocateGC(size);
           NOT_IN_PRODUCT(class_table->UpdateLiveNew(cid, size));
         }
       }
@@ -183,7 +179,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   Scavenger* scavenger_;
   SemiSpace* from_;
   Heap* heap_;
-  Heap* vm_heap_;
   PageSpace* page_space_;
   RawWeakProperty* delayed_weak_properties_;
   intptr_t bytes_promoted_;
@@ -193,7 +188,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 
   DISALLOW_COPY_AND_ASSIGN(ScavengerVisitor);
 };
-
 
 class ScavengerWeakVisitor : public HandleVisitor {
  public:
@@ -219,7 +213,6 @@ class ScavengerWeakVisitor : public HandleVisitor {
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
 
-
 // Visitor used to verify that all old->new references have been added to the
 // StoreBuffers.
 class VerifyStoreBufferPointerVisitor : public ObjectPointerVisitor {
@@ -242,7 +235,6 @@ class VerifyStoreBufferPointerVisitor : public ObjectPointerVisitor {
   DISALLOW_COPY_AND_ASSIGN(VerifyStoreBufferPointerVisitor);
 };
 
-
 SemiSpace::SemiSpace(VirtualMemory* reserved)
     : reserved_(reserved), region_(NULL, 0) {
   if (reserved != NULL) {
@@ -250,28 +242,24 @@ SemiSpace::SemiSpace(VirtualMemory* reserved)
   }
 }
 
-
 SemiSpace::~SemiSpace() {
   if (reserved_ != NULL) {
 #if defined(DEBUG)
-    memset(reserved_->address(), Heap::kZapByte, size_in_words()
-                                                     << kWordSizeLog2);
+    memset(reserved_->address(), Heap::kZapByte,
+           size_in_words() << kWordSizeLog2);
 #endif  // defined(DEBUG)
     delete reserved_;
   }
 }
 
-
 Mutex* SemiSpace::mutex_ = NULL;
 SemiSpace* SemiSpace::cache_ = NULL;
-
 
 void SemiSpace::InitOnce() {
   ASSERT(mutex_ == NULL);
   mutex_ = new Mutex();
   ASSERT(mutex_ != NULL);
 }
-
 
 SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {
   {
@@ -301,7 +289,6 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {
   }
 }
 
-
 void SemiSpace::Delete() {
 #ifdef DEBUG
   if (reserved_ != NULL) {
@@ -318,7 +305,6 @@ void SemiSpace::Delete() {
   delete old_cache;
 }
 
-
 void SemiSpace::WriteProtect(bool read_only) {
   if (reserved_ != NULL) {
     bool success = reserved_->Protect(read_only ? VirtualMemory::kReadOnly
@@ -326,7 +312,6 @@ void SemiSpace::WriteProtect(bool read_only) {
     ASSERT(success);
   }
 }
-
 
 Scavenger::Scavenger(Heap* heap,
                      intptr_t max_semi_capacity_in_words,
@@ -338,7 +323,9 @@ Scavenger::Scavenger(Heap* heap,
       delayed_weak_properties_(NULL),
       gc_time_micros_(0),
       collections_(0),
-      external_size_(0) {
+      external_size_(0),
+      failed_to_promote_(false),
+      space_lock_(new Mutex()) {
   // Verify assumptions about the first word in objects which the scavenger is
   // going to use for forwarding pointers.
   ASSERT(Object::tags_offset() == 0);
@@ -366,12 +353,11 @@ Scavenger::Scavenger(Heap* heap,
   UpdateMaxHeapUsage();
 }
 
-
 Scavenger::~Scavenger() {
   ASSERT(!scavenging_);
   to_->Delete();
+  delete space_lock_;
 }
-
 
 intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
   if (stats_history_.Size() == 0) {
@@ -386,12 +372,12 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
   }
 }
 
-
 SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
     (isolate->gc_prologue_callback())();
   }
   isolate->PrepareForGC();
+
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
   SemiSpace* from = to_;
@@ -409,15 +395,21 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   top_ = FirstObjectStart();
   resolved_top_ = top_;
   end_ = to_->end();
+
   return from;
 }
-
 
 void Scavenger::Epilogue(Isolate* isolate,
                          SemiSpace* from,
                          bool invoke_api_callbacks) {
   // All objects in the to space have been copied from the from space at this
   // moment.
+
+  // Ensure the mutator thread will fail the next allocation. This will force
+  // mutator to allocate a new TLAB
+  Thread* mutator_thread = isolate->mutator_thread();
+  ASSERT((mutator_thread == NULL) || (!mutator_thread->HasActiveTLAB()));
+
   double avg_frac = stats_history_.Get(0).PromoCandidatesSuccessFraction();
   if (stats_history_.Size() >= 2) {
     // Previous scavenge is only given half as much weight.
@@ -455,7 +447,6 @@ void Scavenger::Epilogue(Isolate* isolate,
   }
 }
 
-
 void Scavenger::IterateStoreBuffers(Isolate* isolate,
                                     ScavengerVisitor* visitor) {
   // Iterating through the store buffers.
@@ -492,7 +483,6 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
   visitor->VisitingOldObject(NULL);
 }
 
-
 void Scavenger::IterateObjectIdTable(Isolate* isolate,
                                      ScavengerVisitor* visitor) {
 #ifndef PRODUCT
@@ -509,7 +499,6 @@ void Scavenger::IterateObjectIdTable(Isolate* isolate,
 #endif  // !PRODUCT
 }
 
-
 void Scavenger::IterateRoots(Isolate* isolate, ScavengerVisitor* visitor) {
   int64_t start = OS::GetCurrentMonotonicMicros();
   isolate->VisitObjectPointers(visitor,
@@ -523,7 +512,6 @@ void Scavenger::IterateRoots(Isolate* isolate, ScavengerVisitor* visitor) {
   heap_->RecordTime(kIterateStoreBuffers, end - middle);
   heap_->RecordTime(kDummyScavengeTime, 0);
 }
-
 
 bool Scavenger::IsUnreachable(RawObject** p) {
   RawObject* raw_obj = *p;
@@ -546,11 +534,9 @@ bool Scavenger::IsUnreachable(RawObject** p) {
   return true;
 }
 
-
 void Scavenger::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
   isolate->VisitWeakPersistentHandles(visitor);
 }
-
 
 void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
   // Iterate until all work has been drained.
@@ -613,8 +599,8 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
   }
 }
 
-
 void Scavenger::UpdateMaxHeapCapacity() {
+#if !defined(PRODUCT)
   if (heap_ == NULL) {
     // Some unit tests.
     return;
@@ -625,10 +611,11 @@ void Scavenger::UpdateMaxHeapCapacity() {
   ASSERT(isolate != NULL);
   isolate->GetHeapNewCapacityMaxMetric()->SetValue(to_->size_in_words() *
                                                    kWordSize);
+#endif  // !defined(PRODUCT)
 }
 
-
 void Scavenger::UpdateMaxHeapUsage() {
+#if !defined(PRODUCT)
   if (heap_ == NULL) {
     // Some unit tests.
     return;
@@ -638,8 +625,8 @@ void Scavenger::UpdateMaxHeapUsage() {
   Isolate* isolate = heap_->isolate();
   ASSERT(isolate != NULL);
   isolate->GetHeapNewUsedMaxMetric()->SetValue(UsedInWords() * kWordSize);
+#endif  // !defined(PRODUCT)
 }
-
 
 void Scavenger::EnqueueWeakProperty(RawWeakProperty* raw_weak) {
   ASSERT(raw_weak->IsHeapObject());
@@ -654,7 +641,6 @@ void Scavenger::EnqueueWeakProperty(RawWeakProperty* raw_weak) {
   raw_weak->ptr()->next_ = reinterpret_cast<uword>(delayed_weak_properties_);
   delayed_weak_properties_ = raw_weak;
 }
-
 
 uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
                                      ScavengerVisitor* visitor) {
@@ -672,7 +658,6 @@ uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
   // Key is gray or black.  Make the weak property black.
   return raw_weak->VisitPointersNonvirtual(visitor);
 }
-
 
 void Scavenger::ProcessWeakReferences() {
   // Rehash the weak tables now that we know which objects survive this cycle.
@@ -729,8 +714,45 @@ void Scavenger::ProcessWeakReferences() {
   }
 }
 
+void Scavenger::MakeAllTLABsIterable(Isolate* isolate) const {
+  MonitorLocker ml(isolate->threads_lock(), false);
+  Thread* current = heap_->isolate()->thread_registry()->active_list();
+  while (current != NULL) {
+    if (current->HasActiveTLAB()) {
+      heap_->MakeTLABIterable(current);
+    }
+    current = current->next();
+  }
+  Thread* mutator_thread = isolate->mutator_thread();
+  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
+    heap_->MakeTLABIterable(mutator_thread);
+  }
+}
+
+void Scavenger::MakeNewSpaceIterable() const {
+  ASSERT(heap_ != NULL);
+  if (!scavenging_) {
+    MakeAllTLABsIterable(heap_->isolate());
+  }
+}
+
+void Scavenger::AbandonAllTLABs(Isolate* isolate) {
+  MonitorLocker ml(isolate->threads_lock(), false);
+  Thread* current = isolate->thread_registry()->active_list();
+  while (current != NULL) {
+    heap_->AbandonRemainingTLAB(current);
+    current = current->next();
+  }
+  Thread* mutator_thread = isolate->mutator_thread();
+  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
+    heap_->AbandonRemainingTLAB(mutator_thread);
+  }
+}
 
 void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
+  ASSERT(Thread::Current()->IsAtSafepoint() ||
+         (Thread::Current()->task_kind() == Thread::kMarkerTask));
+  MakeNewSpaceIterable();
   uword cur = FirstObjectStart();
   while (cur < top_) {
     RawObject* raw_obj = RawObject::FromAddr(cur);
@@ -738,8 +760,10 @@ void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   }
 }
 
-
 void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
+  ASSERT(Thread::Current()->IsAtSafepoint() ||
+         (Thread::Current()->task_kind() == Thread::kMarkerTask));
+  MakeNewSpaceIterable();
   uword cur = FirstObjectStart();
   while (cur < top_) {
     RawObject* raw_obj = RawObject::FromAddr(cur);
@@ -748,14 +772,13 @@ void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
   }
 }
 
-
 void Scavenger::AddRegionsToObjectSet(ObjectSet* set) const {
   set->AddRegion(to_->start(), to_->end());
 }
 
-
 RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
   ASSERT(!scavenging_);
+  MakeNewSpaceIterable();
   uword cur = FirstObjectStart();
   if (visitor->VisitRange(cur, top_)) {
     while (cur < top_) {
@@ -771,13 +794,11 @@ RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
   return Object::null();
 }
 
-
 void Scavenger::Scavenge() {
   // TODO(cshapiro): Add a decision procedure for determining when the
   // the API callbacks should be invoked.
   Scavenge(false);
 }
-
 
 void Scavenger::Scavenge(bool invoke_api_callbacks) {
   Isolate* isolate = heap_->isolate();
@@ -796,11 +817,15 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   ASSERT(!scavenging_);
   scavenging_ = true;
 
+  failed_to_promote_ = false;
+
   PageSpace* page_space = heap_->old_space();
   NoSafepointScope no_safepoints;
 
   int64_t post_safe_point = OS::GetCurrentMonotonicMicros();
   heap_->RecordTime(kSafePoint, post_safe_point - pre_safe_point);
+
+  AbandonAllTLABs(isolate);
 
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_before_gc && !FLAG_concurrent_sweep) {
@@ -855,12 +880,10 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   scavenging_ = false;
 }
 
-
 void Scavenger::WriteProtect(bool read_only) {
   ASSERT(!scavenging_);
   to_->WriteProtect(read_only);
 }
-
 
 #ifndef PRODUCT
 void Scavenger::PrintToJSONObject(JSONObject* object) const {
@@ -892,17 +915,58 @@ void Scavenger::PrintToJSONObject(JSONObject* object) const {
 }
 #endif  // !PRODUCT
 
-
 void Scavenger::AllocateExternal(intptr_t size) {
   ASSERT(size >= 0);
   external_size_ += size;
 }
 
-
 void Scavenger::FreeExternal(intptr_t size) {
   ASSERT(size >= 0);
   external_size_ -= size;
   ASSERT(external_size_ >= 0);
+}
+
+void Scavenger::Evacuate() {
+  // We need a safepoint here to prevent allocation right before or right after
+  // the scavenge.
+  // The former can introduce an object that we might fail to collect.
+  // The latter means even if the scavenge promotes every object in the new
+  // space, the new allocation means the space is not empty,
+  // causing the assertion below to fail.
+  SafepointOperationScope scope(Thread::Current());
+
+  // Forces the next scavenge to promote all the objects in the new space.
+  survivor_end_ = top_;
+
+  Scavenge();
+
+  // It is possible for objects to stay in the new space
+  // if the VM cannot create more pages for these objects.
+  ASSERT((UsedInWords() == 0) || failed_to_promote_);
+}
+
+int64_t Scavenger::FreeSpaceInWords(Isolate* isolate) const {
+  MonitorLocker ml(isolate->threads_lock(), false);
+  Thread* current = isolate->thread_registry()->active_list();
+  int64_t free_space = 0;
+  while (current != NULL) {
+    if (current->HasActiveTLAB()) {
+      free_space += current->end() - current->top();
+    }
+    current = current->next();
+  }
+
+  Thread* mutator_thread = isolate->mutator_thread();
+  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
+    free_space += mutator_thread->end() - mutator_thread->top();
+  }
+  return free_space >> kWordSizeLog2;
+}
+
+int64_t Scavenger::UsedInWords() const {
+  int64_t free_space_in_tlab = FreeSpaceInWords(heap_->isolate());
+  int64_t max_space_used = (top_ - FirstObjectStart()) >> kWordSizeLog2;
+  return max_space_used - free_space_in_tlab;
 }
 
 }  // namespace dart

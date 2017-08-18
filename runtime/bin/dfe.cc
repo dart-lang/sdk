@@ -15,14 +15,12 @@ namespace bin {
 const char kPlatformBinaryName[] = "platform.dill";
 const char kVMServiceIOBinaryName[] = "vmservice_io.dill";
 
-
 DFE::DFE()
     : frontend_filename_(NULL),
       platform_binary_filename_(NULL),
       vmservice_io_binary_filename_(NULL),
       kernel_platform_(NULL),
-      kernel_vmservice_io_(NULL) {}
-
+      kernel_file_specified_(false) {}
 
 DFE::~DFE() {
   frontend_filename_ = NULL;
@@ -36,13 +34,7 @@ DFE::~DFE() {
     delete reinterpret_cast<kernel::Program*>(kernel_platform_);
     kernel_platform_ = NULL;
   }
-
-  if (kernel_vmservice_io_ != NULL) {
-    delete reinterpret_cast<kernel::Program*>(kernel_vmservice_io_);
-    kernel_vmservice_io_ = NULL;
-  }
 }
-
 
 void DFE::SetKernelBinaries(const char* name) {
   intptr_t len = snprintf(NULL, 0, "%s%s%s", name, File::PathSeparator(),
@@ -60,8 +52,8 @@ void DFE::SetKernelBinaries(const char* name) {
            File::PathSeparator(), kVMServiceIOBinaryName);
 }
 
-
-Dart_Handle DFE::ReloadScript(Dart_Isolate isolate, const char* url_string) {
+Dart_Handle DFE::ReadKernelBinary(Dart_Isolate isolate,
+                                  const char* url_string) {
   ASSERT(!Dart_IsServiceIsolate(isolate) && !Dart_IsKernelIsolate(isolate));
   // First check if the URL points to a Kernel IR file in which case we
   // skip the compilation step and directly reload the file.
@@ -72,7 +64,10 @@ Dart_Handle DFE::ReloadScript(Dart_Isolate isolate, const char* url_string) {
     // TODO(asiva): We will have to change this API to pass in a list of files
     // that have changed. For now just pass in the main url_string and have it
     // recompile the script.
-    Dart_KernelCompilationResult kresult = Dart_CompileToKernel(url_string);
+    // TODO(aam): When Frontend is ready, VM should be passing outline.dill
+    // instead of platform.dill to Frontend for compilation.
+    Dart_KernelCompilationResult kresult =
+        Dart_CompileToKernel(url_string, platform_binary_filename_);
     if (kresult.status != Dart_KernelCompilationStatus_Ok) {
       return Dart_NewApiError(kresult.error);
     }
@@ -81,24 +76,16 @@ Dart_Handle DFE::ReloadScript(Dart_Isolate isolate, const char* url_string) {
   }
   void* kernel_program = Dart_ReadKernelBinary(kernel_ir, kernel_ir_size);
   ASSERT(kernel_program != NULL);
-  Dart_Handle result = Dart_LoadKernel(kernel_program);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  // Finalize loading. This will complete any futures for completed deferred
-  // loads.
-  result = Dart_FinalizeLoading(true);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  return Dart_Null();
+  return Dart_NewExternalTypedData(Dart_TypedData_kUint64, kernel_program, 1);
 }
-
 
 void* DFE::CompileAndReadScript(const char* script_uri,
                                 char** error,
                                 int* exit_code) {
-  Dart_KernelCompilationResult result = Dart_CompileToKernel(script_uri);
+  // TODO(aam): When Frontend is ready, VM should be passing outline.dill
+  // instead of platform.dill to Frontend for compilation.
+  Dart_KernelCompilationResult result =
+      Dart_CompileToKernel(script_uri, platform_binary_filename_);
   switch (result.status) {
     case Dart_KernelCompilationStatus_Ok:
       return Dart_ReadKernelBinary(result.kernel, result.kernel_size);
@@ -118,18 +105,15 @@ void* DFE::CompileAndReadScript(const char* script_uri,
   return NULL;
 }
 
-
-void* DFE::ReadPlatform() {
-  return kernel_platform_ = ReadScript(platform_binary_filename_);
+void* DFE::ReadPlatform() const {
+  return ReadScript(platform_binary_filename_);
 }
 
-
-void* DFE::ReadVMServiceIO() {
-  return kernel_vmservice_io_ = ReadScript(vmservice_io_binary_filename_);
+void* DFE::ReadVMServiceIO() const {
+  return ReadScript(vmservice_io_binary_filename_);
 }
 
-
-void* DFE::ReadScript(const char* script_uri) {
+void* DFE::ReadScript(const char* script_uri) const {
   const uint8_t* buffer = NULL;
   intptr_t buffer_length = -1;
   bool result = TryReadKernelFile(script_uri, &buffer, &buffer_length);
@@ -139,10 +123,9 @@ void* DFE::ReadScript(const char* script_uri) {
   return NULL;
 }
 
-
 bool DFE::TryReadKernelFile(const char* script_uri,
                             const uint8_t** kernel_ir,
-                            intptr_t* kernel_ir_size) {
+                            intptr_t* kernel_ir_size) const {
   *kernel_ir = NULL;
   *kernel_ir_size = -1;
   void* script_file = DartUtils::OpenFile(script_uri, false);
@@ -151,10 +134,7 @@ bool DFE::TryReadKernelFile(const char* script_uri,
     DartUtils::ReadFile(&buffer, kernel_ir_size, script_file);
     DartUtils::CloseFile(script_file);
     if (*kernel_ir_size > 0 && buffer != NULL) {
-      // We need a temporary variable because SniffForMagicNumber modifies the
-      // buffer pointer to skip snapshot magic number.
-      const uint8_t* temp = buffer;
-      if (DartUtils::SniffForMagicNumber(&temp, kernel_ir_size) !=
+      if (DartUtils::SniffForMagicNumber(buffer, *kernel_ir_size) !=
           DartUtils::kKernelMagicNumber) {
         free(const_cast<uint8_t*>(buffer));
         *kernel_ir = NULL;
@@ -172,7 +152,6 @@ bool DFE::TryReadKernelFile(const char* script_uri,
   }
   return false;
 }
-
 
 }  // namespace bin
 }  // namespace dart

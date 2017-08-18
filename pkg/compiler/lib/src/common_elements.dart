@@ -5,6 +5,7 @@
 // TODO(sigmund): rename and move to common/elements.dart
 library dart2js.type_system;
 
+import 'common.dart';
 import 'common/names.dart' show Identifiers, Uris;
 import 'constants/values.dart';
 import 'elements/entities.dart';
@@ -12,6 +13,7 @@ import 'elements/names.dart' show PublicName;
 import 'elements/types.dart';
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'js_backend/constant_system_javascript.dart';
+import 'js_backend/native_data.dart' show NativeBasicData;
 import 'universe/call_structure.dart' show CallStructure;
 import 'universe/selector.dart' show Selector;
 import 'universe/call_structure.dart';
@@ -223,7 +225,8 @@ class CommonElements {
   /// will not resolve the constructor if it hasn't been seen yet during
   /// compilation.
   bool isUnnamedListConstructor(ConstructorEntity element) =>
-      element.name == '' && element.enclosingClass == listClass;
+      (element.name == '' && element.enclosingClass == listClass) ||
+      (element.name == 'list' && element.enclosingClass == jsArrayClass);
 
   /// Returns `true` if [element] is the 'filled' constructor of `List`. This
   /// will not resolve the constructor if it hasn't been seen yet during
@@ -942,15 +945,32 @@ class CommonElements {
   FunctionEntity get throwConcurrentModificationError =>
       _findHelperFunction('throwConcurrentModificationError');
 
-  FunctionEntity _checkInt;
-  FunctionEntity get checkInt => _checkInt ??= _findHelperFunction('checkInt');
+  /// Return `true` if [member] is the 'checkInt' function defined in
+  /// dart:_js_helpers.
+  bool isCheckInt(MemberEntity member) {
+    return member.isFunction &&
+        member.isTopLevel &&
+        member.library == jsHelperLibrary &&
+        member.name == 'checkInt';
+  }
 
-  FunctionEntity _checkNum;
-  FunctionEntity get checkNum => _checkNum ??= _findHelperFunction('checkNum');
+  /// Return `true` if [member] is the 'checkNum' function defined in
+  /// dart:_js_helpers.
+  bool isCheckNum(MemberEntity member) {
+    return member.isFunction &&
+        member.isTopLevel &&
+        member.library == jsHelperLibrary &&
+        member.name == 'checkNum';
+  }
 
-  FunctionEntity _checkString;
-  FunctionEntity get checkString =>
-      _checkString ??= _findHelperFunction('checkString');
+  /// Return `true` if [member] is the 'checkString' function defined in
+  /// dart:_js_helpers.
+  bool isCheckString(MemberEntity member) {
+    return member.isFunction &&
+        member.isTopLevel &&
+        member.library == jsHelperLibrary &&
+        member.name == 'checkString';
+  }
 
   FunctionEntity get stringInterpolationHelper => _findHelperFunction('S');
 
@@ -1144,6 +1164,30 @@ class CommonElements {
     _ensureExpectAnnotations();
     return _expectAssumeDynamicClass;
   }
+
+  bool isForeign(MemberEntity element) => element.library == foreignLibrary;
+
+  /// Returns `true` if the implementation of the 'operator ==' [function] is
+  /// known to handle `null` as argument.
+  bool operatorEqHandlesNullArgument(FunctionEntity function) {
+    assert(function.name == '==',
+        failedAt(function, "Unexpected function $function."));
+    ClassEntity cls = function.enclosingClass;
+    return cls == objectClass ||
+        cls == jsInterceptorClass ||
+        cls == jsNullClass;
+  }
+
+  ClassEntity getDefaultSuperclass(
+      ClassEntity cls, NativeBasicData nativeBasicData) {
+    if (nativeBasicData.isJsInteropClass(cls)) {
+      return jsJavaScriptObjectClass;
+    }
+    // Native classes inherit from Interceptor.
+    return nativeBasicData.isNativeClass(cls)
+        ? jsInterceptorClass
+        : objectClass;
+  }
 }
 
 /// Interface for accessing libraries, classes and members.
@@ -1210,6 +1254,10 @@ abstract class ElementEnvironment {
   /// Calls [f] for every constructor declared in [cls].
   void forEachConstructor(
       ClassEntity cls, void f(ConstructorEntity constructor));
+
+  /// Calls [f] for every constructor body in [cls].
+  void forEachConstructorBody(
+      ClassEntity cls, void f(ConstructorBodyEntity constructorBody));
 
   /// Returns the superclass of [cls].
   ///
@@ -1281,13 +1329,17 @@ abstract class ElementEnvironment {
   /// `Object`.
   DartType getTypeVariableBound(TypeVariableEntity typeVariable);
 
-  /// Returns the type if [function].
+  /// Returns the type of [function].
   FunctionType getFunctionType(FunctionEntity function);
+
+  /// Returns the type of [field].
+  DartType getFieldType(FieldEntity field);
 
   /// Returns the type of the [local] function.
   FunctionType getLocalFunctionType(Local local);
 
-  /// Returns the unaliased type of [type].
+  /// Returns the 'unaliased' type of [type]. For typedefs this is the function
+  /// type it is an alias of, for other types it is the type itself.
   ///
   /// Use this during resolution to ensure that the alias has been computed.
   // TODO(johnniwinther): Remove this when the resolver is removed.
@@ -1297,6 +1349,19 @@ abstract class ElementEnvironment {
   /// on deferred libraries.
   bool isDeferredLoadLibraryGetter(MemberEntity member);
 
+  /// Returns the metadata constants declared on [library].
+  Iterable<ConstantValue> getLibraryMetadata(LibraryEntity library);
+
+  /// Returns the metadata constants declared on [cls].
+  Iterable<ConstantValue> getClassMetadata(ClassEntity cls);
+
+  /// Returns the metadata constants declared on [typedef].
+  Iterable<ConstantValue> getTypedefMetadata(TypedefEntity typedef);
+
   /// Returns the metadata constants declared on [member].
-  Iterable<ConstantValue> getMemberMetadata(MemberEntity member);
+  Iterable<ConstantValue> getMemberMetadata(MemberEntity member,
+      {bool includeParameterMetadata: false});
+
+  /// Returns the function type that is an alias of a [typedef].
+  FunctionType getFunctionTypeOfTypedef(TypedefEntity typedef);
 }

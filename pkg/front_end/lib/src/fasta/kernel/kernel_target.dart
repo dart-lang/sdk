@@ -6,13 +6,10 @@ library fasta.kernel_target;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show File;
-
-import 'package:front_end/file_system.dart';
-
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        Block,
         CanonicalName,
         Class,
         Constructor,
@@ -34,6 +31,7 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         Program,
         Source,
+        Statement,
         StringLiteral,
         SuperInitializer,
         Throw,
@@ -44,22 +42,35 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_algebra.dart' show substitute;
 
-import '../source/source_loader.dart' show SourceLoader;
+import '../../../file_system.dart' show FileSystem;
 
-import '../source/source_class_builder.dart' show SourceClassBuilder;
+import '../compiler_context.dart' show CompilerContext;
 
-import '../target_implementation.dart' show TargetImplementation;
-
-import '../translate_uri.dart' show TranslateUri;
+import '../deprecated_problems.dart'
+    show deprecated_InputError, reportCrash, resetCrashReporting;
 
 import '../dill/dill_target.dart' show DillTarget;
 
-import '../errors.dart'
-    show InputError, internalError, reportCrash, resetCrashReporting;
+import '../messages.dart'
+    show
+        LocatedMessage,
+        messageConstConstructorNonFinalField,
+        messageConstConstructorNonFinalFieldCause,
+        templateSuperclassHasNoDefaultConstructor;
+
+import '../problems.dart' show unhandled;
+
+import '../severity.dart' show Severity;
+
+import '../source/source_class_builder.dart' show SourceClassBuilder;
+
+import '../source/source_loader.dart' show SourceLoader;
+
+import '../target_implementation.dart' show TargetImplementation;
+
+import '../uri_translator.dart' show UriTranslator;
 
 import '../util/relativize.dart' show relativizeUri;
-
-import '../compiler_context.dart' show CompilerContext;
 
 import 'kernel_builder.dart'
     show
@@ -78,12 +89,13 @@ import 'kernel_builder.dart'
         TypeVariableBuilder;
 
 import 'verifier.dart' show verifyProgram;
-import 'kernel_outline_shaker.dart'
-    show trimProgram, RetainedDataBuilder, RootsMarker;
 
 class KernelTarget extends TargetImplementation {
   /// The [FileSystem] which should be used to access files.
   final FileSystem fileSystem;
+
+  /// Whether comments should be scanned and parsed.
+  final bool includeComments;
 
   final DillTarget dillTarget;
 
@@ -94,15 +106,17 @@ class KernelTarget extends TargetImplementation {
 
   Program program;
 
-  final List<String> errors = <String>[];
+  final List<LocatedMessage> errors = <LocatedMessage>[];
 
   final TypeBuilder dynamicType =
       new KernelNamedTypeBuilder("dynamic", null, -1, null);
 
   bool get strongMode => backendTarget.strongMode;
 
-  KernelTarget(
-      this.fileSystem, DillTarget dillTarget, TranslateUri uriTranslator,
+  bool get disableTypeInference => backendTarget.disableTypeInference;
+
+  KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
+      UriTranslator uriTranslator,
       [Map<String, Source> uriToSource])
       : dillTarget = dillTarget,
         uriToSource = uriToSource ?? CompilerContext.current.uriToSource,
@@ -111,16 +125,8 @@ class KernelTarget extends TargetImplementation {
     loader = createLoader();
   }
 
-  void addError(file, int charOffset, String message) {
-    Uri uri = file is String ? Uri.parse(file) : file;
-    InputError error = new InputError(uri, charOffset, message);
-    String formatterMessage = error.format();
-    print(formatterMessage);
-    errors.add(formatterMessage);
-  }
-
   SourceLoader<Library> createLoader() =>
-      new SourceLoader<Library>(fileSystem, this);
+      new SourceLoader<Library>(fileSystem, includeComments, this);
 
   void addSourceInformation(
       Uri uri, List<int> lineStarts, List<int> sourceCode) {
@@ -147,7 +153,8 @@ class KernelTarget extends TargetImplementation {
     if (supertype is NamedTypeBuilder) {
       f(supertype);
     } else if (supertype != null) {
-      internalError("Unhandled: ${supertype.runtimeType}");
+      unhandled("${supertype.runtimeType}", "forEachDirectSupertype",
+          cls.charOffset, cls.fileUri);
     }
     if (cls.interfaces != null) {
       for (NamedTypeBuilder t in cls.interfaces) {
@@ -212,11 +219,10 @@ class KernelTarget extends TargetImplementation {
     builder.mixedInType = null;
   }
 
-  void handleInputError(InputError error,
-      {bool isFullProgram, bool trimDependencies: false}) {
+  void handleInputError(deprecated_InputError error, {bool isFullProgram}) {
     if (error != null) {
-      String message = error.format();
-      print(message);
+      LocatedMessage message = deprecated_InputError.toMessage(error);
+      context.report(message, Severity.error);
       errors.add(message);
     }
     program = erroneousProgram(isFullProgram);
@@ -247,7 +253,7 @@ class KernelTarget extends TargetImplementation {
       loader.checkOverrides(sourceClasses);
       loader.prepareInitializerInference();
       loader.performInitializerInference();
-    } on InputError catch (e) {
+    } on deprecated_InputError catch (e) {
       handleInputError(e, isFullProgram: false);
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
@@ -261,20 +267,12 @@ class KernelTarget extends TargetImplementation {
   /// not include method bodies (depending on what was loaded into that target,
   /// an outline or a full kernel program).
   ///
-  /// When [trimDependencies] is true, this also runs a tree-shaker that deletes
-  /// anything from the [DillTarget] that is not needed for the source program,
-  /// this includes function bodies and types that are not reachable. This
-  /// option is currently in flux and the internal implementation might change.
-  /// See [trimDependenciesInProgram] for more details.
-  ///
   /// If [verify], run the default kernel verification on the resulting program.
   @override
-  Future<Program> buildProgram(
-      {bool verify: false, bool trimDependencies: false}) async {
+  Future<Program> buildProgram({bool verify: false}) async {
     if (loader.first == null) return null;
     if (errors.isNotEmpty) {
-      handleInputError(null,
-          isFullProgram: true, trimDependencies: trimDependencies);
+      handleInputError(null, isFullProgram: true);
       return program;
     }
 
@@ -287,62 +285,15 @@ class KernelTarget extends TargetImplementation {
 
       if (verify) this.verify();
       if (errors.isNotEmpty) {
-        handleInputError(null,
-            isFullProgram: true, trimDependencies: trimDependencies);
+        handleInputError(null, isFullProgram: true);
       }
       handleRecoverableErrors(loader.unhandledErrors);
-    } on InputError catch (e) {
-      handleInputError(e,
-          isFullProgram: true, trimDependencies: trimDependencies);
+    } on deprecated_InputError catch (e) {
+      handleInputError(e, isFullProgram: true);
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
     }
-    if (trimDependencies) trimDependenciesInProgram();
     return program;
-  }
-
-  Future writeDepsFile(Uri output, Uri depsFile,
-      {Iterable<Uri> extraDependencies}) async {
-    String toRelativeFilePath(Uri uri) {
-      // Ninja expects to find file names relative to the current working
-      // directory. We've tried making them relative to the deps file, but that
-      // doesn't work for downstream projects. Making them absolute also
-      // doesn't work.
-      //
-      // We can test if it works by running ninja twice, for example:
-      //
-      //     ninja -C xcodebuild/ReleaseX64 runtime_kernel -d explain
-      //     ninja -C xcodebuild/ReleaseX64 runtime_kernel -d explain
-      //
-      // The second time, ninja should say:
-      //
-      //     ninja: Entering directory `xcodebuild/ReleaseX64'
-      //     ninja: no work to do.
-      //
-      // It's broken if it says something like this:
-      //
-      //     ninja explain: expected depfile 'patched_sdk.d' to mention
-      //     'patched_sdk/platform.dill', got
-      //     '/.../xcodebuild/ReleaseX64/patched_sdk/platform.dill'
-      return Uri.parse(relativizeUri(uri, base: Uri.base)).toFilePath();
-    }
-
-    if (loader.first == null) return null;
-    StringBuffer sb = new StringBuffer();
-    sb.write(toRelativeFilePath(output));
-    sb.write(":");
-    Set<String> allDependencies = new Set<String>();
-    allDependencies.addAll(loader.getDependencies().map(toRelativeFilePath));
-    if (extraDependencies != null) {
-      allDependencies.addAll(extraDependencies.map(toRelativeFilePath));
-    }
-    for (String path in allDependencies) {
-      sb.write(" ");
-      sb.write(path);
-    }
-    sb.writeln();
-    await new File.fromUri(depsFile).writeAsString("$sb");
-    ticker.logMs("Wrote deps file");
   }
 
   /// Adds a synthetic field named `#errors` to the main library that contains
@@ -352,7 +303,7 @@ class KernelTarget extends TargetImplementation {
   ///
   /// If there's no main library, this method uses [erroneousProgram] to
   /// replace [program].
-  void handleRecoverableErrors(List<InputError> recoverableErrors) {
+  void handleRecoverableErrors(List<LocatedMessage> recoverableErrors) {
     if (recoverableErrors.isEmpty) return;
     KernelLibraryBuilder mainLibrary = loader.first;
     if (mainLibrary == null) {
@@ -360,10 +311,9 @@ class KernelTarget extends TargetImplementation {
       return;
     }
     List<Expression> expressions = <Expression>[];
-    for (InputError error in recoverableErrors) {
-      String message = error.format();
-      errors.add(message);
-      expressions.add(new StringLiteral(message));
+    for (LocatedMessage error in recoverableErrors) {
+      errors.add(error);
+      expressions.add(new StringLiteral(context.format(error, Severity.error)));
     }
     mainLibrary.library.addMember(new Field(new Name("#errors"),
         initializer: new ListLiteral(expressions, isConst: true),
@@ -381,11 +331,23 @@ class KernelTarget extends TargetImplementation {
       // method. Similarly considerations apply to separate compilation. It
       // could also make sense to add a way to mark .dill files as having
       // compile-time errors.
-      KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(null, 0,
-          null, "main", null, null, ProcedureKind.Method, library, -1, -1, -1);
+      KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(
+          null,
+          null,
+          0,
+          null,
+          "main",
+          null,
+          null,
+          ProcedureKind.Method,
+          library,
+          -1,
+          -1,
+          -1);
       library.addBuilder(mainBuilder.name, mainBuilder, -1);
-      mainBuilder.body = new ExpressionStatement(
-          new Throw(new StringLiteral("${errors.join('\n')}")));
+      mainBuilder.body = new Block(new List<Statement>.from(errors.map(
+          (LocatedMessage message) => new ExpressionStatement(new Throw(
+              new StringLiteral(context.format(message, Severity.error)))))));
     }
     library.build(loader.coreLibrary);
     return link(<Library>[library.library]);
@@ -475,7 +437,8 @@ class KernelTarget extends TargetImplementation {
         if (type is NamedTypeBuilder) {
           supertype = type.builder;
         } else {
-          internalError("Unhandled: ${type.runtimeType}");
+          unhandled("${type.runtimeType}", "installDefaultConstructor",
+              builder.charOffset, builder.fileUri);
         }
       }
       if (supertype is KernelClassBuilder) {
@@ -495,7 +458,8 @@ class KernelTarget extends TargetImplementation {
       } else if (supertype is InvalidTypeBuilder) {
         builder.addSyntheticConstructor(makeDefaultConstructor());
       } else {
-        internalError("Unhandled: ${supertype.runtimeType}");
+        unhandled("${supertype.runtimeType}", "installDefaultConstructor",
+            builder.charOffset, builder.fileUri);
       }
     } else {
       /// >Iff no constructor is specified for a class C, it implicitly has a
@@ -555,7 +519,8 @@ class KernelTarget extends TargetImplementation {
   Constructor makeDefaultConstructor() {
     return new Constructor(
         new FunctionNode(new EmptyStatement(), returnType: const VoidType()),
-        name: new Name(""));
+        name: new Name(""),
+        isSyntheticDefault: true);
   }
 
   void finishAllConstructors() {
@@ -601,15 +566,15 @@ class KernelTarget extends TargetImplementation {
           superTarget ??= defaultSuperConstructor(cls);
           Initializer initializer;
           if (superTarget == null) {
-            addError(
-                constructor.enclosingClass.fileUri,
-                constructor.fileOffset,
-                "${cls.superclass.name} has no constructor that takes no"
-                " arguments.");
+            builder.addCompileTimeError(
+                templateSuperclassHasNoDefaultConstructor
+                    .withArguments(cls.superclass.name),
+                constructor.fileOffset);
             initializer = new InvalidInitializer();
           } else {
             initializer =
-                new SuperInitializer(superTarget, new Arguments.empty());
+                new SuperInitializer(superTarget, new Arguments.empty())
+                  ..isSynthetic = true;
           }
           constructor.initializers.add(initializer);
           initializer.parent = constructor;
@@ -629,11 +594,11 @@ class KernelTarget extends TargetImplementation {
         }
         fieldInitializers[constructor] = myFieldInitializers;
         if (constructor.isConst && nonFinalFields.isNotEmpty) {
-          addError(constructor.enclosingClass.fileUri, constructor.fileOffset,
-              "Constructor is marked 'const' so all fields must be final.");
+          builder.addCompileTimeError(
+              messageConstConstructorNonFinalField, constructor.fileOffset);
           for (Field field in nonFinalFields) {
-            addError(constructor.enclosingClass.fileUri, field.fileOffset,
-                "Field isn't final, but constructor is 'const'.");
+            builder.addCompileTimeError(
+                messageConstConstructorNonFinalFieldCause, field.fileOffset);
           }
           nonFinalFields.clear();
         }
@@ -664,7 +629,8 @@ class KernelTarget extends TargetImplementation {
       for (Field field in initializedFields.difference(fields.toSet())) {
         if (field.initializer == null) {
           FieldInitializer initializer =
-              new FieldInitializer(field, new NullLiteral());
+              new FieldInitializer(field, new NullLiteral())
+                ..isSynthetic = true;
           initializer.parent = constructor;
           constructor.initializers.insert(0, initializer);
         }
@@ -683,30 +649,8 @@ class KernelTarget extends TargetImplementation {
   }
 
   void verify() {
-    var verifyErrors = verifyProgram(program);
-    errors.addAll(verifyErrors.map((error) => '$error'));
+    errors.addAll(verifyProgram(program));
     ticker.logMs("Verified program");
-  }
-
-  /// Tree-shakes most code from the [dillTarget] by visiting all other
-  /// libraries in [program] and marking the APIs from the [dillTarget]
-  /// libraries that are in use.
-  ///
-  /// Note: while it's likely we'll do some trimming of programs for modular
-  /// compilation, it is unclear at this time when and how that trimming should
-  /// happen. We are likely going to remove the extra visitor my either marking
-  /// things while code is built, or by handling tree-shaking after the fact
-  /// (e.g. during serialization).
-  trimDependenciesInProgram() {
-    var toShake =
-        dillTarget.loader.libraries.map((lib) => lib.importUri).toSet();
-    var isIncluded = (Uri uri) => !toShake.contains(uri);
-    var data = new RetainedDataBuilder();
-    // TODO(sigmund): replace this step with data that is directly computed from
-    // the builders: we should know the tree-shaking roots without having to do
-    // a second visit over the tree.
-    new RootsMarker(loader.coreTypes, data).run(program, isIncluded);
-    trimProgram(program, data, isIncluded);
   }
 
   /// Return `true` if the given [library] was built by this [KernelTarget]

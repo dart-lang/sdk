@@ -162,6 +162,15 @@ class HintCode extends ErrorCode {
           "Try using a package: URI instead.");
 
   /**
+   * Generic type comments (`/*<T>*/` and `/*=T*/`) are no longer necessary and
+   * will soon be ignored.
+   */
+  static const HintCode GENERIC_METHOD_COMMENT = const HintCode(
+      'GENERIC_METHOD_COMMENT',
+      "The generic type comment is being deprecated in favor of the real syntax.",
+      "Try replacing the comment with the actual type annotation.");
+
+  /**
    * Deferred libraries shouldn't define a top level function 'loadLibrary'.
    */
   static const HintCode IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION =

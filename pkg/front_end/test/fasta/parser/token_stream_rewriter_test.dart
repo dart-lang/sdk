@@ -26,7 +26,7 @@ abstract class TokenStreamRewriterTest {
     var b = _makeToken(1, 'b');
     var eof = _link([a]);
     var rewriter = new TokenStreamRewriter(a);
-    rewriter.insertTokenBefore(b, eof);
+    expect(rewriter.insertTokenBefore(b, eof), same(b));
     expect(rewriter.firstToken, same(a));
     expect(a.next, same(b));
     expect(b.next, same(eof));
@@ -39,7 +39,7 @@ abstract class TokenStreamRewriterTest {
     var b = _makeToken(1, 'b');
     _link([b]);
     var rewriter = new TokenStreamRewriter(b);
-    rewriter.insertTokenBefore(a, b);
+    expect(rewriter.insertTokenBefore(a, b), same(a));
     expect(rewriter.firstToken, same(a));
     expect(a.next, same(b));
     expect(a.previous.next, same(a));

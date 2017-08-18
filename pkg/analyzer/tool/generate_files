@@ -24,27 +24,23 @@ SCRIPT_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../../.." ; pwd -P)"
 
-BIN_DIR="${ROOT_DIR}/sdk/bin"
-
 if [ -z "$DART_CONFIGURATION" ];
 then
-  DART_CONFIGURATION="ReleaseIA32"
+  DART_CONFIGURATION="ReleaseX64"
 fi
 
 if [[ `uname` == 'Darwin' ]];
 then
-  BUILD_DIR="${ROOT_DIR}/xcodebuild/$DART_CONFIGURATION"
+  BIN_DIR="${ROOT_DIR}/xcodebuild/$DART_CONFIGURATION/dart-sdk/bin"
 else
-  BUILD_DIR="${ROOT_DIR}/out/$DART_CONFIGURATION"
+  BIN_DIR="${ROOT_DIR}/out/$DART_CONFIGURATION/dart-sdk/bin"
 fi
-
-PKG_DIR="${BUILD_DIR}/packages"
 
 DART="${BIN_DIR}/dart"
 
 declare -a VM_OPTIONS
 VM_OPTIONS+=("--checked")
-VM_OPTIONS+=("--package-root=${PKG_DIR}")
+VM_OPTIONS+=("--packages=${ROOT_DIR}/.packages")
 
 cd "${SCRIPT_DIR}"
 "${DART}" "${VM_OPTIONS[@]}" "task_dependency_graph/generate.dart"

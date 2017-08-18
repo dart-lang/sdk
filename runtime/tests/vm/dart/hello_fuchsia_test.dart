@@ -486,6 +486,15 @@ bool testFileOpenDirectoryFails() {
   }
 }
 
+
+Future testListInterfaces() async {
+  List<NetworkInterface> interfaces = await NetworkInterface.list();
+  print('Found ${interfaces.length} interfaces:');
+  for (var iface in interfaces) {
+    print('\t$iface');
+  }
+}
+
 main(List<String> args) async {
   if (args.length >= 1) {
     if (args[0] == "infinite-loop") {
@@ -558,6 +567,10 @@ main(List<String> args) async {
   } else {
     print("testFileOpenDirectoryFails FAILED");
   }
+
+  print('testListInterfaces');
+  await testListInterfaces();
+  print('testListInterfaces done');
 
   print("Goodbyte, Fuchsia!");
 }

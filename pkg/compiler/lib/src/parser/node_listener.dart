@@ -4,10 +4,8 @@
 
 library dart2js.parser.node_listener;
 
-import 'package:front_end/src/fasta/parser/parser.dart'
-    show FormalParameterType, MemberKind;
-import 'package:front_end/src/fasta/parser/identifier_context.dart'
-    show IdentifierContext;
+import 'package:front_end/src/fasta/parser.dart'
+    show FormalParameterKind, IdentifierContext, MemberKind;
 import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'package:front_end/src/scanner/token.dart' show TokenType;
 
@@ -17,9 +15,11 @@ import '../tree/tree.dart';
 import '../util/util.dart' show Link;
 import 'element_listener.dart' show ElementListener, ScannerOptions;
 
-import 'package:front_end/src/fasta/parser/parser.dart' as fasta show Assert;
+import 'package:front_end/src/fasta/parser.dart' as fasta show Assert;
 
 class NodeListener extends ElementListener {
+  int invalidTopLevelDeclarationCount = 0;
+
   NodeListener(ScannerOptions scannerOptions, DiagnosticReporter reporter,
       CompilationUnitElement element)
       : super(scannerOptions, reporter, element, null);
@@ -121,6 +121,11 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void handleInvalidTopLevelDeclaration(Token endToken) {
+    ++invalidTopLevelDeclarationCount;
+  }
+
+  @override
   void endTopLevelDeclaration(Token token) {
     // TODO(sigmund): consider moving metadata into each declaration
     // element instead.
@@ -131,8 +136,14 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void beginCompilationUnit(Token token) {
+    invalidTopLevelDeclarationCount = 0;
+  }
+
+  @override
   void endCompilationUnit(int count, Token token) {
-    pushNode(makeNodeList(count, null, null, '\n'));
+    pushNode(makeNodeList(
+        count - invalidTopLevelDeclarationCount, null, null, '\n'));
   }
 
   @override
@@ -177,10 +188,10 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleFunctionType(Token functionToken, Token endToken) {
+  void endFunctionType(Token functionToken, Token endToken) {
     NodeList formals = popNode();
-    NodeList typeParameters = popNode();
     TypeAnnotation returnType = popNode();
+    NodeList typeParameters = popNode();
     pushNode(new FunctionTypeAnnotation(
         returnType, functionToken, typeParameters, formals));
   }
@@ -232,7 +243,7 @@ class NodeListener extends ElementListener {
 
   @override
   void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterType kind, MemberKind memberKind) {
+      FormalParameterKind kind, MemberKind memberKind) {
     Expression name = popNode();
     if (thisKeyword != null) {
       Identifier thisIdentifier = new Identifier(thisKeyword);
@@ -456,7 +467,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endSend(Token beginToken, Token endToken) {
+  void handleSend(Token beginToken, Token endToken) {
     NodeList arguments = popNode();
     NodeList typeArguments = popNode();
     Node selector = popNode();
@@ -493,23 +504,33 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFunction(Token getOrSet, Token endToken) {
+  void endNamedFunctionExpression(Token endToken) {
     Statement body = popNode();
     AsyncModifier asyncModifier = popNode();
     NodeList initializers = popNode();
     NodeList formals = popNode();
-    NodeList typeVariables = popNode();
     // The name can be an identifier or a send in case of named constructors.
     Expression name = popNode();
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
+    NodeList typeVariables = popNode();
     pushNode(new FunctionExpression(name, typeVariables, formals, body, type,
-        modifiers, initializers, getOrSet, asyncModifier));
+        modifiers, initializers, null, asyncModifier));
   }
 
   @override
-  void endFunctionDeclaration(Token endToken) {
-    pushNode(new FunctionDeclaration(popNode()));
+  void endLocalFunctionDeclaration(Token endToken) {
+    Statement body = popNode();
+    AsyncModifier asyncModifier = popNode();
+    NodeList initializers = popNode();
+    NodeList formals = popNode();
+    // The name can be an identifier or a send in case of named constructors.
+    Expression name = popNode();
+    TypeAnnotation type = popNode();
+    Modifiers modifiers = popNode();
+    NodeList typeVariables = popNode();
+    pushNode(new FunctionDeclaration(new FunctionExpression(name, typeVariables,
+        formals, body, type, modifiers, initializers, null, asyncModifier)));
   }
 
   @override
@@ -582,7 +603,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endThrowExpression(Token throwToken, Token endToken) {
+  void handleThrowExpression(Token throwToken, Token endToken) {
     Expression expression = popNode();
     pushNode(new Throw(expression, throwToken, endToken));
   }
@@ -768,14 +789,36 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFunctionTypedFormalParameter(
-      Token thisKeyword, FormalParameterType kind) {
+  void handleIdentifier(Token token, IdentifierContext context) {
+    if (IdentifierContext.formalParameterDeclaration == context ||
+        IdentifierContext.fieldInitializer == context) {
+      var typeAnnotation = popNode();
+      if (typeAnnotation is FunctionExpression) {
+        pushNode(null); // Signal "no type" to endFormalParameter.
+        pushNode(new FunctionExpression(
+            new Identifier(token),
+            typeAnnotation.typeVariables,
+            typeAnnotation.parameters,
+            null,
+            typeAnnotation.returnType,
+            typeAnnotation.modifiers,
+            null,
+            null,
+            null));
+        return;
+      } else {
+        pushNode(typeAnnotation);
+      }
+    }
+    pushNode(new Identifier(token));
+  }
+
+  @override
+  void endFunctionTypedFormalParameter() {
     NodeList formals = popNode();
-    NodeList typeVariables = popNode();
-    Identifier name = popNode();
     TypeAnnotation returnType = popNode();
-    pushNode(null); // Signal "no type" to endFormalParameter.
-    pushNode(new FunctionExpression(name, typeVariables, formals, null,
+    NodeList typeVariables = popNode();
+    pushNode(new FunctionExpression(null, typeVariables, formals, null,
         returnType, Modifiers.EMPTY, null, null, null));
   }
 
@@ -834,7 +877,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleSwitchCase(int labelCount, int caseCount, Token defaultKeyword,
+  void endSwitchCase(int labelCount, int caseCount, Token defaultKeyword,
       int statementCount, Token firstToken, Token endToken) {
     NodeList statements = makeNodeList(statementCount, null, null, null);
     NodeList labelsAndCases =
@@ -975,7 +1018,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endUnnamedFunction(Token beginToken, Token token) {
+  void endFunctionExpression(Token beginToken, Token token) {
     Statement body = popNode();
     AsyncModifier asyncModifier = popNode();
     NodeList formals = popNode();
@@ -1040,6 +1083,6 @@ class NodeListener extends ElementListener {
   void internalError({Token token, Node node}) {
     // TODO(ahe): This should call reporter.internalError.
     Spannable spannable = (token == null) ? node : token;
-    throw new SpannableAssertionFailure(spannable, 'Internal error in parser.');
+    failedAt(spannable, 'Internal error in parser.');
   }
 }

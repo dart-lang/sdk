@@ -5,11 +5,11 @@
 #include "platform/assert.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
-#include "vm/unit_test.h"
 #include "vm/profiler.h"
 #include "vm/safepoint.h"
 #include "vm/stack_frame.h"
 #include "vm/thread_pool.h"
+#include "vm/unit_test.h"
 
 namespace dart {
 
@@ -33,7 +33,6 @@ VM_UNIT_TEST_CASE(Mutex) {
   Dart_ShutdownIsolate();
   delete mutex;
 }
-
 
 VM_UNIT_TEST_CASE(Monitor) {
   // This unit test case needs a running isolate.
@@ -81,7 +80,6 @@ VM_UNIT_TEST_CASE(Monitor) {
   delete monitor;
 }
 
-
 class ObjectCounter : public ObjectPointerVisitor {
  public:
   explicit ObjectCounter(Isolate* isolate, const Object* obj)
@@ -101,7 +99,6 @@ class ObjectCounter : public ObjectPointerVisitor {
   const Object* obj_;
   intptr_t count_;
 };
-
 
 class TaskWithZoneAllocation : public ThreadPool::Task {
  public:
@@ -133,10 +130,11 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       Smi& smi = Smi::Handle(zone, Smi::New(unique_smi));
       EXPECT(smi.Value() == unique_smi);
       {
+        HeapIterationScope iteration(thread);
         ObjectCounter counter(isolate_, &smi);
         // Ensure that our particular zone is visited.
-        isolate_->IterateObjectPointers(&counter,
-                                        StackFrameIterator::kValidateFrames);
+        iteration.IterateStackPointers(&counter,
+                                       StackFrameIterator::kValidateFrames);
         EXPECT_EQ(1, counter.count());
       }
       char* unique_chars = zone->PrintToString("unique_str_%" Pd, id_);
@@ -149,10 +147,11 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       }
       EXPECT(unique_str.Equals(unique_chars));
       {
+        HeapIterationScope iteration(thread);
         ObjectCounter str_counter(isolate_, &unique_str);
         // Ensure that our particular zone is visited.
-        isolate_->IterateObjectPointers(&str_counter,
-                                        StackFrameIterator::kValidateFrames);
+        iteration.IterateStackPointers(&str_counter,
+                                       StackFrameIterator::kValidateFrames);
         // We should visit the string object exactly once.
         EXPECT_EQ(1, str_counter.count());
       }
@@ -172,12 +171,11 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
   intptr_t id_;
 };
 
-
 ISOLATE_UNIT_TEST_CASE(ManyTasksWithZones) {
   const int kTaskCount = 100;
   Monitor sync[kTaskCount];
   bool done[kTaskCount];
-  Isolate* isolate = Thread::Current()->isolate();
+  Isolate* isolate = thread->isolate();
   EXPECT(isolate->heap()->GrowthControlState());
   isolate->heap()->DisableGrowthControl();
   for (int i = 0; i < kTaskCount; i++) {
@@ -185,25 +183,31 @@ ISOLATE_UNIT_TEST_CASE(ManyTasksWithZones) {
     Dart::thread_pool()->Run(
         new TaskWithZoneAllocation(isolate, &sync[i], &done[i], i));
   }
+  bool in_isolate = true;
   for (int i = 0; i < kTaskCount; i++) {
     // Check that main mutator thread can still freely use its own zone.
     String& bar = String::Handle(String::New("bar"));
     if (i % 10 == 0) {
       // Mutator thread is free to independently move in/out/between isolates.
       Thread::ExitIsolate();
+      in_isolate = false;
     }
     MonitorLocker ml(&sync[i]);
     while (!done[i]) {
-      ml.Wait();
+      if (in_isolate) {
+        ml.WaitWithSafepointCheck(thread);
+      } else {
+        ml.Wait();
+      }
     }
     EXPECT(done[i]);
     if (i % 10 == 0) {
       Thread::EnterIsolate(isolate);
+      in_isolate = true;
     }
     EXPECT(bar.Equals("bar"));
   }
 }
-
 
 #ifndef PRODUCT
 class SimpleTaskWithZoneAllocation : public ThreadPool::Task {
@@ -286,7 +290,6 @@ class SimpleTaskWithZoneAllocation : public ThreadPool::Task {
   bool* wait_;
 };
 
-
 TEST_CASE(ManySimpleTasksWithZones) {
   const int kTaskCount = 10;
   Monitor monitor;
@@ -359,7 +362,6 @@ TEST_CASE(ManySimpleTasksWithZones) {
 }
 #endif
 
-
 TEST_CASE(ThreadRegistry) {
   Isolate* orig = Thread::Current()->isolate();
   Zone* orig_zone = Thread::Current()->zone();
@@ -387,7 +389,6 @@ TEST_CASE(ThreadRegistry) {
   EXPECT_EQ(orig_zone, Thread::Current()->zone());
   EXPECT_STREQ("foo", orig_str);
 }
-
 
 // A helper thread that alternatingly cooperates and organizes
 // safepoint rendezvous. At rendezvous, it explicitly visits the
@@ -429,10 +430,11 @@ class SafepointTestTask : public ThreadPool::Task {
         TransitionVMToBlocked transition(thread);
       } else {
         // But occasionally, organize a rendezvous.
-        SafepointOperationScope safepoint_scope(thread);
+        HeapIterationScope iteration(thread);  // Establishes a safepoint.
+        ASSERT(thread->IsAtSafepoint());
         ObjectCounter counter(isolate_, &smi);
-        isolate_->IterateObjectPointers(&counter,
-                                        StackFrameIterator::kValidateFrames);
+        iteration.IterateStackPointers(&counter,
+                                       StackFrameIterator::kValidateFrames);
         {
           MonitorLocker ml(monitor_);
           EXPECT_EQ(*expected_count_, counter.count());
@@ -478,9 +480,7 @@ class SafepointTestTask : public ThreadPool::Task {
   bool local_done_;           // this task has successfully safepointed >= once.
 };
 
-
 const intptr_t SafepointTestTask::kTaskCount = 5;
-
 
 // Test rendezvous of:
 // - helpers in VM code,
@@ -533,7 +533,6 @@ TEST_CASE(SafepointTestDart) {
   }
 }
 
-
 // Test rendezvous of:
 // - helpers in VM code, and
 // - main thread in VM code,
@@ -558,7 +557,6 @@ ISOLATE_UNIT_TEST_CASE(SafepointTestVM) {
   }
 }
 
-
 // Test case for recursive safepoint operations.
 ISOLATE_UNIT_TEST_CASE(RecursiveSafepointTest1) {
   intptr_t count = 0;
@@ -576,7 +574,6 @@ ISOLATE_UNIT_TEST_CASE(RecursiveSafepointTest1) {
   }
   EXPECT(count == 3);
 }
-
 
 ISOLATE_UNIT_TEST_CASE(ThreadIterator_Count) {
   intptr_t thread_count_0 = 0;
@@ -605,19 +602,16 @@ ISOLATE_UNIT_TEST_CASE(ThreadIterator_Count) {
   EXPECT(thread_count_0 >= thread_count_1);
 }
 
-
 ISOLATE_UNIT_TEST_CASE(ThreadIterator_FindSelf) {
   OSThread* current = OSThread::Current();
   EXPECT(OSThread::IsThreadInList(current->id()));
 }
-
 
 struct ThreadIteratorTestParams {
   ThreadId spawned_thread_id;
   ThreadJoinId spawned_thread_join_id;
   Monitor* monitor;
 };
-
 
 void ThreadIteratorTestMain(uword parameter) {
   ThreadIteratorTestParams* params =
@@ -632,7 +626,6 @@ void ThreadIteratorTestMain(uword parameter) {
   EXPECT(OSThread::IsThreadInList(thread->id()));
   ml.Notify();
 }
-
 
 // NOTE: This test case also verifies that known TLS destructors are called
 // on Windows. See |OnDartThreadExit| in os_thread_win.cc for more details.
@@ -659,7 +652,6 @@ TEST_CASE(ThreadIterator_AddFindRemove) {
 
   delete params.monitor;
 }
-
 
 // Test rendezvous of:
 // - helpers in VM code, and
@@ -695,7 +687,6 @@ ISOLATE_UNIT_TEST_CASE(SafepointTestVM2) {
     ml.WaitWithSafepointCheck(thread);
   }
 }
-
 
 // Test recursive safepoint operation scopes with other threads trying
 // to also start a safepoint operation scope.
@@ -736,7 +727,6 @@ ISOLATE_UNIT_TEST_CASE(RecursiveSafepointTest2) {
   } while (!all_exited);
 }
 
-
 class AllocAndGCTask : public ThreadPool::Task {
  public:
   AllocAndGCTask(Isolate* isolate, Monitor* done_monitor, bool* done)
@@ -768,7 +758,6 @@ class AllocAndGCTask : public ThreadPool::Task {
   Monitor* done_monitor_;
   bool* done_;
 };
-
 
 ISOLATE_UNIT_TEST_CASE(HelperAllocAndGC) {
   Monitor done_monitor;

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/assembler.h"
 #include "vm/disassembler.h"
+#include "vm/assembler.h"
 #include "vm/unit_test.h"
 #include "vm/virtual_memory.h"
 

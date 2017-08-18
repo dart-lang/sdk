@@ -234,11 +234,6 @@ class CompilationUnitElementHandle extends ElementHandle
   CompilationUnit computeNode() => actualElement.computeNode();
 
   @override
-  Element getElementAt(int offset) {
-    return actualElement.getElementAt(offset);
-  }
-
-  @override
   ClassElement getEnum(String enumName) => actualElement.getEnum(enumName);
 
   @override
@@ -508,12 +503,6 @@ abstract class ExecutableElementHandle extends ElementHandle
 
   @override
   bool get isSynchronous => actualElement.isSynchronous;
-
-  @override
-  List<LabelElement> get labels => actualElement.labels;
-
-  @override
-  List<LocalVariableElement> get localVariables => actualElement.localVariables;
 
   @override
   List<ParameterElement> get parameters => actualElement.parameters;

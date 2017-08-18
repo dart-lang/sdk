@@ -23,7 +23,7 @@ ForwardingCorpse* ForwardingCorpse::AsForwarder(uword addr, intptr_t size) {
 
   ForwardingCorpse* result = reinterpret_cast<ForwardingCorpse*>(addr);
 
-  uword tags = 0;
+  uint32_t tags = 0;
   tags = RawObject::SizeTag::update(size, tags);
   tags = RawObject::ClassIdTag::update(kForwardingCorpse, tags);
 
@@ -35,12 +35,10 @@ ForwardingCorpse* ForwardingCorpse::AsForwarder(uword addr, intptr_t size) {
   return result;
 }
 
-
 void ForwardingCorpse::InitOnce() {
   ASSERT(sizeof(ForwardingCorpse) == kObjectAlignment);
   ASSERT(OFFSET_OF(ForwardingCorpse, tags_) == Object::tags_offset());
 }
-
 
 // Free list elements are used as a marker for forwarding objects. This is
 // safe because we cannot reach free list elements from live objects. Ideally
@@ -49,14 +47,12 @@ static bool IsForwardingObject(RawObject* object) {
   return object->IsHeapObject() && object->IsForwardingCorpse();
 }
 
-
 static RawObject* GetForwardedObject(RawObject* object) {
   ASSERT(IsForwardingObject(object));
   uword addr = reinterpret_cast<uword>(object) - kHeapObjectTag;
   ForwardingCorpse* forwarder = reinterpret_cast<ForwardingCorpse*>(addr);
   return forwarder->target();
 }
-
 
 static void ForwardObjectTo(RawObject* before_obj, RawObject* after_obj) {
   const intptr_t size_before = before_obj->Size();
@@ -74,7 +70,6 @@ static void ForwardObjectTo(RawObject* before_obj, RawObject* after_obj) {
     FATAL("become: Before and after sizes do not match.");
   }
 }
-
 
 class ForwardPointersVisitor : public ObjectPointerVisitor {
  public:
@@ -107,7 +102,6 @@ class ForwardPointersVisitor : public ObjectPointerVisitor {
   DISALLOW_COPY_AND_ASSIGN(ForwardPointersVisitor);
 };
 
-
 class ForwardHeapPointersVisitor : public ObjectVisitor {
  public:
   explicit ForwardHeapPointersVisitor(ForwardPointersVisitor* pointer_visitor)
@@ -123,7 +117,6 @@ class ForwardHeapPointersVisitor : public ObjectVisitor {
 
   DISALLOW_COPY_AND_ASSIGN(ForwardHeapPointersVisitor);
 };
-
 
 class ForwardHeapPointersHandleVisitor : public HandleVisitor {
  public:
@@ -146,7 +139,6 @@ class ForwardHeapPointersHandleVisitor : public HandleVisitor {
 
   DISALLOW_COPY_AND_ASSIGN(ForwardHeapPointersHandleVisitor);
 };
-
 
 // On IA32, object pointers are embedded directly in the instruction stream,
 // which is normally write-protected, so we need to make it temporarily writable
@@ -178,19 +170,16 @@ class WritableCodeLiteralsScope : public ValueObject {
 };
 #endif
 
-
 void Become::MakeDummyObject(const Instance& instance) {
   // Make the forward pointer point to itself.
   // This is needed to distinguish it from a real forward object.
   ForwardObjectTo(instance.raw(), instance.raw());
 }
 
-
 static bool IsDummyObject(RawObject* object) {
   if (!object->IsForwardingCorpse()) return false;
   return GetForwardedObject(object) == object;
 }
-
 
 void Become::CrashDump(RawObject* before_obj, RawObject* after_obj) {
   OS::PrintErr("DETECTED FATAL ISSUE IN BECOME MAPPINGS\n");
@@ -220,14 +209,13 @@ void Become::CrashDump(RawObject* before_obj, RawObject* after_obj) {
   }
 }
 
-
 void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Heap* heap = isolate->heap();
 
   TIMELINE_FUNCTION_GC_DURATION(thread, "Become::ElementsForwardIdentity");
-  HeapIterationScope his;
+  HeapIterationScope his(thread);
 
   // Setup forwarding pointers.
   ASSERT(before.Length() == after.Length());
@@ -262,12 +250,16 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
 
     ForwardObjectTo(before_obj, after_obj);
 
+#if defined(HASH_IN_OBJECT_HEADER)
+    Object::SetCachedHash(after_obj, Object::GetCachedHash(before_obj));
+#else
     // Forward the identity hash too if it has one.
     intptr_t hash = heap->GetHash(before_obj);
     if (hash != 0) {
       ASSERT(heap->GetHash(after_obj) == 0);
       heap->SetHash(after_obj, hash);
     }
+#endif
   }
 
   {

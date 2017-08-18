@@ -25,7 +25,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
-import 'package:front_end/compilation_error.dart';
+import 'package:front_end/compilation_message.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/src/scanner/reader.dart';
 import 'package:front_end/src/scanner/scanner.dart';
@@ -145,9 +145,6 @@ Future<Program> generateKernel(Uri entryUri,
 
 _kernelForProgramViaDartk(Uri source, CompilerOptions options) async {
   var loader = await _createLoader(options, entry: source);
-  if (options.compileSdk) {
-    options.additionalLibraries.forEach(loader.loadLibrary);
-  }
   loader.loadProgram(source, compileSdk: options.compileSdk);
   _reportErrors(loader.errors, options.onError);
   return loader.program;
@@ -170,8 +167,8 @@ Future<DartLoader> _createLoader(CompilerOptions options,
   // URIs correctly even if sdkRoot is inferred and not specified explicitly.
   String resolve(Uri patch) => _uriToPath(options.sdkRoot.resolveUri(patch));
 
-  options.targetPatches.forEach((uri, patches) {
-    patchPaths['$uri'] = patches.map(resolve).toList();
+  options.targetPatches.forEach((name, patches) {
+    patchPaths['dart:$name'] = patches.map(resolve).toList();
   });
   AnalysisOptionsImpl analysisOptions = loader.context.analysisOptions;
   analysisOptions.patchPaths = patchPaths;
@@ -186,7 +183,6 @@ DartOptions _convertOptions(CompilerOptions options) {
       // sdk sources.
       sdkSummary: options.compileSdk ? null : _uriToPath(options.sdkSummary),
       packagePath: _uriToPath(options.packagesFileUri),
-      customUriMappings: options.uriOverride,
       declaredVariables: options.declaredVariables);
 }
 
@@ -205,9 +201,12 @@ void _reportErrors(List errors, ErrorHandler onError) {
   }
 }
 
-class _DartkError implements CompilationError {
-  String get correction => null;
+class _DartkError implements CompilationMessage {
+  String get tip => null;
   SourceSpan get span => null;
+  String get analyzerCode => null;
+  String get dart2jsCode => null;
+  Severity get severity => Severity.error;
   final String message;
   _DartkError(this.message);
 }

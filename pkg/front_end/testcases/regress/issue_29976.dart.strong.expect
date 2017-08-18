@@ -1,0 +1,6 @@
+library;
+import self as self;
+
+static method main() → dynamic {
+  throw "pkg/front_end/testcases/regress/issue_29976.dart:7:14: Error: Expected '}' before this.\n    \"x\${x*\"'\"\u0233'}x\n             ^";
+}

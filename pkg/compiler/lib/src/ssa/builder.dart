@@ -239,10 +239,10 @@ class SsaAstGraphBuilder extends ast.Visitor
         this.constantSystem = backend.constantSystem,
         this.rtiSubstitutions = backend.rtiSubstitutions {
     assert(target.isImplementation);
-    elementInferenceResults = _resultOf(target);
+    elementInferenceResults = _resultOf(target.declaration);
     assert(elementInferenceResults != null);
     graph.element = target;
-    sourceElementStack.add(target);
+    sourceElementStack.add(target.declaration);
     sourceInformationBuilder =
         sourceInformationFactory.createBuilderForContext(target);
     graph.sourceInformation =
@@ -292,9 +292,11 @@ class SsaAstGraphBuilder extends ast.Visitor
   /// Note: this helper is used selectively. When we know that we are in a
   /// context were we don't expect to see a constructor body element, we
   /// directly fetch the data from the global inference results.
-  GlobalTypeInferenceElementResult _resultOf(MemberElement element) =>
-      globalInferenceResults.resultOfMember(
-          element is ConstructorBodyElementX ? element.constructor : element);
+  GlobalTypeInferenceElementResult _resultOf(MemberElement element) {
+    assert(element.isDeclaration);
+    return globalInferenceResults.resultOfMember(
+        element is ConstructorBodyElementX ? element.constructor : element);
+  }
 
   /// Build the graph for [target].
   HGraph build() {
@@ -489,7 +491,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // A generative constructor body is not seen by global analysis,
       // so we should not query for its type.
       if (!function.isGenerativeConstructorBody) {
-        if (globalInferenceResults.resultOfMember(function).throwsAlways) {
+        if (globalInferenceResults.resultOfMember(declaration).throwsAlways) {
           isReachable = false;
           return false;
         }
@@ -507,7 +509,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     bool reductiveHeuristic() {
       // The call is on a path which is executed rarely, so inline only if it
       // does not make the program larger.
-      if (isCalledOnce(function)) {
+      if (isCalledOnce(declaration)) {
         return InlineWeeder.canBeInlined(functionResolvedAst, null,
             enableUserAssertions: options.enableUserAssertions);
       }
@@ -565,7 +567,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // If a method is called only once, and all the methods in the
       // inlining stack are called only once as well, we know we will
       // save on output size by inlining this method.
-      if (isCalledOnce(function)) {
+      if (isCalledOnce(declaration)) {
         maxInliningNodes = null;
       }
       bool canInline = InlineWeeder.canBeInlined(
@@ -623,11 +625,12 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   bool isFunctionCalledOnce(MethodElement element) {
     // ConstructorBodyElements are not in the type inference graph.
-    if (element is ConstructorBodyElement) return false;
+    if (element is ConstructorBodyEntity) return false;
     return globalInferenceResults.resultOfMember(element).isCalledOnce;
   }
 
   bool isCalledOnce(MethodElement element) {
+    assert(element.isDeclaration);
     return allInlinedFunctionsCalledOnce && isFunctionCalledOnce(element);
   }
 
@@ -639,7 +642,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       SourceInformationBuilder oldSourceInformationBuilder =
           sourceInformationBuilder;
       sourceInformationBuilder = sourceInformationBuilder.forContext(element);
-      sourceElementStack.add(element.declaration);
+      sourceElementStack.add(element);
       var result = f();
       sourceInformationBuilder = oldSourceInformationBuilder;
       sourceElementStack.removeLast();
@@ -706,8 +709,8 @@ class SsaAstGraphBuilder extends ast.Visitor
    */
   HGraph buildMethod(MethodElement functionElement) {
     assert(functionElement.isImplementation, failedAt(functionElement));
-    graph.calledInLoop =
-        closedWorld.isCalledInLoop(functionElement.declaration);
+    MethodElement declaration = functionElement.declaration;
+    graph.calledInLoop = closedWorld.isCalledInLoop(declaration);
     ast.FunctionExpression function = resolvedAst.node;
     assert(function != null);
     assert(elements.getFunctionDefinition(function) != null);
@@ -727,7 +730,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     // the beginning of the method. This is to avoid having call sites do the
     // null check.
     if (name == '==') {
-      if (!backend.operatorEqHandlesNullArgument(functionElement)) {
+      if (!commonElements.operatorEqHandlesNullArgument(functionElement)) {
         handleIf(
             node: function,
             visitCondition: () {
@@ -932,49 +935,63 @@ class SsaAstGraphBuilder extends ast.Visitor
       ResolvedAst constructorResolvedAst,
       List<HInstruction> compiledArguments,
       List<ResolvedAst> constructorResolvedAsts,
-      Map<Element, HInstruction> fieldValues,
+      Map<FieldElement, HInstruction> fieldValues,
       FunctionElement caller) {
     ConstructorElement callee = constructorResolvedAst.element.implementation;
+
     reporter.withCurrentElement(callee, () {
+      Set<ClassElement> includedClasses = new Set<ClassElement>();
       constructorResolvedAsts.add(constructorResolvedAst);
-      ClassElement enclosingClass = callee.enclosingClass;
-      if (rtiNeed.classNeedsRti(enclosingClass)) {
-        // If [enclosingClass] needs RTI, we have to give a value to its
-        // type parameters.
-        ClassElement currentClass = caller.enclosingClass;
-        // For a super constructor call, the type is the supertype of
-        // [currentClass]. For a redirecting constructor, the type is
-        // the current type. [InterfaceType.asInstanceOf] takes care
-        // of both.
-        ResolutionInterfaceType type =
-            currentClass.thisType.asInstanceOf(enclosingClass);
-        type = localsHandler.substInContext(type);
-        List<ResolutionDartType> arguments = type.typeArguments;
-        List<ResolutionDartType> typeVariables = enclosingClass.typeVariables;
-        if (!type.isRaw) {
-          assert(arguments.length == typeVariables.length);
-          Iterator<ResolutionDartType> variables = typeVariables.iterator;
-          type.typeArguments.forEach((ResolutionDartType argument) {
-            variables.moveNext();
-            ResolutionTypeVariableType typeVariable = variables.current;
-            localsHandler.updateLocal(
-                localsHandler.getTypeVariableAsLocal(typeVariable),
-                typeBuilder.analyzeTypeArgument(argument, sourceElement));
-          });
-        } else {
-          // If the supertype is a raw type, we need to set to null the
-          // type variables.
-          for (ResolutionTypeVariableType variable in typeVariables) {
-            localsHandler.updateLocal(
-                localsHandler.getTypeVariableAsLocal(variable),
-                graph.addConstantNull(closedWorld));
+      ClassElement currentClass = caller.enclosingClass;
+
+      /// Include locals for type variable used in [member].
+      void includeTypeVariables(MemberElement member) {
+        ClassElement enclosingClass = member.enclosingClass;
+        if (!includedClasses.add(enclosingClass)) return;
+
+        if (rtiNeed.classNeedsRti(enclosingClass)) {
+          // If [enclosingClass] needs RTI, we have to give a value to its
+          // type parameters.
+          // For a super constructor call, the type is the supertype of
+          // [currentClass]. For a redirecting constructor, the type is
+          // the current type. [InterfaceType.asInstanceOf] takes care
+          // of both.
+          ResolutionInterfaceType type =
+              currentClass.thisType.asInstanceOf(enclosingClass);
+          type = localsHandler.substInContext(type);
+          List<ResolutionDartType> arguments = type.typeArguments;
+          List<ResolutionDartType> typeVariables = enclosingClass.typeVariables;
+          if (!type.isRaw) {
+            assert(arguments.length == typeVariables.length);
+            Iterator<ResolutionDartType> variables = typeVariables.iterator;
+            type.typeArguments.forEach((ResolutionDartType argument) {
+              variables.moveNext();
+              ResolutionTypeVariableType typeVariable = variables.current;
+              localsHandler.updateLocal(
+                  localsHandler.getTypeVariableAsLocal(typeVariable),
+                  typeBuilder.analyzeTypeArgument(argument, sourceElement));
+            });
+          } else {
+            // If the supertype is a raw type, we need to set to null the
+            // type variables.
+            for (ResolutionTypeVariableType variable in typeVariables) {
+              localsHandler.updateLocal(
+                  localsHandler.getTypeVariableAsLocal(variable),
+                  graph.addConstantNull(closedWorld));
+            }
           }
         }
       }
 
+      includeTypeVariables(callee);
+
       // For redirecting constructors, the fields will be initialized later
       // by the effective target.
       if (!callee.isRedirectingGenerative) {
+        callee.enclosingClass.implementation.forEachInstanceField(
+            (ClassElement enclosingClass, FieldElement member) {
+          includeTypeVariables(member);
+        });
         inlinedFrom(constructorResolvedAst, () {
           buildFieldInitializers(
               callee.enclosingClass.implementation, fieldValues);
@@ -1008,8 +1025,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       ScopeInfo newScopeInfo = closureDataLookup.getScopeInfo(callee);
       localsHandler.scopeInfo = newScopeInfo;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-        localsHandler.enterScope(
-            closureDataLookup.getClosureScope(resolvedAst.node),
+        localsHandler.enterScope(closureDataLookup.getCapturedScope(callee),
             forGenerativeConstructorBody: callee.isGenerativeConstructorBody);
       }
       buildInitializers(callee, constructorResolvedAsts, fieldValues);
@@ -1022,7 +1038,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   void buildInitializers(
       ConstructorElement constructor,
       List<ResolvedAst> constructorResolvedAsts,
-      Map<Element, HInstruction> fieldValues) {
+      Map<FieldElement, HInstruction> fieldValues) {
     assert(
         resolvedAst.element == constructor.declaration,
         failedAt(constructor,
@@ -1039,7 +1055,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   void buildSynthesizedConstructorInitializers(
       ConstructorElement constructor,
       List<ResolvedAst> constructorResolvedAsts,
-      Map<Element, HInstruction> fieldValues) {
+      Map<FieldElement, HInstruction> fieldValues) {
     assert(
         constructor.isSynthesized,
         failedAt(
@@ -1085,7 +1101,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   void buildParsedInitializers(
       ConstructorElement constructor,
       List<ResolvedAst> constructorResolvedAsts,
-      Map<Element, HInstruction> fieldValues) {
+      Map<FieldElement, HInstruction> fieldValues) {
     assert(
         resolvedAst.element == constructor.declaration, failedAt(constructor));
     assert(constructor.isImplementation, failedAt(constructor));
@@ -1225,7 +1241,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       openFunction(functionElement, function);
     }
 
-    Map<Element, HInstruction> fieldValues = new Map<Element, HInstruction>();
+    Map<FieldElement, HInstruction> fieldValues =
+        new Map<FieldElement, HInstruction>();
 
     // Compile the possible initialization code for local fields and
     // super fields, unless this is a redirecting constructor, in which case
@@ -1349,7 +1366,6 @@ class SsaAstGraphBuilder extends ast.Visitor
         bodyCallInputs.add(interceptor);
       }
       bodyCallInputs.add(newObject);
-      ast.Node node = constructorResolvedAst.node;
 
       FunctionSignature functionSignature = body.functionSignature;
       // Provide the parameters to the generative constructor body.
@@ -1365,7 +1381,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // If there are locals that escape (ie mutated in closures), we
       // pass the box to the constructor.
       // The box must be passed before any type variable.
-      ClosureScope scopeData = closureDataLookup.getClosureScope(node);
+      CapturedScope scopeData = closureDataLookup.getCapturedScope(constructor);
       if (scopeData.requiresContextBox) {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
       }
@@ -1426,7 +1442,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     localsHandler.startFunction(
         element,
         closureDataLookup.getScopeInfo(element),
-        closureDataLookup.getClosureScope(node),
+        closureDataLookup.getCapturedScope(element),
         parameters,
         isGenerativeConstructorBody: element.isGenerativeConstructorBody);
     close(new HGoto()).addSuccessor(block);
@@ -1460,7 +1476,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         ParameterElement parameterElement = _parameterElement;
         if (element.isGenerativeConstructorBody) {
           if (closureDataLookup
-              .getClosureScope(node)
+              .getCapturedScope(element)
               .isBoxed(parameterElement)) {
             // The parameter will be a field in the box passed as the
             // last parameter. So no need to have it.
@@ -1704,7 +1720,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     loopHandler.handleLoop(
         node,
-        closureDataLookup.getLoopClosureScope(node),
+        closureDataLookup.getCapturedLoopScope(node),
         elements.getTargetDefinition(node),
         buildInitializer,
         buildCondition,
@@ -1719,7 +1735,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       return popBoolified();
     }
 
-    loopHandler.handleLoop(node, closureDataLookup.getLoopClosureScope(node),
+    loopHandler.handleLoop(node, closureDataLookup.getCapturedLoopScope(node),
         elements.getTargetDefinition(node), () {}, buildCondition, () {}, () {
       visit(node.body);
     });
@@ -1728,7 +1744,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   visitDoWhile(ast.DoWhile node) {
     assert(isReachable);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
-    var loopClosureInfo = closureDataLookup.getLoopClosureScope(node);
+    var loopClosureInfo = closureDataLookup.getCapturedLoopScope(node);
     localsHandler.startLoop(loopClosureInfo);
     loopDepth++;
     JumpTarget target = elements.getTargetDefinition(node);
@@ -1878,7 +1894,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     TypeMask type = new TypeMask.nonNullExact(closureClassEntity, closedWorld);
     push(new HCreate(closureClassEntity, capturedVariables, type,
-        callMethod: closureInfo.callMethod, localFunction: methodElement)
+        callMethod: closureInfo.callMethod)
       ..sourceInformation = sourceInformationBuilder.buildCreate(node));
   }
 
@@ -2400,10 +2416,6 @@ class SsaAstGraphBuilder extends ast.Visitor
     return interceptor;
   }
 
-  HLiteralList buildLiteralList(List<HInstruction> inputs) {
-    return new HLiteralList(inputs, commonMasks.extendableArrayType);
-  }
-
   @override
   void visitAs(ast.Send node, ast.Node expression, ResolutionDartType type, _) {
     HInstruction expressionInstruction = visitAndPop(expression);
@@ -2468,8 +2480,9 @@ class SsaAstGraphBuilder extends ast.Visitor
       HInstruction call = pop();
       return new HIs.compound(type, expression, call, commonMasks.boolType);
     } else if (type.isTypeVariable) {
+      ResolutionTypeVariableType typeVariable = type;
       HInstruction runtimeType =
-          typeBuilder.addTypeVariableReference(type, sourceElement);
+          typeBuilder.addTypeVariableReference(typeVariable, sourceElement);
       MethodElement helper = commonElements.checkSubtypeOfRuntimeType;
       List<HInstruction> inputs = <HInstruction>[expression, runtimeType];
       pushInvokeStatic(null, helper, inputs, typeMask: commonMasks.boolType);
@@ -3683,7 +3696,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   @override
   void visitTopLevelFunctionInvoke(ast.Send node, MethodElement function,
       ast.NodeList arguments, CallStructure callStructure, _) {
-    if (backend.isForeign(closedWorld.commonElements, function)) {
+    if (closedWorld.commonElements.isForeign(function)) {
       handleForeignSend(node, function);
     } else {
       generateStaticFunctionInvoke(node, function, callStructure);
@@ -4223,8 +4236,9 @@ class SsaAstGraphBuilder extends ast.Visitor
       type = TypeMaskFactory.inferredTypeForMember(
           element, globalInferenceResults);
     } else if (element.isFunction) {
+      MethodElement method = element;
       type = TypeMaskFactory.inferredReturnTypeForElement(
-          element, globalInferenceResults);
+          method, globalInferenceResults);
     } else {
       type = closedWorld.commonMasks.dynamicType;
     }
@@ -5329,8 +5343,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   }
 
   visitModifiers(ast.Modifiers node) {
-    throw new SpannableAssertionFailure(
-        node, 'SsaFromAstMixin.visitModifiers not implemented.');
+    failedAt(node, 'SsaFromAstMixin.visitModifiers not implemented.');
   }
 
   visitBreakStatement(ast.BreakStatement node) {
@@ -5438,7 +5451,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     buildProtectedByFinally(() {
       loopHandler.handleLoop(
           node,
-          closureDataLookup.getLoopClosureScope(node),
+          closureDataLookup.getCapturedLoopScope(node),
           elements.getTargetDefinition(node),
           buildInitializer,
           buildCondition,
@@ -5511,7 +5524,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     loopHandler.handleLoop(
         node,
-        closureDataLookup.getLoopClosureScope(node),
+        closureDataLookup.getCapturedLoopScope(node),
         elements.getTargetDefinition(node),
         buildInitializer,
         buildCondition,
@@ -5636,7 +5649,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     loopHandler.handleLoop(
         node,
-        closureDataLookup.getLoopClosureScope(node),
+        closureDataLookup.getCapturedLoopScope(node),
         elements.getTargetDefinition(node),
         buildInitializer,
         buildCondition,
@@ -5991,7 +6004,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
 
     void buildLoop() {
-      loopHandler.handleLoop(node, closureDataLookup.getLoopClosureScope(node),
+      loopHandler.handleLoop(node, closureDataLookup.getCapturedLoopScope(node),
           switchTarget, () {}, buildCondition, () {}, buildSwitch);
     }
 
@@ -6454,13 +6467,11 @@ class SsaAstGraphBuilder extends ast.Visitor
   }
 
   visitTypedef(ast.Typedef node) {
-    throw new SpannableAssertionFailure(
-        node, 'SsaFromAstMixin.visitTypedef not implemented.');
+    failedAt(node, 'SsaFromAstMixin.visitTypedef not implemented.');
   }
 
   visitTypeVariable(ast.TypeVariable node) {
-    throw new SpannableAssertionFailure(
-        node, 'SsaFromAstMixin.visitTypeVariable not implemented.');
+    failedAt(node, 'SsaFromAstMixin.visitTypeVariable not implemented.');
   }
 
   /**
@@ -6478,10 +6489,10 @@ class SsaAstGraphBuilder extends ast.Visitor
         stack,
         localsHandler,
         inTryStatement,
-        isCalledOnce(function),
+        isCalledOnce(functionResolvedAst.element),
         elementInferenceResults);
     resolvedAst = functionResolvedAst;
-    elementInferenceResults = _resultOf(function);
+    elementInferenceResults = _resultOf(functionResolvedAst.element);
     inliningStack.add(state);
 
     // Setting up the state of the (AST) builder is performed even when the

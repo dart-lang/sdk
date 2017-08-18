@@ -24,7 +24,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 
@@ -270,10 +270,11 @@ class AbstractStrongTest {
   ///
   /// Returns the main resolved library. This can be used for further checks.
   Future<CompilationUnit> check(
-      {bool implicitCasts: true,
+      {bool declarationCasts: true,
+      bool implicitCasts: true,
       bool implicitDynamic: true,
-      List<String> nonnullableTypes:
-          AnalysisOptionsImpl.NONNULLABLE_TYPES}) async {
+      List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES,
+      bool superMixins: false}) async {
     _checkCalled = true;
 
     File mainFile =
@@ -283,9 +284,11 @@ class AbstractStrongTest {
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
     analysisOptions.strongMode = true;
     analysisOptions.strongModeHints = true;
+    analysisOptions.declarationCasts = declarationCasts;
     analysisOptions.implicitCasts = implicitCasts;
     analysisOptions.implicitDynamic = implicitDynamic;
     analysisOptions.nonnullableTypes = nonnullableTypes;
+    analysisOptions.enableSuperMixins = superMixins;
 
     var mockSdk = new MockSdk(resourceProvider: _resourceProvider);
     mockSdk.context.analysisOptions = analysisOptions;
@@ -345,8 +348,6 @@ class AbstractStrongTest {
         var analysisResult = await _resolve(source);
 
         errors.addAll(analysisResult.errors.where((e) =>
-            // TODO(jmesserly): these are usually intentional dynamic calls.
-            e.errorCode.name != 'UNDEFINED_METHOD' &&
             // We don't care about any of these:
             e.errorCode != HintCode.UNUSED_ELEMENT &&
             e.errorCode != HintCode.UNUSED_FIELD &&
@@ -363,9 +364,19 @@ class AbstractStrongTest {
   /// Adds a file using [addFile] and calls [check].
   ///
   /// Also returns the resolved compilation unit.
-  Future<CompilationUnit> checkFile(String content) async {
+  Future<CompilationUnit> checkFile(String content,
+      {bool declarationCasts: true,
+      bool implicitCasts: true,
+      bool implicitDynamic: true,
+      List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES,
+      bool superMixins: false}) async {
     addFile(content);
-    return check();
+    return check(
+        declarationCasts: declarationCasts,
+        implicitCasts: implicitCasts,
+        implicitDynamic: implicitDynamic,
+        nonnullableTypes: nonnullableTypes,
+        superMixins: superMixins);
   }
 
   void setUp() {

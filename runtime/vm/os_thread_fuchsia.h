@@ -21,10 +21,8 @@ typedef pthread_key_t ThreadLocalKey;
 typedef mx_koid_t ThreadId;
 typedef pthread_t ThreadJoinId;
 
-
 static const ThreadLocalKey kUnsetThreadLocalKey =
     static_cast<pthread_key_t>(-1);
-
 
 class ThreadInlineImpl {
  private:
@@ -42,7 +40,6 @@ class ThreadInlineImpl {
   DISALLOW_COPY_AND_ASSIGN(ThreadInlineImpl);
 };
 
-
 class MutexData {
  private:
   MutexData() {}
@@ -57,7 +54,6 @@ class MutexData {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(MutexData);
 };
-
 
 class MonitorData {
  private:

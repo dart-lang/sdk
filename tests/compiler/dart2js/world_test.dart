@@ -24,8 +24,7 @@ void main() {
 }
 
 testClassSets() async {
-  var env = await TypeEnvironment.create(
-      r"""
+  var env = await TypeEnvironment.create(r"""
       class A implements X {}
       class B {}
       class C_Super extends A {}
@@ -35,8 +34,7 @@ testClassSets() async {
       class F extends Object with A implements B {}
       class G extends Object with A, B {}
       class X {}
-      """,
-      mainSource: r"""
+      """, mainSource: r"""
       import 'dart:html' as html;
       main() {
         new A();
@@ -49,8 +47,7 @@ testClassSets() async {
         html.window;
         new html.Worker('');
       }
-      """,
-      useMockCompiler: false);
+      """, compileMode: CompileMode.memory);
   ClosedWorld closedWorld = env.closedWorld;
 
   ClassElement Object_ = env.getElement("Object");
@@ -182,8 +179,7 @@ testClassSets() async {
 }
 
 testProperties() async {
-  var env = await TypeEnvironment.create(
-      r"""
+  var env = await TypeEnvironment.create(r"""
       class A {}
       class A1 extends A {}
       class A2 implements A {}
@@ -225,8 +221,7 @@ testProperties() async {
       class H2 extends H1 {}
       class H3 extends H2 implements H {}
       class H4 extends H2 with H {}
-      """,
-      mainSource: r"""
+      """, mainSource: r"""
       main() {
         new B();
         new C1();
@@ -238,8 +233,7 @@ testProperties() async {
         new G3();
         new H4();
       }
-      """,
-      useMockCompiler: false);
+      """, compileMode: CompileMode.memory);
   ClosedWorld closedWorld = env.closedWorld;
 
   check(String name, {bool hasStrictSubtype, bool hasOnlySubclasses}) {
@@ -316,7 +310,7 @@ testNativeClasses() async {
             ..getContext(''); // Creates CanvasRenderingContext2D
       }
       """,
-      useMockCompiler: false);
+      compileMode: CompileMode.memory);
   ClosedWorld closedWorld = env.closedWorld;
   LibraryElement dart_html =
       env.compiler.libraryLoader.lookupLibrary(Uris.dart_html);
@@ -538,7 +532,7 @@ testCommonSubclasses() async {
         new J();
       }
       """,
-      useMockCompiler: false);
+      compileMode: CompileMode.memory);
   ClosedWorld closedWorld = env.closedWorld;
 
   ClassElement A = env.getElement("A");

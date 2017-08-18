@@ -31,9 +31,7 @@ void main() {
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var closedWorld = typesInferrer.closedWorld;
     var commonMasks = closedWorld.commonMasks;
-    Expect.equals(
-        commonMasks.uint31Type,
-        simplify(typesInferrer.getTypeOfElement(element), closedWorld),
-        'field');
+    Expect.equals(commonMasks.uint31Type,
+        simplify(typesInferrer.getTypeOfMember(element), closedWorld), 'field');
   });
 }

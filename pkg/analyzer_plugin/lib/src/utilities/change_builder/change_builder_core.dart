@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -44,9 +45,9 @@ class ChangeBuilderImpl implements ChangeBuilder {
   }
 
   @override
-  Future<Null> addFileEdit(String path, int fileStamp,
-      void buildFileEdit(FileEditBuilder builder)) async {
-    FileEditBuilderImpl builder = await createFileEditBuilder(path, fileStamp);
+  Future<Null> addFileEdit(
+      String path, void buildFileEdit(FileEditBuilder builder)) async {
+    FileEditBuilderImpl builder = await createFileEditBuilder(path);
     buildFileEdit(builder);
     _change.addFileEdit(builder.fileEdit);
     builder.finalize();
@@ -56,9 +57,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
    * Create and return a [FileEditBuilder] that can be used to build edits to
    * the file with the given [path] and [timeStamp].
    */
-  Future<FileEditBuilderImpl> createFileEditBuilder(
-      String path, int timeStamp) async {
-    return new FileEditBuilderImpl(this, path, timeStamp);
+  Future<FileEditBuilderImpl> createFileEditBuilder(String path) async {
+    return new FileEditBuilderImpl(this, path, 0);
   }
 
   /**
@@ -77,6 +77,29 @@ class ChangeBuilderImpl implements ChangeBuilder {
   @override
   void setSelection(Position position) {
     _change.selection = position;
+  }
+
+  /**
+   * Update the offsets of any positions that occur at or after the given
+   * [offset] such that the positions are offset by the given [delta]. Positions
+   * occur in linked edit groups and as the post-change selection.
+   */
+  void _updatePositions(int offset, int delta) {
+    void _updatePosition(Position position) {
+      if (position.offset >= offset) {
+        position.offset = position.offset + delta;
+      }
+    }
+
+    for (LinkedEditGroup group in _linkedEditGroups.values) {
+      for (Position position in group.positions) {
+        _updatePosition(position);
+      }
+    }
+    Position selection = _change.selection;
+    if (selection != null) {
+      _updatePosition(selection);
+    }
   }
 }
 
@@ -220,7 +243,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
   @override
   void addDeletion(SourceRange range) {
     EditBuilderImpl builder = createEditBuilder(range.offset, range.length);
-    fileEdit.add(builder.sourceEdit);
+    _addEdit(builder);
   }
 
   @override
@@ -229,9 +252,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
     try {
       buildEdit(builder);
     } finally {
-      SourceEdit edit = builder.sourceEdit;
-      fileEdit.add(edit);
-      _captureSelection(builder, edit);
+      _addEdit(builder);
     }
   }
 
@@ -249,9 +270,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
     try {
       buildEdit(builder);
     } finally {
-      SourceEdit edit = builder.sourceEdit;
-      fileEdit.add(edit);
-      _captureSelection(builder, edit);
+      _addEdit(builder);
     }
   }
 
@@ -261,9 +280,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
     try {
       builder.write(text);
     } finally {
-      SourceEdit edit = builder.sourceEdit;
-      fileEdit.add(edit);
-      _captureSelection(builder, edit);
+      _addEdit(builder);
     }
   }
 
@@ -273,9 +290,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
     try {
       builder.write(text);
     } finally {
-      SourceEdit edit = builder.sourceEdit;
-      fileEdit.add(edit);
-      _captureSelection(builder, edit);
+      _addEdit(builder);
     }
   }
 
@@ -288,6 +303,18 @@ class FileEditBuilderImpl implements FileEditBuilder {
    */
   void finalize() {
     // Nothing to do.
+  }
+
+  /**
+   * Add the edit from the given [builder] to the edits associates with the
+   * current file.
+   */
+  void _addEdit(EditBuilderImpl builder) {
+    SourceEdit edit = builder.sourceEdit;
+    fileEdit.add(edit);
+    int delta = _editDelta(edit);
+    changeBuilder._updatePositions(edit.offset + math.max(0, delta), delta);
+    _captureSelection(builder, edit);
   }
 
   /**
@@ -313,7 +340,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
     int delta = 0;
     for (SourceEdit edit in fileEdit.edits) {
       if (edit.offset < targetEdit.offset) {
-        delta += edit.replacement.length - edit.length;
+        delta += _editDelta(edit);
       }
     }
     return delta;
@@ -329,11 +356,16 @@ class FileEditBuilderImpl implements FileEditBuilder {
     int delta = 0;
     for (SourceEdit edit in fileEdit.edits) {
       if (edit.offset <= offset) {
-        delta += edit.replacement.length - edit.length;
+        delta += _editDelta(edit);
       }
     }
     return delta;
   }
+
+  /**
+   * Return the delta introduced by the given `edit`.
+   */
+  int _editDelta(SourceEdit edit) => edit.replacement.length - edit.length;
 }
 
 /**

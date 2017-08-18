@@ -7,8 +7,9 @@
 #include "bin/directory.h"
 #include "bin/eventhandler.h"
 #include "bin/platform.h"
-#include "bin/utils.h"
+#include "bin/process.h"
 #include "bin/thread.h"
+#include "bin/utils.h"
 
 namespace dart {
 namespace bin {
@@ -20,19 +21,23 @@ void BootstrapDartIo() {
   EventHandler::Start();
 }
 
-
 void SetSystemTempDirectory(const char* system_temp) {
   Directory::SetSystemTemp(system_temp);
 }
-
 
 void SetExecutableName(const char* executable_name) {
   Platform::SetExecutableName(executable_name);
 }
 
-
 void SetExecutableArguments(int script_index, char** argv) {
   Platform::SetExecutableArguments(script_index, argv);
+}
+
+void GetIOEmbedderInformation(Dart_EmbedderInformation* info) {
+  ASSERT(info != NULL);
+  ASSERT(info->version == DART_EMBEDDER_INFORMATION_CURRENT_VERSION);
+
+  Process::GetRSSInformation(&(info->max_rss), &(info->current_rss));
 }
 
 }  // namespace bin

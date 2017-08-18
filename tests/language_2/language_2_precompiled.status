@@ -1,0 +1,165 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Sections in this file should contain "$compiler == precompiler" or
+# "$runtime == dart_precompiled".
+
+[ $runtime == dart_precompiled ]
+abstract_beats_arguments_test: MissingCompileTimeError
+abstract_exact_selector_test/01: MissingCompileTimeError
+abstract_factory_constructor_test/00: MissingCompileTimeError
+abstract_getter_test/01: MissingCompileTimeError
+abstract_syntax_test/00: MissingCompileTimeError
+assign_static_type_test/01: MissingCompileTimeError
+assign_static_type_test/02: MissingCompileTimeError
+assign_static_type_test/03: MissingCompileTimeError
+assign_static_type_test/04: MissingCompileTimeError
+assign_static_type_test/05: MissingCompileTimeError
+assign_static_type_test/06: MissingCompileTimeError
+assign_to_type_test/01: MissingCompileTimeError
+assign_to_type_test/02: MissingCompileTimeError
+assign_to_type_test/03: MissingCompileTimeError
+assign_to_type_test/04: MissingCompileTimeError
+assign_top_method_test: MissingCompileTimeError
+async_await_syntax_test/a10a: MissingCompileTimeError
+async_await_syntax_test/b10a: MissingCompileTimeError
+async_await_syntax_test/c10a: MissingCompileTimeError
+async_await_syntax_test/d08b: MissingCompileTimeError
+async_await_syntax_test/d10a: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
+async_return_types_test/nestedFuture: MissingCompileTimeError
+async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
+async_return_types_test/wrongReturnType: MissingCompileTimeError
+async_return_types_test/wrongTypeParameter: MissingCompileTimeError
+bad_constructor_test/05: MissingCompileTimeError
+bad_named_parameters2_test/01: MissingCompileTimeError
+bad_named_parameters_test/01: MissingCompileTimeError
+bad_named_parameters_test/02: MissingCompileTimeError
+bad_named_parameters_test/03: MissingCompileTimeError
+bad_named_parameters_test/04: MissingCompileTimeError
+bad_named_parameters_test/05: MissingCompileTimeError
+bad_override_test/01: MissingCompileTimeError
+bad_override_test/02: MissingCompileTimeError
+bad_override_test/06: MissingCompileTimeError
+bit_operations_test/01: MissingCompileTimeError
+bit_operations_test/02: MissingCompileTimeError
+bit_operations_test/03: MissingCompileTimeError
+bit_operations_test/04: MissingCompileTimeError
+call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
+call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
+call_constructor_on_unresolvable_class_test/03: MissingCompileTimeError
+call_non_method_field_test/01: MissingCompileTimeError
+call_non_method_field_test/02: MissingCompileTimeError
+call_nonexistent_constructor_test/01: MissingCompileTimeError
+call_nonexistent_constructor_test/02: MissingCompileTimeError
+call_nonexistent_static_test/01: MissingCompileTimeError
+call_nonexistent_static_test/02: MissingCompileTimeError
+call_nonexistent_static_test/03: MissingCompileTimeError
+call_nonexistent_static_test/04: MissingCompileTimeError
+call_nonexistent_static_test/05: MissingCompileTimeError
+call_nonexistent_static_test/06: MissingCompileTimeError
+call_nonexistent_static_test/07: MissingCompileTimeError
+call_nonexistent_static_test/08: MissingCompileTimeError
+call_nonexistent_static_test/09: MissingCompileTimeError
+call_nonexistent_static_test/10: MissingCompileTimeError
+call_through_getter_test/01: MissingCompileTimeError
+call_through_getter_test/02: MissingCompileTimeError
+call_type_literal_test/01: MissingCompileTimeError
+cast_test/04: MissingCompileTimeError
+cast_test/05: MissingCompileTimeError
+class_literal_test/01: MissingCompileTimeError
+class_literal_test/02: MissingCompileTimeError
+class_literal_test/03: MissingCompileTimeError
+class_literal_test/04: MissingCompileTimeError
+class_literal_test/05: MissingCompileTimeError
+class_literal_test/06: MissingCompileTimeError
+class_literal_test/07: MissingCompileTimeError
+class_literal_test/08: MissingCompileTimeError
+class_literal_test/09: MissingCompileTimeError
+class_literal_test/10: MissingCompileTimeError
+class_literal_test/11: MissingCompileTimeError
+class_literal_test/12: MissingCompileTimeError
+class_literal_test/13: MissingCompileTimeError
+class_literal_test/14: MissingCompileTimeError
+class_literal_test/15: MissingCompileTimeError
+class_literal_test/16: MissingCompileTimeError
+class_literal_test/17: MissingCompileTimeError
+class_literal_test/18: MissingCompileTimeError
+class_literal_test/19: MissingCompileTimeError
+class_literal_test/20: MissingCompileTimeError
+class_literal_test/21: MissingCompileTimeError
+class_literal_test/22: MissingCompileTimeError
+class_literal_test/23: MissingCompileTimeError
+class_literal_test/24: MissingCompileTimeError
+class_literal_test/25: MissingCompileTimeError
+checked_setter_test: MissingCompileTimeError
+covariant_subtyping_with_substitution_test: RuntimeError
+
+[ $compiler == precompiler && $runtime == dart_precompiled ]
+assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc02: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc03: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc04: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc05: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc06: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc07: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc08: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc09: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc10: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc11: Crash, MissingCompileTimeError
+bool_check_test: RuntimeError
+bool_condition_check_test: RuntimeError
+built_in_identifier_prefix_test: CompileTimeError
+checked_null_test/01: MissingCompileTimeError
+checked_setter2_test: MissingCompileTimeError
+checked_setter3_test/01: MissingCompileTimeError
+checked_setter3_test/02: MissingCompileTimeError
+checked_setter3_test/03: MissingCompileTimeError
+function_subtype_inline2_test: RuntimeError
+generic_constructor_mixin_test/01: MissingCompileTimeError
+generic_constructor_mixin2_test/01: MissingCompileTimeError
+generic_constructor_mixin3_test/01: MissingCompileTimeError
+typevariable_substitution2_test/02: RuntimeError
+
+[ $compiler == precompiler && $runtime == dart_precompiled && $checked ]
+assertion_initializer_const_error2_test/cc01: Pass
+assertion_initializer_const_error2_test/cc03: Pass
+assertion_initializer_const_error2_test/cc04: Pass
+assertion_initializer_const_error2_test/cc05: Pass
+assertion_initializer_const_error2_test/cc06: Pass
+assertion_initializer_const_error2_test/cc07: Pass
+assertion_initializer_const_error2_test/cc08: Pass
+assertion_initializer_const_error2_test/cc09: Pass
+assertion_initializer_const_error2_test/cc10: Pass
+assertion_initializer_const_error2_test/cc11: Pass
+assertion_initializer_const_error2_test/none: CompileTimeError
+
+[ $compiler == precompiler && $runtime == dart_precompiled && !$checked ]
+assertion_initializer_const_error2_test/cc01: Pass, OK
+assertion_initializer_const_error2_test/cc02: CompileTimeError
+assertion_initializer_const_error2_test/cc03: Pass, OK
+assertion_initializer_const_error2_test/cc04: Pass, OK
+assertion_initializer_const_error2_test/cc05: Pass, OK
+assertion_initializer_const_error2_test/cc06: Pass, OK
+assertion_initializer_const_error2_test/cc07: Pass, OK
+assertion_initializer_const_error2_test/cc08: Pass, OK
+assertion_initializer_const_error2_test/cc09: Pass, OK
+assertion_initializer_const_error2_test/cc10: Pass, OK
+assertion_initializer_const_error2_test/cc11: Pass, OK
+assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_error_test/01: MissingCompileTimeError
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+
+[ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
+async_star_regression_2238_test: CompileTimeError, RuntimeError
+
+# These test entries will be valid for vm (with and without kernel).
+[ $runtime == dart_precompiled ]
+async_star_cancel_while_paused_test: RuntimeError
+async_star_pause_test: Fail, OK
+
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) ]
+class_keyword_test/02: MissingCompileTimeError # Issue 13627

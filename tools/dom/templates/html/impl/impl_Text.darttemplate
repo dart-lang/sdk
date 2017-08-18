@@ -7,12 +7,8 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
-$if DART2JS
   factory $CLASSNAME(String data) =>
       JS('returns:Text;depends:none;effects:none;new:true',
           '#.createTextNode(#)', document, data);
-$else
-  factory $CLASSNAME(String data) => document._createTextNode(data);
-$endif
 $!MEMBERS
 }

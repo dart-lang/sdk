@@ -6,11 +6,13 @@ import 'dart:async';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriverGeneric, AnalysisDriverScheduler;
+import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -19,9 +21,6 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/src/utilities/null_string_sink.dart';
 import 'package:analyzer_plugin/utilities/subscriptions/subscription_manager.dart';
-import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
-import 'package:front_end/src/incremental/file_byte_store.dart';
 import 'package:path/src/context.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -192,6 +191,17 @@ abstract class ServerPlugin {
   AnalysisDriverGeneric createAnalysisDriver(ContextRoot contextRoot);
 
   /**
+   * Return the driver being used to analyze the file with the given [path].
+   */
+  AnalysisDriverGeneric driverForPath(String path) {
+    ContextRoot contextRoot = contextRootContaining(path);
+    if (contextRoot == null) {
+      return null;
+    }
+    return driverMap[contextRoot];
+  }
+
+  /**
    * Handle an 'analysis.getNavigation' request.
    */
   Future<AnalysisGetNavigationResult> handleAnalysisGetNavigation(
@@ -223,47 +233,6 @@ abstract class ServerPlugin {
     }
     return new AnalysisHandleWatchEventsResult();
   }
-
-  /**
-   * Handle an 'analysis.reanalyze' request.
-   */
-  Future<AnalysisReanalyzeResult> handleAnalysisReanalyze(
-      AnalysisReanalyzeParams parameters) async {
-    List<String> rootPaths = parameters.roots;
-    if (rootPaths == null) {
-      //
-      // Reanalyze everything.
-      //
-      List<ContextRoot> roots = driverMap.keys.toList();
-      for (ContextRoot contextRoot in roots) {
-        AnalysisDriverGeneric driver = driverMap[contextRoot];
-        driver.dispose();
-        driver = createAnalysisDriver(contextRoot);
-        driverMap[contextRoot] = driver;
-      }
-      return new AnalysisReanalyzeResult();
-    } else {
-      //
-      // Reanalyze a specific set of files.
-      //
-      // TODO(brianwilkerson) There is no API for telling a driver that we need
-      // to have some files reanalyzed.
-//      for (String rootPath in rootPaths) {
-//        ContextRoot contextRoot = contextRootContaining(rootPath);
-//        AnalysisDriverGeneric driver = driverMap[contextRoot];
-//        driver.reanalyze(rootPath);
-//      }
-      return null;
-    }
-  }
-
-  /**
-   * Handle an 'analysis.setContextBuilderOptions' request.
-   */
-  Future<AnalysisSetContextBuilderOptionsResult>
-      handleAnalysisSetContextBuilderOptions(
-              AnalysisSetContextBuilderOptionsParams parameters) async =>
-          null;
 
   /**
    * Handle an 'analysis.setContextRoots' request.
@@ -339,14 +308,10 @@ abstract class ServerPlugin {
       AnalysisUpdateContentParams parameters) async {
     Map<String, Object> files = parameters.files;
     files.forEach((String filePath, Object overlay) {
-      // We don't need to get the correct URI because only the full path is
-      // used by the contentCache.
-      Source source = resourceProvider.getFile(filePath).createSource();
       if (overlay is AddContentOverlay) {
-        fileContentOverlay[source.fullName] = overlay.content;
+        fileContentOverlay[filePath] = overlay.content;
       } else if (overlay is ChangeContentOverlay) {
-        String fileName = source.fullName;
-        String oldContents = fileContentOverlay[fileName];
+        String oldContents = fileContentOverlay[filePath];
         String newContents;
         if (oldContents == null) {
           // The server should only send a ChangeContentOverlay if there is
@@ -360,9 +325,9 @@ abstract class ServerPlugin {
           throw new RequestFailure(
               RequestErrorFactory.invalidOverlayChangeInvalidEdit());
         }
-        fileContentOverlay[fileName] = newContents;
+        fileContentOverlay[filePath] = newContents;
       } else if (overlay is RemoveContentOverlay) {
-        fileContentOverlay[source.fullName] = null;
+        fileContentOverlay[filePath] = null;
       }
       contentChanged(filePath);
     });
@@ -405,6 +370,13 @@ abstract class ServerPlugin {
    */
   Future<EditGetRefactoringResult> handleEditGetRefactoring(
           EditGetRefactoringParams parameters) async =>
+      null;
+
+  /**
+   * Handle a 'kythe.getKytheEntries' request.
+   */
+  Future<KytheGetKytheEntriesResult> handleKytheGetKytheEntries(
+          KytheGetKytheEntriesParams parameters) async =>
       null;
 
   /**
@@ -457,7 +429,7 @@ abstract class ServerPlugin {
   /**
    * Send notifications corresponding to the given description of subscriptions.
    * The map is keyed by the path of each file for which notifications should be
-   * send and has values representing the list of services associated with the
+   * sent and has values representing the list of services associated with the
    * notifications to send.
    */
   void sendNotificationsForSubscriptions(
@@ -509,15 +481,6 @@ abstract class ServerPlugin {
         var params = new AnalysisHandleWatchEventsParams.fromRequest(request);
         result = await handleAnalysisHandleWatchEvents(params);
         break;
-      case ANALYSIS_REQUEST_REANALYZE:
-        var params = new AnalysisReanalyzeParams.fromRequest(request);
-        result = await handleAnalysisReanalyze(params);
-        break;
-      case ANALYSIS_REQUEST_SET_CONTEXT_BUILDER_OPTIONS:
-        var params =
-            new AnalysisSetContextBuilderOptionsParams.fromRequest(request);
-        result = await handleAnalysisSetContextBuilderOptions(params);
-        break;
       case ANALYSIS_REQUEST_SET_CONTEXT_ROOTS:
         var params = new AnalysisSetContextRootsParams.fromRequest(request);
         result = await handleAnalysisSetContextRoots(params);
@@ -554,6 +517,10 @@ abstract class ServerPlugin {
       case EDIT_REQUEST_GET_REFACTORING:
         var params = new EditGetRefactoringParams.fromRequest(request);
         result = await handleEditGetRefactoring(params);
+        break;
+      case KYTHE_REQUEST_GET_KYTHE_ENTRIES:
+        var params = new KytheGetKytheEntriesParams.fromRequest(request);
+        result = await handleKytheGetKytheEntries(params);
         break;
       case PLUGIN_REQUEST_SHUTDOWN:
         var params = new PluginShutdownParams();

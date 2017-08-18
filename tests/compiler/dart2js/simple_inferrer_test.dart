@@ -732,11 +732,11 @@ void main() {
         var commonMasks = closedWorld.commonMasks;
 
         checkReturn(String name, type) {
-          var element = findElement(compiler, name);
+          MemberElement element = findElement(compiler, name);
           Expect.equals(
               type,
               simplify(
-                  typesInferrer.getReturnTypeOfElement(element), closedWorld),
+                  typesInferrer.getReturnTypeOfMember(element), closedWorld),
               name);
         }
 
@@ -834,7 +834,7 @@ void main() {
           Expect.equals(
               type,
               simplify(
-                  typesInferrer.getReturnTypeOfElement(element), closedWorld),
+                  typesInferrer.getReturnTypeOfMember(element), closedWorld),
               '$className:$methodName');
         }
 
@@ -867,7 +867,7 @@ void main() {
           dynamic cls = findElement(compiler, className);
           var element = cls.localLookup(factoryName);
           Expect.equals(new TypeMask.nonNullExact(cls, closedWorld),
-              typesInferrer.getReturnTypeOfElement(element));
+              typesInferrer.getReturnTypeOfMember(element));
         }
 
         checkFactoryConstructor('A', '');

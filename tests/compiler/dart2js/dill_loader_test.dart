@@ -16,22 +16,10 @@ import 'package:compiler/src/library_loader.dart' show ScriptLoader;
 import 'package:compiler/src/script.dart' show Script;
 import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 import "package:expect/expect.dart";
-import 'package:path/path.dart' as path;
-
-final String dartkExecutable = Platform.isWindows
-    ? 'tools/dartk_wrappers/dartk.bat'
-    : 'tools/dartk_wrappers/dartk';
-
-/// Run the dartk.dart script, and return the binary encoded results.
-List<int> runDartk(String filename) {
-  String basePath = path.fromUri(Uri.base);
-  String dartkPath = path.normalize(path.join(basePath, dartkExecutable));
-
-  var args = [filename, '-fbin', '-ostdout'];
-  ProcessResult result = Process.runSync(dartkPath, args, stdoutEncoding: null);
-  Expect.equals(0, result.exitCode, result.stderr);
-  return result.stdout;
-}
+import 'package:front_end/front_end.dart';
+import 'package:front_end/src/fasta/kernel/utils.dart' show serializeProgram;
+import 'package:compiler/src/kernel/dart2js_target.dart';
+import 'package:kernel/target/targets.dart' show TargetFlags;
 
 class TestScriptLoader implements ScriptLoader {
   CompilerImpl compiler;
@@ -48,19 +36,32 @@ class TestScriptLoader implements ScriptLoader {
 /// than just string source files.
 main() {
   asyncTest(() async {
-    String filename = 'tests/corelib/list_literal_test.dart';
+    String filename = 'tests/corelib_2/list_literal_test.dart';
     Uri uri = Uri.base.resolve(filename);
     DiagnosticCollector diagnostics = new DiagnosticCollector();
     OutputCollector output = new OutputCollector();
     Uri entryPoint = Uri.parse('memory:main.dill');
-    List<int> kernelBinary = runDartk(filename);
 
+    String buildDir = Platform.isMacOS ? 'xcodebuild' : 'out';
+    String configuration =
+        Platform.environment['DART_CONFIGURATION'] ?? 'ReleaseX64';
+    String sdkPath = '$buildDir/$configuration/patched_dart2js_sdk/';
+    var platform = Uri.base.resolve('$sdkPath/platform.dill');
+    var options = new CompilerOptions()
+      ..target = new Dart2jsTarget(new TargetFlags())
+      ..packagesFileUri = Uri.base.resolve('.packages')
+      ..linkedDependencies = [platform]
+      ..setExitCodeOnProblem = true
+      ..verify = true;
+
+    List<int> kernelBinary =
+        serializeProgram(await kernelForProgram(uri, options));
     CompilerImpl compiler = compilerFor(
         entryPoint: entryPoint,
         memorySourceFiles: {'main.dill': kernelBinary},
         diagnosticHandler: diagnostics,
         outputProvider: output,
-        options: [Flags.loadFromDill]);
+        options: [Flags.useKernel]);
     await compiler.setupSdk();
     await compiler.libraryLoader.loadLibrary(entryPoint);
 

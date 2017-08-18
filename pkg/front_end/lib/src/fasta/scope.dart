@@ -6,7 +6,16 @@ library fasta.scope;
 
 import 'builder/builder.dart' show Builder, TypeVariableBuilder;
 
-import 'errors.dart' show InputError, internalError;
+import 'fasta_codes.dart'
+    show
+        LocatedMessage,
+        Message,
+        messageInternalProblemExtendingUnmodifiableScope,
+        templateAccessError,
+        templateDuplicatedName,
+        templatePreviousUseOfName;
+
+import 'problems.dart' show internalProblem, unsupported;
 
 class MutableScope {
   /// Names declared in this scope.
@@ -49,13 +58,13 @@ class Scope extends MutableScope {
       : this(<String, Builder>{}, null, parent, isModifiable: isModifiable);
 
   /// Don't use this. Use [becomePartOf] instead.
-  void set local(_) => internalError("Unsupported operation.");
+  void set local(_) => unsupported("local=", -1, null);
 
   /// Don't use this. Use [becomePartOf] instead.
-  void set setters(_) => internalError("Unsupported operation.");
+  void set setters(_) => unsupported("setters=", -1, null);
 
   /// Don't use this. Use [becomePartOf] instead.
-  void set parent(_) => internalError("Unsupported operation.");
+  void set parent(_) => unsupported("parent=", -1, null);
 
   /// This scope becomes equivalent to [scope]. This is used for parts to
   /// become part of their library's scope.
@@ -152,7 +161,8 @@ class Scope extends MutableScope {
       labels ??= <String, Builder>{};
       labels[name] = target;
     } else {
-      internalError("Can't extend an unmodifiable scope.");
+      internalProblem(
+          messageInternalProblemExtendingUnmodifiableScope, -1, null);
     }
   }
 
@@ -183,17 +193,19 @@ class Scope extends MutableScope {
   /// If name was used previously in this scope, this method returns an error
   /// that should be reported as a compile-time error. The position of this
   /// error is given by [charOffset] and [fileUri].
-  InputError declare(
+  LocatedMessage declare(
       String name, Builder builder, int charOffset, Uri fileUri) {
     if (isModifiable) {
       if (usedNames?.containsKey(name) ?? false) {
-        return new InputError(
-            fileUri, usedNames[name], "Previous use of '$name'.");
+        return templatePreviousUseOfName
+            .withArguments(name)
+            .withLocation(fileUri, usedNames[name]);
       }
       recordUse(name, charOffset, fileUri);
       local[name] = builder;
     } else {
-      internalError("Can't extend an unmodifiable scope.");
+      internalProblem(
+          messageInternalProblemExtendingUnmodifiableScope, -1, null);
     }
     return null;
   }
@@ -273,7 +285,7 @@ abstract class ProblemBuilder extends Builder {
 
   bool get hasProblem => true;
 
-  String get message;
+  Message get message;
 
   @override
   String get fullNameForErrors => name;
@@ -307,12 +319,12 @@ class AccessErrorBuilder extends ProblemBuilder {
 
   bool get isLocal => builder.isLocal;
 
-  String get message => "Access error: '$name'.";
+  Message get message => templateAccessError.withArguments(name);
 }
 
 class AmbiguousBuilder extends ProblemBuilder {
   AmbiguousBuilder(String name, Builder builder, int charOffset, Uri fileUri)
       : super(name, builder, charOffset, fileUri);
 
-  String get message => "Duplicated named: '$name'.";
+  Message get message => templateDuplicatedName.withArguments(name);
 }

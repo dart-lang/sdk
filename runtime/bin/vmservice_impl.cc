@@ -41,7 +41,11 @@ struct ResourcesEntry {
   int length_;
 };
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+ResourcesEntry __service_bin_resources_[] = {{NULL, NULL, 0}};
+#else
 extern ResourcesEntry __service_bin_resources_[];
+#endif
 
 class Resources {
  public:
@@ -88,7 +92,6 @@ class Resources {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Resources);
 };
 
-
 void NotifyServerState(Dart_NativeArguments args) {
   Dart_EnterScope();
   const char* uri_chars;
@@ -108,11 +111,9 @@ void NotifyServerState(Dart_NativeArguments args) {
   Dart_ExitScope();
 }
 
-
 static void Shutdown(Dart_NativeArguments args) {
   // NO-OP.
 }
-
 
 struct VmServiceIONativeEntry {
   const char* name;
@@ -120,12 +121,10 @@ struct VmServiceIONativeEntry {
   Dart_NativeFunction function;
 };
 
-
 static VmServiceIONativeEntry _VmServiceIONativeEntries[] = {
     {"VMServiceIO_NotifyServerState", 1, NotifyServerState},
     {"VMServiceIO_Shutdown", 0, Shutdown},
 };
-
 
 static Dart_NativeFunction VmServiceIONativeResolver(Dart_Handle name,
                                                      int num_arguments,
@@ -147,10 +146,8 @@ static Dart_NativeFunction VmServiceIONativeResolver(Dart_Handle name,
   return NULL;
 }
 
-
 const char* VmService::error_msg_ = NULL;
 char VmService::server_uri_[kServerUriStringBufferSize];
-
 
 bool VmService::LoadForGenPrecompiled(void* vmservice_kernel) {
   Dart_Handle result;
@@ -171,7 +168,6 @@ bool VmService::LoadForGenPrecompiled(void* vmservice_kernel) {
   SHUTDOWN_ON_ERROR(result);
   return true;
 }
-
 
 bool VmService::Setup(const char* server_ip,
                       intptr_t server_port,
@@ -287,11 +283,9 @@ bool VmService::Setup(const char* server_ip,
   return true;
 }
 
-
 const char* VmService::GetErrorMessage() {
   return (error_msg_ == NULL) ? "No error." : error_msg_;
 }
-
 
 void VmService::SetServerAddress(const char* server_uri) {
   if (server_uri == NULL) {
@@ -304,7 +298,6 @@ void VmService::SetServerAddress(const char* server_uri) {
   strncpy(server_uri_, server_uri, kServerUriStringBufferSize);
   server_uri_[kServerUriStringBufferSize - 1] = '\0';
 }
-
 
 Dart_Handle VmService::GetSource(const char* name) {
   const intptr_t kBufferSize = 512;
@@ -320,13 +313,11 @@ Dart_Handle VmService::GetSource(const char* name) {
   return Dart_NewStringFromCString(vmservice_source);
 }
 
-
 Dart_Handle VmService::LoadScript(const char* name) {
   Dart_Handle uri = Dart_NewStringFromCString(kVMServiceIOLibraryUri);
   Dart_Handle source = GetSource(name);
   return Dart_LoadScript(uri, Dart_Null(), source, 0, 0);
 }
-
 
 Dart_Handle VmService::LookupOrLoadLibrary(const char* name) {
   Dart_Handle uri = Dart_NewStringFromCString(kVMServiceIOLibraryUri);
@@ -338,13 +329,11 @@ Dart_Handle VmService::LookupOrLoadLibrary(const char* name) {
   return library;
 }
 
-
 Dart_Handle VmService::LoadSource(Dart_Handle library, const char* name) {
   Dart_Handle uri = Dart_NewStringFromCString(name);
   Dart_Handle source = GetSource(name);
   return Dart_LoadSource(library, uri, Dart_Null(), source, 0, 0);
 }
-
 
 Dart_Handle VmService::LibraryTagHandler(Dart_LibraryTag tag,
                                          Dart_Handle library,
@@ -381,7 +370,6 @@ Dart_Handle VmService::LibraryTagHandler(Dart_LibraryTag tag,
   }
   return Dart_LoadSource(library, url, Dart_Null(), source, 0, 0);
 }
-
 
 }  // namespace bin
 }  // namespace dart

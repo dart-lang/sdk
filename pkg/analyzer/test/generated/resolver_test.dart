@@ -26,6 +26,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
@@ -195,32 +196,34 @@ class A {
   }
 
   test_enclosingElement_invalidLocalFunction() async {
-    Source source = addSource(r'''
+    String code = r'''
 class C {
   C() {
     int get x => 0;
   }
-}''');
-    LibraryElement library = resolve2(source);
+}''';
+    Source source = addSource(code);
+
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertErrors(source, [ParserErrorCode.GETTER_IN_FUNCTION]);
+
+    CompilationUnitElement unit = analysisResult.unit.element;
+    LibraryElement library = unit.library;
     expect(library, isNotNull);
-    var unit = library.definingCompilationUnit;
-    expect(unit, isNotNull);
+    expect(unit.enclosingElement, same(library));
+
     var types = unit.types;
-    expect(types, isNotNull);
     expect(types, hasLength(1));
     var type = types[0];
     expect(type, isNotNull);
+
     var constructors = type.constructors;
-    expect(constructors, isNotNull);
     expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
     expect(constructor, isNotNull);
-    List<FunctionElement> functions = constructor.functions;
-    expect(functions, isNotNull);
-    expect(functions, hasLength(1));
-    expect(functions[0].enclosingElement, constructor);
-    await computeAnalysisResult(source);
-    assertErrors(source, [ParserErrorCode.GETTER_IN_FUNCTION]);
+
+    FunctionElement x = findElementsByName(analysisResult.unit, 'x').single;
+    expect(x.enclosingElement, constructor);
   }
 }
 
@@ -1615,9 +1618,7 @@ f() {
   }
 
   test_invocation_target_prefixed() async {
-    addNamedSource(
-        '/helper.dart',
-        '''
+    addNamedSource('/helper.dart', '''
 library helper;
 int max(int x, int y) => 0;
 ''');
@@ -2180,9 +2181,7 @@ void g() {
 
   test_objectAccessInference_disabled_for_library_prefix() async {
     String name = 'hashCode';
-    addNamedSource(
-        '/helper.dart',
-        '''
+    addNamedSource('/helper.dart', '''
 library helper;
 dynamic get $name => 42;
 ''');
@@ -2228,9 +2227,7 @@ main() {
 
   test_objectMethodInference_disabled_for_library_prefix() async {
     String name = 'toString';
-    addNamedSource(
-        '/helper.dart',
-        '''
+    addNamedSource('/helper.dart', '''
 library helper;
 dynamic $name = (int x) => x + 42');
 ''');
@@ -2678,8 +2675,7 @@ A V = new A();
 
   test_modeLocal_noContext() async {
     CompilationUnit unit;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 class C {
   A f = new A();
   A m([A p = const A()]) {
@@ -2792,8 +2788,7 @@ A get G => new A();
 
   test_modeLocal_withContext_bad_methodBody() async {
     expect(() {
-      _resolveTypeModeLocal(
-          r'''
+      _resolveTypeModeLocal(r'''
 class C<T1> {
   A m<T2>() {
     T1 v1;
@@ -2811,8 +2806,7 @@ class C<T1> {
 
   test_modeLocal_withContext_bad_topLevelVariable_declaration() async {
     expect(() {
-      _resolveTypeModeLocal(
-          r'''
+      _resolveTypeModeLocal(r'''
 var v = new A();
 ''', (CompilationUnit u) {
         var tlv = u.declarations[0] as TopLevelVariableDeclaration;
@@ -2823,8 +2817,7 @@ var v = new A();
 
   test_modeLocal_withContext_bad_topLevelVariable_initializer() async {
     expect(() {
-      _resolveTypeModeLocal(
-          r'''
+      _resolveTypeModeLocal(r'''
 var v = new A();
 ''', (CompilationUnit u) {
         var tlv = u.declarations[0] as TopLevelVariableDeclaration;
@@ -2835,8 +2828,7 @@ var v = new A();
 
   test_modeLocal_withContext_class() async {
     ClassDeclaration c;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 class C<T1> {
   A m<T2>() {
     T1 v1;
@@ -2870,8 +2862,7 @@ class C<T1> {
 
   test_modeLocal_withContext_inClass_constructor() async {
     ConstructorDeclaration cc;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 class C<T> {
   C() {
     T v1;
@@ -2895,8 +2886,7 @@ class C<T> {
 
   test_modeLocal_withContext_inClass_method() async {
     MethodDeclaration m;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 class C<T1> {
   A m<T2>() {
     T1 v1;
@@ -2930,8 +2920,7 @@ class C<T1> {
 
   test_modeLocal_withContext_topLevelFunction() async {
     FunctionDeclaration f;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 A m<T>() {
   T v;
 }
@@ -2953,8 +2942,7 @@ A m<T>() {
 
   test_modeLocal_withContext_topLevelVariable() async {
     TopLevelVariableDeclaration v;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 A v = new A();
 ''', (CompilationUnit u) {
       v = u.declarations[0] as TopLevelVariableDeclaration;
@@ -3131,9 +3119,6 @@ A v = new A();
     expect(constructor.isFactory, isFalse);
     expect(constructor.isSynthetic, isTrue);
     expect(constructor.name, 'c1');
-    expect(constructor.functions, hasLength(0));
-    expect(constructor.labels, hasLength(0));
-    expect(constructor.localVariables, hasLength(0));
     expect(constructor.parameters, isEmpty);
   }
 
@@ -3162,9 +3147,6 @@ A v = new A();
     expect(constructor.isFactory, isFalse);
     expect(constructor.isSynthetic, isTrue);
     expect(constructor.name, '');
-    expect(constructor.functions, hasLength(0));
-    expect(constructor.labels, hasLength(0));
-    expect(constructor.localVariables, hasLength(0));
     expect(constructor.parameters, hasLength(1));
     expect(constructor.parameters[0].type, equals(classT.type));
     expect(constructor.parameters[0].name,
@@ -3193,9 +3175,6 @@ A v = new A();
     expect(constructor.isFactory, isFalse);
     expect(constructor.isSynthetic, isTrue);
     expect(constructor.name, '');
-    expect(constructor.functions, hasLength(0));
-    expect(constructor.labels, hasLength(0));
-    expect(constructor.localVariables, hasLength(0));
     expect(constructor.parameters, isEmpty);
   }
 

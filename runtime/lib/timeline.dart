@@ -26,5 +26,9 @@ void _reportCompleteEvent(int start, int startCpu, String category, String name,
     String argumentsAsJson) native "Timeline_reportCompleteEvent";
 
 @patch
+void _reportFlowEvent(int start, int startCpu, String category, String name,
+    int type, int id, String argumentsAsJson) native "Timeline_reportFlowEvent";
+
+@patch
 void _reportInstantEvent(int start, String category, String name,
     String argumentsAsJson) native "Timeline_reportInstantEvent";

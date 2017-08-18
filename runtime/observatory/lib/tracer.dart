@@ -7,7 +7,6 @@ library tracer;
 import 'dart:async';
 
 import 'package:logging/logging.dart';
-import 'package:observe/observe.dart';
 
 _deepCopy(src) {
   if (src is Map) {
@@ -43,7 +42,7 @@ class TraceEvent {
   Map map;
 }
 
-class Tracer extends Observable {
+class Tracer {
   // The current global tracer.
   static Tracer get current => _current;
 
@@ -69,7 +68,7 @@ class Tracer extends Observable {
   Stopwatch _time;
 
   // A list of all tracing events for thre current request.
-  ObservableList<TraceEvent> events = new ObservableList<TraceEvent>();
+  List<TraceEvent> events = <TraceEvent>[];
 
   Tracer() {
     _time = new Stopwatch();

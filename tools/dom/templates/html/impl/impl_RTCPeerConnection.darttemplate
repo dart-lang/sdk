@@ -5,7 +5,6 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
-$if DART2JS
   factory $CLASSNAME(Map rtcIceServers, [Map mediaConstraints]) {
     var constructorName = JS('RtcPeerConnection', 'window[#]',
         '${Device.propertyPrefix}RTCPeerConnection');
@@ -18,13 +17,11 @@ $if DART2JS
           convertDartToNative_SerializedScriptValue(rtcIceServers));
     }
   }
-$endif
 
   /**
    * Checks if Real Time Communication (RTC) APIs are supported and enabled on
    * the current platform.
    */
-$if DART2JS
   static bool get supported {
     // Currently in Firefox some of the RTC elements are defined but throw an
     // error unless the user has specifically enabled them in their
@@ -37,9 +34,6 @@ $if DART2JS
     } catch (_) { return false;}
     return false;
   }
-$else
-  static bool get supported => true;
-$endif
   Future<RtcSessionDescription> createOffer([Map mediaConstraints]) {
     var completer = new Completer<RtcSessionDescription>();
     _createOffer(
@@ -67,12 +61,7 @@ $endif
   @DocsEditable()
   @Experimental() // untriaged
   static Future generateCertificate(/*AlgorithmIdentifier*/ keygenAlgorithm) =>
-$if DART2JS
       JS('dynamic', 'generateCertificate(#)', keygenAlgorithm);
-$else
-      convertNativePromiseToDartFuture(_blink.BlinkRTCPeerConnection.instance
-          .generateCertificate_Callback_1_(keygenAlgorithm));
-$endif
 
 $!MEMBERS
 }

@@ -15,12 +15,15 @@ class A {
 
 makeA() native;
 
-void setup() native r"""
+void setup() {
+  JS('', r"""
+(function(){
 function A() {}
 A.prototype.foo = function(f) { return f(); };
-makeA = function() { return new A; };
+makeA = function() { return new A(); };
 self.nativeConstructor(A);
-""";
+})()""");
+}
 
 main() {
   nativeTesting();

@@ -128,7 +128,14 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
     }
     _tree = new VirtualTreeElement(create, update, _getChildren,
         items: tree.root.children, queue: _r.queue);
-    if (tree.root.children.length == 1) {
+    if (tree.root.children.length == 0) {
+      children = [
+        new DivElement()
+          ..classes = ['tree-item']
+          ..children = [new HeadingElement.h1()..text = 'No Samples']
+      ];
+      return;
+    } else if (tree.root.children.length == 1) {
       _tree.expand(tree.root.children.first, autoExpandSingleChildNodes: true);
     }
     children = [_tree];

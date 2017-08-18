@@ -47,16 +47,13 @@ static bool ShouldInlineSimd() {
   return FlowGraphCompiler::SupportsUnboxedSimd128();
 }
 
-
 static bool CanUnboxDouble() {
   return FlowGraphCompiler::SupportsUnboxedDoubles();
 }
 
-
 static bool CanConvertUnboxedMintToDouble() {
   return FlowGraphCompiler::CanConvertUnboxedMintToDouble();
 }
-
 
 // Returns named function that is a unique dynamic target, i.e.,
 // - the target is identified by its name alone, since it occurs only once.
@@ -74,7 +71,6 @@ static void GetUniqueDynamicTarget(Isolate* isolate,
   ASSERT(functions_set.Release().raw() ==
          isolate->object_store()->unique_dynamic_targets());
 }
-
 
 AotOptimizer::AotOptimizer(Precompiler* precompiler,
                            FlowGraph* flow_graph,
@@ -95,12 +91,10 @@ AotOptimizer::AotOptimizer(Precompiler* precompiler,
   }
 }
 
-
 // Optimize instance calls using ICData.
 void AotOptimizer::ApplyICData() {
   VisitBlocks();
 }
-
 
 bool AotOptimizer::RecognizeRuntimeTypeGetter(InstanceCallInstr* call) {
   if ((precompiler_ == NULL) || !precompiler_->get_runtime_type_is_unique()) {
@@ -123,7 +117,6 @@ bool AotOptimizer::RecognizeRuntimeTypeGetter(InstanceCallInstr* call) {
   call->ReplaceWith(static_call, current_iterator());
   return true;
 }
-
 
 // Optimize instance calls using cid.  This is called after optimizer
 // converted instance calls to instructions. Any remaining
@@ -152,12 +145,10 @@ void AotOptimizer::ApplyClassIds() {
   }
 }
 
-
 // TODO(srdjan): Test/support other number types as well.
 static bool IsNumberCid(intptr_t cid) {
   return (cid == kSmiCid) || (cid == kDoubleCid);
 }
-
 
 bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
@@ -262,13 +253,13 @@ bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
           call->set_has_unique_selector(true);
           // Add redefinition of the receiver to prevent code motion across
           // this call.
-          RedefinitionInstr* redefinition =
-              new (Z) RedefinitionInstr(new (Z) Value(call->ArgumentAt(0)));
+          RedefinitionInstr* redefinition = new (Z)
+              RedefinitionInstr(new (Z) Value(call->ArgumentAt(receiver_idx)));
           redefinition->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
           redefinition->InsertAfter(call);
           // Replace all uses of the receiver dominated by this call.
-          FlowGraph::RenameDominatedUses(call->ArgumentAt(0), redefinition,
-                                         redefinition);
+          FlowGraph::RenameDominatedUses(call->ArgumentAt(receiver_idx),
+                                         redefinition, redefinition);
           if (!redefinition->HasUses()) {
             redefinition->RemoveFromGraph();
           }
@@ -281,7 +272,6 @@ bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
   return false;
 }
 
-
 static bool ClassIdIsOneOf(intptr_t class_id,
                            const GrowableArray<intptr_t>& class_ids) {
   for (intptr_t i = 0; i < class_ids.length(); i++) {
@@ -292,7 +282,6 @@ static bool ClassIdIsOneOf(intptr_t class_id,
   }
   return false;
 }
-
 
 // Returns true if ICData tests two arguments and all ICData cids are in the
 // required sets 'receiver_class_ids' or 'argument_class_ids', respectively.
@@ -318,7 +307,6 @@ static bool ICDataHasOnlyReceiverArgumentClassIds(
   return true;
 }
 
-
 static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
                                               intptr_t receiver_class_id,
                                               intptr_t argument_class_id) {
@@ -340,12 +328,10 @@ static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
   return false;
 }
 
-
 static bool HasOnlyOneSmi(const ICData& ic_data) {
   return (ic_data.NumberOfUsedChecks() == 1) &&
          ic_data.HasReceiverClassId(kSmiCid);
 }
-
 
 static bool HasOnlySmiOrMint(const ICData& ic_data) {
   if (ic_data.NumberOfUsedChecks() == 1) {
@@ -356,7 +342,6 @@ static bool HasOnlySmiOrMint(const ICData& ic_data) {
          ic_data.HasReceiverClassId(kSmiCid) &&
          ic_data.HasReceiverClassId(kMintCid);
 }
-
 
 static bool HasOnlyTwoOf(const ICData& ic_data, intptr_t cid) {
   if (ic_data.NumberOfUsedChecks() != 1) {
@@ -385,7 +370,6 @@ static bool HasTwoMintOrSmi(const ICData& ic_data) {
   return true;
 }
 
-
 // Returns false if the ICData contains anything other than the 4 combinations
 // of Double and Smi for the receiver and argument classes.
 static bool HasTwoDoubleOrSmi(const ICData& ic_data) {
@@ -395,12 +379,10 @@ static bool HasTwoDoubleOrSmi(const ICData& ic_data) {
   return ICDataHasOnlyReceiverArgumentClassIds(ic_data, class_ids, class_ids);
 }
 
-
 static bool HasOnlyOneDouble(const ICData& ic_data) {
   return (ic_data.NumberOfUsedChecks() == 1) &&
          ic_data.HasReceiverClassId(kDoubleCid);
 }
-
 
 static bool ShouldSpecializeForDouble(const ICData& ic_data) {
   // Don't specialize for double if we can't unbox them.
@@ -417,7 +399,6 @@ static bool ShouldSpecializeForDouble(const ICData& ic_data) {
   return HasTwoDoubleOrSmi(ic_data);
 }
 
-
 void AotOptimizer::ReplaceCall(Definition* call, Definition* replacement) {
   // Remove the original push arguments.
   for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
@@ -427,7 +408,6 @@ void AotOptimizer::ReplaceCall(Definition* call, Definition* replacement) {
   }
   call->ReplaceWith(replacement, current_iterator());
 }
-
 
 void AotOptimizer::AddCheckSmi(Definition* to_check,
                                intptr_t deopt_id,
@@ -441,7 +421,6 @@ void AotOptimizer::AddCheckSmi(Definition* to_check,
   }
 }
 
-
 void AotOptimizer::AddCheckClass(Definition* to_check,
                                  const Cids& cids,
                                  intptr_t deopt_id,
@@ -453,14 +432,12 @@ void AotOptimizer::AddCheckClass(Definition* to_check,
   InsertBefore(insert_before, check, deopt_environment, FlowGraph::kEffect);
 }
 
-
 void AotOptimizer::AddChecksForArgNr(InstanceCallInstr* call,
                                      Definition* instr,
                                      int argument_number) {
   const Cids* cids = Cids::Create(Z, *call->ic_data(), argument_number);
   AddCheckClass(instr, *cids, call->deopt_id(), call->env(), call);
 }
-
 
 static bool ArgIsAlways(intptr_t cid,
                         const ICData& ic_data,
@@ -478,7 +455,6 @@ static bool ArgIsAlways(intptr_t cid,
   return true;
 }
 
-
 bool AotOptimizer::TryReplaceWithIndexedOp(InstanceCallInstr* call,
                                            const ICData* unary_checks) {
   // Check for monomorphic IC data.
@@ -489,7 +465,6 @@ bool AotOptimizer::TryReplaceWithIndexedOp(InstanceCallInstr* call,
   return FlowGraphInliner::TryReplaceInstanceCallWithInline(
       flow_graph_, current_iterator(), call);
 }
-
 
 // Return true if d is a string of length one (a constant or result from
 // from string-from-char-code instruction.
@@ -505,7 +480,6 @@ static bool IsLengthOneString(Definition* d) {
     return d->IsOneByteStringFromCharCode();
   }
 }
-
 
 // Returns true if the string comparison was converted into char-code
 // comparison. Conversion is only possible for strings of length one.
@@ -587,18 +561,15 @@ bool AotOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
   return false;
 }
 
-
 static bool SmiFitsInDouble() {
   return kSmiBits < 53;
 }
-
 
 static bool IsGetRuntimeType(Definition* defn) {
   StaticCallInstr* call = defn->AsStaticCall();
   return (call != NULL) && (call->function().recognized_kind() ==
                             MethodRecognizer::kObjectRuntimeType);
 }
-
 
 // Recognize a.runtimeType == b.runtimeType and fold it into
 // Object._haveSameRuntimeType(a, b).
@@ -643,7 +614,6 @@ bool AotOptimizer::TryReplaceWithHaveSameRuntimeType(InstanceCallInstr* call) {
   return false;
 }
 
-
 bool AotOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
                                             Token::Kind op_kind) {
   const ICData& ic_data = *call->ic_data();
@@ -680,10 +650,11 @@ bool AotOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
         // call.
         return false;
       } else {
-        InsertBefore(call, new (Z) CheckEitherNonSmiInstr(new (Z) Value(left),
-                                                          new (Z) Value(right),
-                                                          call->deopt_id()),
-                     call->env(), FlowGraph::kEffect);
+        InsertBefore(
+            call,
+            new (Z) CheckEitherNonSmiInstr(
+                new (Z) Value(left), new (Z) Value(right), call->deopt_id()),
+            call->env(), FlowGraph::kEffect);
         cid = kDoubleCid;
       }
     }
@@ -726,7 +697,6 @@ bool AotOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
   return true;
 }
 
-
 bool AotOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
                                               Token::Kind op_kind) {
   const ICData& ic_data = *call->ic_data();
@@ -761,10 +731,11 @@ bool AotOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
         // call.
         return false;
       } else {
-        InsertBefore(call, new (Z) CheckEitherNonSmiInstr(new (Z) Value(left),
-                                                          new (Z) Value(right),
-                                                          call->deopt_id()),
-                     call->env(), FlowGraph::kEffect);
+        InsertBefore(
+            call,
+            new (Z) CheckEitherNonSmiInstr(
+                new (Z) Value(left), new (Z) Value(right), call->deopt_id()),
+            call->env(), FlowGraph::kEffect);
         cid = kDoubleCid;
       }
     }
@@ -778,7 +749,6 @@ bool AotOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
   ReplaceCall(call, comp);
   return true;
 }
-
 
 bool AotOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                                           Token::Kind op_kind) {
@@ -799,7 +769,7 @@ bool AotOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                  FlowGraphCompiler::SupportsUnboxedMints()) {
         // Don't generate mint code if the IC data is marked because of an
         // overflow.
-        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) return false;
+        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryInt64Op)) return false;
         operands_type = kMintCid;
       } else if (ShouldSpecializeForDouble(ic_data)) {
         operands_type = kDoubleCid;
@@ -846,7 +816,7 @@ bool AotOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         // Left shift may overflow from smi into mint or big ints.
         // Don't generate smi code if the IC data is marked because
         // of an overflow.
-        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
+        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryInt64Op)) {
           return false;
         }
         operands_type = ic_data.HasDeoptReason(ICData::kDeoptBinarySmiOp)
@@ -857,7 +827,7 @@ bool AotOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                      Z, ic_data.AsUnaryClassChecksForArgNr(1)))) {
         // Don't generate mint code if the IC data is marked because of an
         // overflow.
-        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
+        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryInt64Op)) {
           return false;
         }
         // Check for smi/mint << smi or smi/mint >> smi.
@@ -894,10 +864,11 @@ bool AotOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     // binary operation with two smis is a smi not a double, except '/' which
     // returns a double for two smis.
     if (op_kind != Token::kDIV) {
-      InsertBefore(call, new (Z) CheckEitherNonSmiInstr(new (Z) Value(left),
-                                                        new (Z) Value(right),
-                                                        call->deopt_id()),
-                   call->env(), FlowGraph::kEffect);
+      InsertBefore(
+          call,
+          new (Z) CheckEitherNonSmiInstr(
+              new (Z) Value(left), new (Z) Value(right), call->deopt_id()),
+          call->env(), FlowGraph::kEffect);
     }
 
     BinaryDoubleOpInstr* double_bin_op = new (Z)
@@ -907,11 +878,11 @@ bool AotOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   } else if (operands_type == kMintCid) {
     if (!FlowGraphCompiler::SupportsUnboxedMints()) return false;
     if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
-      ShiftMintOpInstr* shift_op = new (Z) ShiftMintOpInstr(
+      ShiftInt64OpInstr* shift_op = new (Z) ShiftInt64OpInstr(
           op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
       ReplaceCall(call, shift_op);
     } else {
-      BinaryMintOpInstr* bin_op = new (Z) BinaryMintOpInstr(
+      BinaryInt64OpInstr* bin_op = new (Z) BinaryInt64OpInstr(
           op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
       ReplaceCall(call, bin_op);
     }
@@ -968,7 +939,6 @@ bool AotOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   return true;
 }
 
-
 bool AotOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
                                          Token::Kind op_kind) {
   ASSERT(call->type_args_len() == 0);
@@ -986,7 +956,7 @@ bool AotOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
              HasOnlySmiOrMint(*call->ic_data()) &&
              FlowGraphCompiler::SupportsUnboxedMints()) {
     unary_op = new (Z)
-        UnaryMintOpInstr(op_kind, new (Z) Value(input), call->deopt_id());
+        UnaryInt64OpInstr(op_kind, new (Z) Value(input), call->deopt_id());
   } else if (HasOnlyOneDouble(*call->ic_data()) &&
              (op_kind == Token::kNEGATE) && CanUnboxDouble()) {
     AddReceiverCheck(call);
@@ -999,7 +969,6 @@ bool AotOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
   ReplaceCall(call, unary_op);
   return true;
 }
-
 
 // Using field class
 RawField* AotOptimizer::GetField(intptr_t class_id, const String& field_name) {
@@ -1014,7 +983,6 @@ RawField* AotOptimizer::GetField(intptr_t class_id, const String& field_name) {
   }
   return Field::null();
 }
-
 
 bool AotOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
@@ -1052,7 +1020,6 @@ bool AotOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   return true;
 }
 
-
 bool AotOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
                                            Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
@@ -1073,7 +1040,6 @@ bool AotOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
   return true;
 }
 
-
 bool AotOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
                                          Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
@@ -1093,7 +1059,6 @@ bool AotOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
   return true;
 }
 
-
 bool AotOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
                                            Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
@@ -1112,7 +1077,6 @@ bool AotOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
   ReplaceCall(call, float64x2_bin_op);
   return true;
 }
-
 
 // Only unique implicit instance getters can be currently handled.
 bool AotOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
@@ -1138,7 +1102,6 @@ bool AotOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   return InlineImplicitInstanceGetter(call);
 }
 
-
 void AotOptimizer::ReplaceWithMathCFunction(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
@@ -1153,7 +1116,6 @@ void AotOptimizer::ReplaceWithMathCFunction(
       args, call->deopt_id(), recognized_kind, call->token_pos());
   ReplaceCall(call, invoke);
 }
-
 
 // Inline only simple, frequently called core library methods.
 bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
@@ -1235,7 +1197,6 @@ bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       flow_graph_, current_iterator(), call);
 }
 
-
 // If type tests specified by 'ic_data' do not depend on type arguments,
 // return mapping cid->result in 'results' (i : cid; i + 1: result).
 // If all tests yield the same result, return it otherwise return Bool::null.
@@ -1303,7 +1264,6 @@ RawBool* AotOptimizer::InstanceOfAsBool(
   return results_differ ? Bool::null() : prev.raw();
 }
 
-
 // Returns true if checking against this type is a direct class id comparison.
 bool AotOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
@@ -1347,7 +1307,6 @@ bool AotOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   }
   return true;
 }
-
 
 // TODO(srdjan): Use ICData to check if always true or false.
 void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
@@ -1465,7 +1424,6 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
       type, call->deopt_id());
   ReplaceCall(call, instance_of);
 }
-
 
 // TODO(srdjan): Apply optimizations as in ReplaceWithInstanceOf (TestCids).
 void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
@@ -1629,7 +1587,6 @@ void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   ReplaceCall(call, assert_as);
 }
 
-
 bool AotOptimizer::IsAllowedForInlining(intptr_t call_deopt_id) {
   if (!use_speculative_inlining_) return false;
   for (intptr_t i = 0; i < inlining_black_list_->length(); ++i) {
@@ -1637,7 +1594,6 @@ bool AotOptimizer::IsAllowedForInlining(intptr_t call_deopt_id) {
   }
   return true;
 }
-
 
 static bool HasLikelySmiOperand(InstanceCallInstr* instr) {
   ASSERT(instr->type_args_len() == 0);
@@ -1658,7 +1614,6 @@ static bool HasLikelySmiOperand(InstanceCallInstr* instr) {
   return true;
 }
 
-
 bool AotOptimizer::TryInlineFieldAccess(InstanceCallInstr* call) {
   const Token::Kind op_kind = call->token_kind();
   if ((op_kind == Token::kGET) && TryInlineInstanceGetter(call)) {
@@ -1674,7 +1629,6 @@ bool AotOptimizer::TryInlineFieldAccess(InstanceCallInstr* call) {
 
   return false;
 }
-
 
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
@@ -1706,6 +1660,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
+  const intptr_t receiver_idx = instr->FirstParamIndex();
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
   const intptr_t number_of_checks = unary_checks.NumberOfChecks();
@@ -1770,6 +1725,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     case Token::kGTE: {
       if (HasOnlyTwoOf(*instr->ic_data(), kSmiCid) ||
           HasLikelySmiOperand(instr)) {
+        ASSERT(receiver_idx == 0);
         Definition* left = instr->ArgumentAt(0);
         Definition* right = instr->ArgumentAt(1);
         CheckedSmiComparisonInstr* smi_op = new (Z)
@@ -1790,6 +1746,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     case Token::kMUL: {
       if (HasOnlyTwoOf(*instr->ic_data(), kSmiCid) ||
           HasLikelySmiOperand(instr)) {
+        ASSERT(receiver_idx == 0);
         Definition* left = instr->ArgumentAt(0);
         Definition* right = instr->ArgumentAt(1);
         CheckedSmiOpInstr* smi_op =
@@ -1807,7 +1764,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   // No IC data checks. Try resolve target using the propagated cid.
   const intptr_t receiver_cid =
-      instr->PushArgumentAt(0)->value()->Type()->ToCid();
+      instr->PushArgumentAt(receiver_idx)->value()->Type()->ToCid();
   if (receiver_cid != kDynamicCid) {
     const Class& receiver_class =
         Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
@@ -1821,7 +1778,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     }
   }
 
-  Definition* callee_receiver = instr->ArgumentAt(0);
+  Definition* callee_receiver = instr->ArgumentAt(receiver_idx);
   const Function& function = flow_graph_->function();
   Class& receiver_class = Class::Handle(Z);
 
@@ -1831,7 +1788,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     receiver_class = function.Owner();
   } else {
     // Check if we have an non-nullable compile type for the receiver.
-    CompileType* type = instr->ArgumentAt(0)->Type();
+    CompileType* type = instr->ArgumentAt(receiver_idx)->Type();
     if (type->ToAbstractType()->IsType() &&
         !type->ToAbstractType()->IsDynamicType() && !type->is_nullable()) {
       receiver_class = type->ToAbstractType()->type_class();
@@ -1949,11 +1906,11 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   }
 }
 
-
 void AotOptimizer::VisitPolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* call) {
+  const intptr_t receiver_idx = call->type_args_len() > 0 ? 1 : 0;
   const intptr_t receiver_cid =
-      call->PushArgumentAt(0)->value()->Type()->ToCid();
+      call->PushArgumentAt(receiver_idx)->value()->Type()->ToCid();
   if (receiver_cid != kDynamicCid) {
     const Class& receiver_class =
         Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
@@ -1966,7 +1923,6 @@ void AotOptimizer::VisitPolymorphicInstanceCall(
     }
   }
 }
-
 
 void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
   if (!IsAllowedForInlining(call->deopt_id())) {
@@ -2005,7 +1961,8 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
       // We can handle only monomorphic min/max call sites with both arguments
       // being either doubles or smis.
       if (CanUnboxDouble() && call->HasICData() &&
-          call->ic_data()->NumberOfChecksIs(1)) {
+          call->ic_data()->NumberOfChecksIs(1) &&
+          (call->FirstParamIndex() == 0)) {
         const ICData& ic_data = *call->ic_data();
         intptr_t result_cid = kIllegalCid;
         if (ICDataHasReceiverArgumentClassIds(ic_data, kDoubleCid,
@@ -2030,7 +1987,8 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
       break;
     }
     case MethodRecognizer::kDoubleFromInteger: {
-      if (call->HasICData() && call->ic_data()->NumberOfChecksIs(1)) {
+      if (call->HasICData() && call->ic_data()->NumberOfChecksIs(1) &&
+          (call->FirstParamIndex() == 0)) {
         const ICData& ic_data = *call->ic_data();
         if (CanUnboxDouble()) {
           if (ArgIsAlways(kSmiCid, ic_data, 1)) {
@@ -2053,14 +2011,12 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
   }
 }
 
-
 void AotOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
 // TODO(zerny): Use kUnboxedUint32 once it is fully supported/optimized.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
-  if (!instr->can_pack_into_smi()) instr->set_representation(kUnboxedMint);
+  if (!instr->can_pack_into_smi()) instr->set_representation(kUnboxedInt64);
 #endif
 }
-
 
 bool AotOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                                            const ICData& unary_ic_data) {
@@ -2101,6 +2057,7 @@ bool AotOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   }
 
   // Field guard was detached.
+  ASSERT(instr->FirstParamIndex() == 0);
   StoreInstanceFieldInstr* store = new (Z)
       StoreInstanceFieldInstr(field, new (Z) Value(instr->ArgumentAt(0)),
                               new (Z) Value(instr->ArgumentAt(1)),
@@ -2115,7 +2072,6 @@ bool AotOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   ReplaceCall(instr, store);
   return true;
 }
-
 
 void AotOptimizer::ReplaceArrayBoundChecks() {
   for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();

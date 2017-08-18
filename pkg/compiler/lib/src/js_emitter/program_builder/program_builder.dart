@@ -15,22 +15,9 @@ import '../../constants/values.dart'
 import '../../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import '../../elements/elements.dart'
-    show
-        ClassElement,
-        ConstructorBodyElement,
-        Elements,
-        FieldElement,
-        FunctionSignature,
-        GetterElement,
-        LibraryElement,
-        MemberElement,
-        MethodElement,
-        ParameterElement,
-        TypedefElement;
+    show ClassElement, FieldElement, LibraryElement, MethodElement;
 import '../../elements/entities.dart';
-import '../../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionFunctionType, ResolutionTypedefType;
-import '../../elements/types.dart' show DartType, DartTypes;
+import '../../elements/types.dart';
 import '../../js/js.dart' as js;
 import '../../js_backend/backend.dart' show SuperMemberData;
 import '../../js_backend/backend_usage.dart';
@@ -101,6 +88,9 @@ class ProgramBuilder {
   final CodeEmitterTask _task;
   final ClosedWorld _closedWorld;
 
+  /// The [Sorter] used for ordering elements in the generated JavaScript.
+  final Sorter _sorter;
+
   /// Contains the collected information the program builder used to build
   /// the model.
   // The collector will be filled on the first call to `buildProgram`.
@@ -143,6 +133,7 @@ class ProgramBuilder {
       this._namer,
       this._task,
       this._closedWorld,
+      this._sorter,
       Set<ClassEntity> rtiNeededClasses,
       this._mainFunction,
       {bool isMockCompilation})
@@ -163,8 +154,8 @@ class ProgramBuilder {
             _closedWorld,
             rtiNeededClasses,
             _generatedCode,
-            _task.sorter),
-        this._registry = new Registry(_deferredLoadTask, _task.sorter);
+            _sorter),
+        this._registry = new Registry(_deferredLoadTask, _sorter);
 
   /// Mapping from [ClassEntity] to constructed [Class]. We need this to
   /// update the superclass in the [Class].
@@ -193,9 +184,7 @@ class ProgramBuilder {
   ///
   /// Also contains classes that are not tracked by the profile run (like
   /// interceptors, ...).
-  Set<ClassElement> _notSoftDeferred;
-
-  Sorter get _sorter => _task.sorter;
+  Set<ClassEntity> _notSoftDeferred;
 
   Program buildProgram({bool storeFunctionTypesInMetadata: false}) {
     collector.collect();
@@ -329,16 +318,17 @@ class ProgramBuilder {
 
       String data = new File(allocatedClassesPath).readAsStringSync();
       Set<String> allocatedClassesKeys = JSON.decode(data).keys.toSet();
-      Set<ClassElement> allocatedClasses = new Set<ClassElement>();
+      Set<ClassEntity> allocatedClasses = new Set<ClassEntity>();
 
       // Collects all super and mixin classes of a class.
-      void collect(ClassElement element) {
+      void collect(ClassEntity element) {
         allocatedClasses.add(element);
-        if (element.isMixinApplication) {
+        if (_elementEnvironment.isMixinApplication(element)) {
           collect(_elementEnvironment.getEffectiveMixinClass(element));
         }
-        if (element.superclass != null) {
-          collect(element.superclass);
+        ClassEntity superclass = _elementEnvironment.getSuperClass(element);
+        if (superclass != null) {
+          collect(superclass);
         }
       }
 
@@ -346,7 +336,7 @@ class ProgramBuilder {
       // collect its dependencies (supers and mixins) and mark them as
       // not-soft-deferrable.
       collector.outputClassLists.forEach((_, List<ClassEntity> elements) {
-        for (ClassElement element in elements) {
+        for (ClassEntity element in elements) {
           // TODO(29574): share the encoding of the element with the code
           // that emits the profile-run.
           var key = "${element.library.canonicalUri}:${element.name}";
@@ -525,10 +515,9 @@ class ProgramBuilder {
         .forEach((LibraryEntity library, List<ClassEntity> classElements, _) {
       for (ClassEntity cls in classElements) {
         if (_nativeData.isJsInteropClass(cls)) {
-          // TODO(redemption): Handle class entities.
-          ClassElement e = cls;
-          e.declaration.forEachMember((_, _member) {
-            MemberElement member = _member;
+          _elementEnvironment.forEachClassMember(cls,
+              (ClassEntity declarer, MemberEntity member) {
+            if (declarer != cls) return;
             var jsName = _nativeData.computeUnescapedJSInteropName(member.name);
             if (!member.isInstanceMember) return;
             if (member.isGetter || member.isField || member.isFunction) {
@@ -562,15 +551,15 @@ class ProgramBuilder {
             // Generating stubs for direct calls and stubs for call-through
             // of getters that happen to be functions.
             bool isFunctionLike = false;
-            ResolutionFunctionType functionType = null;
+            FunctionType functionType = null;
 
             if (member.isFunction) {
               MethodElement fn = member;
-              functionType = fn.type;
+              functionType = _elementEnvironment.getFunctionType(fn);
             } else if (member.isGetter) {
               if (_options.trustTypeAnnotations) {
-                GetterElement getter = member;
-                ResolutionDartType returnType = getter.type.returnType;
+                DartType returnType =
+                    _elementEnvironment.getFunctionType(member).returnType;
                 if (returnType.isFunctionType) {
                   functionType = returnType;
                 } else if (returnType.treatAsDynamic ||
@@ -579,9 +568,8 @@ class ProgramBuilder {
                         // ignore: UNNECESSARY_CAST
                         _commonElements.functionType as DartType)) {
                   if (returnType.isTypedef) {
-                    ResolutionTypedefType typedef = returnType;
-                    // TODO(jacobr): can we just use typdef.unaliased instead?
-                    functionType = typedef.element.functionSignature.type;
+                    TypedefType typedef = returnType;
+                    functionType = typedef.unaliased;
                   } else {
                     // Other misc function type such as commonElements.Function.
                     // Allow any number of arguments.
@@ -757,11 +745,10 @@ class ProgramBuilder {
     // only interested in direct members.
     if (!onlyForRti && !_elementEnvironment.isMixinApplication(cls)) {
       _elementEnvironment.forEachClassMember(cls, visitMember);
-      if (cls is ClassElement) {
-        // TODO(redemption): Support constructor bodies for entities.
-        cls.forEachConstructorBody((ConstructorBodyElement constructorBody) =>
-            visitMember(cls, constructorBody));
-      }
+      _elementEnvironment.forEachConstructorBody(
+          cls,
+          (ConstructorBodyEntity constructorBody) =>
+              visitMember(cls, constructorBody));
     }
     bool isInterceptedClass = _interceptorData.isInterceptedClass(cls);
     List<Field> instanceFields = onlyForRti
@@ -792,7 +779,7 @@ class ProgramBuilder {
       for (Field field in instanceFields) {
         if (field.needsCheckedSetter) {
           assert(!field.needsUncheckedSetter);
-          FieldElement element = field.element;
+          FieldEntity element = field.element;
           js.Expression code = _generatedCode[element];
           assert(code != null);
           js.Name name = _namer.deriveSetterName(field.accessorName);
@@ -869,23 +856,28 @@ class ProgramBuilder {
         _closedWorld.getMightBePassedToApply(method);
   }
 
-  /* Map | List */ _computeParameterDefaultValues(FunctionSignature signature) {
+  /* Map | List */ _computeParameterDefaultValues(FunctionEntity method) {
     var /* Map | List */ optionalParameterDefaultValues;
-    if (signature.optionalParametersAreNamed) {
+    ParameterStructure parameterStructure = method.parameterStructure;
+    if (parameterStructure.namedParameters.isNotEmpty) {
       optionalParameterDefaultValues = new Map<String, ConstantValue>();
-      signature.forEachOptionalParameter((_parameter) {
-        ParameterElement parameter = _parameter;
-        ConstantValue def =
-            _constantHandler.getConstantValue(parameter.constant);
-        optionalParameterDefaultValues[parameter.name] = def;
+      _worldBuilder.forEachParameter(method,
+          (DartType type, String name, ConstantValue defaultValue) {
+        if (parameterStructure.namedParameters.contains(name)) {
+          assert(defaultValue != null);
+          optionalParameterDefaultValues[name] = defaultValue;
+        }
       });
     } else {
       optionalParameterDefaultValues = <ConstantValue>[];
-      signature.forEachOptionalParameter((_parameter) {
-        ParameterElement parameter = _parameter;
-        ConstantValue def =
-            _constantHandler.getConstantValue(parameter.constant);
-        optionalParameterDefaultValues.add(def);
+      int index = 0;
+      _worldBuilder.forEachParameter(method,
+          (DartType type, String name, ConstantValue defaultValue) {
+        if (index >= parameterStructure.requiredParameters) {
+          assert(defaultValue != null);
+          optionalParameterDefaultValues.add(defaultValue);
+        }
+        index++;
       });
     }
     return optionalParameterDefaultValues;
@@ -930,7 +922,7 @@ class ProgramBuilder {
 
     if (canTearOff) {
       assert(element is! ConstructorEntity, failedAt(element));
-      assert(element is! ConstructorBodyElement, failedAt(element));
+      assert(element is! ConstructorBodyEntity, failedAt(element));
     }
 
     js.Name callName = null;
@@ -951,11 +943,10 @@ class ProgramBuilder {
     var /* List | Map */ optionalParameterDefaultValues;
     if (canBeApplied || canBeReflected) {
       // TODO(redemption): Handle function entities.
-      MethodElement method = element;
-      FunctionSignature signature = method.functionSignature;
-      requiredParameterCount = signature.requiredParameterCount;
-      optionalParameterDefaultValues =
-          _computeParameterDefaultValues(signature);
+      FunctionEntity method = element;
+      ParameterStructure parameterStructure = method.parameterStructure;
+      requiredParameterCount = parameterStructure.requiredParameters;
+      optionalParameterDefaultValues = _computeParameterDefaultValues(method);
     }
 
     return new InstanceMethod(element, name, code,
@@ -972,7 +963,7 @@ class ProgramBuilder {
   }
 
   js.Expression _generateFunctionType(
-      ResolutionFunctionType type, OutputUnit outputUnit) {
+      FunctionType type, OutputUnit outputUnit) {
     if (type.containsTypeVariables) {
       js.Expression thisAccess = js.js(r'this.$receiver');
       return _rtiEncoder.getSignatureEncoding(_task.emitter, type, thisAccess);
@@ -1001,7 +992,7 @@ class ProgramBuilder {
   /// Stub methods may have an element that can be used for code-size
   /// attribution.
   Method _buildStubMethod(js.Name name, js.Expression code,
-      {MemberElement element}) {
+      {MemberEntity element}) {
     return new StubMethod(name, code, element: element);
   }
 
@@ -1087,13 +1078,19 @@ class ProgramBuilder {
           }
         }
       }
-
       fields.add(new Field(field, name, accessorName, getterFlags, setterFlags,
           needsCheckedSetter));
     }
 
-    FieldVisitor visitor = new FieldVisitor(_options, _elementEnvironment,
-        _worldBuilder, _nativeData, _mirrorsData, _namer, _closedWorld);
+    FieldVisitor visitor = new FieldVisitor(
+        _options,
+        _elementEnvironment,
+        _commonElements,
+        _worldBuilder,
+        _nativeData,
+        _mirrorsData,
+        _namer,
+        _closedWorld);
     visitor.visitFields(visitField,
         visitStatics: visitStatics, library: library, cls: cls);
 
@@ -1159,11 +1156,10 @@ class ProgramBuilder {
     var /* List | Map */ optionalParameterDefaultValues;
     if (canBeApplied || canBeReflected) {
       // TODO(redemption): Support entities;
-      MethodElement method = element;
-      FunctionSignature signature = method.functionSignature;
-      requiredParameterCount = signature.requiredParameterCount;
-      optionalParameterDefaultValues =
-          _computeParameterDefaultValues(signature);
+      FunctionEntity method = element;
+      ParameterStructure parameterStructure = method.parameterStructure;
+      requiredParameterCount = parameterStructure.requiredParameters;
+      optionalParameterDefaultValues = _computeParameterDefaultValues(method);
     }
 
     // TODO(floitsch): we shouldn't update the registry in the middle of

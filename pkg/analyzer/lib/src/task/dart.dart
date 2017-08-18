@@ -2869,7 +2869,7 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
           new UsedLocalElements.merge(usedLocalElementsList);
       UnusedLocalElementsVerifier visitor =
           new UnusedLocalElementsVerifier(errorListener, usedElements);
-      unitElement.accept(visitor);
+      unit.accept(visitor);
     }
     // Dart2js analysis.
     if (analysisOptions.dart2jsHint) {
@@ -3158,36 +3158,13 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
 
     //
-    // Prepare fields for which inference should be disabled.
-    //
-    Set<FieldElement> fieldsWithDisabledInference = new Set<FieldElement>();
-    for (CompilationUnitMember classDeclaration in unit.declarations) {
-      if (classDeclaration is ClassDeclaration) {
-        for (ClassMember fieldDeclaration in classDeclaration.members) {
-          if (fieldDeclaration is FieldDeclaration) {
-            if (!fieldDeclaration.isStatic) {
-              for (VariableDeclaration field
-                  in fieldDeclaration.fields.variables) {
-                Expression initializer = field.initializer;
-                if (initializer != null &&
-                    !isValidForTypeInference(initializer)) {
-                  fieldsWithDisabledInference.add(field.element);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    //
     // Infer instance members.
     //
     if (context.analysisOptions.strongMode) {
       var inheritanceManager = new InheritanceManager(
           resolutionMap.elementDeclaredByCompilationUnit(unit).library);
       InstanceMemberInferrer inferrer = new InstanceMemberInferrer(
-          typeProvider, (_) => inheritanceManager, fieldsWithDisabledInference,
+          typeProvider, (_) => inheritanceManager,
           typeSystem: context.typeSystem);
       inferrer.inferCompilationUnit(unit.element);
     }
@@ -3449,25 +3426,20 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Expression initializer = declaration.initializer;
 
-      DartType newType;
-      if (!isValidForTypeInference(initializer)) {
+      ResolutionContext resolutionContext =
+          ResolutionContextBuilder.contextFor(initializer);
+      ResolverVisitor visitor = new ResolverVisitor(
+          variable.library, variable.source, typeProvider, errorListener,
+          nameScope: resolutionContext.scope);
+      if (resolutionContext.enclosingClassDeclaration != null) {
+        visitor.prepareToResolveMembersInClass(
+            resolutionContext.enclosingClassDeclaration);
+      }
+      visitor.initForIncrementalResolution();
+      initializer.accept(visitor);
+      DartType newType = initializer.staticType;
+      if (newType == null || newType.isBottom || newType.isDartCoreNull) {
         newType = typeProvider.dynamicType;
-      } else {
-        ResolutionContext resolutionContext =
-            ResolutionContextBuilder.contextFor(initializer);
-        ResolverVisitor visitor = new ResolverVisitor(
-            variable.library, variable.source, typeProvider, errorListener,
-            nameScope: resolutionContext.scope);
-        if (resolutionContext.enclosingClassDeclaration != null) {
-          visitor.prepareToResolveMembersInClass(
-              resolutionContext.enclosingClassDeclaration);
-        }
-        visitor.initForIncrementalResolution();
-        initializer.accept(visitor);
-        newType = initializer.staticType;
-        if (newType == null || newType.isBottom || newType.isDartCoreNull) {
-          newType = typeProvider.dynamicType;
-        }
       }
 
       //
@@ -5493,6 +5465,7 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
           typeProvider,
           new StrongTypeSystemImpl(typeProvider,
               implicitCasts: options.implicitCasts,
+              declarationCasts: options.declarationCasts,
               nonnullableTypes: options.nonnullableTypes),
           errorListener,
           options);

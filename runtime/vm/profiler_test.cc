@@ -34,7 +34,6 @@ class DisableNativeProfileScope : public ValueObject {
   const bool FLAG_profile_vm_;
 };
 
-
 class DisableBackgroundCompilationScope : public ValueObject {
  public:
   DisableBackgroundCompilationScope()
@@ -50,7 +49,6 @@ class DisableBackgroundCompilationScope : public ValueObject {
   const bool FLAG_background_compilation_;
 };
 
-
 // Temporarily adjust the maximum profile depth.
 class MaxProfileDepthScope : public ValueObject {
  public:
@@ -64,7 +62,6 @@ class MaxProfileDepthScope : public ValueObject {
  private:
   const intptr_t FLAG_max_profile_depth_;
 };
-
 
 class ProfileSampleBufferTestHelper {
  public:
@@ -81,7 +78,6 @@ class ProfileSampleBufferTestHelper {
     return c;
   }
 
-
   static intptr_t IterateSumPC(const Dart_Port port,
                                const SampleBuffer& sample_buffer) {
     intptr_t c = 0;
@@ -95,7 +91,6 @@ class ProfileSampleBufferTestHelper {
     return c;
   }
 };
-
 
 TEST_CASE(Profiler_SampleBufferWrapTest) {
   SampleBuffer* sample_buffer = new SampleBuffer(3);
@@ -121,7 +116,6 @@ TEST_CASE(Profiler_SampleBufferWrapTest) {
   delete sample_buffer;
 }
 
-
 TEST_CASE(Profiler_SampleBufferIterateTest) {
   SampleBuffer* sample_buffer = new SampleBuffer(3);
   Dart_Port i = 123;
@@ -142,7 +136,6 @@ TEST_CASE(Profiler_SampleBufferIterateTest) {
   delete sample_buffer;
 }
 
-
 TEST_CASE(Profiler_AllocationSampleTest) {
   Isolate* isolate = Isolate::Current();
   SampleBuffer* sample_buffer = new SampleBuffer(3);
@@ -154,7 +147,6 @@ TEST_CASE(Profiler_AllocationSampleTest) {
   delete sample_buffer;
 }
 
-
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(lib.LookupClassAllowPrivate(
       String::Handle(Symbols::New(Thread::Current(), name))));
@@ -162,14 +154,12 @@ static RawClass* GetClass(const Library& lib, const char* name) {
   return cls.raw();
 }
 
-
 static RawFunction* GetFunction(const Library& lib, const char* name) {
   const Function& func = Function::Handle(lib.LookupFunctionAllowPrivate(
       String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!func.IsNull());  // No ambiguity error expected.
   return func.raw();
 }
-
 
 class AllocationFilter : public SampleFilter {
  public:
@@ -199,8 +189,15 @@ class AllocationFilter : public SampleFilter {
   bool enable_vm_ticks_;
 };
 
+static void EnableProfiler() {
+  if (!FLAG_profiler) {
+    FLAG_profiler = true;
+    Profiler::InitOnce();
+  }
+}
 
 TEST_CASE(Profiler_TrivialRecordAllocation) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
@@ -235,6 +232,7 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -242,7 +240,7 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
     AllocationFilter filter(isolate->main_port(), class_a.id(),
                             before_allocations_micros,
                             allocation_extent_micros);
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have 1 allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -304,12 +302,13 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id(),
                             Dart_TimelineGetMicros(), 16000);
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have no allocation samples because none occured within
     // the specified time range.
     EXPECT_EQ(0, profile.sample_count());
@@ -324,8 +323,9 @@ DART_NOINLINE static void NativeAllocationSampleHelper(char** result) {
   *result = static_cast<char*>(malloc(sizeof(char) * 1024));
 }
 
-
 ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
+  EnableProfiler();
+
   bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
   FLAG_profiler_native_memory = true;
 
@@ -351,6 +351,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -358,7 +359,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
     // Filter for the class in the time range.
     NativeAllocationSampleFilter filter(before_allocations_micros,
                                         allocation_extent_micros);
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have 1 allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -493,6 +494,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
@@ -500,7 +502,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
     // Filter for the class in the time range.
     NativeAllocationSampleFilter filter(before_allocations_micros,
                                         allocation_extent_micros);
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have 0 allocation samples since we freed the memory.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -509,11 +511,12 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     NativeAllocationSampleFilter filter(Dart_TimelineGetMicros(), 16000);
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have no allocation samples because none occured within
     // the specified time range.
     EXPECT_EQ(0, profile.sample_count());
@@ -527,8 +530,9 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
 #endif  // defined(DART_USE_TCMALLOC) && !defined(PRODUCT) &&
         // !defined(TARGET_ARCH_DBC) && !defined(HOST_OS_FUCHSIA)
 
-
 TEST_CASE(Profiler_ToggleRecordAllocation) {
+  EnableProfiler();
+
   DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
@@ -555,15 +559,15 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
-
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -577,11 +581,12 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -648,18 +653,19 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
 }
 
-
 TEST_CASE(Profiler_CodeTicks) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
@@ -689,11 +695,12 @@ TEST_CASE(Profiler_CodeTicks) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -712,11 +719,12 @@ TEST_CASE(Profiler_CodeTicks) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have three allocation samples.
     EXPECT_EQ(3, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -761,8 +769,8 @@ TEST_CASE(Profiler_CodeTicks) {
   }
 }
 
-
 TEST_CASE(Profiler_FunctionTicks) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
@@ -792,11 +800,12 @@ TEST_CASE(Profiler_FunctionTicks) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -815,11 +824,12 @@ TEST_CASE(Profiler_FunctionTicks) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have three allocation samples.
     EXPECT_EQ(3, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -864,8 +874,8 @@ TEST_CASE(Profiler_FunctionTicks) {
   }
 }
 
-
 TEST_CASE(Profiler_IntrinsicAllocation) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript = "double foo(double a, double b) => a + b;";
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
@@ -886,11 +896,12 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), double_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -900,11 +911,12 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), double_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -926,18 +938,19 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), double_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
 }
 
-
 TEST_CASE(Profiler_ArrayAllocation) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript =
       "List foo() => new List(4);\n"
@@ -956,11 +969,12 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), array_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -970,11 +984,12 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), array_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -998,11 +1013,12 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), array_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -1022,19 +1038,20 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), array_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have no allocation samples, since empty
     // growable lists use a shared backing.
     EXPECT_EQ(0, profile.sample_count());
   }
 }
 
-
 TEST_CASE(Profiler_ContextAllocation) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript =
       "var msg1 = 'a';\n"
@@ -1055,11 +1072,12 @@ TEST_CASE(Profiler_ContextAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), context_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1069,11 +1087,12 @@ TEST_CASE(Profiler_ContextAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), context_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -1093,18 +1112,19 @@ TEST_CASE(Profiler_ContextAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), context_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
 }
 
-
 TEST_CASE(Profiler_ClosureAllocation) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript =
       "var msg1 = 'a';\n"
@@ -1136,12 +1156,13 @@ TEST_CASE(Profiler_ClosureAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), closure_class.id());
     filter.set_enable_vm_ticks(true);
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -1164,19 +1185,20 @@ TEST_CASE(Profiler_ClosureAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), closure_class.id());
     filter.set_enable_vm_ticks(true);
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
 }
 
-
 TEST_CASE(Profiler_TypedArrayAllocation) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript =
       "import 'dart:typed_data';\n"
@@ -1198,11 +1220,12 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), float32_list_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1212,11 +1235,12 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), float32_list_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -1236,11 +1260,12 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), float32_list_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -1250,18 +1275,19 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), float32_list_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should now have two allocation samples.
     EXPECT_EQ(2, profile.sample_count());
   }
 }
 
-
 TEST_CASE(Profiler_StringAllocation) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   const char* kScript = "String foo(String a, String b) => a + b;";
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
@@ -1282,11 +1308,12 @@ TEST_CASE(Profiler_StringAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1296,11 +1323,12 @@ TEST_CASE(Profiler_StringAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -1322,11 +1350,12 @@ TEST_CASE(Profiler_StringAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -1336,18 +1365,19 @@ TEST_CASE(Profiler_StringAllocation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should now have two allocation samples.
     EXPECT_EQ(2, profile.sample_count());
   }
 }
 
-
 TEST_CASE(Profiler_StringInterpolation) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript = "String foo(String a, String b) => '$a | $b';";
@@ -1369,11 +1399,12 @@ TEST_CASE(Profiler_StringInterpolation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1383,11 +1414,12 @@ TEST_CASE(Profiler_StringInterpolation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -1411,11 +1443,12 @@ TEST_CASE(Profiler_StringInterpolation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -1425,18 +1458,19 @@ TEST_CASE(Profiler_StringInterpolation) {
   EXPECT_VALID(result);
 
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should now have two allocation samples.
     EXPECT_EQ(2, profile.sample_count());
   }
 }
 
-
 TEST_CASE(Profiler_FunctionInline) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
 
@@ -1485,11 +1519,12 @@ TEST_CASE(Profiler_FunctionInline) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1504,11 +1539,12 @@ TEST_CASE(Profiler_FunctionInline) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have 50,000 allocation samples.
     EXPECT_EQ(50000, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -1622,11 +1658,12 @@ TEST_CASE(Profiler_FunctionInline) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags,
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags,
                   ProfilerService::kCodeTransitionTagsBit);
     // We should have 50,000 allocation samples.
     EXPECT_EQ(50000, profile.sample_count());
@@ -1720,13 +1757,13 @@ TEST_CASE(Profiler_FunctionInline) {
   }
 }
 
-
 TEST_CASE(Profiler_InliningIntervalBoundry) {
   // The PC of frames below the top frame is a call's return address,
   // which can belong to a different inlining interval than the call.
   // This test checks the profiler service takes this into account; see
   // ProfileBuilder::ProcessFrame.
 
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -1795,11 +1832,12 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1813,11 +1851,12 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
 
@@ -1857,8 +1896,8 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
   }
 }
 
-
 TEST_CASE(Profiler_ChainedSamples) {
+  EnableProfiler();
   MaxProfileDepthScope mpds(32);
   DisableNativeProfileScope dnps;
 
@@ -1908,15 +1947,15 @@ TEST_CASE(Profiler_ChainedSamples) {
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
-
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have 1 allocation sample.
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -1971,8 +2010,8 @@ TEST_CASE(Profiler_ChainedSamples) {
   }
 }
 
-
 TEST_CASE(Profiler_BasicSourcePosition) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -2014,11 +2053,12 @@ TEST_CASE(Profiler_BasicSourcePosition) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -2045,9 +2085,9 @@ TEST_CASE(Profiler_BasicSourcePosition) {
     EXPECT(!walker.Down());
   }
 }
-
 
 TEST_CASE(Profiler_BasicSourcePositionOptimized) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   // We use the AlwaysInline and NeverInline annotations in this test.
@@ -2108,11 +2148,12 @@ TEST_CASE(Profiler_BasicSourcePositionOptimized) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -2139,9 +2180,9 @@ TEST_CASE(Profiler_BasicSourcePositionOptimized) {
     EXPECT(!walker.Down());
   }
 }
-
 
 TEST_CASE(Profiler_SourcePosition) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -2195,11 +2236,12 @@ TEST_CASE(Profiler_SourcePosition) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -2244,9 +2286,9 @@ TEST_CASE(Profiler_SourcePosition) {
     EXPECT(!walker.Down());
   }
 }
-
 
 TEST_CASE(Profiler_SourcePositionOptimized) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   // We use the AlwaysInline and NeverInline annotations in this test.
@@ -2320,11 +2362,12 @@ TEST_CASE(Profiler_SourcePositionOptimized) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -2370,8 +2413,8 @@ TEST_CASE(Profiler_SourcePositionOptimized) {
   }
 }
 
-
 TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
@@ -2428,11 +2471,12 @@ TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -2484,8 +2528,8 @@ TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
   }
 }
 
-
 TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
+  EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   // We use the AlwaysInline and NeverInline annotations in this test.
@@ -2562,11 +2606,12 @@ TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
     ProfileTrieWalker walker(&profile);
@@ -2617,7 +2662,6 @@ TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
     EXPECT(!walker.Down());
   }
 }
-
 
 static void InsertFakeSample(SampleBuffer* sample_buffer, uword* pc_offsets) {
   ASSERT(sample_buffer != NULL);
@@ -2644,9 +2688,7 @@ static void InsertFakeSample(SampleBuffer* sample_buffer, uword* pc_offsets) {
   sample->SetAt(i, 0);
 }
 
-
-static uword FindPCForTokenPosition(const Code& code,
-                                    TokenPosition tp) {
+static uword FindPCForTokenPosition(const Code& code, TokenPosition tp) {
   GrowableArray<const Function*> functions;
   GrowableArray<TokenPosition> token_positions;
   for (intptr_t pc_offset = 0; pc_offset < code.Size(); pc_offset++) {
@@ -2660,8 +2702,8 @@ static uword FindPCForTokenPosition(const Code& code,
   return 0;
 }
 
-
 TEST_CASE(Profiler_GetSourceReport) {
+  EnableProfiler();
   const char* kScript =
       "doWork(i) => i * i;\n"
       "main() {\n"
@@ -2774,10 +2816,13 @@ TEST_CASE(Profiler_GetSourceReport) {
   InsertFakeSample(sample_buffer, &sample4[0]);
 
   // Generate source report for main.
-  SourceReport sourceReport(SourceReport::kProfile);
   JSONStream js;
-  sourceReport.PrintJSON(&js, script, do_work.token_pos(),
-                         main.end_token_pos());
+  {
+    TransitionNativeToVM transition(thread);
+    SourceReport sourceReport(SourceReport::kProfile);
+    sourceReport.PrintJSON(&js, script, do_work.token_pos(),
+                           main.end_token_pos());
+  }
 
   // Verify positions in do_work.
   EXPECT_SUBSTRING("\"positions\":[\"ControlFlow\",6]", js.ToCString());
@@ -2793,7 +2838,6 @@ TEST_CASE(Profiler_GetSourceReport) {
   // Verify inclusive ticks in main.
   EXPECT_SUBSTRING("\"inclusiveTicks\":[1,2]", js.ToCString());
 }
-
 
 TEST_CASE(Profiler_ProfileCodeTableTest) {
   Zone* Z = Thread::Current()->zone();

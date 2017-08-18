@@ -805,13 +805,13 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   test_constructor_param() async {
     addTestSource('class A { A(^) {});}');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.THIS]);
+    assertSuggestKeywords([Keyword.COVARIANT, Keyword.THIS]);
   }
 
   test_constructor_param2() async {
     addTestSource('class A { A(t^) {});}');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.THIS]);
+    assertSuggestKeywords([Keyword.COVARIANT, Keyword.THIS]);
   }
 
   test_do_break_continue() async {
@@ -1564,13 +1564,15 @@ class A {
   test_method_param() async {
     addTestSource('class A { foo(^) {});}');
     await computeSuggestions();
-    expect(suggestions, isEmpty);
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords([Keyword.COVARIANT]);
   }
 
   test_method_param2() async {
     addTestSource('class A { foo(t^) {});}');
     await computeSuggestions();
-    expect(suggestions, isEmpty);
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords([Keyword.COVARIANT]);
   }
 
   test_method_param_named_init() async {

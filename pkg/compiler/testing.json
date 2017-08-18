@@ -10,15 +10,13 @@
 
     "uris": [
       ".",
-      "../../tests/compiler/dart2js/",
-      "../../tests/utils/"
+      "../../tests/compiler/dart2js/"
     ],
 
     "exclude": [
       "^tests/compiler/dart2js/data/.*",
       "^tests/compiler/dart2js/path with spaces/.*",
-      "^tests/compiler/dart2js/sourcemaps/data/.*",
-      "^tests/utils/dummy\\.dart"
+      "^tests/compiler/dart2js/sourcemaps/data/.*"
     ]
   }
 }

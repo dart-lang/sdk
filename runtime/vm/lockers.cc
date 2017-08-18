@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
 #include "vm/lockers.h"
+#include "platform/assert.h"
 #include "vm/safepoint.h"
 
 namespace dart {
-
 
 static void updateThreadState(Thread* thread) {
   // First try a fast update of the thread state to indicate it is not at a
@@ -24,7 +23,6 @@ static void updateThreadState(Thread* thread) {
   }
   thread->set_execution_state(Thread::kThreadInVM);
 }
-
 
 Monitor::WaitResult MonitorLocker::WaitWithSafepointCheck(Thread* thread,
                                                           int64_t millis) {
@@ -51,7 +49,6 @@ Monitor::WaitResult MonitorLocker::WaitWithSafepointCheck(Thread* thread,
   return result;
 }
 
-
 SafepointMutexLocker::SafepointMutexLocker(Mutex* mutex) : mutex_(mutex) {
   ASSERT(mutex != NULL);
   if (!mutex_->TryLock()) {
@@ -69,7 +66,6 @@ SafepointMutexLocker::SafepointMutexLocker(Mutex* mutex) : mutex_(mutex) {
     }
   }
 }
-
 
 SafepointMonitorLocker::SafepointMonitorLocker(Monitor* monitor)
     : monitor_(monitor) {
@@ -89,7 +85,6 @@ SafepointMonitorLocker::SafepointMonitorLocker(Monitor* monitor)
     }
   }
 }
-
 
 Monitor::WaitResult SafepointMonitorLocker::Wait(int64_t millis) {
   Thread* thread = Thread::Current();

@@ -7,12 +7,15 @@ import "native_testing.dart";
 makeCC() native;
 nativeFirst(x, y) native;
 
-void setup() native """
-function CC() {}
-makeCC = function() { return new CC; }
-nativeFirst = function(x, y) { return x; }
-self.nativeConstructor(CC);
-""";
+void setup() {
+  JS('', r"""
+(function(){
+  function CC() {}
+  makeCC = function() { return new CC() };
+  nativeFirst = function(x, y) { return x; };
+  self.nativeConstructor(CC);
+})()""");
+}
 
 class C {
   foo(x) => x;

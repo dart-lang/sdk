@@ -27,7 +27,7 @@ namespace dart {
   V(Object_as, 4)                                                              \
   V(Function_apply, 2)                                                         \
   V(Closure_equals, 2)                                                         \
-  V(Closure_hashCode, 1)                                                       \
+  V(Closure_computeHash, 1)                                                    \
   V(Closure_clone, 1)                                                          \
   V(AbstractType_toString, 1)                                                  \
   V(Identical_comparison, 2)                                                   \
@@ -172,6 +172,7 @@ namespace dart {
   V(Timeline_getThreadCpuClock, 0)                                             \
   V(Timeline_isDartStreamEnabled, 0)                                           \
   V(Timeline_reportCompleteEvent, 5)                                           \
+  V(Timeline_reportFlowEvent, 7)                                               \
   V(Timeline_reportInstantEvent, 4)                                            \
   V(Timeline_reportTaskEvent, 6)                                               \
   V(TypedData_Int8Array_new, 2)                                                \
@@ -216,14 +217,6 @@ namespace dart {
   V(TypedData_SetInt32x4, 3)                                                   \
   V(TypedData_GetFloat64x2, 2)                                                 \
   V(TypedData_SetFloat64x2, 3)                                                 \
-  V(ByteData_ToEndianInt16, 2)                                                 \
-  V(ByteData_ToEndianUint16, 2)                                                \
-  V(ByteData_ToEndianInt32, 2)                                                 \
-  V(ByteData_ToEndianUint32, 2)                                                \
-  V(ByteData_ToEndianInt64, 2)                                                 \
-  V(ByteData_ToEndianUint64, 2)                                                \
-  V(ByteData_ToEndianFloat32, 2)                                               \
-  V(ByteData_ToEndianFloat64, 2)                                               \
   V(Float32x4_fromDoubles, 5)                                                  \
   V(Float32x4_splat, 2)                                                        \
   V(Float32x4_fromInt32x4Bits, 2)                                              \
@@ -425,7 +418,7 @@ class BootstrapNatives : public AllStatic {
   static void DN_##name(Dart_NativeArguments args);
 
   BOOTSTRAP_NATIVE_LIST(DECLARE_BOOTSTRAP_NATIVE)
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   MIRRORS_BOOTSTRAP_NATIVE_LIST(DECLARE_BOOTSTRAP_NATIVE)
 #endif
 

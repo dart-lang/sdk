@@ -68,9 +68,32 @@ test2() {
   c?.m(bomb());
 }
 
+class Bar {
+  String s;
+}
+
+class Foo {
+  Bar _bar;
+  String str;
+
+  Foo(this._bar) : str = _bar?.s;
+}
+
+// Check that ?? isn't incorrectly optimized as non-nullable
+// (DDC regression test)
+test3() {
+  List n = null;
+  var func = n?.add;
+  var result = func ?? 1;
+  Expect.equals(result, 1);
+}
+
 main() {
   for (int i = 0; i < 10; i++) {
     test();
     test2();
+    test3();
   }
+
+  Expect.equals(null, new Foo(new Bar()).str);
 }

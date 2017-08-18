@@ -34,7 +34,6 @@ typedef bool (*IntrinsicHandler)(Thread* thread,
                                  RawObject** FP,
                                  RawObject** result);
 
-
 class Simulator {
  public:
   static const uword kSimulatorStackUnderflowSize = 0x80;
@@ -93,6 +92,7 @@ class Simulator {
 
   RawObject** fp_;
   uword pc_;
+  NOT_IN_PRODUCT(uint64_t icount_;)
 
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
   uword top_exit_frame_info_;
@@ -160,6 +160,14 @@ class Simulator {
                      RawObject*** FP,
                      RawObject*** SP,
                      bool optimized);
+
+#if !defined(PRODUCT)
+  // Returns true if tracing of executed instructions is enabled.
+  bool IsTracingExecution() const;
+
+  // Prints bytecode instruction at given pc for instruction tracing.
+  void TraceInstruction(uint32_t* pc) const;
+#endif  // !defined(PRODUCT)
 
   // Longjmp support for exceptions.
   SimulatorSetjmpBuffer* last_setjmp_buffer() { return last_setjmp_buffer_; }

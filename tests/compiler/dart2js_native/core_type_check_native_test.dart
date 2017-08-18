@@ -21,21 +21,25 @@ makeB() native;
 makeC() native;
 makeD() native;
 
-void setup() native """
-function A() {};
-makeA = function() { return new A; }
-function B() {};
-makeB = function() { return new B; }
-function C() {};
-makeC = function() { return new C; }
-function D() {};
-makeD = function() { return new D; }
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {};
+  makeA = function() { return new A(); };
+  function B() {};
+  makeB = function() { return new B(); };
+  function C() {};
+  makeC = function() { return new C(); };
+  function D() {};
+  makeD = function() { return new D(); };
 
-self.nativeConstructor(A);
-self.nativeConstructor(B);
-self.nativeConstructor(C);
-self.nativeConstructor(D);
-""";
+  self.nativeConstructor(A);
+  self.nativeConstructor(B);
+  self.nativeConstructor(C);
+  self.nativeConstructor(D);
+})()
+""");
+}
 
 checkTest(value, expectComparable, expectPattern) {
   Expect.equals(expectComparable, value is Comparable);

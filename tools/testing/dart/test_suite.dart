@@ -15,17 +15,18 @@
 import 'dart:async';
 import 'dart:io';
 
+import "package:status_file/expectation.dart";
+
 import 'browser_test.dart';
 import 'command.dart';
 import 'compiler_configuration.dart';
 import 'configuration.dart';
-import 'drt_updater.dart';
-import 'expectation.dart';
 import 'expectation_set.dart';
 import 'html_test.dart' as html_test;
 import 'http_server.dart';
 import 'multitest.dart';
 import 'path.dart';
+import 'runtime_updater.dart';
 import 'summary_report.dart';
 import 'test_configurations.dart';
 import 'test_runner.dart';
@@ -167,7 +168,7 @@ abstract class TestSuite {
   String get compilerPath {
     var compilerConfiguration = configuration.compilerConfiguration;
     if (!compilerConfiguration.hasCompiler) return null;
-    var name = compilerConfiguration.computeCompilerPath(buildDir);
+    var name = compilerConfiguration.computeCompilerPath();
 
     // TODO(ahe): Only validate this once, in test_options.dart.
     TestUtils.ensureExists(name, configuration);
@@ -617,9 +618,13 @@ class StandardTestSuite extends TestSuite {
     var status_paths = [
       '$directory/$name.status',
       '$directory/.status',
-      '$directory/${name}_dart2js.status',
+      '$directory/${name}_analyzer.status',
       '$directory/${name}_analyzer2.status',
-      '$directory/${name}_kernel.status'
+      '$directory/${name}_dart2js.status',
+      '$directory/${name}_dartdevc.status',
+      '$directory/${name}_kernel.status',
+      '$directory/${name}_precompiled.status',
+      '$directory/${name}_vm.status',
     ];
 
     return new StandardTestSuite(configuration, name, directory, status_paths,
@@ -646,7 +651,10 @@ class StandardTestSuite extends TestSuite {
   Future forEachTest(
       Function onTest, Map<String, List<TestInformation>> testCache,
       [VoidFunction onDone]) async {
-    await updateDartium();
+    if (configuration.runtime == Runtime.drt && !configuration.listTests) {
+      await updateContentShell(configuration.drtPath);
+    }
+
     doTest = onTest;
     testExpectations = readExpectations();
 
@@ -663,24 +671,6 @@ class StandardTestSuite extends TestSuite {
     cachedTests = null;
     doTest = null;
     if (onDone != null) onDone();
-  }
-
-  /**
-   * If Content shell/Dartium is required, and not yet updated, waits for
-   * the update then completes. Otherwise completes immediately.
-   */
-  Future updateDartium() {
-    var completer = new Completer();
-    var updater = runtimeUpdater(configuration.runtime, configuration.drtPath,
-        configuration.dartiumPath);
-    if (updater == null || updater.updated) {
-      return new Future.value(null);
-    }
-
-    assert(updater.isActive);
-    updater.onUpdated.add(() => completer.complete(null));
-
-    return completer.future;
   }
 
   /**
@@ -882,7 +872,7 @@ class StandardTestSuite extends TestSuite {
 
     CommandArtifact compilationArtifact =
         compilerConfiguration.computeCompilationArtifact(
-            buildDir, tempDir, compileTimeArguments, environmentOverrides);
+            tempDir, compileTimeArguments, environmentOverrides);
     if (!configuration.skipCompilation) {
       commands.addAll(compilationArtifact.commands);
     }
@@ -896,7 +886,6 @@ class StandardTestSuite extends TestSuite {
     List<String> runtimeArguments =
         compilerConfiguration.computeRuntimeArguments(
             configuration.runtimeConfiguration,
-            buildDir,
             info,
             vmOptions,
             sharedOptions,
@@ -981,17 +970,6 @@ class StandardTestSuite extends TestSuite {
         queryParameters: parameters);
   }
 
-  void _createWrapperFile(
-      String dartWrapperFilename, Path localDartLibraryFilename) {
-    File file = new File(dartWrapperFilename);
-    RandomAccessFile dartWrapper = file.openSync(mode: FileMode.WRITE);
-
-    var libraryPathComponent = _createUrlPathFromFile(localDartLibraryFilename);
-    var generatedSource = dartTestWrapper(libraryPathComponent);
-    dartWrapper.writeStringSync(generatedSource);
-    dartWrapper.closeSync();
-  }
-
   /**
    * The [StandardTestSuite] has support for tests that
    * compile a test from Dart to JavaScript, and then run the resulting
@@ -1031,70 +1009,36 @@ class StandardTestSuite extends TestSuite {
       Map<String, Set<Expectation>> expectations,
       List<String> vmOptions,
       String tempDir) {
-    // TODO(Issue 14651): If we're on dartium, we need to pass [packageRoot]
-    // on to the browser (it may be test specific).
-    var filePath = info.filePath;
-    var fileName = filePath.toString();
-
+    var fileName = info.filePath.toNativePath();
     var optionsFromFile = info.optionsFromFile;
     var compilationTempDir = createCompilationOutputDirectory(info.filePath);
-    var dartWrapperFilename = '$tempDir/test.dart';
-    var compiledDartWrapperFilename = '$compilationTempDir/test.js';
-    var dir = filePath.directoryPath;
-    var nameNoExt = filePath.filenameWithoutExtension;
-    var customHtmlPath = dir.append('$nameNoExt.html').toNativePath();
-    var customHtml = new File(customHtmlPath);
+    var jsWrapperFileName = '$compilationTempDir/test.js';
+    var nameNoExt = info.filePath.filenameWithoutExtension;
 
     // Use existing HTML document if available.
-    String htmlPath;
     String content;
+    var customHtml = new File(
+        info.filePath.directoryPath.append('$nameNoExt.html').toNativePath());
     if (customHtml.existsSync()) {
-      htmlPath = '$tempDir/test.html';
-      dartWrapperFilename = filePath.toNativePath();
-
-      var htmlContents = customHtml.readAsStringSync();
-      if (configuration.compiler == Compiler.none) {
-        var dartUrl = _createUrlPathFromFile(filePath);
-        var dartScript =
-            '<script type="application/dart" src="$dartUrl"></script>';
-        var jsUrl = '/packages/browser/dart.js';
-        var jsScript = '<script type="text/javascript" src="$jsUrl"></script>';
-        htmlContents =
-            htmlContents.replaceAll('%TEST_SCRIPTS%', '$dartScript\n$jsScript');
-      } else {
-        compiledDartWrapperFilename = '$tempDir/$nameNoExt.js';
-        htmlContents = htmlContents.replaceAll(
-            '%TEST_SCRIPTS%', '<script src="$nameNoExt.js"></script>');
-      }
-      new File(htmlPath).writeAsStringSync(htmlContents);
+      jsWrapperFileName = '$tempDir/$nameNoExt.js';
+      content = customHtml.readAsStringSync().replaceAll(
+          '%TEST_SCRIPTS%', '<script src="$nameNoExt.js"></script>');
     } else {
-      htmlPath = '$tempDir/test.html';
-      if (configuration.compiler != Compiler.dart2js &&
-          configuration.compiler != Compiler.dartdevc) {
-        // test.dart will import the dart test.
-        _createWrapperFile(dartWrapperFilename, filePath);
-      } else {
-        dartWrapperFilename = fileName;
-      }
-
-      // Create the HTML file for the test.
-      var scriptPath = dartWrapperFilename;
-      if (configuration.compiler != Compiler.none) {
-        scriptPath = compiledDartWrapperFilename;
-      }
-      scriptPath = _createUrlPathFromFile(new Path(scriptPath));
+      // Synthesize an HTML file for the test.
+      var scriptPath = _createUrlPathFromFile(new Path(jsWrapperFileName));
 
       if (configuration.compiler != Compiler.dartdevc) {
-        content = getHtmlContents(fileName, scriptType, scriptPath);
+        content = dart2jsHtml(fileName, scriptPath);
       } else {
         var jsDir = new Path(compilationTempDir)
             .relativeTo(TestUtils.dartDir)
             .toString();
-        content = dartdevcHtml(nameNoExt, jsDir);
+        content = dartdevcHtml(nameNoExt, jsDir, buildDir);
       }
-
-      new File(htmlPath).writeAsStringSync(content);
     }
+
+    var htmlPath = '$tempDir/test.html';
+    new File(htmlPath).writeAsStringSync(content);
 
     // Construct the command(s) that compile all the inputs needed by the
     // browser test. For running Dart in DRT, this will be noop commands.
@@ -1102,16 +1046,15 @@ class StandardTestSuite extends TestSuite {
 
     switch (configuration.compiler) {
       case Compiler.dart2js:
-        commands.add(_dart2jsCompileCommand(dartWrapperFilename,
-            compiledDartWrapperFilename, tempDir, optionsFromFile));
+        commands.add(_dart2jsCompileCommand(
+            fileName, jsWrapperFileName, tempDir, optionsFromFile));
         break;
 
       case Compiler.dartdevc:
-        commands.add(_dartdevcCompileCommand(dartWrapperFilename,
-            '$compilationTempDir/$nameNoExt.js', optionsFromFile));
-        break;
-
-      case Compiler.none:
+        var toPath =
+            new Path('$compilationTempDir/$nameNoExt.js').toNativePath();
+        commands.add(configuration.compilerConfiguration.createCommand(fileName,
+            toPath, optionsFromFile["sharedOptions"] as List<String>));
         break;
 
       default:
@@ -1121,29 +1064,21 @@ class StandardTestSuite extends TestSuite {
     // Some tests require compiling multiple input scripts.
     for (var name in optionsFromFile['otherScripts'] as List<String>) {
       var namePath = new Path(name);
-      var fromPath = filePath.directoryPath.join(namePath);
+      var fromPath = info.filePath.directoryPath.join(namePath);
+      var toPath = new Path('$tempDir/${namePath.filename}.js').toNativePath();
 
       switch (configuration.compiler) {
         case Compiler.dart2js:
-          commands.add(_dart2jsCompileCommand(fromPath.toNativePath(),
-              '$tempDir/${namePath.filename}.js', tempDir, optionsFromFile));
+          commands.add(_dart2jsCompileCommand(
+              fromPath.toNativePath(), toPath, tempDir, optionsFromFile));
           break;
 
         case Compiler.dartdevc:
-          commands.add(_dartdevcCompileCommand(fromPath.toNativePath(),
-              '$tempDir/${namePath.filename}.js', optionsFromFile));
+          commands.add(configuration.compilerConfiguration.createCommand(
+              fromPath.toNativePath(),
+              toPath,
+              optionsFromFile["sharedOptions"] as List<String>));
           break;
-
-        default:
-          assert(configuration.compiler == Compiler.none);
-      }
-
-      if (configuration.compiler == Compiler.none) {
-        // For the tests that require multiple input scripts but are not
-        // compiled, move the input scripts over with the script so they can
-        // be accessed.
-        new File(fromPath.toNativePath())
-            .copySync('$tempDir/${namePath.filename}');
       }
     }
 
@@ -1189,15 +1124,6 @@ class StandardTestSuite extends TestSuite {
         contentShellOptions.add('--disable-gpu');
         // TODO(terry): Roll 50 need this in conjection with disable-gpu.
         contentShellOptions.add('--disable-gpu-early-init');
-      }
-
-      if (configuration.compiler == Compiler.none) {
-        dartFlags.add('--ignore-unrecognized-flags');
-        if (configuration.isChecked) {
-          dartFlags.add('--enable_asserts');
-          dartFlags.add("--enable_type_checks");
-        }
-        dartFlags.addAll(vmOptions);
       }
 
       commands.add(Command.contentShell(contentShellFilename, fullHtmlPath,
@@ -1323,49 +1249,6 @@ class StandardTestSuite extends TestSuite {
         alwaysCompile: !useSdk);
   }
 
-  /// Creates a [Command] to compile a single .dart file using dartdevc.
-  Command _dartdevcCompileCommand(String inputFile, String outputFile,
-      Map<String, dynamic> optionsFromFile) {
-    var args = [
-      "--dart-sdk",
-      "$buildDir/dart-sdk",
-      "--library-root",
-      new Path(inputFile).directoryPath.toString(),
-      "-o",
-      outputFile,
-      inputFile
-    ];
-
-    // TODO(29923): This compiles everything imported by the test into the
-    // same generated JS module, including other packages like expect,
-    // stack_trace, etc. Those should be compiled as separate JS modules (by
-    // build.py) and loaded dynamically by the test.
-
-    return Command.compilation(
-        Compiler.dartdevc.name,
-        outputFile,
-        configuration.compilerConfiguration.bootstrapDependencies(buildDir),
-        compilerPath,
-        args,
-        environmentOverrides);
-  }
-
-  String get scriptType {
-    switch (configuration.compiler) {
-      case Compiler.none:
-        return 'application/dart';
-      case Compiler.dart2js:
-      case Compiler.dart2analyzer:
-      case Compiler.dartdevc:
-        return 'text/javascript';
-      default:
-        print('Non-web runtime, so no scriptType for: '
-            '${configuration.compiler.name}');
-        exit(1);
-        return null;
-    }
-  }
-
   bool get hasRuntime => configuration.runtime != Runtime.none;
 
   String get contentShellFilename {
@@ -1429,8 +1312,8 @@ class StandardTestSuite extends TestSuite {
    * creating additional files in the test directories.
    *
    * Here is a list of options that are used by 'test.dart' today:
-   *   - Flags can be passed to the vm or dartium process that runs the test by
-   *   adding a comment to the test file:
+   *   - Flags can be passed to the vm process that runs the test by adding a
+   *   comment to the test file:
    *
    *     // VMOptions=--flag1 --flag2
    *
@@ -1597,13 +1480,38 @@ class StandardTestSuite extends TestSuite {
       subtestNames.add(fullMatch.substring(fullMatch.indexOf("'") + 1));
     }
 
+    // TODO(rnystrom): During the migration of the existing tests to Dart 2.0,
+    // we have a number of tests that used to both generate static type warnings
+    // and also validate some runtime behavior in an implementation that
+    // ignores those warnings. Those warnings are now errors. The test code
+    // validates the runtime behavior can and should be removed, but the code
+    // that causes the static warning should still be preserved since that is
+    // part of our coverage of the static type system.
+    //
+    // The test needs to indicate that it should have a static error. We could
+    // put that in the status file, but that makes it confusing because it
+    // would look like implementations that *don't* report the error are more
+    // correct. Eventually, we want to have a notation similar to what front_end
+    // is using for the inference tests where we can put a comment inside the
+    // test that says "This specific static error should be reported right by
+    // this token."
+    //
+    // That system isn't in place yet, so we do a crude approximation here in
+    // test.dart. If a test contains `/*@compile-error=`, which matches the
+    // beginning of the tag syntax that front_end uses, then we assume that
+    // this test must have a static error somewhere in it.
+    //
+    // Redo this code once we have a more precise test framework for detecting
+    // and locating these errors.
+    var hasCompileError = contents.contains("/*@compile-error=");
+
     return {
       "vmOptions": result,
       "sharedOptions": sharedOptions ?? [],
       "dartOptions": dartOptions,
       "packageRoot": packageRoot,
       "packages": packages,
-      "hasCompileError": false,
+      "hasCompileError": hasCompileError,
       "hasRuntimeError": false,
       "hasStaticWarning": false,
       "otherScripts": otherScripts,
@@ -1649,9 +1557,7 @@ class StandardTestSuite extends TestSuite {
       Runtime.dartPrecompiled,
       Runtime.vm,
       Runtime.drt,
-      Runtime.dartium,
-      Runtime.contentShellOnAndroid,
-      Runtime.dartiumOnAndroid
+      Runtime.contentShellOnAndroid
     ];
 
     var needsVmOptions = compilers.contains(configuration.compiler) &&
@@ -1774,6 +1680,8 @@ class DartcCompilationTestSuite extends StandardTestSuite {
   }
 }
 
+// TODO(rnystrom): Merge with DartcCompilationTestSuite since that class isn't
+// used for anything but this now.
 class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
   static String libraryPath(Configuration configuration) =>
       configuration.useSdk ? '${configuration.buildDirectory}/dart-sdk' : 'sdk';

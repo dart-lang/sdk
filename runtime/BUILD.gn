@@ -4,35 +4,6 @@
 
 import("runtime_args.gni")
 
-declare_args() {
-  # Instead of using is_debug, we introduce a different flag for specifying a
-  # Debug build of Dart so that clients can still use a Release build of Dart
-  # while themselves doing a Debug build.
-  dart_debug = false
-
-  # Set the runtime mode. This affects how the runtime is built and what
-  # features it has. Valid values are:
-  # 'develop' (the default) - VM is built to run as a JIT with all development
-  # features enabled.
-  # 'profile' - The VM is built to run with AOT compiled code with only the
-  # CPU profiling features enabled.
-  # 'release' - The VM is built to run with AOT compiled code with no developer
-  # features enabled.
-  #
-  # These settings are only used for Flutter, at the moment. A standalone build
-  # of the Dart VM should leave this set to "develop", and should set
-  # 'is_debug', 'is_release', or 'is_product'.
-  dart_runtime_mode = "develop"
-
-  # Explicitly set the target architecture in case of precompilation. Leaving
-  # this unspecified results in automatic target architecture detection.
-  # Available options are: arm, arm64, x64, and ia32
-  dart_target_arch = ""
-
-  # The optimization level to use for debug builds.
-  dart_debug_optimization_level = "2"
-}
-
 config("dart_public_config") {
   include_dirs = [ "." ]
 }
@@ -52,6 +23,15 @@ config("dart_maybe_product_config") {
       print("Debug and release mode are mutually exclusive.")
     }
     assert(!dart_debug)
+    defines += [ "PRODUCT" ]
+  }
+}
+
+# This is a config to use to build PRODUCT mode artifacts in a RELEASE build.
+# If a DEBUG build has been specified it will be ignored.
+config("dart_product_config") {
+  defines = []
+  if (!dart_debug) {
     defines += [ "PRODUCT" ]
   }
 }
@@ -93,32 +73,26 @@ config("dart_config") {
     assert(false)
   }
 
-  if (dart_target_arch != "") {
-    if (dart_target_arch == "arm" || dart_target_arch == "simarm") {
-      defines += [ "TARGET_ARCH_ARM" ]
-    } else if (dart_target_arch == "armv6" || dart_target_arch == "simarmv6") {
-      defines += [ "TARGET_ARCH_ARM" ]
-      defines += [ "TARGET_ARCH_ARM_6" ]
-    } else if (dart_target_arch == "armv5te" ||
-               dart_target_arch == "simarmv5te") {
-      defines += [ "TARGET_ARCH_ARM" ]
-      defines += [ "TARGET_ARCH_ARM_5TE" ]
-    } else if (dart_target_arch == "arm64" || dart_target_arch == "simarm64") {
-      defines += [ "TARGET_ARCH_ARM64" ]
-    } else if (dart_target_arch == "x64") {
-      defines += [ "TARGET_ARCH_X64" ]
-    } else if (dart_target_arch == "ia32") {
-      defines += [ "TARGET_ARCH_IA32" ]
-    } else if (dart_target_arch == "dbc" || dart_target_arch == "simdbc" ||
-               dart_target_arch == "simdbc64" ||
-               dart_target_arch == "armsimdbc" ||
-               dart_target_arch == "armsimdbc64") {
-      defines += [ "TARGET_ARCH_DBC" ]
-      defines += [ "USING_SIMULATOR" ]
-    } else {
-      print("Invalid dart_target_arch: $dart_target_arch")
-      assert(false)
-    }
+  if (dart_target_arch == "arm") {
+    defines += [ "TARGET_ARCH_ARM" ]
+  } else if (dart_target_arch == "armv6") {
+    defines += [ "TARGET_ARCH_ARM" ]
+    defines += [ "TARGET_ARCH_ARM_6" ]
+  } else if (dart_target_arch == "armv5te") {
+    defines += [ "TARGET_ARCH_ARM" ]
+    defines += [ "TARGET_ARCH_ARM_5TE" ]
+  } else if (dart_target_arch == "arm64") {
+    defines += [ "TARGET_ARCH_ARM64" ]
+  } else if (dart_target_arch == "x64") {
+    defines += [ "TARGET_ARCH_X64" ]
+  } else if (dart_target_arch == "ia32" || dart_target_arch == "x86") {
+    defines += [ "TARGET_ARCH_IA32" ]
+  } else if (dart_target_arch == "dbc") {
+    defines += [ "TARGET_ARCH_DBC" ]
+    defines += [ "USING_SIMULATOR" ]
+  } else {
+    print("Invalid dart_target_arch: $dart_target_arch")
+    assert(false)
   }
 
   if (dart_debug) {
@@ -135,7 +109,10 @@ config("dart_config") {
 
   if (is_fuchsia) {
     defines += [ "DART_USE_JEMALLOC" ]
-    include_dirs += [ "//magenta/third_party/ulib/jemalloc/include" ]
+    include_dirs += [
+      "//magenta/system/ulib/mx/include",
+      "//magenta/third_party/ulib/jemalloc/include",
+    ]
   }
 
   if (!is_win) {
@@ -193,15 +170,11 @@ template("libdart_library") {
     extra_deps += invoker.extra_deps
   }
   static_library(target_name) {
-    configs += [
-                 ":dart_config",
-                 ":dart_maybe_product_config",
-               ] + extra_configs
+    configs += [ ":dart_config" ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
     deps = [
-             "vm:libdart_platform",
              "third_party/double-conversion/src:libdouble_conversion",
              ":generate_version_cc_file",
            ] + extra_deps
@@ -224,42 +197,104 @@ template("libdart_library") {
 }
 
 libdart_library("libdart_jit") {
+  extra_configs = [ ":dart_maybe_product_config" ]
   extra_deps = [
+    "platform:libdart_platform",
     "vm:libdart_lib_jit",
     "vm:libdart_vm_jit",
   ]
 }
 
-libdart_library("libdart_precompiled_runtime") {
-  extra_configs = [ ":dart_precompiled_runtime_config" ]
+libdart_library("libdart_jit_product") {
+  extra_configs = [ ":dart_product_config" ]
   extra_deps = [
+    "platform:libdart_platform_product",
+    "vm:libdart_lib_jit_product",
+    "vm:libdart_vm_jit_product",
+  ]
+}
+
+libdart_library("libdart_precompiled_runtime") {
+  extra_configs = [
+    ":dart_maybe_product_config",
+    ":dart_precompiled_runtime_config",
+  ]
+  extra_deps = [
+    "platform:libdart_platform",
     "vm:libdart_lib_precompiled_runtime",
     "vm:libdart_vm_precompiled_runtime",
   ]
 }
 
+libdart_library("libdart_precompiled_runtime_product") {
+  extra_configs = [
+    ":dart_product_config",
+    ":dart_precompiled_runtime_config",
+  ]
+  extra_deps = [
+    "platform:libdart_platform_product",
+    "vm:libdart_lib_precompiled_runtime_product",
+    "vm:libdart_vm_precompiled_runtime_product",
+  ]
+}
+
 libdart_library("libdart_nosnapshot_with_precompiler") {
   extra_configs = [
+    ":dart_maybe_product_config",
     ":dart_no_snapshot_config",
     ":dart_precompiler_config",
   ]
   extra_deps = [
+    "platform:libdart_platform",
     "vm:libdart_lib_nosnapshot_with_precompiler",
     "vm:libdart_vm_nosnapshot_with_precompiler",
   ]
 }
 
-libdart_library("libdart_with_precompiler") {
-  extra_configs = [ ":dart_precompiler_config" ]
+libdart_library("libdart_nosnapshot_with_precompiler_product") {
+  extra_configs = [
+    ":dart_product_config",
+    ":dart_no_snapshot_config",
+    ":dart_precompiler_config",
+  ]
   extra_deps = [
+    "platform:libdart_platform_product",
+    "vm:libdart_lib_nosnapshot_with_precompiler_product",
+    "vm:libdart_vm_nosnapshot_with_precompiler_product",
+  ]
+}
+
+libdart_library("libdart_with_precompiler") {
+  extra_configs = [
+    ":dart_maybe_product_config",
+    ":dart_precompiler_config",
+  ]
+  extra_deps = [
+    "platform:libdart_platform",
     "vm:libdart_lib_with_precompiler",
     "vm:libdart_vm_with_precompiler",
   ]
 }
 
+libdart_library("libdart_with_precompiler_product") {
+  extra_configs = [
+    ":dart_product_config",
+    ":dart_precompiler_config",
+  ]
+  extra_deps = [
+    "platform:libdart_platform_product",
+    "vm:libdart_lib_with_precompiler_product",
+    "vm:libdart_vm_with_precompiler_product",
+  ]
+}
+
 action("generate_version_cc_file") {
   deps = [
-    ":libdart_dependency_helper",
+    "third_party/double-conversion/src:libdouble_conversion",
+    "vm:libdart_lib_jit",
+    "vm:libdart_lib_nosnapshot_with_precompiler",
+    "vm:libdart_vm_jit",
+    "vm:libdart_vm_nosnapshot_with_precompiler",
   ]
   inputs = [
     "../tools/utils.py",
@@ -279,25 +314,5 @@ action("generate_version_cc_file") {
     rebase_path(output, root_build_dir),
     "--input",
     rebase_path("vm/version_in.cc", root_build_dir),
-  ]
-}
-
-executable("libdart_dependency_helper") {
-  configs += [
-    ":dart_config",
-    ":dart_maybe_product_config",
-  ]
-  if (is_fuchsia) {
-    configs -= [ "//build/config:symbol_visibility_hidden" ]
-  }
-  deps = [
-    "third_party/double-conversion/src:libdouble_conversion",
-    "vm:libdart_lib_jit",
-    "vm:libdart_lib_nosnapshot_with_precompiler",
-    "vm:libdart_vm_jit",
-    "vm:libdart_vm_nosnapshot_with_precompiler",
-  ]
-  sources = [
-    "vm/libdart_dependency_helper.cc",
   ]
 }

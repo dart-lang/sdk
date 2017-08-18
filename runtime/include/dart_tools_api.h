@@ -17,7 +17,6 @@
  * This reference is generated from the header include/dart_tools_api.h.
  */
 
-
 /*
   * ========
   * Debugger
@@ -41,13 +40,11 @@ typedef Dart_Port Dart_IsolateId;
  */
 #define ILLEGAL_ISOLATE_ID ILLEGAL_PORT
 
-
 /**
  * Null value for breakpoint id. Guaranteed never to be associated
  * with a valid breakpoint.
  */
 #define ILLEGAL_BREAKPOINT_ID 0
-
 
 typedef void Dart_ExceptionThrownHandler(Dart_IsolateId isolate_id,
                                          Dart_Handle exception_object,
@@ -59,7 +56,6 @@ typedef enum {
   kShutdown,
 } Dart_IsolateEvent;
 
-
 /**
  * Represents a location in Dart code.
  */
@@ -68,7 +64,6 @@ typedef struct {
   int32_t library_id;      // Library in which the script is loaded.
   int32_t token_pos;       // Code address.
 } Dart_CodeLocation;
-
 
 typedef void Dart_IsolateEventHandler(Dart_IsolateId isolate_id,
                                       Dart_IsolateEvent kind);
@@ -81,7 +76,6 @@ typedef void Dart_BreakpointResolvedHandler(Dart_IsolateId isolate_id,
                                             intptr_t bp_id,
                                             const Dart_CodeLocation& location);
 
-
 /**
  * Caches a given \object and returns an object id. The object id is only
  * valid while the VM is paused. The cache is invalidated when the VM
@@ -93,14 +87,12 @@ typedef void Dart_BreakpointResolvedHandler(Dart_IsolateId isolate_id,
  */
 DART_EXPORT intptr_t Dart_CacheObject(Dart_Handle object_in);
 
-
 /**
  * Returns a cached object given the \obj_id.
  *
  * Requires there to be a current isolate.
  */
 DART_EXPORT Dart_Handle Dart_GetCachedObject(intptr_t obj_id);
-
 
 /**
  * Returns a list of ids (integers) of all the libraries loaded in the
@@ -112,7 +104,6 @@ DART_EXPORT Dart_Handle Dart_GetCachedObject(intptr_t obj_id);
  */
 DART_EXPORT Dart_Handle Dart_GetLibraryIds();
 
-
 /**
  * Returns true if the debugger can step into code of the given library.
  *
@@ -122,7 +113,6 @@ DART_EXPORT Dart_Handle Dart_GetLibraryIds();
  */
 DART_EXPORT Dart_Handle Dart_GetLibraryDebuggable(intptr_t library_id,
                                                   bool* is_debuggable);
-
 
 /**
  * Requets that debugging be enabled for the given library.
@@ -134,7 +124,6 @@ DART_EXPORT Dart_Handle Dart_GetLibraryDebuggable(intptr_t library_id,
 DART_EXPORT Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id,
                                                   bool is_debuggable);
 
-
 /**
  * Returns a list of urls (strings) of all the scripts loaded in the
  * given library.
@@ -144,7 +133,6 @@ DART_EXPORT Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id,
  * \return A handle to a list of string handles.
  */
 DART_EXPORT Dart_Handle Dart_GetScriptURLs(Dart_Handle library_url);
-
 
 /**
  * Returns a string containing the source code of the given script
@@ -157,7 +145,6 @@ DART_EXPORT Dart_Handle Dart_GetScriptURLs(Dart_Handle library_url);
  */
 DART_EXPORT Dart_Handle Dart_ScriptGetSource(intptr_t library_id,
                                              Dart_Handle script_url_in);
-
 
 /**
  * Returns an array containing line number and token offset info
@@ -179,7 +166,6 @@ DART_EXPORT Dart_Handle Dart_ScriptGetSource(intptr_t library_id,
 DART_EXPORT Dart_Handle Dart_ScriptGetTokenInfo(intptr_t library_id,
                                                 Dart_Handle script_url_in);
 
-
 /**
  * Returns a string containing a generated source code of the given script
  * in the given library. This is essentially used to pretty print dart code
@@ -192,7 +178,6 @@ DART_EXPORT Dart_Handle Dart_ScriptGetTokenInfo(intptr_t library_id,
  */
 DART_EXPORT Dart_Handle Dart_GenerateScriptSource(Dart_Handle library_url_in,
                                                   Dart_Handle script_url_in);
-
 
 /**
  * Sets a breakpoint at line \line_number in \script_url, or the closest
@@ -215,7 +200,6 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(Dart_Handle script_url,
  */
 DART_EXPORT Dart_Handle Dart_RemoveBreakpoint(intptr_t bp_id);
 
-
 /**
  * Get the script URL of the breakpoint with the given id \pb_id.
  *
@@ -226,7 +210,6 @@ DART_EXPORT Dart_Handle Dart_RemoveBreakpoint(intptr_t bp_id);
  */
 DART_EXPORT Dart_Handle Dart_GetBreakpointURL(intptr_t bp_id);
 
-
 /**
  * Get the line number of the breakpoint with the given id \pb_id.
  *
@@ -236,7 +219,6 @@ DART_EXPORT Dart_Handle Dart_GetBreakpointURL(intptr_t bp_id);
  * or an error object.
  */
 DART_EXPORT Dart_Handle Dart_GetBreakpointLine(intptr_t bp_id);
-
 
 /**
  * Sets a one-time breakpoint at the entry of the given function.
@@ -252,7 +234,6 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(Dart_Handle library,
                                                   Dart_Handle class_name,
                                                   Dart_Handle function_name);
 
-
 /**
  * Sets a breakpoint at the entry of the given function. If class_name
  * is the empty string, looks for a library function with the given
@@ -266,7 +247,6 @@ DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(Dart_Handle library,
                                                  Dart_Handle class_name,
                                                  Dart_Handle function_name);
 
-
 /**
  * Can be called from the breakpoint handler. Sets the debugger to
  * single step mode.
@@ -274,7 +254,6 @@ DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(Dart_Handle library,
  * Requires there to be a current isolate.
  */
 DART_EXPORT Dart_Handle Dart_SetStepOver();
-
 
 /**
  * Can be called from the breakpoint handler. Causes the debugger to
@@ -284,7 +263,6 @@ DART_EXPORT Dart_Handle Dart_SetStepOver();
  */
 DART_EXPORT Dart_Handle Dart_SetStepInto();
 
-
 /**
  * Can be called from the breakpoint handler. Causes the debugger to
  * break after returning from the current Dart function.
@@ -293,7 +271,6 @@ DART_EXPORT Dart_Handle Dart_SetStepInto();
  */
 DART_EXPORT Dart_Handle Dart_SetStepOut();
 
-
 /**
  * Installs a handler callback function that gets called by the VM
  * when a breakpoint location has been reached or when stepping.
@@ -301,7 +278,6 @@ DART_EXPORT Dart_Handle Dart_SetStepOut();
  * Requires there to be a current isolate.
  */
 DART_EXPORT void Dart_SetPausedEventHandler(Dart_PausedEventHandler handler);
-
 
 /**
  * Installs a callback function that gets called by the VM when
@@ -346,7 +322,6 @@ typedef enum {
 DART_EXPORT Dart_Handle
 Dart_SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info);
 
-
 /**
  * Returns on which exceptions the debugger pauses.
  *
@@ -364,7 +339,6 @@ DART_EXPORT Dart_ExceptionPauseInfo Dart_GetExceptionPauseInfo();
  */
 DART_EXPORT Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace);
 
-
 /**
  * Returns in \trace the stack trace associated with the error given in \handle.
  *
@@ -374,7 +348,6 @@ DART_EXPORT Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace);
  */
 DART_EXPORT Dart_Handle Dart_GetStackTraceFromError(Dart_Handle error,
                                                     Dart_StackTrace* trace);
-
 
 /**
  * Returns in \length the number of activation frames in the given
@@ -387,7 +360,6 @@ DART_EXPORT Dart_Handle Dart_GetStackTraceFromError(Dart_Handle error,
 DART_EXPORT Dart_Handle Dart_StackTraceLength(Dart_StackTrace trace,
                                               intptr_t* length);
 
-
 /**
  * Returns in \frame the activation frame with index \frame_index.
  * The activation frame at the top of stack has index 0.
@@ -399,7 +371,6 @@ DART_EXPORT Dart_Handle Dart_StackTraceLength(Dart_StackTrace trace,
 DART_EXPORT Dart_Handle Dart_GetActivationFrame(Dart_StackTrace trace,
                                                 int frame_index,
                                                 Dart_ActivationFrame* frame);
-
 
 /**
  * Returns information about the given activation frame.
@@ -423,7 +394,6 @@ Dart_ActivationFrameInfo(Dart_ActivationFrame activation_frame,
                          Dart_Handle* script_url,
                          intptr_t* line_number,
                          intptr_t* column_number);
-
 
 /**
  * Returns code location of the given activation frame.
@@ -481,7 +451,6 @@ Dart_ActivationFrameGetFramePointer(Dart_ActivationFrame activation_frame,
 DART_EXPORT Dart_Handle
 Dart_GetLocalVariables(Dart_ActivationFrame activation_frame);
 
-
 /**
  * Returns origin class of a function.
  *
@@ -492,7 +461,6 @@ Dart_GetLocalVariables(Dart_ActivationFrame activation_frame);
  * at the top level. Returns an error object otherwise.
  */
 DART_EXPORT Dart_Handle Dart_GetFunctionOrigin(Dart_Handle function);
-
 
 /**
  * Returns an array containing all the global variable names and values of
@@ -506,7 +474,6 @@ DART_EXPORT Dart_Handle Dart_GetFunctionOrigin(Dart_Handle function);
  */
 DART_EXPORT Dart_Handle Dart_GetGlobalVariables(intptr_t library_id);
 
-
 /**
  * Execute the expression given in string \expr in the context
  * of stack frame \activation_frame.
@@ -514,7 +481,6 @@ DART_EXPORT Dart_Handle Dart_GetGlobalVariables(intptr_t library_id);
 DART_EXPORT Dart_Handle
 Dart_ActivationFrameEvaluate(Dart_ActivationFrame activation_frame,
                              Dart_Handle expr_in);
-
 
 /**
  * Execute the expression given in string \expr in the context
@@ -536,7 +502,6 @@ Dart_ActivationFrameEvaluate(Dart_ActivationFrame activation_frame,
  */
 DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target, Dart_Handle expr);
 
-
 /**
  * Returns the class of the given \object.
  *
@@ -545,7 +510,6 @@ DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target, Dart_Handle expr);
  * \return A handle to the class object.
  */
 DART_EXPORT Dart_Handle Dart_GetObjClass(Dart_Handle object);
-
 
 /**
  * Returns in \class_id the class id of the given \object. The id is valid
@@ -558,7 +522,6 @@ DART_EXPORT Dart_Handle Dart_GetObjClass(Dart_Handle object);
 DART_EXPORT Dart_Handle Dart_GetObjClassId(Dart_Handle object,
                                            intptr_t* class_id);
 
-
 /**
  * Returns the supertype of the given instantiated type \cls.
  *
@@ -568,7 +531,6 @@ DART_EXPORT Dart_Handle Dart_GetObjClassId(Dart_Handle object,
  */
 DART_EXPORT Dart_Handle Dart_GetSupertype(Dart_Handle type);
 
-
 /**
  * Returns handle to class with class id \class_id.
  *
@@ -577,7 +539,6 @@ DART_EXPORT Dart_Handle Dart_GetSupertype(Dart_Handle type);
  * \return A handle to the class if no error occurs.
  */
 DART_EXPORT Dart_Handle Dart_GetClassFromId(intptr_t class_id);
-
 
 /**
  * Returns info about the given class \cls_id.
@@ -601,7 +562,6 @@ DART_EXPORT Dart_Handle Dart_GetClassInfo(intptr_t class_id,
                                           intptr_t* super_class_id,
                                           Dart_Handle* static_fields);
 
-
 /** Returns info about the given closure \closure.
  *
  * \param name receives handle to closure name (string).
@@ -622,7 +582,6 @@ DART_EXPORT Dart_Handle Dart_GetClosureInfo(Dart_Handle closure,
                                             Dart_Handle* signature,
                                             Dart_CodeLocation* location);
 
-
 /**
  * Returns an array containing all instance field names and values of
  * the given \object.
@@ -636,7 +595,6 @@ DART_EXPORT Dart_Handle Dart_GetClosureInfo(Dart_Handle closure,
  * error object if an error was encountered evaluating the field.
  */
 DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object);
-
 
 /**
  * Returns an array containing all static field names and values of
@@ -652,7 +610,6 @@ DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object);
  */
 DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle target);
 
-
 /**
  * Returns a handle to the library \library_id.
  *
@@ -662,7 +619,6 @@ DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle target);
  */
 DART_EXPORT Dart_Handle Dart_GetLibraryFromId(intptr_t library_id);
 
-
 /**
  * Returns in \library_id the library id of the given \library.
  *
@@ -670,7 +626,6 @@ DART_EXPORT Dart_Handle Dart_GetLibraryFromId(intptr_t library_id);
  */
 DART_EXPORT Dart_Handle Dart_LibraryId(Dart_Handle library,
                                        intptr_t* library_id);
-
 
 /**
  * Returns an array containing all variable names and values of
@@ -685,7 +640,6 @@ DART_EXPORT Dart_Handle Dart_LibraryId(Dart_Handle library,
  * error object if an error was encountered evaluating the value.
  */
 DART_EXPORT Dart_Handle Dart_GetLibraryFields(intptr_t library_id);
-
 
 /**
  * Returns an array containing all imported libraries of
@@ -702,7 +656,6 @@ DART_EXPORT Dart_Handle Dart_GetLibraryFields(intptr_t library_id);
  */
 DART_EXPORT Dart_Handle Dart_GetLibraryImports(intptr_t library_id);
 
-
 /**
  * Returns the url of the library \library_id.
  *
@@ -712,7 +665,6 @@ DART_EXPORT Dart_Handle Dart_GetLibraryImports(intptr_t library_id);
  */
 DART_EXPORT Dart_Handle Dart_GetLibraryURL(intptr_t library_id);
 
-
 /**
  * Returns the isolate object corresponding to the isolate id.
  *
@@ -721,14 +673,12 @@ DART_EXPORT Dart_Handle Dart_GetLibraryURL(intptr_t library_id);
  */
 DART_EXPORT Dart_Isolate Dart_GetIsolate(Dart_IsolateId isolate_id);
 
-
 /**
  * Returns the isolate id for an isolate.
  *
  * \return The Dart_IsolateId value corresponding to the isolate.
  */
 DART_EXPORT Dart_IsolateId Dart_GetIsolateId(Dart_Isolate isolate);
-
 
 /*
  * =======
@@ -781,7 +731,6 @@ typedef bool (*Dart_ServiceRequestCallback)(const char* method,
                                             void* user_data,
                                             const char** json_object);
 
-
 /**
  * Register a Dart_ServiceRequestCallback to be called to handle
  * requests for the named rpc on a specific isolate. The callback will
@@ -798,7 +747,6 @@ DART_EXPORT void Dart_RegisterIsolateServiceRequestCallback(
     const char* method,
     Dart_ServiceRequestCallback callback,
     void* user_data);
-
 
 /**
  * Register a Dart_ServiceRequestCallback to be called to handle
@@ -817,6 +765,48 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
     Dart_ServiceRequestCallback callback,
     void* user_data);
 
+/**
+ * Embedder information which can be requested by the VM for internal or
+ * reporting purposes.
+ *
+ * The pointers in this structure are not going to be cached or freed by the VM.
+ */
+
+ #define DART_EMBEDDER_INFORMATION_CURRENT_VERSION (0x00000001)
+
+typedef struct {
+  int32_t version;
+  const char* name;  // [optional] The name of the embedder
+  int64_t current_rss;  // [optional] the current RSS of the embedder
+  int64_t max_rss;  // [optional] the maximum RSS of the embedder
+} Dart_EmbedderInformation;
+
+/**
+ * Callback provided by the embedder that is used by the vm to request
+ * information.
+ *
+ * \return Returns a pointer to a Dart_EmbedderInformation structure.
+ * The embedder keeps the ownership of the structure and any field in it.
+ * The embedder must ensure that the structure will remain valid until the
+ * next invokation of the callback.
+ */
+typedef void (*Dart_EmbedderInformationCallback)(
+    Dart_EmbedderInformation* info);
+
+/**
+ * Register a Dart_ServiceRequestCallback to be called to handle
+ * requests for the named rpc. The callback will be invoked without a
+ * current isolate.
+ *
+ * \param method The name of the command that this callback is responsible for.
+ * \param callback The callback to invoke.
+ * \param user_data The user data passed to the callback.
+ *
+ * NOTE: If multiple callbacks with the same name are registered, only
+ * the last callback registered will be remembered.
+ */
+DART_EXPORT void Dart_SetEmbedderInformationCallback(
+    Dart_EmbedderInformationCallback callback);
 
 /*
  * ========
@@ -952,7 +942,6 @@ DART_EXPORT int64_t Dart_TimelineGetMicros();
 /** Disable all timeline stream recording */
 #define DART_TIMELINE_STREAM_DISABLE 0
 
-
 /**
  * Start recording timeline events for the entire VM (including all isolates).
  *
@@ -961,7 +950,6 @@ DART_EXPORT int64_t Dart_TimelineGetMicros();
  * NOTE: Calling with 0 disables recording of all streams.
  */
 DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask);
-
 
 typedef enum {
   /** Indicates a new stream is being output */
@@ -1024,6 +1012,9 @@ typedef enum {
   Dart_Timeline_Event_Async_End,      // Phase = 'e'.
   Dart_Timeline_Event_Async_Instant,  // Phase = 'n'.
   Dart_Timeline_Event_Counter,        // Phase = 'C'.
+  Dart_Timeline_Event_Flow_Begin,     // Phase = 's'.
+  Dart_Timeline_Event_Flow_Step,      // Phase = 't'.
+  Dart_Timeline_Event_Flow_End,       // Phase = 'f'.
 } Dart_Timeline_Event_Type;
 
 /**

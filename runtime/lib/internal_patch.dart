@@ -34,7 +34,19 @@ class VMLibraryHooks {
   static var packageConfigUriFuture;
   static var resolvePackageUriFuture;
 
-  static var platformScript;
+  static var _computeScriptUri;
+  static var _cachedScript;
+  static set platformScript(var f) {
+    _computeScriptUri = f;
+    _cachedScript = null;
+  }
+
+  static get platformScript {
+    if (_cachedScript == null && _computeScriptUri != null) {
+      _cachedScript = _computeScriptUri();
+    }
+    return _cachedScript;
+  }
 }
 
 final bool is64Bit = _inquireIs64Bit();

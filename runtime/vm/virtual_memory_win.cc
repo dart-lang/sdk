@@ -16,13 +16,11 @@ namespace dart {
 
 uword VirtualMemory::page_size_ = 0;
 
-
 void VirtualMemory::InitOnce() {
   SYSTEM_INFO info;
   GetSystemInfo(&info);
   page_size_ = info.dwPageSize;
 }
-
 
 VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
   void* address = VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_NOACCESS);
@@ -33,7 +31,6 @@ VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
   return new VirtualMemory(region);
 }
 
-
 VirtualMemory::~VirtualMemory() {
   if (!vm_owns_region() || (reserved_size_ == 0)) {
     return;
@@ -43,7 +40,6 @@ VirtualMemory::~VirtualMemory() {
   }
 }
 
-
 bool VirtualMemory::FreeSubSegment(int32_t handle,
                                    void* address,
                                    intptr_t size) {
@@ -52,7 +48,6 @@ bool VirtualMemory::FreeSubSegment(int32_t handle,
   // virtual memory sub-segments.
   return false;
 }
-
 
 bool VirtualMemory::Commit(uword addr,
                            intptr_t size,
@@ -67,7 +62,6 @@ bool VirtualMemory::Commit(uword addr,
   }
   return true;
 }
-
 
 bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
   ASSERT(Thread::Current()->IsMutatorThread() ||

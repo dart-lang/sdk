@@ -22,18 +22,15 @@ TextBuffer::TextBuffer(intptr_t buf_size) {
   Clear();
 }
 
-
 TextBuffer::~TextBuffer() {
   free(buf_);
   buf_ = NULL;
 }
 
-
 void TextBuffer::Clear() {
   msg_len_ = 0;
   buf_[0] = '\0';
 }
-
 
 char* TextBuffer::Steal() {
   char* r = buf_;
@@ -43,7 +40,6 @@ char* TextBuffer::Steal() {
   return r;
 }
 
-
 void TextBuffer::AddChar(char ch) {
   EnsureCapacity(sizeof(ch));
   buf_[msg_len_] = ch;
@@ -51,14 +47,12 @@ void TextBuffer::AddChar(char ch) {
   buf_[msg_len_] = '\0';
 }
 
-
 void TextBuffer::AddRaw(const uint8_t* buffer, intptr_t buffer_length) {
   EnsureCapacity(buffer_length);
   memmove(&buf_[msg_len_], buffer, buffer_length);
   msg_len_ += buffer_length;
   buf_[msg_len_] = '\0';
 }
-
 
 intptr_t TextBuffer::Printf(const char* format, ...) {
   va_list args;
@@ -81,7 +75,6 @@ intptr_t TextBuffer::Printf(const char* format, ...) {
   buf_[msg_len_] = '\0';
   return len;
 }
-
 
 // Write a UTF-32 code unit so it can be read by a JSON parser in a string
 // literal. Use official encoding from JSON specification. http://json.org/
@@ -123,18 +116,15 @@ void TextBuffer::EscapeAndAddCodeUnit(uint32_t codeunit) {
   }
 }
 
-
 // Write an incomplete UTF-16 code unit so it can be read by a JSON parser in a
 // string literal.
 void TextBuffer::EscapeAndAddUTF16CodeUnit(uint16_t codeunit) {
   Printf("\\u%04X", codeunit);
 }
 
-
 void TextBuffer::AddString(const char* s) {
   Printf("%s", s);
 }
-
 
 void TextBuffer::AddEscapedString(const char* s) {
   intptr_t len = strlen(s);
@@ -142,7 +132,6 @@ void TextBuffer::AddEscapedString(const char* s) {
     EscapeAndAddCodeUnit(s[i]);
   }
 }
-
 
 void TextBuffer::EnsureCapacity(intptr_t len) {
   intptr_t remaining = buf_size_ - msg_len_;

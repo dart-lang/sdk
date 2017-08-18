@@ -2102,9 +2102,8 @@ part of lib.foo;
           "both '#{canonicalUri1}' and '#{canonicalUri2}'."),
 
       // This is used as an exception.
-      MessageKind.INVALID_SOURCE_FILE_LOCATION: const MessageTemplate(
-          MessageKind.INVALID_SOURCE_FILE_LOCATION,
-          '''
+      MessageKind.INVALID_SOURCE_FILE_LOCATION:
+          const MessageTemplate(MessageKind.INVALID_SOURCE_FILE_LOCATION, '''
 Invalid offset (#{offset}) in source map.
 File: #{fileName}
 Length: #{length}'''),
@@ -2404,8 +2403,8 @@ main() => A.A = 1;
           const MessageTemplate(
               MessageKind
                   .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
-              "Parameter '#{parameter}' in anonymous js-interop class '#{cls}' "
-              "object literal constructor is positional instead of named."
+              "Some parameters in anonymous js-interop class '#{cls}' "
+              "object literal constructor are positional instead of named."
               ".",
               howToFix: "Make all arguments in external factory object literal "
                   "constructors named.",
@@ -3207,9 +3206,8 @@ main() => new A();
           MessageKind.COMPILER_CRASHED,
           "The compiler crashed when compiling this element."),
 
-      MessageKind.PLEASE_REPORT_THE_CRASH: const MessageTemplate(
-          MessageKind.PLEASE_REPORT_THE_CRASH,
-          '''
+      MessageKind.PLEASE_REPORT_THE_CRASH:
+          const MessageTemplate(MessageKind.PLEASE_REPORT_THE_CRASH, '''
 The compiler is broken.
 
 When compiling the above element, the compiler crashed. It is not

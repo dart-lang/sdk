@@ -13,12 +13,12 @@
 
 analysis_server/tool/spec/check_all_test: Skip  # Issue 29133
 analyzer_plugin/tool/spec/check_all_test: Skip  # Issue 29133
-analyzer/tool/summary/check_test: Skip  # Issue 29133
 
 analyzer/test/generated/compile_time_error_code_driver_test: Slow, Pass
 analyzer/test/generated/non_error_resolver_driver_test: Slow, Pass
 analyzer/test/generated/static_warning_code_driver_test: Slow, Pass
 analyzer/test/generated/compile_time_error_code_test: Slow, Pass
+analyzer/test/src/summary/resynthesize_kernel_test: Slow, Pass
 
 # Analyzer2dart is not maintained anymore.
 analyzer2dart/test/*: Skip
@@ -38,9 +38,9 @@ front_end/test/fasta/sdk_test: SkipByDesign
 
 front_end/test/fasta/bootstrap_test: Pass, Slow
 front_end/test/fasta/compile_test: Pass, Slow
-front_end/test/fasta/kompile_test: Pass, Slow
 front_end/test/fasta/strong_test: Pass, Slow
 front_end/test/fasta/outline_test: Pass, Slow
+front_end/test/fasta/ast_builder_test: Pass, Slow
 
 # These are not tests but input for tests.
 kernel/testcases/*: Skip
@@ -48,8 +48,6 @@ kernel/testcases/*: Skip
 front_end/test/fasta/analyze_test: Pass, Slow
 
 kernel/test/closures_test: Slow, Pass
-
-front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 29819
 
 [ $compiler != dart2analyzer ]
 analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow
@@ -68,8 +66,9 @@ dev_compiler/test/*: Skip
 
 [ $compiler == dart2analyzer ]
 dev_compiler/test/options/*: SkipByDesign
+dev_compiler/test/codegen_test: MissingCompileTimeError # Issue 30245
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+[ $compiler == none && $runtime == drt ]
 mutation_observer: Skip # Issue 21149
 unittest/*: Skip # Issue 21949
 lookup_map/*: SkipByDesign
@@ -98,6 +97,8 @@ front_end/tool/perf_test: Skip # Issue 28698
 
 [ $runtime == vm && $use_sdk ]
 front_end/tool/fasta_perf_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
+front_end/test/kernel_generator_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
+front_end/test/summary_generator_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
 
 [ $runtime == vm && $system == windows]
 analysis_server/*: Skip # Issue 27557
@@ -123,6 +124,7 @@ collection/test/equality_test/none: Pass, Fail # Issue 14348
 compiler/tool/*: SkipByDesign # Only meant to run on vm
 front_end/tool/*: SkipByDesign # Only meant to run on vm
 lookup_map/test/version_check_test: SkipByDesign # Only meant to run in vm.
+telemetry/test/*: SkipByDesign # Only meant to run on vm
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 front_end/test/incremental_kernel_generator_test: SkipByDesign # Uses dart:io
 front_end/test/incremental_resolved_ast_generator_test: SkipByDesign # Uses dart:io
@@ -150,6 +152,10 @@ async/test/stream_zip_test: RuntimeError, OK # Issue 26103. Timers are not suppo
 lookup_map/test/lookup_map_test: RuntimeError, OK # Issue 26103. Timers are not supported.
 front_end/test/*: RuntimeError, OK, Pass # Issue 26103. Timers are not supported.
 kernel/test/*: RuntimeError, OK # Issue 26103. Timers are not supported.
+
+[ $compiler == dart2js && $runtime == d8 ]
+front_end/test/src/base/uri_resolver_test: SkipByDesign # Relies on access to file system
+
 
 [ $compiler == dart2js && $runtime == drt ]
 async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
@@ -214,10 +220,13 @@ analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
 kernel/test/closures_test: Fail
 
 [ $runtime == vm ]
-analyzer_cli/test/driver_test: Pass, Slow
+analyzer_cli/test/driver_test: Pass, Slow, Timeout
 
 [ $runtime == vm && $system == windows ]
 analyzer/test/src/task/strong/checker_test: Pass, Slow
 
 [ $browser ]
 testing/test/analyze_test: SkipByDesign
+
+[ $browser || $runtime == flutter ]
+status_file/*: SkipByDesign # Only meant to run on the standalone VM.

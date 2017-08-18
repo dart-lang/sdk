@@ -27,7 +27,6 @@ static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
   abort();
 }
 
-
 bool Platform::Initialize() {
   // Turn off the signal handler for SIGPIPE as it causes the process
   // to terminate on writing to a closed pipe. Without the signal
@@ -54,6 +53,10 @@ bool Platform::Initialize() {
     perror("sigaction() failed.");
     return false;
   }
+  if (sigaction(SIGBUS, &act, NULL) != 0) {
+    perror("sigaction() failed.");
+    return false;
+  }
   if (sigaction(SIGTRAP, &act, NULL) != 0) {
     perror("sigaction() failed.");
     return false;
@@ -61,26 +64,21 @@ bool Platform::Initialize() {
   return true;
 }
 
-
 int Platform::NumberOfProcessors() {
   return sysconf(_SC_NPROCESSORS_ONLN);
 }
-
 
 const char* Platform::OperatingSystem() {
   return "linux";
 }
 
-
 const char* Platform::LibraryPrefix() {
   return "lib";
 }
 
-
 const char* Platform::LibraryExtension() {
   return "so";
 }
-
 
 const char* Platform::LocaleName() {
   char* lang = getenv("LANG");
@@ -90,11 +88,9 @@ const char* Platform::LocaleName() {
   return lang;
 }
 
-
 bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
   return gethostname(buffer, buffer_length) == 0;
 }
-
 
 char** Platform::Environment(intptr_t* count) {
   // Using environ directly is only safe as long as we do not
@@ -113,16 +109,13 @@ char** Platform::Environment(intptr_t* count) {
   return result;
 }
 
-
 const char* Platform::GetExecutableName() {
   return executable_name_;
 }
 
-
 const char* Platform::ResolveExecutablePath() {
   return File::LinkTarget("/proc/self/exe");
 }
-
 
 void Platform::Exit(int exit_code) {
   exit(exit_code);

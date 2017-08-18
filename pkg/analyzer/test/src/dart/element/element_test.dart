@@ -53,9 +53,7 @@ class ClassElementImplTest extends EngineTestCase {
   void test_computeNode_ClassDeclaration() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 class A {}
 @deprecated class B {}
 enum C {C1, C2, C3}
@@ -108,9 +106,7 @@ enum C {C1, C2, C3}
   void test_computeNode_ClassTypeAlias() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 abstract class A<K, V> = Object with MapMixin<K, V>;
 ''');
     // prepare CompilationUnitElement
@@ -174,7 +170,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     List<InterfaceType> supers = classC.allSupertypes;
     List<InterfaceType> types = new List<InterfaceType>();
     types.addAll(supers);
-    expect(types.contains(typeA), isFalse);
+    expect(types.contains(typeA), isTrue);
     expect(types.contains(typeB), isTrue);
     expect(types.contains(typeObject), isTrue);
     expect(types.contains(typeC), isFalse);
@@ -964,96 +960,6 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
 
 @reflectiveTest
 class CompilationUnitElementImplTest extends EngineTestCase {
-  void test_getElementAt() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    String code = r'''
-class A {
-  int field;
-}
-main() {
-  int localVar = 42;
-}
-''';
-    Source libSource = contextHelper.addSource("/my_lib.dart", code);
-    // prepare library/unit elements
-    LibraryElement libraryElement = context.computeLibraryElement(libSource);
-    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-    // A
-    ClassElement elementA;
-    {
-      int offset = code.indexOf('A {');
-      elementA = unitElement.getElementAt(offset);
-      expect(elementA, isNotNull);
-      expect(elementA.enclosingElement, unitElement);
-      expect(elementA.name, 'A');
-    }
-    // A.field
-    {
-      int offset = code.indexOf('field;');
-      FieldElement element = unitElement.getElementAt(offset);
-      expect(element, isNotNull);
-      expect(element.enclosingElement, elementA);
-      expect(element.name, 'field');
-    }
-    // main
-    FunctionElement mainElement;
-    {
-      int offset = code.indexOf('main() {');
-      mainElement = unitElement.getElementAt(offset);
-      expect(mainElement, isNotNull);
-      expect(mainElement.enclosingElement, unitElement);
-      expect(mainElement.name, 'main');
-    }
-    // main.localVar
-    {
-      int offset = code.indexOf('localVar');
-      LocalVariableElement element = unitElement.getElementAt(offset);
-      expect(element, isNotNull);
-      expect(element.enclosingElement, mainElement);
-      expect(element.name, 'localVar');
-    }
-    // null
-    expect(unitElement.getElementAt(1000), isNull);
-  }
-
-  void test_getElementAt_multipleUnitsInLibrary() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source libSource = contextHelper.addSource(
-        "/my_lib.dart",
-        r'''
-library my_lib;
-part 'unit_a.dart';
-part 'unit_b.dart';
-''');
-    Source unitSourceA =
-        contextHelper.addSource("/unit_a.dart", 'part of my_lib;class A {}');
-    Source unitSourceB =
-        contextHelper.addSource("/unit_b.dart", 'part of my_lib;class B {}');
-    int offset = 'part of my_lib;class A {}'.indexOf('A {}');
-    // prepare library/unit elements
-    context.computeLibraryElement(libSource);
-    CompilationUnitElement unitElementA =
-        context.getCompilationUnitElement(unitSourceA, libSource);
-    CompilationUnitElement unitElementB =
-        context.getCompilationUnitElement(unitSourceB, libSource);
-    // A
-    {
-      ClassElement element = unitElementA.getElementAt(offset);
-      expect(element, isNotNull);
-      expect(element.enclosingElement, unitElementA);
-      expect(element.name, 'A');
-    }
-    // B
-    {
-      ClassElement element = unitElementB.getElementAt(offset);
-      expect(element, isNotNull);
-      expect(element.enclosingElement, unitElementB);
-      expect(element.name, 'B');
-    }
-  }
-
   void test_getEnum_declared() {
     TestTypeProvider typeProvider = new TestTypeProvider();
     CompilationUnitElementImpl unit =
@@ -1098,9 +1004,7 @@ part 'unit_b.dart';
 @reflectiveTest
 class ElementAnnotationImplTest extends ResolverTestCase {
   void test_computeConstantValue() {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 class A {
   final String f;
   const A(this.f);
@@ -1296,9 +1200,7 @@ class FieldElementImplTest extends EngineTestCase {
   void test_computeNode() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 class A {
   int a;
 }
@@ -1327,9 +1229,7 @@ enum B {B1, B2, B3}''');
   void test_isEnumConstant() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 enum B {B1, B2, B3}
 ''');
     // prepare CompilationUnitElement
@@ -3926,52 +3826,14 @@ class LibraryElementImplTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class LocalVariableElementImplTest extends EngineTestCase {
-  void test_computeNode_declaredIdentifier() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
-main() {
-  for (int v in <int>[1, 2, 3]) {}
-}''');
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    FunctionElement mainElement = libraryElement.units[0].functions[0];
-    LocalVariableElement element = mainElement.localVariables[0];
-    DeclaredIdentifier node = element.computeNode() as DeclaredIdentifier;
-    expect(node, isNotNull);
-    expect(node.identifier.name, 'v');
-    expect(node.element, same(element));
-  }
-
-  void test_computeNode_variableDeclaration() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
-main() {
-  int v = 0;
-}''');
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    FunctionElement mainElement = libraryElement.units[0].functions[0];
-    LocalVariableElement element = mainElement.localVariables[0];
-    VariableDeclaration node = element.computeNode() as VariableDeclaration;
-    expect(node, isNotNull);
-    expect(node.name.name, 'v');
-    expect(node.element, same(element));
-  }
-}
+class LocalVariableElementImplTest extends EngineTestCase {}
 
 @reflectiveTest
 class MethodElementImplTest extends EngineTestCase {
   void test_computeNode() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 abstract class A {
   String m1() => null;
   m2();
@@ -4003,9 +3865,7 @@ abstract class A {
     options.analyzeFunctionBodies = false;
     AnalysisContextHelper contextHelper = new AnalysisContextHelper(options);
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 abstract class A {
   String m1() => null;
   m2();
@@ -4051,9 +3911,7 @@ class MethodMemberTest extends EngineTestCase {
     options.analyzeFunctionBodies = false;
     AnalysisContextHelper contextHelper = new AnalysisContextHelper(options);
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 class A<T> {
   T f(T x) => x;
 }
@@ -4143,9 +4001,7 @@ class ParameterElementImplTest extends EngineTestCase {
   void test_computeNode_DefaultFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 main([int p = 42]) {
 }''');
     // prepare CompilationUnitElement
@@ -4164,9 +4020,7 @@ main([int p = 42]) {
   void test_computeNode_FieldFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 class A {
   int p;
   A(this.p) {
@@ -4190,9 +4044,7 @@ class A {
   void test_computeNode_FunctionTypedFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 main(p(int a, int b)) {
 }''');
     // prepare CompilationUnitElement
@@ -4211,9 +4063,7 @@ main(p(int a, int b)) {
   void test_computeNode_SimpleFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 main(int p) {
 }''');
     // prepare CompilationUnitElement
@@ -4278,9 +4128,7 @@ class TestElementResynthesizer extends ElementResynthesizer {
 @reflectiveTest
 class TopLevelVariableElementImplTest extends ResolverTestCase {
   void test_computeConstantValue() {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 const int C = 42;
 ''');
     Source source = addSource(r'''

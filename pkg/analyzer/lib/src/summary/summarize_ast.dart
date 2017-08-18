@@ -235,12 +235,6 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       <UnlinkedExportNonPublicBuilder>[];
 
   /**
-   * List of objects which should be written to
-   * [UnlinkedExecutable.localLabels].
-   */
-  List<UnlinkedLabelBuilder> labels = <UnlinkedLabelBuilder>[];
-
-  /**
    * List of objects which should be written to [UnlinkedUnit.parts].
    */
   final List<UnlinkedPartBuilder> parts = <UnlinkedPartBuilder>[];
@@ -251,8 +245,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   final List<UnlinkedTypedefBuilder> typedefs = <UnlinkedTypedefBuilder>[];
 
   /**
-   * List of objects which should be written to [UnlinkedUnit.variables],
-   * [UnlinkedClass.fields] or [UnlinkedExecutable.localVariables].
+   * List of objects which should be written to [UnlinkedUnit.variables] or
+   * [UnlinkedClass.fields].
    */
   List<UnlinkedVariableBuilder> variables = <UnlinkedVariableBuilder>[];
 
@@ -559,36 +553,6 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   }
 
   /**
-   * Serialize the given [declaredIdentifier] into [UnlinkedVariable], and
-   * store it in [variables].
-   */
-  void serializeDeclaredIdentifier(
-      AstNode scopeNode,
-      Comment documentationComment,
-      NodeList<Annotation> annotations,
-      bool isFinal,
-      bool isConst,
-      TypeAnnotation type,
-      bool assignPropagatedTypeSlot,
-      SimpleIdentifier declaredIdentifier) {
-    UnlinkedVariableBuilder b = new UnlinkedVariableBuilder();
-    b.isFinal = isFinal;
-    b.isConst = isConst;
-    b.name = declaredIdentifier.name;
-    b.nameOffset = declaredIdentifier.offset;
-    b.type = serializeTypeName(type);
-    b.documentationComment = serializeDocumentation(documentationComment);
-    b.annotations = serializeAnnotations(annotations);
-    b.codeRange = serializeCodeRange(declaredIdentifier);
-    if (assignPropagatedTypeSlot) {
-      b.propagatedTypeSlot = assignSlot();
-    }
-    b.visibleOffset = scopeNode?.offset;
-    b.visibleLength = scopeNode?.length;
-    this.variables.add(b);
-  }
-
-  /**
    * Serialize a [Comment] node into an [UnlinkedDocumentationComment] object.
    */
   UnlinkedDocumentationCommentBuilder serializeDocumentation(
@@ -733,13 +697,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
     }
     List<UnlinkedExecutableBuilder> oldExecutables = executables;
-    List<UnlinkedLabelBuilder> oldLabels = labels;
-    List<UnlinkedVariableBuilder> oldVariables = variables;
     Map<int, int> oldLocalClosureIndexMap = _localClosureIndexMap;
     bool oldSerializeClosureBodyExprs = _serializeClosureBodyExprs;
     executables = <UnlinkedExecutableBuilder>[];
-    labels = <UnlinkedLabelBuilder>[];
-    variables = <UnlinkedVariableBuilder>[];
     _localClosureIndexMap = <int, int>{};
     _serializeClosureBodyExprs = serializeBodyExpr;
     if (initializers != null) {
@@ -762,12 +722,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
     }
     b.localFunctions = executables;
-    b.localLabels = labels;
-    b.localVariables = variables;
     Map<int, int> localClosureIndexMap = _localClosureIndexMap;
     executables = oldExecutables;
-    labels = oldLabels;
-    variables = oldVariables;
     _localClosureIndexMap = oldLocalClosureIndexMap;
     _serializeClosureBodyExprs = oldSerializeClosureBodyExprs;
     return localClosureIndexMap;
@@ -1002,7 +958,6 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * in [this.variables].
    */
   void serializeVariables(
-      AstNode scopeNode,
       VariableDeclarationList variables,
       bool isDeclaredStatic,
       Comment documentationComment,
@@ -1040,8 +995,6 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
           (variable.initializer != null || !isSemanticallyStatic)) {
         b.inferredTypeSlot = assignSlot();
       }
-      b.visibleOffset = scopeNode?.offset;
-      b.visibleLength = scopeNode?.length;
       this.variables.add(b);
     }
   }
@@ -1052,21 +1005,6 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     enclosingBlock = node;
     super.visitBlock(node);
     enclosingBlock = oldBlock;
-  }
-
-  @override
-  void visitCatchClause(CatchClause node) {
-    SimpleIdentifier exception = node.exceptionParameter;
-    SimpleIdentifier st = node.stackTraceParameter;
-    if (exception != null) {
-      serializeDeclaredIdentifier(
-          node, null, null, false, false, node.exceptionType, false, exception);
-    }
-    if (st != null) {
-      serializeDeclaredIdentifier(
-          node, null, null, false, false, null, false, st);
-    }
-    super.visitCatchClause(node);
   }
 
   @override
@@ -1207,7 +1145,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    serializeVariables(null, node.fields, node.staticKeyword != null,
+    serializeVariables(node.fields, node.staticKeyword != null,
         node.documentationComment, node.metadata, true);
   }
 
@@ -1224,32 +1162,6 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
     }
     return b;
-  }
-
-  @override
-  void visitForEachStatement(ForEachStatement node) {
-    DeclaredIdentifier loopVariable = node.loopVariable;
-    if (loopVariable != null) {
-      serializeDeclaredIdentifier(
-          node,
-          loopVariable.documentationComment,
-          loopVariable.metadata,
-          loopVariable.isFinal,
-          loopVariable.isConst,
-          loopVariable.type,
-          true,
-          loopVariable.identifier);
-    }
-    super.visitForEachStatement(node);
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
-    VariableDeclarationList declaredVariables = node.variables;
-    if (declaredVariables != null) {
-      serializeVariables(node, declaredVariables, false, null, null, false);
-    }
-    super.visitForStatement(node);
   }
 
   @override
@@ -1382,19 +1294,6 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  void visitLabel(Label node) {
-    AstNode parent = node.parent;
-    if (parent is! NamedExpression) {
-      labels.add(new UnlinkedLabelBuilder(
-          name: node.label.name,
-          nameOffset: node.offset,
-          isOnSwitchMember: parent is SwitchMember,
-          isOnSwitchStatement: parent is LabeledStatement &&
-              parent.statement is SwitchStatement));
-    }
-  }
-
-  @override
   void visitLibraryDirective(LibraryDirective node) {
     libraryName =
         node.name.components.map((SimpleIdentifier id) => id.name).join('.');
@@ -1437,7 +1336,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    isCoreLibrary = node.libraryName?.name == 'dart.core';
+    isCoreLibrary = node.libraryName?.name == 'dart.core' ||
+        node.uri?.stringValue == 'core.dart';
     isPartOf = true;
   }
 
@@ -1450,8 +1350,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    serializeVariables(null, node.variables, false, node.documentationComment,
-        node.metadata, false);
+    serializeVariables(
+        node.variables, false, node.documentationComment, node.metadata, false);
   }
 
   @override
@@ -1469,8 +1369,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    serializeVariables(
-        enclosingBlock, node.variables, false, null, null, false);
+    // TODO(scheglov) Remove when we stop serializing local functions.
   }
 
   /**

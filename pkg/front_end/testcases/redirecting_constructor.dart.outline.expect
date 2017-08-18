@@ -10,7 +10,7 @@ class A extends core::Object {
     let dynamic #redirecting_factory = self::B::• in invalid-expression;
 }
 class B extends self::A {
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 static method main() → dynamic

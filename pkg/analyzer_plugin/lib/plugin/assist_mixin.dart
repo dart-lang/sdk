@@ -23,32 +23,23 @@ import 'package:analyzer_plugin/utilities/generator.dart';
 abstract class AssistsMixin implements ServerPlugin {
   /**
    * Return a list containing the assist contributors that should be used to
-   * create assists when used in the context of the given analysis [driver].
+   * create assists for the file with the given [path].
    */
-  List<AssistContributor> getAssistContributors(
-      covariant AnalysisDriverGeneric driver);
+  List<AssistContributor> getAssistContributors(String path);
 
   /**
    * Return the assist request that should be passes to the contributors
    * returned from [getAssistContributors].
    */
-  Future<AssistRequest> getAssistRequest(
-      EditGetAssistsParams parameters, covariant AnalysisDriverGeneric driver);
+  Future<AssistRequest> getAssistRequest(EditGetAssistsParams parameters);
 
   @override
   Future<EditGetAssistsResult> handleEditGetAssists(
       EditGetAssistsParams parameters) async {
     String path = parameters.file;
-    ContextRoot contextRoot = contextRootContaining(path);
-    if (contextRoot == null) {
-      // Return an error from the request.
-      throw new RequestFailure(
-          RequestErrorFactory.pluginError('Failed to analyze $path', null));
-    }
-    AnalysisDriverGeneric driver = driverMap[contextRoot];
-    AssistRequest request = await getAssistRequest(parameters, driver);
+    AssistRequest request = await getAssistRequest(parameters);
     AssistGenerator generator =
-        new AssistGenerator(getAssistContributors(driver));
+        new AssistGenerator(getAssistContributors(path));
     GeneratorResult result = await generator.generateAssistsResponse(request);
     result.sendNotifications(channel);
     return result.result;
@@ -67,8 +58,15 @@ abstract class AssistsMixin implements ServerPlugin {
 abstract class DartAssistsMixin implements AssistsMixin {
   @override
   Future<AssistRequest> getAssistRequest(
-      EditGetAssistsParams parameters, covariant AnalysisDriver driver) async {
-    ResolveResult result = await driver.getResult(parameters.file);
+      EditGetAssistsParams parameters) async {
+    String path = parameters.file;
+    AnalysisDriver driver = driverForPath(path);
+    if (driver == null) {
+      // Return an error from the request.
+      throw new RequestFailure(
+          RequestErrorFactory.pluginError('Failed to analyze $path', null));
+    }
+    ResolveResult result = await driver.getResult(path);
     return new DartAssistRequestImpl(
         resourceProvider, parameters.offset, parameters.length, result);
   }

@@ -15,7 +15,7 @@ import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/testing/hybrid_file_system.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
@@ -41,6 +41,7 @@ main() {
     compiler = await createIncrementalCompiler(
         'file:///a.dart', new HybridFileSystem(fs));
     await rebuild(compiler, outputUri); // this is a full compile.
+    compiler.acceptLastDelta();
   });
 
   tearDown(() async {
@@ -48,12 +49,27 @@ main() {
     lines = null;
   });
 
+  Future<int> computeVmPort() async {
+    var portLine = await lines[0];
+    expect(observatoryPortRegExp.hasMatch(portLine), isTrue);
+    var match = observatoryPortRegExp.firstMatch(portLine);
+    return int.parse(match.group(1));
+  }
+
+  /// Request vm to resume execution
+  Future resume() async {
+    var port = await computeVmPort();
+    var remoteVm = new RemoteVm(port);
+    await remoteVm.resume();
+  }
+
   /// Start the VM with the first version of the program compiled by the
   /// incremental compiler.
   startProgram(int reloadCount) async {
     var vmArgs = [
       '--enable-vm-service=0', // Note: use 0 to avoid port collisions.
-      '--platform=${platformFile.toFilePath()}',
+      '--pause_isolates_on_start',
+      '--kernel-binaries=${sdkRoot.toFilePath()}',
       outputUri.toFilePath()
     ];
     vmArgs.add('$reloadCount');
@@ -81,24 +97,23 @@ main() {
     });
 
     programIsDone = vm.exitCode;
+    await resume();
   }
 
   /// Request a hot reload on the running program.
   Future hotReload() async {
-    var portLine = await lines[0];
-    expect(observatoryPortRegExp.hasMatch(portLine), isTrue);
-    var match = observatoryPortRegExp.firstMatch(portLine);
-    var port = int.parse(match.group(1));
-    var reloader = new VmReloader(port);
-    var reloadResult = await reloader.reload(outputUri);
+    var port = await computeVmPort();
+    var remoteVm = new RemoteVm(port);
+    var reloadResult = await remoteVm.reload(outputUri);
     expect(reloadResult['success'], isTrue);
-    await reloader.disconnect();
+    compiler.acceptLastDelta();
+    await remoteVm.disconnect();
   }
 
   test('initial program is valid', () async {
     await startProgram(0);
     await programIsDone;
-    expect(await lines.skip(1).first, "part1 part2");
+    expect(await lines[1], "part1 part2");
   });
 
   test('reload after leaf library modification', () async {
@@ -121,7 +136,7 @@ main() {
     await hotReload();
     await programIsDone;
     expect(await lines[2], "part1 part4");
-  }, skip: true /* VM crashes on reload */);
+  });
 
   test('reload after whole program modification', () async {
     await startProgram(1);
@@ -156,29 +171,18 @@ main() {
 
 var dartVm = Uri.base.resolve(Platform.resolvedExecutable);
 var sdkRoot = dartVm.resolve("patched_sdk/");
-var platformFile = sdkRoot.resolve('platform.dill');
 
 Future<IncrementalKernelGenerator> createIncrementalCompiler(
     String entry, FileSystem fs) {
   var entryUri = Uri.base.resolve(entry);
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
-    ..sdkSummary = sdkRoot.resolve('outline.dill')
     ..packagesFileUri = Uri.parse('file:///.packages')
     ..strongMode = false
-    ..dartLibraries = loadDartLibraries()
+    ..compileSdk = true // the incremental generator requires the sdk sources
     ..fileSystem = fs
     ..byteStore = new MemoryByteStore();
   return IncrementalKernelGenerator.newInstance(options, entryUri);
-}
-
-Map<String, Uri> loadDartLibraries() {
-  var libraries = sdkRoot.resolve('lib/libraries.json');
-  var map =
-      JSON.decode(new File.fromUri(libraries).readAsStringSync())['libraries'];
-  var dartLibraries = <String, Uri>{};
-  map.forEach((k, v) => dartLibraries[k] = libraries.resolve(v));
-  return dartLibraries;
 }
 
 Future<bool> rebuild(IncrementalKernelGenerator compiler, Uri outputUri) async {
@@ -197,7 +201,7 @@ Future<Null> writeProgram(Program program, Uri outputUri) async {
   // TODO(sigmund): the incremental generator should always filter these
   // libraries instead.
   new LimitedBinaryPrinter(
-          sink, (library) => library.importUri.scheme != 'dart')
+          sink, (library) => library.importUri.scheme != 'dart', false)
       .writeProgramFile(program);
   await sink.close();
 }

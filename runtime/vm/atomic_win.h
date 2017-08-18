@@ -29,7 +29,6 @@ inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
 #endif
 }
 
-
 inline intptr_t AtomicOperations::FetchAndIncrement(intptr_t* p) {
 #if defined(HOST_ARCH_X64)
   return static_cast<intptr_t>(
@@ -44,7 +43,6 @@ inline intptr_t AtomicOperations::FetchAndIncrement(intptr_t* p) {
 #endif
 }
 
-
 inline void AtomicOperations::IncrementBy(intptr_t* p, intptr_t value) {
 #if defined(HOST_ARCH_X64)
   InterlockedExchangeAdd64(reinterpret_cast<LONGLONG*>(p),
@@ -56,7 +54,6 @@ inline void AtomicOperations::IncrementBy(intptr_t* p, intptr_t value) {
 #endif
 }
 
-
 inline void AtomicOperations::IncrementInt64By(int64_t* p, int64_t value) {
 #if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
   InterlockedExchangeAdd64(reinterpret_cast<LONGLONG*>(p),
@@ -65,7 +62,6 @@ inline void AtomicOperations::IncrementInt64By(int64_t* p, int64_t value) {
 #error Unsupported host architecture.
 #endif
 }
-
 
 inline uintptr_t AtomicOperations::FetchAndDecrement(uintptr_t* p) {
 #if defined(HOST_ARCH_X64)
@@ -81,7 +77,6 @@ inline uintptr_t AtomicOperations::FetchAndDecrement(uintptr_t* p) {
 #endif
 }
 
-
 inline intptr_t AtomicOperations::FetchAndDecrement(intptr_t* p) {
 #if defined(HOST_ARCH_X64)
   return static_cast<intptr_t>(
@@ -96,7 +91,6 @@ inline intptr_t AtomicOperations::FetchAndDecrement(intptr_t* p) {
 #endif
 }
 
-
 inline void AtomicOperations::DecrementBy(intptr_t* p, intptr_t value) {
 #if defined(HOST_ARCH_X64)
   InterlockedExchangeAdd64(reinterpret_cast<LONGLONG*>(p),
@@ -108,8 +102,6 @@ inline void AtomicOperations::DecrementBy(intptr_t* p, intptr_t value) {
 #endif
 }
 
-
-#if !defined(USING_SIMULATOR)
 inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
                                                   uword old_value,
                                                   uword new_value) {
@@ -136,7 +128,6 @@ inline uint32_t AtomicOperations::CompareAndSwapUint32(uint32_t* ptr,
 #error Unsupported host architecture.
 #endif
 }
-#endif  // !defined(USING_SIMULATOR)
 
 }  // namespace dart
 

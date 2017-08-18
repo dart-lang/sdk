@@ -27,8 +27,8 @@ Future runTest() {
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var closedWorld = typesInferrer.closedWorld;
     var commonMasks = closedWorld.commonMasks;
-    var element = findElement(compiler, "foo");
-    var mask = typesInferrer.getReturnTypeOfElement(element);
+    MemberElement element = findElement(compiler, "foo");
+    var mask = typesInferrer.getReturnTypeOfMember(element);
     Expect.equals(commonMasks.uint31Type, simplify(mask, closedWorld));
   });
 }

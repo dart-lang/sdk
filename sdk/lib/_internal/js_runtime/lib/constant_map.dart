@@ -26,9 +26,9 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
       int length = 0;
       for (var k in keys) {
         var v = other[k];
-        if (k != "__proto__") {
+        if (k != '__proto__') {
           if (!jsHasOwnProperty(object, k)) length++;
-          JS("void", "#[#] = #", object, k, v);
+          JS('void', '#[#] = #', object, k, v);
         } else {
           containsProto = true;
           protoValue = v;
@@ -53,7 +53,7 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
   String toString() => Maps.mapToString(this);
 
   static _throwUnmodifiable() {
-    throw new UnsupportedError("Cannot modify unmodifiable Map");
+    throw new UnsupportedError('Cannot modify unmodifiable Map');
   }
 
   void operator []=(K key, V val) => _throwUnmodifiable();

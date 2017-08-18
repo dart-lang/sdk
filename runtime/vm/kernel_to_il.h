@@ -51,7 +51,6 @@ class KernelConstMapKeyEqualsTraits {
 };
 typedef UnorderedHashMap<KernelConstMapKeyEqualsTraits> KernelConstantsMap;
 
-
 template <typename K, typename V>
 class Map : public DirectChainedHashMap<RawPointerKeyValueTrait<K, V> > {
  public:
@@ -78,7 +77,6 @@ class Map : public DirectChainedHashMap<RawPointerKeyValueTrait<K, V> > {
     return DirectChainedHashMap<RawPointerKeyValueTrait<K, V> >::Lookup(key);
   }
 };
-
 
 template <typename V>
 class IntKeyRawPointerValueTrait {
@@ -156,7 +154,6 @@ class MallocMap
   }
 };
 
-
 class BreakableBlock;
 class CatchBlock;
 class FlowGraphBuilder;
@@ -191,52 +188,47 @@ Fragment operator<<(const Fragment& fragment, Instruction* next);
 
 typedef ZoneGrowableArray<PushArgumentInstr*>* ArgumentArray;
 
-
 class ActiveClass {
  public:
-  ActiveClass()
-      : kernel_class(NULL),
-        class_type_parameters(0),
-        class_type_parameters_offset_start(-1),
-        klass(NULL),
-        member(NULL),
-        member_is_procedure(false),
-        member_is_factory_procedure(false),
-        member_type_parameters(0),
-        member_type_parameters_offset_start(-1) {}
+  ActiveClass() : klass(NULL), member(NULL) {}
 
-  // The current enclosing kernel class (if available, otherwise NULL).
-  Class* kernel_class;
-  intptr_t class_type_parameters;
-  intptr_t class_type_parameters_offset_start;
+  bool HasMember() { return member != NULL; }
 
-  // The current enclosing class (or the library top-level class).  When this is
-  // a library's top-level class, the kernel_class will be NULL.
-  const dart::Class* klass;
+  bool MemberIsProcedure() {
+    ASSERT(member != NULL);
+    RawFunction::Kind function_kind = member->kind();
+    return function_kind == RawFunction::kRegularFunction ||
+           function_kind == RawFunction::kGetterFunction ||
+           function_kind == RawFunction::kSetterFunction ||
+           function_kind == RawFunction::kMethodExtractor ||
+           member->IsFactory();
+  }
 
-  // The enclosing member (e.g., Constructor, Procedure, or Field) if there
-  // is one.
-  Member* member;
-  bool member_is_procedure;
-  bool member_is_factory_procedure;
-  intptr_t member_type_parameters;
-  intptr_t member_type_parameters_offset_start;
+  bool MemberIsFactoryProcedure() {
+    ASSERT(member != NULL);
+    return member->IsFactory();
+  }
+
+  intptr_t MemberTypeParameterCount(Zone* zone);
+
+  intptr_t ClassTypeParameterCount(Zone* zone) {
+    ASSERT(member != NULL);
+    TypeArguments& class_types =
+        TypeArguments::Handle(zone, klass->type_parameters());
+    return class_types.Length();
+  }
+
+  // The current enclosing class (or the library top-level class).
+  const Class* klass;
+
+  const Function* member;
 };
-
 
 class ActiveClassScope {
  public:
-  ActiveClassScope(ActiveClass* active_class,
-                   intptr_t class_type_parameters,
-                   intptr_t class_type_parameters_offset_start,
-                   const dart::Class* klass)
+  ActiveClassScope(ActiveClass* active_class, const Class* klass)
       : active_class_(active_class), saved_(*active_class) {
-    active_class_->kernel_class = NULL;
-    active_class_->class_type_parameters = class_type_parameters;
-    active_class_->class_type_parameters_offset_start =
-        class_type_parameters_offset_start;
     active_class_->klass = klass;
-    active_class_->member = NULL;
   }
 
   ~ActiveClassScope() { *active_class_ = saved_; }
@@ -246,22 +238,12 @@ class ActiveClassScope {
   ActiveClass saved_;
 };
 
-
 class ActiveMemberScope {
  public:
-  ActiveMemberScope(ActiveClass* active_class,
-                    bool member_is_procedure,
-                    bool member_is_factory_procedure,
-                    intptr_t member_type_parameters,
-                    intptr_t member_type_parameters_offset_start)
+  ActiveMemberScope(ActiveClass* active_class, const Function* member)
       : active_class_(active_class), saved_(*active_class) {
-    // The class and kernel_class is inherited.
-    active_class_->member = NULL;
-    active_class_->member_is_procedure = member_is_procedure;
-    active_class_->member_is_factory_procedure = member_is_factory_procedure;
-    active_class_->member_type_parameters = member_type_parameters;
-    active_class_->member_type_parameters_offset_start =
-        member_type_parameters_offset_start;
+    // The class is inherited.
+    active_class_->member = member;
   }
 
   ~ActiveMemberScope() { *active_class_ = saved_; }
@@ -271,10 +253,15 @@ class ActiveMemberScope {
   ActiveClass saved_;
 };
 
-
 class TranslationHelper {
  public:
-  explicit TranslationHelper(dart::Thread* thread);
+  explicit TranslationHelper(Thread* thread);
+
+  TranslationHelper(Thread* thread,
+                    RawTypedData* string_offsets,
+                    RawTypedData* string_data,
+                    RawTypedData* canonical_names);
+
   virtual ~TranslationHelper() {}
 
   Thread* thread() { return thread_; }
@@ -323,53 +310,42 @@ class TranslationHelper {
 
   RawInstance* Canonicalize(const Instance& instance);
 
-  const dart::String& DartString(const char* content) {
+  const String& DartString(const char* content) {
     return DartString(content, allocation_space_);
   }
-  const dart::String& DartString(const char* content, Heap::Space space);
+  const String& DartString(const char* content, Heap::Space space);
 
-  dart::String& DartString(StringIndex index) {
+  String& DartString(StringIndex index) {
     return DartString(index, allocation_space_);
   }
-  dart::String& DartString(StringIndex string_index, Heap::Space space);
+  String& DartString(StringIndex string_index, Heap::Space space);
 
-  dart::String& DartString(const uint8_t* utf8_array, intptr_t len) {
-    return DartString(utf8_array, len, allocation_space_);
-  }
-  dart::String& DartString(const uint8_t* utf8_array,
-                           intptr_t len,
-                           Heap::Space space);
+  String& DartString(const uint8_t* utf8_array,
+                     intptr_t len,
+                     Heap::Space space);
 
-  const dart::String& DartSymbol(const char* content) const;
-  dart::String& DartSymbol(StringIndex string_index) const;
-  dart::String& DartSymbol(const uint8_t* utf8_array, intptr_t len) const;
+  const String& DartSymbol(const char* content) const;
+  String& DartSymbol(StringIndex string_index) const;
+  String& DartSymbol(const uint8_t* utf8_array, intptr_t len) const;
 
-  const dart::String& DartClassName(NameIndex kernel_class);
+  const String& DartClassName(NameIndex kernel_class);
 
-  const dart::String& DartConstructorName(NameIndex constructor);
+  const String& DartConstructorName(NameIndex constructor);
 
-  const dart::String& DartProcedureName(NameIndex procedure);
+  const String& DartProcedureName(NameIndex procedure);
 
-  const dart::String& DartSetterName(NameIndex setter);
-  const dart::String& DartSetterName(Name* setter_name);
-  const dart::String& DartSetterName(NameIndex parent, StringIndex setter);
+  const String& DartSetterName(NameIndex setter);
+  const String& DartSetterName(NameIndex parent, StringIndex setter);
 
-  const dart::String& DartGetterName(NameIndex getter);
-  const dart::String& DartGetterName(Name* getter_name);
-  const dart::String& DartGetterName(NameIndex parent, StringIndex getter);
+  const String& DartGetterName(NameIndex getter);
+  const String& DartGetterName(NameIndex parent, StringIndex getter);
 
-  const dart::String& DartFieldName(Name* kernel_name);
-  const dart::String& DartFieldName(NameIndex parent, StringIndex field);
+  const String& DartFieldName(NameIndex parent, StringIndex field);
 
-  const dart::String& DartInitializerName(Name* kernel_name);
+  const String& DartMethodName(NameIndex method);
+  const String& DartMethodName(NameIndex parent, StringIndex method);
 
-  const dart::String& DartMethodName(NameIndex method);
-  const dart::String& DartMethodName(Name* method_name);
-  const dart::String& DartMethodName(NameIndex parent, StringIndex method);
-
-  const dart::String& DartFactoryName(NameIndex factory);
-
-  const Array& ArgumentNames(List<NamedExpression>* named);
+  const String& DartFactoryName(NameIndex factory);
 
   // A subclass overrides these when reading in the Kernel program in order to
   // support recursive type expressions (e.g. for "implements X" ...
@@ -380,11 +356,10 @@ class TranslationHelper {
   RawField* LookupFieldByKernelField(NameIndex field);
   RawFunction* LookupStaticMethodByKernelProcedure(NameIndex procedure);
   RawFunction* LookupConstructorByKernelConstructor(NameIndex constructor);
-  dart::RawFunction* LookupConstructorByKernelConstructor(
-      const dart::Class& owner,
-      NameIndex constructor);
+  RawFunction* LookupConstructorByKernelConstructor(const Class& owner,
+                                                    NameIndex constructor);
 
-  dart::Type& GetCanonicalType(const dart::Class& klass);
+  Type& GetCanonicalType(const Class& klass);
 
   void ReportError(const char* format, ...);
   void ReportError(const Error& prev_error, const char* format, ...);
@@ -394,10 +369,9 @@ class TranslationHelper {
   // if asked.  The result will be available in [name_to_modify] and it is also
   // returned.  If the name is private, the canonical name [parent] will be used
   // to get the import URI of the library where the name is visible.
-  dart::String& ManglePrivateName(NameIndex parent,
-                                  dart::String* name_to_modify,
-                                  bool symbolize = true);
-
+  String& ManglePrivateName(NameIndex parent,
+                            String* name_to_modify,
+                            bool symbolize = true);
 
   Thread* thread_;
   Zone* zone_;
@@ -409,12 +383,10 @@ class TranslationHelper {
   TypedData& canonical_names_;
 };
 
-
 struct FunctionScope {
   intptr_t kernel_offset;
   LocalScope* scope;
 };
-
 
 class ScopeBuildingResult : public ZoneAllocated {
  public:
@@ -465,7 +437,6 @@ class ScopeBuildingResult : public ZoneAllocated {
   // For-in iterators, one per for-in nesting level.
   GrowableArray<LocalVariable*> iterator_variables;
 };
-
 
 struct YieldContinuation {
   Instruction* entry;
@@ -524,12 +495,11 @@ class FlowGraphBuilder {
   Fragment TranslateInstantiatedTypeArguments(
       const TypeArguments& type_arguments);
 
-  Fragment AllocateContext(int size);
+  Fragment AllocateContext(intptr_t size);
   Fragment AllocateObject(TokenPosition position,
-                          const dart::Class& klass,
+                          const Class& klass,
                           intptr_t argument_count);
-  Fragment AllocateObject(const dart::Class& klass,
-                          const Function& closure_function);
+  Fragment AllocateObject(const Class& klass, const Function& closure_function);
   Fragment BooleanNegate();
   Fragment StrictCompare(Token::Kind kind, bool number_check = false);
   Fragment BranchIfTrue(TargetEntryInstr** then_entry,
@@ -555,23 +525,20 @@ class FlowGraphBuilder {
   Fragment Goto(JoinEntryInstr* destination);
   Fragment IntConstant(int64_t value);
   Fragment InstanceCall(TokenPosition position,
-                        const dart::String& name,
+                        const String& name,
                         Token::Kind kind,
-                        intptr_t argument_count,
-                        intptr_t num_args_checked = 1);
-  Fragment InstanceCall(TokenPosition position,
-                        const dart::String& name,
-                        Token::Kind kind,
+                        intptr_t type_args_len,
                         intptr_t argument_count,
                         const Array& argument_names,
-                        intptr_t num_args_checked = 1);
+                        intptr_t checked_argument_count,
+                        const Function& interface_target);
   Fragment ClosureCall(intptr_t type_args_len,
                        intptr_t argument_count,
                        const Array& argument_names);
   Fragment ThrowException(TokenPosition position);
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadClassId();
-  Fragment LoadField(const dart::Field& field);
+  Fragment LoadField(const Field& field);
   Fragment LoadField(intptr_t offset, intptr_t class_id = kDynamicCid);
   Fragment LoadNativeField(MethodRecognizer::Kind kind,
                            intptr_t offset,
@@ -579,10 +546,10 @@ class FlowGraphBuilder {
                            intptr_t class_id,
                            bool is_immutable = false);
   Fragment LoadLocal(LocalVariable* variable);
-  Fragment InitStaticField(const dart::Field& field);
+  Fragment InitStaticField(const Field& field);
   Fragment LoadStaticField();
   Fragment NullConstant();
-  Fragment NativeCall(const dart::String* name, const Function* function);
+  Fragment NativeCall(const String* name, const Function* function);
   Fragment PushArgument();
   Fragment Return(TokenPosition position);
   Fragment StaticCall(TokenPosition position,
@@ -591,12 +558,13 @@ class FlowGraphBuilder {
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,
-                      const Array& argument_names);
+                      const Array& argument_names,
+                      intptr_t type_args_len = 0);
   Fragment StoreIndexed(intptr_t class_id);
-  Fragment StoreInstanceFieldGuarded(const dart::Field& field,
+  Fragment StoreInstanceFieldGuarded(const Field& field,
                                      bool is_initialization_store);
   Fragment StoreInstanceField(
-      const dart::Field& field,
+      const Field& field,
       bool is_initialization_store,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreInstanceField(
@@ -604,42 +572,41 @@ class FlowGraphBuilder {
       intptr_t offset,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
-  Fragment StoreStaticField(TokenPosition position, const dart::Field& field);
+  Fragment StoreStaticField(TokenPosition position, const Field& field);
   Fragment StringInterpolate(TokenPosition position);
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment ThrowTypeError();
   Fragment ThrowNoSuchMethodError();
   Fragment BuildImplicitClosureCreation(const Function& target);
-  Fragment GuardFieldLength(const dart::Field& field, intptr_t deopt_id);
-  Fragment GuardFieldClass(const dart::Field& field, intptr_t deopt_id);
+  Fragment GuardFieldLength(const Field& field, intptr_t deopt_id);
+  Fragment GuardFieldClass(const Field& field, intptr_t deopt_id);
 
   Fragment EvaluateAssertion();
   Fragment CheckReturnTypeInCheckedMode();
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
-                                          const dart::String& name_symbol);
+                                          const String& name_symbol);
   Fragment CheckBooleanInCheckedMode();
-  Fragment CheckAssignableInCheckedMode(const dart::AbstractType& dst_type,
-                                        const dart::String& dst_name);
+  Fragment CheckAssignableInCheckedMode(const AbstractType& dst_type,
+                                        const String& dst_name);
 
   Fragment AssertBool();
-  Fragment AssertAssignable(const dart::AbstractType& dst_type,
-                            const dart::String& dst_name);
+  Fragment AssertAssignable(const AbstractType& dst_type,
+                            const String& dst_name);
 
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
   Fragment DebugStepCheck(TokenPosition position);
 
-  dart::RawFunction* LookupMethodByMember(NameIndex target,
-                                          const dart::String& method_name);
+  RawFunction* LookupMethodByMember(NameIndex target,
+                                    const String& method_name);
 
   LocalVariable* MakeTemporary();
-  LocalVariable* MakeNonTemporary(const dart::String& symbol);
+  LocalVariable* MakeNonTemporary(const String& symbol);
 
   intptr_t CurrentTryIndex();
   intptr_t AllocateTryIndex() { return next_used_try_index_++; }
 
-  dart::LocalVariable* LookupVariable(VariableDeclaration* var);
-  dart::LocalVariable* LookupVariable(intptr_t kernel_offset);
+  LocalVariable* LookupVariable(intptr_t kernel_offset);
 
   void SetTempIndex(Definition* definition);
 
@@ -649,7 +616,7 @@ class FlowGraphBuilder {
 
   bool IsInlining() { return exit_collector_ != NULL; }
 
-  Token::Kind MethodKind(const dart::String& name);
+  Token::Kind MethodKind(const String& name);
 
   void InlineBailout(const char* reason);
 
@@ -706,7 +673,6 @@ class FlowGraphBuilder {
     return scopes_->catch_context_variables[try_depth_];
   }
 
-
   // A chained list of breakable blocks. Chaining and lookup is done by the
   // [BreakableBlock] class.
   BreakableBlock* breakable_block_;
@@ -742,19 +708,18 @@ class FlowGraphBuilder {
   friend class TryFinallyBlock;
 };
 
-
 class SwitchBlock {
  public:
-  SwitchBlock(FlowGraphBuilder* builder, intptr_t num_cases)
+  SwitchBlock(FlowGraphBuilder* builder, intptr_t case_count)
       : builder_(builder),
         outer_(builder->switch_block_),
         outer_finally_(builder->try_finally_block_),
-        num_cases_(num_cases),
+        case_count_(case_count),
         context_depth_(builder->context_depth_),
         try_index_(builder->CurrentTryIndex()) {
     builder_->switch_block_ = this;
     if (outer_ != NULL) {
-      depth_ = outer_->depth_ + outer_->num_cases_;
+      depth_ = outer_->depth_ + outer_->case_count_;
     } else {
       depth_ = 0;
     }
@@ -818,12 +783,11 @@ class SwitchBlock {
   IntMap<JoinEntryInstr*> destinations_;
 
   TryFinallyBlock* outer_finally_;
-  intptr_t num_cases_;
+  intptr_t case_count_;
   intptr_t depth_;
   intptr_t context_depth_;
   intptr_t try_index_;
 };
-
 
 class TryCatchBlock {
  public:
@@ -846,11 +810,9 @@ class TryCatchBlock {
   intptr_t try_index_;
 };
 
-
 class TryFinallyBlock {
  public:
-  TryFinallyBlock(FlowGraphBuilder* builder,
-                  intptr_t finalizer_kernel_offset)
+  TryFinallyBlock(FlowGraphBuilder* builder, intptr_t finalizer_kernel_offset)
       : builder_(builder),
         outer_(builder->try_finally_block_),
         finalizer_kernel_offset_(finalizer_kernel_offset),
@@ -878,7 +840,6 @@ class TryFinallyBlock {
   const intptr_t try_depth_;
   const intptr_t try_index_;
 };
-
 
 class BreakableBlock {
  public:
@@ -959,23 +920,22 @@ class CatchBlock {
   intptr_t catch_try_index_;
 };
 
-
-RawObject* EvaluateMetadata(const dart::Field& metadata_field);
+RawObject* EvaluateMetadata(const Field& metadata_field);
 RawObject* BuildParameterDescriptor(const Function& function);
-
+void CollectTokenPositionsFor(const Script& script);
 
 }  // namespace kernel
 }  // namespace dart
 
 #else  // !defined(DART_PRECOMPILED_RUNTIME)
 
-#include "vm/object.h"
 #include "vm/kernel.h"
+#include "vm/object.h"
 
 namespace dart {
 namespace kernel {
 
-RawObject* EvaluateMetadata(const dart::Field& metadata_field);
+RawObject* EvaluateMetadata(const Field& metadata_field);
 RawObject* BuildParameterDescriptor(const Function& function);
 
 }  // namespace kernel

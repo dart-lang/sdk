@@ -82,6 +82,23 @@ public interface AnalysisServer {
   public void analysis_getHover(String file, int offset, GetHoverConsumer consumer);
 
   /**
+   * {@code analysis.getImportedElements}
+   *
+   * Return a description of all of the elements referenced in a given region of a given file that
+   * come from imported libraries.
+   *
+   * If a request is made for a file that does not exist, or that is not currently subject to
+   * analysis (e.g. because it is not associated with any analysis root specified via
+   * analysis.setAnalysisRoots), an error of type GET_IMPORTED_ELEMENTS_INVALID_FILE will be
+   * generated.
+   *
+   * @param file The file in which import information is being requested.
+   * @param offset The offset of the region for which import information is being requested.
+   * @param length The length of the region for which import information is being requested.
+   */
+  public void analysis_getImportedElements(String file, int offset, int length, GetImportedElementsConsumer consumer);
+
+  /**
    * {@code analysis.getLibraryDependencies}
    *
    * Return library dependency information for use in client-side indexing and package URI
@@ -480,6 +497,21 @@ public interface AnalysisServer {
   public void edit_getStatementCompletion(String file, int offset, GetStatementCompletionConsumer consumer);
 
   /**
+   * {@code edit.importElements}
+   *
+   * Return a list of edits that would need to be applied in order to ensure that all of the elements
+   * in the specified list of imported elements are accessible within the library.
+   *
+   * If a request is made for a file that does not exist, or that is not currently subject to
+   * analysis (e.g. because it is not associated with any analysis root specified via
+   * analysis.setAnalysisRoots), an error of type IMPORT_ELEMENTS_INVALID_FILE will be generated.
+   *
+   * @param file The file in which the specified elements are to be made accessible.
+   * @param elements The elements to be made accessible in the specified file.
+   */
+  public void edit_importElements(String file, List<ImportedElements> elements, ImportElementsConsumer consumer);
+
+  /**
    * {@code edit.isPostfixCompletionApplicable}
    *
    * Determine if the request postfix completion template is applicable at the given location in the
@@ -598,6 +630,20 @@ public interface AnalysisServer {
    * Return {@code true} if the socket is open.
    */
   public boolean isSocketOpen();
+
+  /**
+   * {@code kythe.getKytheEntries}
+   *
+   * Return the list of KytheEntry objects for some file, given the current state of the file system
+   * populated by "analysis.updateContent".
+   *
+   * If a request is made for a file that does not exist, or that is not currently subject to
+   * analysis (e.g. because it is not associated with any analysis root specified to
+   * analysis.setAnalysisRoots), an error of type GET_KYTHE_ENTRIES_INVALID_FILE will be generated.
+   *
+   * @param file The file containing the code for which the Kythe Entry objects are being requested.
+   */
+  public void kythe_getKytheEntries(String file, GetKytheEntriesConsumer consumer);
 
   /**
    * Remove the given listener from the list of listeners that will receive notification when new

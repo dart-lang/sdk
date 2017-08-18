@@ -21,18 +21,13 @@ if (use_goma) {
   goma_prefix = ""
 }
 
-# This will copy the gyp-mac-tool to the build directory. We pass in the source
-# file of the win tool.
-gyp_mac_tool_source =
-    rebase_path("//third_party/gyp/pylib/gyp/mac_tool.py", root_build_dir)
-exec_script("setup_toolchain.py", [ gyp_mac_tool_source ])
-
 # Shared toolchain definition. Invocations should set toolchain_os to set the
 # build args in this definition.
 template("mac_toolchain") {
   toolchain(target_name) {
     assert(defined(invoker.cc), "mac_toolchain() must specify a \"cc\" value")
     assert(defined(invoker.cxx), "mac_toolchain() must specify a \"cxx\" value")
+    assert(defined(invoker.ar), "mac_toolchain() must specify an \"ar\" value")
     assert(defined(invoker.ld), "mac_toolchain() must specify a \"ld\" value")
     assert(defined(invoker.toolchain_cpu),
            "mac_toolchain() must specify a \"toolchain_cpu\"")
@@ -44,6 +39,7 @@ template("mac_toolchain") {
     # these values in our scope.
     cc = invoker.cc
     cxx = invoker.cxx
+    ar = invoker.ar
     ld = invoker.ld
 
     # Make these apply to all tools below.
@@ -113,8 +109,10 @@ template("mac_toolchain") {
     }
 
     tool("alink") {
-      command = "rm -f {{output}} && ./gyp-mac-tool filter-libtool libtool -static -o {{output}} {{inputs}}"
-      description = "LIBTOOL-STATIC {{output}}"
+      rspfile = "{{output}}.rsp"
+      command = "rm -f {{output}} && $ar rcs {{output}} @$rspfile"
+      description = "AR {{output}}"
+      rspfile_content = "{{inputs}}"
       outputs = [
         "{{target_out_dir}}/{{target_output_name}}{{output_extension}}",
       ]
@@ -229,6 +227,7 @@ mac_toolchain("clang_x64") {
                        root_build_dir)
   cc = "${goma_prefix}$prefix/clang"
   cxx = "${goma_prefix}$prefix/clang++"
+  ar = "${prefix}/llvm-ar"
   ld = cxx
   strip = "strip"
   is_clang = true
@@ -243,6 +242,7 @@ mac_toolchain("clang_x86") {
                        root_build_dir)
   cc = "${goma_prefix}$prefix/clang"
   cxx = "${goma_prefix}$prefix/clang++"
+  ar = "${prefix}/llvm-ar"
   ld = cxx
   strip = "strip"
   is_clang = true

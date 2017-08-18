@@ -5,13 +5,13 @@ import "dart:math" as math;
 
 class Trace extends core::Object {
   field core::List<self::Frame> frames = <self::Frame>[];
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class Frame extends core::Object {
   field core::String location = "";
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }

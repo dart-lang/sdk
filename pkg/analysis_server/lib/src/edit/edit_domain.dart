@@ -8,9 +8,10 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/computer/import_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
@@ -76,6 +77,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Response format(Request request) {
+    server.options.analytics?.sendEvent('edit', 'format');
+
     EditFormatParams params = new EditFormatParams.fromRequest(request);
     String file = params.file;
 
@@ -269,6 +272,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future getPostfixCompletion(Request request) async {
+    server.options.analytics?.sendEvent('edit', 'getPostfixCompletion');
+
     var params = new EditGetPostfixCompletionParams.fromRequest(request);
     SourceChange change;
 
@@ -290,7 +295,7 @@ class EditDomainHandler extends AbstractRequestHandler {
         PostfixCompletionProcessor processor =
             new PostfixCompletionProcessor(context);
         PostfixCompletion completion = await processor.compute();
-        change = completion.change;
+        change = completion?.change;
       }
     }
     if (change == null) {
@@ -338,34 +343,38 @@ class EditDomainHandler extends AbstractRequestHandler {
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == EDIT_FORMAT) {
+      if (requestName == EDIT_REQUEST_FORMAT) {
         return format(request);
-      } else if (requestName == EDIT_GET_ASSISTS) {
+      } else if (requestName == EDIT_REQUEST_GET_ASSISTS) {
         getAssists(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_GET_AVAILABLE_REFACTORINGS) {
+      } else if (requestName == EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS) {
         return _getAvailableRefactorings(request);
-      } else if (requestName == EDIT_GET_FIXES) {
+      } else if (requestName == EDIT_REQUEST_GET_FIXES) {
         getFixes(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_GET_REFACTORING) {
+      } else if (requestName == EDIT_REQUEST_GET_REFACTORING) {
         return _getRefactoring(request);
-      } else if (requestName == EDIT_ORGANIZE_DIRECTIVES) {
+      } else if (requestName == EDIT_REQUEST_IMPORT_ELEMENTS) {
+        importElements(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName == EDIT_REQUEST_ORGANIZE_DIRECTIVES) {
         organizeDirectives(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_SORT_MEMBERS) {
+      } else if (requestName == EDIT_REQUEST_SORT_MEMBERS) {
         sortMembers(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_GET_STATEMENT_COMPLETION) {
+      } else if (requestName == EDIT_REQUEST_GET_STATEMENT_COMPLETION) {
         getStatementCompletion(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_IS_POSTFIX_COMPLETION_APPLICABLE) {
+      } else if (requestName == EDIT_REQUEST_IS_POSTFIX_COMPLETION_APPLICABLE) {
         isPostfixCompletionApplicable(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_GET_POSTFIX_COMPLETION) {
+      } else if (requestName == EDIT_REQUEST_GET_POSTFIX_COMPLETION) {
         getPostfixCompletion(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_LIST_POSTFIX_COMPLETION_TEMPLATES) {
+      } else if (requestName ==
+          EDIT_REQUEST_LIST_POSTFIX_COMPLETION_TEMPLATES) {
         listPostfixCompletionTemplates(request);
         return Response.DELAYED_RESPONSE;
       }
@@ -373,6 +382,42 @@ class EditDomainHandler extends AbstractRequestHandler {
       return exception.response;
     }
     return null;
+  }
+
+  /**
+   * Implement the `edit.importElements` request.
+   */
+  Future<Null> importElements(Request request) async {
+    EditImportElementsParams params =
+        new EditImportElementsParams.fromRequest(request);
+    //
+    // Prepare the resolved unit.
+    //
+    AnalysisResult result = await server.getAnalysisResult(params.file);
+    if (result == null) {
+      server.sendResponse(new Response.importElementsInvalidFile(request));
+    }
+    CompilationUnitElement libraryUnit =
+        result.libraryElement.definingCompilationUnit;
+    if (libraryUnit != result.unit.element) {
+      // The file in the request is a part of a library. We need to pass the
+      // defining compilation unit to the computer, not the part.
+      result = await server.getAnalysisResult(libraryUnit.source.fullName);
+      if (result == null) {
+        server.sendResponse(new Response.importElementsInvalidFile(request));
+      }
+    }
+    //
+    // Compute the edits required to import the required elements.
+    //
+    ImportElementsComputer computer =
+        new ImportElementsComputer(server.resourceProvider, result);
+    SourceChange change = await computer.createEdits(params.elements);
+    //
+    // Send the response.
+    //
+    server.sendResponse(
+        new EditImportElementsResult(change.edits[0]).toResponse(request.id));
   }
 
   Future isPostfixCompletionApplicable(Request request) async {
@@ -417,6 +462,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future<Null> organizeDirectives(Request request) async {
+    server.options.analytics?.sendEvent('edit', 'organizeDirectives');
+
     var params = new EditOrganizeDirectivesParams.fromRequest(request);
     // prepare file
     String file = params.file;
@@ -664,7 +711,6 @@ class _RefactoringManager {
     return refactoring is ExtractLocalRefactoring ||
         refactoring is ExtractMethodRefactoring ||
         refactoring is InlineMethodRefactoring ||
-        refactoring is MoveFileRefactoring ||
         refactoring is RenameRefactoring;
   }
 
@@ -686,6 +732,12 @@ class _RefactoringManager {
         EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST);
     // process the request
     var params = new EditGetRefactoringParams.fromRequest(_request);
+
+    if (params.kind != null) {
+      server.options.analytics
+          ?.sendEvent('refactor', params.kind.name.toLowerCase());
+    }
+
     runZoned(() async {
       await _init(params.kind, params.file, params.offset, params.length);
       if (initStatus.hasFatalError) {
@@ -829,8 +881,8 @@ class _RefactoringManager {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
         _resetOnAnalysisStarted();
-        refactoring =
-            new ExtractMethodRefactoring(searchEngine, unit, offset, length);
+        refactoring = new ExtractMethodRefactoring(
+            searchEngine, server.getAstProvider(file), unit, offset, length);
         feedback = new ExtractMethodFeedback(offset, length, '', <String>[],
             false, <RefactoringMethodParameter>[], <int>[], <int>[]);
       }
@@ -1006,12 +1058,6 @@ class _RefactoringManager {
       InlineMethodOptions inlineOptions = params.options;
       inlineRefactoring.deleteSource = inlineOptions.deleteSource;
       inlineRefactoring.inlineAll = inlineOptions.inlineAll;
-      return new RefactoringStatus();
-    }
-    if (refactoring is MoveFileRefactoring) {
-      MoveFileRefactoring moveRefactoring = this.refactoring;
-      MoveFileOptions moveOptions = params.options;
-      moveRefactoring.newFile = moveOptions.newFile;
       return new RefactoringStatus();
     }
     if (refactoring is RenameRefactoring) {

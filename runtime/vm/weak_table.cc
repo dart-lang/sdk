@@ -29,7 +29,6 @@ intptr_t WeakTable::SizeFor(intptr_t count, intptr_t size) {
   return result;
 }
 
-
 void WeakTable::SetValue(RawObject* key, intptr_t val) {
   intptr_t mask = size() - 1;
   intptr_t idx = Hash(key) & mask;
@@ -75,7 +74,6 @@ void WeakTable::SetValue(RawObject* key, intptr_t val) {
   }
 }
 
-
 void WeakTable::Reset() {
   intptr_t* old_data = data_;
   used_ = 0;
@@ -84,7 +82,6 @@ void WeakTable::Reset() {
   data_ = reinterpret_cast<intptr_t*>(calloc(size_, kEntrySize * kWordSize));
   free(old_data);
 }
-
 
 void WeakTable::Rehash() {
   intptr_t old_size = size();

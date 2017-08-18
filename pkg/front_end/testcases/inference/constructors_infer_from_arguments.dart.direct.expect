@@ -1,0 +1,19 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object> extends core::Object {
+  field self::C::T t;
+  constructor •(self::C::T t) → void
+    : self::C::t = t, super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  dynamic x = new self::C::•<dynamic>(42);
+  core::num y;
+  self::C<core::int> c_int = new self::C::•<dynamic>(y);
+  self::C<core::num> c_num = new self::C::•<dynamic>(123);
+  self::C<core::num> c_num2 = let final dynamic #t1 = new self::C::•<dynamic>(456) in let final dynamic #t2 = #t1.t = 1.0 in #t1;
+  dynamic c_dynamic = new self::C::•<dynamic>(42);
+  x.t = "hello";
+}

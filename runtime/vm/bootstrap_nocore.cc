@@ -22,22 +22,17 @@ namespace dart {
 #define MAKE_PROPERTIES(CamelName, name)                                       \
   {ObjectStore::k##CamelName, "dart:" #name},
 
-
 struct BootstrapLibProps {
   ObjectStore::BootstrapLibraryId index;
   const char* uri;
 };
 
-
 static BootstrapLibProps bootstrap_libraries[] = {
     FOR_EACH_BOOTSTRAP_LIBRARY(MAKE_PROPERTIES)};
 
-
 #undef MAKE_PROPERTIES
 
-
 static const intptr_t bootstrap_library_count = ARRAY_SIZE(bootstrap_libraries);
-
 
 void Finish(Thread* thread, bool from_kernel) {
   Bootstrap::SetupNativeResolver();
@@ -54,7 +49,7 @@ void Finish(Thread* thread, bool from_kernel) {
 #if defined(DEBUG)
   // Verify that closure field offsets are identical in Dart and C++.
   const Array& fields = Array::Handle(zone, cls.fields());
-  ASSERT(fields.Length() == 4);
+  ASSERT(fields.Length() == 5);
   Field& field = Field::Handle(zone);
   field ^= fields.At(0);
   ASSERT(field.Offset() == Closure::instantiator_type_arguments_offset());
@@ -64,13 +59,14 @@ void Finish(Thread* thread, bool from_kernel) {
   ASSERT(field.Offset() == Closure::function_offset());
   field ^= fields.At(3);
   ASSERT(field.Offset() == Closure::context_offset());
+  field ^= fields.At(4);
+  ASSERT(field.Offset() == Closure::hash_offset());
 #endif  // defined(DEBUG)
 
   // Eagerly compile Bool class, bool constants are used from within compiler.
   cls = object_store->bool_class();
   Compiler::CompileClass(cls);
 }
-
 
 RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   Zone* zone = thread->zone();
@@ -80,7 +76,7 @@ RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   // adding classes to the list more than once.
   GrowableObjectArray& pending_classes = GrowableObjectArray::Handle(
       zone, isolate->object_store()->pending_classes());
-  dart::Class& pending = dart::Class::Handle(zone);
+  Class& pending = Class::Handle(zone);
   for (intptr_t i = 0; i < pending_classes.Length(); ++i) {
     pending ^= pending_classes.At(i);
     pending.set_is_marked_for_parsing();
@@ -93,12 +89,10 @@ RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
     ObjectStore::BootstrapLibraryId id = bootstrap_libraries[i].index;
     library = isolate->object_store()->bootstrap_library(id);
     dart_name = library.url();
-    for (intptr_t j = 0; j < program->libraries().length(); ++j) {
-      kernel::Library* kernel_library = program->libraries()[j];
-      kernel::StringIndex uri_index = kernel_library->import_uri();
-      const String& kernel_name = reader.DartSymbol(uri_index);
+    for (intptr_t j = 0; j < program->library_count(); ++j) {
+      const String& kernel_name = reader.LibraryUri(j);
       if (kernel_name.Equals(dart_name)) {
-        reader.ReadLibrary(kernel_library->kernel_offset());
+        reader.ReadLibrary(reader.library_offset(j));
         library.SetLoaded();
         break;
       }
@@ -119,7 +113,6 @@ RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
 
   return Error::null();
 }
-
 
 RawError* Bootstrap::DoBootstrapping(kernel::Program* program) {
   Thread* thread = Thread::Current();

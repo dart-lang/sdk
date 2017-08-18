@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../application_snapshot.gni")
+import("../create_timestamp.gni")
 
 application_snapshot("dartdevc") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
@@ -19,25 +20,33 @@ application_snapshot("dartdevc") {
     rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
   ]
   inputs = exec_script("../../tools/list_dart_files.py",
-                       [ "absolute",
-                         rebase_path("../../pkg/dev_compiler/bin") ],
+                       [
+                         "absolute",
+                         rebase_path("../../pkg/dev_compiler/bin"),
+                       ],
                        "list lines")
 }
 
-sdk_lib_files = exec_script(
-    "../../tools/list_dart_files.py",
-    [ "absolute", rebase_path("../../sdk/lib") ],
-    "list lines")
+sdk_lib_files = exec_script("../../tools/list_dart_files.py",
+                            [
+                              "absolute",
+                              rebase_path("../../sdk/lib"),
+                            ],
+                            "list lines")
 
-compiler_files = exec_script(
-    "../../tools/list_dart_files.py",
-    [ "absolute", rebase_path("../../pkg/compiler") ],
-    "list lines")
+compiler_files = exec_script("../../tools/list_dart_files.py",
+                             [
+                               "absolute",
+                               rebase_path("../../pkg/compiler"),
+                             ],
+                             "list lines")
 
-dev_compiler_files = exec_script(
-    "../../tools/list_dart_files.py",
-    [ "absolute", rebase_path("../../pkg/dev_compiler") ],
-    "list lines")
+dev_compiler_files = exec_script("../../tools/list_dart_files.py",
+                                 [
+                                   "absolute",
+                                   rebase_path("../../pkg/dev_compiler"),
+                                 ],
+                                 "list lines")
 
 template("dart2js_compile") {
   assert(defined(invoker.main), "Must specify the main file")
@@ -55,8 +64,7 @@ template("dart2js_compile") {
     ]
 
     dot_packages = rebase_path("../../.packages")
-    compiler =
-        rebase_path("../../pkg/compiler/lib/src/dart2js.dart")
+    compiler = rebase_path("../../pkg/compiler/lib/src/dart2js.dart")
 
     args = [
       "--packages=$dot_packages",
@@ -77,4 +85,63 @@ dart2js_compile("dartdevc_web") {
 dart2js_compile("stack_trace_mapper") {
   main = rebase_path("../../pkg/dev_compiler/web/stack_trace_mapper.dart")
   out = "$root_out_dir/dev_compiler/build/web/dart_stack_trace_mapper.js"
+}
+
+# Builds everything needed to run dartdevc tests using test.dart.
+group("dartdevc_test") {
+  deps = [
+    ":dartdevc",
+    ":dartdevc_test_pkg",
+    "../../sdk:create_sdk",
+  ]
+}
+
+create_timestamp_file("dartdevc_files_stamp") {
+  path = rebase_path("../../pkg/dev_compiler/lib")
+  output = "$target_gen_dir/dartdevc_files.stamp"
+}
+
+# Compiles the packages used by the tests to JS with dartdevc so that they are
+# available for loading by the tests.
+compiled_action("dartdevc_test_pkg") {
+  tool = "../../runtime/bin:dart"
+
+  deps = [
+    ":dartdevc_files_stamp",
+    "../../pkg:pkg_files_stamp",
+  ]
+
+  inputs = [
+    "$target_gen_dir/dartdevc_files.stamp",
+    "$root_gen_dir/pkg_files.stamp",
+  ]
+
+  outputs = [
+    "$target_gen_dir/pkg/async_helper.js",
+    "$target_gen_dir/pkg/async_helper.sum",
+    "$target_gen_dir/pkg/collection.js",
+    "$target_gen_dir/pkg/collection.sum",
+    "$target_gen_dir/pkg/expect.js",
+    "$target_gen_dir/pkg/expect.sum",
+    "$target_gen_dir/pkg/js.js",
+    "$target_gen_dir/pkg/js.sum",
+    "$target_gen_dir/pkg/matcher.js",
+    "$target_gen_dir/pkg/matcher.sum",
+    "$target_gen_dir/pkg/meta.js",
+    "$target_gen_dir/pkg/meta.sum",
+    "$target_gen_dir/pkg/path.js",
+    "$target_gen_dir/pkg/path.sum",
+    "$target_gen_dir/pkg/stack_trace.js",
+    "$target_gen_dir/pkg/stack_trace.sum",
+
+    # TODO(rnystrom): Remove this when unittest is no longer used. Also remove
+    # any of the above packages that are only here because unittest uses them.
+    "$target_gen_dir/pkg/unittest.js",
+    "$target_gen_dir/pkg/unittest.sum",
+  ]
+
+  args = [
+    rebase_path("../../pkg/dev_compiler/tool/build_pkgs.dart"),
+    rebase_path("$target_gen_dir/pkg"),
+  ]
 }

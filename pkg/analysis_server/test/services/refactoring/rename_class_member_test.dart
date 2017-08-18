@@ -132,9 +132,7 @@ class A {
   test() {}
 }
 ''');
-    await indexUnit(
-        '/lib.dart',
-        '''
+    await indexUnit('/lib.dart', '''
 library my.lib;
 import 'test.dart';
 
@@ -150,7 +148,6 @@ main(A a) {
         expectedMessage: "Renamed method will be invisible in 'my.lib'.");
   }
 
-  @failingTest
   test_checkFinalConditions_shadowed_byLocalFunction_inSameClass() async {
     await indexTestUnit('''
 class A {
@@ -171,7 +168,6 @@ class A {
         expectedContextSearch: 'test(); // marker');
   }
 
-  @failingTest
   test_checkFinalConditions_shadowed_byLocalVariable_inSameClass() async {
     await indexTestUnit('''
 class A {
@@ -192,7 +188,6 @@ class A {
         expectedContextSearch: 'test(); // marker');
   }
 
-  @failingTest
   test_checkFinalConditions_shadowed_byLocalVariable_inSubClass() async {
     await indexTestUnit('''
 class A {
@@ -696,9 +691,7 @@ main(var a) {
 
   test_createChange_MethodElement_potential_inPubCache() async {
     String pkgLib = '/.pub-cache/lib.dart';
-    await indexUnit(
-        pkgLib,
-        r'''
+    await indexUnit(pkgLib, r'''
 processObj(p) {
   p.test();
 }
@@ -732,9 +725,7 @@ main(var a) {
   }
 
   test_createChange_MethodElement_potential_private_otherLibrary() async {
-    await indexUnit(
-        '/lib.dart',
-        '''
+    await indexUnit('/lib.dart', '''
 library lib;
 main(p) {
   p._test();

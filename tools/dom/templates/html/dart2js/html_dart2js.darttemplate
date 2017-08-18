@@ -33,7 +33,7 @@
 library dart.dom.html;
 
 import 'dart:async';
-import 'dart:collection';
+import 'dart:collection' hide LinkedList, LinkedListEntry;
 import 'dart:_internal' hide Symbol;
 import 'dart:html_common';
 import 'dart:indexed_db';
@@ -54,7 +54,7 @@ import 'dart:_js_helper' show
     convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
     JSName, Native, Returns, ForceInline,
     findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord,
-    makeLeafDispatchRecord;
+    makeLeafDispatchRecord, registerGlobalObject;
 import 'dart:_interceptors' show
     Interceptor, JSExtendableArray, JSUInt31,
     findInterceptorConstructorForType,

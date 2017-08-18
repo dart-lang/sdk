@@ -64,9 +64,7 @@ class SetPriorityFilesTest extends AbstractAnalysisTest {
 
   test_ignoredInAnalysisOptions() async {
     String sampleFile = '$projectPath/samples/sample.dart';
-    addFile(
-        '$projectPath/.analysis_options',
-        r'''
+    addFile('$projectPath/.analysis_options', r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -81,9 +79,7 @@ analyzer:
     addFile('$projectPath/.packages', '');
     addFile('$projectPath/child/.packages', '');
     String sampleFile = '$projectPath/child/samples/sample.dart';
-    addFile(
-        '$projectPath/child/.analysis_options',
-        r'''
+    addFile('$projectPath/child/.analysis_options', r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -98,9 +94,7 @@ analyzer:
     addFile('$projectPath/.packages', '');
     addFile('$projectPath/child/.packages', '');
     String sampleFile = '$projectPath/child/samples/sample.dart';
-    addFile(
-        '$projectPath/.analysis_options',
-        r'''
+    addFile('$projectPath/.analysis_options', r'''
 analyzer:
   exclude:
     - 'child/samples/**'

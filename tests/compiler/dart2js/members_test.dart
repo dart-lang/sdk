@@ -163,9 +163,7 @@ void checkMemberCount(ResolutionInterfaceType cls, int expectedCount,
 }
 
 void testClassMembers() {
-  asyncTest(() => TypeEnvironment
-          .create(
-              r"""
+  asyncTest(() => TypeEnvironment.create(r"""
     abstract class A {
       int field;
       final finalField = 0;
@@ -189,9 +187,7 @@ void testClassMembers() {
     class C<S> extends B<S> {}
     class D extends C<int> {}
     class E extends D {}
-    """,
-              useMockCompiler: false)
-          .then((env) {
+    """, compileMode: CompileMode.memory).then((env) {
         ResolutionInterfaceType bool_ = env['bool'];
         ResolutionInterfaceType String_ = env['String'];
         ResolutionInterfaceType int_ = env['int'];

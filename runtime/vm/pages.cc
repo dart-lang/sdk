@@ -71,13 +71,13 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory,
   ASSERT(result != NULL);
   result->memory_ = memory;
   result->next_ = NULL;
+  result->used_in_bytes_ = 0;
   result->type_ = type;
 
   LSAN_REGISTER_ROOT_REGION(result, sizeof(*result));
 
   return result;
 }
-
 
 HeapPage* HeapPage::Allocate(intptr_t size_in_words,
                              PageType type,
@@ -94,7 +94,6 @@ HeapPage* HeapPage::Allocate(intptr_t size_in_words,
   }
   return result;
 }
-
 
 void HeapPage::Deallocate() {
   bool image_page = is_image_page();
@@ -114,8 +113,8 @@ void HeapPage::Deallocate() {
   }
 }
 
-
 void HeapPage::VisitObjects(ObjectVisitor* visitor) const {
+  ASSERT(Thread::Current()->IsAtSafepoint());
   NoSafepointScope no_safepoint;
   uword obj_addr = object_start();
   uword end_addr = object_end();
@@ -127,8 +126,8 @@ void HeapPage::VisitObjects(ObjectVisitor* visitor) const {
   ASSERT(obj_addr == end_addr);
 }
 
-
 void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
+  ASSERT(Thread::Current()->IsAtSafepoint());
   NoSafepointScope no_safepoint;
   uword obj_addr = object_start();
   uword end_addr = object_end();
@@ -138,7 +137,6 @@ void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   }
   ASSERT(obj_addr == end_addr);
 }
-
 
 RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
   uword obj_addr = object_start();
@@ -158,7 +156,6 @@ RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
   return Object::null();
 }
 
-
 void HeapPage::WriteProtect(bool read_only) {
   ASSERT(!is_image_page());
 
@@ -175,7 +172,6 @@ void HeapPage::WriteProtect(bool read_only) {
   bool status = memory_->Protect(prot);
   ASSERT(status);
 }
-
 
 PageSpace::PageSpace(Heap* heap,
                      intptr_t max_capacity_in_words,
@@ -208,7 +204,6 @@ PageSpace::PageSpace(Heap* heap,
   UpdateMaxUsed();
 }
 
-
 PageSpace::~PageSpace() {
   {
     MonitorLocker ml(tasks_lock());
@@ -223,13 +218,11 @@ PageSpace::~PageSpace() {
   delete tasks_lock_;
 }
 
-
 intptr_t PageSpace::LargePageSizeInWordsFor(intptr_t size) {
   intptr_t page_size = Utils::RoundUp(size + HeapPage::ObjectStartOffset(),
                                       VirtualMemory::PageSize());
   return page_size >> kWordSizeLog2;
 }
-
 
 HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
   const bool is_exec = (type == HeapPage::kExecutable);
@@ -273,7 +266,6 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
   return page;
 }
 
-
 HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
   const bool is_exec = (type == HeapPage::kExecutable);
   const intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
@@ -294,7 +286,6 @@ HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
   return page;
 }
 
-
 void PageSpace::TruncateLargePage(HeapPage* page,
                                   intptr_t new_object_size_in_bytes) {
   const intptr_t old_object_size_in_bytes =
@@ -310,7 +301,6 @@ void PageSpace::TruncateLargePage(HeapPage* page,
     page->set_object_end(page->object_start() + new_object_size_in_bytes);
   }
 }
-
 
 void PageSpace::FreePage(HeapPage* page, HeapPage* previous_page) {
   bool is_exec = (page->type() == HeapPage::kExecutable);
@@ -343,7 +333,6 @@ void PageSpace::FreePage(HeapPage* page, HeapPage* previous_page) {
   page->Deallocate();
 }
 
-
 void PageSpace::FreeLargePage(HeapPage* page, HeapPage* previous_page) {
   IncreaseCapacityInWords(-(page->memory_->size() >> kWordSizeLog2));
   // Remove the page from the list.
@@ -355,7 +344,6 @@ void PageSpace::FreeLargePage(HeapPage* page, HeapPage* previous_page) {
   page->Deallocate();
 }
 
-
 void PageSpace::FreePages(HeapPage* pages) {
   HeapPage* page = pages;
   while (page != NULL) {
@@ -364,7 +352,6 @@ void PageSpace::FreePages(HeapPage* pages) {
     page = next;
   }
 }
-
 
 uword PageSpace::TryAllocateInFreshPage(intptr_t size,
                                         HeapPage::PageType type,
@@ -401,7 +388,6 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
   }
   return result;
 }
-
 
 uword PageSpace::TryAllocateInternal(intptr_t size,
                                      HeapPage::PageType type,
@@ -450,16 +436,13 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
   return result;
 }
 
-
 void PageSpace::AcquireDataLock() {
   freelist_[HeapPage::kData].mutex()->Lock();
 }
 
-
 void PageSpace::ReleaseDataLock() {
   freelist_[HeapPage::kData].mutex()->Unlock();
 }
-
 
 void PageSpace::AllocateExternal(intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
@@ -467,12 +450,10 @@ void PageSpace::AllocateExternal(intptr_t size) {
   // TODO(koda): Control growth.
 }
 
-
 void PageSpace::FreeExternal(intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
   AtomicOperations::DecrementBy(&(usage_.external_in_words), size_in_words);
 }
-
 
 // Provides exclusive access to all pages, and ensures they are walkable.
 class ExclusivePageIterator : ValueObject {
@@ -502,7 +483,6 @@ class ExclusivePageIterator : ValueObject {
   HeapPage* page_;
 };
 
-
 // Provides exclusive access to code pages, and ensures they are walkable.
 // NOTE: This does not iterate over large pages which can contain code.
 class ExclusiveCodePageIterator : ValueObject {
@@ -526,7 +506,6 @@ class ExclusiveCodePageIterator : ValueObject {
   HeapPage* page_;
 };
 
-
 // Provides exclusive access to large pages, and ensures they are walkable.
 class ExclusiveLargePageIterator : ValueObject {
  public:
@@ -549,7 +528,6 @@ class ExclusiveLargePageIterator : ValueObject {
   HeapPage* page_;
 };
 
-
 void PageSpace::MakeIterable() const {
   // Assert not called from concurrent sweeper task.
   // TODO(koda): Use thread/task identity when implemented.
@@ -559,7 +537,6 @@ void PageSpace::MakeIterable() const {
   }
 }
 
-
 void PageSpace::AbandonBumpAllocation() {
   if (bump_top_ < bump_end_) {
     freelist_[HeapPage::kData].Free(bump_top_, bump_end_ - bump_top_);
@@ -568,8 +545,8 @@ void PageSpace::AbandonBumpAllocation() {
   }
 }
 
-
 void PageSpace::UpdateMaxCapacityLocked() {
+#if !defined(PRODUCT)
   if (heap_ == NULL) {
     // Some unit tests.
     return;
@@ -579,10 +556,11 @@ void PageSpace::UpdateMaxCapacityLocked() {
   Isolate* isolate = heap_->isolate();
   isolate->GetHeapOldCapacityMaxMetric()->SetValue(
       static_cast<int64_t>(usage_.capacity_in_words) * kWordSize);
+#endif  // !defined(PRODUCT)
 }
 
-
 void PageSpace::UpdateMaxUsed() {
+#if !defined(PRODUCT)
   if (heap_ == NULL) {
     // Some unit tests.
     return;
@@ -591,8 +569,8 @@ void PageSpace::UpdateMaxUsed() {
   ASSERT(heap_->isolate() != NULL);
   Isolate* isolate = heap_->isolate();
   isolate->GetHeapOldUsedMaxMetric()->SetValue(UsedInWords() * kWordSize);
+#endif  // !defined(PRODUCT)
 }
-
 
 bool PageSpace::Contains(uword addr) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
@@ -602,7 +580,6 @@ bool PageSpace::Contains(uword addr) const {
   }
   return false;
 }
-
 
 bool PageSpace::Contains(uword addr, HeapPage::PageType type) const {
   if (type == HeapPage::kExecutable) {
@@ -628,7 +605,6 @@ bool PageSpace::Contains(uword addr, HeapPage::PageType type) const {
   return false;
 }
 
-
 bool PageSpace::DataContains(uword addr) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     if ((it.page()->type() != HeapPage::kExecutable) &&
@@ -639,7 +615,6 @@ bool PageSpace::DataContains(uword addr) const {
   return false;
 }
 
-
 void PageSpace::AddRegionsToObjectSet(ObjectSet* set) const {
   ASSERT((pages_ != NULL) || (exec_pages_ != NULL) || (large_pages_ != NULL));
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
@@ -647,13 +622,11 @@ void PageSpace::AddRegionsToObjectSet(ObjectSet* set) const {
   }
 }
 
-
 void PageSpace::VisitObjects(ObjectVisitor* visitor) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     it.page()->VisitObjects(visitor);
   }
 }
-
 
 void PageSpace::VisitObjectsNoImagePages(ObjectVisitor* visitor) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
@@ -663,7 +636,6 @@ void PageSpace::VisitObjectsNoImagePages(ObjectVisitor* visitor) const {
   }
 }
 
-
 void PageSpace::VisitObjectsImagePages(ObjectVisitor* visitor) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     if (it.page()->is_image_page()) {
@@ -672,13 +644,11 @@ void PageSpace::VisitObjectsImagePages(ObjectVisitor* visitor) const {
   }
 }
 
-
 void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     it.page()->VisitObjectPointers(visitor);
   }
 }
-
 
 RawObject* PageSpace::FindObject(FindObjectVisitor* visitor,
                                  HeapPage::PageType type) const {
@@ -713,7 +683,6 @@ RawObject* PageSpace::FindObject(FindObjectVisitor* visitor,
   return Object::null();
 }
 
-
 void PageSpace::WriteProtect(bool read_only) {
   if (read_only) {
     // Avoid MakeIterable trying to write to the heap.
@@ -725,7 +694,6 @@ void PageSpace::WriteProtect(bool read_only) {
     }
   }
 }
-
 
 #ifndef PRODUCT
 void PageSpace::PrintToJSONObject(JSONObject* object) const {
@@ -756,7 +724,6 @@ void PageSpace::PrintToJSONObject(JSONObject* object) const {
   }
 }
 
-
 class HeapMapAsJSONVisitor : public ObjectVisitor {
  public:
   explicit HeapMapAsJSONVisitor(JSONArray* array) : array_(array) {}
@@ -768,7 +735,6 @@ class HeapMapAsJSONVisitor : public ObjectVisitor {
  private:
   JSONArray* array_;
 };
-
 
 void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
                                          JSONStream* stream) const {
@@ -789,9 +755,9 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
     // "pages" is an array [page0, page1, ..., pageN], each page of the form
     // {"object_start": "0x...", "objects": [size, class id, size, ...]}
     // TODO(19445): Use ExclusivePageIterator once HeapMap supports large pages.
+    HeapIterationScope iteration(Thread::Current());
     MutexLocker ml(pages_lock_);
     MakeIterable();
-    NoSafepointScope no_safepoint;
     JSONArray all_pages(&heap_map, "pages");
     for (HeapPage* page = pages_; page != NULL; page = page->next()) {
       JSONObject page_container(&all_pages);
@@ -813,7 +779,6 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
 }
 #endif  // PRODUCT
 
-
 bool PageSpace::ShouldCollectCode() {
   // Try to collect code if enough time has passed since the last attempt.
   const int64_t start = OS::GetCurrentMonotonicMicros();
@@ -830,7 +795,6 @@ bool PageSpace::ShouldCollectCode() {
   }
   return false;
 }
-
 
 void PageSpace::WriteProtectCode(bool read_only) {
   if (FLAG_write_protect_code) {
@@ -854,7 +818,6 @@ void PageSpace::WriteProtectCode(bool read_only) {
     }
   }
 }
-
 
 void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   Thread* thread = Thread::Current();
@@ -908,8 +871,12 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     SpaceUsage usage_before = GetCurrentUsage();
 
     // Mark all reachable old-gen objects.
+#if defined(PRODUCT)
+    bool collect_code = FLAG_collect_code && ShouldCollectCode();
+#else
     bool collect_code = FLAG_collect_code && ShouldCollectCode() &&
                         !isolate->HasAttemptedReload();
+#endif  // !defined(PRODUCT)
     GCMarker marker(heap_);
     marker.MarkObjects(isolate, this, invoke_api_callbacks, collect_code);
     usage_.used_in_words = marker.marked_words();
@@ -1036,7 +1003,6 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   }
 }
 
-
 uword PageSpace::TryAllocateDataBumpInternal(intptr_t size,
                                              GrowthPolicy growth_policy,
                                              bool is_locked) {
@@ -1088,18 +1054,15 @@ uword PageSpace::TryAllocateDataBumpInternal(intptr_t size,
   return result;
 }
 
-
 uword PageSpace::TryAllocateDataBump(intptr_t size,
                                      GrowthPolicy growth_policy) {
   return TryAllocateDataBumpInternal(size, growth_policy, false);
 }
 
-
 uword PageSpace::TryAllocateDataBumpLocked(intptr_t size,
                                            GrowthPolicy growth_policy) {
   return TryAllocateDataBumpInternal(size, growth_policy, true);
 }
-
 
 uword PageSpace::TryAllocatePromoLocked(intptr_t size,
                                         GrowthPolicy growth_policy) {
@@ -1114,7 +1077,6 @@ uword PageSpace::TryAllocatePromoLocked(intptr_t size,
   if (result != 0) return result;
   return TryAllocateDataLocked(size, growth_policy);
 }
-
 
 void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   // Setup a HeapPage so precompiled Instructions can be traversed.
@@ -1131,6 +1093,7 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   page->memory_ = memory;
   page->next_ = NULL;
   page->object_end_ = memory->end();
+  page->used_in_bytes_ = page->object_end_ - page->object_start();
 
   MutexLocker ml(pages_lock_);
   HeapPage **first, **tail;
@@ -1158,7 +1121,6 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   (*tail) = page;
 }
 
-
 PageSpaceController::PageSpaceController(Heap* heap,
                                          int heap_growth_ratio,
                                          int heap_growth_max,
@@ -1172,9 +1134,7 @@ PageSpaceController::PageSpaceController(Heap* heap,
       garbage_collection_time_ratio_(garbage_collection_time_ratio),
       last_code_collection_in_us_(OS::GetCurrentMonotonicMicros()) {}
 
-
 PageSpaceController::~PageSpaceController() {}
-
 
 bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   if (!is_enabled_) {
@@ -1211,7 +1171,6 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   }
   return needs_gc;
 }
-
 
 void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
                                                     SpaceUsage after,
@@ -1296,7 +1255,6 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
   last_usage_ = after;
 }
 
-
 void PageSpaceGarbageCollectionHistory::AddGarbageCollectionTime(int64_t start,
                                                                  int64_t end) {
   Entry entry;
@@ -1304,7 +1262,6 @@ void PageSpaceGarbageCollectionHistory::AddGarbageCollectionTime(int64_t start,
   entry.end = end;
   history_.Add(entry);
 }
-
 
 int PageSpaceGarbageCollectionHistory::GarbageCollectionTimeFraction() {
   int64_t gc_time = 0;

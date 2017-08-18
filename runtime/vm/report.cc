@@ -85,8 +85,8 @@ RawString* Report::PrependSnippet(Kind kind,
       result = String::ConcatAll(strs, Heap::kOld);
     } else {
       // Token position is unknown.
-      result = String::NewFormatted(Heap::kOld, "'%s': %s: ",
-                                    script_url.ToCString(), message_header);
+      result = String::NewFormatted(
+          Heap::kOld, "'%s': %s: ", script_url.ToCString(), message_header);
       result = String::Concat(result, message, Heap::kOld);
     }
   } else {
@@ -98,12 +98,10 @@ RawString* Report::PrependSnippet(Kind kind,
   return result.raw();
 }
 
-
 void Report::LongJump(const Error& error) {
   Thread::Current()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
-
 
 void Report::LongJumpF(const Error& prev_error,
                        const Script& script,
@@ -117,7 +115,6 @@ void Report::LongJumpF(const Error& prev_error,
   UNREACHABLE();
 }
 
-
 void Report::LongJumpV(const Error& prev_error,
                        const Script& script,
                        TokenPosition token_pos,
@@ -130,7 +127,6 @@ void Report::LongJumpV(const Error& prev_error,
   UNREACHABLE();
 }
 
-
 void Report::MessageF(Kind kind,
                       const Script& script,
                       TokenPosition token_pos,
@@ -142,7 +138,6 @@ void Report::MessageF(Kind kind,
   MessageV(kind, script, token_pos, report_after_token, format, args);
   va_end(args);
 }
-
 
 void Report::MessageV(Kind kind,
                       const Script& script,

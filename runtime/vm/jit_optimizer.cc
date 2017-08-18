@@ -36,22 +36,18 @@ static bool ShouldInlineSimd() {
   return FlowGraphCompiler::SupportsUnboxedSimd128();
 }
 
-
 static bool CanUnboxDouble() {
   return FlowGraphCompiler::SupportsUnboxedDoubles();
 }
-
 
 static bool CanConvertUnboxedMintToDouble() {
   return FlowGraphCompiler::CanConvertUnboxedMintToDouble();
 }
 
-
 // Optimize instance calls using ICData.
 void JitOptimizer::ApplyICData() {
   VisitBlocks();
 }
-
 
 // Optimize instance calls using cid.  This is called after optimizer
 // converted instance calls to instructions. Any remaining
@@ -83,12 +79,10 @@ void JitOptimizer::ApplyClassIds() {
   }
 }
 
-
 // TODO(srdjan): Test/support other number types as well.
 static bool IsNumberCid(intptr_t cid) {
   return (cid == kSmiCid) || (cid == kDoubleCid);
 }
-
 
 bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
@@ -98,10 +92,13 @@ bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
     return false;
   }
 
+  const intptr_t receiver_index = call->FirstParamIndex();
   GrowableArray<intptr_t> class_ids(call->ic_data()->NumArgsTested());
-  ASSERT(call->ic_data()->NumArgsTested() <= call->ArgumentCount());
+  ASSERT(call->ic_data()->NumArgsTested() <=
+         call->ArgumentCountWithoutTypeArgs());
   for (intptr_t i = 0; i < call->ic_data()->NumArgsTested(); i++) {
-    class_ids.Add(call->PushArgumentAt(i)->value()->Type()->ToCid());
+    class_ids.Add(
+        call->PushArgumentAt(receiver_index + i)->value()->Type()->ToCid());
   }
 
   const Token::Kind op_kind = call->token_kind();
@@ -193,7 +190,6 @@ bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
   return false;
 }
 
-
 void JitOptimizer::SpecializePolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* call) {
   if (!FLAG_polymorphic_with_deopt) {
@@ -224,7 +220,6 @@ void JitOptimizer::SpecializePolymorphicInstanceCall(
   call->ReplaceWith(specialized, current_iterator());
 }
 
-
 static bool ClassIdIsOneOf(intptr_t class_id,
                            const GrowableArray<intptr_t>& class_ids) {
   for (intptr_t i = 0; i < class_ids.length(); i++) {
@@ -235,7 +230,6 @@ static bool ClassIdIsOneOf(intptr_t class_id,
   }
   return false;
 }
-
 
 // Returns true if ICData tests two arguments and all ICData cids are in the
 // required sets 'receiver_class_ids' or 'argument_class_ids', respectively.
@@ -261,7 +255,6 @@ static bool ICDataHasOnlyReceiverArgumentClassIds(
   return true;
 }
 
-
 static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
                                               intptr_t receiver_class_id,
                                               intptr_t argument_class_id) {
@@ -283,12 +276,10 @@ static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
   return false;
 }
 
-
 static bool HasOnlyOneSmi(const ICData& ic_data) {
   return (ic_data.NumberOfUsedChecks() == 1) &&
          ic_data.HasReceiverClassId(kSmiCid);
 }
-
 
 static bool HasOnlySmiOrMint(const ICData& ic_data) {
   if (ic_data.NumberOfUsedChecks() == 1) {
@@ -299,7 +290,6 @@ static bool HasOnlySmiOrMint(const ICData& ic_data) {
          ic_data.HasReceiverClassId(kSmiCid) &&
          ic_data.HasReceiverClassId(kMintCid);
 }
-
 
 static bool HasOnlyTwoOf(const ICData& ic_data, intptr_t cid) {
   if (ic_data.NumberOfUsedChecks() != 1) {
@@ -328,7 +318,6 @@ static bool HasTwoMintOrSmi(const ICData& ic_data) {
   return true;
 }
 
-
 // Returns false if the ICData contains anything other than the 4 combinations
 // of Double and Smi for the receiver and argument classes.
 static bool HasTwoDoubleOrSmi(const ICData& ic_data) {
@@ -338,12 +327,10 @@ static bool HasTwoDoubleOrSmi(const ICData& ic_data) {
   return ICDataHasOnlyReceiverArgumentClassIds(ic_data, class_ids, class_ids);
 }
 
-
 static bool HasOnlyOneDouble(const ICData& ic_data) {
   return (ic_data.NumberOfUsedChecks() == 1) &&
          ic_data.HasReceiverClassId(kDoubleCid);
 }
-
 
 static bool ShouldSpecializeForDouble(const ICData& ic_data) {
   // Don't specialize for double if we can't unbox them.
@@ -360,7 +347,6 @@ static bool ShouldSpecializeForDouble(const ICData& ic_data) {
   return HasTwoDoubleOrSmi(ic_data);
 }
 
-
 void JitOptimizer::ReplaceCall(Definition* call, Definition* replacement) {
   // Remove the original push arguments.
   for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
@@ -370,7 +356,6 @@ void JitOptimizer::ReplaceCall(Definition* call, Definition* replacement) {
   }
   call->ReplaceWith(replacement, current_iterator());
 }
-
 
 void JitOptimizer::AddCheckSmi(Definition* to_check,
                                intptr_t deopt_id,
@@ -384,7 +369,6 @@ void JitOptimizer::AddCheckSmi(Definition* to_check,
   }
 }
 
-
 void JitOptimizer::AddCheckClass(Definition* to_check,
                                  const Cids& cids,
                                  intptr_t deopt_id,
@@ -396,14 +380,12 @@ void JitOptimizer::AddCheckClass(Definition* to_check,
   InsertBefore(insert_before, check, deopt_environment, FlowGraph::kEffect);
 }
 
-
 void JitOptimizer::AddChecksForArgNr(InstanceCallInstr* call,
                                      Definition* instr,
                                      int argument_number) {
   const Cids* cids = Cids::Create(Z, *call->ic_data(), argument_number);
   AddCheckClass(instr, *cids, call->deopt_id(), call->env(), call);
 }
-
 
 static bool ArgIsAlways(intptr_t cid,
                         const ICData& ic_data,
@@ -421,7 +403,6 @@ static bool ArgIsAlways(intptr_t cid,
   return true;
 }
 
-
 bool JitOptimizer::TryReplaceWithIndexedOp(InstanceCallInstr* call) {
   // Check for monomorphic IC data.
   if (!call->HasICData()) return false;
@@ -433,7 +414,6 @@ bool JitOptimizer::TryReplaceWithIndexedOp(InstanceCallInstr* call) {
   return FlowGraphInliner::TryReplaceInstanceCallWithInline(
       flow_graph_, current_iterator(), call);
 }
-
 
 // Return true if d is a string of length one (a constant or result from
 // from string-from-char-code instruction.
@@ -449,7 +429,6 @@ static bool IsLengthOneString(Definition* d) {
     return d->IsOneByteStringFromCharCode();
   }
 }
-
 
 // Returns true if the string comparison was converted into char-code
 // comparison. Conversion is only possible for strings of length one.
@@ -531,7 +510,6 @@ bool JitOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
   return false;
 }
 
-
 static bool SmiFitsInDouble() {
   return kSmiBits < 53;
 }
@@ -575,10 +553,11 @@ bool JitOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
         // call.
         return false;
       } else {
-        InsertBefore(call, new (Z) CheckEitherNonSmiInstr(new (Z) Value(left),
-                                                          new (Z) Value(right),
-                                                          call->deopt_id()),
-                     call->env(), FlowGraph::kEffect);
+        InsertBefore(
+            call,
+            new (Z) CheckEitherNonSmiInstr(
+                new (Z) Value(left), new (Z) Value(right), call->deopt_id()),
+            call->env(), FlowGraph::kEffect);
         cid = kDoubleCid;
       }
     }
@@ -618,7 +597,6 @@ bool JitOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
   return true;
 }
 
-
 bool JitOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
                                               Token::Kind op_kind) {
   const ICData& ic_data = *call->ic_data();
@@ -652,10 +630,11 @@ bool JitOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
         // call.
         return false;
       } else {
-        InsertBefore(call, new (Z) CheckEitherNonSmiInstr(new (Z) Value(left),
-                                                          new (Z) Value(right),
-                                                          call->deopt_id()),
-                     call->env(), FlowGraph::kEffect);
+        InsertBefore(
+            call,
+            new (Z) CheckEitherNonSmiInstr(
+                new (Z) Value(left), new (Z) Value(right), call->deopt_id()),
+            call->env(), FlowGraph::kEffect);
         cid = kDoubleCid;
       }
     }
@@ -669,7 +648,6 @@ bool JitOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
   ReplaceCall(call, comp);
   return true;
 }
-
 
 bool JitOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                                           Token::Kind op_kind) {
@@ -690,7 +668,7 @@ bool JitOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                  FlowGraphCompiler::SupportsUnboxedMints()) {
         // Don't generate mint code if the IC data is marked because of an
         // overflow.
-        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) return false;
+        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryInt64Op)) return false;
         operands_type = kMintCid;
       } else if (ShouldSpecializeForDouble(ic_data)) {
         operands_type = kDoubleCid;
@@ -737,7 +715,7 @@ bool JitOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         // Left shift may overflow from smi into mint or big ints.
         // Don't generate smi code if the IC data is marked because
         // of an overflow.
-        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
+        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryInt64Op)) {
           return false;
         }
         operands_type = ic_data.HasDeoptReason(ICData::kDeoptBinarySmiOp)
@@ -748,7 +726,7 @@ bool JitOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                      Z, ic_data.AsUnaryClassChecksForArgNr(1)))) {
         // Don't generate mint code if the IC data is marked because of an
         // overflow.
-        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
+        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryInt64Op)) {
           return false;
         }
         // Check for smi/mint << smi or smi/mint >> smi.
@@ -784,10 +762,11 @@ bool JitOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     // binary operation with two smis is a smi not a double, except '/' which
     // returns a double for two smis.
     if (op_kind != Token::kDIV) {
-      InsertBefore(call, new (Z) CheckEitherNonSmiInstr(new (Z) Value(left),
-                                                        new (Z) Value(right),
-                                                        call->deopt_id()),
-                   call->env(), FlowGraph::kEffect);
+      InsertBefore(
+          call,
+          new (Z) CheckEitherNonSmiInstr(
+              new (Z) Value(left), new (Z) Value(right), call->deopt_id()),
+          call->env(), FlowGraph::kEffect);
     }
 
     BinaryDoubleOpInstr* double_bin_op = new (Z)
@@ -797,11 +776,11 @@ bool JitOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   } else if (operands_type == kMintCid) {
     if (!FlowGraphCompiler::SupportsUnboxedMints()) return false;
     if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
-      ShiftMintOpInstr* shift_op = new (Z) ShiftMintOpInstr(
+      ShiftInt64OpInstr* shift_op = new (Z) ShiftInt64OpInstr(
           op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
       ReplaceCall(call, shift_op);
     } else {
-      BinaryMintOpInstr* bin_op = new (Z) BinaryMintOpInstr(
+      BinaryInt64OpInstr* bin_op = new (Z) BinaryInt64OpInstr(
           op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
       ReplaceCall(call, bin_op);
     }
@@ -858,7 +837,6 @@ bool JitOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   return true;
 }
 
-
 bool JitOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
                                          Token::Kind op_kind) {
   ASSERT(call->ArgumentCount() == 1);
@@ -875,7 +853,7 @@ bool JitOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
              HasOnlySmiOrMint(*call->ic_data()) &&
              FlowGraphCompiler::SupportsUnboxedMints()) {
     unary_op = new (Z)
-        UnaryMintOpInstr(op_kind, new (Z) Value(input), call->deopt_id());
+        UnaryInt64OpInstr(op_kind, new (Z) Value(input), call->deopt_id());
   } else if (HasOnlyOneDouble(*call->ic_data()) &&
              (op_kind == Token::kNEGATE) && CanUnboxDouble()) {
     AddReceiverCheck(call);
@@ -888,7 +866,6 @@ bool JitOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
   ReplaceCall(call, unary_op);
   return true;
 }
-
 
 // Using field class.
 RawField* JitOptimizer::GetField(intptr_t class_id, const String& field_name) {
@@ -908,7 +885,6 @@ RawField* JitOptimizer::GetField(intptr_t class_id, const String& field_name) {
   }
   return Field::null();
 }
-
 
 bool JitOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
@@ -947,7 +923,6 @@ bool JitOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   return true;
 }
 
-
 bool JitOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
                                            Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
@@ -967,7 +942,6 @@ bool JitOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
   return true;
 }
 
-
 bool JitOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
                                          Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
@@ -986,7 +960,6 @@ bool JitOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
   return true;
 }
 
-
 bool JitOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
                                            Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
@@ -1004,7 +977,6 @@ bool JitOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
   ReplaceCall(call, float64x2_bin_op);
   return true;
 }
-
 
 // Only unique implicit instance getters can be currently handled.
 bool JitOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
@@ -1030,7 +1002,6 @@ bool JitOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   return InlineImplicitInstanceGetter(call);
 }
 
-
 void JitOptimizer::ReplaceWithMathCFunction(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
@@ -1044,7 +1015,6 @@ void JitOptimizer::ReplaceWithMathCFunction(
       args, call->deopt_id(), recognized_kind, call->token_pos());
   ReplaceCall(call, invoke);
 }
-
 
 // Inline only simple, frequently called core library methods.
 bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
@@ -1126,7 +1096,6 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       flow_graph_, current_iterator(), call);
 }
 
-
 // If type tests specified by 'ic_data' do not depend on type arguments,
 // return mapping cid->result in 'results' (i : cid; i + 1: result).
 // If all tests yield the same result, return it otherwise return Bool::null.
@@ -1194,7 +1163,6 @@ RawBool* JitOptimizer::InstanceOfAsBool(
   return results_differ ? Bool::null() : prev.raw();
 }
 
-
 // Returns true if checking against this type is a direct class id comparison.
 bool JitOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
@@ -1240,7 +1208,6 @@ bool JitOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   }
   return true;
 }
-
 
 // TODO(srdjan): Use ICData to check if always true or false.
 void JitOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
@@ -1318,7 +1285,6 @@ void JitOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ReplaceCall(call, instance_of);
 }
 
-
 // TODO(srdjan): Apply optimizations as in ReplaceWithInstanceOf (TestCids).
 void JitOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeCastOperator(call->token_kind()));
@@ -1358,7 +1324,6 @@ void JitOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
       type, Symbols::InTypeCast(), call->deopt_id());
   ReplaceCall(call, assert_as);
 }
-
 
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
@@ -1476,7 +1441,6 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   }
 }
 
-
 void JitOptimizer::VisitStaticCall(StaticCallInstr* call) {
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(call->function());
@@ -1559,7 +1523,6 @@ void JitOptimizer::VisitStaticCall(StaticCallInstr* call) {
   }
 }
 
-
 void JitOptimizer::VisitStoreInstanceField(StoreInstanceFieldInstr* instr) {
   if (instr->IsUnboxedStore()) {
     // Determine if this field should be unboxed based on the usage of getter
@@ -1613,7 +1576,6 @@ void JitOptimizer::VisitStoreInstanceField(StoreInstanceFieldInstr* instr) {
   }
 }
 
-
 void JitOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
   // Replace generic allocation with a sequence of inlined allocation and
   // explicit initializing stores.
@@ -1644,14 +1606,12 @@ void JitOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
   }
 }
 
-
 void JitOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
 // TODO(zerny): Use kUnboxedUint32 once it is fully supported/optimized.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
-  if (!instr->can_pack_into_smi()) instr->set_representation(kUnboxedMint);
+  if (!instr->can_pack_into_smi()) instr->set_representation(kUnboxedInt64);
 #endif
 }
-
 
 bool JitOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                                            const ICData& unary_ic_data) {
@@ -1692,17 +1652,19 @@ bool JitOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   }
   if (field.guarded_cid() != kDynamicCid) {
     ASSERT(I->use_field_guards());
-    InsertBefore(
-        instr, new (Z) GuardFieldClassInstr(new (Z) Value(instr->ArgumentAt(1)),
-                                            field, instr->deopt_id()),
-        instr->env(), FlowGraph::kEffect);
+    InsertBefore(instr,
+                 new (Z)
+                     GuardFieldClassInstr(new (Z) Value(instr->ArgumentAt(1)),
+                                          field, instr->deopt_id()),
+                 instr->env(), FlowGraph::kEffect);
   }
 
   if (field.needs_length_check()) {
     ASSERT(I->use_field_guards());
-    InsertBefore(instr, new (Z) GuardFieldLengthInstr(
-                            new (Z) Value(instr->ArgumentAt(1)), field,
-                            instr->deopt_id()),
+    InsertBefore(instr,
+                 new (Z)
+                     GuardFieldLengthInstr(new (Z) Value(instr->ArgumentAt(1)),
+                                           field, instr->deopt_id()),
                  instr->env(), FlowGraph::kEffect);
   }
 
@@ -1722,7 +1684,6 @@ bool JitOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   ReplaceCall(instr, store);
   return true;
 }
-
 
 }  // namespace dart
 #endif  // DART_PRECOMPILED_RUNTIME

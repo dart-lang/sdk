@@ -37,6 +37,9 @@ class AnalysisSessionImpl implements AnalysisSession {
   AnalysisSessionImpl(this._driver);
 
   @override
+  SourceFactory get sourceFactory => _driver.sourceFactory;
+
+  @override
   Future<TypeProvider> get typeProvider async {
     _checkConsistency();
     if (_typeProvider == null) {

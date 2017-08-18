@@ -32,7 +32,7 @@ main(List<String> arguments) {
   }, options: [
     Flags.analyzeOnly,
     Flags.analyzeAll,
-    Flags.useKernel
+    Flags.useKernelInSsa
   ]);
   test('mixin', () async {
     Uri mainUri = Uri.parse('memory:main.dart');

@@ -1,0 +1,38 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  function f0() → dynamic
+    return 42;
+  function f1() → dynamic async 
+    return 42;
+  function f2() → dynamic {
+    return 42;
+  }
+  function f3() → dynamic async {
+    return 42;
+  }
+  function f4() → dynamic sync* {
+    yield 42;
+  }
+  function f5() → dynamic async* {
+    yield 42;
+  }
+  function f6() → core::num
+    return 42;
+  function f7() → dynamic
+    return f7.call();
+  function f8() → dynamic
+    return f5.call();
+  dynamic v0 = f0;
+  dynamic v1 = f1;
+  dynamic v2 = f2;
+  dynamic v3 = f3;
+  dynamic v4 = f4;
+  dynamic v5 = f5;
+  dynamic v6 = f6;
+  dynamic v7 = f7;
+  dynamic v8 = f8;
+}
+static method main() → dynamic {}

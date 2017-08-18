@@ -37,6 +37,7 @@ import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
 import '../../common_elements.dart' show CommonElements;
 import '../../elements/elements.dart' show ClassElement, MethodElement;
+import '../../elements/entities.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
 import '../../io/location_provider.dart' show LocationCollector;
@@ -84,7 +85,7 @@ class ModelEmitter {
         compiler.options,
         _closedWorld.commonElements,
         compiler.codegenWorldBuilder,
-        compiler.backend.rtiNeed,
+        _closedWorld.rtiNeed,
         compiler.backend.rtiEncoder,
         namer,
         task,

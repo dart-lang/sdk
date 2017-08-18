@@ -13,11 +13,7 @@ abstract class VMRef {
   String get displayName;
 }
 
-abstract class ServiceObjectOwner {
-  Future<dynamic> invokeRpc(String method, Map params);
-}
-
-abstract class VM implements VMRef, ServiceObjectOwner {
+abstract class VM implements VMRef {
   /// Word length on target architecture (e.g. 32, 64).
   int get architectureBits;
 
@@ -29,6 +25,8 @@ abstract class VM implements VMRef, ServiceObjectOwner {
 
   /// The Dart VM version string.
   String get version;
+
+  String get embedder;
 
   /// The amount of memory currently allocated by native code in zones.
   int get nativeZoneMemoryUsage;
@@ -43,6 +41,7 @@ abstract class VM implements VMRef, ServiceObjectOwner {
   int get heapAllocationCount;
 
   int get maxRSS;
+  int get currentRSS;
 
   /// The time that the VM started in milliseconds since the epoch.
   ///
@@ -51,4 +50,7 @@ abstract class VM implements VMRef, ServiceObjectOwner {
 
   // A list of isolates running in the VM.
   Iterable<IsolateRef> get isolates;
+
+  /// Enable the sampling profiler.
+  Future enableProfiler();
 }

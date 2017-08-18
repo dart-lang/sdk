@@ -110,11 +110,11 @@ class CpuProfileElement extends HtmlElement implements Renderable {
       children = content;
       return;
     }
-    content.add(new SampleBufferControlElement(_progress, _progressStream,
+    content.add(new SampleBufferControlElement(_vm, _progress, _progressStream,
         selectedTag: _tag, queue: _r.queue)
       ..onTagChange.listen((e) {
         _tag = e.element.selectedTag;
-        _request();
+        _request(forceFetch: true);
       }));
     if (_progress.status == M.SampleProfileLoadingStatus.loaded) {
       CpuProfileVirtualTreeElement tree;

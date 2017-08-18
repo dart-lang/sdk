@@ -9,15 +9,14 @@ library fasta.kernel.kernel_outline_shaker;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
-import '../errors.dart' show internalError;
+import '../problems.dart' show unimplemented, unsupported;
 
 /// Removes unnecessary libraries, classes, and members from [program].
 ///
 /// This applies a simple "tree-shaking" technique: the full body of libraries
 /// whose URI match [isIncluded] is preserved, and so is the outline of the
-/// members and classes which are indicated by [data] (which should
-/// practically include all members and classes transitively visible from the
-/// included libraries).
+/// members and classes which are transitively visible from the
+/// included libraries.
 ///
 /// The intent is that the resulting program has the entire code that is meant
 /// to be included and the minimum required to prevent dangling references and
@@ -26,7 +25,9 @@ import '../errors.dart' show internalError;
 /// Note that the resulting program may include libraries not in [isIncluded],
 /// but those will be marked as external. There should be no method bodies for
 /// any members of those libraries.
-void trimProgram(Program program, RetainedData data, bool isIncluded(Uri uri)) {
+void trimProgram(Program program, bool isIncluded(Uri uri)) {
+  var data = new RetainedDataBuilder();
+  new RootsMarker(new CoreTypes(program), data).run(program, isIncluded);
   new KernelOutlineShaker(data, isIncluded).transform(program);
 }
 
@@ -262,7 +263,7 @@ class RootsMarker extends RecursiveVisitor {
   @override
   visitDirectMethodInvocation(DirectMethodInvocation node) {
     if (node.receiver is! ThisExpression) {
-      return internalError('Direct calls are only supported on "this"');
+      return unsupported("direct call not on this", node.fileOffset, null);
     }
     data.markMember(node.target);
     node.visitChildren(this);
@@ -336,7 +337,7 @@ class RootsMarker extends RecursiveVisitor {
 
   @override
   visitTypedefReference(Typedef node) {
-    return internalError('not implemented');
+    return unimplemented("visitTypedefReference", -1, null);
   }
 }
 

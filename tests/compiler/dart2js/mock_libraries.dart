@@ -99,7 +99,6 @@ import 'dart:_internal' as internal;
         String toString() { return null; }
         noSuchMethod(im) { throw im; }
       }''',
-  'Resource': 'class Resource {}',
   'StackTrace': 'abstract class StackTrace {}',
   'String': 'class String implements Pattern {}',
   'Symbol': '''

@@ -8,9 +8,12 @@ import 'dart:async' show Future;
 
 import 'package:kernel/ast.dart' show Library, Program, Source;
 
-import '../errors.dart' show internalError;
 import '../loader.dart' show Loader;
+
+import '../problems.dart' show unhandled;
+
 import '../target_implementation.dart' show TargetImplementation;
+
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 class DillLoader extends Loader<Library> {
@@ -41,7 +44,7 @@ class DillLoader extends Loader<Library> {
 
   Future<Null> buildOutline(DillLibraryBuilder builder) async {
     if (builder.library == null) {
-      internalError("Builder.library for ${builder.uri} should not be null.");
+      unhandled("null", "builder.library", 0, builder.fileUri);
     }
     builder.library.classes.forEach(builder.addClass);
     builder.library.procedures.forEach(builder.addMember);

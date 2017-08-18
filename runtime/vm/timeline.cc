@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
 #ifndef PRODUCT
+
+#include "vm/timeline.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -16,13 +19,16 @@
 #include "vm/object.h"
 #include "vm/service_event.h"
 #include "vm/thread.h"
-#include "vm/timeline.h"
 
 namespace dart {
 
 DEFINE_FLAG(bool, complete_timeline, false, "Record the complete timeline");
 DEFINE_FLAG(bool, startup_timeline, false, "Record the startup timeline");
-DEFINE_FLAG(bool, systrace_timeline, false, "Record the timeline to systrace");
+DEFINE_FLAG(
+    bool,
+    systrace_timeline,
+    false,
+    "Record the timeline to the platform's tracing service if there is one");
 DEFINE_FLAG(bool, trace_timeline, false, "Trace timeline backend");
 DEFINE_FLAG(bool,
             trace_timeline_analysis,
@@ -91,7 +97,6 @@ DEFINE_FLAG(charp,
 //       |TimelineEventRecorder::lock_|
 //
 
-
 static TimelineEventRecorder* CreateTimelineRecorder() {
   // Some flags require that we use the endless recorder.
   const bool use_endless_recorder =
@@ -107,7 +112,7 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
       if (FLAG_trace_timeline) {
         THR_Print("Using the Systrace timeline recorder.\n");
       }
-      return new TimelineEventSystraceRecorder();
+      return TimelineEventPlatformRecorder::CreatePlatformRecorder();
     }
   }
 
@@ -137,7 +142,6 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
   return new TimelineEventRingRecorder();
 }
 
-
 // Returns a caller freed array of stream names in FLAG_timeline_streams.
 static MallocGrowableArray<char*>* GetEnabledByDefaultTimelineStreams() {
   MallocGrowableArray<char*>* result = new MallocGrowableArray<char*>();
@@ -157,7 +161,6 @@ static MallocGrowableArray<char*>* GetEnabledByDefaultTimelineStreams() {
   return result;
 }
 
-
 // Frees the result of |GetEnabledByDefaultTimelineStreams|.
 static void FreeEnabledByDefaultTimelineStreams(
     MallocGrowableArray<char*>* streams) {
@@ -169,7 +172,6 @@ static void FreeEnabledByDefaultTimelineStreams(
   }
   delete streams;
 }
-
 
 // Returns true if |streams| contains |stream| or "all". Not case sensitive.
 static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
@@ -186,7 +188,6 @@ static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
   }
   return false;
 }
-
 
 void Timeline::InitOnce() {
   ASSERT(recorder_ == NULL);
@@ -205,7 +206,6 @@ void Timeline::InitOnce() {
   }
 }
 
-
 void Timeline::StreamStateChange(const char* stream_name,
                                  bool prev,
                                  bool curr) {
@@ -220,7 +220,6 @@ void Timeline::StreamStateChange(const char* stream_name,
     }
   }
 }
-
 
 void Timeline::Shutdown() {
   ASSERT(recorder_ != NULL);
@@ -247,11 +246,9 @@ void Timeline::Shutdown() {
   }
 }
 
-
 TimelineEventRecorder* Timeline::recorder() {
   return recorder_;
 }
-
 
 void Timeline::ReclaimCachedBlocksFromThreads() {
   TimelineEventRecorder* recorder = Timeline::recorder();
@@ -273,7 +270,6 @@ void Timeline::ReclaimCachedBlocksFromThreads() {
     recorder->FinishBlock(block);
   }
 }
-
 
 void Timeline::PrintFlagsToJSON(JSONStream* js) {
   JSONObject obj(js);
@@ -301,7 +297,6 @@ void Timeline::PrintFlagsToJSON(JSONStream* js) {
   }
 }
 
-
 void Timeline::Clear() {
   TimelineEventRecorder* recorder = Timeline::recorder();
   if (recorder == NULL) {
@@ -310,7 +305,6 @@ void Timeline::Clear() {
   ReclaimCachedBlocksFromThreads();
   recorder->Clear();
 }
-
 
 TimelineEventRecorder* Timeline::recorder_ = NULL;
 MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
@@ -335,11 +329,9 @@ TimelineEvent::TimelineEvent()
       thread_(OSThread::kInvalidThreadId),
       isolate_id_(ILLEGAL_PORT) {}
 
-
 TimelineEvent::~TimelineEvent() {
   Reset();
 }
-
 
 void TimelineEvent::Reset() {
   if (owns_label() && label_ != NULL) {
@@ -356,7 +348,6 @@ void TimelineEvent::Reset() {
   set_owns_label(false);
 }
 
-
 void TimelineEvent::AsyncBegin(const char* label,
                                int64_t async_id,
                                int64_t micros) {
@@ -365,7 +356,6 @@ void TimelineEvent::AsyncBegin(const char* label,
   // Overload timestamp1_ with the async_id.
   set_timestamp1(async_id);
 }
-
 
 void TimelineEvent::AsyncInstant(const char* label,
                                  int64_t async_id,
@@ -376,7 +366,6 @@ void TimelineEvent::AsyncInstant(const char* label,
   set_timestamp1(async_id);
 }
 
-
 void TimelineEvent::AsyncEnd(const char* label,
                              int64_t async_id,
                              int64_t micros) {
@@ -386,7 +375,6 @@ void TimelineEvent::AsyncEnd(const char* label,
   set_timestamp1(async_id);
 }
 
-
 void TimelineEvent::DurationBegin(const char* label,
                                   int64_t micros,
                                   int64_t thread_micros) {
@@ -395,19 +383,16 @@ void TimelineEvent::DurationBegin(const char* label,
   set_thread_timestamp0(thread_micros);
 }
 
-
 void TimelineEvent::DurationEnd(int64_t micros, int64_t thread_micros) {
   ASSERT(timestamp1_ == 0);
   set_timestamp1(micros);
   set_thread_timestamp1(thread_micros);
 }
 
-
 void TimelineEvent::Instant(const char* label, int64_t micros) {
   Init(kInstant, label);
   set_timestamp0(micros);
 }
-
 
 void TimelineEvent::Duration(const char* label,
                              int64_t start_micros,
@@ -421,7 +406,6 @@ void TimelineEvent::Duration(const char* label,
   set_thread_timestamp1(thread_end_micros);
 }
 
-
 void TimelineEvent::Begin(const char* label,
                           int64_t micros,
                           int64_t thread_micros) {
@@ -429,7 +413,6 @@ void TimelineEvent::Begin(const char* label,
   set_timestamp0(micros);
   set_thread_timestamp0(thread_micros);
 }
-
 
 void TimelineEvent::End(const char* label,
                         int64_t micros,
@@ -439,18 +422,42 @@ void TimelineEvent::End(const char* label,
   set_thread_timestamp0(thread_micros);
 }
 
-
 void TimelineEvent::Counter(const char* label, int64_t micros) {
   Init(kCounter, label);
   set_timestamp0(micros);
 }
 
+void TimelineEvent::FlowBegin(const char* label,
+                              int64_t async_id,
+                              int64_t micros) {
+  Init(kFlowBegin, label);
+  set_timestamp0(micros);
+  // Overload timestamp1_ with the async_id.
+  set_timestamp1(async_id);
+}
+
+void TimelineEvent::FlowStep(const char* label,
+                             int64_t async_id,
+                             int64_t micros) {
+  Init(kFlowStep, label);
+  set_timestamp0(micros);
+  // Overload timestamp1_ with the async_id.
+  set_timestamp1(async_id);
+}
+
+void TimelineEvent::FlowEnd(const char* label,
+                            int64_t async_id,
+                            int64_t micros) {
+  Init(kFlowEnd, label);
+  set_timestamp0(micros);
+  // Overload timestamp1_ with the async_id.
+  set_timestamp1(async_id);
+}
 
 void TimelineEvent::Metadata(const char* label, int64_t micros) {
   Init(kMetadata, label);
   set_timestamp0(micros);
 }
-
 
 void TimelineEvent::CompleteWithPreSerializedJSON(const char* json) {
   set_pre_serialized_json(true);
@@ -458,7 +465,6 @@ void TimelineEvent::CompleteWithPreSerializedJSON(const char* json) {
   CopyArgument(0, "Dart", json);
   Complete();
 }
-
 
 void TimelineEvent::SetNumArguments(intptr_t length) {
   // Cannot call this twice.
@@ -472,14 +478,12 @@ void TimelineEvent::SetNumArguments(intptr_t length) {
       calloc(sizeof(TimelineEventArgument), length));
 }
 
-
 void TimelineEvent::SetArgument(intptr_t i, const char* name, char* argument) {
   ASSERT(i >= 0);
   ASSERT(i < arguments_length_);
   arguments_[i].name = name;
   arguments_[i].value = argument;
 }
-
 
 void TimelineEvent::FormatArgument(intptr_t i,
                                    const char* name,
@@ -501,13 +505,11 @@ void TimelineEvent::FormatArgument(intptr_t i,
   SetArgument(i, name, buffer);
 }
 
-
 void TimelineEvent::CopyArgument(intptr_t i,
                                  const char* name,
                                  const char* argument) {
   SetArgument(i, name, strdup(argument));
 }
-
 
 void TimelineEvent::StealArguments(intptr_t arguments_length,
                                    TimelineEventArgument* arguments) {
@@ -515,42 +517,12 @@ void TimelineEvent::StealArguments(intptr_t arguments_length,
   arguments_ = arguments;
 }
 
-
-intptr_t TimelineEvent::PrintSystrace(char* buffer, intptr_t buffer_size) {
-  ASSERT(buffer != NULL);
-  ASSERT(buffer_size > 0);
-  buffer[0] = '\0';
-  intptr_t length = 0;
-  int64_t pid = OS::ProcessId();
-  switch (event_type()) {
-    case kBegin: {
-      length = OS::SNPrint(buffer, buffer_size, "B|%" Pd64 "|%s", pid, label());
-    } break;
-    case kEnd: {
-      length = OS::SNPrint(buffer, buffer_size, "E");
-    } break;
-    case kCounter: {
-      if (arguments_length_ > 0) {
-        // We only report the first counter value.
-        length = OS::SNPrint(buffer, buffer_size, "C|%" Pd64 "|%s|%s", pid,
-                             label(), arguments_[0].value);
-      }
-    }
-    default:
-      // Ignore event types that we cannot serialize to the Systrace format.
-      break;
-  }
-  return length;
-}
-
-
 void TimelineEvent::Complete() {
   TimelineEventRecorder* recorder = Timeline::recorder();
   if (recorder != NULL) {
     recorder->CompleteEvent(this);
   }
 }
-
 
 void TimelineEvent::FreeArguments() {
   if (arguments_ == NULL) {
@@ -564,7 +536,6 @@ void TimelineEvent::FreeArguments() {
   arguments_length_ = 0;
 }
 
-
 void TimelineEvent::StreamInit(TimelineStream* stream) {
   if (stream != NULL) {
     category_ = stream->name();
@@ -572,7 +543,6 @@ void TimelineEvent::StreamInit(TimelineStream* stream) {
     category_ = "";
   }
 }
-
 
 void TimelineEvent::Init(EventType event_type, const char* label) {
   ASSERT(label != NULL);
@@ -597,7 +567,6 @@ void TimelineEvent::Init(EventType event_type, const char* label) {
   set_owns_label(false);
 }
 
-
 bool TimelineEvent::Within(int64_t time_origin_micros,
                            int64_t time_extent_micros) {
   if ((time_origin_micros == -1) || (time_extent_micros == -1)) {
@@ -619,14 +588,12 @@ bool TimelineEvent::Within(int64_t time_origin_micros,
   return (delta >= 0) && (delta <= time_extent_micros);
 }
 
-
 const char* TimelineEvent::GetSerializedJSON() const {
   ASSERT(pre_serialized_json());
   ASSERT(arguments_length_ == 1);
   ASSERT(arguments_ != NULL);
   return arguments_[0].value;
 }
-
 
 void TimelineEvent::PrintJSON(JSONStream* stream) const {
   if (!FLAG_support_service) {
@@ -679,11 +646,24 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
       obj.AddProperty("ph", "e");
       obj.AddPropertyF("id", "%" Px64 "", AsyncId());
     } break;
-    case kMetadata: {
-      obj.AddProperty("ph", "M");
-    } break;
     case kCounter: {
       obj.AddProperty("ph", "C");
+    } break;
+    case kFlowBegin: {
+      obj.AddProperty("ph", "s");
+      obj.AddPropertyF("id", "%" Px64 "", AsyncId());
+    } break;
+    case kFlowStep: {
+      obj.AddProperty("ph", "t");
+      obj.AddPropertyF("id", "%" Px64 "", AsyncId());
+    } break;
+    case kFlowEnd: {
+      obj.AddProperty("ph", "f");
+      obj.AddProperty("bp", "e");
+      obj.AddPropertyF("id", "%" Px64 "", AsyncId());
+    } break;
+    case kMetadata: {
+      obj.AddProperty("ph", "M");
     } break;
     default:
       UNIMPLEMENTED();
@@ -702,21 +682,17 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
   }
 }
 
-
 int64_t TimelineEvent::TimeOrigin() const {
   return timestamp0_;
 }
-
 
 int64_t TimelineEvent::AsyncId() const {
   return timestamp1_;
 }
 
-
 int64_t TimelineEvent::LowTime() const {
   return timestamp0_;
 }
-
 
 int64_t TimelineEvent::HighTime() const {
   if (event_type() == kDuration) {
@@ -726,7 +702,6 @@ int64_t TimelineEvent::HighTime() const {
   }
 }
 
-
 int64_t TimelineEvent::TimeDuration() const {
   if (timestamp1_ == 0) {
     // This duration is still open, use current time as end.
@@ -735,17 +710,14 @@ int64_t TimelineEvent::TimeDuration() const {
   return timestamp1_ - timestamp0_;
 }
 
-
 bool TimelineEvent::HasThreadCPUTime() const {
   return (thread_timestamp0_ != -1);
 }
-
 
 int64_t TimelineEvent::ThreadCPUTimeOrigin() const {
   ASSERT(HasThreadCPUTime());
   return thread_timestamp0_;
 }
-
 
 int64_t TimelineEvent::ThreadCPUTimeDuration() const {
   ASSERT(HasThreadCPUTime());
@@ -756,15 +728,12 @@ int64_t TimelineEvent::ThreadCPUTimeDuration() const {
   return thread_timestamp1_ - thread_timestamp0_;
 }
 
-
 TimelineStream::TimelineStream() : name_(NULL), enabled_(false) {}
-
 
 void TimelineStream::Init(const char* name, bool enabled) {
   name_ = name;
   enabled_ = enabled;
 }
-
 
 TimelineEvent* TimelineStream::StartEvent() {
   TimelineEventRecorder* recorder = Timeline::recorder();
@@ -779,7 +748,6 @@ TimelineEvent* TimelineStream::StartEvent() {
   return event;
 }
 
-
 TimelineEventScope::TimelineEventScope(TimelineStream* stream,
                                        const char* label)
     : StackResource(reinterpret_cast<Thread*>(NULL)),
@@ -790,7 +758,6 @@ TimelineEventScope::TimelineEventScope(TimelineStream* stream,
       enabled_(false) {
   Init();
 }
-
 
 TimelineEventScope::TimelineEventScope(Thread* thread,
                                        TimelineStream* stream,
@@ -804,11 +771,9 @@ TimelineEventScope::TimelineEventScope(Thread* thread,
   Init();
 }
 
-
 TimelineEventScope::~TimelineEventScope() {
   FreeArguments();
 }
-
 
 void TimelineEventScope::Init() {
   ASSERT(enabled_ == false);
@@ -820,7 +785,6 @@ void TimelineEventScope::Init() {
   }
   enabled_ = true;
 }
-
 
 void TimelineEventScope::SetNumArguments(intptr_t length) {
   if (!enabled()) {
@@ -836,7 +800,6 @@ void TimelineEventScope::SetNumArguments(intptr_t length) {
       calloc(sizeof(TimelineEventArgument), length));
 }
 
-
 // |name| must be a compile time constant. Takes ownership of |argumentp|.
 void TimelineEventScope::SetArgument(intptr_t i,
                                      const char* name,
@@ -850,7 +813,6 @@ void TimelineEventScope::SetArgument(intptr_t i,
   arguments_[i].value = argument;
 }
 
-
 // |name| must be a compile time constant. Copies |argument|.
 void TimelineEventScope::CopyArgument(intptr_t i,
                                       const char* name,
@@ -860,7 +822,6 @@ void TimelineEventScope::CopyArgument(intptr_t i,
   }
   SetArgument(i, name, strdup(argument));
 }
-
 
 void TimelineEventScope::FormatArgument(intptr_t i,
                                         const char* name,
@@ -883,7 +844,6 @@ void TimelineEventScope::FormatArgument(intptr_t i,
   SetArgument(i, name, buffer);
 }
 
-
 void TimelineEventScope::FreeArguments() {
   if (arguments_ == NULL) {
     return;
@@ -896,7 +856,6 @@ void TimelineEventScope::FreeArguments() {
   arguments_length_ = 0;
 }
 
-
 void TimelineEventScope::StealArguments(TimelineEvent* event) {
   if (event == NULL) {
     return;
@@ -905,7 +864,6 @@ void TimelineEventScope::StealArguments(TimelineEvent* event) {
   arguments_length_ = 0;
   arguments_ = NULL;
 }
-
 
 TimelineDurationScope::TimelineDurationScope(TimelineStream* stream,
                                              const char* label)
@@ -917,7 +875,6 @@ TimelineDurationScope::TimelineDurationScope(TimelineStream* stream,
   thread_timestamp_ = OS::GetCurrentThreadCPUMicros();
 }
 
-
 TimelineDurationScope::TimelineDurationScope(Thread* thread,
                                              TimelineStream* stream,
                                              const char* label)
@@ -928,7 +885,6 @@ TimelineDurationScope::TimelineDurationScope(Thread* thread,
   timestamp_ = OS::GetCurrentMonotonicMicros();
   thread_timestamp_ = OS::GetCurrentThreadCPUMicros();
 }
-
 
 TimelineDurationScope::~TimelineDurationScope() {
   if (!FLAG_support_timeline) {
@@ -950,7 +906,6 @@ TimelineDurationScope::~TimelineDurationScope() {
   event->Complete();
 }
 
-
 TimelineBeginEndScope::TimelineBeginEndScope(TimelineStream* stream,
                                              const char* label)
     : TimelineEventScope(stream, label) {
@@ -959,7 +914,6 @@ TimelineBeginEndScope::TimelineBeginEndScope(TimelineStream* stream,
   }
   EmitBegin();
 }
-
 
 TimelineBeginEndScope::TimelineBeginEndScope(Thread* thread,
                                              TimelineStream* stream,
@@ -971,14 +925,12 @@ TimelineBeginEndScope::TimelineBeginEndScope(Thread* thread,
   EmitBegin();
 }
 
-
 TimelineBeginEndScope::~TimelineBeginEndScope() {
   if (!FLAG_support_timeline) {
     return;
   }
   EmitEnd();
 }
-
 
 void TimelineBeginEndScope::EmitBegin() {
   if (!FLAG_support_timeline) {
@@ -998,7 +950,6 @@ void TimelineBeginEndScope::EmitBegin() {
   event->Begin(label());
   event->Complete();
 }
-
 
 void TimelineBeginEndScope::EmitEnd() {
   if (!FLAG_support_timeline) {
@@ -1020,7 +971,6 @@ void TimelineBeginEndScope::EmitEnd() {
   event->Complete();
 }
 
-
 TimelineEventFilter::TimelineEventFilter(int64_t time_origin_micros,
                                          int64_t time_extent_micros)
     : time_origin_micros_(time_origin_micros),
@@ -1029,9 +979,7 @@ TimelineEventFilter::TimelineEventFilter(int64_t time_origin_micros,
   ASSERT(time_extent_micros_ >= -1);
 }
 
-
 TimelineEventFilter::~TimelineEventFilter() {}
-
 
 IsolateTimelineEventFilter::IsolateTimelineEventFilter(
     Dart_Port isolate_id,
@@ -1040,10 +988,8 @@ IsolateTimelineEventFilter::IsolateTimelineEventFilter(
     : TimelineEventFilter(time_origin_micros, time_extent_micros),
       isolate_id_(isolate_id) {}
 
-
 TimelineEventRecorder::TimelineEventRecorder()
     : async_id_(0), time_low_micros_(0), time_high_micros_(0) {}
-
 
 void TimelineEventRecorder::PrintJSONMeta(JSONArray* events) const {
   if (!FLAG_support_service) {
@@ -1070,7 +1016,6 @@ void TimelineEventRecorder::PrintJSONMeta(JSONArray* events) const {
     }
   }
 }
-
 
 TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
   // Grab the current thread.
@@ -1120,12 +1065,10 @@ TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
   return NULL;
 }
 
-
 void TimelineEventRecorder::ResetTimeTracking() {
   time_high_micros_ = 0;
   time_low_micros_ = kMaxInt64;
 }
-
 
 void TimelineEventRecorder::ReportTime(int64_t micros) {
   if (time_high_micros_ < micros) {
@@ -1136,7 +1079,6 @@ void TimelineEventRecorder::ReportTime(int64_t micros) {
   }
 }
 
-
 int64_t TimelineEventRecorder::TimeOriginMicros() const {
   if (time_high_micros_ == 0) {
     return 0;
@@ -1144,14 +1086,12 @@ int64_t TimelineEventRecorder::TimeOriginMicros() const {
   return time_low_micros_;
 }
 
-
 int64_t TimelineEventRecorder::TimeExtentMicros() const {
   if (time_high_micros_ == 0) {
     return 0;
   }
   return time_high_micros_ - time_low_micros_;
 }
-
 
 void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
   if (event == NULL) {
@@ -1171,7 +1111,6 @@ void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
 #endif  // defined(DEBUG)
   thread_block_lock->Unlock();
 }
-
 
 void TimelineEventRecorder::WriteTo(const char* directory) {
   if (!FLAG_support_service) {
@@ -1212,14 +1151,13 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
   return;
 }
 
-
 int64_t TimelineEventRecorder::GetNextAsyncId() {
   // TODO(johnmccutchan): Gracefully handle wrap around.
+  // TODO(rmacnak): Use TRACE_NONCE() on Fuchsia?
   uint32_t next =
       static_cast<uint32_t>(AtomicOperations::FetchAndIncrement(&async_id_));
   return static_cast<int64_t>(next);
 }
-
 
 void TimelineEventRecorder::FinishBlock(TimelineEventBlock* block) {
   if (block == NULL) {
@@ -1229,42 +1167,40 @@ void TimelineEventRecorder::FinishBlock(TimelineEventBlock* block) {
   block->Finish();
 }
 
-
 TimelineEventBlock* TimelineEventRecorder::GetNewBlock() {
   MutexLocker ml(&lock_);
   return GetNewBlockLocked();
 }
 
-
 TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
     intptr_t capacity)
-    : blocks_(NULL), capacity_(capacity), num_blocks_(0), block_cursor_(0) {
+    : memory_(NULL),
+      blocks_(NULL),
+      capacity_(capacity),
+      num_blocks_(0),
+      block_cursor_(0) {
   // Capacity must be a multiple of TimelineEventBlock::kBlockSize
   ASSERT((capacity % TimelineEventBlock::kBlockSize) == 0);
   // Allocate blocks array.
   num_blocks_ = capacity / TimelineEventBlock::kBlockSize;
-  blocks_ = reinterpret_cast<TimelineEventBlock**>(
-      calloc(num_blocks_, sizeof(TimelineEventBlock*)));
-  // Allocate each block.
-  for (intptr_t i = 0; i < num_blocks_; i++) {
-    blocks_[i] = new TimelineEventBlock(i);
-  }
-  // Chain blocks together.
-  for (intptr_t i = 0; i < num_blocks_ - 1; i++) {
-    blocks_[i]->set_next(blocks_[i + 1]);
-  }
-}
 
+  intptr_t size = Utils::RoundUp(num_blocks_ * sizeof(TimelineEventBlock),
+                                 VirtualMemory::PageSize());
+  const bool kNotExecutable = false;
+  memory_ = VirtualMemory::Reserve(size);
+  if ((memory_ == NULL) || !memory_->Commit(kNotExecutable, "dart-timeline")) {
+    OUT_OF_MEMORY();
+  }
+  blocks_ = reinterpret_cast<TimelineEventBlock*>(memory_->address());
+}
 
 TimelineEventFixedBufferRecorder::~TimelineEventFixedBufferRecorder() {
   // Delete all blocks.
   for (intptr_t i = 0; i < num_blocks_; i++) {
-    TimelineEventBlock* block = blocks_[i];
-    delete block;
+    blocks_[i].Reset();
   }
-  free(blocks_);
+  delete memory_;
 }
-
 
 void TimelineEventFixedBufferRecorder::PrintJSONEvents(
     JSONArray* events,
@@ -1281,7 +1217,7 @@ void TimelineEventFixedBufferRecorder::PrintJSONEvents(
   }
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
     TimelineEventBlock* block =
-        blocks_[(block_idx + block_offset) % num_blocks_];
+        &blocks_[(block_idx + block_offset) % num_blocks_];
     if (!filter->IncludeBlock(block)) {
       continue;
     }
@@ -1297,7 +1233,6 @@ void TimelineEventFixedBufferRecorder::PrintJSONEvents(
     }
   }
 }
-
 
 void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
                                                  TimelineEventFilter* filter) {
@@ -1315,7 +1250,6 @@ void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
   topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
 
-
 void TimelineEventFixedBufferRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
@@ -1327,26 +1261,23 @@ void TimelineEventFixedBufferRecorder::PrintTraceEvent(
   PrintJSONEvents(&events, filter);
 }
 
-
 TimelineEventBlock* TimelineEventFixedBufferRecorder::GetHeadBlockLocked() {
-  return blocks_[0];
+  return &blocks_[0];
 }
-
 
 void TimelineEventFixedBufferRecorder::Clear() {
   MutexLocker ml(&lock_);
   for (intptr_t i = 0; i < num_blocks_; i++) {
-    TimelineEventBlock* block = blocks_[i];
+    TimelineEventBlock* block = &blocks_[i];
     block->Reset();
   }
 }
-
 
 intptr_t TimelineEventFixedBufferRecorder::FindOldestBlockIndex() const {
   int64_t earliest_time = kMaxInt64;
   intptr_t earliest_index = -1;
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
-    TimelineEventBlock* block = blocks_[block_idx];
+    TimelineEventBlock* block = &blocks_[block_idx];
     if (block->IsEmpty()) {
       // Skip empty blocks.
       continue;
@@ -1359,11 +1290,9 @@ intptr_t TimelineEventFixedBufferRecorder::FindOldestBlockIndex() const {
   return earliest_index;
 }
 
-
 TimelineEvent* TimelineEventFixedBufferRecorder::StartEvent() {
   return ThreadBlockStartEvent();
 }
-
 
 void TimelineEventFixedBufferRecorder::CompleteEvent(TimelineEvent* event) {
   if (event == NULL) {
@@ -1372,99 +1301,31 @@ void TimelineEventFixedBufferRecorder::CompleteEvent(TimelineEvent* event) {
   ThreadBlockCompleteEvent(event);
 }
 
-
-TimelineEventSystraceRecorder::TimelineEventSystraceRecorder(intptr_t capacity)
-    : TimelineEventFixedBufferRecorder(capacity), systrace_fd_(-1) {
-#if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
-  const char* kSystracePath = "/sys/kernel/debug/tracing/trace_marker";
-  systrace_fd_ = open(kSystracePath, O_WRONLY);
-  if ((systrace_fd_ < 0) && FLAG_trace_timeline) {
-    OS::PrintErr("TimelineEventSystraceRecorder: Could not open `%s`\n",
-                 kSystracePath);
-  }
-#else
-  OS::PrintErr(
-      "Warning: The systrace timeline recorder is equivalent to the"
-      "ring recorder on this platform.");
-#endif
-}
-
-
-TimelineEventSystraceRecorder::~TimelineEventSystraceRecorder() {
-#if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
-  if (systrace_fd_ >= 0) {
-    close(systrace_fd_);
-  }
-#endif
-}
-
-
-TimelineEventBlock* TimelineEventSystraceRecorder::GetNewBlockLocked() {
-  // TODO(johnmccutchan): This function should only hand out blocks
-  // which have been marked as finished.
-  if (block_cursor_ == num_blocks_) {
-    block_cursor_ = 0;
-  }
-  TimelineEventBlock* block = blocks_[block_cursor_++];
-  block->Reset();
-  block->Open();
-  return block;
-}
-
-
-void TimelineEventSystraceRecorder::CompleteEvent(TimelineEvent* event) {
-  if (event == NULL) {
-    return;
-  }
-#if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
-  if (systrace_fd_ >= 0) {
-    // Serialize to the systrace format.
-    const intptr_t kBufferLength = 1024;
-    char buffer[kBufferLength];
-    const intptr_t event_length =
-        event->PrintSystrace(&buffer[0], kBufferLength);
-    if (event_length > 0) {
-      ssize_t __result;
-      // Repeatedly attempt the write while we are being interrupted.
-      do {
-        __result = write(systrace_fd_, buffer, event_length);
-      } while ((__result == -1L) && (errno == EINTR));
-    }
-  }
-#endif
-  ThreadBlockCompleteEvent(event);
-}
-
-
 TimelineEventBlock* TimelineEventRingRecorder::GetNewBlockLocked() {
   // TODO(johnmccutchan): This function should only hand out blocks
   // which have been marked as finished.
   if (block_cursor_ == num_blocks_) {
     block_cursor_ = 0;
   }
-  TimelineEventBlock* block = blocks_[block_cursor_++];
+  TimelineEventBlock* block = &blocks_[block_cursor_++];
   block->Reset();
   block->Open();
   return block;
 }
-
 
 TimelineEventBlock* TimelineEventStartupRecorder::GetNewBlockLocked() {
   if (block_cursor_ == num_blocks_) {
     return NULL;
   }
-  TimelineEventBlock* block = blocks_[block_cursor_++];
+  TimelineEventBlock* block = &blocks_[block_cursor_++];
   block->Reset();
   block->Open();
   return block;
 }
 
-
 TimelineEventCallbackRecorder::TimelineEventCallbackRecorder() {}
 
-
 TimelineEventCallbackRecorder::~TimelineEventCallbackRecorder() {}
-
 
 void TimelineEventCallbackRecorder::PrintJSON(JSONStream* js,
                                               TimelineEventFilter* filter) {
@@ -1479,7 +1340,6 @@ void TimelineEventCallbackRecorder::PrintJSON(JSONStream* js,
   }
 }
 
-
 void TimelineEventCallbackRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
@@ -1489,18 +1349,15 @@ void TimelineEventCallbackRecorder::PrintTraceEvent(
   JSONArray events(js);
 }
 
-
 TimelineEvent* TimelineEventCallbackRecorder::StartEvent() {
   TimelineEvent* event = new TimelineEvent();
   return event;
 }
 
-
 void TimelineEventCallbackRecorder::CompleteEvent(TimelineEvent* event) {
   OnEvent(event);
   delete event;
 }
-
 
 TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
     : head_(NULL), block_index_(0) {}
@@ -1532,7 +1389,6 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
   topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
 
-
 void TimelineEventEndlessRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
@@ -1544,16 +1400,13 @@ void TimelineEventEndlessRecorder::PrintTraceEvent(
   PrintJSONEvents(&events, filter);
 }
 
-
 TimelineEventBlock* TimelineEventEndlessRecorder::GetHeadBlockLocked() {
   return head_;
 }
 
-
 TimelineEvent* TimelineEventEndlessRecorder::StartEvent() {
   return ThreadBlockStartEvent();
 }
-
 
 void TimelineEventEndlessRecorder::CompleteEvent(TimelineEvent* event) {
   if (event == NULL) {
@@ -1561,7 +1414,6 @@ void TimelineEventEndlessRecorder::CompleteEvent(TimelineEvent* event) {
   }
   ThreadBlockCompleteEvent(event);
 }
-
 
 TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlockLocked() {
   TimelineEventBlock* block = new TimelineEventBlock(block_index_++);
@@ -1578,7 +1430,6 @@ static int TimelineEventBlockCompare(TimelineEventBlock* const* a,
                                      TimelineEventBlock* const* b) {
   return (*a)->LowerTimeBound() - (*b)->LowerTimeBound();
 }
-
 
 void TimelineEventEndlessRecorder::PrintJSONEvents(
     JSONArray* events,
@@ -1621,7 +1472,6 @@ void TimelineEventEndlessRecorder::PrintJSONEvents(
   }
 }
 
-
 void TimelineEventEndlessRecorder::Clear() {
   TimelineEventBlock* current = head_;
   while (current != NULL) {
@@ -1635,7 +1485,6 @@ void TimelineEventEndlessRecorder::Clear() {
   thread->set_timeline_block(NULL);
 }
 
-
 TimelineEventBlock::TimelineEventBlock(intptr_t block_index)
     : next_(NULL),
       length_(0),
@@ -1643,11 +1492,9 @@ TimelineEventBlock::TimelineEventBlock(intptr_t block_index)
       thread_id_(OSThread::kInvalidThreadId),
       in_use_(false) {}
 
-
 TimelineEventBlock::~TimelineEventBlock() {
   Reset();
 }
-
 
 void TimelineEventBlock::PrintJSON(JSONStream* js) const {
   ASSERT(!in_use());
@@ -1657,7 +1504,6 @@ void TimelineEventBlock::PrintJSON(JSONStream* js) const {
     events.AddValue(event);
   }
 }
-
 
 TimelineEvent* TimelineEventBlock::StartEvent() {
   ASSERT(!IsFull());
@@ -1670,7 +1516,6 @@ TimelineEvent* TimelineEventBlock::StartEvent() {
   return &events_[length_++];
 }
 
-
 int64_t TimelineEventBlock::LowerTimeBound() const {
   if (length_ == 0) {
     return kMaxInt64;
@@ -1678,7 +1523,6 @@ int64_t TimelineEventBlock::LowerTimeBound() const {
   ASSERT(length_ > 0);
   return events_[0].TimeOrigin();
 }
-
 
 bool TimelineEventBlock::CheckBlock() {
   if (length() == 0) {
@@ -1703,7 +1547,6 @@ bool TimelineEventBlock::CheckBlock() {
   return true;
 }
 
-
 void TimelineEventBlock::Reset() {
   for (intptr_t i = 0; i < kBlockSize; i++) {
     // Clear any extra data.
@@ -1714,14 +1557,12 @@ void TimelineEventBlock::Reset() {
   in_use_ = false;
 }
 
-
 void TimelineEventBlock::Open() {
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != NULL);
   thread_id_ = os_thread->trace_id();
   in_use_ = true;
 }
-
 
 void TimelineEventBlock::Finish() {
   if (FLAG_trace_timeline) {
@@ -1735,18 +1576,15 @@ void TimelineEventBlock::Finish() {
   }
 }
 
-
 TimelineEventBlockIterator::TimelineEventBlockIterator(
     TimelineEventRecorder* recorder)
     : current_(NULL), recorder_(NULL) {
   Reset(recorder);
 }
 
-
 TimelineEventBlockIterator::~TimelineEventBlockIterator() {
   Reset(NULL);
 }
-
 
 void TimelineEventBlockIterator::Reset(TimelineEventRecorder* recorder) {
   // Clear current.
@@ -1765,17 +1603,172 @@ void TimelineEventBlockIterator::Reset(TimelineEventRecorder* recorder) {
   current_ = recorder_->GetHeadBlockLocked();
 }
 
-
 bool TimelineEventBlockIterator::HasNext() const {
   return current_ != NULL;
 }
-
 
 TimelineEventBlock* TimelineEventBlockIterator::Next() {
   ASSERT(current_ != NULL);
   TimelineEventBlock* r = current_;
   current_ = current_->next();
   return r;
+}
+
+void DartCommonTimelineEventHelpers::ReportTaskEvent(Thread* thread,
+                                                     Zone* zone,
+                                                     TimelineEvent* event,
+                                                     int64_t start,
+                                                     int64_t id,
+                                                     const char* phase,
+                                                     const char* category,
+                                                     const char* name,
+                                                     const char* args) {
+  const int64_t pid = OS::ProcessId();
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  const int64_t tid = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
+  ASSERT(phase != NULL);
+  ASSERT((phase[0] == 'n') || (phase[0] == 'b') || (phase[0] == 'e'));
+  ASSERT(phase[1] == '\0');
+  char* json = OS::SCreate(
+      zone,
+      "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64
+      ","
+      "\"ts\":%" Pd64 ",\"ph\":\"%s\",\"id\":%" Pd64 ", \"args\":%s}",
+      name, category, tid, pid, start, phase, id, args);
+  switch (phase[0]) {
+    case 'n':
+      event->AsyncInstant("", id, start);
+      break;
+    case 'b':
+      event->AsyncBegin("", id, start);
+      break;
+    case 'e':
+      event->AsyncEnd("", id, start);
+      break;
+    default:
+      UNREACHABLE();
+  }
+
+  // json was allocated in the zone and a copy will be stored in event.
+  event->CompleteWithPreSerializedJSON(json);
+}
+
+void DartCommonTimelineEventHelpers::ReportCompleteEvent(Thread* thread,
+                                                         Zone* zone,
+                                                         TimelineEvent* event,
+                                                         int64_t start,
+                                                         int64_t start_cpu,
+                                                         const char* category,
+                                                         const char* name,
+                                                         const char* args) {
+  const int64_t end = OS::GetCurrentMonotonicMicros();
+  const int64_t end_cpu = OS::GetCurrentThreadCPUMicros();
+  const int64_t duration = end - start;
+  const int64_t duration_cpu = end_cpu - start_cpu;
+  const int64_t pid = OS::ProcessId();
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  const int64_t tid = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
+
+  char* json = NULL;
+  if ((start_cpu != -1) && (end_cpu != -1)) {
+    json = OS::SCreate(
+        zone,
+        "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64
+        ","
+        "\"ts\":%" Pd64 ",\"ph\":\"X\",\"dur\":%" Pd64
+        ","
+        "\"tdur\":%" Pd64 ",\"args\":%s}",
+        name, category, tid, pid, start, duration, duration_cpu, args);
+  } else {
+    json = OS::SCreate(
+        zone,
+        "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64
+        ","
+        "\"ts\":%" Pd64 ",\"ph\":\"X\",\"dur\":%" Pd64 ",\"args\":%s}",
+        name, category, tid, pid, start, duration, args);
+  }
+  ASSERT(json != NULL);
+
+  event->Duration("", start, end, start_cpu, end_cpu);
+  // json was allocated in the zone and a copy will be stored in event.
+  event->CompleteWithPreSerializedJSON(json);
+}
+
+void DartCommonTimelineEventHelpers::ReportFlowEvent(Thread* thread,
+                                                     Zone* zone,
+                                                     TimelineEvent* event,
+                                                     int64_t start,
+                                                     int64_t start_cpu,
+                                                     const char* category,
+                                                     const char* name,
+                                                     int64_t type,
+                                                     int64_t flow_id,
+                                                     const char* args) {
+  const int64_t pid = OS::ProcessId();
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  const int64_t tid = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
+
+  TimelineEvent::EventType event_type =
+      static_cast<TimelineEvent::EventType>(type);
+  const char* typestr = NULL;
+  const char* bpstr = "";
+  switch (event_type) {
+    case TimelineEvent::kFlowBegin:
+      typestr = "s";
+      break;
+    case TimelineEvent::kFlowStep:
+      typestr = "t";
+      break;
+    case TimelineEvent::kFlowEnd:
+      typestr = "f";
+      bpstr = ", \"bp\":\"e\"";
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+
+  char* json = OS::SCreate(
+      zone,
+      "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64
+      ","
+      "\"ts\":%" Pd64 ",\"ph\":\"%s\", \"id\":%" Pd64 "%s, \"args\":%s}",
+      name, category, tid, pid, start, typestr, flow_id, bpstr, args);
+  ASSERT(json != NULL);
+
+  // Doesn't really matter what it is since it gets overriden by the
+  // preserialized json.
+  event->FlowBegin("", flow_id, start);
+
+  // json was allocated in the zone and a copy will be stored in event.
+  event->CompleteWithPreSerializedJSON(json);
+}
+
+void DartCommonTimelineEventHelpers::ReportInstantEvent(Thread* thread,
+                                                        Zone* zone,
+                                                        TimelineEvent* event,
+                                                        int64_t start,
+                                                        const char* category,
+                                                        const char* name,
+                                                        const char* args) {
+  const int64_t pid = OS::ProcessId();
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  const int64_t tid = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
+
+  char* json = OS::SCreate(zone,
+                           "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64
+                           ",\"pid\":%" Pd64
+                           ","
+                           "\"ts\":%" Pd64 ",\"ph\":\"I\",\"args\":%s}",
+                           name, category, tid, pid, start, args);
+
+  event->Instant("", start);
+  // json was allocated in the zone and a copy will be stored in event.
+  event->CompleteWithPreSerializedJSON(json);
 }
 
 }  // namespace dart

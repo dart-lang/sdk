@@ -6,8 +6,8 @@
 #define RUNTIME_VM_REGEXP_H_
 
 #include "vm/assembler.h"
-#include "vm/intermediate_language.h"
 #include "vm/flow_graph_compiler.h"
+#include "vm/intermediate_language.h"
 #include "vm/object.h"
 #include "vm/regexp_assembler.h"
 
@@ -19,7 +19,6 @@ class RegExpMacroAssembler;
 class RegExpNode;
 class RegExpTree;
 class BoyerMooreLookahead;
-
 
 // Represents code units in the range from from_ to to_, both ends are
 // inclusive.
@@ -78,7 +77,6 @@ class CharacterRange {
   DISALLOW_ALLOCATION();
 };
 
-
 // A set of unsigned integers that behaves especially well on small
 // integers (< 32).  May do zone-allocation.
 class OutSet : public ZoneAllocated {
@@ -107,7 +105,6 @@ class OutSet : public ZoneAllocated {
   friend class Trace;
 };
 
-
 #define FOR_EACH_NODE_TYPE(VISIT)                                              \
   VISIT(End)                                                                   \
   VISIT(Action)                                                                \
@@ -115,7 +112,6 @@ class OutSet : public ZoneAllocated {
   VISIT(BackReference)                                                         \
   VISIT(Assertion)                                                             \
   VISIT(Text)
-
 
 #define FOR_EACH_REG_EXP_TREE_TYPE(VISIT)                                      \
   VISIT(Disjunction)                                                           \
@@ -130,11 +126,9 @@ class OutSet : public ZoneAllocated {
   VISIT(Empty)                                                                 \
   VISIT(Text)
 
-
 #define FORWARD_DECLARE(Name) class RegExp##Name;
 FOR_EACH_REG_EXP_TREE_TYPE(FORWARD_DECLARE)
 #undef FORWARD_DECLARE
-
 
 class TextElement {
  public:
@@ -171,7 +165,6 @@ class TextElement {
 
   DISALLOW_ALLOCATION();
 };
-
 
 class Trace;
 struct PreloadState;
@@ -239,7 +232,6 @@ struct NodeInfo {
   bool replacement_calculated : 1;
 };
 
-
 // Details of a quick mask-compare check that can look ahead in the
 // input stream.
 class QuickCheckDetails {
@@ -286,7 +278,6 @@ class QuickCheckDetails {
 
   DISALLOW_ALLOCATION();
 };
-
 
 class RegExpNode : public ZoneAllocated {
  public:
@@ -415,7 +406,6 @@ class RegExpNode : public ZoneAllocated {
   Zone* zone_;
 };
 
-
 // A simple closed interval.
 class Interval {
  public:
@@ -447,7 +437,6 @@ class Interval {
   DISALLOW_ALLOCATION();
 };
 
-
 class SeqRegExpNode : public RegExpNode {
  public:
   explicit SeqRegExpNode(RegExpNode* on_success)
@@ -469,7 +458,6 @@ class SeqRegExpNode : public RegExpNode {
  private:
   RegExpNode* on_success_;
 };
-
 
 class ActionNode : public SeqRegExpNode {
  public:
@@ -559,7 +547,6 @@ class ActionNode : public SeqRegExpNode {
   friend class DotPrinter;
 };
 
-
 class TextNode : public SeqRegExpNode {
  public:
   TextNode(ZoneGrowableArray<TextElement>* elms, RegExpNode* on_success)
@@ -611,7 +598,6 @@ class TextNode : public SeqRegExpNode {
   ZoneGrowableArray<TextElement>* elms_;
 };
 
-
 class AssertionNode : public SeqRegExpNode {
  public:
   enum AssertionType {
@@ -662,7 +648,6 @@ class AssertionNode : public SeqRegExpNode {
   AssertionType assertion_type_;
 };
 
-
 class BackReferenceNode : public SeqRegExpNode {
  public:
   BackReferenceNode(intptr_t start_reg,
@@ -691,7 +676,6 @@ class BackReferenceNode : public SeqRegExpNode {
   intptr_t start_reg_;
   intptr_t end_reg_;
 };
-
 
 class EndNode : public RegExpNode {
  public:
@@ -724,7 +708,6 @@ class EndNode : public RegExpNode {
   Action action_;
 };
 
-
 class NegativeSubmatchSuccess : public EndNode {
  public:
   NegativeSubmatchSuccess(intptr_t stack_pointer_reg,
@@ -746,7 +729,6 @@ class NegativeSubmatchSuccess : public EndNode {
   intptr_t clear_capture_start_;
 };
 
-
 class Guard : public ZoneAllocated {
  public:
   enum Relation { LT, GEQ };
@@ -761,7 +743,6 @@ class Guard : public ZoneAllocated {
   Relation op_;
   intptr_t value_;
 };
-
 
 class GuardedAlternative {
  public:
@@ -778,9 +759,7 @@ class GuardedAlternative {
   DISALLOW_ALLOCATION();
 };
 
-
 struct AlternativeGeneration;
-
 
 class ChoiceNode : public RegExpNode {
  public:
@@ -861,7 +840,6 @@ class ChoiceNode : public RegExpNode {
   bool being_calculated_;
 };
 
-
 class NegativeLookaheadChoiceNode : public ChoiceNode {
  public:
   explicit NegativeLookaheadChoiceNode(GuardedAlternative this_must_fail,
@@ -896,7 +874,6 @@ class NegativeLookaheadChoiceNode : public ChoiceNode {
   }
   virtual RegExpNode* FilterOneByte(intptr_t depth, bool ignore_case);
 };
-
 
 class LoopChoiceNode : public ChoiceNode {
  public:
@@ -938,7 +915,6 @@ class LoopChoiceNode : public ChoiceNode {
   bool body_can_be_zero_length_;
 };
 
-
 // Improve the speed that we scan for an initial point where a non-anchored
 // regexp can match by using a Boyer-Moore-like table. This is done by
 // identifying non-greedy non-capturing loops in the nodes that eat any
@@ -971,17 +947,14 @@ enum ContainedInLattice {
   kLatticeUnknown = 3  // Can also mean both in and out.
 };
 
-
 inline ContainedInLattice Combine(ContainedInLattice a, ContainedInLattice b) {
   return static_cast<ContainedInLattice>(a | b);
 }
-
 
 ContainedInLattice AddRange(ContainedInLattice a,
                             const intptr_t* ranges,
                             intptr_t ranges_size,
                             Interval new_range);
-
 
 class BoyerMoorePositionInfo : public ZoneAllocated {
  public:
@@ -1018,7 +991,6 @@ class BoyerMoorePositionInfo : public ZoneAllocated {
   ContainedInLattice d_;          // The \d character class.
   ContainedInLattice surrogate_;  // Surrogate UTF-16 code units.
 };
-
 
 class BoyerMooreLookahead : public ZoneAllocated {
  public:
@@ -1078,7 +1050,6 @@ class BoyerMooreLookahead : public ZoneAllocated {
                             intptr_t* from,
                             intptr_t* to);
 };
-
 
 // There are many ways to generate code for a node.  This class encapsulates
 // the current way we should be generating.  In other words it encapsulates
@@ -1252,7 +1223,6 @@ class Trace {
   DISALLOW_ALLOCATION();
 };
 
-
 class GreedyLoopState {
  public:
   explicit GreedyLoopState(bool not_at_start);
@@ -1265,7 +1235,6 @@ class GreedyLoopState {
   Trace counter_backtrack_trace_;
 };
 
-
 struct PreloadState {
   static const intptr_t kEatsAtLeastNotYetInitialized = -1;
   bool preload_is_current_;
@@ -1277,7 +1246,6 @@ struct PreloadState {
   DISALLOW_ALLOCATION();
 };
 
-
 class NodeVisitor : public ValueObject {
  public:
   virtual ~NodeVisitor() {}
@@ -1286,7 +1254,6 @@ class NodeVisitor : public ValueObject {
 #undef DECLARE_VISIT
   virtual void VisitLoopChoice(LoopChoiceNode* that) { VisitChoice(that); }
 };
-
 
 // Assertion propagation moves information about assertions such as
 // \b to the affected nodes.  For instance, in /.\b./ information must
@@ -1328,7 +1295,6 @@ class Analysis : public NodeVisitor {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Analysis);
 };
 
-
 struct RegExpCompileData : public ZoneAllocated {
   RegExpCompileData()
       : tree(NULL),
@@ -1345,56 +1311,65 @@ struct RegExpCompileData : public ZoneAllocated {
   intptr_t capture_count;
 };
 
-
 class RegExpEngine : public AllStatic {
  public:
   struct CompilationResult {
     explicit CompilationResult(const char* error_message)
-        : backtrack_goto(NULL),
+        : error_message(error_message),
+#if !defined(DART_PRECOMPILED_RUNTIME)
+          backtrack_goto(NULL),
           graph_entry(NULL),
           num_blocks(-1),
           num_stack_locals(-1),
-          error_message(error_message),
+#endif
           bytecode(NULL),
-          num_registers(-1) {}
+          num_registers(-1) {
+    }
 
     CompilationResult(TypedData* bytecode, intptr_t num_registers)
-        : backtrack_goto(NULL),
+        : error_message(NULL),
+#if !defined(DART_PRECOMPILED_RUNTIME)
+          backtrack_goto(NULL),
           graph_entry(NULL),
           num_blocks(-1),
           num_stack_locals(-1),
-          error_message(NULL),
+#endif
           bytecode(bytecode),
-          num_registers(num_registers) {}
+          num_registers(num_registers) {
+    }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
     CompilationResult(IndirectGotoInstr* backtrack_goto,
                       GraphEntryInstr* graph_entry,
                       intptr_t num_blocks,
                       intptr_t num_stack_locals,
                       intptr_t num_registers)
-        : backtrack_goto(backtrack_goto),
+        : error_message(NULL),
+          backtrack_goto(backtrack_goto),
           graph_entry(graph_entry),
           num_blocks(num_blocks),
           num_stack_locals(num_stack_locals),
-          error_message(NULL),
           bytecode(NULL) {}
-
-    IndirectGotoInstr* backtrack_goto;
-    GraphEntryInstr* graph_entry;
-    const intptr_t num_blocks;
-    const intptr_t num_stack_locals;
+#endif
 
     const char* error_message;
+
+    NOT_IN_PRECOMPILED(IndirectGotoInstr* backtrack_goto);
+    NOT_IN_PRECOMPILED(GraphEntryInstr* graph_entry);
+    NOT_IN_PRECOMPILED(const intptr_t num_blocks);
+    NOT_IN_PRECOMPILED(const intptr_t num_stack_locals);
 
     TypedData* bytecode;
     intptr_t num_registers;
   };
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static CompilationResult CompileIR(
       RegExpCompileData* input,
       const ParsedFunction* parsed_function,
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t osr_id);
+#endif
 
   static CompilationResult CompileBytecode(RegExpCompileData* data,
                                            const RegExp& regexp,

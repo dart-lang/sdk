@@ -9,15 +9,15 @@
 
 #include "bin/process.h"
 
-#include <errno.h>     // NOLINT
-#include <fcntl.h>     // NOLINT
-#include <poll.h>      // NOLINT
-#include <stdio.h>     // NOLINT
-#include <stdlib.h>    // NOLINT
-#include <string.h>    // NOLINT
+#include <errno.h>         // NOLINT
+#include <fcntl.h>         // NOLINT
+#include <poll.h>          // NOLINT
+#include <stdio.h>         // NOLINT
+#include <stdlib.h>        // NOLINT
+#include <string.h>        // NOLINT
 #include <sys/resource.h>  // NOLINT
-#include <sys/wait.h>  // NOLINT
-#include <unistd.h>    // NOLINT
+#include <sys/wait.h>      // NOLINT
+#include <unistd.h>        // NOLINT
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
@@ -65,7 +65,6 @@ class ProcessInfo {
   DISALLOW_COPY_AND_ASSIGN(ProcessInfo);
 };
 
-
 // Singly-linked list of ProcessInfo objects for all active processes
 // started from Dart.
 class ProcessInfoList {
@@ -76,7 +75,6 @@ class ProcessInfoList {
     info->set_next(active_processes_);
     active_processes_ = info;
   }
-
 
   static intptr_t LookupProcessExitFd(pid_t pid) {
     MutexLocker locker(mutex_);
@@ -89,7 +87,6 @@ class ProcessInfoList {
     }
     return 0;
   }
-
 
   static void RemoveProcess(pid_t pid) {
     MutexLocker locker(mutex_);
@@ -122,10 +119,8 @@ class ProcessInfoList {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ProcessInfoList);
 };
 
-
 ProcessInfo* ProcessInfoList::active_processes_ = NULL;
 Mutex* ProcessInfoList::mutex_ = new Mutex();
-
 
 // The exit code handler sets up a separate thread which waits for child
 // processes to terminate. That separate thread can then get the exit code from
@@ -243,12 +238,10 @@ class ExitCodeHandler {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ExitCodeHandler);
 };
 
-
 bool ExitCodeHandler::running_ = false;
 int ExitCodeHandler::process_count_ = 0;
 bool ExitCodeHandler::terminate_done_ = false;
 Monitor* ExitCodeHandler::monitor_ = new Monitor();
-
 
 class ProcessStarter {
  public:
@@ -301,7 +294,6 @@ class ProcessStarter {
       program_environment_[environment_length] = NULL;
     }
   }
-
 
   int Start() {
     // Create pipes required.
@@ -427,7 +419,6 @@ class ProcessStarter {
     return 0;
   }
 
-
   void NewProcess() {
     // Wait for parent process before setting up the child process.
     char msg;
@@ -442,7 +433,6 @@ class ProcessStarter {
       ExecDetachedProcess();
     }
   }
-
 
   void ExecProcess() {
     if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
@@ -471,7 +461,6 @@ class ProcessStarter {
 
     ReportChildError();
   }
-
 
   void ExecDetachedProcess() {
     if (mode_ == kDetached) {
@@ -530,7 +519,6 @@ class ProcessStarter {
     }
   }
 
-
   int RegisterProcess(pid_t pid) {
     int result;
     int event_fds[2];
@@ -544,7 +532,6 @@ class ProcessStarter {
     FDUtils::SetNonBlocking(event_fds[0]);
     return 0;
   }
-
 
   int ReadExecResult() {
     int child_errno;
@@ -562,7 +549,6 @@ class ProcessStarter {
     }
     return 0;
   }
-
 
   int ReadDetachedExecResult(pid_t* pid) {
     int child_errno;
@@ -585,7 +571,6 @@ class ProcessStarter {
     }
     return 0;
   }
-
 
   void SetupDetached() {
     ASSERT(mode_ == kDetached);
@@ -649,7 +634,6 @@ class ProcessStarter {
     VOID_TEMP_FAILURE_RETRY(close(read_err_[1]));
   }
 
-
   int CleanupAndReturnError() {
     int actual_errno = errno;
     // If CleanupAndReturnError is called without an actual errno make
@@ -662,14 +646,12 @@ class ProcessStarter {
     return actual_errno;
   }
 
-
   void SetChildOsErrorMessage() {
     const int kBufferSize = 1024;
     char* error_message = DartUtils::ScopedCString(kBufferSize);
     Utils::StrError(errno, error_message, kBufferSize);
     *os_error_message_ = error_message;
   }
-
 
   void ReportChildError() {
     // In the case of failure in the child process write the errno and
@@ -691,7 +673,6 @@ class ProcessStarter {
     _exit(1);
   }
 
-
   void ReportPid(int pid) {
     // In the case of starting a detached process the actual pid of that process
     // is communicated using the exec control pipe.
@@ -700,7 +681,6 @@ class ProcessStarter {
     ASSERT(bytes_written == sizeof(int));
     USE(bytes_written);
   }
-
 
   void ReadChildError() {
     const int kMaxMessageSize = 256;
@@ -715,7 +695,6 @@ class ProcessStarter {
     }
   }
 
-
   void ClosePipe(int* fds) {
     for (int i = 0; i < 2; i++) {
       if (fds[i] != -1) {
@@ -725,14 +704,12 @@ class ProcessStarter {
     }
   }
 
-
   void CloseAllPipes() {
     ClosePipe(exec_control_);
     ClosePipe(read_in_);
     ClosePipe(read_err_);
     ClosePipe(write_out_);
   }
-
 
   int read_in_[2];       // Pipe for stdout to child process.
   int read_err_[2];      // Pipe for stderr to child process.
@@ -756,7 +733,6 @@ class ProcessStarter {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ProcessStarter);
 };
 
-
 int Process::Start(const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
@@ -776,7 +752,6 @@ int Process::Start(const char* path,
   return starter.Start();
 }
 
-
 static bool CloseProcessBuffers(struct pollfd fds[3]) {
   int e = errno;
   VOID_TEMP_FAILURE_RETRY(close(fds[0].fd));
@@ -785,7 +760,6 @@ static bool CloseProcessBuffers(struct pollfd fds[3]) {
   errno = e;
   return false;
 }
-
 
 bool Process::Wait(intptr_t pid,
                    intptr_t in,
@@ -874,44 +848,41 @@ bool Process::Wait(intptr_t pid,
   return true;
 }
 
-
 bool Process::Kill(intptr_t id, int signal) {
   return (TEMP_FAILURE_RETRY(kill(id, signal)) != -1);
 }
-
 
 void Process::TerminateExitCodeHandler() {
   ExitCodeHandler::TerminateExitCodeThread();
 }
 
-
 intptr_t Process::CurrentProcessId() {
   return static_cast<intptr_t>(getpid());
 }
 
+static void SaveErrorAndClose(FILE* file) {
+  int actual_errno = errno;
+  fclose(file);
+  errno = actual_errno;
+}
 
 int64_t Process::CurrentRSS() {
   // The second value in /proc/self/statm is the current RSS in pages.
-  File* statm = File::Open("/proc/self/statm", File::kRead);
+  // It is not possible to use getrusage() because the interested fields are not
+  // implemented by the linux kernel.
+  FILE* statm = fopen("/proc/self/statm", "r");
   if (statm == NULL) {
     return -1;
   }
-  RefCntReleaseScope<File> releaser(statm);
-  const intptr_t statm_length = 1 * KB;
-  void* buffer = reinterpret_cast<void*>(Dart_ScopeAllocate(statm_length));
-  const intptr_t statm_read = statm->Read(buffer, statm_length);
-  if (statm_read <= 0) {
-    return -1;
-  }
   int64_t current_rss_pages = 0;
-  int matches = sscanf(reinterpret_cast<char*>(buffer), "%*s%" Pd64 "",
-                       &current_rss_pages);
+  int matches = fscanf(statm, "%*s%" Pd64 "", &current_rss_pages);
   if (matches != 1) {
+    SaveErrorAndClose(statm);
     return -1;
   }
+  fclose(statm);
   return current_rss_pages * getpagesize();
 }
-
 
 int64_t Process::MaxRSS() {
   struct rusage usage;
@@ -923,7 +894,6 @@ int64_t Process::MaxRSS() {
   return usage.ru_maxrss * KB;
 }
 
-
 static Mutex* signal_mutex = new Mutex();
 static SignalInfo* signal_handlers = NULL;
 static const int kSignalsCount = 7;
@@ -932,11 +902,9 @@ static const int kSignals[kSignalsCount] = {
     SIGQUIT  // Allow VMService to listen on SIGQUIT.
 };
 
-
 SignalInfo::~SignalInfo() {
   VOID_TEMP_FAILURE_RETRY(close(fd_));
 }
-
 
 static void SignalHandler(int signal) {
   MutexLocker lock(signal_mutex);
@@ -949,7 +917,6 @@ static void SignalHandler(int signal) {
     handler = handler->next();
   }
 }
-
 
 intptr_t Process::SetSignalHandler(intptr_t signal) {
   bool found = false;
@@ -998,8 +965,10 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
   return fds[0];
 }
 
-
-void Process::ClearSignalHandler(intptr_t signal) {
+void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
+  // Either the port is illegal or there is no current isolate, but not both.
+  ASSERT((port != ILLEGAL_PORT) || (Dart_CurrentIsolate() == NULL));
+  ASSERT((port == ILLEGAL_PORT) || (Dart_CurrentIsolate() != NULL));
   ThreadSignalBlocker blocker(kSignalsCount, kSignals);
   MutexLocker lock(signal_mutex);
   SignalInfo* handler = signal_handlers;
@@ -1007,7 +976,7 @@ void Process::ClearSignalHandler(intptr_t signal) {
   while (handler != NULL) {
     bool remove = false;
     if (handler->signal() == signal) {
-      if (handler->port() == Dart_GetMainPortId()) {
+      if ((port == ILLEGAL_PORT) || (handler->port() == port)) {
         if (signal_handlers == handler) {
           signal_handlers = handler->next();
         }

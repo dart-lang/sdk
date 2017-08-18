@@ -7,13 +7,5 @@ part of $LIBRARYNAME;
 @DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
-$if DARTIUM
-  // Override these methods for Dartium _SVGFEDropShadowElement can't be abstract.
-  AnimatedLength get height => _blink.BlinkSVGFEDropShadowElement.instance.height_Getter_(this);
-  AnimatedString get result => _blink.BlinkSVGFEDropShadowElement.instance.result_Getter_(this);
-  AnimatedLength get width => _blink.BlinkSVGFEDropShadowElement.instance.width_Getter_(this);
-  AnimatedLength get x => _blink.BlinkSVGFEDropShadowElement.instance.x_Getter_(this);
-  AnimatedLength get y => _blink.BlinkSVGFEDropShadowElement.instance.y_Getter_(this);
-$endif
 }
 

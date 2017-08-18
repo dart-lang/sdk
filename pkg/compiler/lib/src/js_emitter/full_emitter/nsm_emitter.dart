@@ -180,8 +180,7 @@ class NsmEmitter extends CodeEmitterHelper {
         .staticFunctionAccess(
             closedWorld.commonElements.createInvocationMirror);
     if (useDiffEncoding) {
-      statements.add(js.statement(
-          '''{
+      statements.add(js.statement('''{
           var objectClassObject = processedClasses.collected[#objectClass],
               nameSequences = #diffEncoding.split("."),
               shortNames = [];
@@ -221,11 +220,10 @@ class NsmEmitter extends CodeEmitterHelper {
               Array.prototype.push.apply(shortNames, sequence.shift());
             }
           }
-        }''',
-          {
-            'objectClass': js.quoteName(namer.className(objectClass)),
-            'diffEncoding': sortedShorts
-          }));
+        }''', {
+        'objectClass': js.quoteName(namer.className(objectClass)),
+        'diffEncoding': sortedShorts
+      }));
     } else {
       // No useDiffEncoding version.
       statements.add(js.statement(
@@ -250,8 +248,7 @@ class NsmEmitter extends CodeEmitterHelper {
                 ? true
                 : js('j < #', js.number(interceptedSelectors.length));
 
-    statements.add(js.statement(
-        '''
+    statements.add(js.statement('''
       // If we are loading a deferred library the object class will not be in
       // the collectedClasses so objectClassObject is undefined, and we skip
       // setting up the names.
@@ -298,13 +295,12 @@ class NsmEmitter extends CodeEmitterHelper {
                  })(#names[j], shortName, type);
           }
         }
-      }''',
-        {
-          'noSuchMethodName': namer.noSuchMethodName,
-          'createInvocationMirror': createInvocationMirror,
-          'names': minify ? 'shortNames' : 'longNames',
-          'isIntercepted': isIntercepted
-        }));
+      }''', {
+      'noSuchMethodName': namer.noSuchMethodName,
+      'createInvocationMirror': createInvocationMirror,
+      'names': minify ? 'shortNames' : 'longNames',
+      'isIntercepted': isIntercepted
+    }));
 
     return statements;
   }

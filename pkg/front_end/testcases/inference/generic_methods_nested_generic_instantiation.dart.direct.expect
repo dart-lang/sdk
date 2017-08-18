@@ -1,0 +1,23 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:math" as math;
+
+class Trace extends core::Object {
+  field core::List<self::Frame> frames = <dynamic>[];
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Frame extends core::Object {
+  field core::String location = "";
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  core::List<self::Trace> traces = <dynamic>[];
+  dynamic longest = traces.map((dynamic trace) → dynamic {
+    return trace.frames.map((dynamic frame) → dynamic => frame.location.length).fold(0, math::max);
+  }).fold(0, math::max);
+}

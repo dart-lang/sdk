@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' hide HttpException;
 
 import 'buildbot_data.dart';
 import 'buildbot_loading.dart';
@@ -26,12 +26,46 @@ abstract class BuildbotClient {
 class HttpBuildbotClient implements BuildbotClient {
   final HttpClient _client = new HttpClient();
 
+  static const int maxSkips = 3;
+
   @override
-  Future<BuildResult> readResult(BuildUri buildUri) {
-    return readBuildResult(_client, buildUri);
+  Future<BuildResult> readResult(BuildUri buildUri) async {
+    int skips = 0;
+    Duration timeout;
+    if (buildUri.buildNumber < 0) {
+      timeout = new Duration(seconds: 1);
+    }
+
+    void skipToPreviousBuildNumber() {
+      BuildUri prevBuildUri = buildUri.prev();
+      log('Skip build number on ${buildUri} -> ${prevBuildUri.buildNumber}');
+      buildUri = buildUri.prev();
+    }
+
+    while (true) {
+      try {
+        return await readBuildResultFromHttp(_client, buildUri, timeout);
+      } on TimeoutException {
+        if (timeout != null && skips < maxSkips) {
+          skips++;
+          skipToPreviousBuildNumber();
+          continue;
+        }
+        return null;
+      } on HttpException {
+        if (timeout != null && skips < maxSkips) {
+          skips++;
+          skipToPreviousBuildNumber();
+          continue;
+        }
+        return null;
+      } on SocketException {
+        return null;
+      }
+    }
   }
 
-  int get mostRecentBuildNumber => -2;
+  int get mostRecentBuildNumber => -1;
 
   @override
   void close() {
@@ -68,7 +102,7 @@ class LogdogBuildbotClient implements BuildbotClient {
     }
     while (true) {
       try {
-        return await readLogDogResult(buildUri);
+        return await readBuildResultFromLogDog(buildUri);
       } on LogdogException catch (e) {
         if (e.exitKind != LogdogExitKind.error) {
           return null;

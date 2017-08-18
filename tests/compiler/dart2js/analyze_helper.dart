@@ -139,10 +139,12 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
         // Suppress whitelisted warnings.
         lastWasWhitelisted = true;
         if (showWhitelisted || verbose) {
+          print("*already whitelisted*");
           super.report(message, uri, begin, end, text, kind);
         }
         return;
       }
+      print("*NOT WHITELISTED*");
       hasWarnings = true;
     }
     if (kind == api.Diagnostic.HINT) {
@@ -150,10 +152,12 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
         // Suppress whitelisted hints.
         lastWasWhitelisted = true;
         if (showWhitelisted || verbose) {
+          print("*already whitelisted*");
           super.report(message, uri, begin, end, text, kind);
         }
         return;
       }
+      print("*NOT WHITELISTED*");
       hasHint = true;
     }
     if (kind == api.Diagnostic.ERROR) {
@@ -161,10 +165,12 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
         // Suppress whitelisted errors.
         lastWasWhitelisted = true;
         if (showWhitelisted || verbose) {
+          print("*already whitelisted*");
           super.report(message, uri, begin, end, text, kind);
         }
         return;
       }
+      print("*NOT WHITELISTED*");
       hasErrors = true;
     }
     if (kind == api.Diagnostic.INFO && lastWasWhitelisted) {

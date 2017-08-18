@@ -20,7 +20,7 @@ import '../closure.dart' show BoxFieldElement;
 import '../common.dart';
 import '../constants/values.dart';
 import '../elements/types.dart';
-import '../elements/elements.dart' show ConstructorBodyElement, Element;
+import '../elements/elements.dart' show Element;
 import '../elements/entities.dart';
 import '../util/util.dart' show Hashing;
 import '../world.dart' show World;
@@ -77,6 +77,7 @@ enum StaticUseKind {
   FIELD_GET,
   FIELD_SET,
   CLOSURE,
+  CALL_METHOD,
   CONSTRUCTOR_INVOKE,
   CONST_CONSTRUCTOR_INVOKE,
   REDIRECTION,
@@ -246,7 +247,7 @@ class StaticUse {
   /// Invocation of a constructor (body) [element] through a this or super
   /// constructor call with the given [callStructure].
   factory StaticUse.constructorBodyInvoke(
-      ConstructorBodyElement element, CallStructure callStructure) {
+      ConstructorBodyEntity element, CallStructure callStructure) {
     // TODO(johnniwinther): Use the [callStructure].
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
   }
@@ -375,6 +376,11 @@ class StaticUse {
   /// Read of a local function [element].
   factory StaticUse.closure(Local element) {
     return new StaticUse.internal(element, StaticUseKind.CLOSURE);
+  }
+
+  /// Read of a call [method] on a closureClass.
+  factory StaticUse.callMethod(FunctionEntity method) {
+    return new StaticUse.internal(method, StaticUseKind.CALL_METHOD);
   }
 
   /// Use of [element] through reflection.

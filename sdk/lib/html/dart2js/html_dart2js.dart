@@ -25,7 +25,7 @@
 library dart.dom.html;
 
 import 'dart:async';
-import 'dart:collection';
+import 'dart:collection' hide LinkedList, LinkedListEntry;
 import 'dart:_internal' hide Symbol;
 import 'dart:html_common';
 import 'dart:indexed_db';
@@ -63,7 +63,8 @@ import 'dart:_js_helper'
         ForceInline,
         findDispatchTagForInterceptorClass,
         setNativeSubclassDispatchRecord,
-        makeLeafDispatchRecord;
+        makeLeafDispatchRecord,
+        registerGlobalObject;
 import 'dart:_interceptors'
     show
         Interceptor,
@@ -4301,15 +4302,11 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   /// Please note the property name uses camelCase, not-hyphens.
   String getPropertyValue(String propertyName) {
     var propValue = _getPropertyValueHelper(propertyName);
-    return propValue != null ? propValue : '';
+    return propValue ?? '';
   }
 
   String _getPropertyValueHelper(String propertyName) {
-    if (_supportsProperty(_camelCase(propertyName))) {
-      return _getPropertyValue(propertyName);
-    } else {
-      return _getPropertyValue(Device.cssPrefix + propertyName);
-    }
+    return _getPropertyValue(_browserPropertyName(propertyName));
   }
 
   /**
@@ -4322,7 +4319,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
    */
   bool supportsProperty(String propertyName) {
     return _supportsProperty(propertyName) ||
-        _supportsProperty(_camelCase(Device.cssPrefix + propertyName));
+        _supportsProperty(_camelCase("${Device.cssPrefix}$propertyName"));
   }
 
   bool _supportsProperty(String propertyName) {
@@ -4338,13 +4335,21 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String _browserPropertyName(String propertyName) {
     String name = _readCache(propertyName);
     if (name is String) return name;
-    if (_supportsProperty(_camelCase(propertyName))) {
-      name = propertyName;
-    } else {
-      name = Device.cssPrefix + propertyName;
-    }
+    name = _supportedBrowserPropertyName(propertyName);
     _writeCache(propertyName, name);
     return name;
+  }
+
+  String _supportedBrowserPropertyName(String propertyName) {
+    if (_supportsProperty(_camelCase(propertyName))) {
+      return propertyName;
+    }
+    var prefixed = "${Device.cssPrefix}$propertyName";
+    if (_supportsProperty(prefixed)) {
+      return prefixed;
+    }
+    // May be a CSS variable, just use it as provided.
+    return propertyName;
   }
 
   static final _propertyCache = JS('', '{}');
@@ -11946,8 +11951,7 @@ class _ChildrenElementList extends ListBase<Element>
     for (var e in removed) e.remove();
   }
 
-  void setRange(int start, int end, Iterable<Element> iterable,
-      [int skipCount = 0]) {
+  void fillRange(int start, int end, [Element fillValue]) {
     throw new UnimplementedError();
   }
 
@@ -11955,7 +11959,12 @@ class _ChildrenElementList extends ListBase<Element>
     throw new UnimplementedError();
   }
 
-  void fillRange(int start, int end, [Element fillValue]) {
+  void removeRange(int start, int end) {
+    throw new UnimplementedError();
+  }
+
+  void setRange(int start, int end, Iterable<Element> iterable,
+      [int skipCount = 0]) {
     throw new UnimplementedError();
   }
 
@@ -26200,6 +26209,10 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
 
   void fillRange(int start, int end, [Node fill]) {
     throw new UnsupportedError("Cannot fillRange on Node list");
+  }
+
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot removeRange on Node list");
   }
   // -- end List<Node> mixins.
 
@@ -45860,6 +45873,7 @@ class _DOMWindowCrossFrame implements WindowBase {
       return w;
     } else {
       // TODO(vsm): Cache or implement equality.
+      registerGlobalObject(w);
       return new _DOMWindowCrossFrame(w);
     }
   }

@@ -1,0 +1,21 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::int x = 0;
+static field core::int y = 0;
+static final field dynamic z = 42;
+static method test1() → dynamic {
+  dynamic a = self::x;
+  a = "hi";
+  a = 3;
+  dynamic b = self::y;
+  b = "hi";
+  b = 4;
+  dynamic c = self::z;
+  c = "hi";
+  c = 4;
+}
+static method main() → dynamic {
+  self::test1();
+}

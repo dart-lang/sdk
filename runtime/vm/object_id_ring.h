@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_OBJECT_ID_RING_H_
 #define RUNTIME_VM_OBJECT_ID_RING_H_
 
+#include "platform/globals.h"
+
 namespace dart {
 
 // Forward declarations.

@@ -5,10 +5,10 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
@@ -148,7 +148,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   Response handleRequest(Request request) {
     return runZoned(() {
       String requestName = request.method;
-      if (requestName == COMPLETION_GET_SUGGESTIONS) {
+      if (requestName == COMPLETION_REQUEST_GET_SUGGESTIONS) {
         processRequest(request);
         return Response.DELAYED_RESPONSE;
       }

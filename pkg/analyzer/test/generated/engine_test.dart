@@ -24,7 +24,6 @@ import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -41,6 +40,7 @@ class AnalysisOptionsImplTest {
     AnalysisOptionsImpl modifiedOptions = new AnalysisOptionsImpl();
     modifiedOptions.dart2jsHint = true;
     modifiedOptions.disableCacheFlushing = true;
+    modifiedOptions.enabledPluginNames = ['somePackage'];
     modifiedOptions.enableAssertInitializer = true;
     modifiedOptions.enableLazyAssignmentOperators = true;
     modifiedOptions.enableStrictCallChecks = true;
@@ -52,9 +52,6 @@ class AnalysisOptionsImplTest {
     modifiedOptions.generateImplicitErrors = false;
     modifiedOptions.generateSdkErrors = true;
     modifiedOptions.hint = false;
-    modifiedOptions.incremental = true;
-    modifiedOptions.incrementalApi = true;
-    modifiedOptions.incrementalValidation = true;
     modifiedOptions.lint = true;
     modifiedOptions.lintRules = [null];
     modifiedOptions.patchPaths = {
@@ -69,6 +66,7 @@ class AnalysisOptionsImplTest {
     expect(modifiedOptions.dart2jsHint, defaultOptions.dart2jsHint);
     expect(modifiedOptions.disableCacheFlushing,
         defaultOptions.disableCacheFlushing);
+    expect(modifiedOptions.enabledPluginNames, isEmpty);
     expect(modifiedOptions.enableAssertInitializer,
         defaultOptions.enableAssertInitializer);
     expect(modifiedOptions.enableLazyAssignmentOperators,
@@ -84,10 +82,6 @@ class AnalysisOptionsImplTest {
         defaultOptions.generateImplicitErrors);
     expect(modifiedOptions.generateSdkErrors, defaultOptions.generateSdkErrors);
     expect(modifiedOptions.hint, defaultOptions.hint);
-    expect(modifiedOptions.incremental, defaultOptions.incremental);
-    expect(modifiedOptions.incrementalApi, defaultOptions.incrementalApi);
-    expect(modifiedOptions.incrementalValidation,
-        defaultOptions.incrementalValidation);
     expect(modifiedOptions.lint, defaultOptions.lint);
     expect(modifiedOptions.lintRules, defaultOptions.lintRules);
     expect(modifiedOptions.patchPaths, defaultOptions.patchPaths);
@@ -139,8 +133,6 @@ class AnalyzedSourcesListener {
     }
   }
 }
-
-class CompilationUnitMock extends TypedMock implements CompilationUnit {}
 
 class MockSourceFactory extends SourceFactoryImpl {
   MockSourceFactory() : super([]);

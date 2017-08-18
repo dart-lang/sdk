@@ -31,10 +31,10 @@ main() {
       new D1<String, bool>() is Baz, 'new D1<String, bool>() is Baz');
   Expect.isTrue(new D1<String, bool>() is Boz, 'new D1<String, bool>() is Boz');
 
-  Expect.isFalse(new D1<bool, int>() is Foo, 'new D1<bool, int>() is Foo');
-  Expect.isFalse(new D1<bool, int>() is Bar, 'new D1<bool, int>() is Bar');
+  Expect.isTrue(new D1<bool, int>() is Foo, 'new D1<bool, int>() is Foo');
+  Expect.isTrue(new D1<bool, int>() is Bar, 'new D1<bool, int>() is Bar');
   Expect.isFalse(new D1<bool, int>() is Baz, 'new D1<bool, int>() is Baz');
-  Expect.isFalse(new D1<bool, int>() is Boz, 'new D1<bool, int>() is Boz');
+  Expect.isTrue(new D1<bool, int>() is Boz, 'new D1<bool, int>() is Boz');
 
   Expect.isTrue(new D1() is Foo, 'new D1() is Foo');
   Expect.isTrue(new D1() is Bar, 'new D1() is Bar');
@@ -50,8 +50,8 @@ main() {
 
   Expect.isFalse(new D2<bool, int>() is Foo, 'new D2<bool, int>() is Foo');
   Expect.isFalse(new D2<bool, int>() is Bar, 'new D2<bool, int>() is Bar');
-  Expect.isFalse(new D2<bool, int>() is Baz, 'new D2<bool, int>() is Baz');
-  Expect.isFalse(new D2<bool, int>() is Boz, 'new D2<bool, int>() is Boz');
+  Expect.isTrue(new D2<bool, int>() is Baz, 'new D2<bool, int>() is Baz');
+  Expect.isTrue(new D2<bool, int>() is Boz, 'new D2<bool, int>() is Boz');
 
   Expect.isFalse(new D2() is Foo, 'new D2() is Foo');
   Expect.isFalse(new D2() is Bar, 'new D2() is Bar');

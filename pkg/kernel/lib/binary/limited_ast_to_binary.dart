@@ -13,20 +13,18 @@ import 'package:kernel/binary/ast_to_binary.dart';
 class LimitedBinaryPrinter extends BinaryPrinter {
   final LibraryFilter predicate;
 
-  LimitedBinaryPrinter(Sink<List<int>> sink, this.predicate)
-      : super(sink, stringIndexer: new ReferencesStringIndexer());
+  /// Excludes all uriToSource information.
+  ///
+  /// By default the [predicate] above will only exclude canonical names and
+  /// kernel libraries, but it will still emit the sources for all libraries.
+  /// filtered by libraries matching [predicate].
+  // TODO(sigmund): provide a way to filter sources directly based on
+  // [predicate]. That requires special logic to handle sources from part files.
+  final bool excludeUriToSource;
 
-  @override
-  void computeCanonicalNames(Program program) {
-    for (var library in program.libraries) {
-      if (predicate(library)) {
-        program.root
-            .getChildFromUri(library.importUri)
-            .bindTo(library.reference);
-        library.computeCanonicalNames();
-      }
-    }
-  }
+  LimitedBinaryPrinter(
+      Sink<List<int>> sink, this.predicate, this.excludeUriToSource)
+      : super(sink, stringIndexer: new ReferencesStringIndexer());
 
   @override
   void addCanonicalNamesForLinkTable(List<CanonicalName> list) {
@@ -47,6 +45,18 @@ class LimitedBinaryPrinter extends BinaryPrinter {
   }
 
   @override
+  void computeCanonicalNames(Program program) {
+    for (var library in program.libraries) {
+      if (predicate(library)) {
+        program.root
+            .getChildFromUri(library.importUri)
+            .bindTo(library.reference);
+        library.computeCanonicalNames();
+      }
+    }
+  }
+
+  @override
   bool shouldWriteLibraryCanonicalNames(Library library) {
     return predicate(library);
   }
@@ -61,6 +71,25 @@ class LimitedBinaryPrinter extends BinaryPrinter {
   void writeNode(Node node) {
     if (node is Library && !predicate(node)) return;
     node.accept(this);
+  }
+
+  @override
+  void writeProgramIndex(Program program, List<Library> libraries) {
+    var librariesToWrite = libraries.where(predicate).toList();
+    super.writeProgramIndex(program, librariesToWrite);
+  }
+
+  void writeUriToSource(Program program) {
+    if (!excludeUriToSource) {
+      super.writeUriToSource(program);
+    } else {
+      // Emit a practically empty uriToSrouce table.
+      writeStringTable(new StringIndexer());
+
+      // Add an entry for '', which is always included by default.
+      writeUtf8Bytes(const <int>[]);
+      writeUInt30(0);
+    }
   }
 }
 
@@ -77,6 +106,12 @@ class ReferencesStringIndexer extends StringIndexer {
   @override
   visitClassReference(Class node) {
     _handleReferencedName(node.canonicalName);
+  }
+
+  @override
+  visitLibraryDependency(LibraryDependency node) {
+    _handleReferencedName(node.importedLibraryReference.canonicalName);
+    super.visitLibraryDependency(node);
   }
 
   @override

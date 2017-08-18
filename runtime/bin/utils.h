@@ -51,7 +51,6 @@ class OSError {
   DISALLOW_COPY_AND_ASSIGN(OSError);
 };
 
-
 class StringUtils {
  public:
   // The following methods convert the argument if needed.  The
@@ -87,7 +86,6 @@ class StringUtils {
   DISALLOW_IMPLICIT_CONSTRUCTORS(StringUtils);
 };
 
-
 class ShellUtils {
  public:
   // Convert all the arguments to UTF8. On Windows, the arguments are
@@ -101,7 +99,6 @@ class ShellUtils {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(ShellUtils);
 };
-
 
 class TimerUtils {
  public:

@@ -177,7 +177,6 @@ static struct NativeEntries {
   int argument_count_;
 } IOEntries[] = {IO_NATIVE_LIST(REGISTER_FUNCTION)};
 
-
 Dart_NativeFunction IONativeLookup(Dart_Handle name,
                                    int argument_count,
                                    bool* auto_setup_scope) {
@@ -197,7 +196,6 @@ Dart_NativeFunction IONativeLookup(Dart_Handle name,
   }
   return NULL;
 }
-
 
 const uint8_t* IONativeSymbol(Dart_NativeFunction nf) {
   int num_entries = sizeof(IOEntries) / sizeof(struct NativeEntries);

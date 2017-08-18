@@ -9,8 +9,33 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:front_end/src/base/source.dart';
 import 'package:test/test.dart';
+
+/**
+ * Search the [unit] for the [LocalVariableElement] with the given [name].
+ * Fail if there is not exactly one such variable.
+ */
+FunctionElement findLocalFunction(CompilationUnit unit, String name) {
+  List<Element> elements = findElementsByName(unit, name);
+  List<Element> functions =
+      elements.where((e) => e is FunctionElement).toList();
+  expect(functions, hasLength(1));
+  return functions[0];
+}
+
+/**
+ * Search the [unit] for the [LocalVariableElement] with the given [name].
+ * Fail if there is not exactly one such variable.
+ */
+LocalVariableElement findLocalVariable(CompilationUnit unit, String name) {
+  List<Element> elements = findElementsByName(unit, name);
+  List<Element> localVariables =
+      elements.where((e) => e is LocalVariableElement).toList();
+  expect(localVariables, hasLength(1));
+  return localVariables[0];
+}
 
 /**
  * The type of an assertion which asserts properties of [T]s.

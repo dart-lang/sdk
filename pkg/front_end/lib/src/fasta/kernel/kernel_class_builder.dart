@@ -4,9 +4,6 @@
 
 library fasta.kernel_class_builder;
 
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelMember;
-
 import 'package:kernel/ast.dart'
     show
         Class,
@@ -27,9 +24,18 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
-import '../errors.dart' show internalError;
-
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
+
+import '../fasta_codes.dart'
+    show
+        templateOverrideFewerNamedArguments,
+        templateOverrideFewerPositionalArguments,
+        templateOverrideMismatchNamedParameter,
+        templateOverrideMoreRequiredArguments,
+        templateOverrideTypeVariablesMismatch,
+        templateRedirectionTargetNotFound;
+
+import '../problems.dart' show unhandled, unimplemented;
 
 import 'kernel_builder.dart'
     show
@@ -46,6 +52,8 @@ import 'kernel_builder.dart'
         Scope,
         TypeVariableBuilder,
         computeDefaultTypeArguments;
+
+import 'kernel_shadow_ast.dart' show KernelMember;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
@@ -82,7 +90,7 @@ abstract class KernelClassBuilder
     for (KernelTypeBuilder builder in arguments) {
       DartType type = builder.build(library);
       if (type == null) {
-        internalError("Bad type: ${builder.runtimeType}");
+        unhandled("${builder.runtimeType}", "buildTypeArguments", -1, null);
       }
       typeArguments.add(type);
     }
@@ -131,12 +139,12 @@ abstract class KernelClassBuilder
             } else if (targetBuilder is DillMemberBuilder) {
               builder.body = new RedirectingFactoryBody(targetBuilder.member);
             } else {
-              String message = "Redirection constructor target not found: "
-                  "${redirectionTarget.fullNameForErrors}";
+              var message = templateRedirectionTargetNotFound
+                  .withArguments(redirectionTarget.fullNameForErrors);
               if (builder.isConst) {
-                addCompileTimeError(builder.charOffset, message);
+                addCompileTimeError(message, builder.charOffset);
               } else {
-                addWarning(builder.charOffset, message);
+                addWarning(message, builder.charOffset);
               }
               // CoreTypes aren't computed yet, and this is the outline
               // phase. So we can't and shouldn't create a method body.
@@ -188,8 +196,8 @@ abstract class KernelClassBuilder
   void checkOverride(
       Member declaredMember, Member interfaceMember, bool isSetter) {
     if (declaredMember is Constructor || interfaceMember is Constructor) {
-      internalError(
-          "Constructor in override check.", fileUri, declaredMember.fileOffset);
+      unimplemented(
+          "Constructor in override check.", declaredMember.fileOffset, fileUri);
     }
     if (declaredMember is Procedure && interfaceMember is Procedure) {
       if (declaredMember.kind == ProcedureKind.Method &&
@@ -233,31 +241,31 @@ abstract class KernelClassBuilder
     if (declaredFunction.typeParameters?.length !=
         interfaceFunction.typeParameters?.length) {
       addWarning(
-          declaredMember.fileOffset,
-          "Declared type variables of '$name::${declaredMember.name.name}' "
-          "doesn't match those on overridden method "
-          "'${interfaceMember.enclosingClass.name}::"
-          "${interfaceMember.name.name}'.");
+          templateOverrideTypeVariablesMismatch.withArguments(
+              "$name::${declaredMember.name.name}",
+              "${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.name.name}"),
+          declaredMember.fileOffset);
     }
     if (declaredFunction.positionalParameters.length <
             interfaceFunction.requiredParameterCount ||
         declaredFunction.positionalParameters.length <
             interfaceFunction.positionalParameters.length) {
       addWarning(
-          declaredMember.fileOffset,
-          "The method '$name::${declaredMember.name.name}' has fewer "
-          "positional arguments than those of overridden method "
-          "'${interfaceMember.enclosingClass.name}::"
-          "${interfaceMember.name.name}'.");
+          templateOverrideFewerPositionalArguments.withArguments(
+              "$name::${declaredMember.name.name}",
+              "${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.name.name}"),
+          declaredMember.fileOffset);
     }
     if (interfaceFunction.requiredParameterCount <
         declaredFunction.requiredParameterCount) {
       addWarning(
-          declaredMember.fileOffset,
-          "The method '$name::${declaredMember.name.name}' has more "
-          "required arguments than those of overridden method "
-          "'${interfaceMember.enclosingClass.name}::"
-          "${interfaceMember.name.name}'.");
+          templateOverrideMoreRequiredArguments.withArguments(
+              "$name::${declaredMember.name.name}",
+              "${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.name.name}"),
+          declaredMember.fileOffset);
     }
     if (declaredFunction.namedParameters.isEmpty &&
         interfaceFunction.namedParameters.isEmpty) {
@@ -266,11 +274,11 @@ abstract class KernelClassBuilder
     if (declaredFunction.namedParameters.length <
         interfaceFunction.namedParameters.length) {
       addWarning(
-          declaredMember.fileOffset,
-          "The method '$name::${declaredMember.name.name}' has fewer named "
-          "arguments than those of overridden method "
-          "'${interfaceMember.enclosingClass.name}::"
-          "${interfaceMember.name.name}'.");
+          templateOverrideFewerNamedArguments.withArguments(
+              "$name::${declaredMember.name.name}",
+              "${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.name.name}"),
+          declaredMember.fileOffset);
     }
     Iterator<VariableDeclaration> declaredNamedParameters =
         declaredFunction.namedParameters.iterator;
@@ -283,11 +291,12 @@ abstract class KernelClassBuilder
           interfaceNamedParameters.current.name) {
         if (!declaredNamedParameters.moveNext()) {
           addWarning(
-              declaredMember.fileOffset,
-              "The method '$name::${declaredMember.name.name}' doesn't have "
-              "the named parameter '${interfaceNamedParameters.current.name}' "
-              "of overriden method '${interfaceMember.enclosingClass.name}::"
-              "${interfaceMember.name.name}'.");
+              templateOverrideMismatchNamedParameter.withArguments(
+                  "$name::${declaredMember.name.name}",
+                  interfaceNamedParameters.current.name,
+                  "${interfaceMember.enclosingClass.name}::"
+                  "${interfaceMember.name.name}"),
+              declaredMember.fileOffset);
           break outer;
         }
       }

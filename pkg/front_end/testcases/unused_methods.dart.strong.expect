@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class UsedAsBaseClass extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   abstract method usedInSubclass() → void;
@@ -16,14 +16,14 @@ abstract class UsedAsInterface extends core::Object {
   abstract method usedInSubclass() → void;
 }
 class InstantiatedButMethodsUnused extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method usedInSubclass() → void
     throw "Method removed by tree-shaking";
 }
 class ClassA extends self::UsedAsBaseClass implements self::UsedAsInterface, self::InstantiatedButMethodsUnused {
-  constructor •() → void
+  default constructor •() → void
     : super self::UsedAsBaseClass::•()
     ;
   method usedInSubclass() → void {
@@ -31,7 +31,7 @@ class ClassA extends self::UsedAsBaseClass implements self::UsedAsInterface, sel
   }
 }
 class ClassB extends self::UsedAsBaseClass implements self::UsedAsInterface, self::InstantiatedButMethodsUnused {
-  constructor •() → void
+  default constructor •() → void
     : super self::UsedAsBaseClass::•()
     ;
   method usedInSubclass() → void {

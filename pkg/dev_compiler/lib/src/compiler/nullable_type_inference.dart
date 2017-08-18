@@ -59,7 +59,8 @@ abstract class NullableTypeInference {
     // resulting value if that becomes an issue, so we maintain the invariant
     // that each node is visited once.
     Element element = null;
-    if (expr is PropertyAccess) {
+    if (expr is PropertyAccess &&
+        expr.operator?.type != TokenType.QUESTION_PERIOD) {
       element = expr.propertyName.staticElement;
     } else if (expr is Identifier) {
       element = expr.staticElement;
@@ -184,7 +185,9 @@ abstract class NullableTypeInference {
         var first = args.isNotEmpty ? args.first : null;
         if (first is SimpleStringLiteral) {
           var types = first.stringValue;
-          if (!types.split('|').contains('Null')) {
+          if (types != '' &&
+              types != 'var' &&
+              !types.split('|').contains('Null')) {
             return false;
           }
         }

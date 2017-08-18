@@ -1,0 +1,12 @@
+name: status_file
+author: Dart Team <misc@dartlang.org>
+description: Parses status files.
+homepage: http://www.dartlang.org
+#environment:
+#  sdk: '>=1.0.0 <2.0.0'
+dependencies:
+  path:
+    path: ../../third_party/pkg/path
+dev_dependencies:
+  expect:
+    path: ../expect

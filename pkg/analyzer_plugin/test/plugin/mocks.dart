@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
-import 'package:front_end/src/base/timestamped_data.dart';
+import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:test/test.dart';
 
 class MockAnalysisDriver extends AnalysisDriver {

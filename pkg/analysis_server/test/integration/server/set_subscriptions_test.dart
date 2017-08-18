@@ -39,9 +39,7 @@ class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
     });
     return sendServerSetSubscriptions([]).then((_) {
       String pathname = sourcePath('test.dart');
-      writeFile(
-          pathname,
-          '''
+      writeFile(pathname, '''
 main() {
   var x;
 }''');
@@ -52,9 +50,7 @@ main() {
         expect(statusReceived, isFalse);
         return sendServerSetSubscriptions([ServerService.STATUS]).then((_) {
           // Tickle test.dart just in case analysis has already completed.
-          writeFile(
-              pathname,
-              '''
+          writeFile(pathname, '''
 main() {
   var y;
 }''');

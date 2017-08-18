@@ -15,7 +15,6 @@ namespace dart {
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 
-
 void DeferredDouble::Materialize(DeoptContext* deopt_context) {
   RawDouble** double_slot = reinterpret_cast<RawDouble**>(slot());
   *double_slot = Double::New(value());
@@ -25,7 +24,6 @@ void DeferredDouble::Materialize(DeoptContext* deopt_context) {
                  reinterpret_cast<uword>(slot()), value());
   }
 }
-
 
 void DeferredMint::Materialize(DeoptContext* deopt_context) {
   RawMint** mint_slot = reinterpret_cast<RawMint**>(slot());
@@ -39,7 +37,6 @@ void DeferredMint::Materialize(DeoptContext* deopt_context) {
                  reinterpret_cast<uword>(slot()), value());
   }
 }
-
 
 void DeferredFloat32x4::Materialize(DeoptContext* deopt_context) {
   RawFloat32x4** float32x4_slot = reinterpret_cast<RawFloat32x4**>(slot());
@@ -56,7 +53,6 @@ void DeferredFloat32x4::Materialize(DeoptContext* deopt_context) {
   }
 }
 
-
 void DeferredFloat64x2::Materialize(DeoptContext* deopt_context) {
   RawFloat64x2** float64x2_slot = reinterpret_cast<RawFloat64x2**>(slot());
   RawFloat64x2* raw_float64x2 = Float64x2::New(value());
@@ -69,7 +65,6 @@ void DeferredFloat64x2::Materialize(DeoptContext* deopt_context) {
                  reinterpret_cast<uword>(slot()), x, y);
   }
 }
-
 
 void DeferredInt32x4::Materialize(DeoptContext* deopt_context) {
   RawInt32x4** int32x4_slot = reinterpret_cast<RawInt32x4**>(slot());
@@ -86,7 +81,6 @@ void DeferredInt32x4::Materialize(DeoptContext* deopt_context) {
   }
 }
 
-
 void DeferredObjectRef::Materialize(DeoptContext* deopt_context) {
   DeferredObject* obj = deopt_context->GetDeferredObject(index());
   *slot() = obj->object();
@@ -97,7 +91,6 @@ void DeferredObjectRef::Materialize(DeoptContext* deopt_context) {
                  cls.ToCString(), reinterpret_cast<uword>(slot()));
   }
 }
-
 
 void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
   Thread* thread = deopt_context->thread();
@@ -153,7 +146,6 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
   }
 }
 
-
 void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
   Thread* thread = deopt_context->thread();
   Zone* zone = deopt_context->zone();
@@ -195,7 +187,6 @@ void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
   }
 }
 
-
 void DeferredPp::Materialize(DeoptContext* deopt_context) {
   Thread* thread = deopt_context->thread();
   Zone* zone = deopt_context->zone();
@@ -219,14 +210,12 @@ void DeferredPp::Materialize(DeoptContext* deopt_context) {
   }
 }
 
-
 RawObject* DeferredObject::object() {
   if (object_ == NULL) {
     Create();
   }
   return object_->raw();
 }
-
 
 void DeferredObject::Create() {
   if (object_ != NULL) {
@@ -256,13 +245,11 @@ void DeferredObject::Create() {
   }
 }
 
-
 static intptr_t ToContextIndex(intptr_t offset_in_bytes) {
   intptr_t result = (offset_in_bytes - Context::variable_offset(0)) / kWordSize;
   ASSERT(result >= 0);
   return result;
 }
-
 
 void DeferredObject::Fill() {
   Create();  // Ensure instance is created.

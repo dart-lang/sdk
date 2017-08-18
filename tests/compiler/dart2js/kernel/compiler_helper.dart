@@ -16,7 +16,8 @@ import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/common/tasks.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/kernel/element_map_impl.dart';
+import 'package:compiler/src/filenames.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/universe/world_builder.dart';
@@ -52,7 +53,11 @@ Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
   Compiler compiler = compilerFor(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
-      options: [Flags.analyzeAll, Flags.useKernel, Flags.enableAssertMessage]);
+      options: [
+        Flags.analyzeAll,
+        Flags.useKernelInSsa,
+        Flags.enableAssertMessage
+      ]);
   compiler.librariesToAnalyzeWhenRun = uris;
   await compiler.run(entryPoint);
 
@@ -65,12 +70,12 @@ Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
           options: [
             Flags.analyzeOnly,
             Flags.enableAssertMessage,
-            Flags.loadFromDill
+            Flags.useKernel
           ]);
       ElementResolutionWorldBuilder.useInstantiationMap = true;
       compiler2.resolution.retainCachesForTesting = true;
       KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
-      KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
+      KernelToElementMapForImpact elementMap = frontendStrategy.elementMap;
       ir.Program program = new ir.Program(
           libraries:
               compiler.backend.kernelTask.kernel.libraryDependencies(uri));
@@ -78,7 +83,7 @@ Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
       Expect.isNotNull(library, 'No library found for $uri');
       program.mainMethod = compiler.backend.kernelTask.kernel
           .functionToIr(library.findExported(Identifiers.main));
-      compiler2.libraryLoader = new MemoryDillLibraryLoaderTask(
+      compiler2.libraryLoader = new MemoryKernelLibraryLoaderTask(
           elementMap, compiler2.reporter, compiler2.measurer, program);
       await compiler2.run(uri);
       return compiler2;
@@ -99,7 +104,12 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
   Compiler compiler = compilerFor(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
-      options: [Flags.analyzeAll, Flags.useKernel, Flags.enableAssertMessage]);
+      options: [
+        Flags.analyzeAll,
+        Flags.useKernelInSsa,
+        Flags.enableAssertMessage
+      ]);
+  compiler.resolution.retainCachesForTesting = true;
   await compiler.run(entryPoint);
 
   if (printSteps) {
@@ -108,16 +118,12 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
   Compiler compiler2 = compilerFor(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
-      options: [
-        Flags.analyzeOnly,
-        Flags.enableAssertMessage,
-        Flags.loadFromDill
-      ]);
+      options: [Flags.analyzeOnly, Flags.enableAssertMessage, Flags.useKernel]);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler2.resolution.retainCachesForTesting = true;
   KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
-  KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
-  compiler2.libraryLoader = new MemoryDillLibraryLoaderTask(
+  KernelToElementMapForImpact elementMap = frontendStrategy.elementMap;
+  compiler2.libraryLoader = new MemoryKernelLibraryLoaderTask(
       elementMap,
       compiler2.reporter,
       compiler2.measurer,
@@ -126,12 +132,12 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
   return new Pair<Compiler, Compiler>(compiler, compiler2);
 }
 
-class MemoryDillLibraryLoaderTask extends DillLibraryLoaderTask {
+class MemoryKernelLibraryLoaderTask extends KernelLibraryLoaderTask {
   final ir.Program program;
 
-  MemoryDillLibraryLoaderTask(KernelToElementMapImpl elementMap,
+  MemoryKernelLibraryLoaderTask(KernelToElementMapForImpact elementMap,
       DiagnosticReporter reporter, Measurer measurer, this.program)
-      : super(elementMap, null, null, reporter, measurer);
+      : super(null, elementMap, null, reporter, measurer);
 
   Future<LoadedLibraries> loadLibrary(Uri resolvedUri,
       {bool skipFileWithPartOfTag: false}) async {
@@ -151,6 +157,13 @@ Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
     });
     entryPoint = dir.uri.resolve(entryPoint.path);
   }
+  return entryPoint;
+}
+
+Future generateDill(Uri entryPoint, Map<String, String> memorySourceFiles,
+    {bool printSteps: false}) async {
+  entryPoint =
+      await createTemp(entryPoint, memorySourceFiles, printSteps: printSteps);
   if (printSteps) {
     print('---- generate dill -----------------------------------------------');
   }
@@ -161,25 +174,30 @@ Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
       Platform.environment['DART_CONFIGURATION'] ?? 'ReleaseX64';
   await generate.main([
     '--platform=$buildDir/$configuration/patched_dart2js_sdk/platform.dill',
-    '$entryPoint'
+    '--out=${uriPathToNative(dillFile.path)}',
+    '${entryPoint.path}',
   ]);
   return dillFile;
 }
 
 Future<Compiler> compileWithDill(
-    Uri entryPoint, Map<String, String> memorySourceFiles, List<String> options,
-    {bool printSteps: false,
+    {Uri entryPoint,
+    Map<String, String> memorySourceFiles: const <String, String>{},
+    List<String> options: const <String>[],
+    CompilerDiagnostics diagnosticHandler,
+    bool printSteps: false,
     CompilerOutput compilerOutput,
     void beforeRun(Compiler compiler)}) async {
   Uri dillFile =
-      await createTemp(entryPoint, memorySourceFiles, printSteps: printSteps);
+      await generateDill(entryPoint, memorySourceFiles, printSteps: printSteps);
 
   if (printSteps) {
     print('---- compile from dill $dillFile ---------------------------------');
   }
   Compiler compiler = compilerFor(
       entryPoint: dillFile,
-      options: [Flags.loadFromDill]..addAll(options),
+      options: [Flags.useKernel]..addAll(options),
+      diagnosticHandler: diagnosticHandler,
       outputProvider: compilerOutput);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler.resolution.retainCachesForTesting = true;

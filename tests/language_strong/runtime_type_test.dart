@@ -33,4 +33,7 @@ main() {
 
   Expect.isTrue(null.runtimeType is Type);
   Expect.equals(Null, null.runtimeType);
+
+  Expect.equals([].runtimeType.toString(), 'List');
+  Expect.equals((<int>[]).runtimeType.toString(), 'List<int>');
 }

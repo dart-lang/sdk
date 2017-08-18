@@ -23,7 +23,7 @@ import '../memory_compiler.dart';
 const String TESTCASE_DIR = 'pkg/front_end/testcases/';
 
 const List<String> TESTS = const <String>[
-  'DeltaBlue',
+  // 'DeltaBlue', Issue 29853: super calls compiled as direct calls.
   'argument',
   'arithmetic',
   'async_function',
@@ -32,18 +32,19 @@ const List<String> TESTS = const <String>[
   'closure',
   // 'covariant_generic', Issue 29853: typedefs
   'escape',
-  'fallthrough',
+  // 'fallthrough', Issue 29853: fall-through errors compiled differently from
+  // Fasta
   'micro',
   'named_parameters',
   'null_aware',
-  // 'optional', Issue 29853: abstract members
+  'optional',
   'override',
   'prefer_baseclass',
   // 'redirecting_factory', Issue 29853: redirecting factories
   'static_setter',
   'store_load',
   'stringliteral',
-  'uninitialized_fields',
+  // 'uninitialized_fields', Issue 29853: Disagrement on field initializers.
   'unused_methods',
   'void-methods',
 ];
@@ -96,7 +97,7 @@ scheduleTest(String name, {bool selected}) async {
 
 Future<Compiler> newCompiler() async {
   var compiler = compilerFor(
-      options: [Flags.analyzeOnly, Flags.analyzeAll, Flags.useKernel]);
+      options: [Flags.analyzeOnly, Flags.analyzeAll, Flags.useKernelInSsa]);
   await compiler.setupSdk();
 
   // The visitor no longer enqueues elements that are not reachable from the

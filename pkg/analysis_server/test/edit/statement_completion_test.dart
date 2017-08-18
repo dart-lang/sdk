@@ -39,9 +39,7 @@ main() {
 ''');
     await waitForTasksFinished();
     await _prepareCompletion('v = 1;', atStart: true);
-    _assertHasChange(
-        'Insert a newline at the end of the current line',
-        '''
+    _assertHasChange('Insert a newline at the end of the current line', '''
 main() {
   int v = 1;
   /*caret*/
@@ -57,9 +55,7 @@ main() {
 ''');
     await waitForTasksFinished();
     await _prepareCompletion('v = 1;', atEnd: true);
-    _assertHasChange(
-        'Insert a newline at the end of the current line',
-        '''
+    _assertHasChange('Insert a newline at the end of the current line', '''
 main() {
   int v = 1;
   /*caret*/

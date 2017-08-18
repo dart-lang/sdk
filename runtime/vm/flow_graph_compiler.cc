@@ -79,15 +79,14 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_use_field_guards = false;
     FLAG_use_cha_deopt = false;
     FLAG_unbox_numeric_fields = false;
+    FLAG_enable_mirrors = false;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     // Set flags affecting runtime accordingly for dart_bootstrap.
     // These flags are constants with PRODUCT and DART_PRECOMPILED_RUNTIME.
     FLAG_collect_code = false;
-    FLAG_support_debugger = false;
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
-    FLAG_enable_mirrors = false;
     FLAG_load_deferred_eagerly = true;
     FLAG_print_stop_message = false;
     FLAG_use_osr = false;
@@ -103,7 +102,6 @@ DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
 
 COMPILE_ASSERT(!FLAG_collect_code);
 COMPILE_ASSERT(!FLAG_deoptimize_alot);  // Used in some tests.
-COMPILE_ASSERT(!FLAG_enable_mirrors);
 COMPILE_ASSERT(FLAG_precompiled_runtime);
 COMPILE_ASSERT(!FLAG_print_stop_message);
 COMPILE_ASSERT(!FLAG_use_osr);
@@ -111,7 +109,6 @@ COMPILE_ASSERT(FLAG_deoptimize_every == 0);  // Used in some tests.
 COMPILE_ASSERT(FLAG_load_deferred_eagerly);
 
 #endif  // DART_PRECOMPILED_RUNTIME
-
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
@@ -129,7 +126,6 @@ void CompilerDeoptInfo::AllocateIncomingParametersRecursive(
   }
 }
 
-
 void CompilerDeoptInfo::EmitMaterializations(Environment* env,
                                              DeoptInfoBuilder* builder) {
   for (Environment::DeepIterator it(env); !it.Done(); it.Advance()) {
@@ -141,7 +137,6 @@ void CompilerDeoptInfo::EmitMaterializations(Environment* env,
     }
   }
 }
-
 
 FlowGraphCompiler::FlowGraphCompiler(
     Assembler* assembler,
@@ -207,12 +202,15 @@ FlowGraphCompiler::FlowGraphCompiler(
   ASSERT(assembler != NULL);
   ASSERT(!list_class_.IsNull());
 
-  bool stack_traces_only = !FLAG_profiler;
+#if defined(PRODUCT)
+  const bool stack_traces_only = true;
+#else
+  const bool stack_traces_only = false;
+#endif
   code_source_map_builder_ = new (zone_)
       CodeSourceMapBuilder(stack_traces_only, caller_inline_id,
                            inline_id_to_token_pos, inline_id_to_function);
 }
-
 
 bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
   bool valid_class =
@@ -223,13 +221,11 @@ bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
          !field.is_nullable() && valid_class;
 }
 
-
 bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
   return field.is_unboxing_candidate() &&
          (FlowGraphCompiler::IsUnboxedField(field) ||
           (!field.is_final() && (field.guarded_cid() == kIllegalCid)));
 }
-
 
 void FlowGraphCompiler::InitCompiler() {
   pc_descriptors_list_ = new (zone()) DescriptorList(64);
@@ -289,23 +285,20 @@ void FlowGraphCompiler::InitCompiler() {
   }
 }
 
-
 bool FlowGraphCompiler::CanOptimize() {
   return FLAG_optimization_counter_threshold >= 0;
 }
-
 
 bool FlowGraphCompiler::CanOptimizeFunction() const {
   return CanOptimize() && !parsed_function().function().HasBreakpoint();
 }
 
-
 bool FlowGraphCompiler::CanOSRFunction() const {
   return isolate()->use_osr() && CanOptimizeFunction() && !is_optimizing();
 }
 
-
 bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
+#if !defined(PRODUCT)
   if ((FLAG_stacktrace_every > 0) || (FLAG_deoptimize_every > 0) ||
       (isolate()->reload_every_n_stack_overflow_checks() > 0)) {
     return true;
@@ -320,9 +313,9 @@ bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
              FLAG_deoptimize_filter) != NULL) {
     return true;
   }
+#endif  // !defined(PRODUCT)
   return false;
 }
-
 
 static bool IsEmptyBlock(BlockEntryInstr* block) {
   return !block->IsCatchBlockEntry() && !block->HasNonRedundantParallelMove() &&
@@ -330,7 +323,6 @@ static bool IsEmptyBlock(BlockEntryInstr* block) {
          !block->next()->AsGoto()->HasNonRedundantParallelMove() &&
          !block->IsIndirectEntry();
 }
-
 
 void FlowGraphCompiler::CompactBlock(BlockEntryInstr* block) {
   BlockInfo* block_info = block_info_[block->postorder_number()];
@@ -349,7 +341,6 @@ void FlowGraphCompiler::CompactBlock(BlockEntryInstr* block) {
     block_info->set_jump_label(GetJumpLabel(target));
   }
 }
-
 
 void FlowGraphCompiler::CompactBlocks() {
   // This algorithm does not garbage collect blocks in place, but merely
@@ -378,7 +369,6 @@ void FlowGraphCompiler::CompactBlocks() {
   BlockInfo* block_info = block_info_[block_order()[0]->postorder_number()];
   block_info->set_next_nonempty_label(nonempty_label);
 }
-
 
 void FlowGraphCompiler::EmitCatchEntryState(Environment* env,
                                             intptr_t try_index) {
@@ -454,7 +444,6 @@ void FlowGraphCompiler::EmitCatchEntryState(Environment* env,
 #endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
 }
 
-
 void FlowGraphCompiler::EmitCallsiteMetaData(TokenPosition token_pos,
                                              intptr_t deopt_id,
                                              RawPcDescriptors::Kind kind,
@@ -463,7 +452,6 @@ void FlowGraphCompiler::EmitCallsiteMetaData(TokenPosition token_pos,
   RecordSafepoint(locs);
   EmitCatchEntryState();
 }
-
 
 void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   if (!is_optimizing()) {
@@ -477,7 +465,6 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
     AllocateRegistersLocally(instr);
   }
 }
-
 
 void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
   if (!instr->token_pos().IsReal() || (instr->env() == NULL)) {
@@ -494,7 +481,6 @@ void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
                        line.ToCString());
 }
 
-
 static void LoopInfoComment(
     Assembler* assembler,
     const BlockEntryInstr& block,
@@ -510,7 +496,6 @@ static void LoopInfoComment(
     }
   }
 }
-
 
 void FlowGraphCompiler::VisitBlocks() {
   CompactBlocks();
@@ -587,11 +572,9 @@ void FlowGraphCompiler::VisitBlocks() {
   set_current_block(NULL);
 }
 
-
 void FlowGraphCompiler::Bailout(const char* reason) {
   parsed_function_.Bailout("FlowGraphCompiler", reason);
 }
-
 
 intptr_t FlowGraphCompiler::StackSize() const {
   if (is_optimizing_) {
@@ -602,29 +585,24 @@ intptr_t FlowGraphCompiler::StackSize() const {
   }
 }
 
-
 Label* FlowGraphCompiler::GetJumpLabel(BlockEntryInstr* block_entry) const {
   const intptr_t block_index = block_entry->postorder_number();
   return block_info_[block_index]->jump_label();
 }
-
 
 bool FlowGraphCompiler::WasCompacted(BlockEntryInstr* block_entry) const {
   const intptr_t block_index = block_entry->postorder_number();
   return block_info_[block_index]->WasCompacted();
 }
 
-
 Label* FlowGraphCompiler::NextNonEmptyLabel() const {
   const intptr_t current_index = current_block()->postorder_number();
   return block_info_[current_index]->next_nonempty_label();
 }
 
-
 bool FlowGraphCompiler::CanFallThroughTo(BlockEntryInstr* block_entry) const {
   return NextNonEmptyLabel() == GetJumpLabel(block_entry);
 }
-
 
 BranchLabels FlowGraphCompiler::CreateBranchLabels(BranchInstr* branch) const {
   Label* true_label = GetJumpLabel(branch->true_successor());
@@ -634,11 +612,9 @@ BranchLabels FlowGraphCompiler::CreateBranchLabels(BranchInstr* branch) const {
   return result;
 }
 
-
 void FlowGraphCompiler::AddSlowPathCode(SlowPathCode* code) {
   slow_path_code_.Add(code);
 }
-
 
 void FlowGraphCompiler::GenerateDeferredCode() {
   for (intptr_t i = 0; i < slow_path_code_.length(); i++) {
@@ -653,7 +629,6 @@ void FlowGraphCompiler::GenerateDeferredCode() {
   }
 }
 
-
 void FlowGraphCompiler::AddExceptionHandler(intptr_t try_index,
                                             intptr_t outer_try_index,
                                             intptr_t pc_offset,
@@ -666,11 +641,9 @@ void FlowGraphCompiler::AddExceptionHandler(intptr_t try_index,
                                        needs_stacktrace);
 }
 
-
 void FlowGraphCompiler::SetNeedsStackTrace(intptr_t try_index) {
   exception_handlers_list_->SetNeedsStackTrace(try_index);
 }
-
 
 void FlowGraphCompiler::AddDescriptor(RawPcDescriptors::Kind kind,
                                       intptr_t pc_offset,
@@ -684,7 +657,6 @@ void FlowGraphCompiler::AddDescriptor(RawPcDescriptors::Kind kind,
                                       try_index);
 }
 
-
 // Uses current pc position and try-index.
 void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                                              intptr_t deopt_id,
@@ -693,20 +665,17 @@ void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                 CurrentTryIndex());
 }
 
-
 void FlowGraphCompiler::AddStaticCallTarget(const Function& func) {
   ASSERT(func.IsZoneHandle());
   static_calls_target_table_.Add(
       new (zone()) StaticCallsStruct(assembler()->CodeSize(), &func, NULL));
 }
 
-
 void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
   ASSERT(code.IsZoneHandle());
   static_calls_target_table_.Add(
       new (zone()) StaticCallsStruct(assembler()->CodeSize(), NULL, &code));
 }
-
 
 CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
   ASSERT(is_optimizing());
@@ -719,7 +688,6 @@ CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
   deopt_infos_.Add(info);
   return info;
 }
-
 
 // This function must be in sync with FlowGraphCompiler::SaveLiveRegisters
 // and FlowGraphCompiler::SlowPathEnvironmentFor.
@@ -805,7 +773,6 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
   }
 }
 
-
 // This function must be kept in sync with:
 //
 //     FlowGraphCompiler::RecordSafepoint
@@ -862,7 +829,6 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
   return env;
 }
 
-
 Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
                                        ICData::DeoptReasonId reason,
                                        uint32_t flags) {
@@ -889,7 +855,6 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
   return stub->entry_label();
 }
 
-
 #if defined(TARGET_ARCH_DBC)
 void FlowGraphCompiler::EmitDeopt(intptr_t deopt_id,
                                   ICData::DeoptReasonId reason,
@@ -907,7 +872,6 @@ void FlowGraphCompiler::EmitDeopt(intptr_t deopt_id,
 }
 #endif  // defined(TARGET_ARCH_DBC)
 
-
 void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
   ASSERT(exception_handlers_list_ != NULL);
   const ExceptionHandlers& handlers = ExceptionHandlers::Handle(
@@ -921,7 +885,6 @@ void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
   }
 }
 
-
 void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
   ASSERT(pc_descriptors_list_ != NULL);
   const PcDescriptors& descriptors = PcDescriptors::Handle(
@@ -929,7 +892,6 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
   if (!is_optimizing_) descriptors.Verify(parsed_function_.function());
   code.set_pc_descriptors(descriptors);
 }
-
 
 RawArray* FlowGraphCompiler::CreateDeoptInfo(Assembler* assembler) {
   // No deopt information if we precompile (no deoptimization allowed).
@@ -963,7 +925,6 @@ RawArray* FlowGraphCompiler::CreateDeoptInfo(Assembler* assembler) {
   }
 }
 
-
 void FlowGraphCompiler::FinalizeStackMaps(const Code& code) {
   if (stackmap_table_builder_ == NULL) {
     code.set_stackmaps(Object::null_array());
@@ -973,7 +934,6 @@ void FlowGraphCompiler::FinalizeStackMaps(const Code& code) {
         Array::Handle(stackmap_table_builder_->FinalizeStackMaps(code)));
   }
 }
-
 
 void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
   if (code.is_optimized()) {
@@ -1036,7 +996,6 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
            targets.Length() * sizeof(uword));
 }
 
-
 void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
   const Array& inlined_id_array =
       Array::Handle(zone(), code_source_map_builder_->InliningIdToFunction());
@@ -1058,7 +1017,6 @@ void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
   code.GetInlinedFunctionsAtInstruction(code.Size() - 1, &fs, &tokens);
 #endif
 }
-
 
 // Returns 'true' if regular code generation should be skipped.
 bool FlowGraphCompiler::TryIntrinsify() {
@@ -1114,7 +1072,6 @@ bool FlowGraphCompiler::TryIntrinsify() {
   return complete;
 }
 
-
 // DBC is very different from other architectures in how it performs instance
 // and static calls because it does not use stubs.
 #if !defined(TARGET_ARCH_DBC)
@@ -1133,7 +1090,6 @@ void FlowGraphCompiler::GenerateCallWithDeopt(TokenPosition token_pos,
     AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
 }
-
 
 void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
                                              TokenPosition token_pos,
@@ -1193,7 +1149,6 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
   }
 }
 
-
 void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                            TokenPosition token_pos,
                                            const Function& function,
@@ -1224,7 +1179,6 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
   }
 }
 
-
 void FlowGraphCompiler::GenerateNumberTypeCheck(Register kClassIdReg,
                                                 const AbstractType& type,
                                                 Label* is_instance_lbl,
@@ -1244,7 +1198,6 @@ void FlowGraphCompiler::GenerateNumberTypeCheck(Register kClassIdReg,
   CheckClassIds(kClassIdReg, args, is_instance_lbl, is_not_instance_lbl);
 }
 
-
 void FlowGraphCompiler::GenerateStringTypeCheck(Register kClassIdReg,
                                                 Label* is_instance_lbl,
                                                 Label* is_not_instance_lbl) {
@@ -1256,7 +1209,6 @@ void FlowGraphCompiler::GenerateStringTypeCheck(Register kClassIdReg,
   args.Add(kExternalTwoByteStringCid);
   CheckClassIds(kClassIdReg, args, is_instance_lbl, is_not_instance_lbl);
 }
-
 
 void FlowGraphCompiler::GenerateListTypeCheck(Register kClassIdReg,
                                               Label* is_instance_lbl) {
@@ -1283,7 +1235,6 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
 #endif
 }
 
-
 #if !defined(TARGET_ARCH_DBC)
 // TODO(vegorov) enable edge-counters on DBC if we consider them beneficial.
 bool FlowGraphCompiler::NeedsEdgeCounter(TargetEntryInstr* block) {
@@ -1293,7 +1244,6 @@ bool FlowGraphCompiler::NeedsEdgeCounter(TargetEntryInstr* block) {
           (!block->last_instruction()->IsGoto() ||
            (block == flow_graph().graph_entry()->normal_entry())));
 }
-
 
 // Allocate a register that is not explicitly blocked.
 static Register AllocateFreeRegister(bool* blocked_registers) {
@@ -1307,7 +1257,6 @@ static Register AllocateFreeRegister(bool* blocked_registers) {
   return kNoRegister;
 }
 #endif
-
 
 void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   ASSERT(!is_optimizing());
@@ -1407,15 +1356,12 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
 #endif  // !defined(TARGET_ARCH_DBC)
 }
 
-
 static uword RegMaskBit(Register reg) {
   return ((reg) != kNoRegister) ? (1 << (reg)) : 0;
 }
 
-
 ParallelMoveResolver::ParallelMoveResolver(FlowGraphCompiler* compiler)
     : compiler_(compiler), moves_(32) {}
-
 
 void ParallelMoveResolver::EmitNativeCode(ParallelMoveInstr* parallel_move) {
   ASSERT(moves_.is_empty());
@@ -1444,7 +1390,6 @@ void ParallelMoveResolver::EmitNativeCode(ParallelMoveInstr* parallel_move) {
   moves_.Clear();
 }
 
-
 void ParallelMoveResolver::BuildInitialMoveList(
     ParallelMoveInstr* parallel_move) {
   // Perform a linear sweep of the moves to add them to the initial list of
@@ -1456,7 +1401,6 @@ void ParallelMoveResolver::BuildInitialMoveList(
     if (!move->IsRedundant()) moves_.Add(move);
   }
 }
-
 
 void ParallelMoveResolver::PerformMove(int index) {
   // Each call to this function performs a move and deletes it from the move
@@ -1526,7 +1470,6 @@ void ParallelMoveResolver::PerformMove(int index) {
   compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
 }
 
-
 bool ParallelMoveResolver::IsScratchLocation(Location loc) {
   for (int i = 0; i < moves_.length(); ++i) {
     if (moves_[i]->Blocks(loc)) {
@@ -1542,7 +1485,6 @@ bool ParallelMoveResolver::IsScratchLocation(Location loc) {
 
   return false;
 }
-
 
 intptr_t ParallelMoveResolver::AllocateScratchRegister(
     Location::Kind kind,
@@ -1578,7 +1520,6 @@ intptr_t ParallelMoveResolver::AllocateScratchRegister(
   return scratch;
 }
 
-
 ParallelMoveResolver::ScratchFpuRegisterScope::ScratchFpuRegisterScope(
     ParallelMoveResolver* resolver,
     FpuRegister blocked)
@@ -1595,13 +1536,11 @@ ParallelMoveResolver::ScratchFpuRegisterScope::ScratchFpuRegisterScope(
   }
 }
 
-
 ParallelMoveResolver::ScratchFpuRegisterScope::~ScratchFpuRegisterScope() {
   if (spilled_) {
     resolver_->RestoreFpuScratch(reg_);
   }
 }
-
 
 ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
     ParallelMoveResolver* resolver,
@@ -1626,13 +1565,11 @@ ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
   }
 }
 
-
 ParallelMoveResolver::ScratchRegisterScope::~ScratchRegisterScope() {
   if (spilled_) {
     resolver_->RestoreScratch(reg_);
   }
 }
-
 
 const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     intptr_t deopt_id,
@@ -1663,7 +1600,6 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
   ASSERT(!ic_data.is_static_call());
   return &ic_data;
 }
-
 
 const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
     intptr_t deopt_id,
@@ -1696,7 +1632,6 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
   return &ic_data;
 }
 
-
 intptr_t FlowGraphCompiler::GetOptimizationThreshold() const {
   intptr_t threshold;
   if (is_optimizing()) {
@@ -1715,7 +1650,6 @@ intptr_t FlowGraphCompiler::GetOptimizationThreshold() const {
   return threshold;
 }
 
-
 const Class& FlowGraphCompiler::BoxClassFor(Representation rep) {
   switch (rep) {
     case kUnboxedDouble:
@@ -1726,7 +1660,7 @@ const Class& FlowGraphCompiler::BoxClassFor(Representation rep) {
       return float64x2_class();
     case kUnboxedInt32x4:
       return int32x4_class();
-    case kUnboxedMint:
+    case kUnboxedInt64:
       return mint_class();
     default:
       UNREACHABLE();
@@ -1734,17 +1668,14 @@ const Class& FlowGraphCompiler::BoxClassFor(Representation rep) {
   }
 }
 
-
 void FlowGraphCompiler::BeginCodeSourceRange() {
   code_source_map_builder_->BeginCodeSourceRange(assembler()->CodeSize());
 }
-
 
 void FlowGraphCompiler::EndCodeSourceRange(TokenPosition token_pos) {
   code_source_map_builder_->EndCodeSourceRange(assembler()->CodeSize(),
                                                token_pos);
 }
-
 
 const CallTargets* FlowGraphCompiler::ResolveCallTargetsForReceiverCid(
     intptr_t cid,
@@ -1763,11 +1694,11 @@ const CallTargets* FlowGraphCompiler::ResolveCallTargetsForReceiverCid(
   return targets;
 }
 
-
 bool FlowGraphCompiler::LookupMethodFor(int class_id,
                                         const String& name,
                                         const ArgumentsDescriptor& args_desc,
-                                        Function* fn_return) {
+                                        Function* fn_return,
+                                        bool* class_is_abstract_return) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
@@ -1781,6 +1712,9 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
   if (!cls.is_finalized()) return false;
   if (Array::Handle(cls.functions()).IsNull()) return false;
 
+  if (class_is_abstract_return != NULL) {
+    *class_is_abstract_return = cls.is_abstract();
+  }
   const bool allow_add = false;
   Function& target_function =
       Function::Handle(zone, Resolver::ResolveDynamicForReceiverClass(
@@ -1789,7 +1723,6 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
   *fn_return ^= target_function.raw();
   return true;
 }
-
 
 #if !defined(TARGET_ARCH_DBC)
 // DBC emits calls very differently from other architectures due to its
@@ -1828,7 +1761,6 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     }
   }
 }
-
 
 #define __ assembler()->
 void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
@@ -1980,7 +1912,6 @@ void FlowGraphCompiler::FrameStateUpdateWith(Instruction* instr) {
   }
 }
 
-
 void FlowGraphCompiler::FrameStatePush(Definition* defn) {
   Representation rep = defn->representation();
   if ((rep == kUnboxedDouble) || (rep == kUnboxedFloat64x2) ||
@@ -1998,13 +1929,11 @@ void FlowGraphCompiler::FrameStatePush(Definition* defn) {
   frame_state_.Add(rep);
 }
 
-
 void FlowGraphCompiler::FrameStatePop(intptr_t count) {
   ASSERT(!is_optimizing());
   frame_state_.TruncateTo(
       Utils::Maximum(static_cast<intptr_t>(0), frame_state_.length() - count));
 }
-
 
 bool FlowGraphCompiler::FrameStateIsSafeToCall() {
   ASSERT(!is_optimizing());
@@ -2016,12 +1945,10 @@ bool FlowGraphCompiler::FrameStateIsSafeToCall() {
   return true;
 }
 
-
 void FlowGraphCompiler::FrameStateClear() {
   ASSERT(!is_optimizing());
   frame_state_.TruncateTo(0);
 }
 #endif  // defined(DEBUG) && !defined(TARGET_ARCH_DBC)
-
 
 }  // namespace dart

@@ -16,8 +16,13 @@ class DictionaryTypeMask extends MapTypeMask {
   // The underlying key/value map of this dictionary.
   final Map<String, TypeMask> typeMap;
 
-  DictionaryTypeMask(forwardTo, allocationNode, allocationElement, keyType,
-      valueType, this.typeMap)
+  DictionaryTypeMask(
+      TypeMask forwardTo,
+      Node allocationNode,
+      MemberEntity allocationElement,
+      TypeMask keyType,
+      TypeMask valueType,
+      this.typeMap)
       : super(forwardTo, allocationNode, allocationElement, keyType, valueType);
 
   TypeMask nullable() {

@@ -33,46 +33,49 @@ makeP() native;
 makeQ() native;
 makeR() native;
 
-void setup() native r"""
-makeA = function(){return {hello: 123};};
+void setup() {
+  JS('', r"""
+(function(){
+  makeA = function(){return {hello: 123};};
 
-function BB(){}
-makeB = function(){return new BB();};
+  function BB(){}
+  makeB = function(){return new BB();};
 
-function CC(){}
-makeC = function(){
-  var x = new CC();
-  x.constructor = null;  // Foils constructor lookup.
-  return x;
-};
+  function CC(){}
+  makeC = function(){
+    var x = new CC();
+    x.constructor = null;  // Foils constructor lookup.
+    return x;
+  };
 
-function DD(){}
-makeD = function(){
-  var x = new DD();
-  x.constructor = {name: 'DDxxx'};  // Foils constructor lookup.
-  return x;
-};
+  function DD(){}
+  makeD = function(){
+    var x = new DD();
+    x.constructor = {name: 'DDxxx'};  // Foils constructor lookup.
+    return x;
+  };
 
-function EE(){}
-makeE = function(){
-  var x = new EE();
-  x.constructor = function Liar(){};  // Looks like a legitimate constructor.
-  return x;
-};
+  function EE(){}
+  makeE = function(){
+    var x = new EE();
+    x.constructor = function Liar(){};  // Looks like a legitimate constructor.
+    return x;
+  };
 
-function PPPP(){}
-makeP = function(){return new PPPP();};
+  function PPPP(){}
+  makeP = function(){return new PPPP();};
 
-function QQQQ(){}
-makeQ = function(){return new QQQQ();};
+  function QQQQ(){}
+  makeQ = function(){return new QQQQ();};
 
-function RRRR(){}
-makeR = function(){return new RRRR();};
+  function RRRR(){}
+  makeR = function(){return new RRRR();};
 
-self.nativeConstructor(PPPP);
-self.nativeConstructor(QQQQ);
-self.nativeConstructor(RRRR);
-""";
+  self.nativeConstructor(PPPP);
+  self.nativeConstructor(QQQQ);
+  self.nativeConstructor(RRRR);
+})()""");
+}
 
 expectTypeName(expectedName, s) {
   var m = new RegExp(r"Instance of '(.*)'").firstMatch(s);

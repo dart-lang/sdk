@@ -13,6 +13,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/gn.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/workspace.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -26,6 +28,7 @@ import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart' as watcher;
+import 'package:yaml/yaml.dart';
 
 /**
  * Information about a plugin that is built-in.
@@ -148,6 +151,22 @@ abstract class PluginInfo {
    */
   void addContextRoot(analyzer.ContextRoot contextRoot) {
     if (contextRoots.add(contextRoot)) {
+      _updatePluginRoots();
+    }
+  }
+
+  /**
+   * Add the given context [roots] to the set of context roots being analyzed by
+   * this plugin.
+   */
+  void addContextRoots(Iterable<analyzer.ContextRoot> roots) {
+    bool changed = false;
+    for (analyzer.ContextRoot contextRoot in roots) {
+      if (contextRoots.add(contextRoot)) {
+        changed = true;
+      }
+    }
+    if (changed) {
       _updatePluginRoots();
     }
   }
@@ -311,7 +330,9 @@ class PluginManager {
     // TODO(brianwilkerson) Figure out the right list of plugin paths.
     _whitelistGlobs = <Glob>[
       new Glob(resourceProvider.pathContext.separator,
-          '**/angular_analyzer_plugin/tools/analyzer_plugin')
+          '**/angular_analyzer_plugin/tools/analyzer_plugin'),
+      new Glob(resourceProvider.pathContext.separator,
+          '**angular/tools/analyzer_plugin')
     ];
   }
 
@@ -334,8 +355,8 @@ class PluginManager {
     PluginInfo plugin = _pluginMap[path];
     bool isNew = plugin == null;
     if (isNew) {
-      List<String> pluginPaths = _pathsFor(path);
-      if (pluginPaths == null || pluginPaths[1] == null) {
+      List<String> pluginPaths = pathsFor(path);
+      if (pluginPaths == null) {
         return;
       }
       plugin = new DiscoveredPluginInfo(path, pluginPaths[0], pluginPaths[1],
@@ -402,7 +423,12 @@ class PluginManager {
       PluginSession session = plugin.currentSession;
       if (session != null &&
           plugin.isAnalyzing(filePath) &&
+          session.interestingFiles != null &&
           session.interestingFiles.any(matches)) {
+        // The list of interesting file globs is `null` if the plugin has not
+        // yet responded to the plugin.versionCheck request. If that happens
+        // then the plugin hasn't had a chance to analyze anything yet, and
+        // hence it does not needed to get watch events.
         event ??= _convertWatchEvent(watchEvent);
         AnalysisHandleWatchEventsParams params =
             new AnalysisHandleWatchEventsParams([event]);
@@ -410,6 +436,46 @@ class PluginManager {
       }
     }
     return responses;
+  }
+
+  /**
+   * Return the execution path and .packages path associated with the plugin at
+   * the given [path], or `null` if there is a problem that prevents us from
+   * executing the plugin.
+   */
+  @visibleForTesting
+  List<String> pathsFor(String pluginPath) {
+    Folder pluginFolder = resourceProvider.getFolder(pluginPath);
+    File pubspecFile = pluginFolder.getChildAssumingFile('pubspec.yaml');
+    if (!pubspecFile.exists) {
+      // If there's no pubspec file, then we don't need to copy the package
+      // because we won't be running pub.
+      return _computePaths(pluginFolder);
+    }
+    Workspace workspace =
+        BazelWorkspace.find(resourceProvider, pluginFolder.path) ??
+            GnWorkspace.find(resourceProvider, pluginFolder.path);
+    if (workspace != null) {
+      // Similarly, we won't be running pub if we're in a workspace because
+      // there is exactly one version of each package.
+      return _computePaths(pluginFolder, workspace: workspace);
+    }
+    //
+    // Copy the plugin directory to a unique subdirectory of the plugin
+    // manager's state location. The subdirectory's name is selected such that
+    // it will be invariant across sessions, reducing the number of times the
+    // plugin will need to be copied and pub will need to be run.
+    //
+    Folder stateFolder = resourceProvider.getStateLocation('.plugin_manager');
+    String stateName = _uniqueDirectoryName(pluginPath);
+    Folder parentFolder = stateFolder.getChildAssumingFolder(stateName);
+    if (parentFolder.exists) {
+      Folder executionFolder =
+          parentFolder.getChildAssumingFolder(pluginFolder.shortName);
+      return _computePaths(executionFolder);
+    }
+    Folder executionFolder = pluginFolder.copyTo(parentFolder);
+    return _computePaths(executionFolder, runPub: true);
   }
 
   /**
@@ -440,6 +506,46 @@ class PluginManager {
       if (plugin is DiscoveredPluginInfo && plugin.contextRoots.isEmpty) {
         _pluginMap.remove(plugin.path);
         plugin.stop();
+      }
+    }
+  }
+
+  /**
+   * Restart all currently running plugins.
+   */
+  Future<Null> restartPlugins() async {
+    for (PluginInfo plugin in _pluginMap.values.toList()) {
+      if (plugin.currentSession != null) {
+        //
+        // Capture needed state.
+        //
+        Set<analyzer.ContextRoot> contextRoots = plugin.contextRoots;
+        String path = plugin.pluginId;
+        //
+        // Stop the plugin.
+        //
+        await plugin.stop();
+        //
+        // Restart the plugin.
+        //
+        _pluginMap[path] = plugin;
+        PluginSession session = await plugin.start(byteStorePath, sdkPath);
+        session?.onDone?.then((_) {
+          _pluginMap.remove(path);
+        });
+        //
+        // Re-initialize the plugin.
+        //
+        plugin.addContextRoots(contextRoots);
+        if (_analysisSetSubscriptionsParams != null) {
+          plugin.sendRequest(_analysisSetSubscriptionsParams);
+        }
+        if (_overlayState.isNotEmpty) {
+          plugin.sendRequest(new AnalysisUpdateContentParams(_overlayState));
+        }
+        if (_analysisSetPriorityFilesParams != null) {
+          plugin.sendRequest(_analysisSetPriorityFilesParams);
+        }
       }
     }
   }
@@ -516,6 +622,52 @@ class PluginManager {
     ];
   }
 
+  /**
+   * Compute the paths to be returned by the enclosing method given that the
+   * plugin should exist in the given [pluginFolder].
+   */
+  List<String> _computePaths(Folder pluginFolder,
+      {bool runPub: false, Workspace workspace}) {
+    File pluginFile = pluginFolder
+        .getChildAssumingFolder('bin')
+        .getChildAssumingFile('plugin.dart');
+    if (!pluginFile.exists) {
+      return null;
+    }
+    File packagesFile = pluginFolder.getChildAssumingFile('.packages');
+    if (!packagesFile.exists) {
+      if (runPub) {
+        String vmPath = Platform.executable;
+        String pubPath = path.join(path.dirname(vmPath), 'pub');
+        ProcessResult result = Process.runSync(pubPath, <String>['get'],
+            stderrEncoding: UTF8,
+            stdoutEncoding: UTF8,
+            workingDirectory: pluginFolder.path);
+        if (result.exitCode != 0) {
+          StringBuffer buffer = new StringBuffer();
+          buffer.writeln('Failed to run pub get');
+          buffer.writeln('  pluginFolder = ${pluginFolder.path}');
+          buffer.writeln('  exitCode = ${result.exitCode}');
+          buffer.writeln('  stdout = ${result.stdout}');
+          buffer.writeln('  stderr = ${result.stderr}');
+          instrumentationService.logError(buffer.toString());
+        }
+        if (!packagesFile.exists) {
+          packagesFile = null;
+        }
+      } else if (workspace != null) {
+        packagesFile =
+            _createPackagesFile(pluginFolder, workspace.packageUriResolver);
+      } else {
+        packagesFile = null;
+      }
+    }
+    if (packagesFile == null) {
+      return null;
+    }
+    return <String>[pluginFile.path, packagesFile.path];
+  }
+
   WatchEventType _convertChangeType(watcher.ChangeType type) {
     switch (type) {
       case watcher.ChangeType.ADD:
@@ -534,6 +686,61 @@ class PluginManager {
   }
 
   /**
+   * Return a temporary `.packages` file that is appropriate for the plugin in
+   * the given [pluginFolder]. The [packageUriResolver] is used to determine the
+   * location of the packages that need to be included in the packages file.
+   */
+  File _createPackagesFile(
+      Folder pluginFolder, UriResolver packageUriResolver) {
+    String pluginPath = pluginFolder.path;
+    Folder stateFolder = resourceProvider.getStateLocation('.plugin_manager');
+    String stateName = _uniqueDirectoryName(pluginPath) + '.packages';
+    File packagesFile = stateFolder.getChildAssumingFile(stateName);
+    if (!packagesFile.exists) {
+      File pluginPubspec = pluginFolder.getChildAssumingFile('pubspec.yaml');
+      if (!pluginPubspec.exists) {
+        return null;
+      }
+
+      try {
+        Map<String, String> visitedPackages = <String, String>{};
+        path.Context context = resourceProvider.pathContext;
+        visitedPackages[context.basename(pluginPath)] =
+            context.join(pluginFolder.path, 'lib');
+        List<File> pubspecFiles = <File>[];
+        pubspecFiles.add(pluginPubspec);
+        while (pubspecFiles.isNotEmpty) {
+          File pubspecFile = pubspecFiles.removeLast();
+          for (String packageName in _readDependecies(pubspecFile)) {
+            if (!visitedPackages.containsKey(packageName)) {
+              Uri uri = Uri.parse('package:$packageName/$packageName.dart');
+              Source packageSource = packageUriResolver.resolveAbsolute(uri);
+              String libDirPath = context.dirname(packageSource.fullName);
+              visitedPackages[packageName] = libDirPath;
+              String pubspecPath =
+                  context.join(context.dirname(libDirPath), 'pubspec.yaml');
+              pubspecFiles.add(resourceProvider.getFile(pubspecPath));
+            }
+          }
+        }
+
+        StringBuffer buffer = new StringBuffer();
+        visitedPackages.forEach((String name, String path) {
+          buffer.write(name);
+          buffer.write(':');
+          buffer.writeln(new Uri.file(path));
+        });
+        packagesFile.writeAsStringSync(buffer.toString());
+      } catch (exception) {
+        // If we are not able to produce a .packages file, return null so that
+        // callers will not try to load the plugin.
+        return null;
+      }
+    }
+    return packagesFile;
+  }
+
+  /**
    * Return `true` if the plugin with the given [path] has been whitelisted.
    */
   bool _isWhitelisted(String path) {
@@ -546,85 +753,20 @@ class PluginManager {
   }
 
   /**
-   * Return the execution path and .packages path associated with the plugin at
-   * the given [path], or `null` if there is a problem that prevents us from
-   * executing the plugin.
+   * Return the names of packages that are listed as dependencies in the given
+   * [pubspecFile].
    */
-  List<String> _pathsFor(String pluginPath) {
-    /**
-     * Return `true` if the plugin in the give [folder] needs to be copied to a
-     * temporary location so that 'pub' can be run to resolve dependencies. We
-     * need to run `pub` if the plugin contains a `pubspec.yaml` file and is not
-     * in a workspace.
-     */
-    bool needToCopy(Folder folder) {
-      File pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
-      if (!pubspecFile.exists) {
-        return false;
+  Iterable<String> _readDependecies(File pubspecFile) {
+    YamlDocument document = loadYamlDocument(pubspecFile.readAsStringSync(),
+        sourceUrl: pubspecFile.toUri());
+    YamlNode contents = document.contents;
+    if (contents is YamlMap) {
+      YamlNode dependencies = contents['dependencies'];
+      if (dependencies is YamlMap) {
+        return dependencies.keys;
       }
-      return BazelWorkspace.find(resourceProvider, folder.path) == null &&
-          GnWorkspace.find(resourceProvider, folder.path) == null;
     }
-
-    /**
-     * Compute the paths to be returned by the enclosing method given that the
-     * plugin should exist in the given [pluginFolder].
-     */
-    List<String> computePaths(Folder pluginFolder, {bool runPub: false}) {
-      File pluginFile = pluginFolder
-          .getChildAssumingFolder('bin')
-          .getChildAssumingFile('plugin.dart');
-      if (!pluginFile.exists) {
-        return null;
-      }
-      File packagesFile = pluginFolder.getChildAssumingFile('.packages');
-      if (!packagesFile.exists) {
-        if (runPub) {
-          String vmPath = Platform.executable;
-          String pubPath = path.join(path.dirname(vmPath), 'pub');
-          ProcessResult result = Process.runSync(pubPath, <String>['get'],
-              stderrEncoding: UTF8,
-              stdoutEncoding: UTF8,
-              workingDirectory: pluginFolder.path);
-          if (result.exitCode != 0) {
-            StringBuffer buffer = new StringBuffer();
-            buffer.writeln('Failed to run pub get');
-            buffer.writeln('  pluginFolder = ${pluginFolder.path}');
-            buffer.writeln('  exitCode = ${result.exitCode}');
-            buffer.writeln('  stdout = ${result.stdout}');
-            buffer.writeln('  stderr = ${result.stderr}');
-            instrumentationService.logError(buffer.toString());
-          }
-          if (!packagesFile.exists) {
-            packagesFile = null;
-          }
-        } else {
-          packagesFile = null;
-        }
-      }
-      return <String>[pluginFile.path, packagesFile?.path];
-    }
-
-    Folder pluginFolder = resourceProvider.getFolder(pluginPath);
-    if (!needToCopy(pluginFolder)) {
-      return computePaths(pluginFolder);
-    }
-    //
-    // Copy the plugin directory to a unique subdirectory of the plugin
-    // manager's state location. The subdirectory's name is selected such that
-    // it will be invariant across sessions, reducing the number of times the
-    // plugin will need to be copied and pub will need to be run.
-    //
-    Folder stateFolder = resourceProvider.getStateLocation('.plugin_manager');
-    String stateName = _uniqueDirectoryName(pluginPath);
-    Folder parentFolder = stateFolder.getChildAssumingFolder(stateName);
-    if (parentFolder.exists) {
-      Folder executionFolder =
-          parentFolder.getChildAssumingFolder(pluginFolder.shortName);
-      return computePaths(executionFolder);
-    }
-    Folder executionFolder = pluginFolder.copyTo(parentFolder);
-    return computePaths(executionFolder, runPub: true);
+    return const <String>[];
   }
 
   /**
@@ -755,8 +897,10 @@ class PluginSession {
    * Handle the fact that the plugin has stopped.
    */
   void handleOnDone() {
-    channel.close();
-    channel = null;
+    if (channel != null) {
+      channel.close();
+      channel = null;
+    }
     pluginStoppedCompleter.complete(null);
   }
 

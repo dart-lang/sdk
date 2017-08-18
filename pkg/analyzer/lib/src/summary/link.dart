@@ -224,21 +224,13 @@ EntityRefBuilder _createLinkedType(
     if (element is FunctionElement && element.enclosingElement == null) {
       // Element is a synthetic function element that was generated on the fly
       // to represent a type that has no associated source code location.
-      result.syntheticReturnType = _createLinkedType(
-          element.returnType, compilationUnit, typeParameterContext);
-      result.entityKind =
-          element.returnType?.element is GenericFunctionTypeElement
-              ? EntityRefKind.genericFunctionType
-              : EntityRefKind.syntheticFunction;
-      result.syntheticParams = element.parameters
-          .map((ParameterElement param) => _serializeSyntheticParam(
-              param, compilationUnit, typeParameterContext))
-          .toList();
+      _storeFunctionElementByValue(result, element, compilationUnit);
       return result;
     }
     if (element is FunctionElement) {
       // Element is a local function inside another executable.
       result.reference = compilationUnit.addReference(element);
+      _storeFunctionElementByValue(result, element, compilationUnit);
       // TODO(paulberry): do I need to store type arguments?
       return result;
     }
@@ -304,6 +296,55 @@ UnlinkedParamBuilder _serializeSyntheticParam(
     }
   }
   return b;
+}
+
+/**
+ * Create an [UnlinkedTypeParamBuilder] representing the given [typeParameter],
+ * which should be a type parameter of a synthetic function type (e.g. one
+ * produced during type inference as a result of computing the least upper
+ * bound of two function types).
+ */
+UnlinkedTypeParamBuilder _serializeSyntheticTypeParameter(
+    TypeParameterElement typeParameter,
+    CompilationUnitElementInBuildUnit compilationUnit,
+    TypeParameterizedElementMixin typeParameterContext) {
+  TypeParameterElementImpl impl = typeParameter as TypeParameterElementImpl;
+  EntityRefBuilder boundBuilder = typeParameter.bound != null
+      ? _createLinkedType(
+          typeParameter.bound, compilationUnit, typeParameterContext)
+      : null;
+  CodeRangeBuilder codeRangeBuilder =
+      new CodeRangeBuilder(offset: impl.codeOffset, length: impl.codeLength);
+  return new UnlinkedTypeParamBuilder(
+      name: typeParameter.name,
+      nameOffset: typeParameter.nameOffset,
+      bound: boundBuilder,
+      codeRange: codeRangeBuilder);
+}
+
+/**
+ * Store the given function [element] into the [entity] by value.
+ */
+void _storeFunctionElementByValue(
+    EntityRefBuilder entity,
+    FunctionElement element,
+    CompilationUnitElementInBuildUnit compilationUnit) {
+  // Element is a local function, or a synthetic function element that was
+  // generated on the fly to represent a type that has no associated source
+  // code location. Store it as value.
+  if (element is FunctionElementImpl) {
+    entity.syntheticReturnType =
+        _createLinkedType(element.returnType, compilationUnit, element);
+    entity.entityKind = EntityRefKind.syntheticFunction;
+    entity.syntheticParams = element.parameters
+        .map((ParameterElement param) =>
+            _serializeSyntheticParam(param, compilationUnit, element))
+        .toList();
+    entity.typeParameters = element.typeParameters
+        .map((TypeParameterElement e) =>
+            _serializeSyntheticTypeParameter(e, compilationUnit, element))
+        .toList();
+  }
 }
 
 /**
@@ -1103,7 +1144,11 @@ abstract class CompilationUnitElementForLink
           .getTypeParameterType(entity.paramReference);
     } else if (entity.entityKind == EntityRefKind.genericFunctionType) {
       return new GenericFunctionTypeElementForLink(this, context, entity).type;
-    } else if (entity.syntheticReturnType != null) {
+    } else if (entity.syntheticReturnType != null && entity.reference == 0) {
+      // TODO(scheglov): Remove "&& entity.reference == 0" condition after
+      // rolling SDK with this change internally, so that we always store
+      // synthetic and local function types by value.
+
       // TODO(paulberry): implement.
       throw new UnimplementedError();
     } else if (entity.implicitFunctionTypeIndices.isNotEmpty) {
@@ -1311,11 +1356,9 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
   void link() {
     if (library._linker.strongMode) {
       new InstanceMemberInferrer(
-              enclosingElement._linker.typeProvider,
-              (clazz) => (clazz.library as LibraryElementInBuildUnit)
-                  .inheritanceManager,
-              new Set<FieldElement>())
-          .inferCompilationUnit(this);
+          enclosingElement._linker.typeProvider,
+          (clazz) => (clazz.library as LibraryElementInBuildUnit)
+              .inheritanceManager).inferCompilationUnit(this);
       for (TopLevelVariableElementForLink variable in topLevelVariables) {
         variable.link(this);
       }
@@ -1391,6 +1434,11 @@ class CompilationUnitElementInDependency extends CompilationUnitElementForLink {
   @override
   final LinkedUnit _linkedUnit;
 
+  /**
+   * Set of slot ids corresponding to parameters that inherit `covariant`.
+   */
+  Set<int> parametersInheritingCovariant;
+
   List<EntityRef> _linkedTypeRefs;
 
   @override
@@ -1405,6 +1453,8 @@ class CompilationUnitElementInDependency extends CompilationUnitElementForLink {
       : _linkedUnit = linkedUnit,
         super(
             unlinkedUnit, unitNum, linkedUnit.references.length, absoluteUri) {
+    parametersInheritingCovariant =
+        _linkedUnit.parametersInheritingCovariant.toSet();
     // Make one pass through the linked types to determine the lengths for
     // _linkedTypeRefs and _linkedTypes.  TODO(paulberry): add an int to the
     // summary to make this unnecessary.
@@ -2085,20 +2135,10 @@ class ExprTypeComputer {
           stack.add(DynamicTypeImpl.instance);
           break;
         case UnlinkedExprOperation.pushReference:
-          try {
-            _doPushReference();
-          } on _InferenceFailedError {
-            errorKind = TopLevelInferenceErrorKind.instanceGetter;
-            return DynamicTypeImpl.instance;
-          }
+          _doPushReference();
           break;
         case UnlinkedExprOperation.extractProperty:
-          try {
-            _doExtractProperty();
-          } on _InferenceFailedError {
-            errorKind = TopLevelInferenceErrorKind.instanceGetter;
-            return DynamicTypeImpl.instance;
-          }
+          _doExtractProperty();
           break;
         case UnlinkedExprOperation.invokeConstructor:
           _doInvokeConstructor();
@@ -2181,10 +2221,14 @@ class ExprTypeComputer {
           _doConditional();
           break;
         case UnlinkedExprOperation.assignToIndex:
+          _doAssignToIndex();
+          break;
         case UnlinkedExprOperation.assignToProperty:
+          _doAssignToProperty();
+          break;
         case UnlinkedExprOperation.assignToRef:
-          errorKind = TopLevelInferenceErrorKind.assignment;
-          return DynamicTypeImpl.instance;
+          _doAssignToRef();
+          break;
         case UnlinkedExprOperation.await:
           _doAwait();
           break;
@@ -2192,12 +2236,7 @@ class ExprTypeComputer {
           _doExtractIndex();
           break;
         case UnlinkedExprOperation.invokeMethodRef:
-          try {
-            _doInvokeMethodRef();
-          } on _InferenceFailedError {
-            errorKind = TopLevelInferenceErrorKind.instanceGetter;
-            return DynamicTypeImpl.instance;
-          }
+          _doInvokeMethodRef();
           break;
         case UnlinkedExprOperation.invokeMethod:
           _doInvokeMethod();
@@ -2266,6 +2305,38 @@ class ExprTypeComputer {
     stack.add(DynamicTypeImpl.instance);
   }
 
+  void _doAssignment() {
+    UnlinkedExprAssignOperator operator =
+        unlinkedConst.assignmentOperators[assignmentOperatorPtr++];
+    if (isIncrementOrDecrement(operator)) {
+      _doIncrementOrDecrement(operator);
+      return;
+    }
+    if (operator == UnlinkedExprAssignOperator.assign) {
+      stack.removeLast();
+      return; // type is on the stack
+    }
+    TokenType binaryOperator = _convertAssignOperatorToTokenType(operator);
+    _computeBinaryExpressionType(binaryOperator);
+  }
+
+  void _doAssignToIndex() {
+    _doExtractIndex();
+    _doAssignment();
+  }
+
+  void _doAssignToProperty() {
+    _doExtractProperty();
+    _doAssignment();
+  }
+
+  void _doAssignToRef() {
+    EntityRef ref = _getNextRef();
+    ReferenceableElementForLink element = unit.resolveRef(ref.reference);
+    stack.add(element.asStaticType);
+    _doAssignment();
+  }
+
   void _doAwait() {
     DartType type = stack.removeLast();
     DartType typeArgument = type?.flattenFutures(linker.typeSystem);
@@ -2308,7 +2379,6 @@ class ExprTypeComputer {
         ExecutableElement element = target
             .lookUpInheritedGetterOrMethod(propertyName, library: library);
         if (element != null) {
-          _throwIfInstanceFieldOrAccessor(element);
           if (element is PropertyAccessorElement) {
             return element.returnType;
           } else {
@@ -2327,6 +2397,26 @@ class ExprTypeComputer {
     DartType type = _leastUpperBound(firstType, secondType);
     type = _dynamicIfNull(type);
     stack.add(type);
+  }
+
+  void _doIncrementOrDecrement(UnlinkedExprAssignOperator operator) {
+    switch (operator) {
+      case UnlinkedExprAssignOperator.prefixDecrement:
+        stack.add(typeProvider.intType);
+        _computeBinaryExpressionType(TokenType.MINUS);
+        return;
+      case UnlinkedExprAssignOperator.prefixIncrement:
+        stack.add(typeProvider.intType);
+        _computeBinaryExpressionType(TokenType.PLUS);
+        return;
+      case UnlinkedExprAssignOperator.postfixDecrement:
+      case UnlinkedExprAssignOperator.postfixIncrement:
+        return; // Return the operand type
+      default:
+        stack.removeLast();
+        stack.add(DynamicTypeImpl.instance);
+        return;
+    }
   }
 
   void _doInvokeConstructor() {
@@ -2423,7 +2513,6 @@ class ExprTypeComputer {
     List<DartType> positionalArgTypes = _popList(numPositional);
     EntityRef ref = _getNextRef();
     ReferenceableElementForLink element = unit.resolveRef(ref.reference);
-    _throwIfInstanceFieldOrAccessor(element);
     List<DartType> typeArguments = _getTypeArguments();
     stack.add(() {
       DartType rawType = element.asStaticType;
@@ -2497,7 +2586,6 @@ class ExprTypeComputer {
       // function-typed parameters.
       assert(ref.implicitFunctionTypeIndices.isEmpty);
       ReferenceableElementForLink element = unit.resolveRef(ref.reference);
-      _throwIfInstanceFieldOrAccessor(element);
       stack.add(element.asStaticType);
     }
   }
@@ -2648,14 +2736,45 @@ class ExprTypeComputer {
     stack.add(DynamicTypeImpl.instance);
   }
 
-  void _throwIfInstanceFieldOrAccessor(Object element) {
-    if (element is NonstaticMemberElementForLink &&
-            element.hasInstanceGetterReference ||
-        element is FieldElement && !element.isStatic ||
-        element is PropertyAccessorElement && !element.isStatic) {
-      throw new _InferenceFailedError(
-          'Instance fields cannot be used for type inference.');
+  static TokenType _convertAssignOperatorToTokenType(
+      UnlinkedExprAssignOperator o) {
+    switch (o) {
+      case UnlinkedExprAssignOperator.assign:
+        return null;
+      case UnlinkedExprAssignOperator.ifNull:
+        return TokenType.QUESTION_QUESTION;
+      case UnlinkedExprAssignOperator.multiply:
+        return TokenType.STAR;
+      case UnlinkedExprAssignOperator.divide:
+        return TokenType.SLASH;
+      case UnlinkedExprAssignOperator.floorDivide:
+        return TokenType.TILDE_SLASH;
+      case UnlinkedExprAssignOperator.modulo:
+        return TokenType.PERCENT;
+      case UnlinkedExprAssignOperator.plus:
+        return TokenType.PLUS;
+      case UnlinkedExprAssignOperator.minus:
+        return TokenType.MINUS;
+      case UnlinkedExprAssignOperator.shiftLeft:
+        return TokenType.LT_LT;
+      case UnlinkedExprAssignOperator.shiftRight:
+        return TokenType.GT_GT;
+      case UnlinkedExprAssignOperator.bitAnd:
+        return TokenType.AMPERSAND;
+      case UnlinkedExprAssignOperator.bitXor:
+        return TokenType.CARET;
+      case UnlinkedExprAssignOperator.bitOr:
+        return TokenType.BAR;
+      case UnlinkedExprAssignOperator.prefixIncrement:
+        return TokenType.PLUS_PLUS;
+      case UnlinkedExprAssignOperator.prefixDecrement:
+        return TokenType.MINUS_MINUS;
+      case UnlinkedExprAssignOperator.postfixIncrement:
+        return TokenType.PLUS_PLUS;
+      case UnlinkedExprAssignOperator.postfixDecrement:
+        return TokenType.MINUS_MINUS;
     }
+    return null;
   }
 }
 
@@ -2894,6 +3013,9 @@ class FunctionElementForLink_FunctionTypedParam extends Object
     }
     return _implicitFunctionTypeIndices;
   }
+
+  @override
+  bool get isSynthetic => true;
 
   @override
   DartType get returnType {
@@ -4125,22 +4247,6 @@ class NonstaticMemberElementForLink extends Object
   @override
   TypeInferenceNode get asTypeInferenceNode => _target.asTypeInferenceNode;
 
-  /**
-   * Return `true` if this element is an instance getter, or its target
-   * is an instance getter (recursively).
-   */
-  bool get hasInstanceGetterReference {
-    ExecutableElement element = asExecutableElement;
-    if (element is PropertyAccessorElement) {
-      return !element.isStatic;
-    }
-    ReferenceableElementForLink target = _target;
-    if (target is NonstaticMemberElementForLink) {
-      return target.hasInstanceGetterReference;
-    }
-    return false;
-  }
-
   @override
   ReferenceableElementForLink getContainedName(String name) {
     return new NonstaticMemberElementForLink(_library, this, name);
@@ -4197,6 +4303,12 @@ class ParameterElementForLink implements ParameterElementImpl {
       this._typeParameterContext, this.compilationUnit, this._parameterIndex) {
     if (_unlinkedParam.initializer?.bodyExpr != null) {
       _constNode = new ConstParameterNode(this);
+    }
+    if (compilationUnit is CompilationUnitElementInDependency) {
+      _inheritsCovariant =
+          (compilationUnit as CompilationUnitElementInDependency)
+              .parametersInheritingCovariant
+              .contains(_unlinkedParam.inheritsCovariantSlot);
     }
   }
 
@@ -4983,9 +5095,14 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           intPtr++;
           break;
         case UnlinkedExprOperation.assignToRef:
-          // TODO(paulberry): if this reference refers to a variable, should it
-          // be considered a type inference dependency?
-          refPtr++;
+          EntityRef ref = unlinkedConst.references[refPtr++];
+          // TODO(paulberry): cache these resolved references for
+          // later use by evaluate().
+          TypeInferenceNode dependency =
+              compilationUnit.resolveRef(ref.reference).asTypeInferenceNode;
+          if (dependency != null) {
+            dependencies.add(dependency);
+          }
           break;
         case UnlinkedExprOperation.invokeMethodRef:
           EntityRef ref = unlinkedConst.references[refPtr++];
@@ -5404,13 +5521,4 @@ abstract class VariableElementForLink
 
   @override
   String toString() => '$enclosingElement.$name';
-}
-
-/**
- * This exception is thrown when [ExprTypeComputer] cannot inference the type.
- */
-class _InferenceFailedError {
-  final String message;
-
-  _InferenceFailedError(this.message);
 }

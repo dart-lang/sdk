@@ -40,8 +40,9 @@ import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:linter/src/rules.dart' as linter;
+import 'package:meta/meta.dart';
 import 'package:package_config/discovery.dart' as pkg_discovery;
 import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
@@ -49,17 +50,25 @@ import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import 'package:path/path.dart' as path;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
+import 'package:telemetry/crash_reporting.dart';
+import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:yaml/yaml.dart';
 
+const _analyticsID = 'UA-26406144-28';
+
 /// Shared IO sink for standard error reporting.
-///
-/// *Visible for testing.*
+@visibleForTesting
 StringSink errorSink = io.stderr;
 
 /// Shared IO sink for standard out reporting.
-///
-/// *Visible for testing.*
+@visibleForTesting
 StringSink outSink = io.stdout;
+
+telemetry.Analytics _analytics;
+
+/// The analytics instance for analyzer-cli.
+telemetry.Analytics get analytics => (_analytics ??=
+    telemetry.createAnalyticsInstance(_analyticsID, 'analyzer-cli'));
 
 /// Test this option map to see if it specifies lint rules.
 bool containsLintRuleEntry(Map<String, YamlNode> options) {
@@ -67,9 +76,26 @@ bool containsLintRuleEntry(Map<String, YamlNode> options) {
   return linterNode is YamlMap && linterNode.containsKey('rules');
 }
 
+/// Make sure that we create an analytics instance that doesn't send for this
+/// session.
+void disableAnalyticsForSession() {
+  _analytics = telemetry.createAnalyticsInstance(_analyticsID, 'analyzer-cli',
+      disableForSession: true);
+}
+
+@visibleForTesting
+void setAnalytics(telemetry.Analytics replacementAnalytics) {
+  _analytics = replacementAnalytics;
+}
+
 class Driver implements CommandLineStarter {
   static final PerformanceTag _analyzeAllTag =
       new PerformanceTag("Driver._analyzeAll");
+
+  /// Cache of [AnalysisOptionsImpl] objects that correspond to directories
+  /// with analyzed files, used to reduce searching for `analysis_options.yaml`
+  /// files.
+  static Map<String, AnalysisOptionsImpl> _directoryToAnalysisOptions = {};
 
   static ByteStore analysisDriverMemoryByteStore = new MemoryByteStore();
 
@@ -104,10 +130,25 @@ class Driver implements CommandLineStarter {
   /// Collected analysis statistics.
   final AnalysisStats stats = new AnalysisStats();
 
-  /// This Driver's current analysis context.
+  CrashReportSender _crashReportSender;
+
+  /// Create a new Driver instance.
   ///
-  /// *Visible for testing.*
+  /// [isTesting] is true if we're running in a test environment.
+  Driver({bool isTesting: false}) {
+    if (isTesting) {
+      disableAnalyticsForSession();
+    }
+  }
+
+  /// This Driver's current analysis context.
+  @visibleForTesting
   AnalysisContext get context => _context;
+
+  /// The crash reporting instance for analyzer-cli.
+  /// TODO(devoncarew): Replace with the real crash product ID.
+  CrashReportSender get crashReportSender => (_crashReportSender ??=
+      new CrashReportSender('Dart_analyzer_cli', analytics));
 
   @override
   void set userDefinedPlugins(List<Plugin> plugins) {
@@ -128,14 +169,23 @@ class Driver implements CommandLineStarter {
     // Parse commandline options.
     CommandLineOptions options = CommandLineOptions.parse(args);
 
+    if (options.batchMode || options.buildMode) {
+      disableAnalyticsForSession();
+    }
+
+    // Ping analytics with our initial call.
+    analytics.sendScreenView('home');
+
+    var timer = analytics.startTimer('analyze');
+
     // Do analysis.
     if (options.buildMode) {
-      ErrorSeverity severity = _buildModeAnalyze(options);
+      ErrorSeverity severity = await _buildModeAnalyze(options);
       // Propagate issues to the exit code.
       if (_shouldBeFatal(severity, options)) {
         io.exitCode = severity.ordinal;
       }
-    } else if (options.shouldBatch) {
+    } else if (options.batchMode) {
       BatchRunner batchRunner = new BatchRunner(outSink, errorSink);
       batchRunner.runAsBatch(args, (List<String> args) async {
         CommandLineOptions options = CommandLineOptions.parse(args);
@@ -153,17 +203,32 @@ class Driver implements CommandLineStarter {
       _analyzedFileCount += _context.sources.length;
     }
 
+    // Send how long analysis took.
+    timer.finish();
+
+    // Send how many files were analyzed.
+    analytics.sendEvent('analyze', 'fileCount', value: _analyzedFileCount);
+
     if (options.perfReport != null) {
       String json = makePerfReport(
           startTime, currentTimeMillis, options, _analyzedFileCount, stats);
       new io.File(options.perfReport).writeAsStringSync(json);
     }
+
+    // Wait a brief time for any analytics calls to finish.
+    await analytics.waitForLastPing(timeout: new Duration(milliseconds: 200));
+    analytics.close();
   }
 
   Future<ErrorSeverity> _analyzeAll(CommandLineOptions options) async {
     PerformanceTag previous = _analyzeAllTag.makeCurrent();
     try {
       return await _analyzeAllImpl(options);
+    } catch (e, st) {
+      // Catch and ignore any exceptions when reporting exceptions (network
+      // errors or other).
+      crashReportSender.sendReport(e, stackTrace: st).catchError((_) {});
+      rethrow;
     } finally {
       previous.makeCurrent();
     }
@@ -206,7 +271,8 @@ class Driver implements CommandLineStarter {
       // Note that these files will all be analyzed in the same context.
       // This should be updated when the ContextManager re-work is complete
       // (See: https://github.com/dart-lang/sdk/issues/24133)
-      Iterable<io.File> files = _collectFiles(sourcePath);
+      Iterable<io.File> files =
+          _collectFiles(sourcePath, context.analysisOptions);
       if (files.isEmpty) {
         errorSink.writeln('No dart files found at: $sourcePath');
         io.exitCode = ErrorSeverity.ERROR.ordinal;
@@ -299,76 +365,20 @@ class Driver implements CommandLineStarter {
   }
 
   /// Perform analysis in build mode according to the given [options].
-  ErrorSeverity _buildModeAnalyze(CommandLineOptions options) {
-    return _analyzeAllTag.makeCurrentWhile(() {
+  Future<ErrorSeverity> _buildModeAnalyze(CommandLineOptions options) async {
+    PerformanceTag previous = _analyzeAllTag.makeCurrent();
+    try {
       if (options.buildModePersistentWorker) {
-        new AnalyzerWorkerLoop.std(resourceProvider,
+        await new AnalyzerWorkerLoop.std(resourceProvider,
                 dartSdkPath: options.dartSdkPath)
             .run();
+        return ErrorSeverity.NONE;
       } else {
-        return new BuildMode(resourceProvider, options, stats).analyze();
+        return await new BuildMode(resourceProvider, options, stats).analyze();
       }
-    });
-  }
-
-  /// Determine whether the context created during a previous call to
-  /// [_analyzeAll] can be re-used in order to analyze using [options].
-  bool _canContextBeReused(CommandLineOptions options) {
-    // TODO(paulberry): add a command-line option that disables context re-use.
-    if (_context == null) {
-      return false;
+    } finally {
+      previous.makeCurrent();
     }
-    if (options.packageRootPath != _previousOptions.packageRootPath) {
-      return false;
-    }
-    if (options.packageConfigPath != _previousOptions.packageConfigPath) {
-      return false;
-    }
-    if (!_equalMaps(
-        options.definedVariables, _previousOptions.definedVariables)) {
-      return false;
-    }
-    if (options.log != _previousOptions.log) {
-      return false;
-    }
-    if (options.disableHints != _previousOptions.disableHints) {
-      return false;
-    }
-    if (options.enableStrictCallChecks !=
-        _previousOptions.enableStrictCallChecks) {
-      return false;
-    }
-    if (options.enableAssertInitializer !=
-        _previousOptions.enableAssertInitializer) {
-      return false;
-    }
-    if (options.showPackageWarnings != _previousOptions.showPackageWarnings) {
-      return false;
-    }
-    if (options.showPackageWarningsPrefix !=
-        _previousOptions.showPackageWarningsPrefix) {
-      return false;
-    }
-    if (options.showSdkWarnings != _previousOptions.showSdkWarnings) {
-      return false;
-    }
-    if (options.lints != _previousOptions.lints) {
-      return false;
-    }
-    if (options.strongMode != _previousOptions.strongMode) {
-      return false;
-    }
-    if (options.enableSuperMixins != _previousOptions.enableSuperMixins) {
-      return false;
-    }
-    if (!_equalLists(
-        options.buildSummaryInputs, _previousOptions.buildSummaryInputs)) {
-      return false;
-    }
-    if (options.disableCacheFlushing != _previousOptions.disableCacheFlushing) {
-      return false;
-    }
-    return true;
   }
 
   /// Decide on the appropriate policy for which files need to be fully parsed
@@ -376,7 +386,7 @@ class Driver implements CommandLineStarter {
   /// [AnalyzeFunctionBodiesPredicate] that implements this policy.
   AnalyzeFunctionBodiesPredicate _chooseDietParsingPolicy(
       CommandLineOptions options) {
-    if (options.shouldBatch) {
+    if (options.batchMode) {
       // As analyzer is currently implemented, once a file has been diet
       // parsed, it can't easily be un-diet parsed without creating a brand new
       // context and losing caching.  In batch mode, we can't predict which
@@ -499,14 +509,26 @@ class Driver implements CommandLineStarter {
     return new SourceFactory(resolvers, packageInfo.packages);
   }
 
-  // TODO(devoncarew): This needs to respect analysis_options excludes.
-
   /// Collect all analyzable files at [filePath], recursively if it's a
   /// directory, ignoring links.
-  Iterable<io.File> _collectFiles(String filePath) {
+  Iterable<io.File> _collectFiles(String filePath, AnalysisOptions options) {
+    List<String> excludedPaths = options.excludePatterns;
+
+    /**
+     * Returns `true` if the given [path] is excluded by [excludedPaths].
+     */
+    bool _isExcluded(String path) {
+      return excludedPaths.any((excludedPath) {
+        if (resourceProvider.absolutePathContext.isWithin(excludedPath, path)) {
+          return true;
+        }
+        return path == excludedPath;
+      });
+    }
+
     List<io.File> files = <io.File>[];
     io.File file = new io.File(filePath);
-    if (file.existsSync()) {
+    if (file.existsSync() && !_isExcluded(filePath)) {
       files.add(file);
     } else {
       io.Directory directory = new io.Directory(filePath);
@@ -515,6 +537,7 @@ class Driver implements CommandLineStarter {
             in directory.listSync(recursive: true, followLinks: false)) {
           String relative = path.relative(entry.path, from: directory.path);
           if (AnalysisEngine.isDartFileName(entry.path) &&
+              !_isExcluded(relative) &&
               !_isInHiddenDir(relative)) {
             files.add(entry);
           }
@@ -545,10 +568,30 @@ class Driver implements CommandLineStarter {
   /// Create an analysis context that is prepared to analyze sources according
   /// to the given [options], and store it in [_context].
   void _createAnalysisContext(CommandLineOptions options) {
-    if (_canContextBeReused(options)) {
+    // If not the same command-line options, clear cached information.
+    if (!_equalCommandLineOptions(_previousOptions, options)) {
+      _previousOptions = options;
+      _directoryToAnalysisOptions.clear();
+      _context = null;
+      analysisDriver = null;
+    }
+
+    AnalysisOptionsImpl analysisOptions =
+        createAnalysisOptionsForCommandLineOptions(resourceProvider, options);
+    analysisOptions.analyzeFunctionBodiesPredicate =
+        _chooseDietParsingPolicy(options);
+
+    // If we have the analysis driver, and the new analysis options are the
+    // same, we can reuse this analysis driver.
+    if (_context != null &&
+        _equalAnalysisOptions(_context.analysisOptions, analysisOptions)) {
       return;
     }
-    _previousOptions = options;
+
+    // Set up logging.
+    if (options.log) {
+      AnalysisEngine.instance.logger = new StdLogger();
+    }
 
     // Save stats from previous context before clobbering it.
     if (_context != null) {
@@ -577,11 +620,6 @@ class Driver implements CommandLineStarter {
     SummaryDataStore summaryDataStore = new SummaryDataStore(
         useSummaries ? options.buildSummaryInputs : <String>[]);
 
-    AnalysisOptionsImpl analysisOptions =
-        createAnalysisOptionsForCommandLineOptions(resourceProvider, options);
-    analysisOptions.analyzeFunctionBodiesPredicate =
-        _chooseDietParsingPolicy(options);
-
     // Once options and embedders are processed, setup the SDK.
     _setupSdk(options, useSummaries, analysisOptions);
 
@@ -597,8 +635,9 @@ class Driver implements CommandLineStarter {
 
     // Create a context.
     _context = AnalysisEngine.instance.createAnalysisContext();
-    setupAnalysisContext(_context, options, analysisOptions);
+    _context.analysisOptions = analysisOptions;
     _context.sourceFactory = sourceFactory;
+    declareVariables(context.declaredVariables, options);
 
     if (options.enableNewAnalysisDriver) {
       PerformanceLog log = new PerformanceLog(null);
@@ -635,6 +674,23 @@ class Driver implements CommandLineStarter {
     }
 
     return null;
+  }
+
+  /// Return whether [a] and [b] options are equal for the purpose of
+  /// command line analysis.
+  bool _equalAnalysisOptions(AnalysisOptionsImpl a, AnalysisOptions b) {
+    return a.enableAssertInitializer == b.enableAssertInitializer &&
+        a.enableStrictCallChecks == b.enableStrictCallChecks &&
+        a.enableLazyAssignmentOperators == b.enableLazyAssignmentOperators &&
+        a.enableSuperMixins == b.enableSuperMixins &&
+        a.enableTiming == b.enableTiming &&
+        a.generateImplicitErrors == b.generateImplicitErrors &&
+        a.generateSdkErrors == b.generateSdkErrors &&
+        a.hint == b.hint &&
+        a.lint == b.lint &&
+        AnalysisOptionsImpl.compareLints(a.lintRules, b.lintRules) &&
+        a.preserveComments == b.preserveComments &&
+        a.strongMode == b.strongMode;
   }
 
   _PackageInfo _findPackages(CommandLineOptions options) {
@@ -782,8 +838,22 @@ class Driver implements CommandLineStarter {
       outSink.writeln(text);
     }
 
-    AnalysisOptionsImpl contextOptions = new ContextBuilder(
-            resourceProvider, null, null,
+    // Prepare the directory which is, or contains, the context root.
+    String contextRootDirectory;
+    if (resourceProvider.getFolder(contextRoot).exists) {
+      contextRootDirectory = contextRoot;
+    } else {
+      contextRootDirectory = resourceProvider.pathContext.dirname(contextRoot);
+    }
+
+    // Check if there is the options object for the content directory.
+    AnalysisOptionsImpl contextOptions =
+        _directoryToAnalysisOptions[contextRootDirectory];
+    if (contextOptions != null) {
+      return contextOptions;
+    }
+
+    contextOptions = new ContextBuilder(resourceProvider, null, null,
             options: options.contextBuilderOptions)
         .getAnalysisOptions(contextRoot,
             verbosePrint: options.verbose ? verbosePrint : null);
@@ -797,36 +867,76 @@ class Driver implements CommandLineStarter {
       contextOptions.enableAssertInitializer = options.enableAssertInitializer;
     }
 
+    _directoryToAnalysisOptions[contextRootDirectory] = contextOptions;
     return contextOptions;
   }
 
-  static void setAnalysisContextOptions(
-      file_system.ResourceProvider resourceProvider,
-      AnalysisContext context,
-      CommandLineOptions options,
-      void configureContextOptions(AnalysisOptionsImpl contextOptions)) {
-    AnalysisOptionsImpl analysisOptions =
-        createAnalysisOptionsForCommandLineOptions(resourceProvider, options);
-    configureContextOptions(analysisOptions);
-    setupAnalysisContext(context, options, analysisOptions);
-  }
-
-  static void setupAnalysisContext(AnalysisContext context,
-      CommandLineOptions options, AnalysisOptionsImpl analysisOptions) {
+  /// Copy variables defined in the [options] into [declaredVariables].
+  static void declareVariables(
+      DeclaredVariables declaredVariables, CommandLineOptions options) {
     Map<String, String> definedVariables = options.definedVariables;
     if (definedVariables.isNotEmpty) {
-      DeclaredVariables declaredVariables = context.declaredVariables;
       definedVariables.forEach((String variableName, String value) {
         declaredVariables.define(variableName, value);
       });
     }
+  }
 
-    if (options.log) {
-      AnalysisEngine.instance.logger = new StdLogger();
+  /// Return whether the [newOptions] are equal to the [previous].
+  static bool _equalCommandLineOptions(
+      CommandLineOptions previous, CommandLineOptions newOptions) {
+    if (previous == null || newOptions == null) {
+      return false;
     }
-
-    // Set context options.
-    context.analysisOptions = analysisOptions;
+    if (newOptions.packageRootPath != previous.packageRootPath) {
+      return false;
+    }
+    if (newOptions.packageConfigPath != previous.packageConfigPath) {
+      return false;
+    }
+    if (!_equalMaps(newOptions.definedVariables, previous.definedVariables)) {
+      return false;
+    }
+    if (newOptions.log != previous.log) {
+      return false;
+    }
+    if (newOptions.disableHints != previous.disableHints) {
+      return false;
+    }
+    if (newOptions.enableStrictCallChecks != previous.enableStrictCallChecks) {
+      return false;
+    }
+    if (newOptions.enableAssertInitializer !=
+        previous.enableAssertInitializer) {
+      return false;
+    }
+    if (newOptions.showPackageWarnings != previous.showPackageWarnings) {
+      return false;
+    }
+    if (newOptions.showPackageWarningsPrefix !=
+        previous.showPackageWarningsPrefix) {
+      return false;
+    }
+    if (newOptions.showSdkWarnings != previous.showSdkWarnings) {
+      return false;
+    }
+    if (newOptions.lints != previous.lints) {
+      return false;
+    }
+    if (newOptions.strongMode != previous.strongMode) {
+      return false;
+    }
+    if (newOptions.enableSuperMixins != previous.enableSuperMixins) {
+      return false;
+    }
+    if (!_equalLists(
+        newOptions.buildSummaryInputs, previous.buildSummaryInputs)) {
+      return false;
+    }
+    if (newOptions.disableCacheFlushing != previous.disableCacheFlushing) {
+      return false;
+    }
+    return true;
   }
 
   /// Perform a deep comparison of two string lists.

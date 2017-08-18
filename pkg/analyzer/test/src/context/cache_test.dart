@@ -18,7 +18,7 @@ import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
+import 'package:mockito/mockito.dart';
 
 import '../../generated/test_support.dart';
 
@@ -1286,7 +1286,7 @@ class UniversalCachePartitionTest extends CachePartitionTest {
   }
 }
 
-class _InternalAnalysisContextMock extends TypedMock
+class _InternalAnalysisContextMock extends Mock
     implements InternalAnalysisContext {
   @override
   final AnalysisOptions analysisOptions = new AnalysisOptionsImpl();

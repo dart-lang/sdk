@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -27,7 +27,7 @@ class ReanalyzeTest extends AbstractAnalysisTest {
 
   @override
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_ERRORS) {
+    if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = new AnalysisErrorsParams.fromNotification(notification);
       filesErrors[decoded.file] = decoded.errors;
       _resultsAvailable.complete(null);
@@ -38,7 +38,7 @@ class ReanalyzeTest extends AbstractAnalysisTest {
     createProject();
     Map drivers = server.driverMap;
     expect(drivers, hasLength(1));
-    Request request = new Request("0", ANALYSIS_REANALYZE);
+    Request request = new Request("0", ANALYSIS_REQUEST_REANALYZE);
     handleSuccessfulRequest(request);
     drivers = server.driverMap;
     expect(drivers, hasLength(1));
@@ -71,13 +71,5 @@ class ReanalyzeTest extends AbstractAnalysisTest {
       List<AnalysisError> errors = filesErrors[testFile];
       expect(errors, hasLength(1));
     }
-  }
-
-  test_sentToPlugins() async {
-    createProject();
-    Request request = new Request("0", ANALYSIS_REANALYZE);
-    handleSuccessfulRequest(request);
-    // verify
-    expect(pluginManager.broadcastedRequest, isNotNull);
   }
 }

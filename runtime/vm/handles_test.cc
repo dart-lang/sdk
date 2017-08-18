@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/handles.h"
 #include "platform/assert.h"
 #include "vm/dart_api_state.h"
 #include "vm/flags.h"
-#include "vm/handles.h"
 #include "vm/heap.h"
 #include "vm/object.h"
 #include "vm/unit_test.h"
@@ -36,7 +36,6 @@ TEST_CASE(AllocateZoneHandle) {
   }
   EXPECT_EQ((2 * kNumHandles) + initial_count, VMHandles::ZoneHandleCount());
 }
-
 
 // Unit test for Scope handle allocation.
 TEST_CASE(AllocateScopeHandle) {
@@ -78,11 +77,9 @@ TEST_CASE(AllocateScopeHandle) {
   EXPECT_EQ(handle_count, VMHandles::ScopedHandleCount());
 }
 
-
 static void NoopCallback(void* isolate_callback_data,
                          Dart_WeakPersistentHandle handle,
                          void* peer) {}
-
 
 // Unit test for handle validity checks.
 TEST_CASE(CheckHandleValidity) {

@@ -36,9 +36,9 @@ class MockCat3 extends MockCat2 implements Cat {
 }
 
 class MockWithGenerics {
-  /*=T*/ doStuff/*<T>*/(/*=T*/ t);
+  List<Type> doStuff<T>(T t);
 
-  noSuchMethod(i) => i.positionalArguments[0] + 100;
+  noSuchMethod(i) => (i as dynamic).typeArguments;
 }
 
 class MockWithGetterSetter {
@@ -49,6 +49,15 @@ class MockWithGetterSetter {
   noSuchMethod(i) {
     invocation = i;
   }
+}
+
+class Callable {
+  int call() => 1;
+  int m() => 2;
+}
+
+class MockCallable implements Callable {
+  noSuchMethod(i) => i.memberName == #call ? 42 : 0;
 }
 
 void main() {
@@ -72,8 +81,9 @@ void main() {
   Expect.equals(mock3.scratch("chair", ""), "chair,");
 
   var g = new MockWithGenerics();
-  Expect.equals(g.doStuff(42), 142);
-  Expect.throws(() => g.doStuff('hi'));
+  Expect.listEquals(g.doStuff(42), [int]);
+  Expect.listEquals(g.doStuff<num>(42), [num]);
+  Expect.listEquals(g.doStuff('hi'), [String]);
 
   var s = new MockWithGetterSetter();
   s.getter;
@@ -86,4 +96,10 @@ void main() {
   Expect.equals(s.invocation.isGetter, false);
   Expect.equals(s.invocation.isSetter, true);
   Expect.equals(s.invocation.isMethod, false);
+
+  Callable call = new MockCallable();
+  Expect.equals(call(), 42);
+  Expect.equals((call as dynamic)(), 42);
+  Expect.equals(call.m(), 0);
+  Expect.equals((call as dynamic).m(), 0);
 }

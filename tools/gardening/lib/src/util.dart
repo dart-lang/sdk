@@ -10,6 +10,18 @@ import 'package:args/args.dart';
 
 import 'cache.dart';
 
+/// Checks that [haystack] contains substring [needle], case insensitive.
+/// Throws an exception if either parameter is `null`.
+bool containsIgnoreCase(String haystack, String needle) {
+  if (haystack == null) {
+    throw "Unexpected null as the first paramter value of containsIgnoreCase";
+  }
+  if (needle == null) {
+    throw "Unexpected null as the second parameter value of containsIgnoreCase";
+  }
+  return haystack.toLowerCase().contains(needle.toLowerCase());
+}
+
 /// Split [text] using [infixes] as infix markers.
 List<String> split(String text, List<String> infixes) {
   List<String> result = <String>[];
@@ -43,11 +55,29 @@ void log(Object text) {
   if (LOG) print(text);
 }
 
+class HttpException implements Exception {
+  final Uri uri;
+  final int statusCode;
+
+  HttpException(this.uri, this.statusCode);
+
+  String toString() => '$uri: $statusCode';
+}
+
 /// Reads the content of [uri] as text.
-Future<String> readUriAsText(HttpClient client, Uri uri) async {
+Future<String> readUriAsText(
+    HttpClient client, Uri uri, Duration timeout) async {
   HttpClientRequest request = await client.getUrl(uri);
   HttpClientResponse response = await request.close();
-  return await response.transform(UTF8.decoder).join();
+  if (response.statusCode != 200) {
+    response.drain();
+    throw new HttpException(uri, response.statusCode);
+  }
+  if (timeout != null) {
+    return response.timeout(timeout).transform(UTF8.decoder).join();
+  } else {
+    return response.transform(UTF8.decoder).join();
+  }
 }
 
 ArgParser createArgParser() {

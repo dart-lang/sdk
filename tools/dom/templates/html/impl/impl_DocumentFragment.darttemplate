@@ -24,11 +24,9 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   HtmlCollection get _children => throw new UnimplementedError(
       'Use _docChildren instead');
 
-$if DART2JS
   // Native field is used only by Dart code so does not lead to instantiation
   // of native classes
   @Creates('Null')
-$endif
   List<Element> _docChildren;
 
   List<Element> get children {

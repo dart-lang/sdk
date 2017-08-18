@@ -8,7 +8,6 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$MIXINS$IMPLEMENTS {
 $!MEMBERS
 
-$if DART2JS
   void appendRule(String rule) {
     if (JS('bool', '("appendRule" in #)', this)) {
       JS('', '#.appendRule(#)', this, rule);
@@ -16,5 +15,4 @@ $if DART2JS
       JS('', '#.insertRule(#)', this, rule);
     }
   }
-$endif
 }

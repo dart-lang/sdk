@@ -144,7 +144,6 @@ class DirectoryListing {
   bool follow_links_;
 };
 
-
 class AsyncDirectoryListing : public ReferenceCounted<AsyncDirectoryListing>,
                               public DirectoryListing {
  public:
@@ -189,7 +188,6 @@ class AsyncDirectoryListing : public ReferenceCounted<AsyncDirectoryListing>,
   DISALLOW_IMPLICIT_CONSTRUCTORS(AsyncDirectoryListing);
 };
 
-
 class SyncDirectoryListing : public DirectoryListing {
  public:
   SyncDirectoryListing(Dart_Handle results,
@@ -223,7 +221,6 @@ class SyncDirectoryListing : public DirectoryListing {
   DISALLOW_ALLOCATION()
   DISALLOW_IMPLICIT_CONSTRUCTORS(SyncDirectoryListing);
 };
-
 
 class Directory {
  public:

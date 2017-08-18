@@ -34,7 +34,7 @@ void main() {
           dynamic cls = findElement(compiler, className);
           var element = cls.lookupLocalMember(fieldName);
           Expect.isTrue(
-              typesInferrer.getTypeOfElement(element).containsOnly(type));
+              typesInferrer.getTypeOfMember(element).containsOnly(type));
         }
 
         checkFieldTypeInClass('A', 'intField',

@@ -7,9 +7,9 @@ import 'dart:collection';
 import 'dart:core';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -69,13 +69,13 @@ class ExecutionDomainHandler implements RequestHandler {
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == EXECUTION_CREATE_CONTEXT) {
+      if (requestName == EXECUTION_REQUEST_CREATE_CONTEXT) {
         return createContext(request);
-      } else if (requestName == EXECUTION_DELETE_CONTEXT) {
+      } else if (requestName == EXECUTION_REQUEST_DELETE_CONTEXT) {
         return deleteContext(request);
-      } else if (requestName == EXECUTION_MAP_URI) {
+      } else if (requestName == EXECUTION_REQUEST_MAP_URI) {
         return mapUri(request);
-      } else if (requestName == EXECUTION_SET_SUBSCRIPTIONS) {
+      } else if (requestName == EXECUTION_REQUEST_SET_SUBSCRIPTIONS) {
         return setSubscriptions(request);
       }
     } on RequestFailure catch (exception) {

@@ -21,7 +21,7 @@ class Bar<Sb extends core::Object, Tb extends core::Object> extends core::Object
   }
 }
 class Builder<X extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method method() → dynamic {
@@ -39,21 +39,21 @@ class SimpleCaseImpl<Ai extends core::Object, Bi extends core::Object> extends c
     let dynamic #redirecting_factory = self::SimpleCaseImpl2::• in invalid-expression;
 }
 class SimpleCaseImpl2<Ai2 extends core::Object, Bi2 extends core::Object> extends core::Object implements self::SimpleCaseImpl<self::SimpleCaseImpl2::Ai2, self::SimpleCaseImpl2::Bi2> {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class Base<M extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class Mixin<M extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
-class Mix<M extends core::Object> extends self::Base<self::Mix::M> implements self::Mixin<self::Mix::M> {
+class Mix<M extends core::Object> = self::Base<self::Mix::M> with self::Mixin<self::Mix::M> {
   constructor •() → void
     : super self::Base::•()
     ;

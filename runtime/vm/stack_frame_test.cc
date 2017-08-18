@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/stack_frame.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "vm/class_finalizer.h"
@@ -9,7 +10,6 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/resolver.h"
-#include "vm/stack_frame.h"
 #include "vm/unit_test.h"
 #include "vm/verifier.h"
 #include "vm/zone.h"
@@ -26,7 +26,6 @@ ISOLATE_UNIT_TEST_CASE(EmptyStackFrameIteration) {
   VerifyPointersVisitor::VerifyPointers();
 }
 
-
 // Unit test for empty dart stack frame iteration.
 ISOLATE_UNIT_TEST_CASE(EmptyDartStackFrameIteration) {
   DartFrameIterator iterator(Thread::Current(),
@@ -35,10 +34,8 @@ ISOLATE_UNIT_TEST_CASE(EmptyDartStackFrameIteration) {
   VerifyPointersVisitor::VerifyPointers();
 }
 
-
 #define FUNCTION_NAME(name) StackFrame_##name
 #define REGISTER_FUNCTION(name, count) {"" #name, FUNCTION_NAME(name), count},
-
 
 void FUNCTION_NAME(StackFrame_equals)(Dart_NativeArguments args) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
@@ -51,7 +48,6 @@ void FUNCTION_NAME(StackFrame_equals)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(StackFrame_frameCount)(Dart_NativeArguments args) {
   int count = 0;
   StackFrameIterator frames(StackFrameIterator::kValidateFrames,
@@ -60,11 +56,13 @@ void FUNCTION_NAME(StackFrame_frameCount)(Dart_NativeArguments args) {
   while (frames.NextFrame() != NULL) {
     count += 1;  // Count the frame.
   }
-  VerifyPointersVisitor::VerifyPointers();
+  {
+    TransitionNativeToVM transition(Thread::Current());
+    VerifyPointersVisitor::VerifyPointers();
+  }
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   arguments->SetReturn(Object::Handle(Smi::New(count)));
 }
-
 
 void FUNCTION_NAME(StackFrame_dartFrameCount)(Dart_NativeArguments args) {
   int count = 0;
@@ -73,11 +71,13 @@ void FUNCTION_NAME(StackFrame_dartFrameCount)(Dart_NativeArguments args) {
   while (frames.NextFrame() != NULL) {
     count += 1;  // Count the dart frame.
   }
-  VerifyPointersVisitor::VerifyPointers();
+  {
+    TransitionNativeToVM transition(Thread::Current());
+    VerifyPointersVisitor::VerifyPointers();
+  }
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   arguments->SetReturn(Object::Handle(Smi::New(count)));
 }
-
 
 void FUNCTION_NAME(StackFrame_validateFrame)(Dart_NativeArguments args) {
   Thread* thread = Thread::Current();
@@ -121,7 +121,6 @@ void FUNCTION_NAME(StackFrame_validateFrame)(Dart_NativeArguments args) {
   FATAL("StackFrame_validateFrame fails, frame count < index passed in.\n");
 }
 
-
 // List all native functions implemented in the vm or core boot strap dart
 // libraries so that we can resolve the native function to it's entry
 // point.
@@ -131,13 +130,11 @@ void FUNCTION_NAME(StackFrame_validateFrame)(Dart_NativeArguments args) {
   V(StackFrame_dartFrameCount, 0)                                              \
   V(StackFrame_validateFrame, 2)
 
-
 static struct NativeEntries {
   const char* name_;
   Dart_NativeFunction function_;
   int argument_count_;
 } BuiltinEntries[] = {STACKFRAME_NATIVE_LIST(REGISTER_FUNCTION)};
-
 
 static Dart_NativeFunction native_lookup(Dart_Handle name,
                                          int argument_count,
@@ -158,7 +155,6 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
   }
   return NULL;
 }
-
 
 // Unit test case to verify stack frame iteration.
 TEST_CASE(ValidateStackFrameIteration) {
@@ -245,7 +241,6 @@ TEST_CASE(ValidateStackFrameIteration) {
   Dart_Handle cls = Dart_GetClass(lib, NewString("StackFrameTest"));
   EXPECT_VALID(Dart_Invoke(cls, NewString("testMain"), 0, NULL));
 }
-
 
 // Unit test case to verify stack frame iteration.
 TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {

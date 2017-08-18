@@ -17,14 +17,9 @@ import("../build/copy_tree.gni")
 
 declare_args() {
   # Build a SDK with less stuff. It excludes dart2js, ddc, and web libraries.
-  dart_platform_sdk = false
-}
-
-if (is_fuchsia ||
-    is_fuchsia_host ||
-    current_cpu == "arm64" ||
-    current_cpu == "arm") {
   dart_platform_sdk = true
+  # Path to stripped dart binary relative to build output directory.
+  dart_stripped_binary = "dart"
 }
 
 # The directory layout of the SDK is as follows:
@@ -65,6 +60,8 @@ if (is_fuchsia ||
 # ......_internal/
 #.........spec.sum
 #.........strong.sum
+#.........dart2js_platform.dill
+#.........vm_outline.dill
 #.........dev_compiler/
 # ......analysis_server/
 # ......analyzer/
@@ -213,6 +210,103 @@ _analyzer_source_dirs = [
   "kernel",
 ]
 
+# From here down to the copy_trees() invocation, we collect all the information
+# about trees that need to be copied in the list of scopes, copy_tree_specs.
+copy_tree_specs = []
+
+# This loop generates rules for copying analyzer sources into lib/
+foreach(analyzer_source_dir, _analyzer_source_dirs) {
+  copy_tree_specs += [{
+    target = "copy_${analyzer_source_dir}_source_dir"
+    visibility = [ ":copy_analyzer_sources" ]
+    source = "../pkg/$analyzer_source_dir"
+    dest = "$root_out_dir/dart-sdk/lib/$analyzer_source_dir"
+    ignore_patterns = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore,packages,test,testcases"
+  }]
+}
+
+# This rule copies dartdoc templates to
+# bin/snapshots/resources/dartdoc/templates
+copy_tree_specs += [{
+  target = "copy_dartdoc_templates"
+  visibility = [ ":copy_dartdoc_files" ]
+  source = "../third_party/pkg/dartdoc/lib/templates"
+  dest = "$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/templates"
+  ignore_patterns = "{}"
+}]
+
+# This rule copies dartdoc resources to
+# bin/snapshots/resources/dartdoc/resources
+copy_tree_specs += [{
+  target = "copy_dartdoc_resources"
+  visibility = [ ":copy_dartdoc_files" ]
+  source = "../third_party/pkg/dartdoc/lib/resources"
+  dest = "$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/resources"
+  ignore_patterns = "{}"
+}]
+
+# This rule copies js needed by ddc to lib/dev_compiler
+copy_tree_specs += [{
+  target = "copy_dev_compiler_js"
+  visibility = [
+    ":copy_dev_compiler_sdk",
+    ":copy_dev_compiler_require_js",
+    ":copy_dev_compiler_tools",
+  ]
+  source = "../pkg/dev_compiler/lib/js"
+  dest = "$root_out_dir/dart-sdk/lib/dev_compiler"
+  ignore_patterns = "{}"
+}]
+
+# This rule copies pub assets to lib/_internal/pub/asset
+copy_tree_specs += [{
+  target = "copy_pub_assets"
+  visibility = [
+    ":create_common_sdk",
+    ":copy_7zip",
+  ]
+  deps = [
+    ":copy_libraries",
+  ]
+  source = "../third_party/pkg/pub/lib/src/asset"
+  dest = "$root_out_dir/dart-sdk/lib/_internal/pub/asset"
+  ignore_patterns = "{}"
+}]
+
+# This loop generates rules to copy libraries to lib/
+foreach(library, _full_sdk_libraries) {
+  copy_tree_specs += [{
+    target = "copy_${library}_library"
+    visibility = [
+      ":copy_platform_sdk_libraries",
+      ":copy_full_sdk_libraries",
+    ]
+    source = "lib/$library"
+    dest = "$root_out_dir/dart-sdk/lib/$library"
+    ignore_patterns = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore"
+  }]
+}
+
+if (is_win) {
+  copy_tree_specs += [{
+    target = "copy_7zip"
+    visibility = [ ":create_common_sdk" ]
+    deps = [
+      ":copy_libraries",
+      ":copy_pub_assets",
+    ]
+    source = "../third_party/7zip"
+    dest = "$root_out_dir/dart-sdk/lib/_internal/pub/asset/7zip"
+    ignore_patterns = ".svn"
+  }]
+}
+
+# This generates targets for everything in copy_tree_specs. The targets have the
+# same name as the "target" fields in the scopes of copy_tree_specs.
+copy_trees("copy_trees") {
+  sources = copy_tree_specs
+}
+
 # Copies the Dart VM binary into bin/
 copy("copy_dart") {
   visibility = [ ":create_common_sdk" ]
@@ -224,13 +318,9 @@ copy("copy_dart") {
     sources = [
       "$dart_out/dart.exe",
     ]
-  } else if (is_fuchsia || is_fuchsia_host) {
-    sources = [
-      "$dart_out/dart",
-    ]
   } else {
     sources = [
-      "$dart_out/exe.stripped/dart",
+      "$dart_out/$dart_stripped_binary"
     ]
   }
   if (is_win) {
@@ -379,16 +469,6 @@ group("copy_full_sdk_snapshots") {
   }
 }
 
-# This loop generates rules for copying analyzer sources into lib/
-foreach(analyzer_source_dir, _analyzer_source_dirs) {
-  copy_tree("copy_${analyzer_source_dir}_source_dir") {
-    visibility = [ ":copy_analyzer_sources" ]
-    source = "../pkg/$analyzer_source_dir"
-    dest = "$root_out_dir/dart-sdk/lib/$analyzer_source_dir"
-    exclude = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore,packages,test,testcases"
-  }
-}
-
 # This is the main rule for copying analyzer sources to lib/
 group("copy_analyzer_sources") {
   visibility = [ ":create_common_sdk" ]
@@ -396,22 +476,6 @@ group("copy_analyzer_sources") {
   foreach(analyzer_source_dir, _analyzer_source_dirs) {
     deps += [ ":copy_${analyzer_source_dir}_source_dir" ]
   }
-}
-
-# This rule copies dartdoc templates to
-# bin/snapshots/resources/dartdoc/templates
-copy_tree("copy_dartdoc_templates") {
-  visibility = [ ":copy_dartdoc_files" ]
-  source = "../third_party/pkg/dartdoc/lib/templates"
-  dest = "$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/templates"
-}
-
-# This rule copies dartdoc resources to
-# bin/snapshots/resources/dartdoc/resources
-copy_tree("copy_dartdoc_resources") {
-  visibility = [ ":copy_dartdoc_files" ]
-  source = "../third_party/pkg/dartdoc/lib/resources"
-  dest = "$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/resources"
 }
 
 # This rule writes the .packages file for dartdoc resources.
@@ -444,6 +508,36 @@ copy("copy_analysis_summaries") {
   ]
 }
 
+# This rule copies vm's outline.dill file to lib/_internal
+copy("copy_vm_dill_files") {
+  visibility = [ ":create_common_sdk" ]
+  deps = [
+    ":copy_libraries",
+    "../runtime/vm:patched_sdk",
+  ]
+  sources = [
+    "$root_out_dir/patched_sdk/outline.dill",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/_internal/vm_outline.dill",
+  ]
+}
+
+# This rule copies dart2js's platform.dill file to lib/_internal
+copy("copy_dart2js_dill_files") {
+  visibility = [ ":create_full_sdk" ]
+  deps = [
+    ":copy_libraries",
+    "../utils/compiler:patched_dart2js_sdk",
+  ]
+  sources = [
+    "$root_out_dir/patched_dart2js_sdk/platform.dill",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/_internal/dart2js_platform.dill",
+  ]
+}
+
 # This rule copies ddc summaries to lib/_internal
 copy("copy_dev_compiler_summary") {
   visibility = [ ":copy_dev_compiler_sdk" ]
@@ -456,17 +550,6 @@ copy("copy_dev_compiler_summary") {
   outputs = [
     "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}",
   ]
-}
-
-# This rule copies js needed by ddc to lib/dev_compiler
-copy_tree("copy_dev_compiler_js") {
-  visibility = [
-    ":copy_dev_compiler_sdk",
-    ":copy_dev_compiler_require_js",
-    ":copy_dev_compiler_tools",
-  ]
-  source = "../pkg/dev_compiler/lib/js"
-  dest = "$root_out_dir/dart-sdk/lib/dev_compiler"
 }
 
 # This rule copies require.js to lib/dev_compiler/amd
@@ -539,32 +622,6 @@ copy("copy_platform_files") {
   ]
 }
 
-# This rule copies pub assets to lib/_internal/pub/asset
-copy_tree("copy_pub_assets") {
-  visibility = [
-    ":create_common_sdk",
-    ":copy_7zip",
-  ]
-  deps = [
-    ":copy_libraries",
-  ]
-  source = "../third_party/pkg/pub/lib/src/asset"
-  dest = "$root_out_dir/dart-sdk/lib/_internal/pub/asset"
-}
-
-# This loop generates rules to copy libraries to lib/
-foreach(library, _full_sdk_libraries) {
-  copy_tree("copy_${library}_library") {
-    visibility = [
-      ":copy_platform_sdk_libraries",
-      ":copy_full_sdk_libraries",
-    ]
-    source = "lib/$library"
-    dest = "$root_out_dir/dart-sdk/lib/$library"
-    exclude = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore"
-  }
-}
-
 # This is the main rule to copy libraries in _platform_sdk_libraries to lib/
 group("copy_platform_sdk_libraries") {
   visibility = [
@@ -598,19 +655,6 @@ group("copy_libraries") {
     deps = [
       ":copy_full_sdk_libraries",
     ]
-  }
-}
-
-if (is_win) {
-  copy_tree("copy_7zip") {
-    visibility = [ ":create_common_sdk" ]
-    deps = [
-      ":copy_libraries",
-      ":copy_pub_assets",
-    ]
-    source = "../third_party/7zip"
-    dest = "$root_out_dir/dart-sdk/lib/_internal/pub/asset/7zip"
-    exclude = ".svn"
   }
 }
 
@@ -710,6 +754,7 @@ group("create_common_sdk") {
     ":copy_platform_files",
     ":copy_pub_assets",
     ":copy_readme",
+    ":copy_vm_dill_files",
     ":write_revision_file",
     ":write_version_file",
   ]
@@ -738,6 +783,7 @@ group("create_full_sdk") {
   ]
 
   deps = [
+    ":copy_dart2js_dill_files",
     ":copy_dev_compiler_sdk",
     ":copy_full_sdk_libraries",
     ":copy_full_sdk_scripts",

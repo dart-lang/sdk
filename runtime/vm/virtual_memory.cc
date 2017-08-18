@@ -14,7 +14,6 @@ bool VirtualMemory::InSamePage(uword address0, uword address1) {
           Utils::RoundDown(address1, PageSize()));
 }
 
-
 void VirtualMemory::Truncate(intptr_t new_size, bool try_unmap) {
   ASSERT((new_size & (PageSize() - 1)) == 0);
   ASSERT(new_size <= size());
@@ -26,7 +25,6 @@ void VirtualMemory::Truncate(intptr_t new_size, bool try_unmap) {
   }
   region_.Subregion(region_, 0, new_size);
 }
-
 
 VirtualMemory* VirtualMemory::ForImagePage(void* pointer, uword size) {
   // Memory for precompilated instructions was allocated by the embedder, so

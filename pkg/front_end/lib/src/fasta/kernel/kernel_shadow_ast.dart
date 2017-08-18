@@ -30,7 +30,7 @@ import 'package:kernel/ast.dart'
 import 'package:kernel/frontend/accessors.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../errors.dart' show internalError;
+import '../problems.dart' show unhandled, unsupported;
 
 /// Computes the return type of a (possibly factory) constructor.
 InterfaceType computeConstructorReturnType(Member constructor) {
@@ -90,6 +90,23 @@ class KernelAsExpression extends AsExpression implements KernelExpression {
   }
 }
 
+/// Concrete shadow object representing an assert initializer in kernel form.
+class KernelAssertInitializer extends LocalInitializer
+    implements KernelInitializer {
+  /// The assert statement performing the check
+  AssertStatement _statement;
+
+  KernelAssertInitializer(VariableDeclaration variable, this._statement)
+      : super(variable);
+
+  @override
+  void _inferInitializer(KernelTypeInferrer inferrer) {
+    inferrer.listener.assertInitializerEnter(this);
+    inferrer.inferStatement(_statement);
+    inferrer.listener.assertInitializerExit(this);
+  }
+}
+
 /// Concrete shadow object representing an assertion statement in kernel form.
 class KernelAssertStatement extends AssertStatement implements KernelStatement {
   KernelAssertStatement(Expression condition,
@@ -102,7 +119,8 @@ class KernelAssertStatement extends AssertStatement implements KernelStatement {
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
     inferrer.listener.assertStatementEnter(this);
-    inferrer.inferExpression(condition, null, false);
+    inferrer.inferExpression(
+        condition, inferrer.coreTypes.boolClass.rawType, false);
     if (message != null) {
       inferrer.inferExpression(message, null, false);
     }
@@ -272,11 +290,7 @@ class KernelCascadeExpression extends Let implements KernelExpression {
 ///
 /// TODO(paulberry): once we know exactly what constitutes a "complex
 /// assignment", document it here.
-abstract class KernelComplexAssignment extends Expression
-    implements KernelExpression {
-  /// The full desugared assignment expression
-  Expression desugared;
-
+abstract class KernelComplexAssignment extends KernelSyntheticExpression {
   /// In a compound assignment, the expression that reads the old value, or
   /// `null` if this is not a compound assignment.
   Expression read;
@@ -311,33 +325,12 @@ abstract class KernelComplexAssignment extends Expression
   /// pre-decrement.
   bool isPreIncDec = false;
 
-  KernelComplexAssignment(this.rhs);
-
-  void set parent(TreeNode node) {
-    super.parent = node;
-    desugared?.parent = node;
-  }
-
-  @override
-  accept(ExpressionVisitor v) => desugared.accept(v);
-
-  @override
-  accept1(ExpressionVisitor1 v, arg) => desugared.accept1(v, arg);
-
-  @override
-  DartType getStaticType(TypeEnvironment types) =>
-      desugared.getStaticType(types);
+  KernelComplexAssignment(this.rhs) : super(null);
 
   String toString() {
     var parts = _getToStringParts();
     return '${runtimeType}(${parts.join(', ')})';
   }
-
-  @override
-  transformChildren(Transformer v) => desugared.transformChildren(v);
-
-  @override
-  visitChildren(Visitor v) => desugared.visitChildren(v);
 
   @override
   void _collectDependencies(KernelDependencyCollector collector) {
@@ -562,8 +555,8 @@ class KernelDirectMethodInvocation extends DirectMethodInvocation
     // DirectMethodInvocation can only occur as a result of a use of `super`,
     // and `super` can't appear inside a field initializer.  So this code should
     // never be reached.
-    internalError(
-        'Unexpected call to _collectDependencies for DirectMethodInvocation');
+    unsupported(
+        "DirectMethodInvocation._collectDependencies", fileOffset, null);
   }
 
   @override
@@ -588,8 +581,7 @@ class KernelDirectPropertyGet extends DirectPropertyGet
     // DirectPropertyGet can only occur as a result of a use of `super`, and
     // `super` can't appear inside a field initializer.  So this code should
     // never be reached.
-    internalError(
-        'Unexpected call to _collectDependencies for DirectPropertyGet');
+    unsupported("DirectPropertyGet._collectDependencies", fileOffset, null);
   }
 
   @override
@@ -716,6 +708,19 @@ class KernelField extends Field implements KernelMember {
   }
 }
 
+/// Concrete shadow object representing a field initializer in kernel form.
+class KernelFieldInitializer extends FieldInitializer
+    implements KernelInitializer {
+  KernelFieldInitializer(Field field, Expression value) : super(field, value);
+
+  @override
+  void _inferInitializer(KernelTypeInferrer inferrer) {
+    inferrer.listener.fieldInitializerEnter(this);
+    inferrer.inferExpression(value, field.type, false);
+    inferrer.listener.fieldInitializerExit(this);
+  }
+}
+
 /// Concrete shadow object representing a for-in loop in kernel form.
 class KernelForInStatement extends ForInStatement implements KernelStatement {
   final bool _declaresVariable;
@@ -736,7 +741,7 @@ class KernelForInStatement extends ForInStatement implements KernelStatement {
     KernelVariableDeclaration variable;
     if (_declaresVariable) {
       variable = this.variable;
-      if (variable._implicitlyTyped) {
+      if (inferrer.strongMode && variable._implicitlyTyped) {
         typeNeeded = true;
         // TODO(paulberry): In this case, should the context be `Iterable<?>`?
       } else {
@@ -784,8 +789,10 @@ class KernelForStatement extends ForStatement implements KernelStatement {
   void _inferStatement(KernelTypeInferrer inferrer) {
     inferrer.listener.forStatementEnter(this);
     variables.forEach(inferrer.inferStatement);
-    inferrer.inferExpression(
-        condition, inferrer.coreTypes.boolClass.rawType, false);
+    if (condition != null) {
+      inferrer.inferExpression(
+          condition, inferrer.coreTypes.boolClass.rawType, false);
+    }
     for (var update in updates) {
       inferrer.inferExpression(update, null, false);
     }
@@ -807,7 +814,7 @@ class KernelFunctionDeclaration extends FunctionDeclaration
   void _inferStatement(KernelTypeInferrer inferrer) {
     inferrer.listener.functionDeclarationEnter(this);
     inferrer.inferLocalFunction(function, null, false, fileOffset,
-        _hasImplicitReturnType ? null : function.returnType, true);
+        _hasImplicitReturnType ? null : function.returnType);
     variable.type = function.functionType;
     inferrer.listener.functionDeclarationExit(this);
   }
@@ -851,7 +858,7 @@ class KernelFunctionExpression extends FunctionExpression
     typeNeeded = inferrer.listener.functionExpressionEnter(this, typeContext) ||
         typeNeeded;
     var inferredType = inferrer.inferLocalFunction(
-        function, typeContext, typeNeeded, fileOffset, null, false);
+        function, typeContext, typeNeeded, fileOffset, null);
     inferrer.listener.functionExpressionExit(this, inferredType);
     return inferredType;
   }
@@ -925,6 +932,12 @@ class KernelIfStatement extends IfStatement implements KernelStatement {
     if (otherwise != null) inferrer.inferStatement(otherwise);
     inferrer.listener.ifStatementExit(this);
   }
+}
+
+/// Concrete shadow object representing an assignment to a target for which
+/// assignment is not allowed.
+class KernelIllegalAssignment extends KernelComplexAssignment {
+  KernelIllegalAssignment(Expression rhs) : super(rhs);
 }
 
 /// Concrete shadow object representing an assignment to a target of the form
@@ -1003,6 +1016,19 @@ class KernelIntLiteral extends IntLiteral implements KernelExpression {
     var inferredType = typeNeeded ? inferrer.coreTypes.intClass.rawType : null;
     inferrer.listener.intLiteralExit(this, inferredType);
     return inferredType;
+  }
+}
+
+/// Concrete shadow object representing an invalid initializer in kernel form.
+class KernelInvalidInitializer extends LocalInitializer
+    implements KernelInitializer {
+  KernelInvalidInitializer(VariableDeclaration variable) : super(variable);
+
+  @override
+  void _inferInitializer(KernelTypeInferrer inferrer) {
+    inferrer.listener.invalidInitializerEnter(this);
+    inferrer.inferExpression(variable.initializer, null, false);
+    inferrer.listener.invalidInitializerExit(this);
   }
 }
 
@@ -1321,6 +1347,39 @@ class KernelMethodInvocation extends MethodInvocation
   }
 }
 
+/// Concrete shadow object representing a named function expression.
+///
+/// Named function expressions are not legal in Dart, but they are accepted by
+/// the parser and BodyBuilder for error recovery purposes.
+///
+/// A named function expression of the form `f() { ... }` is represented as the
+/// kernel expression:
+///
+///     let f = () { ... } in f
+class KernelNamedFunctionExpression extends Let implements KernelExpression {
+  KernelNamedFunctionExpression(VariableDeclaration variable)
+      : super(variable, new VariableGet(variable));
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    collector.collectDependencies(variable.initializer);
+  }
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    typeNeeded =
+        inferrer.listener.namedFunctionExpressionEnter(this, typeContext) ||
+            typeNeeded;
+    var inferredType =
+        inferrer.inferExpression(variable.initializer, typeContext, true);
+    if (inferrer.strongMode) variable.type = inferredType;
+    if (!typeNeeded) inferredType = null;
+    inferrer.listener.namedFunctionExpressionExit(this, inferredType);
+    return inferredType;
+  }
+}
+
 /// Shadow object for [Not].
 class KernelNot extends Not implements KernelExpression {
   KernelNot(Expression operand) : super(operand);
@@ -1468,8 +1527,7 @@ class KernelProcedure extends Procedure implements KernelMember {
           new InstrumentationValueForType(inferredType));
       function.returnType = inferredType;
     } else {
-      internalError(
-          'setInferredType called on a procedure that is not an accessor');
+      unhandled("setInferredType", "not accessor", fileOffset, Uri.parse(uri));
     }
   }
 
@@ -1812,6 +1870,22 @@ class KernelStringLiteral extends StringLiteral implements KernelExpression {
   }
 }
 
+/// Concrete shadow object representing a super initializer in kernel form.
+class KernelSuperInitializer extends SuperInitializer
+    implements KernelInitializer {
+  KernelSuperInitializer(Constructor target, Arguments arguments)
+      : super(target, arguments);
+
+  @override
+  void _inferInitializer(KernelTypeInferrer inferrer) {
+    inferrer.listener.superInitializerEnter(this);
+    inferrer.inferInvocation(null, false, fileOffset,
+        target.function.functionType, target.enclosingClass.thisType, arguments,
+        skipTypeArgumentInference: true);
+    inferrer.listener.superInitializerExit(this);
+  }
+}
+
 /// Shadow object for [SuperMethodInvocation].
 class KernelSuperMethodInvocation extends SuperMethodInvocation
     implements KernelExpression {
@@ -1829,8 +1903,10 @@ class KernelSuperMethodInvocation extends SuperMethodInvocation
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
-        'target', new InstrumentationValueForMember(interfaceTarget));
+    if (interfaceTarget != null) {
+      inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
+          'target', new InstrumentationValueForMember(interfaceTarget));
+    }
     return inferrer.inferMethodInvocation(this, new KernelThisExpression(),
         fileOffset, false, typeContext, typeNeeded,
         interfaceMember: interfaceTarget,
@@ -1899,6 +1975,90 @@ class KernelSymbolLiteral extends SymbolLiteral implements KernelExpression {
     inferrer.listener.symbolLiteralExit(this, inferredType);
     return inferredType;
   }
+}
+
+/// Shadow object for expressions that are introduced by the front end as part
+/// of desugaring or the handling of error conditions.
+///
+/// By default, type inference skips these expressions entirely.  Some derived
+/// classes have type inference behaviors.
+///
+/// Visitors skip over objects of this type, so it is not included in serialized
+/// output.
+class KernelSyntheticExpression extends Expression implements KernelExpression {
+  /// The desugared kernel representation of this synthetic expression.
+  Expression desugared;
+
+  KernelSyntheticExpression(this.desugared);
+
+  @override
+  void set parent(TreeNode node) {
+    super.parent = node;
+    desugared?.parent = node;
+  }
+
+  @override
+  accept(ExpressionVisitor v) => desugared.accept(v);
+
+  @override
+  accept1(ExpressionVisitor1 v, arg) => desugared.accept1(v, arg);
+
+  @override
+  DartType getStaticType(TypeEnvironment types) =>
+      desugared.getStaticType(types);
+
+  @override
+  transformChildren(Transformer v) => desugared.transformChildren(v);
+
+  @override
+  visitChildren(Visitor v) => desugared.visitChildren(v);
+
+  @override
+  _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Shadow object for statements that are introduced by the front end as part
+/// of desugaring or the handling of error conditions.
+///
+/// By default, type inference skips these statements entirely.  Some derived
+/// classes may have type inference behaviors.
+///
+/// Visitors skip over objects of this type, so it is not included in serialized
+/// output.
+class KernelSyntheticStatement extends Statement implements KernelStatement {
+  /// The desugared kernel representation of this synthetic statement.
+  Statement desugared;
+
+  KernelSyntheticStatement(this.desugared);
+
+  @override
+  void set parent(TreeNode node) {
+    super.parent = node;
+    desugared?.parent = node;
+  }
+
+  @override
+  accept(StatementVisitor v) => desugared.accept(v);
+
+  @override
+  accept1(StatementVisitor1 v, arg) => desugared.accept1(v, arg);
+
+  @override
+  transformChildren(Transformer v) => desugared.transformChildren(v);
+
+  @override
+  visitChildren(Visitor v) => desugared.visitChildren(v);
+
+  @override
+  void _inferStatement(KernelTypeInferrer inferrer) {}
 }
 
 /// Shadow object for [ThisExpression].
@@ -1985,6 +2145,10 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
   }
 
   @override
+  TypeInferrer createDisabledTypeInferrer() =>
+      new TypeInferrerDisabled(typeSchemaEnvironment);
+
+  @override
   KernelTypeInferrer createLocalTypeInferrer(
       Uri uri, TypeInferenceListener listener, InterfaceType thisType) {
     return new KernelTypeInferrer._(
@@ -2058,24 +2222,20 @@ class KernelTypeInferrer extends TypeInferrerImpl {
   @override
   DartType inferFieldTopLevel(
       KernelField field, DartType type, bool typeNeeded) {
+    if (field.initializer == null) return const DynamicType();
     return inferExpression(field.initializer, type, typeNeeded);
   }
 
   @override
   void inferInitializer(Initializer initializer) {
-    if (initializer is KernelInitializer) {
-      // Use polymorphic dispatch on [KernelInitializer] to perform whatever
-      // kind of type inference is correct for this kind of initializer.
-      // TODO(paulberry): experiment to see if dynamic dispatch would be better,
-      // so that the type hierarchy will be simpler (which may speed up "is"
-      // checks).
-      return initializer._inferInitializer(this);
-    } else {
-      // Encountered an initializer type for which type inference is not yet
-      // implemented, so just skip it for now.
-      // TODO(paulberry): once the BodyBuilder uses shadow classes for
-      // everything, this case should no longer be needed.
-    }
+    assert(initializer is KernelInitializer);
+    // Use polymorphic dispatch on [KernelInitializer] to perform whatever
+    // kind of type inference is correct for this kind of initializer.
+    // TODO(paulberry): experiment to see if dynamic dispatch would be better,
+    // so that the type hierarchy will be simpler (which may speed up "is"
+    // checks).
+    KernelInitializer kernelInitializer = initializer;
+    return kernelInitializer._inferInitializer(this);
   }
 
   @override
@@ -2134,15 +2294,9 @@ class KernelTypePromoter extends TypePromoterImpl {
 
   @override
   bool isPromotionCandidate(VariableDeclaration variable) {
-    if (variable is KernelVariableDeclaration) {
-      return !variable._isLocalFunction;
-    } else {
-      // Hack to deal with the fact that BodyBuilder still creates raw
-      // VariableDeclaration objects sometimes.
-      // TODO(paulberry): get rid of this once the type parameter is
-      // KernelVariableDeclaration.
-      return true;
-    }
+    assert(variable is KernelVariableDeclaration);
+    KernelVariableDeclaration kernelVariableDeclaration = variable;
+    return !kernelVariableDeclaration._isLocalFunction;
   }
 
   @override
@@ -2229,6 +2383,7 @@ class KernelVariableDeclaration extends VariableDeclaration
       DartType type,
       bool isFinal: false,
       bool isConst: false,
+      bool isFieldFormal: false,
       bool isLocalFunction: false})
       : _implicitlyTyped = type == null,
         _isLocalFunction = isLocalFunction,
@@ -2236,7 +2391,8 @@ class KernelVariableDeclaration extends VariableDeclaration
             initializer: initializer,
             type: type ?? const DynamicType(),
             isFinal: isFinal,
-            isConst: isConst);
+            isConst: isConst,
+            isFieldFormal: isFieldFormal);
 
   KernelVariableDeclaration.forValue(
       Expression initializer, this._functionNestingLevel)
@@ -2348,23 +2504,13 @@ class KernelYieldStatement extends YieldStatement implements KernelStatement {
 }
 
 class _UnfinishedCascade extends Expression {
-  accept(v) {
-    return internalError("Internal error: Unsupported operation.");
-  }
+  accept(v) => unsupported("accept", -1, null);
 
-  accept1(v, arg) {
-    return internalError("Internal error: Unsupported operation.");
-  }
+  accept1(v, arg) => unsupported("accept1", -1, null);
 
-  getStaticType(types) {
-    return internalError("Internal error: Unsupported operation.");
-  }
+  getStaticType(types) => unsupported("getStaticType", -1, null);
 
-  transformChildren(v) {
-    return internalError("Internal error: Unsupported operation.");
-  }
+  transformChildren(v) => unsupported("transformChildren", -1, null);
 
-  visitChildren(v) {
-    return internalError("Internal error: Unsupported operation.");
-  }
+  visitChildren(v) => unsupported("visitChildren", -1, null);
 }

@@ -15,27 +15,20 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   const JSArray();
 
   /**
-   * Constructor for adding type parameters to an existing JavaScript Array.
-   */
-  factory JSArray.typed(allocation) =>
-      // TODO(jmesserly): skip this when E is dynamic and Object.
-      JS('-dynamic', 'dart.list(#, #)', allocation, E);
-
-  /**
    * Constructor for adding type parameters to an existing JavaScript
    * Array. Used for creating literal lists.
    */
   factory JSArray.of(allocation) {
     // TODO(sra): Move this to core.List for better readability.
     // Capture the parameterized ES6 'JSArray' class.
-    return JS('-dynamic', 'dart.setType(#, JSArray)', allocation);
+    return JS('-dynamic', '#', dart.setType(allocation, JS('', 'JSArray')));
   }
 
   // TODO(jmesserly): consider a fixed array subclass instead.
   factory JSArray.markFixed(allocation) =>
-      new JSArray<E>.typed(markFixedList(allocation));
+      new JSArray<E>.of(markFixedList(allocation));
 
-  factory JSArray.markGrowable(allocation) = JSArray<E>.typed;
+  factory JSArray.markGrowable(allocation) = JSArray<E>.of;
 
   static List markFixedList(List list) {
     // Functions are stored in the hidden class and not as properties in
@@ -327,7 +320,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
       }
     }
     if (start == end) return <E>[];
-    return new JSArray<E>.typed(JS('', r'#.slice(#, #)', this, start, end));
+    return new JSArray<E>.of(JS('', r'#.slice(#, #)', this, start, end));
   }
 
   Iterable<E> getRange(int start, int end) {
@@ -532,7 +525,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   List<E> toList({bool growable: true}) {
     var list = JS('', '#.slice()', this);
     if (!growable) markFixedList(list);
-    return new JSArray<E>.typed(list);
+    return new JSArray<E>.of(list);
   }
 
   Set<E> toSet() => new Set<E>.from(this);
@@ -540,6 +533,8 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   Iterator<E> get iterator => new ArrayIterator<E>(this);
 
   int get hashCode => Primitives.objectHashCode(this);
+
+  bool operator ==(other) => identical(this, other);
 
   int get length => JS('int', r'#.length', this);
 
@@ -580,6 +575,9 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   Map<int, E> asMap() {
     return new ListMapView<E>(this);
   }
+
+  Type get runtimeType =>
+      dart.wrapType(JS('', '#(#)', dart.getGenericClass(List), E));
 }
 
 /**

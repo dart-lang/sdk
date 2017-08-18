@@ -1,0 +1,54 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class F0<T extends core::Object> extends core::Object {
+  constructor •(core::List<self::F0::T> a) → void
+    : super core::Object::•() {}
+}
+class F1<T extends core::Object> extends core::Object {
+  constructor •({core::List<self::F1::T> a = null}) → void
+    : super core::Object::•() {}
+}
+class F2<T extends core::Object> extends core::Object {
+  constructor •(core::Iterable<self::F2::T> a) → void
+    : super core::Object::•() {}
+}
+class F3<T extends core::Object> extends core::Object {
+  constructor •(core::Iterable<core::Iterable<self::F3::T>> a) → void
+    : super core::Object::•() {}
+}
+class F4<T extends core::Object> extends core::Object {
+  constructor •({core::Iterable<core::Iterable<self::F4::T>> a = null}) → void
+    : super core::Object::•() {}
+}
+static method main() → void {
+  new self::F0::•<core::int>(<dynamic>[]);
+  new self::F0::•<core::int>(<dynamic>[3]);
+  new self::F0::•<core::int>(<dynamic>["hello"]);
+  new self::F0::•<core::int>(<dynamic>["hello", 3]);
+  new self::F1::•<core::int>(a: <dynamic>[]);
+  new self::F1::•<core::int>(a: <dynamic>[3]);
+  new self::F1::•<core::int>(a: <dynamic>["hello"]);
+  new self::F1::•<core::int>(a: <dynamic>["hello", 3]);
+  new self::F2::•<core::int>(<dynamic>[]);
+  new self::F2::•<core::int>(<dynamic>[3]);
+  new self::F2::•<core::int>(<dynamic>["hello"]);
+  new self::F2::•<core::int>(<dynamic>["hello", 3]);
+  new self::F3::•<core::int>(<dynamic>[]);
+  new self::F3::•<core::int>(<dynamic>[<dynamic>[3]]);
+  new self::F3::•<core::int>(<dynamic>[<dynamic>["hello"]]);
+  new self::F3::•<core::int>(<dynamic>[<dynamic>["hello"], <dynamic>[3]]);
+  new self::F4::•<core::int>(a: <dynamic>[]);
+  new self::F4::•<core::int>(a: <dynamic>[<dynamic>[3]]);
+  new self::F4::•<core::int>(a: <dynamic>[<dynamic>["hello"]]);
+  new self::F4::•<core::int>(a: <dynamic>[<dynamic>["hello"], <dynamic>[3]]);
+  new self::F3::•<dynamic>(<dynamic>[]);
+  dynamic f31 = new self::F3::•<dynamic>(<dynamic>[<dynamic>[3]]);
+  dynamic f32 = new self::F3::•<dynamic>(<dynamic>[<dynamic>["hello"]]);
+  dynamic f33 = new self::F3::•<dynamic>(<dynamic>[<dynamic>["hello"], <dynamic>[3]]);
+  new self::F4::•<dynamic>(a: <dynamic>[]);
+  new self::F4::•<dynamic>(a: <dynamic>[<dynamic>[3]]);
+  new self::F4::•<dynamic>(a: <dynamic>[<dynamic>["hello"]]);
+  new self::F4::•<dynamic>(a: <dynamic>[<dynamic>["hello"], <dynamic>[3]]);
+}

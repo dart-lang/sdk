@@ -164,13 +164,13 @@ abstract class AbstractScanner implements Scanner {
 
   /**
    * Appends a substring from the scan offset [start] to the current
-   * [scanOffset] plus [closingQuotes]. The closing quote(s) will be added
+   * [scanOffset] plus [syntheticChars]. The additional char(s) will be added
    * to the unterminated string literal's lexeme but the returned
-   * token's length will *not* include those closing quotes
+   * token's length will *not* include those additional char(s)
    * so as to be true to the original source.
    */
   void appendSyntheticSubstringToken(
-      TokenType type, int start, bool asciiOnly, String closingQuotes);
+      TokenType type, int start, bool asciiOnly, String syntheticChars);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
   void appendPrecedenceToken(TokenType type);
@@ -726,7 +726,9 @@ abstract class AbstractScanner implements Scanner {
             hasExponentDigits = true;
           } else {
             if (!hasExponentDigits) {
-              unterminated('1e', shouldAdvance: false);
+              appendSyntheticSubstringToken(TokenType.DOUBLE, start, true, '0');
+              appendErrorToken(
+                  new UnterminatedToken('1e', tokenStart, stringOffset));
               return next;
             }
             break;
@@ -897,7 +899,7 @@ abstract class AbstractScanner implements Scanner {
     } else {
       // It is the responsibility of the caller to construct the token
       // being appended with preceeding comments if any
-      assert(comments == null || token.isSynthetic);
+      assert(comments == null || token.isSynthetic || token is ErrorToken);
     }
   }
 
@@ -1034,8 +1036,9 @@ abstract class AbstractScanner implements Scanner {
               identical(next, $CR) ||
               identical(next, $EOF))) {
         if (!asciiOnly) handleUnicode(start);
-        return unterminatedString(quoteChar, start,
+        unterminatedString(quoteChar, start,
             asciiOnly: asciiOnly, isMultiLine: false, isRaw: false);
+        return next;
       }
       if (next > 127) asciiOnly = false;
       next = advance();
@@ -1102,16 +1105,18 @@ abstract class AbstractScanner implements Scanner {
         return next;
       } else if (identical(next, $LF) || identical(next, $CR)) {
         if (!asciiOnly) handleUnicode(start);
-        return unterminatedString(quoteChar, start,
+        unterminatedString(quoteChar, start,
             asciiOnly: asciiOnly, isMultiLine: false, isRaw: true);
+        return next;
       } else if (next > 127) {
         asciiOnly = false;
       }
       next = advance();
     }
     if (!asciiOnly) handleUnicode(start);
-    return unterminatedString(quoteChar, start,
+    unterminatedString(quoteChar, start,
         asciiOnly: asciiOnly, isMultiLine: false, isRaw: true);
+    return next;
   }
 
   int tokenizeMultiLineRawString(int quoteChar, int start) {
@@ -1149,8 +1154,9 @@ abstract class AbstractScanner implements Scanner {
       }
     }
     if (!asciiOnlyLine) handleUnicode(unicodeStart);
-    return unterminatedString(quoteChar, start,
+    unterminatedString(quoteChar, start,
         asciiOnly: asciiOnlyLine, isMultiLine: true, isRaw: true);
+    return next;
   }
 
   int tokenizeMultiLineString(int quoteChar, int start, bool raw) {
@@ -1201,8 +1207,9 @@ abstract class AbstractScanner implements Scanner {
       next = advance();
     }
     if (!asciiOnlyLine) handleUnicode(unicodeStart);
-    return unterminatedString(quoteChar, start,
+    unterminatedString(quoteChar, start,
         asciiOnly: asciiOnlyString, isMultiLine: true, isRaw: false);
+    return next;
   }
 
   int unexpected(int character) {
@@ -1215,15 +1222,14 @@ abstract class AbstractScanner implements Scanner {
     return advanceAfterError(shouldAdvance);
   }
 
-  int unterminatedString(int quoteChar, int start,
+  void unterminatedString(int quoteChar, int start,
       {bool asciiOnly, bool isMultiLine, bool isRaw}) {
     String suffix = new String.fromCharCodes(
         isMultiLine ? [quoteChar, quoteChar, quoteChar] : [quoteChar]);
     String prefix = isRaw ? 'r$suffix' : suffix;
 
     appendSyntheticSubstringToken(TokenType.STRING, start, asciiOnly, suffix);
-    beginToken();
-    return unterminated(prefix);
+    unterminated(prefix, shouldAdvance: false);
   }
 
   int advanceAfterError(bool shouldAdvance) {

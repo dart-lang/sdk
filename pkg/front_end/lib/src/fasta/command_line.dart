@@ -4,11 +4,20 @@
 
 library fasta.command_line;
 
-import 'errors.dart' show inputError, internalError;
+import 'fasta_codes.dart' show Message, templateFastaCLIArgumentRequired;
 
-argumentError(String usage, String message) {
-  if (usage != null) print(usage);
-  inputError(null, null, message);
+import 'deprecated_problems.dart' show deprecated_inputError;
+
+import 'problems.dart' show unhandled;
+
+deprecated_argumentError(Message usage, String message) {
+  if (usage != null) print(usage.message);
+  deprecated_inputError(null, null, message);
+}
+
+argumentError(Message usage, Message message) {
+  if (usage != null) print(usage.message);
+  deprecated_inputError(null, null, message.message);
 }
 
 class ParsedArguments {
@@ -18,12 +27,13 @@ class ParsedArguments {
   toString() => "ParsedArguments($options, $arguments)";
 }
 
+/// Abstract parser for command-line options.
 class CommandLine {
   final Map<String, dynamic> options;
 
   final List<String> arguments;
 
-  final String usage;
+  final Message usage;
 
   CommandLine.parsed(ParsedArguments p, this.usage)
       : this.options = p.options,
@@ -35,7 +45,7 @@ class CommandLine {
   }
 
   CommandLine(List<String> arguments,
-      {Map<String, dynamic> specification, String usage})
+      {Map<String, dynamic> specification, Message usage})
       : this.parsed(parse(arguments, specification, usage), usage);
 
   bool get verbose {
@@ -71,7 +81,7 @@ class CommandLine {
   /// This method performs only a limited amount of validation, but if an error
   /// occurs, it will print [usage] along with a specific error message.
   static ParsedArguments parse(List<String> arguments,
-      Map<String, dynamic> specification, String usage) {
+      Map<String, dynamic> specification, Message usage) {
     specification ??= const <String, dynamic>{};
     ParsedArguments result = new ParsedArguments();
     int index = arguments.indexOf("--");
@@ -88,7 +98,8 @@ class CommandLine {
         String value;
         if (valueSpecification != null) {
           if (!iterator.moveNext()) {
-            return argumentError(usage, "Expected value after '$argument'.");
+            return argumentError(usage,
+                templateFastaCLIArgumentRequired.withArguments(argument));
           }
           value = iterator.current;
         } else {
@@ -101,13 +112,13 @@ class CommandLine {
         }
         if (valueSpecification == null) {
           if (value != null) {
-            return argumentError(
+            return deprecated_argumentError(
                 usage, "Argument '$argument' doesn't take a value: '$value'.");
           }
           result.options[argument] = true;
         } else {
           if (valueSpecification is! String && valueSpecification is! Type) {
-            return argumentError(
+            return deprecated_argumentError(
                 usage,
                 "Unrecognized type of value "
                 "specification: ${valueSpecification.runtimeType}.");
@@ -124,7 +135,7 @@ class CommandLine {
             case "String":
             case "Uri":
               if (result.options.containsKey(argument)) {
-                return argumentError(
+                return deprecated_argumentError(
                     usage,
                     "Multiple values for '$argument': "
                     "'${result.options[argument]}' and '$value'.");
@@ -132,7 +143,7 @@ class CommandLine {
               var parsedValue;
               if (valueSpecification == int) {
                 parsedValue = int.parse(value, onError: (_) {
-                  return argumentError(
+                  return deprecated_argumentError(
                       usage, "Value for '$argument', '$value', isn't an int.");
                 });
               } else if (valueSpecification == bool) {
@@ -141,7 +152,7 @@ class CommandLine {
                 } else if (value == "false" || value == "no") {
                   parsedValue = false;
                 } else {
-                  return argumentError(
+                  return deprecated_argumentError(
                       usage,
                       "Value for '$argument' is '$value', "
                       "but expected one of: 'true', 'false', 'yes', or 'no'.");
@@ -151,19 +162,20 @@ class CommandLine {
               } else if (valueSpecification == String) {
                 parsedValue = value;
               } else if (valueSpecification is String) {
-                return argumentError(
+                return deprecated_argumentError(
                     usage,
                     "Unrecognized value specification: "
                     "'$valueSpecification', try using a type literal instead.");
               } else {
                 // All possible cases should have been handled above.
-                return internalError("assertion failure");
+                return unhandled("${valueSpecification.runtimeType}",
+                    "CommandLine.parse", -1, null);
               }
               result.options[argument] = parsedValue;
               break;
 
             default:
-              return argumentError(usage,
+              return deprecated_argumentError(usage,
                   "Unrecognized value specification: '$valueSpecification'.");
           }
         }

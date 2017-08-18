@@ -7,15 +7,15 @@
 
 #include "include/dart_api.h"
 
+#include "lib/invocation_mirror.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "lib/invocation_mirror.h"
 #include "vm/allocation.h"
 #include "vm/ast.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler_stats.h"
-#include "vm/kernel.h"
 #include "vm/hash_table.h"
+#include "vm/kernel.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
 #include "vm/token.h"
@@ -28,7 +28,7 @@ namespace kernel {
 
 class ScopeBuildingResult;
 
-}  // kernel
+}  // namespace kernel
 
 class ArgumentsDescriptor;
 class Isolate;
@@ -160,7 +160,6 @@ class ParsedFunction : public ZoneAllocated {
 #endif
   }
 
-
   const Instance& DefaultParameterValueAt(intptr_t i) const {
     ASSERT(default_parameter_values_ != NULL);
     return *default_parameter_values_->At(i);
@@ -261,7 +260,6 @@ class ParsedFunction : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(ParsedFunction);
 };
 
-
 class Parser : public ValueObject {
  public:
   // Parse the top level of a whole script file and register declared classes
@@ -295,12 +293,11 @@ class Parser : public ValueObject {
                                         const Instance& value);
 
   // Parse a function to retrieve parameter information that is not retained in
-  // the dart::Function object. Returns either an error if the parse fails
-  // (which could be the case for local functions), or a flat array of entries
-  // for each parameter. Each parameter entry contains:
-  // * a Dart bool indicating whether the parameter was declared final
-  // * its default value (or null if none was declared)
-  // * an array of metadata (or null if no metadata was declared).
+  // the Function object. Returns either an error if the parse fails (which
+  // could be the case for local functions), or a flat array of entries for each
+  // parameter. Each parameter entry contains: * a Dart bool indicating whether
+  // the parameter was declared final * its default value (or null if none was
+  // declared) * an array of metadata (or null if no metadata was declared).
   enum {
     kParameterIsFinalOffset,
     kParameterDefaultValueOffset,
@@ -540,8 +537,8 @@ class Parser : public ValueObject {
   void ParseLibraryImportObsoleteSyntax();
   void ParseLibraryIncludeObsoleteSyntax();
 
-  void ResolveSignature(const Function& signature);
-  void ResolveType(AbstractType* type);
+  void ResolveSignatureTypeParameters(const Function& signature);
+  void ResolveTypeParameters(AbstractType* type);
   RawAbstractType* CanonicalizeType(const AbstractType& type);
   RawAbstractType* ParseType(ClassFinalizer::FinalizationKind finalization,
                              bool allow_deferred_type = false,
@@ -945,6 +942,8 @@ class Parser : public ValueObject {
       ArgumentListNode* arguments);
 
   void AddEqualityNullCheck();
+
+  AstNode* AddAsyncResultTypeCheck(TokenPosition expr_pos, AstNode* expr);
 
   AstNode* BuildClosureCall(TokenPosition token_pos,
                             AstNode* closure,

@@ -172,7 +172,7 @@ class Base64Codec extends Codec<List<int>, String> {
     return source;
   }
 
-  static int _checkPadding(String source, int sourceIndex, int sourceEnd,
+  static void _checkPadding(String source, int sourceIndex, int sourceEnd,
       int firstPadding, int paddingCount, int length) {
     if (length % 4 != 0) {
       throw new FormatException(

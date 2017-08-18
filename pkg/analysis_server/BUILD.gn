@@ -11,14 +11,17 @@ dart_package("analysis_server") {
 
   deps = [
     "//dart/pkg/analyzer",
+    "//dart/pkg/telemetry",
     "//dart/third_party/pkg/linter",
     "//third_party/dart-pkg/pub/args",
     "//third_party/dart-pkg/pub/dart_style",
+    "//third_party/dart-pkg/pub/intl",
     "//third_party/dart-pkg/pub/isolate",
     "//third_party/dart-pkg/pub/logging",
     "//third_party/dart-pkg/pub/package_config",
     "//third_party/dart-pkg/pub/path",
     "//third_party/dart-pkg/pub/plugin",
+    "//third_party/dart-pkg/pub/usage",
     "//third_party/dart-pkg/pub/watcher",
     "//third_party/dart-pkg/pub/yaml",
   ]

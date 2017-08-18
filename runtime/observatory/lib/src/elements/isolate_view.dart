@@ -22,6 +22,7 @@ import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
+import 'package:observatory/src/elements/nav/reload.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/script_inset.dart';
@@ -43,6 +44,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
     NavTopMenuElement.tag,
     NavIsolateMenuElement.tag,
     NavRefreshElement.tag,
+    NavReloadElement.tag,
     NavNotifyElement.tag,
     ScriptInsetElement.tag,
     SourceInsetElement.tag,
@@ -140,10 +142,10 @@ class IsolateViewElement extends HtmlElement implements Renderable {
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-        new NavRefreshElement(label: 'Reload Source', queue: _r.queue)
-          ..onRefresh.listen((e) async {
-            e.element.disabled = true;
-            await _isolates.reloadSources(_isolate);
+        new NavReloadElement(_isolate, _isolates, _events, queue: _r.queue)
+          ..onReload.listen((_) async {
+            _isolate = await _isolates.get(_isolate);
+            await _loadExtraData();
             _r.dirty();
           }),
         new NavRefreshElement(queue: _r.queue)

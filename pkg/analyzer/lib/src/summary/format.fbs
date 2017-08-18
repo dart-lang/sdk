@@ -982,6 +982,28 @@ table AnalysisDriverResolvedUnit {
 }
 
 /**
+ * Information about a subtype of one or more classes.
+ */
+table AnalysisDriverSubtype {
+  /**
+   * The names of defined instance members.
+   * The list is sorted in ascending order.
+   */
+  members:[string] (id: 2);
+
+  /**
+   * The name of the class.
+   */
+  name:string (id: 0);
+
+  /**
+   * The identifiers of the direct supertypes.
+   * The list is sorted in ascending order.
+   */
+  supertypes:[string] (id: 1);
+}
+
+/**
  * Information about an error in a resolved unit.
  */
 table AnalysisDriverUnitError {
@@ -1063,6 +1085,11 @@ table AnalysisDriverUnitIndex {
    * string in this index.
    */
   strings:[string] (id: 0);
+
+  /**
+   * The list of classes declared in the unit.
+   */
+  subtypes:[AnalysisDriverSubtype] (id: 18);
 
   /**
    * Each item of this list corresponds to the library URI of a unique library
@@ -1149,6 +1176,12 @@ table AnalysisDriverUnlinkedUnit {
    * List of external names referenced by the unit.
    */
   referencedNames:[string] (id: 0);
+
+  /**
+   * List of names which are used in `extends`, `with` or `implements` clauses
+   * in the file. Import prefixes and type arguments are not included.
+   */
+  subtypedNames:[string] (id: 4);
 
   /**
    * Unlinked information for the unit.
@@ -1418,9 +1451,7 @@ table LinkedReference {
   /**
    * If [kind] is [ReferenceKind.function] (that is, the entity being referred
    * to is a local function), the index of the function within
-   * [UnlinkedExecutable.localFunctions].  If [kind] is
-   * [ReferenceKind.variable], the index of the variable within
-   * [UnlinkedExecutable.localVariables].  Otherwise zero.
+   * [UnlinkedExecutable.localFunctions].  Otherwise zero.
    */
   localIndex:uint (id: 6);
 
@@ -2119,12 +2150,12 @@ table UnlinkedExecutable {
   /**
    * The list of local labels.
    */
-  localLabels:[UnlinkedLabel] (id: 22);
+  localLabels:[string] (id: 22, deprecated);
 
   /**
    * The list of local variables.
    */
-  localVariables:[UnlinkedVariable] (id: 19);
+  localVariables:[UnlinkedVariable] (id: 19, deprecated);
 
   /**
    * Name of the executable.  For setters, this includes the trailing "=".  For
@@ -2369,32 +2400,6 @@ table UnlinkedImport {
    * the file.  If [isImplicit] is true, zero.
    */
   uriOffset:uint (id: 3);
-}
-
-/**
- * Unlinked summary information about a label.
- */
-table UnlinkedLabel {
-  /**
-   * Return `true` if this label is associated with a `switch` member (`case` or
-   * `default`).
-   */
-  isOnSwitchMember:bool (id: 2);
-
-  /**
-   * Return `true` if this label is associated with a `switch` statement.
-   */
-  isOnSwitchStatement:bool (id: 3);
-
-  /**
-   * Name of the label.
-   */
-  name:string (id: 0);
-
-  /**
-   * Offset of the label relative to the beginning of the file.
-   */
-  nameOffset:uint (id: 1);
 }
 
 /**
@@ -2920,12 +2925,12 @@ table UnlinkedVariable {
   /**
    * If a local variable, the length of the visible range; zero otherwise.
    */
-  visibleLength:uint (id: 11);
+  visibleLength:uint (id: 11, deprecated);
 
   /**
    * If a local variable, the beginning of the visible range; zero otherwise.
    */
-  visibleOffset:uint (id: 12);
+  visibleOffset:uint (id: 12, deprecated);
 }
 
 root_type PackageBundle;

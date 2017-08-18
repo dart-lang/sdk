@@ -40,23 +40,15 @@ export 'kernel_variable_builder.dart' show KernelVariableBuilder;
 
 export 'kernel_invalid_type_builder.dart' show KernelInvalidTypeBuilder;
 
-import 'package:kernel/text/ast_to_text.dart' show Printer;
-
 import 'package:kernel/ast.dart'
     show
-        Class,
         Constructor,
         DartType,
         DynamicType,
-        Field,
         Initializer,
-        Library,
-        Member,
         Procedure,
         RedirectingInitializer,
         TypeParameter;
-
-import '../errors.dart' show inputError;
 
 import '../builder/builder.dart' show LibraryBuilder;
 
@@ -77,34 +69,6 @@ List<DartType> computeDefaultTypeArguments(LibraryBuilder library,
     return arguments.sublist(0, typeParameters.length);
   }
   return arguments;
-}
-
-dynamic memberError(Member member, Object error, [int charOffset]) {
-  String name = member.name?.name;
-  if (name == "") {
-    name = Printer.emptyNameString;
-  } else if (name == null) {
-    name = "<anon>";
-  }
-  Library library = member.enclosingLibrary;
-  Class cls = member.enclosingClass;
-  String fileUri;
-  if (member is Procedure) {
-    fileUri = member.fileUri;
-  } else if (member is Field) {
-    fileUri = member.fileUri;
-  }
-  fileUri ??= cls?.fileUri ?? library.fileUri;
-  Uri uri = fileUri == null ? library.importUri : Uri.base.resolve(fileUri);
-  charOffset ??= -1;
-  if (charOffset == -1) {
-    charOffset = member.fileOffset ?? -1;
-  }
-  if (charOffset == -1) {
-    charOffset = cls?.fileOffset ?? -1;
-  }
-  name = (cls == null ? "" : "${cls.name}::") + name;
-  return inputError(uri, charOffset, "Error in $name: $error");
 }
 
 int compareProcedures(Procedure a, Procedure b) {

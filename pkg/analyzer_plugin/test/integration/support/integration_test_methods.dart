@@ -204,46 +204,6 @@ abstract class IntegrationTestMixin {
   }
 
   /**
-   * Used to force the re-analysis of everything contained in the specified
-   * context roots. This should cause all previously computed analysis results
-   * to be discarded and recomputed, and should cause all subscribed
-   * notifications to be re-sent.
-   *
-   * Parameters
-   *
-   * roots: List<FilePath> (optional)
-   *
-   *   A list of the context roots that are to be re-analyzed.
-   *
-   *   If no context roots are provided, then all current context roots should
-   *   be re-analyzed.
-   */
-  Future sendAnalysisReanalyze({List<String> roots}) async {
-    var params = new AnalysisReanalyzeParams(roots: roots).toJson();
-    var result = await server.send("analysis.reanalyze", params);
-    outOfTestExpect(result, isNull);
-    return null;
-  }
-
-  /**
-   * Used to set the options used to build analysis contexts. This request will
-   * be sent exactly once before any context roots have been specified.
-   *
-   * Parameters
-   *
-   * options: ContextBuilderOptions
-   *
-   *   The options used to build the analysis contexts.
-   */
-  Future sendAnalysisSetContextBuilderOptions(
-      ContextBuilderOptions options) async {
-    var params = new AnalysisSetContextBuilderOptionsParams(options).toJson();
-    var result = await server.send("analysis.setContextBuilderOptions", params);
-    outOfTestExpect(result, isNull);
-    return null;
-  }
-
-  /**
    * Set the list of context roots that should be analyzed.
    *
    * Parameters
@@ -745,6 +705,38 @@ abstract class IntegrationTestMixin {
     var result = await server.send("edit.getRefactoring", params);
     ResponseDecoder decoder = new ResponseDecoder(kind);
     return new EditGetRefactoringResult.fromJson(decoder, 'result', result);
+  }
+
+  /**
+   * Return the list of KytheEntry objects for some file, given the current
+   * state of the file system populated by "analysis.updateContent".
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The file containing the code for which the Kythe Entry objects are being
+   *   requested.
+   *
+   * Returns
+   *
+   * entries: List<KytheEntry>
+   *
+   *   The list of KytheEntry objects for the queried file.
+   *
+   * files: List<FilePath>
+   *
+   *   The set of files paths that were required, but not in the file system,
+   *   to give a complete and accurate Kythe graph for the file. This could be
+   *   due to a referenced file that does not exist or generated files not
+   *   being generated or passed before the call to "getKytheEntries".
+   */
+  Future<KytheGetKytheEntriesResult> sendKytheGetKytheEntries(
+      String file) async {
+    var params = new KytheGetKytheEntriesParams(file).toJson();
+    var result = await server.send("kythe.getKytheEntries", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new KytheGetKytheEntriesResult.fromJson(decoder, 'result', result);
   }
 
   /**

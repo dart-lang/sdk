@@ -65,7 +65,7 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
 
   @override
   void error(String message) {
-    throw new SpannableAssertionFailure(NO_LOCATION_SPANNABLE, message);
+    failedAt(NO_LOCATION_SPANNABLE, message);
   }
 
   @override
@@ -116,7 +116,8 @@ class TokenCounter extends BaseVisitor {
     }
   }
 
-  void countTokens(Node node) => node.accept(this);
+  // TODO(28763): Remove `<dynamic>` when issue 28763 is fixed.
+  void countTokens(Node node) => node.accept<dynamic>(this);
 }
 
 abstract class ReferenceCountedAstNode implements Node {

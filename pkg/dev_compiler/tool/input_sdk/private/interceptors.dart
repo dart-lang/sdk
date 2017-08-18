@@ -9,6 +9,7 @@ import 'dart:_internal' hide Symbol;
 import 'dart:_js_helper';
 import 'dart:_foreign_helper' show JS;
 import 'dart:math' show Random;
+import 'dart:_runtime' as dart;
 
 part 'js_array.dart';
 part 'js_number.dart';
@@ -17,6 +18,9 @@ part 'js_string.dart';
 // TODO(jmesserly): remove, this doesn't do anything for us.
 abstract class Interceptor {
   const Interceptor();
+
+  // Use native JS toString method instead of standard Dart Object.toString.
+  String toString() => JS('String', '#.toString()', this);
 }
 
 // TODO(jmesserly): remove
@@ -88,6 +92,21 @@ class UnknownJavaScriptObject extends JavaScriptObject {
   const UnknownJavaScriptObject();
 
   String toString() => JS('String', 'String(#)', this);
+}
+
+// Note that this needs to be in interceptors.dart in order for
+// it to be picked up as an extension type.
+@JsPeerInterface(name: 'TypeError')
+class NullError extends Interceptor implements NoSuchMethodError {
+  StackTrace get stackTrace => Primitives.extractStackTrace(this);
+
+  String toString() {
+    // TODO(vsm): Distinguish between null reference errors and other
+    // TypeErrors.  We should not get non-null TypeErrors from DDC code,
+    // but we may from native JavaScript.
+    var message = JS('String', '#.message', this);
+    return "NullError: $message";
+  }
 }
 
 // Obsolete in dart dev compiler. Added only so that the same version of

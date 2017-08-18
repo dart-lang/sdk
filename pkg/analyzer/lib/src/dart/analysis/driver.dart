@@ -41,7 +41,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:meta/meta.dart';
 
 /**
@@ -85,7 +85,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 34;
+  static const int DATA_VERSION = 40;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -480,6 +480,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
     if (AnalysisEngine.isDartFileName(path)) {
       _fileTracker.addFile(path);
+      // If the file is known, it has already been read, even if it did not
+      // exist. Now we are notified that the file exists, so we need to
+      // re-read it and make sure that we invalidate signature of the files
+      // that reference it.
+      if (_fsState.knownFilePaths.contains(path)) {
+        _changeFile(path);
+      }
     }
   }
 
@@ -503,8 +510,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   void changeFile(String path) {
     _throwIfChangesAreNotAllowed();
-    _fileTracker.changeFile(path);
-    _priorityResults.clear();
+    _changeFile(path);
   }
 
   /**
@@ -530,6 +536,23 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   @override
   void dispose() {
     _scheduler.remove(this);
+  }
+
+  /**
+   * Return the cached [AnalysisResult] for the Dart file with the given [path].
+   * If there is no cached result, return `null`. Usually only results of
+   * priority files are cached.
+   *
+   * The [path] must be absolute and normalized.
+   *
+   * The [path] can be any file - explicitly or implicitly analyzed, or neither.
+   */
+  AnalysisResult getCachedResult(String path) {
+    AnalysisResult result = _priorityResults[path];
+    if (disableChangesAndCacheAllResults) {
+      result ??= _allCachedResults[path];
+    }
+    return result;
   }
 
   /**
@@ -620,6 +643,23 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
+   * Return the cached [AnalysisDriverResolvedUnit] for the file with the given
+   * [file], or `null` if the cache does not contain this information.
+   */
+  AnalysisDriverResolvedUnit getResolvedUnitObject(FileState file) {
+    FileState library = file.isPart ? file.library : file;
+    if (library != null) {
+      String signature = _getResolvedUnitSignature(library, file);
+      String key = _getResolvedUnitKey(signature);
+      List<int> bytes = _byteStore.get(key);
+      if (bytes != null) {
+        return new AnalysisDriverResolvedUnit.fromBuffer(bytes);
+      }
+    }
+    return null;
+  }
+
+  /**
    * Return a [Future] that completes with a [AnalysisResult] for the Dart
    * file with the given [path]. If the file is not a Dart file or cannot
    * be analyzed, the [Future] completes with `null`.
@@ -629,6 +669,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * The [path] can be any file - explicitly or implicitly analyzed, or neither.
    *
    * If the driver has the cached analysis result for the file, it is returned.
+   * If [sendCachedToStream] is `true`, then the result is also reported into
+   * the [results] stream, just as if it were freshly computed.
    *
    * Otherwise causes the analysis state to transition to "analyzing" (if it is
    * not in that state already), the driver will produce the analysis result for
@@ -636,18 +678,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * of the files previously reported using [changeFile]), prior to the next
    * time the analysis state transitions to "idle".
    */
-  Future<AnalysisResult> getResult(String path) {
+  Future<AnalysisResult> getResult(String path,
+      {bool sendCachedToStream: false}) {
     if (!_fsState.hasUri(path)) {
       return new Future.value();
     }
 
     // Return the cached result.
     {
-      AnalysisResult result = _priorityResults[path];
-      if (disableChangesAndCacheAllResults) {
-        result ??= _allCachedResults[path];
-      }
+      AnalysisResult result = getCachedResult(path);
       if (result != null) {
+        if (sendCachedToStream) {
+          _resultController.add(result);
+        }
         return new Future.value(result);
       }
     }
@@ -943,6 +986,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   void removeFile(String path) {
     _throwIfChangesAreNotAllowed();
     _fileTracker.removeFile(path);
+    _priorityResults.clear();
+  }
+
+  /**
+   * Implementation for [changeFile].
+   */
+  void _changeFile(String path) {
+    _fileTracker.changeFile(path);
     _priorityResults.clear();
   }
 

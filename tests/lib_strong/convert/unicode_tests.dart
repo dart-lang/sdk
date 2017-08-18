@@ -205,7 +205,7 @@ const BIGGEST_4_UTF8_UNIT_BYTES = const [0xF4, 0x8F, 0xBF, 0xBF];
 const BIGGEST_4_UTF8_UNIT_STRING = "\u{10FFFF}";
 
 const _TEST_PAIRS = const [
-  const [const [], ""],
+  const [const <int>[], ""],
   const [INTER_BYTES, INTER_STRING],
   const [BLUEBERRY_BYTES, BLUEBERRY_STRING],
   const [SIVA_BYTES1, SIVA_STRING1],
@@ -224,12 +224,12 @@ const _TEST_PAIRS = const [
 
 List<List> _expandTestPairs() {
   assert(2 == BEE_STRING.length);
-  var tests = [];
+  var tests = <List>[];
   tests.addAll(_TEST_PAIRS);
   tests.addAll(_TEST_PAIRS.map((test) {
     var bytes = test[0];
     var string = test[1];
-    var longBytes = [];
+    var longBytes = <int>[];
     var longString = "";
     for (int i = 0; i < 100; i++) {
       longBytes.addAll(bytes);

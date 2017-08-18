@@ -125,11 +125,8 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   _resultOfParameter(ParameterElement e) =>
       compiler.globalInference.results.resultOfParameter(e);
 
-  @deprecated
-  _resultOfElement(AstElement e) =>
-      compiler.globalInference.results.resultOfElement(e);
-
   FieldInfo visitFieldElement(FieldElement element, _) {
+    if (!compiler.resolution.hasBeenResolved(element)) return null;
     TypeMask inferredType = _resultOfMember(element).type;
     // If a field has an empty inferred type it is never used.
     if (inferredType == null || inferredType.isEmpty) return null;
@@ -266,7 +263,8 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     String returnType = null;
     List<ParameterInfo> parameters = <ParameterInfo>[];
     if (element.hasFunctionSignature) {
-      FunctionSignature signature = element.functionSignature;
+      FunctionElement implementation = element.implementation;
+      FunctionSignature signature = implementation.functionSignature;
       signature.forEachParameter((parameter) {
         parameters.add(new ParameterInfo(parameter.name,
             '${_resultOfParameter(parameter).type}', '${parameter.node.type}'));
@@ -274,8 +272,15 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       returnType = '${element.type.returnType}';
     }
 
-    String inferredReturnType = '${_resultOfElement(element).returnType}';
-    String sideEffects = '${closedWorld.getSideEffectsOfElement(element)}';
+    MethodElement method;
+    if (element is LocalFunctionElement) {
+      method = element.callMethod;
+    } else {
+      method = element;
+    }
+
+    String inferredReturnType = '${_resultOfMember(method).returnType}';
+    String sideEffects = '${closedWorld.getSideEffectsOfElement(method)}';
 
     int inlinedCount = compiler.dumpInfoTask.inlineCount[element];
     if (inlinedCount == null) inlinedCount = 0;

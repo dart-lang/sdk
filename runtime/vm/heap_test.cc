@@ -18,7 +18,7 @@ TEST_CASE(OldGC) {
       "main() {\n"
       "  return [1, 2, 3];\n"
       "}\n";
-  FLAG_verbose_gc = true;
+  NOT_IN_PRODUCT(FLAG_verbose_gc = true);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
 
@@ -50,14 +50,14 @@ TEST_CASE(OldGC_Unsync) {
   Heap* heap = isolate->heap();
   heap->CollectGarbage(Heap::kOld);
 }
-#endif
+#endif  // !defined(PRODUCT)
 
 TEST_CASE(LargeSweep) {
   const char* kScriptChars =
       "main() {\n"
       "  return new List(8 * 1024 * 1024);\n"
       "}\n";
-  FLAG_verbose_gc = true;
+  NOT_IN_PRODUCT(FLAG_verbose_gc = true);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_EnterScope();
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -72,7 +72,6 @@ TEST_CASE(LargeSweep) {
   Dart_ExitScope();
   heap->CollectGarbage(Heap::kOld);
 }
-
 
 #ifndef PRODUCT
 class ClassHeapStatsTestHelper {
@@ -90,14 +89,12 @@ class ClassHeapStatsTestHelper {
   }
 };
 
-
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   return cls.raw();
 }
-
 
 TEST_CASE(ClassHeapStats) {
   const char* kScriptChars =
@@ -110,6 +107,8 @@ TEST_CASE(ClassHeapStats) {
       "  var x = new A();\n"
       "  return new A();\n"
       "}\n";
+  bool saved_concurrent_sweep_mode = FLAG_concurrent_sweep;
+  FLAG_concurrent_sweep = false;
   Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Isolate* isolate = Isolate::Current();
   ClassTable* class_table = isolate->class_table();
@@ -190,8 +189,8 @@ TEST_CASE(ClassHeapStats) {
   EXPECT_EQ(0, class_stats->pre_gc.old_count);
   EXPECT_EQ(0, class_stats->post_gc.old_count);
   EXPECT_EQ(0, class_stats->recent.old_count);
+  FLAG_concurrent_sweep = saved_concurrent_sweep_mode;
 }
-
 
 TEST_CASE(ArrayHeapStats) {
   const char* kScriptChars =
@@ -232,7 +231,6 @@ TEST_CASE(ArrayHeapStats) {
 }
 #endif  // !PRODUCT
 
-
 class FindOnly : public FindObjectVisitor {
  public:
   explicit FindOnly(RawObject* target) : target_(target) {
@@ -248,14 +246,12 @@ class FindOnly : public FindObjectVisitor {
   RawObject* target_;
 };
 
-
 class FindNothing : public FindObjectVisitor {
  public:
   FindNothing() {}
   virtual ~FindNothing() {}
   virtual bool FindObject(RawObject* obj) const { return false; }
 };
-
 
 TEST_CASE(FindObject) {
   Isolate* isolate = Isolate::Current();
@@ -276,7 +272,6 @@ TEST_CASE(FindObject) {
   }
 }
 
-
 TEST_CASE(IterateReadOnly) {
   const String& obj = String::Handle(String::New("x", Heap::kOld));
   Heap* heap = Thread::Current()->isolate()->heap();
@@ -286,7 +281,6 @@ TEST_CASE(IterateReadOnly) {
   heap->WriteProtect(false);
   EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
 }
-
 
 void TestBecomeForward(Heap::Space before_space, Heap::Space after_space) {
   Isolate* isolate = Isolate::Current();
@@ -312,26 +306,21 @@ void TestBecomeForward(Heap::Space before_space, Heap::Space after_space) {
   EXPECT(before_obj.raw() == after_obj.raw());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(BecomeFowardOldToOld) {
   TestBecomeForward(Heap::kOld, Heap::kOld);
 }
-
 
 ISOLATE_UNIT_TEST_CASE(BecomeFowardNewToNew) {
   TestBecomeForward(Heap::kNew, Heap::kNew);
 }
 
-
 ISOLATE_UNIT_TEST_CASE(BecomeFowardOldToNew) {
   TestBecomeForward(Heap::kOld, Heap::kNew);
 }
 
-
 ISOLATE_UNIT_TEST_CASE(BecomeFowardNewToOld) {
   TestBecomeForward(Heap::kNew, Heap::kOld);
 }
-
 
 ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
   Isolate* isolate = Isolate::Current();
@@ -361,6 +350,205 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
   heap->CollectAllGarbage();
 
   EXPECT(before_obj.raw() == after_obj.raw());
+}
+
+ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadOldToNew) {
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  heap->CollectAllGarbage();
+  intptr_t size_before =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  old.SetAt(0, neu);
+  old = Array::null();
+  neu = Array::null();
+
+  heap->CollectAllGarbage();
+
+  intptr_t size_after =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  EXPECT(size_before == size_after);
+}
+
+ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadNewToOld) {
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  heap->CollectAllGarbage();
+  intptr_t size_before =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  neu.SetAt(0, old);
+  old = Array::null();
+  neu = Array::null();
+
+  heap->CollectAllGarbage();
+
+  intptr_t size_after =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  EXPECT(size_before == size_after);
+}
+
+ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadGenCycle) {
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  heap->CollectAllGarbage();
+  intptr_t size_before =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  neu.SetAt(0, old);
+  old.SetAt(0, neu);
+  old = Array::null();
+  neu = Array::null();
+
+  heap->CollectAllGarbage();
+
+  intptr_t size_after =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  EXPECT(size_before == size_after);
+}
+
+ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOld) {
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  heap->CollectAllGarbage();
+  intptr_t size_before =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  neu.SetAt(0, old);
+  old = Array::null();
+
+  heap->CollectAllGarbage();
+
+  intptr_t size_after =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  EXPECT(size_before < size_after);
+}
+
+ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNew) {
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  heap->CollectAllGarbage();
+  intptr_t size_before =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  old.SetAt(0, neu);
+  neu = Array::null();
+
+  heap->CollectAllGarbage();
+
+  intptr_t size_after =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  EXPECT(size_before < size_after);
+}
+
+ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldDeadNew) {
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  heap->CollectAllGarbage();
+  intptr_t size_before =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  neu = Array::null();
+  old.SetAt(0, old);
+
+  heap->CollectAllGarbage();
+
+  intptr_t size_after =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  EXPECT(size_before < size_after);
+}
+
+ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewDeadOld) {
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  heap->CollectAllGarbage();
+  intptr_t size_before =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  old = Array::null();
+  neu.SetAt(0, neu);
+
+  heap->CollectAllGarbage();
+
+  intptr_t size_after =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  EXPECT(size_before < size_after);
+}
+
+ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOldChain) {
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  heap->CollectAllGarbage();
+  intptr_t size_before =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& old2 = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  old.SetAt(0, old2);
+  neu.SetAt(0, old);
+  old = Array::null();
+  old2 = Array::null();
+
+  heap->CollectAllGarbage();
+
+  intptr_t size_after =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  EXPECT(size_before < size_after);
+}
+
+ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNewChain) {
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  heap->CollectAllGarbage();
+  intptr_t size_before =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  Array& old = Array::Handle(Array::New(1, Heap::kOld));
+  Array& neu = Array::Handle(Array::New(1, Heap::kNew));
+  Array& neu2 = Array::Handle(Array::New(1, Heap::kOld));
+  neu.SetAt(0, neu2);
+  old.SetAt(0, neu);
+  neu = Array::null();
+  neu2 = Array::null();
+
+  heap->CollectAllGarbage();
+
+  intptr_t size_after =
+      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+
+  EXPECT(size_before < size_after);
 }
 
 }  // namespace dart

@@ -15,7 +15,6 @@ namespace dart {
 class RawStackMap;
 class StackMap;
 
-
 // BitmapBuilder is used to build a bitmap. The implementation is optimized
 // for a dense set of small bit maps without a fixed upper bound (e.g: a
 // pointer map description of a stack).

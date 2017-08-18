@@ -28,20 +28,17 @@ int SocketAddress::GetType() {
   return TYPE_IPV4;
 }
 
-
 intptr_t SocketAddress::GetAddrLength(const RawAddr& addr) {
   ASSERT((addr.ss.ss_family == AF_INET) || (addr.ss.ss_family == AF_INET6));
   return (addr.ss.ss_family == AF_INET6) ? sizeof(struct sockaddr_in6)
                                          : sizeof(struct sockaddr_in);
 }
 
-
 intptr_t SocketAddress::GetInAddrLength(const RawAddr& addr) {
   ASSERT((addr.ss.ss_family == AF_INET) || (addr.ss.ss_family == AF_INET6));
   return (addr.ss.ss_family == AF_INET6) ? sizeof(struct in6_addr)
                                          : sizeof(struct in_addr);
 }
-
 
 bool SocketAddress::AreAddressesEqual(const RawAddr& a, const RawAddr& b) {
   if (a.ss.ss_family == AF_INET) {
@@ -60,7 +57,6 @@ bool SocketAddress::AreAddressesEqual(const RawAddr& a, const RawAddr& b) {
     return false;
   }
 }
-
 
 void SocketAddress::GetSockAddr(Dart_Handle obj, RawAddr* addr) {
   Dart_TypedData_Type data_type;
@@ -87,7 +83,6 @@ void SocketAddress::GetSockAddr(Dart_Handle obj, RawAddr* addr) {
   Dart_TypedDataReleaseData(obj);
 }
 
-
 int16_t SocketAddress::FromType(int type) {
   if (type == TYPE_ANY) {
     return AF_UNSPEC;
@@ -99,7 +94,6 @@ int16_t SocketAddress::FromType(int type) {
   return AF_INET6;
 }
 
-
 void SocketAddress::SetAddrPort(RawAddr* addr, intptr_t port) {
   if (addr->ss.ss_family == AF_INET) {
     addr->in.sin_port = htons(port);
@@ -108,7 +102,6 @@ void SocketAddress::SetAddrPort(RawAddr* addr, intptr_t port) {
   }
 }
 
-
 intptr_t SocketAddress::GetAddrPort(const RawAddr& addr) {
   if (addr.ss.ss_family == AF_INET) {
     return ntohs(addr.in.sin_port);
@@ -116,7 +109,6 @@ intptr_t SocketAddress::GetAddrPort(const RawAddr& addr) {
     return ntohs(addr.in6.sin6_port);
   }
 }
-
 
 Dart_Handle SocketAddress::ToTypedData(const RawAddr& addr) {
   int len = GetInAddrLength(addr);
@@ -138,7 +130,6 @@ Dart_Handle SocketAddress::ToTypedData(const RawAddr& addr) {
   return result;
 }
 
-
 CObjectUint8Array* SocketAddress::ToCObject(const RawAddr& addr) {
   int in_addr_len = SocketAddress::GetInAddrLength(addr);
   const void* in_addr;
@@ -152,7 +143,6 @@ CObjectUint8Array* SocketAddress::ToCObject(const RawAddr& addr) {
   memmove(data->Buffer(), in_addr, in_addr_len);
   return data;
 }
-
 
 void FUNCTION_NAME(InternetAddress_Parse)(Dart_NativeArguments args) {
   const char* address =
@@ -175,12 +165,10 @@ void FUNCTION_NAME(InternetAddress_Parse)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(NetworkInterface_ListSupported)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args,
                       Dart_NewBoolean(SocketBase::ListInterfacesSupported()));
 }
-
 
 void FUNCTION_NAME(SocketBase_IsBindError)(Dart_NativeArguments args) {
   intptr_t error_number =

@@ -21,21 +21,24 @@ class B {
 A makeA() native;
 B makeB() native;
 
-void setup() native """
-function A() {}
-A.prototype.foo = function (x) { return x + 1; };
-A.prototype.cmp = function (x) { return 0; };
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {}
+  A.prototype.foo = function (x) { return x + 1; };
+  A.prototype.cmp = function (x) { return 0; };
 
-function B() {}
-B.prototype.foo = function (x) { return x + 'ha!'; };
-B.prototype.cmp = function (x) { return 1; };
+  function B() {}
+  B.prototype.foo = function (x) { return x + 'ha!'; };
+  B.prototype.cmp = function (x) { return 1; };
 
-makeA = function(){return new A;};
-makeB = function(){return new B;};
+  makeA = function(){return new A()};
+  makeB = function(){return new B()};
 
-self.nativeConstructor(A);
-self.nativeConstructor(B);
-""";
+  self.nativeConstructor(A);
+  self.nativeConstructor(B);
+})()""");
+}
 
 expectThrows(action()) {
   bool threw = false;

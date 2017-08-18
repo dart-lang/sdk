@@ -5,8 +5,8 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_ARM)
 
-#include "vm/isolate.h"
 #include "vm/dart_entry.h"
+#include "vm/isolate.h"
 #include "vm/native_entry.h"
 #include "vm/native_entry_test.h"
 #include "vm/object.h"
@@ -34,7 +34,6 @@ static Function* CreateFunction(const char* name) {
   return &function;
 }
 
-
 // Test calls to stub code which calls into the runtime.
 static void GenerateCallToCallRuntimeStub(Assembler* assembler, int length) {
   const int argc = 2;
@@ -51,56 +50,59 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler, int length) {
   __ Ret();
 }
 
-
 TEST_CASE(CallRuntimeStubCode) {
   extern const Function& RegisterFakeFunction(const char* name,
                                               const Code& code);
   const int length = 10;
   const char* kName = "Test_CallRuntimeStubCode";
-  Assembler _assembler_;
-  GenerateCallToCallRuntimeStub(&_assembler_, length);
+  Assembler assembler;
+  GenerateCallToCallRuntimeStub(&assembler, length);
   const Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_CallRuntimeStubCode"), &_assembler_));
+      *CreateFunction("Test_CallRuntimeStubCode"), &assembler));
   const Function& function = RegisterFakeFunction(kName, code);
   Array& result = Array::Handle();
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());
   EXPECT_EQ(length, result.Length());
 }
 
-
 // Test calls to stub code which calls into a leaf runtime entry.
 static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
-                                              const char* value1,
-                                              const char* value2) {
-  const Bigint& bigint1 =
-      Bigint::ZoneHandle(Bigint::NewFromCString(value1, Heap::kOld));
-  const Bigint& bigint2 =
-      Bigint::ZoneHandle(Bigint::NewFromCString(value2, Heap::kOld));
+                                              const char* str_value,
+                                              intptr_t lhs_index_value,
+                                              intptr_t rhs_index_value,
+                                              intptr_t length_value) {
+  const String& str = String::ZoneHandle(String::New(str_value, Heap::kOld));
+  const Smi& lhs_index = Smi::ZoneHandle(Smi::New(lhs_index_value));
+  const Smi& rhs_index = Smi::ZoneHandle(Smi::New(rhs_index_value));
+  const Smi& length = Smi::ZoneHandle(Smi::New(length_value));
   __ EnterDartFrame(0);
   __ ReserveAlignedFrameSpace(0);
-  __ LoadObject(R0, bigint1);  // Set up argument 1 bigint1.
-  __ LoadObject(R1, bigint2);  // Set up argument 2 bigint2.
-  __ CallRuntime(kBigintCompareRuntimeEntry, 2);
-  __ SmiTag(R0);
+  __ LoadObject(R0, str);
+  __ LoadObject(R1, lhs_index);
+  __ LoadObject(R2, rhs_index);
+  __ LoadObject(R3, length);
+  __ CallRuntime(kCaseInsensitiveCompareUC16RuntimeEntry, 4);
   __ LeaveDartFrame();
   __ Ret();  // Return value is in R0.
 }
 
-
 TEST_CASE(CallLeafRuntimeStubCode) {
   extern const Function& RegisterFakeFunction(const char* name,
                                               const Code& code);
-  const char* value1 = "0xAAABBCCDDAABBCCDD";
-  const char* value2 = "0xAABBCCDDAABBCCDD";
+  const char* str_value = "abAB";
+  intptr_t lhs_index_value = 0;
+  intptr_t rhs_index_value = 2;
+  intptr_t length_value = 2;
   const char* kName = "Test_CallLeafRuntimeStubCode";
-  Assembler _assembler_;
-  GenerateCallToCallLeafRuntimeStub(&_assembler_, value1, value2);
+  Assembler assembler;
+  GenerateCallToCallLeafRuntimeStub(&assembler, str_value, lhs_index_value,
+                                    rhs_index_value, length_value);
   const Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_CallLeafRuntimeStubCode"), &_assembler_));
+      *CreateFunction("Test_CallLeafRuntimeStubCode"), &assembler));
   const Function& function = RegisterFakeFunction(kName, code);
-  Smi& result = Smi::Handle();
+  Instance& result = Instance::Handle();
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());
-  EXPECT_EQ(1, result.Value());
+  EXPECT_EQ(Bool::True().raw(), result.raw());
 }
 
 }  // namespace dart

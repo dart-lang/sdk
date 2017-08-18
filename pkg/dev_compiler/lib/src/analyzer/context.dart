@@ -32,6 +32,8 @@ class AnalyzerOptions {
   /// List of summary file paths.
   final List<String> summaryPaths;
 
+  final Map<String, String> customSummaryModules = {};
+
   /// Path to the dart-sdk, or `null` if the path couldn't be determined.
   final String dartSdkPath;
 
@@ -51,6 +53,7 @@ class AnalyzerOptions {
       : dartSdkPath = dartSdkPath ?? getSdkDir().path,
         summaryPaths = summaryPaths ?? const [] {
     contextBuilderOptions.declaredVariables ??= const {};
+    _parseCustomSummaryModules();
   }
 
   factory AnalyzerOptions.basic(
@@ -108,6 +111,24 @@ class AnalyzerOptions {
       }
     }
     return mappings;
+  }
+
+  /// A summary path can contain "=" followed by an explicit module name to
+  /// allow working with summaries whose physical location is outside of the
+  /// module root directory.
+  ///
+  /// Removes any explicit module names from [summaryPaths] and populates with
+  /// [customSummaryModules] with them.
+  void _parseCustomSummaryModules() {
+    for (var i = 0; i < summaryPaths.length; i++) {
+      var summaryPath = summaryPaths[i];
+      var pipe = summaryPath.indexOf("=");
+      if (pipe != -1) {
+        summaryPaths[i] = summaryPath.substring(0, pipe);
+        customSummaryModules[summaryPaths[i]] =
+            summaryPath.substring(pipe + 1);
+      }
+    }
   }
 }
 

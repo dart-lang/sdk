@@ -23,7 +23,6 @@ class SafepointOperationScope : public StackResource {
   DISALLOW_COPY_AND_ASSIGN(SafepointOperationScope);
 };
 
-
 // Implements handling of safepoint operations for all threads in an Isolate.
 class SafepointHandler {
  public:
@@ -92,8 +91,8 @@ class SafepointHandler {
 
   friend class Isolate;
   friend class SafepointOperationScope;
+  friend class HeapIterationScope;
 };
-
 
 /*
  * Set of StackResource classes to track thread execution state transitions:
@@ -152,7 +151,6 @@ class TransitionSafepointState : public StackResource {
   DISALLOW_COPY_AND_ASSIGN(TransitionSafepointState);
 };
 
-
 // TransitionGeneratedToVM is used to transition the safepoint state of a
 // thread from "running generated code" to "running vm code" and ensures
 // that the state is reverted back to "running generated code" when
@@ -179,7 +177,6 @@ class TransitionGeneratedToVM : public TransitionSafepointState {
  private:
   DISALLOW_COPY_AND_ASSIGN(TransitionGeneratedToVM);
 };
-
 
 // TransitionGeneratedToNative is used to transition the safepoint state of a
 // thread from "running generated code" to "running native code" and ensures
@@ -208,7 +205,6 @@ class TransitionGeneratedToNative : public TransitionSafepointState {
   DISALLOW_COPY_AND_ASSIGN(TransitionGeneratedToNative);
 };
 
-
 // TransitionVMToBlocked is used to transition the safepoint state of a
 // thread from "running vm code" to "blocked on a monitor" and ensures
 // that the state is reverted back to "running vm code" when
@@ -233,7 +229,6 @@ class TransitionVMToBlocked : public TransitionSafepointState {
   DISALLOW_COPY_AND_ASSIGN(TransitionVMToBlocked);
 };
 
-
 // TransitionVMToNative is used to transition the safepoint state of a
 // thread from "running vm code" to "running native code" and ensures
 // that the state is reverted back to "running vm code" when
@@ -257,7 +252,6 @@ class TransitionVMToNative : public TransitionSafepointState {
  private:
   DISALLOW_COPY_AND_ASSIGN(TransitionVMToNative);
 };
-
 
 // TransitionVMToGenerated is used to transition the safepoint state of a
 // thread from "running vm code" to "running generated code" and ensures
@@ -286,7 +280,6 @@ class TransitionVMToGenerated : public TransitionSafepointState {
   DISALLOW_COPY_AND_ASSIGN(TransitionVMToGenerated);
 };
 
-
 // TransitionNativeToVM is used to transition the safepoint state of a
 // thread from "running native code" to "running vm code" and ensures
 // that the state is reverted back to "running native code" when
@@ -310,7 +303,6 @@ class TransitionNativeToVM : public TransitionSafepointState {
  private:
   DISALLOW_COPY_AND_ASSIGN(TransitionNativeToVM);
 };
-
 
 // TransitionToGenerated is used to transition the safepoint state of a
 // thread from "running vm code" or "running native code" to
@@ -345,7 +337,6 @@ class TransitionToGenerated : public TransitionSafepointState {
   uint32_t execution_state_;
   DISALLOW_COPY_AND_ASSIGN(TransitionToGenerated);
 };
-
 
 // TransitionToVM is used to transition the safepoint state of a
 // thread from "running native code" to "running vm code"

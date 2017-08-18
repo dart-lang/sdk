@@ -10,6 +10,7 @@ import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
+import '../js_model/closure.dart' show JBoxedField, JClosureField;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../world.dart' show ClosedWorld;
@@ -88,7 +89,7 @@ class LocalsHandler {
   /// [contextClass].
   DartType substInContext(DartType type) {
     if (contextClass != null) {
-      ClassElement typeContext = DartTypes.getClassContext(type);
+      ClassEntity typeContext = DartTypes.getClassContext(type);
       if (typeContext != null) {
         type = builder.types.substByContext(
             type,
@@ -136,7 +137,7 @@ class LocalsHandler {
 
   /// If the scope (function or loop) [node] has captured variables then this
   /// method creates a box and sets up the redirections.
-  void enterScope(ClosureScope closureInfo,
+  void enterScope(CapturedScope closureInfo,
       {bool forGenerativeConstructorBody: false}) {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
@@ -178,28 +179,27 @@ class LocalsHandler {
 
   /// Replaces the current box with a new box and copies over the given list
   /// of elements from the old box into the new box.
-  void updateCaptureBox(LoopClosureScope loopInfo) {
-    Local boxElement = loopInfo.context;
+  void updateCaptureBox(Local currentBox, List<Local> toBeCopiedElements) {
     // Create a new box and copy over the values from the old box into the
     // new one.
-    HInstruction oldBox = readLocal(boxElement);
+    HInstruction oldBox = readLocal(currentBox);
     HInstruction newBox = createBox();
-    loopInfo.forEachBoxedVariable((Local boxedVariable, _) {
-      // [readLocal] uses the [boxElement] to find its box. By replacing it
+    for (Local boxedVariable in toBeCopiedElements) {
+      // [readLocal] uses the [currentBox] to find its box. By replacing it
       // behind its back we can still get to the old values.
-      updateLocal(boxElement, oldBox);
+      updateLocal(currentBox, oldBox);
       HInstruction oldValue = readLocal(boxedVariable);
-      updateLocal(boxElement, newBox);
+      updateLocal(currentBox, newBox);
       updateLocal(boxedVariable, oldValue);
-    });
-    updateLocal(boxElement, newBox);
+    }
+    updateLocal(currentBox, newBox);
   }
 
   /// Documentation wanted -- johnniwinther
   ///
   /// Invariant: [function] must be an implementation element.
   void startFunction(MemberEntity element, ScopeInfo scopeInfo,
-      ClosureScope scopeData, Map<Local, TypeMask> parameters,
+      CapturedScope scopeData, Map<Local, TypeMask> parameters,
       {bool isGenerativeConstructorBody}) {
     assert(!(element is MemberElement && !element.isImplementation),
         failedAt(element));
@@ -295,7 +295,7 @@ class LocalsHandler {
   bool isAccessedDirectly(Local local) {
     assert(local != null);
     return !redirectionMapping.containsKey(local) &&
-        !scopeInfo.variableIsUsedInTryOrSync(local);
+        !scopeInfo.localIsUsedInTryOrSync(local);
   }
 
   bool isStoredInClosureField(Local local) {
@@ -304,7 +304,8 @@ class LocalsHandler {
     if (scopeInfo is! ClosureRepresentationInfo) return false;
     FieldEntity redirectTarget = redirectionMapping[local];
     if (redirectTarget == null) return false;
-    return redirectTarget is ClosureFieldElement;
+    return redirectTarget is ClosureFieldElement ||
+        redirectTarget is JClosureField;
   }
 
   bool isBoxed(Local local) {
@@ -314,7 +315,7 @@ class LocalsHandler {
   }
 
   bool _isUsedInTryOrGenerator(Local local) {
-    return scopeInfo.variableIsUsedInTryOrSync(local);
+    return scopeInfo.localIsUsedInTryOrSync(local);
   }
 
   /// Returns an [HInstruction] for the given element. If the element is
@@ -324,12 +325,12 @@ class LocalsHandler {
     if (isAccessedDirectly(local)) {
       if (directLocals[local] == null) {
         if (local is TypeVariableLocal) {
-          throw new SpannableAssertionFailure(
+          failedAt(
               CURRENT_ELEMENT_SPANNABLE,
               "Runtime type information not available for $local "
               "in $executableContext.");
         } else {
-          throw new SpannableAssertionFailure(
+          failedAt(
               local,
               "Cannot find value $local in ${directLocals.keys} for "
               "$executableContext.");
@@ -343,7 +344,7 @@ class LocalsHandler {
       return value;
     } else if (isStoredInClosureField(local)) {
       ClosureRepresentationInfo closureData = scopeInfo;
-      ClosureFieldElement redirect = redirectionMapping[local];
+      FieldEntity redirect = redirectionMapping[local];
       HInstruction receiver = readLocal(closureData.closureEntity);
       TypeMask type = local is BoxLocal
           ? commonMasks.nonNullType
@@ -352,13 +353,21 @@ class LocalsHandler {
       builder.add(fieldGet);
       return fieldGet..sourceInformation = sourceInformation;
     } else if (isBoxed(local)) {
-      BoxFieldElement redirect = redirectionMapping[local];
+      FieldEntity redirect = redirectionMapping[local];
+      BoxLocal localBox;
       // In the function that declares the captured variable the box is
       // accessed as direct local. Inside the nested closure the box is
       // accessed through a closure-field.
       // Calling [readLocal] makes sure we generate the correct code to get
       // the box.
-      HInstruction box = readLocal(redirect.box);
+      if (redirect is BoxFieldElement) {
+        localBox = redirect.box;
+      } else if (redirect is JBoxedField) {
+        localBox = redirect.box;
+      }
+      assert(localBox != null);
+
+      HInstruction box = readLocal(localBox);
       HInstruction lookup =
           new HFieldGet(redirect, box, getTypeOfCapturedVariable(redirect));
       builder.add(lookup);
@@ -417,12 +426,21 @@ class LocalsHandler {
     if (isAccessedDirectly(local)) {
       directLocals[local] = value;
     } else if (isBoxed(local)) {
-      BoxFieldElement redirect = redirectionMapping[local];
+      FieldEntity redirect = redirectionMapping[local];
+      assert(redirect != null);
+      BoxLocal localBox;
+      if (redirect is BoxFieldElement) {
+        localBox = redirect.box;
+      } else if (redirect is JBoxedField) {
+        localBox = redirect.box;
+      }
+      assert(localBox != null);
+
       // The box itself could be captured, or be local. A local variable that
       // is captured will be boxed, but the box itself will be a local.
       // Inside the closure the box is stored in a closure-field and cannot
       // be accessed directly.
-      HInstruction box = readLocal(redirect.box);
+      HInstruction box = readLocal(localBox);
       builder.add(new HFieldSet(redirect, box, value)
         ..sourceInformation = sourceInformation);
     } else {
@@ -477,8 +495,8 @@ class LocalsHandler {
   ///    <updates>
   ///    goto loop-entry;
   ///  loop-exit:
-  void startLoop(LoopClosureScope loopInfo) {
-    if (loopInfo.hasBoxedVariables) {
+  void startLoop(CapturedLoopScope loopInfo) {
+    if (loopInfo.hasBoxedLoopVariables) {
       // If there are boxed loop variables then we set up the box and
       // redirections already now. This way the initializer can write its
       // values into the box.
@@ -510,22 +528,22 @@ class LocalsHandler {
     });
   }
 
-  void enterLoopBody(LoopClosureScope loopInfo) {
+  void enterLoopBody(CapturedLoopScope loopInfo) {
     // If there are no declared boxed loop variables then we did not create the
     // box before the initializer and we have to create the box now.
-    if (!loopInfo.hasBoxedVariables) {
+    if (!loopInfo.hasBoxedLoopVariables) {
       enterScope(loopInfo);
     }
   }
 
-  void enterLoopUpdates(LoopClosureScope loopInfo) {
+  void enterLoopUpdates(CapturedLoopScope loopInfo) {
     // If there are declared boxed loop variables then the updates might have
     // access to the box and we must switch to a new box before executing the
     // updates.
     // In all other cases a new box will be created when entering the body of
     // the next iteration.
-    if (loopInfo.hasBoxedVariables) {
-      updateCaptureBox(loopInfo);
+    if (loopInfo.hasBoxedLoopVariables) {
+      updateCaptureBox(loopInfo.context, loopInfo.boxedLoopVariables);
     }
   }
 
@@ -644,10 +662,10 @@ class LocalsHandler {
     return result;
   }
 
-  Map<Element, TypeMask> cachedTypesOfCapturedVariables =
-      new Map<Element, TypeMask>();
+  Map<FieldEntity, TypeMask> cachedTypesOfCapturedVariables =
+      new Map<FieldEntity, TypeMask>();
 
-  TypeMask getTypeOfCapturedVariable(FieldElement element) {
+  TypeMask getTypeOfCapturedVariable(FieldEntity element) {
     return cachedTypesOfCapturedVariables.putIfAbsent(element, () {
       return TypeMaskFactory.inferredTypeForMember(
           element, _globalInferenceResults);

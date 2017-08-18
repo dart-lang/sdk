@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Test1 extends core::Object {
   field core::int t = null;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method test() → void {
@@ -20,7 +20,7 @@ class Test1 extends core::Object {
 }
 class Test2 extends core::Object {
   field core::num t = null;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method test() → void {
@@ -39,7 +39,7 @@ class Test2 extends core::Object {
 }
 class Test3 extends core::Object {
   field core::double t = null;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method test3() → void {

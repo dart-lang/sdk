@@ -5,9 +5,9 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -107,7 +107,6 @@ class AnalysisServerTest {
         channel,
         resourceProvider,
         packageMapProvider,
-        null,
         serverPlugin,
         new AnalysisServerOptions(),
         new DartSdkManager('/', false),
@@ -136,7 +135,7 @@ class AnalysisServerTest {
       expect(notifications, isNotEmpty);
       // expect at least one notification indicating analysis is in progress
       expect(notifications.any((Notification notification) {
-        if (notification.event == SERVER_STATUS) {
+        if (notification.event == SERVER_NOTIFICATION_STATUS) {
           var params = new ServerStatusParams.fromNotification(notification);
           if (params.analysis != null) {
             return params.analysis.isAnalyzing;
@@ -154,9 +153,7 @@ class AnalysisServerTest {
   test_setAnalysisSubscriptions_fileInIgnoredFolder_newOptions() async {
     String path = '/project/samples/sample.dart';
     resourceProvider.newFile(path, '');
-    resourceProvider.newFile(
-        '/project/analysis_options.yaml',
-        r'''
+    resourceProvider.newFile('/project/analysis_options.yaml', r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -168,16 +165,14 @@ analyzer:
     // the file is excluded, so no navigation notification
     await server.onAnalysisComplete;
     expect(channel.notificationsReceived.any((notification) {
-      return notification.event == ANALYSIS_NAVIGATION;
+      return notification.event == ANALYSIS_NOTIFICATION_NAVIGATION;
     }), isFalse);
   }
 
   test_setAnalysisSubscriptions_fileInIgnoredFolder_oldOptions() async {
     String path = '/project/samples/sample.dart';
     resourceProvider.newFile(path, '');
-    resourceProvider.newFile(
-        '/project/.analysis_options',
-        r'''
+    resourceProvider.newFile('/project/.analysis_options', r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -189,13 +184,13 @@ analyzer:
     // the file is excluded, so no navigation notification
     await server.onAnalysisComplete;
     expect(channel.notificationsReceived.any((notification) {
-      return notification.event == ANALYSIS_NAVIGATION;
+      return notification.event == ANALYSIS_NOTIFICATION_NAVIGATION;
     }), isFalse);
   }
 
   Future test_shutdown() {
     server.handlers = [new ServerDomainHandler(server)];
-    var request = new Request('my28', SERVER_SHUTDOWN);
+    var request = new Request('my28', SERVER_REQUEST_SHUTDOWN);
     return channel.sendRequest(request).then((Response response) {
       expect(response.id, equals('my28'));
       expect(response.error, isNull);

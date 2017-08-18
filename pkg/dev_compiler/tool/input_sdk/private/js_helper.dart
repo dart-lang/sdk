@@ -15,6 +15,7 @@ import 'dart:_internal'
     show EfficientLengthIterable, MappedIterable, IterableElementError;
 
 import 'dart:_native_typed_data';
+import 'dart:_runtime' as dart;
 
 part 'annotations.dart';
 part 'linked_hash_map.dart';
@@ -183,17 +184,8 @@ class Primitives {
   /** [: r"$".codeUnitAt(0) :] */
   static const int DOLLAR_CHAR_VALUE = 36;
 
-  /// Returns the type of [object] as a string (including type arguments).
-  ///
-  /// In minified mode, uses the unminified names if available.
-  static String objectTypeName(Object object) {
-    return getRuntimeType(object).toString();
-  }
-
-  /// In minified mode, uses the unminified names if available.
   static String objectToString(Object object) {
-    // String name = objectTypeName(object);
-    String name = JS('String', 'dart.typeName(dart.getReifiedType(#))', object);
+    String name = dart.typeName(dart.getReifiedType(object));
     return "Instance of '$name'";
   }
 
@@ -584,19 +576,6 @@ throwConcurrentModificationError(collection) {
   throw new ConcurrentModificationError(collection);
 }
 
-class NullError extends Error implements NoSuchMethodError {
-  final String _message;
-  final String _method;
-
-  NullError(this._message, match)
-      : _method = match == null ? null : JS('', '#.method', match);
-
-  String toString() {
-    if (_method == null) return 'NullError: $_message';
-    return "NullError: method not found: '$_method' on null";
-  }
-}
-
 class JsNoSuchMethodError extends Error implements NoSuchMethodError {
   final String _message;
   final String _method;
@@ -632,7 +611,7 @@ class UnknownJsTypeError extends Error {
 final _stackTrace = JS('', 'Symbol("_stackTrace")');
 StackTrace getTraceFromException(exception) {
   var error = JS('', 'dart.recordJsError(#)', exception);
-  var trace = JS('StackTrace', '#[#]', error, _stackTrace);
+  var trace = JS('StackTrace|Null', '#[#]', error, _stackTrace);
   if (trace != null) return trace;
   trace = new _StackTrace(error);
   JS('', '#[#] = #', error, _stackTrace, trace);
@@ -869,15 +848,12 @@ class RuntimeError extends Error {
   String toString() => "RuntimeError: $message";
 }
 
-/**
- * Error thrown when an assert() fails with a message:
- *
- *     assert(false, "Message here");
- */
-class AssertionErrorWithMessage extends AssertionError {
-  final Object _message;
-  AssertionErrorWithMessage(this._message);
-  String toString() => "Assertion failed: ${_message}";
+/// Error thrown by DDC when an `assert()` fails (with or without a message).
+class AssertionErrorImpl extends AssertionError {
+  AssertionErrorImpl(message) : super(message);
+  String toString() =>
+      "Assertion failed: " +
+      (message != null ? Error.safeToString(message) : "is not true");
 }
 
 /**
@@ -929,4 +905,19 @@ class SyncIterable<E> extends IterableBase<E> {
 
 class BooleanConversionAssertionError extends AssertionError {
   toString() => 'Failed assertion: boolean expression must not be null';
+}
+
+// Hook to register new global object.  This is invoked from dart:html
+// whenever a new window is accessed for the first time.
+void registerGlobalObject(object) {
+  try {
+    if (dart.polyfill(object)) {
+      dart.applyAllExtensions(object);
+    }
+  } catch (e) {
+    // This may fail due to cross-origin errors.  In that case, we shouldn't
+    // need to polyfill as we can't get objects from that frame.
+
+    // TODO(vsm): Detect this more robustly - ideally before we try to polyfill.
+  }
 }

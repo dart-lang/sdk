@@ -6,7 +6,7 @@ library code_view_element;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:observatory/cpu_profile.dart';
+import 'package:observatory/sample_profile.dart';
 import 'package:observatory/service.dart' as S;
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/app.dart'
@@ -347,7 +347,7 @@ class CodeViewElement extends HtmlElement implements Renderable {
     final isolate = code.isolate;
     S.ServiceMap response =
         await isolate.invokeRpc('_getCpuProfile', {'tags': 'None'});
-    final cpuProfile = new CpuProfile();
+    final cpuProfile = new SampleProfile();
     await cpuProfile.load(isolate, response);
     _r.dirty();
   }

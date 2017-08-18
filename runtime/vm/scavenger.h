@@ -10,6 +10,7 @@
 #include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
+#include "vm/lockers.h"
 #include "vm/raw_object.h"
 #include "vm/ring_buffer.h"
 #include "vm/spaces.h"
@@ -63,7 +64,6 @@ class SemiSpace {
   static Mutex* mutex_;
 };
 
-
 // Statistics for a particular scavenge.
 class ScavengeStats {
  public:
@@ -107,7 +107,6 @@ class ScavengeStats {
   intptr_t promoted_in_words_;
 };
 
-
 class Scavenger {
  public:
   Scavenger(Heap* heap,
@@ -123,14 +122,11 @@ class Scavenger {
 
   RawObject* FindObject(FindObjectVisitor* visitor) const;
 
-  uword TryAllocate(intptr_t size) {
+  uword TryAllocateNewTLAB(Thread* thread, intptr_t size) {
     ASSERT(Utils::IsAligned(size, kObjectAlignment));
     ASSERT(heap_ != Dart::vm_isolate()->heap());
-#if defined(DEBUG)
-    if (FLAG_gc_at_alloc && !scavenging_) {
-      Scavenge();
-    }
-#endif
+    ASSERT(!scavenging_);
+    MutexLocker ml(space_lock_);
     uword result = top_;
     intptr_t remaining = end_ - top_;
     if (remaining < size) {
@@ -138,9 +134,56 @@ class Scavenger {
     }
     ASSERT(to_->Contains(result));
     ASSERT((result & kObjectAlignmentMask) == object_alignment_);
-
     top_ += size;
     ASSERT(to_->Contains(top_) || (top_ == to_->end()));
+    ASSERT(result < top_);
+    thread->set_top(result);
+    thread->set_end(top_);
+    return result;
+  }
+
+  uword AllocateGC(intptr_t size) {
+    ASSERT(Utils::IsAligned(size, kObjectAlignment));
+    ASSERT(heap_ != Dart::vm_isolate()->heap());
+    ASSERT(scavenging_);
+    uword result = top_;
+    intptr_t remaining = end_ - top_;
+
+    // This allocation happens only in GC and only when copying objects to
+    // the new to_ space. It must succeed.
+    ASSERT(size <= remaining);
+    ASSERT(to_->Contains(result));
+    ASSERT((result & kObjectAlignmentMask) == object_alignment_);
+    top_ += size;
+    ASSERT((to_->Contains(top_)) || (top_ == to_->end()));
+    return result;
+  }
+
+  uword TryAllocateInTLAB(Thread* thread, intptr_t size) {
+    ASSERT(Utils::IsAligned(size, kObjectAlignment));
+    ASSERT(heap_ != Dart::vm_isolate()->heap());
+    ASSERT(thread->IsMutatorThread());
+    ASSERT(thread->isolate()->IsMutatorThreadScheduled());
+    ASSERT(thread->top() <= top_);
+    ASSERT((thread->end() == 0) || (thread->end() == top_));
+#if defined(DEBUG)
+    if (FLAG_gc_at_alloc) {
+      ASSERT(!scavenging_);
+      Scavenge();
+    }
+#endif
+    uword top = thread->top();
+    uword end = thread->end();
+    uword result = top;
+    intptr_t remaining = end - top;
+    if (remaining < size) {
+      return 0;
+    }
+    ASSERT(to_->Contains(result));
+    ASSERT((result & kObjectAlignmentMask) == object_alignment_);
+    top += size;
+    ASSERT((to_->Contains(top)) || (top == to_->end()));
+    thread->set_top(top);
     return result;
   }
 
@@ -149,21 +192,18 @@ class Scavenger {
   void Scavenge(bool invoke_api_callbacks);
 
   // Promote all live objects.
-  void Evacuate() {
-    Scavenge();
-    Scavenge();
-    ASSERT(UsedInWords() == 0);
+  void Evacuate();
+
+  uword top() { return top_; }
+  uword end() { return end_; }
+
+  void set_top(uword value) { top_ = value; }
+  void set_end(uword value) {
+    ASSERT(to_->end() == value);
+    end_ = value;
   }
 
-  // Accessors to generate code for inlined allocation.
-  uword* TopAddress() { return &top_; }
-  uword* EndAddress() { return &end_; }
-  static intptr_t top_offset() { return OFFSET_OF(Scavenger, top_); }
-  static intptr_t end_offset() { return OFFSET_OF(Scavenger, end_); }
-
-  int64_t UsedInWords() const {
-    return (top_ - FirstObjectStart()) >> kWordSizeLog2;
-  }
+  int64_t UsedInWords() const;
   int64_t CapacityInWords() const { return to_->size_in_words(); }
   int64_t ExternalInWords() const { return external_size_ >> kWordSizeLog2; }
   SpaceUsage GetCurrentUsage() const {
@@ -195,6 +235,11 @@ class Scavenger {
 
   void AllocateExternal(intptr_t size);
   void FreeExternal(intptr_t size);
+
+  void MakeNewSpaceIterable() const;
+  int64_t FreeSpaceInWords(Isolate* isolate) const;
+  void MakeAllTLABsIterable(Isolate* isolate) const;
+  void AbandonAllTLABs(Isolate* isolate);
 
  private:
   // Ids for time and data records in Heap::GCStats.
@@ -258,12 +303,6 @@ class Scavenger {
 
   intptr_t NewSizeInWords(intptr_t old_size_in_words) const;
 
-  // Accessed from generated code.
-  // ** This block of fields must come first! **
-  // For AOT cross-compilation, we rely on these members having the same offsets
-  // in SIMARM(IA32) and ARM, and the same offsets in SIMARM64(X64) and ARM64.
-  // We use only word-sized fields to avoid differences in struct packing on the
-  // different architectures. See also CheckOffsets in dart.cc.
   uword top_;
   uword end_;
 
@@ -297,6 +336,10 @@ class Scavenger {
   // The total size of external data associated with objects in this scavenger.
   intptr_t external_size_;
 
+  bool failed_to_promote_;
+
+  // Protects new space during the allocation of new TLABs
+  Mutex* space_lock_;
   friend class ScavengerVisitor;
   friend class ScavengerWeakVisitor;
 

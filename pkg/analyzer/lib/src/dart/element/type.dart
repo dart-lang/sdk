@@ -718,7 +718,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       // variables, and see if the result is equal.
       if (typeFormals.isNotEmpty) {
         List<DartType> freshVariables =
-            relateTypeFormals(this, object, (t, s) => t == s);
+            relateTypeFormals(this, object, (t, s, _, __) => t == s);
         if (freshVariables == null) {
           return false;
         }
@@ -895,7 +895,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return relate(
         this,
         type,
-        (DartType t, DartType s, _, __) =>
+        (DartType t, DartType s) =>
             (t as TypeImpl).isMoreSpecificThan(s, withDynamic),
         new TypeSystemImpl(null).instantiateToBounds);
   }
@@ -906,7 +906,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return relate(
         typeSystem.instantiateToBounds(this),
         typeSystem.instantiateToBounds(type),
-        (DartType t, DartType s, _, __) => t.isAssignableTo(s),
+        (DartType t, DartType s) => t.isAssignableTo(s),
         typeSystem.instantiateToBounds);
   }
 
@@ -1076,16 +1076,16 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * structural rules for handling optional parameters and arity, but use their
    * own relation for comparing corresponding parameters or return types.
    *
-   * If [returnRelation] is omitted, uses [parameterRelation] for both.
+   * If [parameterRelation] is omitted, uses [returnRelation] for both. This
+   * is convenient for Dart 1 type system methods.
    */
   static bool relate(
       FunctionType t,
       DartType other,
-      bool parameterRelation(
-          DartType t, DartType s, bool tIsCovariant, bool sIsCovariant),
+      bool returnRelation(DartType t, DartType s),
       DartType instantiateToBounds(DartType t),
-      {bool returnRelation(DartType t, DartType s)}) {
-    returnRelation ??= (t, s) => parameterRelation(t, s, false, false);
+      {bool parameterRelation(ParameterElement t, ParameterElement s)}) {
+    parameterRelation ??= (t, s) => returnRelation(t.type, s.type);
 
     // Trivial base cases.
     if (other == null) {
@@ -1102,7 +1102,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     // This type cast is safe, because we checked it above.
     FunctionType s = other as FunctionType;
     if (t.typeFormals.isNotEmpty) {
-      List<DartType> freshVariables = relateTypeFormals(t, s, returnRelation);
+      List<DartType> freshVariables =
+          relateTypeFormals(t, s, (s, t, _, __) => returnRelation(s, t));
       if (freshVariables == null) {
         return false;
       }
@@ -1119,14 +1120,34 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
 
     // Test the parameter types.
+    return relateParameters(t.parameters, s.parameters, parameterRelation);
+  }
 
+  /**
+   * Compares parameters [tParams] and [sParams] of two function types, taking
+   * corresponding parameters from the lists, and see if they match
+   * [parameterRelation].
+   *
+   * Corresponding parameters are defined as a pair `(t, s)` where `t` is a
+   * parameter from [tParams] and `s` is a parameter from [sParams], and both
+   * `t` and `s` are at the same position (for positional parameters)
+   * or have the same name (for named parameters).
+   * 
+   * Used for the various relations on function types which have the same
+   * structural rules for handling optional parameters and arity, but use their
+   * own relation for comparing the parameters.
+   */
+  static bool relateParameters(
+      List<ParameterElement> tParams,
+      List<ParameterElement> sParams,
+      bool parameterRelation(ParameterElement t, ParameterElement s)) {
     // TODO(jmesserly): this could be implemented with less allocation if we
     // wanted, by taking advantage of the fact that positional arguments must
     // appear before named ones.
     var tRequired = <ParameterElement>[];
     var tOptional = <ParameterElement>[];
     var tNamed = <String, ParameterElement>{};
-    for (var p in t.parameters) {
+    for (var p in tParams) {
       var kind = p.parameterKind;
       if (kind == ParameterKind.REQUIRED) {
         tRequired.add(p);
@@ -1141,7 +1162,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     var sRequired = <ParameterElement>[];
     var sOptional = <ParameterElement>[];
     var sNamed = <String, ParameterElement>{};
-    for (var p in s.parameters) {
+    for (var p in sParams) {
       var kind = p.parameterKind;
       if (kind == ParameterKind.REQUIRED) {
         sRequired.add(p);
@@ -1174,8 +1195,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         return false;
       }
       var sParam = sNamed[key];
-      if (!parameterRelation(
-          tParam.type, sParam.type, tParam.isCovariant, sParam.isCovariant)) {
+      if (!parameterRelation(tParam, sParam)) {
         return false;
       }
     }
@@ -1204,10 +1224,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
 
     for (int i = 0; i < sPositional.length; i++) {
-      var tParam = tPositional[i];
-      var sParam = sPositional[i];
-      if (!parameterRelation(
-          tParam.type, sParam.type, tParam.isCovariant, sParam.isCovariant)) {
+      if (!parameterRelation(tPositional[i], sPositional[i])) {
         return false;
       }
     }
@@ -1227,7 +1244,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * `F` to get `F -> F` and `F -> F`, which we can see are equal.
    */
   static List<DartType> relateTypeFormals(
-      FunctionType f1, FunctionType f2, bool relation(DartType t, DartType s)) {
+      FunctionType f1,
+      FunctionType f2,
+      bool relation(DartType bound2, DartType bound1,
+          TypeParameterElement formal2, TypeParameterElement formal1)) {
     List<TypeParameterElement> params1 = f1.typeFormals;
     List<TypeParameterElement> params2 = f2.typeFormals;
     int count = params1.length;
@@ -1258,7 +1278,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       bound1 = bound1.substitute2(variablesFresh, variables1);
       bound2 = bound2.substitute2(variablesFresh, variables2);
       pFresh.bound = bound2;
-      if (!relation(bound2, bound1)) {
+      if (!relation(bound2, bound1, p2, p1)) {
         return null;
       }
     }

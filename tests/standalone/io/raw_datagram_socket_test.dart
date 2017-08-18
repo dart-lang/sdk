@@ -192,7 +192,8 @@ testLoopbackMulticast() {
 
   test(InternetAddress.ANY_IP_V4, new InternetAddress("228.0.0.4"), true);
   test(InternetAddress.ANY_IP_V4, new InternetAddress("224.0.0.0"), false);
-  if (!Platform.isMacOS) {
+  // TODO(30306): Reenable for Linux
+  if (!Platform.isMacOS && !Platform.isLinux) {
     test(InternetAddress.ANY_IP_V6, new InternetAddress("ff11::0"), true);
     test(InternetAddress.ANY_IP_V6, new InternetAddress("ff11::0"), false);
   }

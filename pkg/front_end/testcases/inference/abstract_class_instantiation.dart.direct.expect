@@ -1,0 +1,20 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class C extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+abstract class D<T extends core::Object> extends core::Object {
+  constructor •(self::D::T t) → void
+    : super core::Object::•()
+    ;
+}
+static method test() → void {
+  dynamic x = throw new core::AbstractClassInstantiationError::•("C");
+  dynamic y = let final dynamic #t1 = 1 in throw new core::AbstractClassInstantiationError::•("D");
+  self::D<core::List<core::int>> z = let final dynamic #t2 = <dynamic>[] in throw new core::AbstractClassInstantiationError::•("D");
+}
+static method main() → dynamic {}

@@ -7,7 +7,7 @@ library fasta.dill_library_builder;
 import 'package:kernel/ast.dart'
     show Class, Field, Library, ListLiteral, Member, StaticGet, Typedef;
 
-import '../errors.dart' show internalError;
+import '../problems.dart' show unimplemented;
 
 import '../kernel/kernel_builder.dart'
     show
@@ -39,6 +39,9 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
       : super(uri, new Scope.top(), new Scope.top());
 
   Uri get fileUri => uri;
+
+  @override
+  Library get target => library;
 
   void addClass(Class cls) {
     DillClassBuilder classBulder = new DillClassBuilder(cls, this);
@@ -94,7 +97,7 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
 
   @override
   void addToScope(String name, Builder member, int charOffset, bool isImport) {
-    internalError("Not implemented yet.");
+    unimplemented("addToScope", charOffset, fileUri);
   }
 
   @override

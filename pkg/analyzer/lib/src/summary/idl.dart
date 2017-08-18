@@ -129,6 +129,31 @@ abstract class AnalysisDriverResolvedUnit extends base.SummaryClass {
 }
 
 /**
+ * Information about a subtype of one or more classes.
+ */
+abstract class AnalysisDriverSubtype extends base.SummaryClass {
+  /**
+   * The names of defined instance members.
+   * The list is sorted in ascending order.
+   */
+  @Id(2)
+  List<String> get members;
+
+  /**
+   * The name of the class.
+   */
+  @Id(0)
+  String get name;
+
+  /**
+   * The identifiers of the direct supertypes.
+   * The list is sorted in ascending order.
+   */
+  @Id(1)
+  List<String> get supertypes;
+}
+
+/**
  * Information about an error in a resolved unit.
  */
 abstract class AnalysisDriverUnitError extends base.SummaryClass {
@@ -226,6 +251,12 @@ abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
    */
   @Id(0)
   List<String> get strings;
+
+  /**
+   * The list of classes declared in the unit.
+   */
+  @Id(18)
+  List<AnalysisDriverSubtype> get subtypes;
 
   /**
    * Each item of this list corresponds to the library URI of a unique library
@@ -330,6 +361,13 @@ abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
    */
   @Id(0)
   List<String> get referencedNames;
+
+  /**
+   * List of names which are used in `extends`, `with` or `implements` clauses
+   * in the file. Import prefixes and type arguments are not included.
+   */
+  @Id(4)
+  List<String> get subtypedNames;
 
   /**
    * Unlinked information for the unit.
@@ -793,9 +831,7 @@ abstract class LinkedReference extends base.SummaryClass {
   /**
    * If [kind] is [ReferenceKind.function] (that is, the entity being referred
    * to is a local function), the index of the function within
-   * [UnlinkedExecutable.localFunctions].  If [kind] is
-   * [ReferenceKind.variable], the index of the variable within
-   * [UnlinkedExecutable.localVariables].  Otherwise zero.
+   * [UnlinkedExecutable.localFunctions].  Otherwise zero.
    */
   @Id(6)
   int get localIndex;
@@ -1757,13 +1793,15 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    * The list of local labels.
    */
   @informative
+  @deprecated
   @Id(22)
-  List<UnlinkedLabel> get localLabels;
+  List<String> get localLabels;
 
   /**
    * The list of local variables.
    */
   @informative
+  @deprecated
   @Id(19)
   List<UnlinkedVariable> get localVariables;
 
@@ -2662,37 +2700,6 @@ abstract class UnlinkedImport extends base.SummaryClass {
 }
 
 /**
- * Unlinked summary information about a label.
- */
-abstract class UnlinkedLabel extends base.SummaryClass {
-  /**
-   * Return `true` if this label is associated with a `switch` member (`case` or
-   * `default`).
-   */
-  @Id(2)
-  bool get isOnSwitchMember;
-
-  /**
-   * Return `true` if this label is associated with a `switch` statement.
-   */
-  @Id(3)
-  bool get isOnSwitchStatement;
-
-  /**
-   * Name of the label.
-   */
-  @Id(0)
-  String get name;
-
-  /**
-   * Offset of the label relative to the beginning of the file.
-   */
-  @informative
-  @Id(1)
-  int get nameOffset;
-}
-
-/**
  * Unlinked summary information about a function parameter.
  */
 abstract class UnlinkedParam extends base.SummaryClass {
@@ -3341,6 +3348,7 @@ abstract class UnlinkedVariable extends base.SummaryClass {
   /**
    * If a local variable, the length of the visible range; zero otherwise.
    */
+  @deprecated
   @informative
   @Id(11)
   int get visibleLength;
@@ -3348,6 +3356,7 @@ abstract class UnlinkedVariable extends base.SummaryClass {
   /**
    * If a local variable, the beginning of the visible range; zero otherwise.
    */
+  @deprecated
   @informative
   @Id(12)
   int get visibleOffset;

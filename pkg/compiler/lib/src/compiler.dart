@@ -82,6 +82,8 @@ typedef CompilerDiagnosticReporter MakeReporterFunction(
 abstract class Compiler {
   Measurer get measurer;
 
+  api.CompilerInput get provider;
+
   final IdGenerator idGenerator = new IdGenerator();
   FrontendStrategy frontendStrategy;
   BackendStrategy backendStrategy;
@@ -188,11 +190,11 @@ abstract class Compiler {
     } else {
       _reporter = new CompilerDiagnosticReporter(this, options);
     }
-    frontendStrategy = options.loadFromDill
-        ? new KernelFrontEndStrategy(reporter, environment)
+    frontendStrategy = options.useKernel
+        ? new KernelFrontEndStrategy(options, reporter, environment)
         : new ResolutionFrontEndStrategy(this);
-    backendStrategy = options.loadFromDill
-        ? new KernelBackendStrategyImpl(this)
+    backendStrategy = options.useKernel
+        ? new KernelBackendStrategy(this)
         : new ElementBackendStrategy(this);
     _resolution = createResolution();
 
@@ -213,6 +215,7 @@ abstract class Compiler {
           options.compileOnly
               ? new _NoScriptLoader(this)
               : new _ScriptLoader(this),
+          provider,
           new _ElementScanner(scanner),
           serialization,
           resolvePatchUri,
@@ -380,7 +383,7 @@ abstract class Compiler {
     // front end for the Kernel path since Kernel doesn't have the notion of
     // imports (everything has already been resolved). (See
     // https://github.com/dart-lang/sdk/issues/29368)
-    if (!options.useKernel && !options.loadFromDill) {
+    if (!options.useKernel) {
       for (Uri uri in resolvedUriTranslator.disallowedLibraryUris) {
         if (loadedLibraries.containsLibrary(uri)) {
           Set<String> importChains =
@@ -461,6 +464,9 @@ abstract class Compiler {
         reporter.log('Compiling $uri (${options.buildId})');
       }
       LoadedLibraries libraries = await libraryLoader.loadLibrary(uri);
+      // Note: libraries may be null because of errors trying to find files or
+      // parse-time errors (when using `package:front_end` as a loader).
+      if (libraries == null) return;
       processLoadedLibraries(libraries);
       mainApp = libraries.rootLibrary;
     }
@@ -515,7 +521,7 @@ abstract class Compiler {
         FunctionEntity mainFunction =
             frontendStrategy.computeMain(rootLibrary, mainImpact);
 
-        if (!options.loadFromDill) {
+        if (!options.useKernel) {
           // TODO(johnniwinther): Support mirrors usages analysis from dill.
           mirrorUsageAnalyzerTask.analyzeUsage(rootLibrary);
         }
@@ -557,7 +563,7 @@ abstract class Compiler {
           }
         }
         if (frontendStrategy.commonElements.mirrorsLibrary != null &&
-            !options.loadFromDill) {
+            !options.useKernel) {
           // TODO(johnniwinther): Support mirrors from dill.
           resolveLibraryMetadata();
         }
@@ -572,7 +578,8 @@ abstract class Compiler {
         _reporter.reportSuppressedMessagesSummary();
 
         if (compilationFailed) {
-          if (!options.generateCodeWithCompileTimeErrors || options.useKernel) {
+          if (!options.generateCodeWithCompileTimeErrors ||
+              options.useKernelInSsa) {
             return;
           }
           if (mainFunction == null) return;
@@ -636,8 +643,8 @@ abstract class Compiler {
   Enqueuer startCodegen(ClosedWorld closedWorld) {
     Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(closedWorld);
     _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
-    codegenEnqueuer
-        .applyImpact(backend.onCodegenStart(closedWorld, _codegenWorldBuilder));
+    codegenEnqueuer.applyImpact(backend.onCodegenStart(
+        closedWorld, _codegenWorldBuilder, backendStrategy.sorter));
     return codegenEnqueuer;
   }
 
@@ -860,13 +867,11 @@ abstract class Compiler {
    * See [LibraryLoader] for terminology on URIs.
    */
   Future<Script> readScript(Uri readableUri, [Spannable node]) {
-    throw new SpannableAssertionFailure(
-        node, 'Compiler.readScript not implemented.');
+    throw failedAt(node, 'Compiler.readScript not implemented.');
   }
 
   Future<Binary> readBinary(Uri readableUri, [Spannable node]) {
-    throw new SpannableAssertionFailure(
-        node, 'Compiler.readBinary not implemented.');
+    throw failedAt(node, 'Compiler.readBinary not implemented.');
   }
 
   Element lookupElementIn(ScopeContainerElement container, String name) {
@@ -1140,8 +1145,14 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   /// Using [frontendStrategy] to compute a [SourceSpan] from spannable using
   /// the [currentElement] as context.
   SourceSpan _spanFromStrategy(Spannable spannable) {
-    SourceSpan span =
-        compiler.frontendStrategy.spanFromSpannable(spannable, currentElement);
+    SourceSpan span;
+    if (compiler.phase == Compiler.PHASE_COMPILING) {
+      span =
+          compiler.backendStrategy.spanFromSpannable(spannable, currentElement);
+    } else {
+      span = compiler.frontendStrategy
+          .spanFromSpannable(spannable, currentElement);
+    }
     if (span != null) return span;
     throw 'No error location.';
   }

@@ -12,41 +12,22 @@ import '../world.dart' show ClosedWorld;
 import 'selector.dart' show Selector;
 import 'world_builder.dart' show ReceiverConstraint;
 
-class FunctionSetBuilder {
-  final Map<String, FunctionSetNode> nodes = new Map<String, FunctionSetNode>();
-
-  FunctionSetNode newNode(String name) => new FunctionSetNode(name);
-
-  void add(MemberEntity element) {
-    assert(element.isInstanceMember);
-    assert(!element.isAbstract);
-    String name = element.name;
-    FunctionSetNode node = nodes.putIfAbsent(name, () => newNode(name));
-    node.add(element);
-  }
-
-  void remove(MemberEntity element) {
-    assert(element.isInstanceMember);
-    assert(!element.isAbstract);
-    String name = element.name;
-    FunctionSetNode node = nodes[name];
-    if (node != null) {
-      node.remove(element);
-    }
-  }
-
-  FunctionSet close() {
-    return new FunctionSet(nodes);
-  }
-}
-
 // TODO(kasperl): This actually holds getters and setters just fine
 // too and stricly they aren't functions. Maybe this needs a better
 // name -- something like ElementSet seems a bit too generic.
 class FunctionSet {
   final Map<String, FunctionSetNode> _nodes;
 
-  FunctionSet(this._nodes);
+  factory FunctionSet(Iterable<MemberEntity> liveInstanceMembers) {
+    Map<String, FunctionSetNode> nodes = new Map<String, FunctionSetNode>();
+    for (MemberEntity member in liveInstanceMembers) {
+      String name = member.name;
+      nodes.putIfAbsent(name, () => new FunctionSetNode(name)).add(member);
+    }
+    return new FunctionSet.internal(nodes);
+  }
+
+  FunctionSet.internal(this._nodes);
 
   bool contains(MemberEntity element) {
     assert(element.isInstanceMember);

@@ -32,7 +32,6 @@ void BitVector::Iterator::Advance() {
   current_word_ = current_word_ >> 1;
 }
 
-
 bool BitVector::Equals(const BitVector& other) const {
   if (length_ != other.length_) return false;
   intptr_t i = 0;
@@ -48,7 +47,6 @@ bool BitVector::Equals(const BitVector& other) const {
   return true;
 }
 
-
 bool BitVector::AddAll(const BitVector* from) {
   ASSERT(data_length_ == from->data_length_);
   bool changed = false;
@@ -62,7 +60,6 @@ bool BitVector::AddAll(const BitVector* from) {
   }
   return changed;
 }
-
 
 bool BitVector::RemoveAll(const BitVector* from) {
   ASSERT(data_length_ == from->data_length_);
@@ -91,14 +88,12 @@ bool BitVector::KillAndAdd(BitVector* kill, BitVector* gen) {
   return changed;
 }
 
-
 void BitVector::Intersect(const BitVector* other) {
   ASSERT(other->length() == length());
   for (intptr_t i = 0; i < data_length_; i++) {
     data_[i] = data_[i] & other->data_[i];
   }
 }
-
 
 bool BitVector::IsEmpty() const {
   for (intptr_t i = 0; i < data_length_; i++) {
@@ -108,7 +103,6 @@ bool BitVector::IsEmpty() const {
   }
   return true;
 }
-
 
 void BitVector::Print() const {
   OS::Print("[");

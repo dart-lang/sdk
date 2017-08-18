@@ -45,7 +45,6 @@ void VerifyObjectVisitor::VisitObject(RawObject* raw_obj) {
   raw_obj->Validate(isolate_);
 }
 
-
 void VerifyPointersVisitor::VisitPointers(RawObject** first, RawObject** last) {
   for (RawObject** current = first; current <= last; current++) {
     RawObject* raw_obj = *current;
@@ -58,7 +57,6 @@ void VerifyPointersVisitor::VisitPointers(RawObject** first, RawObject** last) {
   }
 }
 
-
 void VerifyWeakPointersVisitor::VisitHandle(uword addr) {
   FinalizablePersistentHandle* handle =
       reinterpret_cast<FinalizablePersistentHandle*>(addr);
@@ -66,27 +64,26 @@ void VerifyWeakPointersVisitor::VisitHandle(uword addr) {
   visitor_->VisitPointer(&raw_obj);
 }
 
-
 void VerifyPointersVisitor::VerifyPointers(MarkExpectation mark_expectation) {
-  NoSafepointScope no_safepoint;
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
+  HeapIterationScope iteration(thread);
   StackZone stack_zone(thread);
   ObjectSet* allocated_set = isolate->heap()->CreateAllocatedObjectSet(
       stack_zone.GetZone(), mark_expectation);
+
   VerifyPointersVisitor visitor(isolate, allocated_set);
   // Visit all strongly reachable objects.
-  isolate->IterateObjectPointers(&visitor, StackFrameIterator::kValidateFrames);
+  iteration.IterateObjectPointers(&visitor,
+                                  StackFrameIterator::kValidateFrames);
   VerifyWeakPointersVisitor weak_visitor(&visitor);
   // Visit weak handles and prologue weak handles.
   isolate->VisitWeakPersistentHandles(&weak_visitor);
 }
 
-
 #if defined(DEBUG)
 VerifyCanonicalVisitor::VerifyCanonicalVisitor(Thread* thread)
     : thread_(thread), instanceHandle_(Instance::Handle(thread->zone())) {}
-
 
 void VerifyCanonicalVisitor::VisitObject(RawObject* obj) {
   if (obj->GetClassId() >= kInstanceCid) {

@@ -31,7 +31,6 @@ void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
     Emit(Bytecode::FENCODE_##Signature(Bytecode::k##Name ENCODE_##Signature)); \
   }
 
-
 #define PARAMS_0
 #define PARAMS_A_D uintptr_t ra, uintptr_t rd
 #define PARAMS_D uintptr_t rd
@@ -59,33 +58,26 @@ void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
 #define FENCODE_A_X EncodeSigned
 #define FENCODE_X EncodeSigned
 
-
 BYTECODES_LIST(DEFINE_EMIT)
 
-
 #undef DEFINE_EMIT
-
 
 void Assembler::Emit(int32_t value) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   buffer_.Emit<int32_t>(value);
 }
 
-
 const char* Assembler::RegisterName(Register reg) {
   return Thread::Current()->zone()->PrintToString("R%d", reg);
 }
-
 
 static int32_t EncodeJump(int32_t relative_pc) {
   return Bytecode::kJump | (relative_pc << 8);
 }
 
-
 static int32_t OffsetToPC(int32_t offset) {
   return offset >> 2;
 }
-
 
 void Assembler::Jump(Label* label) {
   if (label->IsBound()) {
@@ -96,7 +88,6 @@ void Assembler::Jump(Label* label) {
     label->LinkTo(position);
   }
 }
-
 
 void Assembler::Bind(Label* label) {
   ASSERT(!label->IsBound());
@@ -112,27 +103,22 @@ void Assembler::Bind(Label* label) {
   label->BindTo(bound_pc);
 }
 
-
 void Assembler::Stop(const char* message) {
   // TODO(vegorov) support passing a message to the bytecode.
   Emit(Bytecode::kTrap);
 }
 
-
 void Assembler::PushConstant(const Object& obj) {
   PushConstant(AddConstant(obj));
 }
-
 
 void Assembler::LoadConstant(uintptr_t ra, const Object& obj) {
   LoadConstant(ra, AddConstant(obj));
 }
 
-
 intptr_t Assembler::AddConstant(const Object& obj) {
   return object_pool_wrapper().FindObject(Object::ZoneHandle(obj.raw()));
 }
-
 
 }  // namespace dart
 

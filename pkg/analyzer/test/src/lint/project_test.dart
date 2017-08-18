@@ -16,8 +16,8 @@ defineTests() {
     group('basic', () {
       // TODO(brianwilkerson) These tests fail on the bots because the cwd is
       // not the same there as when we run tests locally.
-      group('cwd', () {
-        var project = new DartProject(null, null);
+      group('cwd', () async {
+        var project = await DartProject.create(null, null);
         test('name', () {
           expect(project.name, 'analyzer');
         });

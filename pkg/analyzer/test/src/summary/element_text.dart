@@ -262,15 +262,25 @@ class _ElementWriter {
   void writeExportElement(ExportElement e) {
     writeMetadata(e, '', '\n');
     buffer.write('export ');
-    writeUri(e, e.exportedLibrary?.source);
+    writeUri(e.exportedLibrary?.source);
 
     e.combinators.forEach(writeNamespaceCombinator);
 
     buffer.writeln(';');
   }
 
-  void writeExpression(AstNode e) {
-    if (e is Annotation) {
+  void writeExpression(AstNode e, [Expression enclosing]) {
+    bool needsParenthesis = e is Expression &&
+        enclosing != null &&
+        e.precedence < enclosing.precedence;
+
+    if (needsParenthesis) {
+      buffer.write('(');
+    }
+
+    if (e == null) {
+      buffer.write('<null>');
+    } else if (e is Annotation) {
       buffer.write('@');
       writeExpression(e.name);
       if (e.constructorName != null) {
@@ -290,11 +300,11 @@ class _ElementWriter {
       }
       buffer.write(')');
     } else if (e is BinaryExpression) {
-      writeExpression(e.leftOperand);
+      writeExpression(e.leftOperand, e);
       buffer.write(' ');
       buffer.write(e.operator.lexeme);
       buffer.write(' ');
-      writeExpression(e.rightOperand);
+      writeExpression(e.rightOperand, e);
     } else if (e is BooleanLiteral) {
       buffer.write(e.value);
     } else if (e is ConditionalExpression) {
@@ -353,6 +363,17 @@ class _ElementWriter {
       writeExpression(e.key);
       buffer.write(': ');
       writeExpression(e.value);
+    } else if (e is MethodInvocation) {
+      if (e.target != null) {
+        writeExpression(e.target);
+        buffer.write(e.operator);
+      }
+      writeExpression(e.methodName);
+      if (e.typeArguments != null) {
+        writeList('<', '>', e.typeArguments.arguments, ', ', writeExpression);
+      }
+      writeList('(', ')', e.argumentList.arguments, ', ', writeExpression,
+          includeEmpty: true);
     } else if (e is NamedExpression) {
       writeExpression(e.name);
       buffer.write(e.expression);
@@ -360,13 +381,13 @@ class _ElementWriter {
       buffer.write('null');
     } else if (e is PrefixExpression) {
       buffer.write(e.operator.lexeme);
-      writeExpression(e.operand);
+      writeExpression(e.operand, e);
     } else if (e is PrefixedIdentifier) {
       writeExpression(e.prefix);
       buffer.write('.');
       writeExpression(e.identifier);
     } else if (e is PropertyAccess) {
-      writeExpression(e.target);
+      writeExpression(e.target, e);
       buffer.write('.');
       writeExpression(e.propertyName);
     } else if (e is RedirectingConstructorInvocation) {
@@ -421,9 +442,16 @@ class _ElementWriter {
     } else {
       fail('Unsupported expression type: ${e.runtimeType}');
     }
+
+    if (needsParenthesis) {
+      buffer.write(')');
+    }
   }
 
   void writeFunctionElement(FunctionElement e) {
+    writeDocumentation(e);
+    writeMetadata(e, '', '\n');
+
     writeIf(e.isExternal, 'external ');
 
     writeType2(e.returnType);
@@ -476,7 +504,7 @@ class _ElementWriter {
     if (!e.isSynthetic) {
       writeMetadata(e, '', '\n');
       buffer.write('import ');
-      writeUri(e, e.importedLibrary?.source);
+      writeUri(e.importedLibrary?.source);
 
       writeIf(e.isDeferred, ' deferred');
 
@@ -495,6 +523,10 @@ class _ElementWriter {
   }
 
   void writeLibraryElement(LibraryElement e) {
+    if (e.documentationComment != null) {
+      buffer.writeln(e.documentationComment);
+    }
+
     if (e.displayName != '') {
       writeMetadata(e, '', '\n');
       buffer.write('library ');
@@ -581,8 +613,7 @@ class _ElementWriter {
 
   void writeParameterElement(ParameterElement e) {
     String defaultValueSeparator;
-    Expression defaultValue =
-        e is DefaultParameterElementImpl ? e.constantInitializer : null;
+    Expression defaultValue;
     String closeString;
     ParameterKind kind = e.parameterKind;
     if (kind == ParameterKind.REQUIRED) {
@@ -590,13 +621,22 @@ class _ElementWriter {
     } else if (kind == ParameterKind.POSITIONAL) {
       buffer.write('[');
       defaultValueSeparator = ' = ';
+      defaultValue = (e as ConstVariableElement).constantInitializer;
       closeString = ']';
     } else if (kind == ParameterKind.NAMED) {
       buffer.write('{');
       defaultValueSeparator = ': ';
+      defaultValue = (e as ConstVariableElement).constantInitializer;
       closeString = '}';
     } else {
       fail('Unknown parameter kind: $kind');
+    }
+
+    // Kernel desugars omitted default parameter values to 'null'.
+    // Analyzer does not set initializer at all.
+    // It is not an interesting distinction, so we skip NullLiteral(s).
+    if (defaultValue is NullLiteral) {
+      defaultValue = null;
     }
 
     writeMetadata(e, '', ' ');
@@ -604,13 +644,23 @@ class _ElementWriter {
     writeIf(e.isCovariant, 'covariant ');
     writeIf(e.isFinal, 'final ');
 
-    writeType2(e.type);
+    if (e.parameters.isNotEmpty) {
+      var type = e.type as FunctionType;
+      writeType2(type.returnType);
+    } else {
+      writeType2(e.type);
+    }
 
     if (e is FieldFormalParameterElement) {
       buffer.write('this.');
     }
 
     writeName(e);
+
+    if (e.parameters.isNotEmpty) {
+      writeList('(', ')', e.parameters, ', ', writeParameterElement,
+          includeEmpty: true);
+    }
 
     writeVariableTypeInferenceError(e);
 
@@ -630,13 +680,38 @@ class _ElementWriter {
   void writePartElement(CompilationUnitElement e) {
     writeMetadata(e, '', '\n');
     buffer.write('part ');
-    writeUri(e, e.source);
+    writeUri(e.source);
     buffer.writeln(';');
   }
 
   void writePropertyAccessorElement(PropertyAccessorElement e) {
     if (e.isSynthetic && !withSyntheticAccessors) {
       return;
+    }
+
+    if (!e.isSynthetic) {
+      PropertyInducingElement variable = e.variable;
+      expect(variable, isNotNull);
+      expect(variable.isSynthetic, isTrue);
+
+      var variableEnclosing = variable.enclosingElement;
+      if (variableEnclosing is CompilationUnitElement) {
+        expect(variableEnclosing.topLevelVariables, contains(variable));
+      } else if (variableEnclosing is ClassElement) {
+        expect(variableEnclosing.fields, contains(variable));
+      }
+
+      if (e.isGetter) {
+        expect(variable.getter, same(e));
+        if (variable.setter != null) {
+          expect(variable.setter.variable, same(variable));
+        }
+      } else {
+        expect(variable.setter, same(e));
+        if (variable.getter != null) {
+          expect(variable.getter.variable, same(variable));
+        }
+      }
     }
 
     if (e.enclosingElement is ClassElement) {
@@ -675,7 +750,7 @@ class _ElementWriter {
     expect(e.isAsynchronous, isFalse);
     expect(e.isGenerator, isFalse);
 
-    if (e.isAbstract) {
+    if (e.isAbstract || e.isExternal) {
       buffer.writeln(';');
     } else {
       buffer.writeln(' {}');
@@ -689,6 +764,19 @@ class _ElementWriter {
 
     DartType type = e.type;
     expect(type, isNotNull);
+
+    if (!e.isSynthetic) {
+      expect(e.getter, isNotNull);
+      expect(e.getter.isSynthetic, isTrue);
+      expect(e.getter.variable, same(e));
+      if (e.isFinal || e.isConst) {
+        expect(e.setter, isNull);
+      } else {
+        expect(e.setter, isNotNull);
+        expect(e.setter.isSynthetic, isTrue);
+        expect(e.setter.variable, same(e.getter.variable));
+      }
+    }
 
     if (e.enclosingElement is ClassElement) {
       writeDocumentation(e, '  ');
@@ -769,14 +857,16 @@ class _ElementWriter {
     e.functions.forEach(writeFunctionElement);
   }
 
-  void writeUri(UriReferencedElement e, Source source) {
-    String uri = e.uri ?? source.uri.toString();
-    buffer.write('\'$uri\'');
-    if (withOffsets) {
-      buffer.write('(');
-      buffer.write('${e.uriOffset}, ');
-      buffer.write('${e.uriEnd})');
-      buffer.write(')');
+  void writeUri(Source source) {
+    if (source != null) {
+      Uri uri = source.uri;
+      String uriStr = uri.toString();
+      if (uri.isScheme('file')) {
+        uriStr = uri.pathSegments.last;
+      }
+      buffer.write('\'$uriStr\'');
+    } else {
+      buffer.write('\'<unresolved>\'');
     }
   }
 

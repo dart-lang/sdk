@@ -10,7 +10,6 @@ import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
-import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -155,17 +154,13 @@ Set<String> _getNamesConflictingAt(AstNode node) {
   // local variables and functions
   {
     SourceRange localsRange = _getLocalsConflictingRange(node);
-    ExecutableElement enclosingExecutable = getEnclosingExecutableElement(node);
-    if (enclosingExecutable != null) {
-      visitChildren(enclosingExecutable, (element) {
-        if (element is LocalElement) {
-          SourceRange elementRange = element.visibleRange;
-          if (elementRange != null && elementRange.intersects(localsRange)) {
-            result.add(element.displayName);
-          }
-        }
-        return true;
-      });
+    AstNode enclosingExecutable = getEnclosingExecutableNode(node);
+    List<LocalElement> elements = getDefinedLocalElements(enclosingExecutable);
+    for (LocalElement element in elements) {
+      SourceRange elementRange = element.visibleRange;
+      if (elementRange != null && elementRange.intersects(localsRange)) {
+        result.add(element.displayName);
+      }
     }
   }
   // fields

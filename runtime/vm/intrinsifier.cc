@@ -3,21 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 // Class for intrinsifying functions.
 
+#include "vm/intrinsifier.h"
 #include "vm/assembler.h"
 #include "vm/compiler.h"
 #include "vm/cpu.h"
 #include "vm/flags.h"
 #include "vm/flow_graph.h"
-#include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_allocator.h"
 #include "vm/flow_graph_builder.h"
+#include "vm/flow_graph_compiler.h"
 #include "vm/il_printer.h"
 #include "vm/intermediate_language.h"
-#include "vm/intrinsifier.h"
 #include "vm/object.h"
 #include "vm/parser.h"
 #include "vm/symbols.h"
-
 
 namespace dart {
 
@@ -58,7 +57,6 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
   }
   return true;
 }
-
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void Intrinsifier::InitializeState() {
@@ -121,7 +119,6 @@ void Intrinsifier::InitializeState() {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-
 // DBC does not use graph intrinsics.
 #if !defined(TARGET_ARCH_DBC)
 static void EmitCodeFor(FlowGraphCompiler* compiler, FlowGraph* graph) {
@@ -159,7 +156,6 @@ static void EmitCodeFor(FlowGraphCompiler* compiler, FlowGraph* graph) {
   compiler->assembler()->Comment("Graph intrinsic end");
 }
 #endif
-
 
 bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
                                    FlowGraphCompiler* compiler) {
@@ -214,7 +210,6 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
 #endif  // !defined(TARGET_ARCH_DBC)
 }
 
-
 // Returns true if fall-through code can be omitted.
 bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
                               FlowGraphCompiler* compiler) {
@@ -227,6 +222,17 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
   if (GraphIntrinsify(parsed_function, compiler)) {
     return compiler->intrinsic_slow_path_label()->IsUnused();
   }
+
+#if !defined(HASH_IN_OBJECT_HEADER)
+  // These two are more complicated on 32 bit platforms, where the
+  // identity hash is not stored in the header of the object.  We
+  // therefore don't intrinsify them, falling back on the native C++
+  // implementations.
+  if (function.recognized_kind() == MethodRecognizer::kObject_getHash ||
+      function.recognized_kind() == MethodRecognizer::kObject_setHash) {
+    return false;
+  }
+#endif
 
 #define EMIT_CASE(class_name, function_name, enum_name, type, fp)              \
   case MethodRecognizer::k##enum_name:                                         \
@@ -259,7 +265,6 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
   return false;
 }
 
-
 #if !defined(TARGET_ARCH_DBC)
 static intptr_t CidForRepresentation(Representation rep) {
   switch (rep) {
@@ -278,7 +283,6 @@ static intptr_t CidForRepresentation(Representation rep) {
       return kIllegalCid;
   }
 }
-
 
 // Notes about the graph intrinsics:
 //
@@ -373,13 +377,11 @@ class BlockBuilder : public ValueObject {
     return invoke_math_c_function;
   }
 
-
   FlowGraph* flow_graph_;
   BlockEntryInstr* entry_;
   Instruction* current_;
   Environment* fall_through_env_;
 };
-
 
 static void PrepareIndexedOp(BlockBuilder* builder,
                              Definition* array,
@@ -469,7 +471,6 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
   builder.AddIntrinsicReturn(new Value(result));
   return true;
 }
-
 
 static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
                                       intptr_t array_cid) {
@@ -570,14 +571,12 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
   return true;
 }
 
-
 #define DEFINE_ARRAY_GETTER_INTRINSIC(enum_name)                               \
   bool Intrinsifier::Build_##enum_name##GetIndexed(FlowGraph* flow_graph) {    \
     return IntrinsifyArrayGetIndexed(                                          \
         flow_graph, MethodRecognizer::MethodKindToReceiverCid(                 \
                         MethodRecognizer::k##enum_name##GetIndexed));          \
   }
-
 
 #define DEFINE_ARRAY_SETTER_INTRINSIC(enum_name)                               \
   bool Intrinsifier::Build_##enum_name##SetIndexed(FlowGraph* flow_graph) {    \
@@ -607,7 +606,6 @@ DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Uint32Array)
 #undef DEFINE_ARRAY_GETTER_INTRINSIC
 #undef DEFINE_ARRAY_SETTER_INTRINSIC
 
-
 #define DEFINE_FLOAT_ARRAY_GETTER_INTRINSIC(enum_name)                         \
   bool Intrinsifier::Build_##enum_name##GetIndexed(FlowGraph* flow_graph) {    \
     if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {                        \
@@ -617,7 +615,6 @@ DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Uint32Array)
         flow_graph, MethodRecognizer::MethodKindToReceiverCid(                 \
                         MethodRecognizer::k##enum_name##GetIndexed));          \
   }
-
 
 #define DEFINE_FLOAT_ARRAY_SETTER_INTRINSIC(enum_name)                         \
   bool Intrinsifier::Build_##enum_name##SetIndexed(FlowGraph* flow_graph) {    \
@@ -640,7 +637,6 @@ DEFINE_FLOAT_ARRAY_GETTER_SETTER_INTRINSICS(Float32Array)
 #undef DEFINE_FLOAT_ARRAY_GETTER_INTRINSIC
 #undef DEFINE_FLOAT_ARRAY_SETTER_INTRINSIC
 
-
 #define DEFINE_SIMD_ARRAY_GETTER_INTRINSIC(enum_name)                          \
   bool Intrinsifier::Build_##enum_name##GetIndexed(FlowGraph* flow_graph) {    \
     if (!FlowGraphCompiler::SupportsUnboxedSimd128()) {                        \
@@ -650,7 +646,6 @@ DEFINE_FLOAT_ARRAY_GETTER_SETTER_INTRINSICS(Float32Array)
         flow_graph, MethodRecognizer::MethodKindToReceiverCid(                 \
                         MethodRecognizer::k##enum_name##GetIndexed));          \
   }
-
 
 #define DEFINE_SIMD_ARRAY_SETTER_INTRINSIC(enum_name)                          \
   bool Intrinsifier::Build_##enum_name##SetIndexed(FlowGraph* flow_graph) {    \
@@ -673,7 +668,6 @@ DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS(Float64x2Array)
 #undef DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS
 #undef DEFINE_SIMD_ARRAY_GETTER_INTRINSIC
 #undef DEFINE_SIMD_ARRAY_SETTER_INTRINSIC
-
 
 static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
@@ -704,28 +698,23 @@ static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
   return true;
 }
 
-
 bool Intrinsifier::Build_OneByteStringCodeUnitAt(FlowGraph* flow_graph) {
   return BuildCodeUnitAt(flow_graph, kOneByteStringCid);
 }
 
-
 bool Intrinsifier::Build_TwoByteStringCodeUnitAt(FlowGraph* flow_graph) {
   return BuildCodeUnitAt(flow_graph, kTwoByteStringCid);
 }
-
 
 bool Intrinsifier::Build_ExternalOneByteStringCodeUnitAt(
     FlowGraph* flow_graph) {
   return BuildCodeUnitAt(flow_graph, kExternalOneByteStringCid);
 }
 
-
 bool Intrinsifier::Build_ExternalTwoByteStringCodeUnitAt(
     FlowGraph* flow_graph) {
   return BuildCodeUnitAt(flow_graph, kExternalTwoByteStringCid);
 }
-
 
 static bool BuildBinaryFloat32x4Op(FlowGraph* flow_graph, Token::Kind kind) {
   if (!FlowGraphCompiler::SupportsUnboxedSimd128()) return false;
@@ -758,21 +747,17 @@ static bool BuildBinaryFloat32x4Op(FlowGraph* flow_graph, Token::Kind kind) {
   return true;
 }
 
-
 bool Intrinsifier::Build_Float32x4Mul(FlowGraph* flow_graph) {
   return BuildBinaryFloat32x4Op(flow_graph, Token::kMUL);
 }
-
 
 bool Intrinsifier::Build_Float32x4Sub(FlowGraph* flow_graph) {
   return BuildBinaryFloat32x4Op(flow_graph, Token::kSUB);
 }
 
-
 bool Intrinsifier::Build_Float32x4Add(FlowGraph* flow_graph) {
   return BuildBinaryFloat32x4Op(flow_graph, Token::kADD);
 }
-
 
 static bool BuildFloat32x4Shuffle(FlowGraph* flow_graph,
                                   MethodRecognizer::Kind kind) {
@@ -799,30 +784,25 @@ static bool BuildFloat32x4Shuffle(FlowGraph* flow_graph,
   return true;
 }
 
-
 bool Intrinsifier::Build_Float32x4ShuffleX(FlowGraph* flow_graph) {
   return BuildFloat32x4Shuffle(flow_graph,
                                MethodRecognizer::kFloat32x4ShuffleX);
 }
-
 
 bool Intrinsifier::Build_Float32x4ShuffleY(FlowGraph* flow_graph) {
   return BuildFloat32x4Shuffle(flow_graph,
                                MethodRecognizer::kFloat32x4ShuffleY);
 }
 
-
 bool Intrinsifier::Build_Float32x4ShuffleZ(FlowGraph* flow_graph) {
   return BuildFloat32x4Shuffle(flow_graph,
                                MethodRecognizer::kFloat32x4ShuffleZ);
 }
 
-
 bool Intrinsifier::Build_Float32x4ShuffleW(FlowGraph* flow_graph) {
   return BuildFloat32x4Shuffle(flow_graph,
                                MethodRecognizer::kFloat32x4ShuffleW);
 }
-
 
 static bool BuildLoadField(FlowGraph* flow_graph, intptr_t offset) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
@@ -837,31 +817,25 @@ static bool BuildLoadField(FlowGraph* flow_graph, intptr_t offset) {
   return true;
 }
 
-
 bool Intrinsifier::Build_ObjectArrayLength(FlowGraph* flow_graph) {
   return BuildLoadField(flow_graph, Array::length_offset());
 }
-
 
 bool Intrinsifier::Build_ImmutableArrayLength(FlowGraph* flow_graph) {
   return BuildLoadField(flow_graph, Array::length_offset());
 }
 
-
 bool Intrinsifier::Build_GrowableArrayLength(FlowGraph* flow_graph) {
   return BuildLoadField(flow_graph, GrowableObjectArray::length_offset());
 }
-
 
 bool Intrinsifier::Build_StringBaseLength(FlowGraph* flow_graph) {
   return BuildLoadField(flow_graph, String::length_offset());
 }
 
-
 bool Intrinsifier::Build_TypedDataLength(FlowGraph* flow_graph) {
   return BuildLoadField(flow_graph, TypedData::length_offset());
 }
-
 
 bool Intrinsifier::Build_GrowableArrayCapacity(FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
@@ -879,7 +853,6 @@ bool Intrinsifier::Build_GrowableArrayCapacity(FlowGraph* flow_graph) {
   builder.AddIntrinsicReturn(new Value(capacity));
   return true;
 }
-
 
 bool Intrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
@@ -902,7 +875,6 @@ bool Intrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
   builder.AddIntrinsicReturn(new Value(result));
   return true;
 }
-
 
 bool Intrinsifier::Build_GrowableArraySetIndexed(FlowGraph* flow_graph) {
   if (Isolate::Current()->type_checks()) {
@@ -935,7 +907,6 @@ bool Intrinsifier::Build_GrowableArraySetIndexed(FlowGraph* flow_graph) {
   return true;
 }
 
-
 bool Intrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   TargetEntryInstr* normal_entry = graph_entry->normal_entry();
@@ -958,7 +929,6 @@ bool Intrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
   return true;
 }
 
-
 bool Intrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   TargetEntryInstr* normal_entry = graph_entry->normal_entry();
@@ -976,7 +946,6 @@ bool Intrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
   builder.AddIntrinsicReturn(new Value(null_def));
   return true;
 }
-
 
 bool Intrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
@@ -997,7 +966,6 @@ bool Intrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
   builder.AddIntrinsicReturn(new Value(result));
   return true;
 }
-
 
 static bool BuildInvokeMathCFunction(BlockBuilder* builder,
                                      MethodRecognizer::Kind kind,
@@ -1026,7 +994,6 @@ static bool BuildInvokeMathCFunction(BlockBuilder* builder,
   return true;
 }
 
-
 bool Intrinsifier::Build_MathSin(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 
@@ -1036,7 +1003,6 @@ bool Intrinsifier::Build_MathSin(FlowGraph* flow_graph) {
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathSin);
 }
-
 
 bool Intrinsifier::Build_MathCos(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
@@ -1048,7 +1014,6 @@ bool Intrinsifier::Build_MathCos(FlowGraph* flow_graph) {
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathCos);
 }
 
-
 bool Intrinsifier::Build_MathTan(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 
@@ -1058,7 +1023,6 @@ bool Intrinsifier::Build_MathTan(FlowGraph* flow_graph) {
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathTan);
 }
-
 
 bool Intrinsifier::Build_MathAsin(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
@@ -1070,7 +1034,6 @@ bool Intrinsifier::Build_MathAsin(FlowGraph* flow_graph) {
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAsin);
 }
 
-
 bool Intrinsifier::Build_MathAcos(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 
@@ -1081,7 +1044,6 @@ bool Intrinsifier::Build_MathAcos(FlowGraph* flow_graph) {
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAcos);
 }
 
-
 bool Intrinsifier::Build_MathAtan(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 
@@ -1091,7 +1053,6 @@ bool Intrinsifier::Build_MathAtan(FlowGraph* flow_graph) {
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAtan);
 }
-
 
 bool Intrinsifier::Build_MathAtan2(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
@@ -1104,7 +1065,6 @@ bool Intrinsifier::Build_MathAtan2(FlowGraph* flow_graph) {
                                   /* num_parameters = */ 2);
 }
 
-
 bool Intrinsifier::Build_DoubleMod(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 
@@ -1115,7 +1075,6 @@ bool Intrinsifier::Build_DoubleMod(FlowGraph* flow_graph) {
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleMod,
                                   /* num_parameters = */ 2);
 }
-
 
 bool Intrinsifier::Build_DoubleCeil(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
@@ -1130,7 +1089,6 @@ bool Intrinsifier::Build_DoubleCeil(FlowGraph* flow_graph) {
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleCeil);
 }
 
-
 bool Intrinsifier::Build_DoubleFloor(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
   // TODO(johnmccutchan): On X86 this intrinsic can be written in a different
@@ -1143,7 +1101,6 @@ bool Intrinsifier::Build_DoubleFloor(FlowGraph* flow_graph) {
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleFloor);
 }
-
 
 bool Intrinsifier::Build_DoubleTruncate(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
@@ -1158,7 +1115,6 @@ bool Intrinsifier::Build_DoubleTruncate(FlowGraph* flow_graph) {
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleTruncate);
 }
 
-
 bool Intrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 
@@ -1169,16 +1125,13 @@ bool Intrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleRound);
 }
 
-
 void Intrinsifier::RegExp_ExecuteMatch(Assembler* assembler) {
   IntrinsifyRegExpExecuteMatch(assembler, /*sticky=*/false);
 }
-
 
 void Intrinsifier::RegExp_ExecuteMatchSticky(Assembler* assembler) {
   IntrinsifyRegExpExecuteMatch(assembler, /*sticky=*/true);
 }
 #endif  // !defined(TARGET_ARCH_DBC)
-
 
 }  // namespace dart

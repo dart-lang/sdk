@@ -77,7 +77,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   }
 
   Geoposition _ensurePosition(domPosition) {
-$if DART2JS
     try {
       // Firefox may throw on this.
       if (domPosition is Geoposition) {
@@ -85,14 +84,10 @@ $if DART2JS
       }
     } catch(e) {}
     return new _GeopositionWrapper(domPosition);
-$else
-    return domPosition;
-$endif
   }
 
 $!MEMBERS}
 
-$if DART2JS
 /**
  * Wrapper for Firefox- it returns an object which we cannot map correctly.
  * Basically Firefox was returning a [xpconnect wrapped nsIDOMGeoPosition] but
@@ -105,4 +100,3 @@ class _GeopositionWrapper implements Geoposition {
   Coordinates get coords => JS('Coordinates', '#.coords', _ptr);
   int get timestamp => JS('int', '#.timestamp', _ptr);
 }
-$endif

@@ -65,28 +65,56 @@ main() {
       });
 
       // requests
-      for (Request request in domain.requests) {
-        String fullName = '${domain.name}.${request.method}';
-        test(fullName, () {
-          if (!allMembers.contains(fullName)) {
-            fail('$fullName not found in ${coverageFile.path}');
-          }
+      group('request', () {
+        for (Request request in domain.requests) {
+          String fullName = '${domain.name}.${request.method}';
+          test(fullName, () {
+            if (!allMembers.contains(fullName)) {
+              fail('$fullName not found in ${coverageFile.path}');
+            }
 
-          final String fileName = getCamelWords(request.method)
-              .map((s) => s.toLowerCase())
-              .join('_');
-          final String testName =
-              path.join(domain.name, '${fileName}_test.dart');
-          final String testPath =
-              path.join(pathPrefix, 'test', 'integration', testName);
+            final String fileName = getCamelWords(request.method)
+                .map((s) => s.toLowerCase())
+                .join('_');
+            final String testName =
+                path.join(domain.name, '${fileName}_test.dart');
+            final String testPath =
+                path.join(pathPrefix, 'test', 'integration', testName);
 
-          // Test that if checked, a test file exists; if not checked, no such
-          // file exists.
-          expect(FileSystemEntity.isFileSync(testPath),
-              coveredMembers.contains(fullName),
-              reason: '$testName state incorrect');
-        });
-      }
+            // Test that if checked, a test file exists; if not checked, no such
+            // file exists.
+            expect(FileSystemEntity.isFileSync(testPath),
+                coveredMembers.contains(fullName),
+                reason: '$testName state incorrect');
+          });
+        }
+      });
+
+      // notifications
+      group('notification', () {
+        for (Notification notification in domain.notifications) {
+          String fullName = '${domain.name}.${notification.event}';
+          test(fullName, () {
+            if (!allMembers.contains(fullName)) {
+              fail('$fullName not found in ${coverageFile.path}');
+            }
+
+            final String fileName = getCamelWords(notification.event)
+                .map((s) => s.toLowerCase())
+                .join('_');
+            final String testName =
+                path.join(domain.name, '${fileName}_test.dart');
+            final String testPath =
+                path.join(pathPrefix, 'test', 'integration', testName);
+
+            // Test that if checked, a test file exists; if not checked, no such
+            // file exists.
+            expect(FileSystemEntity.isFileSync(testPath),
+                coveredMembers.contains(fullName),
+                reason: '$testName state incorrect');
+          });
+        }
+      });
     });
   }
 

@@ -6,11 +6,7 @@ library dart2js.js_emitter.type_test_registry;
 
 import '../common.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart' show ClassElement, MethodElement;
 import '../elements/entities.dart';
-import '../elements/types.dart' show DartType;
-import '../elements/resolution_types.dart'
-    show ResolutionFunctionType, ResolutionTypeVariableType;
 import '../elements/types.dart';
 import '../js_backend/runtime_types.dart'
     show
@@ -48,10 +44,11 @@ class TypeTestRegistry {
   Iterable<ClassEntity> get classesUsingTypeVariableTests {
     if (cachedClassesUsingTypeVariableTests == null) {
       cachedClassesUsingTypeVariableTests = _codegenWorldBuilder.isChecks
-          .where((DartType t) => t is ResolutionTypeVariableType)
-          .map((DartType _v) {
-        ResolutionTypeVariableType v = _v;
-        return v.element.enclosingClass;
+          .where((DartType t) =>
+              t is TypeVariableType && t.element.typeDeclaration is ClassEntity)
+          .map<ClassEntity>((DartType _v) {
+        TypeVariableType v = _v;
+        return v.element.typeDeclaration;
       }).toList();
     }
     return cachedClassesUsingTypeVariableTests;
@@ -88,10 +85,10 @@ class TypeTestRegistry {
    * complete.  Not all classes will go away while constructors are referenced
    * from type substitutions.
    */
-  Set<ClassElement> computeClassesModifiedByEmitRuntimeTypeSupport() {
+  Set<ClassEntity> computeClassesModifiedByEmitRuntimeTypeSupport() {
     TypeChecks typeChecks = rtiChecks.requiredChecks;
-    Set<ClassElement> result = new Set<ClassElement>();
-    for (ClassElement cls in typeChecks.classes) {
+    Set<ClassEntity> result = new Set<ClassEntity>();
+    for (ClassEntity cls in typeChecks.classes) {
       if (typeChecks[cls].isNotEmpty) result.add(cls);
     }
     return result;
@@ -101,11 +98,11 @@ class TypeTestRegistry {
       MirrorsData mirrorsData, Iterable<MemberEntity> liveMembers) {
     _rtiNeededClasses = new Set<ClassEntity>();
 
-    void addClassWithSuperclasses(ClassElement cls) {
+    void addClassWithSuperclasses(ClassEntity cls) {
       _rtiNeededClasses.add(cls);
-      for (ClassElement superclass = cls.superclass;
+      for (ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
           superclass != null;
-          superclass = superclass.superclass) {
+          superclass = _elementEnvironment.getSuperClass(superclass)) {
         _rtiNeededClasses.add(superclass);
       }
     }
@@ -134,8 +131,8 @@ class TypeTestRegistry {
 
     // 3.  Add classes that contain checked generic function types. These are
     //     needed to store the signature encoding.
-    for (ResolutionFunctionType type in checkedFunctionTypes) {
-      ClassElement contextClass = DartTypes.getClassContext(type);
+    for (FunctionType type in checkedFunctionTypes) {
+      ClassEntity contextClass = DartTypes.getClassContext(type);
       if (contextClass != null) {
         _rtiNeededClasses.add(contextClass);
       }
@@ -169,8 +166,8 @@ class TypeTestRegistry {
     liveMembers.where((MemberEntity element) {
       return canBeReflectedAsFunction(element) && canBeReified(element);
     }).forEach((_function) {
-      MethodElement function = _function;
-      FunctionType type = function.type;
+      FunctionEntity function = _function;
+      FunctionType type = _elementEnvironment.getFunctionType(function);
       for (ClassEntity cls in _rtiChecks.getReferencedClasses(type)) {
         while (cls != null) {
           _rtiNeededClasses.add(cls);

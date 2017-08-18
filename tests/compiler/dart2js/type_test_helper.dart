@@ -6,30 +6,31 @@ library type_test_helper;
 
 import 'dart:async';
 import 'package:expect/expect.dart';
-import 'compiler_helper.dart' as mock;
-import 'memory_compiler.dart' as memory;
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
+import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/elements.dart'
-    show
-        Element,
-        MemberElement,
-        TypeDeclarationElement,
-        ClassElement,
-        LibraryElement;
+    show Element, MemberElement, ClassElement, LibraryElement, TypedefElement;
 import 'package:compiler/src/world.dart' show ClosedWorld;
+import 'compiler_helper.dart' as mock;
+import 'memory_compiler.dart' as memory;
+import 'kernel/compiler_helper.dart' as dill;
 
-GenericType instantiate(
-    TypeDeclarationElement element, List<ResolutionDartType> arguments) {
-  if (element.isClass) {
+DartType instantiate(Entity element, List<DartType> arguments) {
+  if (element is ClassElement) {
     return new ResolutionInterfaceType(element, arguments);
+  } else if (element is ClassEntity) {
+    return new InterfaceType(element, arguments);
   } else {
-    assert(element.isTypedef);
+    assert(element is TypedefElement);
     return new ResolutionTypedefType(element, arguments);
   }
 }
+
+enum CompileMode { mock, memory, dill }
 
 class TypeEnvironment {
   final Compiler compiler;
@@ -39,11 +40,12 @@ class TypeEnvironment {
   Types get types => resolution.types;
 
   static Future<TypeEnvironment> create(String source,
-      {bool useMockCompiler: true,
+      {CompileMode compileMode: CompileMode.mock,
+      bool useDillCompiler: false,
       bool expectNoErrors: false,
       bool expectNoWarningsOrErrors: false,
       bool stopAfterTypeInference: false,
-      String mainSource}) {
+      String mainSource}) async {
     Uri uri;
     Compiler compiler;
     bool stopAfterTypeInference = mainSource != null;
@@ -55,37 +57,56 @@ class TypeEnvironment {
       source = '$mainSource\n$source';
     }
     memory.DiagnosticCollector collector;
-    if (useMockCompiler) {
-      uri = new Uri(scheme: 'source');
-      mock.MockCompiler mockCompiler = mock.compilerFor(source, uri,
-          analyzeAll: !stopAfterTypeInference,
-          analyzeOnly: !stopAfterTypeInference);
-      mockCompiler.diagnosticHandler = mock.createHandler(mockCompiler, source);
-      collector = mockCompiler.diagnosticCollector;
-      compiler = mockCompiler;
-    } else {
+    if (compileMode == CompileMode.dill) {
       collector = new memory.DiagnosticCollector();
       uri = Uri.parse('memory:main.dart');
-      compiler = memory.compilerFor(
+      compiler = await dill.compileWithDill(
           entryPoint: uri,
           memorySourceFiles: {'main.dart': source},
           diagnosticHandler: collector,
           options: stopAfterTypeInference
-              ? []
-              : [Flags.analyzeAll, Flags.analyzeOnly]);
+              ? [Flags.disableTypeInference]
+              : [
+                  Flags.disableTypeInference,
+                  Flags.analyzeAll,
+                  Flags.analyzeOnly
+                ],
+          beforeRun: (Compiler compiler) {
+            compiler.stopAfterTypeInference = stopAfterTypeInference;
+          });
+    } else {
+      if (compileMode == CompileMode.mock) {
+        uri = new Uri(scheme: 'source');
+        mock.MockCompiler mockCompiler = mock.compilerFor(source, uri,
+            analyzeAll: !stopAfterTypeInference,
+            analyzeOnly: !stopAfterTypeInference);
+        mockCompiler.diagnosticHandler =
+            mock.createHandler(mockCompiler, source);
+        collector = mockCompiler.diagnosticCollector;
+        compiler = mockCompiler;
+      } else {
+        collector = new memory.DiagnosticCollector();
+        uri = Uri.parse('memory:main.dart');
+        compiler = memory.compilerFor(
+            entryPoint: uri,
+            memorySourceFiles: {'main.dart': source},
+            diagnosticHandler: collector,
+            options: stopAfterTypeInference
+                ? []
+                : [Flags.analyzeAll, Flags.analyzeOnly]);
+      }
+      compiler.stopAfterTypeInference = stopAfterTypeInference;
+      await compiler.run(uri);
     }
-    compiler.stopAfterTypeInference = stopAfterTypeInference;
-    return compiler.run(uri).then((_) {
-      if (expectNoErrors || expectNoWarningsOrErrors) {
-        var errors = collector.errors;
-        Expect.isTrue(errors.isEmpty, 'Unexpected errors: ${errors}');
-      }
-      if (expectNoWarningsOrErrors) {
-        var warnings = collector.warnings;
-        Expect.isTrue(warnings.isEmpty, 'Unexpected warnings: ${warnings}');
-      }
-      return new TypeEnvironment._(compiler);
-    });
+    if (expectNoErrors || expectNoWarningsOrErrors) {
+      var errors = collector.errors;
+      Expect.isTrue(errors.isEmpty, 'Unexpected errors: ${errors}');
+    }
+    if (expectNoWarningsOrErrors) {
+      var warnings = collector.warnings;
+      Expect.isTrue(warnings.isEmpty, 'Unexpected warnings: ${warnings}');
+    }
+    return new TypeEnvironment._(compiler);
   }
 
   TypeEnvironment._(Compiler this.compiler);
@@ -103,7 +124,17 @@ class TypeEnvironment {
     return element;
   }
 
-  ClassElement getClass(String name) => getElement(name);
+  ClassEntity getClass(String name) {
+    LibraryEntity mainLibrary =
+        compiler.frontendStrategy.elementEnvironment.mainLibrary;
+    ClassEntity element = compiler.frontendStrategy.elementEnvironment
+        .lookupClass(mainLibrary, name);
+    Expect.isNotNull(element);
+    if (element is ClassElement) {
+      element.ensureResolved(compiler.resolution);
+    }
+    return element;
+  }
 
   ResolutionDartType getElementType(String name) {
     dynamic element = getElement(name);

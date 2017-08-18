@@ -140,11 +140,9 @@ class RuntimeEntry : public ValueObject {
   extern const RuntimeEntry k##name##RuntimeEntry;                             \
   extern "C" type DLRT_##name(__VA_ARGS__);
 
-
 // Declare all runtime functions here.
 RUNTIME_ENTRY_LIST(DECLARE_RUNTIME_ENTRY)
 LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
-
 
 uword RuntimeEntry::AddressFromId(RuntimeFunctionId id) {
   switch (id) {
@@ -164,7 +162,6 @@ uword RuntimeEntry::AddressFromId(RuntimeFunctionId id) {
   }
   return 0;
 }
-
 
 RuntimeFunctionId RuntimeEntry::RuntimeFunctionIdFromAddress(uword address) {
 #define CHECK_RUNTIME_ADDRESS(name)                                            \

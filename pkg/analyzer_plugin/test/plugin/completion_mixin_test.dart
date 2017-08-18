@@ -86,8 +86,7 @@ class _TestServerPlugin extends MockServerPlugin with CompletionMixin {
   }
 
   @override
-  List<CompletionContributor> getCompletionContributors(
-      AnalysisDriverGeneric driver) {
+  List<CompletionContributor> getCompletionContributors(String path) {
     return <CompletionContributor>[
       new _TestCompletionContributor(
           <CompletionSuggestion>[createSuggestion(), createSuggestion()]),
@@ -98,8 +97,7 @@ class _TestServerPlugin extends MockServerPlugin with CompletionMixin {
 
   @override
   Future<CompletionRequest> getCompletionRequest(
-      CompletionGetSuggestionsParams parameters,
-      covariant AnalysisDriverGeneric driver) async {
+      CompletionGetSuggestionsParams parameters) async {
     AnalysisResult result = new AnalysisResult(
         null, null, null, null, null, null, null, null, null, null, null);
     return new DartCompletionRequestImpl(

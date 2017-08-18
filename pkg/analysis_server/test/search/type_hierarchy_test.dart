@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,10 +22,6 @@ main() {
 @reflectiveTest
 class GetTypeHierarchyTest extends AbstractAnalysisTest {
   static const String requestId = 'test-getTypeHierarchy';
-  @override
-  Index createIndex() {
-    return createMemoryIndex();
-  }
 
   @override
   void setUp() {
@@ -170,9 +165,7 @@ class CCC extends BBB implements AAA {}
   test_class_extends_fileAndPackageUris() async {
     // prepare packages
     String pkgFile = '/packages/pkgA/lib/libA.dart';
-    resourceProvider.newFile(
-        pkgFile,
-        '''
+    resourceProvider.newFile(pkgFile, '''
 library lib_a;
 class A {}
 class B extends A {}
@@ -703,9 +696,7 @@ class D extends C {
   }
 
   test_member_method_private_differentLib() async {
-    addFile(
-        '$testFolder/lib.dart',
-        r'''
+    addFile('$testFolder/lib.dart', r'''
 import 'test.dart';
 class A {
   void _m() {}

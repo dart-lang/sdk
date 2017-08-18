@@ -16,10 +16,12 @@ dependencies:
   package_config: '>=0.1.5 <2.0.0'
   path: any
   plugin: ^0.2.0
+  telemetry: ^0.0.1
+  usage: ^3.2.0+1
   watcher: any
   yaml: any
 dev_dependencies:
   html: any
   test_reflective_loader: ^0.1.0
-  typed_mock: '>=0.0.4 <1.0.0'
+  mockito: ^2.0.2
   test: ^0.12.17

@@ -9,8 +9,8 @@
 library dart.dom.svg;
 
 import 'dart:async';
-import 'dart:collection';
-import 'dart:_internal';
+import 'dart:collection' hide LinkedList, LinkedListEntry;
+import 'dart:_internal' show FixedLengthListMixin;
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:_js_helper' show Creates, Returns, JSName, Native;

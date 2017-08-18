@@ -14,9 +14,9 @@ import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 import 'mocks.dart';
 
@@ -27,7 +27,7 @@ main() {
   });
 }
 
-class AnalysisErrorMock extends TypedMock implements engine.AnalysisError {}
+class AnalysisErrorMock extends Mock implements engine.AnalysisError {}
 
 @reflectiveTest
 class AnalysisErrorTest {

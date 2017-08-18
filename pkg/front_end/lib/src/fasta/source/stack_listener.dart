@@ -4,23 +4,24 @@
 
 library fasta.stack_listener;
 
-import '../fasta_codes.dart' show FastaMessage;
+import 'package:kernel/ast.dart' show AsyncMarker, Expression;
+
+import '../deprecated_problems.dart' show deprecated_inputError;
+
+import '../fasta_codes.dart' show Message, templateInternalProblemStackNotEmpty;
+
+import '../messages.dart' as messages;
 
 import '../parser.dart' show Listener, MemberKind;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
-import '../scanner.dart' show Token;
-
-import '../../scanner/token.dart' show BeginToken;
-
-import 'package:kernel/ast.dart' show AsyncMarker;
-
-import '../errors.dart' show inputError, internalError;
+import '../problems.dart'
+    show internalProblem, unhandled, unimplemented, unsupported;
 
 import '../quote.dart' show unescapeString;
 
-import '../messages.dart' as messages;
+import '../scanner.dart' show Token;
 
 enum NullValue {
   Arguments,
@@ -34,6 +35,7 @@ enum NullValue {
   ConstructorInitializers,
   ConstructorReferenceContinuationAfterTypeArguments,
   ContinueTarget,
+  DocumentationComment,
   Expression,
   FieldInitializer,
   FormalParameters,
@@ -64,15 +66,27 @@ abstract class StackListener extends Listener {
   // and ast_builder.dart.
   void finishFunction(List annotations, covariant formals,
       AsyncMarker asyncModifier, covariant body) {
-    return internalError("Unsupported operation");
+    return unsupported("finishFunction", -1, uri);
   }
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
-  void exitLocalScope() => internalError("Unsupported operation");
+  dynamic finishFields() {
+    return unsupported("finishFields", -1, uri);
+  }
+
+  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
+  // and ast_builder.dart.
+  List<Expression> finishMetadata() {
+    return unsupported("finishMetadata", -1, uri);
+  }
+
+  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
+  // and ast_builder.dart.
+  void exitLocalScope() => unsupported("exitLocalScope", -1, uri);
 
   void push(Object node) {
-    if (node == null) internalError("null not allowed.");
+    if (node == null) unhandled("null", "push", -1, uri);
     stack.push(node);
   }
 
@@ -107,8 +121,8 @@ abstract class StackListener extends Listener {
 
   @override
   void logEvent(String name) {
-    internalError("Unhandled event: $name in $runtimeType $uri:\n"
-        "  ${stack.values.join('\n  ')}");
+    printEvent(name);
+    unhandled(name, "$runtimeType", -1, uri);
   }
 
   @override
@@ -130,15 +144,16 @@ abstract class StackListener extends Listener {
 
   void checkEmpty(int charOffset) {
     if (stack.isNotEmpty) {
-      internalError(
-          "${runtimeType}: Stack not empty:\n"
-          "  ${stack.values.join('\n  ')}",
-          uri,
-          charOffset);
+      internalProblem(
+          templateInternalProblemStackNotEmpty.withArguments(
+              "${runtimeType}", stack.values.join("\n  ")),
+          charOffset,
+          uri);
     }
     if (recoverableErrors.isNotEmpty) {
       // TODO(ahe): Handle recoverable errors better.
-      inputError(uri, recoverableErrors.first.beginOffset, recoverableErrors);
+      deprecated_inputError(
+          uri, recoverableErrors.first.beginOffset, recoverableErrors);
     }
   }
 
@@ -202,7 +217,7 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleParenthesizedExpression(BeginToken token) {
+  void handleParenthesizedExpression(Token token) {
     debugEvent("ParenthesizedExpression");
   }
 
@@ -219,7 +234,7 @@ abstract class StackListener extends Listener {
       Token token = pop();
       push(unescapeString(token.lexeme));
     } else {
-      internalError("String interpolation not implemented.");
+      unimplemented("string interpolation", endToken.charOffset, uri);
     }
   }
 
@@ -230,11 +245,11 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleRecoverExpression(Token token, FastaMessage message) {
+  void handleRecoverExpression(Token token, Message message) {
     debugEvent("RecoverExpression");
   }
 
-  void handleExtraneousExpression(Token token, FastaMessage message) {
+  void handleExtraneousExpression(Token token, Message message) {
     debugEvent("ExtraneousExpression");
     pop(); // Discard the extraneous expression.
   }
@@ -250,24 +265,24 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleRecoverableError(Token token, FastaMessage message) {
+  void handleRecoverableError(Token token, Message message) {
     debugEvent("Error: ${message.message}");
-    addCompileTimeErrorFromMessage(message);
+    addCompileTimeError(message, token.offset);
   }
 
-  void addCompileTimeErrorFromMessage(FastaMessage message);
+  void addCompileTimeError(Message message, int charOffset);
 
   @override
-  Token handleUnrecoverableError(Token token, FastaMessage message) {
-    throw inputError(uri, token.charOffset, message.message);
+  Token handleUnrecoverableError(Token token, Message message) {
+    throw deprecated_inputError(uri, token.charOffset, message.message);
   }
 
-  void nit(String message, [int charOffset = -1]) {
-    messages.nit(uri, charOffset, message);
+  void nit(Message message, int charOffset) {
+    messages.nit(message, charOffset, uri);
   }
 
-  void warning(String message, [int charOffset = -1]) {
-    messages.warning(uri, charOffset, message);
+  void warning(Message message, int charOffset) {
+    messages.warning(message, charOffset, uri);
   }
 }
 

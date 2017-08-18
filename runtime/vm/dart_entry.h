@@ -116,9 +116,9 @@ class ArgumentsDescriptor : public ValueObject {
   friend class Serializer;
   friend class Deserializer;
   friend class Simulator;
+  friend class SimulatorHelpers;
   DISALLOW_COPY_AND_ASSIGN(ArgumentsDescriptor);
 };
-
 
 // DartEntry abstracts functionality needed to resolve dart functions
 // and invoke them from C++.
@@ -165,7 +165,6 @@ class DartEntry : public AllStatic {
                                        const Array& arguments_descriptor);
 };
 
-
 // Utility functions to call from VM into Dart bootstrap libraries.
 // Each may return an exception object.
 class DartLibraryCalls : public AllStatic {
@@ -184,6 +183,9 @@ class DartLibraryCalls : public AllStatic {
 
   // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* Equals(const Instance& left, const Instance& right);
+
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* IdentityHashCode(const Instance& object);
 
   // Returns the handler if one has been registered for this port id.
   static RawObject* LookupHandler(Dart_Port port_id);

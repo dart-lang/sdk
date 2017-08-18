@@ -39,7 +39,6 @@ class Immediate : public ValueObject {
   // And remove the unnecessary copy constructor.
 };
 
-
 class Operand : public ValueObject {
  public:
   uint8_t mod() const { return (encoding_at(0) >> 6) & 3; }
@@ -135,7 +134,6 @@ class Operand : public ValueObject {
   friend class Assembler;
 };
 
-
 class Address : public Operand {
  public:
   Address(Register base, int32_t disp) {
@@ -200,7 +198,6 @@ class Address : public Operand {
   Address() {}  // Needed by Address::Absolute.
 };
 
-
 class FieldAddress : public Address {
  public:
   FieldAddress(Register base, int32_t disp)
@@ -222,7 +219,6 @@ class FieldAddress : public Address {
     return *this;
   }
 };
-
 
 class Label : public ValueObject {
  public:
@@ -291,7 +287,6 @@ class Label : public ValueObject {
   friend class Assembler;
   DISALLOW_COPY_AND_ASSIGN(Label);
 };
-
 
 class Assembler : public ValueObject {
  public:
@@ -941,7 +936,6 @@ class Assembler : public ValueObject {
     DISALLOW_COPY_AND_ASSIGN(CodeComment);
   };
 
-
   inline void EmitUint8(uint8_t value);
   inline void EmitInt32(int32_t value);
   inline void EmitRegisterOperand(int rm, int reg);
@@ -980,32 +974,26 @@ class Assembler : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(Assembler);
 };
 
-
 inline void Assembler::EmitUint8(uint8_t value) {
   buffer_.Emit<uint8_t>(value);
 }
 
-
 inline void Assembler::EmitInt32(int32_t value) {
   buffer_.Emit<int32_t>(value);
 }
-
 
 inline void Assembler::EmitRegisterOperand(int rm, int reg) {
   ASSERT(rm >= 0 && rm < 8);
   buffer_.Emit<uint8_t>(0xC0 + (rm << 3) + reg);
 }
 
-
 inline void Assembler::EmitXmmRegisterOperand(int rm, XmmRegister reg) {
   EmitRegisterOperand(rm, static_cast<Register>(reg));
 }
 
-
 inline void Assembler::EmitFixup(AssemblerFixup* fixup) {
   buffer_.EmitFixup(fixup);
 }
-
 
 inline void Assembler::EmitOperandSizeOverride() {
   EmitUint8(0x66);

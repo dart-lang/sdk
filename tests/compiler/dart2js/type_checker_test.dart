@@ -179,16 +179,10 @@ class Class {
   foo.ensureResolved(compiler.resolution);
   FunctionElement method = foo.lookupLocalMember('forIn');
 
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       for (var e in <String>[]) {} 
   }""");
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       for (String e in <String>[]) {} 
   }""");
   analyzeIn(
@@ -198,36 +192,21 @@ class Class {
       for (int e in <String>[]) {} 
   }""",
       hints: MessageKind.FORIN_NOT_ASSIGNABLE);
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       for (int e in []) {} 
   }""");
 
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       for (var e in new HasUntypedIterator()) {} 
   }""");
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       for (String e in new HasUntypedIterator()) {} 
   }""");
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       for (int e in new HasUntypedIterator()) {} 
   }""");
 
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       for (var e in new HasIntIterator()) {} 
   }""");
   analyzeIn(
@@ -237,10 +216,7 @@ class Class {
       for (String e in new HasIntIterator()) {} 
   }""",
       hints: MessageKind.FORIN_NOT_ASSIGNABLE);
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       for (int e in new HasIntIterator()) {} 
   }""");
 
@@ -266,10 +242,7 @@ class Class {
   }""",
       warnings: MessageKind.UNDEFINED_GETTER);
 
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       for (var e in new HasCustomIntIterator()) {} 
   }""");
   analyzeIn(
@@ -279,10 +252,7 @@ class Class {
       for (String e in new HasCustomIntIterator()) {} 
   }""",
       hints: MessageKind.FORIN_NOT_ASSIGNABLE);
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       for (int e in new HasCustomIntIterator()) {} 
   }""");
 
@@ -308,17 +278,11 @@ class Class {
   }""",
       hints: MessageKind.UNDEFINED_GETTER);
 
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       var localDyn; 
       for (localDyn in <String>[]) {} 
   }""");
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       String localString; 
       for (localString in <String>[]) {} 
   }""");
@@ -331,16 +295,10 @@ class Class {
   }""",
       hints: MessageKind.FORIN_NOT_ASSIGNABLE);
 
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       for (topLevelDyn in <String>[]) {} 
   }""");
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       for (topLevelString in <String>[]) {} 
   }""");
   analyzeIn(
@@ -351,16 +309,10 @@ class Class {
   }""",
       hints: MessageKind.FORIN_NOT_ASSIGNABLE);
 
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       for (instanceDyn in <String>[]) {} 
   }""");
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       for (instanceString in <String>[]) {} 
   }""");
   analyzeIn(
@@ -371,16 +323,10 @@ class Class {
   }""",
       hints: MessageKind.FORIN_NOT_ASSIGNABLE);
 
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       for (staticDyn in <String>[]) {} 
   }""");
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       for (staticString in <String>[]) {} 
   }""");
   analyzeIn(
@@ -419,24 +365,15 @@ class Class {
   foo.ensureResolved(compiler.resolution);
   FunctionElement method = foo.lookupLocalMember('forIn');
 
-  analyzeIn(
-      compiler,
-      method,
-      """{
+  analyzeIn(compiler, method, """{
       var stream;
       await for (var e in stream) {} 
   }""");
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       var stream;
       await for (String e in stream) {} 
   }""");
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       var stream;
       await for (int e in stream) {} 
   }""");
@@ -449,17 +386,11 @@ class Class {
   }""",
       hints: MessageKind.NOT_ASSIGNABLE);
 
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       Stream<String> stream;
       await for (var e in stream) {} 
   }""");
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       Stream<String> stream;
       await for (String e in stream) {} 
   }""");
@@ -472,17 +403,11 @@ class Class {
   }""",
       hints: MessageKind.FORIN_NOT_ASSIGNABLE);
 
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       CustomStream<String> stream;
       await for (var e in stream) {} 
   }""");
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       CustomStream<String> stream;
       await for (String e in stream) {} 
   }""");
@@ -495,17 +420,11 @@ class Class {
   }""",
       hints: MessageKind.FORIN_NOT_ASSIGNABLE);
 
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       StringStream stream;
       await for (var e in stream) {} 
   }""");
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       StringStream stream;
       await for (String e in stream) {} 
   }""");
@@ -518,18 +437,12 @@ class Class {
   }""",
       hints: MessageKind.FORIN_NOT_ASSIGNABLE);
 
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       Stream<String> stream;
       var localDyn; 
       await for (localDyn in stream) {} 
   }""");
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       Stream<String> stream;
       String localString; 
       await for (localString in stream) {} 
@@ -544,17 +457,11 @@ class Class {
   }""",
       hints: MessageKind.FORIN_NOT_ASSIGNABLE);
 
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       Stream<String> stream;
       await for (topLevelDyn in stream) {} 
   }""");
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       Stream<String> stream;
       await for (topLevelString in stream) {} 
   }""");
@@ -567,17 +474,11 @@ class Class {
   }""",
       hints: MessageKind.FORIN_NOT_ASSIGNABLE);
 
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       Stream<String> stream;
       await for (instanceDyn in stream) {} 
   }""");
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       Stream<String> stream;
       await for (instanceString in stream) {} 
   }""");
@@ -590,17 +491,11 @@ class Class {
   }""",
       hints: MessageKind.FORIN_NOT_ASSIGNABLE);
 
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       Stream<String> stream;
       await for (staticDyn in stream) {} 
   }""");
-  analyzeIn(
-      compiler,
-      method,
-      """{ 
+  analyzeIn(compiler, method, """{ 
       Stream<String> stream;
       await for (staticString in stream) {} 
   }""");
@@ -711,56 +606,42 @@ case Enum.B: break;
 case Enum.C: break;
 }""");
 
-  check(
-      """
+  check("""
 switch (Enum.A) {
 case Enum.B: break;
 case Enum.C: break;
-}""",
-      warnings: MessageKind.MISSING_ENUM_CASES);
+}""", warnings: MessageKind.MISSING_ENUM_CASES);
 
-  check(
-      """
+  check("""
 switch (Enum.A) {
 case Enum.A: break;
 case Enum.C: break;
-}""",
-      warnings: MessageKind.MISSING_ENUM_CASES);
+}""", warnings: MessageKind.MISSING_ENUM_CASES);
 
-  check(
-      """
+  check("""
 switch (Enum.A) {
 case Enum.A: break;
 case Enum.B: break;
-}""",
-      warnings: MessageKind.MISSING_ENUM_CASES);
+}""", warnings: MessageKind.MISSING_ENUM_CASES);
 
-  check(
-      """
+  check("""
 switch (Enum.A) {
 case Enum.A: break;
-}""",
-      warnings: MessageKind.MISSING_ENUM_CASES);
+}""", warnings: MessageKind.MISSING_ENUM_CASES);
 
-  check(
-      """
+  check("""
 switch (Enum.A) {
 case Enum.B: break;
-}""",
-      warnings: MessageKind.MISSING_ENUM_CASES);
+}""", warnings: MessageKind.MISSING_ENUM_CASES);
 
-  check(
-      """
+  check("""
 switch (Enum.A) {
 case Enum.C: break;
-}""",
-      warnings: MessageKind.MISSING_ENUM_CASES);
+}""", warnings: MessageKind.MISSING_ENUM_CASES);
 
-  check(
-      """
+  check("""
 switch (Enum.A) {
-}""",
-      warnings: MessageKind.MISSING_ENUM_CASES);
+}""", warnings: MessageKind.MISSING_ENUM_CASES);
 }
 
 testOperators(MockCompiler compiler) {
@@ -1664,11 +1545,9 @@ Future testFieldInitializers(MockCompiler compiler) {
     check("""class Class {
                int i = 0;
              }"""),
-    check(
-        """class Class {
+    check("""class Class {
                int i = '';
-             }""",
-        NOT_ASSIGNABLE),
+             }""", NOT_ASSIGNABLE),
   ]);
 }
 
@@ -1880,25 +1759,21 @@ Future testInitializers(MockCompiler compiler) {
                 Class(int this.a);
               }
               '''),
-    check(
-        r'''class Class {
+    check(r'''class Class {
                 String a;
                 Class(int this.a);
               }
-              ''',
-        NOT_ASSIGNABLE),
+              ''', NOT_ASSIGNABLE),
     check(r'''class Class {
                 var a;
                 Class(int a) : this.a = a;
               }
               '''),
-    check(
-        r'''class Class {
+    check(r'''class Class {
                 String a;
                 Class(int a) : this.a = a;
               }
-              ''',
-        NOT_ASSIGNABLE),
+              ''', NOT_ASSIGNABLE),
 
     // Check this-calls.
     check(r'''class Class {
@@ -1907,28 +1782,24 @@ Future testInitializers(MockCompiler compiler) {
                 Class.named(int a) : this(a);
               }
               '''),
-    check(
-        r'''class Class {
+    check(r'''class Class {
                 String a;
                 Class(this.a);
                 Class.named(int a) : this(a);
               }
-              ''',
-        NOT_ASSIGNABLE),
+              ''', NOT_ASSIGNABLE),
     check(r'''class Class {
                 String a;
                 Class(var a) : this.a = a;
                 Class.named(int a) : this(a);
               }
               '''),
-    check(
-        r'''class Class {
+    check(r'''class Class {
                 String a;
                 Class(String a) : this.a = a;
                 Class.named(int a) : this(a);
               }
-              ''',
-        NOT_ASSIGNABLE),
+              ''', NOT_ASSIGNABLE),
 
     // Check super-calls.
     check(r'''class Super {
@@ -1939,16 +1810,14 @@ Future testInitializers(MockCompiler compiler) {
                 Class.named(int a) : super(a);
               }
               '''),
-    check(
-        r'''class Super {
+    check(r'''class Super {
                 String a;
                 Super(this.a);
               }
               class Class extends Super {
                 Class.named(int a) : super(a);
               }
-              ''',
-        NOT_ASSIGNABLE),
+              ''', NOT_ASSIGNABLE),
     check(r'''class Super {
                 String a;
                 Super(var a) : this.a = a;
@@ -1957,16 +1826,14 @@ Future testInitializers(MockCompiler compiler) {
                 Class.named(int a) : super(a);
               }
               '''),
-    check(
-        r'''class Super {
+    check(r'''class Super {
                 String a;
                 Super(String a) : this.a = a;
               }
               class Class extends Super {
                 Class.named(int a) : super(a);
               }
-              ''',
-        NOT_ASSIGNABLE),
+              ''', NOT_ASSIGNABLE),
 
     // Check super-calls involving generics.
     check(r'''class Super<T> {
@@ -1977,16 +1844,14 @@ Future testInitializers(MockCompiler compiler) {
                 Class.named(int a) : super(a);
               }
               '''),
-    check(
-        r'''class Super<T> {
+    check(r'''class Super<T> {
                 T a;
                 Super(this.a);
               }
               class Class extends Super<String> {
                 Class.named(int a) : super(a);
               }
-              ''',
-        NOT_ASSIGNABLE),
+              ''', NOT_ASSIGNABLE),
     check(r'''class Super<T> {
                 T a;
                 Super(var a) : this.a = a;
@@ -1995,16 +1860,14 @@ Future testInitializers(MockCompiler compiler) {
                 Class.named(int a) : super(a);
               }
               '''),
-    check(
-        r'''class Super<T> {
+    check(r'''class Super<T> {
                 T a;
                 Super(T a) : this.a = a;
               }
               class Class extends Super<String> {
                 Class.named(int a) : super(a);
               }
-              ''',
-        NOT_ASSIGNABLE),
+              ''', NOT_ASSIGNABLE),
 
     // Check instance creations.
     check(r'''class Class {
@@ -2013,28 +1876,24 @@ Future testInitializers(MockCompiler compiler) {
               }
               method(int a) => new Class(a);
               '''),
-    check(
-        r'''class Class {
+    check(r'''class Class {
                 String a;
                 Class(this.a);
               }
               method(int a) => new Class(a);
-              ''',
-        NOT_ASSIGNABLE),
+              ''', NOT_ASSIGNABLE),
     check(r'''class Class {
                 String a;
                 Class(var a) : this.a = a;
               }
               method(int a) => new Class(a);
               '''),
-    check(
-        r'''class Class {
+    check(r'''class Class {
                 String a;
                 Class(String a) : this.a = a;
               }
               method(int a) => new Class(a);
-              ''',
-        NOT_ASSIGNABLE),
+              ''', NOT_ASSIGNABLE),
 
     // Check instance creations involving generics.
     check(r'''class Class<T> {
@@ -2043,28 +1902,24 @@ Future testInitializers(MockCompiler compiler) {
               }
               method(int a) => new Class<String>(a);
               '''),
-    check(
-        r'''class Class<T> {
+    check(r'''class Class<T> {
                 T a;
                 Class(this.a);
               }
               method(int a) => new Class<String>(a);
-              ''',
-        NOT_ASSIGNABLE),
+              ''', NOT_ASSIGNABLE),
     check(r'''class Class<T> {
                 T a;
                 Class(var a) : this.a = a;
               }
               method(int a) => new Class<String>(a);
               '''),
-    check(
-        r'''class Class<T> {
+    check(r'''class Class<T> {
                 T a;
                 Class(String a) : this.a = a;
               }
               method(int a) => new Class<String>(a);
-              ''',
-        NOT_ASSIGNABLE),
+              ''', NOT_ASSIGNABLE),
   ]);
 }
 
@@ -2191,8 +2046,7 @@ testTypePromotionHints(MockCompiler compiler) {
         warnings: warnings, hints: hints, infos: infos);
   }
 
-  check(
-      r'''
+  check(r'''
             A a = new B();
             if (a is C) {
               var x = a.c;
@@ -2201,8 +2055,7 @@ testTypePromotionHints(MockCompiler compiler) {
       hints: [MessageKind.NOT_MORE_SPECIFIC_SUBTYPE],
       infos: []);
 
-  check(
-      r'''
+  check(r'''
             A a = new B();
             if (a is C) {
               var x = '${a.c}${a.c}';
@@ -2211,8 +2064,7 @@ testTypePromotionHints(MockCompiler compiler) {
       hints: [MessageKind.NOT_MORE_SPECIFIC_SUBTYPE],
       infos: []);
 
-  check(
-      r'''
+  check(r'''
             A a = new B();
             if (a is C) {
               var x = '${a.d}${a.d}'; // Type promotion wouldn't help.
@@ -2221,53 +2073,40 @@ testTypePromotionHints(MockCompiler compiler) {
       hints: [],
       infos: []);
 
-  check(
-      '''
+  check('''
            D<int> d = new E();
            if (d is E) { // Suggest E<int>.
              var x = d.e;
-           }''',
-      warnings: [
-        MessageKind.UNDEFINED_GETTER
-      ],
-      hints: [
-        checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
-            {'shownTypeSuggestion': 'E<int>'})
-      ],
-      infos: []);
+           }''', warnings: [
+    MessageKind.UNDEFINED_GETTER
+  ], hints: [
+    checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
+        {'shownTypeSuggestion': 'E<int>'})
+  ], infos: []);
 
-  check(
-      '''
+  check('''
            D<int> d = new F();
            if (d is F) { // Suggest F<int, dynamic>.
              var x = d.f;
-           }''',
-      warnings: [
-        MessageKind.UNDEFINED_GETTER
-      ],
-      hints: [
-        checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
-            {'shownTypeSuggestion': 'F<int, dynamic>'})
-      ],
-      infos: []);
+           }''', warnings: [
+    MessageKind.UNDEFINED_GETTER
+  ], hints: [
+    checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
+        {'shownTypeSuggestion': 'F<int, dynamic>'})
+  ], infos: []);
 
-  check(
-      '''
+  check('''
            D<int> d = new G();
            if (d is G) { // Suggest G<int>.
              var x = d.f;
-           }''',
-      warnings: [
-        MessageKind.UNDEFINED_GETTER
-      ],
-      hints: [
-        checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
-            {'shownTypeSuggestion': 'G<int>'})
-      ],
-      infos: []);
+           }''', warnings: [
+    MessageKind.UNDEFINED_GETTER
+  ], hints: [
+    checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
+        {'shownTypeSuggestion': 'G<int>'})
+  ], infos: []);
 
-  check(
-      '''
+  check('''
            F<double, int> f = new G();
            if (f is G) { // Cannot suggest a more specific type.
              var x = f.g;
@@ -2276,18 +2115,14 @@ testTypePromotionHints(MockCompiler compiler) {
       hints: [MessageKind.NOT_MORE_SPECIFIC],
       infos: []);
 
-  check(
-      '''
+  check('''
            D<int> d = new E();
            if (d is E) {
              var x = d.f; // Type promotion wouldn't help.
            }''',
-      warnings: [MessageKind.UNDEFINED_GETTER],
-      hints: [],
-      infos: []);
+      warnings: [MessageKind.UNDEFINED_GETTER], hints: [], infos: []);
 
-  check(
-      '''
+  check('''
            A a = new B();
            if (a is B) {
              a = null;
@@ -2297,19 +2132,15 @@ testTypePromotionHints(MockCompiler compiler) {
       hints: [MessageKind.POTENTIAL_MUTATION],
       infos: [MessageKind.POTENTIAL_MUTATION_HERE]);
 
-  check(
-      '''
+  check('''
            A a = new B();
            if (a is B) {
              a = null;
              var x = a.c; // Type promotion wouldn't help.
            }''',
-      warnings: [MessageKind.UNDEFINED_GETTER],
-      hints: [],
-      infos: []);
+      warnings: [MessageKind.UNDEFINED_GETTER], hints: [], infos: []);
 
-  check(
-      '''
+  check('''
            A a = new B();
            local() { a = new A(); }
            if (a is B) {
@@ -2319,47 +2150,37 @@ testTypePromotionHints(MockCompiler compiler) {
       hints: [MessageKind.POTENTIAL_MUTATION_IN_CLOSURE],
       infos: [MessageKind.POTENTIAL_MUTATION_IN_CLOSURE_HERE]);
 
-  check(
-      '''
+  check('''
            A a = new B();
            local() { a = new A(); }
            if (a is B) {
              var x = a.c; // Type promotion wouldn't help.
            }''',
-      warnings: [MessageKind.UNDEFINED_GETTER],
-      hints: [],
-      infos: []);
+      warnings: [MessageKind.UNDEFINED_GETTER], hints: [], infos: []);
 
-  check(
-      '''
+  check('''
            A a = new B();
            if (a is B) {
              var x = () => a;
              var y = a.b;
            }
-           a = new A();''',
-      warnings: [
-        MessageKind.UNDEFINED_GETTER
-      ],
-      hints: [
-        MessageKind.ACCESSED_IN_CLOSURE
-      ],
-      infos: [
-        MessageKind.ACCESSED_IN_CLOSURE_HERE,
-        MessageKind.POTENTIAL_MUTATION_HERE
-      ]);
+           a = new A();''', warnings: [
+    MessageKind.UNDEFINED_GETTER
+  ], hints: [
+    MessageKind.ACCESSED_IN_CLOSURE
+  ], infos: [
+    MessageKind.ACCESSED_IN_CLOSURE_HERE,
+    MessageKind.POTENTIAL_MUTATION_HERE
+  ]);
 
-  check(
-      '''
+  check('''
            A a = new B();
            if (a is B) {
              var x = () => a;
              var y = a.c; // Type promotion wouldn't help.
            }
            a = new A();''',
-      warnings: [MessageKind.UNDEFINED_GETTER],
-      hints: [],
-      infos: []);
+      warnings: [MessageKind.UNDEFINED_GETTER], hints: [], infos: []);
 }
 
 void testCascade(MockCompiler compiler) {

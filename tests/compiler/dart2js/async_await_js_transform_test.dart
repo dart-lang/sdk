@@ -94,13 +94,11 @@ main() {
       /// 01: ok
       ;
 
-  testAsyncTransform(
-      """
+  testAsyncTransform("""
 function(a) async {
   print(this.x); // Ensure `this` is translated in the helper function.
   await foo();
-}""",
-      """
+}""", """
 function(a) {
   var __goto = 0, __completer = NewCompleter(), __self = this;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -122,8 +120,7 @@ function(a) {
   return startHelper(body, __completer);
 }""");
 
-  testAsyncTransform(
-      """
+  testAsyncTransform("""
   function(b) async {
     try {
       __outer: while (true) { // Overlapping label name.
@@ -146,8 +143,7 @@ function(a) {
       return 3; // Return from finally with no pending finally.
     }
     return 4;
-  }""",
-      """
+  }""", """
 function(b) {
   var __goto = 0, __completer = NewCompleter(), __returnValue, __handler = 2, __currentError, __next = [], __helper;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -248,8 +244,7 @@ function(b) {
   return startHelper(body, __completer);
 }""");
 
-  testAsyncTransform(
-      """
+  testAsyncTransform("""
 function(c) async {
   var a, b, c, d, e, f;
   a = b++; // post- and preincrements.
@@ -258,8 +253,7 @@ function(c) async {
   d = ++(await foo()).a;
   e = foo1()[await foo2()]--;
   f = --foo1()[await foo2()];
-}""",
-      """
+}""", """
 function(c) {
   var __goto = 0, __completer = NewCompleter(), a, b, c, d, e, f, __temp1;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -300,8 +294,7 @@ function(c) {
   return startHelper(body, __completer);
 }""");
 
-  testAsyncTransform(
-      """
+  testAsyncTransform("""
   function(d2) async {
     var a, b, c, d, e, f, g, h; // empty initializer
     a = foo1() || await foo2(); // short circuiting operators
@@ -312,8 +305,7 @@ function(c) {
     f = await foo1() && foo2();
     g = await foo1() && await foo2();
     h = foo1() && foo2();
-  }""",
-      """
+  }""", """
 function(d2) {
   var __goto = 0, __completer = NewCompleter(), a, b, c, d, e, f, g, h, __temp1;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -430,8 +422,7 @@ function(d2) {
   return startHelper(body, __completer);
 }""");
 
-  testAsyncTransform(
-      """
+  testAsyncTransform("""
 function(x, y) async {
   while (true) {
     switch(y) { // Switch with no awaits in case key expressions
@@ -446,8 +437,7 @@ function(x, y) async {
         foo(); // No default
     }
   }
-}""",
-      """
+}""", """
 function(x, y) {
   var __goto = 0, __completer = NewCompleter();
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -521,8 +511,7 @@ function(x, y) {
   return startHelper(body, __completer);
 }""");
 
-  testAsyncTransform(
-      """
+  testAsyncTransform("""
   function(f) async {
     do {
       var a = await foo();
@@ -532,8 +521,7 @@ function(x, y) {
         continue;
     } while (await foo());
   }
-  """,
-      """
+  """, """
 function(f) {
   var __goto = 0, __completer = NewCompleter(), a;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -579,8 +567,7 @@ function(f) {
   return startHelper(body, __completer);
 }""");
 
-  testAsyncTransform(
-      """
+  testAsyncTransform("""
 function(g) async {
   for (var i = 0; i < await foo1(); i += await foo2()) {
     if (foo(i))
@@ -594,8 +581,7 @@ function(g) async {
     print(await(foo(i)));
   } 
 }
-""",
-      """
+""", """
 function(g) {
   var __goto = 0, __completer = NewCompleter(), __returnValue, i, __temp1;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -666,8 +652,7 @@ function(g) {
   return startHelper(body, __completer);
 }""");
 
-  testAsyncTransform(
-      """
+  testAsyncTransform("""
   function(a, h) async {
     var x = {"a": foo1(), "b": await foo2(), "c": foo3()};
     x["a"] = 2; // Different assignments
@@ -676,8 +661,7 @@ function(g) {
     x[(await foo1()).a = await foo2()] = 5;
     (await foo1())[await foo2()] = await foo3(6);
   }
-  """,
-      """
+  """, """
 function(a, h) {
   var __goto = 0, __completer = NewCompleter(), x, __temp1, __temp2;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -738,8 +722,7 @@ function(a, h) {
   return startHelper(body, __completer);
 }""");
 
-  testAsyncTransform(
-      """
+  testAsyncTransform("""
 function(c, i) async {
   try {
     var x = c ? await foo() : foo(); // conditional
@@ -754,8 +737,7 @@ function(c, i) async {
     }
   }
 }
-""",
-      """
+""", """
 function(c, i) {
   var __goto = 0, __completer = NewCompleter(), __handler = 1, __currentError, __next = [], x, y, __error, __error1;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -857,8 +839,7 @@ function(c, i) {
   return startHelper(body, __completer);
 }""");
 
-  testAsyncTransform(
-      """
+  testAsyncTransform("""
   function(x, y, j) async {
     print(await(foo(x))); // calls
     (await print)(foo(x));
@@ -866,8 +847,7 @@ function(c, i) {
     await (print(foo(await x)));
     print(foo(x, await y, z));
   }
-  """,
-      """
+  """, """
 function(x, y, j) {
   var __goto = 0, __completer = NewCompleter(), __temp1, __temp2, __temp3;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -920,8 +900,7 @@ function(x, y, j) {
   return startHelper(body, __completer);
 }""");
 
-  testAsyncTransform(
-      """
+  testAsyncTransform("""
 function(x, y, k) async {
   while (await(foo())) {
     lab: { // labelled statement
@@ -946,8 +925,7 @@ function(x, y, k) async {
       foo();
     }
   }
-}""",
-      """
+}""", """
 function(x, y, k) {
   var __goto = 0, __completer = NewCompleter(), __returnValue, __temp1;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -1057,8 +1035,7 @@ function(x, y, k) {
   return startHelper(body, __completer);
 }""");
 
-  testAsyncTransform(
-      """
+  testAsyncTransform("""
   function(l) async {
     switch(await l) {
       case 1:
@@ -1071,8 +1048,7 @@ function(x, y, k) {
         print(2);
         break;
     }
-  }""",
-      """
+  }""", """
 function(l) {
   var __goto = 0, __completer = NewCompleter();
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -1103,8 +1079,7 @@ function(l) {
   return startHelper(body, __completer);
 }""");
 
-  testAsyncTransform(
-      """
+  testAsyncTransform("""
   function(m) async {
     var exception = 1;
     try {
@@ -1120,8 +1095,7 @@ function(l) {
       exception += 10;
     }
     print(exception);
-  }""",
-      """
+  }""", """
 function(m) {
   var __goto = 0, __completer = NewCompleter(), __handler = 1, __currentError, __next = [], exception, __exception;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -1184,14 +1158,12 @@ function(m) {
   return startHelper(body, __completer);
 }""");
 
-  testSyncStarTransform(
-      """
+  testSyncStarTransform("""
 function(a) sync* {
   // Ensure that return of a value is treated as first evaluating the value, and
   // then returning.
   return foo();
-}""",
-      """
+}""", """
 function(__a) {
   return NewIterable(function() {
     var a = __a;

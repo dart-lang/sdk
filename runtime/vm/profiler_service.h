@@ -50,7 +50,6 @@ class ProfileFunctionSourcePosition {
   DISALLOW_ALLOCATION();
 };
 
-
 // Profile data related to a |Function|.
 class ProfileFunction : public ZoneAllocated {
  public:
@@ -128,7 +127,6 @@ class ProfileFunction : public ZoneAllocated {
   friend class ProfileBuilder;
 };
 
-
 class ProfileCodeAddress {
  public:
   explicit ProfileCodeAddress(uword pc);
@@ -144,7 +142,6 @@ class ProfileCodeAddress {
   intptr_t exclusive_ticks_;
   intptr_t inclusive_ticks_;
 };
-
 
 // Profile data related to a |Code|.
 class ProfileCode : public ZoneAllocated {
@@ -241,7 +238,6 @@ class ProfileCode : public ZoneAllocated {
   friend class ProfileBuilder;
 };
 
-
 class ProfileCodeTable : public ZoneAllocated {
  public:
   ProfileCodeTable() : table_(8) {}
@@ -282,7 +278,6 @@ class ProfileCodeTable : public ZoneAllocated {
 
   ZoneGrowableArray<ProfileCode*> table_;
 };
-
 
 // Stack traces are organized in a trie. This holds information about one node
 // in the trie. A node in a tree represents a stack frame and a path in the tree
@@ -338,7 +333,6 @@ class ProfileTrieNode : public ZoneAllocated {
     return (*b)->count() - (*a)->count();
   }
 
-
   intptr_t table_index_;
   intptr_t count_;
   intptr_t exclusive_allocations_;
@@ -348,7 +342,6 @@ class ProfileTrieNode : public ZoneAllocated {
 
   friend class ProfileBuilder;
 };
-
 
 // The model for a profile. Most of the model is zone allocated, therefore
 // a zone must be created that lives longer than this object.
@@ -375,6 +368,7 @@ class Profile : public ValueObject {
   // Build a filtered model using |filter| with the specified |tag_order|.
   void Build(Thread* thread,
              SampleFilter* filter,
+             SampleBuffer* sample_buffer,
              TagOrder tag_order,
              intptr_t extra_tags = 0);
 
@@ -422,7 +416,6 @@ class Profile : public ValueObject {
   friend class ProfileBuilder;
 };
 
-
 class ProfileTrieWalker : public ValueObject {
  public:
   explicit ProfileTrieWalker(Profile* profile)
@@ -462,7 +455,6 @@ class ProfileTrieWalker : public ValueObject {
   bool code_trie_;
 };
 
-
 class ProfilerService : public AllStatic {
  public:
   enum {
@@ -500,6 +492,7 @@ class ProfilerService : public AllStatic {
                             Profile::TagOrder tag_order,
                             intptr_t extra_tags,
                             SampleFilter* filter,
+                            SampleBuffer* sample_buffer,
                             bool as_timline);
 };
 

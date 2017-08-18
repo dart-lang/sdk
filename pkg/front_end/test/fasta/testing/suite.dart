@@ -12,11 +12,15 @@ import 'dart:convert' show JSON;
 
 import 'package:front_end/physical_file_system.dart' show PhysicalFileSystem;
 
+import 'package:front_end/src/base/libraries_specification.dart'
+    show TargetLibrariesSpecification;
+
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
     show ValidatingInstrumentation;
 
 import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
     show computeDartVm, computePatchedSdk;
+import 'package:front_end/src/fasta/uri_translator_impl.dart';
 
 import 'package:kernel/ast.dart' show Library, Program;
 
@@ -30,16 +34,22 @@ import 'package:testing/testing.dart'
         TestDescription,
         StdioProcess;
 
+import 'package:front_end/compiler_options.dart' show CompilerOptions;
+
+import 'package:front_end/src/base/processed_options.dart'
+    show ProcessedOptions;
+
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/errors.dart' show InputError;
+import 'package:front_end/src/fasta/deprecated_problems.dart'
+    show deprecated_InputError;
 
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
     show MatchExpectation, Print, Verify, WriteDill;
 
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
-import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
+import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 import 'package:analyzer/src/fasta/analyzer_target.dart' show AnalyzerTarget;
 
@@ -75,14 +85,8 @@ const String EXPECTATIONS = '''
 ]
 ''';
 
-String shortenAstKindName(AstKind astKind, bool strongMode) {
-  switch (astKind) {
-    case AstKind.Analyzer:
-      return strongMode ? "dartk-strong" : "dartk";
-    case AstKind.Kernel:
-      return strongMode ? "strong" : "direct";
-  }
-  throw "Unknown AST kind: $astKind";
+String generateExpectationName(bool strongMode) {
+  return strongMode ? "strong" : "direct";
 }
 
 enum AstKind {
@@ -91,14 +95,14 @@ enum AstKind {
 }
 
 class FastaContext extends ChainContext {
-  final TranslateUri uriTranslator;
+  final UriTranslatorImpl uriTranslator;
   final List<Step> steps;
   final Uri vm;
   final Map<Program, KernelTarget> programToTarget = <Program, KernelTarget>{};
   Uri sdk;
   Uri platformUri;
   Uri outlineUri;
-  List<int> outlineBytes;
+  Program outline;
 
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(JSON.decode(EXPECTATIONS));
@@ -116,17 +120,19 @@ class FastaContext extends ChainContext {
           new Outline(fullCompile, astKind, strongMode,
               updateComments: updateComments),
           const Print(),
-          new Verify(fullCompile),
-          new MatchExpectation(
-              fullCompile
-                  ? ".${shortenAstKindName(astKind, strongMode)}.expect"
-                  : ".outline.expect",
-              updateExpectations: updateExpectations)
+          new Verify(fullCompile)
         ] {
-    if (fullCompile && !skipVm) {
-      steps.add(const Transform());
-      steps.add(const WriteDill());
-      steps.add(const Run());
+    if (astKind != AstKind.Analyzer) {
+      steps.add(new MatchExpectation(
+          fullCompile
+              ? ".${generateExpectationName(strongMode)}.expect"
+              : ".outline.expect",
+          updateExpectations: updateExpectations));
+      if (fullCompile && !skipVm) {
+        steps.add(const Transform());
+        steps.add(const WriteDill());
+        steps.add(const Run());
+      }
     }
   }
 
@@ -139,15 +145,12 @@ class FastaContext extends ChainContext {
   }
 
   Future<Program> loadPlatformOutline() async {
-    if (outlineBytes == null) {
+    if (outline == null) {
       await ensurePlatformUris();
-      outlineBytes = new File.fromUri(outlineUri).readAsBytesSync();
+      outline =
+          loadProgramFromBytes(new File.fromUri(outlineUri).readAsBytesSync());
     }
-    // Note: we rebuild the platform outline on every test because the compiler
-    // currently mutates the in-memory representation of the program without
-    // cloning it.
-    // TODO(sigmund): investigate alternatives to this approach.
-    return loadProgramFromBytes(outlineBytes);
+    return outline;
   }
 
   static Future<FastaContext> create(
@@ -155,8 +158,10 @@ class FastaContext extends ChainContext {
     Uri sdk = await computePatchedSdk();
     Uri vm = computeDartVm(sdk);
     Uri packages = Uri.base.resolve(".packages");
-    TranslateUri uriTranslator = await TranslateUri
-        .parse(PhysicalFileSystem.instance, sdk, packages: packages);
+    var options = new ProcessedOptions(new CompilerOptions()
+      ..sdkRoot = sdk
+      ..packagesFileUri = packages);
+    UriTranslator uriTranslator = await options.getUriTranslator();
     bool strongMode = environment.containsKey(STRONG_MODE);
     bool updateExpectations = environment["updateExpectations"] == "true";
     bool updateComments = environment["updateComments"] == "true";
@@ -227,54 +232,57 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
 
   Future<Result<Program>> run(
       TestDescription description, FastaContext context) async {
-    // Disable colors to ensure that expectation files are the same across
-    // platforms and independent of stdin/stderr.
-    CompilerContext.current.disableColors();
-    Program platformOutline = await context.loadPlatformOutline();
-    Ticker ticker = new Ticker();
-    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
-        new TestVmFastaTarget(new TargetFlags(strongMode: strongMode)));
-    platformOutline.unbindCanonicalNames();
-    dillTarget.loader.appendLibraries(platformOutline);
-    // We create a new URI translator to avoid reading plaform libraries from
-    // file system.
-    TranslateUri uriTranslator = new TranslateUri(
-        context.uriTranslator.packages,
-        const <String, Uri>{},
-        const <String, List<Uri>>{});
-    KernelTarget sourceTarget = astKind == AstKind.Analyzer
-        ? new AnalyzerTarget(dillTarget, uriTranslator, strongMode)
-        : new KernelTarget(
-            PhysicalFileSystem.instance, dillTarget, uriTranslator);
+    var options =
+        new ProcessedOptions(new CompilerOptions()..throwOnErrors = false);
+    return await CompilerContext.runWithOptions(options, (_) async {
+      // Disable colors to ensure that expectation files are the same across
+      // platforms and independent of stdin/stderr.
+      CompilerContext.current.disableColors();
+      Program platformOutline = await context.loadPlatformOutline();
+      Ticker ticker = new Ticker();
+      DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
+          new TestVmFastaTarget(new TargetFlags(strongMode: strongMode)));
+      platformOutline.unbindCanonicalNames();
+      dillTarget.loader.appendLibraries(platformOutline);
+      // We create a new URI translator to avoid reading platform libraries from
+      // file system.
+      UriTranslatorImpl uriTranslator = new UriTranslatorImpl(
+          const TargetLibrariesSpecification('vm'),
+          context.uriTranslator.packages);
+      KernelTarget sourceTarget = astKind == AstKind.Analyzer
+          ? new AnalyzerTarget(dillTarget, uriTranslator, strongMode)
+          : new KernelTarget(
+              PhysicalFileSystem.instance, false, dillTarget, uriTranslator);
 
-    Program p;
-    try {
-      sourceTarget.read(description.uri);
-      await dillTarget.buildOutlines();
-      ValidatingInstrumentation instrumentation;
-      if (strongMode) {
-        instrumentation = new ValidatingInstrumentation();
-        await instrumentation.loadExpectations(description.uri);
-        sourceTarget.loader.instrumentation = instrumentation;
-      }
-      p = await sourceTarget.buildOutlines();
-      if (fullCompile) {
-        p = await sourceTarget.buildProgram(trimDependencies: true);
-        instrumentation?.finish();
-        if (instrumentation != null && instrumentation.hasProblems) {
-          if (updateComments) {
-            await instrumentation.fixSource(description.uri, false);
-          } else {
-            return fail(null, instrumentation.problemsAsString);
+      Program p;
+      try {
+        sourceTarget.read(description.uri);
+        await dillTarget.buildOutlines();
+        ValidatingInstrumentation instrumentation;
+        if (strongMode) {
+          instrumentation = new ValidatingInstrumentation();
+          await instrumentation.loadExpectations(description.uri);
+          sourceTarget.loader.instrumentation = instrumentation;
+        }
+        p = await sourceTarget.buildOutlines();
+        if (fullCompile) {
+          p = await sourceTarget.buildProgram();
+          instrumentation?.finish();
+          if (instrumentation != null && instrumentation.hasProblems) {
+            if (updateComments) {
+              await instrumentation.fixSource(description.uri, false);
+            } else {
+              return fail(null, instrumentation.problemsAsString);
+            }
           }
         }
+      } on deprecated_InputError catch (e, s) {
+        return fail(null, e.error, s);
       }
-    } on InputError catch (e, s) {
-      return fail(null, e.error, s);
-    }
-    context.programToTarget.clear();
-    context.programToTarget[p] = sourceTarget;
-    return pass(p);
+      context.programToTarget.clear();
+      context.programToTarget[p] = sourceTarget;
+      return pass(p);
+    });
   }
 }
 

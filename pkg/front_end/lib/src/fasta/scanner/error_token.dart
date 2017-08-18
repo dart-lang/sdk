@@ -8,7 +8,7 @@ import '../../scanner/token.dart' show BeginToken, TokenType, TokenWithComment;
 
 import '../fasta_codes.dart'
     show
-        FastaCode,
+        Code,
         codeAsciiControlCharacter,
         codeEncoding,
         codeExpectedHexDigit,
@@ -77,7 +77,7 @@ abstract class ErrorToken extends TokenWithComment {
 
   String get assertionMessage;
 
-  FastaCode get errorCode;
+  Code get errorCode;
 
   int get character => null;
 
@@ -101,7 +101,7 @@ class EncodingErrorToken extends ErrorToken {
 
   String get assertionMessage => "Unable to decode bytes as UTF-8.";
 
-  FastaCode get errorCode => codeEncoding;
+  Code get errorCode => codeEncoding;
 }
 
 /// Represents a non-ASCII character outside a string or comment.
@@ -123,7 +123,7 @@ class NonAsciiIdentifierToken extends ErrorToken {
         " or '\$' (a dollar sign).";
   }
 
-  FastaCode get errorCode => codeNonAsciiIdentifier;
+  Code get errorCode => codeNonAsciiIdentifier;
 }
 
 /// Represents a non-ASCII whitespace outside a string or comment.
@@ -140,7 +140,7 @@ class NonAsciiWhitespaceToken extends ErrorToken {
         "and comments.";
   }
 
-  FastaCode get errorCode => codeNonAsciiWhitespace;
+  Code get errorCode => codeNonAsciiWhitespace;
 }
 
 /// Represents an ASCII control character outside a string or comment.
@@ -158,7 +158,7 @@ class AsciiControlCharacterToken extends ErrorToken {
         "comments.";
   }
 
-  FastaCode get errorCode => codeAsciiControlCharacter;
+  Code get errorCode => codeAsciiControlCharacter;
 }
 
 /// Represents an unterminated string.
@@ -175,7 +175,7 @@ class UnterminatedToken extends ErrorToken {
 
   int get charCount => endOffset - charOffset;
 
-  FastaCode get errorCode {
+  Code get errorCode {
     switch (start) {
       case '1e':
         return codeMissingExponent;
@@ -220,5 +220,5 @@ class UnmatchedToken extends ErrorToken {
 
   String get assertionMessage => "'$begin' isn't closed.";
 
-  FastaCode get errorCode => codeUnmatchedToken;
+  Code get errorCode => codeUnmatchedToken;
 }

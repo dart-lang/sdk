@@ -17,13 +17,14 @@ import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' as math;
 
+import "package:status_file/expectation.dart";
+
 import 'android.dart';
 import 'browser_controller.dart';
 import 'command.dart';
 import 'command_output.dart';
 import 'configuration.dart';
 import 'dependency_graph.dart';
-import 'expectation.dart';
 import 'runtime_configuration.dart';
 import 'test_progress.dart';
 import 'test_suite.dart';
@@ -604,6 +605,7 @@ class BatchRunnerProcess {
   String _status;
   DateTime _startTime;
   Timer _timer;
+  int _testCount = 0;
 
   Future<CommandOutput> runCommand(String runnerType, ProcessCommand command,
       int timeout, List<String> arguments) {
@@ -619,12 +621,17 @@ class BatchRunnerProcess {
     _arguments = arguments;
     _processEnvironmentOverrides = command.environmentOverrides;
 
+    // TOOD(jmesserly): this restarts `dartdevc --batch` to work around a
+    // memory leak, see https://github.com/dart-lang/sdk/issues/30314.
+    var clearMemoryLeak = command is CompilationCommand &&
+        command.displayName == 'dartdevc' &&
+        ++_testCount % 100 == 0;
     if (_process == null) {
       // Start process if not yet started.
       _startProcess(() {
         doStartTest(command, timeout);
       });
-    } else if (!sameRunnerType) {
+    } else if (!sameRunnerType || clearMemoryLeak) {
       // Restart this runner with the right executable for this test if needed.
       _processExitHandler = (_) {
         _startProcess(() {
@@ -1163,6 +1170,11 @@ class CommandExecutorImpl implements CommandExecutor {
     } else if (command is AnalysisCommand && globalConfiguration.batch) {
       return _getBatchRunner(command.displayName)
           .runCommand(command.displayName, command, timeout, command.arguments);
+    } else if (command is CompilationCommand &&
+        command.displayName == 'dartdevc' &&
+        globalConfiguration.batch) {
+      return _getBatchRunner(command.displayName)
+          .runCommand(command.displayName, command, timeout, command.arguments);
     } else if (command is ScriptCommand) {
       return command.run();
     } else if (command is AdbPrecompilationCommand) {
@@ -1342,13 +1354,6 @@ bool shouldRetryCommand(CommandOutput output) {
           return true;
         }
       }
-    }
-
-    // We currently rerun dartium tests, see issue 14074.
-    if (command is BrowserTestCommand &&
-        command.retry &&
-        command.browser == Runtime.dartium) {
-      return true;
     }
 
     // As long as we use a legacy version of our custom content_shell (which

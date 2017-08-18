@@ -9,14 +9,13 @@ import 'dart:math' show min, max;
 import 'package:analyzer/analyzer.dart' hide ConstantEvaluator;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
-import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
+import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
-import 'package:analyzer/src/dart/element/element.dart'
-    show FieldElementImpl, LocalVariableElementImpl;
-import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart'
@@ -31,8 +30,7 @@ import 'package:analyzer/src/summary/summarize_ast.dart'
 import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
 import 'package:analyzer/src/summary/summary_sdk.dart';
-import 'package:analyzer/src/task/strong/ast_properties.dart'
-    show isDynamicInvoke, setIsDynamicInvoke, getImplicitAssignmentCast;
+import 'package:analyzer/src/task/strong/ast_properties.dart';
 import 'package:path/path.dart' show isWithin, relative, separator;
 
 import '../closure/closure_annotator.dart' show ClosureAnnotator;
@@ -46,6 +44,7 @@ import 'js_interop.dart';
 import 'js_metalet.dart' as JS;
 import 'js_names.dart' as JS;
 import 'js_typeref_codegen.dart' show JsTypeRefCodegen;
+import 'js_typerep.dart' show JSTypeRep;
 import 'module_builder.dart' show pathToJSIdentifier;
 import 'nullable_type_inference.dart' show NullableTypeInference;
 import 'property_model.dart';
@@ -57,11 +56,11 @@ import 'type_utilities.dart';
 ///
 /// Takes as input resolved Dart ASTs for every compilation unit in every
 /// library in the module. Produces a single JavaScript AST for the module as
-/// output, along with its source map.
+// output, along with its source map.
 ///
 /// This class attempts to preserve identifier names and structure of the input
 /// Dart code, whenever this is possible to do in the generated code.
-//
+///
 // TODO(jmesserly): we should use separate visitors for statements and
 // expressions. Declarations are handled directly, and many minor component
 // AST nodes aren't visited, so the visitor pattern isn't helping except for
@@ -75,6 +74,7 @@ class CodeGenerator extends Object
 
   final CompilerOptions options;
   final StrongTypeSystemImpl rules;
+  JSTypeRep typeRep;
 
   /// The set of libraries we are currently compiling, and the temporaries used
   /// to refer to them.
@@ -131,6 +131,9 @@ class CodeGenerator extends Object
 
   /// The dart:async `StreamIterator<>` type.
   final InterfaceType _asyncStreamIterator;
+
+  /// The dart:core `identical` element.
+  final FunctionElement _coreIdentical;
 
   /// The dart:_interceptors JSArray element.
   final ClassElement _jsArray;
@@ -190,6 +193,8 @@ class CodeGenerator extends Object
   /// unit.
   final virtualFields = new VirtualFieldModel();
 
+  final _usedCovariantPrivateMembers = new HashSet<ExecutableElement>();
+
   CodeGenerator(
       AnalysisContext c, this.summaryData, this.options, this._extensionTypes)
       : context = c,
@@ -197,6 +202,8 @@ class CodeGenerator extends Object
         types = c.typeProvider,
         _asyncStreamIterator =
             _getLibrary(c, 'dart:async').getType('StreamIterator').type,
+        _coreIdentical =
+            _getLibrary(c, 'dart:core').publicNamespace.get('identical'),
         _jsArray = _getLibrary(c, 'dart:_interceptors').getType('JSArray'),
         interceptorClass =
             _getLibrary(c, 'dart:_interceptors').getType('Interceptor'),
@@ -210,7 +217,9 @@ class CodeGenerator extends Object
         functionClass = _getLibrary(c, 'dart:core').getType('Function'),
         privateSymbolClass =
             _getLibrary(c, 'dart:_internal').getType('PrivateSymbol'),
-        dartJSLibrary = _getLibrary(c, 'dart:js');
+        dartJSLibrary = _getLibrary(c, 'dart:js') {
+    typeRep = new JSTypeRep(rules, types);
+  }
 
   Element get currentElement => _currentElements.last;
 
@@ -250,7 +259,6 @@ class CodeGenerator extends Object
     }
 
     var assembler = new PackageBundleAssembler();
-    assembler.recordDependencies(summaryData);
 
     var uriToUnit = new Map<String, UnlinkedUnit>.fromIterable(units,
         key: (u) => u.element.source.uri.toString(),
@@ -278,6 +286,10 @@ class CodeGenerator extends Object
   JS.Program _emitModule(List<CompilationUnit> compilationUnits, String name) {
     if (_moduleItems.isNotEmpty) {
       throw new StateError('Can only call emitModule once.');
+    }
+
+    for (var unit in compilationUnits) {
+      _usedCovariantPrivateMembers.addAll(getCovariantPrivateMembers(unit));
     }
 
     // Transform the AST to make coercions explicit.
@@ -382,81 +394,61 @@ class CodeGenerator extends Object
     return new JS.ObjectInitializer(properties, multiline: true);
   }
 
-  List<String> _getJSName(Element e) {
-    if (e.library == null ||
-        findAnnotation(e.library, isPublicJSAnnotation) == null) {
-      return null;
-    }
+  /// If [e] is a property accessor element, this returns the
+  /// (possibly synthetic) field that corresponds to it, otherwise returns [e].
+  Element _getNonAccessorElement(Element e) =>
+      e is PropertyAccessorElement ? e.variable : e;
 
+  /// Returns the name of [e] but removes trailing `=` from setter names.
+  // TODO(jmesserly): it would be nice if Analyzer had something like this.
+  // `Element.displayName` is close, but it also normalizes operator names in
+  // a way we don't want.
+  String _getElementName(Element e) => _getNonAccessorElement(e).name;
+
+  bool _isExternal(Element e) =>
+      e is ExecutableElement && e.isExternal ||
+      e is PropertyInducingElement &&
+          (e.getter.isExternal || e.setter.isExternal);
+
+  bool _isJSElement(Element e) =>
+      e?.library != null &&
+      _isJSNative(e.library) &&
+      (_isExternal(e) || e is ClassElement && _isJSNative(e));
+
+  String _getJSNameWithoutGlobal(Element e) {
+    if (!_isJSElement(e)) return null;
     var libraryJSName = getAnnotationName(e.library, isPublicJSAnnotation);
-    var libraryPrefix = <String>[];
-    if (libraryJSName != null && libraryJSName.isNotEmpty) {
-      libraryPrefix.addAll(libraryJSName.split('.'));
-    }
-
-    var original = e;
-    var variableElement = e;
-    if (original is PropertyAccessorElement) {
-      variableElement = original.variable;
-      if (original.isSynthetic) e = variableElement;
-    }
-
-    String elementJSName;
-    if (findAnnotation(e, isPublicJSAnnotation) != null) {
-      elementJSName = getAnnotationName(e, isPublicJSAnnotation) ?? '';
-    }
-
-    if (variableElement is TopLevelVariableElement) {
-      elementJSName = _jsInteropStaticMemberName(original);
-    }
-    if (elementJSName == null) return null;
-
-    var elementJSParts = <String>[];
-    if (elementJSName.isNotEmpty) {
-      elementJSParts.addAll(elementJSName.split('.'));
-    } else {
-      elementJSParts.add(e.name);
-    }
-
-    return libraryPrefix..addAll(elementJSParts);
+    var jsName =
+        getAnnotationName(e, isPublicJSAnnotation) ?? _getElementName(e);
+    return libraryJSName != null ? '$libraryJSName.$jsName' : jsName;
   }
 
   JS.Expression _emitJSInterop(Element e) {
-    var jsName = _getJSName(e);
-    if (jsName == null) return null;
-    var fullName = ['global']..addAll(jsName);
-    JS.Expression access = _runtimeModule;
-    for (var part in fullName) {
-      access = new JS.PropertyAccess(access, js.string(part));
+    var jsName = _getJSNameWithoutGlobal(e);
+    return jsName != null ? _emitJSInteropForGlobal(jsName) : null;
+  }
+
+  JS.Expression _emitJSInteropForGlobal(String name) {
+    var access = _callHelper('global');
+    for (var part in name.split('.')) {
+      access = new JS.PropertyAccess(access, js.escapedString(part, "'"));
     }
     return access;
   }
 
-  String _jsInteropStaticMemberName(Element e) {
-    if (e?.library == null ||
-        findAnnotation(e.library, isPublicJSAnnotation) == null) {
-      return null;
+  JS.Expression _emitJSInteropStaticMemberName(Element e) {
+    if (!_isJSElement(e)) return null;
+    var name = getAnnotationName(e, isPublicJSAnnotation);
+    if (name != null) {
+      if (name.contains('.')) {
+        throw new UnsupportedError(
+            'static members do not support "." in their names. '
+            'See https://github.com/dart-lang/sdk/issues/27926');
+      }
+    } else {
+      name = _getElementName(e);
     }
-    if (e is ExecutableElement && e.isExternal) {
-      return getAnnotationName(e, isPublicJSAnnotation) ??
-          (e is PropertyAccessorElement ? e.variable : e).name;
-    }
-    if (e is PropertyInducingElement && e.getter.isExternal) {
-      return getAnnotationName(e, isPublicJSAnnotation) ?? e.name;
-    }
-    return null;
-  }
-
-  String _emitJSInteropStaticMemberName(Element e) {
-    var name = _jsInteropStaticMemberName(e);
-    // We do not support statics names with JS annotations containing dots.
-    // See https://github.com/dart-lang/sdk/issues/27926
-    if (name != null && name.contains('.')) {
-      throw new UnsupportedError(
-          'We do not support JS annotations containing dots on static members. '
-          'See https://github.com/dart-lang/sdk/issues/27926');
-    }
-    return name;
+    return js.escapedString(name, "'");
   }
 
   /// Flattens blocks in [items] to a single list.
@@ -589,15 +581,13 @@ class CodeGenerator extends Object
     // this is only to catch things that haven't been emitted yet.
     //
     // See _emitTypeDeclaration.
-    var library = unit.element.library;
-    bool internalSdk = isSdkInternalRuntime(library);
-    _currentElements.add(library);
-
+    _currentElements.add(unit.element);
+    var isInternalSdk = isSdkInternalRuntime(currentLibrary);
     List<VariableDeclaration> fields;
     for (var declaration in unit.declarations) {
       if (declaration is TopLevelVariableDeclaration) {
         inferNullableTypes(declaration);
-        if (internalSdk && declaration.variables.isFinal) {
+        if (isInternalSdk && declaration.variables.isFinal) {
           _emitInternalSdkFields(declaration.variables.variables);
         } else {
           (fields ??= []).addAll(declaration.variables.variables);
@@ -618,7 +608,7 @@ class CodeGenerator extends Object
 
       inferNullableTypes(declaration);
       var item = _visit(declaration);
-      if (internalSdk && element is FunctionElement) {
+      if (isInternalSdk && element is FunctionElement) {
         _internalSdkFunctions.add(item);
       } else {
         _moduleItems.add(item);
@@ -691,17 +681,38 @@ class CodeGenerator extends Object
     Expression fromExpr = node.expression;
     var from = getStaticType(fromExpr);
     var to = node.type.type;
-
     JS.Expression jsFrom = _visit(fromExpr);
 
-    // Skip the cast if it's not needed.
-    if (rules.isSubtypeOf(from, to)) return jsFrom;
+    // If the check was put here by static analysis to ensure soundness, we
+    // can't skip it. This happens because of unsound covariant generics:
+    //
+    //      typedef F<T>(T t);
+    //      class C<T> {
+    //        F<T> f;
+    //        add(T t) {
+    //          // required check `t as T`
+    //        }
+    //      }
+    //      main() {
+    //        C<Object> c = new C<int>()..f = (int x) => x.isEven;
+    //        c.f('hi'); // required check `c.f as F<Object>`
+    //        c.add('hi);
+    //      }
+    //
+    // NOTE: due to implementation details, we do not currently reify the the
+    // `C<T>.add` check in CoercionReifier, so it does not reach this point;
+    // rather we check for it explicitly when emitting methods and fields.
+    // However we do reify the `c.f` check, so we must not eliminate it.
+    var isRequiredForSoundness = CoercionReifier.isRequiredForSoundness(node);
+    if (!isRequiredForSoundness && rules.isSubtypeOf(from, to)) return jsFrom;
 
     // All Dart number types map to a JS double.
-    if (_isNumberInJS(from) && _isNumberInJS(to)) {
+    if (typeRep.isNumber(from) && typeRep.isNumber(to)) {
       // Make sure to check when converting to int.
       if (from != types.intType && to == types.intType) {
         // TODO(jmesserly): fuse this with notNull check.
+        // TODO(jmesserly): this does not correctly distinguish user casts from
+        // required-for-soundness casts.
         return _callHelper('asInt(#)', jsFrom);
       }
 
@@ -709,14 +720,8 @@ class CodeGenerator extends Object
       return jsFrom;
     }
 
-    var type = _emitType(to,
-        nameType: options.nameTypeTests || options.hoistTypeTests,
-        hoistType: options.hoistTypeTests);
-    if (CoercionReifier.isImplicitCast(node)) {
-      return js.call('#._check(#)', [type, jsFrom]);
-    } else {
-      return js.call('#.as(#)', [type, jsFrom]);
-    }
+    var code = isRequiredForSoundness ? '#._check(#)' : '#.as(#)';
+    return js.call(code, [_emitType(to), jsFrom]);
   }
 
   @override
@@ -732,9 +737,7 @@ class CodeGenerator extends Object
     } else {
       // Always go through a runtime helper, because implicit interfaces.
 
-      var castType = _emitType(type,
-          nameType: options.nameTypeTests || options.hoistTypeTests,
-          hoistType: options.hoistTypeTests);
+      var castType = _emitType(type);
 
       result = js.call('#.is(#)', [castType, lhs]);
     }
@@ -746,7 +749,7 @@ class CodeGenerator extends Object
   }
 
   String _jsTypeofName(DartType t) {
-    if (_isNumberInJS(t)) return 'number';
+    if (typeRep.isNumber(t)) return 'number';
     if (t == types.stringType) return 'string';
     if (t == types.boolType) return 'boolean';
     return null;
@@ -812,9 +815,16 @@ class CodeGenerator extends Object
     // The resulting 'class' is a mixable class in this case.
     bool isMixinAlias = supertype.isObject && classElem.mixins.length == 1;
 
+    // TODO(jmesserly): what do we do if the mixin alias has implied superclass
+    // covariance checks (due to new interfaces)? We can't add them without
+    // messing up the inheritance chain and breaking the ability of the mixin
+    // alias to be mixed in elsewhere. We're going to need something special,
+    // like adding these checks when we copy in the methods.
+    var jsMethods = <JS.Method>[];
+    _emitSuperclassCovarianceChecks(node, jsMethods);
     var classExpr = isMixinAlias
         ? _emitClassHeritage(classElem)
-        : _emitClassExpression(classElem, []);
+        : _emitClassExpression(classElem, jsMethods);
     var className = isGeneric
         ? new JS.Identifier(classElem.name)
         : _emitTopLevelName(classElem);
@@ -849,7 +859,7 @@ class CodeGenerator extends Object
     return _statement(block);
   }
 
-  JS.Statement _emitJsType(Element e) {
+  JS.Statement _emitJSType(Element e) {
     var jsTypeName = getAnnotationName(e, isJSAnnotation);
     if (jsTypeName == null || jsTypeName == e.name) return null;
 
@@ -868,7 +878,7 @@ class CodeGenerator extends Object
     if (findAnnotation(classElem, isPublicJSAnnotation) != null) return null;
 
     // If this is a JavaScript type, emit it now and then exit.
-    var jsTypeDef = _emitJsType(classElem);
+    var jsTypeDef = _emitJSType(classElem);
     if (jsTypeDef != null) return jsTypeDef;
 
     var ctors = <ConstructorDeclaration>[];
@@ -898,8 +908,12 @@ class CodeGenerator extends Object
     }
 
     var savedClassProperties = _classProperties;
-    _classProperties =
-        new ClassPropertyModel.build(_extensionTypes, virtualFields, classElem);
+    _classProperties = new ClassPropertyModel.build(
+        _extensionTypes,
+        virtualFields,
+        classElem,
+        getClassCovariantParameters(node),
+        _usedCovariantPrivateMembers);
 
     var jsCtors = _defineConstructors(classElem, className, fields, ctors);
     var classExpr = _emitClassExpression(classElem, _emitClassMethods(node),
@@ -1378,14 +1392,11 @@ class CodeGenerator extends Object
     if (type.isObject) {
       // Dart does not use ES6 constructors.
       // Add an error to catch any invalid usage.
-      jsMethods.add(new JS.Method(
-          _propertyName('constructor'),
-          js.call(
-              r'''function() {
+      jsMethods.add(
+          new JS.Method(_propertyName('constructor'), js.call(r'''function() {
                   throw Error("use `new " + #.typeName(#.getReifiedType(this)) +
                       ".new(...)` to create a Dart object");
-              }''',
-              [_runtimeModule, _runtimeModule])));
+              }''', [_runtimeModule, _runtimeModule])));
     }
     for (var m in node.members) {
       if (m is ConstructorDeclaration) {
@@ -1435,7 +1446,86 @@ class CodeGenerator extends Object
     // Add all of the super helper methods
     jsMethods.addAll(_superHelpers.values);
 
+    _emitSuperclassCovarianceChecks(node, jsMethods);
     return jsMethods.where((m) => m != null).toList(growable: false);
+  }
+
+  void _emitSuperclassCovarianceChecks(
+      Declaration node, List<JS.Method> methods) {
+    var covariantParams = getSuperclassCovariantParameters(node);
+    if (covariantParams == null) return;
+
+    for (var member in covariantParams.map((p) => p.enclosingElement).toSet()) {
+      var name = _declareMemberName(member);
+      if (member is PropertyAccessorElement) {
+        var param = member.parameters[0];
+        assert(covariantParams.contains(param));
+        methods.add(new JS.Method(
+            name,
+            js.call('function(x) { return super.#(#._check(x)); }',
+                [name, _emitType(param.type)]),
+            isSetter: true));
+        methods.add(new JS.Method(
+            name, js.call('function() { return super.#; }', [name]),
+            isGetter: true));
+      } else if (member is MethodElement) {
+        var type = member.type;
+
+        var body = <JS.Statement>[];
+        var typeFormals = _emitTypeFormals(type.typeFormals);
+        if (type.typeFormals.any(covariantParams.contains)) {
+          body.add(js.statement(
+              '#.checkBounds([#]);', [_emitType(type), typeFormals]));
+        }
+
+        var jsParams = <JS.Parameter>[];
+        bool foundNamedParams = false;
+        for (var param in member.parameters) {
+          JS.Parameter jsParam;
+          if (param.kind == ParameterKind.NAMED) {
+            foundNamedParams = true;
+            if (covariantParams.contains(param)) {
+              var name = _propertyName(param.name);
+              body.add(js.statement('if (# in #) #._check(#.#);', [
+                name,
+                namedArgumentTemp,
+                _emitType(param.type),
+                namedArgumentTemp,
+                name
+              ]));
+            }
+          } else {
+            jsParam = _emitParameter(param);
+            jsParams.add(jsParam);
+            if (covariantParams.contains(param)) {
+              if (param.kind == ParameterKind.POSITIONAL) {
+                body.add(js.statement('if (# !== void 0) #._check(#);',
+                    [jsParam, _emitType(param.type), jsParam]));
+              } else {
+                body.add(js.statement(
+                    '#._check(#);', [_emitType(param.type), jsParam]));
+              }
+            }
+          }
+        }
+
+        if (foundNamedParams) jsParams.add(namedArgumentTemp);
+
+        if (typeFormals.isEmpty) {
+          body.add(js.statement('return super.#(#);', [name, jsParams]));
+        } else {
+          body.add(js.statement(
+              'return super.#(#)(#);', [name, typeFormals, jsParams]));
+        }
+        var fn = new JS.Fun(jsParams, new JS.Block(body),
+            typeParams: typeFormals, returnType: emitTypeRef(type.returnType));
+        methods.add(new JS.Method(name, _makeGenericFunction(fn)));
+      } else {
+        throw new StateError(
+            'unable to generate a covariant check for element: `$member` '
+            '(${member.runtimeType})');
+      }
+    }
   }
 
   /// Emits a Dart factory constructor to a JS static method.
@@ -1527,6 +1617,11 @@ class CodeGenerator extends Object
       }
     }
 
+    var typeParams = _emitTypeFormals(method.type.typeFormals);
+    if (typeParams.isNotEmpty) {
+      addProperty('typeArguments', new JS.ArrayInitializer(typeParams));
+    }
+
     var fnBody =
         js.call('this.noSuchMethod(new #.InvocationImpl.new(#, #, #))', [
       _runtimeModule,
@@ -1541,10 +1636,8 @@ class CodeGenerator extends Object
 
     var fn = _makeGenericFunction(new JS.Fun(
         fnArgs, js.statement('{ return #; }', [fnBody]),
-        typeParams: _emitTypeFormals(method.type.typeFormals)));
+        typeParams: typeParams));
 
-    // TODO(jmesserly): generic type arguments will get dropped.
-    // We have a similar issue with `dgsend` helpers.
     return new JS.Method(
         _declareMemberName(method,
             useExtension: _extensionTypes.isNativeClass(type.element)),
@@ -1578,9 +1671,19 @@ class CodeGenerator extends Object
           ? [new JS.Super(), name]
           : [new JS.This(), virtualField];
 
-      result.add(new JS.Method(
-          name, js.call('function(value) { #[#] = value; }', args),
-          isSetter: true));
+      String jsCode;
+      var setter = element.setter;
+      var covariantParams = _classProperties.covariantParameters;
+      if (setter != null &&
+          covariantParams != null &&
+          covariantParams.contains(setter.parameters[0])) {
+        args.add(_emitType(setter.parameters[0].type));
+        jsCode = 'function(value) { #[#] = #._check(value); }';
+      } else {
+        jsCode = 'function(value) { #[#] = value; }';
+      }
+
+      result.add(new JS.Method(name, js.call(jsCode, args), isSetter: true));
     }
 
     return result;
@@ -1680,24 +1783,18 @@ class CodeGenerator extends Object
   void _registerExtensionType(
       ClassElement classElem, String jsPeerName, List<JS.Statement> body) {
     if (jsPeerName != null) {
-      body.add(_callHelperStatement('registerExtension(#.global.#, #);', [
-        _runtimeModule,
-        _propertyName(jsPeerName),
-        _emitTopLevelName(classElem)
-      ]));
+      body.add(_callHelperStatement('registerExtension(#, #);',
+          [js.string(jsPeerName), _emitTopLevelName(classElem)]));
     }
   }
 
   JS.Statement _setBaseClass(ClassElement classElem, JS.Expression className,
       List<String> jsPeerNames, List<JS.Statement> body) {
     var typeFormals = classElem.typeParameters;
-    if (jsPeerNames.isNotEmpty && typeFormals.isNotEmpty) {
-      for (var peer in jsPeerNames) {
-        // TODO(jmesserly): we should just extend Array in the first place
-        var newBaseClass = _callHelper('global.#', [peer]);
-        body.add(_callHelperStatement(
-            'setExtensionBaseClass(#, #);', [className, newBaseClass]));
-      }
+    if (jsPeerNames.length == 1 && typeFormals.isNotEmpty) {
+      var newBaseClass = _callHelper('global.#', jsPeerNames[0]);
+      body.add(_callHelperStatement(
+          'setExtensionBaseClass(#, #);', [className, newBaseClass]));
     } else if (_hasDeferredSupertype.contains(classElem)) {
       // TODO(vsm): consider just threading the deferred supertype through
       // instead of recording classElem in a set on the class and recomputing
@@ -1733,10 +1830,14 @@ class CodeGenerator extends Object
     // handled at runtime by the dynamic call mechanism. So we only
     // concern ourselves with statically known function types.
     //
-    // For the same reason, we can ignore "noSuchMethod".
-    // call-implemented-by-nSM will be dispatched by dcall at runtime.
-    bool isCallable = classElem.lookUpMethod('call', null) != null ||
-        classElem.lookUpGetter('call', null)?.returnType is FunctionType;
+    // We can ignore `noSuchMethod` because:
+    // * `dynamic d; d();` without a declared `call` method is handled by dcall.
+    // * for `class C implements Callable { noSuchMethod(i) { ... } }` we find
+    //   the `call` method on the `Callable` interface.
+    var callMethod = classElem.type.lookUpInheritedGetterOrMethod('call');
+    bool isCallable = callMethod is PropertyAccessorElement
+        ? callMethod.returnType is FunctionType
+        : callMethod != null;
 
     var body = <JS.Statement>[];
     void addConstructor(ConstructorElement element, JS.Expression jsCtor) {
@@ -1919,11 +2020,9 @@ class CodeGenerator extends Object
         lookup = classElem.type.lookUpInheritedSetter;
         tMember = node.isStatic ? tStaticSetters : tInstanceSetters;
       } else {
-        // Method
-        // Swap in "Object" for parameter types that are covariant overrides.
-        var objectType = context.typeProvider.objectType;
-        elementToType =
-            (MethodElement element) => element.getReifiedType(objectType);
+        // Swap in "Object" for parameter types that are covariant, either via
+        // the `covariant` keyword or because of covariant generics.
+        elementToType = _getMemberRuntimeType;
         getOverride = classElem.lookUpInheritedConcreteMethod;
         lookup = classElem.type.lookUpInheritedMethod;
         tMember = node.isStatic ? tStaticMethods : tInstanceMethods;
@@ -1942,8 +2041,7 @@ class CodeGenerator extends Object
 
       var type = _emitAnnotatedFunctionType(reifiedType, node.metadata,
           parameters: node.parameters?.parameters,
-          nameType: options.hoistSignatureTypes,
-          hoistType: options.hoistSignatureTypes,
+          nameType: false,
           definite: true);
 
       if (needsSignature) {
@@ -1984,8 +2082,7 @@ class CodeGenerator extends Object
         var memberName = _constructorName(element);
         var type = _emitAnnotatedFunctionType(element.type, node.metadata,
             parameters: node.parameters.parameters,
-            nameType: options.hoistSignatureTypes,
-            hoistType: options.hoistSignatureTypes,
+            nameType: false,
             definite: true);
         var property = new JS.Property(memberName, type);
         tCtors.add(property);
@@ -2078,8 +2175,7 @@ class CodeGenerator extends Object
     // method. As a result, we can know the callable JS function was created
     // at the first constructor that was hit.
     if (!isCallable) return new JS.Fun(params, body);
-    return js.call(
-        r'''function callableClass(#) {
+    return js.call(r'''function callableClass(#) {
           if (typeof this !== "function") {
             function self(...args) {
               return self.call.apply(self, args);
@@ -2089,8 +2185,25 @@ class CodeGenerator extends Object
             return self;
           }
           #
-        }''',
-        [params, params, body]);
+        }''', [params, params, body]);
+  }
+
+  FunctionType _getMemberRuntimeType(ExecutableElement element) {
+    // Check whether we have any covariant parameters.
+    // Usually we don't, so we can use the same type.
+    if (!element.parameters.any(_isCovariant)) return element.type;
+
+    var parameters = element.parameters
+        .map((p) => new ParameterElementImpl.synthetic(p.name,
+            _isCovariant(p) ? objectClass.type : p.type, p.parameterKind))
+        .toList();
+
+    var function = new FunctionElementImpl("", -1)
+      ..isSynthetic = true
+      ..returnType = element.returnType
+      ..shareTypeParameters(element.typeParameters)
+      ..parameters = parameters;
+    return function.type = new FunctionTypeImpl(function);
   }
 
   JS.Expression _constructorName(ConstructorElement ctor) {
@@ -2260,7 +2373,9 @@ class CodeGenerator extends Object
     fields.forEach((FieldElement e, JS.Expression initialValue) {
       JS.Expression access =
           _classProperties.virtualFields[e] ?? _declareMemberName(e.getter);
-      body.add(js.statement('this.# = #;', [access, initialValue]));
+      body.add(initialValue
+          .toAssignExpression(js.call('this.#', [access]))
+          .toStatement());
     });
 
     return _statement(body);
@@ -2312,37 +2427,19 @@ class CodeGenerator extends Object
         }
       }
 
-      // TODO(jmesserly): various problems here, see:
-      // https://github.com/dart-lang/sdk/issues/27259
-      var paramType =
-          resolutionMap.elementDeclaredByFormalParameter(param).type;
-      if (node is MethodDeclaration &&
-          (resolutionMap.elementDeclaredByFormalParameter(param).isCovariant ||
-              _unsoundCovariant(paramType, true))) {
-        var castType = _emitType(paramType,
-            nameType: options.nameTypeTests || options.hoistTypeTests,
-            hoistType: options.hoistTypeTests);
+      var paramElement = resolutionMap.elementDeclaredByFormalParameter(param);
+      if (_isCovariant(paramElement)) {
+        var castType = _emitType(paramElement.type);
         body.add(js.statement('#._check(#);', [castType, jsParam]));
       }
     }
     return body.isEmpty ? null : _statement(body);
   }
 
-  /// Given a type [t], return whether or not t is unsoundly covariant.
-  /// If [contravariant] is true, then t appears in a contravariant
-  /// position.
-  bool _unsoundCovariant(DartType t, bool contravariant) {
-    if (t is TypeParameterType) {
-      return contravariant && t.element.enclosingElement is ClassElement;
-    }
-    if (t is FunctionType) {
-      if (_unsoundCovariant(t.returnType, contravariant)) return true;
-      return t.parameters.any((p) => _unsoundCovariant(p.type, !contravariant));
-    }
-    if (t is ParameterizedType) {
-      return t.typeArguments.any((t) => _unsoundCovariant(t, contravariant));
-    }
-    return false;
+  bool _isCovariant(ParameterElement p) {
+    if (p.isCovariant) return true;
+    var covariantParams = _classProperties?.covariantParameters;
+    return covariantParams != null && covariantParams.contains(p);
   }
 
   JS.Expression _defaultParamValue(FormalParameter param) {
@@ -2390,7 +2487,7 @@ class CodeGenerator extends Object
             isGetter: node.isGetter,
             isSetter: node.isSetter,
             isStatic: node.isStatic),
-        node,
+        null, // don't annotate as this breaks stepping for one-line functions.
         node.element);
   }
 
@@ -2398,15 +2495,16 @@ class CodeGenerator extends Object
   ///
   /// This is useful for indexed set methods, which otherwise would not have
   /// the right return value in JS.
-  JS.Node _alwaysReturnLastParameter(JS.Node body, JS.Parameter lastParam) {
+  JS.Block _alwaysReturnLastParameter(JS.Block body, JS.Parameter lastParam) {
+    JS.Statement blockBody = body;
     if (JS.Return.foundIn(body)) {
       // If a return is inside body, transform `(params) { body }` to
       // `(params) { (() => { body })(); return value; }`.
       // TODO(jmesserly): we could instead generate the return differently,
       // and avoid the immediately invoked function.
-      body = new JS.Call(new JS.ArrowFun([], body), []).toStatement();
+      blockBody = new JS.Call(new JS.ArrowFun([], body), []).toStatement();
     }
-    return new JS.Block([body, new JS.Return(lastParam)]);
+    return new JS.Block([blockBody, new JS.Return(lastParam)]);
   }
 
   @override
@@ -2567,7 +2665,7 @@ class CodeGenerator extends Object
         fn.typeParams,
         new JS.Block([
           // Convert the function to an => function, to ensure `this` binding.
-          new JS.Return(_toArrowFunction(fn))
+          _toArrowFunction(fn).toReturn()
         ]));
   }
 
@@ -2609,23 +2707,44 @@ class CodeGenerator extends Object
     // normal function (sync), vs (sync*, async, async*)
     var stdFn = !(element.isAsynchronous || element.isGenerator);
     var formals = _emitFormalParameterList(parameters, destructure: stdFn);
-    var code = (stdFn)
+    JS.Block code = stdFn
         ? _visit(body)
         : new JS.Block(
             [_emitGeneratorFunctionBody(element, parameters, body).toReturn()]);
     var typeFormals = _emitTypeFormals(type.typeFormals);
+
     var returnType = emitTypeRef(type.returnType);
     if (type.typeFormals.isNotEmpty) {
-      code = new JS.Block(<JS.Statement>[
-        new JS.Block(_typeTable.discharge(type.typeFormals)),
-        code
-      ]);
+      var block = <JS.Statement>[
+        new JS.Block(_typeTable.discharge(type.typeFormals))
+      ];
+
+      var covariantParams = _classProperties?.covariantParameters;
+      if (covariantParams != null &&
+          type.typeFormals.any(covariantParams.contains)) {
+        block.add(js.statement('#.checkBounds(#);',
+            [_emitType(type), new JS.ArrayInitializer(typeFormals)]));
+      }
+
+      code = new JS.Block(block..add(code));
     }
 
     if (element.isOperator && element.name == '[]=' && formals.isNotEmpty) {
       // []= methods need to return the value. We could also address this at
       // call sites, but it's cleaner to instead transform the operator method.
       code = _alwaysReturnLastParameter(code, formals.last);
+    }
+
+    if (body is BlockFunctionBody) {
+      var params = element.parameters.map((e) => e.name).toSet();
+      bool shadowsParam = body.block.statements.any((s) =>
+          s is VariableDeclarationStatement &&
+          s.variables.variables.any((v) => params.contains(v.name.name)));
+      if (shadowsParam) {
+        code = new JS.Block([
+          new JS.Block([code], isScope: true)
+        ]);
+      }
     }
 
     return _makeGenericFunction(new JS.Fun(formals, code,
@@ -2741,9 +2860,7 @@ class CodeGenerator extends Object
   JS.Expression _emitSimpleIdentifier(SimpleIdentifier node) {
     var accessor = resolutionMap.staticElementForIdentifier(node);
     if (accessor == null) {
-      return _callHelper(
-          'throw(Error("compile error: unresolved identifier: " + #))',
-          js.escapedString(node.name ?? '<null>'));
+      return _throwUnsafe('unresolved identifier: ' + (node.name ?? '<null>'));
     }
 
     // Get the original declaring element. If we had a property accessor, this
@@ -2788,17 +2905,10 @@ class CodeGenerator extends Object
 
       // For instance members, we add implicit-this.
       // For method tear-offs, we ensure it's a bound method.
-      var tearOff = element is MethodElement && !inInvocationContext(node);
-      if (tearOff) {
-        // To be safe always use the symbolized name when binding on a native
-        // class as bind assumes the name will match the name class sigatures
-        // which is symbolized for native classes.
-        var safeName = _emitMemberName(name,
-            isStatic: isStatic,
-            type: type,
-            element: accessor,
-            alwaysSymbolizeNative: true);
-        return _callHelper('bind(this, #)', safeName);
+      if (element is MethodElement &&
+          !inInvocationContext(node) &&
+          !_isJSNative(element.enclosingElement)) {
+        return _callHelper('bind(this, #)', member);
       }
       return js.call('this.#', member);
     }
@@ -2874,9 +2984,9 @@ class CodeGenerator extends Object
   }
 
   JS.Expression _emitAnnotatedType(DartType type, List<Annotation> metadata,
-      {bool nameType: true, bool hoistType: true}) {
+      {bool nameType: true}) {
     metadata ??= [];
-    var typeName = _emitType(type, nameType: nameType, hoistType: hoistType);
+    var typeName = _emitType(type, nameType: nameType);
     return _emitAnnotatedResult(typeName, metadata);
   }
 
@@ -2892,7 +3002,7 @@ class CodeGenerator extends Object
 
   JS.ArrayInitializer _emitTypeNames(
       List<DartType> types, List<FormalParameter> parameters,
-      {bool nameType: true, bool hoistType: true}) {
+      {bool nameType: true}) {
     var result = <JS.Expression>[];
     for (int i = 0; i < types.length; ++i) {
       var metadata = parameters != null
@@ -2919,16 +3029,13 @@ class CodeGenerator extends Object
       {List<FormalParameter> parameters,
       bool lowerTypedef: false,
       bool nameType: true,
-      bool hoistType: true,
       definite: false}) {
     var parameterTypes = type.normalParameterTypes;
     var optionalTypes = type.optionalParameterTypes;
     var namedTypes = type.namedParameterTypes;
-    var rt =
-        _emitType(type.returnType, nameType: nameType, hoistType: hoistType);
+    var rt = _emitType(type.returnType, nameType: nameType);
 
-    var ra = _emitTypeNames(parameterTypes, parameters,
-        nameType: nameType, hoistType: hoistType);
+    var ra = _emitTypeNames(parameterTypes, parameters, nameType: nameType);
 
     List<JS.Expression> typeParts;
     if (namedTypes.isNotEmpty) {
@@ -2940,7 +3047,7 @@ class CodeGenerator extends Object
       assert(namedTypes.isEmpty);
       var oa = _emitTypeNames(
           optionalTypes, parameters?.sublist(parameterTypes.length),
-          nameType: nameType, hoistType: hoistType);
+          nameType: nameType);
       typeParts = [rt, ra, oa];
     } else {
       typeParts = [rt, ra];
@@ -2973,8 +3080,7 @@ class CodeGenerator extends Object
     }
     fullType = _callHelper(helperCall, [typeParts]);
     if (!nameType) return fullType;
-    return _typeTable.nameType(type, fullType,
-        hoistType: hoistType, definite: definite);
+    return _typeTable.nameType(type, fullType, definite: definite);
   }
 
   JS.Expression _emitAnnotatedFunctionType(
@@ -2982,13 +3088,11 @@ class CodeGenerator extends Object
       {List<FormalParameter> parameters,
       bool lowerTypedef: false,
       bool nameType: true,
-      bool hoistType: true,
       bool definite: false}) {
     var result = _emitFunctionType(type,
         parameters: parameters,
         lowerTypedef: lowerTypedef,
         nameType: nameType,
-        hoistType: hoistType,
         definite: definite);
     return _emitAnnotatedResult(result, metadata);
   }
@@ -2997,10 +3101,8 @@ class CodeGenerator extends Object
   ///
   /// If [nameType] is true, then the type will be named.  In addition,
   /// if [hoistType] is true, then the named type will be hoisted.
-  JS.Expression _emitConstructorAccess(DartType type,
-      {bool nameType: true, bool hoistType: true}) {
-    return _emitJSInterop(type.element) ??
-        _emitType(type, nameType: nameType, hoistType: hoistType);
+  JS.Expression _emitConstructorAccess(DartType type, {bool nameType: true}) {
+    return _emitJSInterop(type.element) ?? _emitType(type, nameType: nameType);
   }
 
   /// Emits an expression that lets you access statics on a [type] from code.
@@ -3044,7 +3146,6 @@ class CodeGenerator extends Object
       {bool lowerTypedef: false,
       bool lowerGeneric: false,
       bool nameType: true,
-      bool hoistType: true,
       ClassElement subClass,
       JS.Expression className}) {
     // The void and dynamic types are not defined in core.
@@ -3061,7 +3162,6 @@ class CodeGenerator extends Object
       _declareBeforeUse(element);
     }
 
-    var interop = _emitJSInterop(element);
     // Type parameters don't matter as JS interop types cannot be reified.
     // We have to use lazy JS types because until we have proper module
     // loading for JS libraries bundled with Dart libraries, we will sometimes
@@ -3075,14 +3175,13 @@ class CodeGenerator extends Object
     // object to represent MyType.
     // Anonymous JS types do not have a corresponding concrete JS type so we
     // have to use a helper to define them.
-    if (interop != null) {
-      if (_isObjectLiteral(element)) {
-        return _callHelper(
-            'lazyAnonymousJSType(#)', js.string(element.displayName));
-      } else {
-        return _callHelper('lazyJSType(() => #, #)',
-            [interop, js.string(_getJSName(element).join('.'))]);
-      }
+    if (_isObjectLiteral(element)) {
+      return _callHelper('anonymousJSType(#)', js.escapedString(element.name));
+    }
+    var jsName = _getJSNameWithoutGlobal(element);
+    if (jsName != null) {
+      return _callHelper('lazyJSType(() => #, #)',
+          [_emitJSInteropForGlobal(jsName), js.escapedString(jsName)]);
     }
 
     // TODO(jmesserly): like constants, should we hoist function types out of
@@ -3094,7 +3193,7 @@ class CodeGenerator extends Object
       // go through use similar logic as generic classes. This makes them
       // different from universal function types.
       return _emitFunctionType(type as FunctionType,
-          lowerTypedef: lowerTypedef, nameType: nameType, hoistType: hoistType);
+          lowerTypedef: lowerTypedef, nameType: nameType);
     }
 
     if (type is TypeParameterType) {
@@ -3109,19 +3208,14 @@ class CodeGenerator extends Object
       Iterable jsArgs = null;
       if (args.any((a) => !a.isDynamic)) {
         jsArgs = args.map((x) => _emitType(x,
-            nameType: nameType,
-            hoistType: hoistType,
-            subClass: subClass,
-            className: className));
+            nameType: nameType, subClass: subClass, className: className));
       } else if (lowerGeneric || element == subClass) {
         jsArgs = [];
       }
       if (jsArgs != null) {
-        var genericName = _emitTopLevelName(element, suffix: '\$');
+        var genericName = _emitTopLevelNameNoInterop(element, suffix: '\$');
         var typeRep = js.call('#(#)', [genericName, jsArgs]);
-        return nameType
-            ? _typeTable.nameType(type, typeRep, hoistType: hoistType)
-            : typeRep;
+        return nameType ? _typeTable.nameType(type, typeRep) : typeRep;
       }
     }
 
@@ -3129,15 +3223,13 @@ class CodeGenerator extends Object
   }
 
   JS.PropertyAccess _emitTopLevelName(Element e, {String suffix: ''}) {
-    var interop = _emitJSInterop(e);
-    if (interop != null) return interop;
-    return _emitTopLevelNameNoInterop(e, suffix: suffix);
+    return _emitJSInterop(e) ?? _emitTopLevelNameNoInterop(e, suffix: suffix);
   }
 
   JS.PropertyAccess _emitTopLevelNameNoInterop(Element e, {String suffix: ''}) {
-    String name = getJSExportName(e) + suffix;
+    var name = getJSExportName(e) ?? _getElementName(e);
     return new JS.PropertyAccess(
-        emitLibraryName(e.library), _propertyName(name));
+        emitLibraryName(e.library), _propertyName(name + suffix));
   }
 
   @override
@@ -3179,7 +3271,7 @@ class CodeGenerator extends Object
       ..staticElement = element
       ..staticType = getStaticType(lhs);
 
-    var castTo = getImplicitAssignmentCast(left);
+    var castTo = getImplicitOperationCast(left);
     if (castTo != null) inc = CoercionReifier.castExpression(inc, castTo);
     return new JS.MetaLet(vars, [_emitSet(lhs, inc)]);
   }
@@ -3343,7 +3435,8 @@ class CodeGenerator extends Object
     var savedFunction = _currentFunction;
     _currentFunction = node;
     var initArgs = _emitArgumentInitializers(node.parent);
-    var ret = annotate(new JS.Return(_visit(node.expression)), node.expression);
+    var ret = annotate(
+        _visit<JS.Expression>(node.expression).toReturn(), node.expression);
     _currentFunction = savedFunction;
     var _statements = initArgs != null ? [initArgs, ret] : [ret];
     var block = annotate(new JS.Block(_statements), node);
@@ -3358,7 +3451,7 @@ class CodeGenerator extends Object
     var savedFunction = _currentFunction;
     _currentFunction = node;
     var initArgs = _emitArgumentInitializers(node.parent);
-    var stmts = _visitList(node.block.statements) as List<JS.Statement>;
+    var stmts = _visitList<JS.Statement>(node.block.statements);
     if (initArgs != null) stmts.insert(0, initArgs);
     _currentFunction = savedFunction;
     return new JS.Block(stmts);
@@ -3366,8 +3459,7 @@ class CodeGenerator extends Object
 
   @override
   JS.Block visitBlock(Block node) =>
-      new JS.Block(_visitList(node.statements) as List<JS.Statement>,
-          isScope: true);
+      new JS.Block(_visitList(node.statements), isScope: true);
 
   @override
   visitMethodInvocation(MethodInvocation node) {
@@ -3436,15 +3528,13 @@ class CodeGenerator extends Object
   JS.Expression _getSuperHelper(Element member, JS.Expression jsName) {
     var jsMethod = _superHelpers.putIfAbsent(member.name, () {
       if (member is PropertyAccessorElement) {
-        var field = member.variable as FieldElement;
-        var name = field.name;
         var isSetter = member.isSetter;
         var fn = js.call(
             isSetter
                 ? 'function(x) { super[#] = x; }'
                 : 'function() { return super[#]; }',
             [jsName]);
-        return new JS.Method(new JS.TemporaryId(name), fn,
+        return new JS.Method(new JS.TemporaryId(member.variable.name), fn,
             isGetter: !isSetter, isSetter: isSetter);
       } else {
         var method = member as MethodElement;
@@ -3480,7 +3570,7 @@ class CodeGenerator extends Object
     var element = node.methodName.staticElement;
     bool isStatic = element is ExecutableElement && element.isStatic;
     var name = node.methodName.name;
-    var memberName =
+    var jsName =
         _emitMemberName(name, type: type, isStatic: isStatic, element: element);
 
     JS.Expression jsTarget = _emitTarget(target, element, isStatic);
@@ -3490,21 +3580,24 @@ class CodeGenerator extends Object
           _emitDynamicOperationName('dgsend'),
           jsTarget,
           new JS.ArrayInitializer(typeArgs),
-          memberName,
+          jsName,
           args
         ]);
       } else {
         return _callHelper('#(#, #, #)',
-            [_emitDynamicOperationName('dsend'), jsTarget, memberName, args]);
+            [_emitDynamicOperationName('dsend'), jsTarget, jsName, args]);
       }
     }
     if (_isObjectMemberCall(target, name)) {
       assert(typeArgs == null); // Object methods don't take type args.
       return _callHelper('#(#, #)', [name, jsTarget, args]);
     }
-    jsTarget = _emitTargetAccess(jsTarget, memberName, element);
+    jsTarget = _emitTargetAccess(jsTarget, jsName, element);
+    var castTo = getImplicitOperationCast(node);
+    if (castTo != null) {
+      jsTarget = js.call('#._check(#)', [_emitType(castTo), jsTarget]);
+    }
     if (typeArgs != null) jsTarget = new JS.Call(jsTarget, typeArgs);
-
     return new JS.Call(jsTarget, args);
   }
 
@@ -3519,20 +3612,74 @@ class CodeGenerator extends Object
     }
   }
 
+  bool _doubleEqIsIdentity(Expression left, Expression right) {
+    // If we statically know LHS or RHS is null we can use ==.
+    if (_isNull(left) || _isNull(right)) return true;
+    // If the representation of the  two types will not induce conversion in
+    // JS then we can use == .
+    return !typeRep.equalityMayConvert(left.staticType, right.staticType);
+  }
+
+  bool _tripleEqIsIdentity(Expression left, Expression right) {
+    // If either is non-nullable, then we don't need to worry about
+    // equating null and undefined, and so we can use triple equals.
+    return !isNullable(left) || !isNullable(right);
+  }
+
+  bool _isCoreIdentical(Expression node) {
+    return node is Identifier && node.staticElement == _coreIdentical;
+  }
+
+  JS.Expression _emitJSDoubleEq(List<JS.Expression> args,
+      {bool negated = false}) {
+    var op = negated ? '# != #' : '# == #';
+    return js.call(op, args);
+  }
+
+  JS.Expression _emitJSTripleEq(List<JS.Expression> args,
+      {bool negated = false}) {
+    var op = negated ? '# !== #' : '# === #';
+    return js.call(op, args);
+  }
+
+  JS.Expression _emitCoreIdenticalCall(List<Expression> arguments,
+      {bool negated = false}) {
+    if (arguments.length != 2) {
+      // Shouldn't happen in typechecked code
+      return _callHelper(
+          'throw(Error("compile error: calls to `identical` require 2 args")');
+    }
+    var left = arguments[0];
+    var right = arguments[1];
+    var args = [_visit(left), _visit(right)];
+    if (_tripleEqIsIdentity(left, right)) {
+      return _emitJSTripleEq(args, negated: negated);
+    }
+    if (_doubleEqIsIdentity(left, right)) {
+      return _emitJSDoubleEq(args, negated: negated);
+    }
+    var code = negated ? '!#' : '#';
+    return js.call(code, new JS.Call(_emitTopLevelName(_coreIdentical), args));
+  }
+
   /// Emits a function call, to a top-level function, local function, or
   /// an expression.
   JS.Expression _emitFunctionCall(InvocationExpression node,
       [Expression function]) {
-    if (function == null) {
-      function = node.function;
+    function ??= node.function;
+    var castTo = getImplicitOperationCast(function);
+    if (castTo != null) {
+      function = CoercionReifier.castExpression(function, castTo);
+    }
+    if (_isCoreIdentical(function)) {
+      return _emitCoreIdenticalCall(node.argumentList.arguments);
     }
     var fn = _visit(function);
     var args = _emitArgumentList(node.argumentList);
     if (isDynamicInvoke(function)) {
       return _emitDynamicInvoke(node, fn, args);
-    } else {
-      return new JS.Call(_applyInvokeTypeArguments(fn, node), args);
     }
+    return new JS.Call(_applyInvokeTypeArguments(fn, node), args);
   }
 
   JS.Expression _applyInvokeTypeArguments(
@@ -3606,7 +3753,7 @@ class CodeGenerator extends Object
       var args = node.argumentList.arguments;
       // arg[0] is static return type, used in `RestrictedStaticTypeAnalyzer`
       var code = args[1];
-      List<AstNode> templateArgs;
+      List<Expression> templateArgs;
       String source;
       if (code is StringInterpolation) {
         if (args.length > 2) {
@@ -3649,6 +3796,27 @@ class CodeGenerator extends Object
         }
       }
 
+      JS.Expression visitTemplateArg(Expression arg) {
+        if (arg is InvocationExpression) {
+          var e = arg is MethodInvocation
+              ? arg.methodName.staticElement
+              : (arg as FunctionExpressionInvocation).staticElement;
+          if (e?.name == 'getGenericClass' &&
+              e.library.name == 'dart._runtime' &&
+              arg.argumentList.arguments.length == 1) {
+            var typeArg = arg.argumentList.arguments[0];
+            if (typeArg is SimpleIdentifier) {
+              var typeElem = typeArg.staticElement;
+              if (typeElem is TypeDefiningElement &&
+                  typeElem.type is ParameterizedType) {
+                return _emitTopLevelNameNoInterop(typeElem, suffix: '\$');
+              }
+            }
+          }
+        }
+        return _visit(arg);
+      }
+
       // TODO(rnystrom): The JS() calls are almost never nested, and probably
       // really shouldn't be, but there are at least a couple of calls in the
       // HTML library where an argument to JS() is itself a JS() call. If those
@@ -3657,11 +3825,10 @@ class CodeGenerator extends Object
       // wrapped Type object.
       var wasInForeignJS = _isInForeignJS;
       _isInForeignJS = true;
-
-      var template = js.parseForeignJS(source);
-      var result = template.instantiate(_visitList(templateArgs));
-
+      var jsArgs = templateArgs.map(visitTemplateArg).toList();
       _isInForeignJS = wasInForeignJS;
+
+      var result = js.parseForeignJS(source).instantiate(jsArgs);
 
       // `throw` is emitted as a statement by `parseForeignJS`.
       assert(result is JS.Expression || node.parent is ExpressionStatement);
@@ -3803,19 +3970,31 @@ class CodeGenerator extends Object
   @override
   JS.Statement visitAssertStatement(AssertStatement node) {
     // TODO(jmesserly): only emit in checked mode.
-    if (node.message != null) {
-      return _callHelperStatement('assert(#, () => #);',
-          [_visit(node.condition), _visit(node.message)]);
-    }
+    var condition = node.condition;
+    var conditionType = condition.staticType;
+    JS.Expression jsCondition = _visit(condition);
 
-    return _callHelperStatement('assert(#);', _visit(node.condition));
+    if (conditionType is FunctionType &&
+        conditionType.parameters.isEmpty &&
+        conditionType.returnType == types.boolType) {
+      jsCondition = _callHelper('test(#())', jsCondition);
+    } else if (conditionType != types.boolType) {
+      jsCondition = _callHelper('dassert(#)', jsCondition);
+    } else if (isNullable(condition)) {
+      jsCondition = _callHelper('test(#)', jsCondition);
+    }
+    return js.statement(' if (!#) #.assertFailed(#);', [
+      jsCondition,
+      _runtimeModule,
+      node.message != null ? [_visit(node.message)] : []
+    ]);
   }
 
   @override
   JS.Statement visitReturnStatement(ReturnStatement node) {
     var e = node.expression;
     if (e == null) return new JS.Return();
-    return (_visit(e) as JS.Expression).toReturn();
+    return _visit<JS.Expression>(e).toReturn();
   }
 
   @override
@@ -3879,8 +4058,7 @@ class CodeGenerator extends Object
 
   @override
   visitVariableDeclarationList(VariableDeclarationList node) {
-    return new JS.VariableDeclarationList(
-        'let', _visitList(node.variables) as List<JS.VariableInitialization>);
+    return new JS.VariableDeclarationList('let', _visitList(node.variables));
   }
 
   @override
@@ -3990,13 +4168,8 @@ class CodeGenerator extends Object
       bool isFactory = false;
       bool isNative = false;
       if (element == null) {
-        ctor = _callHelper(
-            'throw(Error("compile error: unresolved constructor: " '
-            '+ # + "." + #))',
-            [
-              js.escapedString(type?.name ?? '<null>'),
-              js.escapedString(name?.name ?? '<unnamed>')
-            ]);
+        ctor = _throwUnsafe('unresolved constructor: ${type?.name ?? '<null>'}'
+            '.${name?.name ?? '<unnamed>'}');
       } else {
         ctor = _emitConstructorName(element, type, name);
         isFactory = element.isFactory;
@@ -4017,13 +4190,13 @@ class CodeGenerator extends Object
     return emitNew();
   }
 
-  bool _isObjectLiteral(ClassElement classElem) {
-    return findAnnotation(classElem, isPublicJSAnnotation) != null &&
+  bool _isObjectLiteral(Element classElem) {
+    return _isJSNative(classElem) &&
         findAnnotation(classElem, isJSAnonymousAnnotation) != null;
   }
 
-  bool _isJSNative(ClassElement classElem) =>
-      findAnnotation(classElem, isPublicJSAnnotation) != null;
+  bool _isJSNative(Element e) =>
+      findAnnotation(e, isPublicJSAnnotation) != null;
 
   JS.Expression _emitObjectLiteral(ArgumentList argumentList) {
     var args = _emitArgumentList(argumentList);
@@ -4079,26 +4252,68 @@ class CodeGenerator extends Object
         element, type, name, node.argumentList, node.isConst);
   }
 
-  /// True if this type is built-in to JS, and we use the values unwrapped.
-  /// For these types we generate a calling convention via static
-  /// "extension methods". This allows types to be extended without adding
-  /// extensions directly on the prototype.
-  bool isPrimitiveType(DartType t) =>
-      typeIsPrimitiveInJS(t) || t == types.stringType;
-
-  bool typeIsPrimitiveInJS(DartType t) =>
-      _isNumberInJS(t) || t == types.boolType;
-
-  bool binaryOperationIsPrimitive(DartType leftT, DartType rightT) =>
-      typeIsPrimitiveInJS(leftT) && typeIsPrimitiveInJS(rightT);
-
-  bool unaryOperationIsPrimitive(DartType t) => typeIsPrimitiveInJS(t);
+  bool isPrimitiveType(DartType t) => typeRep.isPrimitive(t);
 
   JS.Expression notNull(Expression expr) {
     if (expr == null) return null;
     var jsExpr = _visit(expr);
     if (!isNullable(expr)) return jsExpr;
     return _callHelper('notNull(#)', jsExpr);
+  }
+
+  JS.Expression _emitEqualityOperator(BinaryExpression node, Token op) {
+    var left = node.leftOperand;
+    var right = node.rightOperand;
+    var leftType = left.staticType;
+    var negated = op.type == TokenType.BANG_EQ;
+
+    if (left is SuperExpression) {
+      return _emitSend(left, op.lexeme, [right]);
+    }
+
+    // Equality on enums and primitives is identity.
+    // TODO(leafp): Walk the class hierarchy and check to see if == was
+    // overridden
+    var isEnum = leftType is InterfaceType && leftType.element.isEnum;
+    var usesIdentity = typeRep.isPrimitive(leftType) ||
+        isEnum ||
+        _isNull(left) ||
+        _isNull(right);
+
+    // If we know that the left type uses identity for equality, we can
+    // sometimes emit better code.
+    if (usesIdentity) {
+      return _emitCoreIdenticalCall([left, right], negated: negated);
+    }
+
+    var leftElement = leftType.element;
+
+    // If either is null, we can use simple equality.
+    // We need to equate null and undefined, so if both are nullable
+    //  (but not known to be null), we cannot directly use JS ==
+    //  unless we know that conversion will not happen.
+    // Functions may or may not have an [dartx[`==`]] method attached.
+    //   - If they are tearoffs they will, otherwise they won't and equality is
+    // identity.
+    // TODO(leafp): consider fixing this.
+    //
+    // Native types may not have equality on the prototype.
+    // If left is not nullable, then we don't need to worry about
+    // null/undefined.
+    // TODO(leafp): consider using (left || dart.EQ)['=='](right))
+    // when left is nullable but not falsey
+    if ((leftElement is ClassElement && _isJSNative(leftElement)) ||
+        typeRep.isUnknown(leftType) ||
+        leftType is FunctionType ||
+        isNullable(left)) {
+      // Fall back to equality for now.
+      var code = negated ? '!#.equals(#, #)' : '#.equals(#, #)';
+      return js.call(code, [_runtimeModule, _visit(left), _visit(right)]);
+    }
+
+    var name = _emitMemberName('==', type: leftType);
+    var code = negated ? '!#[#](#)' : '#[#](#)';
+    return js.call(code, [_visit(left), name, _visit(right)]);
   }
 
   @override
@@ -4112,27 +4327,10 @@ class CodeGenerator extends Object
       return _visitTest(node);
     }
 
+    if (op.type.isEqualityOperator) return _emitEqualityOperator(node, op);
+
     var left = node.leftOperand;
     var right = node.rightOperand;
-
-    var leftType = getStaticType(left);
-    var rightType = getStaticType(right);
-
-    var code;
-    if (op.type.isEqualityOperator) {
-      // If we statically know LHS or RHS is null we can generate a clean check.
-      // We can also do this if both sides are the same primitive type.
-      if (_canUsePrimitiveEquality(left, right)) {
-        code = op.type == TokenType.EQ_EQ ? '# == #' : '# != #';
-      } else if (left is SuperExpression) {
-        return _emitSend(left, op.lexeme, [right]);
-      } else {
-        var bang = op.type == TokenType.BANG_EQ ? '!' : '';
-        code = '${bang}#.equals(#, #)';
-        return js.call(code, [_runtimeModule, _visit(left), _visit(right)]);
-      }
-      return js.call(code, [_visit(left), _visit(right)]);
-    }
 
     if (op.type.lexeme == '??') {
       // TODO(jmesserly): leave RHS for debugging?
@@ -4147,7 +4345,10 @@ class CodeGenerator extends Object
       ]);
     }
 
-    if (binaryOperationIsPrimitive(leftType, rightType) ||
+    var leftType = getStaticType(left);
+    var rightType = getStaticType(right);
+
+    if (typeRep.binaryOperationIsPrimitive(leftType, rightType) ||
         leftType == types.stringType && op.type == TokenType.PLUS) {
       // special cases where we inline the operation
       // these values are assumed to be non-null (determined by the checker)
@@ -4281,20 +4482,20 @@ class CodeGenerator extends Object
       if (expr.value >= low && expr.value <= high) return expr.value;
       return null;
     }
-    int finishIdentifier(SimpleIdentifier identifier) {
-      Element staticElement = identifier.staticElement;
-      if (staticElement is PropertyAccessorElement && staticElement.isGetter) {
-        PropertyInducingElement variable = staticElement.variable;
-        int value = variable?.computeConstantValue()?.toIntValue();
-        if (value != null && value >= low && value <= high) return value;
-      }
+
+    Identifier id;
+    if (expr is SimpleIdentifier) {
+      id = expr;
+    } else if (expr is PrefixedIdentifier && !expr.isDeferred) {
+      id = expr.identifier;
+    } else {
       return null;
     }
-
-    if (expr is SimpleIdentifier) {
-      return finishIdentifier(expr);
-    } else if (expr is PrefixedIdentifier && !expr.isDeferred) {
-      return finishIdentifier(expr.identifier);
+    var element = id.staticElement;
+    if (element is PropertyAccessorElement && element.isGetter) {
+      var variable = element.variable;
+      int value = variable?.computeConstantValue()?.toIntValue();
+      if (value != null && value >= low && value <= high) return value;
     }
     return null;
   }
@@ -4382,24 +4583,8 @@ class CodeGenerator extends Object
     return bitWidth(expr, 0) < 32;
   }
 
-  /// If the type [t] is [int] or [double], or a type parameter
-  /// bounded by [int], [double] or [num] returns [num].
-  /// Otherwise returns [t].
-  DartType _canonicalizeNumTypes(DartType t) {
-    var numType = types.numType;
-    if (rules.isSubtypeOf(t, numType)) return numType;
-    return t;
-  }
-
-  bool _canUsePrimitiveEquality(Expression left, Expression right) {
-    if (_isNull(left) || _isNull(right)) return true;
-
-    var leftType = _canonicalizeNumTypes(getStaticType(left));
-    var rightType = _canonicalizeNumTypes(getStaticType(right));
-    return isPrimitiveType(leftType) && leftType == rightType;
-  }
-
-  bool _isNull(Expression expr) => expr is NullLiteral;
+  bool _isNull(Expression expr) =>
+      expr is NullLiteral || getStaticType(expr).isDartCoreNull;
 
   SimpleIdentifier _createTemporary(String name, DartType type,
       {bool nullable: true, JS.Expression variable, bool dynamicInvoke}) {
@@ -4544,7 +4729,7 @@ class CodeGenerator extends Object
     var expr = node.operand;
 
     var dispatchType = getStaticType(expr);
-    if (unaryOperationIsPrimitive(dispatchType)) {
+    if (typeRep.unaryOperationIsPrimitive(dispatchType)) {
       if (!isNullable(expr)) {
         return js.call('#$op', _visit(expr));
       }
@@ -4581,9 +4766,9 @@ class CodeGenerator extends Object
     var expr = node.operand;
 
     var dispatchType = getStaticType(expr);
-    if (unaryOperationIsPrimitive(dispatchType)) {
+    if (typeRep.unaryOperationIsPrimitive(dispatchType)) {
       if (op.lexeme == '~') {
-        if (_isNumberInJS(dispatchType)) {
+        if (typeRep.isNumber(dispatchType)) {
           JS.Expression jsExpr = js.call('~#', notNull(expr));
           return _coerceBitOperationResultToUnsigned(node, jsExpr);
         }
@@ -4631,7 +4816,7 @@ class CodeGenerator extends Object
 
     var vars = <JS.MetaLetVariable, JS.Expression>{};
     _cascadeTarget = _bindValue(vars, '_', node.target, context: node);
-    var sections = _visitList(node.cascadeSections) as List<JS.Expression>;
+    var sections = _visitList<JS.Expression>(node.cascadeSections);
     sections.add(_visit(_cascadeTarget));
     var result = new JS.MetaLet(vars, sections, statelessResult: true);
     _cascadeTarget = savedCascadeTemp;
@@ -4705,12 +4890,6 @@ class CodeGenerator extends Object
     ]);
   }
 
-  static Token _getOperator(Expression node) {
-    if (node is PropertyAccess) return node.operator;
-    if (node is MethodInvocation) return node.operator;
-    return null;
-  }
-
   // TODO(jmesserly): this is dropping source location.
   Expression _stripNullAwareOp(Expression node, Expression newTarget) {
     if (node is PropertyAccess) {
@@ -4762,17 +4941,16 @@ class CodeGenerator extends Object
       Expression target, SimpleIdentifier memberId, DartType resultType) {
     var accessor = memberId.staticElement;
     // If `member` is a getter/setter, get the corresponding
-    var field =
-        accessor is PropertyAccessorElement ? accessor.variable : accessor;
+    var field = _getNonAccessorElement(accessor);
     String memberName = memberId.name;
     var typeArgs = _getTypeArgs(accessor, resultType);
 
     bool isStatic = field is ClassMemberElement && field.isStatic;
-    var name = _emitMemberName(memberName,
+    var jsName = _emitMemberName(memberName,
         type: getStaticType(target), isStatic: isStatic, element: accessor);
     if (isDynamicInvoke(target)) {
       return _callHelper('#(#, #)',
-          [_emitDynamicOperationName('dload'), _visit(target), name]);
+          [_emitDynamicOperationName('dload'), _visit(target), jsName]);
     }
 
     var jsTarget = _emitTarget(target, accessor, isStatic);
@@ -4788,39 +4966,27 @@ class CodeGenerator extends Object
     }
 
     JS.Expression result;
-    if (accessor is MethodElement && !isStatic) {
-      // Tear-off methods: explicitly bind it.
-      // To be safe always use the symbolized name when binding on a native
-      // class as bind assumes the name will match the name class signatures
-      // which is symbolized for native classes.
-      var safeName = _emitMemberName(memberName,
-          type: getStaticType(target),
-          isStatic: isStatic,
-          element: accessor,
-          alwaysSymbolizeNative: true);
+    if (_isObjectMemberCall(target, memberName)) {
+      if (_isObjectMethod(memberName)) {
+        result = _callHelper('bind(#, #)', [jsTarget, jsName]);
+      } else {
+        result = _callHelper('#(#)', [memberName, jsTarget]);
+      }
+    } else if (accessor is MethodElement &&
+        !isStatic &&
+        !_isJSNative(accessor.enclosingElement)) {
       if (isSuper) {
         result = _callHelper('bind(this, #, #)',
-            [safeName, _emitTargetAccess(jsTarget, name, accessor)]);
-      } else if (_isObjectMemberCall(target, memberName)) {
-        var fn = js.call(
-            memberName == 'noSuchMethod'
-                ? 'function(i) { return #.#(this, i); }'
-                : 'function() { return #.#(this); }',
-            [_runtimeModule, memberName]);
-        result = _callHelper(
-            'bind(#, #, #)', [jsTarget, _propertyName(memberName), fn]);
+            [jsName, _emitTargetAccess(jsTarget, jsName, accessor)]);
       } else {
-        result = _callHelper('bind(#, #)', [jsTarget, safeName]);
+        result = _callHelper('bind(#, #)', [jsTarget, jsName]);
       }
-    } else if (_isObjectMemberCall(target, memberName)) {
-      result = _callHelper('#(#)', [memberName, jsTarget]);
     } else {
-      result = _emitTargetAccess(jsTarget, name, accessor);
+      result = _emitTargetAccess(jsTarget, jsName, accessor);
     }
-    if (typeArgs == null) {
-      return result;
-    }
-    return _callHelper('gbind(#, #)', [result, typeArgs]);
+    return typeArgs == null
+        ? result
+        : _callHelper('gbind(#, #)', [result, typeArgs]);
   }
 
   JS.LiteralString _emitDynamicOperationName(String name) =>
@@ -4839,8 +5005,8 @@ class CodeGenerator extends Object
       // dynamic dispatch
       var dynamicHelper = const {'[]': 'dindex', '[]=': 'dsetindex'}[name];
       if (dynamicHelper != null) {
-        return _callHelper('$dynamicHelper(#, #)',
-            [_visit(target) as JS.Expression, _visitList(args)]);
+        return _callHelper(
+            '$dynamicHelper(#, #)', [_visit(target), _visitList(args)]);
       } else {
         return _callHelper(
             'dsend(#, #, #)', [_visit(target), memberName, _visitList(args)]);
@@ -5061,9 +5227,7 @@ class CodeGenerator extends Object
 
     // TODO(jmesserly): this is inconsistent with [visitIsExpression], which
     // has special case for typeof.
-    var castType = _emitType(clause.exceptionType.type,
-        nameType: options.nameTypeTests || options.hoistTypeTests,
-        hoistType: options.hoistTypeTests);
+    var castType = _emitType(clause.exceptionType.type);
 
     return new JS.If(js.call('#.is(#)', [castType, _visit(_catchParameter)]),
         then, otherwise);
@@ -5097,8 +5261,7 @@ class CodeGenerator extends Object
       }
     }
 
-    body.add(
-        new JS.Block(_visitList(node.body.statements) as List<JS.Statement>));
+    body.add(new JS.Block(_visitList(node.body.statements)));
     _catchParameter = savedCatch;
     return _statement(body);
   }
@@ -5106,7 +5269,7 @@ class CodeGenerator extends Object
   @override
   JS.Case visitSwitchCase(SwitchCase node) {
     var expr = _visit(node.expression);
-    var body = _visitList(node.statements) as List<JS.Statement>;
+    var body = _visitList<JS.Statement>(node.statements);
     if (node.labels.isNotEmpty) {
       body.insert(0, js.comment('Unimplemented case labels: ${node.labels}'));
     }
@@ -5116,7 +5279,7 @@ class CodeGenerator extends Object
 
   @override
   JS.Default visitSwitchDefault(SwitchDefault node) {
-    var body = _visitList(node.statements) as List<JS.Statement>;
+    var body = _visitList<JS.Statement>(node.statements);
     if (node.labels.isNotEmpty) {
       body.insert(0, js.comment('Unimplemented case labels: ${node.labels}'));
     }
@@ -5125,9 +5288,8 @@ class CodeGenerator extends Object
   }
 
   @override
-  JS.Switch visitSwitchStatement(SwitchStatement node) => new JS.Switch(
-      _visit(node.expression),
-      _visitList(node.members) as List<JS.SwitchClause>);
+  JS.Switch visitSwitchStatement(SwitchStatement node) =>
+      new JS.Switch(_visit(node.expression), _visitList(node.members));
 
   @override
   JS.Statement visitLabeledStatement(LabeledStatement node) {
@@ -5171,32 +5333,31 @@ class CodeGenerator extends Object
 
   @override
   visitListLiteral(ListLiteral node) {
-    var isConst = node.constKeyword != null;
-    JS.Expression emitList() {
-      JS.Expression list = new JS.ArrayInitializer(
-          _visitList(node.elements) as List<JS.Expression>);
-      ParameterizedType type = node.staticType;
-      var elementType = type.typeArguments.single;
-      // TODO(jmesserly): analyzer will usually infer `List<Object>` because
-      // that is the least upper bound of the element types. So we rarely
-      // generate a plain `List<dynamic>` anymore.
-      if (!elementType.isDynamic || isConst) {
-        // dart.list helper internally depends on _interceptors.JSArray.
-        _declareBeforeUse(_jsArray);
-        if (isConst) {
-          var typeRep = _emitType(elementType);
-          list = _callHelper('constList(#, #)', [list, typeRep]);
-        } else {
-          // Call `new JSArray<E>.of(list)`
-          var jsArrayType = _jsArray.type.instantiate(type.typeArguments);
-          list = js.call('#.of(#)', [_emitType(jsArrayType), list]);
-        }
-      }
-      return list;
+    var elementType = (node.staticType as InterfaceType).typeArguments[0];
+    if (node.constKeyword == null) {
+      return _emitList(elementType, _visitList(node.elements));
     }
+    return _cacheConst(() {
+      // dart.constList helper internally depends on _interceptors.JSArray.
+      _declareBeforeUse(_jsArray);
+      return _callHelper('constList(#, #)', [
+        new JS.ArrayInitializer(_visitList(node.elements)),
+        _emitType(elementType)
+      ]);
+    });
+  }
 
-    if (isConst) return _cacheConst(emitList);
-    return emitList();
+  JS.Expression _emitList(DartType itemType, List<JS.Expression> items) {
+    var list = new JS.ArrayInitializer(items);
+
+    // TODO(jmesserly): analyzer will usually infer `List<Object>` because
+    // that is the least upper bound of the element types. So we rarely
+    // generate a plain `List<dynamic>` anymore.
+    if (itemType.isDynamic) return list;
+
+    // Call `new JSArray<E>.of(list)`
+    var arrayType = _jsArray.type.instantiate([itemType]);
+    return js.call('#.of(#)', [_emitType(arrayType), list]);
   }
 
   @override
@@ -5280,23 +5441,18 @@ class CodeGenerator extends Object
 
   T _visit<T extends JS.Node>(AstNode node) {
     if (node == null) return null;
-    var result = node.accept(this);
+    var result = node.accept(this) as T;
     return result != null ? annotate(result, node) : null;
   }
 
-  // TODO(jmesserly): we should make sure this only returns JS AST nodes.
-  List/*<R>*/ _visitList/*<T extends AstNode, R>*/(Iterable/*<T>*/ nodes) {
-    if (nodes == null) return null;
-    var result = /*<R>*/ [];
-    for (var node in nodes) result.add(_visit(node) as dynamic/*=R*/);
-    return result;
+  List<R> _visitList<R extends JS.Node>(Iterable<AstNode> nodes) {
+    return nodes?.map<R>(_visit)?.toList();
   }
 
   /// Visits a list of expressions, creating a comma expression if needed in JS.
   JS.Expression _visitListToBinary(List<Expression> nodes, String operator) {
     if (nodes == null || nodes.isEmpty) return null;
-    return new JS.Expression.binary(
-        _visitList(nodes) as List<JS.Expression>, operator);
+    return new JS.Expression.binary(_visitList(nodes), operator);
   }
 
   /// Generates an expression for a boolean conversion context (if, while, &&,
@@ -5310,6 +5466,8 @@ class CodeGenerator extends Object
     }
 
     if (node is PrefixExpression && node.operator.lexeme == '!') {
+      // TODO(leafp): consider a peephole opt for identical
+      // and == here.
       return finish(js.call('!#', _visitTest(node.operand)));
     }
     if (node is ParenthesizedExpression) {
@@ -5325,9 +5483,9 @@ class CodeGenerator extends Object
       if (op == '&&') return shortCircuit('# && #');
       if (op == '||') return shortCircuit('# || #');
     }
-    if (node is AsExpression && CoercionReifier.isImplicitCast(node)) {
+    if (node is AsExpression && CoercionReifier.isRequiredForSoundness(node)) {
       assert(node.staticType == types.boolType);
-      return _callHelper('test(#)', _visit(node.expression));
+      return _callHelper('dtest(#)', _visit(node.expression));
     }
     JS.Expression result = _visit(node);
     if (isNullable(node)) result = _callHelper('test(#)', result);
@@ -5339,11 +5497,11 @@ class CodeGenerator extends Object
   /// Unlike call sites, we always have an element available, so we can use it
   /// directly rather than computing the relevant options for [_emitMemberName].
   JS.Expression _declareMemberName(ExecutableElement e, {bool useExtension}) {
-    var name = (e is PropertyAccessorElement) ? e.variable.name : e.name;
-    return _emitMemberName(name,
+    return _emitMemberName(_getElementName(e),
         isStatic: e.isStatic,
         useExtension:
-            useExtension ?? _extensionTypes.isNativeClass(e.enclosingElement));
+            useExtension ?? _extensionTypes.isNativeClass(e.enclosingElement),
+        element: e);
   }
 
   /// This handles member renaming for private names and operators.
@@ -5390,11 +5548,18 @@ class CodeGenerator extends Object
       {DartType type,
       bool isStatic: false,
       bool useExtension,
-      bool alwaysSymbolizeNative: false,
       Element element}) {
     // Static members skip the rename steps and may require JS interop renames.
     if (isStatic) {
-      return _propertyName(_emitJSInteropStaticMemberName(element) ?? name);
+      return _emitJSInteropStaticMemberName(element) ?? _propertyName(name);
+    }
+
+    // We allow some (illegal in Dart) member names to be used in our private
+    // SDK code. These renames need to be included at every declaration,
+    // including overrides in subclasses.
+    if (element != null) {
+      var runtimeName = getJSExportName(element);
+      if (runtimeName != null) return _propertyName(runtimeName);
     }
 
     if (name.startsWith('_')) {
@@ -5421,15 +5586,7 @@ class CodeGenerator extends Object
 
     var result = _propertyName(name);
 
-    if (useExtension == null) {
-      // Dart "extension" methods. Used for JS Array, Boolean, Number, String.
-      var baseType = type;
-      while (baseType is TypeParameterType) {
-        baseType = (baseType.element as TypeParameterElement).bound;
-      }
-      useExtension = baseType is InterfaceType &&
-          _isSymbolizedMember(baseType, name, alwaysSymbolizeNative);
-    }
+    useExtension ??= _isSymbolizedMember(type, name);
 
     return useExtension
         ? js.call('#.#', [_extensionSymbolsModule, result])
@@ -5466,33 +5623,38 @@ class CodeGenerator extends Object
   /// Note, this is an underlying assumption here that, if another native type
   /// subtypes this one, it also forwards this member to its underlying native
   /// one without renaming.
-  bool _isSymbolizedMember(
-      InterfaceType type, String name, bool alwaysSymbolizeNative) {
+  bool _isSymbolizedMember(DartType type, String name) {
     // Object members are handled separately.
     if (isObjectMember(name)) {
       return false;
     }
 
-    var element = type.element;
-    if (_extensionTypes.isNativeClass(element)) {
-      var member = _lookupForwardedMember(element, name);
-
-      // Fields on a native class are implicitly native.
-      // Methods/getters/setters are marked external/native.
-      if (member is FieldElement ||
-          member is ExecutableElement && member.isExternal) {
-        var jsName = getAnnotationName(member, isJsName);
-        return alwaysSymbolizeNative || (jsName != null && jsName != name);
-      } else {
-        // Non-external members must be symbolized.
-        return true;
-      }
+    while (type is TypeParameterType) {
+      type = (type as TypeParameterType).bound;
     }
-    // If the receiver *may* be a native type (i.e., an interface allowed to
-    // be implemented by a native class), conservatively symbolize - we don't
-    // whether it'll be implemented via forwarding.
-    // TODO(vsm): Consider CHA here to be less conservative.
-    return _extensionTypes.isNativeInterface(element);
+    if (type is InterfaceType) {
+      var element = type.element;
+      if (_extensionTypes.isNativeClass(element)) {
+        var member = _lookupForwardedMember(element, name);
+
+        // Fields on a native class are implicitly native.
+        // Methods/getters/setters are marked external/native.
+        if (member is FieldElement ||
+            member is ExecutableElement && member.isExternal) {
+          var jsName = getAnnotationName(member, isJsName);
+          return jsName != null && jsName != name;
+        } else {
+          // Non-external members must be symbolized.
+          return true;
+        }
+      }
+      // If the receiver *may* be a native type (i.e., an interface allowed to
+      // be implemented by a native class), conservatively symbolize - we don't
+      // know whether it'll be implemented via forwarding.
+      // TODO(vsm): Consider CHA here to be less conservative.
+      return _extensionTypes.isNativeInterface(element);
+    }
+    return false;
   }
 
   JS.TemporaryId _emitPrivateNameSymbol(LibraryElement library, String name) {
@@ -5520,25 +5682,13 @@ class CodeGenerator extends Object
             () => new JS.TemporaryId(jsLibraryName(_libraryRoot, library)));
   }
 
-  JS.Node/*=T*/ annotate/*<T extends JS.Node>*/(
-      JS.Node/*=T*/ node, AstNode original,
-      [Element element]) {
+  T annotate<T extends JS.Node>(T node, AstNode original, [Element element]) {
     if (options.closure && element != null) {
-      node = node.withClosureAnnotation(closureAnnotationFor(
-          node, original, element, namedArgumentTemp.name)) as dynamic/*=T*/;
+      node.closureAnnotation =
+          closureAnnotationFor(node, original, element, namedArgumentTemp.name);
     }
     return node..sourceInformation = original;
   }
-
-  /// Returns true if this is any kind of object represented by `Number` in JS.
-  ///
-  /// In practice, this is 4 types: num, int, double, and JSNumber.
-  ///
-  /// JSNumber is the type that actually "implements" all numbers, hence it's
-  /// a subtype of int and double (and num). It's in our "dart:_interceptors".
-  bool _isNumberInJS(DartType t) =>
-      rules.isSubtypeOf(t, types.numType) &&
-      !rules.isSubtypeOf(t, types.nullType);
 
   /// Return true if this is one of the methods/properties on all Dart Objects
   /// (toString, hashCode, noSuchMethod, runtimeType).
@@ -5557,6 +5707,9 @@ class CodeGenerator extends Object
     }
     return false;
   }
+
+  bool _isObjectMethod(String name) =>
+      name == 'toString' || name == 'noSuchMethod';
 
   // TODO(leafp): Various analyzer pieces computed similar things.
   // Share this logic somewhere?
@@ -5615,6 +5768,9 @@ class CodeGenerator extends Object
     }
     return js.statement('#.$code', args);
   }
+
+  JS.Expression _throwUnsafe(String message) => _callHelper(
+      'throw(Error(#))', js.escapedString("compile error: $message"));
 
   _unreachable(AstNode node) {
     throw new UnsupportedError(
