@@ -21,6 +21,7 @@
 %
 % 2.0
 % - Don't allow functions as assert test values.
+% - Start running "async" functions synchronously.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -3788,7 +3789,19 @@ Two executions of an iterator interact only via state outside the function.
 % The alternative would be to cache the results of an iterator in the iterable, and check the cache at each \YIELD{}.  This would have strange issues as well. The yielded value might differ from the expression in the yield. And it is a potential memory leak as the cache is kept alive by any iterator.
 
 \LMHash{}
-If $f$ is marked \ASYNC{} (\ref{functions}), then a fresh instance (\ref{generativeConstructors}) $o$ implementing the built-in class \code{Future} is associated with the invocation and immediately returned to the caller. The body of $f$ is scheduled for execution at some future time. The future $o$ will be completed when execution of the body of $f$ completes (\ref{completion}). If execution of the body returns a value, $o$ is completed with that value, if it completes normally or returns without a value, $o$ is completed with the \NULL{} value, and if it throws an exception $e$ and stack trace $t$, $o$ is completed with the error $e$ and stack trace $t$.
+If $f$ is marked \ASYNC{} (\ref{functions}), then a fresh instance (\ref{generativeConstructors}) $o$ implementing the built-in class \code{Future} is associated with the invocation.
+Then the body of $f$ is executed until it either suspends or completes, at which point $o$ is returned.
+\commentary{The body of $f$ may suspend during the evaluation of an \AWAIT{} expression or execution of an asynchronous \FOR{} loop.}
+The future $o$ is completed when execution of the body of $f$ completes (\ref{completion}).
+If execution of the body returns a value, $o$ is completed with that value,
+if it completes normally or returns without a value,
+$o$ is completed with the \NULL{} value,
+and if it throws an exception $e$ and stack trace $t$,
+$o$ is completed with the error $e$ and stack trace $t$.
+If execution of the body throws before the body suspends the first time,
+completion of $o$ happens at some future time after the invocation has returned.
+\rationale{The caller needs time to set up error handling for the returned future,
+so the future is not completed with an error {\em before} it has been returned.}
 
 \LMHash{}
 If $f$ is marked \ASYNC* (\ref{functions}), then a fresh instance $s$ implementing the built-in class \code{Stream} is associated with the invocation and immediately returned. When $s$ is listened to, execution of the body of $f$ will begin.
