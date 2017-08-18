@@ -215,6 +215,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   if (FLAG_use_dart_frontend) {
     // Reload request.
 
+    ASSERT(tag == Dart_kKernelTag);
     const char* urlstr = NULL;
     Dart_Handle result = Dart_StringToCString(url, &urlstr);
     if (Dart_IsError(result)) {
@@ -238,11 +239,10 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
       ASSERT(kernel_reload_key != kUnsetThreadLocalKey);
       kernel_pgm =
           reinterpret_cast<void*>(OSThread::GetThreadLocal(kernel_reload_key));
-      ASSERT(kernel_pgm != NULL);
       OSThread::SetThreadLocal(kernel_reload_key, 0);
     }
-    return Dart_LoadScript(url, Dart_Null(),
-                           reinterpret_cast<Dart_Handle>(kernel_pgm), 0, 0);
+    ASSERT(kernel_pgm != NULL);
+    return Dart_NewExternalTypedData(Dart_TypedData_kUint64, kernel_pgm, 1);
   }
   if (tag == Dart_kCanonicalizeUrl) {
     Dart_Handle library_url = Dart_LibraryUrl(library);

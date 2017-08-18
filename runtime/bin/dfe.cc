@@ -52,7 +52,8 @@ void DFE::SetKernelBinaries(const char* name) {
            File::PathSeparator(), kVMServiceIOBinaryName);
 }
 
-Dart_Handle DFE::ReloadScript(Dart_Isolate isolate, const char* url_string) {
+Dart_Handle DFE::ReadKernelBinary(Dart_Isolate isolate,
+                                  const char* url_string) {
   ASSERT(!Dart_IsServiceIsolate(isolate) && !Dart_IsKernelIsolate(isolate));
   // First check if the URL points to a Kernel IR file in which case we
   // skip the compilation step and directly reload the file.
@@ -75,17 +76,7 @@ Dart_Handle DFE::ReloadScript(Dart_Isolate isolate, const char* url_string) {
   }
   void* kernel_program = Dart_ReadKernelBinary(kernel_ir, kernel_ir_size);
   ASSERT(kernel_program != NULL);
-  Dart_Handle result = Dart_LoadKernel(kernel_program);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  // Finalize loading. This will complete any futures for completed deferred
-  // loads.
-  result = Dart_FinalizeLoading(true);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  return Dart_Null();
+  return Dart_NewExternalTypedData(Dart_TypedData_kUint64, kernel_program, 1);
 }
 
 void* DFE::CompileAndReadScript(const char* script_uri,

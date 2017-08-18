@@ -136,7 +136,7 @@ main() {
     await hotReload();
     await programIsDone;
     expect(await lines[2], "part1 part4");
-  }, skip: true /* VM crashes on reload */);
+  });
 
   test('reload after whole program modification', () async {
     await startProgram(1);

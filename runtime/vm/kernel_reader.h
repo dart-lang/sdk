@@ -60,6 +60,12 @@ class KernelReader {
   // was no main procedure, or a failure object if there was an error.
   Object& ReadProgram();
 
+  // Finds all libraries that have been modified in this incremental
+  // version of the kernel program file.
+  void FindModifiedLibraries(Isolate* isolate,
+                             BitVector* modified_libs,
+                             bool force_reload);
+
   void ReadLibrary(intptr_t kernel_offset);
 
   const String& DartSymbol(StringIndex index) {

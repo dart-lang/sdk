@@ -10,6 +10,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/hash_table.h"
 #include "vm/isolate.h"
+#include "vm/kernel_reader.h"
 #include "vm/log.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -485,6 +486,7 @@ class Aborted : public ReasonForCancelling {
   }
 };
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static intptr_t CommonSuffixLength(const char* a, const char* b) {
   const intptr_t a_length = strlen(a);
   const intptr_t b_length = strlen(b);
@@ -533,8 +535,57 @@ void IsolateReloadContext::Reload(bool force_reload,
                           old_root_lib_url.Length() - common_suffix_length + 1);
   }
 
-  // Check to see which libraries have been modified.
-  modified_libs_ = FindModifiedLibraries(force_reload);
+  Object& result = Object::Handle(thread->zone());
+  kernel::Program* kernel_program = NULL;
+  String& packages_url = String::Handle();
+  if (packages_url_ != NULL) {
+    packages_url = String::New(packages_url_);
+  }
+  if (isolate()->use_dart_frontend()) {
+    // Load the kernel program and figure out the modified libraries.
+    const GrowableObjectArray& libs =
+        GrowableObjectArray::Handle(object_store()->libraries());
+    intptr_t num_libs = libs.Length();
+    modified_libs_ = new (Z) BitVector(Z, num_libs);
+    TIR_Print("---- ENTERING TAG HANDLER\n");
+    {
+      TransitionVMToNative transition(thread);
+      Api::Scope api_scope(thread);
+      Dart_Handle retval = (I->library_tag_handler())(
+          Dart_kKernelTag, Api::NewHandle(thread, packages_url.raw()),
+          Api::NewHandle(thread, root_lib_url.raw()));
+      if (Dart_IsError(retval)) {
+        // Compilation of the new sources failed, abort reload and report
+        // error.
+        result = Api::UnwrapHandle(retval);
+      } else {
+        uint64_t data;
+        intptr_t data_len = 0;
+        Dart_TypedData_Type data_type;
+        ASSERT(Dart_IsTypedData(retval));
+        Dart_Handle val = Dart_TypedDataAcquireData(
+            retval, &data_type, reinterpret_cast<void**>(&data), &data_len);
+        ASSERT(!Dart_IsError(val));
+        ASSERT(data_type == Dart_TypedData_kUint64);
+        ASSERT(data_len == 1);
+        kernel_program = reinterpret_cast<kernel::Program*>(data);
+        Dart_TypedDataReleaseData(retval);
+        kernel::KernelReader reader(kernel_program);
+        reader.FindModifiedLibraries(I, modified_libs_, force_reload);
+      }
+    }
+    if (result.IsError()) {
+      TIR_Print("---- LOAD FAILED, ABORTING RELOAD\n");
+      AddReasonForCancelling(new Aborted(zone_, ApiError::Cast(result)));
+      ReportReasonsForCancelling();
+      CommonFinalizeTail();
+      return;
+    }
+    TIR_Print("---- EXITED TAG HANDLER\n");
+  } else {
+    // Check to see which libraries have been modified.
+    modified_libs_ = FindModifiedLibraries(force_reload);
+  }
   if (!modified_libs_->Contains(old_root_lib.index())) {
     ASSERT(modified_libs_->IsEmpty());
     reload_skipped_ = true;
@@ -589,15 +640,22 @@ void IsolateReloadContext::Reload(bool force_reload,
   // returned by the tag handler. The tag handler can return other errors,
   // for example, top level parse errors. We want to capture these errors while
   // propagating the UnwindError or an UnhandledException error.
-  Object& result = Object::Handle(thread->zone());
 
-  String& packages_url = String::Handle();
-  if (packages_url_ != NULL) {
-    packages_url = String::New(packages_url_);
-  }
-
-  TIR_Print("---- ENTERING TAG HANDLER\n");
-  {
+  if (isolate()->use_dart_frontend()) {
+    // Read the kernel program.
+    kernel::KernelReader reader(kernel_program);
+    const Object& tmp = reader.ReadProgram();
+    if (!tmp.IsError()) {
+      Library& lib = Library::Handle(thread->zone());
+      lib ^= tmp.raw();
+      isolate()->object_store()->set_root_library(lib);
+      FinalizeLoading();
+      result = Object::null();
+    } else {
+      result = tmp.raw();
+    }
+  } else {
+    TIR_Print("---- ENTERING TAG HANDLER\n");
     TransitionVMToNative transition(thread);
     Api::Scope api_scope(thread);
 
@@ -605,10 +663,10 @@ void IsolateReloadContext::Reload(bool force_reload,
         Dart_kScriptTag, Api::NewHandle(thread, packages_url.raw()),
         Api::NewHandle(thread, root_lib_url.raw()));
     result = Api::UnwrapHandle(retval);
+    TIR_Print("---- EXITED TAG HANDLER\n");
   }
   //
   // WEIRD CONTROL FLOW ENDS.
-  TIR_Print("---- EXITED TAG HANDLER\n");
 
   // Re-enable the background compiler. Do this before propagating any errors.
   BackgroundCompiler::Enable();
@@ -633,6 +691,12 @@ void IsolateReloadContext::Reload(bool force_reload,
     FinalizeFailedLoad(Error::Cast(result));
   }
 }
+#else
+// NOTE: This function returns *after* FinalizeLoading is called.
+void IsolateReloadContext::Reload(bool force_reload,
+                                  const char* root_script_url,
+                                  const char* packages_url_) {}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void IsolateReloadContext::RegisterClass(const Class& new_cls) {
   const Class& old_cls = Class::Handle(OldClassOrNull(new_cls));
@@ -663,10 +727,9 @@ void IsolateReloadContext::RegisterClass(const Class& new_cls) {
 // FinalizeLoading will be called *before* Reload() returns but will not be
 // called if the embedder fails to load sources.
 void IsolateReloadContext::FinalizeLoading() {
-  if (reload_skipped_) {
+  if (reload_skipped_ || reload_finalized_) {
     return;
   }
-  ASSERT(!reload_finalized_);
   BuildLibraryMapping();
   TIR_Print("---- LOAD SUCCEEDED\n");
   if (ValidateReload()) {

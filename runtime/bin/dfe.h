@@ -38,11 +38,11 @@ class DFE {
   bool kernel_file_specified() const { return kernel_file_specified_; }
   void set_kernel_file_specified(bool value) { kernel_file_specified_ = value; }
 
-  // Method to reload a script into a running a isolate.
+  // Method to read a kernel file into a kernel program blob.
   // If the specified script [url] is not a kernel IR, compile it first using
-  // DFE and then reload the resulting kernel IR into the isolate.
+  // DFE and then read the resulting kernel file into a kernel program blob.
   // Returns Dart_Null if successful, otherwise an error object is returned.
-  Dart_Handle ReloadScript(Dart_Isolate isolate, const char* url_string);
+  Dart_Handle ReadKernelBinary(Dart_Isolate isolate, const char* url_string);
 
   // Compiles a script and reads the resulting kernel file.
   // If the compilation is successful, returns a valid in memory kernel

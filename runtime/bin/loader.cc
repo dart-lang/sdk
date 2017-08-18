@@ -673,20 +673,14 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   if (Dart_IsError(result)) {
     return result;
   }
-  if (tag == Dart_kScriptTag) {
-    if (dfe.UseDartFrontend() || dfe.kernel_file_specified()) {
-      Dart_Isolate current = Dart_CurrentIsolate();
-      // Check if we are trying to reload a kernel file or if the '--dfe'
-      // option was specified and we need to compile sources using DFE.
-      if (!Dart_IsServiceIsolate(current) && !Dart_IsKernelIsolate(current)) {
-        // When using DFE the library tag handler should be called only when
-        // we are reloading scripts.
-        return dfe.ReloadScript(current, url_string);
-      }
-    }
-    // TODO(asiva) We need to ensure that the kernel and service isolates
-    // are always loaded from a kernel IR and do not use this path.
-  } else {
+  if (tag == Dart_kKernelTag) {
+    ASSERT(dfe.UseDartFrontend() || dfe.kernel_file_specified());
+    Dart_Isolate current = Dart_CurrentIsolate();
+    ASSERT(!Dart_IsServiceIsolate(current) && !Dart_IsKernelIsolate(current));
+    return dfe.ReadKernelBinary(current, url_string);
+  }
+  ASSERT(!dfe.UseDartFrontend() && !dfe.kernel_file_specified());
+  if (tag != Dart_kScriptTag) {
     // Special case for handling dart: imports and parts.
     // Grab the library's url.
     Dart_Handle library_url = Dart_LibraryUrl(library);
@@ -707,7 +701,6 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                         url_string);
     }
   }
-
   if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
     // Handle early error cases for dart-ext: imports.
     if (tag != Dart_kImportTag) {

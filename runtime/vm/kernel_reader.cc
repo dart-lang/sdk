@@ -211,6 +211,43 @@ Object& KernelReader::ReadProgram() {
   return error;
 }
 
+void KernelReader::FindModifiedLibraries(Isolate* isolate,
+                                         BitVector* modified_libs,
+                                         bool force_reload) {
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    if (force_reload) {
+      // If a reload is being forced we mark all libraries as having
+      // been modified.
+      const GrowableObjectArray& libs =
+          GrowableObjectArray::Handle(isolate->object_store()->libraries());
+      intptr_t num_libs = libs.Length();
+      Library& lib = dart::Library::Handle(Z);
+      for (intptr_t i = 0; i < num_libs; i++) {
+        lib ^= libs.At(i);
+        if (!lib.is_dart_scheme()) {
+          modified_libs->Add(lib.index());
+        }
+      }
+      return;
+    }
+    // Now go through all the libraries that are present in the incremental
+    // kernel files, these will constitute the modified libraries.
+    intptr_t length = program_->library_count();
+    for (intptr_t i = 0; i < length; i++) {
+      intptr_t kernel_offset = library_offset(i);
+      builder_.SetOffset(kernel_offset);
+      LibraryHelper library_helper(&builder_);
+      library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
+      dart::Library& lib = LookupLibrary(library_helper.canonical_name_);
+      if (!lib.IsNull() && !lib.is_dart_scheme()) {
+        // This is a library that already exists so mark it as being modified.
+        modified_libs->Add(lib.index());
+      }
+    }
+  }
+}
+
 void KernelReader::ReadLibrary(intptr_t kernel_offset) {
   builder_.SetOffset(kernel_offset);
   LibraryHelper library_helper(&builder_);

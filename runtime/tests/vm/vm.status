@@ -327,7 +327,6 @@ cc/IsolateReload_EnumToNotEnum: Skip
 cc/IsolateReload_ExportedLibModified: Crash
 cc/IsolateReload_ImportedLibModified: Crash
 cc/IsolateReload_ImportedMixinFunction: Crash
-cc/IsolateReload_KernelIncrementalCompileGenerics: Crash # Issue 30322
 cc/IsolateReload_LibraryHide: Crash
 cc/IsolateReload_LibraryLookup: Fail
 cc/IsolateReload_LibraryShow: Crash
