@@ -312,7 +312,6 @@ bad_override_test/04: Crash # type 'KernelField' is not a subtype of type 'Proce
 bad_override_test/05: MissingCompileTimeError
 bailout4_test: Crash
 bailout_test: Crash
-bind_test: Crash
 bit_operations_test/01: Crash
 bit_operations_test/02: Crash
 bit_operations_test/03: Crash
@@ -346,16 +345,13 @@ call_nonexistent_static_test/08: Crash
 call_nonexistent_static_test/09: Crash
 call_nonexistent_static_test/10: Crash
 call_operator_test: RuntimeError
-call_property_test: Crash
 call_test: Crash
 call_through_getter_test: Crash
-call_through_null_getter_test: Crash
 call_type_literal_test/01: Crash
 call_with_no_such_method_test: Crash
 canonical_const2_test: RuntimeError
 canonical_const_test: Crash
 cascade2_test: Crash
-cascade_test/none: Crash
 cast_test/04: RuntimeError
 cast_test/05: RuntimeError
 cast_test/none: RuntimeError
@@ -419,7 +415,6 @@ class_literal_test/24: Crash
 class_literal_test/24: Crash
 class_literal_test/25: Crash
 class_literal_test/25: Crash
-class_literal_test/none: Crash
 class_literal_test: Crash # Assertion failure: Cannot find value local(main_closure.call#x) in (local(main#)) for j:closure_call(main_closure.call).
 class_override_test/00: Crash
 class_override_test/00: Crash
@@ -434,8 +429,6 @@ closure5_test: Crash
 closure6_test: Crash
 closure6_test: Crash
 closure7_test: Crash
-closure7_test: Crash
-closure8_test: Crash
 closure8_test: Crash
 closure_break_test: Crash
 closure_break_test: Crash
@@ -465,6 +458,7 @@ closures_initializer2_test: Crash # 'file:///usr/local/google/home/efortuna/dart
 closures_initializer_test: Crash # 'file:///usr/local/google/home/efortuna/dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for local(B.#). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(A_closure.call), j:constructor(A.))
 closures_with_complex_params_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'cls' where
 function_subtype_inline2_test: Crash
+function_subtype_inline2_test: RuntimeError
 function_type/function_type0_test: Crash
 function_type/function_type10_test: Crash
 function_type/function_type11_test: Crash
@@ -568,9 +562,8 @@ function_type/function_type9_test: Crash
 generic_constructor_mixin2_test: Crash
 generic_constructor_mixin3_test: Crash
 generic_constructor_mixin_test: Crash
-function_subtype_inline2_test: RuntimeError
 regress_30339_test: Crash
-typevariable_substitution2_test/02: Crash
+typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 abstract_beats_arguments_test: Crash
@@ -700,7 +693,6 @@ bad_override_test/05: MissingCompileTimeError
 bad_override_test/06: Crash
 bailout4_test: Crash
 bailout_test: Crash
-bind_test: Crash
 bit_operations_test/01: Crash
 bit_operations_test/02: Crash
 bit_operations_test/03: Crash
@@ -741,7 +733,6 @@ call_type_literal_test/01: Crash
 call_with_no_such_method_test: Crash
 canonical_const2_test: RuntimeError
 canonical_const_test: Crash
-cascade_test/none: Crash
 cast_test/04: RuntimeError
 cast_test/05: RuntimeError
 cast_test/none: RuntimeError
@@ -819,8 +810,6 @@ closure5_test: Crash
 closure6_test: Crash
 closure6_test: Crash
 closure7_test: Crash
-closure7_test: Crash
-closure8_test: Crash
 closure8_test: Crash
 closure_break_test: Crash
 closure_break_test: Crash
@@ -954,7 +943,7 @@ generic_constructor_mixin2_test: Crash
 generic_constructor_mixin3_test: Crash
 generic_constructor_mixin_test: Crash
 regress_30339_test: Crash
-typevariable_substitution2_test/02: Crash
+typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && ! $dart2js_with_kernel && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
