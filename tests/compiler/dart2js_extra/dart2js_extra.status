@@ -210,7 +210,6 @@ compile_time_constant4_test/06: Crash
 conditional_send_test: Crash
 consistent_add_error_test: Crash
 consistent_add_error_test: RuntimeError
-consistent_index_error_typed_list_test: Crash
 consistent_subtract_error_test: Crash
 consistent_subtract_error_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError

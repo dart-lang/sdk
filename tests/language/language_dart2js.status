@@ -902,7 +902,9 @@ instanceof4_test/01: Crash
 instanceof4_test/none: Crash
 integer_division_by_zero_test: RuntimeError
 interceptor3_test: Crash
-interceptor9_test: Crash
+external_test/10: MissingRuntimeError
+external_test/13: MissingRuntimeError
+external_test/20: MissingRuntimeError
 internal_library_test/02: Crash
 invocation_mirror2_test: Crash
 invocation_mirror_empty_arguments_test: Crash
