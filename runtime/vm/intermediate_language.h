@@ -2852,15 +2852,17 @@ class ClosureCallInstr : public TemplateDartCall<1> {
 
 class InstanceCallInstr : public TemplateDartCall<0> {
  public:
-  InstanceCallInstr(TokenPosition token_pos,
-                    const String& function_name,
-                    Token::Kind token_kind,
-                    ZoneGrowableArray<PushArgumentInstr*>* arguments,
-                    intptr_t type_args_len,
-                    const Array& argument_names,
-                    intptr_t checked_argument_count,
-                    const ZoneGrowableArray<const ICData*>& ic_data_array,
-                    intptr_t deopt_id)
+  InstanceCallInstr(
+      TokenPosition token_pos,
+      const String& function_name,
+      Token::Kind token_kind,
+      ZoneGrowableArray<PushArgumentInstr*>* arguments,
+      intptr_t type_args_len,
+      const Array& argument_names,
+      intptr_t checked_argument_count,
+      const ZoneGrowableArray<const ICData*>& ic_data_array,
+      intptr_t deopt_id,
+      const Function& interface_target = Function::null_function())
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
@@ -2870,9 +2872,11 @@ class InstanceCallInstr : public TemplateDartCall<0> {
         function_name_(function_name),
         token_kind_(token_kind),
         checked_argument_count_(checked_argument_count),
+        interface_target_(interface_target),
         has_unique_selector_(false) {
     ic_data_ = GetICData(ic_data_array);
     ASSERT(function_name.IsNotTemporaryScopedHandle());
+    ASSERT(interface_target_.IsNotTemporaryScopedHandle());
     ASSERT(!arguments->is_empty());
     ASSERT(Token::IsBinaryOperator(token_kind) ||
            Token::IsEqualityOperator(token_kind) ||
@@ -2895,6 +2899,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   const String& function_name() const { return function_name_; }
   Token::Kind token_kind() const { return token_kind_; }
   intptr_t checked_argument_count() const { return checked_argument_count_; }
+  const Function& interface_target() const { return interface_target_; }
 
   bool has_unique_selector() const { return has_unique_selector_; }
   void set_has_unique_selector(bool b) { has_unique_selector_ = b; }
@@ -2930,6 +2935,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   const String& function_name_;
   const Token::Kind token_kind_;  // Binary op, unary op, kGET or kILLEGAL.
   const intptr_t checked_argument_count_;
+  const Function& interface_target_;
   bool has_unique_selector_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallInstr);

@@ -942,7 +942,7 @@ void StreamingScopeBuilder::VisitExpression() {
       builder_->ReadPosition();  // read position.
       VisitExpression();         // read receiver.
       builder_->SkipName();      // read name.
-      // Read unused "interface_target_reference".
+      // read interface_target_reference.
       builder_->SkipCanonicalNameReference();
       return;
     case kPropertySet:
@@ -950,7 +950,7 @@ void StreamingScopeBuilder::VisitExpression() {
       VisitExpression();         // read receiver.
       builder_->SkipName();      // read name.
       VisitExpression();         // read value.
-      // read unused "interface_target_reference".
+      // read interface_target_reference.
       builder_->SkipCanonicalNameReference();
       return;
     case kDirectPropertyGet:
@@ -978,7 +978,7 @@ void StreamingScopeBuilder::VisitExpression() {
       VisitExpression();         // read receiver.
       builder_->SkipName();      // read name.
       VisitArguments();          // read arguments.
-      // read unused "interface_target_reference".
+      // read interface_target_reference.
       builder_->SkipCanonicalNameReference();
       return;
     case kDirectMethodInvocation:
@@ -2402,8 +2402,7 @@ void StreamingConstantEvaluator::EvaluatePropertyGet() {
   intptr_t expression_offset = builder_->ReaderOffset();
   builder_->SkipExpression();                            // read receiver.
   StringIndex name = builder_->ReadNameAsStringIndex();  // read name.
-  // Read unused "interface_target_reference".
-  builder_->SkipCanonicalNameReference();
+  builder_->SkipCanonicalNameReference();  // read interface_target_reference.
 
   if (H.StringEquals(name, "length")) {
     EvaluateExpression(expression_offset);
@@ -2486,7 +2485,7 @@ void StreamingConstantEvaluator::EvaluateMethodInvocation() {
   result_ ^= result.raw();
   result_ = H.Canonicalize(result_);
 
-  builder_->SkipCanonicalNameReference();  // read "interface_target_reference"
+  builder_->SkipCanonicalNameReference();  // read interface_target_reference.
 }
 
 void StreamingConstantEvaluator::EvaluateStaticInvocation() {
@@ -4315,16 +4314,14 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       ReadPosition();    // read position.
       SkipExpression();  // read receiver.
       SkipName();        // read name.
-      // Read unused "interface_target_reference".
-      SkipCanonicalNameReference();
+      SkipCanonicalNameReference();  // read interface_target_reference.
       return;
     case kPropertySet:
       ReadPosition();    // read position.
       SkipExpression();  // read receiver.
       SkipName();        // read name.
       SkipExpression();  // read value.
-      // read unused "interface_target_reference".
-      SkipCanonicalNameReference();
+      SkipCanonicalNameReference();  // read interface_target_reference.
       return;
     case kDirectPropertyGet:
       ReadPosition();                // read position.
@@ -4351,8 +4348,7 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       SkipExpression();  // read receiver.
       SkipName();        // read name.
       SkipArguments();   // read arguments.
-      // read unused "interface_target_reference".
-      SkipCanonicalNameReference();
+      SkipCanonicalNameReference();  // read interface_target_reference.
       return;
     case kDirectMethodInvocation:
       SkipExpression();              // read receiver.
@@ -4959,8 +4955,24 @@ Fragment StreamingFlowGraphBuilder::InstanceCall(
     Token::Kind kind,
     intptr_t argument_count,
     intptr_t checked_argument_count) {
-  return flow_graph_builder_->InstanceCall(position, name, kind, argument_count,
-                                           checked_argument_count);
+  const intptr_t kTypeArgsLen = 0;
+  return flow_graph_builder_->InstanceCall(
+      position, name, kind, kTypeArgsLen, argument_count, Array::null_array(),
+      checked_argument_count, Function::null_function());
+}
+
+Fragment StreamingFlowGraphBuilder::InstanceCall(
+    TokenPosition position,
+    const String& name,
+    Token::Kind kind,
+    intptr_t type_args_len,
+    intptr_t argument_count,
+    const Array& argument_names,
+    intptr_t checked_argument_count,
+    const Function& interface_target) {
+  return flow_graph_builder_->InstanceCall(
+      position, name, kind, type_args_len, argument_count, argument_names,
+      checked_argument_count, interface_target);
 }
 
 Fragment StreamingFlowGraphBuilder::ThrowException(TokenPosition position) {
@@ -5000,19 +5012,6 @@ Fragment StreamingFlowGraphBuilder::AllocateContext(intptr_t size) {
 
 Fragment StreamingFlowGraphBuilder::LoadField(intptr_t offset) {
   return flow_graph_builder_->LoadField(offset);
-}
-
-Fragment StreamingFlowGraphBuilder::InstanceCall(
-    TokenPosition position,
-    const String& name,
-    Token::Kind kind,
-    intptr_t type_args_len,
-    intptr_t argument_count,
-    const Array& argument_names,
-    intptr_t checked_argument_count) {
-  return flow_graph_builder_->InstanceCall(position, name, kind, type_args_len,
-                                           argument_count, argument_names,
-                                           checked_argument_count);
 }
 
 Fragment StreamingFlowGraphBuilder::StoreLocal(TokenPosition position,
@@ -5309,9 +5308,21 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
   instructions += PushArgument();
 
   const String& getter_name = ReadNameAsGetterName();  // read name.
-  SkipCanonicalNameReference();  // Read unused "interface_target_reference".
 
-  return instructions + InstanceCall(position, getter_name, Token::kGET, 1);
+  const Function* interface_target = &Function::null_function();
+  NameIndex itarget_name =
+      ReadCanonicalNameReference();  // read interface_target_reference.
+  if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name) &&
+      (H.IsGetter(itarget_name) || H.IsField(itarget_name))) {
+    interface_target = &Function::ZoneHandle(
+        Z, LookupMethodByMember(itarget_name, H.DartGetterName(itarget_name)));
+  }
+
+  const intptr_t kTypeArgsLen = 0;
+  const intptr_t kNumArgsChecked = 1;
+  return instructions + InstanceCall(position, getter_name, Token::kGET,
+                                     kTypeArgsLen, 1, Array::null_array(),
+                                     kNumArgsChecked, *interface_target);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
@@ -5330,9 +5341,20 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   instructions += StoreLocal(TokenPosition::kNoSource, variable);
   instructions += PushArgument();
 
-  SkipCanonicalNameReference();  // read unused "interface_target_reference".
+  const Function* interface_target = &Function::null_function();
+  NameIndex itarget_name =
+      ReadCanonicalNameReference();  // read interface_target_reference.
+  if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name)) {
+    interface_target = &Function::ZoneHandle(
+        Z, LookupMethodByMember(itarget_name, H.DartSetterName(itarget_name)));
+  }
 
-  instructions += InstanceCall(position, setter_name, Token::kSET, 2);
+  const intptr_t kTypeArgsLen = 0;
+  const intptr_t kNumArgsChecked = 1;
+  instructions +=
+      InstanceCall(position, setter_name, Token::kSET, kTypeArgsLen, 2,
+                   Array::null_array(), kNumArgsChecked, *interface_target);
+
   return instructions + Drop();
 }
 
@@ -5498,9 +5520,8 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     if ((argument_count == 1) && (token_kind == Token::kNEGATE)) {
       const Object& result = constant_evaluator_.EvaluateExpressionSafe(offset);
       if (!result.IsError()) {
-        SkipArguments();  // read arguments,
-        // read unused "interface_target_reference".
-        SkipCanonicalNameReference();
+        SkipArguments();               // read arguments.
+        SkipCanonicalNameReference();  // read interface_target_reference.
         return Constant(result);
       }
     } else if ((argument_count == 2) &&
@@ -5508,9 +5529,8 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
                IsNumberLiteral(PeekArgumentsFirstPositionalTag())) {
       const Object& result = constant_evaluator_.EvaluateExpressionSafe(offset);
       if (!result.IsError()) {
-        SkipArguments();
-        // read unused "interface_target_reference".
-        SkipCanonicalNameReference();
+        SkipArguments();               // read arguments.
+        SkipCanonicalNameReference();  // read interface_target_reference.
         return Constant(result);
       }
     }
@@ -5530,7 +5550,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
        PeekArgumentsFirstPositionalTag() == kNullLiteral)) {
     // "==" or "!=" with null on either side.
     instructions += BuildArguments(NULL, NULL, true);  // read arguments.
-    SkipCanonicalNameReference();  // read unused "interface_target_reference".
+    SkipCanonicalNameReference();  // read interface_target_reference.
     Token::Kind strict_cmp_kind =
         token_kind == Token::kEQ ? Token::kEQ_STRICT : Token::kNE_STRICT;
     return instructions +
@@ -5555,9 +5575,18 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     checked_argument_count = argument_count;
   }
 
+  const Function* interface_target = &Function::null_function();
+  NameIndex itarget_name =
+      ReadCanonicalNameReference();  // read interface_target_reference.
+  if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name)) {
+    interface_target = &Function::ZoneHandle(
+        Z,
+        LookupMethodByMember(itarget_name, H.DartProcedureName(itarget_name)));
+  }
+
   instructions +=
       InstanceCall(position, name, token_kind, kTypeArgsLen, argument_count,
-                   argument_names, checked_argument_count);
+                   argument_names, checked_argument_count, *interface_target);
   // Later optimization passes assume that result of a x.[]=(...) call is not
   // used. We must guarantee this invariant because violation will lead to an
   // illegal IL once we replace x.[]=(...) with a sequence that does not
@@ -5566,8 +5595,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     instructions += Drop();
     instructions += NullConstant();
   }
-
-  SkipCanonicalNameReference();  // read unused "interface_target_reference".
 
   return instructions;
 }

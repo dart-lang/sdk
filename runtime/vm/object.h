@@ -360,6 +360,10 @@ class Object {
     ASSERT(null_instance_ != NULL);
     return *null_instance_;
   }
+  static const Function& null_function() {
+    ASSERT(null_function_ != NULL);
+    return *null_function_;
+  }
   static const TypeArguments& null_type_arguments() {
     ASSERT(null_type_arguments_ != NULL);
     return *null_type_arguments_;
@@ -806,6 +810,7 @@ class Object {
   static Array* null_array_;
   static String* null_string_;
   static Instance* null_instance_;
+  static Function* null_function_;
   static TypeArguments* null_type_arguments_;
   static TypeArguments* empty_type_arguments_;
   static Array* empty_array_;

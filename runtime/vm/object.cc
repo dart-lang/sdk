@@ -108,6 +108,7 @@ Object* Object::null_object_ = NULL;
 Array* Object::null_array_ = NULL;
 String* Object::null_string_ = NULL;
 Instance* Object::null_instance_ = NULL;
+Function* Object::null_function_ = NULL;
 TypeArguments* Object::null_type_arguments_ = NULL;
 TypeArguments* Object::empty_type_arguments_ = NULL;
 Array* Object::empty_array_ = NULL;
@@ -502,6 +503,7 @@ void Object::InitOnce(Isolate* isolate) {
   null_array_ = Array::ReadOnlyHandle();
   null_string_ = String::ReadOnlyHandle();
   null_instance_ = Instance::ReadOnlyHandle();
+  null_function_ = Function::ReadOnlyHandle();
   null_type_arguments_ = TypeArguments::ReadOnlyHandle();
   empty_type_arguments_ = TypeArguments::ReadOnlyHandle();
   empty_array_ = Array::ReadOnlyHandle();
@@ -534,6 +536,7 @@ void Object::InitOnce(Isolate* isolate) {
   *null_array_ = Array::null();
   *null_string_ = String::null();
   *null_instance_ = Instance::null();
+  *null_function_ = Function::null();
   *null_type_arguments_ = TypeArguments::null();
 
   // Initialize the empty and zero array handles to null_ in order to be able to
@@ -946,6 +949,8 @@ void Object::InitOnce(Isolate* isolate) {
   ASSERT(null_string_->IsString());
   ASSERT(!null_instance_->IsSmi());
   ASSERT(null_instance_->IsInstance());
+  ASSERT(!null_function_->IsSmi());
+  ASSERT(null_function_->IsFunction());
   ASSERT(!null_type_arguments_->IsSmi());
   ASSERT(null_type_arguments_->IsTypeArguments());
   ASSERT(!empty_type_arguments_->IsSmi());

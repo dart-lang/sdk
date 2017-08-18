@@ -1050,25 +1050,17 @@ Fragment FlowGraphBuilder::IntConstant(int64_t value) {
 Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
                                         const String& name,
                                         Token::Kind kind,
-                                        intptr_t argument_count,
-                                        intptr_t checked_argument_count) {
-  const intptr_t kTypeArgsLen = 0;
-  return InstanceCall(position, name, kind, kTypeArgsLen, argument_count,
-                      Array::null_array(), checked_argument_count);
-}
-
-Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
-                                        const String& name,
-                                        Token::Kind kind,
                                         intptr_t type_args_len,
                                         intptr_t argument_count,
                                         const Array& argument_names,
-                                        intptr_t checked_argument_count) {
+                                        intptr_t checked_argument_count,
+                                        const Function& interface_target) {
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
   ArgumentArray arguments = GetArguments(total_count);
-  InstanceCallInstr* call = new (Z) InstanceCallInstr(
-      position, name, kind, arguments, type_args_len, argument_names,
-      checked_argument_count, ic_data_array_, GetNextDeoptId());
+  InstanceCallInstr* call = new (Z)
+      InstanceCallInstr(position, name, kind, arguments, type_args_len,
+                        argument_names, checked_argument_count, ic_data_array_,
+                        GetNextDeoptId(), interface_target);
   Push(call);
   return Fragment(call);
 }
@@ -1499,6 +1491,12 @@ RawFunction* FlowGraphBuilder::LookupMethodByMember(NameIndex target,
   Class& klass = Class::Handle(Z, H.LookupClassByKernelClass(kernel_class));
 
   RawFunction* function = klass.LookupFunctionAllowPrivate(method_name);
+#ifdef DEBUG
+  if (function == Object::null()) {
+    OS::PrintErr("Unable to find \'%s\' in %s\n", method_name.ToCString(),
+                 klass.ToCString());
+  }
+#endif
   ASSERT(function != Object::null());
   return function;
 }
@@ -2155,8 +2153,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
     // Invoke the getter to get the field value.
     body += LoadLocal(scope->VariableAt(0));
     body += PushArgument();
-    body +=
-        InstanceCall(TokenPosition::kMinSource, getter_name, Token::kGET, 1);
+    const intptr_t kTypeArgsLen = 0;
+    const intptr_t kNumArgsChecked = 1;
+    body += InstanceCall(TokenPosition::kMinSource, getter_name, Token::kGET,
+                         kTypeArgsLen, 1, Array::null_array(), kNumArgsChecked,
+                         Function::null_function());
   }
 
   body += PushArgument();
@@ -2176,9 +2177,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
     body += ClosureCall(descriptor.TypeArgsLen(), descriptor.Count(),
                         argument_names);
   } else {
+    const intptr_t kNumArgsChecked = 1;
     body += InstanceCall(TokenPosition::kMinSource, Symbols::Call(),
                          Token::kILLEGAL, descriptor.TypeArgsLen(),
-                         descriptor.Count(), argument_names);
+                         descriptor.Count(), argument_names, kNumArgsChecked,
+                         Function::null_function());
   }
 
   body += Return(TokenPosition::kNoSource);
