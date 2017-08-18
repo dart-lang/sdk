@@ -159,7 +159,7 @@ class B extends A1 with A2 {
     assertNotSuggested('foo');
     assertNotSuggested('A');
     assertSuggestField('x', 'int');
-    assertSuggestMethod('y', 'A2', 'int');
+    assertSuggestMethod('y', 'A1', 'int');
     assertSuggestField('x1', 'int');
     assertSuggestMethod('y1', 'A1', 'int');
     assertSuggestField('x2', 'int');
