@@ -483,7 +483,7 @@ const_list_literal_test: Crash
 const_list_set_range_test: Crash
 core_runtime_types_test: Crash
 data_uri_test: Crash
-date_time_test: Timeout
+date_time_test: Skip # TODO(30492): TODO(redemption): Timeout
 double_parse_test/01: Crash
 double_parse_test/02: Crash
 double_parse_test/03: Crash
@@ -714,7 +714,7 @@ const_list_set_range_test: Crash
 core_runtime_types_static_test: Crash
 core_runtime_types_test: Crash
 data_uri_test: Crash
-date_time_test: Timeout
+date_time_test: Skip # TODO(30492): TODO(redemption): Timeout
 double_parse_test/01: Crash
 double_parse_test/02: Crash
 double_parse_test/03: Crash
