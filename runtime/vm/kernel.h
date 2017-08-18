@@ -82,8 +82,7 @@ class Program {
   DISALLOW_COPY_AND_ASSIGN(Program);
 };
 
-ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
-                                            const dart::Field& field);
+ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field);
 
 }  // namespace kernel
 

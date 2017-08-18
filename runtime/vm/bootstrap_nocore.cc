@@ -76,7 +76,7 @@ RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   // adding classes to the list more than once.
   GrowableObjectArray& pending_classes = GrowableObjectArray::Handle(
       zone, isolate->object_store()->pending_classes());
-  dart::Class& pending = dart::Class::Handle(zone);
+  Class& pending = Class::Handle(zone);
   for (intptr_t i = 0; i < pending_classes.Length(); ++i) {
     pending ^= pending_classes.At(i);
     pending.set_is_marked_for_parsing();

@@ -452,10 +452,10 @@ class StreamingDartTypeTranslator {
   // Will return `TypeArguments::null()` in case any of the arguments are
   // malformed.
   const TypeArguments& BuildInstantiatedTypeArguments(
-      const dart::Class& receiver_class,
+      const Class& receiver_class,
       intptr_t length);
 
-  const Type& ReceiverType(const dart::Class& klass);
+  const Type& ReceiverType(const Class& klass);
 
  private:
   // Can build a malformed type.
@@ -550,7 +550,7 @@ class StreamingScopeBuilder {
 
   LocalVariable* MakeVariable(TokenPosition declaration_pos,
                               TokenPosition token_pos,
-                              const dart::String& name,
+                              const String& name,
                               const AbstractType& type);
 
   void AddExceptionVariable(GrowableArray<LocalVariable*>* variables,
@@ -567,11 +567,11 @@ class StreamingScopeBuilder {
   // captured variable.
   void LookupVariable(intptr_t declaration_binary_offset);
 
-  const dart::String& GenerateName(const char* prefix, intptr_t suffix);
+  const String& GenerateName(const char* prefix, intptr_t suffix);
 
-  void HandleSpecialLoad(LocalVariable** variable, const dart::String& symbol);
+  void HandleSpecialLoad(LocalVariable** variable, const String& symbol);
   void LookupCapturedVariableByName(LocalVariable** variable,
-                                    const dart::String& name);
+                                    const String& name);
 
   struct DepthState {
     explicit DepthState(intptr_t function)
@@ -679,13 +679,13 @@ class StreamingConstantEvaluator {
                             const Array& arguments,
                             const Array& names);
 
-  RawObject* EvaluateConstConstructorCall(const dart::Class& type_class,
+  RawObject* EvaluateConstConstructorCall(const Class& type_class,
                                           const TypeArguments& type_arguments,
                                           const Function& constructor,
                                           const Object& argument);
 
   const TypeArguments* TranslateTypeArguments(const Function& target,
-                                              dart::Class* target_klass);
+                                              Class* target_klass);
 
   void AssertBool() {
     if (!result_.IsBool()) {
@@ -806,10 +806,10 @@ class StreamingFlowGraphBuilder {
   StringIndex ReadStringReference();
   NameIndex ReadCanonicalNameReference();
   StringIndex ReadNameAsStringIndex();
-  const dart::String& ReadNameAsMethodName();
-  const dart::String& ReadNameAsGetterName();
-  const dart::String& ReadNameAsSetterName();
-  const dart::String& ReadNameAsFieldName();
+  const String& ReadNameAsMethodName();
+  const String& ReadNameAsGetterName();
+  const String& ReadNameAsSetterName();
+  const String& ReadNameAsFieldName();
   void SkipStringReference();
   void SkipCanonicalNameReference();
   void SkipDartType();
@@ -866,16 +866,16 @@ class StreamingFlowGraphBuilder {
   Value* Pop();
 
   Tag PeekArgumentsFirstPositionalTag();
-  const TypeArguments& PeekArgumentsInstantiatedType(const dart::Class& klass);
+  const TypeArguments& PeekArgumentsInstantiatedType(const Class& klass);
   intptr_t PeekArgumentsCount();
   intptr_t PeekArgumentsTypeCount();
   void SkipArgumentsBeforeActualArguments();
 
   LocalVariable* LookupVariable(intptr_t kernel_offset);
   LocalVariable* MakeTemporary();
-  Token::Kind MethodKind(const dart::String& name);
-  dart::RawFunction* LookupMethodByMember(NameIndex target,
-                                          const dart::String& method_name);
+  Token::Kind MethodKind(const String& name);
+  RawFunction* LookupMethodByMember(NameIndex target,
+                                    const String& method_name);
 
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
@@ -900,12 +900,12 @@ class StreamingFlowGraphBuilder {
                       const Array& argument_names,
                       intptr_t type_args_len = 0);
   Fragment InstanceCall(TokenPosition position,
-                        const dart::String& name,
+                        const String& name,
                         Token::Kind kind,
                         intptr_t argument_count,
                         intptr_t checked_argument_count = 1);
   Fragment InstanceCall(TokenPosition position,
-                        const dart::String& name,
+                        const String& name,
                         Token::Kind kind,
                         intptr_t type_args_len,
                         intptr_t argument_count,
@@ -917,14 +917,13 @@ class StreamingFlowGraphBuilder {
       const TypeArguments& type_arguments);
   Fragment StrictCompare(Token::Kind kind, bool number_check = false);
   Fragment AllocateObject(TokenPosition position,
-                          const dart::Class& klass,
+                          const Class& klass,
                           intptr_t argument_count);
-  Fragment AllocateObject(const dart::Class& klass,
-                          const Function& closure_function);
+  Fragment AllocateObject(const Class& klass, const Function& closure_function);
   Fragment AllocateContext(intptr_t size);
   Fragment LoadField(intptr_t offset);
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
-  Fragment StoreStaticField(TokenPosition position, const dart::Field& field);
+  Fragment StoreStaticField(TokenPosition position, const Field& field);
   Fragment StoreInstanceField(TokenPosition position, intptr_t offset);
   Fragment StringInterpolate(TokenPosition position);
   Fragment StringInterpolateSingle(TokenPosition position);
@@ -958,11 +957,11 @@ class StreamingFlowGraphBuilder {
   Fragment Goto(JoinEntryInstr* destination);
   Fragment BuildImplicitClosureCreation(const Function& target);
   Fragment CheckBooleanInCheckedMode();
-  Fragment CheckAssignableInCheckedMode(const dart::AbstractType& dst_type,
-                                        const dart::String& dst_name);
+  Fragment CheckAssignableInCheckedMode(const AbstractType& dst_type,
+                                        const String& dst_name);
   Fragment CheckVariableTypeInCheckedMode(intptr_t variable_kernel_position);
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
-                                          const dart::String& name_symbol);
+                                          const String& name_symbol);
   Fragment EnterScope(intptr_t kernel_offset, bool* new_context = NULL);
   Fragment ExitScope(intptr_t kernel_offset);
 
@@ -1041,8 +1040,8 @@ class StreamingFlowGraphBuilder {
   Fragment BuildFunctionDeclaration();
   Fragment BuildFunctionNode(TokenPosition parent_position,
                              StringIndex name_index);
-  void SetupFunctionParameters(const dart::Class& klass,
-                               const dart::Function& function,
+  void SetupFunctionParameters(const Class& klass,
+                               const Function& function,
                                bool is_method,
                                bool is_closure,
                                FunctionNodeHelper* function_node_helper);

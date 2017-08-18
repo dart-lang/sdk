@@ -20,7 +20,7 @@ class KernelReader;
 
 class BuildingTranslationHelper : public TranslationHelper {
  public:
-  BuildingTranslationHelper(KernelReader* reader, dart::Thread* thread)
+  BuildingTranslationHelper(KernelReader* reader, Thread* thread)
       : TranslationHelper(thread), reader_(reader) {}
   virtual ~BuildingTranslationHelper() {}
 
@@ -58,15 +58,15 @@ class KernelReader {
 
   // Returns the library containing the main procedure, null if there
   // was no main procedure, or a failure object if there was an error.
-  dart::Object& ReadProgram();
+  Object& ReadProgram();
 
   void ReadLibrary(intptr_t kernel_offset);
 
-  const dart::String& DartSymbol(StringIndex index) {
+  const String& DartSymbol(StringIndex index) {
     return translation_helper_.DartSymbol(index);
   }
 
-  const dart::String& LibraryUri(intptr_t library_index) {
+  const String& LibraryUri(intptr_t library_index) {
     return translation_helper_.DartSymbol(
         translation_helper_.CanonicalNameString(
             library_canonical_name(library_index)));
@@ -94,21 +94,18 @@ class KernelReader {
 
   uint8_t CharacterAt(StringIndex string_index, intptr_t index);
 
-  static bool FieldHasFunctionLiteralInitializer(const dart::Field& field,
+  static bool FieldHasFunctionLiteralInitializer(const Field& field,
                                                  TokenPosition* start,
                                                  TokenPosition* end);
 
  private:
   friend class BuildingTranslationHelper;
 
-  void ReadPreliminaryClass(dart::Class* klass,
+  void ReadPreliminaryClass(Class* klass,
                             ClassHelper* class_helper,
                             intptr_t type_parameter_count);
-  dart::Class& ReadClass(const dart::Library& library,
-                         const dart::Class& toplevel_class);
-  void ReadProcedure(const dart::Library& library,
-                     const dart::Class& owner,
-                     bool in_class);
+  Class& ReadClass(const Library& library, const Class& toplevel_class);
+  void ReadProcedure(const Library& library, const Class& owner, bool in_class);
 
   void ReadAndSetupTypeParameters(const Object& set_on,
                                   intptr_t type_parameter_count,
@@ -120,40 +117,38 @@ class KernelReader {
   // If klass's script is not the script at the uri index, return a PatchClass
   // for klass whose script corresponds to the uri index.
   // Otherwise return klass.
-  const Object& ClassForScriptAt(const dart::Class& klass,
-                                 intptr_t source_uri_index);
+  const Object& ClassForScriptAt(const Class& klass, intptr_t source_uri_index);
   Script& ScriptAt(intptr_t source_uri_index,
                    StringIndex import_uri = StringIndex());
 
-  void GenerateFieldAccessors(const dart::Class& klass,
-                              const dart::Field& field,
+  void GenerateFieldAccessors(const Class& klass,
+                              const Field& field,
                               FieldHelper* field_helper,
                               intptr_t field_offset);
 
-  void SetupFieldAccessorFunction(const dart::Class& klass,
-                                  const dart::Function& function);
+  void SetupFieldAccessorFunction(const Class& klass, const Function& function);
 
-  dart::Library& LookupLibrary(NameIndex library);
-  dart::Class& LookupClass(NameIndex klass);
+  Library& LookupLibrary(NameIndex library);
+  Class& LookupClass(NameIndex klass);
 
-  dart::RawFunction::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
+  RawFunction::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
 
   Program* program_;
 
-  dart::Thread* thread_;
-  dart::Zone* zone_;
-  dart::Isolate* isolate_;
+  Thread* thread_;
+  Zone* zone_;
+  Isolate* isolate_;
   Array& scripts_;
   Array& patch_classes_;
   ActiveClass active_class_;
   BuildingTranslationHelper translation_helper_;
   StreamingFlowGraphBuilder builder_;
 
-  Mapping<dart::Library> libraries_;
-  Mapping<dart::Class> classes_;
+  Mapping<Library> libraries_;
+  Mapping<Class> classes_;
 
-  GrowableArray<const dart::Function*> functions_;
-  GrowableArray<const dart::Field*> fields_;
+  GrowableArray<const Function*> functions_;
+  GrowableArray<const Field*> fields_;
 };
 
 }  // namespace kernel

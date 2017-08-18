@@ -293,12 +293,11 @@ class Parser : public ValueObject {
                                         const Instance& value);
 
   // Parse a function to retrieve parameter information that is not retained in
-  // the dart::Function object. Returns either an error if the parse fails
-  // (which could be the case for local functions), or a flat array of entries
-  // for each parameter. Each parameter entry contains:
-  // * a Dart bool indicating whether the parameter was declared final
-  // * its default value (or null if none was declared)
-  // * an array of metadata (or null if no metadata was declared).
+  // the Function object. Returns either an error if the parse fails (which
+  // could be the case for local functions), or a flat array of entries for each
+  // parameter. Each parameter entry contains: * a Dart bool indicating whether
+  // the parameter was declared final * its default value (or null if none was
+  // declared) * an array of metadata (or null if no metadata was declared).
   enum {
     kParameterIsFinalOffset,
     kParameterDefaultValueOffset,
