@@ -1652,8 +1652,8 @@ exhaustive_for_test: Crash
 expect_test: RuntimeError
 export_double_same_main_test: CompileTimeError
 export_main_test: CompileTimeError
-external_test/10: Crash
-external_test/13: Crash
+external_test/10: MissingRuntimeError
+external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
 f_bounded_quantification4_test: RuntimeError
 f_bounded_quantification5_test: RuntimeError
@@ -2185,13 +2185,13 @@ stacktrace_rethrow_error_test/none: Crash
 stacktrace_rethrow_error_test/withtraceparameter: Crash
 stacktrace_rethrow_nonerror_test: Crash
 stacktrace_test: RuntimeError
-statement_test: Crash
+statement_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 static_getter_no_setter1_test/01: RuntimeError
-static_getter_no_setter2_test/01: Crash
-static_getter_no_setter2_test/none: Crash
+static_getter_no_setter2_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+static_getter_no_setter2_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 static_getter_no_setter3_test/01: RuntimeError
-static_setter_get_test/01: Crash
-string_interpolate2_test: Crash
+static_setter_get_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+string_interpolate2_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 string_interpolation_and_buffer_test: RuntimeError
 string_join_test: RuntimeError
 string_split_test: Crash

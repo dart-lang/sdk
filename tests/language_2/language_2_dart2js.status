@@ -401,7 +401,7 @@ closure_in_field_initializer_test: Crash
 closure_in_initializer2_test: Crash
 closure_in_initializer_test: Crash
 closure_internals_test: Crash
-closure_parameter_types_test: Crash
+closure_parameter_types_test: RuntimeError
 closure_self_reference_test: Crash
 closure_shared_state_test: RuntimeError
 closure_type_variable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
@@ -515,7 +515,6 @@ function_type/function_type9_test: Crash
 generic_constructor_mixin2_test: Crash
 generic_constructor_mixin3_test: Crash
 generic_constructor_mixin_test: Crash
-closure_parameter_types_test: RuntimeError
 regress_30339_test: Crash
 typevariable_substitution2_test/02: RuntimeError
 
@@ -736,7 +735,7 @@ closure_in_field_initializer_test: Crash
 closure_in_initializer2_test: Crash
 closure_in_initializer_test: Crash
 closure_internals_test: Crash
-closure_parameter_types_test: Crash
+closure_parameter_types_test: RuntimeError
 closure_self_reference_test: Crash
 closure_shared_state_test: RuntimeError
 closure_type_variable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
@@ -850,7 +849,6 @@ function_type/function_type9_test: Crash
 generic_constructor_mixin2_test: Crash
 generic_constructor_mixin3_test: Crash
 generic_constructor_mixin_test: Crash
-closure_parameter_types_test: RuntimeError
 regress_30339_test: Crash
 typevariable_substitution2_test/02: RuntimeError
 

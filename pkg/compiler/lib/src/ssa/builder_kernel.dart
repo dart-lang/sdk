@@ -139,7 +139,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
           ir.Node target = definition.node;
           if (target is ir.Procedure) {
             _targetFunction = target.function;
-            buildFunctionNode(_targetFunction);
+            if (target.isExternal) {
+              buildExternalFunctionNode(_targetFunction);
+            } else {
+              buildFunctionNode(_targetFunction);
+            }
           } else if (target is ir.Field) {
             if (handleConstantField(targetElement, registry, closedWorld)) {
               // No code is generated for `targetElement`: All references inline
@@ -679,7 +683,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     openFunction(functionNode);
     ir.TreeNode parent = functionNode.parent;
     if (parent is ir.Procedure && parent.kind == ir.ProcedureKind.Factory) {
-      _addClassTypeVariablesIfNeeded(functionNode.parent);
+      _addClassTypeVariablesIfNeeded(parent);
     }
 
     // If [functionNode] is `operator==` we explicitly add a null check at the
@@ -710,6 +714,20 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
     }
     functionNode.body.accept(this);
+    closeFunction();
+  }
+
+  /// Builds a SSA graph for FunctionNodes of external methods.
+  void buildExternalFunctionNode(ir.FunctionNode functionNode) {
+    openFunction(functionNode);
+    ir.TreeNode parent = functionNode.parent;
+    if (parent is ir.Procedure && parent.kind == ir.ProcedureKind.Factory) {
+      _addClassTypeVariablesIfNeeded(parent);
+    }
+    // TODO(sra): Generate conversion of Function typed arguments to JavaScript
+    // functions.
+    // TODO(sra): Invoke native method.
+    assert(functionNode.body == null);
     closeFunction();
   }
 
