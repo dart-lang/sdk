@@ -71,10 +71,6 @@ DEFINE_FLAG(bool,
             verify_acquired_data,
             false,
             "Verify correct API acquire/release of typed data.");
-DEFINE_FLAG(bool,
-            support_externalizable_strings,
-            false,
-            "Support Dart_MakeExternalString.");
 
 ThreadLocalKey Api::api_native_key_ = kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;
@@ -2473,64 +2469,6 @@ DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str,
   }
   *size = (str_obj.Length() * str_obj.CharSize());
   return Api::Success();
-}
-
-DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
-                                                void* array,
-                                                intptr_t external_size,
-                                                void* peer,
-                                                Dart_PeerFinalizer cback) {
-  DARTSCOPE(Thread::Current());
-  if (!FLAG_support_externalizable_strings) {
-    return Api::NewError(
-        "Dart_MakeExternalString with "
-        "--support_externalizable_strings=false");
-  }
-  const String& str_obj = Api::UnwrapStringHandle(Z, str);
-  if (str_obj.IsExternal()) {
-    return str;  // String is already an external string.
-  }
-  if (str_obj.IsNull()) {
-    RETURN_TYPE_ERROR(Z, str, String);
-  }
-  if (array == NULL) {
-    RETURN_NULL_ERROR(array);
-  }
-  intptr_t str_size = (str_obj.Length() * str_obj.CharSize());
-  if ((external_size < str_size) || (external_size > String::kMaxElements)) {
-    return Api::NewError(
-        "Dart_MakeExternalString "
-        "expects argument external_size to be in the range"
-        "[%" Pd "..%" Pd "].",
-        str_size, String::kMaxElements);
-  }
-  if (str_obj.InVMHeap()) {
-    // Since the string object is read only we do not externalize
-    // the string but instead copy the contents of the string into the
-    // specified buffer add the specified peer/cback as a Peer object
-    // to this string. The Api::StringGetPeerHelper function picks up
-    // the peer from the Peer table.
-    intptr_t copy_len = str_obj.Length();
-    if (str_obj.IsOneByteString()) {
-      ASSERT(external_size >= copy_len);
-      uint8_t* latin1_array = reinterpret_cast<uint8_t*>(array);
-      for (intptr_t i = 0; i < copy_len; i++) {
-        latin1_array[i] = static_cast<uint8_t>(str_obj.CharAt(i));
-      }
-      OneByteString::SetPeer(str_obj, external_size, peer, cback);
-    } else {
-      ASSERT(str_obj.IsTwoByteString());
-      ASSERT(external_size >= (copy_len * str_obj.CharSize()));
-      uint16_t* utf16_array = reinterpret_cast<uint16_t*>(array);
-      for (intptr_t i = 0; i < copy_len; i++) {
-        utf16_array[i] = str_obj.CharAt(i);
-      }
-      TwoByteString::SetPeer(str_obj, external_size, peer, cback);
-    }
-    return str;
-  }
-  return Api::NewHandle(
-      T, str_obj.MakeExternal(array, external_size, peer, cback));
 }
 
 DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,

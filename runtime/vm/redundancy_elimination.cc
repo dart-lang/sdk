@@ -25,8 +25,8 @@ DEFINE_FLAG(bool,
 
 class CSEInstructionMap : public ValueObject {
  public:
-  // Right now CSE and LICM track a single effect: possible externalization of
-  // strings.
+  // Right now CSE and LICM track a single effect which is no longer used.
+  // TODO(alexmarkov): cleanup.
   // Other effects like modifications of fields are tracked in a separate load
   // forwarding pass via Alias structure.
   COMPILE_ASSERT(EffectSet::kLastEffect == 1);

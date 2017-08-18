@@ -178,12 +178,13 @@ class CompileType : public ZoneAllocated {
   const AbstractType* type_;
 };
 
+// TODO(alexmarkov): remove EffectSet as there are no tracked effects anymore
 class EffectSet : public ValueObject {
  public:
   enum Effects {
     kNoEffects = 0,
-    kExternalization = 1,
-    kLastEffect = kExternalization
+    kUnusedEffect = 1,  // Currently unused.
+    kLastEffect = kUnusedEffect
   };
 
   EffectSet(const EffectSet& other) : ValueObject(), effects_(other.effects_) {}
@@ -193,10 +194,8 @@ class EffectSet : public ValueObject {
   static EffectSet None() { return EffectSet(kNoEffects); }
   static EffectSet All() {
     ASSERT(EffectSet::kLastEffect == 1);
-    return EffectSet(kExternalization);
+    return EffectSet(kUnusedEffect);
   }
-
-  static EffectSet Externalization() { return EffectSet(kExternalization); }
 
   bool ToInt() { return effects_; }
 
@@ -630,7 +629,6 @@ class Cids : public ZoneAllocated {
 
   bool IsMonomorphic() const;
   intptr_t MonomorphicReceiverCid() const;
-  bool ContainsExternalizableCids() const;
   intptr_t ComputeLowestCid() const;
   intptr_t ComputeHighestCid() const;
 
@@ -4395,7 +4393,7 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(LoadUntaggedInstr);
 };
 
-class LoadClassIdInstr : public TemplateDefinition<1, NoThrow> {
+class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   explicit LoadClassIdInstr(Value* object) { SetInputAt(0, object); }
 
@@ -4407,11 +4405,6 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Dependencies() const {
-    return EffectSet::Externalization();
-  }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
@@ -7613,7 +7606,7 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
   intptr_t ComputeCidMask() const;
 
   virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Dependencies() const;
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const;
 
@@ -7693,7 +7686,7 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Dependencies() const;
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 

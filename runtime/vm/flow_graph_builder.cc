@@ -44,7 +44,6 @@ DEFINE_FLAG(bool,
             "Trace type check elimination at compile time.");
 
 DECLARE_FLAG(bool, profile_vm);
-DECLARE_FLAG(bool, support_externalizable_strings);
 
 // Quick access to the locally defined zone() method.
 #define Z (zone())
@@ -3176,14 +3175,10 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       }
       case MethodRecognizer::kStringBaseLength:
       case MethodRecognizer::kStringBaseIsEmpty: {
-        // Treat length loads as mutable (i.e. affected by side effects) to
-        // avoid hoisting them since we can't hoist the preceding class-check.
-        // This is because of externalization of strings that affects their
-        // class-id.
         LoadFieldInstr* load = BuildNativeGetter(
             node, MethodRecognizer::kStringBaseLength, String::length_offset(),
             Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
-        load->set_is_immutable(!FLAG_support_externalizable_strings);
+        load->set_is_immutable(true);
         if (kind == MethodRecognizer::kStringBaseLength) {
           return ReturnDefinition(load);
         }

@@ -46,7 +46,6 @@ cc/CodeImmutability: Crash
 [ $system == windows ]
 cc/CodeImmutability: Crash, Timeout
 cc/Dart2JSCompileAll: Skip
-cc/ExternalizeConstantStrings: Skip
 cc/Service_Profile: Skip
 cc/Dart2JSCompilerStats: Skip
 cc/CorelibCompilerStats: Skip

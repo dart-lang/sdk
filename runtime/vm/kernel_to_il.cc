@@ -20,8 +20,6 @@
 #if !defined(DART_PRECOMPILED_RUNTIME)
 namespace dart {
 
-DECLARE_FLAG(bool, support_externalizable_strings);
-
 namespace kernel {
 
 #define Z (zone_)
@@ -1677,15 +1675,11 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       break;
     case MethodRecognizer::kStringBaseLength:
     case MethodRecognizer::kStringBaseIsEmpty:
-      // Depending on FLAG_support_externalizable_strings, treat string length
-      // loads as mutable so that the class check that precedes them will not be
-      // hoisted.  This is unsafe because string externalization can change the
-      // class.
       body += LoadLocal(scopes_->this_variable);
       body += LoadNativeField(MethodRecognizer::kStringBaseLength,
                               dart::String::length_offset(),
                               Type::ZoneHandle(Z, Type::SmiType()), kSmiCid,
-                              !FLAG_support_externalizable_strings);
+                              /* is_immutable = */ true);
       if (kind == MethodRecognizer::kStringBaseIsEmpty) {
         body += IntConstant(0);
         body += StrictCompare(Token::kEQ_STRICT);

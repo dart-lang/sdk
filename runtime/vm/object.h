@@ -3375,8 +3375,6 @@ class Field : public Object {
     set_kind_bits(UnboxingCandidateBit::update(b, raw_ptr()->kind_bits_));
   }
 
-  static bool IsExternalizableCid(intptr_t cid);
-
   enum {
     kUnknownLengthOffset = -1,
     kUnknownFixedLength = -1,
@@ -6927,16 +6925,6 @@ class String : public Instance {
   void* GetPeer() const;
 
   void ToUTF8(uint8_t* utf8_array, intptr_t array_len) const;
-
-  // Copies the string characters into the provided external array
-  // and morphs the string object into an external string object.
-  // The remaining unused part of the original string object is marked as
-  // an Array object or a regular Object so that it can be traversed during
-  // garbage collection.
-  RawString* MakeExternal(void* array,
-                          intptr_t external_size,
-                          void* peer,
-                          Dart_PeerFinalizer cback) const;
 
   // Creates a new String object from a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
