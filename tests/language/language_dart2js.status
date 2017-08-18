@@ -117,6 +117,8 @@ mixin_super_2_test: CompileTimeError # Issue 23773
 mixin_super_bound2_test: CompileTimeError # Issue 23773
 mixin_super_use_test: CompileTimeError # Issue 23773
 mixin_superclass_test: CompileTimeError # Issue 23773
+closure_in_field_test/01: RuntimeError # Issue 30467
+closure_in_field_test/02: RuntimeError # Issue 30467
 
 ref_before_declaration_test/00: MissingCompileTimeError
 ref_before_declaration_test/01: MissingCompileTimeError
@@ -579,6 +581,8 @@ cha_deopt3_test: CompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
+closure_in_field_test/01: Crash
+closure_in_field_test/02: Crash
 compile_time_constant_a_test: Crash
 compile_time_constant_b_test: Crash
 compile_time_constant_c_test/02: Crash
@@ -1492,6 +1496,8 @@ cha_deopt3_test: CompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
+closure_in_field_test/01: Crash
+closure_in_field_test/02: Crash
 compile_time_constant_a_test: Crash
 compile_time_constant_b_test: Crash
 compile_time_constant_c_test/02: Crash

@@ -1532,13 +1532,7 @@ class TypeVariableLocal implements Local {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('type_variable_local(');
-    if (memberContext.enclosingClass != null) {
-      sb.write(memberContext.enclosingClass.name);
-      sb.write('.');
-    }
-    sb.write(memberContext.name);
-    sb.write('#');
-    sb.write(name);
+    sb.write(typeVariable);
     sb.write(')');
     return sb.toString();
   }
