@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:math' as math;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
@@ -24,7 +25,6 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
   VirtualCollectionHeaderCallback _createHeader;
   VirtualCollectionUpdateCallback _update;
   double _itemHeight;
-  double _headerHeight = 0.0;
   int _top;
   double _height;
   List _items;
@@ -64,7 +64,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     _r.enable();
     _top = null;
     _itemHeight = null;
-    _onScrollSubscription = onScroll.listen(_onScroll);
+    _onScrollSubscription = _viewport.onScroll.listen(_onScroll);
     _onResizeSubscription = window.onResize.listen(_onResize);
   }
 
@@ -77,19 +77,19 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     _onResizeSubscription.cancel();
   }
 
-  final DivElement _header = new DivElement()..classes = ['header'];
-  final DivElement _scroller = new DivElement()..classes = ['scroller'];
-  final DivElement _shifter = new DivElement()..classes = ['shifter'];
-  final DivElement _container = new DivElement()..classes = ['container'];
+  DivElement _header;
+  final DivElement _viewport = new DivElement()
+    ..classes = ['viewport', 'container'];
+  final DivElement _spacer = new DivElement()..classes = ['spacer'];
+  final DivElement _buffer = new DivElement()..classes = ['buffer'];
 
   dynamic getItemFromElement(HtmlElement element) {
-    final el_index = _container.children.indexOf(element);
+    final el_index = _buffer.children.indexOf(element);
     if (el_index < 0) {
       return null;
     }
-    final item_index = _top +
-        el_index -
-        (_container.children.length * _inverse_preload).floor();
+    final item_index =
+        _top + el_index - (_buffer.children.length * _inverse_preload).floor();
     if (0 <= item_index && item_index < items.length) {
       return _items[item_index];
     }
@@ -98,7 +98,6 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
 
   /// The preloaded element before and after the visible area are:
   /// 1/preload_size of the number of items in the visble area.
-  /// See shared.css for the "top:-25%;".
   static const int _preload = 2;
 
   /// L = length of all the elements loaded
@@ -120,24 +119,26 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
   void render() {
     if (children.isEmpty) {
       children = [
-        _scroller
+        _viewport
           ..children = [
-            _shifter
+            _spacer
               ..children = [
-                _container..children = [_create()]
-              ]
-          ],
+                _buffer..children = [_create()]
+              ],
+          ]
       ];
       if (_createHeader != null) {
-        _header.children = [
-          new DivElement()
-            ..classes = ['container']
-            ..children = _createHeader()
-        ];
-        _scroller.children.insert(0, _header);
-        _headerHeight = _header.children[0].getBoundingClientRect().height;
+        _header = new DivElement()
+          ..classes = ['header', 'container']
+          ..children = _createHeader();
+        children.insert(0, _header);
+        final rect = _header.getBoundingClientRect();
+        _header.classes.add('attached');
+        _viewport.style.top = '${rect.height}px';
+        final width = _header.children.fold(0, _foldWidth);
+        _buffer.style.minWidth = '${width}px';
       }
-      _itemHeight = _container.children[0].getBoundingClientRect().height;
+      _itemHeight = _buffer.children[0].getBoundingClientRect().height;
       _height = getBoundingClientRect().height;
     }
 
@@ -146,31 +147,31 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
       if (index >= 0) {
         final minScrollTop = _itemHeight * (index + 1) - _height;
         final maxScrollTop = _itemHeight * index;
-        scrollTop = ((maxScrollTop - minScrollTop) / 2 + minScrollTop).floor();
+        _viewport.scrollTop =
+            ((maxScrollTop - minScrollTop) / 2 + minScrollTop).floor();
       }
       _takeIntoView = null;
     }
 
-    final top = (scrollTop / _itemHeight).floor();
+    final top = (_viewport.scrollTop / _itemHeight).floor();
 
-    _updateHeader();
-    _scroller.style.height = '${_itemHeight*(_items.length)+_headerHeight}px';
+    _spacer.style.height = '${_itemHeight*(_items.length)}px';
     final tail_length = (_height / _itemHeight / _preload).ceil();
     final length = tail_length * 2 + tail_length * _preload;
 
-    if (_container.children.length < length) {
-      while (_container.children.length != length) {
+    if (_buffer.children.length < length) {
+      while (_buffer.children.length != length) {
         var e = _create();
         e..style.display = 'hidden';
-        _container.children.add(e);
+        _buffer.children.add(e);
       }
       _top = null; // force update;
     }
 
     if ((_top == null) || ((top - _top).abs() >= tail_length)) {
-      _shifter.style.top = '${_itemHeight*(top-tail_length)}px';
+      _buffer.style.top = '${_itemHeight*(top-tail_length)}px';
       int i = top - tail_length;
-      for (final HtmlElement e in _container.children) {
+      for (final HtmlElement e in _buffer.children) {
         if (0 <= i && i < _items.length) {
           e..style.display = null;
           _update(e, _items[i], i);
@@ -181,16 +182,25 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
       }
       _top = top;
     }
+    _updateHeader();
+  }
+
+  double _foldWidth(double value, HtmlElement child) {
+    return math.max(value, child.getBoundingClientRect().width);
   }
 
   void _updateHeader() {
-    _header.style.top = '${scrollTop}px';
+    if (_header != null) {
+      _header.style.left = '${-_viewport.scrollLeft}px';
+      final width = _buffer.getBoundingClientRect().width;
+      _header.children.last.style.width = '${width}px';
+    }
   }
 
   void _onScroll(_) {
-    // needed to avoid flickering
-    _updateHeader();
     _r.dirty();
+    // We anticipate the header in advance to avoid flickering
+    _updateHeader();
   }
 
   void _onResize(_) {
@@ -198,6 +208,10 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     if (newHeight > _height) {
       _height = newHeight;
       _r.dirty();
+    } else {
+      // Even if we are not updating the structure the computed size is going to
+      // change
+      _updateHeader();
     }
   }
 }

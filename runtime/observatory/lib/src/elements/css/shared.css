@@ -550,6 +550,7 @@ allocation-profile .collection-item .instances {
 
 allocation-profile .collection-item .name {
   padding-left: 0.5em;
+  padding-right: 0.5em;
   display: inline-block;
 }
 
@@ -617,6 +618,7 @@ class-tree virtual-tree .class-tree-item {
 
 class-tree virtual-tree .class-tree-item .name {
   margin-left: 0.5em;
+  margin-right: 0.5em;
 }
 
 /* code-view */
@@ -801,27 +803,28 @@ cpu-profile-table .function-item .exclusive {
   padding-right: 0.5em;
   line-height: 20px;
 }
-cpu-profile-table .shifter .function-item .inclusive {
+cpu-profile-table .buffer .function-item .inclusive {
   background-color: #EEEEEE;
 }
-cpu-profile-table .shifter .function-item.selected .inclusive {
+cpu-profile-table .buffer .function-item.selected .inclusive {
   background-color: #51a3fb;
 }
-cpu-profile-table .shifter .function-item:hover .inclusive {
+cpu-profile-table .buffer .function-item:hover .inclusive {
   background-color: #afd5fd;
 }
 cpu-profile-table .header .function-item .inclusive {
   background-color: #DDDDDD;
 }
-cpu-profile-table .shifter .function-item.selected {
+cpu-profile-table .buffer .function-item.selected {
   background-color: #60abfb;
 }
-cpu-profile-table .shifter .function-item:hover {
+cpu-profile-table .buffer .function-item:hover {
   background-color: #d2e7fe;
 }
 cpu-profile-table .function-item .exclusive {
 }
 cpu-profile-table .function-item .name {
+  padding-left: 0.5em;
   padding-left: 0.5em;
 }
 cpu-profile-table .function-item > button,
@@ -866,6 +869,7 @@ cpu-profile-virtual-tree .tree-item > .exclusive {
 cpu-profile-virtual-tree .tree-item > .name {
   display: inline;
   margin-left: 0.5em;
+  margin-right: 0.5em;
 }
 
 /* curly-block */
@@ -1330,6 +1334,7 @@ heap-snapshot .tree-item > .percentage {
 heap-snapshot .tree-item > .name {
   display: inline;
   margin-left: 0.5em;
+  margin-right: 0.5em;
 }
 
 
@@ -1731,6 +1736,7 @@ memory-profile .collection-item .instances {
 
 memory-profile .collection-item .name {
   padding-left: 0.5em;
+  padding-right: 0.5em;
   display: inline-block;
 }
 
@@ -2059,9 +2065,6 @@ persistent-handles-page .weak-persistent-handles {
   padding-top: 70px;
   height: 50%;
 }
-persistent-handles-page virtual-collection {
-  overflow-y: scroll;
-}
 persistent-handles-page .weak-item,
 persistent-handles-page .collection-item {
   box-sizing: border-box;
@@ -2094,7 +2097,7 @@ persistent-handles-page .weak-item .object {
   text-align: left;
   width: 25em;
 }
-persistent-handles-page .shifter .weak-item:hover {
+persistent-handles-page .buffer .weak-item:hover {
   background-color: #d2e7fe;
 }
 persistent-handles-page .weak-item .finalizer {
@@ -2440,27 +2443,37 @@ view-footer > a {
 virtual-collection {
   position: relative;
   display: block;
-  overflow-y: auto;
+  overflow-x: hidden;
   width: 100%;
   height: 100%;
+}
+
+virtual-collection .viewport {
+  position: absolute;
+  display: block;
+  overflow-y: auto;
+  overflow-x: auto;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;  
 }
 
 virtual-collection .header {
   background: white;
   position: relative;
   display: block;
-  min-width: 100%;
   z-index: +1;
 }
 
-virtual-collection .scroller {
+virtual-collection .spacer {
   overflow: hidden;
   background: transparent;
   display: inline-block;
   min-width: 100%;
 }
 
-virtual-collection .shifter {
+virtual-collection .buffer {
   background: transparent;
   position: relative;
   display: inline-block;
@@ -2468,7 +2481,16 @@ virtual-collection .shifter {
 }
 
 virtual-collection .header > div,
-virtual-collection .shifter > div {
+virtual-collection .buffer > div {
+  white-space: nowrap;
+}
+
+virtual-collection .header.attached > div,
+virtual-collection .buffer > div {
+  display: inline-block;
+}
+
+virtual-collection .buffer > div {
   min-width: 100%;
   white-space: nowrap;
 }
