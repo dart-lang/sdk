@@ -317,11 +317,8 @@ bit_operations_test/02: Crash
 bit_operations_test/03: Crash
 bit_operations_test/04: Crash
 bit_operations_test/none: Crash
-bool_check_test: Crash
 bool_check_test: RuntimeError
-bool_condition_check_test: Crash
 bool_condition_check_test: RuntimeError
-bool_test: Crash
 bool_test: RuntimeError
 bound_closure_equality_test: Crash
 bound_closure_primitives_test: Crash
@@ -366,89 +363,46 @@ checked_setter_test: Crash
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 class_literal_test/01: Crash
-class_literal_test/01: Crash
-class_literal_test/02: Crash
 class_literal_test/02: Crash
 class_literal_test/03: Crash
-class_literal_test/03: Crash
-class_literal_test/04: Crash
 class_literal_test/04: Crash
 class_literal_test/05: Crash
-class_literal_test/05: Crash
-class_literal_test/06: Crash
 class_literal_test/06: Crash
 class_literal_test/07: Crash
-class_literal_test/07: Crash
-class_literal_test/08: Crash
 class_literal_test/08: Crash
 class_literal_test/09: Crash
-class_literal_test/09: Crash
-class_literal_test/10: Crash
 class_literal_test/10: Crash
 class_literal_test/11: Crash
-class_literal_test/11: Crash
-class_literal_test/12: Crash
 class_literal_test/12: Crash
 class_literal_test/13: Crash
-class_literal_test/13: Crash
-class_literal_test/14: Crash
 class_literal_test/14: Crash
 class_literal_test/15: Crash
-class_literal_test/15: Crash
-class_literal_test/16: Crash
 class_literal_test/16: Crash
 class_literal_test/17: Crash
-class_literal_test/17: Crash
-class_literal_test/18: Crash
 class_literal_test/18: Crash
 class_literal_test/19: Crash
-class_literal_test/19: Crash
-class_literal_test/20: Crash
 class_literal_test/20: Crash
 class_literal_test/21: Crash
-class_literal_test/21: Crash
-class_literal_test/22: Crash
 class_literal_test/22: Crash
 class_literal_test/23: Crash
-class_literal_test/23: Crash
 class_literal_test/24: Crash
-class_literal_test/24: Crash
-class_literal_test/25: Crash
 class_literal_test/25: Crash
 class_literal_test: Crash # Assertion failure: Cannot find value local(main_closure.call#x) in (local(main#)) for j:closure_call(main_closure.call).
 class_override_test/00: Crash
-class_override_test/00: Crash
-class_test: Crash
 class_test: Crash
 classes_static_method_clash_test: Crash
-classes_static_method_clash_test: Crash
-closure4_test: Crash
 closure4_test: Crash
 closure5_test: Crash
-closure5_test: Crash
 closure6_test: Crash
-closure6_test: Crash
-closure7_test: Crash
-closure8_test: Crash
-closure_break_test: Crash
 closure_break_test: Crash
 closure_cycles_test: Crash
-closure_cycles_test: Crash
-closure_in_constructor_test: Crash
 closure_in_constructor_test: Crash
 closure_in_field_initializer_test: Crash
-closure_in_field_initializer_test: Crash
-closure_in_initializer2_test: Crash
 closure_in_initializer2_test: Crash
 closure_in_initializer_test: Crash
-closure_in_initializer_test: Crash
-closure_internals_test: Crash
 closure_internals_test: Crash
 closure_parameter_types_test: Crash
-closure_parameter_types_test: RuntimeError
 closure_self_reference_test: Crash
-closure_self_reference_test: Crash
-closure_shared_state_test: Crash
 closure_shared_state_test: RuntimeError
 closure_type_variable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 closure_type_variables_test: Crash # 'file:///usr/local/google/home/efortuna/dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for local(A.bar#g). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(A$bar_A$bar_closure.call), local(A.bar#g))
@@ -457,7 +411,6 @@ closure_with_super_send_test: Crash # Assertion failure: Cannot find value Insta
 closures_initializer2_test: Crash # 'file:///usr/local/google/home/efortuna/dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for local(A.#). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(A_closure.call), j:constructor(A.))
 closures_initializer_test: Crash # 'file:///usr/local/google/home/efortuna/dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for local(B.#). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(A_closure.call), j:constructor(A.))
 closures_with_complex_params_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'cls' where
-function_subtype_inline2_test: Crash
 function_subtype_inline2_test: RuntimeError
 function_type/function_type0_test: Crash
 function_type/function_type10_test: Crash
@@ -562,6 +515,7 @@ function_type/function_type9_test: Crash
 generic_constructor_mixin2_test: Crash
 generic_constructor_mixin3_test: Crash
 generic_constructor_mixin_test: Crash
+closure_parameter_types_test: RuntimeError
 regress_30339_test: Crash
 typevariable_substitution2_test/02: RuntimeError
 
@@ -698,12 +652,9 @@ bit_operations_test/02: Crash
 bit_operations_test/03: Crash
 bit_operations_test/04: Crash
 bit_operations_test/none: Crash
-bool_check_test: Crash
 bool_check_test: RuntimeError
 bool_condition_check_test/01: Crash
-bool_condition_check_test: Crash
 bool_condition_check_test: RuntimeError
-bool_test: Crash
 bool_test: RuntimeError
 bound_closure_equality_test: Crash
 bound_closure_primitives_test: Crash
@@ -747,89 +698,46 @@ checked_setter_test: Crash
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 class_literal_test/01: Crash
-class_literal_test/01: Crash
-class_literal_test/02: Crash
 class_literal_test/02: Crash
 class_literal_test/03: Crash
-class_literal_test/03: Crash
-class_literal_test/04: Crash
 class_literal_test/04: Crash
 class_literal_test/05: Crash
-class_literal_test/05: Crash
-class_literal_test/06: Crash
 class_literal_test/06: Crash
 class_literal_test/07: Crash
-class_literal_test/07: Crash
-class_literal_test/08: Crash
 class_literal_test/08: Crash
 class_literal_test/09: Crash
-class_literal_test/09: Crash
-class_literal_test/10: Crash
 class_literal_test/10: Crash
 class_literal_test/11: Crash
-class_literal_test/11: Crash
-class_literal_test/12: Crash
 class_literal_test/12: Crash
 class_literal_test/13: Crash
-class_literal_test/13: Crash
-class_literal_test/14: Crash
 class_literal_test/14: Crash
 class_literal_test/15: Crash
-class_literal_test/15: Crash
-class_literal_test/16: Crash
 class_literal_test/16: Crash
 class_literal_test/17: Crash
-class_literal_test/17: Crash
-class_literal_test/18: Crash
 class_literal_test/18: Crash
 class_literal_test/19: Crash
-class_literal_test/19: Crash
-class_literal_test/20: Crash
 class_literal_test/20: Crash
 class_literal_test/21: Crash
-class_literal_test/21: Crash
-class_literal_test/22: Crash
 class_literal_test/22: Crash
 class_literal_test/23: Crash
-class_literal_test/23: Crash
 class_literal_test/24: Crash
-class_literal_test/24: Crash
-class_literal_test/25: Crash
 class_literal_test/25: Crash
 class_literal_test: Crash # Assertion failure: Cannot find value local(main_closure.call#x) in (local(main#)) for j:closure_call(main_closure.call).
 class_override_test/00: Crash
-class_override_test/00: Crash
-class_test: Crash
 class_test: Crash
 classes_static_method_clash_test: Crash
-classes_static_method_clash_test: Crash
-closure4_test: Crash
 closure4_test: Crash
 closure5_test: Crash
-closure5_test: Crash
 closure6_test: Crash
-closure6_test: Crash
-closure7_test: Crash
-closure8_test: Crash
-closure_break_test: Crash
 closure_break_test: Crash
 closure_cycles_test: Crash
-closure_cycles_test: Crash
-closure_in_constructor_test: Crash
 closure_in_constructor_test: Crash
 closure_in_field_initializer_test: Crash
-closure_in_field_initializer_test: Crash
-closure_in_initializer2_test: Crash
 closure_in_initializer2_test: Crash
 closure_in_initializer_test: Crash
-closure_in_initializer_test: Crash
-closure_internals_test: Crash
 closure_internals_test: Crash
 closure_parameter_types_test: Crash
-closure_parameter_types_test: RuntimeError
 closure_self_reference_test: Crash
-closure_self_reference_test: Crash
-closure_shared_state_test: Crash
 closure_shared_state_test: RuntimeError
 closure_type_variable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 closure_type_variables_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
@@ -942,6 +850,7 @@ function_type/function_type9_test: Crash
 generic_constructor_mixin2_test: Crash
 generic_constructor_mixin3_test: Crash
 generic_constructor_mixin_test: Crash
+closure_parameter_types_test: RuntimeError
 regress_30339_test: Crash
 typevariable_substitution2_test/02: RuntimeError
 
@@ -956,12 +865,6 @@ async_star_no_cancel_test: RuntimeError # Need triage
 [ $compiler == dart2js && $checked && ! $dart2js_with_kernel ]
 async_return_types_test/nestedFuture: Fail # Issue 26429
 async_return_types_test/wrongTypeParameter: Fail # Issue 26429
-
-[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel && $host_checked ]
-assign_instance_method_negative_test: Crash
-
-[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel && $minified ]
-assign_instance_method_negative_test: Crash
 
 [ $compiler == dart2js && $runtime != none && $checked ]
 assert_with_message_test: RuntimeError

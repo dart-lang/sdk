@@ -484,7 +484,6 @@ const_list_set_range_test: Crash
 core_runtime_types_test: Crash
 data_uri_test: Crash
 date_time_test: Crash
-date_time_test: Timeout
 double_parse_test/01: Crash
 double_parse_test/02: Crash
 double_parse_test/03: Crash
@@ -494,13 +493,11 @@ dynamic_nosuchmethod_test: Crash # type 'KMethod' is not a subtype of type 'Memb
 error_stack_trace1_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 error_stack_trace2_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
 expando_test: Crash
-expando_test: RuntimeError
 for_in_test: Crash
 growable_list_test: Crash
 hash_map2_test: Crash
 hash_set_test/01: Crash
 hash_set_test/none: Crash
-hash_set_type_check_test: Crash # Assertion failure: Cannot create exact type mask for uninstantiated class null.
 hash_set_type_check_test: RuntimeError
 hidden_library2_test/01: Crash
 hidden_library2_test/none: Crash
@@ -534,6 +531,8 @@ iterable_join_test: Crash
 iterable_last_test: Crash
 iterable_last_where_test: Crash
 iterable_length_test: Crash
+iterable_mapping_test/01: Crash # 'file:///usr/local/google/home/sra/Dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for j:method(Iterator.moveNext). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(_LinkedCustomHashSet_closure.call), j:constructor(_LinkedCustomHashSet.))
+iterable_mapping_test/none: Crash # 'file:///usr/local/google/home/sra/Dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for j:method(Iterator.moveNext). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(_LinkedCustomHashSet_closure.call), j:constructor(_LinkedCustomHashSet.))
 iterable_reduce_test: Crash
 iterable_return_type_test/01: Crash
 iterable_return_type_test/02: Crash
@@ -542,22 +541,13 @@ iterable_single_test: Crash
 iterable_single_where_test: Crash
 iterable_skip_test: Crash
 iterable_skip_while_test: Crash
-iterable_skip_while_test: Crash
-iterable_take_test: Crash
 iterable_take_test: Crash
 iterable_take_while_test: Crash
-iterable_take_while_test: Crash
-iterable_test: Crash
 iterable_test: Crash
 iterable_to_list_test/01: Crash
-iterable_to_list_test/01: Crash
-iterable_to_list_test/none: Crash
 iterable_to_list_test/none: Crash
 iterable_to_set_test: Crash
-iterable_to_set_test: Crash
 iterable_tostring_test: Crash
-iterable_tostring_test: Crash
-json_map_test: Crash
 json_map_test: Crash
 linked_hash_map_from_iterables_test: Crash
 linked_hash_map_test: Crash
@@ -572,7 +562,6 @@ list_replace_range_test: Crash
 list_reversed_test: Crash
 list_set_all_test: Crash
 list_set_range_test: Crash
-list_sort_test: Crash # Assertion failure: Cannot find value local(ListSortTest_testMain_closure.call#compare) in (local(ListSortTest_testMain_closure.call#list), local(ListSortTest.testMain#)) for j:closure_call(ListSortTest_testMain_closure.call).
 list_sort_test: RuntimeError
 list_test/01: Crash
 list_test/none: Crash
@@ -585,7 +574,7 @@ map_from_test: Crash
 map_keys2_test: Crash
 map_keys_test: Crash
 map_test: Crash # Issue 27394
-map_to_string_test: Crash
+map_to_string_test: RuntimeError
 map_values2_test: Crash
 map_values3_test: Crash
 map_values4_test: Crash
@@ -630,7 +619,6 @@ set_retainAll_test: Crash
 set_test: Crash
 set_to_string_test: Crash
 shuffle_test: Crash
-sort_test: Crash # Assertion failure: Cannot find value local(main_closure.call#compare) in (local(main_closure.call#list), local(main#)) for j:closure_call(main_closure.call).
 sort_test: RuntimeError
 splay_tree_from_iterable_test: Crash
 splay_tree_from_iterables_test: Crash
@@ -638,10 +626,9 @@ splay_tree_test/01: Crash
 splay_tree_test/02: Crash
 splay_tree_test/none: Crash
 stacktrace_fromstring_test: Crash
-iterable_mapping_test/01: Crash # 'file:///usr/local/google/home/sra/Dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for j:method(Iterator.moveNext). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(_LinkedCustomHashSet_closure.call), j:constructor(_LinkedCustomHashSet.))
-iterable_mapping_test/none: Crash # 'file:///usr/local/google/home/sra/Dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for j:method(Iterator.moveNext). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(_LinkedCustomHashSet_closure.call), j:constructor(_LinkedCustomHashSet.))
-map_to_string_test: RuntimeError
-string_buffer_test: Crash
+date_time_test: Timeout
+expando_test: RuntimeError
+hash_set_type_check_test: Crash # 'file:///usr/local/google/home/sra/Dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for local(main_closure.call#). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(_LinkedCustomHashSet_closure.call), j:constructor(_LinkedCustomHashSet.))
 string_buffer_test: RuntimeError
 string_codeunits_test: Crash
 string_from_environment3_test/01: MissingCompileTimeError
@@ -691,12 +678,6 @@ uri_query_test: Crash
 uri_scheme_test: Crash
 uri_test: Crash
 
-[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-stopwatch_test: Crash
-map_contains_key_test: Crash
-map_index_test: Crash
-map_remove_test: Crash
-
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 apply2_test: Crash
 apply3_test: Crash
@@ -736,7 +717,6 @@ const_list_set_range_test: Crash
 core_runtime_types_static_test: Crash
 core_runtime_types_test: Crash
 data_uri_test: Crash
-date_time_test: Crash
 date_time_test: Timeout
 double_parse_test/01: Crash
 double_parse_test/02: Crash
@@ -746,7 +726,6 @@ double_parse_test/none: Crash
 dynamic_nosuchmethod_test: Crash
 error_stack_trace1_test: Crash
 error_stack_trace2_test: Crash
-expando_test: Crash
 expando_test: RuntimeError
 for_in_test: Crash
 from_environment_const_type_test/02: Crash
@@ -843,7 +822,6 @@ list_replace_range_test: Crash
 list_reversed_test: Crash
 list_set_all_test: Crash
 list_set_range_test: Crash
-list_sort_test: Crash # Assertion failure: Cannot find value local(ListSortTest_testMain_closure.call#compare) in (local(ListSortTest_testMain_closure.call#list), local(ListSortTest.testMain#)) for j:closure_call(ListSortTest_testMain_closure.call).
 list_sort_test: RuntimeError
 list_test/01: Crash
 list_test/none: Crash
@@ -903,7 +881,6 @@ set_retainAll_test: Crash
 set_test: Crash
 set_to_string_test: Crash
 shuffle_test: Crash
-sort_test: Crash # Assertion failure: Cannot find value local(main_closure.call#compare) in (local(main_closure.call#list), local(main#)) for j:closure_call(main_closure.call).
 sort_test: RuntimeError
 splay_tree_from_iterable_test: Crash
 splay_tree_from_iterables_test: Crash
@@ -912,7 +889,6 @@ splay_tree_test/02: Crash
 splay_tree_test/none: Crash
 stacktrace_fromstring_test: Crash
 string_base_vm_static_test: Crash
-string_buffer_test: Crash
 string_buffer_test: RuntimeError
 string_codeunits_test: Crash
 string_from_environment3_test/01: MissingCompileTimeError
