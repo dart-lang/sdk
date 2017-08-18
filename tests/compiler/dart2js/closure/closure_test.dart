@@ -48,14 +48,14 @@ main(List<String> args) {
 ///
 /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
 /// for the data origin.
-void computeClosureData(Compiler compiler, MemberEntity _member,
-    Map<Id, String> actualMap, Map<Id, SourceSpan> sourceSpanMap,
+void computeClosureData(
+    Compiler compiler, MemberEntity _member, Map<Id, ActualData> actualMap,
     {bool verbose: false}) {
   MemberElement member = _member;
   ClosureDataLookup<ast.Node> closureDataLookup =
       compiler.backendStrategy.closureDataLookup as ClosureDataLookup<ast.Node>;
-  new ClosureAstComputer(compiler.reporter, actualMap, sourceSpanMap,
-          member.resolvedAst, closureDataLookup,
+  new ClosureAstComputer(
+          compiler.reporter, actualMap, member.resolvedAst, closureDataLookup,
           verbose: verbose)
       .run();
 }
@@ -64,8 +64,8 @@ void computeClosureData(Compiler compiler, MemberEntity _member,
 ///
 /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
 /// for the data origin.
-void computeKernelClosureData(Compiler compiler, MemberEntity member,
-    Map<Id, String> actualMap, Map<Id, SourceSpan> sourceSpanMap,
+void computeKernelClosureData(
+    Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
     {bool verbose: false}) {
   KernelBackendStrategy backendStrategy = compiler.backendStrategy;
   KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
@@ -74,7 +74,7 @@ void computeKernelClosureData(Compiler compiler, MemberEntity member,
   MemberDefinition definition = elementMap.getMemberDefinition(member);
   assert(definition.kind == MemberKind.regular,
       failedAt(member, "Unexpected member definition $definition"));
-  new ClosureIrChecker(actualMap, sourceSpanMap, elementMap, member,
+  new ClosureIrChecker(actualMap, elementMap, member,
           localsMap.getLocalsMap(member), closureDataLookup,
           verbose: verbose)
       .run(definition.node);
@@ -86,14 +86,10 @@ class ClosureAstComputer extends AbstractResolvedAstComputer
   final ClosureDataLookup<ast.Node> closureDataLookup;
   final bool verbose;
 
-  ClosureAstComputer(
-      DiagnosticReporter reporter,
-      Map<Id, String> actualMap,
-      Map<Id, Spannable> spannableMap,
-      ResolvedAst resolvedAst,
-      this.closureDataLookup,
+  ClosureAstComputer(DiagnosticReporter reporter, Map<Id, ActualData> actualMap,
+      ResolvedAst resolvedAst, this.closureDataLookup,
       {this.verbose: false})
-      : super(reporter, actualMap, spannableMap, resolvedAst) {
+      : super(reporter, actualMap, resolvedAst) {
     push(resolvedAst.element);
   }
 
@@ -138,14 +134,13 @@ class ClosureIrChecker extends AbstractIrComputer
   final bool verbose;
 
   ClosureIrChecker(
-      Map<Id, String> actualMap,
-      Map<Id, SourceSpan> sourceSpanMap,
+      Map<Id, ActualData> actualMap,
       KernelToElementMapForBuilding elementMap,
       MemberEntity member,
       this._localsMap,
       this.closureDataLookup,
       {this.verbose: false})
-      : super(actualMap, sourceSpanMap) {
+      : super(actualMap) {
     push(member);
   }
 
