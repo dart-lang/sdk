@@ -38,6 +38,9 @@ To write an assist contributor, create a class that implements
 describes the location at which assists were requested and an `AssistCollector`
 through which assists are to be added.
 
+If you mix in the class `DartAssistsMixin`, then the request will be an instance
+of `DartAssistRequest`, which also has analysis results.
+
 The class `AssistContributorMixin` defines a support method that makes it easier
 to implement `computeAssists`.
 

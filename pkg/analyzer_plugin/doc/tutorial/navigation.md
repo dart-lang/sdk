@@ -30,6 +30,9 @@ To write a navigation contributor, create a class that implements
 describes the region of the file for which navigation is being requested and a
 `NavigationCollector` through which navigation information is to be added.
 
+If you mix in the class `DartNavigationMixin`, then the request will be an
+instance of `DartNavigationRequest`, which also has analysis results.
+
 ## Example
 
 Start by creating a class that implements `NavigationContributor`, then

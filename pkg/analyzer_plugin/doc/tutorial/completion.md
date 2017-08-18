@@ -45,6 +45,9 @@ To write a completion contributor, create a class that implements
 describes the where completions are being requested and a `CompletionCollector`
 through which suggestions are to be added.
 
+If you mix in the class `DartCompletionMixin`, then the request will be an
+instance of `DartCompletionRequest`, which also has analysis results.
+
 ## Example
 
 Start by creating a class that implements `CompletionContributor`, then
