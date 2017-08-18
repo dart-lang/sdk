@@ -316,7 +316,8 @@ void AwaitTransformer::VisitConditionalExprNode(ConditionalExprNode* node) {
 }
 
 void AwaitTransformer::VisitArgumentListNode(ArgumentListNode* node) {
-  ArgumentListNode* new_args = new (Z) ArgumentListNode(node->token_pos());
+  ArgumentListNode* new_args =
+      new (Z) ArgumentListNode(node->token_pos(), node->type_arguments());
   for (intptr_t i = 0; i < node->length(); i++) {
     new_args->Add(Transform(node->NodeAt(i)));
   }
