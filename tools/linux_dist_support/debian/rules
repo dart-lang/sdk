@@ -47,7 +47,7 @@ override_dh_auto_clean:
 	find . -name *.Makefile -execdir rm -f {} \;
 
 override_dh_auto_configure:
-	GYP_GENERATORS=make python dart/tools/gyp_dart.py all
+	python dart/tools/generate_buildfiles.py
 
 override_dh_auto_build:
 	cd dart; \
