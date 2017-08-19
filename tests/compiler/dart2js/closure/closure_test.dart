@@ -90,15 +90,15 @@ class ClosureAstComputer extends AbstractResolvedAstComputer
       ResolvedAst resolvedAst, this.closureDataLookup,
       {this.verbose: false})
       : super(reporter, actualMap, resolvedAst) {
-    push(resolvedAst.element);
+    pushMember(resolvedAst.element as MemberElement);
   }
 
   visitFunctionExpression(ast.FunctionExpression node) {
     Entity localFunction = resolvedAst.elements.getFunctionDefinition(node);
     if (localFunction is LocalFunctionElement) {
-      push(localFunction);
+      pushLocalFunction(node);
       super.visitFunctionExpression(node);
-      pop();
+      popLocalFunction();
     } else {
       super.visitFunctionExpression(node);
     }
@@ -129,6 +129,7 @@ class ClosureAstComputer extends AbstractResolvedAstComputer
 /// Kernel IR visitor for computing closure data.
 class ClosureIrChecker extends AbstractIrComputer
     with ComputeValueMixin<ir.Node> {
+  final MemberEntity member;
   final ClosureDataLookup<ir.Node> closureDataLookup;
   final KernelToLocalsMap _localsMap;
   final bool verbose;
@@ -136,26 +137,24 @@ class ClosureIrChecker extends AbstractIrComputer
   ClosureIrChecker(
       Map<Id, ActualData> actualMap,
       KernelToElementMapForBuilding elementMap,
-      MemberEntity member,
+      this.member,
       this._localsMap,
       this.closureDataLookup,
       {this.verbose: false})
       : super(actualMap) {
-    push(member);
+    pushMember(member);
   }
 
   visitFunctionExpression(ir.FunctionExpression node) {
-    Local localFunction = _localsMap.getLocalFunction(node);
-    push(localFunction);
+    pushLocalFunction(node);
     super.visitFunctionExpression(node);
-    pop();
+    popLocalFunction();
   }
 
   visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    Local localFunction = _localsMap.getLocalFunction(node);
-    push(localFunction);
+    pushLocalFunction(node);
     super.visitFunctionDeclaration(node);
-    pop();
+    popLocalFunction();
   }
 
   @override
@@ -169,18 +168,16 @@ class ClosureIrChecker extends AbstractIrComputer
   }
 
   @override
-  String computeMemberValue(ir.Member member) {
+  String computeMemberValue(ir.Member node) {
     // TODO(johnniwinther,efortuna): Collect data for the member
     // (has thisLocal, has box, etc.).
-    return computeEntityValue(entity);
+    return computeEntityValue(member);
   }
 }
 
 abstract class ComputeValueMixin<T> {
   bool get verbose;
   ClosureDataLookup<T> get closureDataLookup;
-  Entity get entity => entityStack.head;
-  Link<Entity> entityStack = const Link<Entity>();
   Link<ScopeInfo> scopeInfoStack = const Link<ScopeInfo>();
   ScopeInfo get scopeInfo => scopeInfoStack.head;
   CapturedScope capturedScope;
@@ -189,32 +186,40 @@ abstract class ComputeValueMixin<T> {
   ClosureRepresentationInfo get closureRepresentationInfo =>
       closureRepresentationInfoStack.head;
 
-  void push(Entity entity) {
-    entityStack = entityStack.prepend(entity);
+  void pushMember(MemberEntity member) {
     scopeInfoStack =
-        scopeInfoStack.prepend(closureDataLookup.getScopeInfo(entity));
-    if (entity is MemberEntity) {
-      capturedScope = closureDataLookup.getCapturedScope(entity);
-    }
-    closureRepresentationInfoStack = closureRepresentationInfoStack.prepend(
-        closureDataLookup.getClosureRepresentationInfoForTesting(entity));
-    dump(entity);
+        scopeInfoStack.prepend(closureDataLookup.getScopeInfo(member));
+    capturedScope = closureDataLookup.getCapturedScope(member);
+    closureRepresentationInfoStack = closureRepresentationInfoStack
+        .prepend(closureDataLookup.getClosureInfoForMemberTesting(member));
+    dump(member);
   }
 
-  void pop() {
-    entityStack = entityStack.tail;
+  void popMember() {
     scopeInfoStack = scopeInfoStack.tail;
     closureRepresentationInfoStack = closureRepresentationInfoStack.tail;
   }
 
-  void dump(Entity entity) {
+  void pushLocalFunction(T node) {
+    closureRepresentationInfoStack = closureRepresentationInfoStack
+        .prepend(closureDataLookup.getClosureInfoForTesting(node));
+    dump(node);
+  }
+
+  void popLocalFunction() {
+    closureRepresentationInfoStack = closureRepresentationInfoStack.tail;
+  }
+
+  void dump(Object object) {
     if (!verbose) return;
 
-    print('entity: $entity');
-    print(' scopeInfo (${scopeInfo.runtimeType})');
-    scopeInfo.forEachBoxedVariable((a, b) => print('  boxed1: $a->$b'));
-    print(' capturedScope (${capturedScope.runtimeType})');
-    capturedScope.forEachBoxedVariable((a, b) => print('  boxed2: $a->$b'));
+    print('object: $object');
+    if (object is MemberEntity) {
+      print(' scopeInfo (${scopeInfo.runtimeType})');
+      scopeInfo.forEachBoxedVariable((a, b) => print('  boxed1: $a->$b'));
+      print(' capturedScope (${capturedScope.runtimeType})');
+      capturedScope.forEachBoxedVariable((a, b) => print('  boxed2: $a->$b'));
+    }
     print(
         ' closureRepresentationInfo (${closureRepresentationInfo.runtimeType})');
     closureRepresentationInfo

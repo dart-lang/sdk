@@ -70,11 +70,15 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   final Map<MemberEntity, ScopeModel> _closureModels;
 
   /// Map of the scoping information that corresponds to a particular entity.
-  Map<Entity, ScopeInfo> _scopeMap = <Entity, ScopeInfo>{};
+  Map<MemberEntity, ScopeInfo> _scopeMap = <MemberEntity, ScopeInfo>{};
   Map<ir.Node, CapturedScope> _capturedScopesMap = <ir.Node, CapturedScope>{};
 
-  Map<Entity, ClosureRepresentationInfo> _closureRepresentationMap =
-      <Entity, ClosureRepresentationInfo>{};
+  Map<MemberEntity, ClosureRepresentationInfo> _memberClosureRepresentationMap =
+      <MemberEntity, ClosureRepresentationInfo>{};
+
+  // The key is either a [ir.FunctionDeclaration] or [ir.FunctionExpression].
+  Map<ir.Node, ClosureRepresentationInfo> _localClosureRepresentationMap =
+      <ir.Node, ClosureRepresentationInfo>{};
 
   KernelClosureConversionTask(Measurer measurer, this._elementMap,
       this._globalLocalsMap, this._closureModels)
@@ -138,20 +142,20 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
 
     // We want the original declaration where that function is used to point
     // to the correct closure class.
-    _closureRepresentationMap[closureClass.callMethod] = closureClass;
-    Entity entity;
+    _memberClosureRepresentationMap[closureClass.callMethod] = closureClass;
     if (node.parent is ir.Member) {
-      entity = _elementMap.getMember(node.parent);
+      assert(_elementMap.getMember(node.parent) == member);
+      _memberClosureRepresentationMap[member] = closureClass;
     } else {
-      entity = localsMap.getLocalFunction(node.parent);
+      assert(node.parent is ir.FunctionExpression ||
+          node.parent is ir.FunctionDeclaration);
+      _localClosureRepresentationMap[node.parent] = closureClass;
     }
-    assert(entity != null);
-    _closureRepresentationMap[entity] = closureClass;
     return closureClass;
   }
 
   @override
-  ScopeInfo getScopeInfo(Entity entity) {
+  ScopeInfo getScopeInfo(MemberEntity entity) {
     // TODO(johnniwinther): Remove this check when constructor bodies a created
     // eagerly with the J-model; a constructor body should have it's own
     // [ClosureRepresentationInfo].
@@ -160,7 +164,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       entity = constructorBody.constructor;
     }
 
-    return _scopeMap[entity] ?? getClosureRepresentationInfo(entity);
+    return _scopeMap[entity] ?? getClosureInfoForMember(entity);
   }
 
   // TODO(efortuna): Eventually capturedScopesMap[node] should always
@@ -186,19 +190,34 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       _capturedScopesMap[loopNode] ?? const CapturedLoopScope();
 
   @override
-  ClosureRepresentationInfo getClosureRepresentationInfo(Entity entity) {
-    var closure = _closureRepresentationMap[entity];
+  ClosureRepresentationInfo getClosureInfoForMember(MemberEntity entity) {
+    var closure = _memberClosureRepresentationMap[entity];
     assert(
         closure != null,
         "Corresponding closure class not found for $entity. "
-        "Closures found for ${_closureRepresentationMap.keys}");
+        "Closures found for ${_memberClosureRepresentationMap.keys}");
     return closure;
   }
 
   @override
-  ClosureRepresentationInfo getClosureRepresentationInfoForTesting(
-      Entity member) {
-    return _closureRepresentationMap[member];
+  ClosureRepresentationInfo getClosureInfo(ir.Node node) {
+    var closure = _localClosureRepresentationMap[node];
+    assert(
+        closure != null,
+        "Corresponding closure class not found for $node. "
+        "Closures found for ${_localClosureRepresentationMap.keys}");
+    return closure;
+  }
+
+  @override
+  ClosureRepresentationInfo getClosureInfoForMemberTesting(
+      MemberEntity entity) {
+    return _memberClosureRepresentationMap[entity];
+  }
+
+  @override
+  ClosureRepresentationInfo getClosureInfoForTesting(ir.Node node) {
+    return _localClosureRepresentationMap[node];
   }
 }
 
@@ -355,6 +374,14 @@ class KernelClosureClass extends JsScopeInfo
       KernelToLocalsMap localsMap)
       : closureEntity = closureSourceNode.parent is ir.Member
             ? null
+            // TODO(johnniwinther,efortuna): This is the only place we call
+            // [getLocalFunction]. Therefore the [closureEntity] doesn't need
+            // to be derived from the node.
+            //
+            // What we should do instead: If `closureSourceNode.parent` is
+            // an [ir.FunctionDeclaration] we should use the local for its
+            // variable. If `closureSourceNode.parent` is an
+            // [ir.FunctionExpression], we should create a fresh local.
             : localsMap.getLocalFunction(closureSourceNode.parent),
         thisLocal =
             info.hasThisLocal ? new ThisLocal(localsMap.currentMember) : null,

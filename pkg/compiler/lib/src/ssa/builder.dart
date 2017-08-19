@@ -1881,9 +1881,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   }
 
   visitFunctionExpression(ast.FunctionExpression node) {
-    LocalFunctionElement methodElement = elements[node];
     ClosureRepresentationInfo closureInfo =
-        closureDataLookup.getClosureRepresentationInfo(methodElement);
+        closureDataLookup.getClosureInfo(node);
     ClassEntity closureClassEntity = closureInfo.closureClassEntity;
 
     List<HInstruction> capturedVariables = <HInstruction>[];

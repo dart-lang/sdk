@@ -168,6 +168,12 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
       ClosureDataLookup closureLookup, ir.TreeNode node) {
     return closureLookup.getCapturedLoopScope(node);
   }
+
+  @override
+  ClosureRepresentationInfo getClosureRepresentationInfo(
+      ClosureDataLookup closureLookup, ir.TreeNode node) {
+    return closureLookup.getClosureInfo(node);
+  }
 }
 
 class JumpVisitor extends ir.Visitor {

@@ -730,7 +730,6 @@ enum_private_test/01: RuntimeError
 enum_private_test/02: RuntimeError
 enum_private_test/none: RuntimeError
 enum_test: RuntimeError
-evaluation_redirecting_constructor_test: Crash
 example_constructor_test: Crash
 execute_finally7_test: RuntimeError
 exhaustive_for_test: Crash
@@ -754,8 +753,6 @@ fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
 field_increment_bailout_test: Crash
 field_initialization_order_test: RuntimeError
-field_method4_negative_test: Crash
-field_method_test: Crash
 field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
@@ -885,8 +882,6 @@ implicit_this_test/04: Crash
 implicit_this_test/none: Crash
 import_collection_no_prefix_test: Crash
 inference_mixin_field_test: Crash
-inferrer_constructor2_test: Crash
-inferrer_synthesized_super_constructor_test: Crash
 infinite_switch_label_test: Crash
 infinity_test: RuntimeError
 initializing_formal_capture_test: Crash
@@ -913,7 +908,6 @@ is_malformed_type_test/98: Crash
 is_object_test: RuntimeError
 issue10721_test: Crash
 issue10747_test: Crash
-issue12284_test: Crash
 issue13474_test: RuntimeError
 issue14014_2_test: Crash
 issue14014_3_test: Crash
@@ -1145,7 +1139,6 @@ multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
-multiple_field_assignment_constructor_test: Crash
 named_argument_test: Crash
 named_constructor_test/01: MissingRuntimeError
 named_parameters_default_eq_test/02: Crash
@@ -1215,7 +1208,7 @@ redirecting_factory_long_test: Crash
 redirecting_factory_reflection_test: Crash
 reg_exp_test: Crash
 regress_11010_test: Crash
-regress_12615_test: Crash
+deferred_not_loaded_check_test: RuntimeError
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
 regress_18435_test: Crash
@@ -1285,7 +1278,7 @@ static_getter_no_setter2_test/01: Crash
 static_getter_no_setter2_test/none: Crash
 static_getter_no_setter3_test/01: RuntimeError
 static_setter_get_test/01: Crash
-string_interpolate2_test: Crash
+string_interpolate2_test: RuntimeError
 string_interpolation_and_buffer_test: RuntimeError
 string_join_test: RuntimeError
 string_split_test: Crash
@@ -1646,7 +1639,6 @@ enum_private_test/01: RuntimeError
 enum_private_test/02: RuntimeError
 enum_private_test/none: RuntimeError
 enum_test: RuntimeError
-evaluation_redirecting_constructor_test: Crash
 example_constructor_test: Crash
 execute_finally7_test: RuntimeError
 exhaustive_for_test: Crash
@@ -1672,8 +1664,6 @@ fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
 field_increment_bailout_test: Crash
 field_initialization_order_test: RuntimeError
-field_method4_negative_test: Crash
-field_method_test: Crash
 field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
@@ -1797,8 +1787,6 @@ implicit_this_test/04: Crash
 implicit_this_test/none: Crash
 import_collection_no_prefix_test: Crash
 inference_mixin_field_test: Crash
-inferrer_constructor2_test: Crash
-inferrer_synthesized_super_constructor_test: Crash
 infinite_switch_label_test: Crash
 infinity_test: RuntimeError
 initializing_formal_capture_test: Crash
@@ -1822,7 +1810,6 @@ is_malformed_type_test/98: Crash
 is_object_test: RuntimeError
 issue10721_test: Crash
 issue10747_test: Crash
-issue12284_test: Crash
 issue13474_test: RuntimeError
 issue14014_2_test: Crash
 issue14014_3_test: Crash
@@ -2049,7 +2036,6 @@ multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
-multiple_field_assignment_constructor_test: Crash
 named_argument_test: Crash
 named_constructor_test/01: MissingRuntimeError
 named_parameters_default_eq_test/02: Crash
@@ -2119,7 +2105,7 @@ redirecting_factory_long_test: Crash
 redirecting_factory_reflection_test: Crash
 reg_exp_test: Crash
 regress_11010_test: Crash
-regress_12615_test: Crash
+deferred_not_loaded_check_test: RuntimeError
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
 regress_18435_test: Crash
@@ -2189,7 +2175,7 @@ static_getter_no_setter2_test/01: Crash # NoSuchMethodError: The getter 'thisLoc
 static_getter_no_setter2_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 static_getter_no_setter3_test/01: RuntimeError
 static_setter_get_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-string_interpolate2_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+string_interpolate2_test: RuntimeError
 string_interpolation_and_buffer_test: RuntimeError
 string_join_test: RuntimeError
 string_split_test: Crash

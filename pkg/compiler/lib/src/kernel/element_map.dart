@@ -434,8 +434,15 @@ abstract class KernelToLocalsMap {
   JumpTarget getJumpTargetForWhile(ir.WhileStatement node);
 
   /// Returns the [CapturedLoopScope] for the loop [node] in
-  /// [closureClassMaps].
+  /// [closureLookup].
+  // TODO(johnniwinther): Remove this when [KernelAstAdapter] is deleted.
   CapturedLoopScope getCapturedLoopScope(
+      ClosureDataLookup closureLookup, ir.TreeNode node);
+
+  /// Returns the [ClosureRepresentationInfo] for the local function [node] in
+  /// [closureLookup].
+  // TODO(johnniwinther): Remove this when [KernelAstAdapter] is deleted.
+  ClosureRepresentationInfo getClosureRepresentationInfo(
       ClosureDataLookup closureLookup, ir.TreeNode node);
 }
 

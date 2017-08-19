@@ -42,17 +42,18 @@ abstract class ClosureConversionTask<T> extends CompilerTask
 abstract class ClosureDataLookup<T> {
   /// Look up information about the variables that have been mutated and are
   /// used inside the scope of [node].
-  // TODO(johnniwinther): Split this up into two functions, one for members and
-  // one for local functions.
-  ScopeInfo getScopeInfo(covariant Entity member);
+  ScopeInfo getScopeInfo(MemberEntity member);
 
   /// This returns the same information as ScopeInfo, but can be called in
   /// situations when you are sure you are dealing with a closure specifically.
-  ClosureRepresentationInfo getClosureRepresentationInfo(
-      covariant Entity member);
+  // TODO(johnniwinther,efortuna): Can we use [getScopeInfo] instead?
+  ClosureRepresentationInfo getClosureInfoForMember(MemberEntity member);
 
-  ClosureRepresentationInfo getClosureRepresentationInfoForTesting(
-      covariant Entity member);
+  ClosureRepresentationInfo getClosureInfo(T localFunction);
+
+  ClosureRepresentationInfo getClosureInfoForMemberTesting(MemberEntity member);
+
+  ClosureRepresentationInfo getClosureInfoForTesting(T localFunction);
 
   /// Look up information about a loop, in case any variables it declares need
   /// to be boxed/snapshotted.
@@ -256,8 +257,10 @@ class ClosureRepresentationInfo extends ScopeInfo {
 
 class ClosureTask extends ClosureConversionTask<Node> {
   Map<Node, CapturedScopeImpl> _closureInfoMap = <Node, CapturedScopeImpl>{};
-  Map<Element, ClosureClassMap> _closureMappingCache =
-      <Element, ClosureClassMap>{};
+  Map<MemberElement, ClosureClassMap> _closureMemberMappingCache =
+      <MemberElement, ClosureClassMap>{};
+  Map<FunctionExpression, ClosureClassMap> _closureNodeMappingCache =
+      <FunctionExpression, ClosureClassMap>{};
   Compiler compiler;
   ClosureTask(Compiler compiler)
       : compiler = compiler,
@@ -284,17 +287,26 @@ class ClosureTask extends ClosureConversionTask<Node> {
     return _getCapturedScope(resolvedAst.node);
   }
 
-  ScopeInfo getScopeInfo(Element member) {
-    return getClosureToClassMapping(member);
+  ScopeInfo getScopeInfo(MemberEntity member) {
+    return _getMemberMapping(member);
   }
 
-  ClosureRepresentationInfo getClosureRepresentationInfo(Element member) {
-    return getClosureToClassMapping(member);
+  ClosureRepresentationInfo getClosureInfoForMember(MemberEntity member) {
+    return _getMemberMapping(member);
   }
 
-  ClosureRepresentationInfo getClosureRepresentationInfoForTesting(
-      Element member) {
-    return getClosureRepresentationInfo(member);
+  ClosureRepresentationInfo getClosureInfo(covariant FunctionExpression node) {
+    return _getClosureMapping(node);
+  }
+
+  ClosureRepresentationInfo getClosureInfoForMemberTesting(
+      MemberEntity member) {
+    return getClosureInfoForMember(member);
+  }
+
+  ClosureRepresentationInfo getClosureInfoForTesting(
+      covariant FunctionExpression node) {
+    return getClosureInfo(node);
   }
 
   CapturedLoopScope getCapturedLoopScope(Node loopNode) {
@@ -302,16 +314,26 @@ class ClosureTask extends ClosureConversionTask<Node> {
     return value == null ? const CapturedLoopScope() : value;
   }
 
-  /// Returns the [ClosureClassMap] computed for [resolvedAst].
-  ClosureClassMap getClosureToClassMapping(Element element) {
+  /// Returns the [ClosureClassMap] computed for [element].
+  ClosureClassMap _getMemberMapping(MemberElement element) {
     return measure(() {
       if (element.isGenerativeConstructorBody) {
         ConstructorBodyElement constructorBody = element;
         element = constructorBody.constructor;
       }
-      ClosureClassMap closureClassMap = _closureMappingCache[element];
+      ClosureClassMap closureClassMap = _closureMemberMappingCache[element];
       assert(closureClassMap != null,
           failedAt(element, "No ClosureClassMap computed for ${element}."));
+      return closureClassMap;
+    });
+  }
+
+  /// Returns the [ClosureClassMap] computed for [node].
+  ClosureClassMap _getClosureMapping(FunctionExpression node) {
+    return measure(() {
+      ClosureClassMap closureClassMap = _closureNodeMappingCache[node];
+      assert(closureClassMap != null,
+          failedAt(node, "No ClosureClassMap computed for ${node}."));
       return closureClassMap;
     });
   }
@@ -336,10 +358,10 @@ class ClosureTask extends ClosureConversionTask<Node> {
   ClosureClassMap computeClosureToClassMapping(
       MemberElement element, ClosedWorldRefiner closedWorldRefiner) {
     return measure(() {
-      ClosureClassMap cached = _closureMappingCache[element];
+      ClosureClassMap cached = _closureMemberMappingCache[element];
       if (cached != null) return cached;
       if (element.resolvedAst.kind != ResolvedAstKind.PARSED) {
-        return _closureMappingCache[element] =
+        return _closureMemberMappingCache[element] =
             new ClosureClassMap(null, null, null, new ThisLocal(element));
       }
       return reporter.withCurrentElement(element.implementation, () {
@@ -350,7 +372,8 @@ class ClosureTask extends ClosureConversionTask<Node> {
             compiler,
             closedWorldRefiner,
             elements,
-            _closureMappingCache,
+            _closureMemberMappingCache,
+            _closureNodeMappingCache,
             _closureInfoMap);
 
         // The translator will store the computed closure-mappings inside the
@@ -360,7 +383,7 @@ class ClosureTask extends ClosureConversionTask<Node> {
         } else if (element.isSynthesized) {
           reporter.internalError(
               element, "Unexpected synthesized element: $element");
-          _closureMappingCache[element] =
+          _closureMemberMappingCache[element] =
               new ClosureClassMap(null, null, null, new ThisLocal(element));
         } else {
           assert(element.isField,
@@ -376,13 +399,13 @@ class ClosureTask extends ClosureConversionTask<Node> {
                     element,
                     "Expected $element (${element.runtimeType}) "
                     "to be an instance field."));
-            _closureMappingCache[element] =
+            _closureMemberMappingCache[element] =
                 new ClosureClassMap(null, null, null, new ThisLocal(element));
           }
         }
-        assert(_closureMappingCache[element] != null,
+        assert(_closureMemberMappingCache[element] != null,
             failedAt(element, "No ClosureClassMap computed for ${element}."));
-        return _closureMappingCache[element];
+        return _closureMemberMappingCache[element];
       });
     });
   }
@@ -857,7 +880,8 @@ class ClosureTranslator extends Visitor {
   int boxedFieldCounter = 0;
   bool inTryStatement = false;
 
-  final Map<Element, ClosureClassMap> closureMappingCache;
+  final Map<MemberElement, ClosureClassMap> memberMappingCache;
+  final Map<FunctionExpression, ClosureClassMap> nodeMappingCache;
   final Map<Node, CapturedScopeImpl> closureInfo;
 
   // Map of captured variables. Initially they will map to `null`. If
@@ -867,7 +891,7 @@ class ClosureTranslator extends Visitor {
       new Map<Local, BoxFieldElement>();
 
   // List of encountered closures.
-  List<LocalFunctionElement> closures = <LocalFunctionElement>[];
+  List<FunctionExpression> closures = <FunctionExpression>[];
 
   // The local variables that have been declared in the current scope.
   List<LocalVariableElement> scopeVariables;
@@ -885,7 +909,7 @@ class ClosureTranslator extends Visitor {
   bool insideClosure = false;
 
   ClosureTranslator(this.compiler, this.closedWorldRefiner, this.elements,
-      this.closureMappingCache, this.closureInfo);
+      this.memberMappingCache, this.nodeMappingCache, this.closureInfo);
 
   DiagnosticReporter get reporter => compiler.reporter;
 
@@ -965,12 +989,12 @@ class ClosureTranslator extends Visitor {
   // free variables to the boxed value. It also adds the field-elements to the
   // class representing the closure.
   void updateClosures() {
-    for (LocalFunctionElement closure in closures) {
+    for (FunctionExpression closure in closures) {
       // The captured variables that need to be stored in a field of the closure
       // class.
       Set<Local> fieldCaptures = new Set<Local>();
       Set<BoxLocal> boxes = new Set<BoxLocal>();
-      ClosureClassMap data = closureMappingCache[closure];
+      ClosureClassMap data = nodeMappingCache[closure];
       // We get a copy of the keys and iterate over it, to avoid modifications
       // to the map while iterating over it.
       Iterable<Local> freeVariables = data.freeVariables.toList();
@@ -1414,8 +1438,8 @@ class ClosureTranslator extends Visitor {
     bool needsRti = false;
     if (insideClosure) {
       closure = element;
-      closures.add(closure);
-      closureData = globalizeClosure(node, closure);
+      closures.add(node);
+      nodeMappingCache[node] = closureData = globalizeClosure(node, closure);
       needsRti = compiler.options.enableTypeAssertions ||
           rtiNeed.localFunctionNeedsRti(closure);
     } else {
@@ -1426,15 +1450,15 @@ class ClosureTranslator extends Visitor {
         thisElement = new ThisLocal(member);
       }
       closureData = new ClosureClassMap(null, null, null, thisElement);
+      memberMappingCache[element] = closureData;
+      memberMappingCache[element.declaration] = closureData;
       if (element is MethodElement) {
         needsRti = compiler.options.enableTypeAssertions ||
             rtiNeed.methodNeedsRti(element);
       }
     }
-    closureMappingCache[element] = closureData;
-    closureMappingCache[element.declaration] = closureData;
     if (closureData.callMethod != null) {
-      closureMappingCache[closureData.callMethod] = closureData;
+      memberMappingCache[closureData.callMethod] = closureData;
     }
 
     inNewScope(node, () {

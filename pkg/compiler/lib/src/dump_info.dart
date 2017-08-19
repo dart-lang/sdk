@@ -211,9 +211,8 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
         size: compiler.dumpInfoTask.sizeOf(element));
     _elementToInfo[element] = closureInfo;
 
-    ClosureRepresentationInfo closureRepresentation = compiler
-        .backendStrategy.closureDataLookup
-        .getClosureRepresentationInfo(element.methodElement);
+    ClosureRepresentationInfo closureRepresentation =
+        compiler.backendStrategy.closureDataLookup.getClosureInfo(element.node);
     assert(closureRepresentation.closureClassEntity == element);
 
     FunctionInfo functionInfo = this.process(closureRepresentation.callMethod);

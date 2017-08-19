@@ -166,10 +166,10 @@ void checkElements(
       (element1.isField && element1.isInstanceMember)) {
     ClosureRepresentationInfo closureData1 = compiler1
         .backendStrategy.closureDataLookup
-        .getClosureRepresentationInfo(element1);
+        .getClosureInfoForMember(element1 as MemberElement);
     ClosureRepresentationInfo closureData2 = compiler2
         .backendStrategy.closureDataLookup
-        .getClosureRepresentationInfo(element2);
+        .getClosureInfoForMember(element2 as MemberElement);
 
     checkElementIdentities(
         closureData1,
