@@ -171,7 +171,8 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
 }
 
 class JumpVisitor extends ir.Visitor {
-  int index = 0;
+  int jumpIndex = 0;
+  int labelIndex = 0;
   final MemberEntity member;
   final Map<ir.TreeNode, JJumpTarget> jumpTargetMap =
       <ir.TreeNode, JJumpTarget>{};
@@ -181,7 +182,7 @@ class JumpVisitor extends ir.Visitor {
 
   JJumpTarget _getJumpTarget(ir.TreeNode node) {
     return jumpTargetMap.putIfAbsent(node, () {
-      return new JJumpTarget(member, index++);
+      return new JJumpTarget(member, jumpIndex++);
     });
   }
 
@@ -221,6 +222,19 @@ class JumpVisitor extends ir.Visitor {
       // and can therefore use the for loop as the break target.
       target = _getJumpTarget(body);
       target.isBreakTarget = true;
+      ir.TreeNode search = node;
+      bool needsLabel = false;
+      while (search != node.target) {
+        if (_canBeBreakTarget(search)) {
+          needsLabel = search != body;
+          break;
+        }
+        search = search.parent;
+      }
+      if (needsLabel) {
+        target.addLabel(node.target, 'label${labelIndex++}',
+            isBreakTarget: true);
+      }
     } else if (_canBeContinueTarget(parent)) {
       // We have code like
       //
@@ -244,6 +258,7 @@ class JumpVisitor extends ir.Visitor {
 class JJumpTarget extends JumpTarget<ir.Node> {
   final MemberEntity memberContext;
   final int nestingLevel;
+  List<LabelDefinition<ir.Node>> _labels;
 
   JJumpTarget(this.memberContext, this.nestingLevel);
 
@@ -257,22 +272,27 @@ class JJumpTarget extends JumpTarget<ir.Node> {
   @override
   LabelDefinition<ir.Node> addLabel(ir.Node label, String labelName,
       {bool isBreakTarget: false}) {
-    throw new UnimplementedError('KJumpTarget.addLabel');
+    _labels ??= <LabelDefinition<ir.Node>>[];
+    LabelDefinition<ir.Node> labelDefinition = new JLabelDefinition(
+        this, label, labelName,
+        isBreakTarget: isBreakTarget);
+    _labels.add(labelDefinition);
+    return labelDefinition;
   }
 
   @override
   List<LabelDefinition<ir.Node>> get labels {
-    return const <LabelDefinition<ir.Node>>[];
+    return _labels ?? const <LabelDefinition<ir.Node>>[];
   }
 
   @override
   ir.Node get statement {
-    throw new UnimplementedError('KJumpTarget.statement');
+    throw new UnimplementedError('JJumpTarget.statement');
   }
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.write('KJumpTarget[');
+    sb.write('JJumpTarget(');
     sb.write('memberContext=');
     sb.write(memberContext);
     sb.write(',nestingLevel=');
@@ -281,7 +301,39 @@ class JJumpTarget extends JumpTarget<ir.Node> {
     sb.write(isBreakTarget);
     sb.write(',isContinueTarget=');
     sb.write(isContinueTarget);
-    sb.write(']');
+    if (_labels != null) {
+      sb.write(',labels=');
+      sb.write(_labels);
+    }
+    sb.write(')');
+    return sb.toString();
+  }
+}
+
+class JLabelDefinition extends LabelDefinition<ir.Node> {
+  final JumpTarget<ir.Node> target;
+  final ir.Node label;
+  final String labelName;
+  final bool isBreakTarget;
+  final bool isContinueTarget;
+
+  JLabelDefinition(this.target, this.label, this.labelName,
+      {this.isBreakTarget: false, this.isContinueTarget: false});
+
+  @override
+  String get name => labelName;
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('JLabelDefinition(');
+    sb.write('label=');
+    sb.write(label);
+    sb.write(',labelName=');
+    sb.write(labelName);
+    sb.write(',isBreakTarget=');
+    sb.write(isBreakTarget);
+    sb.write(',isContinueTarget=');
+    sb.write(isContinueTarget);
+    sb.write(')');
     return sb.toString();
   }
 }

@@ -483,7 +483,6 @@ const_list_literal_test: Crash
 const_list_set_range_test: Crash
 core_runtime_types_test: Crash
 data_uri_test: Crash
-date_time_test: Skip # TODO(30492): TODO(redemption): Timeout
 double_parse_test/01: Crash
 double_parse_test/02: Crash
 double_parse_test/03: Crash
@@ -714,7 +713,6 @@ const_list_set_range_test: Crash
 core_runtime_types_static_test: Crash
 core_runtime_types_test: Crash
 data_uri_test: Crash
-date_time_test: Skip # TODO(30492): TODO(redemption): Timeout
 double_parse_test/01: Crash
 double_parse_test/02: Crash
 double_parse_test/03: Crash
@@ -832,6 +830,7 @@ map_keys2_test: Crash
 map_keys_test: Crash
 map_test: Crash # Issue 27394
 map_to_string_test: Crash
+map_to_string_test: RuntimeError
 map_values2_test: Crash
 map_values3_test: Crash
 map_values4_test: Crash
@@ -839,7 +838,6 @@ map_values_test: Crash
 maps_test: Crash
 nan_infinity_test/01: RuntimeError
 null_nosuchmethod_test: Crash
-map_to_string_test: RuntimeError
 num_parse_test/01: Crash
 num_parse_test/none: Crash
 queue_first_test: Crash

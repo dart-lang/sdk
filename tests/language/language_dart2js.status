@@ -602,8 +602,6 @@ const_error_multiply_initialized_test/03: Crash
 const_error_multiply_initialized_test/04: Crash
 const_evaluation_test/01: Crash
 const_factory_with_body_test/01: MissingCompileTimeError
-const_for_in_variable_test/02: Crash
-const_for_in_variable_test/none: Crash
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
@@ -654,7 +652,6 @@ constructor_redirect_test/01: Crash
 constructor_test: Crash
 constructor_with_mixin_test: Crash
 context_test: RuntimeError
-continue_test: Crash
 crash_6725_test/01: Crash
 ct_const_test: Crash
 custom_await_stack_trace_test: Crash
@@ -769,7 +766,6 @@ final_attempt_reinitialization_test/02: Crash
 final_field_initialization_order_test: RuntimeError
 final_super_field_set_test/01: Crash
 final_syntax_test/09: Crash
-final_used_in_try_test: Crash
 first_class_types_literals_test/01: Crash
 first_class_types_literals_test/02: Crash
 first_class_types_literals_test/03: Crash
@@ -928,7 +924,6 @@ issue21079_test: Crash
 issue23244_test: Crash
 issue4295001_test: Crash
 issue9602_test: Crash
-issue9664_test: Crash
 issue9939_test: RuntimeError
 issue_1751477_test: CompileTimeError
 issue_22780_test/01: Crash
@@ -952,7 +947,6 @@ local_function2_test: RuntimeError
 local_function3_test: RuntimeError
 local_function_test: Crash
 logical_expression_test: Crash
-loop_hoist_test: Crash
 main_not_a_function_test/01: CompileTimeError
 main_test/01: Crash
 main_test/02: Crash
@@ -1383,7 +1377,7 @@ type_variable_function_type_test: RuntimeError
 type_variable_nested_test: Crash
 typecheck_multifield_declaration_test: Crash
 typedef_is_test: Crash
-variable_declaration_metadata_test/none: Crash
+regress_23537_test: RuntimeError
 wrong_number_type_arguments_test/00: Crash
 wrong_number_type_arguments_test/02: Crash
 yieldstar_pause_test: Crash
@@ -1520,8 +1514,6 @@ const_error_multiply_initialized_test/03: Crash
 const_error_multiply_initialized_test/04: Crash
 const_evaluation_test/01: Crash
 const_factory_with_body_test/01: MissingCompileTimeError
-const_for_in_variable_test/02: Crash
-const_for_in_variable_test/none: Crash
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
@@ -1571,7 +1563,6 @@ constructor_redirect_test/01: Crash
 constructor_test: Crash
 constructor_with_mixin_test: Crash
 context_test: RuntimeError
-continue_test: Crash
 crash_6725_test/01: Crash
 ct_const_test: Crash
 custom_await_stack_trace_test: Crash
@@ -1693,7 +1684,6 @@ final_attempt_reinitialization_test/02: Crash
 final_field_initialization_order_test: RuntimeError
 final_super_field_set_test/01: Crash
 final_syntax_test/09: Crash
-final_used_in_try_test: Crash
 first_class_types_literals_test/01: Crash
 first_class_types_literals_test/02: Crash
 first_class_types_literals_test/03: Crash
@@ -1843,7 +1833,6 @@ issue21079_test: Crash
 issue23244_test: Crash
 issue4295001_test: Crash
 issue9602_test: Crash
-issue9664_test: Crash
 issue9939_test: RuntimeError
 issue_1751477_test: CompileTimeError
 issue_22780_test/01: Crash
@@ -1867,7 +1856,6 @@ local_function2_test: RuntimeError
 local_function3_test: RuntimeError
 local_function_test: Crash
 logical_expression_test: Crash
-loop_hoist_test: Crash
 main_not_a_function_test/01: CompileTimeError
 main_test/01: Crash
 main_test/02: Crash
@@ -2283,6 +2271,6 @@ type_variable_function_type_test: RuntimeError
 type_variable_nested_test: Crash
 typecheck_multifield_declaration_test: Crash
 typedef_is_test: Crash
-variable_declaration_metadata_test/none: Crash
+regress_23537_test: RuntimeError
 yieldstar_pause_test: Crash
 

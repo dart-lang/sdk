@@ -321,8 +321,6 @@ bound_closure_equality_test: Crash
 bound_closure_primitives_test: Crash
 branch_canonicalization_test: RuntimeError
 break_test: Crash
-built_in_identifier_test/01: Crash
-built_in_identifier_test/none: Crash
 call_closurization_test: Crash
 call_constructor_on_unresolvable_class_test/07: Crash
 call_function_apply_test: Crash
@@ -391,7 +389,6 @@ classes_static_method_clash_test: Crash
 closure4_test: Crash
 closure5_test: Crash
 closure6_test: Crash
-closure_break_test: Crash
 closure_cycles_test: Crash
 closure_in_constructor_test: Crash
 closure_in_field_initializer_test: Crash
@@ -656,8 +653,6 @@ bound_closure_equality_test: Crash
 bound_closure_primitives_test: Crash
 branch_canonicalization_test: RuntimeError
 break_test: Crash
-built_in_identifier_test/01: Crash
-built_in_identifier_test/none: Crash
 call_closurization_test: Crash
 call_constructor_on_unresolvable_class_test/07: Crash
 call_function_apply_test: Crash
@@ -725,7 +720,6 @@ classes_static_method_clash_test: Crash
 closure4_test: Crash
 closure5_test: Crash
 closure6_test: Crash
-closure_break_test: Crash
 closure_cycles_test: Crash
 closure_in_constructor_test: Crash
 closure_in_field_initializer_test: Crash
