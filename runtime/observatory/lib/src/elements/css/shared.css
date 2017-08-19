@@ -1634,7 +1634,23 @@ memory-dashboard memory-profile {
   bottom: 0;
   left: 0;
   right: 0;
-  top: 340px;
+  top: 300px;
+}
+
+memory-dashboard memory-profile memory-allocations {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 40px;
+}
+
+memory-dashboard memory-profile memory-snapshot {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 40px;
 }
 
 /* metric-graph */
@@ -1654,61 +1670,61 @@ metric-graph .graph > div {
   height: 100%;
 }
 
-/* memory-profile */
+/* memory-allocations */
 
-memory-profile .container {
+memory-allocations .container {
   padding-left: 5%;
   padding-right: 5%;
 }
 
-memory-profile .collection-item {
+memory-allocations .collection-item {
   background-color: #FFFFFF;
   box-sizing: border-box;
   line-height: 20px;
 }
 
-memory-profile .collection-item:hover {
+memory-allocations .collection-item:hover {
   background-color: #d2e7fe;
 }
 
-memory-profile .header .collection-item:hover {
+memory-allocations .header .collection-item:hover {
   background-color: #FFFFFF;
 }
 
-memory-profile .header .collection-item:last-child {
+memory-allocations .header .collection-item:last-child {
   margin-bottom: -3px;
   border-bottom: solid 1px #AAAAAA;
 }
 
-memory-profile .header .collection-item span {
+memory-allocations .header .collection-item span {
   font-weight: bolder;
 }
 
-memory-profile .collection-item :nth-child(2n+2).group,
-memory-profile .collection-item :nth-child(4n+3),
-memory-profile .collection-item :nth-child(4n+4) {
+memory-allocations .collection-item :nth-child(2n+2).group,
+memory-allocations .collection-item :nth-child(4n+3),
+memory-allocations .collection-item :nth-child(4n+4) {
   background-color: #EEEEEE;
 }
 
-memory-profile .collection-item:hover :nth-child(2n+2).group,
-memory-profile .collection-item:hover :nth-child(4n+3),
-memory-profile .collection-item:hover :nth-child(4n+4) {
+memory-allocations .collection-item:hover :nth-child(2n+2).group,
+memory-allocations .collection-item:hover :nth-child(4n+3),
+memory-allocations .collection-item:hover :nth-child(4n+4) {
   background-color: #afd5fd;
 }
 
-memory-profile .header .collection-item :nth-child(2n+1).group,
-memory-profile .header .collection-item :nth-child(4n+1),
-memory-profile .header .collection-item :nth-child(4n+2) {
+memory-allocations .header .collection-item :nth-child(2n+1).group,
+memory-allocations .header .collection-item :nth-child(4n+1),
+memory-allocations .header .collection-item :nth-child(4n+2) {
   background-color: #FFFFFF;
 }
 
-memory-profile .header .collection-item :nth-child(2n+2).group,
-memory-profile .header .collection-item :nth-child(4n+3),
-memory-profile .header .collection-item :nth-child(4n+4) {
+memory-allocations .header .collection-item :nth-child(2n+2).group,
+memory-allocations .header .collection-item :nth-child(4n+3),
+memory-allocations .header .collection-item :nth-child(4n+4) {
   background-color: #DDDDDD;
 }
 
-memory-profile .collection-item .group {
+memory-allocations .collection-item .group {
   display: inline-block;
   width: 12em;
   text-align: right;
@@ -1717,7 +1733,7 @@ memory-profile .collection-item .group {
   border-right: solid 1px #AAAAAA;
 }
 
-memory-profile .collection-item .bytes {
+memory-allocations .collection-item .bytes {
   display: inline-block;
   width: 6em;
   text-align: right;
@@ -1725,7 +1741,7 @@ memory-profile .collection-item .bytes {
   padding-right: 0.5em;
 }
 
-memory-profile .collection-item .instances {
+memory-allocations .collection-item .instances {
   display: inline-block;
   width: 6em;
   text-align: right;
@@ -1734,24 +1750,80 @@ memory-profile .collection-item .instances {
   border-right: solid 1px #AAAAAA;
 }
 
-memory-profile .collection-item .name {
+memory-allocations .collection-item .name {
   padding-left: 0.5em;
   padding-right: 0.5em;
   display: inline-block;
 }
 
-memory-profile .collection-item > button,
-memory-profile .collection-item > button:active,
-memory-profile .collection-item .group button,
-memory-profile .collection-item .group button:active {
+memory-allocations .collection-item > button,
+memory-allocations .collection-item > button:active,
+memory-allocations .collection-item .group button,
+memory-allocations .collection-item .group button:active {
   background-color: transparent;
   color: #0489c3;
   border-style: none;
 }
 
-memory-profile .collection-item > button:hover,
-memory-profile .collection-item .group button:hover {
+memory-allocations .collection-item > button:hover,
+memory-allocations .collection-item .group button:hover {
   text-decoration: underline;
+}
+
+/* memory-profile */
+
+memory-profile .tab_button {
+  float: right;
+  padding: 10px 5px;
+  margin: 0px 1px;
+}
+
+/* memory-snapshot */
+
+memory-snapshot .statusMessage {
+  font-size: 150%;
+  font-weight: bold;
+}
+memory-snapshot .statusBox {
+  height: 100%;
+  padding: 1em;
+}
+memory-snapshot .explanation {
+  display: block;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  max-height: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+memory-snapshot virtual-tree {
+  position: absolute;
+  height: auto;
+  top: 50px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+memory-snapshot .tree-item {
+  box-sizing: border-box;
+  line-height: 30px;
+  height: 30px;
+  padding-left: 5%;
+  padding-right: 5%;
+}
+memory-snapshot .tree-item > .size,
+memory-snapshot .tree-item > .percentage {
+  display: inline-block;
+  text-align: right;
+  width: 4em;
+  margin-left: 0.25em;
+  margin-right: 0.25em;
+}
+
+memory-snapshot .tree-item > .name {
+  display: inline;
+  margin-left: 0.5em;
 }
 
 /* metric-graph */

@@ -16,25 +16,19 @@
 import 'dart:async';
 import 'dart:html';
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/class_ref.dart';
-import 'package:observatory/src/elements/containers/virtual_collection.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
-import 'package:observatory/utils.dart';
+import 'package:observatory/src/elements/memory/allocations.dart';
+import 'package:observatory/src/elements/memory/snapshot.dart';
 
-enum _SortingField {
-  accumulatedSize,
-  accumulatedInstances,
-  currentSize,
-  currentInstances,
-  className,
-}
-
-enum _SortingDirection { ascending, descending }
+enum _Analysis { allocations, dominatorTree }
 
 class MemoryProfileElement extends HtmlElement implements Renderable {
   static const tag = const Tag<MemoryProfileElement>('memory-profile',
-      dependencies: const [ClassRefElement.tag, VirtualCollectionElement.tag]);
+      dependencies: const [
+        MemoryAllocationsElement.tag,
+        MemorySnapshotElement.tag
+      ]);
 
   RenderingScheduler<MemoryProfileElement> _r;
 
@@ -42,28 +36,37 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
 
   M.IsolateRef _isolate;
   M.EventRepository _events;
-  M.AllocationProfileRepository _repository;
-  M.AllocationProfile _profile;
+  M.AllocationProfileRepository _allocations;
   M.EditorRepository _editor;
-  StreamSubscription _gcSubscription;
-  _SortingField _sortingField = _SortingField.accumulatedInstances;
-  _SortingDirection _sortingDirection = _SortingDirection.descending;
+  M.HeapSnapshotRepository _snapshots;
+  M.ObjectRepository _objects;
+
+  _Analysis _analysis = _Analysis.allocations;
 
   M.IsolateRef get isolate => _isolate;
 
-  factory MemoryProfileElement(M.IsolateRef isolate, M.EditorRepository editor,
-      M.EventRepository events, M.AllocationProfileRepository repository,
+  factory MemoryProfileElement(
+      M.IsolateRef isolate,
+      M.EditorRepository editor,
+      M.EventRepository events,
+      M.AllocationProfileRepository allocations,
+      M.HeapSnapshotRepository snapshots,
+      M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(events != null);
     assert(editor != null);
-    assert(repository != null);
+    assert(allocations != null);
+    assert(snapshots != null);
+    assert(objects != null);
     MemoryProfileElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._isolate = isolate;
     e._editor = editor;
     e._events = events;
-    e._repository = repository;
+    e._allocations = allocations;
+    e._snapshots = snapshots;
+    e._objects = objects;
     return e;
   }
 
@@ -73,12 +76,6 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
   attached() {
     super.attached();
     _r.enable();
-    _refresh();
-    _gcSubscription = _events.onGCEvent.listen((e) {
-      if (e.isolate.id == _isolate.id) {
-        _refresh();
-      }
-    });
   }
 
   @override
@@ -86,172 +83,79 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
     super.detached();
     _r.disable(notify: true);
     children = [];
-    _gcSubscription.cancel();
-  }
-
-  Future reload({bool gc = false, bool reset = false}) async {
-    return _refresh(gc: gc, reset: reset);
   }
 
   void render() {
-    if (_profile == null) {
-      children = [
-        new DivElement()
-          ..classes = ['content-centered-big']
-          ..children = [new HeadingElement.h2()..text = 'Loading...']
-      ];
-    } else {
-      children = [
-        new VirtualCollectionElement(
-            _createCollectionLine, _updateCollectionLine,
-            createHeader: _createCollectionHeader,
-            items: _profile.members.toList()..sort(_createSorter()),
-            queue: _r.queue)
-      ];
-    }
-  }
-
-  _createSorter() {
-    var getter;
-    switch (_sortingField) {
-      case _SortingField.accumulatedSize:
-        getter = _getAccumulatedSize;
+    HtmlElement current;
+    var reload;
+    switch (_analysis) {
+      case _Analysis.allocations:
+        final MemoryAllocationsElement allocations =
+            new MemoryAllocationsElement(
+                _isolate, _editor, _events, _allocations);
+        current = allocations;
+        reload = ({bool gc: false}) => allocations.reload(gc: gc);
         break;
-      case _SortingField.accumulatedInstances:
-        getter = _getAccumulatedInstances;
-        break;
-      case _SortingField.currentSize:
-        getter = _getCurrentSize;
-        break;
-      case _SortingField.currentInstances:
-        getter = _getCurrentInstances;
-        break;
-      case _SortingField.className:
-        getter = (M.ClassHeapStats s) => s.clazz.name;
+      case _Analysis.dominatorTree:
+        final MemorySnapshotElement snapshot =
+            new MemorySnapshotElement(_isolate, _editor, _snapshots, _objects);
+        current = snapshot;
+        reload = ({bool gc: false}) => snapshot.reload(gc: gc);
         break;
     }
-    switch (_sortingDirection) {
-      case _SortingDirection.ascending:
-        return (a, b) => getter(a).compareTo(getter(b));
-      case _SortingDirection.descending:
-        return (a, b) => getter(b).compareTo(getter(a));
-    }
-  }
 
-  static HtmlElement _createCollectionLine() => new DivElement()
-    ..classes = ['collection-item']
-    ..children = [
-      new SpanElement()
-        ..classes = ['bytes']
-        ..text = '0B',
-      new SpanElement()
-        ..classes = ['instances']
-        ..text = '0',
-      new SpanElement()
-        ..classes = ['bytes']
-        ..text = '0B',
-      new SpanElement()
-        ..classes = ['instances']
-        ..text = '0',
-      new SpanElement()..classes = ['name']
-    ];
+    assert(current != null);
 
-  List<HtmlElement> _createCollectionHeader() {
-    final resetAccumulators = new ButtonElement();
-    return [
+    final ButtonElement bReload = new ButtonElement();
+    final ButtonElement bGC = new ButtonElement();
+    children = [
       new DivElement()
-        ..classes = ['collection-item']
+        ..classes = ['content-centered-big']
         ..children = [
-          new SpanElement()
-            ..classes = ['group']
+          new HeadingElement.h1()
             ..children = [
-              new Text('Since Last '),
-              resetAccumulators
-                ..text = 'Reset↺'
-                ..title = 'Reset'
-                ..onClick.listen((_) async {
-                  resetAccumulators.disabled = true;
-                  await _refresh(reset: true);
-                  resetAccumulators.disabled = false;
-                })
+              new Text("Isolate ${_isolate.name}"),
+              bReload
+                ..classes = ['link', 'big']
+                ..text = ' ↺ '
+                ..title = 'Refresh'
+                ..onClick.listen((e) async {
+                  bReload.disabled = true;
+                  bGC.disabled = true;
+                  await reload();
+                  bReload.disabled = false;
+                  bGC.disabled = false;
+                }),
+              bGC
+                ..classes = ['link', 'big']
+                ..text = ' ♺ '
+                ..title = 'Collect Garbage'
+                ..onClick.listen((e) async {
+                  bGC.disabled = true;
+                  bReload.disabled = true;
+                  await reload(gc: true);
+                  bGC.disabled = false;
+                  bReload.disabled = false;
+                }),
+              new ButtonElement()
+                ..classes = ['tab_button']
+                ..text = 'Dominator Tree'
+                ..disabled = _analysis == _Analysis.dominatorTree
+                ..onClick.listen((_) {
+                  _analysis = _Analysis.dominatorTree;
+                  _r.dirty();
+                }),
+              new ButtonElement()
+                ..classes = ['tab_button']
+                ..text = 'Allocations'
+                ..disabled = _analysis == _Analysis.allocations
+                ..onClick.listen((_) {
+                  _analysis = _Analysis.allocations;
+                  _r.dirty();
+                }),
             ],
-          new SpanElement()
-            ..classes = ['group']
-            ..text = 'Current'
         ],
-      new DivElement()
-        ..classes = ['collection-item']
-        ..children = [
-          _createHeaderButton(const ['bytes'], 'Size',
-              _SortingField.accumulatedSize, _SortingDirection.descending),
-          _createHeaderButton(const ['instances'], 'Instances',
-              _SortingField.accumulatedInstances, _SortingDirection.descending),
-          _createHeaderButton(const ['bytes'], 'Size',
-              _SortingField.currentSize, _SortingDirection.descending),
-          _createHeaderButton(const ['instances'], 'Instances',
-              _SortingField.currentInstances, _SortingDirection.descending),
-          _createHeaderButton(const ['name'], 'Class', _SortingField.className,
-              _SortingDirection.ascending)
-        ],
+      current
     ];
   }
-
-  ButtonElement _createHeaderButton(List<String> classes, String text,
-          _SortingField field, _SortingDirection direction) =>
-      new ButtonElement()
-        ..classes = classes
-        ..text = _sortingField != field
-            ? text
-            : _sortingDirection == _SortingDirection.ascending
-                ? '$text▼'
-                : '$text▲'
-        ..onClick.listen((_) => _setSorting(field, direction));
-
-  void _setSorting(_SortingField field, _SortingDirection defaultDirection) {
-    if (_sortingField == field) {
-      switch (_sortingDirection) {
-        case _SortingDirection.descending:
-          _sortingDirection = _SortingDirection.ascending;
-          break;
-        case _SortingDirection.ascending:
-          _sortingDirection = _SortingDirection.descending;
-          break;
-      }
-    } else {
-      _sortingDirection = defaultDirection;
-      _sortingField = field;
-    }
-    _r.dirty();
-  }
-
-  void _updateCollectionLine(Element e, M.ClassHeapStats item, index) {
-    e.children[0].text = Utils.formatSize(_getAccumulatedSize(item));
-    e.children[1].text = '${_getAccumulatedInstances(item)}';
-    e.children[2].text = Utils.formatSize(_getCurrentSize(item));
-    e.children[3].text = '${_getCurrentInstances(item)}';
-    e.children[4] = new ClassRefElement(_isolate, item.clazz, queue: _r.queue)
-      ..classes = ['name'];
-    Element.clickEvent.forTarget(e.children[4], useCapture: true).listen((e) {
-      if (_editor.canOpenClass) {
-        e.preventDefault();
-        _editor.openClass(isolate, item.clazz);
-      }
-    });
-  }
-
-  Future _refresh({bool gc: false, bool reset: false}) async {
-    _profile = null;
-    _r.dirty();
-    _profile = await _repository.get(_isolate, gc: gc, reset: reset);
-    _r.dirty();
-  }
-
-  static int _getAccumulatedSize(M.ClassHeapStats s) =>
-      s.newSpace.accumulated.bytes + s.oldSpace.accumulated.bytes;
-  static int _getAccumulatedInstances(M.ClassHeapStats s) =>
-      s.newSpace.accumulated.instances + s.oldSpace.accumulated.instances;
-  static int _getCurrentSize(M.ClassHeapStats s) =>
-      s.newSpace.current.bytes + s.oldSpace.current.bytes;
-  static int _getCurrentInstances(M.ClassHeapStats s) =>
-      s.newSpace.current.instances + s.oldSpace.current.instances;
 }

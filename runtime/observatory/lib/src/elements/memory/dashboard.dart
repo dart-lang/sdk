@@ -33,7 +33,7 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
       dependencies: const [
         NavNotifyElement.tag,
         MemoryGraphElement.tag,
-        MemoryProfileElement.tag
+        MemoryProfileElement.tag,
       ]);
 
   RenderingScheduler<MemoryDashboardElement> _r;
@@ -45,6 +45,8 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
   M.IsolateRepository _isolates;
   M.EditorRepository _editor;
   M.AllocationProfileRepository _allocations;
+  M.HeapSnapshotRepository _snapshots;
+  M.ObjectRepository _objects;
   M.EventRepository _events;
   M.NotificationRepository _notifications;
 
@@ -57,6 +59,8 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
       M.IsolateRepository isolates,
       M.EditorRepository editor,
       M.AllocationProfileRepository allocations,
+      M.HeapSnapshotRepository snapshots,
+      M.ObjectRepository objects,
       M.EventRepository events,
       M.NotificationRepository notifications,
       {RenderingQueue queue}) {
@@ -74,6 +78,8 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
     e._isolates = isolates;
     e._editor = editor;
     e._allocations = allocations;
+    e._snapshots = snapshots;
+    e._objects = objects;
     e._events = events;
     e._notifications = notifications;
     return e;
@@ -120,48 +126,12 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
         ..classes = ['content-centered-big']
         ..children = [new HeadingElement.h1()..text = "No isolate selected"]);
     } else {
-      final MemoryProfileElement profile =
-          new MemoryProfileElement(_isolate, _editor, _events, _allocations);
-      final ButtonElement reload = new ButtonElement();
-      final ButtonElement gc = new ButtonElement();
-      children.addAll([
-        new DivElement()
-          ..classes = ['content-centered-big']
-          ..children = [
-            new HeadingElement.h1()
-              ..children = [
-                new Text("Isolate ${_isolate.name}"),
-                reload
-                  ..classes = ['link', 'big']
-                  ..text = ' ↺ '
-                  ..title = 'Refresh'
-                  ..onClick.listen((e) async {
-                    gc.disabled = true;
-                    reload.disabled = true;
-                    await profile.reload();
-                    gc.disabled = false;
-                    reload.disabled = false;
-                  }),
-                gc
-                  ..classes = ['link', 'big']
-                  ..text = ' ♺ '
-                  ..title = 'Collect Garbage'
-                  ..onClick.listen((e) async {
-                    gc.disabled = true;
-                    reload.disabled = true;
-                    await profile.reload(gc: true);
-                    gc.disabled = false;
-                    reload.disabled = false;
-                  }),
-              ]
-          ],
-        profile
-      ]);
+      children.add(new MemoryProfileElement(
+          _isolate, _editor, _events, _allocations, _snapshots, _objects));
     }
   }
 
   void _onIsolateSelected(IsolateSelectedEvent e) {
-    _r.checkAndReact(_isolate, e.isolate);
-    _isolate = e.isolate;
+    _isolate = _r.checkAndReact(_isolate, e.isolate);
   }
 }

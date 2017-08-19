@@ -8,7 +8,7 @@ class EditorRepository extends M.EditorRepository {
   final S.VM _vm;
   final String _editor;
 
-  bool get canOpenClass => _getService() != null;
+  bool get isAvailable => _getService() != null;
 
   EditorRepository(S.VM vm, {String editor})
       : _vm = vm,
@@ -38,6 +38,53 @@ class EditorRepository extends M.EditorRepository {
       return new Future.value();
     }
     return await openSourceLocation(i, clazz.location);
+  }
+
+  Future openField(M.IsolateRef i, M.FieldRef f) async {
+    S.Field field = f as S.Field;
+    assert(field != null);
+    if (!field.loaded) {
+      await field.load();
+    }
+    if (field.location == null) {
+      return new Future.value();
+    }
+    return await openSourceLocation(i, field.location);
+  }
+
+  Future openFunction(M.IsolateRef i, M.FunctionRef f) async {
+    S.ServiceFunction field = f as S.ServiceFunction;
+    assert(field != null);
+    if (!field.loaded) {
+      await field.load();
+    }
+    if (field.location == null) {
+      return new Future.value();
+    }
+    return await openSourceLocation(i, field.location);
+  }
+
+  Future openObject(M.IsolateRef i, M.ObjectRef o) async {
+    assert(o != null);
+    if (o is M.ClassRef) {
+      return await openClass(i, o);
+    }
+    if (o is M.InstanceRef) {
+      return await openClass(i, o.clazz);
+    }
+    if (o is M.FieldRef) {
+      return await openField(i, o);
+    }
+    if (o is M.FunctionRef) {
+      return await openFunction(i, o);
+    }
+    if (o is M.InstanceRef) {
+      if (o.closureFunction != null) {
+        return await openFunction(i, o.closureFunction);
+      }
+      return await openClass(i, o.clazz);
+    }
+    return new Future.value();
   }
 
   Future openSourceLocation(M.IsolateRef i, M.SourceLocation l) async {
