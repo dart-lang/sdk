@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:compiler/src/common.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/resolution/access_semantics.dart';
 import 'package:compiler/src/resolution/send_structure.dart';
@@ -71,8 +72,43 @@ class NodeId implements Id {
   String toString() => '$kind:$value';
 }
 
-abstract class AstEnumeratorMixin {
-  TreeElements get elements;
+class ActualData {
+  final Id id;
+  final String value;
+  final SourceSpan sourceSpan;
+  final Object object;
+
+  ActualData(this.id, this.value, this.sourceSpan, this.object);
+}
+
+/// Abstract AST  visitor for computing data corresponding to a node or element,
+// and record it with a generic [Id].
+abstract class AstDataExtractor extends ast.Visitor {
+  final DiagnosticReporter reporter;
+  final Map<Id, ActualData> actualMap;
+  final ResolvedAst resolvedAst;
+
+  AstDataExtractor(this.reporter, this.actualMap, this.resolvedAst);
+
+  /// Implement this to compute the data corresponding to [element].
+  ///
+  /// If `null` is returned, [element] has no associated data.
+  String computeElementValue(AstElement element);
+
+  /// Implement this to compute the data corresponding to [node]. If [node] has
+  /// a corresponding [AstElement] this is provided in [element].
+  ///
+  /// If `null` is returned, [node] has no associated data.
+  String computeNodeValue(ast.Node node, AstElement element);
+
+  TreeElements get elements => resolvedAst.elements;
+
+  void registerValue(
+      SourceSpan sourceSpan, Id id, String value, Object object) {
+    if (value != null) {
+      actualMap[id] = new ActualData(id, value, sourceSpan, object);
+    }
+  }
 
   ElementId computeElementId(AstElement element) {
     String memberName = element.name;
@@ -86,111 +122,132 @@ abstract class AstEnumeratorMixin {
   NodeId computeAccessId(ast.Send node, AccessSemantics access) {
     switch (access.kind) {
       case AccessKind.DYNAMIC_PROPERTY:
-        return new NodeId(node.selector.getBeginToken().charOffset);
+      case AccessKind.LOCAL_VARIABLE:
+      case AccessKind.FINAL_LOCAL_VARIABLE:
+      case AccessKind.LOCAL_FUNCTION:
+      case AccessKind.PARAMETER:
+      case AccessKind.FINAL_PARAMETER:
+      case AccessKind.EXPRESSION:
+        return computeDefaultNodeId(node.selector);
       default:
         return null;
     }
   }
 
-  NodeId computeNodeId(ast.Node node, AstElement element) {
-    if (element != null && element.isLocal) {
-      return new NodeId(node.getBeginToken().charOffset);
-    } else if (node is ast.Send) {
-      dynamic sendStructure = elements.getSendStructure(node);
-      if (sendStructure == null) return null;
-      switch (sendStructure.kind) {
-        case SendStructureKind.GET:
-        case SendStructureKind.INVOKE:
-          return computeAccessId(node, sendStructure.semantics);
-        default:
-      }
-    }
-    return null;
-  }
-}
-
-/// Visitor that finds the AST node or element corresponding to an [Id].
-class AstIdFinder extends ast.Visitor with AstEnumeratorMixin {
-  Id soughtId;
-  var /*AstElement|ast.Node*/ found;
-  final TreeElements elements;
-
-  AstIdFinder(this.elements);
-
-  /// Visits the subtree of [root] returns the [ast.Node] or [AstElement]
-  /// corresponding to [id].
-  /*AstElement|ast.Node*/ find(ast.Node root, Id id) {
-    soughtId = id;
-    root.accept(this);
-    var result = found;
-    found = null;
-    return result;
+  void computeForElement(AstElement element) {
+    ElementId id = computeElementId(element);
+    if (id == null) return;
+    String value = computeElementValue(element);
+    registerValue(element.sourcePosition, id, value, element);
   }
 
-  visit(ast.Node node) {
-    if (found == null) {
-      node?.accept(this);
-    }
+  void computeForNode(ast.Node node, NodeId id, [AstElement element]) {
+    if (id == null) return;
+    String value = computeNodeValue(node, element);
+    SourceSpan sourceSpan = computeSourceSpan(node);
+    registerValue(sourceSpan, id, value, element ?? node);
+  }
+
+  SourceSpan computeSourceSpan(ast.Node node) {
+    return new SourceSpan(resolvedAst.sourceUri,
+        node.getBeginToken().charOffset, node.getEndToken().charEnd);
+  }
+
+  NodeId computeDefaultNodeId(ast.Node node) {
+    return new NodeId(node.getBeginToken().charOffset);
+  }
+
+  NodeId computeLoopNodeId(ast.Node node) {
+    return new NodeId(node.getBeginToken().charOffset);
+  }
+
+  NodeId computeGotoNodeId(ast.Node node) {
+    return new NodeId(node.getBeginToken().charOffset);
+  }
+
+  void run() {
+    resolvedAst.node.accept(this);
   }
 
   visitNode(ast.Node node) {
-    if (found == null) {
-      node.visitChildren(this);
-    }
-  }
-
-  visitSend(ast.Send node) {
-    if (found == null) {
-      visitNode(node);
-      Id id = computeNodeId(node, null);
-      if (id == soughtId) {
-        found = node;
-      }
-    }
+    node.visitChildren(this);
   }
 
   visitVariableDefinitions(ast.VariableDefinitions node) {
-    if (found == null) {
-      for (ast.Node child in node.definitions) {
-        AstElement element = elements[child];
-        if (element != null) {
-          Id id;
-          if (element is FieldElement) {
-            id = computeElementId(element);
-          } else {
-            id = computeNodeId(child, element);
-          }
-          if (id == soughtId) {
-            found = element;
-            return;
-          }
-        }
+    for (ast.Node child in node.definitions) {
+      AstElement element = elements[child];
+      if (element == null) {
+        reportHere(reporter, child, 'No element for variable.');
+      } else if (!element.isLocal) {
+        computeForElement(element);
+      } else {
+        computeForNode(child, computeDefaultNodeId(child), element);
       }
-      visitNode(node);
     }
+    visitNode(node);
   }
 
   visitFunctionExpression(ast.FunctionExpression node) {
-    if (found == null) {
-      AstElement element = elements.getFunctionDefinition(node);
-      if (element != null) {
-        Id id;
-        if (element is LocalFunctionElement) {
-          id = computeNodeId(node, element);
-        } else {
-          id = computeElementId(element);
-        }
-        if (id == soughtId) {
-          found = element;
-          return;
-        }
-      }
-      visitNode(node);
+    AstElement element = elements.getFunctionDefinition(node);
+    if (!element.isLocal) {
+      computeForElement(element);
+    } else {
+      computeForNode(node, computeDefaultNodeId(node), element);
     }
+    visitNode(node);
+  }
+
+  visitSend(ast.Send node) {
+    dynamic sendStructure = elements.getSendStructure(node);
+    if (sendStructure != null) {
+      switch (sendStructure.kind) {
+        case SendStructureKind.GET:
+        case SendStructureKind.INVOKE:
+        case SendStructureKind.BINARY:
+        case SendStructureKind.EQUALS:
+        case SendStructureKind.NOT_EQUALS:
+          computeForNode(node, computeAccessId(node, sendStructure.semantics));
+          break;
+        default:
+      }
+    }
+    visitNode(node);
+  }
+
+  visitLoop(ast.Loop node) {
+    computeForNode(node, computeLoopNodeId(node));
+    visitNode(node);
+  }
+
+  visitGotoStatement(ast.GotoStatement node) {
+    computeForNode(node, computeGotoNodeId(node));
+    visitNode(node);
   }
 }
 
-abstract class IrEnumeratorMixin {
+/// Abstract IR visitor for computing data corresponding to a node or element,
+/// and record it with a generic [Id]
+abstract class IrDataExtractor extends ir.Visitor {
+  final Map<Id, ActualData> actualMap;
+
+  void registerValue(
+      SourceSpan sourceSpan, Id id, String value, Object object) {
+    if (value != null) {
+      actualMap[id] = new ActualData(id, value, sourceSpan, object);
+    }
+  }
+
+  /// Implement this to compute the data corresponding to [member].
+  ///
+  /// If `null` is returned, [member] has no associated data.
+  String computeMemberValue(ir.Member member);
+
+  /// Implement this to compute the data corresponding to [node].
+  ///
+  /// If `null` is returned, [node] has no associated data.
+  String computeNodeValue(ir.TreeNode node);
+
+  IrDataExtractor(this.actualMap);
   Id computeElementId(ir.Member node) {
     String className;
     if (node.enclosingClass != null) {
@@ -203,60 +260,97 @@ abstract class IrEnumeratorMixin {
     return new ElementId.internal(memberName, className);
   }
 
-  Id computeNodeId(ir.TreeNode node) {
-    if (node is ir.MethodInvocation) {
-      assert(node.fileOffset != ir.TreeNode.noOffset);
-      return new NodeId(node.fileOffset);
-    } else if (node is ir.PropertyGet) {
-      assert(node.fileOffset != ir.TreeNode.noOffset);
-      return new NodeId(node.fileOffset);
-    } else if (node is ir.VariableDeclaration) {
-      assert(node.fileOffset != ir.TreeNode.noOffset);
-      return new NodeId(node.fileOffset);
-    } else if (node is ir.FunctionExpression) {
-      assert(node.fileOffset != ir.TreeNode.noOffset);
-      return new NodeId(node.fileOffset);
-    } else if (node is ir.FunctionDeclaration) {
-      assert(node.fileOffset != ir.TreeNode.noOffset);
-      return new NodeId(node.fileOffset);
-    }
-    return null;
+  void computeForMember(ir.Member member) {
+    ElementId id = computeElementId(member);
+    if (id == null) return;
+    String value = computeMemberValue(member);
+    registerValue(computeSourceSpan(member), id, value, member);
   }
-}
 
-/// Visitor that finds the IR node corresponding to an [Id].
-class IrIdFinder extends ir.Visitor with IrEnumeratorMixin {
-  Id soughtId;
-  ir.Node found;
+  void computeForNode(ir.TreeNode node, NodeId id) {
+    if (id == null) return;
+    String value = computeNodeValue(node);
+    registerValue(computeSourceSpan(node), id, value, node);
+  }
 
-  /// Visits the subtree of [root] returns the [ir.Node] corresponding to [id].
-  ir.Node find(ir.Node root, Id id) {
-    soughtId = id;
+  SourceSpan computeSourceSpan(ir.TreeNode node) {
+    return new SourceSpan(
+        Uri.parse(node.location.file), node.fileOffset, node.fileOffset + 1);
+  }
+
+  NodeId computeDefaultNodeId(ir.TreeNode node) {
+    assert(node.fileOffset != ir.TreeNode.noOffset);
+    return new NodeId(node.fileOffset);
+  }
+
+  NodeId computeLoopNodeId(ir.TreeNode node) => computeDefaultNodeId(node);
+  NodeId computeGotoNodeId(ir.TreeNode node) => computeDefaultNodeId(node);
+
+  void run(ir.Node root) {
     root.accept(this);
-    var result = found;
-    found = null;
-    return result;
   }
 
-  defaultTreeNode(ir.TreeNode node) {
-    if (found == null) {
-      Id id = computeNodeId(node);
-      if (id == soughtId) {
-        found = node;
-        return;
-      }
-      node.visitChildren(this);
-    }
+  defaultNode(ir.Node node) {
+    node.visitChildren(this);
   }
 
   defaultMember(ir.Member node) {
-    if (found == null) {
-      Id id = computeElementId(node);
-      if (id == soughtId) {
-        found = node;
-        return;
-      }
-      defaultTreeNode(node);
-    }
+    computeForMember(node);
+    super.defaultMember(node);
+  }
+
+  visitMethodInvocation(ir.MethodInvocation node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitMethodInvocation(node);
+  }
+
+  visitPropertyGet(ir.PropertyGet node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitPropertyGet(node);
+  }
+
+  visitVariableDeclaration(ir.VariableDeclaration node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitVariableDeclaration(node);
+  }
+
+  visitFunctionDeclaration(ir.FunctionDeclaration node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitFunctionDeclaration(node);
+  }
+
+  visitFunctionExpression(ir.FunctionExpression node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitFunctionExpression(node);
+  }
+
+  visitVariableGet(ir.VariableGet node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitVariableGet(node);
+  }
+
+  visitDoStatement(ir.DoStatement node) {
+    computeForNode(node, computeLoopNodeId(node));
+    super.visitDoStatement(node);
+  }
+
+  visitForStatement(ir.ForStatement node) {
+    computeForNode(node, computeLoopNodeId(node));
+    super.visitForStatement(node);
+  }
+
+  visitForInStatement(ir.ForInStatement node) {
+    computeForNode(node, computeLoopNodeId(node));
+    super.visitForInStatement(node);
+  }
+
+  visitWhileStatement(ir.WhileStatement node) {
+    computeForNode(node, computeLoopNodeId(node));
+    super.visitWhileStatement(node);
+  }
+
+  visitBreakStatement(ir.BreakStatement node) {
+    computeForNode(node, computeGotoNodeId(node));
+    super.visitBreakStatement(node);
   }
 }

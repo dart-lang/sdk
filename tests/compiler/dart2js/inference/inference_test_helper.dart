@@ -10,7 +10,6 @@ import 'package:compiler/src/tree/nodes.dart';
 import 'package:compiler/src/types/types.dart';
 
 import '../equivalence/id_equivalence.dart';
-import '../equivalence/id_equivalence_helper.dart';
 
 /// Compute type inference data for [_member] as a [MemberElement].
 ///
@@ -30,7 +29,7 @@ void computeMemberAstTypeMasks(
 }
 
 /// AST visitor for computing inference data for a member.
-class TypeMaskComputer extends AbstractResolvedAstComputer {
+class TypeMaskComputer extends AstDataExtractor {
   final GlobalTypeInferenceResults results;
   final GlobalTypeInferenceElementResult result;
 

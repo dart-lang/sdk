@@ -7,12 +7,8 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/resolution/tree_elements.dart';
-import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:expect/expect.dart';
-import 'package:kernel/ast.dart' as ir;
 
 import '../annotated_code_helper.dart';
 import '../memory_compiler.dart';
@@ -88,15 +84,6 @@ Future<IdData> computeData(
       code, compiler, elementEnvironment, mainUri, expectedMap, actualMap);
 }
 
-class ActualData {
-  final Id id;
-  final String value;
-  final SourceSpan sourceSpan;
-  final Object object;
-
-  ActualData(this.id, this.value, this.sourceSpan, this.object);
-}
-
 /// Data collected by [computeData].
 class IdData {
   final AnnotatedCode code;
@@ -151,6 +138,27 @@ class IdData {
                 computeSpannable(elementEnvironment, mainUri, id))
             .begin;
         annotations[offset] = '${expected} | ---';
+      }
+    });
+    return withAnnotations(annotations);
+  }
+
+  String computeDiffCodeFor(IdData other) {
+    Map<int, String> annotations = <int, String>{};
+    actualMap.forEach((Id id, ActualData data1) {
+      ActualData data2 = other.actualMap[id];
+      if (data1.value != data2?.value) {
+        annotations[data1.sourceSpan.begin] =
+            '${data1.value} | ${data2?.value ?? '---'}';
+      }
+    });
+    other.actualMap.forEach((Id id, ActualData data2) {
+      if (!actualMap.containsKey(id)) {
+        int offset = compiler.reporter
+            .spanFromSpannable(
+                computeSpannable(elementEnvironment, mainUri, id))
+            .begin;
+        annotations[offset] = '--- | ${data2.value}';
       }
     });
     return withAnnotations(annotations);
@@ -247,159 +255,4 @@ Map<Id, String> computeExpectedMap(AnnotatedCode code) {
     map[id] = expected;
   }
   return map;
-}
-
-/// Mixin used for computing [Id] data.
-abstract class ComputerMixin {
-  Map<Id, ActualData> get actualMap;
-
-  void registerValue(
-      SourceSpan sourceSpan, Id id, String value, Object object) {
-    if (id != null && value != null) {
-      actualMap[id] = new ActualData(id, value, sourceSpan, object);
-    }
-  }
-}
-
-/// Abstract AST visitor for computing [Id] data.
-abstract class AbstractResolvedAstComputer extends ast.Visitor
-    with AstEnumeratorMixin, ComputerMixin {
-  final DiagnosticReporter reporter;
-  final Map<Id, ActualData> actualMap;
-  final ResolvedAst resolvedAst;
-
-  AbstractResolvedAstComputer(this.reporter, this.actualMap, this.resolvedAst);
-
-  TreeElements get elements => resolvedAst.elements;
-
-  void computeForElement(AstElement element) {
-    ElementId id = computeElementId(element);
-    if (id == null) return;
-    String value = computeElementValue(element);
-    registerValue(element.sourcePosition, id, value, element);
-  }
-
-  void computeForNode(ast.Node node, AstElement element) {
-    NodeId id = computeNodeId(node, element);
-    if (id == null) return;
-    String value = computeNodeValue(node, element);
-    SourceSpan sourceSpan = new SourceSpan(resolvedAst.sourceUri,
-        node.getBeginToken().charOffset, node.getEndToken().charEnd);
-    registerValue(sourceSpan, id, value, element ?? node);
-  }
-
-  String computeElementValue(AstElement element);
-
-  String computeNodeValue(ast.Node node, AstElement element);
-
-  void run() {
-    resolvedAst.node.accept(this);
-  }
-
-  visitNode(ast.Node node) {
-    node.visitChildren(this);
-  }
-
-  visitVariableDefinitions(ast.VariableDefinitions node) {
-    for (ast.Node child in node.definitions) {
-      AstElement element = elements[child];
-      if (element == null) {
-        reportHere(reporter, child, 'No element for variable.');
-      } else if (!element.isLocal) {
-        computeForElement(element);
-      } else {
-        computeForNode(child, element);
-      }
-    }
-    visitNode(node);
-  }
-
-  visitFunctionExpression(ast.FunctionExpression node) {
-    AstElement element = elements.getFunctionDefinition(node);
-    if (!element.isLocal) {
-      computeForElement(element);
-    } else {
-      computeForNode(node, element);
-    }
-    visitNode(node);
-  }
-
-  visitSend(ast.Send node) {
-    computeForNode(node, null);
-    visitNode(node);
-  }
-
-  visitSendSet(ast.SendSet node) {
-    computeForNode(node, null);
-    visitNode(node);
-  }
-}
-
-/// Abstract IR visitor for computing [Id] data.
-abstract class AbstractIrComputer extends ir.Visitor
-    with IrEnumeratorMixin, ComputerMixin {
-  final Map<Id, ActualData> actualMap;
-
-  AbstractIrComputer(this.actualMap);
-
-  void computeForMember(ir.Member member) {
-    ElementId id = computeElementId(member);
-    if (id == null) return;
-    String value = computeMemberValue(member);
-    registerValue(computeSpannable(member), id, value, member);
-  }
-
-  void computeForNode(ir.TreeNode node) {
-    NodeId id = computeNodeId(node);
-    if (id == null) return;
-    String value = computeNodeValue(node);
-    registerValue(computeSpannable(node), id, value, node);
-  }
-
-  Spannable computeSpannable(ir.TreeNode node) {
-    return new SourceSpan(
-        Uri.parse(node.location.file), node.fileOffset, node.fileOffset + 1);
-  }
-
-  String computeMemberValue(ir.Member member);
-
-  String computeNodeValue(ir.TreeNode node);
-
-  void run(ir.Node root) {
-    root.accept(this);
-  }
-
-  defaultNode(ir.Node node) {
-    node.visitChildren(this);
-  }
-
-  defaultMember(ir.Member node) {
-    computeForMember(node);
-    super.defaultMember(node);
-  }
-
-  visitMethodInvocation(ir.MethodInvocation node) {
-    computeForNode(node);
-    super.visitMethodInvocation(node);
-  }
-
-  visitPropertyGet(ir.PropertyGet node) {
-    computeForNode(node);
-    super.visitPropertyGet(node);
-  }
-
-  visitVariableDeclaration(ir.VariableDeclaration node) {
-    computeForNode(node);
-    super.visitVariableDeclaration(node);
-  }
-
-  visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    computeForNode(node);
-    super.visitFunctionDeclaration(node);
-  }
-
-  visitFunctionExpression(ir.FunctionExpression node) {
-    computeForNode(node);
-    super.visitFunctionExpression(node);
-  }
 }

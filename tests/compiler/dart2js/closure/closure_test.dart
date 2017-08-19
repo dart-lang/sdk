@@ -81,8 +81,7 @@ void computeKernelClosureData(
 }
 
 /// Ast visitor for computing closure data.
-class ClosureAstComputer extends AbstractResolvedAstComputer
-    with ComputeValueMixin {
+class ClosureAstComputer extends AstDataExtractor with ComputeValueMixin {
   final ClosureDataLookup<ast.Node> closureDataLookup;
   final bool verbose;
 
@@ -127,8 +126,7 @@ class ClosureAstComputer extends AbstractResolvedAstComputer
 }
 
 /// Kernel IR visitor for computing closure data.
-class ClosureIrChecker extends AbstractIrComputer
-    with ComputeValueMixin<ir.Node> {
+class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin<ir.Node> {
   final MemberEntity member;
   final ClosureDataLookup<ir.Node> closureDataLookup;
   final KernelToLocalsMap _localsMap;
