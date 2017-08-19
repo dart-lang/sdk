@@ -733,7 +733,7 @@ Patch release, resolves two issues:
 
 * Pub
 
-  * Avoid using a bareback asset server for executables unless they actually use
+  * Avoid using a barback asset server for executables unless they actually use
     transformers. This makes pre-compilation substantially faster, produces
     better error messages when pre-compilation fails, and allows
     globally-activated executables to consistently use the
