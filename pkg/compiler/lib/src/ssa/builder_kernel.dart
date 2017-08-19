@@ -719,15 +719,70 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   /// Builds a SSA graph for FunctionNodes of external methods.
   void buildExternalFunctionNode(ir.FunctionNode functionNode) {
+    assert(functionNode.body == null);
     openFunction(functionNode);
     ir.TreeNode parent = functionNode.parent;
     if (parent is ir.Procedure && parent.kind == ir.ProcedureKind.Factory) {
       _addClassTypeVariablesIfNeeded(parent);
     }
-    // TODO(sra): Generate conversion of Function typed arguments to JavaScript
-    // functions.
-    // TODO(sra): Invoke native method.
-    assert(functionNode.body == null);
+
+    if (closedWorld.nativeData.isNativeMember(targetElement)) {
+      String nativeName;
+      if (closedWorld.nativeData.hasFixedBackendName(targetElement)) {
+        nativeName = closedWorld.nativeData.getFixedBackendName(targetElement);
+      } else {
+        nativeName = targetElement.name.name;
+      }
+
+      String templateReceiver = '';
+      List<String> templateArguments = <String>[];
+      List<HInstruction> inputs = <HInstruction>[];
+      if (targetElement.isInstanceMember) {
+        templateReceiver = '#.';
+        inputs.add(localsHandler.readThis());
+      }
+
+      for (ir.VariableDeclaration param in functionNode.positionalParameters) {
+        templateArguments.add('#');
+        Local local = localsMap.getLocalVariable(param);
+        // Convert Dart function to JavaScript function.
+        HInstruction argument = localsHandler.readLocal(local);
+        ir.DartType type = param.type;
+        if (type is ir.FunctionType) {
+          int arity = type.positionalParameters.length;
+          _pushStaticInvocation(
+              _commonElements.closureConverter,
+              [argument, graph.addConstantInt(arity, closedWorld)],
+              commonMasks.dynamicType);
+          argument = pop();
+        }
+        inputs.add(argument);
+      }
+
+      String arguments = templateArguments.join(',');
+
+      // TODO(sra): Use declared type or NativeBehavior type.
+      TypeMask typeMask = commonMasks.dynamicType;
+      String template;
+      if (targetElement.isGetter) {
+        template = '${templateReceiver}$nativeName';
+      } else if (targetElement.isSetter) {
+        template = '${templateReceiver}$nativeName = ${arguments}';
+      } else {
+        template = '${templateReceiver}$nativeName(${arguments})';
+      }
+
+      push(new HForeignCode(
+          js.js.uncachedExpressionTemplate(template), typeMask, inputs,
+          effects: new SideEffects()));
+      // TODO(johnniwinther): Provide source information.
+      HInstruction value = pop();
+      if (targetElement.isSetter) {
+        value = graph.addConstantNull(closedWorld);
+      }
+      close(new HReturn(value, null)).addSuccessor(graph.exit);
+    }
+    // TODO(sra): Handle JS-interop methods.
     closeFunction();
   }
 
