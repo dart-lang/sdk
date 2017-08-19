@@ -9,7 +9,6 @@
 allocation_profile: Skip
 cpu_profile_table: Skip
 persistent_handles_page: Skip
-heap_snapshot/element_test: RuntimeError # Issue 27925
 
-[ $runtime == ff || $runtime == chrome ]
+[ $runtime == ff || $runtime == chrome || $runtime == safari ]
 heap_snapshot/element_test: RuntimeError # Issue 27925

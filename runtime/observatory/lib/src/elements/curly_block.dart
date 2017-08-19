@@ -52,7 +52,6 @@ class CurlyBlockElement extends HtmlElement implements Renderable {
     e._r = new RenderingScheduler(e, queue: queue);
     e._expanded = expanded;
     e._disabled = disabled;
-    e._r.enable();
     return e;
   }
 
