@@ -185,7 +185,8 @@ class Evaluator extends ExpressionVisitor1<Configuration, EvalConfiguration> {
   }
 
   Configuration visitPropertyGet(PropertyGet node, EvalConfiguration config) {
-    var cont = new PropertyGetEK(node.name, config.continuation);
+    var cont = new PropertyGetEK(
+        node.name, config.exceptionComponents, config.continuation);
     return new EvalConfiguration(
         node.receiver, config.environment, config.exceptionComponents, cont);
   }
@@ -1040,11 +1041,30 @@ class PrintEK extends ExpressionContinuation {
 
 class PropertyGetEK extends ExpressionContinuation {
   final Name name;
+  final ExceptionComponents exceptionComponents;
   final ExpressionContinuation continuation;
 
-  PropertyGetEK(this.name, this.continuation);
+  PropertyGetEK(this.name, this.exceptionComponents, this.continuation);
 
   Configuration call(Value receiver) {
+    if (receiver.class_.isMethod(name)) {
+      var method = receiver.class_.lookup(name);
+      // Return the function value with this bound to receiver.
+      var env = new Environment.empty().extendWithThis(receiver);
+      return new ValuePassingConfiguration(
+          continuation, new FunctionValue(method, env));
+    }
+
+    if (receiver.class_.isGetter(name)) {
+      var getter = receiver.class_.lookup(name);
+      var state = new State.initial()
+          .withReturnContinuation(continuation)
+          .withContinuation(new ExitSK(continuation, Value.nullInstance))
+          .withException(exceptionComponents);
+      return new ExecConfiguration(
+          getter.body, new Environment.empty().extendWithThis(receiver), state);
+    }
+
     Value propertyValue = receiver.class_.lookupImplicitGetter(name)(receiver);
     return new ValuePassingConfiguration(continuation, propertyValue);
   }
@@ -1061,7 +1081,8 @@ class PropertySetEK extends ExpressionContinuation {
       this.exceptionComponents, this.continuation);
 
   Configuration call(Value receiver) {
-    var cont = new SetterEK(receiver, setterName, continuation);
+    var cont =
+        new SetterEK(receiver, setterName, exceptionComponents, continuation);
     return new EvalConfiguration(value, environment, exceptionComponents, cont);
   }
 }
@@ -1069,11 +1090,25 @@ class PropertySetEK extends ExpressionContinuation {
 class SetterEK extends ExpressionContinuation {
   final Value receiver;
   final Name name;
+  final ExceptionComponents exceptionComponents;
   final ExpressionContinuation continuation;
 
-  SetterEK(this.receiver, this.name, this.continuation);
+  SetterEK(
+      this.receiver, this.name, this.exceptionComponents, this.continuation);
 
   Configuration call(Value v) {
+    if (receiver.class_.isSetter(name)) {
+      var setter = receiver.class_.lookup(name);
+      var env = new Environment.empty()
+          .extendWithThis(receiver)
+          .extend(setter.positionalParameters.first, v);
+      var state = new State.initial()
+          .withReturnContinuation(continuation)
+          .withContinuation(new ExitSK(continuation, Value.nullInstance))
+          .withException(exceptionComponents);
+      return new ExecConfiguration(setter.body, env, state);
+    }
+
     Setter setter = receiver.class_.lookupImplicitSetter(name);
     setter(receiver, v);
     return new ValuePassingConfiguration(continuation, v);
@@ -1149,25 +1184,34 @@ class MethodInvocationEK extends ExpressionContinuation {
       this.exceptionComponents, this.continuation);
 
   Configuration call(Value receiver) {
+    if (receiver is LiteralValue) {
+      // TODO(zhivkag): CPS method invocation for literals
+      if (arguments.positional.isEmpty) {
+        Value returnValue = receiver.invokeMethod(methodName);
+        return new ValuePassingConfiguration(continuation, returnValue);
+      }
+      var cont = new ArgumentsEK(
+          receiver, methodName, arguments, environment, continuation);
+
+      return new EvalConfiguration(
+          arguments.positional.first, environment, exceptionComponents, cont);
+    }
+
+    FunctionValue fun;
     if (receiver is FunctionValue) {
-      // TODO(zhivkag): use method lookup instead.
-      assert(methodName.toString() == 'call');
-      var args = _getArgumentExpressions(arguments, receiver.function);
-      var acont =
-          new FunctionValueA(receiver, exceptionComponents, continuation);
-      return new EvalListConfiguration(
-          args, environment, exceptionComponents, acont);
+      // TODO(zhivkag): Throw an exception when method is not call.
+      assert(methodName.toString() == "call");
+      fun = receiver;
+    } else {
+      assert(receiver.class_.isMethod(methodName));
+      fun = new FunctionValue(receiver.class_.lookup(methodName),
+          new Environment.empty().extendWithThis(receiver));
     }
 
-    if (arguments.positional.isEmpty) {
-      Value returnValue = receiver.invokeMethod(methodName);
-      return new ValuePassingConfiguration(continuation, returnValue);
-    }
-    var cont = new ArgumentsEK(
-        receiver, methodName, arguments, environment, continuation);
-
-    return new EvalConfiguration(
-        arguments.positional.first, environment, exceptionComponents, cont);
+    var args = _getArgumentExpressions(arguments, fun.function);
+    var acont = new FunctionValueA(receiver, exceptionComponents, continuation);
+    return new EvalListConfiguration(
+        args, environment, exceptionComponents, acont);
   }
 }
 
@@ -1816,8 +1860,15 @@ class Class {
     Setter setter = implicitSetters[name];
     if (setter != null) return setter;
     if (superclass != null) return superclass.lookupImplicitSetter(name);
+    // TODO(zhivkag): Throw NoSuchInstance error instead.
     return (Value receiver, Value value) => notImplemented(obj: name);
   }
+
+  FunctionNode lookup(Name name) => methods[name]?.function;
+
+  bool isGetter(Name name) => methods[name]?.isGetter ?? false;
+  bool isSetter(Name name) => methods[name]?.isSetter ?? false;
+  bool isMethod(Name name) => !(methods[name]?.isAccessor ?? true);
 
   /// Populates implicit getters and setters for the current class and its
   /// superclass recursively.
