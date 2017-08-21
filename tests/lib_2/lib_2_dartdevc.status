@@ -5,6 +5,5 @@
 [ $compiler == dartdevc && $runtime != none ]
 async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_or_bad_type_test/implements: RuntimeError # Issue 29922
-async/future_or_strong_test: RuntimeError # Issue 29922
 async/future_test: RuntimeError # Issue 29922
 async/futures_test: RuntimeError # Issue 29922
