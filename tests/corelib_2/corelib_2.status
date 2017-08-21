@@ -483,9 +483,6 @@ const_list_literal_test: Crash
 const_list_set_range_test: Crash
 core_runtime_types_test: Crash
 data_uri_test: Crash
-dynamic_nosuchmethod_test: Crash # type 'KMethod' is not a subtype of type 'MemberElement' of 'member' where
-error_stack_trace1_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-error_stack_trace2_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
 expando_test: RuntimeError
 for_in_test: Crash
 growable_list_test: Crash
@@ -502,12 +499,10 @@ int_from_environment3_test/04: MissingCompileTimeError
 int_from_environment3_test/05: Crash
 int_modulo_arith_test/bignum: Crash
 int_modulo_arith_test/modPow: Crash
-int_modulo_arith_test/none: Crash
 int_parse_radix_bad_handler_test: Crash
 int_parse_radix_test/01: Crash
 int_parse_radix_test/02: Crash
 int_parse_radix_test/badTypes: Crash # 'file:///usr/local/google/home/sigmund/dart/git_all/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 185 pos 12: 'closure != null': Corresponding closure class not found for local(main_closure.call#). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(unwrapException_closure.call), local(unwrapException#saveStackTrace))
-int_parse_radix_test/none: Crash
 integer_to_radix_string_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
 integer_to_string_test/01: Crash
 is_operator_basic_types_test: Crash
@@ -525,8 +520,6 @@ iterable_join_test: Crash
 iterable_last_test: Crash
 iterable_last_where_test: Crash
 iterable_length_test: Crash
-iterable_mapping_test/01: Crash # 'file:///usr/local/google/home/sra/Dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for j:method(Iterator.moveNext). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(_LinkedCustomHashSet_closure.call), j:constructor(_LinkedCustomHashSet.))
-iterable_mapping_test/none: Crash # 'file:///usr/local/google/home/sra/Dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for j:method(Iterator.moveNext). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(_LinkedCustomHashSet_closure.call), j:constructor(_LinkedCustomHashSet.))
 iterable_reduce_test: Crash
 iterable_return_type_test/01: Crash
 iterable_return_type_test/02: Crash
@@ -585,6 +578,7 @@ reg_exp4_test: Crash
 reg_exp5_test: Crash
 reg_exp_all_matches_test: Crash
 reg_exp_start_end_test: Crash
+regexp/ascii-regexp-subject_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#i) is stored in a closure field.
 regexp/capture_test: Crash
 regexp/ecma-regex-examples_test: Crash
 regexp/extended-characters-more_test: Crash
@@ -655,7 +649,17 @@ unicode2_test: Crash
 uri_base_test: Crash
 uri_file_test: Crash
 uri_http_test: Crash
-uri_ipv4_test: Crash
+dynamic_nosuchmethod_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(NoSuchMethodError.toString#comma) is stored in a closure field.
+error_stack_trace1_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(unwrapException_closure.call))
+error_stack_trace2_test: Crash # Assertion failure: Unexpected constructor j:constructor(A.) in ConstructorDataImpl._getConstructorConstant
+expando_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+hash_map_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+iterable_mapping_test/01: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:method(Iterator.moveNext). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_LinkedCustomHashSet_closure.call), j:constructor(_LinkedCustomHashSet.))
+iterable_mapping_test/none: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:method(Iterator.moveNext). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_LinkedCustomHashSet_closure.call), j:constructor(_LinkedCustomHashSet.))
+map_contains_key_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+map_index_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+map_remove_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+map_to_string_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 uri_ipv6_test: Crash
 uri_normalize_path_test: Crash
 uri_normalize_test: Crash
@@ -748,12 +752,10 @@ int_from_environment3_test/04: MissingCompileTimeError
 int_from_environment3_test/05: Crash
 int_modulo_arith_test/bignum: Crash
 int_modulo_arith_test/modPow: Crash
-int_modulo_arith_test/none: Crash
 int_parse_radix_bad_handler_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 int_parse_radix_test/01: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 int_parse_radix_test/02: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 int_parse_radix_test/badTypes: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-int_parse_radix_test/none: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 integer_to_radix_string_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
 is_operator_basic_types_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(CodeUnits.#E) in j:constructor(CodeUnits.).
 iterable_contains2_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
@@ -907,7 +909,7 @@ unicode2_test: Crash
 uri_base_test: Crash
 uri_file_test: Crash
 uri_http_test: Crash
-uri_ipv4_test: Crash
+regexp/ascii-regexp-subject_test: Timeout
 uri_ipv6_test: Crash
 uri_normalize_path_test: Crash
 uri_normalize_test: Crash

@@ -143,6 +143,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     // We want the original declaration where that function is used to point
     // to the correct closure class.
     _memberClosureRepresentationMap[closureClass.callMethod] = closureClass;
+    _globalLocalsMap.setLocalsMap(closureClass.callMethod, localsMap);
     if (node.parent is ir.Member) {
       assert(_elementMap.getMember(node.parent) == member);
       _memberClosureRepresentationMap[member] = closureClass;
@@ -425,13 +426,7 @@ class NodeBox {
 }
 
 class JClosureClass extends JClass {
-  // TODO(efortuna): Storing this map here is so horrible. Instead store this on
-  // the ScopeModel (because all of the closures share that localsMap) and then
-  // set populate the getLocalVariable lookup with this localsMap for all the
-  // closures.
-  final KernelToLocalsMap localsMap;
-
-  JClosureClass(this.localsMap, JLibrary library, int classIndex, String name)
+  JClosureClass(JLibrary library, int classIndex, String name)
       : super(library, classIndex, name, isAbstract: false);
 
   @override

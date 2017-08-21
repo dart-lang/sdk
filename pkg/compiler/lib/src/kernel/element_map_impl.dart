@@ -2177,7 +2177,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
       InterfaceType supertype) {
     String name = _computeClosureName(node);
     JClass classEntity =
-        new JClosureClass(localsMap, enclosingLibrary, _classEnvs.length, name);
+        new JClosureClass(enclosingLibrary, _classEnvs.length, name);
     _classList.add(classEntity);
     Map<String, MemberEntity> memberMap = <String, MemberEntity>{};
     _classEnvs.add(new ClosureClassEnv(memberMap));

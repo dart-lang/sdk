@@ -389,8 +389,7 @@ abstract class KernelToLocalsMap {
   /// variables involved with a closure class.
   // TODO(efortuna, johnniwinther): convey this information without a boolean
   // parameter.
-  Local getLocalVariable(ir.VariableDeclaration node,
-      {bool isClosureCallMethod = false});
+  Local getLocalVariable(ir.VariableDeclaration node);
 
   /// Returns the [Local] corresponding to the [node]. The node must be either
   /// a [ir.FunctionDeclaration] or [ir.FunctionExpression].

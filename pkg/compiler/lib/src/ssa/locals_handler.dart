@@ -422,7 +422,8 @@ class LocalsHandler {
       HRef ref = value;
       value = ref.value;
     }
-    assert(!isStoredInClosureField(local));
+    assert(!isStoredInClosureField(local),
+        "Local $local is stored in a closure field.");
     if (isAccessedDirectly(local)) {
       directLocals[local] = value;
     } else if (isBoxed(local)) {

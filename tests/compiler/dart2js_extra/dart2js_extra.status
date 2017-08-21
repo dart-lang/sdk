@@ -182,20 +182,18 @@ regress/4562_test/01: Crash # Issue 27394
 23828_test: Crash
 assert_with_message_test: Crash
 async_stacktrace_test: Crash
+big_allocation_expression_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 bound_closure_interceptor_methods_test: Crash
 bound_closure_interceptor_type_test: Crash
 break_test: Crash
 closure3_test: Crash
-closure4_test: Crash
+closure4_test: RuntimeError
 closure6_test: Crash
 closure7_test: Crash
-closure_capture2_test: Crash
 closure_capture2_test: RuntimeError
-closure_capture3_test: Crash
-closure_capture4_test: Crash
+closure_capture3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Closure.nestedClosure#)) for j:closure_call(Closure_nestedClosure_closure.call).
 closure_capture4_test: RuntimeError
-closure_capture5_test: Crash
-closure_capture_test: Crash
+closure_capture5_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(closure4#g) is stored in a closure field.
 closure_capture_test: RuntimeError
 closure_type_reflection2_test: Crash
 closure_type_reflection_test: Crash
@@ -207,9 +205,7 @@ compile_time_constant4_test/04: MissingCompileTimeError
 compile_time_constant4_test/05: MissingCompileTimeError
 compile_time_constant4_test/06: Crash
 conditional_send_test: Crash
-consistent_add_error_test: Crash
 consistent_add_error_test: RuntimeError
-consistent_subtract_error_test: Crash
 consistent_subtract_error_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
 constant_javascript_semantics_test/02: MissingCompileTimeError
@@ -229,8 +225,11 @@ deferred_fail_and_retry_worker_test: CompileTimeError
 deferred_inheritance_test: CompileTimeError
 deferred_split_test: CompileTimeError
 dummy_compiler_test: CompileTimeError
+first_class_types_hashcode_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 for_in_test: Crash
 hash_code_test: Crash
+if_null2_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+if_null3_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 if_null_test: Crash
 inference_nsm_mirrors_test: Crash
 inference_super_set_call_test: RuntimeError
@@ -238,7 +237,6 @@ inline_position_crash_test: Crash
 interceptor_named_arguments_test: Crash
 invalid_annotation2_test/none: Crash
 is_check_instanceof_test: Crash
-js_array_index_error_test: Crash
 js_dispatch_property_test: RuntimeError
 label_test/06: Crash
 lookup_map/dead_entry_single_nested_pairs_test: Crash
@@ -288,8 +286,6 @@ private_symbol_literal_test/05: MissingCompileTimeError
 private_symbol_literal_test/06: MissingCompileTimeError
 recursive_import_test: CompileTimeError
 reflect_native_types_test: Crash
-closure4_test: RuntimeError
-closure_capture5_test: RuntimeError
 regress/4562_test/none: CompileTimeError
 regress/4639_test: Crash
 string_interpolation_dynamic_test: RuntimeError
@@ -324,13 +320,13 @@ bound_closure_interceptor_methods_test: Crash # NoSuchMethodError: The getter 'e
 bound_closure_interceptor_type_test: Crash # NoSuchMethodError: The getter 'classIndex' was called on null.
 break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 closure3_test: Crash # NoSuchMethodError: Class 'KernelClosureClass' has no instance getter 'supertype'.
-closure4_test: Crash # NoSuchMethodError: The getter 'classIndex' was called on null.
+closure4_test: RuntimeError
 closure6_test: Crash # NoSuchMethodError: Class 'KernelClosureClass' has no instance getter 'supertype'.
 closure7_test: Crash # NoSuchMethodError: Class 'KernelClosureClass' has no instance getter 'supertype'.
 closure_capture2_test: RuntimeError
 closure_capture3_test: Crash # Assertion failure: Cannot find value local(Closure_nestedClosure_closure.call#f) in (local(Closure.nestedClosure#)) for j:closure_call(Closure_nestedClosure_closure.call).
 closure_capture4_test: RuntimeError
-closure_capture5_test: Crash # Assertion failure: Cannot find value local(closure3_closure.call#fs) in (local(closure3#)) for j:closure_call(closure3_closure.call).
+closure_capture5_test: RuntimeError
 closure_capture_test: RuntimeError
 closure_type_reflection2_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 closure_type_reflection_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
@@ -372,7 +368,6 @@ inline_position_crash_test: Crash # NoSuchMethodError: The getter 'classIndex' w
 interceptor_named_arguments_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 invalid_annotation2_test/none: Crash # NoSuchMethodError: Class 'DynamicType' has no instance getter 'element'.
 is_check_instanceof_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-js_array_index_error_test: Crash # Assertion failure: Cannot find value local(variableIndexSetNonempty_closure.call#index) in (local(variableIndexSetNonempty#fault3), local(variableIndexSetNonempty_closure.call#a)) for j:closure_call(variableIndexSetNonempty_closure.call).
 js_dispatch_property_test: RuntimeError
 label_test/06: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 lookup_map/dead_entry_single_nested_pairs_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
@@ -422,8 +417,6 @@ private_symbol_literal_test/05: MissingCompileTimeError
 private_symbol_literal_test/06: MissingCompileTimeError
 recursive_import_test: CompileTimeError
 reflect_native_types_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
-closure4_test: RuntimeError
-closure_capture5_test: RuntimeError
 regress/4562_test/none: CompileTimeError
 regress/4639_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 runtime_type_test: Crash

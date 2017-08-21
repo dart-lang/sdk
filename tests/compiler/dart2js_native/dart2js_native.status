@@ -150,6 +150,7 @@ field_type2_test: RuntimeError
 field_type_test: RuntimeError
 fixup_get_tag_test: RuntimeError
 hash_code_test: RuntimeError
+inference_of_helper_methods_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#value) is stored in a closure field.
 internal_library_test: Crash
 is_check_test: CompileTimeError
 issue9182_test: RuntimeError
@@ -175,8 +176,8 @@ native_class_with_dart_methods_frog_test: Crash
 native_closure_identity_frog_test: Crash
 native_constructor_name_test: RuntimeError
 native_equals_frog_test: RuntimeError
-native_exception2_test: RuntimeError
-native_exception_test: RuntimeError
+native_exception2_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#previous) is stored in a closure field.
+native_exception_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#previous) is stored in a closure field.
 native_exceptions1_frog_test: Crash
 native_field_invocation2_test: RuntimeError
 native_field_invocation3_test: RuntimeError
@@ -230,7 +231,7 @@ subclassing_constructor_2_test: RuntimeError
 subclassing_super_call_test: RuntimeError
 subclassing_super_field_1_test: RuntimeError
 subclassing_super_field_2_test: RuntimeError
-subclassing_type_test: Crash
+subclassing_type_test: RuntimeError
 super_call_test: RuntimeError
 super_property_test: RuntimeError
 
@@ -331,7 +332,7 @@ subclassing_constructor_2_test: RuntimeError
 subclassing_super_call_test: RuntimeError
 subclassing_super_field_1_test: RuntimeError
 subclassing_super_field_2_test: RuntimeError
-subclassing_type_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+subclassing_type_test: RuntimeError
 super_call_test: RuntimeError
 super_property_test: RuntimeError
 
