@@ -212,15 +212,13 @@ TEST_CASE(DartAPI_DeepStackTraceInfo) {
   EXPECT(Dart_IsError(result));
 }
 
-TEST_CASE(DartAPI_StackOverflowStackTraceInfo) {
-  const char* kScriptChars =
-      "class C {\n"
-      "  static foo() => foo();\n"
-      "}\n"
-      "testMain() => C.foo();\n";
-
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle error = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+void VerifyStackOverflowStackTraceInfo(const char* script,
+                                       const char* top_frame_func_name,
+                                       const char* entry_func_name,
+                                       int expected_line_number,
+                                       int expected_column_number) {
+  Dart_Handle lib = TestCase::LoadTestScript(script, NULL);
+  Dart_Handle error = Dart_Invoke(lib, NewString(entry_func_name), 0, NULL);
 
   EXPECT(Dart_IsError(error));
 
@@ -247,17 +245,46 @@ TEST_CASE(DartAPI_StackOverflowStackTraceInfo) {
                                     &line_number, &column_number);
   EXPECT_VALID(result);
   Dart_StringToCString(function_name, &cstr);
-  EXPECT_STREQ("C.foo", cstr);
+  EXPECT_STREQ(top_frame_func_name, cstr);
   Dart_StringToCString(script_url, &cstr);
   EXPECT_STREQ("test-lib", cstr);
-  EXPECT_EQ(2, line_number);
-  EXPECT_EQ(13, column_number);
+  EXPECT_EQ(expected_line_number, line_number);
+  EXPECT_EQ(expected_column_number, column_number);
 
   // Out-of-bounds frames.
   result = Dart_GetActivationFrame(stacktrace, frame_count, &frame);
   EXPECT(Dart_IsError(result));
   result = Dart_GetActivationFrame(stacktrace, -1, &frame);
   EXPECT(Dart_IsError(result));
+}
+
+TEST_CASE(DartAPI_StackOverflowStackTraceInfoBraceFunction1) {
+  VerifyStackOverflowStackTraceInfo(
+      "class C {\n"
+      "  static foo(int i) { foo(i); }\n"
+      "}\n"
+      "testMain() => C.foo(10);\n",
+      "C.foo", "testMain", 2, 21);
+}
+
+TEST_CASE(DartAPI_StackOverflowStackTraceInfoBraceFunction2) {
+  VerifyStackOverflowStackTraceInfo(
+      "class C {\n"
+      "  static foo(int i, int j) {\n"
+      "    foo(i, j);\n"
+      "  }\n"
+      "}\n"
+      "testMain() => C.foo(10, 11);\n",
+      "C.foo", "testMain", 2, 28);
+}
+
+TEST_CASE(DartAPI_StackOverflowStackTraceInfoArrowFunction) {
+  VerifyStackOverflowStackTraceInfo(
+      "class C {\n"
+      "  static foo(int i) => foo(i);\n"
+      "}\n"
+      "testMain() => C.foo(10);\n",
+      "C.foo", "testMain", 2, 21);
 }
 
 TEST_CASE(DartAPI_OutOfMemoryStackTraceInfo) {
