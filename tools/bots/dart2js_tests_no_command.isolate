@@ -1,0 +1,21 @@
+{
+  'variables': {
+    'files': ['out/ReleaseIA32/dart-sdk/',
+              'out/ReleaseX64/dart-sdk/',
+              'samples/',
+              'samples-dev/',
+              'tools/',
+              'third_party/pkg/',
+              'third_party/pkg_tested/',
+              'third_party/d8/',
+              'third_party/firefox_jsshell/',
+              'tests/',
+              'pkg/async_helper/',
+              'pkg/expect/',
+              'pkg/js/',
+              'pkg/status_file/',
+              'pkg/pkg.status',
+              'runtime/tests/',
+              '.packages']
+  }
+}
