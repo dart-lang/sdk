@@ -2,8 +2,5 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ !$strong && $compiler != dartdevc && $checked ]
-async/future_or_only_in_async_test/00: MissingCompileTimeError
-
-[ !$strong && !$checked]
-async/future_or_only_in_async_test/00: MissingCompileTimeError
+[ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
+async/future_or_strong_test: RuntimeError

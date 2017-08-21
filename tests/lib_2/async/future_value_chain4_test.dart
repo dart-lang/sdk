@@ -6,11 +6,12 @@ import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async';
 
-class MyFuture implements Future {
-  then(valueHandler, {onError}) {
+class MyFuture<T> implements Future<T> {
+  Future<S> then<S>(FutureOr<S> valueHandler(T), {Function onError}) {
     scheduleMicrotask(() {
       valueHandler(499);
     });
+    return null;
   }
 
   catchError(_, {test}) => null;

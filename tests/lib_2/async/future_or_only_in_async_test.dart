@@ -5,8 +5,8 @@
 // `FutureOr<T>` is only visible when `dart:async` is imported.
 
 dynamic foo(dynamic x) {
-  return x as
-      FutureOr< // //# 00: runtime error, static type warning
+  return x as 
+      FutureOr<    //# 00: compile-time error
           int
       > //         //# 00: continued
       ;

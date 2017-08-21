@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(bkonyi): This test should be moved to compiler/dart2js.
+
 import "dart:async";
 import "dart:js";
 import "dart:collection" show Queue;

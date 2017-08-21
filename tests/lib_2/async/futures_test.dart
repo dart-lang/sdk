@@ -9,13 +9,13 @@ import "package:expect/expect.dart";
 import 'dart:async';
 
 Future testWaitEmpty() {
-  List<Future> futures = new List<Future>();
+  final futures = new List<Future>();
   return Future.wait(futures);
 }
 
 Future testCompleteAfterWait() {
-  List<Future> futures = new List<Future>();
-  Completer<Object> c = new Completer<Object>();
+  final futures = new List<Future>();
+  final c = new Completer<Object>();
   futures.add(c.future);
   Future future = Future.wait(futures);
   c.complete(null);
@@ -23,17 +23,17 @@ Future testCompleteAfterWait() {
 }
 
 Future testCompleteBeforeWait() {
-  List<Future> futures = new List<Future>();
-  Completer c = new Completer();
+  final futures = new List<Future>();
+  final c = new Completer();
   futures.add(c.future);
   c.complete(null);
   return Future.wait(futures);
 }
 
 Future testWaitWithMultipleValues() {
-  List<Future> futures = new List<Future>();
-  Completer c1 = new Completer();
-  Completer c2 = new Completer();
+  final futures = new List<Future>();
+  final c1 = new Completer();
+  final c2 = new Completer();
   futures.add(c1.future);
   futures.add(c2.future);
   c1.complete(1);
@@ -44,9 +44,9 @@ Future testWaitWithMultipleValues() {
 }
 
 Future testWaitWithSingleError() {
-  List<Future> futures = new List<Future>();
-  Completer c1 = new Completer();
-  Completer c2 = new Completer();
+  final futures = new List<Future>();
+  final c1 = new Completer();
+  final c2 = new Completer();
   futures.add(c1.future);
   futures.add(c2.future);
   c1.complete();
@@ -61,9 +61,9 @@ Future testWaitWithSingleError() {
 }
 
 Future testWaitWithMultipleErrors() {
-  List<Future> futures = new List<Future>();
-  Completer c1 = new Completer();
-  Completer c2 = new Completer();
+  final futures = new List<Future>();
+  final c1 = new Completer();
+  final c2 = new Completer();
   futures.add(c1.future);
   futures.add(c2.future);
   c1.completeError('correct error');
@@ -78,9 +78,9 @@ Future testWaitWithMultipleErrors() {
 }
 
 Future testWaitWithMultipleErrorsEager() {
-  List<Future> futures = new List<Future>();
-  Completer c1 = new Completer();
-  Completer c2 = new Completer();
+  final futures = new List<Future>();
+  final c1 = new Completer();
+  final c2 = new Completer();
   futures.add(c1.future);
   futures.add(c2.future);
   c1.completeError('correct error');
@@ -104,9 +104,9 @@ StackTrace get currentStackTrace {
 }
 
 Future testWaitWithSingleErrorWithStackTrace() {
-  List<Future> futures = new List<Future>();
-  Completer c1 = new Completer();
-  Completer c2 = new Completer();
+  final futures = new List<Future>();
+  final c1 = new Completer();
+  final c2 = new Completer();
   futures.add(c1.future);
   futures.add(c2.future);
   c1.complete();
@@ -121,9 +121,9 @@ Future testWaitWithSingleErrorWithStackTrace() {
 }
 
 Future testWaitWithMultipleErrorsWithStackTrace() {
-  List<Future> futures = new List<Future>();
-  Completer c1 = new Completer();
-  Completer c2 = new Completer();
+  final futures = new List<Future>();
+  final c1 = new Completer();
+  final c2 = new Completer();
   futures.add(c1.future);
   futures.add(c2.future);
   c1.completeError('correct error', currentStackTrace);
@@ -138,9 +138,9 @@ Future testWaitWithMultipleErrorsWithStackTrace() {
 }
 
 Future testWaitWithMultipleErrorsWithStackTraceEager() {
-  List<Future> futures = new List<Future>();
-  Completer c1 = new Completer();
-  Completer c2 = new Completer();
+  final futures = new List<Future>();
+  final c1 = new Completer();
+  final c2 = new Completer();
   futures.add(c1.future);
   futures.add(c2.future);
   c1.completeError('correct error', currentStackTrace);
@@ -161,11 +161,11 @@ Future testEagerWait() {
   } catch (e, s) {
     st = s;
   }
-  Completer c1 = new Completer();
-  Completer c2 = new Completer();
-  List<Future> futures = <Future>[c1.future, c2.future];
-  Future waited = Future.wait(futures, eagerError: true);
-  var result = waited.then((v) {
+  final c1 = new Completer();
+  final c2 = new Completer();
+  final futures = <Future>[c1.future, c2.future];
+  final waited = Future.wait(futures, eagerError: true);
+  final result = waited.then((v) {
     throw "should not be called";
   }, onError: (e, s) {
     Expect.equals(e, 42);
@@ -183,7 +183,7 @@ Future testForEachEmpty() {
 }
 
 Future testForEach() {
-  var seen = <int>[];
+  final seen = <int>[];
   return Future.forEach([1, 2, 3, 4, 5], (n) {
     seen.add(n);
     return new Future.value();
@@ -191,13 +191,13 @@ Future testForEach() {
 }
 
 Future testForEachSync() {
-  var seen = <int>[];
+  final seen = <int>[];
   return Future.forEach([1, 2, 3, 4, 5], seen.add).then(
       (_) => Expect.listEquals([1, 2, 3, 4, 5], seen));
 }
 
 Future testForEachWithException() {
-  var seen = <int>[];
+  final seen = <int>[];
   return Future.forEach([1, 2, 3, 4, 5], (n) {
     if (n == 4) throw 'correct exception';
     seen.add(n);
@@ -239,7 +239,7 @@ Future testDoWhileWithException() {
 }
 
 main() {
-  List<Future> futures = new List<Future>();
+  final futures = new List<Future>();
 
   futures.add(testWaitEmpty());
   futures.add(testCompleteAfterWait());

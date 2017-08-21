@@ -121,7 +121,7 @@ void testCompleteManySuccessHandlers() {
   int after1;
   int after2;
 
-  var futures = [];
+  var futures = <Future<int>>[];
   futures.add(future.then((int v) {
     before = v;
   }));
@@ -601,7 +601,7 @@ void testCompleteWithFutureSuccess() {
 void testCompleteWithFutureSuccess2() {
   asyncStart();
   final completer = new Completer<int>();
-  Future result = new Future.value(42);
+  final result = new Future<int>.value(42);
   completer.complete(result);
   completer.future.then((v) {
     Expect.equals(42, v);
@@ -627,7 +627,7 @@ void testCompleteWithFutureError() {
 void testCompleteWithFutureError2() {
   asyncStart();
   final completer = new Completer<int>();
-  Future result = new Future.error("ERROR-tcwfe2");
+  var result = new Future<int>.error("ERROR-tcwfe2");
   completer.complete(result);
   completer.future.then((v) {
     Expect.fail("Should not happen");
@@ -636,6 +636,7 @@ void testCompleteWithFutureError2() {
     Expect.equals("ERROR-tcwfe2", e);
     asyncEnd();
   });
+
 }
 
 void testCompleteErrorWithFuture() {
@@ -776,7 +777,7 @@ void testWaitCleanUp() {
   void doTest(int mask, int permute) {
     asyncStart();
     String stringId = "waitCleanup-$mask-$permute";
-    List futures = new List(3);
+    List<Future> futures = new List(3);
     List cleanup = new List(3);
     int permuteTmp = permute;
     for (int i = 0; i < 3; i++) {
@@ -821,7 +822,7 @@ void testWaitCleanUpEager() {
     asyncStart();
     bool done = false;
     String stringId = "waitCleanup-$mask-$permute";
-    List futures = new List(3);
+    List<Future> futures = new List<Future>(3);
     List cleanup = new List(3);
     int permuteTmp = permute;
     for (int i = 0; i < 3; i++) {
@@ -994,9 +995,12 @@ void testTypes() {
         new Future<int>.delayed(Duration.ZERO, () => value));
     testType(
         "Future.microtask($value)", new Future<int>.microtask(() => value));
-    testType("Future.sync($value)", new Future<int>.sync(() => value)); //# 01: ok
-    testType("Future.sync(future($value))", //                          //# 01: continued
-             new Future<int>.sync(() => new Future<int>.value(value))); //# 01: continued
+    testType(
+        "Future.sync($value)", new Future<int>.sync(() => value)); // #01: ok
+    testType( //# 01: continued
+        "Future.sync(future($value))", //# 01: continued
+        new Future<int>.sync(//# 01: continued
+            () => new Future<int>.value(value))); //# 01: continued
     testType("Future.value($value)", new Future<int>.value(value));
   }
   testType("Completer.future", new Completer<int>().future);
@@ -1174,31 +1178,31 @@ main() {
 
 /// A well-behaved Future that isn't recognizable as a _Future.
 class CustomFuture<T> implements Future<T> {
-  Future _realFuture;
+  Future<T> _realFuture;
   CustomFuture(this._realFuture);
-  Future then(action(result), {Function onError}) =>
+  Future<S> then<S>(action(T result), {Function onError}) =>
       _realFuture.then(action, onError: onError);
-  Future catchError(Function onError, {bool test(e)}) =>
+  Future<T> catchError(Function onError, {bool test(e)}) =>
       _realFuture.catchError(onError, test: test);
-  Future whenComplete(action()) => _realFuture.whenComplete(action);
-  Future timeout(Duration timeLimit, {void onTimeout()}) =>
+  Future<T> whenComplete(action()) => _realFuture.whenComplete(action);
+  Future<T> timeout(Duration timeLimit, {void onTimeout()}) =>
       _realFuture.timeout(timeLimit, onTimeout: onTimeout);
-  Stream asStream() => _realFuture.asStream();
+  Stream<T> asStream() => _realFuture.asStream();
   String toString() => "CustomFuture@${_realFuture.hashCode}";
   int get hashCode => _realFuture.hashCode;
 }
 
 /// A bad future that throws on every method.
 class BadFuture<T> implements Future<T> {
-  Future then(action(T result), {Function onError}) {
+  Future<S> then<S>(action(T result), {Function onError}) {
     throw "then GOTCHA!";
   }
 
-  Future catchError(Function onError, {bool test(e)}) {
+  Future<T> catchError(Function onError, {bool test(Object e)}) {
     throw "catch GOTCHA!";
   }
 
-  Future whenComplete(action()) {
+  Future<T> whenComplete(action()) {
     throw "finally GOTCHA!";
   }
 
@@ -1206,7 +1210,7 @@ class BadFuture<T> implements Future<T> {
     throw "asStream GOTCHA!";
   }
 
-  Future timeout(Duration duration, {onTimeout()}) {
+  Future<T> timeout(Duration duration, {onTimeout()}) {
     throw "timeout GOTCHA!";
   }
 }
@@ -1216,7 +1220,7 @@ class UglyFuture implements Future<dynamic> {
   final _result;
   UglyFuture(int badness)
       : _result = (badness == 0) ? 42 : new UglyFuture(badness - 1);
-  Future then(action(value), {onError(error, StackTrace stack)}) {
+  Future<S> then<S>(action(value), {Function onError}) {
     var c = new Completer();
     c.complete(new Future.microtask(() => action(_result)));
     return c.future;

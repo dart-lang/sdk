@@ -2,8 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ !$strong && $compiler != dartdevc && $checked ]
+[ $runtime == vm && $system == fuchsia ]
+async/first_regression_test: RuntimeError
+async/future_timeout_test: RuntimeError
+
+[ $strong && $runtime == vm ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 
-[ !$strong && !$checked]
-async/future_or_only_in_async_test/00: MissingCompileTimeError
+

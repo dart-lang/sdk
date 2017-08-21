@@ -7,7 +7,6 @@
 library first_regression_test;
 
 import 'dart:async';
-import 'package:unittest/unittest.dart';
 
 class DoubleTransformer<T> implements StreamTransformer<T, T> {
   Stream<T> bind(Stream<T> stream) {
@@ -20,13 +19,9 @@ class DoubleTransformer<T> implements StreamTransformer<T, T> {
   }
 }
 
-main() {
-  test("Double event before first", () {
-    // This should not crash. Did crash by trying to complete future more
-    // than once.
-    new Stream.fromIterable([1, 2])
-        .transform(new DoubleTransformer())
-        .first
-        .then(expectAsync((e) {}));
-  });
+main() async {
+  // This should not crash. Did crash by trying to complete future more
+  // than once.
+  await (new Stream.fromIterable([1, 2]).transform(new DoubleTransformer()))
+      .first;
 }

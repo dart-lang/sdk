@@ -11,7 +11,6 @@ mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type check
 [ $compiler == dart2js ]
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. Issue 5958
 
-async/future_or_strong_test: RuntimeError, OK
 
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
@@ -162,7 +161,6 @@ math/math2_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == jsshell ]
 async/timer_regress22626_test: RuntimeError # Non-zero timers not supported; Issue 7728.
-async/future_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/slow_consumer2_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/slow_consumer3_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/slow_consumer_test: RuntimeError # Timer interface not supported; Issue 7728.
@@ -193,14 +191,12 @@ async/catch_errors15_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors8_test: Fail # Timer interface not supported: Issue 7728.
 async/run_zoned8_test: Fail # Timer interface not supported: Issue 7728.
 async/zone_bind_test: Fail # Timer interface not supported: Issue 7728.
-async/future_timeout_test: Fail # Timer interface not supported: Issue 7728.
 async/stream_timeout_test: Fail # Timer interface not supported: Issue 7728.
 async/stream_asyncexpand_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/stream_asyncmap_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/stream_transformation_broadcast_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/stream_controller_test: Fail # Timer interface not supported: Issue 7728.
 async/stream_subscription_cancel_test: Fail # Timer interface not supported: Issue 7728.
-async/future_constructor2_test: Fail # Timer interface not supported: Issue 7728.
 async/stream_take_test: Fail # Timer interface not supported: Issue 7728.
 mirrors/mirrors_reader_test: Skip # Running in v8 suffices. Issue 16589 - RuntimeError.  Issue 22130 - Crash (out of memory).
 
@@ -288,12 +284,9 @@ mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 
-async/future_or_strong_test: RuntimeError, OK
 
 [ $runtime == vm && $system == fuchsia ]
 # These use package:unittest
-async/first_regression_test: RuntimeError
-async/future_timeout_test: RuntimeError
 async/multiple_timer_test: RuntimeError
 async/schedule_microtask2_test: RuntimeError
 async/schedule_microtask3_test: RuntimeError
@@ -416,7 +409,6 @@ mirrors/metadata_allowed_values_test/30: Crash # Issue 25911
 mirrors/metadata_allowed_values_test/31: Crash # Issue 25911
 
 [ $compiler != dart2js ]
-async/dart2js_uncaught_error_test: Skip  # JS-integration only test
 
 [ $compiler == precompiler ]
 mirrors/*: SkipByDesign
@@ -454,9 +446,6 @@ async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
 mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
 
 [ $compiler == dartk || $compiler == dartkp ]
-async/future_or_strong_test: RuntimeError
-async/future_test/01: RuntimeError
-async/future_test/none: RuntimeError
 async/schedule_microtask2_test: RuntimeError
 mirrors/abstract_class_test/00: RuntimeError
 mirrors/abstract_class_test/none: RuntimeError

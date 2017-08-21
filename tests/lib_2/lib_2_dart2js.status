@@ -8,3 +8,11 @@ async/catch_errors18_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors19_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors20_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors28_test: Fail # Timer interface not supported: Issue 7728.
+async/future_test: RuntimeError # Timer interface not supported; Issue 7728.
+async/future_constructor2_test: Fail # Timer interface not supported: Issue 7728.
+
+[ $compiler == dart2js ]
+async/future_or_strong_test: RuntimeError
+
+[ $compiler != dart2js ]
+async/dart2js_uncaught_error_test: Skip  # JS-integration only test
