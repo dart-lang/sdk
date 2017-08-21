@@ -2108,7 +2108,7 @@ List<InterpreterExpression> _getFieldInitializers(ast.Class class_) {
   var fieldInitializers = new List<InterpreterExpression>();
 
   for (Field f in class_.fields) {
-    if (f.initializer != null) {
+    if (!f.isStatic && f.initializer != null) {
       fieldInitializers.add(new FieldInitializerExpression(f, f.initializer));
     }
   }
