@@ -263,6 +263,12 @@ class Evaluator extends ExpressionVisitor1<Configuration, EvalConfiguration> {
         node.expression, config.environment, config.exceptionComponents, cont);
   }
 
+  Configuration visitFunctionExpression(
+      FunctionExpression node, EvalConfiguration config) {
+    var val = new FunctionValue(node.function, config.environment);
+    return new ValuePassingConfiguration(config.continuation, val);
+  }
+
   // Evaluation of BasicLiterals.
   Configuration visitStringLiteral(
       StringLiteral node, EvalConfiguration config) {
@@ -892,6 +898,24 @@ class InstanceFieldsA extends ApplicationContinuation {
     return new EvalConfiguration(expr, environment, exceptionComponents, cont);
   }
 }
+
+class FunctionValueA extends ApplicationContinuation {
+  final FunctionValue receiver;
+  final ExceptionComponents exceptionComponents;
+  final ExpressionContinuation returnContinuation;
+
+  FunctionValueA(
+      this.receiver, this.exceptionComponents, this.returnContinuation);
+
+  Configuration call(List<InterpreterValue> vs) {
+    Environment env = ApplicationContinuation.createEnvironment(
+        receiver.function, vs, receiver.environment);
+    var scont = new ExitSK(returnContinuation, Value.nullInstance);
+    var state = new State(null, exceptionComponents, returnContinuation, scont);
+    return new ExecConfiguration(receiver.function.body, env, state);
+  }
+}
+
 // ------------------------------------------------------------------------
 //                           Expression Continuations
 // ------------------------------------------------------------------------
@@ -1002,6 +1026,16 @@ class MethodInvocationEK extends ExpressionContinuation {
       this.exceptionComponents, this.continuation);
 
   Configuration call(Value receiver) {
+    if (receiver is FunctionValue) {
+      // TODO(zhivkag): use method lookup instead.
+      assert(methodName.toString() == 'call');
+      var args = _getArgumentExpressions(arguments, receiver.function);
+      var acont =
+          new FunctionValueA(receiver, exceptionComponents, continuation);
+      return new EvalListConfiguration(
+          args, environment, exceptionComponents, acont);
+    }
+
     if (arguments.positional.isEmpty) {
       Value returnValue = receiver.invokeMethod(methodName);
       return new ValuePassingConfiguration(continuation, returnValue);
@@ -1122,8 +1156,7 @@ class LetEK extends ExpressionContinuation {
       this.continuation);
 
   Configuration call(Value value) {
-    var letEnv = new Environment(environment);
-    letEnv.extend(variable, value);
+    var letEnv = environment.extend(variable, value);
     return new EvalConfiguration(
         letBody, letEnv, exceptionComponents, continuation);
   }
@@ -1599,6 +1632,14 @@ class StatementExecuter
     return new ForwardConfiguration(conf.state.continuation,
         conf.environment.extend(node, Value.nullInstance));
   }
+
+  Configuration visitFunctionDeclaration(
+      FunctionDeclaration node, ExecConfiguration conf) {
+    var newEnv = conf.environment.extend(node.variable, Value.nullInstance);
+    var fun = new FunctionValue(node.function, newEnv);
+    newEnv.assign(node.variable, fun);
+    return new ForwardConfiguration(conf.state.continuation, newEnv);
+  }
 }
 
 // ------------------------------------------------------------------------
@@ -1732,6 +1773,18 @@ class ObjectValue extends Value {
       fields[i] = new Location.empty();
     }
   }
+}
+
+class FunctionValue extends Value {
+  Class get class_ => throw 'Class for FunctionValue is not defined';
+  List<Location> get fields => throw 'FunctionValue has no fields.';
+
+  FunctionValue get value => this;
+
+  final FunctionNode function;
+  final Environment environment;
+
+  FunctionValue(this.function, this.environment);
 }
 
 abstract class LiteralValue extends Value {
