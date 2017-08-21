@@ -29,6 +29,13 @@ class ValidatingInstrumentation implements Instrumentation {
       'returnType',
       'target',
     ],
+    'checks': const [
+      'checkCall',
+      'checkFormal',
+      'checkReturn',
+      'checkTearOff',
+      'forwardingStub',
+    ],
   };
 
   /// Map from file URI to the as-yet unsatisfied expectations from that file,
