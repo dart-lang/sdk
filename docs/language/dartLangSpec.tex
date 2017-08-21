@@ -22,6 +22,7 @@
 % 2.0
 % - Don't allow functions as assert test values.
 % - Start running "async" functions synchronously.
+% - It is a static warning and dynamic error to assign to a final local.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -449,6 +450,7 @@ A {\em final variable} is a variable whose binding is fixed upon initialization;
 It is a static warning if a final instance variable that has been initialized at its point of declaration  is  also initialized in a constructor.
 % It is a static warning if a final instance variable that has been initialized by means of an initializing formal of a constructor is  also initialized elsewhere in the same constructor.
 It is a compile-time error if a local variable $v$ is final and $v$ is not initialized at its point of declaration.
+It is a static warning and a dynamic error to assign to a final local variable.
 
 \commentary{
 
@@ -5953,16 +5955,26 @@ It is a static warning if the static type of $c$ may not be assigned to \cd{bool
 \LMLabel{for-in}
 
 \LMHash{}
-A for statement of the form \code{ \FOR{} ($finalConstVarOrType?$ id \IN{} $e$) $s$} is equivalent to the following code:
+Let $D$ be derived from \code{finalConstVarOrType?}
+and let $n0$ be an identifier that does not occur anywhere in the program.
+A for statement of the form \code{\FOR{} ($D$ $id$ \IN{} $e$) $s$} is equivalent to the following code:
 
 \begin{dartCode}
-var n0 = $e$.iterator;
-\WHILE{} (n0.moveNext()) \{
-   $finalConstVarOrType?$ id = n0.current;
+\VAR{} $n0$ = $e$.iterator;
+\WHILE{} ($n0$.moveNext()) \{
+   $D$ $id$ = $n0$.current;
    $s$
 \}
 \end{dartCode}
-where \code{n0} is an identifier that does not occur anywhere in the program, except that for purposes of static typechecking, it is checked under the assumption that $n0$ is declared to be of type $T$, where $T$ is the static type of $e.iterator$.
+
+For purposes of static typechecking,
+this code is checked under the assumption that $n0$ is declared to be of type $T$,
+where $T$ is the static type of \code{$e$.iterator}.
+
+\commentary{
+It follows that it is a static warning if $D$ is empty and $id$ is a final variable,
+and a dynamic error will then occur if the body is executed.
+}
 
 \subsubsection{Asynchronous For-in}
 \LMLabel{asynchronousFor-in}
@@ -5971,11 +5983,16 @@ where \code{n0} is an identifier that does not occur anywhere in the program, ex
 A for-in statement may be asynchronous. The asynchronous form is designed to iterate over streams. An asynchronous for loop is distinguished by the keyword \AWAIT{} immediately preceding the keyword \FOR.
 
 \LMHash{}
-Execution of a for-in statement, $f$, of the form \code{\AWAIT{} \FOR{} (finalConstVarOrType? $id$ \IN{} $e$) $s$} proceeds as follows:
+Let $D$ be derived from \code{finalConstVarOrType?}.
+Execution of a for-in statement, $f$, of the form
+\code{\AWAIT{} \FOR{} ($D$ $id$ \IN{} $e$) $s$}
+proceeds as follows:
 
 \LMHash{}
 The expression $e$ is evaluated to an object $o$.
 It is a dynamic error if $o$ is not an instance of a class that implements \code{Stream}.
+It is a static warning if $D$ is empty and $id$ is a final variable,
+and it is then a dynamic error if the body is executed.
 
 \LMHash{}
 The stream associated with the innermost enclosing asynchronous for loop, if any, is paused.
