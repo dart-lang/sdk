@@ -82,9 +82,11 @@ class ScavengeStats {
         promoted_in_words_(promoted_in_words) {}
 
   // Of all data before scavenge, what fraction was found to be garbage?
-  double GarbageFraction() const {
+  // If this scavenge included growth, assume the extra capacity would become
+  // garbage to give the scavenger a chance to stablize at the new capacity.
+  double ExpectedGarbageFraction() const {
     intptr_t survived = after_.used_in_words + promoted_in_words_;
-    return 1.0 - (survived / static_cast<double>(before_.used_in_words));
+    return 1.0 - (survived / static_cast<double>(after_.capacity_in_words));
   }
 
   // Fraction of promotion candidates that survived and was thereby promoted.

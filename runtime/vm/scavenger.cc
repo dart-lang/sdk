@@ -363,7 +363,7 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
   if (stats_history_.Size() == 0) {
     return old_size_in_words;
   }
-  double garbage = stats_history_.Get(0).GarbageFraction();
+  double garbage = stats_history_.Get(0).ExpectedGarbageFraction();
   if (garbage < (FLAG_new_gen_garbage_threshold / 100.0)) {
     return Utils::Minimum(max_semi_capacity_in_words_,
                           old_size_in_words * FLAG_new_gen_growth_factor);
