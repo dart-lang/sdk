@@ -247,7 +247,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/mime":
       Var("github_mirror") + "mime.git" + Var("mime_rev"),
   Var("dart_root") + "/third_party/pkg/mockito":
-      Var("github_mirror") + mockito.git" + Var("mockito_tag"),
+      Var("github_mirror") + "mockito.git" + Var("mockito_tag"),
   Var("dart_root") + "/third_party/pkg/mustache4dart":
       Var("chromium_git")
       + "/external/github.com/valotas/mustache4dart.git"
