@@ -94,7 +94,7 @@ class KernelReader {
     reader.set_offset(reader.ReadUInt32());
 
     // Start reading library.
-    reader.ReadFlags();  // read flags.
+    reader.ReadFlags();
     return reader.ReadCanonicalNameReference();
   }
 

@@ -119,7 +119,7 @@ class VariableDeclarationHelper {
 
   TokenPosition position_;
   TokenPosition equals_position_;
-  word flags_;
+  uint8_t flags_;
   StringIndex name_index_;
 
  private:
@@ -190,7 +190,7 @@ class FieldHelper {
   NameIndex canonical_name_;
   TokenPosition position_;
   TokenPosition end_position_;
-  word flags_;
+  uint8_t flags_;
   intptr_t source_uri_index_;
   intptr_t annotation_count_;
 
@@ -265,7 +265,7 @@ class ProcedureHelper {
   TokenPosition position_;
   TokenPosition end_position_;
   Kind kind_;
-  word flags_;
+  uint8_t flags_;
   intptr_t source_uri_index_;
   intptr_t annotation_count_;
 
@@ -322,7 +322,7 @@ class ConstructorHelper {
   NameIndex canonical_name_;
   TokenPosition position_;
   TokenPosition end_position_;
-  word flags_;
+  uint8_t flags_;
   intptr_t annotation_count_;
 
  private:
@@ -410,6 +410,10 @@ class LibraryHelper {
     kEnd,
   };
 
+  enum Flag {
+    kExternal = 1,
+  };
+
   explicit LibraryHelper(StreamingFlowGraphBuilder* builder) {
     builder_ = builder;
     next_read_ = kFlags;
@@ -424,6 +428,9 @@ class LibraryHelper {
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
+  bool IsExternal() const { return (flags_ & kExternal) != 0; }
+
+  uint8_t flags_;
   NameIndex canonical_name_;
   StringIndex name_index_;
   intptr_t source_uri_index_;
@@ -837,7 +844,7 @@ class StreamingFlowGraphBuilder {
   void record_yield_position(TokenPosition position);
   Tag ReadTag(uint8_t* payload = NULL);
   Tag PeekTag(uint8_t* payload = NULL);
-  word ReadFlags();
+  uint8_t ReadFlags() { return reader_->ReadFlags(); }
 
   void loop_depth_inc();
   void loop_depth_dec();

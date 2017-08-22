@@ -253,6 +253,8 @@ void KernelReader::ReadLibrary(intptr_t kernel_offset) {
   LibraryHelper library_helper(&builder_);
   library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
   Library& library = LookupLibrary(library_helper.canonical_name_);
+  // The Kernel library is external implies that it is already loaded.
+  ASSERT(!library_helper.IsExternal() || library.Loaded());
   if (library.Loaded()) return;
 
   library_helper.ReadUntilIncluding(LibraryHelper::kName);

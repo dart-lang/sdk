@@ -87,7 +87,7 @@ void VariableDeclarationHelper::ReadUntilExcluding(Field field) {
       equals_position_ = builder_->ReadPosition();  // read equals position.
       if (++next_read_ == field) return;
     case kFlags:
-      flags_ = builder_->ReadFlags();  // read flags.
+      flags_ = builder_->ReadFlags();
       if (++next_read_ == field) return;
     case kNameIndex:
       name_index_ = builder_->ReadStringReference();  // read name index.
@@ -133,7 +133,7 @@ void FieldHelper::ReadUntilExcluding(Field field,
       end_position_ = builder_->ReadPosition(false);  // read end position.
       if (++next_read_ == field) return;
     case kFlags:
-      flags_ = builder_->ReadFlags();  // read flags.
+      flags_ = builder_->ReadFlags();
       if (++next_read_ == field) return;
     case kName:
       builder_->SkipName();  // read name.
@@ -205,7 +205,7 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       kind_ = static_cast<Kind>(builder_->ReadByte());
       if (++next_read_ == field) return;
     case kFlags:
-      flags_ = builder_->ReadFlags();  // read flags.
+      flags_ = builder_->ReadFlags();
       if (++next_read_ == field) return;
     case kName:
       builder_->SkipName();  // read name.
@@ -256,7 +256,7 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
       end_position_ = builder_->ReadPosition();  // read end position.
       if (++next_read_ == field) return;
     case kFlags:
-      flags_ = builder_->ReadFlags();  // read flags.
+      flags_ = builder_->ReadFlags();
       if (++next_read_ == field) return;
     case kName:
       builder_->SkipName();  // read name.
@@ -410,8 +410,7 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
   // Ordered with fall-through.
   switch (next_read_) {
     case kFlags: {
-      word flags = builder_->ReadFlags();  // read flags.
-      ASSERT(flags == 0);                  // external libraries not supported
+      flags_ = builder_->ReadFlags();
       if (++next_read_ == field) return;
     }
     case kCanonicalName:
@@ -4660,11 +4659,11 @@ void StreamingFlowGraphBuilder::SkipLibraryCombinator() {
 }
 
 void StreamingFlowGraphBuilder::SkipLibraryDependency() {
-  ReadFlags();                                   // read flags.
-  SkipListOfExpressions();                       // Read annotations.
-  ReadCanonicalNameReference();                  // read target_reference.
-  ReadStringReference();                         // read name_index.
-  intptr_t combinator_count = ReadListLength();  // read list length.
+  ReadFlags();
+  SkipListOfExpressions();  // Annotations.
+  ReadCanonicalNameReference();
+  ReadStringReference();  // Name.
+  intptr_t combinator_count = ReadListLength();
   for (intptr_t i = 0; i < combinator_count; ++i) {
     SkipLibraryCombinator();
   }
@@ -4712,10 +4711,6 @@ Tag StreamingFlowGraphBuilder::ReadTag(uint8_t* payload) {
 
 Tag StreamingFlowGraphBuilder::PeekTag(uint8_t* payload) {
   return reader_->PeekTag(payload);
-}
-
-word StreamingFlowGraphBuilder::ReadFlags() {
-  return reader_->ReadFlags();
 }
 
 void StreamingFlowGraphBuilder::loop_depth_inc() {
