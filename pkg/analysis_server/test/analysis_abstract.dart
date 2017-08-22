@@ -374,9 +374,4 @@ class TestPluginManager implements PluginManager {
     fail('Unexpected invocation of stopAll');
     return null;
   }
-
-  @override
-  void whitelistEverything() {
-    fail('Unexpected invocation of whitelistEverything');
-  }
 }

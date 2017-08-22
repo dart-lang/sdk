@@ -198,7 +198,6 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     super.setUp();
     manager = new PluginManager(resourceProvider, byteStorePath, '',
         notificationManager, InstrumentationService.NULL_SERVICE);
-    manager.whitelistEverything();
   }
 
   test_addPluginToContextRoot() async {
