@@ -217,22 +217,10 @@ void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
     return;
   }
 
-  if (!check->Dependencies().IsNone()) {
-    // TODO(vegorov): If check is affected by side-effect we can still propagate
-    // the type further but not the cid.
-    return;
-  }
-
   SetCid(check->value()->definition(), check->cids().MonomorphicReceiverCid());
 }
 
 void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
-  if (!check->Dependencies().IsNone()) {
-    // TODO(vegorov): If check is affected by side-effect we can still propagate
-    // the type further but not the cid.
-    return;
-  }
-
   LoadClassIdInstr* load_cid =
       check->value()->definition()->OriginalDefinition()->AsLoadClassId();
   if (load_cid != NULL && check->cids().IsSingleCid()) {

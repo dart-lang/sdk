@@ -178,7 +178,8 @@ class CompileType : public ZoneAllocated {
   const AbstractType* type_;
 };
 
-// TODO(alexmarkov): remove EffectSet as there are no tracked effects anymore
+// TODO(dartbug.com/30474): remove EffectSet as there are no tracked effects
+// anymore.
 class EffectSet : public ValueObject {
  public:
   enum Effects {
@@ -872,8 +873,9 @@ class Instruction : public ZoneAllocated {
   // Returns true if CSE and LICM are allowed for this instruction.
   virtual bool AllowsCSE() const { return false; }
 
-  // Returns set of effects created by this instruction.
-  virtual EffectSet Effects() const = 0;
+  // Returns true if this instruction has any side-effects besides storing.
+  // See StoreInstanceFieldInstr::HasUnknownSideEffects() for rationale.
+  virtual bool HasUnknownSideEffects() const = 0;
 
   // Returns set of effects that affect this instruction.
   virtual EffectSet Dependencies() const {
@@ -986,7 +988,7 @@ class PureInstruction : public Instruction {
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 };
 
 // Types to be used as ThrowsTrait for TemplateInstruction/TemplateDefinition.
@@ -1099,9 +1101,9 @@ class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const {
+  virtual bool HasUnknownSideEffects() const {
     UNREACHABLE();  // This instruction never visited by optimization passes.
-    return EffectSet::None();
+    return false;
   }
 
   virtual EffectSet Dependencies() const {
@@ -1223,7 +1225,7 @@ class BlockEntryInstr : public Instruction {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
 
   virtual bool MayThrow() const { return false; }
@@ -1469,7 +1471,7 @@ class JoinEntryInstr : public BlockEntryInstr {
   void InsertPhi(PhiInstr* phi);
   void RemovePhi(PhiInstr* phi);
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
 
   PRINT_TO_SUPPORT
@@ -1884,7 +1886,7 @@ class PureDefinition : public Definition {
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 };
 
 template <intptr_t N,
@@ -1940,7 +1942,7 @@ class PhiInstr : public Definition {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   // Phi is alive if it reaches a non-environment use.
   bool is_alive() const { return is_alive_; }
@@ -2034,7 +2036,7 @@ class ParameterInstr : public Definition {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
 
   virtual intptr_t Hashcode() const {
@@ -2070,7 +2072,7 @@ class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual TokenPosition token_pos() const {
     return TokenPosition::kPushArgument;
@@ -2106,7 +2108,7 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
  private:
   const TokenPosition token_pos_;
@@ -2127,7 +2129,7 @@ class ThrowInstr : public TemplateInstruction<0, Throws> {
 
   virtual bool ComputeCanDeoptimize() const { return true; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
  private:
   const TokenPosition token_pos_;
@@ -2155,7 +2157,7 @@ class ReThrowInstr : public TemplateInstruction<0, Throws> {
 
   virtual bool ComputeCanDeoptimize() const { return true; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
  private:
   const TokenPosition token_pos_;
@@ -2178,7 +2180,7 @@ class StopInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
 
@@ -2219,7 +2221,7 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   ParallelMoveInstr* parallel_move() const { return parallel_move_; }
 
@@ -2295,7 +2297,7 @@ class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool CanBecomeDeoptimizationTarget() const { return false; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   Value* offset() const { return inputs_[0]; }
   void ComputeOffsetTable();
@@ -2386,7 +2388,7 @@ class PureComparison : public ComparisonInstr {
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
  protected:
   PureComparison(TokenPosition token_pos, Token::Kind kind, intptr_t deopt_id)
@@ -2449,7 +2451,9 @@ class BranchInstr : public Instruction {
     return comparison()->CanBecomeDeoptimizationTarget();
   }
 
-  virtual EffectSet Effects() const { return comparison()->Effects(); }
+  virtual bool HasUnknownSideEffects() const {
+    return comparison()->HasUnknownSideEffects();
+  }
 
   ComparisonInstr* comparison() const { return comparison_; }
   void SetComparison(ComparisonInstr* comp);
@@ -2535,7 +2539,7 @@ class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
  private:
   CompileType* constrained_type_;
@@ -2555,7 +2559,7 @@ class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const {
     UNREACHABLE();
@@ -2732,7 +2736,7 @@ class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return kind() == other->AsSpecialParameter()->kind();
@@ -2842,7 +2846,7 @@ class ClosureCallInstr : public TemplateDartCall<1> {
 
   virtual bool ComputeCanDeoptimize() const { return true; }
 
-  virtual EffectSet Effects() const { return EffectSet::All(); }
+  virtual bool HasUnknownSideEffects() const { return true; }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -2918,7 +2922,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
     return true;
   }
 
-  virtual EffectSet Effects() const { return EffectSet::All(); }
+  virtual bool HasUnknownSideEffects() const { return true; }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -2998,7 +3002,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   virtual bool ComputeCanDeoptimize() const { return true; }
 
-  virtual EffectSet Effects() const { return EffectSet::All(); }
+  virtual bool HasUnknownSideEffects() const { return true; }
 
   virtual Definition* Canonicalize(FlowGraph* graph);
 
@@ -3254,7 +3258,9 @@ class IfThenElseInstr : public Definition {
   intptr_t if_false() const { return if_false_; }
 
   virtual bool AllowsCSE() const { return comparison()->AllowsCSE(); }
-  virtual EffectSet Effects() const { return comparison()->Effects(); }
+  virtual bool HasUnknownSideEffects() const {
+    return comparison()->HasUnknownSideEffects();
+  }
   virtual EffectSet Dependencies() const {
     return comparison()->Dependencies();
   }
@@ -3370,7 +3376,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
     return true;
   }
 
-  virtual EffectSet Effects() const { return EffectSet::All(); }
+  virtual bool HasUnknownSideEffects() const { return true; }
 
   void set_result_cid(intptr_t value) { result_cid_ = value; }
 
@@ -3412,9 +3418,9 @@ class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const {
+  virtual bool HasUnknownSideEffects() const {
     UNREACHABLE();  // Eliminated by SSA construction.
-    return EffectSet::None();
+    return false;
   }
 
   void mark_last() { is_last_ = true; }
@@ -3457,9 +3463,9 @@ class DropTempsInstr : public Definition {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const {
+  virtual bool HasUnknownSideEffects() const {
     UNREACHABLE();  // Eliminated by SSA construction.
-    return EffectSet::None();
+    return false;
   }
 
   virtual bool MayThrow() const {
@@ -3503,9 +3509,9 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
   void mark_last() { is_last_ = true; }
   bool is_last() const { return is_last_; }
 
-  virtual EffectSet Effects() const {
+  virtual bool HasUnknownSideEffects() const {
     UNREACHABLE();  // Eliminated by SSA construction.
-    return EffectSet::None();
+    return false;
   }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
@@ -3555,7 +3561,7 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const { return EffectSet::All(); }
+  virtual bool HasUnknownSideEffects() const { return true; }
 
   void SetupNative();
 
@@ -3593,7 +3599,7 @@ class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual EffectSet Effects() const { return EffectSet::All(); }
+  virtual bool HasUnknownSideEffects() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
  private:
@@ -3664,7 +3670,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
   // Currently CSE/LICM don't operate on any instructions that can be affected
   // by stores/loads. LoadOptimizer handles loads separately. Hence stores
   // are marked as having no side-effects.
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   bool IsUnboxedStore() const;
 
@@ -3771,8 +3777,10 @@ class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual bool AllowsCSE() const { return StaticField().is_final(); }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool AllowsCSE() const {
+    return StaticField().is_final() && !FLAG_fields_may_be_reset;
+  }
+  virtual bool HasUnknownSideEffects() const { return false; }
   virtual EffectSet Dependencies() const;
   virtual bool AttributesEqual(Instruction* other) const;
 
@@ -3809,7 +3817,7 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   // Currently CSE/LICM don't operate on any instructions that can be affected
   // by stores/loads. LoadOptimizer handles loads separately. Hence stores
   // are marked as having no side-effects.
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 
@@ -3873,7 +3881,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
   virtual Representation representation() const;
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
  private:
   const intptr_t index_scale_;
@@ -3942,7 +3950,7 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
   void set_representation(Representation repr) { representation_ = repr; }
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
  private:
   const intptr_t class_id_;
@@ -4013,7 +4021,7 @@ class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
 
   virtual CompileType ComputeType() const;
   // Issues a static call to Dart code which calls toString on objects.
-  virtual EffectSet Effects() const { return EffectSet::All(); }
+  virtual bool HasUnknownSideEffects() const { return true; }
   virtual bool ComputeCanDeoptimize() const { return true; }
 
   const Function& CallFunction() const;
@@ -4071,7 +4079,7 @@ class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
     return GetDeoptId();
   }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
  private:
   const StoreBarrierType emit_store_barrier_;
@@ -4095,7 +4103,7 @@ class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -4130,7 +4138,7 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
 
   virtual bool ComputeCanDeoptimize() const { return true; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -4175,7 +4183,7 @@ class AllocateObjectInstr : public TemplateDefinition<0, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual AliasIdentity Identity() const { return identity_; }
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
@@ -4209,7 +4217,7 @@ class AllocateUninitializedContextInstr
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual AliasIdentity Identity() const { return identity_; }
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
@@ -4294,7 +4302,7 @@ class MaterializeObjectInstr : public Definition {
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   Location* locations() { return locations_; }
   void set_locations(Location* locations) { locations_ = locations; }
@@ -4352,7 +4360,7 @@ class CreateArrayInstr : public TemplateDefinition<2, Throws> {
   // deoptimize.
   virtual bool ComputeCanDeoptimize() const { return MayThrow(); }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual AliasIdentity Identity() const { return identity_; }
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
@@ -4390,7 +4398,7 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
@@ -4507,7 +4515,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   static bool IsFixedLengthArrayCid(intptr_t cid);
 
   virtual bool AllowsCSE() const { return immutable_; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
   virtual EffectSet Dependencies() const;
   virtual bool AttributesEqual(Instruction* other) const;
 
@@ -4548,7 +4556,7 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
 
   virtual bool ComputeCanDeoptimize() const { return true; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -4586,7 +4594,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
 
   virtual bool ComputeCanDeoptimize() const { return true; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -4613,7 +4621,7 @@ class AllocateContextInstr : public TemplateDefinition<0, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -4638,7 +4646,7 @@ class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {
   DECLARE_INSTRUCTION(InitStaticField)
 
   virtual bool ComputeCanDeoptimize() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::All(); }
+  virtual bool HasUnknownSideEffects() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
  private:
@@ -4664,7 +4672,7 @@ class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return true; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
  private:
   const TokenPosition token_pos_;
@@ -6743,7 +6751,7 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual EffectSet Effects() const { return EffectSet::All(); }
+  virtual bool HasUnknownSideEffects() const { return true; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -6784,7 +6792,7 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
 
   bool is_negated() const { return is_negated_; }
 
-  virtual EffectSet Effects() const { return EffectSet::All(); }
+  virtual bool HasUnknownSideEffects() const { return true; }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -7180,7 +7188,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -7292,7 +7300,7 @@ class DoubleToIntegerInstr : public TemplateDefinition<1, Throws> {
 
   virtual bool ComputeCanDeoptimize() const { return true; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
  private:
   InstanceCallInstr* instance_call_;
@@ -7613,7 +7621,7 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
   virtual bool AttributesEqual(Instruction* other) const;
 
   bool licm_hoisted() const { return licm_hoisted_; }
@@ -7693,7 +7701,7 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -7759,7 +7767,7 @@ class GenericCheckBoundInstr : public TemplateInstruction<2, Throws, NoCSE> {
   Value* length() const { return inputs_[kLengthPos]; }
   Value* index() const { return inputs_[kIndexPos]; }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
 
   DECLARE_INSTRUCTION(GenericCheckBound)
@@ -7810,7 +7818,7 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
     return from();
   }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual bool HasUnknownSideEffects() const { return false; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     ASSERT(other->IsUnboxedIntConverter());

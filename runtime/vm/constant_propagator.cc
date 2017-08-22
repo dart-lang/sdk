@@ -1378,7 +1378,7 @@ void ConstantPropagator::EliminateRedundantBranches() {
     BlockEntryInstr* block = b.Current();
     BranchInstr* branch = block->last_instruction()->AsBranch();
     empty_blocks->Clear();
-    if ((branch != NULL) && branch->Effects().IsNone()) {
+    if ((branch != NULL) && !branch->HasUnknownSideEffects()) {
       ASSERT(branch->previous() != NULL);  // Not already eliminated.
       BlockEntryInstr* if_true =
           FindFirstNonEmptySuccessor(branch->true_successor(), empty_blocks);

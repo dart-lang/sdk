@@ -428,7 +428,12 @@ bool BinaryIntegerOpInstr::AttributesEqual(Instruction* other) const {
 }
 
 EffectSet LoadFieldInstr::Dependencies() const {
-  return immutable_ ? EffectSet::None() : EffectSet::All();
+  if (immutable_) {
+    return EffectSet::None();
+  } else {
+    UNREACHABLE();  // TODO(dartbug.com/30474): cleanup
+    return EffectSet::All();
+  }
 }
 
 bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
@@ -454,9 +459,12 @@ Instruction* InitStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 EffectSet LoadStaticFieldInstr::Dependencies() const {
-  return (StaticField().is_final() && !FLAG_fields_may_be_reset)
-             ? EffectSet::None()
-             : EffectSet::All();
+  if (StaticField().is_final() && !FLAG_fields_may_be_reset) {
+    return EffectSet::None();
+  } else {
+    UNREACHABLE();  // TODO(dartbug.com/30474): cleanup
+    return EffectSet::All();
+  }
 }
 
 bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {

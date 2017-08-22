@@ -1442,7 +1442,7 @@ BlockEffects::BlockEffects(FlowGraph* flow_graph)
 
     BlockEntryInstr* block = it.Current();
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-      if (!it.Current()->Effects().IsNone()) {
+      if (it.Current()->HasUnknownSideEffects()) {
         kill->Add(block->postorder_number());
         break;
       }
@@ -1500,14 +1500,16 @@ BlockEffects::BlockEffects(FlowGraph* flow_graph)
 
 bool BlockEffects::IsAvailableAt(Instruction* instr,
                                  BlockEntryInstr* block) const {
-  return (instr->Dependencies().IsNone()) ||
-         IsSideEffectFreePath(instr->GetBlock(), block);
+  ASSERT(instr->AllowsCSE());
+  ASSERT(instr->Dependencies().IsNone());
+  return true;  // TODO(dartbug.com/30474): cleanup
 }
 
 bool BlockEffects::CanBeMovedTo(Instruction* instr,
                                 BlockEntryInstr* block) const {
-  return (instr->Dependencies().IsNone()) ||
-         IsSideEffectFreePath(block, instr->GetBlock());
+  ASSERT(instr->AllowsCSE());
+  ASSERT(instr->Dependencies().IsNone());
+  return true;  // TODO(dartbug.com/30474): cleanup
 }
 
 bool BlockEffects::IsSideEffectFreePath(BlockEntryInstr* from,

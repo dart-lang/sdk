@@ -25,48 +25,26 @@ DEFINE_FLAG(bool,
 
 class CSEInstructionMap : public ValueObject {
  public:
-  // Right now CSE and LICM track a single effect which is no longer used.
-  // TODO(alexmarkov): cleanup.
-  // Other effects like modifications of fields are tracked in a separate load
-  // forwarding pass via Alias structure.
-  COMPILE_ASSERT(EffectSet::kLastEffect == 1);
-
-  CSEInstructionMap() : independent_(), dependent_() {}
+  CSEInstructionMap() : map_() {}
   explicit CSEInstructionMap(const CSEInstructionMap& other)
-      : ValueObject(),
-        independent_(other.independent_),
-        dependent_(other.dependent_) {}
-
-  void RemoveAffected(EffectSet effects) {
-    if (!effects.IsNone()) {
-      dependent_.Clear();
-    }
-  }
+      : ValueObject(), map_(other.map_) {}
 
   Instruction* Lookup(Instruction* other) const {
-    return GetMapFor(other)->LookupValue(other);
+    ASSERT(other->AllowsCSE());
+    ASSERT(other->Dependencies().IsNone());
+    return map_.LookupValue(other);
   }
 
-  void Insert(Instruction* instr) { return GetMapFor(instr)->Insert(instr); }
+  void Insert(Instruction* instr) {
+    ASSERT(instr->AllowsCSE());
+    ASSERT(instr->Dependencies().IsNone());
+    return map_.Insert(instr);
+  }
 
  private:
   typedef DirectChainedHashMap<PointerKeyValueTrait<Instruction> > Map;
 
-  Map* GetMapFor(Instruction* instr) {
-    return instr->Dependencies().IsNone() ? &independent_ : &dependent_;
-  }
-
-  const Map* GetMapFor(Instruction* instr) const {
-    return instr->Dependencies().IsNone() ? &independent_ : &dependent_;
-  }
-
-  // All computations that are not affected by any side-effect.
-  // Majority of computations are not affected by anything and will be in
-  // this map.
-  Map independent_;
-
-  // All computations that are affected by side effect.
-  Map dependent_;
+  Map map_;
 };
 
 // Place describes an abstract location (e.g. field) that IR can load
@@ -1597,7 +1575,7 @@ class LoadOptimizer : public ValueObject {
         }
 
         // If instruction has effects then kill all loads affected.
-        if (!instr->Effects().IsNone()) {
+        if (instr->HasUnknownSideEffects()) {
           kill->AddAll(aliased_set_->aliased_by_effects());
           // There is no need to clear out_values when removing values from GEN
           // set because only those values that are in the GEN set
@@ -2356,6 +2334,7 @@ bool DominatorBasedCSE::OptimizeRecursive(FlowGraph* graph,
     Instruction* current = it.Current();
     if (current->AllowsCSE()) {
       Instruction* replacement = map->Lookup(current);
+      ASSERT((replacement == NULL) || replacement->AllowsCSE());
       if ((replacement != NULL) &&
           graph->block_effects()->IsAvailableAt(replacement, block)) {
         // Replace current with lookup result.
@@ -2368,11 +2347,10 @@ bool DominatorBasedCSE::OptimizeRecursive(FlowGraph* graph,
       // anything or does not affect anything. If this is not the case then
       // we should first remove affected instructions from the map and
       // then add instruction to the map so that it does not kill itself.
-      ASSERT(current->Effects().IsNone() || current->Dependencies().IsNone());
+      ASSERT(!current->HasUnknownSideEffects() ||
+             current->Dependencies().IsNone());
       map->Insert(current);
     }
-
-    map->RemoveAffected(current->Effects());
   }
 
   // Process children in the dominator tree recursively.
@@ -2519,7 +2497,7 @@ class StoreOptimizer : public LivenessAnalysis {
         }
 
         // Handle side effects, deoptimization and function return.
-        if (!instr->Effects().IsNone() || instr->CanDeoptimize() ||
+        if (instr->HasUnknownSideEffects() || instr->CanDeoptimize() ||
             instr->IsThrow() || instr->IsReThrow() || instr->IsReturn()) {
           // Instructions that return from the function, instructions with side
           // effects and instructions that can deoptimize are considered as
