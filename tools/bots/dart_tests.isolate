@@ -1,12 +1,9 @@
 {
   'variables': {
-    'command': ['tools/test.py'],
     'files': ['out/ReleaseIA32/dart-sdk/',
               'out/ReleaseX64/dart-sdk/',
-              'out/ReleaseIA32/gen/',
-              'out/ReleaseX64/gen/',
-              'out/ReleaseIA32/patched_sdk/',
-              'out/ReleaseX64/patched_sdk/',
+              'xcodebuild/ReleaseIA32/dart-sdk/',
+              'xcodebuild/ReleaseX64/dart-sdk/',
               'samples/',
               'samples-dev/',
               'tools/',
@@ -18,8 +15,9 @@
               'pkg/async_helper/',
               'pkg/expect/',
               'pkg/js/',
-              'pkg/status_file/',
+              'pkg/meta/',
               'pkg/pkg.status',
+              'pkg/status_file/',
               'runtime/tests/',
               '.packages']
   }
