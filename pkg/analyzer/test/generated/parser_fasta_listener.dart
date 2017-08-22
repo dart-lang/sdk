@@ -614,17 +614,24 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    expectIn('ClassDeclaration');
+    listener.handleNativeClause(nativeToken, hasName);
+  }
+
+  @override
   void endClassDeclaration(
       int interfacesCount,
       Token beginToken,
       Token classKeyword,
       Token extendsKeyword,
       Token implementsKeyword,
+      Token nativeToken,
       Token endToken) {
     end('ClassDeclaration');
     end('ClassOrNamedMixinApplication');
     listener.endClassDeclaration(interfacesCount, beginToken, classKeyword,
-        extendsKeyword, implementsKeyword, endToken);
+        extendsKeyword, implementsKeyword, nativeToken, endToken);
   }
 
   @override

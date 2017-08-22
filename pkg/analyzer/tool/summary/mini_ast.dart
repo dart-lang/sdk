@@ -187,12 +187,20 @@ class MiniAstBuilder extends StackListener {
     push(popList(memberCount));
   }
 
+  @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    if (hasName) {
+      pop(); // Pop the native clause which in this case is a StringLiteral.
+    }
+  }
+
   void endClassDeclaration(
       int interfacesCount,
       Token beginToken,
       Token classKeyword,
       Token extendsKeyword,
       Token implementsKeyword,
+      Token nativeToken,
       Token endToken) {
     debugEvent("ClassDeclaration");
     List<ClassMember> members = pop();

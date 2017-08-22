@@ -42,6 +42,8 @@ main() {
  * which parser is used.
  */
 abstract class AbstractParserTestCase implements ParserTestHelpers {
+  bool get allowNativeClause;
+
   void set enableAssertInitializer(bool value);
 
   void set enableGenericMethodComments(bool value);
@@ -8284,6 +8286,9 @@ class ParserTestCase extends EngineTestCase
    */
   static bool parseFunctionBodies = true;
 
+  @override
+  bool allowNativeClause = true;
+
   /**
    * A flag indicating whether the parser is to parse asserts in the initializer
    * list of a constructor.
@@ -13809,7 +13814,13 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     createParser('class A native "nativeValue" {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expect(member, isNotNull);
-    assertNoErrors();
+    if (!allowNativeClause) {
+      assertErrorsWithCodes([
+        ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
+      ]);
+    } else {
+      assertNoErrors();
+    }
     expect(member, new isInstanceOf<ClassDeclaration>());
     ClassDeclaration declaration = member;
     NativeClause nativeClause = declaration.nativeClause;

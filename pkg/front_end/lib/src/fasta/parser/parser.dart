@@ -857,9 +857,14 @@ class Parser {
         ++interfacesCount;
       } while (optional(',', token));
     }
+    Token nativeToken;
+    if (optional('native', token)) {
+      nativeToken = token;
+      token = parseNativeClause(nativeToken);
+    }
     token = parseClassBody(token);
     listener.endClassDeclaration(interfacesCount, begin, classKeyword,
-        extendsKeyword, implementsKeyword, token);
+        extendsKeyword, implementsKeyword, nativeToken, token);
     return token.next;
   }
 
@@ -2102,6 +2107,19 @@ class Parser {
             : TypeContinuation.Optional;
 
     token = parseType(token, typeContinuation, null, memberKind);
+    return token;
+  }
+
+  Token parseNativeClause(Token nativeToken) {
+    Token token = nativeToken.next;
+    bool hasName = false;
+    if (token.kind == STRING_TOKEN) {
+      hasName = true;
+      token = parseLiteralString(token);
+    }
+    listener.handleNativeClause(nativeToken, hasName);
+    reportRecoverableError(
+        nativeToken, fasta.messageNativeClauseShouldBeAnnotation);
     return token;
   }
 

@@ -95,6 +95,7 @@ class Listener {
   /// - type variables
   /// - supertype (may be a mixin application)
   /// - implemented types
+  /// - native clause
   /// - class body
   void endClassDeclaration(
       int interfacesCount,
@@ -102,6 +103,7 @@ class Listener {
       Token classKeyword,
       Token extendsKeyword,
       Token implementsKeyword,
+      Token nativeToken,
       Token endToken) {
     logEvent("ClassDeclaration");
   }
@@ -960,6 +962,10 @@ class Listener {
 
   void handleModifiers(int count) {
     logEvent("Modifiers");
+  }
+
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    logEvent("NativeClause");
   }
 
   void handleNamedArgument(Token colon) {

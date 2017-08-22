@@ -279,12 +279,20 @@ class ElementListener extends Listener {
   }
 
   @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    if (hasName) {
+      popNode(); // Pop the native clause which in this case is a StringLiteral.
+    }
+  }
+
+  @override
   void endClassDeclaration(
       int interfacesCount,
       Token beginToken,
       Token classKeyword,
       Token extendsKeyword,
       Token implementsKeyword,
+      Token nativeToken,
       Token endToken) {
     makeNodeList(interfacesCount, implementsKeyword, null, ","); // interfaces
     popNode(); // superType

@@ -110,12 +110,12 @@ class DirectiveListener extends Listener {
 
   /// Defines how native clauses are handled. By default, they are not handled
   /// and an error is thrown;
-  Token handleNativeClause(Token token) => null;
+  Token handleNativeClauseError(Token token) => null;
 
   @override
   Token handleUnrecoverableError(Token token, Message message) {
     if (message.code == codeExpectedBlockToSkip) {
-      Token recover = handleNativeClause(token);
+      Token recover = handleNativeClauseError(token);
       if (recover != null) return recover;
     }
     return super.handleUnrecoverableError(token, message);

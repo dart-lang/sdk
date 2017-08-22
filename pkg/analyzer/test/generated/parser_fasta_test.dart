@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
+import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -2214,6 +2215,9 @@ class FastaParserTestCase extends Object
   analyzer.Token _fastaTokens;
 
   @override
+  bool allowNativeClause = false;
+
+  @override
   GatheringErrorListener get listener => _parserProxy._errorListener;
 
   /**
@@ -2277,6 +2281,7 @@ class FastaParserTestCase extends Object
     scanner.scanGenericMethodComments = enableGenericMethodComments;
     _fastaTokens = scanner.tokenize();
     _parserProxy = new ParserProxy(_fastaTokens,
+        allowNativeClause: allowNativeClause,
         enableGenericMethodComments: enableGenericMethodComments);
   }
 
@@ -2773,7 +2778,8 @@ class ParserProxy implements analyzer.Parser {
    * Fasta token.
    */
   factory ParserProxy(analyzer.Token startingToken,
-      {bool enableGenericMethodComments: false}) {
+      {bool allowNativeClause: false,
+      bool enableGenericMethodComments: false}) {
     var library = new KernelLibraryBuilderProxy();
     var member = new BuilderProxy();
     var scope = new ScopeProxy();
@@ -2782,6 +2788,7 @@ class ParserProxy implements analyzer.Parser {
     var errorReporter = new ErrorReporter(errorListener, source);
     var astBuilder =
         new AstBuilder(errorReporter, library, member, scope, true);
+    astBuilder.allowNativeClause = allowNativeClause;
     astBuilder.parseGenericMethodComments = enableGenericMethodComments;
     var eventListener = new ForwardingTestListener(astBuilder);
     var fastaParser = new fasta.Parser(eventListener);
@@ -2933,11 +2940,43 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class TopLevelParserTest_Fasta extends FastaParserTestCase
     with TopLevelParserTestMixin {
-  @override
-  @failingTest
-  void test_parseClassDeclaration_native() {
-    // TODO(paulberry): TODO(paulberry,ahe): Fasta parser doesn't appear to support "native" syntax yet.
-    super.test_parseClassDeclaration_native();
+  void test_parseClassDeclaration_native_missing_literal() {
+    createParser('class A native {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    if (allowNativeClause) {
+      assertNoErrors();
+    } else {
+      assertErrorsWithCodes([
+        ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
+      ]);
+    }
+    expect(member, new isInstanceOf<ClassDeclaration>());
+    ClassDeclaration declaration = member;
+    expect(declaration.nativeClause, isNotNull);
+    expect(declaration.nativeClause.nativeKeyword, isNotNull);
+    expect(declaration.nativeClause.name, isNull);
+    expect(declaration.endToken.type, TokenType.CLOSE_CURLY_BRACKET);
+  }
+
+  void test_parseClassDeclaration_native_allowed() {
+    allowNativeClause = true;
+    test_parseClassDeclaration_native();
+  }
+
+  void test_parseClassDeclaration_native_missing_literal_allowed() {
+    allowNativeClause = true;
+    test_parseClassDeclaration_native_missing_literal();
+  }
+
+  void test_parseClassDeclaration_native_missing_literal_not_allowed() {
+    allowNativeClause = false;
+    test_parseClassDeclaration_native_missing_literal();
+  }
+
+  void test_parseClassDeclaration_native_not_allowed() {
+    allowNativeClause = false;
+    test_parseClassDeclaration_native();
   }
 
   @override
