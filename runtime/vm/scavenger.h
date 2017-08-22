@@ -189,7 +189,6 @@ class Scavenger {
 
   // Collect the garbage in this scavenger.
   void Scavenge();
-  void Scavenge(bool invoke_api_callbacks);
 
   // Promote all live objects.
   void Evacuate();
@@ -259,7 +258,7 @@ class Scavenger {
   };
 
   uword FirstObjectStart() const { return to_->start() | object_alignment_; }
-  SemiSpace* Prologue(Isolate* isolate, bool invoke_api_callbacks);
+  SemiSpace* Prologue(Isolate* isolate);
   void IterateStoreBuffers(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateObjectIdTable(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateRoots(Isolate* isolate, ScavengerVisitor* visitor);
@@ -270,7 +269,7 @@ class Scavenger {
   void EnqueueWeakProperty(RawWeakProperty* raw_weak);
   uword ProcessWeakProperty(RawWeakProperty* raw_weak,
                             ScavengerVisitor* visitor);
-  void Epilogue(Isolate* isolate, SemiSpace* from, bool invoke_api_callbacks);
+  void Epilogue(Isolate* isolate, SemiSpace* from);
 
   bool IsUnreachable(RawObject** p);
 

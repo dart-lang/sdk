@@ -518,49 +518,6 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
     Dart_WeakPersistentHandle object);
 
 /*
- * ============================
- * Garbage Collection Callbacks
- * ============================
- */
-
-/**
- * Callbacks signal the beginning and end of a garbage collection.
- *
- * These signals are intended to be used by the embedder to manage the
- * lifetime of native objects with a managed object peer.
- */
-
-/**
- * A callback invoked at the beginning of a garbage collection.
- */
-typedef void (*Dart_GcPrologueCallback)();
-
-/**
- * A callback invoked at the end of a garbage collection.
- */
-typedef void (*Dart_GcEpilogueCallback)();
-
-/**
- * Adds garbage collection callbacks (prologue and epilogue).
- *
- * \param prologue_callback A function pointer to a prologue callback function.
- *   A prologue callback function should not be already set when this function
- *   is called. A NULL value removes the existing prologue callback function
- *   if any.
- *
- * \param epilogue_callback A function pointer to an epilogue callback function.
- *   An epilogue callback function should not be already set when this function
- *   is called. A NULL value removes the existing epilogue callback function
- *   if any.
- *
- * \return Success if the callbacks were added.  Otherwise, returns an
- *   error handle.
- */
-DART_EXPORT Dart_Handle
-Dart_SetGcCallbacks(Dart_GcPrologueCallback prologue_callback,
-                    Dart_GcEpilogueCallback epilogue_callback);
-
-/*
  * ==========================
  * Initialization and Globals
  * ==========================

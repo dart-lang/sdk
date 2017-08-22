@@ -384,22 +384,6 @@ class Isolate : public BaseIsolate {
   Simulator* simulator() const { return simulator_; }
   void set_simulator(Simulator* value) { simulator_ = value; }
 
-  Dart_GcPrologueCallback gc_prologue_callback() const {
-    return gc_prologue_callback_;
-  }
-
-  void set_gc_prologue_callback(Dart_GcPrologueCallback callback) {
-    gc_prologue_callback_ = callback;
-  }
-
-  Dart_GcEpilogueCallback gc_epilogue_callback() const {
-    return gc_epilogue_callback_;
-  }
-
-  void set_gc_epilogue_callback(Dart_GcEpilogueCallback callback) {
-    gc_epilogue_callback_ = callback;
-  }
-
   Monitor* spawn_count_monitor() const { return spawn_count_monitor_; }
   intptr_t* spawn_count() { return &spawn_count_; }
 
@@ -935,8 +919,6 @@ class Isolate : public BaseIsolate {
   Mutex* megamorphic_lookup_mutex_;  // Protects megamorphic table lookup.
   MessageHandler* message_handler_;
   IsolateSpawnState* spawn_state_;
-  Dart_GcPrologueCallback gc_prologue_callback_;
-  Dart_GcEpilogueCallback gc_epilogue_callback_;
   intptr_t defer_finalization_count_;
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts_;
   DeoptContext* deopt_context_;

@@ -425,17 +425,15 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
 }
 
 void Heap::CollectNewSpaceGarbage(Thread* thread,
-                                  ApiCallbacks api_callbacks,
                                   GCReason reason) {
   ASSERT((reason == kNewSpace) || (reason == kFull));
   if (BeginNewSpaceGC(thread)) {
-    bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kNew, reason);
     {
       VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
       TIMELINE_FUNCTION_GC_DURATION(thread, "CollectNewGeneration");
       NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kNew));
-      new_space_.Scavenge(invoke_api_callbacks);
+      new_space_.Scavenge();
       NOT_IN_PRODUCT(isolate()->class_table()->UpdatePromoted());
       RecordAfterGC(kNew);
       PrintStats();
@@ -444,22 +442,20 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
     }
     if ((reason == kNewSpace) && old_space_.NeedsGarbageCollection()) {
       // Old collections should call the API callbacks.
-      CollectOldSpaceGarbage(thread, kInvokeApiCallbacks, kPromotion);
+      CollectOldSpaceGarbage(thread, kPromotion);
     }
   }
 }
 
 void Heap::CollectOldSpaceGarbage(Thread* thread,
-                                  ApiCallbacks api_callbacks,
                                   GCReason reason) {
   ASSERT((reason != kNewSpace));
   if (BeginOldSpaceGC(thread)) {
-    bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kOld, reason);
     VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
     TIMELINE_FUNCTION_GC_DURATION(thread, "CollectOldGeneration");
     NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kOld));
-    old_space_.MarkSweep(invoke_api_callbacks);
+    old_space_.MarkSweep();
     RecordAfterGC(kOld);
     PrintStats();
     NOT_IN_PRODUCT(PrintStatsToTimeline(&tds));
@@ -471,17 +467,16 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
 }
 
 void Heap::CollectGarbage(Space space,
-                          ApiCallbacks api_callbacks,
                           GCReason reason) {
   Thread* thread = Thread::Current();
   switch (space) {
     case kNew: {
-      CollectNewSpaceGarbage(thread, api_callbacks, reason);
+      CollectNewSpaceGarbage(thread, reason);
       break;
     }
     case kOld:
     case kCode: {
-      CollectOldSpaceGarbage(thread, api_callbacks, reason);
+      CollectOldSpaceGarbage(thread, reason);
       break;
     }
     default:
@@ -492,10 +487,10 @@ void Heap::CollectGarbage(Space space,
 void Heap::CollectGarbage(Space space) {
   Thread* thread = Thread::Current();
   if (space == kOld) {
-    CollectOldSpaceGarbage(thread, kInvokeApiCallbacks, kOldSpace);
+    CollectOldSpaceGarbage(thread, kOldSpace);
   } else {
     ASSERT(space == kNew);
-    CollectNewSpaceGarbage(thread, kInvokeApiCallbacks, kNewSpace);
+    CollectNewSpaceGarbage(thread, kNewSpace);
   }
 }
 
@@ -505,7 +500,7 @@ void Heap::CollectAllGarbage() {
   // New space is evacuated so this GC will collect all dead objects
   // kept alive by a cross-generational pointer.
   EvacuateNewSpace(thread, kFull);
-  CollectOldSpaceGarbage(thread, kInvokeApiCallbacks, kFull);
+  CollectOldSpaceGarbage(thread, kFull);
 }
 
 void Heap::WaitForSweeperTasks(Thread* thread) {

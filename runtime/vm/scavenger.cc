@@ -372,10 +372,7 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
   }
 }
 
-SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
-  if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
-    (isolate->gc_prologue_callback())();
-  }
+SemiSpace* Scavenger::Prologue(Isolate* isolate) {
   isolate->PrepareForGC();
 
   // Flip the two semi-spaces so that to_ is always the space for allocating
@@ -399,9 +396,7 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   return from;
 }
 
-void Scavenger::Epilogue(Isolate* isolate,
-                         SemiSpace* from,
-                         bool invoke_api_callbacks) {
+void Scavenger::Epilogue(Isolate* isolate, SemiSpace* from) {
   // All objects in the to space have been copied from the from space at this
   // moment.
 
@@ -441,9 +436,6 @@ void Scavenger::Epilogue(Isolate* isolate,
   UpdateMaxHeapUsage();
   if (heap_ != NULL) {
     heap_->UpdateGlobalMaxUsed();
-  }
-  if (invoke_api_callbacks && (isolate->gc_epilogue_callback() != NULL)) {
-    (isolate->gc_epilogue_callback())();
   }
 }
 
@@ -795,12 +787,6 @@ RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
 }
 
 void Scavenger::Scavenge() {
-  // TODO(cshapiro): Add a decision procedure for determining when the
-  // the API callbacks should be invoked.
-  Scavenge(false);
-}
-
-void Scavenger::Scavenge(bool invoke_api_callbacks) {
   Isolate* isolate = heap_->isolate();
   // Ensure that all threads for this isolate are at a safepoint (either stopped
   // or in native code). If two threads are racing at this point, the loser
@@ -838,7 +824,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words =
       (survivor_end_ - FirstObjectStart()) / kWordSize;
-  SemiSpace* from = Prologue(isolate, invoke_api_callbacks);
+  SemiSpace* from = Prologue(isolate);
   // The API prologue/epilogue may create/destroy zones, so we must not
   // depend on zone allocations surviving beyond the epilogue callback.
   {
@@ -866,7 +852,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
         start, end, usage_before, GetCurrentUsage(), promo_candidate_words,
         visitor.bytes_promoted() >> kWordSizeLog2));
   }
-  Epilogue(isolate, from, invoke_api_callbacks);
+  Epilogue(isolate, from);
 
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_after_gc && !FLAG_concurrent_sweep) {

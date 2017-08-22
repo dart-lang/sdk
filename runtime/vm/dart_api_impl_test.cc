@@ -1231,9 +1231,8 @@ TEST_CASE(DartAPI_MalformedStringToUTF8) {
 // perturb the test.
 class GCTestHelper : public AllStatic {
  public:
-  static void CollectNewSpace(Heap::ApiCallbacks api_callbacks) {
-    bool invoke_api_callbacks = (api_callbacks == Heap::kInvokeApiCallbacks);
-    Isolate::Current()->heap()->new_space()->Scavenge(invoke_api_callbacks);
+  static void CollectNewSpace() {
+    Isolate::Current()->heap()->new_space()->Scavenge();
   }
 
   static void WaitForGCTasks() {
@@ -2685,7 +2684,7 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
     {
       TransitionNativeToVM transition(thread);
       // Garbage collect new space.
-      GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+      GCTestHelper::CollectNewSpace();
     }
 
     // Nothing should be invalidated or cleared.
@@ -2729,7 +2728,7 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
   {
     TransitionNativeToVM transition(thread);
     // Garbage collect new space again.
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::CollectNewSpace();
     GCTestHelper::WaitForGCTasks();
   }
 
@@ -2808,7 +2807,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleCallback) {
     TransitionNativeToVM transition(thread);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
     EXPECT(peer == 0);
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::CollectNewSpace();
     GCTestHelper::WaitForGCTasks();
     EXPECT(peer == 42);
   }
@@ -2834,7 +2833,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleNoCallback) {
     TransitionNativeToVM transition(thread);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
     EXPECT(peer == 0);
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::CollectNewSpace();
     GCTestHelper::WaitForGCTasks();
     EXPECT(peer == 0);
   }
@@ -2886,8 +2885,8 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSize) {
     EXPECT(heap->ExternalInWords(Heap::kNew) ==
            (kWeak1ExternalSize + kWeak2ExternalSize) / kWordSize);
     // Collect weakly referenced string, and promote strongly referenced string.
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::CollectNewSpace();
+    GCTestHelper::CollectNewSpace();
     GCTestHelper::WaitForGCTasks();
     EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
     EXPECT(heap->ExternalInWords(Heap::kOld) == kWeak2ExternalSize / kWordSize);
@@ -3078,7 +3077,7 @@ TEST_CASE(DartAPI_ImplicitReferencesOldSpace) {
 
   {
     TransitionNativeToVM transition(thread);
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::CollectNewSpace();
   }
 
   {
@@ -3153,165 +3152,6 @@ TEST_CASE(DartAPI_ImplicitReferencesNewSpace) {
     EXPECT(!Dart_IsNull(AsHandle(weak2)));
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
     Dart_ExitScope();
-  }
-}
-
-static int global_prologue_callback_status;
-
-static void PrologueCallbackTimes2() {
-  global_prologue_callback_status *= 2;
-}
-
-static void PrologueCallbackTimes3() {
-  global_prologue_callback_status *= 3;
-}
-
-static int global_epilogue_callback_status;
-
-static void EpilogueCallbackNOP() {}
-
-static void EpilogueCallbackTimes4() {
-  global_epilogue_callback_status *= 4;
-}
-
-static void EpilogueCallbackTimes5() {
-  global_epilogue_callback_status *= 5;
-}
-
-TEST_CASE(DartAPI_SetGarbageCollectionCallbacks) {
-  // GC callback addition testing.
-
-  // Add GC callbacks.
-  EXPECT_VALID(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes2, &EpilogueCallbackTimes4));
-
-  // Add the same callbacks again.  This is an error.
-  EXPECT(Dart_IsError(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes2, &EpilogueCallbackTimes4)));
-
-  // Add another callback. This is an error.
-  EXPECT(Dart_IsError(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes3, &EpilogueCallbackTimes5)));
-
-  // GC callback removal testing.
-
-  // Remove GC callbacks.
-  EXPECT_VALID(Dart_SetGcCallbacks(NULL, NULL));
-
-  // Remove GC callbacks whennone exist.  This is an error.
-  EXPECT(Dart_IsError(Dart_SetGcCallbacks(NULL, NULL)));
-
-  EXPECT_VALID(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes2, &EpilogueCallbackTimes4));
-  EXPECT(Dart_IsError(Dart_SetGcCallbacks(&PrologueCallbackTimes2, NULL)));
-  EXPECT(Dart_IsError(Dart_SetGcCallbacks(NULL, &EpilogueCallbackTimes4)));
-}
-
-TEST_CASE(DartAPI_SingleGarbageCollectionCallback) {
-  // Add a prologue callback.
-  EXPECT_VALID(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes2, &EpilogueCallbackNOP));
-
-  {
-    TransitionNativeToVM transition(thread);
-
-    // Garbage collect new space ignoring callbacks.  This should not
-    // invoke the prologue callback.  No status values should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-    EXPECT_EQ(3, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-
-    // Garbage collect new space invoking callbacks.  This should
-    // invoke the prologue callback.  No status values should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
-    EXPECT_EQ(6, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-
-    // Garbage collect old space ignoring callbacks.  This should invoke
-    // the prologue callback.  The prologue status value should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    Isolate::Current()->heap()->CollectGarbage(
-        Heap::kOld, Heap::kIgnoreApiCallbacks, Heap::kGCTestCase);
-    EXPECT_EQ(3, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-
-    // Garbage collect old space.  This should invoke the prologue
-    // callback.  The prologue status value should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    EXPECT_EQ(6, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-
-    // Garbage collect old space again.  Callbacks are persistent so the
-    // prologue status value should change again.
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    EXPECT_EQ(12, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-  }
-
-  // Add an epilogue callback.
-  EXPECT_VALID(Dart_SetGcCallbacks(NULL, NULL));
-  EXPECT_VALID(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes2, &EpilogueCallbackTimes4));
-
-  {
-    TransitionNativeToVM transition(thread);
-    // Garbage collect new space.  This should not invoke the prologue
-    // or the epilogue callback.  No status values should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-    EXPECT_EQ(3, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-
-    // Garbage collect new space.  This should invoke the prologue and
-    // the epilogue callback.  The prologue and epilogue status values
-    // should change.
-    GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
-    EXPECT_EQ(6, global_prologue_callback_status);
-    EXPECT_EQ(28, global_epilogue_callback_status);
-
-    // Garbage collect old space.  This should invoke the prologue and
-    // the epilogue callbacks.  The prologue and epilogue status values
-    // should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    EXPECT_EQ(6, global_prologue_callback_status);
-    EXPECT_EQ(28, global_epilogue_callback_status);
-
-    // Garbage collect old space again without invoking callbacks.
-    // Nothing should change.
-    Isolate::Current()->heap()->CollectGarbage(
-        Heap::kOld, Heap::kIgnoreApiCallbacks, Heap::kGCTestCase);
-    EXPECT_EQ(6, global_prologue_callback_status);
-    EXPECT_EQ(28, global_epilogue_callback_status);
-
-    // Garbage collect old space again.  Callbacks are persistent so the
-    // prologue and epilogue status values should change again.
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    EXPECT_EQ(12, global_prologue_callback_status);
-    EXPECT_EQ(112, global_epilogue_callback_status);
-  }
-
-  // Remove the prologue and epilogue callbacks
-  EXPECT_VALID(Dart_SetGcCallbacks(NULL, NULL));
-
-  {
-    TransitionNativeToVM transition(thread);
-    // Garbage collect old space.  No callbacks should be invoked.  No
-    // status values should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    EXPECT_EQ(3, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
   }
 }
 

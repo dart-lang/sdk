@@ -1022,48 +1022,6 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
   state->weak_persistent_handles().FreeHandle(weak_ref);
 }
 
-// --- Garbage Collection Callbacks --
-
-DART_EXPORT Dart_Handle
-Dart_SetGcCallbacks(Dart_GcPrologueCallback prologue_callback,
-                    Dart_GcEpilogueCallback epilogue_callback) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  CHECK_ISOLATE(isolate);
-  DARTSCOPE(thread);
-  if (prologue_callback != NULL) {
-    if (isolate->gc_prologue_callback() != NULL) {
-      return Api::NewError(
-          "%s permits only one gc prologue callback to be registered, please "
-          "remove the existing callback and then add this callback",
-          CURRENT_FUNC);
-    }
-  } else {
-    if (isolate->gc_prologue_callback() == NULL) {
-      return Api::NewError(
-          "%s expects 'prologue_callback' to be present in the callback set.",
-          CURRENT_FUNC);
-    }
-  }
-  if (epilogue_callback != NULL) {
-    if (isolate->gc_epilogue_callback() != NULL) {
-      return Api::NewError(
-          "%s permits only one gc epilogue callback to be registered, please "
-          "remove the existing callback and then add this callback",
-          CURRENT_FUNC);
-    }
-  } else {
-    if (isolate->gc_epilogue_callback() == NULL) {
-      return Api::NewError(
-          "%s expects 'epilogue_callback' to be present in the callback set.",
-          CURRENT_FUNC);
-    }
-  }
-  isolate->set_gc_prologue_callback(prologue_callback);
-  isolate->set_gc_epilogue_callback(epilogue_callback);
-  return Api::Success();
-}
-
 // --- Initialization and Globals ---
 
 DART_EXPORT const char* Dart_VersionString() {

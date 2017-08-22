@@ -447,20 +447,13 @@ class MarkingWeakVisitor : public HandleVisitor {
   DISALLOW_COPY_AND_ASSIGN(MarkingWeakVisitor);
 };
 
-void GCMarker::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
-  if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
-    (isolate->gc_prologue_callback())();
-  }
+void GCMarker::Prologue(Isolate* isolate) {
   isolate->PrepareForGC();
   // The store buffers will be rebuilt as part of marking, reset them now.
   isolate->store_buffer()->Reset();
 }
 
-void GCMarker::Epilogue(Isolate* isolate, bool invoke_api_callbacks) {
-  if (invoke_api_callbacks && (isolate->gc_epilogue_callback() != NULL)) {
-    (isolate->gc_epilogue_callback())();
-  }
-}
+void GCMarker::Epilogue(Isolate* isolate) {}
 
 void GCMarker::IterateRoots(Isolate* isolate,
                             ObjectPointerVisitor* visitor,
@@ -677,9 +670,8 @@ void GCMarker::FinalizeResultsFrom(MarkingVisitorType* visitor) {
 
 void GCMarker::MarkObjects(Isolate* isolate,
                            PageSpace* page_space,
-                           bool invoke_api_callbacks,
                            bool collect_code) {
-  Prologue(isolate, invoke_api_callbacks);
+  Prologue(isolate);
   // The API prologue/epilogue may create/destroy zones, so we must not
   // depend on zone allocations surviving beyond the epilogue callback.
   {
@@ -752,7 +744,7 @@ void GCMarker::MarkObjects(Isolate* isolate,
     ProcessWeakTables(page_space);
     ProcessObjectIdTable(isolate);
   }
-  Epilogue(isolate, invoke_api_callbacks);
+  Epilogue(isolate);
 }
 
 }  // namespace dart
