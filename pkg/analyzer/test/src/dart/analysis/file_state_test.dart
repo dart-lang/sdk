@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -503,43 +502,6 @@ part 'not-a2.dart';
 
     expect(fileSystemState.hasUri(templatePath), isFalse);
     expect(fileSystemState.hasUri(generatedPath), isTrue);
-  }
-
-  test_knownFilesSetChanges() async {
-    fileSystemState.test.knownFilesDelay = new Duration(milliseconds: 5);
-
-    String a = _p('/test/lib/a.dart');
-    String b = _p('/test/lib/b.dart');
-    String c = _p('/test/lib/c.dart');
-    provider.newFile(a, r'''
-import 'b.dart';
-''');
-    provider.newFile(b, '');
-    provider.newFile(c, '');
-
-    Stream<KnownFilesSetChange> broadcastEvents =
-        fileSystemState.knownFilesSetChanges.asBroadcastStream();
-
-    FileState file = fileSystemState.getFileForPath(a);
-    {
-      KnownFilesSetChange event = await broadcastEvents.first;
-      expect(event.added, contains(a));
-      expect(event.added, contains(b));
-      expect(event.removed, isEmpty);
-    }
-
-    // Update a.dart to import c.dart and refresh.
-    // So, c.dart should be reported as added in the next change event.
-    provider.newFile(a, r'''
-import 'b.dart';
-import 'c.dart';
-''');
-    file.refresh();
-    {
-      KnownFilesSetChange event = await broadcastEvents.first;
-      expect(event.added, contains(c));
-      expect(event.removed, isEmpty);
-    }
   }
 
   test_referencedNames() {
