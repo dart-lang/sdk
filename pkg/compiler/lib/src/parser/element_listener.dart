@@ -552,6 +552,8 @@ class ElementListener extends Listener {
     switch (message.code.dart2jsCode) {
       case "MISSING_TOKEN_BEFORE_THIS":
         String expected = arguments["string"];
+        // TODO(danrubel) This functionality is being replaced by
+        // the parser's ensureSemicolon method.
         if (identical(";", expected)) {
           // When a semicolon is missing, it often leads to an error on the
           // following line. So we try to find the token preceding the semicolon

@@ -2647,9 +2647,32 @@ class Foo {
     CompilationUnit unit = parseCompilationUnit(
         "export '' class A {}", [ParserErrorCode.EXPECTED_TOKEN]);
     ExportDirective directive = unit.directives[0] as ExportDirective;
+    expect(directive.uri, isNotNull);
+    expect(directive.uri.stringValue, '');
+    expect(directive.uri.beginToken.isSynthetic, false);
+    expect(directive.uri.isSynthetic, false);
     Token semicolon = directive.semicolon;
     expect(semicolon, isNotNull);
     expect(semicolon.isSynthetic, isTrue);
+    ClassDeclaration clazz = unit.declarations[0] as ClassDeclaration;
+    expect(clazz.name.name, 'A');
+  }
+
+  void test_expectedToken_uriAndSemicolonMissingAfterExport() {
+    CompilationUnit unit = parseCompilationUnit("export class A {}", [
+      ParserErrorCode.EXPECTED_STRING_LITERAL,
+      ParserErrorCode.EXPECTED_TOKEN,
+    ]);
+    ExportDirective directive = unit.directives[0] as ExportDirective;
+    expect(directive.uri, isNotNull);
+    expect(directive.uri.stringValue, '');
+    expect(directive.uri.beginToken.isSynthetic, true);
+    expect(directive.uri.isSynthetic, true);
+    Token semicolon = directive.semicolon;
+    expect(semicolon, isNotNull);
+    expect(semicolon.isSynthetic, isTrue);
+    ClassDeclaration clazz = unit.declarations[0] as ClassDeclaration;
+    expect(clazz.name.name, 'A');
   }
 
   void test_expectedToken_semicolonMissingAfterExpression() {

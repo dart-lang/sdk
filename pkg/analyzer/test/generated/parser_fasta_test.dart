@@ -635,12 +635,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_expectedToken_semicolonMissingAfterExport() {
-    super.test_expectedToken_semicolonMissingAfterExport();
-  }
-
-  @override
-  @failingTest
   void test_expectedToken_semicolonMissingAfterExpression() {
     super.test_expectedToken_semicolonMissingAfterExpression();
   }
@@ -2375,8 +2369,7 @@ class FastaParserTestCase extends Object
   @override
   ConstructorInitializer parseConstructorInitializer(String code) {
     String source = 'class __Test { __Test() : $code; }';
-    var unit =
-        _runParser(source, (parser) => parser.parseUnit) as CompilationUnit;
+    var unit = _runParser(source, null) as CompilationUnit;
     var clazz = unit.declarations[0] as ClassDeclaration;
     var constructor = clazz.members[0] as ConstructorDeclaration;
     return constructor.initializers.single;
@@ -2385,7 +2378,7 @@ class FastaParserTestCase extends Object
   @override
   CompilationUnit parseDirectives(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    return _runParser(source, (parser) => parser.parseUnit, errorCodes);
+    return _runParser(source, null, errorCodes);
   }
 
   @override
@@ -2814,7 +2807,7 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   CompilationUnit parseCompilationUnit2() {
-    var result = _run((parser) => parser.parseUnit) as CompilationUnit;
+    var result = _run(null) as CompilationUnit;
     _eventListener.expectEmpty();
     return result;
   }
@@ -2837,7 +2830,14 @@ class ParserProxy implements analyzer.Parser {
    * Runs a single parser function, and returns the result as an analyzer AST.
    */
   Object _run(ParseFunction getParseFunction(fasta.Parser parser)) {
-    var parseFunction = getParseFunction(_fastaParser);
+    ParseFunction parseFunction;
+    if (getParseFunction != null) {
+      parseFunction = getParseFunction(_fastaParser);
+      _fastaParser.firstToken = _currentFastaToken;
+    } else {
+      parseFunction = _fastaParser.parseUnit;
+      // firstToken should be set by beginCompilationUnit event.
+    }
     _currentFastaToken = parseFunction(_currentFastaToken);
     expect(_currentFastaToken.isEof, isTrue);
     expect(_astBuilder.stack, hasLength(1));

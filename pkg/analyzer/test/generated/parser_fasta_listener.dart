@@ -59,6 +59,9 @@ class ForwardingTestListener implements fasta.Listener {
   ForwardingTestListener(this.listener);
 
   @override
+  Uri get uri => listener.uri;
+
+  @override
   void beginArguments(Token token) {
     listener.beginArguments(token);
     begin('Arguments');
@@ -1549,8 +1552,4 @@ class ForwardingTestListener implements fasta.Listener {
     listener.suppressParseErrors = value;
     // TODO(danrubel): implement suppressParseErrors
   }
-
-  // TODO(danrubel): implement uri
-  @override
-  Uri get uri => listener.uri;
 }

@@ -1924,15 +1924,20 @@ class AstBuilder extends ScopeListener {
             ParserErrorCode.EXPECTED_STRING_LITERAL, charOffset, 1);
         return;
       case "UNEXPECTED_TOKEN":
-        var text = arguments['string'];
+        String text = arguments['string'];
         if (text == null) {
           Token token = arguments['token'];
           if (token != null) {
             text = token.lexeme;
           }
         }
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.UNEXPECTED_TOKEN, charOffset, 1, [text]);
+        if (text == ';') {
+          errorReporter?.reportErrorForOffset(
+              ParserErrorCode.EXPECTED_TOKEN, charOffset, text.length, [text]);
+        } else {
+          errorReporter?.reportErrorForOffset(
+              ParserErrorCode.UNEXPECTED_TOKEN, charOffset, 1, [text]);
+        }
         return;
       default:
       // fall through
