@@ -1625,6 +1625,34 @@ memory-dashboard {
   margin-top: -30px;
 }
 
+memory-dashboard button:disabled,
+memory-dashboard button:disabled:hover {
+  text-decoration: none;
+  background-color: #eee;
+  background-image: linear-gradient(#eee, #eee);
+  border: 1px solid #eee;
+  border-radius: 2px;
+  cursor: default;
+}
+
+
+memory-dashboard button,
+memory-dashboard button:active {
+  text-decoration: none;
+  background-color: #ddd;
+  background-image: linear-gradient(#eee, #ddd);
+  border: 1px solid #d5d5d5;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+memory-dashboard button:hover {
+  text-decoration: none;
+  background-color: #ccc;
+  background-image: linear-gradient(#ddd, #ccc);
+  border-color: #c7c7c7;
+}
+
 memory-dashboard memory-graph {
   height: 350px;
 }
@@ -1760,22 +1788,42 @@ memory-allocations .collection-item > button,
 memory-allocations .collection-item > button:active,
 memory-allocations .collection-item .group button,
 memory-allocations .collection-item .group button:active {
-  background-color: transparent;
+  background: transparent;
   color: #0489c3;
-  border-style: none;
+  border: 0px none;
+  border-radius: 0px;
+  padding: 0;
 }
 
 memory-allocations .collection-item > button:hover,
 memory-allocations .collection-item .group button:hover {
   text-decoration: underline;
+  border-radius: 0px;
 }
 
 /* memory-profile */
 
-memory-profile .tab_button {
-  float: right;
-  padding: 10px 5px;
+memory-profile .header_button {
+  padding: 3px 5px;
   margin: 0px 1px;
+}
+
+memory-profile .tab_buttons {
+  float: right;
+}
+
+memory-profile .tab_buttons button {
+  padding: 10px 5px;
+}
+
+memory-profile .tab_buttons button:not(:first-child) {
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+}
+
+memory-profile .tab_buttons button:not(:last-child) {
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
 }
 
 /* memory-snapshot */
@@ -2528,7 +2576,7 @@ virtual-collection .viewport {
   top: 0;
   bottom: 0;
   right: 0;
-  left: 0;  
+  left: 0;
 }
 
 virtual-collection .header {
@@ -2569,14 +2617,17 @@ virtual-collection .buffer > div {
 
 /* virtual-tree */
 
-virtual-tree .expander {
+virtual-tree .expander,
+virtual-tree .expander:hover,
+virtual-tree .expander:active {
   display: inline-block;
   text-align: center;
   font-weight: bold;
   font-size: 18px;
   width: 19px;
-  border: none;
-  background-color: transparent;
+  border: 0px none;
+  background: transparent;
+  padding: 0;
 }
 
 virtual-tree .expander:focus {

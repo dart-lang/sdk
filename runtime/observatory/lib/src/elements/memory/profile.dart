@@ -116,8 +116,8 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
             ..children = [
               new Text("Isolate ${_isolate.name}"),
               bReload
-                ..classes = ['link', 'big']
-                ..text = ' ↺ '
+                ..classes = ['header_button']
+                ..text = ' ↺ Refresh'
                 ..title = 'Refresh'
                 ..onClick.listen((e) async {
                   bReload.disabled = true;
@@ -127,8 +127,8 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
                   bGC.disabled = false;
                 }),
               bGC
-                ..classes = ['link', 'big']
-                ..text = ' ♺ '
+                ..classes = ['header_button']
+                ..text = ' ♺ Collect Garbage'
                 ..title = 'Collect Garbage'
                 ..onClick.listen((e) async {
                   bGC.disabled = true;
@@ -137,22 +137,24 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
                   bGC.disabled = false;
                   bReload.disabled = false;
                 }),
-              new ButtonElement()
-                ..classes = ['tab_button']
-                ..text = 'Dominator Tree'
-                ..disabled = _analysis == _Analysis.dominatorTree
-                ..onClick.listen((_) {
-                  _analysis = _Analysis.dominatorTree;
-                  _r.dirty();
-                }),
-              new ButtonElement()
-                ..classes = ['tab_button']
-                ..text = 'Allocations'
-                ..disabled = _analysis == _Analysis.allocations
-                ..onClick.listen((_) {
-                  _analysis = _Analysis.allocations;
-                  _r.dirty();
-                }),
+              new SpanElement()
+                ..classes = ['tab_buttons']
+                ..children = [
+                  new ButtonElement()
+                    ..text = 'Allocations'
+                    ..disabled = _analysis == _Analysis.allocations
+                    ..onClick.listen((_) {
+                      _analysis = _Analysis.allocations;
+                      _r.dirty();
+                    }),
+                  new ButtonElement()
+                    ..text = 'Dominator Tree'
+                    ..disabled = _analysis == _Analysis.dominatorTree
+                    ..onClick.listen((_) {
+                      _analysis = _Analysis.dominatorTree;
+                      _r.dirty();
+                    }),
+                ]
             ],
         ],
       current

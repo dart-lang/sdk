@@ -171,7 +171,7 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
             ..children = [
               new Text('Since Last '),
               resetAccumulators
-                ..text = 'Reset↺'
+                ..text = 'Reset'
                 ..title = 'Reset'
                 ..onClick.listen((_) async {
                   resetAccumulators.disabled = true;
