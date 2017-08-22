@@ -431,15 +431,17 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
   if (BeginNewSpaceGC(thread)) {
     bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kNew, reason);
-    VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
-    TIMELINE_FUNCTION_GC_DURATION(thread, "CollectNewGeneration");
-    NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kNew));
-    new_space_.Scavenge(invoke_api_callbacks);
-    NOT_IN_PRODUCT(isolate()->class_table()->UpdatePromoted());
-    RecordAfterGC(kNew);
-    PrintStats();
-    NOT_IN_PRODUCT(PrintStatsToTimeline(&tds));
-    EndNewSpaceGC();
+    {
+      VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
+      TIMELINE_FUNCTION_GC_DURATION(thread, "CollectNewGeneration");
+      NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kNew));
+      new_space_.Scavenge(invoke_api_callbacks);
+      NOT_IN_PRODUCT(isolate()->class_table()->UpdatePromoted());
+      RecordAfterGC(kNew);
+      PrintStats();
+      NOT_IN_PRODUCT(PrintStatsToTimeline(&tds));
+      EndNewSpaceGC();
+    }
     if ((reason == kNewSpace) && old_space_.NeedsGarbageCollection()) {
       // Old collections should call the API callbacks.
       CollectOldSpaceGarbage(thread, kInvokeApiCallbacks, kPromotion);
