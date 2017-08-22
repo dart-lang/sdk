@@ -421,7 +421,6 @@ cc/Service_TokenStream: Fail
 cc/InjectNativeFields1: Crash
 cc/InjectNativeFields3: Crash
 cc/Service_TokenStream: Crash
-cc/IsolateReload_KernelIncrementalCompileAppAndLib: Crash # Issue 30420
 
 [ ($compiler == dartk) && ($runtime == vm) && ($system == macos) ]
 cc/IsolateReload_DanglingGetter_Class: Crash

@@ -284,6 +284,12 @@ class TranslationHelper {
 
   intptr_t StringOffset(StringIndex index) const;
   intptr_t StringSize(StringIndex index) const;
+
+  // The address of the backing store of the string with a given index.  If the
+  // backing store is in the VM's heap this address is not safe for GC (call the
+  // function and use the result within a NoSafepointScope).
+  uint8_t* StringBuffer(StringIndex index) const;
+
   uint8_t CharacterAt(StringIndex string_index, intptr_t index);
   bool StringEquals(StringIndex string_index, const char* other);
 

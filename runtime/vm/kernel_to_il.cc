@@ -136,13 +136,26 @@ uint8_t TranslationHelper::CharacterAt(StringIndex string_index,
   return string_data_.GetUint8(StringOffset(string_index) + index);
 }
 
+uint8_t* TranslationHelper::StringBuffer(StringIndex string_index) const {
+  // Though this implementation appears like it could be replaced by
+  // string_data_.DataAddr(StringOffset(string_index)), it can't quite.  If the
+  // last string in the string table is a zero length string, then the latter
+  // expression will try to return the address that is one past the backing
+  // store of the string_data_ table.  Though this is safe in C++ as long as the
+  // address is not dereferenced, it will trigger the assert in
+  // TypedData::DataAddr.
+  ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
+  return reinterpret_cast<uint8_t*>(string_data_.DataAddr(0)) +
+         StringOffset(string_index);
+}
+
 bool TranslationHelper::StringEquals(StringIndex string_index,
                                      const char* other) {
-  NoSafepointScope no_safepoint;
   intptr_t length = strlen(other);
-  return (length == StringSize(string_index)) &&
-         (memcmp(string_data_.DataAddr(StringOffset(string_index)), other,
-                 length) == 0);
+  if (length != StringSize(string_index)) return false;
+
+  NoSafepointScope no_safepoint;
+  return memcmp(StringBuffer(string_index), other, length) == 0;
 }
 
 NameIndex TranslationHelper::CanonicalNameParent(NameIndex name) {
@@ -311,7 +324,7 @@ String& TranslationHelper::DartString(StringIndex string_index,
   uint8_t* buffer = Z->Alloc<uint8_t>(length);
   {
     NoSafepointScope no_safepoint;
-    memmove(buffer, string_data_.DataAddr(StringOffset(string_index)), length);
+    memmove(buffer, StringBuffer(string_index), length);
   }
   return String::ZoneHandle(Z, String::FromUTF8(buffer, length, space));
 }
@@ -331,7 +344,7 @@ String& TranslationHelper::DartSymbol(StringIndex string_index) const {
   uint8_t* buffer = Z->Alloc<uint8_t>(length);
   {
     NoSafepointScope no_safepoint;
-    memmove(buffer, string_data_.DataAddr(StringOffset(string_index)), length);
+    memmove(buffer, StringBuffer(string_index), length);
   }
   return String::ZoneHandle(Z, Symbols::FromUTF8(thread_, buffer, length));
 }
@@ -388,7 +401,7 @@ const String& TranslationHelper::DartSetterName(NameIndex parent,
   uint8_t* buffer = Z->Alloc<uint8_t>(size);
   {
     NoSafepointScope no_safepoint;
-    memmove(buffer, string_data_.DataAddr(StringOffset(setter)), size);
+    memmove(buffer, StringBuffer(setter), size);
   }
   String& name =
       String::ZoneHandle(Z, String::FromUTF8(buffer, size, allocation_space_));
