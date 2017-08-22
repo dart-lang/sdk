@@ -427,15 +427,6 @@ bool BinaryIntegerOpInstr::AttributesEqual(Instruction* other) const {
          (is_truncating() == other_op->is_truncating());
 }
 
-EffectSet LoadFieldInstr::Dependencies() const {
-  if (immutable_) {
-    return EffectSet::None();
-  } else {
-    UNREACHABLE();  // TODO(dartbug.com/30474): cleanup
-    return EffectSet::All();
-  }
-}
-
 bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
   LoadFieldInstr* other_load = other->AsLoadField();
   ASSERT(other_load != NULL);
@@ -456,15 +447,6 @@ Instruction* InitStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   // because the field will be reset so it starts uninitialized in the process
   // running the precompiled code. We must be prepared to reinitialize fields.
   return is_initialized && !FLAG_fields_may_be_reset ? NULL : this;
-}
-
-EffectSet LoadStaticFieldInstr::Dependencies() const {
-  if (StaticField().is_final() && !FLAG_fields_may_be_reset) {
-    return EffectSet::None();
-  } else {
-    UNREACHABLE();  // TODO(dartbug.com/30474): cleanup
-    return EffectSet::All();
-  }
 }
 
 bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {

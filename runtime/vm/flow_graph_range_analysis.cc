@@ -473,9 +473,7 @@ const Range* RangeAnalysis::GetIntRange(Value* value) const {
 static bool AreEqualDefinitions(Definition* a, Definition* b) {
   a = UnwrapConstraint(a);
   b = UnwrapConstraint(b);
-  return (a == b) ||
-         (a->AllowsCSE() && a->Dependencies().IsNone() && b->AllowsCSE() &&
-          b->Dependencies().IsNone() && a->Equals(b));
+  return (a == b) || (a->AllowsCSE() && b->AllowsCSE() && a->Equals(b));
 }
 
 static bool DependOnSameSymbol(const RangeBoundary& a, const RangeBoundary& b) {

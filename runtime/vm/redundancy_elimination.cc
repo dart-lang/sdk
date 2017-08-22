@@ -31,13 +31,11 @@ class CSEInstructionMap : public ValueObject {
 
   Instruction* Lookup(Instruction* other) const {
     ASSERT(other->AllowsCSE());
-    ASSERT(other->Dependencies().IsNone());
     return map_.LookupValue(other);
   }
 
   void Insert(Instruction* instr) {
     ASSERT(instr->AllowsCSE());
-    ASSERT(instr->Dependencies().IsNone());
     return map_.Insert(instr);
   }
 
@@ -1365,8 +1363,6 @@ void LICM::Optimize() {
   ZoneGrowableArray<BitVector*>* loop_invariant_loads =
       flow_graph()->loop_invariant_loads();
 
-  BlockEffects* block_effects = flow_graph()->block_effects();
-
   for (intptr_t i = 0; i < loop_headers.length(); ++i) {
     BlockEntryInstr* header = loop_headers[i];
     // Skip loop that don't have a pre-header block.
@@ -1378,8 +1374,7 @@ void LICM::Optimize() {
       BlockEntryInstr* block = flow_graph()->preorder()[loop_it.Current()];
       for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
         Instruction* current = it.Current();
-        if ((current->AllowsCSE() &&
-             block_effects->CanBeMovedTo(current, pre_header)) ||
+        if (current->AllowsCSE() ||
             IsLoopInvariantLoad(loop_invariant_loads, i, current)) {
           bool inputs_loop_invariant = true;
           for (int i = 0; i < current->InputCount(); ++i) {
@@ -2091,8 +2086,7 @@ class LoadOptimizer : public ValueObject {
   bool CanBeCongruent(Definition* a, Definition* b) {
     return (a->tag() == b->tag()) &&
            ((a->IsPhi() && (a->GetBlock() == b->GetBlock())) ||
-            (a->AllowsCSE() && a->Dependencies().IsNone() &&
-             a->AttributesEqual(b)));
+            (a->AllowsCSE() && a->AttributesEqual(b)));
   }
 
   // Given two definitions check if they are congruent under assumption that
@@ -2334,21 +2328,15 @@ bool DominatorBasedCSE::OptimizeRecursive(FlowGraph* graph,
     Instruction* current = it.Current();
     if (current->AllowsCSE()) {
       Instruction* replacement = map->Lookup(current);
-      ASSERT((replacement == NULL) || replacement->AllowsCSE());
-      if ((replacement != NULL) &&
-          graph->block_effects()->IsAvailableAt(replacement, block)) {
+
+      if (replacement != NULL) {
         // Replace current with lookup result.
+        ASSERT(replacement->AllowsCSE());
         graph->ReplaceCurrentInstruction(&it, current, replacement);
         changed = true;
         continue;
       }
 
-      // For simplicity we assume that instruction either does not depend on
-      // anything or does not affect anything. If this is not the case then
-      // we should first remove affected instructions from the map and
-      // then add instruction to the map so that it does not kill itself.
-      ASSERT(!current->HasUnknownSideEffects() ||
-             current->Dependencies().IsNone());
       map->Insert(current);
     }
   }

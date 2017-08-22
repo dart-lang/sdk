@@ -14,7 +14,6 @@
 
 namespace dart {
 
-class BlockEffects;
 class FlowGraphBuilder;
 class ValueInliningContext;
 class VariableLivenessAnalysis;
@@ -208,11 +207,6 @@ class FlowGraph : public ZoneAllocated {
 
   void MergeBlocks();
 
-  // Compute information about effects occurring in different blocks and
-  // discover side-effect free paths.
-  void ComputeBlockEffects();
-  BlockEffects* block_effects() const { return block_effects_; }
-
   // Insert a redefinition of an original definition after prev and rename all
   // dominated uses of the original.  If an equivalent redefinition is already
   // present, nothing is inserted.
@@ -405,7 +399,6 @@ class FlowGraph : public ZoneAllocated {
   ConstantInstr* constant_dead_;
   ConstantInstr* constant_empty_context_;
 
-  BlockEffects* block_effects_;
   bool licm_allowed_;
 
   ZoneGrowableArray<BlockEntryInstr*>* loop_headers_;
@@ -490,33 +483,6 @@ class LivenessAnalysis : public ValueObject {
   // Live-in sets for each block.  They contain indices of variables
   // that are used by this block or its successors.
   GrowableArray<BitVector*> live_in_;
-};
-
-// Information about side effect free paths between blocks.
-class BlockEffects : public ZoneAllocated {
- public:
-  explicit BlockEffects(FlowGraph* flow_graph);
-
-  // Return true if the given instruction is not affected by anything between
-  // its current block and target block. Used by CSE to determine if
-  // a computation is available in the given block.
-  bool IsAvailableAt(Instruction* instr, BlockEntryInstr* block) const;
-
-  // Return true if the given instruction is not affected by anything between
-  // the given block and its current block. Used by LICM to determine if
-  // a computation can be moved to loop's preheader and remain available at
-  // its current location.
-  bool CanBeMovedTo(Instruction* instr, BlockEntryInstr* block) const;
-
- private:
-  // Returns true if from dominates to and all paths between from and to are
-  // free of side effects.
-  bool IsSideEffectFreePath(BlockEntryInstr* from, BlockEntryInstr* to) const;
-
-  // Per block sets of available blocks. Block A is available at the block B if
-  // and only if A dominates B and all paths from A to B are free of side
-  // effects.
-  GrowableArray<BitVector*> available_at_;
 };
 
 class DefinitionWorklist : public ValueObject {

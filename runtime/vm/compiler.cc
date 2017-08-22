@@ -962,10 +962,6 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         {
           NOT_IN_PRODUCT(TimelineDurationScope tds2(
               thread(), compiler_timeline, "CommonSubexpressionElinination"));
-          if (FLAG_common_subexpression_elimination ||
-              FLAG_loop_invariant_code_motion) {
-            flow_graph->ComputeBlockEffects();
-          }
 
           if (FLAG_common_subexpression_elimination) {
             if (DominatorBasedCSE::Optimize(flow_graph)) {
