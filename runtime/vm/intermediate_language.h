@@ -2861,6 +2861,8 @@ class InstanceCallInstr : public TemplateDartCall<0> {
     return ic_data() == NULL ? 0 : ic_data()->AggregateCount();
   }
 
+  virtual CompileType ComputeType() const;
+
   virtual bool ComputeCanDeoptimize() const { return true; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
@@ -6698,6 +6700,8 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
+  virtual CompileType ComputeType() const;
+
   virtual bool HasUnknownSideEffects() const { return true; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
@@ -6729,6 +6733,8 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
   InstanceCallInstr* call() const { return call_; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual CompileType ComputeType() const;
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 

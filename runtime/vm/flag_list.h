@@ -78,6 +78,8 @@
   R(error_on_bad_type, false, bool, false,                                     \
     "Report error for malformed types.")                                       \
   P(experimental_strong_mode, bool, false, "Enable experimental strong mode.") \
+  P(trace_experimental_strong_mode, bool, false,                               \
+    "Trace experimental strong mode.")                                         \
   P(external_max_size, int, (kWordSize <= 4) ? 512 : 1024,                     \
     "Max total size of external allocations in MB, or 0 for unlimited,"        \
     "e.g: --external_max_size=1024 allows up to 1024MB of externals")          \

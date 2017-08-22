@@ -5311,6 +5311,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
       (H.IsGetter(itarget_name) || H.IsField(itarget_name))) {
     interface_target = &Function::ZoneHandle(
         Z, LookupMethodByMember(itarget_name, H.DartGetterName(itarget_name)));
+    ASSERT(getter_name.raw() == interface_target->name());
   }
 
   const intptr_t kTypeArgsLen = 0;
@@ -5342,6 +5343,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name)) {
     interface_target = &Function::ZoneHandle(
         Z, LookupMethodByMember(itarget_name, H.DartSetterName(itarget_name)));
+    ASSERT(setter_name.raw() == interface_target->name());
   }
 
   const intptr_t kTypeArgsLen = 0;
@@ -5573,10 +5575,12 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const Function* interface_target = &Function::null_function();
   NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name)) {
+  if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name) &&
+      !H.IsField(itarget_name)) {
     interface_target = &Function::ZoneHandle(
         Z,
         LookupMethodByMember(itarget_name, H.DartProcedureName(itarget_name)));
+    ASSERT(name.raw() == interface_target->name());
   }
 
   instructions +=
