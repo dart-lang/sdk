@@ -427,13 +427,76 @@ abstract class ServerPlugin {
   void onError(Object exception, StackTrace stackTrace) {}
 
   /**
-   * Send notifications corresponding to the given description of subscriptions.
-   * The map is keyed by the path of each file for which notifications should be
-   * sent and has values representing the list of services associated with the
-   * notifications to send.
+   * If the plugin provides folding information, send a folding notification
+   * for the file with the given [path] to the server.
+   */
+  Future<Null> sendFoldingNotification(String path) {
+    return new Future.value();
+  }
+
+  /**
+   * If the plugin provides highlighting information, send a highlights
+   * notification for the file with the given [path] to the server.
+   */
+  Future<Null> sendHighlightsNotification(String path) {
+    return new Future.value();
+  }
+
+  /**
+   * If the plugin provides navigation information, send a navigation
+   * notification for the file with the given [path] to the server.
+   */
+  Future<Null> sendNavigationNotification(String path) {
+    return new Future.value();
+  }
+
+  /**
+   * Send notifications for the services subscribed to for the file with the
+   * given [path].
+   *
+   * This is a convenience method that subclasses can use to send notifications
+   * after analysis has been performed on a file.
+   */
+  void sendNotificationsForFile(String path) {
+    for (AnalysisService service in subscriptionManager.servicesForFile(path)) {
+      _sendNotificationForFile(path, service);
+    }
+  }
+
+  /**
+   * Send notifications corresponding to the given description of
+   * [subscriptions]. The map is keyed by the path of each file for which
+   * notifications should be sent and has values representing the list of
+   * services associated with the notifications to send.
+   *
+   * This method is used when the set of subscribed notifications has been
+   * changed and notifications need to be sent even when the specified files
+   * have already been analyzed.
    */
   void sendNotificationsForSubscriptions(
-      Map<String, List<AnalysisService>> subscriptions);
+      Map<String, List<AnalysisService>> subscriptions) {
+    subscriptions.forEach((String path, List<AnalysisService> services) {
+      for (AnalysisService service in services) {
+        _sendNotificationForFile(path, service);
+      }
+    });
+  }
+
+  /**
+   * If the plugin provides occurrences information, send an occurrences
+   * notification for the file with the given [path] to the server.
+   */
+  Future<Null> sendOccurrencesNotification(String path) {
+    return new Future.value();
+  }
+
+  /**
+   * If the plugin provides outline information, send an outline notification
+   * for the file with the given [path] to the server.
+   */
+  Future<Null> sendOutlineNotification(String path) {
+    return new Future.value();
+  }
 
   /**
    * Start this plugin by listening to the given communication [channel].
@@ -560,6 +623,30 @@ abstract class ServerPlugin {
     }
     if (response != null) {
       _channel.sendResponse(response);
+    }
+  }
+
+  /**
+   * Send a notification for the file at the given [path] corresponding to the
+   * given [service].
+   */
+  void _sendNotificationForFile(String path, AnalysisService service) {
+    switch (service) {
+      case AnalysisService.FOLDING:
+        sendFoldingNotification(path);
+        break;
+      case AnalysisService.HIGHLIGHTS:
+        sendHighlightsNotification(path);
+        break;
+      case AnalysisService.NAVIGATION:
+        sendNavigationNotification(path);
+        break;
+      case AnalysisService.OCCURRENCES:
+        sendOccurrencesNotification(path);
+        break;
+      case AnalysisService.OUTLINE:
+        sendOutlineNotification(path);
+        break;
     }
   }
 }
