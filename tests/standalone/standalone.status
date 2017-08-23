@@ -350,7 +350,6 @@ io/process_detached_test: Pass, Slow
 io/named_pipe_script_test: RuntimeError
 
 [ $compiler == dartk || $compiler == dartkp ]
-io/file_system_watcher_test: Fail # dartbug.com/30528
 io/http_client_connect_test: Skip # Flaky.
 io/http_content_length_test: Skip # Flaky.
 io/http_proxy_test: Skip # Flaky.
