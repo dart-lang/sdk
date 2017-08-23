@@ -197,10 +197,10 @@ class U44<T> {
       });
     }
     if (tIsInt || tIsBool) {
-      Expect.equals(tIsInt, m0 is F0<int>);
-      Expect.equals(tIsBool, m0 is F0<bool>);
-      Expect.equals(tIsInt, confuse(m0) is F0<int>);
-      Expect.equals(tIsBool, confuse(m0) is F0<bool>);
+      Expect.equals(true, m0 is F0<int>);
+      Expect.equals(true, m0 is F0<bool>);
+      Expect.equals(true, confuse(m0) is F0<int>);
+      Expect.equals(true, confuse(m0) is F0<bool>);
     }
   }
 
@@ -343,10 +343,10 @@ class U44<T> {
       });
     }
     if (tIsInt || tIsBool) {
-      Expect.equals(tIsInt, m4 is F4<int>);
-      Expect.equals(tIsBool, m4 is F4<bool>);
-      Expect.equals(tIsInt, confuse(m4) is F4<int>);
-      Expect.equals(tIsBool, confuse(m4) is F4<bool>);
+      Expect.equals(true, m4 is F4<int>);
+      Expect.equals(true, m4 is F4<bool>);
+      Expect.equals(true, confuse(m4) is F4<int>);
+      Expect.equals(true, confuse(m4) is F4<bool>);
     }
   }
 

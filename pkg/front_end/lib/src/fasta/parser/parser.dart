@@ -20,6 +20,8 @@ import '../../scanner/token.dart'
         EQUALITY_PRECEDENCE,
         POSTFIX_PRECEDENCE,
         RELATIONAL_PRECEDENCE,
+        SyntheticStringToken,
+        SyntheticToken,
         TokenType;
 
 import '../scanner/token.dart' show isUserDefinableOperator;
@@ -67,6 +69,8 @@ import 'identifier_context.dart' show IdentifierContext;
 import 'listener.dart' show Listener;
 
 import 'member_kind.dart' show MemberKind;
+
+import 'token_stream_rewriter.dart';
 
 import 'type_continuation.dart'
     show TypeContinuation, typeContiunationFromFormalParameterKind;
@@ -208,6 +212,24 @@ class Parser {
   /// external clients, for example, to parse an expression outside a function.
   AsyncModifier asyncState = AsyncModifier.Sync;
 
+  /// The first token in the parse stream and used during parser recovery.
+  /// This is automatically set by the [parseUnit] method,
+  /// but must be manually set when any other parse method is called.
+  /// If not set, then the parser will call [handleUnrecoverableError]
+  /// rather than rewriting the token stream
+  /// and calling [handleRecoverableError].
+  Token firstToken;
+
+  /// A rewriter for inserting synthetic tokens.
+  /// Access using [rewriter] for lazy initialization.
+  TokenStreamRewriter cachedRewriter;
+
+  TokenStreamRewriter get rewriter {
+    assert(firstToken != null, 'firstToken must be set for parser recovery');
+    cachedRewriter ??= new TokenStreamRewriter(firstToken);
+    return cachedRewriter;
+  }
+
   Parser(this.listener);
 
   bool get inGenerator {
@@ -223,6 +245,7 @@ class Parser {
   bool get inPlainSync => asyncState == AsyncModifier.Sync;
 
   Token parseUnit(Token token) {
+    firstToken = token;
     listener.beginCompilationUnit(token);
     int count = 0;
     while (!identical(token.kind, EOF_TOKEN)) {
@@ -230,6 +253,9 @@ class Parser {
       count++;
     }
     listener.endCompilationUnit(count, token);
+    // Clear fields that could lead to memory leak.
+    firstToken = null;
+    cachedRewriter = null;
     return token;
   }
 
@@ -261,8 +287,12 @@ class Parser {
       return parseExport(token);
     } else if (identical(value, 'part')) {
       return parsePartOrPartOf(token);
-    } else {
+    } else if (token.type == TokenType.IDENTIFIER || token.keyword != null) {
       return parseTopLevelMember(token);
+    } else {
+      reportRecoverableErrorWithToken(token, fasta.templateExpectedDeclaration);
+      listener.handleInvalidTopLevelDeclaration(token);
+      return token.next;
     }
   }
 
@@ -352,13 +382,12 @@ class Parser {
     Token exportKeyword = token;
     listener.beginExport(exportKeyword);
     assert(optional('export', token));
-    token = parseLiteralStringOrRecoverExpression(token.next);
+    token = ensureParseLiteralString(token.next);
     token = parseConditionalUris(token);
     token = parseCombinators(token);
-    Token semicolon = token;
-    token = expect(';', token);
+    Token semicolon = ensureSemicolon(token);
     listener.endExport(exportKeyword, semicolon);
-    return token;
+    return semicolon.next;
   }
 
   Token parseCombinators(Token token) {
@@ -853,9 +882,14 @@ class Parser {
         ++interfacesCount;
       } while (optional(',', token));
     }
+    Token nativeToken;
+    if (optional('native', token)) {
+      nativeToken = token;
+      token = parseNativeClause(nativeToken);
+    }
     token = parseClassBody(token);
     listener.endClassDeclaration(interfacesCount, begin, classKeyword,
-        extendsKeyword, implementsKeyword, token);
+        extendsKeyword, implementsKeyword, nativeToken, token);
     return token.next;
   }
 
@@ -900,6 +934,8 @@ class Parser {
   }
 
   Token expect(String string, Token token) {
+    // TODO(danrubel) update all uses of expect(';'...) to ensureSemicolon
+    // then add assert(!identical(';', string));
     if (!identical(string, token.stringValue)) {
       return reportUnrecoverableError(
               token, fasta.templateExpectedButGot.withArguments(string))
@@ -1918,6 +1954,33 @@ class Parser {
     return token;
   }
 
+  Token ensureParseLiteralString(Token token) {
+    if (!identical(token.kind, STRING_TOKEN)) {
+      Message message = fasta.templateExpectedString.withArguments(token);
+      Token newToken =
+          new SyntheticStringToken(TokenType.STRING, '""', token.charOffset, 0);
+      token = rewriteAndRecover(token, message, newToken);
+    }
+    return parseLiteralString(token);
+  }
+
+  Token ensureSemicolon(Token token) {
+    // TODO(danrubel): Once all expect(';'...) call sites have been converted
+    // to use this method, remove similar semicolon recovery code
+    // from the handleError method in element_listener.dart.
+    if (optional(';', token)) return token;
+    Message message = fasta.templateExpectedButGot.withArguments(';');
+    Token newToken = new SyntheticToken(TokenType.SEMICOLON, token.charOffset);
+    return rewriteAndRecover(token, message, newToken);
+  }
+
+  Token rewriteAndRecover(Token token, Message message, Token newToken) {
+    if (firstToken == null) return reportUnrecoverableError(token, message);
+    reportRecoverableError(token, message);
+    token = rewriter.insertTokenBefore(newToken, token);
+    return token;
+  }
+
   Token parseLiteralStringOrRecoverExpression(Token token) {
     if (identical(token.kind, STRING_TOKEN)) {
       return parseLiteralString(token);
@@ -2098,6 +2161,19 @@ class Parser {
             : TypeContinuation.Optional;
 
     token = parseType(token, typeContinuation, null, memberKind);
+    return token;
+  }
+
+  Token parseNativeClause(Token nativeToken) {
+    Token token = nativeToken.next;
+    bool hasName = false;
+    if (token.kind == STRING_TOKEN) {
+      hasName = true;
+      token = parseLiteralString(token);
+    }
+    listener.handleNativeClause(nativeToken, hasName);
+    reportRecoverableError(
+        nativeToken, fasta.messageNativeClauseShouldBeAnnotation);
     return token;
   }
 

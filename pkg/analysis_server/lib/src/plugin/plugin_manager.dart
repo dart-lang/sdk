@@ -291,11 +291,6 @@ class PluginManager {
   final InstrumentationService instrumentationService;
 
   /**
-   * The list of globs used to match plugin paths that have been whitelisted.
-   */
-  List<Glob> _whitelistGlobs;
-
-  /**
    * A table mapping the paths of plugins to information about those plugins.
    */
   Map<String, PluginInfo> _pluginMap = <String, PluginInfo>{};
@@ -326,15 +321,7 @@ class PluginManager {
    * running plugins will be handled by the given [notificationManager].
    */
   PluginManager(this.resourceProvider, this.byteStorePath, this.sdkPath,
-      this.notificationManager, this.instrumentationService) {
-    // TODO(brianwilkerson) Figure out the right list of plugin paths.
-    _whitelistGlobs = <Glob>[
-      new Glob(resourceProvider.pathContext.separator,
-          '**/angular_analyzer_plugin/tools/analyzer_plugin'),
-      new Glob(resourceProvider.pathContext.separator,
-          '**angular/tools/analyzer_plugin')
-    ];
-  }
+      this.notificationManager, this.instrumentationService);
 
   /**
    * Return a list of all of the plugins that are currently known.
@@ -349,9 +336,6 @@ class PluginManager {
    */
   Future<Null> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
-    if (!_isWhitelisted(path)) {
-      return;
-    }
     PluginInfo plugin = _pluginMap[path];
     bool isNew = plugin == null;
     if (isNew) {
@@ -423,7 +407,12 @@ class PluginManager {
       PluginSession session = plugin.currentSession;
       if (session != null &&
           plugin.isAnalyzing(filePath) &&
+          session.interestingFiles != null &&
           session.interestingFiles.any(matches)) {
+        // The list of interesting file globs is `null` if the plugin has not
+        // yet responded to the plugin.versionCheck request. If that happens
+        // then the plugin hasn't had a chance to analyze anything yet, and
+        // hence it does not needed to get watch events.
         event ??= _convertWatchEvent(watchEvent);
         AnalysisHandleWatchEventsParams params =
             new AnalysisHandleWatchEventsParams([event]);
@@ -608,16 +597,6 @@ class PluginManager {
   }
 
   /**
-   * Whitelist all plugins.
-   */
-  @visibleForTesting
-  void whitelistEverything() {
-    _whitelistGlobs = <Glob>[
-      new Glob(resourceProvider.pathContext.separator, '**/*')
-    ];
-  }
-
-  /**
    * Compute the paths to be returned by the enclosing method given that the
    * plugin should exist in the given [pluginFolder].
    */
@@ -733,18 +712,6 @@ class PluginManager {
       }
     }
     return packagesFile;
-  }
-
-  /**
-   * Return `true` if the plugin with the given [path] has been whitelisted.
-   */
-  bool _isWhitelisted(String path) {
-    for (Glob glob in _whitelistGlobs) {
-      if (glob.matches(path)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
@@ -892,8 +859,10 @@ class PluginSession {
    * Handle the fact that the plugin has stopped.
    */
   void handleOnDone() {
-    channel.close();
-    channel = null;
+    if (channel != null) {
+      channel.close();
+      channel = null;
+    }
     pluginStoppedCompleter.complete(null);
   }
 

@@ -71,10 +71,6 @@ DEFINE_FLAG(bool,
             verify_acquired_data,
             false,
             "Verify correct API acquire/release of typed data.");
-DEFINE_FLAG(bool,
-            support_externalizable_strings,
-            false,
-            "Support Dart_MakeExternalString.");
 
 ThreadLocalKey Api::api_native_key_ = kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;
@@ -1024,48 +1020,6 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
       FinalizablePersistentHandle::Cast(object);
   weak_ref->EnsureFreeExternal(isolate);
   state->weak_persistent_handles().FreeHandle(weak_ref);
-}
-
-// --- Garbage Collection Callbacks --
-
-DART_EXPORT Dart_Handle
-Dart_SetGcCallbacks(Dart_GcPrologueCallback prologue_callback,
-                    Dart_GcEpilogueCallback epilogue_callback) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  CHECK_ISOLATE(isolate);
-  DARTSCOPE(thread);
-  if (prologue_callback != NULL) {
-    if (isolate->gc_prologue_callback() != NULL) {
-      return Api::NewError(
-          "%s permits only one gc prologue callback to be registered, please "
-          "remove the existing callback and then add this callback",
-          CURRENT_FUNC);
-    }
-  } else {
-    if (isolate->gc_prologue_callback() == NULL) {
-      return Api::NewError(
-          "%s expects 'prologue_callback' to be present in the callback set.",
-          CURRENT_FUNC);
-    }
-  }
-  if (epilogue_callback != NULL) {
-    if (isolate->gc_epilogue_callback() != NULL) {
-      return Api::NewError(
-          "%s permits only one gc epilogue callback to be registered, please "
-          "remove the existing callback and then add this callback",
-          CURRENT_FUNC);
-    }
-  } else {
-    if (isolate->gc_epilogue_callback() == NULL) {
-      return Api::NewError(
-          "%s expects 'epilogue_callback' to be present in the callback set.",
-          CURRENT_FUNC);
-    }
-  }
-  isolate->set_gc_prologue_callback(prologue_callback);
-  isolate->set_gc_epilogue_callback(epilogue_callback);
-  return Api::Success();
 }
 
 // --- Initialization and Globals ---
@@ -2473,64 +2427,6 @@ DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str,
   }
   *size = (str_obj.Length() * str_obj.CharSize());
   return Api::Success();
-}
-
-DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
-                                                void* array,
-                                                intptr_t external_size,
-                                                void* peer,
-                                                Dart_PeerFinalizer cback) {
-  DARTSCOPE(Thread::Current());
-  if (!FLAG_support_externalizable_strings) {
-    return Api::NewError(
-        "Dart_MakeExternalString with "
-        "--support_externalizable_strings=false");
-  }
-  const String& str_obj = Api::UnwrapStringHandle(Z, str);
-  if (str_obj.IsExternal()) {
-    return str;  // String is already an external string.
-  }
-  if (str_obj.IsNull()) {
-    RETURN_TYPE_ERROR(Z, str, String);
-  }
-  if (array == NULL) {
-    RETURN_NULL_ERROR(array);
-  }
-  intptr_t str_size = (str_obj.Length() * str_obj.CharSize());
-  if ((external_size < str_size) || (external_size > String::kMaxElements)) {
-    return Api::NewError(
-        "Dart_MakeExternalString "
-        "expects argument external_size to be in the range"
-        "[%" Pd "..%" Pd "].",
-        str_size, String::kMaxElements);
-  }
-  if (str_obj.InVMHeap()) {
-    // Since the string object is read only we do not externalize
-    // the string but instead copy the contents of the string into the
-    // specified buffer add the specified peer/cback as a Peer object
-    // to this string. The Api::StringGetPeerHelper function picks up
-    // the peer from the Peer table.
-    intptr_t copy_len = str_obj.Length();
-    if (str_obj.IsOneByteString()) {
-      ASSERT(external_size >= copy_len);
-      uint8_t* latin1_array = reinterpret_cast<uint8_t*>(array);
-      for (intptr_t i = 0; i < copy_len; i++) {
-        latin1_array[i] = static_cast<uint8_t>(str_obj.CharAt(i));
-      }
-      OneByteString::SetPeer(str_obj, external_size, peer, cback);
-    } else {
-      ASSERT(str_obj.IsTwoByteString());
-      ASSERT(external_size >= (copy_len * str_obj.CharSize()));
-      uint16_t* utf16_array = reinterpret_cast<uint16_t*>(array);
-      for (intptr_t i = 0; i < copy_len; i++) {
-        utf16_array[i] = str_obj.CharAt(i);
-      }
-      TwoByteString::SetPeer(str_obj, external_size, peer, cback);
-    }
-    return str;
-  }
-  return Api::NewHandle(
-      T, str_obj.MakeExternal(array, external_size, peer, cback));
 }
 
 DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
@@ -5875,19 +5771,20 @@ DART_EXPORT Dart_Port Dart_KernelPort() {
 }
 
 DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileToKernel(const char* script_uri) {
+Dart_CompileToKernel(const char* script_uri, const char* platform_kernel) {
 #ifdef DART_PRECOMPILED_RUNTIME
   Dart_KernelCompilationResult result;
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileToKernel is unsupported.");
   return result;
 #else
-  return KernelIsolate::CompileToKernel(script_uri);
+  return KernelIsolate::CompileToKernel(script_uri, platform_kernel);
 #endif
 }
 
 DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileSourcesToKernel(const char* script_uri,
+                            const char* platform_kernel,
                             int source_files_count,
                             Dart_SourceFile sources[],
                             bool incremental_compile) {
@@ -5897,7 +5794,8 @@ Dart_CompileSourcesToKernel(const char* script_uri,
   result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
   return result;
 #else
-  return KernelIsolate::CompileToKernel(script_uri, source_files_count, sources,
+  return KernelIsolate::CompileToKernel(script_uri, platform_kernel,
+                                        source_files_count, sources,
                                         incremental_compile);
 #endif
 }

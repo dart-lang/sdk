@@ -172,6 +172,22 @@ regress/issue_29984: Crash # Issue 29984.
 regress/issue_29985: Crash # Issue 29985.
 regress/issue_29987: Crash # Issue 29987.
 
-arrow_function: RuntimeError
+runtime_checks/call_through_this: Fail
+runtime_checks/contravariant_generic_return: Fail
+runtime_checks/contravariant_generic_return_tear_off: Fail
+runtime_checks/contravariant_getter: Fail
+runtime_checks/covariant_generic_method_type_parameter: Fail
+runtime_checks/covariant_generic_parameter: Fail
+runtime_checks/covariant_generic_parameter_in_interface: Fail
+runtime_checks/covariant_generic_parameter_in_interface_mixin: Fail
+runtime_checks/covariant_generic_parameter_in_interface_super: Fail
+runtime_checks/covariant_generic_parameter_in_interface_super_mixin: Fail
+runtime_checks/covariant_generic_parameter_tear_off: Fail
+runtime_checks/covariant_keyword: Fail
+runtime_checks/covariant_setter: Fail
+runtime_checks/dynamic_invocation: Fail
+runtime_checks/dynamic_invocation_generic: Fail
+runtime_checks/dynamic_invocation_of_getter: Fail
+
 illegal_named_function_expression: RuntimeError
 local_generic_function: RuntimeError

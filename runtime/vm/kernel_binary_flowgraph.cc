@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/kernel_binary_flowgraph.h"
-
 #include "vm/compiler.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
@@ -20,8 +19,463 @@ namespace kernel {
 
 static bool IsStaticInitializer(const Function& function, Zone* zone) {
   return (function.kind() == RawFunction::kImplicitStaticFinalGetter) &&
-         dart::String::Handle(zone, function.name())
+         String::Handle(zone, function.name())
              .StartsWith(Symbols::InitPrefix());
+}
+
+void FunctionNodeHelper::ReadUntilExcluding(Field field) {
+  if (field <= next_read_) return;
+
+  // Ordered with fall-through.
+  switch (next_read_) {
+    case kStart: {
+      Tag tag = builder_->ReadTag();  // read tag.
+      ASSERT(tag == kFunctionNode);
+      if (++next_read_ == field) return;
+    }
+    case kPosition:
+      position_ = builder_->ReadPosition();  // read position.
+      if (++next_read_ == field) return;
+    case kEndPosition:
+      end_position_ = builder_->ReadPosition();  // read end position.
+      if (++next_read_ == field) return;
+    case kAsyncMarker:
+      async_marker_ = static_cast<AsyncMarker>(builder_->ReadByte());
+      if (++next_read_ == field) return;
+    case kDartAsyncMarker:
+      dart_async_marker_ = static_cast<AsyncMarker>(
+          builder_->ReadByte());  // read dart async marker.
+      if (++next_read_ == field) return;
+    case kTypeParameters:
+      builder_->SkipTypeParametersList();  // read type parameters.
+      if (++next_read_ == field) return;
+    case kTotalParameterCount:
+      total_parameter_count_ =
+          builder_->ReadUInt();  // read total parameter count.
+      if (++next_read_ == field) return;
+    case kRequiredParameterCount:
+      required_parameter_count_ =
+          builder_->ReadUInt();  // read required parameter count.
+      if (++next_read_ == field) return;
+    case kPositionalParameters:
+      builder_->SkipListOfVariableDeclarations();  // read positionals.
+      if (++next_read_ == field) return;
+    case kNamedParameters:
+      builder_->SkipListOfVariableDeclarations();  // read named.
+      if (++next_read_ == field) return;
+    case kReturnType:
+      builder_->SkipDartType();  // read return type.
+      if (++next_read_ == field) return;
+    case kBody:
+      if (builder_->ReadTag() == kSomething)
+        builder_->SkipStatement();  // read body.
+      if (++next_read_ == field) return;
+    case kEnd:
+      return;
+  }
+}
+
+void VariableDeclarationHelper::ReadUntilExcluding(Field field) {
+  if (field <= next_read_) return;
+
+  // Ordered with fall-through.
+  switch (next_read_) {
+    case kPosition:
+      position_ = builder_->ReadPosition();  // read position.
+      if (++next_read_ == field) return;
+    case kEqualPosition:
+      equals_position_ = builder_->ReadPosition();  // read equals position.
+      if (++next_read_ == field) return;
+    case kFlags:
+      flags_ = builder_->ReadFlags();
+      if (++next_read_ == field) return;
+    case kNameIndex:
+      name_index_ = builder_->ReadStringReference();  // read name index.
+      if (++next_read_ == field) return;
+    case kType:
+      builder_->SkipDartType();  // read type.
+      if (++next_read_ == field) return;
+    case kInitializer:
+      if (builder_->ReadTag() == kSomething)
+        builder_->SkipExpression();  // read initializer.
+      if (++next_read_ == field) return;
+    case kEnd:
+      return;
+  }
+}
+
+FieldHelper::FieldHelper(StreamingFlowGraphBuilder* builder, intptr_t offset)
+    : builder_(builder),
+      next_read_(kStart),
+      has_function_literal_initializer_(false) {
+  builder_->SetOffset(offset);
+}
+
+void FieldHelper::ReadUntilExcluding(Field field,
+                                     bool detect_function_literal_initializer) {
+  if (field <= next_read_) return;
+
+  // Ordered with fall-through.
+  switch (next_read_) {
+    case kStart: {
+      Tag tag = builder_->ReadTag();  // read tag.
+      ASSERT(tag == kField);
+      if (++next_read_ == field) return;
+    }
+    case kCanonicalName:
+      canonical_name_ =
+          builder_->ReadCanonicalNameReference();  // read canonical_name.
+      if (++next_read_ == field) return;
+    case kPosition:
+      position_ = builder_->ReadPosition(false);  // read position.
+      if (++next_read_ == field) return;
+    case kEndPosition:
+      end_position_ = builder_->ReadPosition(false);  // read end position.
+      if (++next_read_ == field) return;
+    case kFlags:
+      flags_ = builder_->ReadFlags();
+      if (++next_read_ == field) return;
+    case kName:
+      builder_->SkipName();  // read name.
+      if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      builder_->record_token_position(position_);
+      builder_->record_token_position(end_position_);
+      if (++next_read_ == field) return;
+    case kDocumentationCommentIndex:
+      builder_->ReadStringReference();
+      if (++next_read_ == field) return;
+    case kAnnotations: {
+      annotation_count_ = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < annotation_count_; ++i) {
+        builder_->SkipExpression();  // read ith expression.
+      }
+      if (++next_read_ == field) return;
+    }
+    case kType:
+      builder_->SkipDartType();  // read type.
+      if (++next_read_ == field) return;
+    case kInitializer:
+      if (builder_->ReadTag() == kSomething) {
+        if (detect_function_literal_initializer &&
+            builder_->PeekTag() == kFunctionExpression) {
+          AlternativeReadingScope alt(builder_->reader_);
+          Tag tag = builder_->ReadTag();
+          ASSERT(tag == kFunctionExpression);
+          builder_->ReadPosition();  // read position.
+
+          FunctionNodeHelper helper(builder_);
+          helper.ReadUntilIncluding(FunctionNodeHelper::kEndPosition);
+
+          has_function_literal_initializer_ = true;
+          function_literal_start_ = helper.position_;
+          function_literal_end_ = helper.end_position_;
+        }
+        builder_->SkipExpression();  // read initializer.
+      }
+      if (++next_read_ == field) return;
+    case kEnd:
+      return;
+  }
+}
+
+void ProcedureHelper::ReadUntilExcluding(Field field) {
+  if (field <= next_read_) return;
+
+  // Ordered with fall-through.
+  switch (next_read_) {
+    case kStart: {
+      Tag tag = builder_->ReadTag();  // read tag.
+      ASSERT(tag == kProcedure);
+      if (++next_read_ == field) return;
+    }
+    case kCanonicalName:
+      canonical_name_ =
+          builder_->ReadCanonicalNameReference();  // read canonical_name.
+      if (++next_read_ == field) return;
+    case kPosition:
+      position_ = builder_->ReadPosition(false);  // read position.
+      if (++next_read_ == field) return;
+    case kEndPosition:
+      end_position_ = builder_->ReadPosition(false);  // read end position.
+      if (++next_read_ == field) return;
+    case kKind:
+      kind_ = static_cast<Kind>(builder_->ReadByte());
+      if (++next_read_ == field) return;
+    case kFlags:
+      flags_ = builder_->ReadFlags();
+      if (++next_read_ == field) return;
+    case kName:
+      builder_->SkipName();  // read name.
+      if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      builder_->record_token_position(position_);
+      builder_->record_token_position(end_position_);
+      if (++next_read_ == field) return;
+    case kDocumentationCommentIndex:
+      builder_->ReadStringReference();
+      if (++next_read_ == field) return;
+    case kAnnotations: {
+      annotation_count_ = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < annotation_count_; ++i) {
+        builder_->SkipExpression();  // read ith expression.
+      }
+      if (++next_read_ == field) return;
+    }
+    case kFunction:
+      if (builder_->ReadTag() == kSomething)
+        builder_->SkipFunctionNode();  // read function node.
+      if (++next_read_ == field) return;
+    case kEnd:
+      return;
+  }
+}
+
+void ConstructorHelper::ReadUntilExcluding(Field field) {
+  if (field <= next_read_) return;
+
+  // Ordered with fall-through.
+  switch (next_read_) {
+    case kStart: {
+      Tag tag = builder_->ReadTag();  // read tag.
+      ASSERT(tag == kConstructor);
+      if (++next_read_ == field) return;
+    }
+    case kCanonicalName:
+      canonical_name_ =
+          builder_->ReadCanonicalNameReference();  // read canonical_name.
+      if (++next_read_ == field) return;
+    case kPosition:
+      position_ = builder_->ReadPosition();  // read position.
+      if (++next_read_ == field) return;
+    case kEndPosition:
+      end_position_ = builder_->ReadPosition();  // read end position.
+      if (++next_read_ == field) return;
+    case kFlags:
+      flags_ = builder_->ReadFlags();
+      if (++next_read_ == field) return;
+    case kName:
+      builder_->SkipName();  // read name.
+      if (++next_read_ == field) return;
+    case kDocumentationCommentIndex:
+      builder_->ReadStringReference();
+      if (++next_read_ == field) return;
+    case kAnnotations: {
+      annotation_count_ = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < annotation_count_; ++i) {
+        builder_->SkipExpression();  // read ith expression.
+      }
+      if (++next_read_ == field) return;
+    }
+    case kFunction:
+      builder_->SkipFunctionNode();  // read function.
+      if (++next_read_ == field) return;
+    case kInitializers: {
+      intptr_t list_length =
+          builder_->ReadListLength();  // read initializers list length.
+      for (intptr_t i = 0; i < list_length; i++) {
+        Tag tag = builder_->ReadTag();
+        builder_->ReadByte();  // read isSynthetic.
+        switch (tag) {
+          case kInvalidInitializer:
+            continue;
+          case kFieldInitializer:
+            builder_->SkipCanonicalNameReference();  // read field_reference.
+            builder_->SkipExpression();              // read value.
+            continue;
+          case kSuperInitializer:
+            builder_->SkipCanonicalNameReference();  // read target_reference.
+            builder_->SkipArguments();               // read arguments.
+            continue;
+          case kRedirectingInitializer:
+            builder_->SkipCanonicalNameReference();  // read target_reference.
+            builder_->SkipArguments();               // read arguments.
+            continue;
+          case kLocalInitializer:
+            builder_->SkipVariableDeclaration();  // read variable.
+            continue;
+          default:
+            UNREACHABLE();
+        }
+      }
+      if (++next_read_ == field) return;
+    }
+    case kEnd:
+      return;
+  }
+}
+
+void ClassHelper::ReadUntilExcluding(Field field) {
+  if (field <= next_read_) return;
+
+  // Ordered with fall-through.
+  switch (next_read_) {
+    case kStart: {
+      Tag tag = builder_->ReadTag();  // read tag.
+      ASSERT(tag == kClass);
+      if (++next_read_ == field) return;
+    }
+    case kCanonicalName:
+      canonical_name_ =
+          builder_->ReadCanonicalNameReference();  // read canonical_name.
+      if (++next_read_ == field) return;
+    case kPosition:
+      position_ = builder_->ReadPosition(false);  // read position.
+      if (++next_read_ == field) return;
+    case kEndPosition:
+      end_position_ = builder_->ReadPosition();  // read end position.
+      if (++next_read_ == field) return;
+    case kIsAbstract:
+      is_abstract_ = builder_->ReadBool();  // read is_abstract.
+      if (++next_read_ == field) return;
+    case kNameIndex:
+      name_index_ = builder_->ReadStringReference();  // read name index.
+      if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      builder_->record_token_position(position_);
+      if (++next_read_ == field) return;
+    case kDocumentationCommentIndex:
+      builder_->ReadStringReference();
+      if (++next_read_ == field) return;
+    case kAnnotations: {
+      annotation_count_ = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < annotation_count_; ++i) {
+        builder_->SkipExpression();  // read ith expression.
+      }
+      if (++next_read_ == field) return;
+    }
+    case kTypeParameters:
+      builder_->SkipTypeParametersList();  // read type parameters.
+      if (++next_read_ == field) return;
+    case kSuperClass: {
+      Tag type_tag = builder_->ReadTag();  // read super class type (part 1).
+      if (type_tag == kSomething) {
+        builder_->SkipDartType();  // read super class type (part 2).
+      }
+      if (++next_read_ == field) return;
+    }
+    case kMixinType: {
+      Tag type_tag = builder_->ReadTag();  // read mixin type (part 1).
+      if (type_tag == kSomething) {
+        builder_->SkipDartType();  // read mixin type (part 2).
+      }
+      if (++next_read_ == field) return;
+    }
+    case kImplementedClasses:
+      builder_->SkipListOfDartTypes();  // read implemented_classes.
+      if (++next_read_ == field) return;
+    case kFields: {
+      intptr_t list_length =
+          builder_->ReadListLength();  // read fields list length.
+      for (intptr_t i = 0; i < list_length; i++) {
+        FieldHelper field_helper(builder_);
+        field_helper.ReadUntilExcluding(FieldHelper::kEnd);  // read field.
+      }
+      if (++next_read_ == field) return;
+    }
+    case kConstructors: {
+      intptr_t list_length =
+          builder_->ReadListLength();  // read constructors list length.
+      for (intptr_t i = 0; i < list_length; i++) {
+        ConstructorHelper constructor_helper(builder_);
+        constructor_helper.ReadUntilExcluding(
+            ConstructorHelper::kEnd);  // read constructor.
+      }
+      if (++next_read_ == field) return;
+    }
+    case kProcedures: {
+      intptr_t list_length =
+          builder_->ReadListLength();  // read procedures list length.
+      for (intptr_t i = 0; i < list_length; i++) {
+        ProcedureHelper procedure_helper(builder_);
+        procedure_helper.ReadUntilExcluding(
+            ProcedureHelper::kEnd);  // read procedure.
+      }
+      if (++next_read_ == field) return;
+    }
+    case kEnd:
+      return;
+  }
+}
+
+void LibraryHelper::ReadUntilExcluding(Field field) {
+  if (field <= next_read_) return;
+
+  // Ordered with fall-through.
+  switch (next_read_) {
+    case kFlags: {
+      flags_ = builder_->ReadFlags();
+      if (++next_read_ == field) return;
+    }
+    case kCanonicalName:
+      canonical_name_ =
+          builder_->ReadCanonicalNameReference();  // read canonical_name.
+      if (++next_read_ == field) return;
+    case kName:
+      name_index_ = builder_->ReadStringReference();  // read name index.
+      if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      if (++next_read_ == field) return;
+    case kAnnotations:
+      builder_->SkipListOfExpressions();  // read annotations.
+      if (++next_read_ == field) return;
+    case kDependencies: {
+      intptr_t dependency_count = builder_->ReadUInt();  // read list length.
+      for (intptr_t i = 0; i < dependency_count; ++i) {
+        builder_->SkipLibraryDependency();
+      }
+      if (++next_read_ == field) return;
+    }
+    case kParts: {
+      intptr_t part_count = builder_->ReadUInt();  // read list length.
+      for (intptr_t i = 0; i < part_count; ++i) {
+        builder_->SkipLibraryPart();
+      }
+      if (++next_read_ == field) return;
+    }
+    case kTypedefs: {
+      intptr_t typedef_count = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < typedef_count; i++) {
+        builder_->SkipLibraryTypedef();
+      }
+      if (++next_read_ == field) return;
+    }
+    case kClasses: {
+      int class_count = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < class_count; ++i) {
+        ClassHelper class_helper(builder_);
+        class_helper.ReadUntilExcluding(ClassHelper::kEnd);
+      }
+      if (++next_read_ == field) return;
+    }
+    case kToplevelField: {
+      intptr_t field_count = builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < field_count; ++i) {
+        FieldHelper field_helper(builder_);
+        field_helper.ReadUntilExcluding(FieldHelper::kEnd);
+      }
+      if (++next_read_ == field) return;
+    }
+    case kToplevelProcedures: {
+      intptr_t procedure_count =
+          builder_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < procedure_count; ++i) {
+        ProcedureHelper procedure_helper(builder_);
+        procedure_helper.ReadUntilExcluding(ProcedureHelper::kEnd);
+      }
+      if (++next_read_ == field) return;
+    }
+    case kEnd:
+      return;
+  }
 }
 
 StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function,
@@ -63,8 +517,8 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
 
   // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
   // e.g. for type translation.
-  const dart::Class& klass =
-      dart::Class::Handle(zone_, parsed_function_->function().Owner());
+  const Class& klass =
+      Class::Handle(zone_, parsed_function_->function().Owner());
 
   Function& outermost_function = Function::Handle(Z);
   builder_->DiscoverEnclosingElements(Z, function, &outermost_function);
@@ -126,7 +580,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
       } else if (!function.is_static()) {
         // We use [is_static] instead of [IsStaticFunction] because the latter
         // returns `false` for constructors.
-        dart::Class& klass = dart::Class::Handle(Z, function.Owner());
+        Class& klass = Class::Handle(Z, function.Owner());
         Type& klass_type = H.GetCanonicalType(klass);
         LocalVariable* variable =
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
@@ -139,7 +593,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
         if (tag == kConstructor) {
           Class& parent_class = Class::Handle(Z, function.Owner());
           Array& class_fields = Array::Handle(Z, parent_class.fields());
-          dart::Field& class_field = dart::Field::Handle(Z);
+          Field& class_field = Field::Handle(Z);
           for (intptr_t i = 0; i < class_fields.Length(); ++i) {
             class_field ^= class_fields.At(i);
             if (!class_field.is_static()) {
@@ -211,7 +665,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
       bool is_method = !function.IsStaticFunction();
       intptr_t pos = 0;
       if (is_method) {
-        dart::Class& klass = dart::Class::Handle(Z, function.Owner());
+        Class& klass = Class::Handle(Z, function.Owner());
         Type& klass_type = H.GetCanonicalType(klass);
         LocalVariable* variable =
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
@@ -232,7 +686,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
       // explicitly copy it to a fixed offset in a freshly-allocated context
       // instead of using the generic code for regular functions.
       // Therefore, it isn't necessary to mark it as captured here.
-      dart::Class& klass = dart::Class::Handle(Z, function.Owner());
+      Class& klass = Class::Handle(Z, function.Owner());
       Type& klass_type = H.GetCanonicalType(klass);
       LocalVariable* variable =
           MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
@@ -244,10 +698,10 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
     case RawFunction::kNoSuchMethodDispatcher:
     case RawFunction::kInvokeFieldDispatcher:
       for (intptr_t i = 0; i < function.NumParameters(); ++i) {
-        LocalVariable* variable = MakeVariable(
-            TokenPosition::kNoSource, TokenPosition::kNoSource,
-            dart::String::ZoneHandle(Z, function.ParameterNameAt(i)),
-            AbstractType::dynamic_type());
+        LocalVariable* variable =
+            MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                         String::ZoneHandle(Z, function.ParameterNameAt(i)),
+                         AbstractType::dynamic_type());
         scope_->InsertParameterAt(i, variable);
       }
       break;
@@ -296,7 +750,7 @@ void StreamingScopeBuilder::VisitConstructor() {
     const Function& function = parsed_function_->function();
     Class& parent_class = Class::Handle(Z, function.Owner());
     Array& class_fields = Array::Handle(Z, parent_class.fields());
-    dart::Field& class_field = dart::Field::Handle(Z);
+    Field& class_field = Field::Handle(Z);
     for (intptr_t i = 0; i < class_fields.Length(); ++i) {
       class_field ^= class_fields.At(i);
       if (!class_field.is_static()) {
@@ -357,15 +811,16 @@ void StreamingScopeBuilder::VisitFunctionNode() {
   function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
 
   if (FLAG_causal_async_stacks &&
-      (function_node_helper.dart_async_marker_ == FunctionNode::kAsync ||
-       function_node_helper.dart_async_marker_ == FunctionNode::kAsyncStar)) {
+      (function_node_helper.dart_async_marker_ == FunctionNodeHelper::kAsync ||
+       function_node_helper.dart_async_marker_ ==
+           FunctionNodeHelper::kAsyncStar)) {
     LocalVariable* asyncStackTraceVar = MakeVariable(
         TokenPosition::kNoSource, TokenPosition::kNoSource,
         Symbols::AsyncStackTraceVar(), AbstractType::dynamic_type());
     scope_->AddVariable(asyncStackTraceVar);
   }
 
-  if (function_node_helper.async_marker_ == FunctionNode::kSyncYielding) {
+  if (function_node_helper.async_marker_ == FunctionNodeHelper::kSyncYielding) {
     LocalScope* scope = parsed_function_->node_sequence()->scope();
     intptr_t offset = parsed_function_->function().num_fixed_parameters();
     for (intptr_t i = 0;
@@ -387,7 +842,7 @@ void StreamingScopeBuilder::VisitFunctionNode() {
 
   // Ensure that :await_jump_var, :await_ctx_var, :async_op and
   // :async_stack_trace are captured.
-  if (function_node_helper.async_marker_ == FunctionNode::kSyncYielding) {
+  if (function_node_helper.async_marker_ == FunctionNodeHelper::kSyncYielding) {
     {
       LocalVariable* temp = NULL;
       LookupCapturedVariableByName(
@@ -486,7 +941,7 @@ void StreamingScopeBuilder::VisitExpression() {
       builder_->ReadPosition();  // read position.
       VisitExpression();         // read receiver.
       builder_->SkipName();      // read name.
-      // Read unused "interface_target_reference".
+      // read interface_target_reference.
       builder_->SkipCanonicalNameReference();
       return;
     case kPropertySet:
@@ -494,7 +949,7 @@ void StreamingScopeBuilder::VisitExpression() {
       VisitExpression();         // read receiver.
       builder_->SkipName();      // read name.
       VisitExpression();         // read value.
-      // read unused "interface_target_reference".
+      // read interface_target_reference.
       builder_->SkipCanonicalNameReference();
       return;
     case kDirectPropertyGet:
@@ -522,7 +977,7 @@ void StreamingScopeBuilder::VisitExpression() {
       VisitExpression();         // read receiver.
       builder_->SkipName();      // read name.
       VisitArguments();          // read arguments.
-      // read unused "interface_target_reference".
+      // read interface_target_reference.
       builder_->SkipCanonicalNameReference();
       return;
     case kDirectMethodInvocation:
@@ -850,7 +1305,7 @@ void StreamingScopeBuilder::VisitStatement() {
     case kReturnStatement: {
       if ((depth_.function_ == 0) && (depth_.finally_ > 0) &&
           (result_->finally_return_variable == NULL)) {
-        const dart::String& name = H.DartSymbol(":try_finally_return_value");
+        const String& name = H.DartSymbol(":try_finally_return_value");
         LocalVariable* variable =
             MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                          name, AbstractType::dynamic_type());
@@ -922,8 +1377,7 @@ void StreamingScopeBuilder::VisitStatement() {
       word flags = builder_->ReadByte();  // read flags.
       builder_->SkipExpression();         // read expression.
 
-      ASSERT((flags & YieldStatement::kFlagNative) ==
-             YieldStatement::kFlagNative);
+      ASSERT(flags == kNativeYieldFlags);
       if (depth_.function_ == 0) {
         AddSwitchVariable();
         // Promote all currently visible local variables into the context.
@@ -986,9 +1440,9 @@ void StreamingScopeBuilder::VisitVariableDeclaration() {
   // In case `declaration->IsConst()` the flow graph building will take care of
   // evaluating the constant and setting it via
   // `declaration->SetConstantValue()`.
-  const dart::String& name = (H.StringSize(helper.name_index_) == 0)
-                                 ? GenerateName(":var", name_index_++)
-                                 : H.DartSymbol(helper.name_index_);
+  const String& name = (H.StringSize(helper.name_index_) == 0)
+                           ? GenerateName(":var", name_index_++)
+                           : H.DartSymbol(helper.name_index_);
   // We also need to visit the type.
   builder_->SetOffset(offset_for_type);
   VisitDartType();  // read type.
@@ -1102,9 +1556,14 @@ void StreamingScopeBuilder::VisitTypeParameterType() {
     // factory constructor function.
     HandleSpecialLoad(&result_->type_arguments_variable,
                       Symbols::TypeArgumentsParameter());
-  } else {
-    // The type argument vector is stored on the instance object. We therefore
-    // need to capture `this`.
+  } else if (!function.IsGeneric()) {
+    // TODO(30455): Kernel generic methods undone. Currently we only support
+    // generic toplevel methods. For no special load needs to be prepared for
+    // these, because the 'LocalVariable' for the type arguments is set on the
+    // 'ParsedFunction' directly. So we do nothing for generic methods.
+
+    // The type argument vector is stored on the
+    // instance object. We therefore need to capture `this`.
     HandleSpecialLoad(&result_->this_variable, Symbols::This());
   }
 
@@ -1121,9 +1580,9 @@ void StreamingScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
       FunctionNodeHelper::kPositionalParameters);
 
   LocalScope* saved_function_scope = current_function_scope_;
-  FunctionNode::AsyncMarker saved_function_async_marker =
+  FunctionNodeHelper::AsyncMarker saved_function_async_marker =
       current_function_async_marker_;
-  StreamingScopeBuilder::DepthState saved_depth_state = depth_;
+  DepthState saved_depth_state = depth_;
   depth_ = DepthState(depth_.function_ + 1);
   EnterScope(relative_kernel_offset_ + parent_kernel_offset);
   current_function_scope_ = scope_;
@@ -1205,7 +1664,7 @@ void StreamingScopeBuilder::AddVariableDeclarationParameter(intptr_t pos) {
 LocalVariable* StreamingScopeBuilder::MakeVariable(
     TokenPosition declaration_pos,
     TokenPosition token_pos,
-    const dart::String& name,
+    const String& name,
     const AbstractType& type) {
   return new (Z) LocalVariable(declaration_pos, token_pos, name, type);
 }
@@ -1224,7 +1683,7 @@ void StreamingScopeBuilder::AddExceptionVariable(
   // new local ones.
   // Note: function that wrap kSyncYielding function does not contain
   // its own try/catches.
-  if (current_function_async_marker_ == FunctionNode::kSyncYielding) {
+  if (current_function_async_marker_ == FunctionNodeHelper::kSyncYielding) {
     ASSERT(current_function_scope_->parent() != NULL);
     v = current_function_scope_->parent()->LocalLookupVariable(
         GenerateName(prefix, nesting_depth - 1));
@@ -1301,7 +1760,7 @@ void StreamingScopeBuilder::LookupVariable(intptr_t declaration_binary_offset) {
     StringIndex var_name = builder_->GetNameFromVariableDeclaration(
         declaration_binary_offset, parsed_function_->function());
 
-    const dart::String& name = H.DartSymbol(var_name);
+    const String& name = H.DartSymbol(var_name);
     variable = current_function_scope_->parent()->LookupVariable(name, true);
     ASSERT(variable != NULL);
     result_->locals.Insert(declaration_binary_offset, variable);
@@ -1326,15 +1785,15 @@ void StreamingScopeBuilder::LookupVariable(intptr_t declaration_binary_offset) {
   }
 }
 
-const dart::String& StreamingScopeBuilder::GenerateName(const char* prefix,
-                                                        intptr_t suffix) {
+const String& StreamingScopeBuilder::GenerateName(const char* prefix,
+                                                  intptr_t suffix) {
   char name[64];
   OS::SNPrint(name, 64, "%s%" Pd "", prefix, suffix);
   return H.DartSymbol(name);
 }
 
 void StreamingScopeBuilder::HandleSpecialLoad(LocalVariable** variable,
-                                              const dart::String& symbol) {
+                                              const String& symbol) {
   if (current_function_scope_->parent() != NULL) {
     // We are building the scope tree of a closure function and saw [node]. We
     // lazily populate the variable using the parent function scope.
@@ -1356,7 +1815,7 @@ void StreamingScopeBuilder::HandleSpecialLoad(LocalVariable** variable,
 
 void StreamingScopeBuilder::LookupCapturedVariableByName(
     LocalVariable** variable,
-    const dart::String& name) {
+    const String& name) {
   if (*variable == NULL) {
     *variable = scope_->LookupVariable(name, true);
     ASSERT(*variable != NULL);
@@ -1380,7 +1839,7 @@ AbstractType& StreamingDartTypeTranslator::BuildType() {
 
   // We return a new `ZoneHandle` here on purpose: The intermediate language
   // instructions do not make a copy of the handle, so we do it.
-  return dart::AbstractType::ZoneHandle(Z, result_.raw());
+  return AbstractType::ZoneHandle(Z, result_.raw());
 }
 
 AbstractType& StreamingDartTypeTranslator::BuildTypeWithoutFinalization() {
@@ -1391,7 +1850,7 @@ AbstractType& StreamingDartTypeTranslator::BuildTypeWithoutFinalization() {
 
   // We return a new `ZoneHandle` here on purpose: The intermediate language
   // instructions do not make a copy of the handle, so we do it.
-  return dart::AbstractType::ZoneHandle(Z, result_.raw());
+  return AbstractType::ZoneHandle(Z, result_.raw());
 }
 
 AbstractType& StreamingDartTypeTranslator::BuildVariableType() {
@@ -1416,8 +1875,8 @@ void StreamingDartTypeTranslator::BuildTypeInternal() {
     case kInvalidType:
       result_ = ClassFinalizer::NewFinalizedMalformedType(
           Error::Handle(Z),  // No previous error.
-          dart::Script::Handle(Z, dart::Script::null()),
-          TokenPosition::kNoSource, "[InvalidType] in Kernel IR.");
+          Script::Handle(Z, Script::null()), TokenPosition::kNoSource,
+          "[InvalidType] in Kernel IR.");
       break;
     case kDynamicType:
       result_ = Object::dynamic_type().raw();
@@ -1429,8 +1888,8 @@ void StreamingDartTypeTranslator::BuildTypeInternal() {
       result_ = Object::vector_type().raw();
       break;
     case kBottomType:
-      result_ = dart::Class::Handle(Z, I->object_store()->null_class())
-                    .CanonicalType();
+      result_ =
+          Class::Handle(Z, I->object_store()->null_class()).CanonicalType();
       break;
     case kInterfaceType:
       BuildInterfaceType(false);
@@ -1469,8 +1928,7 @@ void StreamingDartTypeTranslator::BuildInterfaceType(bool simple) {
   const TypeArguments& type_arguments =
       BuildTypeArguments(length);  // read type arguments.
 
-  dart::Object& klass =
-      dart::Object::Handle(Z, H.LookupClassByKernelClass(klass_name));
+  Object& klass = Object::Handle(Z, H.LookupClassByKernelClass(klass_name));
   result_ = Type::New(klass, type_arguments, TokenPosition::kNoSource);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);
@@ -1548,7 +2006,7 @@ void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
         builder_->ReadListLength();  // read named_parameters list length.
     for (intptr_t i = 0; i < named_count; ++i, ++pos) {
       // read string reference (i.e. named_parameters[i].name).
-      dart::String& name = H.DartSymbol(builder_->ReadStringReference());
+      String& name = H.DartSymbol(builder_->ReadStringReference());
       BuildTypeInternal();  // read named_parameters[i].type.
       if (result_.IsMalformed()) {
         result_ = AbstractType::dynamic_type().raw();
@@ -1589,7 +2047,7 @@ void StreamingDartTypeTranslator::BuildTypeParameterType() {
   builder_->SkipOptionalDartType();                 // read bound.
 
   const TypeArguments& class_types =
-      dart::TypeArguments::Handle(Z, active_class_->klass->type_parameters());
+      TypeArguments::Handle(Z, active_class_->klass->type_parameters());
   if (parameter_index < class_types.Length()) {
     // The index of the type parameter in [parameters] is
     // the same index into the `klass->type_parameters()` array.
@@ -1631,13 +2089,13 @@ void StreamingDartTypeTranslator::BuildTypeParameterType() {
             : 0;
     if (procedure_type_parameter_count > 0) {
       if (procedure_type_parameter_count > parameter_index) {
-        // Here we technically could load the correct one via something like
-        //     result_ ^= dart::TypeArguments::Handle(
-        //                    Z, active_class_->member->type_parameters())
-        //                    .TypeAt(parameter_index);
-        // but that isn't currently supported elsewhere
-        // (FlowGraphBuilder::LoadFunctionTypeArguments()).
-        result_ ^= dart::Type::DynamicType();
+        if (FLAG_reify_generic_functions) {
+          result_ ^=
+              TypeArguments::Handle(Z, active_class_->member->type_parameters())
+                  .TypeAt(parameter_index);
+        } else {
+          result_ ^= Type::DynamicType();
+        }
         return;
       }
       parameter_index -= procedure_type_parameter_count;
@@ -1647,7 +2105,7 @@ void StreamingDartTypeTranslator::BuildTypeParameterType() {
   if (type_parameter_scope_ != NULL && parameter_index >= 0 &&
       parameter_index < type_parameter_scope_->outer_parameter_count() +
                             type_parameter_scope_->parameter_count()) {
-    result_ ^= dart::Type::DynamicType();
+    result_ ^= Type::DynamicType();
     return;
   }
 
@@ -1690,7 +2148,7 @@ const TypeArguments& StreamingDartTypeTranslator::BuildTypeArguments(
 
 const TypeArguments&
 StreamingDartTypeTranslator::BuildInstantiatedTypeArguments(
-    const dart::Class& receiver_class,
+    const Class& receiver_class,
     intptr_t length) {
   const TypeArguments& type_arguments = BuildTypeArguments(length);
 
@@ -1716,8 +2174,7 @@ StreamingDartTypeTranslator::BuildInstantiatedTypeArguments(
   return instantiated_type_arguments;
 }
 
-const Type& StreamingDartTypeTranslator::ReceiverType(
-    const dart::Class& klass) {
+const Type& StreamingDartTypeTranslator::ReceiverType(const Class& klass) {
   ASSERT(!klass.IsNull());
   ASSERT(!klass.IsTypedefClass());
   // Note that if klass is _Closure, the returned type will be _Closure,
@@ -1944,14 +2401,12 @@ void StreamingConstantEvaluator::EvaluatePropertyGet() {
   intptr_t expression_offset = builder_->ReaderOffset();
   builder_->SkipExpression();                            // read receiver.
   StringIndex name = builder_->ReadNameAsStringIndex();  // read name.
-  // Read unused "interface_target_reference".
-  builder_->SkipCanonicalNameReference();
+  builder_->SkipCanonicalNameReference();  // read interface_target_reference.
 
   if (H.StringEquals(name, "length")) {
     EvaluateExpression(expression_offset);
     if (result_.IsString()) {
-      const dart::String& str =
-          dart::String::Handle(Z, dart::String::RawCast(result_.raw()));
+      const String& str = String::Handle(Z, String::RawCast(result_.raw()));
       result_ = Integer::New(str.Length());
     } else {
       H.ReportError(
@@ -1969,8 +2424,7 @@ void StreamingConstantEvaluator::EvaluateStaticGet() {
       builder_->ReadCanonicalNameReference();  // read target_reference.
 
   if (H.IsField(target)) {
-    const dart::Field& field =
-        dart::Field::Handle(Z, H.LookupFieldByKernelField(target));
+    const Field& field = Field::Handle(Z, H.LookupFieldByKernelField(target));
     if (field.StaticValue() == Object::sentinel().raw() ||
         field.StaticValue() == Object::transition_sentinel().raw()) {
       field.EvaluateInitializer();
@@ -2000,16 +2454,15 @@ void StreamingConstantEvaluator::EvaluateStaticGet() {
 void StreamingConstantEvaluator::EvaluateMethodInvocation() {
   builder_->ReadPosition();  // read position.
   // This method call wasn't cached, so receiver et al. isn't cached either.
-  const dart::Instance& receiver =
+  const Instance& receiver =
       EvaluateExpression(builder_->ReaderOffset(), false);  // read receiver.
-  dart::Class& klass = dart::Class::Handle(
-      Z, isolate_->class_table()->At(receiver.GetClassId()));
+  Class& klass =
+      Class::Handle(Z, isolate_->class_table()->At(receiver.GetClassId()));
   ASSERT(!klass.IsNull());
 
   // Search the superclass chain for the selector.
-  dart::Function& function = dart::Function::Handle(Z);
-  const dart::String& method_name =
-      builder_->ReadNameAsMethodName();  // read name.
+  Function& function = Function::Handle(Z);
+  const String& method_name = builder_->ReadNameAsMethodName();  // read name.
   while (!klass.IsNull()) {
     function = klass.LookupDynamicFunctionAllowPrivate(method_name);
     if (!function.IsNull()) break;
@@ -2031,7 +2484,7 @@ void StreamingConstantEvaluator::EvaluateMethodInvocation() {
   result_ ^= result.raw();
   result_ = H.Canonicalize(result_);
 
-  builder_->SkipCanonicalNameReference();  // read "interface_target_reference"
+  builder_->SkipCanonicalNameReference();  // read interface_target_reference.
 }
 
 void StreamingConstantEvaluator::EvaluateStaticInvocation() {
@@ -2041,7 +2494,7 @@ void StreamingConstantEvaluator::EvaluateStaticInvocation() {
 
   const Function& function = Function::ZoneHandle(
       Z, H.LookupStaticMethodByKernelProcedure(procedue_reference));
-  dart::Class& klass = dart::Class::Handle(Z, function.Owner());
+  Class& klass = Class::Handle(Z, function.Owner());
 
   intptr_t argument_count =
       builder_->ReadUInt();  // read arguments part #1: arguments count.
@@ -2063,7 +2516,7 @@ void StreamingConstantEvaluator::EvaluateConstructorInvocationInternal() {
   NameIndex target = builder_->ReadCanonicalNameReference();  // read target.
   const Function& constructor =
       Function::Handle(Z, H.LookupConstructorByKernelConstructor(target));
-  dart::Class& klass = dart::Class::Handle(Z, constructor.Owner());
+  Class& klass = Class::Handle(Z, constructor.Owner());
 
   intptr_t argument_count =
       builder_->ReadUInt();  // read arguments part #1: arguments count.
@@ -2105,16 +2558,15 @@ void StreamingConstantEvaluator::EvaluateNot() {
 
 void StreamingConstantEvaluator::EvaluateLogicalExpression() {
   bool left = EvaluateBooleanExpressionHere();  // read left.
-  LogicalExpression::Operator op = static_cast<LogicalExpression::Operator>(
-      builder_->ReadByte());  // read operator.
-  if (op == LogicalExpression::kAnd) {
+  LogicalOperator op = static_cast<LogicalOperator>(builder_->ReadByte());
+  if (op == kAnd) {
     if (left) {
       EvaluateBooleanExpressionHere();  // read right.
     } else {
       builder_->SkipExpression();  // read right.
     }
   } else {
-    ASSERT(op == LogicalExpression::kOr);
+    ASSERT(op == kOr);
     if (!left) {
       EvaluateBooleanExpressionHere();  // read right.
     } else {
@@ -2148,16 +2600,16 @@ void StreamingConstantEvaluator::EvaluateStringConcatenation() {
     all_string = all_string && result_.IsString();
   }
   if (all_string) {
-    result_ = dart::String::ConcatAll(strings, Heap::kOld);
+    result_ = String::ConcatAll(strings, Heap::kOld);
     result_ = H.Canonicalize(result_);
   } else {
     // Get string interpolation function.
-    const dart::Class& cls = dart::Class::Handle(
-        Z, dart::Library::LookupCoreClass(Symbols::StringBase()));
+    const Class& cls =
+        Class::Handle(Z, Library::LookupCoreClass(Symbols::StringBase()));
     ASSERT(!cls.IsNull());
     const Function& func = Function::Handle(
         Z, cls.LookupStaticFunction(
-               dart::Library::PrivateCoreLibName(Symbols::Interpolate())));
+               Library::PrivateCoreLibName(Symbols::Interpolate())));
     ASSERT(!func.IsNull());
 
     // Build argument array to pass to the interpolation function.
@@ -2167,18 +2619,18 @@ void StreamingConstantEvaluator::EvaluateStringConcatenation() {
     // Run and canonicalize.
     const Object& result =
         RunFunction(func, interpolate_arg, Array::null_array());
-    result_ = H.Canonicalize(dart::String::Cast(result));
+    result_ = H.Canonicalize(String::Cast(result));
   }
 }
 
 void StreamingConstantEvaluator::EvaluateSymbolLiteral() {
-  const dart::String& symbol_value = H.DartSymbol(
+  const String& symbol_value = H.DartSymbol(
       builder_->ReadStringReference());  // read index into string table.
 
-  const dart::Class& symbol_class =
-      dart::Class::ZoneHandle(Z, I->object_store()->symbol_class());
+  const Class& symbol_class =
+      Class::ZoneHandle(Z, I->object_store()->symbol_class());
   ASSERT(!symbol_class.IsNull());
-  const dart::Function& symbol_constructor = Function::ZoneHandle(
+  const Function& symbol_constructor = Function::ZoneHandle(
       Z, symbol_class.LookupConstructor(Symbols::SymbolCtor()));
   ASSERT(!symbol_constructor.IsNull());
   result_ ^= EvaluateConstConstructorCall(
@@ -2229,12 +2681,12 @@ void StreamingConstantEvaluator::EvaluateMapLiteralInternal() {
   const_kv_array.MakeImmutable();
   const_kv_array ^= H.Canonicalize(const_kv_array);
 
-  const dart::Class& map_class = dart::Class::Handle(
-      Z, dart::Library::LookupCoreClass(Symbols::ImmutableMap()));
+  const Class& map_class =
+      Class::Handle(Z, Library::LookupCoreClass(Symbols::ImmutableMap()));
   ASSERT(!map_class.IsNull());
   ASSERT(map_class.NumTypeArguments() == 2);
 
-  const dart::Field& field = dart::Field::Handle(
+  const Field& field = Field::Handle(
       Z, map_class.LookupInstanceFieldAllowPrivate(H.DartSymbol("_kvPairs")));
   ASSERT(!field.IsNull());
 
@@ -2256,7 +2708,7 @@ void StreamingConstantEvaluator::EvaluateLet() {
   helper.ReadUntilExcluding(VariableDeclarationHelper::kInitializer);
   Tag tag = builder_->ReadTag();  // read (first part of) initializer.
   if (tag == kNothing) {
-    local->SetConstValue(Instance::ZoneHandle(Z, dart::Instance::null()));
+    local->SetConstValue(Instance::ZoneHandle(Z, Instance::null()));
   } else {
     local->SetConstValue(EvaluateExpression(
         builder_->ReaderOffset(), false));  // read rest of initializer.
@@ -2266,7 +2718,7 @@ void StreamingConstantEvaluator::EvaluateLet() {
 }
 
 void StreamingConstantEvaluator::EvaluateBigIntLiteral() {
-  const dart::String& value =
+  const String& value =
       H.DartString(builder_->ReadStringReference());  // read string reference.
   result_ = Integer::New(value, Heap::kOld);
   if (result_.IsNull()) {
@@ -2283,14 +2735,14 @@ void StreamingConstantEvaluator::EvaluateStringLiteral() {
 
 void StreamingConstantEvaluator::EvaluateIntLiteral(uint8_t payload) {
   int64_t value = static_cast<int32_t>(payload) - SpecializedIntLiteralBias;
-  result_ = dart::Integer::New(value, Heap::kOld);
+  result_ = Integer::New(value, Heap::kOld);
   result_ = H.Canonicalize(result_);
 }
 
 void StreamingConstantEvaluator::EvaluateIntLiteral(bool is_negative) {
   int64_t value = is_negative ? -static_cast<int64_t>(builder_->ReadUInt())
                               : builder_->ReadUInt();  // read value.
-  result_ = dart::Integer::New(value, Heap::kOld);
+  result_ = Integer::New(value, Heap::kOld);
   result_ = H.Canonicalize(result_);
 }
 
@@ -2301,11 +2753,11 @@ void StreamingConstantEvaluator::EvaluateDoubleLiteral() {
 }
 
 void StreamingConstantEvaluator::EvaluateBoolLiteral(bool value) {
-  result_ = dart::Bool::Get(value).raw();
+  result_ = Bool::Get(value).raw();
 }
 
 void StreamingConstantEvaluator::EvaluateNullLiteral() {
-  result_ = dart::Instance::null();
+  result_ = Instance::null();
 }
 
 // This depends on being about to read the list of positionals on arguments.
@@ -2342,7 +2794,7 @@ const Object& StreamingConstantEvaluator::RunFunction(
   list_length = builder_->ReadListLength();  // read list length.
   const Array& names = Array::ZoneHandle(Z, Array::New(list_length));
   for (intptr_t i = 0; i < list_length; ++i) {
-    dart::String& name =
+    String& name =
         H.DartSymbol(builder_->ReadStringReference());  // read ith name index.
     names.SetAt(i, name);
     EvaluateExpression(builder_->ReaderOffset(),
@@ -2369,7 +2821,7 @@ const Object& StreamingConstantEvaluator::RunFunction(const Function& function,
 }
 
 RawObject* StreamingConstantEvaluator::EvaluateConstConstructorCall(
-    const dart::Class& type_class,
+    const Class& type_class,
     const TypeArguments& type_arguments,
     const Function& constructor,
     const Object& argument) {
@@ -2411,7 +2863,7 @@ RawObject* StreamingConstantEvaluator::EvaluateConstConstructorCall(
 
 const TypeArguments* StreamingConstantEvaluator::TranslateTypeArguments(
     const Function& target,
-    dart::Class* target_klass) {
+    Class* target_klass) {
   intptr_t type_count = builder_->ReadListLength();  // read type count.
 
   const TypeArguments* type_arguments = NULL;
@@ -2590,7 +3042,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldAccessor(
 
   bool is_setter = function.IsImplicitSetterFunction();
   bool is_method = !function.IsStaticFunction();
-  dart::Field& field = dart::Field::ZoneHandle(
+  Field& field = Field::ZoneHandle(
       Z, H.LookupFieldByKernelField(field_helper.canonical_name_));
 
   TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
@@ -2719,8 +3171,8 @@ void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
 
 Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
     NameIndex canonical_name) {
-  dart::Field& field =
-      dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(canonical_name));
+  Field& field =
+      Field::ZoneHandle(Z, H.LookupFieldByKernelField(canonical_name));
   if (PeekTag() == kNullLiteral) {
     SkipExpression();  // read past the null literal.
     field.RecordStore(Object::null_object());
@@ -2770,7 +3222,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
 
   if (!is_redirecting_constructor) {
     Array& class_fields = Array::Handle(Z, parent_class.fields());
-    dart::Field& class_field = dart::Field::Handle(Z);
+    Field& class_field = Field::Handle(Z);
     for (intptr_t i = 0; i < class_fields.Length(); ++i) {
       class_field ^= class_fields.At(i);
       if (!class_field.is_static()) {
@@ -2987,11 +3439,21 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfConvertedClosureFunction(
 
   Fragment body(normal_entry);
   body += flow_graph_builder_->CheckStackOverflowInPrologue();
+  body += NullConstant();
+  LocalVariable* result = MakeTemporary();
 
   // Load all the arguments.
   ASSERT(target.is_static());
 
+  // TODO(30455): Kernel generic methods undone. Since the frontend can't yet
+  // emit generic methods into kernel, all type parameters to the target must
+  // come from the context. When generic methods are fully supported, we will
+  // need to get the type arguments provided by the caller and append them to
+  // the captured type arguments via 'prependTypeArguments'.
+
   FunctionNodeHelper function_node_helper(this);
+  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
+  intptr_t type_param_count = PeekUInt();
   function_node_helper.ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);
 
@@ -3005,6 +3467,15 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfConvertedClosureFunction(
   body += LoadLocal(LookupVariable(
       ReaderOffset() + relative_kernel_offset_));  // 0th variable offset.
   body += flow_graph_builder_->LoadField(Closure::context_offset());
+  LocalVariable* context = MakeTemporary();
+
+  if (type_param_count > 0) {
+    body += LoadLocal(context);
+    body += flow_graph_builder_->LoadField(Context::variable_offset(0));
+    body += PushArgument();
+  }
+
+  body += LoadLocal(context);
   body += PushArgument();
   SkipVariableDeclaration();  // read 0th variable.
 
@@ -3037,12 +3508,15 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfConvertedClosureFunction(
   }
 
   // Forward them to the target.
-  const intptr_t argument_count =
-      positional_argument_count + named_argument_count;
+  intptr_t argument_count = positional_argument_count + named_argument_count;
+  if (type_param_count) ++argument_count;
   body += StaticCall(TokenPosition::kNoSource, target, argument_count,
-                     argument_names);
+                     argument_names, type_param_count);
 
   // Return the result.
+  body += StoreLocal(TokenPosition::kNoSource, result);
+  body += Drop();
+  body += Drop();
   body += Return(function_node_helper.end_position_);
 
   return new (Z)
@@ -3348,8 +3822,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
 
   // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
   // e.g. for type translation.
-  const dart::Class& klass =
-      dart::Class::Handle(zone_, parsed_function()->function().Owner());
+  const Class& klass =
+      Class::Handle(zone_, parsed_function()->function().Owner());
 
   Function& outermost_function = Function::Handle(Z);
   DiscoverEnclosingElements(Z, function, &outermost_function);
@@ -3618,7 +4092,7 @@ StringIndex StreamingFlowGraphBuilder::ReadNameAsStringIndex() {
   return name_index;
 }
 
-const dart::String& StreamingFlowGraphBuilder::ReadNameAsMethodName() {
+const String& StreamingFlowGraphBuilder::ReadNameAsMethodName() {
   StringIndex name_index = ReadStringReference();  // read name index.
   if ((H.StringSize(name_index) >= 1) && H.CharacterAt(name_index, 0) == '_') {
     NameIndex library_reference =
@@ -3629,7 +4103,7 @@ const dart::String& StreamingFlowGraphBuilder::ReadNameAsMethodName() {
   }
 }
 
-const dart::String& StreamingFlowGraphBuilder::ReadNameAsSetterName() {
+const String& StreamingFlowGraphBuilder::ReadNameAsSetterName() {
   StringIndex name_index = ReadStringReference();  // read name index.
   if ((H.StringSize(name_index) >= 1) && H.CharacterAt(name_index, 0) == '_') {
     NameIndex library_reference =
@@ -3640,7 +4114,7 @@ const dart::String& StreamingFlowGraphBuilder::ReadNameAsSetterName() {
   }
 }
 
-const dart::String& StreamingFlowGraphBuilder::ReadNameAsGetterName() {
+const String& StreamingFlowGraphBuilder::ReadNameAsGetterName() {
   StringIndex name_index = ReadStringReference();  // read name index.
   if ((H.StringSize(name_index) >= 1) && H.CharacterAt(name_index, 0) == '_') {
     NameIndex library_reference =
@@ -3651,7 +4125,7 @@ const dart::String& StreamingFlowGraphBuilder::ReadNameAsGetterName() {
   }
 }
 
-const dart::String& StreamingFlowGraphBuilder::ReadNameAsFieldName() {
+const String& StreamingFlowGraphBuilder::ReadNameAsFieldName() {
   StringIndex name_index = ReadStringReference();  // read name index.
   if ((H.StringSize(name_index) >= 1) && H.CharacterAt(name_index, 0) == '_') {
     NameIndex library_reference =
@@ -3839,16 +4313,14 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       ReadPosition();    // read position.
       SkipExpression();  // read receiver.
       SkipName();        // read name.
-      // Read unused "interface_target_reference".
-      SkipCanonicalNameReference();
+      SkipCanonicalNameReference();  // read interface_target_reference.
       return;
     case kPropertySet:
       ReadPosition();    // read position.
       SkipExpression();  // read receiver.
       SkipName();        // read name.
       SkipExpression();  // read value.
-      // read unused "interface_target_reference".
-      SkipCanonicalNameReference();
+      SkipCanonicalNameReference();  // read interface_target_reference.
       return;
     case kDirectPropertyGet:
       ReadPosition();                // read position.
@@ -3875,8 +4347,7 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       SkipExpression();  // read receiver.
       SkipName();        // read name.
       SkipArguments();   // read arguments.
-      // read unused "interface_target_reference".
-      SkipCanonicalNameReference();
+      SkipCanonicalNameReference();  // read interface_target_reference.
       return;
     case kDirectMethodInvocation:
       SkipExpression();              // read receiver.
@@ -4188,11 +4659,11 @@ void StreamingFlowGraphBuilder::SkipLibraryCombinator() {
 }
 
 void StreamingFlowGraphBuilder::SkipLibraryDependency() {
-  ReadFlags();                                   // read flags.
-  SkipListOfExpressions();                       // Read annotations.
-  ReadCanonicalNameReference();                  // read target_reference.
-  ReadStringReference();                         // read name_index.
-  intptr_t combinator_count = ReadListLength();  // read list length.
+  ReadFlags();
+  SkipListOfExpressions();  // Annotations.
+  ReadCanonicalNameReference();
+  ReadStringReference();  // Name.
+  intptr_t combinator_count = ReadListLength();
   for (intptr_t i = 0; i < combinator_count; ++i) {
     SkipLibraryCombinator();
   }
@@ -4240,10 +4711,6 @@ Tag StreamingFlowGraphBuilder::ReadTag(uint8_t* payload) {
 
 Tag StreamingFlowGraphBuilder::PeekTag(uint8_t* payload) {
   return reader_->PeekTag(payload);
-}
-
-word StreamingFlowGraphBuilder::ReadFlags() {
-  return reader_->ReadFlags();
 }
 
 void StreamingFlowGraphBuilder::loop_depth_inc() {
@@ -4365,7 +4832,7 @@ Tag StreamingFlowGraphBuilder::PeekArgumentsFirstPositionalTag() {
 }
 
 const TypeArguments& StreamingFlowGraphBuilder::PeekArgumentsInstantiatedType(
-    const dart::Class& klass) {
+    const Class& klass) {
   // read parts of arguments, then go back to before doing so.
   AlternativeReadingScope alt(reader_);
   ReadUInt();                               // read argument count.
@@ -4397,13 +4864,13 @@ LocalVariable* StreamingFlowGraphBuilder::MakeTemporary() {
   return flow_graph_builder_->MakeTemporary();
 }
 
-Token::Kind StreamingFlowGraphBuilder::MethodKind(const dart::String& name) {
+Token::Kind StreamingFlowGraphBuilder::MethodKind(const String& name) {
   return flow_graph_builder_->MethodKind(name);
 }
 
-dart::RawFunction* StreamingFlowGraphBuilder::LookupMethodByMember(
+RawFunction* StreamingFlowGraphBuilder::LookupMethodByMember(
     NameIndex target,
-    const dart::String& method_name) {
+    const String& method_name) {
   return flow_graph_builder_->LookupMethodByMember(target, method_name);
 }
 
@@ -4471,19 +4938,36 @@ Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
 Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
                                                const Function& target,
                                                intptr_t argument_count,
-                                               const Array& argument_names) {
+                                               const Array& argument_names,
+                                               intptr_t type_args_count) {
   return flow_graph_builder_->StaticCall(position, target, argument_count,
-                                         argument_names);
+                                         argument_names, type_args_count);
 }
 
 Fragment StreamingFlowGraphBuilder::InstanceCall(
     TokenPosition position,
-    const dart::String& name,
+    const String& name,
     Token::Kind kind,
     intptr_t argument_count,
     intptr_t checked_argument_count) {
-  return flow_graph_builder_->InstanceCall(position, name, kind, argument_count,
-                                           checked_argument_count);
+  const intptr_t kTypeArgsLen = 0;
+  return flow_graph_builder_->InstanceCall(
+      position, name, kind, kTypeArgsLen, argument_count, Array::null_array(),
+      checked_argument_count, Function::null_function());
+}
+
+Fragment StreamingFlowGraphBuilder::InstanceCall(
+    TokenPosition position,
+    const String& name,
+    Token::Kind kind,
+    intptr_t type_args_len,
+    intptr_t argument_count,
+    const Array& argument_names,
+    intptr_t checked_argument_count,
+    const Function& interface_target) {
+  return flow_graph_builder_->InstanceCall(
+      position, name, kind, type_args_len, argument_count, argument_names,
+      checked_argument_count, interface_target);
 }
 
 Fragment StreamingFlowGraphBuilder::ThrowException(TokenPosition position) {
@@ -4506,13 +4990,13 @@ Fragment StreamingFlowGraphBuilder::StrictCompare(Token::Kind kind,
 }
 
 Fragment StreamingFlowGraphBuilder::AllocateObject(TokenPosition position,
-                                                   const dart::Class& klass,
+                                                   const Class& klass,
                                                    intptr_t argument_count) {
   return flow_graph_builder_->AllocateObject(position, klass, argument_count);
 }
 
 Fragment StreamingFlowGraphBuilder::AllocateObject(
-    const dart::Class& klass,
+    const Class& klass,
     const Function& closure_function) {
   return flow_graph_builder_->AllocateObject(klass, closure_function);
 }
@@ -4525,26 +5009,13 @@ Fragment StreamingFlowGraphBuilder::LoadField(intptr_t offset) {
   return flow_graph_builder_->LoadField(offset);
 }
 
-Fragment StreamingFlowGraphBuilder::InstanceCall(
-    TokenPosition position,
-    const dart::String& name,
-    Token::Kind kind,
-    intptr_t type_args_len,
-    intptr_t argument_count,
-    const Array& argument_names,
-    intptr_t checked_argument_count) {
-  return flow_graph_builder_->InstanceCall(position, name, kind, type_args_len,
-                                           argument_count, argument_names,
-                                           checked_argument_count);
-}
-
 Fragment StreamingFlowGraphBuilder::StoreLocal(TokenPosition position,
                                                LocalVariable* variable) {
   return flow_graph_builder_->StoreLocal(position, variable);
 }
 
 Fragment StreamingFlowGraphBuilder::StoreStaticField(TokenPosition position,
-                                                     const dart::Field& field) {
+                                                     const Field& field) {
   return flow_graph_builder_->StoreStaticField(position, field);
 }
 
@@ -4667,8 +5138,8 @@ Fragment StreamingFlowGraphBuilder::CheckBooleanInCheckedMode() {
 }
 
 Fragment StreamingFlowGraphBuilder::CheckAssignableInCheckedMode(
-    const dart::AbstractType& dst_type,
-    const dart::String& dst_name) {
+    const AbstractType& dst_type,
+    const String& dst_name) {
   return flow_graph_builder_->CheckAssignableInCheckedMode(dst_type, dst_name);
 }
 
@@ -4684,7 +5155,7 @@ Fragment StreamingFlowGraphBuilder::CheckVariableTypeInCheckedMode(
 
 Fragment StreamingFlowGraphBuilder::CheckVariableTypeInCheckedMode(
     const AbstractType& dst_type,
-    const dart::String& name_symbol) {
+    const String& name_symbol) {
   return flow_graph_builder_->CheckVariableTypeInCheckedMode(dst_type,
                                                              name_symbol);
 }
@@ -4749,8 +5220,7 @@ Fragment StreamingFlowGraphBuilder::BuildArgumentsFromActualArguments(
     *argument_names ^= Array::New(list_length, Heap::kOld);
   }
   for (intptr_t i = 0; i < list_length; ++i) {
-    dart::String& name =
-        H.DartSymbol(ReadStringReference());  // read ith name index.
+    String& name = H.DartSymbol(ReadStringReference());  // read ith name index.
     instructions += BuildExpression();        // read ith expression.
     if (!skip_push_arguments) instructions += PushArgument();
     if (do_drop) instructions += Drop();
@@ -4832,10 +5302,23 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
   Fragment instructions = BuildExpression();  // read receiver.
   instructions += PushArgument();
 
-  const dart::String& getter_name = ReadNameAsGetterName();  // read name.
-  SkipCanonicalNameReference();  // Read unused "interface_target_reference".
+  const String& getter_name = ReadNameAsGetterName();  // read name.
 
-  return instructions + InstanceCall(position, getter_name, Token::kGET, 1);
+  const Function* interface_target = &Function::null_function();
+  NameIndex itarget_name =
+      ReadCanonicalNameReference();  // read interface_target_reference.
+  if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name) &&
+      (H.IsGetter(itarget_name) || H.IsField(itarget_name))) {
+    interface_target = &Function::ZoneHandle(
+        Z, LookupMethodByMember(itarget_name, H.DartGetterName(itarget_name)));
+    ASSERT(getter_name.raw() == interface_target->name());
+  }
+
+  const intptr_t kTypeArgsLen = 0;
+  const intptr_t kNumArgsChecked = 1;
+  return instructions + InstanceCall(position, getter_name, Token::kGET,
+                                     kTypeArgsLen, 1, Array::null_array(),
+                                     kNumArgsChecked, *interface_target);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
@@ -4848,15 +5331,27 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   instructions += BuildExpression();  // read receiver.
   instructions += PushArgument();
 
-  const dart::String& setter_name = ReadNameAsSetterName();  // read name.
+  const String& setter_name = ReadNameAsSetterName();  // read name.
 
   instructions += BuildExpression();  // read value.
   instructions += StoreLocal(TokenPosition::kNoSource, variable);
   instructions += PushArgument();
 
-  SkipCanonicalNameReference();  // read unused "interface_target_reference".
+  const Function* interface_target = &Function::null_function();
+  NameIndex itarget_name =
+      ReadCanonicalNameReference();  // read interface_target_reference.
+  if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name)) {
+    interface_target = &Function::ZoneHandle(
+        Z, LookupMethodByMember(itarget_name, H.DartSetterName(itarget_name)));
+    ASSERT(setter_name.raw() == interface_target->name());
+  }
 
-  instructions += InstanceCall(position, setter_name, Token::kSET, 2);
+  const intptr_t kTypeArgsLen = 0;
+  const intptr_t kNumArgsChecked = 1;
+  instructions +=
+      InstanceCall(position, setter_name, Token::kSET, kTypeArgsLen, 2,
+                   Array::null_array(), kNumArgsChecked, *interface_target);
+
   return instructions + Drop();
 }
 
@@ -4883,7 +5378,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
     }
   } else {
     ASSERT(H.IsField(kernel_name));
-    const dart::String& getter_name = H.DartGetterName(kernel_name);
+    const String& getter_name = H.DartGetterName(kernel_name);
     target = LookupMethodByMember(kernel_name, getter_name);
     ASSERT(target.IsGetterFunction() || target.IsImplicitGetterFunction());
   }
@@ -4904,7 +5399,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
 
   NameIndex target_reference =
       ReadCanonicalNameReference();  // read target_reference.
-  const dart::String& method_name = H.DartSetterName(target_reference);
+  const String& method_name = H.DartSetterName(target_reference);
   const Function& target = Function::ZoneHandle(
       Z, LookupMethodByMember(target_reference, method_name));
   ASSERT(target.IsSetterFunction() || target.IsImplicitSetterFunction());
@@ -4927,13 +5422,13 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
   NameIndex target = ReadCanonicalNameReference();  // read target_reference.
 
   if (H.IsField(target)) {
-    const dart::Field& field =
-        dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(target));
+    const Field& field =
+        Field::ZoneHandle(Z, H.LookupFieldByKernelField(target));
     if (field.is_const()) {
       return Constant(constant_evaluator_.EvaluateExpression(offset));
     } else {
-      const dart::Class& owner = dart::Class::Handle(Z, field.Owner());
-      const dart::String& getter_name = H.DartGetterName(target);
+      const Class& owner = Class::Handle(Z, field.Owner());
+      const String& getter_name = H.DartGetterName(target);
       const Function& getter =
           Function::ZoneHandle(Z, owner.LookupStaticFunction(getter_name));
       if (getter.IsNull() || !field.has_initializer()) {
@@ -4966,15 +5461,15 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
   NameIndex target = ReadCanonicalNameReference();  // read target_reference.
 
   if (H.IsField(target)) {
-    const dart::Field& field =
-        dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(target));
+    const Field& field =
+        Field::ZoneHandle(Z, H.LookupFieldByKernelField(target));
     const AbstractType& dst_type = AbstractType::ZoneHandle(Z, field.type());
     Fragment instructions = BuildExpression();  // read expression.
     if (NeedsDebugStepCheck(stack(), position)) {
       instructions = DebugStepCheck(position) + instructions;
     }
     instructions += CheckAssignableInCheckedMode(
-        dst_type, dart::String::ZoneHandle(Z, field.name()));
+        dst_type, String::ZoneHandle(Z, field.name()));
     LocalVariable* variable = MakeTemporary();
     instructions += LoadLocal(variable);
     return instructions + StoreStaticField(position, field);
@@ -5015,16 +5510,15 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
 
     SkipExpression();  // read receiver (it's just a number literal).
 
-    const dart::String& name = ReadNameAsMethodName();  // read name.
+    const String& name = ReadNameAsMethodName();  // read name.
     const Token::Kind token_kind = MethodKind(name);
     intptr_t argument_count = PeekArgumentsCount() + 1;
 
     if ((argument_count == 1) && (token_kind == Token::kNEGATE)) {
       const Object& result = constant_evaluator_.EvaluateExpressionSafe(offset);
       if (!result.IsError()) {
-        SkipArguments();  // read arguments,
-        // read unused "interface_target_reference".
-        SkipCanonicalNameReference();
+        SkipArguments();               // read arguments.
+        SkipCanonicalNameReference();  // read interface_target_reference.
         return Constant(result);
       }
     } else if ((argument_count == 2) &&
@@ -5032,9 +5526,8 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
                IsNumberLiteral(PeekArgumentsFirstPositionalTag())) {
       const Object& result = constant_evaluator_.EvaluateExpressionSafe(offset);
       if (!result.IsError()) {
-        SkipArguments();
-        // read unused "interface_target_reference".
-        SkipCanonicalNameReference();
+        SkipArguments();               // read arguments.
+        SkipCanonicalNameReference();  // read interface_target_reference.
         return Constant(result);
       }
     }
@@ -5044,7 +5537,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
 
   Fragment instructions = BuildExpression();  // read receiver.
 
-  const dart::String& name = ReadNameAsMethodName();  // read name.
+  const String& name = ReadNameAsMethodName();  // read name.
   const Token::Kind token_kind = MethodKind(name);
 
   // Detect comparison with null.
@@ -5054,7 +5547,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
        PeekArgumentsFirstPositionalTag() == kNullLiteral)) {
     // "==" or "!=" with null on either side.
     instructions += BuildArguments(NULL, NULL, true);  // read arguments.
-    SkipCanonicalNameReference();  // read unused "interface_target_reference".
+    SkipCanonicalNameReference();  // read interface_target_reference.
     Token::Kind strict_cmp_kind =
         token_kind == Token::kEQ ? Token::kEQ_STRICT : Token::kNE_STRICT;
     return instructions +
@@ -5079,9 +5572,20 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     checked_argument_count = argument_count;
   }
 
+  const Function* interface_target = &Function::null_function();
+  NameIndex itarget_name =
+      ReadCanonicalNameReference();  // read interface_target_reference.
+  if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name) &&
+      !H.IsField(itarget_name)) {
+    interface_target = &Function::ZoneHandle(
+        Z,
+        LookupMethodByMember(itarget_name, H.DartProcedureName(itarget_name)));
+    ASSERT(name.raw() == interface_target->name());
+  }
+
   instructions +=
       InstanceCall(position, name, token_kind, kTypeArgsLen, argument_count,
-                   argument_names, checked_argument_count);
+                   argument_names, checked_argument_count, *interface_target);
   // Later optimization passes assume that result of a x.[]=(...) call is not
   // used. We must guarantee this invariant because violation will lead to an
   // illegal IL once we replace x.[]=(...) with a sequence that does not
@@ -5090,8 +5594,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     instructions += Drop();
     instructions += NullConstant();
   }
-
-  SkipCanonicalNameReference();  // read unused "interface_target_reference".
 
   return instructions;
 }
@@ -5106,7 +5608,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
 
   NameIndex kernel_name =
       ReadCanonicalNameReference();  // read target_reference.
-  const dart::String& method_name = H.DartProcedureName(kernel_name);
+  const String& method_name = H.DartProcedureName(kernel_name);
   const Token::Kind token_kind = MethodKind(method_name);
 
   // Detect comparison with null.
@@ -5146,7 +5648,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
   intptr_t argument_count = PeekArgumentsCount();
   const Function& target = Function::ZoneHandle(
       Z, H.LookupStaticMethodByKernelProcedure(procedue_reference));
-  const dart::Class& klass = dart::Class::ZoneHandle(Z, target.Owner());
+  const Class& klass = Class::ZoneHandle(Z, target.Owner());
   if (target.IsGenerativeConstructor() || target.IsFactory()) {
     // The VM requires a TypeArguments object as first parameter for
     // every factory constructor.
@@ -5193,9 +5695,9 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     // TODO(28109) Support generic methods in the VM or reify them away.
   }
 
-  bool special_case_identical =
-      klass.IsTopLevel() && (klass.library() == dart::Library::CoreLibrary()) &&
-      (target.name() == Symbols::Identical().raw());
+  bool special_case_identical = klass.IsTopLevel() &&
+                                (klass.library() == Library::CoreLibrary()) &&
+                                (target.name() == Symbols::Identical().raw());
 
   Array& argument_names = Array::ZoneHandle(Z);
   instructions += BuildArguments(&argument_names, NULL,
@@ -5241,7 +5743,7 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
   NameIndex kernel_name =
       ReadCanonicalNameReference();  // read target_reference.
 
-  dart::Class& klass = dart::Class::ZoneHandle(
+  Class& klass = Class::ZoneHandle(
       Z, H.LookupClassByKernelClass(H.EnclosingName(kernel_name)));
 
   Fragment instructions;
@@ -5331,10 +5833,9 @@ Fragment StreamingFlowGraphBuilder::BuildLogicalExpression(
 
   TargetEntryInstr* right_entry;
   TargetEntryInstr* constant_entry;
-  LogicalExpression::Operator op =
-      static_cast<LogicalExpression::Operator>(ReadByte());
+  LogicalOperator op = static_cast<LogicalOperator>(ReadByte());
 
-  if (op == LogicalExpression::kAnd) {
+  if (op == kAnd) {
     instructions += BranchIfTrue(&right_entry, &constant_entry, negate);
   } else {
     instructions += BranchIfTrue(&constant_entry, &right_entry, negate);
@@ -5353,7 +5854,7 @@ Fragment StreamingFlowGraphBuilder::BuildLogicalExpression(
 
   ASSERT(top == stack());
   Fragment constant_fragment(constant_entry);
-  constant_fragment += Constant(Bool::Get(op == LogicalExpression::kOr));
+  constant_fragment += Constant(Bool::Get(op == kOr));
   constant_fragment += StoreLocal(TokenPosition::kNoSource,
                                   parsed_function()->expression_temp_var());
   constant_fragment += Drop();
@@ -5467,8 +5968,7 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
       instructions += Constant(type);
       instructions += PushArgument();  // Type.
       instructions += InstanceCall(
-          position,
-          dart::Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()),
+          position, Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()),
           Token::kIS, 2, 2);  // 2 checked arguments.
       return instructions;
     }
@@ -5491,7 +5991,7 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
     instructions += PushArgument();  // Type.
 
     instructions += InstanceCall(
-        position, dart::Library::PrivateCoreLibName(Symbols::_instanceOf()),
+        position, Library::PrivateCoreLibName(Symbols::_instanceOf()),
         Token::kIS, 4);
   }
   return instructions;
@@ -5540,8 +6040,7 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
     instructions += PushArgument();  // Type.
 
     instructions += InstanceCall(
-        position, dart::Library::PrivateCoreLibName(Symbols::_as()), Token::kAS,
-        4);
+        position, Library::PrivateCoreLibName(Symbols::_as()), Token::kAS, 4);
   }
   return instructions;
 }
@@ -5670,11 +6169,11 @@ Fragment StreamingFlowGraphBuilder::BuildListLiteral(bool is_const,
   }
   instructions += PushArgument();  // The array.
 
-  const dart::Class& factory_class =
-      dart::Class::Handle(Z, dart::Library::LookupCoreClass(Symbols::List()));
+  const Class& factory_class =
+      Class::Handle(Z, Library::LookupCoreClass(Symbols::List()));
   const Function& factory_method = Function::ZoneHandle(
       Z, factory_class.LookupFactory(
-             dart::Library::PrivateCoreLibName(Symbols::ListLiteralFactory())));
+             Library::PrivateCoreLibName(Symbols::ListLiteralFactory())));
 
   return instructions + StaticCall(position, factory_method, 2);
 }
@@ -5730,11 +6229,11 @@ Fragment StreamingFlowGraphBuilder::BuildMapLiteral(bool is_const,
   }
   instructions += PushArgument();  // The array.
 
-  const dart::Class& map_class =
-      dart::Class::Handle(Z, dart::Library::LookupCoreClass(Symbols::Map()));
+  const Class& map_class =
+      Class::Handle(Z, Library::LookupCoreClass(Symbols::Map()));
   const Function& factory_method = Function::ZoneHandle(
       Z, map_class.LookupFactory(
-             dart::Library::PrivateCoreLibName(Symbols::MapLiteralFactory())));
+             Library::PrivateCoreLibName(Symbols::MapLiteralFactory())));
 
   return instructions + StaticCall(position, factory_method, 2);
 }
@@ -5756,7 +6255,7 @@ Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral(
     TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
 
-  const dart::String& value =
+  const String& value =
       H.DartString(ReadStringReference());  // read index into string table.
   const Integer& integer =
       Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld));
@@ -5873,8 +6372,8 @@ Fragment StreamingFlowGraphBuilder::BuildClosureCreation(
   function = function.ConvertedClosureFunction();
   ASSERT(!function.IsNull());
 
-  const dart::Class& closure_class =
-      dart::Class::ZoneHandle(Z, I->object_store()->closure_class());
+  const Class& closure_class =
+      Class::ZoneHandle(Z, I->object_store()->closure_class());
   Fragment instructions = AllocateObject(closure_class, function);
   LocalVariable* closure = MakeTemporary();
 
@@ -5893,8 +6392,25 @@ Fragment StreamingFlowGraphBuilder::BuildClosureCreation(
 
   instructions += Drop();
 
-  SkipDartType();         // skip function type of the closure.
-  SkipListOfDartTypes();  // skip list of type arguments.
+  SkipDartType();  // skip function type of the closure.
+
+  // TODO(30455): Kernel generic methods undone. When generic methods are
+  // fully supported in kernel, we'll need to store a NULL in the type arguments
+  // slot when type arguments are absent, so the wrapper for the target function
+  // can tell how many type args are captured vs. provided by the caller of the
+  // closure.
+
+  intptr_t types_count = ReadListLength();  // read type count.
+  if (types_count > 0) {
+    instructions += LoadLocal(context);
+
+    const TypeArguments& type_args =
+        T.BuildTypeArguments(types_count);  // read list of type arguments.
+    instructions += TranslateInstantiatedTypeArguments(type_args);
+
+    instructions += StoreInstanceField(TokenPosition::kNoSource,
+                                       Context::variable_offset(0));
+  }
 
   return instructions;
 }
@@ -5963,10 +6479,10 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {
   TokenPosition condition_end_offset =
       ReadPosition();  // read condition end offset.
 
-  const dart::Class& klass = dart::Class::ZoneHandle(
-      Z, dart::Library::LookupCoreClass(Symbols::AssertionError()));
+  const Class& klass =
+      Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::AssertionError()));
   ASSERT(!klass.IsNull());
-  const dart::Function& target = dart::Function::ZoneHandle(
+  const Function& target = Function::ZoneHandle(
       Z, klass.LookupStaticFunctionAllowPrivate(Symbols::ThrowNew()));
   ASSERT(!target.IsNull());
 
@@ -6170,8 +6686,8 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
       BuildExpression(&iterable_position);  // read iterable.
   instructions += PushArgument();
 
-  const dart::String& iterator_getter = dart::String::ZoneHandle(
-      Z, dart::Field::GetterSymbol(Symbols::Iterator()));
+  const String& iterator_getter =
+      String::ZoneHandle(Z, Field::GetterSymbol(Symbols::Iterator()));
   instructions +=
       InstanceCall(iterable_position, iterator_getter, Token::kGET, 1);
   LocalVariable* iterator = scopes()->iterator_variables[for_in_depth()];
@@ -6192,8 +6708,8 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
   body += EnterScope(offset + relative_kernel_offset_);
   body += LoadLocal(iterator);
   body += PushArgument();
-  const dart::String& current_getter = dart::String::ZoneHandle(
-      Z, dart::Field::GetterSymbol(Symbols::Current()));
+  const String& current_getter =
+      String::ZoneHandle(Z, Field::GetterSymbol(Symbols::Current()));
   body += InstanceCall(body_position, current_getter, Token::kGET, 1);
   body += StoreLocal(TokenPosition::kNoSource,
                      LookupVariable(variable_kernel_position));
@@ -6265,14 +6781,14 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
     // The Dart language specification mandates fall-throughs in [SwitchCase]es
     // to be runtime errors.
     if (!is_default && body_fragment.is_open() && (i < (case_count - 1))) {
-      const dart::Class& klass = dart::Class::ZoneHandle(
-          Z, dart::Library::LookupCoreClass(Symbols::FallThroughError()));
+      const Class& klass = Class::ZoneHandle(
+          Z, Library::LookupCoreClass(Symbols::FallThroughError()));
       ASSERT(!klass.IsNull());
-      const dart::Function& constructor = dart::Function::ZoneHandle(
+      const Function& constructor = Function::ZoneHandle(
           Z, klass.LookupConstructorAllowPrivate(
                  H.DartSymbol("FallThroughError._create")));
       ASSERT(!constructor.IsNull());
-      const dart::String& url = H.DartString(
+      const String& url = H.DartString(
           parsed_function()->function().ToLibNamePrefixedQualifiedCString(),
           Heap::kOld);
 
@@ -6600,8 +7116,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
         catch_body += PushArgument();  // guard type
         catch_body += InstanceCall(
             TokenPosition::kNoSource,
-            dart::Library::PrivateCoreLibName(Symbols::_instanceOf()),
-            Token::kIS, 4);
+            Library::PrivateCoreLibName(Symbols::_instanceOf()), Token::kIS, 4);
 
         TargetEntryInstr* catch_entry;
         TargetEntryInstr* next_catch_entry;
@@ -6719,8 +7234,7 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
   TokenPosition position = ReadPosition();  // read position.
   uint8_t flags = ReadByte();               // read flags.
 
-  ASSERT((flags & YieldStatement::kFlagNative) ==
-         YieldStatement::kFlagNative);  // Must have been desugared.
+  ASSERT(flags == kNativeYieldFlags);  // Must have been desugared.
 
   // Setup yield/continue point:
   //
@@ -6800,7 +7314,7 @@ Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration() {
 
   VariableDeclarationHelper helper(this);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
-  dart::String& name = H.DartSymbol(helper.name_index_);
+  String& name = H.DartSymbol(helper.name_index_);
   AbstractType& type = T.BuildType();  // read type.
   Tag tag = ReadTag();                 // read (first part of) initializer.
 
@@ -6882,7 +7396,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         continue;
       }
 
-      const dart::String* name;
+      const String* name;
       if (declaration) {
         name = &H.DartSymbol(name_index);
       } else {
@@ -6893,16 +7407,16 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           *name, parsed_function()->function(), position);
 
       function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
-                                 FunctionNode::kSync);
+                                 FunctionNodeHelper::kSync);
       switch (function_node_helper.dart_async_marker_) {
-        case FunctionNode::kSyncStar:
+        case FunctionNodeHelper::kSyncStar:
           function.set_modifier(RawFunction::kSyncGen);
           break;
-        case FunctionNode::kAsync:
+        case FunctionNodeHelper::kAsync:
           function.set_modifier(RawFunction::kAsync);
           function.set_is_inlinable(!FLAG_causal_async_stacks);
           break;
-        case FunctionNode::kAsyncStar:
+        case FunctionNodeHelper::kAsyncStar:
           function.set_modifier(RawFunction::kAsyncGen);
           function.set_is_inlinable(!FLAG_causal_async_stacks);
           break;
@@ -6911,7 +7425,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           break;
       }
       function.set_is_generated_body(function_node_helper.async_marker_ ==
-                                     FunctionNode::kSyncYielding);
+                                     FunctionNodeHelper::kSyncYielding);
       if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
         function.set_is_inlinable(!FLAG_causal_async_stacks);
       }
@@ -6922,7 +7436,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           Z, scope->PreserveOuterScope(flow_graph_builder_->context_depth_));
       function.set_context_scope(context_scope);
       function.set_kernel_offset(offset);
-      SetupFunctionParameters(dart::Class::Handle(Z), function,
+      SetupFunctionParameters(Class::Handle(Z), function,
                               false,  // is_method
                               true,   // is_closure
                               &function_node_helper);
@@ -6944,8 +7458,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
 
-  const dart::Class& closure_class =
-      dart::Class::ZoneHandle(Z, I->object_store()->closure_class());
+  const Class& closure_class =
+      Class::ZoneHandle(Z, I->object_store()->closure_class());
   ASSERT(!closure_class.IsNull());
   Fragment instructions =
       flow_graph_builder_->AllocateObject(closure_class, function);
@@ -6978,8 +7492,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 }
 
 void StreamingFlowGraphBuilder::SetupFunctionParameters(
-    const dart::Class& klass,
-    const dart::Function& function,
+    const Class& klass,
+    const Function& function,
     bool is_method,
     bool is_closure,
     FunctionNodeHelper* function_node_helper) {

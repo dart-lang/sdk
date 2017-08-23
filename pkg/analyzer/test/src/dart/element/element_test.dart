@@ -170,7 +170,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     List<InterfaceType> supers = classC.allSupertypes;
     List<InterfaceType> types = new List<InterfaceType>();
     types.addAll(supers);
-    expect(types.contains(typeA), isFalse);
+    expect(types.contains(typeA), isTrue);
     expect(types.contains(typeB), isTrue);
     expect(types.contains(typeObject), isTrue);
     expect(types.contains(typeC), isFalse);
@@ -3929,8 +3929,10 @@ class B<S> extends A<S> {
         .lookUpInheritedMethod("f", library: libraryElement, thisType: true);
     MethodElement AfElement = elementB.type
         .lookUpInheritedMethod("f", library: libraryElement, thisType: false);
-    expect(BfElement.getReifiedType(objectType),
-        equals(AfElement.getReifiedType(objectType)));
+    expect(
+        BfElement.getReifiedType(objectType), // ignore: deprecated_member_use
+        equals(AfElement
+            .getReifiedType(objectType))); // ignore: deprecated_member_use
   }
 }
 

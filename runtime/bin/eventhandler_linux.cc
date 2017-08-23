@@ -200,15 +200,7 @@ void EventHandlerImplementation::HandleInterruptFd() {
   for (ssize_t i = 0; i < bytes / kInterruptMessageSize; i++) {
     if (msg[i].id == kTimerId) {
       timeout_queue_.UpdateTimeout(msg[i].dart_port, msg[i].data);
-      struct itimerspec it;
-      memset(&it, 0, sizeof(it));
-      if (timeout_queue_.HasTimeout()) {
-        int64_t millis = timeout_queue_.CurrentTimeout();
-        it.it_value.tv_sec = millis / 1000;
-        it.it_value.tv_nsec = (millis % 1000) * 1000000;
-      }
-      VOID_NO_RETRY_EXPECTED(
-          timerfd_settime(timer_fd_, TFD_TIMER_ABSTIME, &it, NULL));
+      UpdateTimerFd();
     } else if (msg[i].id == kShutdownId) {
       shutdown_ = true;
     } else {
@@ -283,6 +275,18 @@ void EventHandlerImplementation::HandleInterruptFd() {
   }
 }
 
+void EventHandlerImplementation::UpdateTimerFd() {
+  struct itimerspec it;
+  memset(&it, 0, sizeof(it));
+  if (timeout_queue_.HasTimeout()) {
+    int64_t millis = timeout_queue_.CurrentTimeout();
+    it.it_value.tv_sec = millis / 1000;
+    it.it_value.tv_nsec = (millis % 1000) * 1000000;
+  }
+  VOID_NO_RETRY_EXPECTED(
+      timerfd_settime(timer_fd_, TFD_TIMER_ABSTIME, &it, NULL));
+}
+
 #ifdef DEBUG_POLL
 static void PrintEventMask(intptr_t fd, intptr_t events) {
   Log::Print("%d ", fd);
@@ -351,6 +355,7 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
         DartUtils::PostNull(timeout_queue_.CurrentPort());
         timeout_queue_.RemoveCurrent();
       }
+      UpdateTimerFd();
     } else {
       DescriptorInfo* di =
           reinterpret_cast<DescriptorInfo*>(events[i].data.ptr);

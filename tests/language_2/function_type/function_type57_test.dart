@@ -218,10 +218,10 @@ class U57<T> {
       });
     }
     if (tIsInt || tIsBool) {
-      Expect.equals(tIsInt, m1 is F1<int>);
-      Expect.equals(tIsBool, m1 is F1<bool>);
-      Expect.equals(tIsInt, confuse(m1) is F1<int>);
-      Expect.equals(tIsBool, confuse(m1) is F1<bool>);
+      Expect.equals(true, m1 is F1<int>);
+      Expect.equals(true, m1 is F1<bool>);
+      Expect.equals(true, confuse(m1) is F1<int>);
+      Expect.equals(true, confuse(m1) is F1<bool>);
     }
   }
 

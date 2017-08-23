@@ -292,7 +292,7 @@ TEST_CASE(SourcePosition_InstanceCalls) {
   SourcePositionTest spt(thread, kScript);
   spt.BuildGraphFor("main");
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
-  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 8);
   spt.InstanceCallAt(4, 13, Token::kADD);
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 5, 3);
   spt.FuzzyInstructionMatchAt("Return", 5, 3);
@@ -314,7 +314,7 @@ TEST_CASE(SourcePosition_If) {
   SourcePositionTest spt(thread, kScript);
   spt.BuildGraphFor("main");
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
-  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 8);
   spt.FuzzyInstructionMatchAt("LoadStaticField", 4, 7);
   spt.InstanceCallAt(4, 9, Token::kEQ);
   spt.FuzzyInstructionMatchAt("Branch if StrictCompare", 4, 9);
@@ -342,7 +342,7 @@ TEST_CASE(SourcePosition_ForLoop) {
   SourcePositionTest spt(thread, kScript);
   spt.BuildGraphFor("main");
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
-  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 8);
   spt.FuzzyInstructionMatchAt("StoreLocal", 4, 14);
   spt.FuzzyInstructionMatchAt("LoadLocal", 4, 19);
   spt.InstanceCallAt(4, 21, Token::kLT);
@@ -375,7 +375,7 @@ TEST_CASE(SourcePosition_While) {
   SourcePositionTest spt(thread, kScript);
   spt.BuildGraphFor("main");
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
-  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 8);
 
   spt.FuzzyInstructionMatchAt("CheckStackOverflow", 4, 3);
   spt.FuzzyInstructionMatchAt("Constant", 4, 10);
@@ -423,7 +423,7 @@ TEST_CASE(SourcePosition_WhileContinueBreak) {
   SourcePositionTest spt(thread, kScript);
   spt.BuildGraphFor("main");
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
-  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 8);
 
   spt.FuzzyInstructionMatchAt("CheckStackOverflow", 4, 3);
   spt.FuzzyInstructionMatchAt("Constant(#Field", 4, 10);
@@ -458,7 +458,7 @@ TEST_CASE(SourcePosition_LoadIndexed) {
   spt.BuildGraphFor("main");
 
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
-  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 8);
   spt.StaticCallAt("get:z", 4, 3);
   spt.FuzzyInstructionMatchAt("Constant(#0)", 4, 5);
   spt.InstanceCallAt(4, 4, Token::kINDEX);
@@ -496,7 +496,7 @@ TEST_CASE(SourcePosition_StoreIndexed) {
   spt.BuildGraphFor("main");
 
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
-  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 8);
   spt.StaticCallAt("get:z", 4, 3);
   spt.FuzzyInstructionMatchAt("Constant(#0)", 4, 5);
   spt.InstanceCallAt(4, 4, Token::kINDEX);
@@ -543,7 +543,7 @@ TEST_CASE(SourcePosition_BitwiseOperations) {
   spt.BuildGraphFor("main");
 
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
-  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 8);
 
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 4, 7);
   spt.FuzzyInstructionMatchAt("Constant(#null", 4, 7);
@@ -590,7 +590,7 @@ TEST_CASE(SourcePosition_IfElse) {
   SourcePositionTest spt(thread, kScript);
   spt.BuildGraphFor("main");
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
-  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 8);
   spt.FuzzyInstructionMatchAt("LoadStaticField", 4, 7);
   spt.InstanceCallAt(4, 9, Token::kEQ);
   spt.FuzzyInstructionMatchAt("Branch if StrictCompare", 4, 9);
@@ -620,7 +620,7 @@ TEST_CASE(SourcePosition_Switch) {
   spt.BuildGraphFor("main");
 
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
-  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 8);
   spt.FuzzyInstructionMatchAt("Constant(#Field", 4, 11);
   spt.FuzzyInstructionMatchAt("LoadStaticField", 4, 11);
   spt.FuzzyInstructionMatchAt("StoreLocal(:switch_expr", 4, 11);
@@ -667,7 +667,7 @@ TEST_CASE(SourcePosition_TryCatchFinally) {
   spt.BuildGraphFor("main");
 
   spt.FuzzyInstructionMatchAt("DebugStepCheck", 3, 5);
-  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 5);
+  spt.FuzzyInstructionMatchAt("CheckStackOverflow", 3, 8);
 
   spt.FuzzyInstructionMatchAt("LoadLocal(:current_context", 4, 3);  // 't'
   spt.FuzzyInstructionMatchAt("StoreLocal(:saved_try_context", 4, 3);

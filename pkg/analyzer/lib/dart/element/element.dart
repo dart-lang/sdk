@@ -1604,6 +1604,7 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
    * with Object in the returned type. If no covariant parameters are present,
    * returns `this`.
    */
+  @deprecated
   FunctionType getReifiedType(DartType objectType);
 }
 

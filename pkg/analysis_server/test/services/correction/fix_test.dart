@@ -2544,6 +2544,18 @@ main() {
   new C(a, b);
 }
 ''');
+
+    List<LinkedEditGroup> groups = change.linkedEditGroups;
+    expect(groups, hasLength(2));
+    LinkedEditGroup typeGroup = groups[0];
+    List<Position> typePositions = typeGroup.positions;
+    expect(typePositions, hasLength(1));
+    expect(typePositions[0].offset, 112);
+    LinkedEditGroup nameGroup = groups[1];
+    List<Position> groupPositions = nameGroup.positions;
+    expect(groupPositions, hasLength(2));
+    expect(groupPositions[0].offset, 114);
+    expect(groupPositions[1].offset, 128);
   }
 
   test_createLocalVariable_write_assignment() async {

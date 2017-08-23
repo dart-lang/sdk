@@ -12,16 +12,6 @@ async/async_await_sync_completer_test: Skip
 async/async_await_zones_test: Skip
 async/catch_errors2_test: Skip
 async/catch_errors3_test: Skip
-async/catch_errors_test: Skip
-async/future_microtask_test: Skip
-async/future_or_bad_type_test/00: Skip
-async/future_or_bad_type_test/01: Skip
-async/future_or_bad_type_test/implements: Skip
-async/future_or_only_in_async_test/00: Skip
-async/future_test/none: Skip
-async/future_test/01: Skip
-async/future_test/none: Skip
-async/future_value_chain4_test: Skip
 async/print_test/01: Skip
 async/print_test/none: Skip
 async/slow_consumer3_test: Skip

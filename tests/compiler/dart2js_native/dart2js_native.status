@@ -133,224 +133,206 @@ native_class_inheritance3_frog_test: Crash # Issue 27394
 native_wrapping_function3_frog_test: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-abstract_class_test: Crash
+abstract_class_test: RuntimeError
 bound_closure_super_test: Crash
 bound_closure_test: Crash
-browser_compat_1_prepatched_test: Crash
-browser_compat_1_unpatched_test: Crash
-browser_compat_2_test: Crash
-catch_javascript_null_stack_trace_test: Crash
+browser_compat_1_prepatched_test: RuntimeError
+browser_compat_1_unpatched_test: RuntimeError
+browser_compat_2_test: RuntimeError
 compute_this_script_test: Crash
-core_type_check_native_test: Crash
-dispatch_property_initialization_test: Crash
-downcast_test: Crash
-error_safeToString_test: Crash
+core_type_check_native_test: RuntimeError
+dispatch_property_initialization_test: RuntimeError
+downcast_test: RuntimeError
+error_safeToString_test: RuntimeError
 event_loop_test: Crash
-fake_thing_2_test: Crash
-fake_thing_test: Crash
-field_type2_test: Crash
-field_type_test: Crash
-fixup_get_tag_test: Crash
-hash_code_test: Crash
-inference_of_helper_methods_test: Crash
+fake_thing_test: RuntimeError
+field_type2_test: RuntimeError
+field_type_test: RuntimeError
+fixup_get_tag_test: RuntimeError
+hash_code_test: RuntimeError
+inference_of_helper_methods_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#value) is stored in a closure field.
 internal_library_test: Crash
 is_check_test: CompileTimeError
-issue9182_test: Crash
-jsobject_test: Crash
+issue9182_test: RuntimeError
+jsobject_test: RuntimeError
 load_elim_refinement_test: CompileTimeError
 mirror_intercepted_field_test: CompileTimeError
 native_call_arity1_frog_test: Crash
 native_call_arity2_frog_test: Crash
 native_call_arity3_frog_test: Crash
-native_checked_arguments1_frog_test: Crash
-native_checked_fields_frog_test: Crash
-native_class_avoids_hidden_name_frog_test: Crash
-native_class_fields_2_test: Crash
-native_class_fields_3_test: Crash
-native_class_fields_test: Crash
+native_checked_arguments1_frog_test: RuntimeError
+native_checked_fields_frog_test: RuntimeError
+native_class_avoids_hidden_name_frog_test: RuntimeError
+native_class_fields_2_test: RuntimeError
+native_class_fields_3_test: RuntimeError
+native_class_fields_test: RuntimeError
 native_class_inheritance1_frog_test: Crash
 native_class_inheritance2_frog_test: Crash
 native_class_inheritance3_frog_test: Crash
 native_class_inheritance4_frog_test: Crash
-native_class_is_check1_frog_test: Crash
-native_class_is_check3_frog_test: Crash
+native_class_is_check1_frog_test: RuntimeError
+native_class_is_check3_frog_test: RuntimeError
 native_class_with_dart_methods_frog_test: Crash
 native_closure_identity_frog_test: Crash
-native_constructor_name_test: Crash
-native_equals_frog_test: Crash
-native_exception2_test: Crash
-native_exception_test: Crash
-native_exceptions1_frog_test: CompileTimeError
+native_constructor_name_test: RuntimeError
+native_equals_frog_test: RuntimeError
+native_exception2_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#previous) is stored in a closure field.
+native_exception_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#previous) is stored in a closure field.
 native_exceptions1_frog_test: Crash
-native_field_invocation2_test: Crash
-native_field_invocation3_test: Crash
-native_field_invocation4_test: Crash
-native_field_invocation5_test: Crash
+native_field_invocation2_test: RuntimeError
+native_field_invocation3_test: RuntimeError
+native_field_invocation5_test: RuntimeError
 native_field_invocation6_test: Crash
-native_field_invocation_test: Crash
-native_field_name_test: Crash
+native_field_invocation_test: RuntimeError
+native_field_name_test: RuntimeError
 native_field_optimization_test: Crash
 native_field_rename_1_frog_test: Crash
 native_field_rename_2_frog_test: Crash
 native_library_same_name_used_frog_test: CompileTimeError
 native_method_inlining_test: Crash
 native_method_rename1_frog_test: Crash
-native_method_rename2_frog_test: Crash
-native_method_rename3_frog_test: Crash
-native_method_with_keyword_name_test: Crash
+native_method_rename2_frog_test: RuntimeError
+native_method_rename3_frog_test: RuntimeError
+native_method_with_keyword_name_test: RuntimeError
 native_mirror_test: Crash
-native_missing_method1_frog_test: Crash
-native_missing_method2_frog_test: Crash
-native_mixin_field_test: Crash
-native_mixin_multiple2_test: Crash
+native_mixin_field_test: RuntimeError
+native_mixin_multiple2_test: RuntimeError
 native_mixin_multiple3_test: Crash
-native_mixin_multiple_test: Crash
-native_mixin_test: Crash
+native_mixin_multiple_test: RuntimeError
+native_mixin_test: RuntimeError
 native_mixin_with_plain_test: Crash
 native_named_constructors2_frog_test: CompileTimeError
 native_named_constructors3_frog_test: CompileTimeError
-native_no_such_method_exception2_frog_test: Crash
+native_no_such_method_exception2_frog_test: RuntimeError
 native_no_such_method_exception3_frog_test: Crash
 native_no_such_method_exception4_frog_test: Crash
 native_no_such_method_exception5_frog_test: Crash
-native_no_such_method_exception_frog_test: Crash
+native_no_such_method_exception_frog_test: RuntimeError
 native_novel_html_test: Crash
-native_null_closure_frog_test: Crash
+native_null_closure_frog_test: RuntimeError
 native_null_frog_test: Crash
 native_property_frog_test: CompileTimeError
-native_to_string_frog_test: Crash
-native_use_native_name_in_table_frog_test: Crash
-native_window1_frog_test: Crash
-native_window2_frog_test: Crash
+native_to_string_frog_test: RuntimeError
+native_use_native_name_in_table_frog_test: RuntimeError
 native_wrapping_function3_frog_test: Crash
 native_wrapping_function_frog_test: Crash
-oddly_named_fields_test: Crash
+oddly_named_fields_test: RuntimeError
 optimization_hints_test: Crash
 rti_only_native_test: Crash
 runtimetype_test: CompileTimeError
-static_methods_test: Crash
-subclassing_1_test: Crash
-subclassing_2_test: Crash
-subclassing_3_test: Crash
-subclassing_4_test: Crash
-subclassing_5_test: Crash
+static_methods_test: RuntimeError
+subclassing_1_test: RuntimeError
+subclassing_2_test: RuntimeError
+subclassing_3_test: RuntimeError
+subclassing_4_test: RuntimeError
+subclassing_5_test: RuntimeError
 subclassing_constructor_1_test: Crash
-subclassing_constructor_2_test: Crash
-subclassing_super_call_test: Crash
-subclassing_super_field_1_test: Crash
-subclassing_super_field_2_test: Crash
-subclassing_type_test: Crash
-super_call_test: Crash
-super_property_test: Crash
-type_error_decode_test: Crash
+subclassing_constructor_2_test: RuntimeError
+subclassing_super_call_test: RuntimeError
+subclassing_super_field_1_test: RuntimeError
+subclassing_super_field_2_test: RuntimeError
+subclassing_type_test: RuntimeError
+super_call_test: RuntimeError
+super_property_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-abstract_class_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-bound_closure_super_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-bound_closure_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-browser_compat_1_prepatched_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-browser_compat_1_unpatched_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-browser_compat_2_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-catch_javascript_null_stack_trace_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
-core_type_check_native_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-dispatch_property_initialization_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-downcast_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-error_safeToString_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
+abstract_class_test: RuntimeError
+bound_closure_super_test: RuntimeError
+bound_closure_test: RuntimeError
+browser_compat_1_prepatched_test: RuntimeError
+browser_compat_1_unpatched_test: RuntimeError
+browser_compat_2_test: RuntimeError
+core_type_check_native_test: RuntimeError
+dispatch_property_initialization_test: RuntimeError
+downcast_test: RuntimeError
+error_safeToString_test: RuntimeError
 event_loop_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-fake_thing_2_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-fake_thing_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-field_type2_test: Crash # Assertion failure: Tag 'Node' already in use by 'Node'
-field_type_test: Crash # Assertion failure: Tag 'Node' already in use by 'Node'
-fixup_get_tag_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-hash_code_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-inference_of_helper_methods_test: Crash # Assertion failure: Cannot find value local(main_closure.call#a) in (local(main#)) for j:closure_call(main_closure.call).
+fake_thing_test: RuntimeError
+field_type2_test: RuntimeError
+field_type_test: RuntimeError
+fixup_get_tag_test: RuntimeError
+hash_code_test: RuntimeError
 internal_library_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 is_check_test: CompileTimeError
-issue9182_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-jsobject_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
+issue9182_test: RuntimeError
+jsobject_test: RuntimeError
 load_elim_refinement_test: CompileTimeError
 mirror_intercepted_field_test: CompileTimeError
 native_call_arity1_frog_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'type'.
-native_call_arity2_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
+native_call_arity2_frog_test: RuntimeError
 native_call_arity3_frog_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'type'.
-native_checked_arguments1_frog_test: Crash # NoSuchMethodError: The method 'accept' was called on null.
-native_checked_fields_frog_test: Crash # Assertion failure: Cannot find value local(initHooks_closure.call#prototypeForTag) in (local(initHooks_closure.call#tag), local(initHooks#)) for j:closure_call(initHooks_closure.call).
-native_class_avoids_hidden_name_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_class_fields_2_test: Crash # Assertion failure: Cannot find value local(initHooks_closure.call#prototypeForTag) in (local(initHooks_closure.call#tag), local(initHooks#)) for j:closure_call(initHooks_closure.call).
-native_class_fields_3_test: Crash # Assertion failure: Cannot find value local(initHooks_closure.call#prototypeForTag) in (local(initHooks_closure.call#tag), local(initHooks#)) for j:closure_call(initHooks_closure.call).
-native_class_fields_test: Crash # Assertion failure: Cannot find value local(initHooks_closure.call#prototypeForTag) in (local(initHooks_closure.call#tag), local(initHooks#)) for j:closure_call(initHooks_closure.call).
-native_class_inheritance1_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_class_inheritance2_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
+native_checked_arguments1_frog_test: RuntimeError
+native_checked_fields_frog_test: RuntimeError
+native_class_avoids_hidden_name_frog_test: RuntimeError
+native_class_fields_2_test: RuntimeError
+native_class_fields_3_test: RuntimeError
+native_class_fields_test: RuntimeError
+native_class_inheritance1_frog_test: RuntimeError
+native_class_inheritance2_frog_test: RuntimeError
 native_class_inheritance3_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 native_class_inheritance4_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_class_is_check1_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_class_is_check3_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
+native_class_is_check1_frog_test: RuntimeError
+native_class_is_check3_frog_test: RuntimeError
 native_class_with_dart_methods_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 native_closure_identity_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_constructor_name_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_equals_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_exception2_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_exception_test: Crash # Assertion failure: Cannot find value local(main_closure.call#previous) in (local(main_closure.call#e), local(main#check)) for j:closure_call(main_closure.call).
+native_constructor_name_test: RuntimeError
+native_equals_frog_test: RuntimeError
+native_exception2_test: RuntimeError
+native_exception_test: RuntimeError
 native_exceptions1_frog_test: CompileTimeError
-native_field_invocation2_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_field_invocation3_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_field_invocation4_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_field_invocation5_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
+native_field_invocation2_test: RuntimeError
+native_field_invocation3_test: RuntimeError
+native_field_invocation5_test: RuntimeError
 native_field_invocation6_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_field_invocation_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_field_name_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
+native_field_invocation_test: RuntimeError
+native_field_name_test: RuntimeError
 native_field_optimization_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 native_field_rename_1_frog_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'type'.
 native_field_rename_2_frog_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'type'.
 native_library_same_name_used_frog_test: CompileTimeError
 native_method_inlining_test: Crash # NoSuchMethodError: The method 'accept' was called on null.
 native_method_rename1_frog_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'type'.
-native_method_rename2_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_method_rename3_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_method_with_keyword_name_test: Crash # NoSuchMethodError: The method 'accept' was called on null.
+native_method_rename2_frog_test: RuntimeError
+native_method_rename3_frog_test: RuntimeError
+native_method_with_keyword_name_test: RuntimeError
 native_mirror_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
-native_missing_method1_frog_test: Crash # Assertion failure: Cannot find value local(untypedContext_closure.call#a) in (local(untypedContext#)) for j:closure_call(untypedContext_closure.call).
-native_missing_method2_frog_test: Crash # Assertion failure: Cannot find value local(initHooks_closure.call#prototypeForTag) in (local(initHooks_closure.call#tag), local(initHooks#)) for j:closure_call(initHooks_closure.call).
-native_mixin_field_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_mixin_multiple2_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
+native_mixin_field_test: RuntimeError
+native_mixin_multiple2_test: RuntimeError
 native_mixin_multiple3_test: Crash # Assertion failure: Super constructor for k:constructor(D.) not found.
-native_mixin_multiple_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
-native_mixin_test: Crash # Assertion failure: Cannot find value local(main_closure.call#m) in (local(main#)) for j:closure_call(main_closure.call).
+native_mixin_multiple_test: RuntimeError
+native_mixin_test: RuntimeError
 native_mixin_with_plain_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 native_named_constructors2_frog_test: CompileTimeError
 native_named_constructors3_frog_test: CompileTimeError
-native_no_such_method_exception2_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
+native_no_such_method_exception2_frog_test: RuntimeError
 native_no_such_method_exception3_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 native_no_such_method_exception4_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 native_no_such_method_exception5_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_no_such_method_exception_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
+native_no_such_method_exception_frog_test: RuntimeError
 native_novel_html_test: Crash # Assertion failure: Tag 'HTMLElement' already in use by 'Element'
-native_null_closure_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
+native_null_closure_frog_test: RuntimeError
 native_null_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 native_property_frog_test: CompileTimeError
-native_to_string_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_use_native_name_in_table_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_window1_frog_test: Crash # Assertion failure: Cannot find value local(main_closure.call#win) in (local(main#)) for j:closure_call(main_closure.call).
-native_window2_frog_test: Crash # Assertion failure: Cannot find value local(main_closure.call#win) in (local(main#)) for j:closure_call(main_closure.call).
+native_to_string_frog_test: RuntimeError
+native_use_native_name_in_table_frog_test: RuntimeError
 native_wrapping_function3_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 native_wrapping_function_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-oddly_named_fields_test: Crash # Assertion failure: Cannot find value local(initHooks_closure.call#prototypeForTag) in (local(initHooks_closure.call#tag), local(initHooks#)) for j:closure_call(initHooks_closure.call).
+oddly_named_fields_test: RuntimeError
 optimization_hints_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 rti_only_native_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 runtimetype_test: CompileTimeError
-static_methods_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
-subclassing_1_test: Crash # Assertion failure: Cannot find value local(initHooks_closure.call#prototypeForTag) in (local(initHooks_closure.call#tag), local(initHooks#)) for j:closure_call(initHooks_closure.call).
-subclassing_2_test: Crash # Assertion failure: Cannot find value local(initHooks_closure.call#prototypeForTag) in (local(initHooks_closure.call#tag), local(initHooks#)) for j:closure_call(initHooks_closure.call).
-subclassing_3_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
-subclassing_4_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
-subclassing_5_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
+static_methods_test: RuntimeError
+subclassing_1_test: RuntimeError
+subclassing_2_test: RuntimeError
+subclassing_3_test: RuntimeError
+subclassing_4_test: RuntimeError
+subclassing_5_test: RuntimeError
 subclassing_constructor_1_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-subclassing_constructor_2_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
-subclassing_super_call_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-subclassing_super_field_1_test: Crash # Assertion failure: Cannot find value local(initHooks_closure.call#prototypeForTag) in (local(initHooks_closure.call#tag), local(initHooks#)) for j:closure_call(initHooks_closure.call).
-subclassing_super_field_2_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-subclassing_type_test: Crash # Assertion failure: Cannot find value local(initHooks_closure.call#prototypeForTag) in (local(initHooks_closure.call#tag), local(initHooks#)) for j:closure_call(initHooks_closure.call).
-super_call_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-super_property_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-type_error_decode_test: Crash # Assertion failure: Cannot find value local(main_closure.call#f) in (local(main#)) for j:closure_call(main_closure.call).
+subclassing_constructor_2_test: RuntimeError
+subclassing_super_call_test: RuntimeError
+subclassing_super_field_1_test: RuntimeError
+subclassing_super_field_2_test: RuntimeError
+subclassing_type_test: RuntimeError
+super_call_test: RuntimeError
+super_property_test: RuntimeError
 

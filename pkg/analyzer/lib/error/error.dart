@@ -428,6 +428,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.NAMED_FUNCTION_TYPE,
   ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP,
   ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE,
+  ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
   ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE,
   ParserErrorCode.NON_CONSTRUCTOR_FACTORY,
   ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME,

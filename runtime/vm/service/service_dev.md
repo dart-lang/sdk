@@ -504,10 +504,10 @@ reference will be returned.
 ### evaluateInFrame
 
 ```
-@Instance|@Error evaluateInFrame(string isolateId,
-                                 int frameIndex,
-                                 string expression,
-                                 map<string,string> scope [optional])
+@Instance|@Error|Sentinel evaluateInFrame(string isolateId,
+                                          int frameIndex,
+                                          string expression,
+                                          map<string,string> scope [optional])
 ```
 
 The _evaluateInFrame_ RPC is used to evaluate an expression in the

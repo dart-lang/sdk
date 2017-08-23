@@ -6,13 +6,13 @@ static const field core::int max = 100;
 static method main() → dynamic {
   dynamic closures = <dynamic>[];
   dynamic closures2 = <dynamic>[];
-  final Vector #context = MakeVector(2);
-  #context[1] = null;
+  final Vector #context = MakeVector(3);
+  #context[2] = null;
   {
-    Vector #context = MakeVector(2);
-    #context[0] = #context;
-    #context[1] = 0;
-    for (; (#context[1]).<(self::max); #context = CopyVector(#context), #context[1] = (#context[1]).+(1)) {
+    Vector #context = MakeVector(3);
+    #context[1] = #context;
+    #context[2] = 0;
+    for (; (#context[2]).<(self::max); #context = CopyVector(#context), #context[2] = (#context[2]).+(1)) {
       closures.add(MakeClosure<() → dynamic>(self::closure#main#function, #context));
       closures2.add(MakeClosure<() → dynamic>(self::closure#main#function#1, #context));
     }
@@ -30,9 +30,9 @@ static method main() → dynamic {
   }
 }
 static method closure#main#function(Vector #contextParameter) → dynamic {
-  return #contextParameter[0][1] = #contextParameter[1];
+  return #contextParameter[1][2] = #contextParameter[2];
 }
 static method closure#main#function#1(Vector #contextParameter) → dynamic {
-  if(!(#contextParameter[0][1]).==(self::max.-(1)))
-    throw "last: ${#contextParameter[0][1]} != ${self::max.-(1)}";
+  if(!(#contextParameter[1][2]).==(self::max.-(1)))
+    throw "last: ${#contextParameter[1][2]} != ${self::max.-(1)}";
 }

@@ -21,6 +21,9 @@
 %
 % 2.0
 % - Don't allow functions as assert test values.
+% - Start running "async" functions synchronously.
+% - It is a static warning and dynamic error to assign to a final local.
+% - Specify what "is equivalent to" means.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -183,7 +186,7 @@ The specifications of operators often involve statements such as $x$ $op$ $y$ is
 \begin{itemize}
 \item
  $x$ $op$ $y$ is equivalent to the method invocation $x.op^\prime(y)$, assuming the class of $x$ actually declared a non-operator method named $op^\prime$ defining the same function as the operator $op$.
- \end{itemize}
+\end{itemize}
 
  \rationale{This circumlocution is required because x.op(y), where op is an operator, is not legal syntax. However, it is painfully verbose, and we prefer to state this rule once here, and use a concise and clear notation across the specification.
  }
@@ -201,6 +204,13 @@ References to otherwise unspecified names of program entities (such as classes o
 \commentary{
 Examples would be the classes \code{Object} and \code{Type} representing the root of the class hierarchy and the reification of runtime types respectively.
 }
+
+\LMHash{}
+When the specification says that one piece of syntax {\em is equivalent to} another piece of syntax, it means that it is equivalent in all ways, and the former syntax should generate the same static warnings and have the same runtime behavior as the latter.
+\commentary {
+Error messages, if any, should always refer to the original syntax.
+}
+If execution or evaluation of a construct is said to be equivalent to execution or evaluation of another construct, then only the runtime behavior is equivalent, and only the static warnings or errors mentioned for the original syntax applies.
 
 \section{Overview}
 \LMLabel{overview}
@@ -448,6 +458,7 @@ A {\em final variable} is a variable whose binding is fixed upon initialization;
 It is a static warning if a final instance variable that has been initialized at its point of declaration  is  also initialized in a constructor.
 % It is a static warning if a final instance variable that has been initialized by means of an initializing formal of a constructor is  also initialized elsewhere in the same constructor.
 It is a compile-time error if a local variable $v$ is final and $v$ is not initialized at its point of declaration.
+It is a static warning and a dynamic error to assign to a final local variable.
 
 \commentary{
 
@@ -540,7 +551,7 @@ As a rule, type annotations are ignored in production mode. However, we do
 The following rules apply to all static and instance variables.
 
 \LMHash{}
-A  variable declaration  of one of the forms \code{$T$ $v$;},  \code{$T$ $v$ = $e$;} ,  \code{\CONST{} $T$ $v$ = $e$;}, \code{\FINAL{} $T$ $v$;}  or \code{\FINAL{} $T$ $v$ = $e$;} always induces an implicit  getter function (\ref{getters}) with signature
+A  variable declaration  of one of the forms \code{$T$ $v$;}, \code{$T$ $v$ = $e$;}  \code{\CONST{} $T$ $v$ = $e$;}, \code{\FINAL{} $T$ $v$;} or \code{\FINAL{} $T$ $v$ = $e$;} always induces an implicit  getter function (\ref{getters}) with signature
 
 $T$ \GET{} $v$
 
@@ -827,11 +838,11 @@ Optional parameters may be specified and provided with default values.
     .
 \end{grammar}
 
-A {\bf defaultNamedParameter} on the form:
+A {\bf defaultNamedParameter} of the form:
 \begin{code}
    normalFormalParameter : expression
 \end{code}
-is equivalent to one on the form:
+is equivalent to one of the form:
 \begin{code}
    normalFormalParameter = expression
 \end{code}
@@ -3788,7 +3799,19 @@ Two executions of an iterator interact only via state outside the function.
 % The alternative would be to cache the results of an iterator in the iterable, and check the cache at each \YIELD{}.  This would have strange issues as well. The yielded value might differ from the expression in the yield. And it is a potential memory leak as the cache is kept alive by any iterator.
 
 \LMHash{}
-If $f$ is marked \ASYNC{} (\ref{functions}), then a fresh instance (\ref{generativeConstructors}) $o$ implementing the built-in class \code{Future} is associated with the invocation and immediately returned to the caller. The body of $f$ is scheduled for execution at some future time. The future $o$ will be completed when execution of the body of $f$ completes (\ref{completion}). If execution of the body returns a value, $o$ is completed with that value, if it completes normally or returns without a value, $o$ is completed with the \NULL{} value, and if it throws an exception $e$ and stack trace $t$, $o$ is completed with the error $e$ and stack trace $t$.
+If $f$ is marked \ASYNC{} (\ref{functions}), then a fresh instance (\ref{generativeConstructors}) $o$ implementing the built-in class \code{Future} is associated with the invocation.
+Then the body of $f$ is executed until it either suspends or completes, at which point $o$ is returned.
+\commentary{The body of $f$ may suspend during the evaluation of an \AWAIT{} expression or execution of an asynchronous \FOR{} loop.}
+The future $o$ is completed when execution of the body of $f$ completes (\ref{completion}).
+If execution of the body returns a value, $o$ is completed with that value,
+if it completes normally or returns without a value,
+$o$ is completed with the \NULL{} value,
+and if it throws an exception $e$ and stack trace $t$,
+$o$ is completed with the error $e$ and stack trace $t$.
+If execution of the body throws before the body suspends the first time,
+completion of $o$ happens at some future time after the invocation has returned.
+\rationale{The caller needs time to set up error handling for the returned future,
+so the future is not completed with an error {\em before} it has been returned.}
 
 \LMHash{}
 If $f$ is marked \ASYNC* (\ref{functions}), then a fresh instance $s$ implementing the built-in class \code{Stream} is associated with the invocation and immediately returned. When $s$ is listened to, execution of the body of $f$ will begin.
@@ -3949,7 +3972,7 @@ If $e_f$ is a property extraction expression (\ref{propertyExtraction}), then $i
 \LMHash{}
 Otherwise:
 
-A function expression invocation $e_f(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ is equivalent to $e_f.call(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
+Execution of a function expression invocation $e_f(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ is equivalent to execution of $e_f.call(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 
 \commentary{
 The implication of this definition, and the other definitions involving the method \code{call()}, is that user defined types can be used as function values provided they define a \CALL{} method. The method \CALL{} is special in this regard. The signature of the \CALL{} method determines the signature used when using the object via the built-in invocation syntax.
@@ -4883,7 +4906,7 @@ Evaluation of an equality expression $ee$ of the form \code{$e_1$ == $e_2$} proc
 \item The expression $e_1$ is evaluated to an object $o_1$.
 \item The expression $e_2$ is evaluated to an object $o_2$.
 \item If either $o_1$ or $o_2$ is \NULL{}, then $ee$ evaluates to \TRUE{} if both $o_1$ and $o_2$ are \NULL{} and to \FALSE{} otherwise.  Otherwise,
-\item $ee$ is equivalent to the method invocation \code{$o_1$.==($o_2$)}.
+\item evaluation of $ee$ is equivalent to the method invocation \code{$o_1$.==($o_2$)}.
 \end{itemize}
 
 
@@ -4892,7 +4915,7 @@ Evaluation of an equality expression $ee$ of the form \code{\SUPER{} == $e$} pro
 \begin{itemize}
 \item The expression $e$ is evaluated to an object $o$.
 \item If either \THIS{} or $o$ is \NULL{}, then $ee$ evaluates to evaluates to \TRUE{} if both \THIS{} and $o$ are \NULL{} and to \FALSE{} otherwise. Otherwise,
-\item $ee$ is equivalent to the method invocation \code{\SUPER{}.==($o$)}.
+\item evaluation of $ee$ is equivalent to the method invocation \code{\SUPER{}.==($o$)}.
 \end{itemize}
 
 \commentary{As a result of the above definition, user defined \code{==} methods can assume that their argument is non-null, and avoid the standard boiler-plate prelude:
@@ -4968,8 +4991,8 @@ Bitwise expressions invoke the bitwise operators on objects.
 A {\em bitwise expression} is either a shift expression (\ref{shift}), or an invocation of a bitwise operator on either \SUPER{} or an expression $e_1$, with argument $e_2$.
 
 \LMHash{}
- A bitwise expression of the form  $e_1$ $op$ $e_2$ is equivalent to the method invocation $e_1.op(e_2)$.
-A bitwise expression of the form  \code{\SUPER{} $op$ $e_2$} is equivalent to the method invocation \code{\SUPER{}.op($e_2$)}.
+A bitwise expression of the form \code{$e_1$ $op$ $e_2$} is equivalent to the method invocation $e_1.op(e_2)$.
+A bitwise expression of the form \code{\SUPER{} $op$ $e_2$} is equivalent to the method invocation \code{\SUPER{}.$op$($e_2$)}.
 
 \commentary{
 It should be obvious that the static type rules for these expressions are defined by the equivalence above - ergo, by the type rules for method invocation and the signatures of the operators on the type $e_1$. The same holds in similar situations throughout this specification.
@@ -5097,7 +5120,7 @@ Unary expressions invoke unary operators on objects.
 A {\em unary expression} is either a postfix expression  (\ref{postfixExpressions}), an await expression (\ref{awaitExpressions}) or an invocation of a prefix operator on an expression or an invocation of a unary operator on either \SUPER{} or an expression $e$.
 
 \LMHash{}
-The expression $!e$ is equivalent to the expression $e?$ $ \FALSE{} :\TRUE{}$.
+The expression $!e$ is equivalent to the expression \code{$e$ ? \FALSE{} : \TRUE{}}.
 
 \LMHash{}
 Evaluation of an expression of the form \code{++$e$} is equivalent to \code{$e$ += 1}.  Evaluation of an expression of the form \code{-{}-$e$} is equivalent to \code{$e$ -= 1}.
@@ -5302,10 +5325,11 @@ The static type of such an expression is the static type of \code{$e_1$[$e_2$]}.
 
 \LMHash{}
 Evaluation of a postfix expression $e$ of the form \code{$e_1$?.$v$++}
-where $e_1$ is not a type literal, proceeds as follows:
+proceeds as follows:
 
 \LMHash{}
-If $e_1$ is a type literal, $e$ is equivalent to \code{$e_1$.$v$++}.
+If $e_1$ is a type literal, evaluation of $e$ is equivalent to
+evaluation of \code{$e_1$.$v$++}.
 
 \LMHash{}
 Otherwise evaluate $e_1$ to an object $u$.
@@ -5319,9 +5343,10 @@ The static type of such an expression is the static type of \code{$e_1$.$v$}.
 
 \LMHash{}
 Evaluation of a postfix expression $e$ of the form \code{$e_1$?.$v$-{}-}
-where $e_1$ is not a type literal, proceeds as follows:
+proceeds as follows:
 
-If $e_1$ is a type literal, $e$ is equivalent to \code{$e_1$.$v$-{}-}.
+If $e_1$ is a type literal, evaluation of $e$ is equivalent to
+evaluation of \code{$e_1$.$v$-{}-}.
 
 Otherwise evaluate $e_1$ to an object $u$.
 If $u$ is the null value, $e$ evaluates to the null value.
@@ -5390,7 +5415,7 @@ An assignable expression of the form \code{$e_1$[$e_2$]} is evaluated as a metho
 An assignable expression of the form \code{\SUPER{}.id}  is evaluated as a property extraction.
 
 \LMHash{}
-An assignable expression of the form \code{\SUPER{}[$e_2$]} is equivalent to the method invocation  \code{\SUPER{}.[]($e_2$)}.
+Evaluation of an assignable expression of the form \code{\SUPER{}[$e_2$]} is equivalent to evaluation of the method invocation  \code{\SUPER{}.[]($e_2$)}.
 
 \subsection{ Identifier Reference}
 \LMLabel{identifierReference}
@@ -5491,10 +5516,10 @@ Let $d$ be the innermost declaration in the enclosing lexical scope whose name i
 \item If $d$ is a local variable or formal parameter then $e$ evaluates to the current binding of $id$.
 %\item If $d$ is a library variable, local variable, or formal parameter, then $e$ evaluates to the current binding of $id$. \commentary{This case also applies if d is a library or local function declaration, as these are equivalent to function-valued variable declarations.}
 \item If $d$ is a static method, top-level function or local function then $e$ evaluates to the function defined by $d$.
-\item If $d$ is the declaration of a static variable, static getter or static setter declared in class $C$, then $e$ is equivalent to the property extraction (\ref{propertyExtraction}) $C.id$.
-\item If $d$ is the declaration of a library variable, top-level getter or top-level setter, then $e$ is equivalent to the top level getter invocation (\ref{topLevelGetterInvocation}) $id$.
+\item If $d$ is the declaration of a static variable, static getter or static setter declared in class $C$, then evaluation of $e$ is equivalent to evaluation of the property extraction (\ref{propertyExtraction}) $C.id$.
+\item If $d$ is the declaration of a library variable, top-level getter or top-level setter, then evaluation of $e$ is equivalent to evaluation of the top level getter invocation (\ref{topLevelGetterInvocation}) $id$.
 \item Otherwise, if $e$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, evaluation of $e$ causes a \code{NoSuchMethod} to be thrown.
-\item Otherwise, $e$ is equivalent to the property extraction (\ref{propertyExtraction}) \THIS{}.$id$.
+\item Otherwise, evaluation of $e$ is equivalent to evaluation of the property extraction (\ref{propertyExtraction}) \THIS{}.$id$.
 % This implies that referring to an undefined static getter by simple name is an error, whereas doing so by qualified name is only a warning. Same with assignments.  Revise?
 \end{itemize}
 
@@ -5720,10 +5745,10 @@ A {\em variable declaration statement }declares a new local variable.
  Executing a variable declaration statement of one of the forms  \VAR{} $v = e;$, $T$ $v = e; $, \CONST{}  $v = e;$, \CONST{} $T$ $v = e;$, \FINAL{}  $v = e;$ or \FINAL{} $T$ $v = e;$ proceeds as follows:
 
 \LMHash{}
- The expression $e$ is evaluated to an object $o$. Then, the variable $v$ is set to $o$.
+The expression $e$ is evaluated to an object $o$. Then, the variable $v$ is set to $o$.
 
 \LMHash{}
- A variable declaration statement of the form \VAR{} $v;$ is equivalent to \VAR{} $v = \NULL{};$. A variable declaration statement of the form $T$ $v;$ is equivalent to $T$ $v = \NULL{};$.
+A variable declaration statement of the form \code{\VAR{} $v$;} is equivalent to \code{\VAR{} $v$ = \NULL{};}. A variable declaration statement of the form \code{$T$ $v$;} is equivalent to \code{$T$ $v$ = \NULL{};}.
 
 \commentary{
 This holds regardless of the type $T$. For example, \code{int i;} does not cause \code{i} to be initialized to zero. Instead, \code{i} is initialized to \NULL{}, just as if we had written \VAR{} \code{i;} or \code{Object i;} or \code{Collection<String> i;}.
@@ -5812,21 +5837,13 @@ The {\em if statement} allows for conditional execution of statements.
       \IF{} `(' expression `)' statement ( \ELSE{} statement)?
     .
 \end{grammar}
+An if statement of the form \code{\IF{} ($e$) $s_1$ \ELSE{} $s_2$} where $s_1$ is not a block statement is equivalent to the statement \code{\IF{} ($e$) \{$s_1$\} \ELSE{} $s_2$}.
+An if statement of the form \code{\IF{} ($e$) $s_1$ \ELSE{} $s_2$} where $s_2$ is not a block statement is equivalent to the statement \code{\IF{} ($e$) $s_1$ \ELSE{} \{$s_2$\}}.
 
-Execution of an if statement of the form  \code {\IF{} (}$b$\code{)}$s_1$ \code{\ELSE{} } $s_2$ proceeds as follows:
-
-\LMHash{}
- First, the expression $b$ is evaluated to an object $o$. Then, $o$ is subjected to boolean conversion (\ref{booleanConversion}), producing an object $r$. If $r$ is \TRUE{}, then the statement $\{s_1\}$ is executed, otherwise statement $\{s_2\}$ is executed.
-
- \commentary {
- Put another way, \code {\IF{} (}$b$\code{)}$s_1$ \code{\ELSE{} } $s_2$ is equivalent to
- \code {\IF{} (}$b$\code{)}$\{s_1\}$ \code{\ELSE{} } $\{s_2\}$
- }
-
- \rationale {
- The reason for this equivalence is to catch errors such as
- }
- \begin{dartCode}
+\rationale {
+The reason for this equivalence is to catch errors such as
+}
+\begin{dartCode}
 \VOID{} main() \{
   \IF{} (somePredicate)
     \VAR{} v = 2;
@@ -5836,25 +5853,29 @@ Execution of an if statement of the form  \code {\IF{} (}$b$\code{)}$s_1$ \code{
 
 \rationale {
 Under reasonable scope rules  such code is problematic. If we assume that \code{v} is declared in the scope of the method \code{main()}, then when \code{somePredicate} is false, \code{v} will be uninitialized when accessed.  The cleanest approach would be to require a block following the test, rather than an arbitrary statement. However, this goes against long standing custom, undermining Dart's goal of familiarity.  Instead, we choose to insert a block, introducing a scope,  around the statement following the predicate (and similarly for \ELSE{} and loops). This will cause both a warning and a runtime error in the case above.  Of course, if there is a declaration of \code{v} in the surrounding scope, programmers might still be surprised. We expect tools to highlight cases of shadowing to help avoid such situations.
- }
+}
+
 
 \LMHash{}
-  It is a static type warning if the type of the expression $b$ may not be assigned to \code{bool}.
+Execution of an if statement of the form \code{\IF{} ($b$) $s_1$ \ELSE{} $s_2$} where $s_1$ and $s_2$ are block statements, proceeds as follows:
+
+\LMHash{}
+First, the expression $b$ is evaluated to an object $o$. Then, $o$ is subjected to boolean conversion (\ref{booleanConversion}), producing an object $r$. If $r$ is \TRUE{}, then the block statement $s_1$ is executed, otherwise the block statement $s_2$ is executed.
+
+\LMHash{}
+It is a static type warning if the type of the expression $b$ may not be assigned to \code{bool}.
 
 \LMHash{}
 If:
 \begin{itemize}
-\item  $b$ shows that a variable $v$ has type $T$.
-\item  $v$ is not potentially mutated in $s_1$ or within a closure.
+\item $b$ shows that a variable $v$ has type $T$.
+\item $v$ is not potentially mutated in $s_1$ or within a closure.
 \item If the variable $v$ is accessed by a closure in $s_1$ then the variable $v$ is not potentially mutated anywhere in the scope of $v$.
 \end{itemize}
 then the type of $v$ is known to be $T$ in $s_1$.
 
 \LMHash{}
- An if statement of the form  \code {\IF{} (}$b$\code{)}$s_1$ is equivalent to the if statement
-
- \code {\IF{} (}$b$\code{)}$s_1$ \code{\ELSE{} \{\}}.
-
+An if statement of the form \code{\IF{} ($e$) $s$} is equivalent to the if statement \code{\IF{} ($e$) $s$ \ELSE{} \{\}}.
 
 
 \subsection{For}
@@ -5886,7 +5907,7 @@ The {\em for statement} supports iteration.
 
 
 \LMHash{}
-Execution of a for statement of the form   \code{ \FOR{} (\VAR{} $v$ = $e_0$ ; $c$; $e$) $s$} proceeds as follows:
+Execution of a for statement of the form \code{ \FOR{} (\VAR{} $v$ = $e_0$ ; $c$; $e$) $s$} proceeds as follows:
 
 \LMHash{}
 If $c$ is empty then let $c^\prime$ be \TRUE{} otherwise let  $c^\prime$ be $c$.
@@ -5940,16 +5961,26 @@ It is a static warning if the static type of $c$ may not be assigned to \cd{bool
 \LMLabel{for-in}
 
 \LMHash{}
-A for statement of the form \code{ \FOR{} ($finalConstVarOrType?$ id \IN{} $e$) $s$} is equivalent to the following code:
+Let $D$ be derived from \code{finalConstVarOrType?}
+and let $n0$ be an identifier that does not occur anywhere in the program.
+A for statement of the form \code{\FOR{} ($D$ $id$ \IN{} $e$) $s$} is equivalent to the following code:
 
 \begin{dartCode}
-var n0 = $e$.iterator;
-\WHILE{} (n0.moveNext()) \{
-   $finalConstVarOrType?$ id = n0.current;
+\VAR{} $n0$ = $e$.iterator;
+\WHILE{} ($n0$.moveNext()) \{
+   $D$ $id$ = $n0$.current;
    $s$
 \}
 \end{dartCode}
-where \code{n0} is an identifier that does not occur anywhere in the program, except that for purposes of static typechecking, it is checked under the assumption that $n0$ is declared to be of type $T$, where $T$ is the static type of $e.iterator$.
+
+For purposes of static typechecking,
+this code is checked under the assumption that $n0$ is declared to be of type $T$,
+where $T$ is the static type of \code{$e$.iterator}.
+
+\commentary{
+It follows that it is a static warning if $D$ is empty and $id$ is a final variable,
+and a dynamic error will then occur if the body is executed.
+}
 
 \subsubsection{Asynchronous For-in}
 \LMLabel{asynchronousFor-in}
@@ -5958,11 +5989,16 @@ where \code{n0} is an identifier that does not occur anywhere in the program, ex
 A for-in statement may be asynchronous. The asynchronous form is designed to iterate over streams. An asynchronous for loop is distinguished by the keyword \AWAIT{} immediately preceding the keyword \FOR.
 
 \LMHash{}
-Execution of a for-in statement, $f$, of the form \code{\AWAIT{} \FOR{} (finalConstVarOrType? $id$ \IN{} $e$) $s$} proceeds as follows:
+Let $D$ be derived from \code{finalConstVarOrType?}.
+Execution of a for-in statement, $f$, of the form
+\code{\AWAIT{} \FOR{} ($D$ $id$ \IN{} $e$) $s$}
+proceeds as follows:
 
 \LMHash{}
 The expression $e$ is evaluated to an object $o$.
 It is a dynamic error if $o$ is not an instance of a class that implements \code{Stream}.
+It is a static warning if $D$ is empty and $id$ is a final variable,
+and it is then a dynamic error if the body is executed.
 
 \LMHash{}
 The stream associated with the innermost enclosing asynchronous for loop, if any, is paused.
@@ -6397,7 +6433,7 @@ An \ON{}-\CATCH{} clause of the form \code{\CATCH{} ($p_1$, $p_2$) $s$} is equiv
 An \ON{}-\CATCH{} clause of the form   \code{\ON{} $T$ \CATCH{} ($p_1$, $p_2$) $s$} introduces a new scope $CS$ in which final local variables specified by $p_1$ and $p_2$ are defined. The statement $s$ is enclosed within $CS$. The static type of $p_1$ is $T$ and the static type of $p_2$ is \code{StackTrace}.
 
 \LMHash{}
-Execution of a \TRY{} statement $s$ on the form:
+Execution of a \TRY{} statement $s$ of the form:
 \begin{dartCode}
 \TRY{} $b$
 \ON{} $T_1$ \CATCH{} ($e_1$, $t_1$) $c_1$
@@ -6426,7 +6462,7 @@ It is a static warning if $T_i$, $1 \le i \le n$ is a deferred or malformed type
 \LMLabel{on-catch}
 
 \LMHash{}
-Matching an exception object $e$ and stack trace $t$ against a (potentially empty) sequence of \ON{}-\CATCH{} clauses on the form
+Matching an exception object $e$ and stack trace $t$ against a (potentially empty) sequence of \ON{}-\CATCH{} clauses of the form
 \begin{dartCode}
 \ON{} $T_1$ \CATCH{} ($e_1$, $st_1$) \{ $s_1$ \}
 \ldots
@@ -6764,7 +6800,7 @@ An assertion with a trailing comma is equivalent to one with that
 comma removed.
 
 \LMHash{}
-An assertion on the form \code{\ASSERT($e$))} is equivalent to an assertion on the form \code{\ASSERT($e$, null)}.
+An assertion of the form \code{\ASSERT($e$))} is equivalent to an assertion of the form \code{\ASSERT($e$, null)}.
 
 \LMHash{}
 Execution of an assert statement executes the assertion as described below

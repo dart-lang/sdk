@@ -397,6 +397,16 @@ class EditDomainHandler extends AbstractRequestHandler {
     if (result == null) {
       server.sendResponse(new Response.importElementsInvalidFile(request));
     }
+    CompilationUnitElement libraryUnit =
+        result.libraryElement.definingCompilationUnit;
+    if (libraryUnit != result.unit.element) {
+      // The file in the request is a part of a library. We need to pass the
+      // defining compilation unit to the computer, not the part.
+      result = await server.getAnalysisResult(libraryUnit.source.fullName);
+      if (result == null) {
+        server.sendResponse(new Response.importElementsInvalidFile(request));
+      }
+    }
     //
     // Compute the edits required to import the required elements.
     //

@@ -42,8 +42,6 @@ class Heap {
     kNumWeakSelectors
   };
 
-  enum ApiCallbacks { kIgnoreApiCallbacks, kInvokeApiCallbacks };
-
   enum GCReason {
     kNewSpace,
     kPromotion,
@@ -107,7 +105,7 @@ class Heap {
   RawObject* FindObject(FindObjectVisitor* visitor) const;
 
   void CollectGarbage(Space space);
-  void CollectGarbage(Space space, ApiCallbacks api_callbacks, GCReason reason);
+  void CollectGarbage(Space space, GCReason reason);
   void CollectAllGarbage();
   bool NeedsGarbageCollection() const {
     return old_space_.NeedsGarbageCollection();
@@ -312,10 +310,8 @@ class Heap {
 
   // Helper functions for garbage collection.
   void CollectNewSpaceGarbage(Thread* thread,
-                              ApiCallbacks api_callbacks,
                               GCReason reason);
   void CollectOldSpaceGarbage(Thread* thread,
-                              ApiCallbacks api_callbacks,
                               GCReason reason);
   void EvacuateNewSpace(Thread* thread, GCReason reason);
 

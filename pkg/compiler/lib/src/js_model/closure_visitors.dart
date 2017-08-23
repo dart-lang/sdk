@@ -70,7 +70,7 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   /// Update the [CapturedScope] object corresponding to
   /// this node if any variables are captured.
-  void attachCapturedScopeVariables(ir.Node node) {
+  void attachCapturedScopeVariables(ir.TreeNode node) {
     Set<ir.VariableDeclaration> capturedVariablesForScope =
         new Set<ir.VariableDeclaration>();
 
@@ -86,13 +86,14 @@ class CapturedScopeBuilder extends ir.Visitor {
       assert(_model.scopeInfo != null);
       assert(_currentLocalFunction != null);
       KernelScopeInfo from = _model.scopeInfo;
-      _scopesCapturedInClosureMap[node] = new KernelCapturedScope(
+      var capturedScope = new KernelCapturedScope(
           capturedVariablesForScope,
           new NodeBox(getBoxName(), _executableContext),
           _currentLocalFunction,
           from.localsUsedInTryOrSync,
           from.freeVariables,
           _hasThisLocal);
+      _model.scopeInfo = _scopesCapturedInClosureMap[node] = capturedScope;
     }
   }
 
@@ -236,8 +237,8 @@ class CapturedScopeBuilder extends ir.Visitor {
       _currentLocalFunction = node.parent;
     } else {
       _outermostNode = node;
-      _model.scopeInfo = _currentScopeInfo;
     }
+    _model.scopeInfo = _currentScopeInfo;
 
     enterNewScope(node, () {
       node.visitChildren(this);

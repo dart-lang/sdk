@@ -103,8 +103,12 @@ class Run extends Step<Uri, int, ClosureConversionContext> {
     try {
       Uri sdk = await computePatchedSdk();
       Uri vm = computeDartVm(sdk);
-      final StdioProcess process = await StdioProcess
-          .run(vm.toFilePath(), [generated.path, "Hello, World!"]);
+      final StdioProcess process = await StdioProcess.run(vm.toFilePath(), [
+        "--reify",
+        "--reify_generic_functions",
+        generated.path,
+        "Hello, World!"
+      ]);
       print(process.output);
       return process.toResult();
     } finally {

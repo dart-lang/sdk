@@ -89,6 +89,7 @@ status_file:pkg/status_file/lib
 stream_channel:third_party/pkg/stream_channel/lib
 string_scanner:third_party/pkg/string_scanner/lib
 telemetry:pkg/telemetry/lib
+term_glyph:third_party/pkg/term_glyph/lib
 test:third_party/pkg/test/lib
 test_dart:tools/testing/dart
 testing:pkg/testing/lib

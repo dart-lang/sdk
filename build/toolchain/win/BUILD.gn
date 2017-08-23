@@ -17,23 +17,18 @@ import("//build/toolchain/goma.gni")
 # Should only be running on Windows.
 assert(is_win)
 
-# Setup the Visual Studio state.
-#
-# Its arguments are the VS path and the compiler wrapper tool. It will write
-# "environment.x86" and "environment.x64" to the build directory and return a
-# list to us.
-gyp_win_tool_path =
-    rebase_path("//third_party/gyp/pylib/gyp/win_tool.py", root_build_dir)
+# This tool will is used as a wrapper for various commands below.
+tool_wrapper_path = rebase_path("tool_wrapper.py", root_build_dir)
 
+# Setup the Visual Studio state.
 toolchain_data = exec_script("setup_toolchain.py",
-                             [
-                               visual_studio_path,
-                               gyp_win_tool_path,
-                               windows_sdk_path,
-                               visual_studio_runtime_dirs,
-                               current_cpu,
-                             ],
-                             "scope")
+                                 [
+                                   visual_studio_path,
+                                   windows_sdk_path,
+                                   visual_studio_runtime_dirs,
+                                   current_cpu,
+                                 ],
+                                 "scope")
 
 if (vc_bin_dir == "") {
   vc_bin_dir = toolchain_data.vc_bin_dir
@@ -104,7 +99,7 @@ template("msvc_toolchain") {
     }
 
     tool("rc") {
-      command = "$python_path gyp-win-tool rc-wrapper $env rc.exe {{defines}} {{include_dirs}} /fo{{output}} {{source}}"
+      command = "$python_path $tool_wrapper_path rc-wrapper $env rc.exe {{defines}} {{include_dirs}} /fo{{output}} {{source}}"
       outputs = [
         "{{target_out_dir}}/{{target_output_name}}/{{source_name_part}}.res",
       ]
@@ -119,7 +114,7 @@ template("msvc_toolchain") {
         ml = "ml.exe"
         x64 = ""
       }
-      command = "$python_path gyp-win-tool asm-wrapper $env $ml $x64 {{defines}} {{include_dirs}} {{asmflags}} /c /Fo {{output}} {{source}}"
+      command = "$python_path $tool_wrapper_path asm-wrapper $env $ml $x64 {{defines}} {{include_dirs}} {{asmflags}} /c /Fo {{output}} {{source}}"
       description = "ASM {{output}}"
       outputs = [
         "{{target_out_dir}}/{{target_output_name}}/{{source_name_part}}.obj",
@@ -128,7 +123,7 @@ template("msvc_toolchain") {
 
     tool("alink") {
       rspfile = "{{output}}.rsp"
-      command = "$python_path gyp-win-tool link-wrapper $env False lib.exe /nologo /ignore:4221 /OUT:{{output}} @$rspfile"
+      command = "$python_path $tool_wrapper_path link-wrapper $env False lib.exe /nologo /ignore:4221 /OUT:{{output}} @$rspfile"
       description = "LIB {{output}}"
       outputs = [
         # Ignore {{output_extension}} and always use .lib, there's no reason to
@@ -148,7 +143,7 @@ template("msvc_toolchain") {
           "{{root_out_dir}}/{{target_output_name}}{{output_extension}}.lib"  # e.g. foo.dll.lib
       rspfile = "${dllname}.rsp"
 
-      link_command = "$python_path gyp-win-tool link-wrapper $env False link.exe /nologo /IMPLIB:$libname /DLL /OUT:$dllname /PDB:${dllname}.pdb @$rspfile"
+      link_command = "$python_path $tool_wrapper_path link-wrapper $env False link.exe /nologo /IMPLIB:$libname /DLL /OUT:$dllname /PDB:${dllname}.pdb @$rspfile"
 
       # TODO(brettw) support manifests
       #manifest_command = "$python_path gyp-win-tool manifest-wrapper $env mt.exe -nologo -manifest $manifests -out:${dllname}.manifest"
@@ -174,7 +169,7 @@ template("msvc_toolchain") {
           "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"
       rspfile = "$binary_output.rsp"
 
-      link_command = "$python_path gyp-win-tool link-wrapper $env False link.exe /nologo /OUT:$binary_output /PDB:$binary_output.pdb @$rspfile"
+      link_command = "$python_path $tool_wrapper_path link-wrapper $env False link.exe /nologo /OUT:$binary_output /PDB:$binary_output.pdb @$rspfile"
 
       # TODO(brettw) support manifests
       #manifest_command = "$python_path gyp-win-tool manifest-wrapper $env mt.exe -nologo -manifest $manifests -out:{{output}}.manifest"
@@ -194,13 +189,13 @@ template("msvc_toolchain") {
     }
 
     tool("stamp") {
-      command = "$python_path gyp-win-tool stamp {{output}}"
+      command = "$python_path $tool_wrapper_path stamp {{output}}"
       description = "STAMP {{output}}"
     }
 
     tool("copy") {
       command =
-          "$python_path gyp-win-tool recursive-mirror {{source}} {{output}}"
+          "$python_path $tool_wrapper_path recursive-mirror {{source}} {{output}}"
       description = "COPY {{source}} {{output}}"
     }
 

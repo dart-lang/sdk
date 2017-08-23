@@ -744,6 +744,13 @@ class ParserErrorCode extends ErrorCode {
           "loaded through native extensions.",
           "Try removing the word 'native'.");
 
+  static const ParserErrorCode NATIVE_CLAUSE_SHOULD_BE_ANNOTATION =
+      const ParserErrorCode(
+          'NATIVE_CLAUSE_SHOULD_BE_ANNOTATION',
+          "Native clause in this form is deprecated.",
+          "Try removing this native clause and adding @native()"
+          " or @native('native-name') before the declaration.");
+
   static const ParserErrorCode NON_CONSTRUCTOR_FACTORY = const ParserErrorCode(
       'NON_CONSTRUCTOR_FACTORY',
       "Only a constructor can be declared to be a factory.",

@@ -923,7 +923,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // previous analysis of [outermostElement].
     ClosureRepresentationInfo closureData = compiler
         .backendStrategy.closureDataLookup
-        .getClosureRepresentationInfo(analyzedElement);
+        .getClosureInfoForMember(analyzedElement);
     closureData.forEachCapturedVariable((variable, field) {
       locals.setCaptured(variable, field);
     });
@@ -1118,9 +1118,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // Record the types of captured non-boxed variables. Types of
     // these variables may already be there, because of an analysis of
     // a previous closure.
-    ClosureRepresentationInfo nestedClosureData = compiler
-        .backendStrategy.closureDataLookup
-        .getClosureRepresentationInfo(element);
+    ClosureRepresentationInfo nestedClosureData =
+        compiler.backendStrategy.closureDataLookup.getClosureInfo(node);
     nestedClosureData.forEachCapturedVariable((variable, field) {
       if (!nestedClosureData.isVariableBoxed(variable)) {
         if (variable == nestedClosureData.thisLocal) {

@@ -23,7 +23,6 @@ namespace dart {
 
 DECLARE_FLAG(bool, verify_acquired_data);
 DECLARE_FLAG(bool, ignore_patch_signature_mismatch);
-DECLARE_FLAG(bool, support_externalizable_strings);
 DECLARE_FLAG(bool, use_dart_frontend);
 
 #ifndef PRODUCT
@@ -213,15 +212,13 @@ TEST_CASE(DartAPI_DeepStackTraceInfo) {
   EXPECT(Dart_IsError(result));
 }
 
-TEST_CASE(DartAPI_StackOverflowStackTraceInfo) {
-  const char* kScriptChars =
-      "class C {\n"
-      "  static foo() => foo();\n"
-      "}\n"
-      "testMain() => C.foo();\n";
-
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle error = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+void VerifyStackOverflowStackTraceInfo(const char* script,
+                                       const char* top_frame_func_name,
+                                       const char* entry_func_name,
+                                       int expected_line_number,
+                                       int expected_column_number) {
+  Dart_Handle lib = TestCase::LoadTestScript(script, NULL);
+  Dart_Handle error = Dart_Invoke(lib, NewString(entry_func_name), 0, NULL);
 
   EXPECT(Dart_IsError(error));
 
@@ -248,17 +245,46 @@ TEST_CASE(DartAPI_StackOverflowStackTraceInfo) {
                                     &line_number, &column_number);
   EXPECT_VALID(result);
   Dart_StringToCString(function_name, &cstr);
-  EXPECT_STREQ("C.foo", cstr);
+  EXPECT_STREQ(top_frame_func_name, cstr);
   Dart_StringToCString(script_url, &cstr);
   EXPECT_STREQ("test-lib", cstr);
-  EXPECT_EQ(2, line_number);
-  EXPECT_EQ(13, column_number);
+  EXPECT_EQ(expected_line_number, line_number);
+  EXPECT_EQ(expected_column_number, column_number);
 
   // Out-of-bounds frames.
   result = Dart_GetActivationFrame(stacktrace, frame_count, &frame);
   EXPECT(Dart_IsError(result));
   result = Dart_GetActivationFrame(stacktrace, -1, &frame);
   EXPECT(Dart_IsError(result));
+}
+
+TEST_CASE(DartAPI_StackOverflowStackTraceInfoBraceFunction1) {
+  VerifyStackOverflowStackTraceInfo(
+      "class C {\n"
+      "  static foo(int i) { foo(i); }\n"
+      "}\n"
+      "testMain() => C.foo(10);\n",
+      "C.foo", "testMain", 2, 21);
+}
+
+TEST_CASE(DartAPI_StackOverflowStackTraceInfoBraceFunction2) {
+  VerifyStackOverflowStackTraceInfo(
+      "class C {\n"
+      "  static foo(int i, int j) {\n"
+      "    foo(i, j);\n"
+      "  }\n"
+      "}\n"
+      "testMain() => C.foo(10, 11);\n",
+      "C.foo", "testMain", 2, 28);
+}
+
+TEST_CASE(DartAPI_StackOverflowStackTraceInfoArrowFunction) {
+  VerifyStackOverflowStackTraceInfo(
+      "class C {\n"
+      "  static foo(int i) => foo(i);\n"
+      "}\n"
+      "testMain() => C.foo(10);\n",
+      "C.foo", "testMain", 2, 21);
 }
 
 TEST_CASE(DartAPI_OutOfMemoryStackTraceInfo) {
@@ -1205,9 +1231,8 @@ TEST_CASE(DartAPI_MalformedStringToUTF8) {
 // perturb the test.
 class GCTestHelper : public AllStatic {
  public:
-  static void CollectNewSpace(Heap::ApiCallbacks api_callbacks) {
-    bool invoke_api_callbacks = (api_callbacks == Heap::kInvokeApiCallbacks);
-    Isolate::Current()->heap()->new_space()->Scavenge(invoke_api_callbacks);
+  static void CollectNewSpace() {
+    Isolate::Current()->heap()->new_space()->Scavenge();
   }
 
   static void WaitForGCTasks() {
@@ -2659,7 +2684,7 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
     {
       TransitionNativeToVM transition(thread);
       // Garbage collect new space.
-      GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+      GCTestHelper::CollectNewSpace();
     }
 
     // Nothing should be invalidated or cleared.
@@ -2703,7 +2728,7 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
   {
     TransitionNativeToVM transition(thread);
     // Garbage collect new space again.
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::CollectNewSpace();
     GCTestHelper::WaitForGCTasks();
   }
 
@@ -2782,7 +2807,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleCallback) {
     TransitionNativeToVM transition(thread);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
     EXPECT(peer == 0);
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::CollectNewSpace();
     GCTestHelper::WaitForGCTasks();
     EXPECT(peer == 42);
   }
@@ -2808,7 +2833,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleNoCallback) {
     TransitionNativeToVM transition(thread);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
     EXPECT(peer == 0);
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::CollectNewSpace();
     GCTestHelper::WaitForGCTasks();
     EXPECT(peer == 0);
   }
@@ -2860,8 +2885,8 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSize) {
     EXPECT(heap->ExternalInWords(Heap::kNew) ==
            (kWeak1ExternalSize + kWeak2ExternalSize) / kWordSize);
     // Collect weakly referenced string, and promote strongly referenced string.
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::CollectNewSpace();
+    GCTestHelper::CollectNewSpace();
     GCTestHelper::WaitForGCTasks();
     EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
     EXPECT(heap->ExternalInWords(Heap::kOld) == kWeak2ExternalSize / kWordSize);
@@ -3052,7 +3077,7 @@ TEST_CASE(DartAPI_ImplicitReferencesOldSpace) {
 
   {
     TransitionNativeToVM transition(thread);
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::CollectNewSpace();
   }
 
   {
@@ -3127,165 +3152,6 @@ TEST_CASE(DartAPI_ImplicitReferencesNewSpace) {
     EXPECT(!Dart_IsNull(AsHandle(weak2)));
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
     Dart_ExitScope();
-  }
-}
-
-static int global_prologue_callback_status;
-
-static void PrologueCallbackTimes2() {
-  global_prologue_callback_status *= 2;
-}
-
-static void PrologueCallbackTimes3() {
-  global_prologue_callback_status *= 3;
-}
-
-static int global_epilogue_callback_status;
-
-static void EpilogueCallbackNOP() {}
-
-static void EpilogueCallbackTimes4() {
-  global_epilogue_callback_status *= 4;
-}
-
-static void EpilogueCallbackTimes5() {
-  global_epilogue_callback_status *= 5;
-}
-
-TEST_CASE(DartAPI_SetGarbageCollectionCallbacks) {
-  // GC callback addition testing.
-
-  // Add GC callbacks.
-  EXPECT_VALID(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes2, &EpilogueCallbackTimes4));
-
-  // Add the same callbacks again.  This is an error.
-  EXPECT(Dart_IsError(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes2, &EpilogueCallbackTimes4)));
-
-  // Add another callback. This is an error.
-  EXPECT(Dart_IsError(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes3, &EpilogueCallbackTimes5)));
-
-  // GC callback removal testing.
-
-  // Remove GC callbacks.
-  EXPECT_VALID(Dart_SetGcCallbacks(NULL, NULL));
-
-  // Remove GC callbacks whennone exist.  This is an error.
-  EXPECT(Dart_IsError(Dart_SetGcCallbacks(NULL, NULL)));
-
-  EXPECT_VALID(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes2, &EpilogueCallbackTimes4));
-  EXPECT(Dart_IsError(Dart_SetGcCallbacks(&PrologueCallbackTimes2, NULL)));
-  EXPECT(Dart_IsError(Dart_SetGcCallbacks(NULL, &EpilogueCallbackTimes4)));
-}
-
-TEST_CASE(DartAPI_SingleGarbageCollectionCallback) {
-  // Add a prologue callback.
-  EXPECT_VALID(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes2, &EpilogueCallbackNOP));
-
-  {
-    TransitionNativeToVM transition(thread);
-
-    // Garbage collect new space ignoring callbacks.  This should not
-    // invoke the prologue callback.  No status values should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-    EXPECT_EQ(3, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-
-    // Garbage collect new space invoking callbacks.  This should
-    // invoke the prologue callback.  No status values should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
-    EXPECT_EQ(6, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-
-    // Garbage collect old space ignoring callbacks.  This should invoke
-    // the prologue callback.  The prologue status value should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    Isolate::Current()->heap()->CollectGarbage(
-        Heap::kOld, Heap::kIgnoreApiCallbacks, Heap::kGCTestCase);
-    EXPECT_EQ(3, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-
-    // Garbage collect old space.  This should invoke the prologue
-    // callback.  The prologue status value should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    EXPECT_EQ(6, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-
-    // Garbage collect old space again.  Callbacks are persistent so the
-    // prologue status value should change again.
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    EXPECT_EQ(12, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-  }
-
-  // Add an epilogue callback.
-  EXPECT_VALID(Dart_SetGcCallbacks(NULL, NULL));
-  EXPECT_VALID(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes2, &EpilogueCallbackTimes4));
-
-  {
-    TransitionNativeToVM transition(thread);
-    // Garbage collect new space.  This should not invoke the prologue
-    // or the epilogue callback.  No status values should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-    EXPECT_EQ(3, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-
-    // Garbage collect new space.  This should invoke the prologue and
-    // the epilogue callback.  The prologue and epilogue status values
-    // should change.
-    GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
-    EXPECT_EQ(6, global_prologue_callback_status);
-    EXPECT_EQ(28, global_epilogue_callback_status);
-
-    // Garbage collect old space.  This should invoke the prologue and
-    // the epilogue callbacks.  The prologue and epilogue status values
-    // should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    EXPECT_EQ(6, global_prologue_callback_status);
-    EXPECT_EQ(28, global_epilogue_callback_status);
-
-    // Garbage collect old space again without invoking callbacks.
-    // Nothing should change.
-    Isolate::Current()->heap()->CollectGarbage(
-        Heap::kOld, Heap::kIgnoreApiCallbacks, Heap::kGCTestCase);
-    EXPECT_EQ(6, global_prologue_callback_status);
-    EXPECT_EQ(28, global_epilogue_callback_status);
-
-    // Garbage collect old space again.  Callbacks are persistent so the
-    // prologue and epilogue status values should change again.
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    EXPECT_EQ(12, global_prologue_callback_status);
-    EXPECT_EQ(112, global_epilogue_callback_status);
-  }
-
-  // Remove the prologue and epilogue callbacks
-  EXPECT_VALID(Dart_SetGcCallbacks(NULL, NULL));
-
-  {
-    TransitionNativeToVM transition(thread);
-    // Garbage collect old space.  No callbacks should be invoked.  No
-    // status values should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    EXPECT_EQ(3, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
   }
 }
 
@@ -5486,9 +5352,6 @@ static Dart_NativeFunction native_args_lookup(Dart_Handle name,
 }
 
 TEST_CASE(DartAPI_GetNativeArguments) {
-  const bool saved_flag = FLAG_support_externalizable_strings;
-  FLAG_support_externalizable_strings = true;
-
   const char* kScriptChars =
       "import 'dart:nativewrappers';"
       "class MyObject extends NativeFieldWrapperClass2 {"
@@ -5518,13 +5381,9 @@ TEST_CASE(DartAPI_GetNativeArguments) {
       kScriptChars,
       reinterpret_cast<Dart_NativeEntryResolver>(native_args_lookup));
 
-  intptr_t size;
-  Dart_Handle ascii_str = NewString("string");
-  EXPECT_VALID(ascii_str);
-  EXPECT_VALID(Dart_StringStorageSize(ascii_str, &size));
-  uint8_t ext_ascii_str[10];
-  Dart_Handle extstr = Dart_MakeExternalString(
-      ascii_str, ext_ascii_str, size,
+  const char* ascii_str = "string";
+  Dart_Handle extstr = Dart_NewExternalLatin1String(
+      reinterpret_cast<const uint8_t*>(ascii_str), strlen(ascii_str),
       reinterpret_cast<void*>(&native_arg_str_peer), NULL);
 
   Dart_Handle args[1];
@@ -5532,8 +5391,6 @@ TEST_CASE(DartAPI_GetNativeArguments) {
   Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 1, args);
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
-
-  FLAG_support_externalizable_strings = saved_flag;
 }
 
 static void NativeArgumentCounter(Dart_NativeArguments args) {
@@ -8314,221 +8171,6 @@ TEST_CASE(DartAPI_CollectTwoOldSpacePeers) {
   }
 }
 
-// Test API call to make strings external.
-static void MakeExternalCback(void* peer) {
-  *static_cast<int*>(peer) *= 2;
-}
-
-TEST_CASE(DartAPI_MakeExternalString) {
-  const bool saved_flag = FLAG_support_externalizable_strings;
-  FLAG_support_externalizable_strings = true;
-
-  static int peer8 = 40;
-  static int peer16 = 41;
-  static int canonical_str_peer = 42;
-  intptr_t length = 0;
-  intptr_t expected_length = 0;
-  {
-    Dart_EnterScope();
-
-    // First test some negative conditions.
-    uint8_t data8[] = {'h', 'e', 'l', 'l', 'o'};
-    const char* err = "string";
-    Dart_Handle err_str = NewString(err);
-    Dart_Handle ext_err_str =
-        Dart_NewExternalLatin1String(data8, ARRAY_SIZE(data8), NULL, NULL);
-    Dart_Handle result = Dart_MakeExternalString(Dart_Null(), data8,
-                                                 ARRAY_SIZE(data8), NULL, NULL);
-    EXPECT(Dart_IsError(result));  // Null string object passed in.
-    result =
-        Dart_MakeExternalString(err_str, NULL, ARRAY_SIZE(data8), NULL, NULL);
-    EXPECT(Dart_IsError(result));  // Null array pointer passed in.
-    result = Dart_MakeExternalString(err_str, data8, 1, NULL, NULL);
-    EXPECT(Dart_IsError(result));  // Invalid length passed in.
-
-    const intptr_t kLength = 10;
-    intptr_t size = 0;
-
-    // Test with an external string.
-    result = Dart_MakeExternalString(ext_err_str, data8, ARRAY_SIZE(data8),
-                                     NULL, NULL);
-    EXPECT(Dart_IsString(result));
-    EXPECT(Dart_IsExternalString(result));
-
-    // Test with an empty string.
-    Dart_Handle empty_str = NewString("");
-    EXPECT(Dart_IsString(empty_str));
-    EXPECT(!Dart_IsExternalString(empty_str));
-    uint8_t ext_empty_str[kLength];
-    Dart_Handle str =
-        Dart_MakeExternalString(empty_str, ext_empty_str, kLength, NULL, NULL);
-    EXPECT(Dart_IsString(str));
-    EXPECT(Dart_IsString(empty_str));
-    EXPECT(Dart_IsStringLatin1(str));
-    EXPECT(Dart_IsStringLatin1(empty_str));
-    EXPECT(Dart_IsExternalString(str));
-    EXPECT(Dart_IsExternalString(empty_str));
-    EXPECT_VALID(Dart_StringLength(str, &length));
-    EXPECT_EQ(0, length);
-
-    // Test with single character canonical string, it should not become
-    // external string but the peer should be setup for it.
-    Dart_Handle canonical_str =
-        Api::NewHandle(thread, Symbols::New(thread, "*"));
-    EXPECT(Dart_IsString(canonical_str));
-    EXPECT(!Dart_IsExternalString(canonical_str));
-    uint8_t ext_canonical_str[kLength];
-    str = Dart_MakeExternalString(canonical_str, ext_canonical_str, kLength,
-                                  &canonical_str_peer, MakeExternalCback);
-    EXPECT(Dart_IsString(str));
-    EXPECT(!Dart_IsExternalString(canonical_str));
-    EXPECT_EQ(canonical_str, str);
-    EXPECT(Dart_IsString(canonical_str));
-    EXPECT(!Dart_IsExternalString(canonical_str));
-    void* peer;
-    EXPECT_VALID(Dart_StringGetProperties(str, &size, &length, &peer));
-    EXPECT_EQ(1, size);
-    EXPECT_EQ(1, length);
-    EXPECT_EQ(reinterpret_cast<void*>(&canonical_str_peer), peer);
-
-    // Test with a one byte ascii string.
-    const char* ascii = "?unseen";
-    expected_length = strlen(ascii);
-    Dart_Handle ascii_str = NewString(ascii);
-    EXPECT_VALID(ascii_str);
-    EXPECT(Dart_IsString(ascii_str));
-    EXPECT(Dart_IsStringLatin1(ascii_str));
-    EXPECT(!Dart_IsExternalString(ascii_str));
-    EXPECT_VALID(Dart_StringLength(ascii_str, &length));
-    EXPECT_EQ(expected_length, length);
-
-    uint8_t ext_ascii_str[kLength];
-    EXPECT_VALID(Dart_StringStorageSize(ascii_str, &size));
-    str = Dart_MakeExternalString(ascii_str, ext_ascii_str, size, &peer8,
-                                  MakeExternalCback);
-    EXPECT(Dart_IsString(str));
-    EXPECT(Dart_IsString(ascii_str));
-    EXPECT(Dart_IsStringLatin1(str));
-    EXPECT(Dart_IsStringLatin1(ascii_str));
-    EXPECT(Dart_IsExternalString(str));
-    EXPECT(Dart_IsExternalString(ascii_str));
-    EXPECT_VALID(Dart_StringLength(str, &length));
-    EXPECT_EQ(expected_length, length);
-    EXPECT_VALID(Dart_StringLength(ascii_str, &length));
-    EXPECT_EQ(expected_length, length);
-    EXPECT(Dart_IdentityEquals(str, ascii_str));
-    for (intptr_t i = 0; i < length; i++) {
-      EXPECT_EQ(ascii[i], ext_ascii_str[i]);
-    }
-
-    uint8_t data[] = {0xE4, 0xBA, 0x8c};  // U+4E8C.
-    expected_length = 1;
-    Dart_Handle utf16_str = Dart_NewStringFromUTF8(data, ARRAY_SIZE(data));
-    EXPECT_VALID(utf16_str);
-    EXPECT(Dart_IsString(utf16_str));
-    EXPECT(!Dart_IsStringLatin1(utf16_str));
-    EXPECT(!Dart_IsExternalString(utf16_str));
-    EXPECT_VALID(Dart_StringLength(utf16_str, &length));
-    EXPECT_EQ(expected_length, length);
-
-    // Test with a two byte string.
-    uint16_t ext_utf16_str[kLength];
-    EXPECT_VALID(Dart_StringStorageSize(utf16_str, &size));
-    str = Dart_MakeExternalString(utf16_str, ext_utf16_str, size, &peer16,
-                                  MakeExternalCback);
-    EXPECT(Dart_IsString(str));
-    EXPECT(Dart_IsString(utf16_str));
-    EXPECT(!Dart_IsStringLatin1(str));
-    EXPECT(!Dart_IsStringLatin1(utf16_str));
-    EXPECT(Dart_IsExternalString(str));
-    EXPECT(Dart_IsExternalString(utf16_str));
-    EXPECT_VALID(Dart_StringLength(str, &length));
-    EXPECT_EQ(expected_length, length);
-    EXPECT_VALID(Dart_StringLength(utf16_str, &length));
-    EXPECT_EQ(expected_length, length);
-    EXPECT(Dart_IdentityEquals(str, utf16_str));
-    for (intptr_t i = 0; i < length; i++) {
-      EXPECT_EQ(0x4e8c, ext_utf16_str[i]);
-    }
-
-    Zone* zone = thread->zone();
-    // Test with a symbol (hash value should be preserved on externalization).
-    const char* symbol_ascii = "?unseen";
-    expected_length = strlen(symbol_ascii);
-    Dart_Handle symbol_str = Api::NewHandle(
-        thread, Symbols::New(thread, symbol_ascii, expected_length));
-    EXPECT_VALID(symbol_str);
-    EXPECT(Dart_IsString(symbol_str));
-    EXPECT(Dart_IsStringLatin1(symbol_str));
-    EXPECT(!Dart_IsExternalString(symbol_str));
-    EXPECT_VALID(Dart_StringLength(symbol_str, &length));
-    EXPECT_EQ(expected_length, length);
-    EXPECT(Api::UnwrapStringHandle(zone, symbol_str).HasHash());
-
-    uint8_t ext_symbol_ascii[kLength];
-    EXPECT_VALID(Dart_StringStorageSize(symbol_str, &size));
-    str = Dart_MakeExternalString(symbol_str, ext_symbol_ascii, size, &peer8,
-                                  MakeExternalCback);
-    EXPECT(Api::UnwrapStringHandle(zone, str).HasHash());
-    EXPECT(Api::UnwrapStringHandle(zone, str).Hash() ==
-           Api::UnwrapStringHandle(zone, symbol_str).Hash());
-    EXPECT(Dart_IsString(str));
-    EXPECT(Dart_IsString(symbol_str));
-    EXPECT(Dart_IsStringLatin1(str));
-    EXPECT(Dart_IsStringLatin1(symbol_str));
-    EXPECT(Dart_IsExternalString(str));
-    EXPECT(Dart_IsExternalString(symbol_str));
-    EXPECT_VALID(Dart_StringLength(str, &length));
-    EXPECT_EQ(expected_length, length);
-    EXPECT_VALID(Dart_StringLength(symbol_str, &length));
-    EXPECT_EQ(expected_length, length);
-    EXPECT(Dart_IdentityEquals(str, symbol_str));
-    for (intptr_t i = 0; i < length; i++) {
-      EXPECT_EQ(symbol_ascii[i], ext_symbol_ascii[i]);
-    }
-
-    Dart_ExitScope();
-  }
-  EXPECT_EQ(40, peer8);
-  EXPECT_EQ(41, peer16);
-  EXPECT_EQ(42, canonical_str_peer);
-  {
-    TransitionNativeToVM transition(thread);
-    Isolate::Current()->heap()->CollectAllGarbage();
-    GCTestHelper::WaitForGCTasks();
-  }
-  EXPECT_EQ(80, peer8);
-  EXPECT_EQ(82, peer16);
-  EXPECT_EQ(42, canonical_str_peer);  // "*" Symbol is not removed on GC.
-
-  FLAG_support_externalizable_strings = saved_flag;
-}
-
-TEST_CASE(DartAPI_ExternalizeConstantStrings) {
-  const bool saved_flag = FLAG_support_externalizable_strings;
-  FLAG_support_externalizable_strings = true;
-
-  const char* kScriptChars =
-      "String testMain() {\n"
-      "  return 'constant string';\n"
-      "}\n";
-
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
-  const char* expected_str = "constant string";
-  const intptr_t kExpectedLen = 15;
-  uint8_t ext_str[kExpectedLen];
-  Dart_Handle str =
-      Dart_MakeExternalString(result, ext_str, kExpectedLen, NULL, NULL);
-
-  EXPECT(Dart_IsExternalString(str));
-  for (intptr_t i = 0; i < kExpectedLen; i++) {
-    EXPECT_EQ(expected_str[i], ext_str[i]);
-  }
-
-  FLAG_support_externalizable_strings = saved_flag;
-}
-
 TEST_CASE(DartAPI_LazyLoadDeoptimizes) {
   const char* kLoadFirst =
       "library L;\n"
@@ -8569,318 +8211,6 @@ TEST_CASE(DartAPI_LazyLoadDeoptimizes) {
   dart_args[0] = Dart_NewInteger(1);
   result = Dart_Invoke(lib1, NewString("start"), 1, dart_args);
   EXPECT_VALID(result);
-}
-
-// Test external strings and optimized code.
-static void ExternalStringDeoptimize_Finalize(void* peer) {
-  delete[] reinterpret_cast<char*>(peer);
-}
-
-static void A_change_str_native(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  Dart_Handle str = Dart_GetNativeArgument(args, 0);
-  EXPECT(Dart_IsString(str));
-  void* peer;
-  Dart_Handle str_arg = Dart_GetNativeStringArgument(args, 0, &peer);
-  EXPECT(Dart_IsString(str_arg));
-  EXPECT(!peer);
-  intptr_t size = 0;
-  EXPECT_VALID(Dart_StringStorageSize(str, &size));
-  intptr_t arg_size = 0;
-  EXPECT_VALID(Dart_StringStorageSize(str_arg, &arg_size));
-  EXPECT_EQ(size, arg_size);
-  char* str_data = new char[size];
-  Dart_Handle result = Dart_MakeExternalString(
-      str, str_data, size, str_data, &ExternalStringDeoptimize_Finalize);
-  EXPECT_VALID(result);
-  EXPECT(Dart_IsExternalString(result));
-  Dart_ExitScope();
-}
-
-static Dart_NativeFunction ExternalStringDeoptimize_native_lookup(
-    Dart_Handle name,
-    int argument_count,
-    bool* auto_setup_scope) {
-  ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = true;
-  return reinterpret_cast<Dart_NativeFunction>(&A_change_str_native);
-}
-
-// Do not use guarding mechanism on externalizable classes, since their class
-// can change on the fly,
-TEST_CASE(DartAPI_GuardExternalizedString) {
-  const bool saved_flag = FLAG_support_externalizable_strings;
-  FLAG_support_externalizable_strings = true;
-
-  const char* kScriptChars =
-      "main() {\n"
-      "  var a = new A('hello');\n"
-      "  var res = runOne(a);\n"
-      "  if (res != 10640000) return -1;\n"
-      "  change_str(a.f);\n"
-      "  res = runOne(a);\n"
-      "  return res;\n"
-      "}\n"
-      "runOne(a) {\n"
-      "  var sum = 0;\n"
-      "  for (int i = 0; i < 20000; i++) {\n"
-      "    for (int j = 0; j < a.f.length; j++) {\n"
-      "      sum += a.f.codeUnitAt(j);\n"
-      "    }\n"
-      "  }\n"
-      "  return sum;\n"
-      "}\n"
-      "class A {\n"
-      "  var f;\n"
-      "  A(this.f);\n"
-      "}\n"
-      "change_str(String s) native 'A_change_str';\n"
-      "";
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, &ExternalStringDeoptimize_native_lookup);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  int64_t value = 0;
-  result = Dart_IntegerToInt64(result, &value);
-  EXPECT_VALID(result);
-  EXPECT_EQ(10640000, value);
-
-  FLAG_support_externalizable_strings = saved_flag;
-}
-
-TEST_CASE(DartAPI_ExternalStringDeoptimize) {
-  const bool saved_flag = FLAG_support_externalizable_strings;
-  FLAG_support_externalizable_strings = true;
-
-  const char* kScriptChars =
-      "String str = 'A';\n"
-      "class A {\n"
-      "  static change_str(String s) native 'A_change_str';\n"
-      "}\n"
-      "sum_chars(String s, bool b) {\n"
-      "  var result = 0;\n"
-      "  for (var i = 0; i < s.length; i++) {\n"
-      "    if (b && i == 0) A.change_str(str);\n"
-      "    result += s.codeUnitAt(i);"
-      "  }\n"
-      "  return result;\n"
-      "}\n"
-      "main() {\n"
-      "  str = '$str$str';\n"
-      "  for (var i = 0; i < 2000; i++) sum_chars(str, false);\n"
-      "  var x = sum_chars(str, false);\n"
-      "  var y = sum_chars(str, true);\n"
-      "  return x + y;\n"
-      "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, &ExternalStringDeoptimize_native_lookup);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  int64_t value = 0;
-  result = Dart_IntegerToInt64(result, &value);
-  EXPECT_VALID(result);
-  EXPECT_EQ(260, value);
-
-  FLAG_support_externalizable_strings = saved_flag;
-}
-
-TEST_CASE(DartAPI_ExternalStringPolymorphicDeoptimize) {
-  const bool saved_flag = FLAG_support_externalizable_strings;
-  FLAG_support_externalizable_strings = true;
-
-  const char* kScriptChars =
-      "const strA = 'AAAA';\n"
-      "class A {\n"
-      "  static change_str(String s) native 'A_change_str';\n"
-      "}\n"
-      "compare(a, b, [i = 0]) {\n"
-      "  return a.codeUnitAt(i) == b.codeUnitAt(i);\n"
-      "}\n"
-      "compareA(b, [i = 0]) {\n"
-      "  return compare(strA, b, i);\n"
-      "}\n"
-      "main() {\n"
-      "  var externalA = 'AA' + 'AA';\n"
-      "  A.change_str(externalA);\n"
-      "  compare('AA' + 'AA', strA);\n"
-      "  compare(externalA, strA);\n"
-      "  for (var i = 0; i < 10000; i++) compareA(strA);\n"
-      "  A.change_str(strA);\n"
-      "  return compareA('AA' + 'AA');\n"
-      "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, &ExternalStringDeoptimize_native_lookup);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-  bool value = false;
-  result = Dart_BooleanValue(result, &value);
-  EXPECT_VALID(result);
-  EXPECT(value);
-
-  FLAG_support_externalizable_strings = saved_flag;
-}
-
-TEST_CASE(DartAPI_ExternalStringLoadElimination) {
-  const bool saved_flag = FLAG_support_externalizable_strings;
-  FLAG_support_externalizable_strings = true;
-
-  const char* kScriptChars =
-      "class A {\n"
-      "  static change_str(String s) native 'A_change_str';\n"
-      "}\n"
-      "double_char0(str) {\n"
-      "  return str.codeUnitAt(0) + str.codeUnitAt(0);\n"
-      "}\n"
-      "main() {\n"
-      "  var externalA = 'AA' + 'AA';\n"
-      "  A.change_str(externalA);\n"
-      "  for (var i = 0; i < 10000; i++) double_char0(externalA);\n"
-      "  var result = double_char0(externalA);\n"
-      "  return result == 130;\n"
-      "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, &ExternalStringDeoptimize_native_lookup);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-  bool value = false;
-  result = Dart_BooleanValue(result, &value);
-  EXPECT_VALID(result);
-  EXPECT(value);
-
-  FLAG_support_externalizable_strings = saved_flag;
-}
-
-TEST_CASE(DartAPI_ExternalStringGuardFieldDeoptimize) {
-  const bool saved_flag = FLAG_support_externalizable_strings;
-  FLAG_support_externalizable_strings = true;
-
-  const char* kScriptChars =
-      "const strA = 'AAAA';\n"
-      "class A {\n"
-      "  static change_str(String s) native 'A_change_str';\n"
-      "}\n"
-      "class G { var f = 'A'; }\n"
-      "final guard = new G();\n"
-      "var shouldExternalize = false;\n"
-      "ext() { if (shouldExternalize) A.change_str(strA); }\n"
-      "compare(a, b, [i = 0]) {\n"
-      "  guard.f = a;\n"
-      "  ext();"
-      "  return a.codeUnitAt(i) == b.codeUnitAt(i);\n"
-      "}\n"
-      "compareA(b, [i = 0]) {\n"
-      "  return compare(strA, b, i);\n"
-      "}\n"
-      "main() {\n"
-      "  var externalA = 'AA' + 'AA';\n"
-      "  A.change_str(externalA);\n"
-      "  compare('AA' + 'AA', strA);\n"
-      "  for (var i = 0; i < 10000; i++) compareA(strA);\n"
-      "  shouldExternalize = true;\n"
-      "  return compareA('AA' + 'AA');\n"
-      "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, &ExternalStringDeoptimize_native_lookup);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-  bool value = false;
-  result = Dart_BooleanValue(result, &value);
-  EXPECT_VALID(result);
-  EXPECT(value);
-
-  FLAG_support_externalizable_strings = saved_flag;
-}
-
-TEST_CASE(DartAPI_ExternalStringStaticFieldDeoptimize) {
-  const bool saved_flag = FLAG_support_externalizable_strings;
-  FLAG_support_externalizable_strings = true;
-
-  const char* kScriptChars =
-      "const strA = 'AAAA';\n"
-      "class A {\n"
-      "  static change_str(String s) native 'A_change_str';\n"
-      "}\n"
-      "class G { static final f = strA; }\n"
-      "compare(a, b, [i = 0]) {\n"
-      "  return a.codeUnitAt(i) == b.codeUnitAt(i);\n"
-      "}\n"
-      "compareA(b, [i = 0]) {\n"
-      "  return compare(G.f, b, i);\n"
-      "}\n"
-      "main() {\n"
-      "  var externalA = 'AA' + 'AA';\n"
-      "  A.change_str(externalA);\n"
-      "  compare('AA' + 'AA', strA);\n"
-      "  for (var i = 0; i < 10000; i++) compareA(strA);\n"
-      "  A.change_str(G.f);"
-      "  return compareA('AA' + 'AA');\n"
-      "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, &ExternalStringDeoptimize_native_lookup);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-  bool value = false;
-  result = Dart_BooleanValue(result, &value);
-  EXPECT_VALID(result);
-  EXPECT(value);
-
-  FLAG_support_externalizable_strings = saved_flag;
-}
-
-TEST_CASE(DartAPI_ExternalStringTrimDoubleParse) {
-  const bool saved_flag = FLAG_support_externalizable_strings;
-  FLAG_support_externalizable_strings = true;
-
-  const char* kScriptChars =
-      "String str = 'A';\n"
-      "class A {\n"
-      "  static change_str(String s) native 'A_change_str';\n"
-      "}\n"
-      "main() {\n"
-      "  var externalOneByteString = ' 0.2\\xA0 ';\n;"
-      "  A.change_str(externalOneByteString);\n"
-      "  var externalTwoByteString = ' \\u{2029}0.6\\u{2029} ';\n"
-      "  A.change_str(externalTwoByteString);\n"
-      "  var x = double.parse(externalOneByteString);\n"
-      "  var y = double.parse(externalTwoByteString);\n"
-      "  return ((x + y) * 10).toInt();\n"
-      "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, &ExternalStringDeoptimize_native_lookup);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  int64_t value = 0;
-  result = Dart_IntegerToInt64(result, &value);
-  EXPECT_VALID(result);
-  EXPECT_EQ(8, value);
-
-  FLAG_support_externalizable_strings = saved_flag;
-}
-
-TEST_CASE(DartAPI_ExternalStringDoubleParse) {
-  const bool saved_flag = FLAG_support_externalizable_strings;
-  FLAG_support_externalizable_strings = true;
-
-  const char* kScriptChars =
-      "String str = 'A';\n"
-      "class A {\n"
-      "  static change_str(String s) native 'A_change_str';\n"
-      "}\n"
-      "main() {\n"
-      "  var externalOneByteString = '0.2';\n;"
-      "  A.change_str(externalOneByteString);\n"
-      "  var externalTwoByteString = '0.6';\n"
-      "  A.change_str(externalTwoByteString);\n"
-      "  var x = double.parse(externalOneByteString);\n"
-      "  var y = double.parse(externalTwoByteString);\n"
-      "  return ((x + y) * 10).toInt();\n"
-      "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, &ExternalStringDeoptimize_native_lookup);
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  int64_t value = 0;
-  result = Dart_IntegerToInt64(result, &value);
-  EXPECT_VALID(result);
-  EXPECT_EQ(8, value);
-
-  FLAG_support_externalizable_strings = saved_flag;
 }
 
 TEST_CASE(DartAPI_ExternalStringIndexOf) {

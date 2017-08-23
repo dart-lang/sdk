@@ -206,7 +206,7 @@ class Reader {
 
   bool ReadBool() { return (ReadByte() & 1) == 1; }
 
-  word ReadFlags() { return ReadByte(); }
+  uint8_t ReadFlags() { return ReadByte(); }
 
   Tag ReadTag(uint8_t* payload = NULL) {
     uint8_t byte = ReadByte();

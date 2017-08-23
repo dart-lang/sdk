@@ -77,6 +77,7 @@ class EventHandlerImplementation {
   static void Poll(uword args);
   void WakeupHandler(intptr_t id, Dart_Port dart_port, int64_t data);
   void HandleInterruptFd();
+  void UpdateTimerFd();
   void SetPort(intptr_t fd, Dart_Port dart_port, intptr_t mask);
   intptr_t GetPollEvents(intptr_t events, DescriptorInfo* di);
   static void* GetHashmapKeyFromFd(intptr_t fd);

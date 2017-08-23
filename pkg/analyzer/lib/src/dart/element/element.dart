@@ -1154,14 +1154,11 @@ class ClassElementImpl extends AbstractClassElementImpl
         if (supertype != null) {
           typesToVisit.add(supertype);
         }
-        for (InterfaceType type in currentElement.interfaces) {
+        for (InterfaceType type in currentType.interfaces) {
           typesToVisit.add(type);
         }
-        for (InterfaceType type in currentElement.mixins) {
-          ClassElement element = type.element;
-          if (!visitedClasses.contains(element)) {
-            supertypes.add(type);
-          }
+        for (InterfaceType type in currentType.mixins) {
+          typesToVisit.add(type);
         }
       }
     }
@@ -7225,8 +7222,14 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   MethodDeclaration computeNode() =>
       getNodeMatching((node) => node is MethodDeclaration);
 
+  @deprecated
   @override
   FunctionType getReifiedType(DartType objectType) {
+    // TODO(jmesserly): this implementation is completely wrong:
+    // It does not handle covariant parameters from a generic class.
+    // It drops type parameters from generic methods.
+    // Since this method was for DDC, it should be removed.
+    //
     // Check whether we have any covariant parameters.
     // Usually we don't, so we can use the same type.
     bool hasCovariant = false;

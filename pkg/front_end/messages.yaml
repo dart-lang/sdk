@@ -580,6 +580,12 @@ NamedFunctionExpression:
   template: "A function expression can't have a name."
   dart2jsCode: "*ignored*"
 
+NativeClauseShouldBeAnnotation:
+  template: "Native clause in this form is deprecated."
+  tip: "Try removing this native clause and adding @native() or @native('native-name') before the declaration."
+  analyzerCode: NATIVE_CLAUSE_SHOULD_BE_ANNOTATION
+  dart2jsCode: "*fatal*"
+
 ReturnTypeFunctionExpression:
   template: "A function expression can't have a return type."
   dart2jsCode: "*ignored*"

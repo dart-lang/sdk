@@ -12,7 +12,7 @@ class LibraryContents {
 /// Maps [LibraryEntity]s to their [ClassEntity]s and [MemberEntity]s.
 ///
 /// Fundamentally, this class nicely encapsulates a
-/// `Map<LibraryElement, Pair<List<ClassElement>, List<MemberElement>>>`.
+/// `Map<LibraryEntity, Pair<List<ClassEntity>, List<MemberEntity>>>`.
 ///
 /// There exists exactly one instance per [OutputUnit].
 class LibrariesMap {

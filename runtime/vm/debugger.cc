@@ -671,10 +671,8 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
   OS::PrintErr("pc_ %" Px "\n", pc_);
   OS::PrintErr("deopt_id_ %" Px "\n", deopt_id_);
   OS::PrintErr("context_level_ %" Px "\n", context_level_);
-#if !defined(DART_PRECOMPILED_RUNTIME)
   DisassembleToStdout formatter;
   code().Disassemble(&formatter);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   PcDescriptors::Handle(code().pc_descriptors()).Print();
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
                             Thread::Current(),
@@ -1781,7 +1779,6 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
   return activation;
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 RawArray* Debugger::DeoptimizeToArray(Thread* thread,
                                       StackFrame* frame,
                                       const Code& code) {
@@ -1803,7 +1800,6 @@ RawArray* Debugger::DeoptimizeToArray(Thread* thread,
 
   return dest_frame.raw();
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 DebuggerStackTrace* Debugger::CollectStackTrace() {
   Thread* thread = Thread::Current();
@@ -1841,8 +1837,7 @@ void Debugger::AppendCodeFrames(Thread* thread,
                                 Code* code,
                                 Code* inlined_code,
                                 Array* deopt_frame) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (code->is_optimized()) {
+  if (code->is_optimized() && !FLAG_precompiled_runtime) {
     // TODO(rmacnak): Use CodeSourceMap
     *deopt_frame = DeoptimizeToArray(thread, frame, *code);
     for (InlinedFunctionsIterator it(*code, frame->pc()); !it.Done();
@@ -1859,11 +1854,10 @@ void Debugger::AppendCodeFrames(Thread* thread,
                                                   *inlined_code, *deopt_frame,
                                                   deopt_frame_offset));
     }
-    return;
+  } else {
+    stack_trace->AddActivation(CollectDartFrame(
+        isolate, frame->pc(), frame, *code, Object::null_array(), 0));
   }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  stack_trace->AddActivation(CollectDartFrame(isolate, frame->pc(), frame,
-                                              *code, Object::null_array(), 0));
 }
 
 DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
@@ -1952,14 +1946,11 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
 }
 
 DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  // Causal async stacks are not supported in the AOT runtime.
-  ASSERT(!FLAG_async_debugger);
-  return NULL;
-#else
   if (!FLAG_async_debugger) {
     return NULL;
   }
+  // Causal async stacks are not supported in the AOT runtime.
+  ASSERT(!FLAG_precompiled_runtime);
 
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -2098,7 +2089,6 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
   }
 
   return stack_trace;
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 ActivationFrame* Debugger::TopDartFrame() const {

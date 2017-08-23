@@ -18,6 +18,8 @@ import 'element_listener.dart' show ElementListener, ScannerOptions;
 import 'package:front_end/src/fasta/parser.dart' as fasta show Assert;
 
 class NodeListener extends ElementListener {
+  int invalidTopLevelDeclarationCount = 0;
+
   NodeListener(ScannerOptions scannerOptions, DiagnosticReporter reporter,
       CompilationUnitElement element)
       : super(scannerOptions, reporter, element, null);
@@ -106,6 +108,7 @@ class NodeListener extends ElementListener {
       Token classKeyword,
       Token extendsKeyword,
       Token implementsKeyword,
+      Token nativeToken,
       Token endToken) {
     NodeList body = popNode();
     NodeList interfaces =
@@ -119,6 +122,11 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void handleInvalidTopLevelDeclaration(Token endToken) {
+    ++invalidTopLevelDeclarationCount;
+  }
+
+  @override
   void endTopLevelDeclaration(Token token) {
     // TODO(sigmund): consider moving metadata into each declaration
     // element instead.
@@ -129,8 +137,14 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void beginCompilationUnit(Token token) {
+    invalidTopLevelDeclarationCount = 0;
+  }
+
+  @override
   void endCompilationUnit(int count, Token token) {
-    pushNode(makeNodeList(count, null, null, '\n'));
+    pushNode(makeNodeList(
+        count - invalidTopLevelDeclarationCount, null, null, '\n'));
   }
 
   @override

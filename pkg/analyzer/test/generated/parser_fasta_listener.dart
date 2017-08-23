@@ -59,6 +59,9 @@ class ForwardingTestListener implements fasta.Listener {
   ForwardingTestListener(this.listener);
 
   @override
+  Uri get uri => listener.uri;
+
+  @override
   void beginArguments(Token token) {
     listener.beginArguments(token);
     begin('Arguments');
@@ -614,17 +617,24 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    expectIn('ClassDeclaration');
+    listener.handleNativeClause(nativeToken, hasName);
+  }
+
+  @override
   void endClassDeclaration(
       int interfacesCount,
       Token beginToken,
       Token classKeyword,
       Token extendsKeyword,
       Token implementsKeyword,
+      Token nativeToken,
       Token endToken) {
     end('ClassDeclaration');
     end('ClassOrNamedMixinApplication');
     listener.endClassDeclaration(interfacesCount, beginToken, classKeyword,
-        extendsKeyword, implementsKeyword, endToken);
+        extendsKeyword, implementsKeyword, nativeToken, endToken);
   }
 
   @override
@@ -1224,6 +1234,12 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
+  void handleInvalidTopLevelDeclaration(Token endToken) {
+    expectIn('CompilationUnit');
+    listener.handleInvalidTopLevelDeclaration(endToken);
+  }
+
+  @override
   void handleIsOperator(Token operator, Token not, Token endToken) {
     listener.handleIsOperator(operator, not, endToken);
     // TODO(danrubel): implement handleIsOperator
@@ -1536,8 +1552,4 @@ class ForwardingTestListener implements fasta.Listener {
     listener.suppressParseErrors = value;
     // TODO(danrubel): implement suppressParseErrors
   }
-
-  // TODO(danrubel): implement uri
-  @override
-  Uri get uri => listener.uri;
 }

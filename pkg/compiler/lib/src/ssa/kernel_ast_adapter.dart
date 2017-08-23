@@ -136,7 +136,7 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
         MethodElement originTargetFunction = originTarget;
         ClosureRepresentationInfo classMap = _compiler
             .backendStrategy.closureDataLookup
-            .getClosureRepresentationInfo(originTargetFunction);
+            .getClosureInfoForMember(originTargetFunction);
         if (classMap.closureEntity != null) {
           target = kernel.localFunctions[classMap.closureEntity];
         }
@@ -265,7 +265,8 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   }
 
   @override
-  Local getLocalVariable(ir.VariableDeclaration variable) {
+  Local getLocalVariable(ir.VariableDeclaration variable,
+      {bool isClosureCallMethod}) {
     // If this is a synthetic local, return the synthetic local
     if (variable.name == null) {
       return _syntheticLocals.putIfAbsent(
@@ -397,6 +398,13 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   CapturedLoopScope getCapturedLoopScope(
       ClosureDataLookup closureLookup, ir.TreeNode node) {
     return closureLookup.getCapturedLoopScope(getNode(node));
+  }
+
+  @override
+  ClosureRepresentationInfo getClosureRepresentationInfo(
+      ClosureDataLookup closureLookup, ir.TreeNode node) {
+    LocalFunctionElement localFunction = getElement(node);
+    return closureLookup.getClosureInfo(localFunction.node);
   }
 }
 

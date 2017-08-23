@@ -14,15 +14,15 @@ namespace dart {
 // Scan the stack until we hit the first function in the _AssertionError
 // class. We then return the next frame's script taking inlining into account.
 static RawScript* FindScript(DartFrameIterator* iterator) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  // The precompiled runtime faces two issues in recovering the correct
-  // assertion text. First, the precompiled runtime does not include
-  // the inlining meta-data so we cannot walk the inline-aware stack trace.
-  // Second, the script text itself is missing so whatever script is returned
-  // from here will be missing the assertion expression text.
-  iterator->NextFrame();  // Skip _AssertionError._evaluateAssertion frame
-  return Exceptions::GetCallerScript(iterator);
-#else
+  if (FLAG_precompiled_runtime) {
+    // The precompiled runtime faces two issues in recovering the correct
+    // assertion text. First, the precompiled runtime does not include
+    // the inlining meta-data so we cannot walk the inline-aware stack trace.
+    // Second, the script text itself is missing so whatever script is returned
+    // from here will be missing the assertion expression text.
+    iterator->NextFrame();  // Skip _AssertionError._evaluateAssertion frame
+    return Exceptions::GetCallerScript(iterator);
+  }
   StackFrame* stack_frame = iterator->NextFrame();
   Code& code = Code::Handle();
   Function& func = Function::Handle();
@@ -56,7 +56,6 @@ static RawScript* FindScript(DartFrameIterator* iterator) {
   }
   UNREACHABLE();
   return Script::null();
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // Allocate and throw a new AssertionError.

@@ -1,0 +1,33 @@
+{
+  "":"Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file",
+  "":"for details. All rights reserved. Use of this source code is governed by a",
+  "":"BSD-style license that can be found in the LICENSE.md file.",
+
+  "packages": ".packages",
+
+  "suites": [
+    {
+      "name": "dart_vm",
+      "kind": "Chain",
+      "source": "package:testing/dart_vm_suite.dart",
+      "path": "test/",
+      "status": "test/gardening.status",
+      "pattern": [
+        "\\_test.dart$"
+      ],
+      "exclude": [
+        "buildbot_data_test.dart"
+      ]
+    }
+  ],
+
+  "analyze": {
+    "options": "analysis_options.yaml",
+
+    "uris": [
+      "bin/",
+      "lib/",
+      "test/"
+    ]
+  }
+}

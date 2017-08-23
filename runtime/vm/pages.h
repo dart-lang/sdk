@@ -250,7 +250,7 @@ class PageSpace {
   bool ShouldCollectCode();
 
   // Collect the garbage in the page space using mark-sweep.
-  void MarkSweep(bool invoke_api_callbacks);
+  void MarkSweep();
 
   void AddRegionsToObjectSet(ObjectSet* set) const;
 

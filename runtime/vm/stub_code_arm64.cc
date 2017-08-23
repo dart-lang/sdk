@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(TARGET_ARCH_ARM64) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(TARGET_ARCH_ARM64)
 
 #include "vm/assembler.h"
 #include "vm/compiler.h"
@@ -122,6 +122,12 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ LeaveStubFrame();
   __ ret();
 }
+
+// Print the stop message.
+DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {
+  OS::Print("Stop message: %s\n", message);
+}
+END_LEAF_RUNTIME_ENTRY
 
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
   __ Stop("GeneratePrintStopMessageStub");
@@ -2316,4 +2322,4 @@ void StubCode::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_ARM64) && !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined TARGET_ARCH_ARM64

@@ -5,6 +5,8 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -26,23 +28,46 @@ class AnalysisGetImportElementsIntegrationTest
   String pathname;
 
   /**
-   * Dart code under test.
-   */
-  final String text = r'''
-''';
-
-  /**
    * Check that an edit.importElements request with the given list of [elements]
    * produces the [expected] list of edits.
    */
-  checkEdits(List<ImportedElements> elements, List<SourceEdit> expected) async {
+  checkEdits(List<ImportedElements> elements, List<SourceEdit> expected,
+      {String expectedFile}) async {
+    bool equals(SourceEdit actualEdit, SourceEdit expectedEdit) {
+      return actualEdit.offset == expectedEdit.offset &&
+          actualEdit.length == expectedEdit.length &&
+          actualEdit.replacement == expectedEdit.replacement;
+    }
+
+    int find(List<SourceEdit> actual, SourceEdit expectedEdit) {
+      for (int i = 0; i < actual.length; i++) {
+        SourceEdit actualEdit = actual[i];
+        if (equals(actualEdit, expectedEdit)) {
+          return i;
+        }
+      }
+      return -1;
+    }
+
     EditImportElementsResult result =
         await sendEditImportElements(pathname, elements);
 
     SourceFileEdit edit = result.edit;
     expect(edit, isNotNull);
-    expect(edit.edits, hasLength(expected.length));
-    // TODO(brianwilkerson) Finish implementing this.
+    if (expectedFile == null) {
+      expect(edit.file, pathname);
+    } else {
+      expect(edit.file, expectedFile);
+    }
+    List<SourceEdit> actual = edit.edits;
+    expect(actual, hasLength(expected.length));
+    for (SourceEdit expectedEdit in expected) {
+      int index = find(actual, expectedEdit);
+      if (index < 0) {
+        fail('Expected $expectedEdit; not found');
+      }
+      actual.removeAt(index);
+    }
   }
 
   /**
@@ -58,20 +83,57 @@ class AnalysisGetImportElementsIntegrationTest
     expect(edit.edits, hasLength(0));
   }
 
-  setUp() {
-    return super.setUp().then((_) {
-      pathname = sourcePath('test.dart');
-    });
+  Future setUp() async {
+    await super.setUp();
+    pathname = sourcePath('test.dart');
   }
 
-  test_getImportedElements_noEdits() async {
-    writeFile(pathname, text);
+  test_importElements_definingUnit() async {
+    writeFile(pathname, 'main() {}');
+    standardAnalysisSetup();
+    await analysisFinished;
+    PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
+    String sdkPath = FolderBasedDartSdk.defaultSdkDirectory(provider).path;
+    String mathPath =
+        provider.pathContext.join(sdkPath, 'lib', 'math', 'math.dart');
+
+    await checkEdits(<ImportedElements>[
+      new ImportedElements(mathPath, '', <String>['Random'])
+    ], [
+      new SourceEdit(0, 0, "import 'dart:math';\n\n")
+    ]);
+  }
+
+  test_importElements_noEdits() async {
+    writeFile(pathname, '');
     standardAnalysisSetup();
     await analysisFinished;
 
-    List<Future> tests = [];
-    // Test that an empty list of elements produces no edits.
-    tests.add(checkNoEdits(<ImportedElements>[]));
-    return Future.wait(tests);
+    await checkNoEdits(<ImportedElements>[]);
+  }
+
+  test_importElements_part() async {
+    String libName = sourcePath('lib.dart');
+    writeFile(libName, '''
+part 'test.dart';
+main() {}
+''');
+    writeFile(pathname, '''
+part of 'lib.dart';
+
+class C {}
+''');
+    standardAnalysisSetup();
+    await analysisFinished;
+    PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
+    String sdkPath = FolderBasedDartSdk.defaultSdkDirectory(provider).path;
+    String mathPath =
+        provider.pathContext.join(sdkPath, 'lib', 'math', 'math.dart');
+
+    await checkEdits(<ImportedElements>[
+      new ImportedElements(mathPath, '', <String>['Random'])
+    ], [
+      new SourceEdit(0, 0, "import 'dart:math';\n\n")
+    ], expectedFile: libName);
   }
 }

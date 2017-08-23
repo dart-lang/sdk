@@ -1219,7 +1219,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   List<AnalysisError> _getErrorsFromSerialized(
       FileState file, List<AnalysisDriverUnitError> serialized) {
-    return serialized.map((error) {
+    List<AnalysisError> errors = <AnalysisError>[];
+    for (AnalysisDriverUnitError error in serialized) {
       String errorName = error.uniqueName;
       ErrorCode errorCode =
           errorCodeByUniqueName(errorName) ?? _lintCodeByUniqueName(errorName);
@@ -1227,16 +1228,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         // This could fail because the error code is no longer defined, or, in
         // the case of a lint rule, if the lint rule has been disabled since the
         // errors were written.
-        throw new StateError('No ErrorCode for $errorName in $file');
+        AnalysisEngine.instance.instrumentationService
+            .logError('No error code for "$error" in "$file"');
+      } else {
+        errors.add(new AnalysisError.forValues(
+            file.source,
+            error.offset,
+            error.length,
+            errorCode,
+            error.message,
+            error.correction.isEmpty ? null : error.correction));
       }
-      return new AnalysisError.forValues(
-          file.source,
-          error.offset,
-          error.length,
-          errorCode,
-          error.message,
-          error.correction.isEmpty ? null : error.correction);
-    }).toList();
+    }
+    return errors;
   }
 
   /**

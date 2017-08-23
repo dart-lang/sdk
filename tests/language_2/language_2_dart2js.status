@@ -70,6 +70,41 @@ call_through_getter_test/02: MissingCompileTimeError
 call_type_literal_test/01: MissingCompileTimeError
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
+checked_null_test/01: MissingCompileTimeError
+checked_setter_test: MissingCompileTimeError
+checked_setter2_test: MissingCompileTimeError
+checked_setter3_test/01: MissingCompileTimeError
+checked_setter3_test/02: MissingCompileTimeError
+checked_setter3_test/03: MissingCompileTimeError
+class_literal_test/01: MissingCompileTimeError
+class_literal_test/02: MissingCompileTimeError
+class_literal_test/03: MissingCompileTimeError
+class_literal_test/04: MissingCompileTimeError
+class_literal_test/05: MissingCompileTimeError
+class_literal_test/06: MissingCompileTimeError
+class_literal_test/07: MissingCompileTimeError
+class_literal_test/08: MissingCompileTimeError
+class_literal_test/09: MissingCompileTimeError
+class_literal_test/10: MissingCompileTimeError
+class_literal_test/11: MissingCompileTimeError
+class_literal_test/12: MissingCompileTimeError
+class_literal_test/13: MissingCompileTimeError
+class_literal_test/14: MissingCompileTimeError
+class_literal_test/15: MissingCompileTimeError
+class_literal_test/16: MissingCompileTimeError
+class_literal_test/17: MissingCompileTimeError
+class_literal_test/18: MissingCompileTimeError
+class_literal_test/19: MissingCompileTimeError
+class_literal_test/20: MissingCompileTimeError
+class_literal_test/21: MissingCompileTimeError
+class_literal_test/22: MissingCompileTimeError
+class_literal_test/23: MissingCompileTimeError
+class_literal_test/24: MissingCompileTimeError
+class_literal_test/25: MissingCompileTimeError
+covariant_subtyping_with_substitution_test: RuntimeError
+generic_constructor_mixin_test/01: MissingCompileTimeError
+generic_constructor_mixin2_test/01: MissingCompileTimeError
+generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
 
 [ $compiler == dart2js && $runtime != none ]
@@ -104,6 +139,7 @@ branch_canonicalization_test: RuntimeError # Issue 638.
 
 [ $compiler == dart2js && ! $checked && ! $enable_asserts && ! $dart2js_with_kernel && $runtime != none ]
 assertion_test: RuntimeError # Issue 12748
+typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel_in_ssa ]
 abstract_beats_arguments_test: RuntimeError # Issue 27394
@@ -129,6 +165,12 @@ black_listed_test/14c: Crash # Issue 27394
 bootstrap_test: RuntimeError # Issue 27394
 call_nonexistent_static_test/10: Crash # Issue 27394
 
+[ $compiler == dart2js && !$checked ]
+function_subtype_inline2_test: RuntimeError
+
+[ $compiler == dart2js && !$checked && $minified ]
+function_subtype_inline2_test: RuntimeError
+
 [ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
 assertion_initializer_const_function_test/none: RuntimeError
 
@@ -145,8 +187,78 @@ assertion_test: RuntimeError
 [ $compiler == dart2js && $runtime == drt && $checked ]
 assertion_test: RuntimeError
 
+[ $compiler == dart2js && $runtime != none && $checked ]
+function_type/function_type0_test: RuntimeError # Issue 30476
+function_type/function_type10_test: RuntimeError # Issue 30476
+function_type/function_type12_test: RuntimeError # Issue 30476
+function_type/function_type13_test: RuntimeError # Issue 30476
+function_type/function_type14_test: RuntimeError # Issue 30476
+function_type/function_type15_test: RuntimeError # Issue 30476
+function_type/function_type16_test: RuntimeError # Issue 30476
+function_type/function_type17_test: RuntimeError # Issue 30476
+function_type/function_type18_test: RuntimeError # Issue 30476
+function_type/function_type19_test: RuntimeError # Issue 30476
+function_type/function_type1_test: RuntimeError # Issue 30476
+function_type/function_type20_test: RuntimeError # Issue 30476
+function_type/function_type21_test: RuntimeError # Issue 30476
+function_type/function_type22_test: RuntimeError # Issue 30476
+function_type/function_type24_test: RuntimeError # Issue 30476
+function_type/function_type25_test: RuntimeError # Issue 30476
+function_type/function_type26_test: RuntimeError # Issue 30476
+function_type/function_type27_test: RuntimeError # Issue 30476
+function_type/function_type28_test: RuntimeError # Issue 30476
+function_type/function_type29_test: RuntimeError # Issue 30476
+function_type/function_type2_test: RuntimeError # Issue 30476
+function_type/function_type30_test: RuntimeError # Issue 30476
+function_type/function_type31_test: RuntimeError # Issue 30476
+function_type/function_type32_test: RuntimeError # Issue 30476
+function_type/function_type33_test: RuntimeError # Issue 30476
+function_type/function_type34_test: RuntimeError # Issue 30476
+function_type/function_type36_test: RuntimeError # Issue 30476
+function_type/function_type3_test: RuntimeError # Issue 30476
+function_type/function_type44_test: RuntimeError # Issue 30476
+function_type/function_type45_test: RuntimeError # Issue 30476
+function_type/function_type46_test: RuntimeError # Issue 30476
+function_type/function_type47_test: RuntimeError # Issue 30476
+function_type/function_type48_test: RuntimeError # Issue 30476
+function_type/function_type49_test: RuntimeError # Issue 30476
+function_type/function_type4_test: RuntimeError # Issue 30476
+function_type/function_type50_test: RuntimeError # Issue 30476
+function_type/function_type51_test: RuntimeError # Issue 30476
+function_type/function_type52_test: RuntimeError # Issue 30476
+function_type/function_type53_test: RuntimeError # Issue 30476
+function_type/function_type54_test: RuntimeError # Issue 30476
+function_type/function_type56_test: RuntimeError # Issue 30476
+function_type/function_type57_test: RuntimeError # Issue 30476
+function_type/function_type58_test: RuntimeError # Issue 30476
+function_type/function_type59_test: RuntimeError # Issue 30476
+function_type/function_type5_test: RuntimeError # Issue 30476
+function_type/function_type60_test: RuntimeError # Issue 30476
+function_type/function_type61_test: RuntimeError # Issue 30476
+function_type/function_type62_test: RuntimeError # Issue 30476
+function_type/function_type63_test: RuntimeError # Issue 30476
+function_type/function_type64_test: RuntimeError # Issue 30476
+function_type/function_type65_test: RuntimeError # Issue 30476
+function_type/function_type66_test: RuntimeError # Issue 30476
+function_type/function_type6_test: RuntimeError # Issue 30476
+function_type/function_type7_test: RuntimeError # Issue 30476
+function_type/function_type80_test: RuntimeError # Issue 30476
+function_type/function_type81_test: RuntimeError # Issue 30476
+function_type/function_type82_test: RuntimeError # Issue 30476
+function_type/function_type83_test: RuntimeError # Issue 30476
+function_type/function_type84_test: RuntimeError # Issue 30476
+function_type/function_type85_test: RuntimeError # Issue 30476
+function_type/function_type86_test: RuntimeError # Issue 30476
+function_type/function_type87_test: RuntimeError # Issue 30476
+function_type/function_type88_test: RuntimeError # Issue 30476
+function_type/function_type89_test: RuntimeError # Issue 30476
+function_type/function_type8_test: RuntimeError # Issue 30476
+function_type/function_type90_test: RuntimeError # Issue 30476
+function_type/function_type96_test: RuntimeError # Issue 30476
+function_type/function_type9_test: RuntimeError # Issue 30476
+
+
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-aborting_switch_case_test: Crash
 abstract_exact_selector_test/01: Crash
 abstract_exact_selector_test/none: Crash
 abstract_getter_test/01: Crash
@@ -155,7 +267,6 @@ abstract_object_method_test: Crash
 abstract_runtime_error_test/01: Crash
 abstract_runtime_error_test/02: Crash
 arg_param_trailing_comma_test/none: Crash
-arithmetic_test: Crash
 assert_message_test: Crash
 assert_trailing_comma_test/none: CompileTimeError
 assertion_initializer_const_error2_test/cc02: Crash
@@ -165,7 +276,6 @@ assertion_initializer_const_function_test/01: Crash
 assertion_initializer_test: CompileTimeError
 assertion_test: Crash
 assign_instance_method_negative_test: Crash
-assign_instance_method_test: Crash
 assign_to_type_test/01: Crash
 assign_to_type_test/02: Crash
 assign_to_type_test/03: Crash
@@ -267,30 +377,28 @@ bad_named_parameters_test/05: Crash
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: Crash # type 'KernelField' is not a subtype of type 'Procedure' of 'value' where
 bad_override_test/05: MissingCompileTimeError
-bailout3_test: Crash
+bailout3_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 bailout4_test: Crash
-bailout5_test: Crash
-bailout6_test: Crash
-bailout7_test: Crash
+bailout5_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+bailout6_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+bailout7_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 bailout_test: Crash
-bind_test: Crash
 bit_operations_test/01: Crash
 bit_operations_test/02: Crash
 bit_operations_test/03: Crash
 bit_operations_test/04: Crash
 bit_operations_test/none: Crash
-bool_check_test: Crash
-bool_condition_check_test: Crash
-bool_test: Crash
+bool_check_test: RuntimeError
+bool_condition_check_test: RuntimeError
+bool_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(BoolTest.testLogicalOp#falseCount) is stored in a closure field.
+bool_test: RuntimeError
 bound_closure_equality_test: Crash
 bound_closure_primitives_test: Crash
 branch_canonicalization_test: RuntimeError
 break_test: Crash
-built_in_identifier_test/01: Crash
-built_in_identifier_test/none: Crash
 call_closurization_test: Crash
 call_constructor_on_unresolvable_class_test/07: Crash
-call_function2_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
+call_function2_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 call_function_apply_test: Crash
 call_nonexistent_constructor_test/01: Crash
 call_nonexistent_constructor_test/02: Crash
@@ -305,26 +413,27 @@ call_nonexistent_static_test/08: Crash
 call_nonexistent_static_test/09: Crash
 call_nonexistent_static_test/10: Crash
 call_operator_test: RuntimeError
-call_property_test: Crash
 call_test: Crash
 call_through_getter_test: Crash
-call_through_null_getter_test: Crash
 call_type_literal_test/01: Crash
 call_with_no_such_method_test: Crash
 canonical_const2_test: RuntimeError
 canonical_const_test: Crash
 cascade2_test: Crash
-cascade_in_expression_function_test: Crash
-cascade_precedence_test: Crash
-cascade_test/none: Crash
-cast2_test: Crash # Assertion failure: Cannot find value local(main_closure.call#oc) in (local(main#)) for j:closure_call(main_closure.call).
+cascade_in_expression_function_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 cast_test/04: RuntimeError
 cast_test/05: RuntimeError
 cast_test/none: RuntimeError
-catch_liveness_test: Crash
 cha_deopt1_test: CompileTimeError
 cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
+checked_null_test/01: Crash
+checked_setter2_test: Crash
+checked_setter3_test/01: Crash
+checked_setter3_test/02: Crash
+checked_setter_test: Crash
+class_cycle_test/02: MissingCompileTimeError
+class_cycle_test/03: MissingCompileTimeError
 class_literal_test/01: Crash
 class_literal_test/02: Crash
 class_literal_test/03: Crash
@@ -350,31 +459,34 @@ class_literal_test/22: Crash
 class_literal_test/23: Crash
 class_literal_test/24: Crash
 class_literal_test/25: Crash
-class_literal_test/none: Crash
 class_literal_test: Crash # Assertion failure: Cannot find value local(main_closure.call#x) in (local(main#)) for j:closure_call(main_closure.call).
 class_override_test/00: Crash
-class_syntax2_test: Crash
+class_syntax2_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 class_test: Crash
 classes_static_method_clash_test: Crash
-closure2_test: Crash
-closure3_test: Crash
 closure4_test: Crash
 closure5_test: Crash
 closure6_test: Crash
-closure7_test: Crash
-closure8_test: Crash
-closure_break1_test: Crash
-closure_break2_test: Crash
-closure_break_test: Crash
 closure_cycles_test: Crash
 closure_in_constructor_test: Crash
-closure_in_field_initializer_test: Crash
+closure_in_field_initializer_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 closure_in_initializer2_test: Crash
 closure_in_initializer_test: Crash
 closure_internals_test: Crash
-closure_parameter_types_test: Crash
+closure_parameter_types_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#invokeCount) is stored in a closure field.
+closure_parameter_types_test: RuntimeError
 closure_self_reference_test: Crash
-closure_shared_state_test: Crash
+closure_shared_state_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(setupNestedLoop#j) is stored in a closure field.
+closure_shared_state_test: RuntimeError
+closure_type_variable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+closure_type_variables_test: Crash # 'file:///usr/local/google/home/efortuna/dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for local(A.bar#g). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(A$bar_A$bar_closure.call), local(A.bar#g))
+closure_with_super_field_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.returnSuperInClosure#)) for j:closure_call(B_returnSuperInClosure_closure.call).
+closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub_test_closure.call#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
+closures_initializer2_test: Crash # 'file:///usr/local/google/home/efortuna/dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for local(A.#). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(A_closure.call), j:constructor(A.))
+closures_initializer_test: Crash # 'file:///usr/local/google/home/efortuna/dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for local(B.#). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(A_closure.call), j:constructor(A.))
+closures_with_complex_params_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'cls' where
+compile_time_constant10_test/none: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+function_subtype_inline2_test: RuntimeError
 function_type/function_type0_test: Crash
 function_type/function_type10_test: Crash
 function_type/function_type11_test: Crash
@@ -475,10 +587,13 @@ function_type/function_type97_test: Crash
 function_type/function_type98_test: Crash
 function_type/function_type99_test: Crash
 function_type/function_type9_test: Crash
+generic_constructor_mixin2_test: Crash
+generic_constructor_mixin3_test: Crash
+generic_constructor_mixin_test: Crash
 regress_30339_test: Crash
+typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-aborting_switch_case_test: Crash
 abstract_beats_arguments_test: Crash
 abstract_exact_selector_test/01: Crash
 abstract_exact_selector_test/none: Crash
@@ -489,7 +604,6 @@ abstract_runtime_error_test/01: Crash
 abstract_runtime_error_test/02: Crash
 abstract_syntax_test/00: Crash
 arg_param_trailing_comma_test/none: Crash
-arithmetic_test: Crash
 assert_message_test: Crash
 assert_trailing_comma_test/none: CompileTimeError
 assertion_initializer_const_error2_test/cc02: Crash
@@ -498,7 +612,6 @@ assertion_initializer_const_function_error_test/01: Crash
 assertion_initializer_test: CompileTimeError
 assertion_test: Crash
 assign_instance_method_negative_test: Crash
-assign_instance_method_test: Crash
 assign_static_type_test/03: Crash
 assign_static_type_test/04: Crash
 assign_to_type_test/01: Crash
@@ -605,31 +718,23 @@ bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
 bad_override_test/06: Crash
-bailout3_test: Crash
 bailout4_test: Crash
-bailout5_test: Crash
-bailout6_test: Crash
-bailout7_test: Crash
 bailout_test: Crash
-bind_test: Crash
 bit_operations_test/01: Crash
 bit_operations_test/02: Crash
 bit_operations_test/03: Crash
 bit_operations_test/04: Crash
 bit_operations_test/none: Crash
-bool_check_test: Crash
+bool_check_test: RuntimeError
 bool_condition_check_test/01: Crash
-bool_condition_check_test: Crash
-bool_test: Crash
+bool_condition_check_test: RuntimeError
+bool_test: RuntimeError
 bound_closure_equality_test: Crash
 bound_closure_primitives_test: Crash
 branch_canonicalization_test: RuntimeError
 break_test: Crash
-built_in_identifier_test/01: Crash
-built_in_identifier_test/none: Crash
 call_closurization_test: Crash
 call_constructor_on_unresolvable_class_test/07: Crash
-call_function2_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 call_function_apply_test: Crash
 call_nonexistent_constructor_test/01: Crash
 call_nonexistent_constructor_test/02: Crash
@@ -646,23 +751,23 @@ call_nonexistent_static_test/10: Crash
 call_operator_test: RuntimeError
 call_test: Crash
 call_through_getter_test: Crash
-call_through_null_getter_test: Crash
 call_type_literal_test/01: Crash
 call_with_no_such_method_test: Crash
 canonical_const2_test: RuntimeError
 canonical_const_test: Crash
-cascade2_test: Crash
-cascade_in_expression_function_test: Crash
-cascade_precedence_test: Crash
-cascade_test/none: Crash
-cast2_test: Crash # Assertion failure: Cannot find value local(main_closure.call#oc) in (local(main#)) for j:closure_call(main_closure.call).
 cast_test/04: RuntimeError
 cast_test/05: RuntimeError
 cast_test/none: RuntimeError
-catch_liveness_test: Crash
 cha_deopt1_test: CompileTimeError
 cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
+checked_null_test/01: Crash
+checked_setter2_test: Crash
+checked_setter3_test/01: Crash
+checked_setter3_test/02: Crash
+checked_setter_test: Crash
+class_cycle_test/02: MissingCompileTimeError
+class_cycle_test/03: MissingCompileTimeError
 class_literal_test/01: Crash
 class_literal_test/02: Crash
 class_literal_test/03: Crash
@@ -690,28 +795,27 @@ class_literal_test/24: Crash
 class_literal_test/25: Crash
 class_literal_test: Crash # Assertion failure: Cannot find value local(main_closure.call#x) in (local(main#)) for j:closure_call(main_closure.call).
 class_override_test/00: Crash
-class_syntax2_test: Crash
 class_test: Crash
 classes_static_method_clash_test: Crash
-closure2_test: Crash
-closure3_test: Crash
 closure4_test: Crash
 closure5_test: Crash
 closure6_test: Crash
-closure7_test: Crash
-closure8_test: Crash
-closure_break1_test: Crash
-closure_break2_test: Crash
-closure_break_test: Crash
 closure_cycles_test: Crash
 closure_in_constructor_test: Crash
-closure_in_field_initializer_test: Crash
 closure_in_initializer2_test: Crash
 closure_in_initializer_test: Crash
 closure_internals_test: Crash
-closure_parameter_types_test: Crash
+closure_parameter_types_test: RuntimeError
 closure_self_reference_test: Crash
-closure_shared_state_test: Crash
+closure_shared_state_test: RuntimeError
+closure_type_variable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+closure_type_variables_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+closure_with_super_field_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.returnSuperInClosure#)) for j:closure_call(B_returnSuperInClosure_closure.call).
+closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub_test_closure.call#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
+closures_initializer2_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+closures_initializer_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+closures_with_complex_params_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'supertype'.
+function_subtype_inline2_test: Crash
 function_type/function_type0_test: Crash
 function_type/function_type10_test: Crash
 function_type/function_type11_test: Crash
@@ -812,7 +916,11 @@ function_type/function_type97_test: Crash
 function_type/function_type98_test: Crash
 function_type/function_type99_test: Crash
 function_type/function_type9_test: Crash
+generic_constructor_mixin2_test: Crash
+generic_constructor_mixin3_test: Crash
+generic_constructor_mixin_test: Crash
 regress_30339_test: Crash
+typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && ! $dart2js_with_kernel && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
@@ -825,12 +933,6 @@ async_star_no_cancel_test: RuntimeError # Need triage
 [ $compiler == dart2js && $checked && ! $dart2js_with_kernel ]
 async_return_types_test/nestedFuture: Fail # Issue 26429
 async_return_types_test/wrongTypeParameter: Fail # Issue 26429
-
-[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel && $host_checked ]
-assign_instance_method_negative_test: Crash
-
-[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel && $minified ]
-assign_instance_method_negative_test: Crash
 
 [ $compiler == dart2js && $runtime != none && $checked ]
 assert_with_message_test: RuntimeError

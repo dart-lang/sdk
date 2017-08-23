@@ -10,6 +10,7 @@ import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
+import '../js_model/closure.dart' show JBoxedField, JClosureField;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../world.dart' show ClosedWorld;
@@ -303,7 +304,8 @@ class LocalsHandler {
     if (scopeInfo is! ClosureRepresentationInfo) return false;
     FieldEntity redirectTarget = redirectionMapping[local];
     if (redirectTarget == null) return false;
-    return redirectTarget is ClosureFieldElement;
+    return redirectTarget is ClosureFieldElement ||
+        redirectTarget is JClosureField;
   }
 
   bool isBoxed(Local local) {
@@ -342,7 +344,7 @@ class LocalsHandler {
       return value;
     } else if (isStoredInClosureField(local)) {
       ClosureRepresentationInfo closureData = scopeInfo;
-      ClosureFieldElement redirect = redirectionMapping[local];
+      FieldEntity redirect = redirectionMapping[local];
       HInstruction receiver = readLocal(closureData.closureEntity);
       TypeMask type = local is BoxLocal
           ? commonMasks.nonNullType
@@ -351,13 +353,21 @@ class LocalsHandler {
       builder.add(fieldGet);
       return fieldGet..sourceInformation = sourceInformation;
     } else if (isBoxed(local)) {
-      BoxFieldElement redirect = redirectionMapping[local];
+      FieldEntity redirect = redirectionMapping[local];
+      BoxLocal localBox;
       // In the function that declares the captured variable the box is
       // accessed as direct local. Inside the nested closure the box is
       // accessed through a closure-field.
       // Calling [readLocal] makes sure we generate the correct code to get
       // the box.
-      HInstruction box = readLocal(redirect.box);
+      if (redirect is BoxFieldElement) {
+        localBox = redirect.box;
+      } else if (redirect is JBoxedField) {
+        localBox = redirect.box;
+      }
+      assert(localBox != null);
+
+      HInstruction box = readLocal(localBox);
       HInstruction lookup =
           new HFieldGet(redirect, box, getTypeOfCapturedVariable(redirect));
       builder.add(lookup);
@@ -412,16 +422,26 @@ class LocalsHandler {
       HRef ref = value;
       value = ref.value;
     }
-    assert(!isStoredInClosureField(local));
+    assert(!isStoredInClosureField(local),
+        "Local $local is stored in a closure field.");
     if (isAccessedDirectly(local)) {
       directLocals[local] = value;
     } else if (isBoxed(local)) {
-      BoxFieldElement redirect = redirectionMapping[local];
+      FieldEntity redirect = redirectionMapping[local];
+      assert(redirect != null);
+      BoxLocal localBox;
+      if (redirect is BoxFieldElement) {
+        localBox = redirect.box;
+      } else if (redirect is JBoxedField) {
+        localBox = redirect.box;
+      }
+      assert(localBox != null);
+
       // The box itself could be captured, or be local. A local variable that
       // is captured will be boxed, but the box itself will be a local.
       // Inside the closure the box is stored in a closure-field and cannot
       // be accessed directly.
-      HInstruction box = readLocal(redirect.box);
+      HInstruction box = readLocal(localBox);
       builder.add(new HFieldSet(redirect, box, value)
         ..sourceInformation = sourceInformation);
     } else {
@@ -643,10 +663,10 @@ class LocalsHandler {
     return result;
   }
 
-  Map<Element, TypeMask> cachedTypesOfCapturedVariables =
-      new Map<Element, TypeMask>();
+  Map<FieldEntity, TypeMask> cachedTypesOfCapturedVariables =
+      new Map<FieldEntity, TypeMask>();
 
-  TypeMask getTypeOfCapturedVariable(FieldElement element) {
+  TypeMask getTypeOfCapturedVariable(FieldEntity element) {
     return cachedTypesOfCapturedVariables.putIfAbsent(element, () {
       return TypeMaskFactory.inferredTypeForMember(
           element, _globalInferenceResults);

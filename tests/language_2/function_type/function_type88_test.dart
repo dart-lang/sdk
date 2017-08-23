@@ -264,10 +264,10 @@ class U88<T> {
       });
     }
     if (tIsInt || tIsBool) {
-      Expect.equals(tIsInt, m3 is F3<int>);
-      Expect.equals(tIsBool, m3 is F3<bool>);
-      Expect.equals(tIsInt, confuse(m3) is F3<int>);
-      Expect.equals(tIsBool, confuse(m3) is F3<bool>);
+      Expect.equals(true, m3 is F3<int>);
+      Expect.equals(true, m3 is F3<bool>);
+      Expect.equals(true, confuse(m3) is F3<int>);
+      Expect.equals(true, confuse(m3) is F3<bool>);
     }
   }
 

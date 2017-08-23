@@ -23,17 +23,15 @@ void migrateStatusEntries(List<Fork> files, Map<String, List<String>> todos) {
   }
 
   // If any entries need manual splitting, let the user know.
-  for (var dir in entriesToMove._todoHeaders.keys) {
-    var destination = "$dir.status";
-    var headers = entriesToMove._todoHeaders[dir];
+  for (var statusFile in entriesToMove._todoHeaders.keys) {
+    var headers = entriesToMove._todoHeaders[statusFile];
     var splits = headers.map((header) {
-      var files =
-          filesForHeader(header).map((file) => bold("${dir}_$file")).join(", ");
-      return "Need to manually split status file section in ${bold(destination)}"
-          " across files $files:\n    $header";
+      var files = filesForHeader(header).map((file) => bold(file)).join(", ");
+      return "Manually split status file section across $files status files:\n"
+          "    $header";
     }).toList();
 
-    if (splits.isNotEmpty) todos[destination] = splits;
+    if (splits.isNotEmpty) todos[statusFile] = splits;
   }
 }
 
@@ -92,7 +90,7 @@ class EntrySet {
   ///
   /// Returns true if successful or false if the header's condition doesn't fit
   /// into a single status file and needs to be manually split by the user.
-  bool add(String fromDir, String header, String entry) {
+  bool add(String fromFile, String fromDir, String header, String entry) {
     var toDir = toTwoDirectory(fromDir);
 
     // Figure out which status file it goes into.
@@ -104,7 +102,8 @@ class EntrySet {
       // manually split it up into multiple sections first.
       // TODO(rnystrom): Would be good to automate this, though it requires
       // being able to work with condition expressions directly.
-      _todoHeaders.putIfAbsent(toDir, () => new Set()).add(header);
+      var statusRelative = p.relative(fromFile, from: testRoot);
+      _todoHeaders.putIfAbsent(statusRelative, () => new Set()).add(header);
       return false;
     }
 
@@ -158,7 +157,10 @@ void _collectEntries(List<Fork> files, EntrySet entriesToMove, {bool isOne}) {
             if (!entryPath.startsWith(filePath)) continue;
 
             // Add it to the 2.0 one.
-            if (entriesToMove.add(fromDir, editable.lineAt(section.lineNumber),
+            if (entriesToMove.add(
+                path,
+                fromDir,
+                editable.lineAt(section.lineNumber),
                 editable.lineAt(entry.lineNumber))) {
               // Remove it from the original status file.
               deleteLines.add(entry.lineNumber - 1);

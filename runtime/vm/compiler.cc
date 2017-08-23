@@ -107,44 +107,6 @@ DEFINE_FLAG(bool,
 
 DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
-DECLARE_FLAG(bool, unbox_numeric_fields);
-
-static void PrecompilationModeHandler(bool value) {
-  if (value) {
-#if defined(TARGET_ARCH_IA32)
-    FATAL("Precompilation not supported on IA32");
-#endif
-
-    FLAG_background_compilation = false;
-    FLAG_enable_mirrors = false;
-    FLAG_fields_may_be_reset = true;
-    FLAG_interpret_irregexp = true;
-    FLAG_lazy_dispatchers = false;
-    FLAG_link_natives_lazily = true;
-    FLAG_optimization_counter_threshold = -1;
-    FLAG_polymorphic_with_deopt = false;
-    FLAG_precompiled_mode = true;
-    FLAG_reorder_basic_blocks = false;
-    FLAG_use_field_guards = false;
-    FLAG_use_cha_deopt = false;
-
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-    // Set flags affecting runtime accordingly for dart_bootstrap.
-    // These flags are constants with PRODUCT and DART_PRECOMPILED_RUNTIME.
-    FLAG_collect_code = false;
-    FLAG_deoptimize_alot = false;  // Used in some tests.
-    FLAG_deoptimize_every = 0;     // Used in some tests.
-    FLAG_load_deferred_eagerly = true;
-    FLAG_print_stop_message = false;
-    FLAG_unbox_numeric_fields = false;
-    FLAG_use_osr = false;
-#endif
-  }
-}
-
-DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
-                    precompilation,
-                    "Precompilation mode");
 
 #ifndef DART_PRECOMPILED_RUNTIME
 
@@ -1000,10 +962,6 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         {
           NOT_IN_PRODUCT(TimelineDurationScope tds2(
               thread(), compiler_timeline, "CommonSubexpressionElinination"));
-          if (FLAG_common_subexpression_elimination ||
-              FLAG_loop_invariant_code_motion) {
-            flow_graph->ComputeBlockEffects();
-          }
 
           if (FLAG_common_subexpression_elimination) {
             if (DominatorBasedCSE::Optimize(flow_graph)) {

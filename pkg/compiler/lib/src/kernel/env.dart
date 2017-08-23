@@ -427,6 +427,7 @@ class ClassData {
   final ir.Class cls;
   final ClassDefinition definition;
   bool isMixinApplication;
+  bool isCallTypeComputed = false;
 
   InterfaceType thisType;
   InterfaceType rawType;
@@ -434,6 +435,7 @@ class ClassData {
   InterfaceType mixedInType;
   List<InterfaceType> interfaces;
   OrderedTypeSet orderedTypeSet;
+  DartType callType;
 
   Iterable<ConstantValue> _metadata;
 
@@ -561,17 +563,24 @@ class ConstructorDataImpl extends FunctionDataImpl implements ConstructorData {
 }
 
 abstract class FieldData extends MemberData {
+  DartType getFieldType(KernelToElementMap elementMap);
+
   ConstantExpression getFieldConstant(
       KernelToElementMapBase elementMap, FieldEntity field);
 }
 
 class FieldDataImpl extends MemberDataImpl implements FieldData {
+  DartType _type;
   ConstantExpression _constant;
 
   FieldDataImpl(ir.Field node, MemberDefinition definition)
       : super(node, definition);
 
   ir.Field get node => super.node;
+
+  DartType getFieldType(covariant KernelToElementMapBase elementMap) {
+    return _type ??= elementMap.getDartType(node.type);
+  }
 
   ConstantExpression getFieldConstant(
       KernelToElementMapBase elementMap, FieldEntity field) {

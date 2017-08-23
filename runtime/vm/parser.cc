@@ -6980,7 +6980,6 @@ RawFunction* Parser::OpenSyncGeneratorFunction(TokenPosition func_pos) {
     body = Function::NewClosureFunction(body_closure_name, innermost_function(),
                                         func_pos);
     body.set_is_generated_body(true);
-    // TODO(regis): Handle generic generator function.
     body.set_result_type(Object::dynamic_type());
     is_new_closure = true;
   }
@@ -7107,7 +7106,6 @@ RawFunction* Parser::OpenAsyncFunction(TokenPosition async_func_pos) {
     closure = Function::NewClosureFunction(closure_name, innermost_function(),
                                            async_func_pos);
     closure.set_is_generated_body(true);
-    // TODO(regis): Handle generic async function.
     closure.set_result_type(Object::dynamic_type());
     is_new_closure = true;
   }
@@ -7240,7 +7238,6 @@ RawFunction* Parser::OpenAsyncGeneratorFunction(TokenPosition async_func_pos) {
     closure = Function::NewClosureFunction(closure_name, innermost_function(),
                                            async_func_pos);
     closure.set_is_generated_body(true);
-    // TODO(regis): Handle generic async generator function.
     closure.set_result_type(Object::dynamic_type());
     is_new_closure = true;
   }
@@ -13811,7 +13808,6 @@ RawFunction* Parser::BuildConstructorClosureFunction(const Function& ctr,
   closure.set_is_generated_body(true);
   closure.set_is_debuggable(false);
   closure.set_is_visible(false);
-  // TODO(regis): Verify that the closure cannot be generic.
   closure.set_result_type(Object::dynamic_type());
   AddFormalParamsToFunction(&params, closure);
   ResolveSignatureTypeParameters(closure);

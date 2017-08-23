@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/constant_propagator.h"
 
 #include "vm/bit_vector.h"
@@ -289,11 +287,8 @@ void ConstantPropagator::VisitPhi(PhiInstr* instr) {
 }
 
 void ConstantPropagator::VisitRedefinition(RedefinitionInstr* instr) {
-  // Ensure that we never remove redefinition of a constant unless we are also
-  // are guaranteed to fold away code paths that correspond to non-matching
-  // class ids. Otherwise LICM might potentially hoist incorrect code.
   const Object& value = instr->value()->definition()->constant_value();
-  if (IsConstant(value) && !Field::IsExternalizableCid(value.GetClassId())) {
+  if (IsConstant(value)) {
     SetValue(instr, value);
   } else {
     SetValue(instr, non_constant_);
@@ -736,10 +731,8 @@ void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
   const Object& object = instr->object()->definition()->constant_value();
   if (IsConstant(object)) {
     cid = object.GetClassId();
-    if (!Field::IsExternalizableCid(cid)) {
-      SetValue(instr, Smi::ZoneHandle(Z, Smi::New(cid)));
-      return;
-    }
+    SetValue(instr, Smi::ZoneHandle(Z, Smi::New(cid)));
+    return;
   }
   SetValue(instr, non_constant_);
 }
@@ -1385,7 +1378,7 @@ void ConstantPropagator::EliminateRedundantBranches() {
     BlockEntryInstr* block = b.Current();
     BranchInstr* branch = block->last_instruction()->AsBranch();
     empty_blocks->Clear();
-    if ((branch != NULL) && branch->Effects().IsNone()) {
+    if ((branch != NULL) && !branch->HasUnknownSideEffects()) {
       ASSERT(branch->previous() != NULL);  // Not already eliminated.
       BlockEntryInstr* if_true =
           FindFirstNonEmptySuccessor(branch->true_successor(), empty_blocks);
@@ -1586,5 +1579,3 @@ void ConstantPropagator::Transform() {
 }
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

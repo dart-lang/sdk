@@ -149,6 +149,7 @@ class Process {
 
   static int64_t CurrentRSS();
   static int64_t MaxRSS();
+  static void GetRSSInformation(int64_t* max_rss, int64_t* current_rss);
 
  private:
   static int global_exit_code_;

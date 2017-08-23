@@ -935,49 +935,63 @@ class SsaAstGraphBuilder extends ast.Visitor
       ResolvedAst constructorResolvedAst,
       List<HInstruction> compiledArguments,
       List<ResolvedAst> constructorResolvedAsts,
-      Map<Element, HInstruction> fieldValues,
+      Map<FieldElement, HInstruction> fieldValues,
       FunctionElement caller) {
     ConstructorElement callee = constructorResolvedAst.element.implementation;
+
     reporter.withCurrentElement(callee, () {
+      Set<ClassElement> includedClasses = new Set<ClassElement>();
       constructorResolvedAsts.add(constructorResolvedAst);
-      ClassElement enclosingClass = callee.enclosingClass;
-      if (rtiNeed.classNeedsRti(enclosingClass)) {
-        // If [enclosingClass] needs RTI, we have to give a value to its
-        // type parameters.
-        ClassElement currentClass = caller.enclosingClass;
-        // For a super constructor call, the type is the supertype of
-        // [currentClass]. For a redirecting constructor, the type is
-        // the current type. [InterfaceType.asInstanceOf] takes care
-        // of both.
-        ResolutionInterfaceType type =
-            currentClass.thisType.asInstanceOf(enclosingClass);
-        type = localsHandler.substInContext(type);
-        List<ResolutionDartType> arguments = type.typeArguments;
-        List<ResolutionDartType> typeVariables = enclosingClass.typeVariables;
-        if (!type.isRaw) {
-          assert(arguments.length == typeVariables.length);
-          Iterator<ResolutionDartType> variables = typeVariables.iterator;
-          type.typeArguments.forEach((ResolutionDartType argument) {
-            variables.moveNext();
-            ResolutionTypeVariableType typeVariable = variables.current;
-            localsHandler.updateLocal(
-                localsHandler.getTypeVariableAsLocal(typeVariable),
-                typeBuilder.analyzeTypeArgument(argument, sourceElement));
-          });
-        } else {
-          // If the supertype is a raw type, we need to set to null the
-          // type variables.
-          for (ResolutionTypeVariableType variable in typeVariables) {
-            localsHandler.updateLocal(
-                localsHandler.getTypeVariableAsLocal(variable),
-                graph.addConstantNull(closedWorld));
+      ClassElement currentClass = caller.enclosingClass;
+
+      /// Include locals for type variable used in [member].
+      void includeTypeVariables(MemberElement member) {
+        ClassElement enclosingClass = member.enclosingClass;
+        if (!includedClasses.add(enclosingClass)) return;
+
+        if (rtiNeed.classNeedsRti(enclosingClass)) {
+          // If [enclosingClass] needs RTI, we have to give a value to its
+          // type parameters.
+          // For a super constructor call, the type is the supertype of
+          // [currentClass]. For a redirecting constructor, the type is
+          // the current type. [InterfaceType.asInstanceOf] takes care
+          // of both.
+          ResolutionInterfaceType type =
+              currentClass.thisType.asInstanceOf(enclosingClass);
+          type = localsHandler.substInContext(type);
+          List<ResolutionDartType> arguments = type.typeArguments;
+          List<ResolutionDartType> typeVariables = enclosingClass.typeVariables;
+          if (!type.isRaw) {
+            assert(arguments.length == typeVariables.length);
+            Iterator<ResolutionDartType> variables = typeVariables.iterator;
+            type.typeArguments.forEach((ResolutionDartType argument) {
+              variables.moveNext();
+              ResolutionTypeVariableType typeVariable = variables.current;
+              localsHandler.updateLocal(
+                  localsHandler.getTypeVariableAsLocal(typeVariable),
+                  typeBuilder.analyzeTypeArgument(argument, sourceElement));
+            });
+          } else {
+            // If the supertype is a raw type, we need to set to null the
+            // type variables.
+            for (ResolutionTypeVariableType variable in typeVariables) {
+              localsHandler.updateLocal(
+                  localsHandler.getTypeVariableAsLocal(variable),
+                  graph.addConstantNull(closedWorld));
+            }
           }
         }
       }
 
+      includeTypeVariables(callee);
+
       // For redirecting constructors, the fields will be initialized later
       // by the effective target.
       if (!callee.isRedirectingGenerative) {
+        callee.enclosingClass.implementation.forEachInstanceField(
+            (ClassElement enclosingClass, FieldElement member) {
+          includeTypeVariables(member);
+        });
         inlinedFrom(constructorResolvedAst, () {
           buildFieldInitializers(
               callee.enclosingClass.implementation, fieldValues);
@@ -1024,7 +1038,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   void buildInitializers(
       ConstructorElement constructor,
       List<ResolvedAst> constructorResolvedAsts,
-      Map<Element, HInstruction> fieldValues) {
+      Map<FieldElement, HInstruction> fieldValues) {
     assert(
         resolvedAst.element == constructor.declaration,
         failedAt(constructor,
@@ -1041,7 +1055,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   void buildSynthesizedConstructorInitializers(
       ConstructorElement constructor,
       List<ResolvedAst> constructorResolvedAsts,
-      Map<Element, HInstruction> fieldValues) {
+      Map<FieldElement, HInstruction> fieldValues) {
     assert(
         constructor.isSynthesized,
         failedAt(
@@ -1087,7 +1101,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   void buildParsedInitializers(
       ConstructorElement constructor,
       List<ResolvedAst> constructorResolvedAsts,
-      Map<Element, HInstruction> fieldValues) {
+      Map<FieldElement, HInstruction> fieldValues) {
     assert(
         resolvedAst.element == constructor.declaration, failedAt(constructor));
     assert(constructor.isImplementation, failedAt(constructor));
@@ -1227,7 +1241,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       openFunction(functionElement, function);
     }
 
-    Map<Element, HInstruction> fieldValues = new Map<Element, HInstruction>();
+    Map<FieldElement, HInstruction> fieldValues =
+        new Map<FieldElement, HInstruction>();
 
     // Compile the possible initialization code for local fields and
     // super fields, unless this is a redirecting constructor, in which case
@@ -1866,9 +1881,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   }
 
   visitFunctionExpression(ast.FunctionExpression node) {
-    LocalFunctionElement methodElement = elements[node];
     ClosureRepresentationInfo closureInfo =
-        closureDataLookup.getClosureRepresentationInfo(methodElement);
+        closureDataLookup.getClosureInfo(node);
     ClassEntity closureClassEntity = closureInfo.closureClassEntity;
 
     List<HInstruction> capturedVariables = <HInstruction>[];
@@ -4221,8 +4235,9 @@ class SsaAstGraphBuilder extends ast.Visitor
       type = TypeMaskFactory.inferredTypeForMember(
           element, globalInferenceResults);
     } else if (element.isFunction) {
+      MethodElement method = element;
       type = TypeMaskFactory.inferredReturnTypeForElement(
-          element, globalInferenceResults);
+          method, globalInferenceResults);
     } else {
       type = closedWorld.commonMasks.dynamicType;
     }

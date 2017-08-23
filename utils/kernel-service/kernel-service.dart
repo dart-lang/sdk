@@ -45,23 +45,16 @@ abstract class Compiler {
 
   CompilerOptions options;
 
-  Compiler(this.fileSystem) {
+  Compiler(this.fileSystem, Uri platformKernel) {
     Uri packagesUri = (Platform.packageConfig != null)
         ? Uri.parse(Platform.packageConfig)
         : null;
-
-    Uri sdkSummary = Uri.base
-        .resolveUri(new Uri.file(Platform.resolvedExecutable))
-        .resolveUri(new Uri.directory("patched_sdk"))
-        // TODO(sigmund): use outline.dill when the mixin transformer is
-        // modular.
-        .resolve('platform.dill');
 
     if (verbose) {
       print("DFE: Platform.packageConfig: ${Platform.packageConfig}");
       print("DFE: packagesUri: ${packagesUri}");
       print("DFE: Platform.resolvedExecutable: ${Platform.resolvedExecutable}");
-      print("DFE: sdkSummary: ${sdkSummary}");
+      print("DFE: platformKernel: ${platformKernel}");
     }
 
     options = new CompilerOptions()
@@ -69,7 +62,7 @@ abstract class Compiler {
       ..fileSystem = fileSystem
       ..target = new VmFastaTarget(new TargetFlags(strongMode: strongMode))
       ..packagesFileUri = packagesUri
-      ..sdkSummary = sdkSummary
+      ..sdkSummary = platformKernel
       ..verbose = verbose
       ..throwOnErrors = false
       ..reportMessages = true
@@ -88,7 +81,8 @@ abstract class Compiler {
 class IncrementalCompiler extends Compiler {
   IncrementalKernelGenerator generator;
 
-  IncrementalCompiler(FileSystem fileSystem) : super(fileSystem);
+  IncrementalCompiler(FileSystem fileSystem, Uri platformKernel)
+      : super(fileSystem, platformKernel);
 
   @override
   Future<Program> compile(Uri script) async {
@@ -109,8 +103,9 @@ class IncrementalCompiler extends Compiler {
 class SingleShotCompiler extends Compiler {
   final bool requireMain;
 
-  SingleShotCompiler(FileSystem fileSystem, this.requireMain)
-      : super(fileSystem);
+  SingleShotCompiler(
+      FileSystem fileSystem, Uri platformKernel, this.requireMain)
+      : super(fileSystem, platformKernel);
 
   @override
   Future<Program> compile(Uri script) async {
@@ -123,7 +118,7 @@ class SingleShotCompiler extends Compiler {
 final Map<int, Compiler> isolateCompilers = new Map<int, Compiler>();
 
 Future<Compiler> lookupOrBuildNewIncrementalCompiler(
-    int isolateId, List sourceFiles) async {
+    int isolateId, List sourceFiles, Uri platformKernel) async {
   IncrementalCompiler compiler;
   if (isolateCompilers.containsKey(isolateId)) {
     compiler = isolateCompilers[isolateId];
@@ -146,7 +141,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(
     // destroyed when corresponding isolate is shut down. To achieve that kernel
     // isolate needs to receive a message indicating that particular
     // isolate was shut down. Message should be handled here in this script.
-    compiler = new IncrementalCompiler(fileSystem);
+    compiler = new IncrementalCompiler(fileSystem, platformKernel);
     isolateCompilers[isolateId] = compiler;
   }
   return compiler;
@@ -161,9 +156,18 @@ Future _processLoadRequest(request) async {
   final SendPort port = request[1];
   final String inputFileUri = request[2];
   final Uri script = Uri.base.resolve(inputFileUri);
-  final bool incremental = request[3];
+  final Uri platformKernel = request[3] != null
+      ? Uri.base.resolveUri(new Uri.file(request[3]))
+      : Uri.base
+          .resolveUri(new Uri.file(Platform.resolvedExecutable))
+          .resolveUri(new Uri.directory("patched_sdk"))
+          // TODO(sigmund): use outline.dill when the mixin transformer is
+          // modular.
+          .resolve('platform.dill');
 
-  final List sourceFiles = request.length > 5 ? request[5] : null;
+  final bool incremental = request[4];
+
+  final List sourceFiles = request.length > 6 ? request[6] : null;
 
   Compiler compiler;
   // TODO(aam): There should be no need to have an option to choose
@@ -171,15 +175,15 @@ Future _processLoadRequest(request) async {
   // compiler as its functionality is a super set of the other one. We need to
   // watch the performance though.
   if (incremental) {
-    final int isolateId = request[4];
-    compiler =
-        await lookupOrBuildNewIncrementalCompiler(isolateId, sourceFiles);
+    final int isolateId = request[5];
+    compiler = await lookupOrBuildNewIncrementalCompiler(
+        isolateId, sourceFiles, platformKernel);
   } else {
     final FileSystem fileSystem = sourceFiles == null
         ? PhysicalFileSystem.instance
         : _buildFileSystem(sourceFiles);
     compiler = new SingleShotCompiler(
-        fileSystem, sourceFiles == null /* requireMain */);
+        fileSystem, platformKernel, sourceFiles == null /* requireMain */);
   }
 
   CompilationResult result;
@@ -262,8 +266,9 @@ train(String scriptUri) {
     tag,
     responsePort.sendPort,
     scriptUri,
-    1 /* isolateId chosen randomly */,
-    false /* incremental */
+    null /* platformKernel */,
+    false /* incremental */,
+    1 /* isolateId chosen randomly */
   ];
   _processLoadRequest(request);
 }

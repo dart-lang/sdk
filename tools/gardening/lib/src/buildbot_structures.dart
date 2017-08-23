@@ -6,13 +6,9 @@ import 'util.dart';
 
 /// The [Uri] of a build step stdio log split into its subparts.
 class BuildUri {
-  final String scheme;
-  final String host;
-  final String prefix;
   final String botName;
   final int buildNumber;
   final String stepName;
-  final String suffix;
 
   factory BuildUri(Uri uri) {
     List<String> parts = split(Uri.decodeFull(uri.path),
@@ -31,13 +27,7 @@ class BuildUri {
     return new BuildUri(Uri.parse(url));
   }
 
-  factory BuildUri.fromData(String botName, int buildNumber, String stepName) {
-    return new BuildUri.internal('https', 'build.chromium.org',
-        '/p/client.dart', botName, buildNumber, stepName, 'stdio/text');
-  }
-
-  BuildUri.internal(this.scheme, this.host, this.prefix, this.botName,
-      this.buildNumber, this.stepName, this.suffix);
+  BuildUri.fromData(this.botName, this.buildNumber, this.stepName);
 
   BuildUri withBuildNumber(int buildNumber) {
     return new BuildUri.fromData(botName, buildNumber, stepName);
@@ -50,7 +40,7 @@ class BuildUri {
   String get buildName =>
       '/builders/$botName/builds/$buildNumber/steps/$stepName';
 
-  String get path => '$prefix$buildName/logs/$suffix';
+  String get path => '/p/client.dart$buildName/logs/stdio/text';
 
   /// Returns the path used in logdog for this build uri.
   ///
@@ -66,13 +56,12 @@ class BuildUri {
 
   /// Creates the [Uri] for this build step stdio log.
   Uri toUri() {
-    return new Uri(scheme: scheme, host: host, path: path);
+    return new Uri(scheme: 'https', host: 'build.chromium.org', path: path);
   }
 
   /// Returns the [BuildUri] the previous build of this build step.
   BuildUri prev() {
-    return new BuildUri.internal(
-        scheme, host, prefix, botName, buildNumber - 1, stepName, suffix);
+    return new BuildUri.fromData(botName, buildNumber - 1, stepName);
   }
 
   String toString() {
@@ -118,12 +107,14 @@ class BuildResult {
   /// positive number, is read from the build results.
   final int buildNumber;
 
+  final String buildRevision;
+
   final List<TestStatus> _results;
   final List<TestFailure> _failures;
   final List<Timing> _timings;
 
-  BuildResult(this.buildUri, this.buildNumber, this._results, this._failures,
-      this._timings);
+  BuildResult(this.buildUri, this.buildNumber, this.buildRevision,
+      this._results, this._failures, this._timings);
 
   /// `true` of the build result has test failures.
   bool get hasFailures => _failures.isNotEmpty;

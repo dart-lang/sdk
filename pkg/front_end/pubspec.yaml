@@ -11,6 +11,8 @@ dependencies:
   source_span: '^1.2.3'
 dev_dependencies:
   analyzer: '>=0.30.0 <0.32.0'
+  args: '>=0.13.0 <2.0.0'
+  bazel_worker: ^0.1.4
   package_config: '^1.0.0'
   test: ^0.12.0
   test_reflective_loader: ^0.1.0

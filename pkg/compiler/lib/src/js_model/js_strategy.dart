@@ -431,15 +431,15 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
     // .getSupertypes(class)
     ClassHierarchyNode parentNode = getClassHierarchyNode(superclass);
     ClassHierarchyNode node = new ClassHierarchyNode(
-        parentNode, cls, getHierarchyDepth(superclass) + 1);
-    addClassHierarchyNode(cls, node);
+        parentNode, cls.closureClassEntity, getHierarchyDepth(superclass) + 1);
+    addClassHierarchyNode(cls.closureClassEntity, node);
     for (InterfaceType type in getOrderedTypeSet(superclass).types) {
       // TODO(efortuna): assert that the FunctionClass is in this ordered set.
       // If not, we need to explicitly add node as a subtype of FunctionClass.
       ClassSet subtypeSet = getClassSet(type.element);
       subtypeSet.addSubtype(node);
     }
-    addClassSet(cls, new ClassSet(node));
+    addClassSet(cls.closureClassEntity, new ClassSet(node));
     node.isDirectlyInstantiated = true;
 
     return cls;

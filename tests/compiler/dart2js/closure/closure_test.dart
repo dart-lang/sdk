@@ -48,14 +48,14 @@ main(List<String> args) {
 ///
 /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
 /// for the data origin.
-void computeClosureData(Compiler compiler, MemberEntity _member,
-    Map<Id, String> actualMap, Map<Id, SourceSpan> sourceSpanMap,
+void computeClosureData(
+    Compiler compiler, MemberEntity _member, Map<Id, ActualData> actualMap,
     {bool verbose: false}) {
   MemberElement member = _member;
   ClosureDataLookup<ast.Node> closureDataLookup =
       compiler.backendStrategy.closureDataLookup as ClosureDataLookup<ast.Node>;
-  new ClosureAstComputer(compiler.reporter, actualMap, sourceSpanMap,
-          member.resolvedAst, closureDataLookup,
+  new ClosureAstComputer(
+          compiler.reporter, actualMap, member.resolvedAst, closureDataLookup,
           verbose: verbose)
       .run();
 }
@@ -64,8 +64,8 @@ void computeClosureData(Compiler compiler, MemberEntity _member,
 ///
 /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
 /// for the data origin.
-void computeKernelClosureData(Compiler compiler, MemberEntity member,
-    Map<Id, String> actualMap, Map<Id, SourceSpan> sourceSpanMap,
+void computeKernelClosureData(
+    Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
     {bool verbose: false}) {
   KernelBackendStrategy backendStrategy = compiler.backendStrategy;
   KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
@@ -74,35 +74,30 @@ void computeKernelClosureData(Compiler compiler, MemberEntity member,
   MemberDefinition definition = elementMap.getMemberDefinition(member);
   assert(definition.kind == MemberKind.regular,
       failedAt(member, "Unexpected member definition $definition"));
-  new ClosureIrChecker(actualMap, sourceSpanMap, elementMap, member,
+  new ClosureIrChecker(actualMap, elementMap, member,
           localsMap.getLocalsMap(member), closureDataLookup,
           verbose: verbose)
       .run(definition.node);
 }
 
 /// Ast visitor for computing closure data.
-class ClosureAstComputer extends AbstractResolvedAstComputer
-    with ComputeValueMixin {
+class ClosureAstComputer extends AstDataExtractor with ComputeValueMixin {
   final ClosureDataLookup<ast.Node> closureDataLookup;
   final bool verbose;
 
-  ClosureAstComputer(
-      DiagnosticReporter reporter,
-      Map<Id, String> actualMap,
-      Map<Id, Spannable> spannableMap,
-      ResolvedAst resolvedAst,
-      this.closureDataLookup,
+  ClosureAstComputer(DiagnosticReporter reporter, Map<Id, ActualData> actualMap,
+      ResolvedAst resolvedAst, this.closureDataLookup,
       {this.verbose: false})
-      : super(reporter, actualMap, spannableMap, resolvedAst) {
-    push(resolvedAst.element);
+      : super(reporter, actualMap, resolvedAst) {
+    pushMember(resolvedAst.element as MemberElement);
   }
 
   visitFunctionExpression(ast.FunctionExpression node) {
     Entity localFunction = resolvedAst.elements.getFunctionDefinition(node);
     if (localFunction is LocalFunctionElement) {
-      push(localFunction);
+      pushLocalFunction(node);
       super.visitFunctionExpression(node);
-      pop();
+      popLocalFunction();
     } else {
       super.visitFunctionExpression(node);
     }
@@ -131,36 +126,33 @@ class ClosureAstComputer extends AbstractResolvedAstComputer
 }
 
 /// Kernel IR visitor for computing closure data.
-class ClosureIrChecker extends AbstractIrComputer
-    with ComputeValueMixin<ir.Node> {
+class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin<ir.Node> {
+  final MemberEntity member;
   final ClosureDataLookup<ir.Node> closureDataLookup;
   final KernelToLocalsMap _localsMap;
   final bool verbose;
 
   ClosureIrChecker(
-      Map<Id, String> actualMap,
-      Map<Id, SourceSpan> sourceSpanMap,
+      Map<Id, ActualData> actualMap,
       KernelToElementMapForBuilding elementMap,
-      MemberEntity member,
+      this.member,
       this._localsMap,
       this.closureDataLookup,
       {this.verbose: false})
-      : super(actualMap, sourceSpanMap) {
-    push(member);
+      : super(actualMap) {
+    pushMember(member);
   }
 
   visitFunctionExpression(ir.FunctionExpression node) {
-    Local localFunction = _localsMap.getLocalFunction(node);
-    push(localFunction);
+    pushLocalFunction(node);
     super.visitFunctionExpression(node);
-    pop();
+    popLocalFunction();
   }
 
   visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    Local localFunction = _localsMap.getLocalFunction(node);
-    push(localFunction);
+    pushLocalFunction(node);
     super.visitFunctionDeclaration(node);
-    pop();
+    popLocalFunction();
   }
 
   @override
@@ -174,18 +166,16 @@ class ClosureIrChecker extends AbstractIrComputer
   }
 
   @override
-  String computeMemberValue(ir.Member member) {
+  String computeMemberValue(ir.Member node) {
     // TODO(johnniwinther,efortuna): Collect data for the member
     // (has thisLocal, has box, etc.).
-    return computeEntityValue(entity);
+    return computeEntityValue(member);
   }
 }
 
 abstract class ComputeValueMixin<T> {
   bool get verbose;
   ClosureDataLookup<T> get closureDataLookup;
-  Entity get entity => entityStack.head;
-  Link<Entity> entityStack = const Link<Entity>();
   Link<ScopeInfo> scopeInfoStack = const Link<ScopeInfo>();
   ScopeInfo get scopeInfo => scopeInfoStack.head;
   CapturedScope capturedScope;
@@ -194,32 +184,40 @@ abstract class ComputeValueMixin<T> {
   ClosureRepresentationInfo get closureRepresentationInfo =>
       closureRepresentationInfoStack.head;
 
-  void push(Entity entity) {
-    entityStack = entityStack.prepend(entity);
+  void pushMember(MemberEntity member) {
     scopeInfoStack =
-        scopeInfoStack.prepend(closureDataLookup.getScopeInfo(entity));
-    if (entity is MemberEntity) {
-      capturedScope = closureDataLookup.getCapturedScope(entity);
-    }
-    closureRepresentationInfoStack = closureRepresentationInfoStack.prepend(
-        closureDataLookup.getClosureRepresentationInfoForTesting(entity));
-    dump(entity);
+        scopeInfoStack.prepend(closureDataLookup.getScopeInfo(member));
+    capturedScope = closureDataLookup.getCapturedScope(member);
+    closureRepresentationInfoStack = closureRepresentationInfoStack
+        .prepend(closureDataLookup.getClosureInfoForMemberTesting(member));
+    dump(member);
   }
 
-  void pop() {
-    entityStack = entityStack.tail;
+  void popMember() {
     scopeInfoStack = scopeInfoStack.tail;
     closureRepresentationInfoStack = closureRepresentationInfoStack.tail;
   }
 
-  void dump(Entity entity) {
+  void pushLocalFunction(T node) {
+    closureRepresentationInfoStack = closureRepresentationInfoStack
+        .prepend(closureDataLookup.getClosureInfoForTesting(node));
+    dump(node);
+  }
+
+  void popLocalFunction() {
+    closureRepresentationInfoStack = closureRepresentationInfoStack.tail;
+  }
+
+  void dump(Object object) {
     if (!verbose) return;
 
-    print('entity: $entity');
-    print(' scopeInfo (${scopeInfo.runtimeType})');
-    scopeInfo.forEachBoxedVariable((a, b) => print('  boxed1: $a->$b'));
-    print(' capturedScope (${capturedScope.runtimeType})');
-    capturedScope.forEachBoxedVariable((a, b) => print('  boxed2: $a->$b'));
+    print('object: $object');
+    if (object is MemberEntity) {
+      print(' scopeInfo (${scopeInfo.runtimeType})');
+      scopeInfo.forEachBoxedVariable((a, b) => print('  boxed1: $a->$b'));
+      print(' capturedScope (${capturedScope.runtimeType})');
+      capturedScope.forEachBoxedVariable((a, b) => print('  boxed2: $a->$b'));
+    }
     print(
         ' closureRepresentationInfo (${closureRepresentationInfo.runtimeType})');
     closureRepresentationInfo

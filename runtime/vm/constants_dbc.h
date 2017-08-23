@@ -146,17 +146,20 @@ namespace dart {
 //  - StaticCall ArgC, D
 //
 //    Invoke function in SP[0] with arguments SP[-(1+ArgC)], ..., SP[-1] and
-//    argument descriptor PP[D].
+//    argument descriptor PP[D], which indicates whether the first argument
+//    is a type argument vector.
 //
 //  - IndirectStaticCall ArgC, D
 //
 //    Invoke the function given by the ICData in SP[0] with arguments
-//    SP[-(1+ArgC)], ..., SP[-1] and argument descriptor PP[D].
+//    SP[-(1+ArgC)], ..., SP[-1] and argument descriptor PP[D], which
+//    indicates whether the first argument is a type argument vector.
 //
 //  - InstanceCall<N> ArgC, D; InstanceCall<N>Opt ArgC, D
 //
 //    Lookup and invoke method with N checked arguments using ICData in PP[D]
 //    with arguments SP[-(1+ArgC)], ..., SP[-1].
+//    The ICData indicates whether the first argument is a type argument vector.
 //
 //  - NativeBootstrapCall, NativeNoScopeCall, NativeAutoScopeCall
 //
@@ -492,7 +495,7 @@ namespace dart {
 //    Function prologue for optimized functions with no optional or named
 //    arguments.
 //        A - expected number of positional arguments;
-//        B - number of local slots to reserve for registers;
+//        D - number of local slots to reserve for registers;
 //
 //    Note: reserved slots are not initialized because optimized code
 //    has stack maps attached to call sites.
@@ -620,6 +623,15 @@ namespace dart {
 //
 //    Compare SP against isolate stack limit and call StackOverflow handler if
 //    necessary.
+//
+//  - CheckStackAlwaysExit
+//
+//    Unconditionally call StackOverflow handler.
+//
+//  - CheckFunctionTypeArgs A, D
+//
+//    Check for a passed-in type argument vector of length A and
+//    store it at FP[D].
 //
 //  - DebugStep, DebugBreak A
 //
@@ -852,6 +864,7 @@ namespace dart {
   V(CheckCidsByRange,                  A_B_C, reg, num, num) \
   V(CheckStack,                            0, ___, ___, ___) \
   V(CheckStackAlwaysExit,                  0, ___, ___, ___) \
+  V(CheckFunctionTypeArgs,               A_D, num, num, ___) \
   V(DebugStep,                             0, ___, ___, ___) \
   V(DebugBreak,                            A, num, ___, ___) \
   V(Deopt,                               A_D, num, num, ___) \

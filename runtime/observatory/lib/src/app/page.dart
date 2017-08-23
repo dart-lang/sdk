@@ -709,8 +709,16 @@ class MemoryDashboardPage extends MatchingPage {
       // Preload all isolates to avoid sorting problems.
       await Future.wait(vm.isolates.map((i) => i.load()));
       container.children = [
-        new MemoryDashboardElement(vm, _vmrepository, new IsolateRepository(vm),
-            editor, _allocationProfileRepository, app.events, app.notifications,
+        new MemoryDashboardElement(
+            vm,
+            _vmrepository,
+            new IsolateRepository(vm),
+            editor,
+            _allocationProfileRepository,
+            _heapSnapshotRepository,
+            _objectRepository,
+            app.events,
+            app.notifications,
             queue: app.queue)
       ];
     }).catchError((e, stack) {

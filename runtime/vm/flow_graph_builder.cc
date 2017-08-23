@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/flow_graph_builder.h"
 
 #include "lib/invocation_mirror.h"
@@ -46,7 +44,6 @@ DEFINE_FLAG(bool,
             "Trace type check elimination at compile time.");
 
 DECLARE_FLAG(bool, profile_vm);
-DECLARE_FLAG(bool, support_externalizable_strings);
 
 // Quick access to the locally defined zone() method.
 #define Z (zone())
@@ -3178,14 +3175,10 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       }
       case MethodRecognizer::kStringBaseLength:
       case MethodRecognizer::kStringBaseIsEmpty: {
-        // Treat length loads as mutable (i.e. affected by side effects) to
-        // avoid hoisting them since we can't hoist the preceding class-check.
-        // This is because of externalization of strings that affects their
-        // class-id.
         LoadFieldInstr* load = BuildNativeGetter(
             node, MethodRecognizer::kStringBaseLength, String::length_offset(),
             Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
-        load->set_is_immutable(!FLAG_support_externalizable_strings);
+        load->set_is_immutable(true);
         if (kind == MethodRecognizer::kStringBaseLength) {
           return ReturnDefinition(load);
         }
@@ -3881,8 +3874,12 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     // if we inline or not.
     if (!function.IsImplicitGetterFunction() &&
         !function.IsImplicitSetterFunction()) {
+      // We want the stack overlow error to be reported at the opening '{' or
+      // at the '=>' location. So, we get the sequence node corresponding to the
+      // body inside |node| and use its token position.
+      ASSERT(node->length() > 0);
       CheckStackOverflowInstr* check = new (Z) CheckStackOverflowInstr(
-          node->token_pos(), 0, owner()->GetNextDeoptId());
+          node->NodeAt(0)->token_pos(), 0, owner()->GetNextDeoptId());
       // If we are inlining don't actually attach the stack check. We must still
       // create the stack check in order to allocate a deopt id.
       if (!owner()->IsInlining()) {
@@ -4422,5 +4419,3 @@ bool FlowGraphBuilder::SimpleInstanceOfType(const AbstractType& type) {
 }
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

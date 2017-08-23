@@ -169,7 +169,7 @@ Set<String> extractDirectiveUris(List<int> contents) {
 
 class DirectiveListenerWithNative extends DirectiveListener {
   @override
-  Token handleNativeClause(Token token) => skipNativeClause(token, true);
+  Token handleNativeClauseError(Token token) => skipNativeClause(token, true);
 }
 
 /// Parses every file in [files] and reports the time spent doing so.

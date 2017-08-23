@@ -381,14 +381,22 @@ void FlowGraphCompiler::EmitFrameEntry() {
     }
   }
 
+  const bool has_type_arguments =
+      FLAG_reify_generic_functions && function.IsGeneric();
   if (function.IsClosureFunction()) {
     // In optimized mode the register allocator expects CurrentContext in the
-    // flow_graph_.num_copied_params() register at function entry.
+    // flow_graph_.num_copied_params() register at function entry, unless that
+    // register is used for function type arguments, either as their
+    // permanent location or as their temporary location when captured.
+    // In that case, the next register holds CurrentContext.
     // (see FlowGraphAllocator::ProcessInitialDefinition)
     Register context_reg =
-        is_optimizing() ? flow_graph_.num_copied_params() : context_index;
+        is_optimizing()
+            ? (has_type_arguments ? flow_graph_.num_copied_params() + 1
+                                  : flow_graph_.num_copied_params())
+            : context_index;
     LocalScope* scope = parsed_function().node_sequence()->scope();
-    LocalVariable* local = scope->VariableAt(0);
+    LocalVariable* local = scope->VariableAt(0);  // Closure instance receiver.
 
     Register closure_reg;
     if (local->index() > 0) {
@@ -404,11 +412,15 @@ void FlowGraphCompiler::EmitFrameEntry() {
   }
 
   // Check for a passed type argument vector if the function is generic.
-  if (FLAG_reify_generic_functions && function.IsGeneric() &&
-      !flow_graph().IsCompiledForOsr()) {
-    __ Comment("Check passed-in type args");
-    UNIMPLEMENTED();  // TODO(regis): Not yet supported.
+  if (has_type_arguments && !flow_graph().IsCompiledForOsr()) {
+    ASSERT(-parsed_function().first_stack_local_index() - 1 ==
+           flow_graph_.num_copied_params());
+    __ CheckFunctionTypeArgs(function.NumTypeParameters(),
+                             flow_graph_.num_copied_params());
   }
+
+  // TODO(regis): Verify that no vector is passed if not generic, unless already
+  // checked during resolution.
 }
 
 void FlowGraphCompiler::CompileGraph() {

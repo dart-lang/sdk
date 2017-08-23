@@ -1,9 +1,7 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/flow_graph_inliner.h"
 
 #include "vm/aot_optimizer.h"
@@ -98,7 +96,6 @@ DECLARE_FLAG(bool, compiler_stats);
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
-DECLARE_FLAG(bool, support_externalizable_strings);
 DECLARE_FLAG(bool, verify_compiler);
 
 // Quick access to the current zone.
@@ -2730,15 +2727,11 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
                                               Definition* str,
                                               Definition* index,
                                               Instruction* cursor) {
-  // Load the length of the string.
-  // Treat length loads as mutable (i.e. affected by side effects) to avoid
-  // hoisting them since we can't hoist the preceding class-check. This
-  // is because of externalization of strings that affects their class-id.
   LoadFieldInstr* length = new (Z)
       LoadFieldInstr(new (Z) Value(str), String::length_offset(),
                      Type::ZoneHandle(Z, Type::SmiType()), str->token_pos());
   length->set_result_cid(kSmiCid);
-  length->set_is_immutable(!FLAG_support_externalizable_strings);
+  length->set_is_immutable(true);
   length->set_recognized_kind(MethodRecognizer::kStringBaseLength);
 
   cursor = flow_graph->AppendTo(cursor, length, NULL, FlowGraph::kValue);
@@ -3742,5 +3735,4 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
 }
 
 }  // namespace dart
-
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

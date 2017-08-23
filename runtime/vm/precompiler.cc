@@ -2964,10 +2964,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           TimelineDurationScope tds2(thread(), compiler_timeline,
                                      "CommonSubexpressionElimination");
 #endif  // !PRODUCT
-          if (FLAG_common_subexpression_elimination ||
-              FLAG_loop_invariant_code_motion) {
-            flow_graph->ComputeBlockEffects();
-          }
 
           if (FLAG_common_subexpression_elimination) {
             if (DominatorBasedCSE::Optimize(flow_graph)) {

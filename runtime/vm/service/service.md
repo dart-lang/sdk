@@ -494,9 +494,9 @@ reference will be returned.
 ### evaluateInFrame
 
 ```
-@Instance|@Error evaluateInFrame(string isolateId,
-                                 int frameIndex,
-                                 string expression)
+@Instance|@Error|Sentinel evaluateInFrame(string isolateId,
+                                          int frameIndex,
+                                          string expression)
 ```
 
 The _evaluateInFrame_ RPC is used to evaluate an expression in the

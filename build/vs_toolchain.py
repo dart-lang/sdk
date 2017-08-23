@@ -17,12 +17,8 @@ import sys
 script_dir = os.path.dirname(os.path.realpath(__file__))
 chrome_src = os.path.abspath(os.path.join(script_dir, os.pardir))
 SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(1, os.path.join(chrome_src, 'tools'))
-sys.path.insert(0, os.path.join(chrome_src, 'third_party', 'gyp', 'pylib'))
+sys.path.insert(0, os.path.join(chrome_src, 'tools'))
 json_data_file = os.path.join(script_dir, 'win_toolchain.json')
-
-
-import gyp
 
 
 # Use MSVS2015 as the default toolchain.
@@ -61,14 +57,6 @@ def SetEnvironmentAndGetRuntimeDllDirs():
 
     os.environ['GYP_MSVS_OVERRIDE_PATH'] = toolchain
     os.environ['GYP_MSVS_VERSION'] = version
-    # We need to make sure windows_sdk_path is set to the automated
-    # toolchain values in GYP_DEFINES, but don't want to override any
-    # otheroptions.express
-    # values there.
-    gyp_defines_dict = gyp.NameValueListToDict(gyp.ShlexEnv('GYP_DEFINES'))
-    gyp_defines_dict['windows_sdk_path'] = win_sdk
-    os.environ['GYP_DEFINES'] = ' '.join('%s=%s' % (k, pipes.quote(str(v)))
-        for k, v in gyp_defines_dict.iteritems())
     os.environ['WINDOWSSDKDIR'] = win_sdk
     os.environ['WDK_DIR'] = wdk
     # Include the VS runtime in the PATH in case it's not machine-installed.

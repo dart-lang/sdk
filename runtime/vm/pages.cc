@@ -819,7 +819,7 @@ void PageSpace::WriteProtectCode(bool read_only) {
   }
 }
 
-void PageSpace::MarkSweep(bool invoke_api_callbacks) {
+void PageSpace::MarkSweep() {
   Thread* thread = Thread::Current();
   Isolate* isolate = heap_->isolate();
   ASSERT(isolate == Isolate::Current());
@@ -878,7 +878,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
                         !isolate->HasAttemptedReload();
 #endif  // !defined(PRODUCT)
     GCMarker marker(heap_);
-    marker.MarkObjects(isolate, this, invoke_api_callbacks, collect_code);
+    marker.MarkObjects(isolate, this, collect_code);
     usage_.used_in_words = marker.marked_words();
 
     int64_t mid1 = OS::GetCurrentMonotonicMicros();

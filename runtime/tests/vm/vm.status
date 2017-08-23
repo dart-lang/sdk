@@ -46,7 +46,6 @@ cc/CodeImmutability: Crash
 [ $system == windows ]
 cc/CodeImmutability: Crash, Timeout
 cc/Dart2JSCompileAll: Skip
-cc/ExternalizeConstantStrings: Skip
 cc/Service_Profile: Skip
 cc/Dart2JSCompilerStats: Skip
 cc/CorelibCompilerStats: Skip
@@ -293,7 +292,9 @@ cc/DartAPI_NegativeNativeFieldInIsolateMessage: Crash
 cc/DartAPI_New: Crash
 cc/DartAPI_ParsePatchLibrary: Crash
 cc/DartAPI_PropagateError: Fail
-cc/DartAPI_StackOverflowStackTraceInfo: Skip
+cc/DartAPI_StackOverflowStackTraceInfoBraceFunction1: Fail
+cc/DartAPI_StackOverflowStackTraceInfoBraceFunction2: Fail
+cc/DartAPI_StackOverflowStackTraceInfoArrowFunction: Fail
 cc/DartAPI_TestNativeFieldsAccess: Crash
 cc/DartAPI_TypeGetParameterizedTypes: Crash
 cc/DebuggerAPI_BreakpointStubPatching: Fail
@@ -328,7 +329,6 @@ cc/IsolateReload_EnumToNotEnum: Skip
 cc/IsolateReload_ExportedLibModified: Crash
 cc/IsolateReload_ImportedLibModified: Crash
 cc/IsolateReload_ImportedMixinFunction: Crash
-cc/IsolateReload_KernelIncrementalCompileGenerics: Crash # Issue 30322
 cc/IsolateReload_LibraryHide: Crash
 cc/IsolateReload_LibraryLookup: Fail
 cc/IsolateReload_LibraryShow: Crash
@@ -421,7 +421,6 @@ cc/Service_TokenStream: Fail
 cc/InjectNativeFields1: Crash
 cc/InjectNativeFields3: Crash
 cc/Service_TokenStream: Crash
-cc/IsolateReload_KernelIncrementalCompileAppAndLib: Crash # Issue 30420
 
 [ ($compiler == dartk) && ($runtime == vm) && ($system == macos) ]
 cc/IsolateReload_DanglingGetter_Class: Crash

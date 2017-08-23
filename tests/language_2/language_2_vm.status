@@ -71,12 +71,187 @@ call_through_getter_test/02: MissingCompileTimeError
 call_type_literal_test/01: MissingCompileTimeError
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
+checked_null_test/01: MissingCompileTimeError
+checked_setter_test: MissingCompileTimeError
+checked_setter2_test: MissingCompileTimeError
+checked_setter3_test/01: MissingCompileTimeError
+checked_setter3_test/02: MissingCompileTimeError
+checked_setter3_test/03: MissingCompileTimeError
+class_literal_test/01: MissingCompileTimeError
+class_literal_test/02: MissingCompileTimeError
+class_literal_test/03: MissingCompileTimeError
+class_literal_test/04: MissingCompileTimeError
+class_literal_test/05: MissingCompileTimeError
+class_literal_test/06: MissingCompileTimeError
+class_literal_test/07: MissingCompileTimeError
+class_literal_test/08: MissingCompileTimeError
+class_literal_test/09: MissingCompileTimeError
+class_literal_test/10: MissingCompileTimeError
+class_literal_test/11: MissingCompileTimeError
+class_literal_test/12: MissingCompileTimeError
+class_literal_test/13: MissingCompileTimeError
+class_literal_test/14: MissingCompileTimeError
+class_literal_test/15: MissingCompileTimeError
+class_literal_test/16: MissingCompileTimeError
+class_literal_test/17: MissingCompileTimeError
+class_literal_test/18: MissingCompileTimeError
+class_literal_test/19: MissingCompileTimeError
+class_literal_test/20: MissingCompileTimeError
+class_literal_test/21: MissingCompileTimeError
+class_literal_test/22: MissingCompileTimeError
+class_literal_test/23: MissingCompileTimeError
+class_literal_test/24: MissingCompileTimeError
+class_literal_test/25: MissingCompileTimeError
+covariant_subtyping_with_substitution_test: RuntimeError
+generic_constructor_mixin_test/01: MissingCompileTimeError
+generic_constructor_mixin2_test/01: MissingCompileTimeError
+generic_constructor_mixin3_test/01: MissingCompileTimeError
+
+[ $runtime == vm && $checked ]
+function_type/function_type0_test: RuntimeError # Issue 30475
+function_type/function_type10_test: RuntimeError # Issue 30475
+function_type/function_type12_test: RuntimeError # Issue 30475
+function_type/function_type13_test: RuntimeError # Issue 30475
+function_type/function_type14_test: RuntimeError # Issue 30475
+function_type/function_type15_test: RuntimeError # Issue 30475
+function_type/function_type16_test: RuntimeError # Issue 30475
+function_type/function_type17_test: RuntimeError # Issue 30475
+function_type/function_type18_test: RuntimeError # Issue 30475
+function_type/function_type19_test: RuntimeError # Issue 30475
+function_type/function_type1_test: RuntimeError # Issue 30475
+function_type/function_type20_test: RuntimeError # Issue 30475
+function_type/function_type21_test: RuntimeError # Issue 30475
+function_type/function_type22_test: RuntimeError # Issue 30475
+function_type/function_type24_test: RuntimeError # Issue 30475
+function_type/function_type25_test: RuntimeError # Issue 30475
+function_type/function_type26_test: RuntimeError # Issue 30475
+function_type/function_type27_test: RuntimeError # Issue 30475
+function_type/function_type28_test: RuntimeError # Issue 30475
+function_type/function_type29_test: RuntimeError # Issue 30475
+function_type/function_type2_test: RuntimeError # Issue 30475
+function_type/function_type30_test: RuntimeError # Issue 30475
+function_type/function_type31_test: RuntimeError # Issue 30475
+function_type/function_type32_test: RuntimeError # Issue 30475
+function_type/function_type33_test: RuntimeError # Issue 30475
+function_type/function_type34_test: RuntimeError # Issue 30475
+function_type/function_type36_test: RuntimeError # Issue 30475
+function_type/function_type3_test: RuntimeError # Issue 30475
+function_type/function_type44_test: RuntimeError # Issue 30475
+function_type/function_type45_test: RuntimeError # Issue 30475
+function_type/function_type46_test: RuntimeError # Issue 30475
+function_type/function_type47_test: RuntimeError # Issue 30475
+function_type/function_type48_test: RuntimeError # Issue 30475
+function_type/function_type49_test: RuntimeError # Issue 30475
+function_type/function_type4_test: RuntimeError # Issue 30475
+function_type/function_type50_test: RuntimeError # Issue 30475
+function_type/function_type51_test: RuntimeError # Issue 30475
+function_type/function_type52_test: RuntimeError # Issue 30475
+function_type/function_type53_test: RuntimeError # Issue 30475
+function_type/function_type54_test: RuntimeError # Issue 30475
+function_type/function_type56_test: RuntimeError # Issue 30475
+function_type/function_type57_test: RuntimeError # Issue 30475
+function_type/function_type58_test: RuntimeError # Issue 30475
+function_type/function_type59_test: RuntimeError # Issue 30475
+function_type/function_type5_test: RuntimeError # Issue 30475
+function_type/function_type60_test: RuntimeError # Issue 30475
+function_type/function_type61_test: RuntimeError # Issue 30475
+function_type/function_type62_test: RuntimeError # Issue 30475
+function_type/function_type63_test: RuntimeError # Issue 30475
+function_type/function_type64_test: RuntimeError # Issue 30475
+function_type/function_type65_test: RuntimeError # Issue 30475
+function_type/function_type66_test: RuntimeError # Issue 30475
+function_type/function_type6_test: RuntimeError # Issue 30475
+function_type/function_type7_test: RuntimeError # Issue 30475
+function_type/function_type80_test: RuntimeError # Issue 30475
+function_type/function_type81_test: RuntimeError # Issue 30475
+function_type/function_type82_test: RuntimeError # Issue 30475
+function_type/function_type83_test: RuntimeError # Issue 30475
+function_type/function_type84_test: RuntimeError # Issue 30475
+function_type/function_type85_test: RuntimeError # Issue 30475
+function_type/function_type86_test: RuntimeError # Issue 30475
+function_type/function_type87_test: RuntimeError # Issue 30475
+function_type/function_type88_test: RuntimeError # Issue 30475
+function_type/function_type89_test: RuntimeError # Issue 30475
+function_type/function_type8_test: RuntimeError # Issue 30475
+function_type/function_type90_test: RuntimeError # Issue 30475
+function_type/function_type96_test: RuntimeError # Issue 30475
+function_type/function_type9_test: RuntimeError # Issue 30475
+function_type/function_type0_test: RuntimeError # Issue 30475
+function_type/function_type10_test: RuntimeError # Issue 30475
+function_type/function_type12_test: RuntimeError # Issue 30475
+function_type/function_type13_test: RuntimeError # Issue 30475
+function_type/function_type14_test: RuntimeError # Issue 30475
+function_type/function_type15_test: RuntimeError # Issue 30475
+function_type/function_type16_test: RuntimeError # Issue 30475
+function_type/function_type17_test: RuntimeError # Issue 30475
+function_type/function_type18_test: RuntimeError # Issue 30475
+function_type/function_type19_test: RuntimeError # Issue 30475
+function_type/function_type1_test: RuntimeError # Issue 30475
+function_type/function_type20_test: RuntimeError # Issue 30475
+function_type/function_type21_test: RuntimeError # Issue 30475
+function_type/function_type22_test: RuntimeError # Issue 30475
+function_type/function_type24_test: RuntimeError # Issue 30475
+function_type/function_type25_test: RuntimeError # Issue 30475
+function_type/function_type26_test: RuntimeError # Issue 30475
+function_type/function_type27_test: RuntimeError # Issue 30475
+function_type/function_type28_test: RuntimeError # Issue 30475
+function_type/function_type29_test: RuntimeError # Issue 30475
+function_type/function_type2_test: RuntimeError # Issue 30475
+function_type/function_type30_test: RuntimeError # Issue 30475
+function_type/function_type31_test: RuntimeError # Issue 30475
+function_type/function_type32_test: RuntimeError # Issue 30475
+function_type/function_type33_test: RuntimeError # Issue 30475
+function_type/function_type34_test: RuntimeError # Issue 30475
+function_type/function_type36_test: RuntimeError # Issue 30475
+function_type/function_type3_test: RuntimeError # Issue 30475
+function_type/function_type44_test: RuntimeError # Issue 30475
+function_type/function_type45_test: RuntimeError # Issue 30475
+function_type/function_type46_test: RuntimeError # Issue 30475
+function_type/function_type47_test: RuntimeError # Issue 30475
+function_type/function_type48_test: RuntimeError # Issue 30475
+function_type/function_type49_test: RuntimeError # Issue 30475
+function_type/function_type4_test: RuntimeError # Issue 30475
+function_type/function_type50_test: RuntimeError # Issue 30475
+function_type/function_type51_test: RuntimeError # Issue 30475
+function_type/function_type52_test: RuntimeError # Issue 30475
+function_type/function_type53_test: RuntimeError # Issue 30475
+function_type/function_type54_test: RuntimeError # Issue 30475
+function_type/function_type56_test: RuntimeError # Issue 30475
+function_type/function_type57_test: RuntimeError # Issue 30475
+function_type/function_type58_test: RuntimeError # Issue 30475
+function_type/function_type59_test: RuntimeError # Issue 30475
+function_type/function_type5_test: RuntimeError # Issue 30475
+function_type/function_type60_test: RuntimeError # Issue 30475
+function_type/function_type61_test: RuntimeError # Issue 30475
+function_type/function_type62_test: RuntimeError # Issue 30475
+function_type/function_type63_test: RuntimeError # Issue 30475
+function_type/function_type64_test: RuntimeError # Issue 30475
+function_type/function_type65_test: RuntimeError # Issue 30475
+function_type/function_type66_test: RuntimeError # Issue 30475
+function_type/function_type6_test: RuntimeError # Issue 30475
+function_type/function_type7_test: RuntimeError # Issue 30475
+function_type/function_type80_test: RuntimeError # Issue 30475
+function_type/function_type81_test: RuntimeError # Issue 30475
+function_type/function_type82_test: RuntimeError # Issue 30475
+function_type/function_type83_test: RuntimeError # Issue 30475
+function_type/function_type84_test: RuntimeError # Issue 30475
+function_type/function_type85_test: RuntimeError # Issue 30475
+function_type/function_type86_test: RuntimeError # Issue 30475
+function_type/function_type87_test: RuntimeError # Issue 30475
+function_type/function_type88_test: RuntimeError # Issue 30475
+function_type/function_type89_test: RuntimeError # Issue 30475
+function_type/function_type8_test: RuntimeError # Issue 30475
+function_type/function_type90_test: RuntimeError # Issue 30475
+function_type/function_type96_test: RuntimeError # Issue 30475
+function_type/function_type9_test: RuntimeError # Issue 30475
 
 # The VM and does not implement the Dart 2.0 runtime checks yet unless
 # --checked is explicitly passed).
 [ $runtime == vm && !$checked ]
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
+function_subtype_inline2_test: RuntimeError
+typevariable_substitution2_test/02: RuntimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.

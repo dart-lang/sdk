@@ -11,6 +11,7 @@ import 'cache.dart';
 import 'logdog.dart';
 
 const String BUILDBOT_BUILDNUMBER = ' BUILDBOT_BUILDNUMBER: ';
+const String BUILDBOT_REVISION = ' BUILDBOT_REVISION: ';
 
 /// Read the build result for [buildUri].
 ///
@@ -78,6 +79,7 @@ TestStatus parseTestStatus(String line) {
 BuildResult parseTestStepResult(BuildUri buildUri, String text) {
   log('Parsing results: $buildUri (${text.length} bytes)');
   int buildNumber;
+  String buildRevision;
   List<String> currentFailure;
   bool parsingTimingBlock = false;
 
@@ -89,6 +91,9 @@ BuildResult parseTestStepResult(BuildUri buildUri, String text) {
       buildNumber =
           int.parse(line.substring(BUILDBOT_BUILDNUMBER.length).trim());
       buildUri = buildUri.withBuildNumber(buildNumber);
+    }
+    if (line.startsWith(BUILDBOT_REVISION)) {
+      buildRevision = line.substring(BUILDBOT_REVISION.length).trim();
     }
     if (currentFailure != null) {
       if (line.startsWith('Done ')) {
@@ -121,7 +126,7 @@ BuildResult parseTestStepResult(BuildUri buildUri, String text) {
     }
   }
   return new BuildResult(buildUri, buildNumber ?? buildUri.absoluteBuildNumber,
-      results, failures, timings);
+      buildRevision, results, failures, timings);
 }
 
 /// Create the [Timing]s for the [line] as found in the top-20 timings of a

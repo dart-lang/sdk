@@ -85,7 +85,6 @@ DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, write_protect_code);
-DECLARE_FLAG(bool, support_externalizable_strings);
 
 static const char* const kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
@@ -109,6 +108,7 @@ Object* Object::null_object_ = NULL;
 Array* Object::null_array_ = NULL;
 String* Object::null_string_ = NULL;
 Instance* Object::null_instance_ = NULL;
+Function* Object::null_function_ = NULL;
 TypeArguments* Object::null_type_arguments_ = NULL;
 TypeArguments* Object::empty_type_arguments_ = NULL;
 Array* Object::empty_array_ = NULL;
@@ -503,6 +503,7 @@ void Object::InitOnce(Isolate* isolate) {
   null_array_ = Array::ReadOnlyHandle();
   null_string_ = String::ReadOnlyHandle();
   null_instance_ = Instance::ReadOnlyHandle();
+  null_function_ = Function::ReadOnlyHandle();
   null_type_arguments_ = TypeArguments::ReadOnlyHandle();
   empty_type_arguments_ = TypeArguments::ReadOnlyHandle();
   empty_array_ = Array::ReadOnlyHandle();
@@ -535,6 +536,7 @@ void Object::InitOnce(Isolate* isolate) {
   *null_array_ = Array::null();
   *null_string_ = String::null();
   *null_instance_ = Instance::null();
+  *null_function_ = Function::null();
   *null_type_arguments_ = TypeArguments::null();
 
   // Initialize the empty and zero array handles to null_ in order to be able to
@@ -947,6 +949,8 @@ void Object::InitOnce(Isolate* isolate) {
   ASSERT(null_string_->IsString());
   ASSERT(!null_instance_->IsSmi());
   ASSERT(null_instance_->IsInstance());
+  ASSERT(!null_function_->IsSmi());
+  ASSERT(null_function_->IsFunction());
   ASSERT(!null_type_arguments_->IsSmi());
   ASSERT(null_type_arguments_->IsTypeArguments());
   ASSERT(!empty_type_arguments_->IsSmi());
@@ -8199,14 +8203,6 @@ const char* Field::GuardedPropertiesAsCString() const {
       "<%s %s>", is_nullable() ? "nullable" : "not-nullable", class_name);
 }
 
-bool Field::IsExternalizableCid(intptr_t cid) {
-  if (FLAG_support_externalizable_strings) {
-    return (cid == kOneByteStringCid) || (cid == kTwoByteStringCid);
-  } else {
-    return false;
-  }
-}
-
 void Field::InitializeGuardedListLengthInObjectOffset() const {
   ASSERT(IsOriginal());
   if (needs_length_check() &&
@@ -13918,7 +13914,7 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
 }
 
 void Code::Disassemble(DisassemblyFormatter* formatter) const {
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#ifndef PRODUCT
   if (!FLAG_support_disassembler) {
     return;
   }
@@ -14007,7 +14003,6 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
   return result.raw();
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 RawCode* Code::FinalizeCode(const char* name,
                             Assembler* assembler,
                             bool optimized) {
@@ -14108,7 +14103,6 @@ RawCode* Code::FinalizeCode(const Function& function,
 #endif  // !PRODUCT
   return FinalizeCode("", assembler, optimized);
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 bool Code::SlowFindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
   return RawCode::ContainsPC(raw_obj, pc_);
@@ -20290,100 +20284,6 @@ static FinalizablePersistentHandle* AddFinalizer(
          (callback == NULL && peer == NULL));
   return FinalizablePersistentHandle::New(Isolate::Current(), referent, peer,
                                           callback, external_size);
-}
-
-RawString* String::MakeExternal(void* array,
-                                intptr_t external_size,
-                                void* peer,
-                                Dart_PeerFinalizer cback) const {
-  ASSERT(FLAG_support_externalizable_strings);
-  String& result = String::Handle();
-  void* external_data;
-  Dart_WeakPersistentHandleFinalizer finalizer;
-  {
-    NoSafepointScope no_safepoint;
-    ASSERT(array != NULL);
-    intptr_t str_length = this->Length();
-    ASSERT(external_size >= (str_length * this->CharSize()));
-    intptr_t class_id = raw()->GetClassId();
-
-    ASSERT(!InVMHeap());
-    if (class_id == kOneByteStringCid) {
-      intptr_t used_size = ExternalOneByteString::InstanceSize();
-      intptr_t original_size = OneByteString::InstanceSize(str_length);
-      ASSERT(original_size >= used_size);
-
-      // Copy the data into the external array.
-      if (str_length > 0) {
-        memmove(array, OneByteString::CharAddr(*this, 0), str_length);
-      }
-
-      // If there is any left over space fill it with either an Array object or
-      // just a plain object (depending on the amount of left over space) so
-      // that it can be traversed over successfully during garbage collection.
-      Object::MakeUnusedSpaceTraversable(*this, original_size, used_size);
-
-      // Update the class information of the object.
-      const intptr_t class_id = kExternalOneByteStringCid;
-      uint32_t tags = raw_ptr()->tags_;
-      uint32_t old_tags;
-      do {
-        old_tags = tags;
-        uint32_t new_tags = RawObject::SizeTag::update(used_size, old_tags);
-        new_tags = RawObject::ClassIdTag::update(class_id, new_tags);
-        tags = CompareAndSwapTags(old_tags, new_tags);
-      } while (tags != old_tags);
-      result = this->raw();
-      const uint8_t* ext_array = reinterpret_cast<const uint8_t*>(array);
-      ExternalStringData<uint8_t>* ext_data =
-          new ExternalStringData<uint8_t>(ext_array, peer, cback);
-      ASSERT(result.Length() == str_length);
-      ASSERT(!result.HasHash() ||
-             (result.Hash() == String::Hash(ext_array, str_length)));
-      ExternalOneByteString::SetExternalData(result, ext_data);
-      external_data = ext_data;
-      finalizer = ExternalOneByteString::Finalize;
-    } else {
-      ASSERT(class_id == kTwoByteStringCid);
-      intptr_t used_size = ExternalTwoByteString::InstanceSize();
-      intptr_t original_size = TwoByteString::InstanceSize(str_length);
-      ASSERT(original_size >= used_size);
-
-      // Copy the data into the external array.
-      if (str_length > 0) {
-        memmove(array, TwoByteString::CharAddr(*this, 0),
-                (str_length * kTwoByteChar));
-      }
-
-      // If there is any left over space fill it with either an Array object or
-      // just a plain object (depending on the amount of left over space) so
-      // that it can be traversed over successfully during garbage collection.
-      Object::MakeUnusedSpaceTraversable(*this, original_size, used_size);
-
-      // Update the class information of the object.
-      const intptr_t class_id = kExternalTwoByteStringCid;
-      uint32_t tags = raw_ptr()->tags_;
-      uint32_t old_tags;
-      do {
-        old_tags = tags;
-        uint32_t new_tags = RawObject::SizeTag::update(used_size, old_tags);
-        new_tags = RawObject::ClassIdTag::update(class_id, new_tags);
-        tags = CompareAndSwapTags(old_tags, new_tags);
-      } while (tags != old_tags);
-      result = this->raw();
-      const uint16_t* ext_array = reinterpret_cast<const uint16_t*>(array);
-      ExternalStringData<uint16_t>* ext_data =
-          new ExternalStringData<uint16_t>(ext_array, peer, cback);
-      ASSERT(result.Length() == str_length);
-      ASSERT(!result.HasHash() ||
-             (result.Hash() == String::Hash(ext_array, str_length)));
-      ExternalTwoByteString::SetExternalData(result, ext_data);
-      external_data = ext_data;
-      finalizer = ExternalTwoByteString::Finalize;
-    }
-  }  // NoSafepointScope
-  AddFinalizer(result, external_data, finalizer, external_size);
-  return this->raw();
 }
 
 RawString* String::Transform(int32_t (*mapping)(int32_t ch),

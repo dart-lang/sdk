@@ -37,6 +37,10 @@ class AstBuilder extends ScopeListener {
   final KernelLibraryBuilder library;
   final Builder member;
 
+  ScriptTag scriptTag;
+  final List<Directive> directives = <Directive>[];
+  final List<CompilationUnitMember> declarations = <CompilationUnitMember>[];
+
   @override
   final Uri uri;
 
@@ -55,6 +59,17 @@ class AstBuilder extends ScopeListener {
   /// If true, this is building a full AST. Otherwise, only create method
   /// bodies.
   final bool isFullAst;
+
+  /// `true` if the `native` clause is allowed
+  /// in class, method, and function declarations.
+  ///
+  /// This is being replaced by the @native(...) annotation.
+  //
+  // TODO(danrubel) Move this flag to a better location
+  // and should only be true if either:
+  // * The current library is a platform library
+  // * The current library has an import that uses the scheme "dart-ext".
+  bool allowNativeClause = false;
 
   AstBuilder(this.errorReporter, this.library, this.member, Scope scope,
       this.isFullAst,
@@ -170,7 +185,7 @@ class AstBuilder extends ScopeListener {
 
   void handleScript(Token token) {
     debugEvent("Script");
-    push(ast.scriptTag(token));
+    scriptTag = ast.scriptTag(token);
   }
 
   void handleStringJuxtaposition(int literalCount) {
@@ -1108,7 +1123,7 @@ class AstBuilder extends ScopeListener {
     Token externalKeyword = modifiers?.externalKeyword;
     List<Annotation> metadata = pop();
     Comment comment = pop();
-    push(ast.functionDeclaration(
+    declarations.add(ast.functionDeclaration(
         comment,
         metadata,
         externalKeyword,
@@ -1124,6 +1139,15 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void handleInvalidTopLevelDeclaration(Token endToken) {
+    debugEvent("InvalidTopLevelDeclaration");
+    pop(); // metadata star
+    // TODO(danrubel): consider creating a AST node
+    // representing the invalid declaration to better support code completion,
+    // quick fixes, etc, rather than discarding the metadata and token
+  }
+
+  @override
   void beginCompilationUnit(Token token) {
     push(token);
   }
@@ -1131,26 +1155,8 @@ class AstBuilder extends ScopeListener {
   @override
   void endCompilationUnit(int count, Token endToken) {
     debugEvent("CompilationUnit");
-    List<Object> elements = popList(count);
     Token beginToken = pop();
-
-    ScriptTag scriptTag = null;
-    var directives = <Directive>[];
-    var declarations = <CompilationUnitMember>[];
-    if (elements != null) {
-      for (AstNode node in elements) {
-        if (node is ScriptTag) {
-          scriptTag = node;
-        } else if (node is Directive) {
-          directives.add(node);
-        } else if (node is CompilationUnitMember) {
-          declarations.add(node);
-        } else {
-          unhandled(
-              "${node.runtimeType}", "compilation unit", node?.offset, uri);
-        }
-      }
-    }
+    checkEmpty(endToken.charOffset);
 
     push(ast.compilationUnit(
         beginToken, scriptTag, directives, declarations, endToken));
@@ -1167,7 +1173,7 @@ class AstBuilder extends ScopeListener {
     List<Annotation> metadata = pop();
     assert(metadata == null); // TODO(paulberry): fix.
     Comment comment = pop();
-    push(ast.importDirective(
+    directives.add(ast.importDirective(
         comment,
         metadata,
         importKeyword,
@@ -1188,7 +1194,7 @@ class AstBuilder extends ScopeListener {
     List<Annotation> metadata = pop();
     assert(metadata == null);
     Comment comment = pop();
-    push(ast.exportDirective(comment, metadata, exportKeyword, uri,
+    directives.add(ast.exportDirective(comment, metadata, exportKeyword, uri,
         configurations, combinators, semicolon));
   }
 
@@ -1283,15 +1289,22 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    push(ast.nativeClause(nativeToken, hasName ? pop() : null));
+  }
+
+  @override
   void endClassDeclaration(
       int interfacesCount,
       Token beginToken,
       Token classKeyword,
       Token extendsKeyword,
       Token implementsKeyword,
+      Token nativeToken,
       Token endToken) {
     debugEvent("ClassDeclaration");
     _ClassBody body = pop();
+    NativeClause nativeClause = nativeToken != null ? pop() : null;
     ImplementsClause implementsClause;
     if (implementsKeyword != null) {
       List<TypeName> interfaces = popList(interfacesCount);
@@ -1319,7 +1332,7 @@ class AstBuilder extends ScopeListener {
     Token abstractKeyword = modifiers?.abstractKeyword;
     List<Annotation> metadata = pop();
     Comment comment = pop();
-    push(ast.classDeclaration(
+    ClassDeclaration classDeclaration = ast.classDeclaration(
         comment,
         metadata,
         abstractKeyword,
@@ -1331,7 +1344,9 @@ class AstBuilder extends ScopeListener {
         implementsClause,
         body.beginToken,
         body.members,
-        body.endToken));
+        body.endToken);
+    classDeclaration.nativeClause = nativeClause;
+    declarations.add(classDeclaration);
   }
 
   @override
@@ -1362,7 +1377,7 @@ class AstBuilder extends ScopeListener {
     Token abstractKeyword = modifiers?.abstractKeyword;
     List<Annotation> metadata = pop();
     Comment comment = pop();
-    push(ast.classTypeAlias(
+    declarations.add(ast.classTypeAlias(
         comment,
         metadata,
         classKeyword,
@@ -1391,7 +1406,7 @@ class AstBuilder extends ScopeListener {
     var name = ast.libraryIdentifier(libraryName);
     List<Annotation> metadata = pop();
     Comment comment = pop();
-    push(ast.libraryDirective(
+    directives.add(ast.libraryDirective(
         comment, metadata, libraryKeyword, name, semicolon));
   }
 
@@ -1419,21 +1434,27 @@ class AstBuilder extends ScopeListener {
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
-    push(ast.partDirective(comment, metadata, partKeyword, uri, semicolon));
+    directives
+        .add(ast.partDirective(comment, metadata, partKeyword, uri, semicolon));
   }
 
   @override
   void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
     debugEvent("PartOf");
-    List<SimpleIdentifier> libraryName = pop();
-    var name = ast.libraryIdentifier(libraryName);
-    StringLiteral uri = null; // TODO(paulberry)
+    var libraryNameOrUri = pop();
+    LibraryIdentifier name;
+    StringLiteral uri;
+    if (libraryNameOrUri is StringLiteral) {
+      uri = libraryNameOrUri;
+    } else {
+      name = ast.libraryIdentifier(libraryNameOrUri);
+    }
     // TODO(paulberry,ahe): seems hacky.  It would be nice if the parser passed
     // in a reference to the "of" keyword.
     var ofKeyword = partKeyword.next;
     List<Annotation> metadata = pop();
     Comment comment = pop();
-    push(ast.partOfDirective(
+    directives.add(ast.partOfDirective(
         comment, metadata, partKeyword, ofKeyword, uri, name, semicolon));
   }
 
@@ -1560,7 +1581,7 @@ class AstBuilder extends ScopeListener {
         ast.variableDeclarationList(null, null, keyword, type, variables);
     List<Annotation> metadata = pop();
     Comment comment = pop();
-    push(ast.topLevelVariableDeclaration(
+    declarations.add(ast.topLevelVariableDeclaration(
         comment, metadata, variableList, endToken));
   }
 
@@ -1674,8 +1695,8 @@ class AstBuilder extends ScopeListener {
       TypeAnnotation returnType = pop();
       List<Annotation> metadata = pop();
       Comment comment = pop();
-      push(ast.functionTypeAlias(comment, metadata, typedefKeyword, returnType,
-          name, typeParameters, parameters, endToken));
+      declarations.add(ast.functionTypeAlias(comment, metadata, typedefKeyword,
+          returnType, name, typeParameters, parameters, endToken));
     } else {
       TypeAnnotation type = pop();
       TypeParameterList templateParameters = pop();
@@ -1687,8 +1708,8 @@ class AstBuilder extends ScopeListener {
         // this).
         type = null;
       }
-      push(ast.genericTypeAlias(comment, metadata, typedefKeyword, name,
-          templateParameters, equals, type, endToken));
+      declarations.add(ast.genericTypeAlias(comment, metadata, typedefKeyword,
+          name, templateParameters, equals, type, endToken));
     }
   }
 
@@ -1704,8 +1725,8 @@ class AstBuilder extends ScopeListener {
     SimpleIdentifier name = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
-    push(ast.enumDeclaration(comment, metadata, enumKeyword, name, openBrace,
-        constants, closeBrace));
+    declarations.add(ast.enumDeclaration(comment, metadata, enumKeyword, name,
+        openBrace, constants, closeBrace));
   }
 
   @override
@@ -1738,7 +1759,7 @@ class AstBuilder extends ScopeListener {
   @override
   AstNode finishFields() {
     debugEvent("finishFields");
-    return pop();
+    return declarations.removeLast();
   }
 
   @override
@@ -1890,20 +1911,33 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_TYPE_NAME, charOffset, 1);
         return;
+      case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
+        if (!allowNativeClause) {
+          errorReporter?.reportErrorForOffset(
+              ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
+              charOffset,
+              1);
+        }
+        return;
       case "EXPECTED_STRING_LITERAL":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_STRING_LITERAL, charOffset, 1);
         return;
       case "UNEXPECTED_TOKEN":
-        var text = arguments['string'];
+        String text = arguments['string'];
         if (text == null) {
           Token token = arguments['token'];
           if (token != null) {
             text = token.lexeme;
           }
         }
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.UNEXPECTED_TOKEN, charOffset, 1, [text]);
+        if (text == ';') {
+          errorReporter?.reportErrorForOffset(
+              ParserErrorCode.EXPECTED_TOKEN, charOffset, text.length, [text]);
+        } else {
+          errorReporter?.reportErrorForOffset(
+              ParserErrorCode.UNEXPECTED_TOKEN, charOffset, 1, [text]);
+        }
         return;
       default:
       // fall through

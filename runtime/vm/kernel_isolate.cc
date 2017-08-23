@@ -299,13 +299,14 @@ class KernelCompilationRequest : public ValueObject {
   Dart_KernelCompilationResult SendAndWaitForResponse(
       Dart_Port kernel_port,
       const char* script_uri,
+      const char* platform_kernel,
       int source_files_count,
       Dart_SourceFile source_files[],
       bool incremental_compile) {
-    // Build the [null, send_port, script_uri, incremental_compile, isolate_id,
-    // [files]] message for the Kernel isolate: null tag tells it that request
-    // came from this code, instead of Loader so that it can given a more
-    // informative response.
+    // Build the [null, send_port, script_uri, platform_kernel,
+    // incremental_compile, isolate_id, [files]] message for the Kernel isolate.
+    // null tag tells it that request came from this code, instead of Loader
+    // so that it can given a more informative response.
     Dart_CObject tag;
     tag.type = Dart_CObject_kNull;
 
@@ -317,6 +318,14 @@ class KernelCompilationRequest : public ValueObject {
     Dart_CObject uri;
     uri.type = Dart_CObject_kString;
     uri.value.as_string = const_cast<char*>(script_uri);
+
+    Dart_CObject dart_platform_kernel;
+    if (platform_kernel != NULL) {
+      dart_platform_kernel.type = Dart_CObject_kString;
+      dart_platform_kernel.value.as_string = const_cast<char*>(platform_kernel);
+    } else {
+      dart_platform_kernel.type = Dart_CObject_kNull;
+    }
 
     Dart_CObject dart_incremental;
     dart_incremental.type = Dart_CObject_kBool;
@@ -338,14 +347,15 @@ class KernelCompilationRequest : public ValueObject {
     Dart_CObject message;
     message.type = Dart_CObject_kArray;
 
-    intptr_t message_len = 5;
+    intptr_t message_len = 6;
     Dart_CObject files;
     if (source_files_count != 0) {
       files = BuildFilesPairs(source_files_count, source_files);
       message_len++;
     }
     Dart_CObject* message_arr[] = {
-        &tag, &send_port, &uri, &dart_incremental, &isolate_id, &files};
+        &tag,        &send_port, &uri, &dart_platform_kernel, &dart_incremental,
+        &isolate_id, &files};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = message_len;
     // Send the message.
@@ -459,6 +469,7 @@ KernelCompilationRequest* KernelCompilationRequest::requests_ = NULL;
 
 Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
     const char* script_uri,
+    const char* platform_kernel,
     int source_file_count,
     Dart_SourceFile source_files[],
     bool incremental_compile) {
@@ -474,8 +485,8 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
 
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(kernel_port, script_uri,
-                                        source_file_count, source_files,
-                                        incremental_compile);
+                                        platform_kernel, source_file_count,
+                                        source_files, incremental_compile);
 }
 
 #endif  // DART_PRECOMPILED_RUNTIME

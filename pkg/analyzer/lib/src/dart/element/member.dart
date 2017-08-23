@@ -549,6 +549,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
   @override
   MethodDeclaration computeNode() => baseElement.computeNode();
 
+  @deprecated
   @override
   FunctionType getReifiedType(DartType objectType) =>
       substituteFor(baseElement.getReifiedType(objectType));

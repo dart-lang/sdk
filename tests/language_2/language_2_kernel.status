@@ -15,6 +15,7 @@ assertion_initializer_test: CompileTimeError
 cha_deopt1_test: RuntimeError
 cha_deopt2_test: RuntimeError
 cha_deopt3_test: RuntimeError
+typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError

@@ -17,6 +17,429 @@
 namespace dart {
 namespace kernel {
 
+// Helper class that reads a kernel FunctionNode from binary.
+//
+// Use ReadUntilExcluding to read up to but not including a field.
+// One can then for instance read the field from the call-site (and remember to
+// call SetAt to inform this helper class), and then use this to read more.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
+class FunctionNodeHelper {
+ public:
+  enum Field {
+    kStart,  // tag.
+    kPosition,
+    kEndPosition,
+    kAsyncMarker,
+    kDartAsyncMarker,
+    kTypeParameters,
+    kTotalParameterCount,
+    kRequiredParameterCount,
+    kPositionalParameters,
+    kNamedParameters,
+    kReturnType,
+    kBody,
+    kEnd,
+  };
+
+  enum AsyncMarker {
+    kSync = 0,
+    kSyncStar = 1,
+    kAsync = 2,
+    kAsyncStar = 3,
+    kSyncYielding = 4,
+  };
+
+  explicit FunctionNodeHelper(StreamingFlowGraphBuilder* builder) {
+    builder_ = builder;
+    next_read_ = kStart;
+  }
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field);
+
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
+
+  TokenPosition position_;
+  TokenPosition end_position_;
+  AsyncMarker async_marker_;
+  AsyncMarker dart_async_marker_;
+  intptr_t total_parameter_count_;
+  intptr_t required_parameter_count_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
+};
+
+// Helper class that reads a kernel VariableDeclaration from binary.
+//
+// Use ReadUntilExcluding to read up to but not including a field.
+// One can then for instance read the field from the call-site (and remember to
+// call SetAt to inform this helper class), and then use this to read more.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
+class VariableDeclarationHelper {
+ public:
+  enum Field {
+    kPosition,
+    kEqualPosition,
+    kFlags,
+    kNameIndex,
+    kType,
+    kInitializer,
+    kEnd,
+  };
+
+  enum Flag {
+    kFinal = 1 << 0,
+    kConst = 1 << 1,
+  };
+
+  explicit VariableDeclarationHelper(StreamingFlowGraphBuilder* builder) {
+    builder_ = builder;
+    next_read_ = kPosition;
+  }
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field);
+
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
+
+  bool IsConst() { return (flags_ & kConst) != 0; }
+  bool IsFinal() { return (flags_ & kFinal) != 0; }
+
+  TokenPosition position_;
+  TokenPosition equals_position_;
+  uint8_t flags_;
+  StringIndex name_index_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
+};
+
+// Helper class that reads a kernel Field from binary.
+//
+// Use ReadUntilExcluding to read up to but not including a field.
+// One can then for instance read the field from the call-site (and remember to
+// call SetAt to inform this helper class), and then use this to read more.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
+class FieldHelper {
+ public:
+  enum Field {
+    kStart,  // tag.
+    kCanonicalName,
+    kPosition,
+    kEndPosition,
+    kFlags,
+    kName,
+    kSourceUriIndex,
+    kDocumentationCommentIndex,
+    kAnnotations,
+    kType,
+    kInitializer,
+    kEnd,
+  };
+
+  enum Flag {
+    kFinal = 1 << 0,
+    kConst = 1 << 1,
+    kStatic = 1 << 2,
+  };
+
+  explicit FieldHelper(StreamingFlowGraphBuilder* builder)
+      : builder_(builder),
+        next_read_(kStart),
+        has_function_literal_initializer_(false) {}
+
+  FieldHelper(StreamingFlowGraphBuilder* builder, intptr_t offset);
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field,
+                          bool detect_function_literal_initializer = false);
+
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
+
+  bool IsConst() { return (flags_ & kConst) != 0; }
+  bool IsFinal() { return (flags_ & kFinal) != 0; }
+  bool IsStatic() { return (flags_ & kStatic) != 0; }
+
+  bool FieldHasFunctionLiteralInitializer(TokenPosition* start,
+                                          TokenPosition* end) {
+    if (has_function_literal_initializer_) {
+      *start = function_literal_start_;
+      *end = function_literal_end_;
+    }
+    return has_function_literal_initializer_;
+  }
+
+  NameIndex canonical_name_;
+  TokenPosition position_;
+  TokenPosition end_position_;
+  uint8_t flags_;
+  intptr_t source_uri_index_;
+  intptr_t annotation_count_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
+
+  bool has_function_literal_initializer_;
+  TokenPosition function_literal_start_;
+  TokenPosition function_literal_end_;
+};
+
+// Helper class that reads a kernel Procedure from binary.
+//
+// Use ReadUntilExcluding to read up to but not including a field.
+// One can then for instance read the field from the call-site (and remember to
+// call SetAt to inform this helper class), and then use this to read more.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
+class ProcedureHelper {
+ public:
+  enum Field {
+    kStart,  // tag.
+    kCanonicalName,
+    kPosition,
+    kEndPosition,
+    kKind,
+    kFlags,
+    kName,
+    kSourceUriIndex,
+    kDocumentationCommentIndex,
+    kAnnotations,
+    kFunction,
+    kEnd,
+  };
+
+  enum Kind {
+    kMethod,
+    kGetter,
+    kSetter,
+    kOperator,
+    kFactory,
+  };
+
+  enum Flag {
+    kStatic = 1 << 0,
+    kAbstract = 1 << 1,
+    kExternal = 1 << 2,
+    kConst = 1 << 3,  // Only for external const factories.
+  };
+
+  explicit ProcedureHelper(StreamingFlowGraphBuilder* builder) {
+    builder_ = builder;
+    next_read_ = kStart;
+  }
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field);
+
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
+
+  bool IsStatic() { return (flags_ & kStatic) != 0; }
+  bool IsAbstract() { return (flags_ & kAbstract) != 0; }
+  bool IsExternal() { return (flags_ & kExternal) != 0; }
+  bool IsConst() { return (flags_ & kConst) != 0; }
+
+  NameIndex canonical_name_;
+  TokenPosition position_;
+  TokenPosition end_position_;
+  Kind kind_;
+  uint8_t flags_;
+  intptr_t source_uri_index_;
+  intptr_t annotation_count_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
+};
+
+// Helper class that reads a kernel Constructor from binary.
+//
+// Use ReadUntilExcluding to read up to but not including a field.
+// One can then for instance read the field from the call-site (and remember to
+// call SetAt to inform this helper class), and then use this to read more.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
+class ConstructorHelper {
+ public:
+  enum Field {
+    kStart,  // tag.
+    kCanonicalName,
+    kPosition,
+    kEndPosition,
+    kFlags,
+    kName,
+    kDocumentationCommentIndex,
+    kAnnotations,
+    kFunction,
+    kInitializers,
+    kEnd,
+  };
+
+  enum Flag {
+    kConst = 1 << 0,
+    kExternal = 1 << 1,
+  };
+
+  explicit ConstructorHelper(StreamingFlowGraphBuilder* builder) {
+    builder_ = builder;
+    next_read_ = kStart;
+  }
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field);
+
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
+
+  bool IsExternal() { return (flags_ & kExternal) != 0; }
+  bool IsConst() { return (flags_ & kConst) != 0; }
+
+  NameIndex canonical_name_;
+  TokenPosition position_;
+  TokenPosition end_position_;
+  uint8_t flags_;
+  intptr_t annotation_count_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
+};
+
+// Helper class that reads a kernel Class from binary.
+//
+// Use ReadUntilExcluding to read up to but not including a field.
+// One can then for instance read the field from the call-site (and remember to
+// call SetAt to inform this helper class), and then use this to read more.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
+class ClassHelper {
+ public:
+  enum Field {
+    kStart,  // tag.
+    kCanonicalName,
+    kPosition,
+    kEndPosition,
+    kIsAbstract,
+    kNameIndex,
+    kSourceUriIndex,
+    kDocumentationCommentIndex,
+    kAnnotations,
+    kTypeParameters,
+    kSuperClass,
+    kMixinType,
+    kImplementedClasses,
+    kFields,
+    kConstructors,
+    kProcedures,
+    kEnd,
+  };
+
+  explicit ClassHelper(StreamingFlowGraphBuilder* builder) {
+    builder_ = builder;
+    next_read_ = kStart;
+  }
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field);
+
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
+
+  NameIndex canonical_name_;
+  TokenPosition position_;
+  TokenPosition end_position_;
+  bool is_abstract_;
+  StringIndex name_index_;
+  intptr_t source_uri_index_;
+  intptr_t annotation_count_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
+};
+
+// Helper class that reads a kernel Library from binary.
+//
+// Use ReadUntilExcluding to read up to but not including a field.
+// One can then for instance read the field from the call-site (and remember to
+// call SetAt to inform this helper class), and then use this to read more.
+// Simple fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a compound field (e.g. an expression) it will be skipped.
+class LibraryHelper {
+ public:
+  enum Field {
+    kFlags,
+    kCanonicalName,
+    kName,
+    kSourceUriIndex,
+    kAnnotations,
+    kDependencies,
+    kParts,
+    kTypedefs,
+    kClasses,
+    kToplevelField,
+    kToplevelProcedures,
+    kEnd,
+  };
+
+  enum Flag {
+    kExternal = 1,
+  };
+
+  explicit LibraryHelper(StreamingFlowGraphBuilder* builder) {
+    builder_ = builder;
+    next_read_ = kFlags;
+  }
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field);
+
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
+
+  bool IsExternal() const { return (flags_ & kExternal) != 0; }
+
+  uint8_t flags_;
+  NameIndex canonical_name_;
+  StringIndex name_index_;
+  intptr_t source_uri_index_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
+};
+
 class StreamingDartTypeTranslator {
  public:
   StreamingDartTypeTranslator(StreamingFlowGraphBuilder* builder,
@@ -36,10 +459,10 @@ class StreamingDartTypeTranslator {
   // Will return `TypeArguments::null()` in case any of the arguments are
   // malformed.
   const TypeArguments& BuildInstantiatedTypeArguments(
-      const dart::Class& receiver_class,
+      const Class& receiver_class,
       intptr_t length);
 
-  const Type& ReceiverType(const dart::Class& klass);
+  const Type& ReceiverType(const Class& klass);
 
  private:
   // Can build a malformed type.
@@ -134,7 +557,7 @@ class StreamingScopeBuilder {
 
   LocalVariable* MakeVariable(TokenPosition declaration_pos,
                               TokenPosition token_pos,
-                              const dart::String& name,
+                              const String& name,
                               const AbstractType& type);
 
   void AddExceptionVariable(GrowableArray<LocalVariable*>* variables,
@@ -151,11 +574,11 @@ class StreamingScopeBuilder {
   // captured variable.
   void LookupVariable(intptr_t declaration_binary_offset);
 
-  const dart::String& GenerateName(const char* prefix, intptr_t suffix);
+  const String& GenerateName(const char* prefix, intptr_t suffix);
 
-  void HandleSpecialLoad(LocalVariable** variable, const dart::String& symbol);
+  void HandleSpecialLoad(LocalVariable** variable, const String& symbol);
   void LookupCapturedVariableByName(LocalVariable** variable,
-                                    const dart::String& name);
+                                    const String& name);
 
   struct DepthState {
     explicit DepthState(intptr_t function)
@@ -183,7 +606,7 @@ class StreamingScopeBuilder {
   TranslationHelper translation_helper_;
   Zone* zone_;
 
-  FunctionNode::AsyncMarker current_function_async_marker_;
+  FunctionNodeHelper::AsyncMarker current_function_async_marker_;
   LocalScope* current_function_scope_;
   LocalScope* scope_;
   DepthState depth_;
@@ -263,13 +686,13 @@ class StreamingConstantEvaluator {
                             const Array& arguments,
                             const Array& names);
 
-  RawObject* EvaluateConstConstructorCall(const dart::Class& type_class,
+  RawObject* EvaluateConstConstructorCall(const Class& type_class,
                                           const TypeArguments& type_arguments,
                                           const Function& constructor,
                                           const Object& argument);
 
   const TypeArguments* TranslateTypeArguments(const Function& target,
-                                              dart::Class* target_klass);
+                                              Class* target_klass);
 
   void AssertBool() {
     if (!result_.IsBool()) {
@@ -291,8 +714,6 @@ class StreamingConstantEvaluator {
   Script& script_;
   Instance& result_;
 };
-
-class FunctionNodeHelper;
 
 class StreamingFlowGraphBuilder {
  public:
@@ -392,10 +813,10 @@ class StreamingFlowGraphBuilder {
   StringIndex ReadStringReference();
   NameIndex ReadCanonicalNameReference();
   StringIndex ReadNameAsStringIndex();
-  const dart::String& ReadNameAsMethodName();
-  const dart::String& ReadNameAsGetterName();
-  const dart::String& ReadNameAsSetterName();
-  const dart::String& ReadNameAsFieldName();
+  const String& ReadNameAsMethodName();
+  const String& ReadNameAsGetterName();
+  const String& ReadNameAsSetterName();
+  const String& ReadNameAsFieldName();
   void SkipStringReference();
   void SkipCanonicalNameReference();
   void SkipDartType();
@@ -423,7 +844,7 @@ class StreamingFlowGraphBuilder {
   void record_yield_position(TokenPosition position);
   Tag ReadTag(uint8_t* payload = NULL);
   Tag PeekTag(uint8_t* payload = NULL);
-  word ReadFlags();
+  uint8_t ReadFlags() { return reader_->ReadFlags(); }
 
   void loop_depth_inc();
   void loop_depth_dec();
@@ -452,16 +873,16 @@ class StreamingFlowGraphBuilder {
   Value* Pop();
 
   Tag PeekArgumentsFirstPositionalTag();
-  const TypeArguments& PeekArgumentsInstantiatedType(const dart::Class& klass);
+  const TypeArguments& PeekArgumentsInstantiatedType(const Class& klass);
   intptr_t PeekArgumentsCount();
   intptr_t PeekArgumentsTypeCount();
   void SkipArgumentsBeforeActualArguments();
 
   LocalVariable* LookupVariable(intptr_t kernel_offset);
   LocalVariable* MakeTemporary();
-  Token::Kind MethodKind(const dart::String& name);
-  dart::RawFunction* LookupMethodByMember(NameIndex target,
-                                          const dart::String& method_name);
+  Token::Kind MethodKind(const String& name);
+  RawFunction* LookupMethodByMember(NameIndex target,
+                                    const String& method_name);
 
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
@@ -483,33 +904,34 @@ class StreamingFlowGraphBuilder {
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,
-                      const Array& argument_names);
+                      const Array& argument_names,
+                      intptr_t type_args_len = 0);
   Fragment InstanceCall(TokenPosition position,
-                        const dart::String& name,
+                        const String& name,
                         Token::Kind kind,
                         intptr_t argument_count,
                         intptr_t checked_argument_count = 1);
   Fragment InstanceCall(TokenPosition position,
-                        const dart::String& name,
+                        const String& name,
                         Token::Kind kind,
                         intptr_t type_args_len,
                         intptr_t argument_count,
                         const Array& argument_names,
-                        intptr_t checked_argument_count);
+                        intptr_t checked_argument_count,
+                        const Function& interface_target);
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();
   Fragment TranslateInstantiatedTypeArguments(
       const TypeArguments& type_arguments);
   Fragment StrictCompare(Token::Kind kind, bool number_check = false);
   Fragment AllocateObject(TokenPosition position,
-                          const dart::Class& klass,
+                          const Class& klass,
                           intptr_t argument_count);
-  Fragment AllocateObject(const dart::Class& klass,
-                          const Function& closure_function);
+  Fragment AllocateObject(const Class& klass, const Function& closure_function);
   Fragment AllocateContext(intptr_t size);
   Fragment LoadField(intptr_t offset);
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
-  Fragment StoreStaticField(TokenPosition position, const dart::Field& field);
+  Fragment StoreStaticField(TokenPosition position, const Field& field);
   Fragment StoreInstanceField(TokenPosition position, intptr_t offset);
   Fragment StringInterpolate(TokenPosition position);
   Fragment StringInterpolateSingle(TokenPosition position);
@@ -543,11 +965,11 @@ class StreamingFlowGraphBuilder {
   Fragment Goto(JoinEntryInstr* destination);
   Fragment BuildImplicitClosureCreation(const Function& target);
   Fragment CheckBooleanInCheckedMode();
-  Fragment CheckAssignableInCheckedMode(const dart::AbstractType& dst_type,
-                                        const dart::String& dst_name);
+  Fragment CheckAssignableInCheckedMode(const AbstractType& dst_type,
+                                        const String& dst_name);
   Fragment CheckVariableTypeInCheckedMode(intptr_t variable_kernel_position);
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
-                                          const dart::String& name_symbol);
+                                          const String& name_symbol);
   Fragment EnterScope(intptr_t kernel_offset, bool* new_context = NULL);
   Fragment ExitScope(intptr_t kernel_offset);
 
@@ -626,8 +1048,8 @@ class StreamingFlowGraphBuilder {
   Fragment BuildFunctionDeclaration();
   Fragment BuildFunctionNode(TokenPosition parent_position,
                              StringIndex name_index);
-  void SetupFunctionParameters(const dart::Class& klass,
-                               const dart::Function& function,
+  void SetupFunctionParameters(const Class& klass,
+                               const Function& function,
                                bool is_method,
                                bool is_closure,
                                FunctionNodeHelper* function_node_helper);
@@ -707,866 +1129,6 @@ class AlternativeReadingScope {
   const uint8_t* saved_raw_buffer_;
   const TypedData* saved_typed_data_;
   intptr_t saved_offset_;
-};
-
-// Helper class that reads a kernel FunctionNode from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// "Dumb" fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a "non-dumb" field (e.g. an expression) it will be skipped.
-class FunctionNodeHelper {
- public:
-  enum Fields {
-    kStart,  // tag.
-    kPosition,
-    kEndPosition,
-    kAsyncMarker,
-    kDartAsyncMarker,
-    kTypeParameters,
-    kTotalParameterCount,
-    kRequiredParameterCount,
-    kPositionalParameters,
-    kNamedParameters,
-    kReturnType,
-    kBody,
-    kEnd
-  };
-
-  explicit FunctionNodeHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kStart;
-  }
-
-  void ReadUntilIncluding(Fields field) {
-    ReadUntilExcluding(static_cast<Fields>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Fields field) {
-    if (field <= next_read_) return;
-
-    // Ordered with fall-through.
-    switch (next_read_) {
-      case kStart: {
-        Tag tag = builder_->ReadTag();  // read tag.
-        ASSERT(tag == kFunctionNode);
-        if (++next_read_ == field) return;
-      }
-      case kPosition:
-        position_ = builder_->ReadPosition();  // read position.
-        if (++next_read_ == field) return;
-      case kEndPosition:
-        end_position_ = builder_->ReadPosition();  // read end position.
-        if (++next_read_ == field) return;
-      case kAsyncMarker:
-        async_marker_ = static_cast<FunctionNode::AsyncMarker>(
-            builder_->ReadByte());  // read async marker.
-        if (++next_read_ == field) return;
-      case kDartAsyncMarker:
-        dart_async_marker_ = static_cast<FunctionNode::AsyncMarker>(
-            builder_->ReadByte());  // read dart async marker.
-        if (++next_read_ == field) return;
-      case kTypeParameters:
-        builder_->SkipTypeParametersList();  // read type parameters.
-        if (++next_read_ == field) return;
-      case kTotalParameterCount:
-        total_parameter_count_ =
-            builder_->ReadUInt();  // read total parameter count.
-        if (++next_read_ == field) return;
-      case kRequiredParameterCount:
-        required_parameter_count_ =
-            builder_->ReadUInt();  // read required parameter count.
-        if (++next_read_ == field) return;
-      case kPositionalParameters:
-        builder_->SkipListOfVariableDeclarations();  // read positionals.
-        if (++next_read_ == field) return;
-      case kNamedParameters:
-        builder_->SkipListOfVariableDeclarations();  // read named.
-        if (++next_read_ == field) return;
-      case kReturnType:
-        builder_->SkipDartType();  // read return type.
-        if (++next_read_ == field) return;
-      case kBody:
-        if (builder_->ReadTag() == kSomething)
-          builder_->SkipStatement();  // read body.
-        if (++next_read_ == field) return;
-      case kEnd:
-        return;
-    }
-  }
-
-  void SetNext(Fields field) { next_read_ = field; }
-  void SetJustRead(Fields field) {
-    next_read_ = field;
-    ++next_read_;
-  }
-
-  TokenPosition position_;
-  TokenPosition end_position_;
-  FunctionNode::AsyncMarker async_marker_;
-  FunctionNode::AsyncMarker dart_async_marker_;
-  intptr_t total_parameter_count_;
-  intptr_t required_parameter_count_;
-
- private:
-  StreamingFlowGraphBuilder* builder_;
-  intptr_t next_read_;
-};
-
-// Helper class that reads a kernel VariableDeclaration from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// "Dumb" fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a "non-dumb" field (e.g. an expression) it will be skipped.
-class VariableDeclarationHelper {
- public:
-  enum Fields {
-    kPosition,
-    kEqualPosition,
-    kFlags,
-    kNameIndex,
-    kType,
-    kInitializer,
-    kEnd
-  };
-
-  explicit VariableDeclarationHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kPosition;
-  }
-
-  void ReadUntilIncluding(Fields field) {
-    ReadUntilExcluding(static_cast<Fields>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Fields field) {
-    if (field <= next_read_) return;
-
-    // Ordered with fall-through.
-    switch (next_read_) {
-      case kPosition:
-        position_ = builder_->ReadPosition();  // read position.
-        if (++next_read_ == field) return;
-      case kEqualPosition:
-        equals_position_ = builder_->ReadPosition();  // read equals position.
-        if (++next_read_ == field) return;
-      case kFlags:
-        flags_ = builder_->ReadFlags();  // read flags.
-        if (++next_read_ == field) return;
-      case kNameIndex:
-        name_index_ = builder_->ReadStringReference();  // read name index.
-        if (++next_read_ == field) return;
-      case kType:
-        builder_->SkipDartType();  // read type.
-        if (++next_read_ == field) return;
-      case kInitializer:
-        if (builder_->ReadTag() == kSomething)
-          builder_->SkipExpression();  // read initializer.
-        if (++next_read_ == field) return;
-      case kEnd:
-        return;
-    }
-  }
-
-  void SetNext(Fields field) { next_read_ = field; }
-  void SetJustRead(Fields field) {
-    next_read_ = field;
-    ++next_read_;
-  }
-
-  bool IsConst() {
-    return (flags_ & VariableDeclaration::kFlagConst) ==
-           VariableDeclaration::kFlagConst;
-  }
-  bool IsFinal() {
-    return (flags_ & VariableDeclaration::kFlagFinal) ==
-           VariableDeclaration::kFlagFinal;
-  }
-
-  TokenPosition position_;
-  TokenPosition equals_position_;
-  word flags_;
-  StringIndex name_index_;
-
- private:
-  StreamingFlowGraphBuilder* builder_;
-  intptr_t next_read_;
-};
-
-// Helper class that reads a kernel Field from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// "Dumb" fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a "non-dumb" field (e.g. an expression) it will be skipped.
-class FieldHelper {
- public:
-  enum Fields {
-    kStart,  // tag.
-    kCanonicalName,
-    kPosition,
-    kEndPosition,
-    kFlags,
-    kName,
-    kSourceUriIndex,
-    kDocumentationCommentIndex,
-    kAnnotations,
-    kType,
-    kInitializer,
-    kEnd
-  };
-
-  explicit FieldHelper(StreamingFlowGraphBuilder* builder)
-      : builder_(builder),
-        next_read_(kStart),
-        has_function_literal_initializer_(false) {}
-
-  FieldHelper(StreamingFlowGraphBuilder* builder, intptr_t offset)
-      : builder_(builder),
-        next_read_(kStart),
-        has_function_literal_initializer_(false) {
-    builder_->SetOffset(offset);
-  }
-
-  void ReadUntilIncluding(Fields field) {
-    ReadUntilExcluding(static_cast<Fields>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Fields field,
-                          bool detect_function_literal_initializer = false) {
-    if (field <= next_read_) return;
-
-    // Ordered with fall-through.
-    switch (next_read_) {
-      case kStart: {
-        Tag tag = builder_->ReadTag();  // read tag.
-        ASSERT(tag == kField);
-        if (++next_read_ == field) return;
-      }
-      case kCanonicalName:
-        canonical_name_ =
-            builder_->ReadCanonicalNameReference();  // read canonical_name.
-        if (++next_read_ == field) return;
-      case kPosition:
-        position_ = builder_->ReadPosition(false);  // read position.
-        if (++next_read_ == field) return;
-      case kEndPosition:
-        end_position_ = builder_->ReadPosition(false);  // read end position.
-        if (++next_read_ == field) return;
-      case kFlags:
-        flags_ = builder_->ReadFlags();  // read flags.
-        if (++next_read_ == field) return;
-      case kName:
-        builder_->SkipName();  // read name.
-        if (++next_read_ == field) return;
-      case kSourceUriIndex:
-        source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
-        builder_->current_script_id_ = source_uri_index_;
-        builder_->record_token_position(position_);
-        builder_->record_token_position(end_position_);
-        if (++next_read_ == field) return;
-      case kDocumentationCommentIndex:
-        builder_->ReadStringReference();
-        if (++next_read_ == field) return;
-      case kAnnotations: {
-        annotation_count_ = builder_->ReadListLength();  // read list length.
-        for (intptr_t i = 0; i < annotation_count_; ++i) {
-          builder_->SkipExpression();  // read ith expression.
-        }
-        if (++next_read_ == field) return;
-      }
-      case kType:
-        builder_->SkipDartType();  // read type.
-        if (++next_read_ == field) return;
-      case kInitializer:
-        if (builder_->ReadTag() == kSomething) {
-          if (detect_function_literal_initializer &&
-              builder_->PeekTag() == kFunctionExpression) {
-            AlternativeReadingScope alt(builder_->reader_);
-            Tag tag = builder_->ReadTag();
-            ASSERT(tag == kFunctionExpression);
-            builder_->ReadPosition();  // read position.
-
-            FunctionNodeHelper helper(builder_);
-            helper.ReadUntilIncluding(FunctionNodeHelper::kEndPosition);
-
-            has_function_literal_initializer_ = true;
-            function_literal_start_ = helper.position_;
-            function_literal_end_ = helper.end_position_;
-          }
-          builder_->SkipExpression();  // read initializer.
-        }
-        if (++next_read_ == field) return;
-      case kEnd:
-        return;
-    }
-  }
-
-  void SetNext(Fields field) { next_read_ = field; }
-  void SetJustRead(Fields field) {
-    next_read_ = field;
-    ++next_read_;
-  }
-
-  bool IsConst() { return (flags_ & Field::kFlagConst) == Field::kFlagConst; }
-  bool IsFinal() { return (flags_ & Field::kFlagFinal) == Field::kFlagFinal; }
-  bool IsStatic() {
-    return (flags_ & Field::kFlagStatic) == Field::kFlagStatic;
-  }
-
-  bool FieldHasFunctionLiteralInitializer(TokenPosition* start,
-                                          TokenPosition* end) {
-    if (has_function_literal_initializer_) {
-      *start = function_literal_start_;
-      *end = function_literal_end_;
-    }
-    return has_function_literal_initializer_;
-  }
-
-  NameIndex canonical_name_;
-  TokenPosition position_;
-  TokenPosition end_position_;
-  word flags_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
-
- private:
-  StreamingFlowGraphBuilder* builder_;
-  intptr_t next_read_;
-
-  bool has_function_literal_initializer_;
-  TokenPosition function_literal_start_;
-  TokenPosition function_literal_end_;
-};
-
-// Helper class that reads a kernel Procedure from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// "Dumb" fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a "non-dumb" field (e.g. an expression) it will be skipped.
-class ProcedureHelper {
- public:
-  enum Fields {
-    kStart,  // tag.
-    kCanonicalName,
-    kPosition,
-    kEndPosition,
-    kKind,
-    kFlags,
-    kName,
-    kSourceUriIndex,
-    kDocumentationCommentIndex,
-    kAnnotations,
-    kFunction,
-    kEnd
-  };
-
-  explicit ProcedureHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kStart;
-  }
-
-  void ReadUntilIncluding(Fields field) {
-    ReadUntilExcluding(static_cast<Fields>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Fields field) {
-    if (field <= next_read_) return;
-
-    // Ordered with fall-through.
-    switch (next_read_) {
-      case kStart: {
-        Tag tag = builder_->ReadTag();  // read tag.
-        ASSERT(tag == kProcedure);
-        if (++next_read_ == field) return;
-      }
-      case kCanonicalName:
-        canonical_name_ =
-            builder_->ReadCanonicalNameReference();  // read canonical_name.
-        if (++next_read_ == field) return;
-      case kPosition:
-        position_ = builder_->ReadPosition(false);  // read position.
-        if (++next_read_ == field) return;
-      case kEndPosition:
-        end_position_ = builder_->ReadPosition(false);  // read end position.
-        if (++next_read_ == field) return;
-      case kKind:
-        kind_ = static_cast<Procedure::ProcedureKind>(
-            builder_->ReadByte());  // read kind.
-        if (++next_read_ == field) return;
-      case kFlags:
-        flags_ = builder_->ReadFlags();  // read flags.
-        if (++next_read_ == field) return;
-      case kName:
-        builder_->SkipName();  // read name.
-        if (++next_read_ == field) return;
-      case kSourceUriIndex:
-        source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
-        builder_->current_script_id_ = source_uri_index_;
-        builder_->record_token_position(position_);
-        builder_->record_token_position(end_position_);
-        if (++next_read_ == field) return;
-      case kDocumentationCommentIndex:
-        builder_->ReadStringReference();
-        if (++next_read_ == field) return;
-      case kAnnotations: {
-        annotation_count_ = builder_->ReadListLength();  // read list length.
-        for (intptr_t i = 0; i < annotation_count_; ++i) {
-          builder_->SkipExpression();  // read ith expression.
-        }
-        if (++next_read_ == field) return;
-      }
-      case kFunction:
-        if (builder_->ReadTag() == kSomething)
-          builder_->SkipFunctionNode();  // read function node.
-        if (++next_read_ == field) return;
-      case kEnd:
-        return;
-    }
-  }
-
-  void SetNext(Fields field) { next_read_ = field; }
-  void SetJustRead(Fields field) {
-    next_read_ = field;
-    ++next_read_;
-  }
-
-  bool IsStatic() {
-    return (flags_ & Procedure::kFlagStatic) == Procedure::kFlagStatic;
-  }
-  bool IsAbstract() {
-    return (flags_ & Procedure::kFlagAbstract) == Procedure::kFlagAbstract;
-  }
-  bool IsExternal() {
-    return (flags_ & Procedure::kFlagExternal) == Procedure::kFlagExternal;
-  }
-  bool IsConst() {
-    return (flags_ & Procedure::kFlagConst) == Procedure::kFlagConst;
-  }
-
-  NameIndex canonical_name_;
-  TokenPosition position_;
-  TokenPosition end_position_;
-  Procedure::ProcedureKind kind_;
-  word flags_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
-
- private:
-  StreamingFlowGraphBuilder* builder_;
-  intptr_t next_read_;
-};
-
-// Helper class that reads a kernel Constructor from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// "Dumb" fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a "non-dumb" field (e.g. an expression) it will be skipped.
-class ConstructorHelper {
- public:
-  enum Fields {
-    kStart,  // tag.
-    kCanonicalName,
-    kPosition,
-    kEndPosition,
-    kFlags,
-    kName,
-    kDocumentationCommentIndex,
-    kAnnotations,
-    kFunction,
-    kInitializers,
-    kEnd
-  };
-
-  explicit ConstructorHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kStart;
-  }
-
-  void ReadUntilIncluding(Fields field) {
-    ReadUntilExcluding(static_cast<Fields>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Fields field) {
-    if (field <= next_read_) return;
-
-    // Ordered with fall-through.
-    switch (next_read_) {
-      case kStart: {
-        Tag tag = builder_->ReadTag();  // read tag.
-        ASSERT(tag == kConstructor);
-        if (++next_read_ == field) return;
-      }
-      case kCanonicalName:
-        canonical_name_ =
-            builder_->ReadCanonicalNameReference();  // read canonical_name.
-        if (++next_read_ == field) return;
-      case kPosition:
-        position_ = builder_->ReadPosition();  // read position.
-        if (++next_read_ == field) return;
-      case kEndPosition:
-        end_position_ = builder_->ReadPosition();  // read end position.
-        if (++next_read_ == field) return;
-      case kFlags:
-        flags_ = builder_->ReadFlags();  // read flags.
-        if (++next_read_ == field) return;
-      case kName:
-        builder_->SkipName();  // read name.
-        if (++next_read_ == field) return;
-      case kDocumentationCommentIndex:
-        builder_->ReadStringReference();
-        if (++next_read_ == field) return;
-      case kAnnotations: {
-        annotation_count_ = builder_->ReadListLength();  // read list length.
-        for (intptr_t i = 0; i < annotation_count_; ++i) {
-          builder_->SkipExpression();  // read ith expression.
-        }
-        if (++next_read_ == field) return;
-      }
-      case kFunction:
-        builder_->SkipFunctionNode();  // read function.
-        if (++next_read_ == field) return;
-      case kInitializers: {
-        intptr_t list_length =
-            builder_->ReadListLength();  // read initializers list length.
-        for (intptr_t i = 0; i < list_length; i++) {
-          Tag tag = builder_->ReadTag();
-          builder_->ReadByte();  // read isSynthetic.
-          switch (tag) {
-            case kInvalidInitializer:
-              continue;
-            case kFieldInitializer:
-              builder_->SkipCanonicalNameReference();  // read field_reference.
-              builder_->SkipExpression();              // read value.
-              continue;
-            case kSuperInitializer:
-              builder_->SkipCanonicalNameReference();  // read target_reference.
-              builder_->SkipArguments();               // read arguments.
-              continue;
-            case kRedirectingInitializer:
-              builder_->SkipCanonicalNameReference();  // read target_reference.
-              builder_->SkipArguments();               // read arguments.
-              continue;
-            case kLocalInitializer:
-              builder_->SkipVariableDeclaration();  // read variable.
-              continue;
-            default:
-              UNREACHABLE();
-          }
-        }
-        if (++next_read_ == field) return;
-      }
-      case kEnd:
-        return;
-    }
-  }
-
-  void SetNext(Fields field) { next_read_ = field; }
-  void SetJustRead(Fields field) {
-    next_read_ = field;
-    ++next_read_;
-  }
-
-  bool IsExternal() {
-    return (flags_ & Constructor::kFlagExternal) == Constructor::kFlagExternal;
-  }
-  bool IsConst() {
-    return (flags_ & Constructor::kFlagConst) == Constructor::kFlagConst;
-  }
-
-  NameIndex canonical_name_;
-  TokenPosition position_;
-  TokenPosition end_position_;
-  word flags_;
-  intptr_t annotation_count_;
-
- private:
-  StreamingFlowGraphBuilder* builder_;
-  intptr_t next_read_;
-};
-
-// Helper class that reads a kernel Class from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// "Dumb" fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a "non-dumb" field (e.g. an expression) it will be skipped.
-class ClassHelper {
- public:
-  enum Fields {
-    kStart,  // tag.
-    kCanonicalName,
-    kPosition,
-    kEndPosition,
-    kIsAbstract,
-    kNameIndex,
-    kSourceUriIndex,
-    kDocumentationCommentIndex,
-    kAnnotations,
-    kTypeParameters,
-    kSuperClass,
-    kMixinType,
-    kImplementedClasses,
-    kFields,
-    kConstructors,
-    kProcedures,
-    kEnd
-  };
-
-  explicit ClassHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kStart;
-  }
-
-  void ReadUntilIncluding(Fields field) {
-    ReadUntilExcluding(static_cast<Fields>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Fields field) {
-    if (field <= next_read_) return;
-
-    // Ordered with fall-through.
-    switch (next_read_) {
-      case kStart: {
-        Tag tag = builder_->ReadTag();  // read tag.
-        ASSERT(tag == kClass);
-        if (++next_read_ == field) return;
-      }
-      case kCanonicalName:
-        canonical_name_ =
-            builder_->ReadCanonicalNameReference();  // read canonical_name.
-        if (++next_read_ == field) return;
-      case kPosition:
-        position_ = builder_->ReadPosition(false);  // read position.
-        if (++next_read_ == field) return;
-      case kEndPosition:
-        end_position_ = builder_->ReadPosition();  // read end position.
-        if (++next_read_ == field) return;
-      case kIsAbstract:
-        is_abstract_ = builder_->ReadBool();  // read is_abstract.
-        if (++next_read_ == field) return;
-      case kNameIndex:
-        name_index_ = builder_->ReadStringReference();  // read name index.
-        if (++next_read_ == field) return;
-      case kSourceUriIndex:
-        source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
-        builder_->current_script_id_ = source_uri_index_;
-        builder_->record_token_position(position_);
-        if (++next_read_ == field) return;
-      case kDocumentationCommentIndex:
-        builder_->ReadStringReference();
-        if (++next_read_ == field) return;
-      case kAnnotations: {
-        annotation_count_ = builder_->ReadListLength();  // read list length.
-        for (intptr_t i = 0; i < annotation_count_; ++i) {
-          builder_->SkipExpression();  // read ith expression.
-        }
-        if (++next_read_ == field) return;
-      }
-      case kTypeParameters:
-        builder_->SkipTypeParametersList();  // read type parameters.
-        if (++next_read_ == field) return;
-      case kSuperClass: {
-        Tag type_tag = builder_->ReadTag();  // read super class type (part 1).
-        if (type_tag == kSomething) {
-          builder_->SkipDartType();  // read super class type (part 2).
-        }
-        if (++next_read_ == field) return;
-      }
-      case kMixinType: {
-        Tag type_tag = builder_->ReadTag();  // read mixin type (part 1).
-        if (type_tag == kSomething) {
-          builder_->SkipDartType();  // read mixin type (part 2).
-        }
-        if (++next_read_ == field) return;
-      }
-      case kImplementedClasses:
-        builder_->SkipListOfDartTypes();  // read implemented_classes.
-        if (++next_read_ == field) return;
-      case kFields: {
-        intptr_t list_length =
-            builder_->ReadListLength();  // read fields list length.
-        for (intptr_t i = 0; i < list_length; i++) {
-          FieldHelper field_helper(builder_);
-          field_helper.ReadUntilExcluding(FieldHelper::kEnd);  // read field.
-        }
-        if (++next_read_ == field) return;
-      }
-      case kConstructors: {
-        intptr_t list_length =
-            builder_->ReadListLength();  // read constructors list length.
-        for (intptr_t i = 0; i < list_length; i++) {
-          ConstructorHelper constructor_helper(builder_);
-          constructor_helper.ReadUntilExcluding(
-              ConstructorHelper::kEnd);  // read constructor.
-        }
-        if (++next_read_ == field) return;
-      }
-      case kProcedures: {
-        intptr_t list_length =
-            builder_->ReadListLength();  // read procedures list length.
-        for (intptr_t i = 0; i < list_length; i++) {
-          ProcedureHelper procedure_helper(builder_);
-          procedure_helper.ReadUntilExcluding(
-              ProcedureHelper::kEnd);  // read procedure.
-        }
-        if (++next_read_ == field) return;
-      }
-      case kEnd:
-        return;
-    }
-  }
-
-  void SetNext(Fields field) { next_read_ = field; }
-  void SetJustRead(Fields field) {
-    next_read_ = field;
-    ++next_read_;
-  }
-
-  NameIndex canonical_name_;
-  TokenPosition position_;
-  TokenPosition end_position_;
-  bool is_abstract_;
-  StringIndex name_index_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
-
- private:
-  StreamingFlowGraphBuilder* builder_;
-  intptr_t next_read_;
-};
-
-// Helper class that reads a kernel Library from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// "Dumb" fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a "non-dumb" field (e.g. an expression) it will be skipped.
-class LibraryHelper {
- public:
-  enum Fields {
-    kFlags,
-    kCanonicalName,
-    kName,
-    kSourceUriIndex,
-    kAnnotations,
-    kDependencies,
-    kParts,
-    kTypedefs,
-    kClasses,
-    kToplevelField,
-    kToplevelProcedures,
-    kEnd
-  };
-
-  explicit LibraryHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kFlags;
-  }
-
-  void ReadUntilIncluding(Fields field) {
-    ReadUntilExcluding(static_cast<Fields>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Fields field) {
-    if (field <= next_read_) return;
-
-    // Ordered with fall-through.
-    switch (next_read_) {
-      case kFlags: {
-        word flags = builder_->ReadFlags();  // read flags.
-        ASSERT(flags == 0);                  // external libraries not supported
-        if (++next_read_ == field) return;
-      }
-      case kCanonicalName:
-        canonical_name_ =
-            builder_->ReadCanonicalNameReference();  // read canonical_name.
-        if (++next_read_ == field) return;
-      case kName:
-        name_index_ = builder_->ReadStringReference();  // read name index.
-        if (++next_read_ == field) return;
-      case kSourceUriIndex:
-        source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
-        builder_->current_script_id_ = source_uri_index_;
-        if (++next_read_ == field) return;
-      case kAnnotations:
-        builder_->SkipListOfExpressions();  // read annotations.
-        if (++next_read_ == field) return;
-      case kDependencies: {
-        intptr_t dependency_count = builder_->ReadUInt();  // read list length.
-        for (intptr_t i = 0; i < dependency_count; ++i) {
-          builder_->SkipLibraryDependency();
-        }
-        if (++next_read_ == field) return;
-      }
-      case kParts: {
-        intptr_t part_count = builder_->ReadUInt();  // read list length.
-        for (intptr_t i = 0; i < part_count; ++i) {
-          builder_->SkipLibraryPart();
-        }
-        if (++next_read_ == field) return;
-      }
-      case kTypedefs: {
-        intptr_t typedef_count =
-            builder_->ReadListLength();  // read list length.
-        for (intptr_t i = 0; i < typedef_count; i++) {
-          builder_->SkipLibraryTypedef();
-        }
-        if (++next_read_ == field) return;
-      }
-      case kClasses: {
-        int class_count = builder_->ReadListLength();  // read list length.
-        for (intptr_t i = 0; i < class_count; ++i) {
-          ClassHelper class_helper(builder_);
-          class_helper.ReadUntilExcluding(ClassHelper::kEnd);
-        }
-        if (++next_read_ == field) return;
-      }
-      case kToplevelField: {
-        intptr_t field_count = builder_->ReadListLength();  // read list length.
-        for (intptr_t i = 0; i < field_count; ++i) {
-          FieldHelper field_helper(builder_);
-          field_helper.ReadUntilExcluding(FieldHelper::kEnd);
-        }
-        if (++next_read_ == field) return;
-      }
-      case kToplevelProcedures: {
-        intptr_t procedure_count =
-            builder_->ReadListLength();  // read list length.
-        for (intptr_t i = 0; i < procedure_count; ++i) {
-          ProcedureHelper procedure_helper(builder_);
-          procedure_helper.ReadUntilExcluding(ProcedureHelper::kEnd);
-        }
-        if (++next_read_ == field) return;
-      }
-      case kEnd:
-        return;
-    }
-  }
-
-  void SetNext(Fields field) { next_read_ = field; }
-  void SetJustRead(Fields field) {
-    next_read_ = field;
-    ++next_read_;
-  }
-
-  NameIndex canonical_name_;
-  StringIndex name_index_;
-  intptr_t source_uri_index_;
-
- private:
-  StreamingFlowGraphBuilder* builder_;
-  intptr_t next_read_;
 };
 
 }  // namespace kernel

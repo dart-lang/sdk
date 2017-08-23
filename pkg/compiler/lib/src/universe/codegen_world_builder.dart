@@ -588,10 +588,8 @@ class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {
     parameters.orderedForEachParameter((_parameter) {
       ParameterElement parameter = _parameter;
       ConstantValue value;
-      if (parameter.constant != null) {
+      if (parameter.isOptional) {
         value = _constants.getConstantValue(parameter.constant);
-      } else {
-        value = new NullConstantValue();
       }
       f(parameter.type, parameter.name, value);
     });

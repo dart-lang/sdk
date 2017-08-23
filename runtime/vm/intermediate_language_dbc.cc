@@ -251,10 +251,11 @@ EMIT_NATIVE_CODE(PolymorphicInstanceCall,
   }
 
   if (using_ranges) {
-    __ PushPolymorphicInstanceCallByRange(instance_call()->ArgumentCount(),
-                                          length);
+    __ PushPolymorphicInstanceCallByRange(
+        instance_call()->ArgumentCountWithoutTypeArgs(), length);
   } else {
-    __ PushPolymorphicInstanceCall(instance_call()->ArgumentCount(), length);
+    __ PushPolymorphicInstanceCall(
+        instance_call()->ArgumentCountWithoutTypeArgs(), length);
   }
   for (intptr_t i = 0; i < length; i++) {
     const Function& target = *targets_.TargetAt(i)->target;

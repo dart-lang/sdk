@@ -777,8 +777,8 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
 typedef struct {
   int32_t version;
   const char* name;  // [optional] The name of the embedder
-  uintptr_t current_rss;  // [optional] the current RSS of the embedder
-  uintptr_t max_rss;  // [optional] the maximum RSS of the embedder
+  int64_t current_rss;  // [optional] the current RSS of the embedder
+  int64_t max_rss;  // [optional] the maximum RSS of the embedder
 } Dart_EmbedderInformation;
 
 /**

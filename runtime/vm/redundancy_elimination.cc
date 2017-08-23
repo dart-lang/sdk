@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/redundancy_elimination.h"
 
 #include "vm/bit_vector.h"
@@ -27,48 +25,24 @@ DEFINE_FLAG(bool,
 
 class CSEInstructionMap : public ValueObject {
  public:
-  // Right now CSE and LICM track a single effect: possible externalization of
-  // strings.
-  // Other effects like modifications of fields are tracked in a separate load
-  // forwarding pass via Alias structure.
-  COMPILE_ASSERT(EffectSet::kLastEffect == 1);
-
-  CSEInstructionMap() : independent_(), dependent_() {}
+  CSEInstructionMap() : map_() {}
   explicit CSEInstructionMap(const CSEInstructionMap& other)
-      : ValueObject(),
-        independent_(other.independent_),
-        dependent_(other.dependent_) {}
-
-  void RemoveAffected(EffectSet effects) {
-    if (!effects.IsNone()) {
-      dependent_.Clear();
-    }
-  }
+      : ValueObject(), map_(other.map_) {}
 
   Instruction* Lookup(Instruction* other) const {
-    return GetMapFor(other)->LookupValue(other);
+    ASSERT(other->AllowsCSE());
+    return map_.LookupValue(other);
   }
 
-  void Insert(Instruction* instr) { return GetMapFor(instr)->Insert(instr); }
+  void Insert(Instruction* instr) {
+    ASSERT(instr->AllowsCSE());
+    return map_.Insert(instr);
+  }
 
  private:
   typedef DirectChainedHashMap<PointerKeyValueTrait<Instruction> > Map;
 
-  Map* GetMapFor(Instruction* instr) {
-    return instr->Dependencies().IsNone() ? &independent_ : &dependent_;
-  }
-
-  const Map* GetMapFor(Instruction* instr) const {
-    return instr->Dependencies().IsNone() ? &independent_ : &dependent_;
-  }
-
-  // All computations that are not affected by any side-effect.
-  // Majority of computations are not affected by anything and will be in
-  // this map.
-  Map independent_;
-
-  // All computations that are affected by side effect.
-  Map dependent_;
+  Map map_;
 };
 
 // Place describes an abstract location (e.g. field) that IR can load
@@ -1389,8 +1363,6 @@ void LICM::Optimize() {
   ZoneGrowableArray<BitVector*>* loop_invariant_loads =
       flow_graph()->loop_invariant_loads();
 
-  BlockEffects* block_effects = flow_graph()->block_effects();
-
   for (intptr_t i = 0; i < loop_headers.length(); ++i) {
     BlockEntryInstr* header = loop_headers[i];
     // Skip loop that don't have a pre-header block.
@@ -1402,8 +1374,7 @@ void LICM::Optimize() {
       BlockEntryInstr* block = flow_graph()->preorder()[loop_it.Current()];
       for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
         Instruction* current = it.Current();
-        if ((current->AllowsCSE() &&
-             block_effects->CanBeMovedTo(current, pre_header)) ||
+        if (current->AllowsCSE() ||
             IsLoopInvariantLoad(loop_invariant_loads, i, current)) {
           bool inputs_loop_invariant = true;
           for (int i = 0; i < current->InputCount(); ++i) {
@@ -1599,7 +1570,7 @@ class LoadOptimizer : public ValueObject {
         }
 
         // If instruction has effects then kill all loads affected.
-        if (!instr->Effects().IsNone()) {
+        if (instr->HasUnknownSideEffects()) {
           kill->AddAll(aliased_set_->aliased_by_effects());
           // There is no need to clear out_values when removing values from GEN
           // set because only those values that are in the GEN set
@@ -2115,8 +2086,7 @@ class LoadOptimizer : public ValueObject {
   bool CanBeCongruent(Definition* a, Definition* b) {
     return (a->tag() == b->tag()) &&
            ((a->IsPhi() && (a->GetBlock() == b->GetBlock())) ||
-            (a->AllowsCSE() && a->Dependencies().IsNone() &&
-             a->AttributesEqual(b)));
+            (a->AllowsCSE() && a->AttributesEqual(b)));
   }
 
   // Given two definitions check if they are congruent under assumption that
@@ -2358,23 +2328,17 @@ bool DominatorBasedCSE::OptimizeRecursive(FlowGraph* graph,
     Instruction* current = it.Current();
     if (current->AllowsCSE()) {
       Instruction* replacement = map->Lookup(current);
-      if ((replacement != NULL) &&
-          graph->block_effects()->IsAvailableAt(replacement, block)) {
+
+      if (replacement != NULL) {
         // Replace current with lookup result.
+        ASSERT(replacement->AllowsCSE());
         graph->ReplaceCurrentInstruction(&it, current, replacement);
         changed = true;
         continue;
       }
 
-      // For simplicity we assume that instruction either does not depend on
-      // anything or does not affect anything. If this is not the case then
-      // we should first remove affected instructions from the map and
-      // then add instruction to the map so that it does not kill itself.
-      ASSERT(current->Effects().IsNone() || current->Dependencies().IsNone());
       map->Insert(current);
     }
-
-    map->RemoveAffected(current->Effects());
   }
 
   // Process children in the dominator tree recursively.
@@ -2521,7 +2485,7 @@ class StoreOptimizer : public LivenessAnalysis {
         }
 
         // Handle side effects, deoptimization and function return.
-        if (!instr->Effects().IsNone() || instr->CanDeoptimize() ||
+        if (instr->HasUnknownSideEffects() || instr->CanDeoptimize() ||
             instr->IsThrow() || instr->IsReThrow() || instr->IsReturn()) {
           // Instructions that return from the function, instructions with side
           // effects and instructions that can deoptimize are considered as
@@ -3336,5 +3300,3 @@ void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
 }
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

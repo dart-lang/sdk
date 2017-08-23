@@ -62,8 +62,8 @@ class _KernelDartTypes extends DartTypes {
 
   @override
   FunctionType getCallType(InterfaceType type) {
-    // TODO(redemption): Compute the call type.
-    return null;
+    DartType callType = elementMap._getCallType(type);
+    return callType is FunctionType ? callType : null;
   }
 
   @override
@@ -119,7 +119,7 @@ abstract class _AbstractTypeRelationMixin
   @override
   FunctionType getCallType(InterfaceType type) {
     // TODO(redemption): Compute the call type.
-    return null;
+    return elementMap._getCallType(type);
   }
 
   @override

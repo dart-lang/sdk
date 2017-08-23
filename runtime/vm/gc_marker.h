@@ -27,14 +27,13 @@ class GCMarker : public ValueObject {
 
   void MarkObjects(Isolate* isolate,
                    PageSpace* page_space,
-                   bool invoke_api_callbacks,
                    bool collect_code);
 
   intptr_t marked_words() { return marked_bytes_ >> kWordSizeLog2; }
 
  private:
-  void Prologue(Isolate* isolate, bool invoke_api_callbacks);
-  void Epilogue(Isolate* isolate, bool invoke_api_callbacks);
+  void Prologue(Isolate* isolate);
+  void Epilogue(Isolate* isolate);
   void IterateRoots(Isolate* isolate,
                     ObjectPointerVisitor* visitor,
                     intptr_t slice_index,

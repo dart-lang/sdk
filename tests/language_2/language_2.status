@@ -10,7 +10,7 @@ assertion_initializer_const_error2_test/cc02: Fail
 assertion_initializer_const_error_test/01: Fail
 assertion_initializer_const_function_error_test/01: Fail
 
-[ ! $checked ]
+[ !$checked && $compiler != dartdevc ]
 function_type/*: Skip # Needs checked mode.
 
 [ $hot_reload || $hot_reload_rollback ]

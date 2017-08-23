@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/flow_graph_range_analysis.h"
 
 #include "vm/bit_vector.h"
@@ -475,9 +473,7 @@ const Range* RangeAnalysis::GetIntRange(Value* value) const {
 static bool AreEqualDefinitions(Definition* a, Definition* b) {
   a = UnwrapConstraint(a);
   b = UnwrapConstraint(b);
-  return (a == b) ||
-         (a->AllowsCSE() && a->Dependencies().IsNone() && b->AllowsCSE() &&
-          b->Dependencies().IsNone() && a->Equals(b));
+  return (a == b) || (a->AllowsCSE() && b->AllowsCSE() && a->Equals(b));
 }
 
 static bool DependOnSameSymbol(const RangeBoundary& a, const RangeBoundary& b) {
@@ -2968,5 +2964,3 @@ bool CheckArrayBoundInstr::IsRedundant(const RangeBoundary& length) {
 }
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

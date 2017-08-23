@@ -22,6 +22,7 @@ import '../equivalence/id_equivalence_helper.dart';
 const List<String> dataDirectories = const <String>[
   '../closure/data',
   '../inference/data',
+  '../jumps/data',
 ];
 
 main() {
@@ -36,19 +37,27 @@ main() {
             annotatedCode, computeAstMemberData, compileFromSource);
         IdData data2 = await computeData(
             annotatedCode, computeIrMemberData, compileFromDill);
-        data1.actualMap.forEach((Id id, String value1) {
-          String value2 = data2.actualMap[id];
+        data1.actualMap.forEach((Id id, ActualData actualData1) {
+          String value1 = actualData1.value;
+          String value2 = data2.actualMap[id]?.value;
           if (value1 != value2) {
-            reportHere(data1.compiler.reporter, data1.sourceSpanMap[id],
+            reportHere(data1.compiler.reporter, actualData1.sourceSpan,
                 '$id: from source:${value1},from dill:${value2}');
+            print('--annotations diff----------------------------------------');
+            print(data1.computeDiffCodeFor(data2));
+            print('----------------------------------------------------------');
           }
           Expect.equals(value1, value2, 'Value mismatch for $id');
         });
-        data2.actualMap.forEach((Id id, String value2) {
-          String value1 = data1.actualMap[id];
+        data2.actualMap.forEach((Id id, ActualData actualData2) {
+          String value2 = actualData2.value;
+          String value1 = data1.actualMap[id]?.value;
           if (value1 != value2) {
-            reportHere(data2.compiler.reporter, data2.sourceSpanMap[id],
+            reportHere(data2.compiler.reporter, actualData2.sourceSpan,
                 '$id: from source:${value1},from dill:${value2}');
+            print('--annotations diff----------------------------------------');
+            print(data1.computeDiffCodeFor(data2));
+            print('----------------------------------------------------------');
           }
           Expect.equals(value1, value2, 'Value mismatch for $id');
         });
@@ -62,15 +71,13 @@ main() {
 ///
 /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
 /// for the data origin.
-void computeAstMemberData(Compiler compiler, MemberEntity _member,
-    Map<Id, String> actualMap, Map<Id, SourceSpan> sourceSpanMap,
+void computeAstMemberData(
+    Compiler compiler, MemberEntity _member, Map<Id, ActualData> actualMap,
     {bool verbose: false}) {
   MemberElement member = _member;
   ResolvedAst resolvedAst = member.resolvedAst;
   if (resolvedAst.kind != ResolvedAstKind.PARSED) return;
-  new ResolvedAstComputer(
-          compiler.reporter, actualMap, sourceSpanMap, resolvedAst)
-      .run();
+  new ResolvedAstComputer(compiler.reporter, actualMap, resolvedAst).run();
 }
 
 /// Mixin used for0computing a descriptive mapping of the [Id]s in a member.
@@ -86,33 +93,49 @@ class ComputerMixin {
     return 'local:$localName';
   }
 
-  String computeDynamicGetName(String propertyName) {
-    return 'dynamic-get:$propertyName';
+  String computeGetName(String propertyName) {
+    return 'get:$propertyName';
   }
 
-  String computeDynamicInvokeName(String propertyName) {
-    return 'dynamic-invoke:$propertyName';
+  String computeInvokeName(String propertyName) {
+    return 'invoke:$propertyName';
   }
+
+  String get loopName => 'loop';
+
+  String get gotoName => 'goto';
 }
 
 /// AST visitor for computing a descriptive mapping of the [Id]s in a member.
-class ResolvedAstComputer extends AbstractResolvedAstComputer
-    with ComputerMixin {
-  ResolvedAstComputer(DiagnosticReporter reporter, Map<Id, String> actualMap,
-      Map<Id, SourceSpan> spannableMap, ResolvedAst resolvedAst)
-      : super(reporter, actualMap, spannableMap, resolvedAst);
+class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
+  ResolvedAstComputer(DiagnosticReporter reporter,
+      Map<Id, ActualData> actualMap, ResolvedAst resolvedAst)
+      : super(reporter, actualMap, resolvedAst);
 
   @override
   String computeNodeValue(ast.Node node, AstElement element) {
     if (element != null && element.isLocal) {
       return computeLocalName(element.name);
     }
+    if (node is ast.Loop) {
+      return loopName;
+    } else if (node is ast.GotoStatement) {
+      return gotoName;
+    }
+
+    dynamic sendStructure;
     if (node is ast.Send) {
-      dynamic sendStructure = elements.getSendStructure(node);
+      sendStructure = elements.getSendStructure(node);
       if (sendStructure == null) return null;
 
       String getDynamicName() {
         switch (sendStructure.semantics.kind) {
+          case AccessKind.PARAMETER:
+          case AccessKind.FINAL_PARAMETER:
+          case AccessKind.LOCAL_VARIABLE:
+          case AccessKind.FINAL_LOCAL_VARIABLE:
+          case AccessKind.LOCAL_FUNCTION:
+            return sendStructure.semantics.element.name;
           case AccessKind.DYNAMIC_PROPERTY:
             DynamicAccess access = sendStructure.semantics;
             return access.name.text;
@@ -124,16 +147,25 @@ class ResolvedAstComputer extends AbstractResolvedAstComputer
       switch (sendStructure.kind) {
         case SendStructureKind.GET:
           String dynamicName = getDynamicName();
-          if (dynamicName != null) return computeDynamicGetName(dynamicName);
+          if (dynamicName != null) return computeGetName(dynamicName);
           break;
+        case SendStructureKind.BINARY:
+          return computeInvokeName(sendStructure.operator.selectorName);
+        case SendStructureKind.EQUALS:
+          return computeInvokeName('==');
+        case SendStructureKind.NOT_EQUALS:
+          return computeInvokeName('!=');
         case SendStructureKind.INVOKE:
           String dynamicName = getDynamicName();
-          if (dynamicName != null) return computeDynamicInvokeName(dynamicName);
+          if (dynamicName != null) return computeInvokeName(dynamicName);
           break;
         default:
       }
     }
-    return '<unknown:$node>';
+    if (sendStructure != null) {
+      return '<unknown:$node (${node.runtimeType}) $sendStructure>';
+    }
+    return '<unknown:$node (${node.runtimeType})>';
   }
 
   @override
@@ -147,21 +179,20 @@ class ResolvedAstComputer extends AbstractResolvedAstComputer
 ///
 /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
 /// for the data origin.
-void computeIrMemberData(Compiler compiler, MemberEntity member,
-    Map<Id, String> actualMap, Map<Id, Spannable> spannableMap,
+void computeIrMemberData(
+    Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
     {bool verbose: false}) {
   KernelBackendStrategy backendStrategy = compiler.backendStrategy;
   KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
   MemberDefinition definition = elementMap.getMemberDefinition(member);
   assert(definition.kind == MemberKind.regular,
       failedAt(member, "Unexpected member definition $definition"));
-  new IrComputer(actualMap, spannableMap).run(definition.node);
+  new IrComputer(actualMap).run(definition.node);
 }
 
 /// IR visitor for computing a descriptive mapping of the [Id]s in a member.
-class IrComputer extends AbstractIrComputer with ComputerMixin {
-  IrComputer(Map<Id, String> actualMap, Map<Id, SourceSpan> spannableMap)
-      : super(actualMap, spannableMap);
+class IrComputer extends IrDataExtractor with ComputerMixin {
+  IrComputer(Map<Id, ActualData> actualMap) : super(actualMap);
 
   @override
   String computeNodeValue(ir.TreeNode node) {
@@ -172,11 +203,23 @@ class IrComputer extends AbstractIrComputer with ComputerMixin {
     } else if (node is ir.FunctionExpression) {
       return computeLocalName('');
     } else if (node is ir.MethodInvocation) {
-      return computeDynamicInvokeName(node.name.name);
+      return computeInvokeName(node.name.name);
     } else if (node is ir.PropertyGet) {
-      return computeDynamicGetName(node.name.name);
+      return computeGetName(node.name.name);
+    } else if (node is ir.VariableGet) {
+      return computeGetName(node.variable.name);
+    } else if (node is ir.DoStatement) {
+      return loopName;
+    } else if (node is ir.ForStatement) {
+      return loopName;
+    } else if (node is ir.ForInStatement) {
+      return loopName;
+    } else if (node is ir.WhileStatement) {
+      return loopName;
+    } else if (node is ir.BreakStatement) {
+      return gotoName;
     }
-    return '<unknown:$node>';
+    return '<unknown:$node (${node.runtimeType})>';
   }
 
   @override

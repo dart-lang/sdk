@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -687,35 +686,6 @@ class FileSystemState {
   final Set<String> knownFilePaths = new Set<String>();
 
   /**
-   * The paths of files that were added to the set of known files since the
-   * last [knownFilesSetChanges] notification.
-   */
-  final Set<String> _addedKnownFiles = new Set<String>();
-
-  /**
-   * If not `null`, this delay will be awaited instead of the default one.
-   */
-  Duration _knownFilesSetChangesDelay;
-
-  /**
-   * The instance of timer that is scheduled to send a new update to the
-   * [knownFilesSetChanges] stream, or `null` if there are no changes to the
-   * set of known files to notify the stream about.
-   */
-  Timer _knownFilesSetChangesTimer;
-
-  /**
-   * Whether the [knownFilesSetChanges] stream is requested.
-   */
-  bool _knownFilesSetChangesRequested = false;
-
-  /**
-   * The controller for the [knownFilesSetChanges] stream.
-   */
-  final StreamController<KnownFilesSetChange> _knownFilesSetChangesController =
-      new StreamController<KnownFilesSetChange>();
-
-  /**
    * Mapping from a path to the flag whether there is a URI for the path.
    */
   final Map<String, bool> _hasUriForPath = {};
@@ -759,20 +729,6 @@ class FileSystemState {
    */
   List<FileState> get knownFiles =>
       _pathToFiles.values.map((files) => files.first).toList();
-
-  /**
-   * Return the [Stream] that is periodically notified about changes to the
-   * known files set.
-   */
-  Stream<KnownFilesSetChange> get knownFilesSetChanges {
-    // If this is the first (and actually the only) time when the stream is
-    // requested, schedule the timer to send updates.
-    if (!_knownFilesSetChangesRequested) {
-      _knownFilesSetChangesRequested = true;
-      _scheduleKnownFilesSetChange();
-    }
-    return _knownFilesSetChangesController.stream;
-  }
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
@@ -910,28 +866,8 @@ class FileSystemState {
       knownFilePaths.add(path);
       files = <FileState>[];
       _pathToFiles[path] = files;
-      // Schedule the stream update.
-      _addedKnownFiles.add(path);
-      _scheduleKnownFilesSetChange();
     }
     files.add(file);
-  }
-
-  void _scheduleKnownFilesSetChange() {
-    // Schedule the timer only if there is a client who listens the stream.
-    if (!_knownFilesSetChangesRequested) {
-      return;
-    }
-
-    Duration delay = _knownFilesSetChangesDelay ?? new Duration(seconds: 1);
-    _knownFilesSetChangesTimer ??= new Timer(delay, () {
-      Set<String> addedFiles = _addedKnownFiles.toSet();
-      Set<String> removedFiles = new Set<String>();
-      _knownFilesSetChangesController
-          .add(new KnownFilesSetChange(addedFiles, removedFiles));
-      _addedKnownFiles.clear();
-      _knownFilesSetChangesTimer = null;
-    });
   }
 }
 
@@ -952,18 +888,4 @@ class FileSystemStateTestView {
         .where((f) => f._transitiveSignature == null)
         .toSet();
   }
-
-  void set knownFilesDelay(Duration value) {
-    state._knownFilesSetChangesDelay = value;
-  }
-}
-
-/**
- * Information about changes to the known file set.
- */
-class KnownFilesSetChange {
-  final Set<String> added;
-  final Set<String> removed;
-
-  KnownFilesSetChange(this.added, this.removed);
 }

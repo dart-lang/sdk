@@ -164,6 +164,11 @@ main() {
     if (i == 7) break;
     i++;
   } while (i < 10);
+  outer: for (var a in [3, 5]) {
+    for (var b in [2, 4]) {
+      if (a == b) break outer;
+    }
+  }
   print(x);
 }
 '''

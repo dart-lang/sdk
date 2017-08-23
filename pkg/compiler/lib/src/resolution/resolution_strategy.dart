@@ -668,6 +668,12 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  DartType getFieldType(covariant FieldElement field) {
+    field.computeType(_resolution);
+    return field.type;
+  }
+
+  @override
   ResolutionFunctionType getLocalFunctionType(
       covariant LocalFunctionElement function) {
     return function.type;

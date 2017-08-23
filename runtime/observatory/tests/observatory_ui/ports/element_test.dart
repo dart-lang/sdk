@@ -39,6 +39,7 @@ main() {
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');
+    await e.onRendered.first;
     expect(e.querySelectorAll('.port-number').length, equals(elements.length));
     e.remove();
     await e.onRendered.first;

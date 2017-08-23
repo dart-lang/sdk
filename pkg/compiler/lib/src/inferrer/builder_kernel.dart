@@ -106,7 +106,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // previous analysis of [outermostElement].
     ClosureRepresentationInfo closureData = compiler
         .backendStrategy.closureDataLookup
-        .getClosureRepresentationInfo(resolvedAst.element);
+        .getClosureInfoForMember(outermostElement);
     closureData.forEachCapturedVariable((variable, field) {
       locals.setCaptured(variable, field);
     });

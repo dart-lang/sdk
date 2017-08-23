@@ -15,8 +15,6 @@ string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
 error_stack_trace1_test: RuntimeError # Issue 12399
-iterable_return_type_test/01: RuntimeError # Issue 20085
-iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
 
 big_integer_*: Skip # VM specific test.
 compare_to2_test: RuntimeError, OK    # Requires bigint support.
@@ -64,7 +62,6 @@ string_from_environment3_test/03: MissingCompileTimeError
 string_from_environment3_test/04: MissingCompileTimeError
 string_from_environment3_test/05: MissingCompileTimeError
 
-
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 big_integer_parsed_div_rem_vm_test: RuntimeError
 big_integer_parsed_mul_div_vm_test: RuntimeError
@@ -79,7 +76,6 @@ date_time4_test: Crash
 date_time7_test: Crash
 date_time_parse_test: Crash
 date_time_test: Crash
-double_ceil2_test: Crash
 double_floor2_test: Crash
 double_parse_test/01: Crash
 double_parse_test/02: Crash
@@ -100,20 +96,6 @@ for_in_test: Crash
 growable_list_test: Crash
 has_next_iterator_test: Crash
 hash_map2_test: Crash
-iterable_generate_test/01: Crash
-iterable_generate_test/none: Crash
-iterable_join_test: Crash
-iterable_last_test: Crash
-iterable_last_where_test: Crash
-iterable_length_test: Crash
-iterable_mapping_test: Crash
-iterable_reduce_test: Crash
-iterable_return_type_test/01: Crash
-iterable_return_type_test/02: Crash
-iterable_return_type_test/none: Crash
-iterable_single_test: Crash
-iterable_single_where_test: Crash
-iterable_skip_test: Crash
 iterable_skip_while_test: Crash
 iterable_take_test: Crash
 iterable_take_while_test: Crash
@@ -197,7 +179,6 @@ date_time4_test: Crash
 date_time7_test: Crash
 date_time_parse_test: Crash
 date_time_test: Crash
-double_ceil2_test: Crash
 double_floor2_test: Crash
 double_parse_test/01: Crash
 double_parse_test/02: Crash
@@ -241,20 +222,6 @@ iterable_expand_test: Crash
 iterable_first_test: Crash
 iterable_first_where_test: Crash
 iterable_fold_test: Crash
-iterable_generate_test/01: Crash
-iterable_generate_test/none: Crash
-iterable_join_test: Crash
-iterable_last_test: Crash
-iterable_last_where_test: Crash
-iterable_length_test: Crash
-iterable_mapping_test: Crash
-iterable_reduce_test: Crash
-iterable_return_type_test/01: Crash
-iterable_return_type_test/02: Crash
-iterable_return_type_test/none: Crash
-iterable_single_test: Crash
-iterable_single_where_test: Crash
-iterable_skip_test: Crash
 iterable_skip_while_test: Crash
 iterable_take_test: Crash
 iterable_take_while_test: Crash
@@ -348,4 +315,3 @@ symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/09: Crash
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_reserved_word_test/12: Crash
-

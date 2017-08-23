@@ -1329,8 +1329,11 @@ abstract class ElementEnvironment {
   /// `Object`.
   DartType getTypeVariableBound(TypeVariableEntity typeVariable);
 
-  /// Returns the type if [function].
+  /// Returns the type of [function].
   FunctionType getFunctionType(FunctionEntity function);
+
+  /// Returns the type of [field].
+  DartType getFieldType(FieldEntity field);
 
   /// Returns the type of the [local] function.
   FunctionType getLocalFunctionType(Local local);

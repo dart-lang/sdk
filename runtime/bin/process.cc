@@ -369,6 +369,13 @@ void FUNCTION_NAME(ProcessInfo_MaxRSS)(Dart_NativeArguments args) {
   Dart_SetIntegerReturnValue(args, max_rss);
 }
 
+void Process::GetRSSInformation(int64_t* max_rss, int64_t* current_rss) {
+  ASSERT(max_rss != NULL);
+  ASSERT(current_rss != NULL);
+  *max_rss = Process::MaxRSS();
+  *current_rss = Process::CurrentRSS();
+}
+
 }  // namespace bin
 }  // namespace dart
 

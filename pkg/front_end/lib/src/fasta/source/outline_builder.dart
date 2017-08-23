@@ -124,6 +124,12 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void handleInvalidTopLevelDeclaration(Token endToken) {
+    debugEvent("InvalidTopLevelDeclaration");
+    pop(); // metadata star
+  }
+
+  @override
   void endHide(Token hideKeyword) {
     debugEvent("Hide");
     List<String> names = pop();
@@ -287,12 +293,22 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    if (hasName) {
+      // Pop the native clause which in this case is a StringLiteral.
+      pop(); // Char offset.
+      pop(); // String.
+    }
+  }
+
+  @override
   void endClassDeclaration(
       int interfacesCount,
       Token beginToken,
       Token classKeyword,
       Token extendsKeyword,
       Token implementsKeyword,
+      Token nativeToken,
       Token endToken) {
     debugEvent("endClassDeclaration");
     String documentationComment = _getDocumentationComment(beginToken);

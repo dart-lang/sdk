@@ -905,6 +905,7 @@ class MethodElementHandle extends ExecutableElementHandle
   @override
   MethodDeclaration computeNode() => actualElement.computeNode();
 
+  @deprecated
   @override
   FunctionType getReifiedType(DartType objectType) =>
       actualElement.getReifiedType(objectType);

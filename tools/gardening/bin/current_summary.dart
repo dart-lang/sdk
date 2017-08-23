@@ -8,6 +8,7 @@
 /// The results are currently pulled from the second to last build since the
 /// last build might not have completed yet.
 
+import 'dart:async';
 import 'dart:math' hide log;
 import 'dart:io';
 
@@ -27,7 +28,7 @@ void help(ArgParser argParser) {
   print(argParser.usage);
 }
 
-main(List<String> args) async {
+Future main(List<String> args) async {
   ArgParser argParser = createArgParser();
   argParser.addOption('group',
       help: "Restricts the build groups\n"

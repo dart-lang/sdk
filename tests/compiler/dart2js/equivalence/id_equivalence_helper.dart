@@ -7,12 +7,8 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/resolution/tree_elements.dart';
-import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:expect/expect.dart';
-import 'package:kernel/ast.dart' as ir;
 
 import '../annotated_code_helper.dart';
 import '../memory_compiler.dart';
@@ -27,8 +23,8 @@ typedef Future<Compiler> CompileFunction(
 ///
 /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
 /// for the data origin.
-typedef void ComputeMemberDataFunction(Compiler compiler, MemberEntity member,
-    Map<Id, String> actualMap, Map<Id, SourceSpan> sourceSpanMap,
+typedef void ComputeMemberDataFunction(
+    Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
     {bool verbose});
 
 /// Compile [code] from .dart sources.
@@ -67,8 +63,7 @@ Future<IdData> computeData(
   AnnotatedCode code =
       new AnnotatedCode.fromText(annotatedCode, commentStart, commentEnd);
   Map<Id, String> expectedMap = computeExpectedMap(code);
-  Map<Id, String> actualMap = <Id, String>{};
-  Map<Id, SourceSpan> sourceSpanMap = <Id, SourceSpan>{};
+  Map<Id, ActualData> actualMap = <Id, ActualData>{};
   Uri mainUri = Uri.parse('memory:main.dart');
   Compiler compiler = await compileFunction(code, mainUri, options);
   ElementEnvironment elementEnvironment =
@@ -78,30 +73,96 @@ Future<IdData> computeData(
     elementEnvironment.forEachClassMember(cls,
         (ClassEntity declarer, MemberEntity member) {
       if (cls == declarer) {
-        computeMemberData(compiler, member, actualMap, sourceSpanMap,
-            verbose: verbose);
+        computeMemberData(compiler, member, actualMap, verbose: verbose);
       }
     });
   });
   elementEnvironment.forEachLibraryMember(mainLibrary, (MemberEntity member) {
-    computeMemberData(compiler, member, actualMap, sourceSpanMap,
-        verbose: verbose);
+    computeMemberData(compiler, member, actualMap, verbose: verbose);
   });
-  return new IdData(compiler, elementEnvironment, mainUri, expectedMap,
-      actualMap, sourceSpanMap);
+  return new IdData(
+      code, compiler, elementEnvironment, mainUri, expectedMap, actualMap);
 }
 
 /// Data collected by [computeData].
 class IdData {
+  final AnnotatedCode code;
   final Compiler compiler;
   final ElementEnvironment elementEnvironment;
   final Uri mainUri;
   final Map<Id, String> expectedMap;
-  final Map<Id, String> actualMap;
-  final Map<Id, SourceSpan> sourceSpanMap;
+  final Map<Id, ActualData> actualMap;
 
-  IdData(this.compiler, this.elementEnvironment, this.mainUri, this.expectedMap,
-      this.actualMap, this.sourceSpanMap);
+  IdData(this.code, this.compiler, this.elementEnvironment, this.mainUri,
+      this.expectedMap, this.actualMap);
+
+  String withAnnotations(Map<int, String> annotations) {
+    StringBuffer sb = new StringBuffer();
+    int end = 0;
+    for (int offset in annotations.keys.toList()..sort()) {
+      if (offset > end) {
+        sb.write(code.sourceCode.substring(end, offset));
+      }
+      sb.write('/* ');
+      sb.write(annotations[offset]);
+      sb.write(' */');
+      end = offset;
+    }
+    if (end < code.sourceCode.length) {
+      sb.write(code.sourceCode.substring(end));
+    }
+    return sb.toString();
+  }
+
+  String get actualCode {
+    Map<int, String> annotations = <int, String>{};
+    actualMap.forEach((Id id, ActualData data) {
+      annotations[data.sourceSpan.begin] = data.value;
+    });
+    return withAnnotations(annotations);
+  }
+
+  String get diffCode {
+    Map<int, String> annotations = <int, String>{};
+    actualMap.forEach((Id id, ActualData data) {
+      String expected = expectedMap[id];
+      if (data.value != expected) {
+        expected ??= '---';
+        annotations[data.sourceSpan.begin] = '${expected} | ${data.value}';
+      }
+    });
+    expectedMap.forEach((Id id, String expected) {
+      if (!actualMap.containsKey(id)) {
+        int offset = compiler.reporter
+            .spanFromSpannable(
+                computeSpannable(elementEnvironment, mainUri, id))
+            .begin;
+        annotations[offset] = '${expected} | ---';
+      }
+    });
+    return withAnnotations(annotations);
+  }
+
+  String computeDiffCodeFor(IdData other) {
+    Map<int, String> annotations = <int, String>{};
+    actualMap.forEach((Id id, ActualData data1) {
+      ActualData data2 = other.actualMap[id];
+      if (data1.value != data2?.value) {
+        annotations[data1.sourceSpan.begin] =
+            '${data1.value} | ${data2?.value ?? '---'}';
+      }
+    });
+    other.actualMap.forEach((Id id, ActualData data2) {
+      if (!actualMap.containsKey(id)) {
+        int offset = compiler.reporter
+            .spanFromSpannable(
+                computeSpannable(elementEnvironment, mainUri, id))
+            .begin;
+        annotations[offset] = '--- | ${data2.value}';
+      }
+    });
+    return withAnnotations(annotations);
+  }
 }
 
 /// Compiles the [annotatedCode] with the provided [options] and calls
@@ -117,18 +178,32 @@ Future checkCode(
       annotatedCode, computeMemberData, compileFunction,
       options: options, verbose: verbose);
 
-  data.actualMap.forEach((Id id, String actual) {
+  data.actualMap.forEach((Id id, ActualData actualData) {
+    String actual = actualData.value;
     if (!data.expectedMap.containsKey(id)) {
       if (actual != '') {
-        reportHere(data.compiler.reporter, data.sourceSpanMap[id],
-            'Id $id not expected in ${data.expectedMap.keys}');
+        reportHere(
+            data.compiler.reporter,
+            actualData.sourceSpan,
+            'Id $id for ${actualData.object} '
+            '(${actualData.object.runtimeType}) '
+            'not expected in ${data.expectedMap.keys}');
+        print('--annotations diff--------------------------------------------');
+        print(data.diffCode);
+        print('--------------------------------------------------------------');
       }
       Expect.equals('', actual);
     } else {
       String expected = data.expectedMap.remove(id);
       if (actual != expected) {
-        reportHere(data.compiler.reporter, data.sourceSpanMap[id],
-            'expected:${expected},actual:${actual}');
+        reportHere(
+            data.compiler.reporter,
+            actualData.sourceSpan,
+            'Object: ${actualData.object} (${actualData.object.runtimeType}), '
+            'expected: ${expected}, actual: ${actual}');
+        print('--annotations diff--------------------------------------------');
+        print(data.diffCode);
+        print('--------------------------------------------------------------');
       }
       Expect.equals(expected, actual);
     }
@@ -138,7 +213,7 @@ Future checkCode(
     reportHere(
         data.compiler.reporter,
         computeSpannable(data.elementEnvironment, data.mainUri, id),
-        'expected:${expected},actual:null');
+        'Expected $expected for id $id missing in ${data.actualMap.keys}');
   });
   Expect.isTrue(
       data.expectedMap.isEmpty, "Ids not found: ${data.expectedMap}.");
@@ -180,163 +255,4 @@ Map<Id, String> computeExpectedMap(AnnotatedCode code) {
     map[id] = expected;
   }
   return map;
-}
-
-/// Mixin used for computing [Id] data.
-abstract class ComputerMixin {
-  Map<Id, String> get actualMap;
-  Map<Id, SourceSpan> get sourceSpanMap;
-
-  void registerValue(SourceSpan sourceSpan, Id id, String value) {
-    if (id != null && value != null) {
-      sourceSpanMap[id] = sourceSpan;
-      actualMap[id] = value;
-    }
-  }
-}
-
-/// Abstract AST visitor for computing [Id] data.
-abstract class AbstractResolvedAstComputer extends ast.Visitor
-    with AstEnumeratorMixin, ComputerMixin {
-  final DiagnosticReporter reporter;
-  final Map<Id, String> actualMap;
-  final Map<Id, SourceSpan> sourceSpanMap;
-  final ResolvedAst resolvedAst;
-
-  AbstractResolvedAstComputer(
-      this.reporter, this.actualMap, this.sourceSpanMap, this.resolvedAst);
-
-  TreeElements get elements => resolvedAst.elements;
-
-  void computeForElement(AstElement element) {
-    ElementId id = computeElementId(element);
-    if (id == null) return;
-    String value = computeElementValue(element);
-    registerValue(element.sourcePosition, id, value);
-  }
-
-  void computeForNode(ast.Node node, AstElement element) {
-    NodeId id = computeNodeId(node, element);
-    if (id == null) return;
-    String value = computeNodeValue(node, element);
-    SourceSpan sourceSpan = new SourceSpan(resolvedAst.sourceUri,
-        node.getBeginToken().charOffset, node.getEndToken().charEnd);
-    registerValue(sourceSpan, id, value);
-  }
-
-  String computeElementValue(AstElement element);
-
-  String computeNodeValue(ast.Node node, AstElement element);
-
-  void run() {
-    resolvedAst.node.accept(this);
-  }
-
-  visitNode(ast.Node node) {
-    node.visitChildren(this);
-  }
-
-  visitVariableDefinitions(ast.VariableDefinitions node) {
-    for (ast.Node child in node.definitions) {
-      AstElement element = elements[child];
-      if (element == null) {
-        reportHere(reporter, child, 'No element for variable.');
-      } else if (!element.isLocal) {
-        computeForElement(element);
-      } else {
-        computeForNode(child, element);
-      }
-    }
-    visitNode(node);
-  }
-
-  visitFunctionExpression(ast.FunctionExpression node) {
-    AstElement element = elements.getFunctionDefinition(node);
-    if (!element.isLocal) {
-      computeForElement(element);
-    } else {
-      computeForNode(node, element);
-    }
-    visitNode(node);
-  }
-
-  visitSend(ast.Send node) {
-    computeForNode(node, null);
-    visitNode(node);
-  }
-
-  visitSendSet(ast.SendSet node) {
-    computeForNode(node, null);
-    visitNode(node);
-  }
-}
-
-/// Abstract IR visitor for computing [Id] data.
-abstract class AbstractIrComputer extends ir.Visitor
-    with IrEnumeratorMixin, ComputerMixin {
-  final Map<Id, String> actualMap;
-  final Map<Id, SourceSpan> sourceSpanMap;
-
-  AbstractIrComputer(this.actualMap, this.sourceSpanMap);
-
-  void computeForMember(ir.Member member) {
-    ElementId id = computeElementId(member);
-    if (id == null) return;
-    String value = computeMemberValue(member);
-    registerValue(computeSpannable(member), id, value);
-  }
-
-  void computeForNode(ir.TreeNode node) {
-    NodeId id = computeNodeId(node);
-    if (id == null) return;
-    String value = computeNodeValue(node);
-    registerValue(computeSpannable(node), id, value);
-  }
-
-  Spannable computeSpannable(ir.TreeNode node) {
-    return new SourceSpan(
-        Uri.parse(node.location.file), node.fileOffset, node.fileOffset + 1);
-  }
-
-  String computeMemberValue(ir.Member member);
-
-  String computeNodeValue(ir.TreeNode node);
-
-  void run(ir.Node root) {
-    root.accept(this);
-  }
-
-  defaultNode(ir.Node node) {
-    node.visitChildren(this);
-  }
-
-  defaultMember(ir.Member node) {
-    computeForMember(node);
-    super.defaultMember(node);
-  }
-
-  visitMethodInvocation(ir.MethodInvocation node) {
-    computeForNode(node);
-    super.visitMethodInvocation(node);
-  }
-
-  visitPropertyGet(ir.PropertyGet node) {
-    computeForNode(node);
-    super.visitPropertyGet(node);
-  }
-
-  visitVariableDeclaration(ir.VariableDeclaration node) {
-    computeForNode(node);
-    super.visitVariableDeclaration(node);
-  }
-
-  visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    computeForNode(node);
-    super.visitFunctionDeclaration(node);
-  }
-
-  visitFunctionExpression(ir.FunctionExpression node) {
-    computeForNode(node);
-    super.visitFunctionExpression(node);
-  }
 }

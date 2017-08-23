@@ -12,7 +12,7 @@ import '../closure.dart';
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Selectors;
 import '../constants/values.dart';
-import '../common_elements.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/elements.dart'
     show
@@ -578,6 +578,8 @@ class Namer {
     _literalLazyGetterPrefix = new StringBackedName(lazyGetterPrefix);
   }
 
+  ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
+
   CommonElements get _commonElements => _closedWorld.commonElements;
 
   NativeData get _nativeData => _closedWorld.nativeData;
@@ -953,11 +955,26 @@ class Namer {
   }
 
   bool _isShadowingSuperField(FieldEntity element) {
-    ClassEntity cls = element.enclosingClass;
-    if (cls is ClassElement) {
-      return cls.hasFieldShadowedBy(element);
+    assert(element.isField);
+    String fieldName = element.name;
+    bool isPrivate = Name.isPrivateName(fieldName);
+    LibraryEntity memberLibrary = element.library;
+    ClassEntity lookupClass =
+        _elementEnvironment.getSuperClass(element.enclosingClass);
+    while (lookupClass != null) {
+      MemberEntity foundMember =
+          _elementEnvironment.lookupClassMember(lookupClass, fieldName);
+      if (foundMember != null) {
+        if (foundMember.isField) {
+          if (!isPrivate || memberLibrary == foundMember.library) {
+            // Private fields can only be shadowed by a field declared in the
+            // same library.
+            return true;
+          }
+        }
+      }
+      lookupClass = _elementEnvironment.getSuperClass(lookupClass);
     }
-    // TODO(redemption): Support class entities.
     return false;
   }
 

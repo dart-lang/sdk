@@ -383,7 +383,12 @@ abstract class KernelToLocalsMap {
   /// Call to notify that [member] is no longer being inlined.
   void leaveInlinedMember(covariant MemberEntity member);
 
-  /// Returns the [Local] for [node].
+  /// Returns the [Local] for [node]. If [isClosureCallMethod] is true, this
+  /// gives the locals map permission to also look one scope higher within the
+  /// class for the corresponding local. This can happen in the case of free
+  /// variables involved with a closure class.
+  // TODO(efortuna, johnniwinther): convey this information without a boolean
+  // parameter.
   Local getLocalVariable(ir.VariableDeclaration node);
 
   /// Returns the [Local] corresponding to the [node]. The node must be either
@@ -428,8 +433,15 @@ abstract class KernelToLocalsMap {
   JumpTarget getJumpTargetForWhile(ir.WhileStatement node);
 
   /// Returns the [CapturedLoopScope] for the loop [node] in
-  /// [closureClassMaps].
+  /// [closureLookup].
+  // TODO(johnniwinther): Remove this when [KernelAstAdapter] is deleted.
   CapturedLoopScope getCapturedLoopScope(
+      ClosureDataLookup closureLookup, ir.TreeNode node);
+
+  /// Returns the [ClosureRepresentationInfo] for the local function [node] in
+  /// [closureLookup].
+  // TODO(johnniwinther): Remove this when [KernelAstAdapter] is deleted.
+  ClosureRepresentationInfo getClosureRepresentationInfo(
       ClosureDataLookup closureLookup, ir.TreeNode node);
 }
 

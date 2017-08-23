@@ -26,16 +26,24 @@ abstract class BuildbotClient {
 class HttpBuildbotClient implements BuildbotClient {
   final HttpClient _client = new HttpClient();
 
+  static const int maxSkips = 3;
+
   @override
   Future<BuildResult> readResult(BuildUri buildUri) async {
+    int skips = 0;
     Duration timeout;
-    if (buildUri.buildNumber < 0) {
-      timeout = new Duration(seconds: 1);
-    }
+    timeout = new Duration(seconds: 1);
 
     void skipToPreviousBuildNumber() {
       BuildUri prevBuildUri = buildUri.prev();
-      log('Skip build number on ${buildUri} -> ${prevBuildUri.buildNumber}');
+      String message =
+          'Skip build number on ${buildUri} -> ${prevBuildUri.buildNumber}';
+      // Skipping is more serious with an absolute than a relative build.
+      if (buildUri.buildNumber < 0) {
+        log(message);
+      } else {
+        print(message);
+      }
       buildUri = buildUri.prev();
     }
 
@@ -43,13 +51,15 @@ class HttpBuildbotClient implements BuildbotClient {
       try {
         return await readBuildResultFromHttp(_client, buildUri, timeout);
       } on TimeoutException {
-        if (timeout != null) {
+        if (timeout != null && skips < maxSkips) {
+          skips++;
           skipToPreviousBuildNumber();
           continue;
         }
         return null;
       } on HttpException {
-        if (timeout != null) {
+        if (timeout != null && skips < maxSkips) {
+          skips++;
           skipToPreviousBuildNumber();
           continue;
         }

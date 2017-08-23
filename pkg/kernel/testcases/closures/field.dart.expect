@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class C<T extends core::Object> extends core::Object {
-  field dynamic v = MakeClosure<<T extends core::Object>(dynamic) → dynamic, self::C::T>(self::closure#C#v#function, null);
+  field dynamic v = MakeClosure<<T extends core::Object>(dynamic) → dynamic, self::C::T>(self::closure#C#v#function, MakeVector(1));
   final field dynamic y = MakeClosure<() → dynamic>(self::closure#C#y#function, null);
   static final field dynamic z = MakeClosure<() → dynamic>(self::closure#C#z#function, null);
   default constructor •() → void

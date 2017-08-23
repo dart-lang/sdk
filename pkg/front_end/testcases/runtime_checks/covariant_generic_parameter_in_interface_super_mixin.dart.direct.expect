@@ -1,0 +1,36 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class B extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method f(core::int x) → void {}
+}
+abstract class I<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method f(self::I::T x) → void;
+}
+class M extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class C = self::B with self::M implements self::I<core::int> {
+  constructor •() → void
+    : super self::B::•()
+    ;
+}
+static method g1(self::C c) → void {
+  c.f(1);
+}
+static method g2(self::I<core::num> i) → void {
+  i.f(1.5);
+}
+static method test() → void {
+  self::g2(new self::C::•());
+}
+static method main() → void {}

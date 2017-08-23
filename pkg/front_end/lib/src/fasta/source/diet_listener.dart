@@ -101,6 +101,12 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleInvalidTopLevelDeclaration(Token beginToken) {
+    debugEvent("InvalidTopLevelDeclaration");
+    pop(); // metadata star
+  }
+
+  @override
   void handleNoArguments(Token token) {
     debugEvent("NoArguments");
   }
@@ -494,12 +500,18 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    debugEvent("NativeClause");
+  }
+
+  @override
   void endClassDeclaration(
       int interfacesCount,
       Token beginToken,
       Token classKeyword,
       Token extendsKeyword,
       Token implementsKeyword,
+      Token nativeToken,
       Token endToken) {
     debugEvent("ClassDeclaration");
     checkEmpty(beginToken.charOffset);

@@ -48,9 +48,12 @@ single fix contributor.)
 To write a fix contributor, create a class that implements `FixContributor`. The
 interface defines a single method named `computeFixes`. The method has two
 arguments: a `FixesRequest` that describes the errors that should be fixed and a
-`FixCollector` through which fixes are to be added. (If you use the mixins above
-then the list of errors available through the request object will only include
-the errors for which fixes should be returned.)
+`FixCollector` through which fixes are to be added.
+
+If you mix in the class `DartFixesMixin`, then the list of errors available
+through the request object will only include the errors for which fixes should
+be returned and the request will be an instance of `DartFixesRequest`, which
+also has analysis results.
 
 The class `FixContributorMixin` defines a simple implementation of this method
 that captures the two arguments in fields, iterates through the errors, and

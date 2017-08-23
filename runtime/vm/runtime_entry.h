@@ -58,8 +58,7 @@ class RuntimeEntry : public ValueObject {
   uword GetEntryPoint() const;
 
   // Generate code to call the runtime entry.
-  NOT_IN_PRECOMPILED(void Call(Assembler* assembler, intptr_t argument_count)
-                         const);
+  void Call(Assembler* assembler, intptr_t argument_count) const;
 
   void set_next(const RuntimeEntry* next) { next_ = next; }
   const RuntimeEntry* next() const { return next_; }

@@ -175,7 +175,7 @@ class RuntimeTypeGenerator {
       jsAst.Expression thisAccess = new jsAst.This();
       if (!method.isAbstract) {
         ClosureRepresentationInfo closureData =
-            _closureDataLookup.getClosureRepresentationInfo(method);
+            _closureDataLookup.getClosureInfoForMember(method);
         if (closureData != null) {
           ClosureFieldElement thisLocal = closureData.thisFieldEntity;
           if (thisLocal != null) {

@@ -799,8 +799,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       megamorphic_lookup_mutex_(new Mutex()),
       message_handler_(NULL),
       spawn_state_(NULL),
-      gc_prologue_callback_(NULL),
-      gc_epilogue_callback_(NULL),
       defer_finalization_count_(0),
       pending_deopts_(new MallocGrowableArray<PendingLazyDeopt>),
       deopt_context_(NULL),

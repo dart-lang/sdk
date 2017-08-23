@@ -82,9 +82,11 @@ class ScavengeStats {
         promoted_in_words_(promoted_in_words) {}
 
   // Of all data before scavenge, what fraction was found to be garbage?
-  double GarbageFraction() const {
+  // If this scavenge included growth, assume the extra capacity would become
+  // garbage to give the scavenger a chance to stablize at the new capacity.
+  double ExpectedGarbageFraction() const {
     intptr_t survived = after_.used_in_words + promoted_in_words_;
-    return 1.0 - (survived / static_cast<double>(before_.used_in_words));
+    return 1.0 - (survived / static_cast<double>(after_.capacity_in_words));
   }
 
   // Fraction of promotion candidates that survived and was thereby promoted.
@@ -189,7 +191,6 @@ class Scavenger {
 
   // Collect the garbage in this scavenger.
   void Scavenge();
-  void Scavenge(bool invoke_api_callbacks);
 
   // Promote all live objects.
   void Evacuate();
@@ -259,7 +260,7 @@ class Scavenger {
   };
 
   uword FirstObjectStart() const { return to_->start() | object_alignment_; }
-  SemiSpace* Prologue(Isolate* isolate, bool invoke_api_callbacks);
+  SemiSpace* Prologue(Isolate* isolate);
   void IterateStoreBuffers(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateObjectIdTable(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateRoots(Isolate* isolate, ScavengerVisitor* visitor);
@@ -270,7 +271,7 @@ class Scavenger {
   void EnqueueWeakProperty(RawWeakProperty* raw_weak);
   uword ProcessWeakProperty(RawWeakProperty* raw_weak,
                             ScavengerVisitor* visitor);
-  void Epilogue(Isolate* isolate, SemiSpace* from, bool invoke_api_callbacks);
+  void Epilogue(Isolate* isolate, SemiSpace* from);
 
   bool IsUnreachable(RawObject** p);
 

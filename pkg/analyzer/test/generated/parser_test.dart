@@ -42,6 +42,8 @@ main() {
  * which parser is used.
  */
 abstract class AbstractParserTestCase implements ParserTestHelpers {
+  bool get allowNativeClause;
+
   void set enableAssertInitializer(bool value);
 
   void set enableGenericMethodComments(bool value);
@@ -55,6 +57,13 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
    * that specify a URI rather than a library name.
    */
   void set enableUriInPartOf(bool value);
+
+  /**
+   * The error listener to which scanner and parser errors will be reported.
+   *
+   * This field is typically initialized by invoking [createParser].
+   */
+  GatheringErrorListener get listener;
 
   /**
    * Get the parser used by the test.
@@ -88,6 +97,8 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
    * Prepares to parse using tokens scanned from the given [content] string.
    */
   void createParser(String content);
+
+  void expectNotNullIfNoErrors(Object result);
 
   Expression parseAdditiveExpression(String code);
 
@@ -2042,11 +2053,14 @@ void f() {
 }
 
 /**
- * The class `ErrorParserTest` defines parser tests that test the parsing of code to ensure
- * that errors are correctly reported, and in some cases, not reported.
+ * The class `ErrorParserTest` defines parser tests that test the parsing
+ * of code to ensure that errors are correctly reported,
+ * and in some cases, not reported.
  */
 @reflectiveTest
-class ErrorParserTest extends ParserTestCase {
+class ErrorParserTest extends ParserTestCase with ErrorParserTestMixin {}
+
+abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   void test_abstractClassMember_constructor() {
     createParser('abstract C.c();');
     ClassMember member = parser.parseClassMember('C');
@@ -2633,9 +2647,32 @@ class Foo {
     CompilationUnit unit = parseCompilationUnit(
         "export '' class A {}", [ParserErrorCode.EXPECTED_TOKEN]);
     ExportDirective directive = unit.directives[0] as ExportDirective;
+    expect(directive.uri, isNotNull);
+    expect(directive.uri.stringValue, '');
+    expect(directive.uri.beginToken.isSynthetic, false);
+    expect(directive.uri.isSynthetic, false);
     Token semicolon = directive.semicolon;
     expect(semicolon, isNotNull);
     expect(semicolon.isSynthetic, isTrue);
+    ClassDeclaration clazz = unit.declarations[0] as ClassDeclaration;
+    expect(clazz.name.name, 'A');
+  }
+
+  void test_expectedToken_uriAndSemicolonMissingAfterExport() {
+    CompilationUnit unit = parseCompilationUnit("export class A {}", [
+      ParserErrorCode.EXPECTED_STRING_LITERAL,
+      ParserErrorCode.EXPECTED_TOKEN,
+    ]);
+    ExportDirective directive = unit.directives[0] as ExportDirective;
+    expect(directive.uri, isNotNull);
+    expect(directive.uri.stringValue, '');
+    expect(directive.uri.beginToken.isSynthetic, true);
+    expect(directive.uri.isSynthetic, true);
+    Token semicolon = directive.semicolon;
+    expect(semicolon, isNotNull);
+    expect(semicolon.isSynthetic, isTrue);
+    ClassDeclaration clazz = unit.declarations[0] as ClassDeclaration;
+    expect(clazz.name.name, 'A');
   }
 
   void test_expectedToken_semicolonMissingAfterExpression() {
@@ -8272,6 +8309,9 @@ class ParserTestCase extends EngineTestCase
    */
   static bool parseFunctionBodies = true;
 
+  @override
+  bool allowNativeClause = true;
+
   /**
    * A flag indicating whether the parser is to parse asserts in the initializer
    * list of a constructor.
@@ -8306,11 +8346,7 @@ class ParserTestCase extends EngineTestCase
    */
   bool enableUriInPartOf = false;
 
-  /**
-   * The error listener to which scanner and parser errors will be reported.
-   *
-   * This field is typically initialized by invoking [createParser].
-   */
+  @override
   GatheringErrorListener listener;
 
   /**
@@ -8361,6 +8397,7 @@ class ParserTestCase extends EngineTestCase
     parser.currentToken = tokenStream;
   }
 
+  @override
   void expectNotNullIfNoErrors(Object result) {
     if (!listener.hasErrors) {
       expect(result, isNotNull);
@@ -13800,7 +13837,13 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     createParser('class A native "nativeValue" {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expect(member, isNotNull);
-    assertNoErrors();
+    if (!allowNativeClause) {
+      assertErrorsWithCodes([
+        ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
+      ]);
+    } else {
+      assertNoErrors();
+    }
     expect(member, new isInstanceOf<ClassDeclaration>());
     ClassDeclaration declaration = member;
     NativeClause nativeClause = declaration.nativeClause;

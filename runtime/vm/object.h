@@ -360,6 +360,10 @@ class Object {
     ASSERT(null_instance_ != NULL);
     return *null_instance_;
   }
+  static const Function& null_function() {
+    ASSERT(null_function_ != NULL);
+    return *null_function_;
+  }
   static const TypeArguments& null_type_arguments() {
     ASSERT(null_type_arguments_ != NULL);
     return *null_type_arguments_;
@@ -806,6 +810,7 @@ class Object {
   static Array* null_array_;
   static String* null_string_;
   static Instance* null_instance_;
+  static Function* null_function_;
   static TypeArguments* null_type_arguments_;
   static TypeArguments* empty_type_arguments_;
   static Array* empty_array_;
@@ -3375,8 +3380,6 @@ class Field : public Object {
     set_kind_bits(UnboxingCandidateBit::update(b, raw_ptr()->kind_bits_));
   }
 
-  static bool IsExternalizableCid(intptr_t cid);
-
   enum {
     kUnknownLengthOffset = -1,
     kUnknownFixedLength = -1,
@@ -4960,14 +4963,12 @@ class Code : public Object {
     ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(sizeof(RawCode) + (len * kBytesPerElement));
   }
-#if !defined(DART_PRECOMPILED_RUNTIME)
   static RawCode* FinalizeCode(const Function& function,
                                Assembler* assembler,
                                bool optimized = false);
   static RawCode* FinalizeCode(const char* name,
                                Assembler* assembler,
                                bool optimized);
-#endif
   static RawCode* LookupCode(uword pc);
   static RawCode* LookupCodeInVmIsolate(uword pc);
   static RawCode* FindCode(uword pc, int64_t timestamp);
@@ -6929,16 +6930,6 @@ class String : public Instance {
   void* GetPeer() const;
 
   void ToUTF8(uint8_t* utf8_array, intptr_t array_len) const;
-
-  // Copies the string characters into the provided external array
-  // and morphs the string object into an external string object.
-  // The remaining unused part of the original string object is marked as
-  // an Array object or a regular Object so that it can be traversed during
-  // garbage collection.
-  RawString* MakeExternal(void* array,
-                          intptr_t external_size,
-                          void* peer,
-                          Dart_PeerFinalizer cback) const;
 
   // Creates a new String object from a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
