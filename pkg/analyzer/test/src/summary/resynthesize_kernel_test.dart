@@ -14,11 +14,11 @@ import 'package:analyzer/src/kernel/resynthesize.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
-import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/base/libraries_specification.dart';
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/byte_store/byte_store.dart';
+import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/target/targets.dart';
@@ -491,11 +491,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_import_invalidUri_metadata() async {
     await super.test_import_invalidUri_metadata();
-  }
-
-  @failingTest
-  test_import_self() async {
-    await super.test_import_self();
   }
 
   @failingTest

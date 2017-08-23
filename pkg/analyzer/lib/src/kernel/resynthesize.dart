@@ -492,6 +492,9 @@ class _KernelLibraryResynthesizerContextImpl
   _KernelLibraryResynthesizerContextImpl(this.resynthesizer, this.library);
 
   @override
+  kernel.Library get coreLibrary => resynthesizer._kernelMap['dart:core'];
+
+  @override
   LibraryElementImpl getLibrary(String uriStr) {
     return resynthesizer.getLibrary(uriStr);
   }
