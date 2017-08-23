@@ -733,6 +733,7 @@ DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
 // Patches static call in optimized code with the target's entry point.
 // Compiles target if necessary.
 DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
@@ -758,6 +759,9 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
               target_code.is_optimized() ? "optimized" : "unoptimized");
   }
   arguments.SetReturn(target_code);
+#else
+  UNREACHABLE();
+#endif
 }
 
 // Result of an invoke may be an unhandled exception, in which case we
@@ -768,7 +772,7 @@ static void CheckResultError(const Object& result) {
   }
 }
 
-#if defined(PRODUCT)
+#if defined(PRODUCT) || defined(DART_PRECOMPILED_RUNTIME)
 DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   UNREACHABLE();
   return;
@@ -803,9 +807,8 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
 #endif  // !defined(TARGET_ARCH_DBC)
 
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
-#if defined(PRODUCT)
+#if defined(PRODUCT) || defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
-  return;
 #else
   const Error& error =
       Error::Handle(zone, isolate->debugger()->PauseStepping());
@@ -1866,6 +1869,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 // The caller must be a static call in a Dart frame, or an entry frame.
 // Patch static call to point to valid code's entry point.
 DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames, thread,
                               StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
@@ -1898,6 +1902,9 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   }
   ASSERT(!current_target_code.IsDisabled());
   arguments.SetReturn(current_target_code);
+#else
+  UNREACHABLE();
+#endif
 }
 
 // The caller tried to allocate an instance via an invalidated allocation
@@ -2273,9 +2280,13 @@ double DartModulo(double left, double right) {
 //   Arg0: Field object;
 //   Arg1: Value that is being stored.
 DEFINE_RUNTIME_ENTRY(UpdateFieldCid, 2) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   const Field& field = Field::CheckedHandle(arguments.ArgAt(0));
   const Object& value = Object::Handle(arguments.ArgAt(1));
   field.RecordStore(value);
+#else
+  UNREACHABLE();
+#endif
 }
 
 DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {

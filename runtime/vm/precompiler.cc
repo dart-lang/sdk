@@ -2186,7 +2186,17 @@ void Precompiler::BindStaticCalls() {
   };
 
   BindStaticCallsVisitor visitor(Z);
+
+  // We need both iterations to ensure we visit all the functions that might end
+  // up in the snapshot. The ProgramVisitor will miss closures from duplicated
+  // finally clauses, and not all functions are compiled through the
+  // tree-shaker's queue
   ProgramVisitor::VisitFunctions(&visitor);
+  FunctionSet::Iterator it(enqueued_functions_.GetIterator());
+  for (const Function** current = it.Next(); current != NULL;
+       current = it.Next()) {
+    visitor.Visit(**current);
+  }
 }
 
 void Precompiler::SwitchICCalls() {
@@ -2274,7 +2284,17 @@ void Precompiler::SwitchICCalls() {
 
   ASSERT(!I->compilation_allowed());
   SwitchICCallsVisitor visitor(Z);
+
+  // We need both iterations to ensure we visit all the functions that might end
+  // up in the snapshot. The ProgramVisitor will miss closures from duplicated
+  // finally clauses, and not all functions are compiled through the
+  // tree-shaker's queue
   ProgramVisitor::VisitFunctions(&visitor);
+  FunctionSet::Iterator it(enqueued_functions_.GetIterator());
+  for (const Function** current = it.Next(); current != NULL;
+       current = it.Next()) {
+    visitor.Visit(**current);
+  }
 #endif
 }
 
