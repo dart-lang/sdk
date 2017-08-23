@@ -11,6 +11,8 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -85,7 +87,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         reference.addEdit(change, '');
       } else {
         SimpleIdentifier interpolationIdentifier =
-            _getInterpolationIdentifier(reference);
+            await _getInterpolationIdentifier(reference);
         if (interpolationIdentifier != null) {
           doSourceChange_addElementEdit(
               change,
@@ -116,9 +118,12 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
    * an [InterpolationExpression] without surrounding curly brackets, return it.
    * Otherwise return `null`.
    */
-  SimpleIdentifier _getInterpolationIdentifier(SourceReference reference) {
+  Future<SimpleIdentifier> _getInterpolationIdentifier(
+      SourceReference reference) async {
     Source source = reference.element.source;
-    CompilationUnit unit = context.parseCompilationUnit(source);
+    AnalysisSession currentSession = astProvider.driver.currentSession;
+    ParseResult result = await currentSession.getParsedAst(source.fullName);
+    CompilationUnit unit = result.unit;
     NodeLocator nodeLocator = new NodeLocator(reference.range.offset);
     AstNode node = nodeLocator.searchWithin(unit);
     if (node is SimpleIdentifier) {
