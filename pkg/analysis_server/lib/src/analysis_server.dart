@@ -68,7 +68,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/byte_store/file_byte_store.dart';
-import 'package:plugin/plugin.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
@@ -251,11 +250,6 @@ class AnalysisServer {
    * content cache for all contexts.
    */
   final ContentCache overlayState = new ContentCache();
-
-  /**
-   * The plugins that are defined outside the analysis_server package.
-   */
-  List<Plugin> userDefinedPlugins;
 
   /**
    * If the "analysis.analyzedFiles" notification is currently being subscribed

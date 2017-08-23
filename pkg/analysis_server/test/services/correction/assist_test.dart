@@ -21,7 +21,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -109,11 +108,8 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   }
 
   void processRequiredPlugins() {
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-
     ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
+    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
   }
 
   void setUp() {

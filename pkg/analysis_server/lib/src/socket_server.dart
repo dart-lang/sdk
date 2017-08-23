@@ -12,7 +12,6 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:plugin/plugin.dart';
 
 /**
  * Instances of the class [SocketServer] implement the common parts of
@@ -39,11 +38,6 @@ class SocketServer {
    * connection, or `null` if no such connection has yet been established.
    */
   AnalysisServer analysisServer;
-
-  /**
-   * The plugins that are defined outside the analysis_server package.
-   */
-  List<Plugin> userDefinedPlugins;
 
   SocketServer(
       this.analysisServerOptions,
@@ -90,6 +84,5 @@ class SocketServer {
         diagnosticServer: diagnosticServer,
         fileResolverProvider: fileResolverProvider,
         packageResolverProvider: packageResolverProvider);
-    analysisServer.userDefinedPlugins = userDefinedPlugins;
   }
 }

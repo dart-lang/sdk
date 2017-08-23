@@ -16,7 +16,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -36,11 +35,8 @@ main() {
   AnalysisDomainHandler handler;
 
   void processRequiredPlugins() {
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-
     ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
+    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
   }
 
   setUp(() {
@@ -592,11 +588,8 @@ class AnalysisTestHelper {
   }
 
   void processRequiredPlugins() {
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-
     ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
+    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
   }
 
   /**

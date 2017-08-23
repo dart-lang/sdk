@@ -23,7 +23,6 @@ import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
 import 'package:watcher/watcher.dart';
 
@@ -111,15 +110,10 @@ class AbstractAnalysisTest {
 
   AnalysisServer createAnalysisServer() {
     //
-    // Collect plugins
-    //
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    //
     // Process plugins
     //
     ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
+    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
     //
     // Create an SDK in the mock file system.
     //

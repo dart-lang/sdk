@@ -23,7 +23,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 
@@ -267,11 +266,6 @@ class Driver implements ServerStarter {
    */
   ResolverProvider packageResolverProvider;
 
-  /**
-   * The plugins that are defined outside the analysis_server package.
-   */
-  List<Plugin> _userDefinedPlugins = <Plugin>[];
-
   SocketServer socketServer;
 
   HttpAnalysisServer httpServer;
@@ -279,13 +273,6 @@ class Driver implements ServerStarter {
   StdioAnalysisServer stdioServer;
 
   Driver();
-
-  /**
-   * Set the [plugins] that are defined outside the analysis_server package.
-   */
-  void set userDefinedPlugins(List<Plugin> plugins) {
-    _userDefinedPlugins = plugins ?? <Plugin>[];
-  }
 
   /**
    * Use the given command-line [arguments] to start this server.
@@ -355,11 +342,8 @@ class Driver implements ServerStarter {
     //
     // Process all of the plugins so that extensions are registered.
     //
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.addAll(_userDefinedPlugins);
     ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
+    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
     linter.registerLintRules();
 
     String defaultSdkPath;
@@ -417,7 +401,6 @@ class Driver implements ServerStarter {
         packageResolverProvider);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
-    socketServer.userDefinedPlugins = _userDefinedPlugins;
 
     diagnosticServer.httpServer = httpServer;
     if (serve_http) {
