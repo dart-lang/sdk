@@ -273,27 +273,10 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_constructor_initializers_assertInvocation() async {
-    await super.test_constructor_initializers_assertInvocation();
-  }
-
-  @failingTest
-  test_constructor_initializers_assertInvocation_message() async {
-    await super.test_constructor_initializers_assertInvocation_message();
-  }
-
-  @failingTest
   @fastaProblem
   test_constructor_initializers_field_notConst() async {
     // Fasta generates additional `#errors` top-level variable.
     await super.test_constructor_initializers_field_notConst();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_constructor_initializers_field_withParameter() async {
-    // https://github.com/dart-lang/sdk/issues/30251
-    await super.test_constructor_initializers_field_withParameter();
   }
 
   @failingTest
