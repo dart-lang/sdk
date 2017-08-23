@@ -390,8 +390,7 @@ bit_operations_test/04: Crash
 bit_operations_test/none: Crash
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
-bool_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(BoolTest.testLogicalOp#falseCount) is stored in a closure field.
-bool_test: RuntimeError
+bool_test: Crash # 'file:///usr/local/google/home/sra/Dart2/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(BoolTest.testLogicalOp#falseCount) is stored in a closure field.
 bound_closure_equality_test: Crash
 bound_closure_primitives_test: Crash
 branch_canonicalization_test: RuntimeError
@@ -473,11 +472,9 @@ closure_in_field_initializer_test: Crash # 'file:///c:/Users/johnniwinther/dart-
 closure_in_initializer2_test: Crash
 closure_in_initializer_test: Crash
 closure_internals_test: Crash
-closure_parameter_types_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#invokeCount) is stored in a closure field.
-closure_parameter_types_test: RuntimeError
+closure_parameter_types_test: Crash # 'file:///usr/local/google/home/sra/Dart2/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#invokeCount) is stored in a closure field.
 closure_self_reference_test: Crash
-closure_shared_state_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(setupNestedLoop#j) is stored in a closure field.
-closure_shared_state_test: RuntimeError
+closure_shared_state_test: Crash # 'file:///usr/local/google/home/sra/Dart2/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(setupNestedLoop#j) is stored in a closure field.
 closure_type_variable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 closure_type_variables_test: Crash # 'file:///usr/local/google/home/efortuna/dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for local(A.bar#g). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(A$bar_A$bar_closure.call), local(A.bar#g))
 closure_with_super_field_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.returnSuperInClosure#)) for j:closure_call(B_returnSuperInClosure_closure.call).
