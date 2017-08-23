@@ -38,7 +38,7 @@
     `Timeline.{start,finish}Sync` and `Timeline.timeSync`.
 
 ### Dart VM
-* Support for MIPS has been remvoed.
+* Support for MIPS has been removed.
 
 ### Tool Changes
 
