@@ -177,7 +177,6 @@ runtime_checks/contravariant_generic_return: Fail
 runtime_checks/contravariant_generic_return_tear_off: Fail
 runtime_checks/contravariant_getter: Fail
 runtime_checks/covariant_generic_method_type_parameter: Fail
-runtime_checks/covariant_generic_parameter: Fail
 runtime_checks/covariant_generic_parameter_in_interface: Fail
 runtime_checks/covariant_generic_parameter_in_interface_mixin: Fail
 runtime_checks/covariant_generic_parameter_in_interface_super: Fail

@@ -869,6 +869,29 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (interfaceMember is Procedure) {
       isOverloadedArithmeticOperator = typeSchemaEnvironment
           .isOverloadedArithmeticOperatorAndType(interfaceMember, receiverType);
+      if (instrumentation != null) {
+        var semiTypedArguments = <String>[];
+        var function = interfaceMember.function;
+        var positionalParameters = function.positionalParameters;
+        for (int i = 0; i < positionalParameters.length; i++) {
+          if (_isFormalSemiSafe(positionalParameters[i])) {
+            semiTypedArguments.add(i.toString());
+          }
+        }
+        for (var formal in function.namedParameters) {
+          if (_isFormalSemiSafe(formal)) {
+            semiTypedArguments.add(formal.name);
+          }
+        }
+        if (semiTypedArguments.isNotEmpty) {
+          instrumentation.record(
+              Uri.parse(uri),
+              arguments.fileOffset,
+              'checkCall',
+              new InstrumentationValueLiteral(
+                  'interface(semiTyped:${semiTypedArguments.join(',')})'));
+        }
+      }
     }
     var calleeType = getCalleeFunctionType(
         interfaceMember, receiverType, methodName, !isImplicitCall);
@@ -1058,5 +1081,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     for (var namedExpression in arguments.named) {
       callback(namedExpression.name, namedExpression.value);
     }
+  }
+
+  /// Determines if the given formal parameter is semi-safe.
+  ///
+  /// Eventually this information will be stored in the kernel representation,
+  /// so this method will no longer be needed.  TODO(paulberry): remove this
+  /// when it's appropriate to do so.
+  bool _isFormalSemiSafe(VariableDeclaration formal) {
+    return formal is KernelVariableDeclaration && formal.isSemiSafe;
   }
 }

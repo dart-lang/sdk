@@ -496,6 +496,19 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Performed initializer inference");
   }
 
+  /// Annotates method formals that require runtime checks to restore soundness
+  /// as a result of the fact that Dart 2.0 treats all class type parameters as
+  /// covariant.
+  void computeFormalSafety(List<SourceClassBuilder> sourceClasses) {
+    if (target.strongMode) {
+      for (var cls in hierarchy
+          .getOrderedClasses(sourceClasses.map((builder) => builder.target))) {
+        typeInferenceEngine.computeFormalSafety(cls);
+      }
+      ticker.logMs("Computed formal checks");
+    }
+  }
+
   List<Uri> getDependencies() => sourceBytes.keys.toList();
 
   Expression instantiateInvocation(Expression receiver, String name,
