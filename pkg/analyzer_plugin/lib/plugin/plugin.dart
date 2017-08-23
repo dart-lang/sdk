@@ -4,11 +4,12 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
-    show AnalysisDriverGeneric, AnalysisDriverScheduler;
+    show AnalysisDriver, AnalysisDriverGeneric, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -202,7 +203,32 @@ abstract class ServerPlugin {
   }
 
   /**
+   * Return the result of analyzing the file with the given [path].
+   *
+   * Throw a [RequestFailure] is the file cannot be analyzed or if the driver
+   * associated with the file is not an [AnalysisDriver].
+   */
+  Future<ResolveResult> getResolveResult(String path) async {
+    AnalysisDriverGeneric driver = driverForPath(path);
+    if (driver is! AnalysisDriver) {
+      // Return an error from the request.
+      throw new RequestFailure(
+          RequestErrorFactory.pluginError('Failed to analyze $path', null));
+    }
+    ResolveResult result = await (driver as AnalysisDriver).getResult(path);
+    ResultState state = result.state;
+    if (state != ResultState.VALID) {
+      // Return an error from the request.
+      throw new RequestFailure(
+          RequestErrorFactory.pluginError('Failed to analyze $path', null));
+    }
+    return result;
+  }
+
+  /**
    * Handle an 'analysis.getNavigation' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<AnalysisGetNavigationResult> handleAnalysisGetNavigation(
       AnalysisGetNavigationParams params) async {
@@ -212,6 +238,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle an 'analysis.handleWatchEvents' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<AnalysisHandleWatchEventsResult> handleAnalysisHandleWatchEvents(
       AnalysisHandleWatchEventsParams parameters) async {
@@ -236,6 +264,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle an 'analysis.setContextRoots' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<AnalysisSetContextRootsResult> handleAnalysisSetContextRoots(
       AnalysisSetContextRootsParams parameters) async {
@@ -265,6 +295,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle an 'analysis.setPriorityFiles' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<AnalysisSetPriorityFilesResult> handleAnalysisSetPriorityFiles(
       AnalysisSetPriorityFilesParams parameters) async {
@@ -289,6 +321,8 @@ abstract class ServerPlugin {
    * Handle an 'analysis.setSubscriptions' request. Most subclasses should not
    * override this method, but should instead use the [subscriptionManager] to
    * access the list of subscriptions for any given file.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<AnalysisSetSubscriptionsResult> handleAnalysisSetSubscriptions(
       AnalysisSetSubscriptionsParams parameters) async {
@@ -303,6 +337,8 @@ abstract class ServerPlugin {
    * Handle an 'analysis.updateContent' request. Most subclasses should not
    * override this method, but should instead use the [contentCache] to access
    * the current content of overlaid files.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<AnalysisUpdateContentResult> handleAnalysisUpdateContent(
       AnalysisUpdateContentParams parameters) async {
@@ -336,6 +372,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle a 'completion.getSuggestions' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<CompletionGetSuggestionsResult> handleCompletionGetSuggestions(
           CompletionGetSuggestionsParams parameters) async =>
@@ -344,6 +382,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle an 'edit.getAssists' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<EditGetAssistsResult> handleEditGetAssists(
           EditGetAssistsParams parameters) async =>
@@ -353,6 +393,8 @@ abstract class ServerPlugin {
    * Handle an 'edit.getAvailableRefactorings' request. Subclasses that override
    * this method in order to participate in refactorings must also override the
    * method [handleEditGetRefactoring].
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<EditGetAvailableRefactoringsResult> handleEditGetAvailableRefactorings(
           EditGetAvailableRefactoringsParams parameters) async =>
@@ -360,6 +402,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle an 'edit.getFixes' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<EditGetFixesResult> handleEditGetFixes(
           EditGetFixesParams parameters) async =>
@@ -367,6 +411,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle an 'edit.getRefactoring' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<EditGetRefactoringResult> handleEditGetRefactoring(
           EditGetRefactoringParams parameters) async =>
@@ -374,6 +420,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle a 'kythe.getKytheEntries' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<KytheGetKytheEntriesResult> handleKytheGetKytheEntries(
           KytheGetKytheEntriesParams parameters) async =>
@@ -383,6 +431,8 @@ abstract class ServerPlugin {
    * Handle a 'plugin.shutdown' request. Subclasses can override this method to
    * perform any required clean-up, but cannot prevent the plugin from shutting
    * down.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<PluginShutdownResult> handlePluginShutdown(
           PluginShutdownParams parameters) async =>
@@ -390,6 +440,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle a 'plugin.versionCheck' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<PluginVersionCheckResult> handlePluginVersionCheck(
       PluginVersionCheckParams parameters) async {
