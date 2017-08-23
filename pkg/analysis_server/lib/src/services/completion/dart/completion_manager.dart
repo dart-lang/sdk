@@ -7,11 +7,27 @@ import 'dart:async';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
+import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
+import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/inherited_reference_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/label_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/library_prefix_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/local_constructor_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -65,8 +81,29 @@ class DartCompletionManager implements CompletionContributor {
     // Request Dart specific completions from each contributor
     Map<String, CompletionSuggestion> suggestionMap =
         <String, CompletionSuggestion>{};
-    for (DartCompletionContributor contributor
-        in dartCompletionPlugin.contributors) {
+    List<DartCompletionContributor> contributors = <DartCompletionContributor>[
+      new ArgListContributor(),
+      new CombinatorContributor(),
+      new FieldFormalContributor(),
+      new ImportedReferenceContributor(),
+      new InheritedReferenceContributor(),
+      new KeywordContributor(),
+      new LabelContributor(),
+      new LibraryMemberContributor(),
+      new LibraryPrefixContributor(),
+      new LocalConstructorContributor(),
+      new LocalLibraryContributor(),
+      new LocalReferenceContributor(),
+      new NamedConstructorContributor(),
+      // Revisit this contributor and these tests
+      // once DartChangeBuilder API has solidified.
+      // new OverrideContributor(),
+      new StaticMemberContributor(),
+      new TypeMemberContributor(),
+      new UriContributor(),
+      new VariableNameContributor()
+    ];
+    for (DartCompletionContributor contributor in contributors) {
       String contributorTag =
           'DartCompletionManager - ${contributor.runtimeType}';
       performance.logStartTime(contributorTag);

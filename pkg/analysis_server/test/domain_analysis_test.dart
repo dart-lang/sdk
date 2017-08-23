@@ -9,7 +9,6 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -36,10 +35,9 @@ main() {
   AnalysisServer server;
   AnalysisDomainHandler handler;
 
-  void processRequiredPlugins(ServerPlugin serverPlugin) {
+  void processRequiredPlugins() {
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(serverPlugin);
 
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
@@ -48,15 +46,13 @@ main() {
   setUp(() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    ServerPlugin serverPlugin = new ServerPlugin();
-    processRequiredPlugins(serverPlugin);
+    processRequiredPlugins();
     // Create an SDK in the mock file system.
     new MockSdk(resourceProvider: resourceProvider);
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
         new MockPackageMapProvider(),
-        serverPlugin,
         new AnalysisServerOptions(),
         new DartSdkManager('/', false),
         InstrumentationService.NULL_SERVICE);
@@ -431,8 +427,7 @@ class AnalysisTestHelper {
   String testCode;
 
   AnalysisTestHelper() {
-    ServerPlugin serverPlugin = new ServerPlugin();
-    processRequiredPlugins(serverPlugin);
+    processRequiredPlugins();
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
     // Create an SDK in the mock file system.
@@ -441,7 +436,6 @@ class AnalysisTestHelper {
         serverChannel,
         resourceProvider,
         new MockPackageMapProvider(),
-        serverPlugin,
         new AnalysisServerOptions(),
         new DartSdkManager('/', false),
         InstrumentationService.NULL_SERVICE);
@@ -597,10 +591,9 @@ class AnalysisTestHelper {
     expect(response, isResponseSuccess('0'));
   }
 
-  void processRequiredPlugins(ServerPlugin serverPlugin) {
+  void processRequiredPlugins() {
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(serverPlugin);
 
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);

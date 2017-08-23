@@ -19,16 +19,24 @@ import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/new_notifications.dart';
 import 'package:analysis_server/src/context_manager.dart';
+import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analysis_server/src/domain_analytics.dart';
+import 'package:analysis_server/src/domain_completion.dart';
+import 'package:analysis_server/src/domain_diagnostic.dart';
+import 'package:analysis_server/src/domain_execution.dart';
+import 'package:analysis_server/src/domain_kythe.dart';
+import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
+import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
+import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -134,11 +142,6 @@ class AnalysisServer {
    * The [SearchEngine] for this server, may be `null` if indexing is disabled.
    */
   SearchEngine searchEngine;
-
-  /**
-   * The plugin associated with this analysis server.
-   */
-  final ServerPlugin serverPlugin;
 
   /**
    * A list of the globs used to determine which files should be analyzed. The
@@ -340,7 +343,6 @@ class AnalysisServer {
       this.channel,
       this.resourceProvider,
       PubPackageMapProvider packageMapProvider,
-      this.serverPlugin,
       this.options,
       this.sdkManager,
       this.instrumentationService,
@@ -415,7 +417,17 @@ class AnalysisServer {
         .toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
-    handlers = serverPlugin.createDomains(this);
+    handlers = <server.RequestHandler>[
+      new ServerDomainHandler(this),
+      new AnalysisDomainHandler(this),
+      new EditDomainHandler(this),
+      new SearchDomainHandler(this),
+      new CompletionDomainHandler(this),
+      new ExecutionDomainHandler(this),
+      new DiagnosticDomainHandler(this),
+      new AnalyticsDomainHandler(this),
+      new KytheDomainHandler(this)
+    ];
   }
 
   /**
@@ -424,7 +436,13 @@ class AnalysisServer {
   List<Glob> get analyzedFilesGlobs {
     if (_analyzedFilesGlobs == null) {
       _analyzedFilesGlobs = <Glob>[];
-      List<String> patterns = serverPlugin.analyzedFilePatterns;
+      List<String> patterns = <String>[
+        '**/*.${AnalysisEngine.SUFFIX_DART}',
+        '**/*.${AnalysisEngine.SUFFIX_HTML}',
+        '**/*.${AnalysisEngine.SUFFIX_HTM}',
+        '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}',
+        '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}'
+      ];
       for (String pattern in patterns) {
         try {
           _analyzedFilesGlobs

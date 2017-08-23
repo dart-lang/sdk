@@ -1025,7 +1025,6 @@ class PluginsPage extends DiagnosticPageWithNav {
 
     List<Plugin> plugins = [
       AnalysisEngine.instance.enginePlugin,
-      server.serverPlugin
     ];
     plugins.addAll(server.userDefinedPlugins);
     ul(plugins, writePlugin);
