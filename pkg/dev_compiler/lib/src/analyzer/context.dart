@@ -125,8 +125,7 @@ class AnalyzerOptions {
       var pipe = summaryPath.indexOf("=");
       if (pipe != -1) {
         summaryPaths[i] = summaryPath.substring(0, pipe);
-        customSummaryModules[summaryPaths[i]] =
-            summaryPath.substring(pipe + 1);
+        customSummaryModules[summaryPaths[i]] = summaryPath.substring(pipe + 1);
       }
     }
   }

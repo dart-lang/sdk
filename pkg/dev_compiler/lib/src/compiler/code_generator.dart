@@ -44,7 +44,7 @@ import 'js_interop.dart';
 import 'js_metalet.dart' as JS;
 import 'js_names.dart' as JS;
 import 'js_typeref_codegen.dart' show JsTypeRefCodegen;
-import 'js_typerep.dart' show JSTypeRep;
+import 'js_typerep.dart' show JSTypeRep, JSType;
 import 'module_builder.dart' show pathToJSIdentifier;
 import 'nullable_type_inference.dart' show NullableTypeInference;
 import 'property_model.dart';
@@ -135,8 +135,11 @@ class CodeGenerator extends Object
   /// The dart:core `identical` element.
   final FunctionElement _coreIdentical;
 
-  /// The dart:_interceptors JSArray element.
+  /// The dart:_interceptors implementation elements.
   final ClassElement _jsArray;
+  final ClassElement _jsBool;
+  final ClassElement _jsNumber;
+  final ClassElement _jsString;
 
   final ClassElement boolClass;
   final ClassElement intClass;
@@ -205,6 +208,9 @@ class CodeGenerator extends Object
         _coreIdentical =
             _getLibrary(c, 'dart:core').publicNamespace.get('identical'),
         _jsArray = _getLibrary(c, 'dart:_interceptors').getType('JSArray'),
+        _jsBool = _getLibrary(c, 'dart:_interceptors').getType('JSBool'),
+        _jsString = _getLibrary(c, 'dart:_interceptors').getType('JSString'),
+        _jsNumber = _getLibrary(c, 'dart:_interceptors').getType('JSNumber'),
         interceptorClass =
             _getLibrary(c, 'dart:_interceptors').getType('Interceptor'),
         dartCoreLibrary = _getLibrary(c, 'dart:core'),
@@ -2432,6 +2438,9 @@ class CodeGenerator extends Object
         var castType = _emitType(paramElement.type);
         body.add(js.statement('#._check(#);', [castType, jsParam]));
       }
+      if (_annotatedNullCheck(paramElement)) {
+        body.add(nullParameterCheck(jsParam));
+      }
     }
     return body.isEmpty ? null : _statement(body);
   }
@@ -3267,6 +3276,9 @@ class CodeGenerator extends Object
     // (for example, x is IndexExpression) we evaluate those once.
     var vars = <JS.MetaLetVariable, JS.Expression>{};
     var lhs = _bindLeftHandSide(vars, left, context: context);
+    // TODO(leafp): The element for lhs here will be the setter element
+    // instead of the getter element if lhs is a property access. This
+    // interferes with nullability analysis.
     Expression inc = AstBuilder.binaryExpression(lhs, op, right)
       ..staticElement = element
       ..staticType = getStaticType(lhs);
@@ -4050,7 +4062,10 @@ class CodeGenerator extends Object
       var v = variables[0];
       if (v.initializer != null) {
         var name = new JS.Identifier(v.name.name);
-        return _visit<JS.Expression>(v.initializer).toVariableDeclaration(name);
+        var value = _annotatedNullCheck(v.element)
+            ? notNull(v.initializer)
+            : _visit<JS.Expression>(v.initializer);
+        return value.toVariableDeclaration(name);
       }
     }
     return _visit<JS.Expression>(node.variables).toStatement();
@@ -4093,7 +4108,9 @@ class CodeGenerator extends Object
   }
 
   JS.Expression _visitInitializer(VariableDeclaration node) {
-    var value = _visit(node.initializer);
+    var value = _annotatedNullCheck(node.element)
+        ? notNull(node.initializer)
+        : _visit(node.initializer);
     // explicitly initialize to null, to avoid getting `undefined`.
     // TODO(jmesserly): do this only for vars that aren't definitely assigned.
     return value ?? new JS.LiteralNull();
@@ -4253,6 +4270,24 @@ class CodeGenerator extends Object
   }
 
   bool isPrimitiveType(DartType t) => typeRep.isPrimitive(t);
+
+  /// Given a Dart type return the known implementation type, if any.
+  /// Given `bool`, `String`, or `num`/`int`/`double`,
+  /// returns the corresponding type in `dart:_interceptors`:
+  /// `JSBool`, `JSString`, and `JSNumber` respectively, otherwise null.
+  InterfaceType getImplementationType(DartType t) {
+    JSType rep = typeRep.typeFor(t);
+    // Number, String, and Bool are final
+    if (rep == JSType.jsNumber) return _jsNumber.type;
+    if (rep == JSType.jsBoolean) return _jsBool.type;
+    if (rep == JSType.jsString) return _jsString.type;
+    return null;
+  }
+
+  JS.Statement nullParameterCheck(JS.Expression param) {
+    var call = _callHelper('argumentError((#))', [param]);
+    return js.statement('if (# == null) #;', [param, call]);
+  }
 
   JS.Expression notNull(Expression expr) {
     if (expr == null) return null;
@@ -5116,10 +5151,17 @@ class CodeGenerator extends Object
     }
 
     var init = _visit(node.identifier);
+    var iterable = _visit(node.iterable);
+    var body = _visitScope(node.body);
     if (init == null) {
-      init = js.call('let #', node.loopVariable.identifier.name);
+      var name = node.loopVariable.identifier.name;
+      init = js.call('let #', name);
+      if (_annotatedNullCheck(node.loopVariable.element)) {
+        body =
+            new JS.Block([nullParameterCheck(new JS.Identifier(name)), body]);
+      }
     }
-    return new JS.ForOf(init, _visit(node.iterable), _visitScope(node.body));
+    return new JS.ForOf(init, iterable, body);
   }
 
   JS.Statement _emitAwaitFor(ForEachStatement node) {
@@ -5999,3 +6041,6 @@ bool _isDeferredLoadLibrary(Expression target, SimpleIdentifier name) {
   var imports = containingLibrary.getImportsWithPrefix(prefix);
   return imports.length == 1 && imports[0].isDeferred;
 }
+
+bool _annotatedNullCheck(Element e) =>
+    e != null && findAnnotation(e, isNullCheckAnnotation) != null;

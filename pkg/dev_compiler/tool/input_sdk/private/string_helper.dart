@@ -4,18 +4,22 @@
 
 part of dart._js_helper;
 
+@notNull
 int stringIndexOfStringUnchecked(receiver, other, startIndex) {
   return JS('int', '#.indexOf(#, #)', receiver, other, startIndex);
 }
 
+@notNull
 String substring1Unchecked(receiver, startIndex) {
   return JS('String', '#.substring(#)', receiver, startIndex);
 }
 
+@notNull
 String substring2Unchecked(receiver, startIndex, endIndex) {
   return JS('String', '#.substring(#, #)', receiver, startIndex, endIndex);
 }
 
+@notNull
 bool stringContainsStringUnchecked(receiver, other, startIndex) {
   return stringIndexOfStringUnchecked(receiver, other, startIndex) >= 0;
 }
@@ -101,7 +105,9 @@ class _StringAllMatchesIterator implements Iterator<Match> {
   Match get current => _current;
 }
 
-bool stringContainsUnchecked(String receiver, other, int startIndex) {
+@notNull
+bool stringContainsUnchecked(
+    @notNull String receiver, @notNull other, int startIndex) {
   if (other is String) {
     return stringContainsStringUnchecked(receiver, other, startIndex);
   } else if (other is JSSyntaxRegExp) {
@@ -112,6 +118,7 @@ bool stringContainsUnchecked(String receiver, other, int startIndex) {
   }
 }
 
+@notNull
 String stringReplaceJS(receiver, replacer, replacement) {
   // The JavaScript String.replace method recognizes replacement
   // patterns in the replacement string. Dart does not have that
@@ -120,7 +127,8 @@ String stringReplaceJS(receiver, replacer, replacement) {
   return JS('String', r'#.replace(#, #)', receiver, replacer, replacement);
 }
 
-String stringReplaceFirstRE(String receiver, JSSyntaxRegExp regexp,
+@notNull
+String stringReplaceFirstRE(@notNull String receiver, JSSyntaxRegExp regexp,
     String replacement, int startIndex) {
   var match = regexp._execGlobal(receiver, startIndex);
   if (match == null) return receiver;
@@ -131,13 +139,14 @@ String stringReplaceFirstRE(String receiver, JSSyntaxRegExp regexp,
 
 /// Returns a string for a RegExp pattern that matches [string]. This is done by
 /// escaping all RegExp metacharacters.
+@notNull
 String quoteStringForRegExp(string) {
   return JS('String', r'#.replace(/[[\]{}()*+?.\\^$|]/g, "\\$&")', string);
 }
 
-String stringReplaceAllUnchecked(
-    String receiver, Pattern pattern, String replacement) {
-  checkString(replacement);
+@notNull
+String stringReplaceAllUnchecked(@notNull String receiver,
+    @nullCheck Pattern pattern, @nullCheck String replacement) {
   if (pattern is String) {
     if (pattern == "") {
       if (receiver == "") {
@@ -161,7 +170,6 @@ String stringReplaceAllUnchecked(
     var re = regExpGetGlobalNative(pattern);
     return stringReplaceJS(receiver, re, replacement);
   } else {
-    checkNull(pattern);
     // TODO(floitsch): implement generic String.replace (with patterns).
     throw "String.replaceAll(Pattern) UNIMPLEMENTED";
   }
@@ -170,19 +178,17 @@ String stringReplaceAllUnchecked(
 String _matchString(Match match) => match[0];
 String _stringIdentity(String string) => string;
 
-String stringReplaceAllFuncUnchecked(String receiver, Pattern pattern,
-    String onMatch(Match match), String onNonMatch(String nonMatch)) {
+@notNull
+String stringReplaceAllFuncUnchecked(
+    String receiver,
+    @nullCheck Pattern pattern,
+    String onMatch(Match match),
+    String onNonMatch(String nonMatch)) {
   if (onMatch == null) onMatch = _matchString;
   if (onNonMatch == null) onNonMatch = _stringIdentity;
   if (pattern is String) {
     return stringReplaceAllStringFuncUnchecked(
         receiver, pattern, onMatch, onNonMatch);
-  }
-  // Placing the Pattern test here is indistinguishable from placing it at the
-  // top of the method but it saves an extra check on the `pattern is String`
-  // path.
-  if (pattern is! Pattern) {
-    throw new ArgumentError.value(pattern, 'pattern', 'is not a Pattern');
   }
   StringBuffer buffer = new StringBuffer();
   int startIndex = 0;
@@ -195,6 +201,7 @@ String stringReplaceAllFuncUnchecked(String receiver, Pattern pattern,
   return buffer.toString();
 }
 
+@notNull
 String stringReplaceAllEmptyFuncUnchecked(String receiver,
     String onMatch(Match match), String onNonMatch(String nonMatch)) {
   // Pattern is the empty string.
@@ -224,6 +231,7 @@ String stringReplaceAllEmptyFuncUnchecked(String receiver,
   return buffer.toString();
 }
 
+@notNull
 String stringReplaceAllStringFuncUnchecked(String receiver, String pattern,
     String onMatch(Match match), String onNonMatch(String nonMatch)) {
   int patternLength = pattern.length;
@@ -246,8 +254,9 @@ String stringReplaceAllStringFuncUnchecked(String receiver, String pattern,
   return buffer.toString();
 }
 
-String stringReplaceFirstUnchecked(
-    String receiver, Pattern pattern, String replacement, int startIndex) {
+@notNull
+String stringReplaceFirstUnchecked(@notNull String receiver,
+    @nullCheck Pattern pattern, String replacement, int startIndex) {
   if (pattern is String) {
     int index = stringIndexOfStringUnchecked(receiver, pattern, startIndex);
     if (index < 0) return receiver;
@@ -259,13 +268,13 @@ String stringReplaceFirstUnchecked(
         ? stringReplaceJS(receiver, regExpGetNative(pattern), replacement)
         : stringReplaceFirstRE(receiver, pattern, replacement, startIndex);
   }
-  checkNull(pattern);
   Iterator<Match> matches = pattern.allMatches(receiver, startIndex).iterator;
   if (!matches.moveNext()) return receiver;
   Match match = matches.current;
   return receiver.replaceRange(match.start, match.end, replacement);
 }
 
+@notNull
 String stringReplaceFirstMappedUnchecked(String receiver, Pattern pattern,
     String replace(Match current), int startIndex) {
   Iterator<Match> matches = pattern.allMatches(receiver, startIndex).iterator;
@@ -275,10 +284,12 @@ String stringReplaceFirstMappedUnchecked(String receiver, Pattern pattern,
   return receiver.replaceRange(match.start, match.end, replacement);
 }
 
+@notNull
 String stringJoinUnchecked(array, separator) {
   return JS('String', r'#.join(#)', array, separator);
 }
 
+@notNull
 String stringReplaceRangeUnchecked(
     String receiver, int start, int end, String replacement) {
   var prefix = JS('String', '#.substring(0, #)', receiver, start);

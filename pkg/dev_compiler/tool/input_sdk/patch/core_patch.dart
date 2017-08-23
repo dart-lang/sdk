@@ -15,6 +15,8 @@ import 'dart:_js_helper'
         JsLinkedHashMap,
         JSSyntaxRegExp,
         NoInline,
+        notNull,
+        nullCheck,
         objectHashCode,
         Primitives,
         stringJoinUnchecked;
@@ -319,14 +321,14 @@ class Stopwatch {
 @patch
 class List<E> {
   @patch
-  factory List([int length]) {
+  factory List([int _length]) {
     dynamic list;
-    if (length == null) {
+    if (_length == null) {
       list = JS('', '[]');
     } else {
-      // Explicit type test is necessary to guard against JavaScript conversions
-      // in unchecked mode.
-      if ((length is! int) || (length < 0)) {
+      @notNull
+      var length = _length;
+      if (length < 0) {
         throw new ArgumentError(
             "Length must be a non-negative integer: $length");
       }
@@ -339,19 +341,29 @@ class List<E> {
   factory List.filled(int length, E fill, {bool growable: true}) {
     List<E> result = new List<E>(length);
     if (length != 0 && fill != null) {
-      for (int i = 0; i < result.length; i++) {
+      @notNull
+      var length = result.length;
+      for (int i = 0; i < length; i++) {
         result[i] = fill;
       }
     }
     if (growable) return result;
-    return makeListFixedLength/*<E>*/(result);
+    return makeListFixedLength<E>(result);
   }
 
   @patch
   factory List.from(Iterable elements, {bool growable: true}) {
     List<E> list = new List<E>();
-    for (var e in elements) {
-      list.add(e);
+    // Specialize the copy loop for the case that doesn't need a
+    // runtime check.
+    if (elements is Iterable<E>) {
+      for (var e in elements) {
+        list.add(e);
+      }
+    } else {
+      for (var e in elements) {
+        list.add(e as E);
+      }
     }
     if (growable) return list;
     return makeListFixedLength/*<E>*/(list);

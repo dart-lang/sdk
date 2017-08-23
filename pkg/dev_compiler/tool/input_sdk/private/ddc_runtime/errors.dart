@@ -21,6 +21,11 @@ void ignoreAllErrors(bool flag) {
   JS('', 'dart.__ignoreAllErrors = #', flag);
 }
 
+argumentError(value) {
+  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  throw new ArgumentError.value(value);
+}
+
 throwCastError(object, actual, type) {
   var found = typeName(actual);
   var expected = typeName(type);
