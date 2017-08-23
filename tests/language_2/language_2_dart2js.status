@@ -377,11 +377,11 @@ bad_named_parameters_test/05: Crash
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: Crash # type 'KernelField' is not a subtype of type 'Procedure' of 'value' where
 bad_override_test/05: MissingCompileTimeError
-bailout3_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+bailout3_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 bailout4_test: Crash
-bailout5_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-bailout6_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-bailout7_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+bailout5_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+bailout6_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+bailout7_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 bailout_test: Crash
 bit_operations_test/01: Crash
 bit_operations_test/02: Crash
@@ -390,14 +390,14 @@ bit_operations_test/04: Crash
 bit_operations_test/none: Crash
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
-bool_test: Crash # 'file:///usr/local/google/home/sra/Dart2/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(BoolTest.testLogicalOp#falseCount) is stored in a closure field.
+bool_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(BoolTest.testLogicalOp#falseCount) is stored in a closure field.
 bound_closure_equality_test: Crash
 bound_closure_primitives_test: Crash
 branch_canonicalization_test: RuntimeError
 break_test: Crash
 call_closurization_test: Crash
 call_constructor_on_unresolvable_class_test/07: Crash
-call_function2_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+call_function2_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 call_function_apply_test: Crash
 call_nonexistent_constructor_test/01: Crash
 call_nonexistent_constructor_test/02: Crash
@@ -419,7 +419,7 @@ call_with_no_such_method_test: Crash
 canonical_const2_test: RuntimeError
 canonical_const_test: Crash
 cascade2_test: Crash
-cascade_in_expression_function_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+cascade_in_expression_function_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 cast_test/04: RuntimeError
 cast_test/05: RuntimeError
 cast_test/none: RuntimeError
@@ -460,7 +460,7 @@ class_literal_test/24: Crash
 class_literal_test/25: Crash
 class_literal_test: Crash # Assertion failure: Cannot find value local(main_closure.call#x) in (local(main#)) for j:closure_call(main_closure.call).
 class_override_test/00: Crash
-class_syntax2_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+class_syntax2_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 class_test: Crash
 classes_static_method_clash_test: Crash
 closure4_test: Crash
@@ -468,21 +468,21 @@ closure5_test: Crash
 closure6_test: Crash
 closure_cycles_test: Crash
 closure_in_constructor_test: Crash
-closure_in_field_initializer_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+closure_in_field_initializer_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 closure_in_initializer2_test: Crash
 closure_in_initializer_test: Crash
 closure_internals_test: Crash
-closure_parameter_types_test: Crash # 'file:///usr/local/google/home/sra/Dart2/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#invokeCount) is stored in a closure field.
-closure_self_reference_test: Crash
-closure_shared_state_test: Crash # 'file:///usr/local/google/home/sra/Dart2/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(setupNestedLoop#j) is stored in a closure field.
+closure_parameter_types_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#invokeCount) is stored in a closure field.
+closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#inner) is stored in a closure field.
+closure_shared_state_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(setupNestedLoop#j) is stored in a closure field.
 closure_type_variable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-closure_type_variables_test: Crash # 'file:///usr/local/google/home/efortuna/dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for local(A.bar#g). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(A$bar_A$bar_closure.call), local(A.bar#g))
+closure_type_variables_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
 closure_with_super_field_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.returnSuperInClosure#)) for j:closure_call(B_returnSuperInClosure_closure.call).
 closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub_test_closure.call#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
-closures_initializer2_test: Crash # 'file:///usr/local/google/home/efortuna/dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for local(A.#). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(A_closure.call), j:constructor(A.))
-closures_initializer_test: Crash # 'file:///usr/local/google/home/efortuna/dart/sdk/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 192 pos 9: 'closure != null': Corresponding closure class not found for local(B.#). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), local(Closure.fromTearOff#), j:closure_call(Maps_mapToString_closure.call), ..., j:closure_call(A_closure.call), j:constructor(A.))
+closures_initializer2_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 207 pos 9: 'closure != null': Corresponding closure class not found for () → dynamic => #lib1::A::T. Closures found for (() → dynamic {
+closures_initializer_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 207 pos 9: 'closure != null': Corresponding closure class not found for () → dynamic => #lib1::B::T. Closures found for (() → dynamic {
 closures_with_complex_params_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'cls' where
-compile_time_constant10_test/none: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+compile_time_constant10_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 function_subtype_inline2_test: RuntimeError
 function_type/function_type0_test: Crash
 function_type/function_type10_test: Crash
