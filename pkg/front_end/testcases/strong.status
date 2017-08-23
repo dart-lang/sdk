@@ -181,7 +181,6 @@ runtime_checks/covariant_generic_parameter_in_interface: Fail
 runtime_checks/covariant_generic_parameter_in_interface_mixin: Fail
 runtime_checks/covariant_generic_parameter_in_interface_super: Fail
 runtime_checks/covariant_generic_parameter_in_interface_super_mixin: Fail
-runtime_checks/covariant_generic_parameter_tear_off: Fail
 runtime_checks/covariant_keyword: Fail
 runtime_checks/covariant_setter: Fail
 runtime_checks/dynamic_invocation: Fail
