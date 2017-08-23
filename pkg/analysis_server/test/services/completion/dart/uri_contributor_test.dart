@@ -76,6 +76,20 @@ class UriContributorTest extends DartCompletionContributorTest {
         csKind: CompletionSuggestionKind.IMPORT);
   }
 
+  test_export_package2_off() async {
+    try {
+      UriContributor.suggestFilePaths = false;
+      addPackageSource('foo', 'foo.dart', 'library foo;');
+      addPackageSource('foo', 'baz/too.dart', 'library too;');
+      addPackageSource('bar', 'bar.dart', 'library bar;');
+      addTestSource('export "package:foo/baz/^" import');
+      await computeSuggestions();
+      assertNotSuggested('package:foo/baz/too.dart');
+    } finally {
+      UriContributor.suggestFilePaths = true;
+    }
+  }
+
   test_import() async {
     addTestSource('import "^"');
     await computeSuggestions();
@@ -161,6 +175,28 @@ class UriContributorTest extends DartCompletionContributorTest {
     assertSuggest('foo/', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('foo/bar.dart');
     assertNotSuggested('../blat.dart');
+  }
+
+  test_import_file2_off() async {
+    try {
+      UriContributor.suggestFilePaths = false;
+      testFile = '/proj/completion.dart';
+      addSource('/proj/other.dart', 'library other;');
+      addSource('/proj/foo/bar.dart', 'library bar;');
+      addSource('/blat.dart', 'library blat;');
+      addTestSource('import "..^" import');
+      await computeSuggestions();
+      expect(replacementOffset, completionOffset - 2);
+      expect(replacementLength, 2);
+      assertNotSuggested('completion.dart');
+      assertNotSuggested('other.dart');
+      assertNotSuggested('foo');
+      assertNotSuggested('foo/');
+      assertNotSuggested('foo/bar.dart');
+      assertNotSuggested('../blat.dart');
+    } finally {
+      UriContributor.suggestFilePaths = true;
+    }
   }
 
   test_import_file_child() async {
@@ -263,6 +299,20 @@ class UriContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     assertSuggest('package:foo/baz/too.dart',
         csKind: CompletionSuggestionKind.IMPORT);
+  }
+
+  test_import_package2_off() async {
+    try {
+      UriContributor.suggestFilePaths = false;
+      addPackageSource('foo', 'foo.dart', 'library foo;');
+      addPackageSource('foo', 'baz/too.dart', 'library too;');
+      addPackageSource('bar', 'bar.dart', 'library bar;');
+      addTestSource('import "package:foo/baz/^" import');
+      await computeSuggestions();
+      assertNotSuggested('package:foo/baz/too.dart');
+    } finally {
+      UriContributor.suggestFilePaths = true;
+    }
   }
 
   test_import_package2_raw() async {

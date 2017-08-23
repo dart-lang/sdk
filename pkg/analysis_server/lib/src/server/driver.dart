@@ -10,6 +10,8 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
+import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart'
+    show UriContributor;
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -184,6 +186,11 @@ class Driver implements ServerStarter {
   static const String CLIENT_VERSION = "client-version";
 
   /**
+   * The name of the option used to enable DartPad specific functionality.
+   */
+  static const String DARTPAD_OPTION = "dartpad";
+
+  /**
    * The name of the option used to enable instrumentation.
    */
   static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
@@ -317,6 +324,10 @@ class Driver implements ServerStarter {
       analytics.enabled = results[ANALYTICS_FLAG];
       print(telemetry.createAnalyticsStatusMessage(analytics.enabled));
       return null;
+    }
+
+    if (results[DARTPAD_OPTION]) {
+      UriContributor.suggestFilePaths = false;
     }
 
     if (results[HELP_OPTION]) {
@@ -459,6 +470,10 @@ class Driver implements ServerStarter {
     parser.addOption(CLIENT_ID,
         help: "an identifier used to identify the client");
     parser.addOption(CLIENT_VERSION, help: "the version of the client");
+    parser.addFlag(DARTPAD_OPTION,
+        help: 'enable DartPad specific functionality',
+        defaultsTo: false,
+        hide: true);
     parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
         help: "enable sending instrumentation information to a server",
         defaultsTo: false,
