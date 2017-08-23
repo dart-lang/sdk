@@ -34,6 +34,7 @@ import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/fasta/builder/builder.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart' as fasta;
+import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:meta/meta.dart';
 
 /**
@@ -618,6 +619,11 @@ class FileState {
       parser.parseGenericMethodComments = analysisOptions.strongMode;
       CompilationUnit unit = parser.parseCompilationUnit(token);
       unit.lineInfo = lineInfo;
+
+      // StringToken uses a static instance of StringCanonicalizer, so we need
+      // to clear it explicitly once we are done using it for this file.
+      StringToken.canonicalizer.clear();
+
       return unit;
     }
   }
