@@ -11,6 +11,7 @@ Language/Classes/Constructors/Factories/const_modifier_t01: MissingCompileTimeEr
 Language/Classes/Constructors/Factories/const_modifier_t02: MissingCompileTimeError
 Language/Classes/Constructors/Factories/default_value_t01: MissingCompileTimeError
 Language/Classes/Constructors/Factories/default_value_t02: MissingCompileTimeError
+Language/Classes/Constructors/Factories/function_type_t02: Fail # dartbug.com/30527
 Language/Classes/Constructors/Factories/name_t01: MissingCompileTimeError
 Language/Classes/Constructors/Factories/name_t03: MissingCompileTimeError
 Language/Classes/Constructors/Factories/name_t04: MissingCompileTimeError
@@ -194,10 +195,6 @@ Language/Functions/External_Functions/not_connected_to_a_body_t01: Crash
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 Language/Classes/Constructors/Factories/arguments_type_t01: RuntimeError
 Language/Expressions/Constants/exception_t04: Pass
-Language/Expressions/Function_Expressions/static_type_form_1_async_t03: RuntimeError
-Language/Expressions/Function_Expressions/static_type_form_1_t02: RuntimeError
-Language/Expressions/Function_Expressions/static_type_form_2_async_t03: RuntimeError
-Language/Expressions/Function_Expressions/static_type_form_2_t02: RuntimeError
 Language/Generics/malformed_t02: RuntimeError
 Language/Statements/Return/runtime_type_t04: RuntimeError
 Language/Statements/Switch/execution_t01: RuntimeError
