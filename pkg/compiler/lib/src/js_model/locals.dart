@@ -34,7 +34,7 @@ class GlobalLocalsMap {
 
 class KernelToLocalsMapImpl implements KernelToLocalsMap {
   final List<MemberEntity> _members = <MemberEntity>[];
-  Map<ir.TreeNode, JLocal> _map = <ir.TreeNode, JLocal>{};
+  Map<ir.VariableDeclaration, JLocal> _map = <ir.VariableDeclaration, JLocal>{};
   Map<ir.TreeNode, JJumpTarget> _jumpTargetMap;
   Set<ir.BreakStatement> _breaksAsContinue;
 
@@ -139,28 +139,6 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
     return _map.putIfAbsent(node, () {
       return new JLocal(
           node.name, currentMember, node.parent is ir.FunctionNode);
-    });
-  }
-
-  @override
-  // TODO(johnniwinther): Split this out into two methods -- one for
-  // FunctionDeclaration and one for FunctionExpression, since basically the
-  // whole thing is different depending on the node type. The reason it's not
-  // done yet is the version of this function that it's overriding has a little
-  // bit of commonality.
-  Local getLocalFunction(ir.TreeNode node) {
-    assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression,
-        failedAt(currentMember, 'Invalid local function node: $node'));
-    var lookupName = node;
-    if (node is ir.FunctionDeclaration) lookupName = node.variable;
-    return _map.putIfAbsent(lookupName, () {
-      String name;
-      if (node is ir.FunctionDeclaration) {
-        name = node.variable.name;
-      } else if (node is ir.FunctionExpression) {
-        name = '';
-      }
-      return new JLocal(name, currentMember);
     });
   }
 

@@ -372,21 +372,10 @@ class KernelClosureClass extends JsScopeInfo
       this.closureClassEntity,
       ir.FunctionNode closureSourceNode,
       KernelScopeInfo info,
-      KernelToLocalsMap localsMap)
-      : closureEntity = closureSourceNode.parent is ir.Member
-            ? null
-            // TODO(johnniwinther,efortuna): This is the only place we call
-            // [getLocalFunction]. Therefore the [closureEntity] doesn't need
-            // to be derived from the node.
-            //
-            // What we should do instead: If `closureSourceNode.parent` is
-            // an [ir.FunctionDeclaration] we should use the local for its
-            // variable. If `closureSourceNode.parent` is an
-            // [ir.FunctionExpression], we should create a fresh local.
-            : localsMap.getLocalFunction(closureSourceNode.parent),
-        thisLocal =
-            info.hasThisLocal ? new ThisLocal(localsMap.currentMember) : null,
-        super.from(info, localsMap);
+      KernelToLocalsMap localsMap,
+      this.closureEntity,
+      this.thisLocal)
+      : super.from(info, localsMap);
 
   List<Local> get createdFieldEntities => localToFieldMap.keys.toList();
 

@@ -391,10 +391,6 @@ abstract class KernelToLocalsMap {
   // parameter.
   Local getLocalVariable(ir.VariableDeclaration node);
 
-  /// Returns the [Local] corresponding to the [node]. The node must be either
-  /// a [ir.FunctionDeclaration] or [ir.FunctionExpression].
-  Local getLocalFunction(ir.TreeNode node);
-
   /// Returns the [JumpTarget] for the break statement [node].
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node);
 
