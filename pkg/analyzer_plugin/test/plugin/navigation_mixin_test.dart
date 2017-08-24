@@ -8,6 +8,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/plugin/navigation_mixin.dart';
+import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
@@ -50,12 +51,29 @@ class NavigationMixinTest {
     await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
 
-    var result = await plugin.handleAnalysisGetNavigation(
-        new AnalysisGetNavigationParams(filePath1, 1, 2));
+    AnalysisGetNavigationResult result =
+        await plugin.handleAnalysisGetNavigation(
+            new AnalysisGetNavigationParams(filePath1, 1, 2));
     expect(result, isNotNull);
     expect(result.files, hasLength(1));
     expect(result.targets, hasLength(1));
     expect(result.regions, hasLength(2));
+  }
+
+  test_sendNavigationNotification() async {
+    await plugin.handleAnalysisSetContextRoots(
+        new AnalysisSetContextRootsParams([contextRoot1]));
+
+    plugin.mockChannel.listen(null,
+        onNotification: (Notification notification) {
+      expect(notification, isNotNull);
+      AnalysisNavigationParams params =
+          new AnalysisNavigationParams.fromNotification(notification);
+      expect(params.files, hasLength(1));
+      expect(params.targets, hasLength(1));
+      expect(params.regions, hasLength(2));
+    });
+    await plugin.sendNavigationNotification(filePath1);
   }
 }
 
@@ -89,8 +107,8 @@ class _TestServerPlugin extends MockServerPlugin with NavigationMixin {
   @override
   Future<NavigationRequest> getNavigationRequest(
       AnalysisGetNavigationParams parameters) async {
-    AnalysisResult result = new AnalysisResult(
-        null, null, null, null, null, null, null, null, null, null, null);
+    AnalysisResult result = new AnalysisResult(null, null, parameters.file,
+        null, null, null, null, null, null, null, null);
     return new DartNavigationRequestImpl(
         resourceProvider, parameters.offset, parameters.length, result);
   }
