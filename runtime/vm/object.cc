@@ -10705,6 +10705,10 @@ void Library::set_toplevel_class(const Class& value) const {
   StorePointer(&raw_ptr()->toplevel_class_, value.raw());
 }
 
+void Library::set_metadata(const GrowableObjectArray& value) const {
+  StorePointer(&raw_ptr()->metadata_, value.raw());
+}
+
 RawLibrary* Library::ImportLibraryAt(intptr_t index) const {
   Namespace& import = Namespace::Handle(ImportAt(index));
   if (import.IsNull()) {

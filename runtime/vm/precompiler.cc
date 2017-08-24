@@ -482,6 +482,7 @@ void Precompiler::DoCompileAll(
       I->object_store()->set_async_star_move_next_helper(null_function);
       I->object_store()->set_complete_on_async_return(null_function);
       I->object_store()->set_async_star_stream_controller(null_class);
+      DropMetadata();
       DropLibraryEntries();
     }
     DropClasses();
@@ -1963,6 +1964,36 @@ void Precompiler::TraceTypesFromRetainedClasses() {
 
       if (retain) {
         AddTypesOf(cls);
+      }
+    }
+  }
+}
+
+void Precompiler::DropMetadata() {
+  Library& lib = Library::Handle(Z);
+  const GrowableObjectArray& null_growable_list =
+      GrowableObjectArray::Handle(Z);
+  Array& dependencies = Array::Handle(Z);
+  Namespace& ns = Namespace::Handle(Z);
+  const Field& null_field = Field::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    lib.set_metadata(null_growable_list);
+
+    dependencies = lib.imports();
+    for (intptr_t j = 0; j < dependencies.Length(); j++) {
+      ns ^= dependencies.At(j);
+      if (!ns.IsNull()) {
+        ns.set_metadata_field(null_field);
+      }
+    }
+
+    dependencies = lib.exports();
+    for (intptr_t j = 0; j < dependencies.Length(); j++) {
+      ns ^= dependencies.At(j);
+      if (!ns.IsNull()) {
+        ns.set_metadata_field(null_field);
       }
     }
   }
