@@ -1456,6 +1456,34 @@ foo() {}''');
     verify([source]);
   }
 
+  test_constEvalThrowsException_assertInitializer_notConst() async {
+    resetWith(
+        options: new AnalysisOptionsImpl()..enableAssertInitializer = true);
+    Source source = addSource(r'''
+class A {
+  A(int p) : assert(p != 0);
+}
+var a = new A(0);
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_constEvalThrowsException_assertInitializer_true() async {
+    resetWith(
+        options: new AnalysisOptionsImpl()..enableAssertInitializer = true);
+    Source source = addSource(r'''
+class A {
+  const A(int p) : assert(p != 0);
+}
+const a = const A(1);
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_constEvalTypeBoolNumString_equal() async {
     Source source = addSource(r'''
 class A {

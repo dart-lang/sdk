@@ -640,6 +640,36 @@ class CompileTimeErrorCode extends ErrorCode {
           "'num'.");
 
   /**
+   * https://github.com/dart-lang/sdk/blob/master/docs/language/informal/assert-in-initializer-list.md
+   *
+   * During a const constructor invocation (that is, when the `const`
+   * constructor is invoked using the const prefix), if the assert fails,
+   * either due to boolean conversion when `r` is not a boolean value or due to
+   * assertion failure when `r` is `false`, it is treated like any other
+   * compile-time throw in a compile-time constant expression, and it causes
+   * a compile-time error.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_THROWS_ASSERT_NOT_BOOL =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_THROWS_ASSERT_NOT_BOOL',
+          "In constant constructors the value of the condition of an assert "
+          "statement must be bool.");
+
+  /**
+   * https://github.com/dart-lang/sdk/blob/master/docs/language/informal/assert-in-initializer-list.md
+   *
+   * During a const constructor invocation (that is, when the `const`
+   * constructor is invoked using the const prefix), if the assert fails,
+   * either due to boolean conversion when `r` is not a boolean value or due to
+   * assertion failure when `r` is `false`, it is treated like any other
+   * compile-time throw in a compile-time constant expression, and it causes
+   * a compile-time error.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_THROWS_ASSERT_FALSE =
+      const CompileTimeErrorCode('CONST_EVAL_THROWS_ASSERT_FALSE',
+          "Evaluation of this constant expression throws an AssertionError.");
+
+  /**
    * 16.12.2 Const: It is a compile-time error if evaluation of a constant
    * object results in an uncaught exception being thrown.
    */

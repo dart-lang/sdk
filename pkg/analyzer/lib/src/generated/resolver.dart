@@ -1714,6 +1714,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
       AnalysisError data = errors[i];
       ErrorCode dataErrorCode = data.errorCode;
       if (identical(dataErrorCode,
+              CompileTimeErrorCode.CONST_EVAL_THROWS_ASSERT_FALSE) ||
+          identical(dataErrorCode,
+              CompileTimeErrorCode.CONST_EVAL_THROWS_ASSERT_NOT_BOOL) ||
+          identical(dataErrorCode,
               CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION) ||
           identical(
               dataErrorCode, CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE) ||
