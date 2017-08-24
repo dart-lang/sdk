@@ -199,14 +199,11 @@ redirecting_factory_reflection_test: Crash
 redirecting_factory_reflection_test: RuntimeError
 setter_declaration2_negative_test: DartkCrash
 setter_declaration_negative_test: Fail
-vm/lazy_deopt_vm_test: Pass, Slow, Timeout
-vm/optimized_stacktrace_test: Skip # Issue 28788
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $mode == debug ]
 deopt_inlined_function_lazy_test: Skip
 hello_dart_test: Crash  # error: expected: cls.is_type_finalized()
-vm/lazy_deopt_vm_test: Crash
 
 # dartk: precompilation failures
 [ $compiler == dartkp ]
