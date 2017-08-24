@@ -119,12 +119,7 @@ class MockChannel implements PluginCommunicationChannel {
  * A concrete implementation of a server plugin that is suitable for testing.
  */
 class MockServerPlugin extends ServerPlugin {
-  MockChannel mockChannel = new MockChannel();
-
   MockServerPlugin(ResourceProvider resourceProvider) : super(resourceProvider);
-
-  @override
-  PluginCommunicationChannel get channel => mockChannel;
 
   @override
   List<String> get fileGlobsToAnalyze => <String>['*.dart'];

@@ -64,7 +64,6 @@ abstract class DartCompletionMixin implements CompletionMixin {
   @override
   Future<CompletionRequest> getCompletionRequest(
       CompletionGetSuggestionsParams parameters) async {
-    String path = parameters.file;
     ResolveResult result = await getResolveResult(parameters.file);
     return new DartCompletionRequestImpl(
         resourceProvider, parameters.offset, result);

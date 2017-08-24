@@ -64,8 +64,7 @@ class NavigationMixinTest {
     await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
 
-    plugin.mockChannel.listen(null,
-        onNotification: (Notification notification) {
+    channel.listen(null, onNotification: (Notification notification) {
       expect(notification, isNotNull);
       AnalysisNavigationParams params =
           new AnalysisNavigationParams.fromNotification(notification);
