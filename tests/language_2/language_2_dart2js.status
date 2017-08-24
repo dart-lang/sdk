@@ -458,7 +458,6 @@ class_literal_test/22: Crash
 class_literal_test/23: Crash
 class_literal_test/24: Crash
 class_literal_test/25: Crash
-class_literal_test: Crash # Assertion failure: Cannot find value local(main_closure.call#x) in (local(main#)) for j:closure_call(main_closure.call).
 class_override_test/00: Crash
 class_syntax2_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 class_test: Crash
@@ -790,7 +789,6 @@ class_literal_test/22: Crash
 class_literal_test/23: Crash
 class_literal_test/24: Crash
 class_literal_test/25: Crash
-class_literal_test: Crash # Assertion failure: Cannot find value local(main_closure.call#x) in (local(main#)) for j:closure_call(main_closure.call).
 class_override_test/00: Crash
 class_test: Crash
 classes_static_method_clash_test: Crash
