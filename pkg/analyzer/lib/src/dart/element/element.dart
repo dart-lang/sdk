@@ -4594,6 +4594,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
    * Return `true` if this field was explicitly marked as being covariant.
    */
   bool get isCovariant {
+    if (_kernel != null) {
+      return _kernel.isCovariant;
+    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.isCovariant;
     }
@@ -8218,6 +8221,9 @@ class ParameterElementImpl extends VariableElementImpl
    * Return true if this parameter is explicitly marked as being covariant.
    */
   bool get isExplicitlyCovariant {
+    if (_kernel != null) {
+      return _kernel.isCovariant;
+    }
     if (_unlinkedParam != null) {
       return _unlinkedParam.isExplicitlyCovariant;
     }

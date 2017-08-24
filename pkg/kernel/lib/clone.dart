@@ -360,6 +360,7 @@ class CloneVisitor extends TreeVisitor {
     return variables[node] = new VariableDeclaration(node.name,
         initializer: cloneOptional(node.initializer),
         type: visitType(node.type),
+        isCovariant: node.isCovariant,
         isFinal: node.isFinal,
         isConst: node.isConst,
         isFieldFormal: node.isFieldFormal);
@@ -396,6 +397,7 @@ class CloneVisitor extends TreeVisitor {
     return new Field(node.name,
         type: visitType(node.type),
         initializer: cloneOptional(node.initializer),
+        isCovariant: node.isCovariant,
         isFinal: node.isFinal,
         isConst: node.isConst,
         isStatic: node.isStatic,

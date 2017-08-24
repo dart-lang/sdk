@@ -387,11 +387,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_field_covariant() async {
-    await super.test_field_covariant();
-  }
-
-  @failingTest
   test_field_propagatedType_final_dep_inLib() async {
     await super.test_field_propagatedType_final_dep_inLib();
   }
@@ -669,11 +664,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_parameter_covariant() async {
-    await super.test_parameter_covariant();
-  }
-
-  @failingTest
   test_parameter_covariant_inherited() async {
     await super.test_parameter_covariant_inherited();
   }
@@ -686,11 +676,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_parts_invalidUri_nullStringValue() async {
     await super.test_parts_invalidUri_nullStringValue();
-  }
-
-  @failingTest
-  test_setter_covariant() async {
-    await super.test_setter_covariant();
   }
 
   @failingTest

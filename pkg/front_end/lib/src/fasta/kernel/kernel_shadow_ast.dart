@@ -2395,6 +2395,7 @@ class KernelVariableDeclaration extends VariableDeclaration
       bool isFinal: false,
       bool isConst: false,
       bool isFieldFormal: false,
+      bool isCovariant: false,
       bool isLocalFunction: false})
       : _implicitlyTyped = type == null,
         _isLocalFunction = isLocalFunction,
@@ -2403,7 +2404,8 @@ class KernelVariableDeclaration extends VariableDeclaration
             type: type ?? const DynamicType(),
             isFinal: isFinal,
             isConst: isConst,
-            isFieldFormal: isFieldFormal);
+            isFieldFormal: isFieldFormal,
+            isCovariant: isCovariant);
 
   KernelVariableDeclaration.forValue(
       Expression initializer, this._functionNestingLevel)

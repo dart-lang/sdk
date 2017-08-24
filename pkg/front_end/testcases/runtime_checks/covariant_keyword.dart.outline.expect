@@ -12,7 +12,7 @@ class C extends core::Object {
 class D extends self::C {
   default constructor •() → void
     ;
-  method f(core::int x) → void
+  method f(covariant core::int x) → void
     ;
 }
 class E extends self::D {

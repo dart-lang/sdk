@@ -262,7 +262,7 @@ type Field extends Member {
   CanonicalNameReference canonicalName;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
-  Byte flags (isFinal, isConst, isStatic);
+  Byte flags (isFinal, isConst, isStatic, isCovariant);
   Name name;
   // An absolute path URI to the .dart file from which the field was created.
   UriReference fileUri;
@@ -932,7 +932,7 @@ type VariableDeclaration {
   // If it does not contain one this should be -1.
   FileOffset fileEqualsOffset;
 
-  Byte flags (isFinal, isConst);
+  Byte flags (isFinal, isConst, isCovariant);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.

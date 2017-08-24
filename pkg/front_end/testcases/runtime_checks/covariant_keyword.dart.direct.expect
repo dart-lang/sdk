@@ -13,7 +13,7 @@ class D extends self::C {
   default constructor •() → void
     : super self::C::•()
     ;
-  method f(core::int x) → void {}
+  method f(covariant core::int x) → void {}
 }
 class E extends self::D {
   default constructor •() → void

@@ -43,7 +43,8 @@ class KernelFormalParameterBuilder
           type: type?.build(library),
           isFinal: isFinal,
           isConst: isConst,
-          isFieldFormal: hasThis)
+          isFieldFormal: hasThis,
+          isCovariant: isCovariant)
         ..fileOffset = charOffset;
       if (type == null && hasThis) {
         library.loader.typeInferenceEngine
