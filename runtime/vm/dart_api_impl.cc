@@ -5746,7 +5746,7 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
 // --- Dart Front-End (Kernel) support ---
 
 DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate) {
-#ifdef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
   return false;
 #else
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
@@ -5755,7 +5755,7 @@ DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate) {
 }
 
 DART_EXPORT bool Dart_KernelIsolateIsRunning() {
-#ifdef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
   return false;
 #else
   return KernelIsolate::IsRunning();
@@ -5763,7 +5763,7 @@ DART_EXPORT bool Dart_KernelIsolateIsRunning() {
 }
 
 DART_EXPORT Dart_Port Dart_KernelPort() {
-#ifdef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
   return false;
 #else
   return KernelIsolate::KernelPort();
@@ -5772,7 +5772,7 @@ DART_EXPORT Dart_Port Dart_KernelPort() {
 
 DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileToKernel(const char* script_uri, const char* platform_kernel) {
-#ifdef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
   Dart_KernelCompilationResult result;
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileToKernel is unsupported.");
@@ -5788,7 +5788,7 @@ Dart_CompileSourcesToKernel(const char* script_uri,
                             int source_files_count,
                             Dart_SourceFile sources[],
                             bool incremental_compile) {
-#ifdef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
   Dart_KernelCompilationResult result;
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
@@ -5973,6 +5973,7 @@ Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback) {
   if (!FLAG_support_service) {
     return Api::Success();
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (file_modified_callback != NULL) {
     if (IsolateReloadContext::file_modified_callback() != NULL) {
       return Api::NewError(
@@ -5988,6 +5989,7 @@ Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback) {
     }
   }
   IsolateReloadContext::SetFileModifiedCallback(file_modified_callback);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return Api::Success();
 }
 

@@ -1623,7 +1623,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     UNREACHABLE();
   }
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   // The following code is used to stress test deoptimization and
   // debugger stack tracing.
   bool do_deopt = false;
@@ -1732,7 +1732,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     }
     FLAG_stacktrace_every = saved_stacktrace_every;
   }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   const Error& error = Error::Handle(thread->HandleInterrupts());
   if (!error.IsNull()) {

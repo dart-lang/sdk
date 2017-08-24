@@ -499,6 +499,7 @@ class Isolate : public BaseIsolate {
 #if !defined(PRODUCT)
   VMTagCounters* vm_tag_counters() { return &vm_tag_counters_; }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   bool IsReloading() const { return reload_context_ != NULL; }
 
   IsolateReloadContext* reload_context() { return reload_context_; }
@@ -518,6 +519,11 @@ class Isolate : public BaseIsolate {
     last_reload_timestamp_ = value;
   }
   int64_t last_reload_timestamp() const { return last_reload_timestamp_; }
+#else
+  bool IsReloading() const { return false; }
+  bool HasAttemptedReload() const { return false; }
+  bool CanReload() const { return false; }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // !defined(PRODUCT)
 
   bool IsPaused() const;

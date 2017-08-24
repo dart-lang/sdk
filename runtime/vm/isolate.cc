@@ -57,10 +57,12 @@ DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
 // Reload flags.
-DECLARE_FLAG(bool, check_reloaded);
 DECLARE_FLAG(int, reload_every);
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+DECLARE_FLAG(bool, check_reloaded);
 DECLARE_FLAG(bool, reload_every_back_off);
 DECLARE_FLAG(bool, trace_reload);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(PRODUCT)
 static void CheckedModeHandler(bool value) {
@@ -144,29 +146,29 @@ NoOOBMessageScope::~NoOOBMessageScope() {
 
 NoReloadScope::NoReloadScope(Isolate* isolate, Thread* thread)
     : StackResource(thread), isolate_(isolate) {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(isolate_ != NULL);
   AtomicOperations::FetchAndIncrement(&(isolate_->no_reload_scope_depth_));
   ASSERT(AtomicOperations::LoadRelaxed(&(isolate_->no_reload_scope_depth_)) >=
          0);
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 NoReloadScope::~NoReloadScope() {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   AtomicOperations::FetchAndDecrement(&(isolate_->no_reload_scope_depth_));
   ASSERT(AtomicOperations::LoadRelaxed(&(isolate_->no_reload_scope_depth_)) >=
          0);
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Isolate::RegisterClass(const Class& cls) {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (IsReloading()) {
     reload_context()->RegisterClass(cls);
     return;
   }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   class_table()->Register(cls);
 }
 
@@ -1046,7 +1048,7 @@ void Isolate::DoneLoading() {
   TokenStream::CloseSharedTokenList(this);
 }
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 bool Isolate::CanReload() const {
   return !ServiceIsolate::IsServiceIsolateDescendant(this) && is_runnable() &&
          !IsReloading() &&
@@ -1078,14 +1080,14 @@ void Isolate::DeleteReloadContext() {
   delete reload_context_;
   reload_context_ = NULL;
 }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 void Isolate::DoneFinalizing() {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (IsReloading()) {
     reload_context_->FinalizeLoading();
   }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 bool Isolate::MakeRunnable() {
@@ -1466,7 +1468,7 @@ static void ShutdownIsolate(uword parameter) {
       VerifyCanonicalVisitor check_canonical(thread);
       iteration.IterateObjects(&check_canonical);
     }
-#endif  // DEBUG
+#endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
     const Error& error = Error::Handle(thread->sticky_error());
     if (!error.IsNull() && !error.IsUnwindError()) {
       OS::PrintErr("in ShutdownIsolate: %s\n", error.ToErrorCString());
@@ -1635,7 +1637,7 @@ void Isolate::StopBackgroundCompiler() {
   }
 }
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
   if (FLAG_reload_every_back_off) {
     if (reload_every_n_stack_overflow_checks_ < 5000) {
@@ -1649,7 +1651,7 @@ void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
     }
   }
 }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
@@ -1695,7 +1697,7 @@ void Isolate::Shutdown() {
     }
   }
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_check_reloaded && is_runnable() && (this != Dart::vm_isolate()) &&
       !ServiceIsolate::IsServiceIsolateDescendant(this)) {
     if (!HasAttemptedReload()) {
@@ -1704,7 +1706,7 @@ void Isolate::Shutdown() {
           "--check-reloaded is enabled.\n");
     }
   }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   // Then, proceed with low-level teardown.
   LowLevelShutdown();
@@ -1792,11 +1794,12 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 #if !defined(PRODUCT)
   // Visit objects in the debugger.
   debugger()->VisitObjectPointers(visitor);
-
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Visit objects that are being used for isolate reload.
   if (reload_context() != NULL) {
     reload_context()->VisitObjectPointers(visitor);
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (ServiceIsolate::IsServiceIsolate(this)) {
     ServiceIsolate::VisitObjectPointers(visitor);
   }
@@ -1807,7 +1810,7 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   if (deopt_context() != NULL) {
     deopt_context()->VisitObjectPointers(visitor);
   }
-#endif
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   VisitStackPointers(visitor, validate_frames);
 }
@@ -1830,7 +1833,7 @@ void Isolate::PrepareForGC() {
 
 RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   RawClass* raw_class = NULL;
-#ifndef PRODUCT
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (IsReloading()) {
     raw_class = reload_context()->GetClassForHeapWalkAt(cid);
   } else {
@@ -1838,7 +1841,7 @@ RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   }
 #else
   raw_class = class_table()->At(cid);
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(raw_class != NULL);
   ASSERT(remapping_cids() || raw_class->ptr()->id_ == cid);
   return raw_class;
@@ -1923,7 +1926,9 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddProperty("runnable", is_runnable());
   jsobj.AddProperty("livePorts", message_handler()->live_ports());
   jsobj.AddProperty("pauseOnExit", message_handler()->should_pause_on_exit());
+#if !defined(DART_PRECOMPILED_RUNTIME)
   jsobj.AddProperty("_isReloading", IsReloading());
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   if (!is_runnable()) {
     // Isolate is not yet runnable.
@@ -2305,9 +2310,11 @@ void Isolate::PauseEventHandler() {
   Dart_MessageNotifyCallback saved_notify_callback = message_notify_callback();
   set_message_notify_callback(Isolate::WakePauseEventHandler);
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   const bool had_isolate_reload_context = reload_context() != NULL;
   const int64_t start_time_micros =
       !had_isolate_reload_context ? 0 : reload_context()->start_time_micros();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   bool resume = false;
   while (true) {
     // Handle all available vm service messages, up to a resume
@@ -2321,6 +2328,7 @@ void Isolate::PauseEventHandler() {
       break;
     }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
     if (had_isolate_reload_context && (reload_context() == NULL)) {
       if (FLAG_trace_reload) {
         const int64_t reload_time_micros =
@@ -2330,6 +2338,7 @@ void Isolate::PauseEventHandler() {
       }
       break;
     }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
     // Wait for more service messages.
     Monitor::WaitResult res = ml.Wait();
