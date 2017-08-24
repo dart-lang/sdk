@@ -108,20 +108,17 @@ abstract class NullableTypeInference {
     // type.
     Element container = element.enclosingElement;
     if (container is ClassElement) {
-      DartType targetType = container.type;
-      InterfaceType implType = getImplementationType(targetType);
+      var targetType = container.type;
+      var implType = getImplementationType(targetType);
       if (implType != null) {
-        PropertyAccessorElement getter =
-            implType.lookUpGetter(name, dartCoreLibrary);
+        var getter = implType.lookUpGetter(name, dartCoreLibrary);
         if (getter != null) element = getter;
       }
     }
     // If the getter is a synthetic element, then any annotations will
     // be on the variable, so use those instead.
-    if (element is PropertyAccessorElement &&
-        element.isSynthetic &&
-        element.variable != null) {
-      element = (element as PropertyAccessorElement).variable;
+    if (element is PropertyAccessorElement && element.isSynthetic) {
+      return _assertedNotNull(element.variable);
     }
     // Return true if the element is annotated as returning a non-null value.
     return _assertedNotNull(element);
