@@ -349,8 +349,6 @@ class CommandLineOptions {
           help: 'Treat non-type warnings as fatal.',
           defaultsTo: false,
           negatable: false)
-      ..addFlag('analytics',
-          help: 'Enable or disable sending analytics information to Google.')
       ..addFlag('help',
           abbr: 'h',
           help:
@@ -362,6 +360,11 @@ class CommandLineOptions {
           defaultsTo: false,
           help: 'Verbose output.',
           negatable: false);
+
+    if (telemetry.SHOW_ANALYTICS_UI) {
+      parser.addFlag('analytics',
+          help: 'Enable or disable sending analytics information to Google.');
+    }
 
     // Build mode options.
     if (!hide) {
@@ -534,12 +537,14 @@ class CommandLineOptions {
       }
 
       // Enable / disable analytics.
-      if (results.wasParsed('analytics')) {
-        analytics.enabled = results['analytics'];
-        outSink
-            .writeln(telemetry.createAnalyticsStatusMessage(analytics.enabled));
-        exitHandler(0);
-        return null; // Only reachable in testing.
+      if (telemetry.SHOW_ANALYTICS_UI) {
+        if (results.wasParsed('analytics')) {
+          analytics.enabled = results['analytics'];
+          outSink.writeln(
+              telemetry.createAnalyticsStatusMessage(analytics.enabled));
+          exitHandler(0);
+          return null; // Only reachable in testing.
+        }
       }
 
       // Batch mode and input files.
@@ -581,6 +586,10 @@ class CommandLineOptions {
   static _showUsage(ArgParser parser, telemetry.Analytics analytics,
       {bool fromHelp: false}) {
     void printAnalyticsInfo() {
+      if (!telemetry.SHOW_ANALYTICS_UI) {
+        return;
+      }
+
       if (fromHelp) {
         errorSink.writeln('');
         errorSink.writeln(telemetry.analyticsNotice);

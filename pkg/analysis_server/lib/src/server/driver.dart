@@ -320,10 +320,12 @@ class Driver implements ServerStarter {
     analysisServerOptions.crashReportSender =
         new CrashReportSender('Dart_analysis_server', analytics);
 
-    if (results.wasParsed(ANALYTICS_FLAG)) {
-      analytics.enabled = results[ANALYTICS_FLAG];
-      print(telemetry.createAnalyticsStatusMessage(analytics.enabled));
-      return null;
+    if (telemetry.SHOW_ANALYTICS_UI) {
+      if (results.wasParsed(ANALYTICS_FLAG)) {
+        analytics.enabled = results[ANALYTICS_FLAG];
+        print(telemetry.createAnalyticsStatusMessage(analytics.enabled));
+        return null;
+      }
     }
 
     if (results[DARTPAD_OPTION]) {
@@ -495,8 +497,10 @@ class Driver implements ServerStarter {
         negatable: false);
     parser.addOption(NEW_ANALYSIS_DRIVER_LOG,
         help: "set a destination for the new analysis driver's log");
-    parser.addFlag(ANALYTICS_FLAG,
-        help: 'enable or disable sending analytics information to Google');
+    if (telemetry.SHOW_ANALYTICS_UI) {
+      parser.addFlag(ANALYTICS_FLAG,
+          help: 'enable or disable sending analytics information to Google');
+    }
     parser.addFlag(SUPPRESS_ANALYTICS_FLAG,
         negatable: false, help: 'suppress analytics for this session');
     parser.addOption(PORT_OPTION,
@@ -541,14 +545,16 @@ class Driver implements ServerStarter {
     print('Supported flags are:');
     print(parser.usage);
 
-    // Print analytics status and information.
-    if (fromHelp) {
+    if (telemetry.SHOW_ANALYTICS_UI) {
+      // Print analytics status and information.
+      if (fromHelp) {
+        print('');
+        print(telemetry.analyticsNotice);
+      }
       print('');
-      print(telemetry.analyticsNotice);
+      print(telemetry.createAnalyticsStatusMessage(analytics.enabled,
+          command: ANALYTICS_FLAG));
     }
-    print('');
-    print(telemetry.createAnalyticsStatusMessage(analytics.enabled,
-        command: ANALYTICS_FLAG));
   }
 
   /**
