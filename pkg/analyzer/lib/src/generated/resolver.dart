@@ -6139,11 +6139,7 @@ class ResolverVisitor extends ScopedVisitor {
     // have to clone the initializers for non-static final fields (because if
     // they occur in a class with a const constructor, they will be needed to
     // evaluate the const constructor).
-    if ((element.isConst ||
-            (element is FieldElement &&
-                element.isFinal &&
-                !element.isStatic)) &&
-        node.initializer != null) {
+    if (element is ConstVariableElement) {
       (element as ConstVariableElement).constantInitializer =
           new ConstantAstCloner().cloneNode(node.initializer);
     }

@@ -3793,16 +3793,14 @@ class C {
       checkElementText(library, r'''
 typedef dynamic F();
 class C {
-  final List<F> f = const <
-        F/*location: test.dart;F*/>[];
+  final List<F> f;
 }
 ''');
     } else {
       checkElementText(library, r'''
 typedef dynamic F();
 class C {
-  final dynamic f = const <
-        F/*location: test.dart;F*/>[];
+  final dynamic f;
 }
 ''');
     }
@@ -3893,15 +3891,13 @@ class C<T> {
     if (isStrongMode) {
       checkElementText(library, r'''
 class C<T> {
-  final List<T> f = const <
-        T/*location: test.dart;C;T*/>[];
+  final List<T> f;
 }
 ''');
     } else {
       checkElementText(library, r'''
 class C<T> {
-  final dynamic f = const <
-        T/*location: test.dart;C;T*/>[];
+  final dynamic f;
 }
 ''');
     }
@@ -5721,16 +5717,14 @@ class C {
       checkElementText(library, r'''
 import 'a.dart';
 class C {
-  final double b =
-        a/*location: a.dart;a?*/ / 2;
+  final double b;
 }
 ''');
     } else {
       checkElementText(library, r'''
 import 'a.dart';
 class C {
-  final dynamic b =
-        a/*location: a.dart;a?*/ / 2;
+  final dynamic b;
 }
 ''');
     }
@@ -5749,8 +5743,7 @@ class C {
 library lib;
 part 'a.dart';
 class C {
-  final double b =
-        a/*location: test.dart;a.dart;a?*/ / 2;
+  final double b;
 }
 --------------------
 unit: a.dart
@@ -5762,8 +5755,7 @@ final int a;
 library lib;
 part 'a.dart';
 class C {
-  final dynamic b =
-        a/*location: test.dart;a.dart;a?*/ / 2;
+  final dynamic b;
 }
 --------------------
 unit: a.dart
@@ -5781,13 +5773,13 @@ class C {
     if (isStrongMode) {
       checkElementText(library, r'''
 class C {
-  final int x = 0;
+  final int x;
 }
 ''');
     } else {
       checkElementText(library, r'''
 class C {
-  final dynamic x = 0;
+  final dynamic x;
 }
 ''');
     }

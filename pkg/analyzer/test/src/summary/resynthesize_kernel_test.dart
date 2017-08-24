@@ -218,18 +218,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_reference_type_functionType() async {
-    await super.test_const_reference_type_functionType();
-  }
-
-  @failingTest
   test_const_reference_type_imported_withPrefix() async {
     await super.test_const_reference_type_imported_withPrefix();
-  }
-
-  @failingTest
-  test_const_reference_type_typeParameter() async {
-    await super.test_const_reference_type_typeParameter();
   }
 
   @failingTest
@@ -384,21 +374,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_exportImport_configurations_useFirst() async {
     await super.test_exportImport_configurations_useFirst();
-  }
-
-  @failingTest
-  test_field_propagatedType_final_dep_inLib() async {
-    await super.test_field_propagatedType_final_dep_inLib();
-  }
-
-  @failingTest
-  test_field_propagatedType_final_dep_inPart() async {
-    await super.test_field_propagatedType_final_dep_inPart();
-  }
-
-  @failingTest
-  test_field_propagatedType_final_noDep_instance() async {
-    await super.test_field_propagatedType_final_noDep_instance();
   }
 
   @failingTest

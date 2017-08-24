@@ -35,6 +35,11 @@ class ApiElementBuilder extends _BaseElementBuilder {
   HashMap<String, FieldElement> _fieldMap;
 
   /**
+   * Whether the class being built has a constant constructor.
+   */
+  bool _enclosingClassHasConstConstructor = false;
+
+  /**
    * Initialize a newly created element builder to build the elements for a
    * compilation unit. The [initialHolder] is the element holder to which the
    * children of the visited compilation unit node will be added.
@@ -68,6 +73,15 @@ class ApiElementBuilder extends _BaseElementBuilder {
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
+    _enclosingClassHasConstConstructor = false;
+    for (var constructor in node.members) {
+      if (constructor is ConstructorDeclaration &&
+          constructor.constKeyword != null) {
+        _enclosingClassHasConstConstructor = true;
+        break;
+      }
+    }
+
     ElementHolder holder = new ElementHolder();
     //
     // Process field declarations before constructors and methods so that field
@@ -606,7 +620,11 @@ class ApiElementBuilder extends _BaseElementBuilder {
     if (fieldNode != null) {
       SimpleIdentifier fieldName = node.name;
       FieldElementImpl field;
-      if ((isConst || isFinal && !fieldNode.isStatic) && hasInitializer) {
+      if ((isConst ||
+              isFinal &&
+                  !fieldNode.isStatic &&
+                  _enclosingClassHasConstConstructor) &&
+          hasInitializer) {
         field = new ConstFieldElementImpl.forNode(fieldName);
       } else {
         field = new FieldElementImpl.forNode(fieldName);
