@@ -105,8 +105,8 @@ class KernelDriver {
       return new Future.value();
     }
 
-    _fsState = new FileSystemState(
-        _byteStore, _fileSystem, _uriTranslator, _salt, onFileAdded);
+    _fsState = new FileSystemState(_byteStore, _fileSystem, _options.target,
+        _uriTranslator, _salt, onFileAdded);
   }
 
   /// Return the [FileSystemState] that contains the current file state.
