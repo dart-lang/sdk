@@ -89,7 +89,7 @@ abstract class ListMixin<E> implements List<E> {
 
   bool contains(Object element) {
     int length = this.length;
-    for (int i = 0; i < this.length; i++) {
+    for (int i = 0; i < length; i++) {
       if (this[i] == element) return true;
       if (length != this.length) {
         throw new ConcurrentModificationError(this);
