@@ -326,6 +326,10 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
       comparison->InputAt(0)->definition()->AsLoadClassId();
   InstanceCallInstr* call =
       comparison->InputAt(0)->definition()->AsInstanceCall();
+  InstanceOfInstr* instanceOf =
+      comparison->InputAt(0)->definition()->AsInstanceOf();
+  bool is_simpleInstanceOf =
+      (call != NULL) && call->MatchesCoreName(Symbols::_simpleInstanceOf());
   RedefinitionInstr* redef = NULL;
   if (load_cid != NULL && comparison->InputAt(1)->BindsToConstant()) {
     intptr_t cid = Smi::Cast(comparison->InputAt(1)->BoundConstant()).Value();
@@ -334,25 +338,34 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
     redef = flow_graph_->EnsureRedefinition(true_successor,
                                             load_cid->object()->definition(),
                                             CompileType::FromCid(cid));
-  } else if ((call != NULL) &&
-             call->MatchesCoreName(Symbols::_simpleInstanceOf()) &&
+  } else if ((is_simpleInstanceOf || (instanceOf != NULL)) &&
              comparison->InputAt(1)->BindsToConstant() &&
              comparison->InputAt(1)->BoundConstant().IsBool()) {
-    ASSERT(call->ArgumentAt(1)->IsConstant());
     if (comparison->InputAt(1)->BoundConstant().raw() == Bool::False().raw()) {
       negated = !negated;
     }
     BlockEntryInstr* true_successor =
         negated ? instr->false_successor() : instr->true_successor();
-    const Object& type = call->ArgumentAt(1)->AsConstant()->value();
-    if (type.IsType() && !Type::Cast(type).IsDynamicType() &&
-        !Type::Cast(type).IsObjectType()) {
-      const bool is_nullable = Type::Cast(type).IsNullType()
-                                   ? CompileType::kNullable
-                                   : CompileType::kNonNullable;
+    const AbstractType* type = NULL;
+    Definition* left = NULL;
+    if (is_simpleInstanceOf) {
+      ASSERT(call->ArgumentAt(1)->IsConstant());
+      const Object& type_obj = call->ArgumentAt(1)->AsConstant()->value();
+      if (!type_obj.IsType()) {
+        return;
+      }
+      type = &Type::Cast(type_obj);
+      left = call->ArgumentAt(0);
+    } else {
+      type = &(instanceOf->type());
+      left = instanceOf->value()->definition();
+    }
+    if (!type->IsDynamicType() && !type->IsObjectType()) {
+      const bool is_nullable = type->IsNullType() ? CompileType::kNullable
+                                                  : CompileType::kNonNullable;
       redef = flow_graph_->EnsureRedefinition(
-          true_successor, call->ArgumentAt(0),
-          CompileType::FromAbstractType(Type::Cast(type), is_nullable));
+          true_successor, left,
+          CompileType::FromAbstractType(*type, is_nullable));
     }
   } else if (comparison->InputAt(0)->BindsToConstant() &&
              comparison->InputAt(0)->BoundConstant().IsNull()) {

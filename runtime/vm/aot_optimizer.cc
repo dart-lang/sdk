@@ -1354,6 +1354,16 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
       InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
       ConstantInstr* lower_cid =
           flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(lower_limit)));
+
+      if (lower_limit == upper_limit) {
+        StrictCompareInstr* check_cid = new (Z) StrictCompareInstr(
+            call->token_pos(), Token::kEQ_STRICT, new (Z) Value(left_cid),
+            new (Z) Value(lower_cid), /* number_check = */ false,
+            Thread::kNoDeoptId);
+        ReplaceCall(call, check_cid);
+        return;
+      }
+
       ConstantInstr* upper_cid =
           flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(upper_limit)));
 
