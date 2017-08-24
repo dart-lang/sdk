@@ -220,9 +220,6 @@ cc/GuardFieldSimpleTest: Skip
 # This test is meaningless for DBC as allocation stubs are not used.
 cc/RegenerateAllocStubs: Skip
 
-[ $arch == simdbc64 && $mode == release ]
-cc/UseDartApi: Skip # Issue 28499
-
 [ $hot_reload || $hot_reload_rollback ]
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
