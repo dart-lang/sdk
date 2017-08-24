@@ -6,6 +6,7 @@ library kernel.transformations.closure.converter;
 
 import '../../ast.dart'
     show
+        AsyncMarker,
         Arguments,
         Block,
         Catch,
@@ -13,6 +14,7 @@ import '../../ast.dart'
         ClosureCreation,
         Constructor,
         DartType,
+        DoStatement,
         EmptyStatement,
         Expression,
         ExpressionStatement,
@@ -52,6 +54,7 @@ import '../../ast.dart'
         VariableSet,
         VectorCreation,
         VectorType,
+        WhileStatement,
         transformList;
 
 import '../../frontend/accessors.dart' show VariableAccessor;
@@ -69,6 +72,13 @@ import 'context.dart' show Context, NoContext, LocalContext;
 import 'info.dart' show ClosureInfo;
 
 import 'rewriter.dart' show AstRewriter, BlockRewriter, InitializerListRewriter;
+
+bool isLoop(TreeNode node) {
+  return node is WhileStatement ||
+      node is DoStatement ||
+      node is ForStatement ||
+      node is ForInStatement;
+}
 
 class ClosureConverter extends Transformer {
   final CoreTypes coreTypes;
@@ -347,6 +357,10 @@ class ClosureConverter extends Transformer {
   }
 
   Expression handleLocalFunction(FunctionNode function) {
+    if (function.asyncMarker == AsyncMarker.SyncYielding) {
+      function.transformChildren(this);
+      return new FunctionExpression(function);
+    }
     FunctionNode enclosingFunction = currentFunction;
     Map<TypeParameter, DartType> enclosingTypeSubstitution = typeSubstitution;
     currentFunction = function;
@@ -554,6 +568,11 @@ class ClosureConverter extends Transformer {
   TreeNode visitBlock(Block node) {
     return saveContext(() {
       BlockRewriter blockRewriter = rewriter = rewriter.forNestedBlock(node);
+      if (node.parent is Statement &&
+          isLoop(node.parent) &&
+          context is! NoContext) {
+        context = context.toNestedContext();
+      }
       blockRewriter.transformStatements(this);
       return node;
     });

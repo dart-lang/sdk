@@ -878,6 +878,8 @@ class StreamingFlowGraphBuilder {
   intptr_t PeekArgumentsTypeCount();
   void SkipArgumentsBeforeActualArguments();
 
+  LocalVariable* LookupParameterDirect(intptr_t kernel_offset,
+                                       intptr_t parameter_index);
   LocalVariable* LookupVariable(intptr_t kernel_offset);
   LocalVariable* MakeTemporary();
   Token::Kind MethodKind(const String& name);
