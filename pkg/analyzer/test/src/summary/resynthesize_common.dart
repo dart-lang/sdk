@@ -1343,12 +1343,6 @@ abstract class ResynthesizeTest extends AbstractResynthesizeTest {
   Future<LibraryElementImpl> checkLibrary(String text,
       {bool allowErrors: false, bool dumpSummaries: false});
 
-  /**
-   * Return a [SummaryResynthesizer] to resynthesize the library with the
-   * given [librarySource].
-   */
-  SummaryResynthesizer encodeDecodeLibrarySource(Source librarySource);
-
   test_class_abstract() async {
     var library = await checkLibrary('abstract class C {}');
     checkElementText(library, r'''
@@ -6199,88 +6193,6 @@ int Function(int a, String b) v;
 ''');
   }
 
-  test_getElement_constructor_named() async {
-    String text = 'class C { C.named(); }';
-    Source source = addLibrarySource('/test.dart', text);
-    ConstructorElement original = context
-        .computeLibraryElement(source)
-        .getType('C')
-        .getNamedConstructor('named');
-    expect(original, isNotNull);
-    ConstructorElement resynthesized = validateGetElement(text, original);
-    compareConstructorElements(resynthesized, original, 'C.constructor named');
-  }
-
-  test_getElement_constructor_unnamed() async {
-    String text = 'class C { C(); }';
-    Source source = addLibrarySource('/test.dart', text);
-    ConstructorElement original =
-        context.computeLibraryElement(source).getType('C').unnamedConstructor;
-    expect(original, isNotNull);
-    ConstructorElement resynthesized = validateGetElement(text, original);
-    compareConstructorElements(resynthesized, original, 'C.constructor');
-  }
-
-  test_getElement_field() async {
-    String text = 'class C { var f; }';
-    Source source = addLibrarySource('/test.dart', text);
-    FieldElement original =
-        context.computeLibraryElement(source).getType('C').getField('f');
-    expect(original, isNotNull);
-    FieldElement resynthesized = validateGetElement(text, original);
-    compareFieldElements(resynthesized, original, 'C.field f');
-  }
-
-  test_getElement_getter() async {
-    String text = 'class C { get f => null; }';
-    Source source = addLibrarySource('/test.dart', text);
-    PropertyAccessorElement original =
-        context.computeLibraryElement(source).getType('C').getGetter('f');
-    expect(original, isNotNull);
-    PropertyAccessorElement resynthesized = validateGetElement(text, original);
-    comparePropertyAccessorElements(resynthesized, original, 'C.getter f');
-  }
-
-  test_getElement_method() async {
-    String text = 'class C { f() {} }';
-    Source source = addLibrarySource('/test.dart', text);
-    MethodElement original =
-        context.computeLibraryElement(source).getType('C').getMethod('f');
-    expect(original, isNotNull);
-    MethodElement resynthesized = validateGetElement(text, original);
-    compareMethodElements(resynthesized, original, 'C.method f');
-  }
-
-  test_getElement_operator() async {
-    String text = 'class C { operator+(x) => null; }';
-    Source source = addLibrarySource('/test.dart', text);
-    MethodElement original =
-        context.computeLibraryElement(source).getType('C').getMethod('+');
-    expect(original, isNotNull);
-    MethodElement resynthesized = validateGetElement(text, original);
-    compareMethodElements(resynthesized, original, 'C.operator+');
-  }
-
-  test_getElement_setter() async {
-    String text = 'class C { void set f(value) {} }';
-    Source source = addLibrarySource('/test.dart', text);
-    PropertyAccessorElement original =
-        context.computeLibraryElement(source).getType('C').getSetter('f');
-    expect(original, isNotNull);
-    PropertyAccessorElement resynthesized = validateGetElement(text, original);
-    comparePropertyAccessorElements(resynthesized, original, 'C.setter f');
-  }
-
-  test_getElement_unit() async {
-    String text = 'class C { f() {} }';
-    Source source = addLibrarySource('/test.dart', text);
-    CompilationUnitElement original =
-        context.computeLibraryElement(source).definingCompilationUnit;
-    expect(original, isNotNull);
-    CompilationUnitElement resynthesized = validateGetElement(text, original);
-    compareCompilationUnitElements(resynthesized, original);
-  }
-
   test_getter_documented() async {
     var library = await checkLibrary('''
 // Extra comment so doc comment offset != 0
@@ -10015,24 +9927,6 @@ int get x {}
 int i;
 int j;
 ''');
-  }
-
-  /**
-   * Encode the library containing [original] into a summary and then use
-   * [TestSummaryResynthesizer.getElement] to retrieve just the original
-   * element from the resynthesized summary.
-   */
-  Element validateGetElement(String text, Element original) {
-    SummaryResynthesizer resynthesizer =
-        encodeDecodeLibrarySource(original.library.source);
-    ElementLocationImpl location = original.location;
-    Element result = resynthesizer.getElement(location);
-    checkMinimalResynthesisWork(resynthesizer, original.library);
-    // Check that no other summaries needed to be resynthesized to resynthesize
-    // the library element.
-    expect(resynthesizer.resynthesisCount, 3);
-    expect(result.location, location);
-    return result;
   }
 }
 

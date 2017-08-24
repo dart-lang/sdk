@@ -11,7 +11,6 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/kernel/resynthesize.dart';
-import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/libraries_specification.dart';
@@ -111,12 +110,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
     var resynthesizer =
         new KernelResynthesizer(context, kernelResult.types, libraryMap);
     return resynthesizer.getLibrary(testUriStr);
-  }
-
-  @override
-  SummaryResynthesizer encodeDecodeLibrarySource(Source librarySource) {
-    // TODO(scheglov): implement encodeDecodeLibrarySource
-    throw new UnimplementedError();
   }
 
   @failingTest
@@ -384,46 +377,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_genericFunction_asParameterType() async {
     await super.test_genericFunction_asParameterType();
-  }
-
-  @failingTest
-  test_getElement_constructor_named() async {
-    await super.test_getElement_constructor_named();
-  }
-
-  @failingTest
-  test_getElement_constructor_unnamed() async {
-    await super.test_getElement_constructor_unnamed();
-  }
-
-  @failingTest
-  test_getElement_field() async {
-    await super.test_getElement_field();
-  }
-
-  @failingTest
-  test_getElement_getter() async {
-    await super.test_getElement_getter();
-  }
-
-  @failingTest
-  test_getElement_method() async {
-    await super.test_getElement_method();
-  }
-
-  @failingTest
-  test_getElement_operator() async {
-    await super.test_getElement_operator();
-  }
-
-  @failingTest
-  test_getElement_setter() async {
-    await super.test_getElement_setter();
-  }
-
-  @failingTest
-  test_getElement_unit() async {
-    await super.test_getElement_unit();
   }
 
   @failingTest
