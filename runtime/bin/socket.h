@@ -5,10 +5,6 @@
 #ifndef RUNTIME_BIN_SOCKET_H_
 #define RUNTIME_BIN_SOCKET_H_
 
-#if defined(DART_IO_DISABLED)
-#error "socket.h can only be included on builds with IO enabled"
-#endif
-
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/reference_counting.h"
