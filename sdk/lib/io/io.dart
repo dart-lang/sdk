@@ -95,7 +95,6 @@
  *
  * The [WebSocket] class provides support for the web socket protocol. This
  * allows full-duplex communications between client and server applications.
- * Use the WebSocket class in the `dart:html` library for web clients.
  *
  * A web socket server uses a normal HTTP server for accepting web socket
  * connections. The initial handshake is a HTTP request which is then upgraded to a
