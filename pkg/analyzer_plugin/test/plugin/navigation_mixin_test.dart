@@ -64,6 +64,7 @@ class NavigationMixinTest {
     await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
 
+    Completer<Null> notificationReceived = new Completer<Null>();
     channel.listen(null, onNotification: (Notification notification) {
       expect(notification, isNotNull);
       AnalysisNavigationParams params =
@@ -71,8 +72,10 @@ class NavigationMixinTest {
       expect(params.files, hasLength(1));
       expect(params.targets, hasLength(1));
       expect(params.regions, hasLength(2));
+      notificationReceived.complete();
     });
     await plugin.sendNavigationNotification(filePath1);
+    await notificationReceived.future;
   }
 }
 
