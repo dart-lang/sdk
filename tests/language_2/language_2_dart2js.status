@@ -127,7 +127,6 @@ generic_methods_simple_is_expression_test: RuntimeError
 generic_methods_tearoff_specialization_test: RuntimeError
 generic_methods_unused_parameter_test: RuntimeError
 generic_tearoff_test: CompileTimeError
-typevariable_substitution2_test/02: MissingCompileTimeError
 
 [ $compiler == dart2js]
 generic_methods_type_expression_test: RuntimeError
@@ -140,6 +139,7 @@ many_generic_instanceof_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != none && !$checked ]
 generic_list_checked_test: RuntimeError
+typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
 accessor_conflict_export2_test: Crash # Issue 25626

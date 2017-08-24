@@ -122,7 +122,6 @@ generic_methods_unused_parameter_test: RuntimeError
 generic_tearoff_test: RuntimeError
 generic_typedef_test: RuntimeError
 many_generic_instanceof_test: RuntimeError
-typevariable_substitution2_test/02: MissingCompileTimeError
 
 [ $compiler == none && $runtime == vm ]
 generic_methods_bounds_test/02: MissingRuntimeError
