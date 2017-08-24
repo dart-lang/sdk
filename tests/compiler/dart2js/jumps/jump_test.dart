@@ -22,9 +22,13 @@ main() {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await for (FileSystemEntity entity in dataDir.list()) {
+      print('----------------------------------------------------------------');
       print('Checking ${entity.uri}');
+      print('----------------------------------------------------------------');
       String annotatedCode = await new File.fromUri(entity.uri).readAsString();
+      print('--from source---------------------------------------------------');
       await checkCode(annotatedCode, computeJumpsData, compileFromSource);
+      print('--from dill-----------------------------------------------------');
       await checkCode(annotatedCode, computeKernelJumpsData, compileFromDill);
     }
   });
@@ -148,6 +152,7 @@ class JumpsAstComputer extends AstDataExtractor with JumpsMixin {
   @override
   visitGotoStatement(ast.GotoStatement node) {
     JumpTarget target = elements.getTargetOf(node);
+    assert(target != null, 'No target for $node.');
     NodeId id = computeGotoNodeId(node);
     SourceSpan sourceSpan = computeSourceSpan(node);
     gotos.add(new GotoData(id, sourceSpan, target));
@@ -179,17 +184,33 @@ class JumpsIrChecker extends IrDataExtractor with JumpsMixin {
     return null;
   }
 
-  visitForStatement(ir.ForStatement node) {
-    JumpTarget target = _localsMap.getJumpTargetForFor(node);
+  void addTargetData(ir.TreeNode node, JumpTarget target) {
     if (target != null) {
       NodeId id = computeLoopNodeId(node);
       SourceSpan sourceSpan = computeSourceSpan(node);
       targets[target] = new TargetData(index++, id, sourceSpan, target);
     }
+  }
+
+  visitForStatement(ir.ForStatement node) {
+    addTargetData(node, _localsMap.getJumpTargetForFor(node));
     super.visitForStatement(node);
   }
 
-  // TODO(johnniwinther): Support testing of do, for-in and while loops.
+  visitForInStatement(ir.ForInStatement node) {
+    addTargetData(node, _localsMap.getJumpTargetForForIn(node));
+    super.visitForInStatement(node);
+  }
+
+  visitWhileStatement(ir.WhileStatement node) {
+    addTargetData(node, _localsMap.getJumpTargetForWhile(node));
+    super.visitWhileStatement(node);
+  }
+
+  visitDoStatement(ir.DoStatement node) {
+    addTargetData(node, _localsMap.getJumpTargetForDo(node));
+    super.visitDoStatement(node);
+  }
 
   visitBreakStatement(ir.BreakStatement node) {
     JumpTarget target = _localsMap.getJumpTargetForBreak(node);
