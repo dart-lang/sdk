@@ -15,6 +15,24 @@ assertion_initializer_test: CompileTimeError
 cha_deopt1_test: RuntimeError
 cha_deopt2_test: RuntimeError
 cha_deopt3_test: RuntimeError
+generic_methods_bounds_test/01: MissingCompileTimeError
+generic_methods_bounds_test/02: MissingRuntimeError
+generic_methods_dynamic_test/01: MissingCompileTimeError
+generic_methods_dynamic_test/02: MissingRuntimeError
+generic_methods_dynamic_test/03: MissingCompileTimeError
+generic_methods_dynamic_test/04: MissingRuntimeError
+generic_methods_generic_class_tearoff_test: RuntimeError
+generic_methods_generic_function_result_test/none: RuntimeError
+generic_methods_named_parameters_test: RuntimeError
+generic_methods_optional_parameters_test: RuntimeError
+generic_methods_overriding_test/01: MissingCompileTimeError
+generic_methods_overriding_test/03: MissingCompileTimeError
+generic_methods_recursive_bound_test/02: MissingCompileTimeError
+generic_methods_simple_as_expression_test/02: MissingRuntimeError
+generic_methods_simple_is_expression_test: RuntimeError
+generic_methods_tearoff_specialization_test: RuntimeError
+generic_methods_unused_parameter_test: RuntimeError
+generic_tearoff_test: CompileTimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
@@ -179,3 +197,6 @@ async_star_pause_test: Fail, OK
 
 [ $compiler == dartk && $runtime == vm ]
 async_star_cancel_while_paused_test: RuntimeError
+
+[ $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
+generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460

@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Check that annotations cannot use type arguments, but can be raw.
+import "package:expect/expect.dart";
 
-class C<T> {
-  const C();
+Iterable<T> foo<T>(T x) sync* {
+  for (int i = 0; i < 3; i++) {
+    yield x;
+  }
 }
 
-@C() //         //# 01: ok
-@C<dynamic>() //# 02: compile-time error
-@C<int>() //    //# 03: compile-time error
-main() {}
+main() {
+  for (var x in foo<int>(1)) {
+    Expect.equals(1, x);
+  }
+}

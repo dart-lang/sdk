@@ -64,7 +64,7 @@ class GenericInstanceof {
     }
     {
       Foo foo = new Foo<List<int>>();
-      Expect.equals(true, foo.isT(new List(5)));
+      Expect.equals(false, foo.isT(new List(5)));
       Expect.equals(false, foo.isT(new List<Object>(5)));
       Expect.equals(true, foo.isT(new List<int>(5)));
       Expect.equals(false, foo.isT(new List<num>(5)));
@@ -72,7 +72,7 @@ class GenericInstanceof {
     }
     {
       Foo foo = new Foo<List<num>>();
-      Expect.equals(true, foo.isT(new List(5)));
+      Expect.equals(false, foo.isT(new List(5)));
       Expect.equals(false, foo.isT(new List<Object>(5)));
       Expect.equals(true, foo.isT(new List<int>(5)));
       Expect.equals(true, foo.isT(new List<num>(5)));
@@ -80,7 +80,7 @@ class GenericInstanceof {
     }
     {
       Foo foo = new Foo<List<String>>();
-      Expect.equals(true, foo.isT(new List(5)));
+      Expect.equals(false, foo.isT(new List(5)));
       Expect.equals(false, foo.isT(new List<Object>(5)));
       Expect.equals(false, foo.isT(new List<int>(5)));
       Expect.equals(false, foo.isT(new List<num>(5)));
@@ -104,7 +104,7 @@ class GenericInstanceof {
     }
     {
       Foo foo = new Foo<int>();
-      Expect.equals(true, foo.isListT(new List(5)));
+      Expect.equals(false, foo.isListT(new List(5)));
       Expect.equals(false, foo.isListT(new List<Object>(5)));
       Expect.equals(true, foo.isListT(new List<int>(5)));
       Expect.equals(false, foo.isListT(new List<num>(5)));
@@ -112,7 +112,7 @@ class GenericInstanceof {
     }
     {
       Foo foo = new Foo<num>();
-      Expect.equals(true, foo.isListT(new List(5)));
+      Expect.equals(false, foo.isListT(new List(5)));
       Expect.equals(false, foo.isListT(new List<Object>(5)));
       Expect.equals(true, foo.isListT(new List<int>(5)));
       Expect.equals(true, foo.isListT(new List<num>(5)));
@@ -120,7 +120,7 @@ class GenericInstanceof {
     }
     {
       Foo foo = new Foo<String>();
-      Expect.equals(true, foo.isListT(new List(5)));
+      Expect.equals(false, foo.isListT(new List(5)));
       Expect.equals(false, foo.isListT(new List<Object>(5)));
       Expect.equals(false, foo.isListT(new List<int>(5)));
       Expect.equals(false, foo.isListT(new List<num>(5)));

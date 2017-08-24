@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--checked
-// Dart test program testing generic type allocations and generic type tests.
+
+/// Dart test program testing generic type allocations and generic type tests.
 import "package:expect/expect.dart";
 
 class A {

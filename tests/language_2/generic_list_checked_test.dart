@@ -2,14 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-
-class A<T> {
-  foo() => this is A<int>;
-}
+import 'package:expect/expect.dart';
 
 main() {
-  Expect.isTrue(new A().foo());
-  Expect.isTrue(new A<int>().foo());
-  Expect.isFalse(new A<String>().foo());
+  Expect.throws(() {
+    List<int> t = new List<String>();
+  });
 }

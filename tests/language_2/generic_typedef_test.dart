@@ -4,7 +4,6 @@
 
 import 'package:expect/expect.dart';
 
-
 // Test runtime behavior of generic function typedefs:
 //
 // - use "is" and "as" on them.

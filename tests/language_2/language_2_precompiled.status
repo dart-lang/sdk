@@ -94,9 +94,31 @@ class_literal_test/21: MissingCompileTimeError
 class_literal_test/22: MissingCompileTimeError
 class_literal_test/23: MissingCompileTimeError
 class_literal_test/24: MissingCompileTimeError
-class_literal_test/25: MissingCompileTimeError
 checked_setter_test: MissingCompileTimeError
+class_literal_test/25: MissingCompileTimeError
 covariant_subtyping_with_substitution_test: RuntimeError
+generic_instanceof_test: RuntimeError
+generic_list_checked_test: RuntimeError
+generic_methods_bounds_test/01: MissingCompileTimeError
+generic_methods_bounds_test/02: MissingRuntimeError
+generic_methods_dynamic_test/01: MissingCompileTimeError
+generic_methods_dynamic_test/02: MissingRuntimeError
+generic_methods_dynamic_test/03: MissingCompileTimeError
+generic_methods_dynamic_test/04: MissingRuntimeError
+generic_methods_generic_class_tearoff_test: RuntimeError
+generic_methods_named_parameters_test: RuntimeError
+generic_methods_optional_parameters_test: RuntimeError
+generic_methods_overriding_test/01: MissingCompileTimeError
+generic_methods_overriding_test/03: MissingCompileTimeError
+generic_methods_recursive_bound_test/02: Crash
+generic_methods_recursive_bound_test/03: Crash
+generic_methods_reuse_type_variables_test: RuntimeError
+generic_methods_simple_as_expression_test/02: MissingRuntimeError
+generic_methods_simple_is_expression_test: RuntimeError
+generic_methods_tearoff_specialization_test: RuntimeError
+generic_methods_unused_parameter_test: RuntimeError
+generic_tearoff_test: RuntimeError
+generic_typedef_test: RuntimeError
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError
@@ -163,3 +185,10 @@ async_star_pause_test: Fail, OK
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
+
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
+generic_methods_function_type_test: Pass # Issue 25869
+generic_methods_test: Pass # Issue 25869
+generic_methods_new_test: Pass # Issue 25869
+generic_local_functions_test: Pass # Issue 25869
+generic_methods_generic_function_parameter_test: Pass # Issue 25869
