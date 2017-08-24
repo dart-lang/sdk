@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -134,9 +133,7 @@ class StatementCompletionProcessor {
       DartStatementCompletion.NO_COMPLETION, new SourceChange("", edits: []));
 
   final StatementCompletionContext statementContext;
-  final AnalysisContext analysisContext;
   final CorrectionUtils utils;
-  int fileStamp;
   AstNode node;
   StatementCompletion completion;
   SourceChange change = new SourceChange('statement-completion');
@@ -146,10 +143,7 @@ class StatementCompletionProcessor {
   Position exitPosition = null;
 
   StatementCompletionProcessor(this.statementContext)
-      : analysisContext = statementContext.unitElement.context,
-        utils = new CorrectionUtils(statementContext.unit) {
-    fileStamp = analysisContext.getModificationStamp(source);
-  }
+      : utils = new CorrectionUtils(statementContext.unit);
 
   String get eol => utils.endOfLine;
 
@@ -168,11 +162,6 @@ class StatementCompletionProcessor {
   CompilationUnitElement get unitElement => statementContext.unitElement;
 
   Future<StatementCompletion> compute() async {
-    // If the source was changed between the constructor and running
-    // this asynchronous method, it is not safe to use the unit.
-    if (analysisContext.getModificationStamp(source) != fileStamp) {
-      return NO_COMPLETION;
-    }
     node = _selectedNode();
     if (node == null) {
       return NO_COMPLETION;

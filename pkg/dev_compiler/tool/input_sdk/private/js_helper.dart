@@ -73,8 +73,7 @@ class Primitives {
   }
 
   static int parseInt(
-      String source, int radix, int handleError(String source)) {
-    checkString(source);
+      @nullCheck String source, int _radix, int handleError(String source)) {
     var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
     var/*=JSArray<String>*/ match =
         JS('JSExtendableArray|Null', '#.exec(#)', re, source);
@@ -89,7 +88,7 @@ class Primitives {
       return _parseIntError(source, handleError);
     }
     String decimalMatch = match[decimalIndex];
-    if (radix == null) {
+    if (_radix == null) {
       if (decimalMatch != null) {
         // Cannot fail because we know that the digits are all decimal.
         return JS('int', r'parseInt(#, 10)', source);
@@ -100,10 +99,7 @@ class Primitives {
       }
       return _parseIntError(source, handleError);
     }
-
-    if (radix is! int) {
-      throw new ArgumentError.value(radix, 'radix', 'is not an integer');
-    }
+    @notNull var radix = _radix;
     if (radix < 2 || radix > 36) {
       throw new RangeError.range(radix, 2, 36, 'radix');
     }
@@ -155,8 +151,7 @@ class Primitives {
     return handleError(source);
   }
 
-  static double parseDouble(String source, double handleError(String source)) {
-    checkString(source);
+  static double parseDouble(@nullCheck String source, double handleError(String source)) {
     // Notice that JS parseFloat accepts garbage at the end of the string.
     // Accept only:
     // - [+/-]NaN
@@ -232,9 +227,9 @@ class Primitives {
 
   // This is to avoid stack overflows due to very large argument arrays in
   // apply().  It fixes http://dartbug.com/6919
-  static String _fromCharCodeApply(List<int> array) {
+  @notNull static String _fromCharCodeApply(List<int> array) {
     const kMaxApply = 500;
-    int end = array.length;
+    @nullCheck int end = array.length;
     if (end <= kMaxApply) {
       return JS('String', r'String.fromCharCode.apply(null, #)', array);
     }
@@ -252,10 +247,9 @@ class Primitives {
     return result;
   }
 
-  static String stringFromCodePoints(/*=JSArray<int>*/ codePoints) {
+  @notNull static String stringFromCodePoints(JSArray<int> codePoints) {
     List<int> a = <int>[];
-    for (var i in codePoints) {
-      if (i is! int) throw argumentErrorValue(i);
+    for (@nullCheck var i in codePoints) {
       if (i <= 0xffff) {
         a.add(i);
       } else if (i <= 0x10ffff) {
@@ -268,9 +262,8 @@ class Primitives {
     return _fromCharCodeApply(a);
   }
 
-  static String stringFromCharCodes(/*=JSArray<int>*/ charCodes) {
-    for (var i in charCodes) {
-      if (i is! int) throw argumentErrorValue(i);
+  @notNull static String stringFromCharCodes(JSArray<int> charCodes) {
+    for (@nullCheck var i in charCodes) {
       if (i < 0) throw argumentErrorValue(i);
       if (i > 0xffff) return stringFromCodePoints(charCodes);
     }
@@ -278,8 +271,8 @@ class Primitives {
   }
 
   // [start] and [end] are validated.
-  static String stringFromNativeUint8List(
-      NativeUint8List charCodes, int start, int end) {
+  @notNull static String stringFromNativeUint8List(
+      NativeUint8List charCodes, @nullCheck int start, @nullCheck int end) {
     const kMaxApply = 500;
     if (end <= kMaxApply && start == 0 && end == charCodes.length) {
       return JS('String', r'String.fromCharCode.apply(null, #)', charCodes);
@@ -298,7 +291,7 @@ class Primitives {
     return result;
   }
 
-  static String stringFromCharCode(int charCode) {
+  @notNull static String stringFromCharCode(@nullCheck int charCode) {
     if (0 <= charCode) {
       if (charCode <= 0xffff) {
         return JS('String', 'String.fromCharCode(#)', charCode);
@@ -361,17 +354,11 @@ class Primitives {
     return -JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
   }
 
-  static num valueFromDecomposedDate(int years, int month, int day, int hours,
-      int minutes, int seconds, int milliseconds, bool isUtc) {
+  static num valueFromDecomposedDate(@nullCheck int years, @nullCheck int month,
+                                     @nullCheck int day, @nullCheck int hours,
+      @nullCheck int minutes, @nullCheck int seconds, @nullCheck int milliseconds,
+                                     @nullCheck bool isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
-    checkInt(years);
-    checkInt(month);
-    checkInt(day);
-    checkInt(hours);
-    checkInt(minutes);
-    checkInt(seconds);
-    checkInt(milliseconds);
-    checkBool(isUtc);
     var jsMonth = month - 1;
     num value;
     if (isUtc) {
@@ -493,8 +480,7 @@ class Primitives {
  * describes the problem.
  */
 @NoInline()
-Error diagnoseIndexError(indexable, index) {
-  if (index is! int) return new ArgumentError.value(index, 'index');
+Error diagnoseIndexError(indexable, int index) {
   int length = indexable.length;
   // The following returns the same error that would be thrown by calling
   // [RangeError.checkValidIndex] with no optional parameters provided.
@@ -510,17 +496,14 @@ Error diagnoseIndexError(indexable, index) {
  * describes the problem.
  */
 @NoInline()
-Error diagnoseRangeError(start, end, length) {
-  if (start is! int) {
+Error diagnoseRangeError(int start, int end, int length) {
+  if (start == null) {
     return new ArgumentError.value(start, 'start');
   }
   if (start < 0 || start > length) {
     return new RangeError.range(start, 0, length, 'start');
   }
   if (end != null) {
-    if (end is! int) {
-      return new ArgumentError.value(end, 'end');
-    }
     if (end < start || end > length) {
       return new RangeError.range(end, start, length, 'end');
     }
@@ -529,7 +512,7 @@ Error diagnoseRangeError(start, end, length) {
   return new ArgumentError.value(end, "end");
 }
 
-stringLastIndexOfUnchecked(receiver, element, start) =>
+@notNull int stringLastIndexOfUnchecked(receiver, element, start) =>
     JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
 
 /// 'factory' for constructing ArgumentError.value to keep the call sites small.
@@ -538,28 +521,12 @@ ArgumentError argumentErrorValue(object) {
   return new ArgumentError.value(object);
 }
 
-checkNull(object) {
-  if (object == null) throw argumentErrorValue(object);
-  return object;
-}
-
-checkNum(value) {
-  if (value is! num) throw argumentErrorValue(value);
-  return value;
+void throwArgumentErrorValue(value) {
+  throw argumentErrorValue(value);
 }
 
 checkInt(value) {
   if (value is! int) throw argumentErrorValue(value);
-  return value;
-}
-
-checkBool(value) {
-  if (value is! bool) throw argumentErrorValue(value);
-  return value;
-}
-
-checkString(value) {
-  if (value is! String) throw argumentErrorValue(value);
   return value;
 }
 

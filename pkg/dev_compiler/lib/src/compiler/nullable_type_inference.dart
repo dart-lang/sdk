@@ -9,7 +9,8 @@ import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/ast/visitor.dart' show RecursiveAstVisitor;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'element_helpers.dart' show getStaticType, isInlineJS;
+import 'element_helpers.dart' show getStaticType, isInlineJS, findAnnotation;
+import 'js_interop.dart' show isNotNullAnnotation, isNullCheckAnnotation;
 import 'property_model.dart';
 
 /// An inference engine for nullable types.
@@ -26,6 +27,7 @@ abstract class NullableTypeInference {
   LibraryElement get dartCoreLibrary;
   VirtualFieldModel get virtualFields;
 
+  InterfaceType getImplementationType(DartType type);
   bool isPrimitiveType(DartType type);
   bool isObjectMember(String name);
 
@@ -47,6 +49,84 @@ abstract class NullableTypeInference {
   /// Returns true if [expr] can be null.
   bool isNullable(Expression expr) => _isNullable(expr);
 
+  bool _isNonNullMethodInvocation(MethodInvocation expr) {
+    // TODO(vsm): This logic overlaps with the resolver.
+    // Where is the best place to put this?
+    var e = resolutionMap.staticElementForIdentifier(expr.methodName);
+    if (e == null) return false;
+    if (isInlineJS(e)) {
+      // Fix types for JS builtin calls.
+      //
+      // This code was taken from analyzer. It's not super sophisticated:
+      // only looks for the type name in dart:core, so we just copy it here.
+      //
+      // TODO(jmesserly): we'll likely need something that can handle a wider
+      // variety of types, especially when we get to JS interop.
+      var args = expr.argumentList.arguments;
+      var first = args.isNotEmpty ? args.first : null;
+      if (first is SimpleStringLiteral) {
+        var types = first.stringValue;
+        if (types != '' &&
+            types != 'var' &&
+            !types.split('|').contains('Null')) {
+          return true;
+        }
+      }
+    }
+
+    if (e.name == 'identical' && identical(e.library, dartCoreLibrary)) {
+      return true;
+    }
+    // If this is a method call, check to see whether it is to a final
+    // type for which we have a known implementation type (i.e. int, bool,
+    // double, and String), and if so use the element for the implementation
+    // type instead.
+    if (e is MethodElement) {
+      Element container = e.enclosingElement;
+      if (container is ClassElement) {
+        DartType targetType = container.type;
+        InterfaceType implType = getImplementationType(targetType);
+        if (implType != null) {
+          MethodElement method = implType.lookUpMethod(e.name, dartCoreLibrary);
+          if (method != null) e = method;
+        }
+      }
+    }
+    // If the method or function is annotated as returning a non-null value
+    // then the result of the call is non-null.
+    return (e is MethodElement || e is FunctionElement) && _assertedNotNull(e);
+  }
+
+  bool _isNonNullProperty(Element element, String name) {
+    if (element is! PropertyInducingElement &&
+        element is! PropertyAccessorElement) {
+      return false;
+    }
+    // If this is a reference to an element of a type for which
+    // we have a known implementation type (i.e. int, double,
+    // bool, String), then use the element for the implementation
+    // type.
+    Element container = element.enclosingElement;
+    if (container is ClassElement) {
+      DartType targetType = container.type;
+      InterfaceType implType = getImplementationType(targetType);
+      if (implType != null) {
+        PropertyAccessorElement getter =
+            implType.lookUpGetter(name, dartCoreLibrary);
+        if (getter != null) element = getter;
+      }
+    }
+    // If the getter is a synthetic element, then any annotations will
+    // be on the variable, so use those instead.
+    if (element is PropertyAccessorElement &&
+        element.isSynthetic &&
+        element.variable != null) {
+      element = (element as PropertyAccessorElement).variable;
+    }
+    // Return true if the element is annotated as returning a non-null value.
+    return _assertedNotNull(element);
+  }
+
   /// Returns true if [expr] can be null, optionally using [localIsNullable]
   /// for locals.
   ///
@@ -59,13 +139,21 @@ abstract class NullableTypeInference {
     // resulting value if that becomes an issue, so we maintain the invariant
     // that each node is visited once.
     Element element = null;
+    String name = null;
     if (expr is PropertyAccess &&
         expr.operator?.type != TokenType.QUESTION_PERIOD) {
       element = expr.propertyName.staticElement;
+      name = expr.propertyName.name;
+    } else if (expr is PrefixedIdentifier) {
+      element = expr.staticElement;
+      name = expr.identifier.name;
     } else if (expr is Identifier) {
       element = expr.staticElement;
+      name = expr.name;
     }
     if (element != null) {
+      if (_isNonNullProperty(element, name)) return false;
+
       // Type literals are not null.
       if (element is ClassElement || element is FunctionTypeAliasElement) {
         return false;
@@ -76,6 +164,10 @@ abstract class NullableTypeInference {
           return localIsNullable(element);
         }
         return !_notNullLocals.contains(element);
+      }
+
+      if (element is ParameterElement && _assertedNotNull(element)) {
+        return false;
       }
 
       if (element is FunctionElement || element is MethodElement) {
@@ -169,33 +261,8 @@ abstract class NullableTypeInference {
     if (type != null && isPrimitiveType(type)) {
       return false;
     }
-    if (expr is MethodInvocation) {
-      // TODO(vsm): This logic overlaps with the resolver.
-      // Where is the best place to put this?
-      var e = resolutionMap.staticElementForIdentifier(expr.methodName);
-      if (isInlineJS(e)) {
-        // Fix types for JS builtin calls.
-        //
-        // This code was taken from analyzer. It's not super sophisticated:
-        // only looks for the type name in dart:core, so we just copy it here.
-        //
-        // TODO(jmesserly): we'll likely need something that can handle a wider
-        // variety of types, especially when we get to JS interop.
-        var args = expr.argumentList.arguments;
-        var first = args.isNotEmpty ? args.first : null;
-        if (first is SimpleStringLiteral) {
-          var types = first.stringValue;
-          if (types != '' &&
-              types != 'var' &&
-              !types.split('|').contains('Null')) {
-            return false;
-          }
-        }
-      }
-
-      if (e?.name == 'identical' && identical(e.library, dartCoreLibrary)) {
-        return false;
-      }
+    if (expr is MethodInvocation && _isNonNullMethodInvocation(expr)) {
+      return false;
     }
 
     // TODO(ochafik,jmesserly): handle other cases such as: refs to top-level
@@ -259,11 +326,29 @@ class _NullableLocalInference extends RecursiveAstVisitor {
       _locals.add(element);
       if (initializer != null) {
         _visitAssignment(node.name, initializer);
-      } else {
+      } else if (!_assertedNotNull(element)) {
         _nullableLocals.add(element);
       }
     }
     super.visitVariableDeclaration(node);
+  }
+
+  @override
+  visitForEachStatement(ForEachStatement node) {
+    if (node.identifier == null) {
+      var declaration = node.loopVariable;
+      var element = declaration.element;
+      _locals.add(element);
+      if (!_assertedNotNull(element)) {
+        _nullableLocals.add(element);
+      }
+    } else {
+      var element = node.identifier.staticElement;
+      if (element is LocalVariableElement && !_assertedNotNull(element)) {
+        _nullableLocals.add(element);
+      }
+    }
+    super.visitForEachStatement(node);
   }
 
   @override
@@ -317,7 +402,7 @@ class _NullableLocalInference extends RecursiveAstVisitor {
   void _visitAssignment(Expression left, Expression right) {
     if (left is SimpleIdentifier) {
       var element = left.staticElement;
-      if (element is LocalVariableElement) {
+      if (element is LocalVariableElement && !_assertedNotNull(element)) {
         bool visitLocal(LocalVariableElement otherLocal) {
           // Record the assignment.
           _assignments
@@ -335,3 +420,7 @@ class _NullableLocalInference extends RecursiveAstVisitor {
     }
   }
 }
+
+bool _assertedNotNull(Element e) =>
+    findAnnotation(e, isNotNullAnnotation) != null ||
+    findAnnotation(e, isNullCheckAnnotation) != null;

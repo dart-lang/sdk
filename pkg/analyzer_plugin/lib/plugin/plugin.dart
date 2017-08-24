@@ -4,11 +4,12 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
-    show AnalysisDriverGeneric, AnalysisDriverScheduler;
+    show AnalysisDriver, AnalysisDriverGeneric, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -202,7 +203,32 @@ abstract class ServerPlugin {
   }
 
   /**
+   * Return the result of analyzing the file with the given [path].
+   *
+   * Throw a [RequestFailure] is the file cannot be analyzed or if the driver
+   * associated with the file is not an [AnalysisDriver].
+   */
+  Future<ResolveResult> getResolveResult(String path) async {
+    AnalysisDriverGeneric driver = driverForPath(path);
+    if (driver is! AnalysisDriver) {
+      // Return an error from the request.
+      throw new RequestFailure(
+          RequestErrorFactory.pluginError('Failed to analyze $path', null));
+    }
+    ResolveResult result = await (driver as AnalysisDriver).getResult(path);
+    ResultState state = result.state;
+    if (state != ResultState.VALID) {
+      // Return an error from the request.
+      throw new RequestFailure(
+          RequestErrorFactory.pluginError('Failed to analyze $path', null));
+    }
+    return result;
+  }
+
+  /**
    * Handle an 'analysis.getNavigation' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<AnalysisGetNavigationResult> handleAnalysisGetNavigation(
       AnalysisGetNavigationParams params) async {
@@ -212,6 +238,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle an 'analysis.handleWatchEvents' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<AnalysisHandleWatchEventsResult> handleAnalysisHandleWatchEvents(
       AnalysisHandleWatchEventsParams parameters) async {
@@ -236,6 +264,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle an 'analysis.setContextRoots' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<AnalysisSetContextRootsResult> handleAnalysisSetContextRoots(
       AnalysisSetContextRootsParams parameters) async {
@@ -265,6 +295,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle an 'analysis.setPriorityFiles' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<AnalysisSetPriorityFilesResult> handleAnalysisSetPriorityFiles(
       AnalysisSetPriorityFilesParams parameters) async {
@@ -289,6 +321,8 @@ abstract class ServerPlugin {
    * Handle an 'analysis.setSubscriptions' request. Most subclasses should not
    * override this method, but should instead use the [subscriptionManager] to
    * access the list of subscriptions for any given file.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<AnalysisSetSubscriptionsResult> handleAnalysisSetSubscriptions(
       AnalysisSetSubscriptionsParams parameters) async {
@@ -303,6 +337,8 @@ abstract class ServerPlugin {
    * Handle an 'analysis.updateContent' request. Most subclasses should not
    * override this method, but should instead use the [contentCache] to access
    * the current content of overlaid files.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<AnalysisUpdateContentResult> handleAnalysisUpdateContent(
       AnalysisUpdateContentParams parameters) async {
@@ -336,6 +372,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle a 'completion.getSuggestions' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<CompletionGetSuggestionsResult> handleCompletionGetSuggestions(
           CompletionGetSuggestionsParams parameters) async =>
@@ -344,6 +382,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle an 'edit.getAssists' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<EditGetAssistsResult> handleEditGetAssists(
           EditGetAssistsParams parameters) async =>
@@ -353,6 +393,8 @@ abstract class ServerPlugin {
    * Handle an 'edit.getAvailableRefactorings' request. Subclasses that override
    * this method in order to participate in refactorings must also override the
    * method [handleEditGetRefactoring].
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<EditGetAvailableRefactoringsResult> handleEditGetAvailableRefactorings(
           EditGetAvailableRefactoringsParams parameters) async =>
@@ -360,6 +402,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle an 'edit.getFixes' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<EditGetFixesResult> handleEditGetFixes(
           EditGetFixesParams parameters) async =>
@@ -367,6 +411,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle an 'edit.getRefactoring' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<EditGetRefactoringResult> handleEditGetRefactoring(
           EditGetRefactoringParams parameters) async =>
@@ -374,6 +420,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle a 'kythe.getKytheEntries' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<KytheGetKytheEntriesResult> handleKytheGetKytheEntries(
           KytheGetKytheEntriesParams parameters) async =>
@@ -383,6 +431,8 @@ abstract class ServerPlugin {
    * Handle a 'plugin.shutdown' request. Subclasses can override this method to
    * perform any required clean-up, but cannot prevent the plugin from shutting
    * down.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<PluginShutdownResult> handlePluginShutdown(
           PluginShutdownParams parameters) async =>
@@ -390,6 +440,8 @@ abstract class ServerPlugin {
 
   /**
    * Handle a 'plugin.versionCheck' request.
+   *
+   * Throw a [RequestFailure] if the request could not be handled.
    */
   Future<PluginVersionCheckResult> handlePluginVersionCheck(
       PluginVersionCheckParams parameters) async {
@@ -427,13 +479,76 @@ abstract class ServerPlugin {
   void onError(Object exception, StackTrace stackTrace) {}
 
   /**
-   * Send notifications corresponding to the given description of subscriptions.
-   * The map is keyed by the path of each file for which notifications should be
-   * sent and has values representing the list of services associated with the
-   * notifications to send.
+   * If the plugin provides folding information, send a folding notification
+   * for the file with the given [path] to the server.
+   */
+  Future<Null> sendFoldingNotification(String path) {
+    return new Future.value();
+  }
+
+  /**
+   * If the plugin provides highlighting information, send a highlights
+   * notification for the file with the given [path] to the server.
+   */
+  Future<Null> sendHighlightsNotification(String path) {
+    return new Future.value();
+  }
+
+  /**
+   * If the plugin provides navigation information, send a navigation
+   * notification for the file with the given [path] to the server.
+   */
+  Future<Null> sendNavigationNotification(String path) {
+    return new Future.value();
+  }
+
+  /**
+   * Send notifications for the services subscribed to for the file with the
+   * given [path].
+   *
+   * This is a convenience method that subclasses can use to send notifications
+   * after analysis has been performed on a file.
+   */
+  void sendNotificationsForFile(String path) {
+    for (AnalysisService service in subscriptionManager.servicesForFile(path)) {
+      _sendNotificationForFile(path, service);
+    }
+  }
+
+  /**
+   * Send notifications corresponding to the given description of
+   * [subscriptions]. The map is keyed by the path of each file for which
+   * notifications should be sent and has values representing the list of
+   * services associated with the notifications to send.
+   *
+   * This method is used when the set of subscribed notifications has been
+   * changed and notifications need to be sent even when the specified files
+   * have already been analyzed.
    */
   void sendNotificationsForSubscriptions(
-      Map<String, List<AnalysisService>> subscriptions);
+      Map<String, List<AnalysisService>> subscriptions) {
+    subscriptions.forEach((String path, List<AnalysisService> services) {
+      for (AnalysisService service in services) {
+        _sendNotificationForFile(path, service);
+      }
+    });
+  }
+
+  /**
+   * If the plugin provides occurrences information, send an occurrences
+   * notification for the file with the given [path] to the server.
+   */
+  Future<Null> sendOccurrencesNotification(String path) {
+    return new Future.value();
+  }
+
+  /**
+   * If the plugin provides outline information, send an outline notification
+   * for the file with the given [path] to the server.
+   */
+  Future<Null> sendOutlineNotification(String path) {
+    return new Future.value();
+  }
 
   /**
    * Start this plugin by listening to the given communication [channel].
@@ -560,6 +675,30 @@ abstract class ServerPlugin {
     }
     if (response != null) {
       _channel.sendResponse(response);
+    }
+  }
+
+  /**
+   * Send a notification for the file at the given [path] corresponding to the
+   * given [service].
+   */
+  void _sendNotificationForFile(String path, AnalysisService service) {
+    switch (service) {
+      case AnalysisService.FOLDING:
+        sendFoldingNotification(path);
+        break;
+      case AnalysisService.HIGHLIGHTS:
+        sendHighlightsNotification(path);
+        break;
+      case AnalysisService.NAVIGATION:
+        sendNavigationNotification(path);
+        break;
+      case AnalysisService.OCCURRENCES:
+        sendOccurrencesNotification(path);
+        break;
+      case AnalysisService.OUTLINE:
+        sendOutlineNotification(path);
+        break;
     }
   }
 }

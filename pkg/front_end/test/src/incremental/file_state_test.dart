@@ -11,6 +11,7 @@ import 'package:front_end/src/incremental/file_state.dart';
 import 'package:package_config/packages.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:kernel/target/targets.dart';
 
 import 'mock_sdk.dart';
 
@@ -34,8 +35,8 @@ class FileSystemStateTest {
         new UriTranslatorImpl(createSdkFiles(fileSystem), Packages.noPackages);
     _coreUri = Uri.parse('dart:core');
     expect(_coreUri, isNotNull);
-    fsState = new FileSystemState(byteStore, fileSystem, uriTranslator, <int>[],
-        (uri) {
+    fsState = new FileSystemState(byteStore, fileSystem,
+        new NoneTarget(new TargetFlags()), uriTranslator, <int>[], (uri) {
       _newFileUris.add(uri);
       return new Future.value();
     });

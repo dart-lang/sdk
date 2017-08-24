@@ -46,7 +46,7 @@ define(['dart_sdk'], function(dart_sdk) {
       return sunflower.querySelector("#notes");
     },
     get PHI() {
-      return (dart.notNull(math.sqrt(5)) + 1) / 2;
+      return (math.sqrt(5) + 1) / 2;
     },
     get seeds() {
       return 0;
@@ -63,9 +63,9 @@ define(['dart_sdk'], function(dart_sdk) {
     sunflower.context.clearRect(0, 0, sunflower.MAX_D, sunflower.MAX_D);
     for (let i = 0; i < dart.notNull(sunflower.seeds); i++) {
       let theta = i * painter.TAU / dart.notNull(sunflower.PHI);
-      let r = dart.notNull(math.sqrt(i)) * sunflower.SCALE_FACTOR;
-      let x = sunflower.centerX + r * dart.notNull(math.cos(theta));
-      let y = sunflower.centerY - r * dart.notNull(math.sin(theta));
+      let r = math.sqrt(i) * sunflower.SCALE_FACTOR;
+      let x = sunflower.centerX + r * math.cos(theta);
+      let y = sunflower.centerY - r * math.sin(theta);
       new sunflower.SunflowerSeed.new(x, y, sunflower.SEED_RADIUS).draw(sunflower.context);
     }
     sunflower.notes[dartx.text] = dart.str`${sunflower.seeds} seeds`;

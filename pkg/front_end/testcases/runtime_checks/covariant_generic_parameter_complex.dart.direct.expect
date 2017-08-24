@@ -1,0 +1,26 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method f1(core::List<self::C::T> x) → void {}
+  method f2(() → self::C::T callback) → void {}
+  method f3((self::C::T) → self::C::T callback) → void {}
+  method f4((self::C::T) → void callback) → void {}
+}
+static method g1(self::C<core::num> c, core::List<core::num> l) → void {
+  c.f1(l);
+}
+static method g2(self::C<core::num> c, () → core::num callback) → void {
+  c.f2(callback);
+}
+static method g3(self::C<core::num> c, (core::num) → core::num callback) → void {
+  c.f3(callback);
+}
+static method g4(self::C<core::num> c, (core::num) → void callback) → void {
+  c.f4(callback);
+}
+static method main() → dynamic {}

@@ -7,11 +7,11 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
+import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart'
+    show UriContributor;
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -25,7 +25,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 
@@ -187,6 +186,11 @@ class Driver implements ServerStarter {
   static const String CLIENT_VERSION = "client-version";
 
   /**
+   * The name of the option used to enable DartPad specific functionality.
+   */
+  static const String DARTPAD_OPTION = "dartpad";
+
+  /**
    * The name of the option used to enable instrumentation.
    */
   static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
@@ -269,11 +273,6 @@ class Driver implements ServerStarter {
    */
   ResolverProvider packageResolverProvider;
 
-  /**
-   * The plugins that are defined outside the analysis_server package.
-   */
-  List<Plugin> _userDefinedPlugins = <Plugin>[];
-
   SocketServer socketServer;
 
   HttpAnalysisServer httpServer;
@@ -281,13 +280,6 @@ class Driver implements ServerStarter {
   StdioAnalysisServer stdioServer;
 
   Driver();
-
-  /**
-   * Set the [plugins] that are defined outside the analysis_server package.
-   */
-  void set userDefinedPlugins(List<Plugin> plugins) {
-    _userDefinedPlugins = plugins ?? <Plugin>[];
-  }
 
   /**
    * Use the given command-line [arguments] to start this server.
@@ -334,6 +326,10 @@ class Driver implements ServerStarter {
       return null;
     }
 
+    if (results[DARTPAD_OPTION]) {
+      UriContributor.suggestFilePaths = false;
+    }
+
     if (results[HELP_OPTION]) {
       _printUsage(parser.parser, analytics, fromHelp: true);
       return null;
@@ -357,14 +353,8 @@ class Driver implements ServerStarter {
     //
     // Process all of the plugins so that extensions are registered.
     //
-    ServerPlugin serverPlugin = new ServerPlugin();
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(serverPlugin);
-    plugins.add(dartCompletionPlugin);
-    plugins.addAll(_userDefinedPlugins);
     ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
+    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
     linter.registerLintRules();
 
     String defaultSdkPath;
@@ -418,12 +408,10 @@ class Driver implements ServerStarter {
         defaultSdk,
         instrumentationService,
         diagnosticServer,
-        serverPlugin,
         fileResolverProvider,
         packageResolverProvider);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
-    socketServer.userDefinedPlugins = _userDefinedPlugins;
 
     diagnosticServer.httpServer = httpServer;
     if (serve_http) {
@@ -482,6 +470,10 @@ class Driver implements ServerStarter {
     parser.addOption(CLIENT_ID,
         help: "an identifier used to identify the client");
     parser.addOption(CLIENT_VERSION, help: "the version of the client");
+    parser.addFlag(DARTPAD_OPTION,
+        help: 'enable DartPad specific functionality',
+        defaultsTo: false,
+        hide: true);
     parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
         help: "enable sending instrumentation information to a server",
         defaultsTo: false,

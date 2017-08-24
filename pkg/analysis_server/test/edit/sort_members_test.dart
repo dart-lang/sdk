@@ -8,7 +8,6 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,8 +28,6 @@ class SortMembersTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins([server.serverPlugin]);
     handler = new EditDomainHandler(server);
   }
 

@@ -193,11 +193,8 @@ Language/Functions/External_Functions/not_connected_to_a_body_t01: Crash
 # dartk: checked mode failures
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 Language/Classes/Constructors/Factories/arguments_type_t01: RuntimeError
+Language/Classes/Constructors/Factories/function_type_t02: Fail # dartbug.com/30527
 Language/Expressions/Constants/exception_t04: Pass
-Language/Expressions/Function_Expressions/static_type_form_1_async_t03: RuntimeError
-Language/Expressions/Function_Expressions/static_type_form_1_t02: RuntimeError
-Language/Expressions/Function_Expressions/static_type_form_2_async_t03: RuntimeError
-Language/Expressions/Function_Expressions/static_type_form_2_t02: RuntimeError
 Language/Generics/malformed_t02: RuntimeError
 Language/Statements/Return/runtime_type_t04: RuntimeError
 Language/Statements/Switch/execution_t01: RuntimeError

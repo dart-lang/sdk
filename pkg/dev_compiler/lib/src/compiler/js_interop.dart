@@ -70,6 +70,12 @@ bool isJsPeerInterface(DartObjectImpl value) =>
 bool isNativeAnnotation(DartObjectImpl value) =>
     _isBuiltinAnnotation(value, '_js_helper', 'Native');
 
+bool isNotNullAnnotation(DartObjectImpl value) =>
+    _isBuiltinAnnotation(value, '_js_helper', 'NotNull');
+
+bool isNullCheckAnnotation(DartObjectImpl value) =>
+    _isBuiltinAnnotation(value, '_js_helper', 'NullCheck');
+
 /// Returns the name value of the `JSExportName` annotation (when compiling
 /// the SDK), or `null` if there's none. This is used to control the name
 /// under which functions are compiled and exported.

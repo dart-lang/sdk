@@ -4,13 +4,14 @@
 
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/dependency_walker.dart' as dependencyWalker;
-import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
+import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
     show
+        BottomType,
         Class,
         DartType,
         DynamicType,
@@ -21,13 +22,13 @@ import 'package:kernel/ast.dart'
         Member,
         Procedure,
         TypeParameter,
-        TypeParameterType;
+        TypeParameterType,
+        VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../deprecated_problems.dart' show Crash;
-
 import '../messages.dart' show getLocationFromNode;
 
 /// Data structure for tracking dependencies among fields, getters, and setters
@@ -135,14 +136,18 @@ abstract class TypeInferenceEngine {
 
   CoreTypes get coreTypes;
 
-  /// Creates a type inferrer for use inside of a method body declared in a file
-  /// with the given [uri].
-  TypeInferrer createLocalTypeInferrer(
-      Uri uri, TypeInferenceListener listener, InterfaceType thisType);
+  /// Annotates the formal parameters of any methods in [cls] to indicate the
+  /// circumstances in which they require runtime type checks.
+  void computeFormalSafety(Class cls);
 
   /// Creates a disabled type inferrer (intended for debugging and profiling
   /// only).
   TypeInferrer createDisabledTypeInferrer();
+
+  /// Creates a type inferrer for use inside of a method body declared in a file
+  /// with the given [uri].
+  TypeInferrer createLocalTypeInferrer(
+      Uri uri, TypeInferenceListener listener, InterfaceType thisType);
 
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
@@ -265,6 +270,58 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
       // Member is a getter/setter that doesn't override anything, so we can't
       // infer a type for it; therefore it has no dependencies.
       return const [];
+    }
+  }
+
+  @override
+  void computeFormalSafety(Class cls) {
+    // If any method in the class has a formal parameter whose type depends on
+    // one of the class's type parameters, then there may be a mismatch between
+    // the type guarantee made by the caller and the type guarantee expected by
+    // the callee.  For instance, consider the code:
+    //
+    // class A<T> {
+    //   foo(List<T> argument) {}
+    // }
+    // void bar(A<num> a, List<num> l) {
+    //   a.foo(l);
+    // }
+    //
+    // At the call site (in `bar`), the type system guarantees that the
+    // value passed to `foo` will be an instance of `List<num>`.  But since
+    // the reified type of `a` at runtime might be a subtype of `A<num>`,
+    // such as `A<int>`, this is not a sufficient guarantee to ensure
+    // soundness.  Therefore the type of the argument will have to be
+    // checked at runtime (unless the back end can prove the check is
+    // unnecessary, e.g. through whole program analysis).
+    //
+    // To determine whether the check is necessary, we compute a worst case
+    // "pessimistic type" for the formal parameter by substituting Bottom
+    // for all of the class's type parameters--in the example above that
+    // results in `List<Bottom>`.  This represents the type that the formal
+    // would have if the reified type of the receiver were the narrowest
+    // possible.  If the declared type of the formal is not a subtype of the
+    // pessimistic type, that means that the type guarantee made by the
+    // caller may not be sufficient to ensure soundness in the callee, so
+    // a runtime type check is needed.  We mark this by annotating the
+    // parameter as "semi-safe".
+    if (cls.typeParameters.isEmpty) return;
+    var pessimization = Substitution.fromPairs(cls.typeParameters,
+        new List.filled(cls.typeParameters.length, const BottomType()));
+    for (var procedure in cls.procedures) {
+      if (procedure.isStatic) continue;
+      void compute(VariableDeclaration formal) {
+        KernelVariableDeclaration kernelVariableDeclaration = formal;
+        var pessimisticType = pessimization.substituteType(formal.type);
+        if (!typeSchemaEnvironment.isSubtypeOf(formal.type, pessimisticType)) {
+          kernelVariableDeclaration.isSemiSafe = true;
+          instrumentation?.record(Uri.parse(cls.fileUri), formal.fileOffset,
+              'checkFormal', new InstrumentationValueLiteral('semiSafe'));
+        }
+      }
+
+      procedure.function.positionalParameters.forEach(compute);
+      procedure.function.namedParameters.forEach(compute);
     }
   }
 

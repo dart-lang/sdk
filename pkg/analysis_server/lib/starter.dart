@@ -6,7 +6,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/server/driver.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:plugin/plugin.dart';
 
 /**
  * An object that can be used to start an analysis server. This class exists so
@@ -38,11 +37,6 @@ abstract class ServerStarter {
    * default package resolution scheme should be used instead.
    */
   void set packageResolverProvider(ResolverProvider provider);
-
-  /**
-   * Set the [plugins] that are defined outside the analysis_server package.
-   */
-  void set userDefinedPlugins(List<Plugin> plugins);
 
   /**
    * Use the given command-line [arguments] to start this server.

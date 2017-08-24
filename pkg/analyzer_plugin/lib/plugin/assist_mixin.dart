@@ -30,6 +30,8 @@ abstract class AssistsMixin implements ServerPlugin {
   /**
    * Return the assist request that should be passes to the contributors
    * returned from [getAssistContributors].
+   *
+   * Throw a [RequestFailure] if the request could not be created.
    */
   Future<AssistRequest> getAssistRequest(EditGetAssistsParams parameters);
 
@@ -60,13 +62,7 @@ abstract class DartAssistsMixin implements AssistsMixin {
   Future<AssistRequest> getAssistRequest(
       EditGetAssistsParams parameters) async {
     String path = parameters.file;
-    AnalysisDriver driver = driverForPath(path);
-    if (driver == null) {
-      // Return an error from the request.
-      throw new RequestFailure(
-          RequestErrorFactory.pluginError('Failed to analyze $path', null));
-    }
-    ResolveResult result = await driver.getResult(path);
+    ResolveResult result = await getResolveResult(path);
     return new DartAssistRequestImpl(
         resourceProvider, parameters.offset, parameters.length, result);
   }

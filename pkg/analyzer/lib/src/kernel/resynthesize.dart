@@ -229,6 +229,19 @@ class _ExprBuilder {
       return AstTestFactory.propertyAccess(target, identifier);
     }
 
+    if (expr is kernel.VariableGet) {
+      String name = expr.variable.name;
+      Element contextConstructor = _contextElement;
+      if (contextConstructor is ConstructorElement) {
+        SimpleIdentifier identifier = AstTestFactory.identifier3(name);
+        ParameterElement parameter = contextConstructor.parameters.firstWhere(
+            (parameter) => parameter.name == name,
+            orElse: () => null);
+        identifier.staticElement = parameter;
+        return identifier;
+      }
+    }
+
     if (expr is kernel.ConditionalExpression) {
       var condition = build(expr.condition);
       var then = build(expr.then);
@@ -319,6 +332,23 @@ class _ExprBuilder {
           .constructorFieldInitializer(false, k.field.name.name, value);
       initializer.fieldName.staticElement = _getElement(k.fieldReference);
       return initializer;
+    }
+
+    if (k is kernel.LocalInitializer) {
+      var invocation = k.variable.initializer;
+      if (invocation is kernel.MethodInvocation) {
+        var receiver = invocation.receiver;
+        if (receiver is kernel.FunctionExpression &&
+            invocation.name.name == 'call') {
+          var body = receiver.function.body;
+          if (body is kernel.AssertStatement) {
+            var condition = build(body.condition);
+            var message = body.message != null ? build(body.message) : null;
+            return AstTestFactory.assertInitializer(condition, message);
+          }
+        }
+      }
+      throw new StateError('Expected assert initializer $k');
     }
 
     if (k is kernel.RedirectingInitializer) {
@@ -492,6 +522,9 @@ class _KernelLibraryResynthesizerContextImpl
   _KernelLibraryResynthesizerContextImpl(this.resynthesizer, this.library);
 
   @override
+  kernel.Library get coreLibrary => resynthesizer._kernelMap['dart:core'];
+
+  @override
   LibraryElementImpl getLibrary(String uriStr) {
     return resynthesizer.getLibrary(uriStr);
   }
@@ -654,8 +687,7 @@ class _KernelUnitResynthesizerContextImpl
   @override
   ConstructorInitializer getConstructorInitializer(
       ConstructorElementImpl constructor, kernel.Initializer k) {
-    if (k is kernel.LocalInitializer ||
-        k is kernel.FieldInitializer && k.isSynthetic ||
+    if (k is kernel.FieldInitializer && k.isSynthetic ||
         k is kernel.SuperInitializer && k.isSynthetic) {
       return null;
     }

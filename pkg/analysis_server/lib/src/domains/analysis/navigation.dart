@@ -5,34 +5,9 @@
 import 'dart:collection';
 
 import 'package:analysis_server/plugin/analysis/navigation/navigation_core.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
-import 'package:analyzer/exception/exception.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine;
-import 'package:analyzer/src/generated/source.dart' show Source, SourceRange;
-
-/**
- * Compute all known navigation information for the given part of [source].
- */
-NavigationCollectorImpl computeNavigation(AnalysisServer server,
-    AnalysisContext context, Source source, int offset, int length) {
-  NavigationCollectorImpl collector = new NavigationCollectorImpl();
-  List<NavigationContributor> contributors =
-      server.serverPlugin.navigationContributors;
-  for (NavigationContributor contributor in contributors) {
-    try {
-      contributor.computeNavigation(collector, context, source, offset, length);
-    } catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError(
-          'Exception from navigation contributor: ${contributor.runtimeType}',
-          new CaughtException(exception, stackTrace));
-    }
-  }
-  collector.createRegions();
-  return collector;
-}
+import 'package:analyzer/src/generated/source.dart' show SourceRange;
 
 /**
  * A concrete implementation of  [NavigationCollector].

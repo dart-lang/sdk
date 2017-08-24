@@ -4,54 +4,64 @@
 
 // Patch file for dart:math library.
 import 'dart:_foreign_helper' show JS;
-import 'dart:_js_helper' show patch, checkNum;
+import 'dart:_js_helper' show patch, nullCheck, notNull;
 import 'dart:typed_data' show ByteData;
 
 @patch
-T min<T extends num>(T a, T b) =>
-    JS('num', r'Math.min(#, #)', checkNum(a), checkNum(b)) as T;
+@notNull
+T min<T extends num>(@nullCheck T a, @nullCheck T b) =>
+    JS('-dynamic', r'Math.min(#, #)', a, b);
 
 @patch
-T max<T extends num>(T a, T b) =>
-    JS('num', r'Math.max(#, #)', checkNum(a), checkNum(b)) as T;
+@notNull
+T max<T extends num>(@nullCheck T a, @nullCheck T b) =>
+    JS('-dynamic', r'Math.max(#, #)', a, b);
 
 @patch
-double sqrt(num x) => JS('num', r'Math.sqrt(#)', checkNum(x));
+@notNull
+double sqrt(@nullCheck num x) => JS('num', r'Math.sqrt(#)', x);
 
 @patch
-double sin(num radians) => JS('num', r'Math.sin(#)', checkNum(radians));
+@notNull
+double sin(@nullCheck num radians) => JS('num', r'Math.sin(#)', radians);
 
 @patch
-double cos(num radians) => JS('num', r'Math.cos(#)', checkNum(radians));
+@notNull
+double cos(@nullCheck num radians) => JS('num', r'Math.cos(#)', radians);
 
 @patch
-double tan(num radians) => JS('num', r'Math.tan(#)', checkNum(radians));
+@notNull
+double tan(@nullCheck num radians) => JS('num', r'Math.tan(#)', radians);
 
 @patch
-double acos(num x) => JS('num', r'Math.acos(#)', checkNum(x));
+@notNull
+double acos(@nullCheck num x) => JS('num', r'Math.acos(#)', x);
 
 @patch
-double asin(num x) => JS('num', r'Math.asin(#)', checkNum(x));
+@notNull
+double asin(@nullCheck num x) => JS('num', r'Math.asin(#)', x);
 
 @patch
-double atan(num x) => JS('num', r'Math.atan(#)', checkNum(x));
+@notNull
+double atan(@nullCheck num x) => JS('num', r'Math.atan(#)', x);
 
 @patch
-double atan2(num a, num b) =>
-    JS('num', r'Math.atan2(#, #)', checkNum(a), checkNum(b));
+@notNull
+double atan2(@nullCheck num a, @nullCheck num b) =>
+    JS('num', r'Math.atan2(#, #)', a, b);
 
 @patch
-double exp(num x) => JS('num', r'Math.exp(#)', checkNum(x));
+@notNull
+double exp(@nullCheck num x) => JS('num', r'Math.exp(#)', x);
 
 @patch
-double log(num x) => JS('num', r'Math.log(#)', checkNum(x));
+@notNull
+double log(@nullCheck num x) => JS('num', r'Math.log(#)', x);
 
 @patch
-num pow(num x, num exponent) {
-  checkNum(x);
-  checkNum(exponent);
-  return JS('num', r'Math.pow(#, #)', x, exponent);
-}
+@notNull
+num pow(@nullCheck num x, @nullCheck num exponent) =>
+    JS('num', r'Math.pow(#, #)', x, exponent);
 
 const int _POW2_32 = 0x100000000;
 
@@ -71,6 +81,7 @@ class _JSRandom implements Random {
   // The Dart2JS implementation of Random doesn't use a seed.
   const _JSRandom();
 
+  @notNull
   int nextInt(int max) {
     if (max <= 0 || max > _POW2_32) {
       throw new RangeError("max must be in range 0 < max ≤ 2^32, was $max");
@@ -82,11 +93,13 @@ class _JSRandom implements Random {
    * Generates a positive random floating point value uniformly distributed on
    * the range from 0.0, inclusive, to 1.0, exclusive.
    */
+  @notNull
   double nextDouble() => JS("double", "Math.random()");
 
   /**
    * Generates a random boolean value.
    */
+  @notNull
   bool nextBool() => JS("bool", "Math.random() < 0.5");
 }
 
@@ -97,7 +110,9 @@ class _Random implements Random {
   static const int _MASK32 = 0xFFFFFFFF;
 
   // State comprised of two unsigned 32 bit integers.
+  @notNull
   int _lo = 0;
+  @notNull
   int _hi = 0;
 
   // Implements:
@@ -207,7 +222,8 @@ class _Random implements Random {
     assert(_hi < _POW2_32);
   }
 
-  int nextInt(int max) {
+  @notNull
+  int nextInt(@nullCheck int max) {
     if (max <= 0 || max > _POW2_32) {
       throw new RangeError("max must be in range 0 < max ≤ 2^32, was $max");
     }
@@ -227,6 +243,7 @@ class _Random implements Random {
     return result;
   }
 
+  @notNull
   double nextDouble() {
     _nextState();
     int bits26 = _lo & ((1 << 26) - 1);
@@ -235,6 +252,7 @@ class _Random implements Random {
     return (bits26 * _POW2_27_D + bits27) / _POW2_53_D;
   }
 
+  @notNull
   bool nextBool() {
     _nextState();
     return (_lo & 1) == 0;
@@ -263,11 +281,13 @@ class _JSSecureRandom implements Random {
         _buffer.buffer.asUint8List(start, length));
   }
 
+  @notNull
   bool nextBool() {
     _getRandomBytes(0, 1);
     return _buffer.getUint8(0).isOdd;
   }
 
+  @notNull
   double nextDouble() {
     _getRandomBytes(1, 7);
     // Set top bits 12 of double to 0x3FF which is the exponent for numbers
@@ -288,7 +308,8 @@ class _JSSecureRandom implements Random {
     return result;
   }
 
-  int nextInt(int max) {
+  @notNull
+  int nextInt(@nullCheck int max) {
     if (max <= 0 || max > _POW2_32) {
       throw new RangeError("max must be in range 0 < max ≤ 2^32, was $max");
     }

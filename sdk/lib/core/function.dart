@@ -23,10 +23,7 @@ abstract class Function {
    *
    * Example:
    * ```
-   * var namedArguments = new Map<Symbol, dynamic>();
-   * namedArguments[const Symbol("f")] = 4;
-   * namedArguments[const Symbol("g")] = 5;
-   * Function.apply(foo, [1,2,3], namedArguments);
+   * Function.apply(foo, [1,2,3], {#f: 4, #g: 5});
    * ```
    *
    * gives exactly the same result as

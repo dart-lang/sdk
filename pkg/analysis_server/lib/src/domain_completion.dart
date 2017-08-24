@@ -14,6 +14,7 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
@@ -90,24 +91,19 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     //
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
     if (request.result != null) {
-      Iterable<CompletionContributor> newContributors =
-          server.serverPlugin.completionContributors;
-
       const COMPUTE_SUGGESTIONS_TAG = 'computeSuggestions';
       performance.logStartTime(COMPUTE_SUGGESTIONS_TAG);
 
-      for (CompletionContributor contributor in newContributors) {
-        String contributorTag = 'computeSuggestions - ${contributor
-            .runtimeType}';
-        performance.logStartTime(contributorTag);
-        try {
-          suggestions.addAll(await contributor.computeSuggestions(request));
-        } on AbortCompletion {
-          suggestions.clear();
-          break;
-        }
-        performance.logElapseTime(contributorTag);
+      CompletionContributor contributor = new DartCompletionManager();
+      String contributorTag = 'computeSuggestions - ${contributor
+          .runtimeType}';
+      performance.logStartTime(contributorTag);
+      try {
+        suggestions.addAll(await contributor.computeSuggestions(request));
+      } on AbortCompletion {
+        suggestions.clear();
       }
+      performance.logElapseTime(contributorTag);
       performance.logElapseTime(COMPUTE_SUGGESTIONS_TAG);
     }
     // TODO (danrubel) if request is obsolete (processAnalysisRequest returns

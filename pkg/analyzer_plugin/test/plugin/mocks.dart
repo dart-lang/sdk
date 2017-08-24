@@ -9,12 +9,12 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
-import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:test/test.dart';
 
 class MockAnalysisDriver extends AnalysisDriver {
@@ -124,10 +124,6 @@ class MockServerPlugin extends ServerPlugin {
   AnalysisDriverGeneric createAnalysisDriver(ContextRoot contextRoot) {
     return new MockAnalysisDriver();
   }
-
-  @override
-  void sendNotificationsForSubscriptions(
-      Map<String, List<AnalysisService>> subscriptions) {}
 }
 
 class MockSource implements Source {

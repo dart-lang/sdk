@@ -13,7 +13,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -279,7 +278,6 @@ class PostfixCompletionProcessor {
       DartPostfixCompletion.NO_TEMPLATE, new SourceChange("", edits: []));
 
   final PostfixCompletionContext completionContext;
-  final AnalysisContext analysisContext;
   final CorrectionUtils utils;
   AstNode node;
   PostfixCompletion completion;
@@ -290,8 +288,7 @@ class PostfixCompletionProcessor {
   TypeProvider _typeProvider;
 
   PostfixCompletionProcessor(this.completionContext)
-      : analysisContext = completionContext.unitElement.context,
-        utils = new CorrectionUtils(completionContext.unit);
+      : utils = new CorrectionUtils(completionContext.unit);
 
   AnalysisDriver get driver => completionContext.driver;
 

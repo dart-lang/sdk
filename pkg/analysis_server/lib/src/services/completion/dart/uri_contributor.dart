@@ -23,6 +23,15 @@ import 'package:path/src/context.dart';
 class UriContributor extends DartCompletionContributor {
   _UriSuggestionBuilder builder;
 
+  /**
+   * A flag indicating whether file: and package: URI suggestions should
+   * be included in the list of completion suggestions.
+   */
+  // TODO(danrubel): remove this flag and related functionality
+  // once the UriContributor limits file: and package: URI suggestions
+  // to only those paths within context roots.
+  static bool suggestFilePaths = true;
+
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
@@ -95,13 +104,17 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
       String partialUri = _extractPartialUri(node);
       if (partialUri != null) {
         _addDartSuggestions();
-        _addPackageSuggestions(partialUri);
-        _addFileSuggestions(partialUri);
+        if (UriContributor.suggestFilePaths) {
+          _addPackageSuggestions(partialUri);
+          _addFileSuggestions(partialUri);
+        }
       }
     } else if (parent is PartDirective && parent.uri == node) {
       String partialUri = _extractPartialUri(node);
       if (partialUri != null) {
-        _addFileSuggestions(partialUri);
+        if (UriContributor.suggestFilePaths) {
+          _addFileSuggestions(partialUri);
+        }
       }
     }
   }
