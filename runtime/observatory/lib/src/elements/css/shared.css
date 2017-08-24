@@ -1670,7 +1670,7 @@ memory-dashboard memory-profile memory-allocations {
   bottom: 0;
   left: 0;
   right: 0;
-  top: 40px;
+  top: 39px;
 }
 
 memory-dashboard memory-profile memory-snapshot {
@@ -1678,7 +1678,7 @@ memory-dashboard memory-profile memory-snapshot {
   bottom: 0;
   left: 0;
   right: 0;
-  top: 40px;
+  top: 45px;
 }
 
 /* metric-graph */
@@ -1803,12 +1803,23 @@ memory-allocations .collection-item .group button:hover {
 
 /* memory-profile */
 
+memory-profile > div > h1 {
+  overflow: hidden;
+  border-bottom: 1px solid #d5d5d5;
+}
+
 memory-profile .header_button {
   padding: 3px 5px;
   margin: 0px 1px;
 }
 
+memory-profile .header_button:first-child {
+  margin-left: 5px;
+}
+
 memory-profile .tab_buttons {
+  position: relative;
+  top: 1px;
   float: right;
 }
 

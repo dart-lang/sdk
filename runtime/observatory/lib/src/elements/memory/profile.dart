@@ -114,7 +114,7 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
         ..children = [
           new HeadingElement.h1()
             ..children = [
-              new Text("Isolate ${_isolate.name}"),
+              new Text(_isolate.name),
               bReload
                 ..classes = ['header_button']
                 ..text = ' ↺ Refresh'
