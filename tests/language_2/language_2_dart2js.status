@@ -136,6 +136,7 @@ generic_methods_type_expression_test: RuntimeError
 bit_operations_test: RuntimeError, OK # Issue 1533
 generic_instanceof_test: RuntimeError
 generic_typedef_test: RuntimeError
+many_generic_instanceof_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != none && !$checked ]
 generic_list_checked_test: RuntimeError
@@ -461,6 +462,7 @@ generic_syntax_test: Crash
 generic_test: Crash
 getter_closure_execution_order_test: Crash
 generic_test: RuntimeError
+many_generic_instanceof_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 abstract_exact_selector_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
@@ -618,6 +620,7 @@ generic_native_test: Crash
 generic_syntax_test: Crash
 generic_test: Crash
 generic_test: RuntimeError
+many_generic_instanceof_test: Crash
 
 [ $compiler == dart2js && ! $dart2js_with_kernel && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853

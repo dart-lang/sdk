@@ -725,7 +725,6 @@ left_shift_test: RuntimeError # Issue 29920
 list_is_test: RuntimeError # Issue 29920
 list_literal3_test: RuntimeError # Issue 29920
 main_test/03: MissingRuntimeError # Issue 29920
-many_generic_instanceof_test: RuntimeError # Issue 29920
 map_literal10_test: RuntimeError # Issue 29920
 map_literal7_test: RuntimeError # Issue 29920
 mint_arithmetic_test: RuntimeError # Issue 29920

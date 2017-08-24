@@ -978,7 +978,6 @@ malformed_test/03: Crash
 malformed_test/04: Crash
 malformed_test/06: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 malformed_test/none: Crash
-many_generic_instanceof_test: Crash
 many_named_arguments_test: Crash
 many_overridden_no_such_method_test: Crash
 map_literal10_test: Crash
@@ -1963,7 +1962,6 @@ malbounded_type_cast2_test: Crash
 malbounded_type_test2_test: Crash
 malformed_test/06: CompileTimeError
 malformed_test/none: RuntimeError
-many_generic_instanceof_test: Crash
 many_named_arguments_test: Crash
 many_overridden_no_such_method_test: Crash
 map_literal10_test: Crash
