@@ -10,6 +10,7 @@ dependencies:
   args: ^0.13.0
   bazel_worker: ^0.1.0
   cli_util: ^0.1.0
+  collection: ^1.14.1
   linter: ^0.1.16
   package_config: '>=0.1.5 <2.0.0'
   plugin: '>=0.1.0 <0.3.0'
