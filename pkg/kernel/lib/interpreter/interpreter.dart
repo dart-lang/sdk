@@ -18,12 +18,12 @@ class NotImplemented {
 }
 
 class Interpreter {
-  Program program;
-  StatementExecuter visitor = new StatementExecuter();
-
   // The execution of the program starts with empty main environment.
   static MainEnvironment mainEnvironment =
       new MainEnvironment(<Member, Location>{});
+
+  final Program program;
+  final StatementExecuter visitor = new StatementExecuter();
 
   Interpreter(this.program);
 
@@ -1577,9 +1577,36 @@ class CatchHandler extends ExceptionHandler {
   CatchHandler(this.catches, this.environment, this.state);
 
   Configuration call(Value exception, StackTrace stackTrace) {
+    if (catches.isEmpty) {
+      return new ThrowConfiguration(
+          state.exceptionComponents.handler, exception, stackTrace);
+    }
+
     // TODO(zhivkag): Check if there is a matching catch clause instead.
-    return new ThrowConfiguration(
-        state.exceptionComponents.handler, exception, stackTrace);
+    var currentCatch = catches.first;
+    if (currentCatch.guard is DynamicType) {
+      // Exception is caught, execute the body.
+
+      var env = environment;
+      if (currentCatch.exception != null) {
+        env = env.extend(currentCatch.exception, exception);
+      }
+      if (currentCatch.stackTrace != null) {
+        env = env.extend(
+            currentCatch.stackTrace, new StringValue(stackTrace.toString()));
+      }
+      var ecs = new ExceptionComponents(state.exceptionComponents.handler,
+          state.exceptionComponents.stackTrace, stackTrace, exception);
+      var newState = new State.initial()
+          .withContinuation(state.continuation)
+          .withReturnContinuation(state.returnContinuation)
+          .withException(ecs);
+      return new ExecConfiguration(currentCatch.body, env, newState);
+    }
+
+    var catchHandler =
+        new CatchHandler(catches.skip(1).toList(), environment, state);
+    return new ThrowConfiguration(catchHandler, exception, stackTrace);
   }
 }
 
@@ -1661,7 +1688,7 @@ class StackTrace {
 /// - It throws, in which case the handler is returned and applied accordingly.
 class StatementExecuter
     extends StatementVisitor1<Configuration, ExecConfiguration> {
-  Evaluator evaluator = new Evaluator();
+  final Evaluator evaluator = new Evaluator();
 
   void trampolinedExecution(Configuration configuration) {
     while (configuration != null) {
