@@ -240,7 +240,7 @@ class DartUtils {
                                            bool is_service_isolate,
                                            bool trace_loading);
   static Dart_Handle PrepareCoreLibrary(Dart_Handle core_lib,
-                                        Dart_Handle builtin_lib,
+                                        Dart_Handle io_lib,
                                         bool is_service_isolate);
   static Dart_Handle PrepareAsyncLibrary(Dart_Handle async_lib,
                                          Dart_Handle isolate_lib);

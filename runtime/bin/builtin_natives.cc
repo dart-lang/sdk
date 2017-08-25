@@ -25,9 +25,7 @@ namespace bin {
 // standalone dart, such as printing, file I/O, and platform information.
 // Advanced I/O classes like sockets and process management are implemented
 // using functions listed in io_natives.cc.
-#define BUILTIN_NATIVE_LIST(V)                                                 \
-  V(Builtin_PrintString, 1)                                                    \
-  V(Builtin_GetCurrentDirectory, 0)
+#define BUILTIN_NATIVE_LIST(V) V(Builtin_PrintString, 1)
 
 BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);
 

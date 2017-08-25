@@ -379,16 +379,6 @@ void DartUtils::SkipSnapshotMagicNumber(const uint8_t** buffer,
   *buffer_length -= snapshot_magic_number.length;
 }
 
-void FUNCTION_NAME(Builtin_GetCurrentDirectory)(Dart_NativeArguments args) {
-  const char* current = Directory::Current();
-  if (current != NULL) {
-    Dart_SetReturnValue(args, DartUtils::NewString(current));
-  } else {
-    Dart_Handle err = DartUtils::NewError("Failed to get current directory.");
-    Dart_PropagateError(err);
-  }
-}
-
 Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                                              Dart_Handle internal_lib,
                                              bool is_service_isolate,
@@ -419,12 +409,12 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
 }
 
 Dart_Handle DartUtils::PrepareCoreLibrary(Dart_Handle core_lib,
-                                          Dart_Handle builtin_lib,
+                                          Dart_Handle io_lib,
                                           bool is_service_isolate) {
   if (!is_service_isolate) {
     // Setup the 'Uri.base' getter in dart:core.
     Dart_Handle uri_base =
-        Dart_Invoke(builtin_lib, NewString("_getUriBaseClosure"), 0, NULL);
+        Dart_Invoke(io_lib, NewString("_getUriBaseClosure"), 0, NULL);
     RETURN_IF_ERROR(uri_base);
     Dart_Handle result =
         Dart_SetField(core_lib, NewString("_uriBaseClosure"), uri_base);
@@ -532,8 +522,7 @@ Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,
   RETURN_IF_ERROR(result);
 
   RETURN_IF_ERROR(PrepareAsyncLibrary(async_lib, isolate_lib));
-  RETURN_IF_ERROR(
-      PrepareCoreLibrary(core_lib, builtin_lib, is_service_isolate));
+  RETURN_IF_ERROR(PrepareCoreLibrary(core_lib, io_lib, is_service_isolate));
   RETURN_IF_ERROR(PrepareIsolateLibrary(isolate_lib));
   RETURN_IF_ERROR(PrepareIOLibrary(io_lib));
   return result;

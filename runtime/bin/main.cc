@@ -1499,7 +1499,6 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     if (gen_snapshot_kind == kAppAOT) {
       Dart_QualifiedFunctionName standalone_entry_points[] = {
           {"dart:_builtin", "::", "_getPrintClosure"},
-          {"dart:_builtin", "::", "_getUriBaseClosure"},
           {"dart:_builtin", "::", "_libraryFilePath"},
           {"dart:_builtin", "::", "_resolveInWorkingDirectory"},
           {"dart:_builtin", "::", "_setPackageRoot"},
@@ -1507,6 +1506,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
           {"dart:_builtin", "::", "_setWorkingDirectory"},
           {"dart:async", "::", "_setScheduleImmediateClosure"},
           {"dart:io", "::", "_getWatchSignalInternal"},
+          {"dart:io", "::", "_getUriBaseClosure"},
           {"dart:io", "::", "_makeDatagram"},
           {"dart:io", "::", "_makeUint8ListView"},
           {"dart:io", "::", "_setupHooks"},
