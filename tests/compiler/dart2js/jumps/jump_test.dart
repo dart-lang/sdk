@@ -60,6 +60,9 @@ class TargetData {
   final JumpTarget target;
 
   TargetData(this.index, this.id, this.sourceSpan, this.target);
+
+  String toString() => 'TargetData(index=$index,id=$id,'
+      'sourceSpan=$sourceSpan,target=$target)';
 }
 
 class GotoData {
@@ -68,6 +71,8 @@ class GotoData {
   final JumpTarget target;
 
   GotoData(this.id, this.sourceSpan, this.target);
+
+  String toString() => 'GotoData(id=$id,sourceSpan=$sourceSpan,target=$target)';
 }
 
 abstract class JumpsMixin {
@@ -101,6 +106,7 @@ abstract class JumpsMixin {
       StringBuffer sb = new StringBuffer();
       sb.write('target=');
       TargetData targetData = targets[data.target];
+      assert(targetData != null, "No TargetData for ${data.target}");
       sb.write(targetData.index);
       String value = sb.toString();
       registerValue(data.sourceSpan, data.id, value, data);
@@ -149,6 +155,17 @@ class JumpsAstComputer extends AstDataExtractor with JumpsMixin {
     SourceSpan sourceSpan = computeSourceSpan(node);
     gotos.add(new GotoData(id, sourceSpan, target));
     super.visitGotoStatement(node);
+  }
+
+  @override
+  visitSwitchStatement(ast.SwitchStatement node) {
+    JumpTarget target = elements.getTargetDefinition(node);
+    if (target != null) {
+      NodeId id = computeLoopNodeId(node);
+      SourceSpan sourceSpan = computeSourceSpan(node);
+      targets[target] = new TargetData(index++, id, sourceSpan, target);
+    }
+    super.visitSwitchStatement(node);
   }
 }
 
@@ -210,5 +227,10 @@ class JumpsIrChecker extends IrDataExtractor with JumpsMixin {
     SourceSpan sourceSpan = computeSourceSpan(node);
     gotos.add(new GotoData(id, sourceSpan, target));
     super.visitBreakStatement(node);
+  }
+
+  visitSwitchStatement(ir.SwitchStatement node) {
+    addTargetData(node, _localsMap.getJumpTargetForSwitch(node));
+    super.visitSwitchStatement(node);
   }
 }
