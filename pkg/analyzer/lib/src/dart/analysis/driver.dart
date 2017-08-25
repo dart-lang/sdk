@@ -1704,7 +1704,7 @@ class AnalysisDriverTestView {
 /**
  * The result of analyzing of a single file.
  *
- * These results are self-consistent, i.e. [content], [contentHash], the
+ * These results are self-consistent, i.e. [content], [lineInfo], the
  * resolved [unit] correspond to each other. All referenced elements, even
  * external ones, are also self-consistent. But none of the results is
  * guaranteed to be consistent with the state of the files.
@@ -1822,9 +1822,9 @@ abstract class DriverWatcher {
 /**
  * The errors in a single file.
  *
- * These results are self-consistent, i.e. [content], [contentHash], [errors]
- * correspond to each other. But none of the results is guaranteed to be
- * consistent with the state of the files.
+ * These results are self-consistent, i.e. [errors] and [lineInfo] correspond
+ * to each other. But none of the results is guaranteed to be consistent with
+ * the state of the files.
  */
 class ErrorsResult extends BaseAnalysisResult implements results.ErrorsResult {
   @override
@@ -1871,8 +1871,8 @@ class ExceptionResult {
 /**
  * The result of parsing of a single file.
  *
- * These results are self-consistent, i.e. [content], [contentHash], the
- * resolved [unit] correspond to each other. But none of the results is
+ * These results are self-consistent, i.e. [content], [lineInfo], the
+ * parsed [unit] correspond to each other. But none of the results is
  * guaranteed to be consistent with the state of the files.
  */
 class ParseResult extends BaseAnalysisResult implements results.ParseResult {
