@@ -72,8 +72,8 @@ class DartCompletionManager implements CompletionContributor {
       return EMPTY_LIST;
     }
 
-    ReplacementRange range =
-        new ReplacementRange.compute(dartRequest.offset, dartRequest.target);
+    SourceRange range =
+        dartRequest.target.computeReplacementRange(dartRequest.offset);
     (request as CompletionRequestImpl)
       ..replacementOffset = range.offset
       ..replacementLength = range.length;
@@ -277,60 +277,5 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
     performance.logElapseTime(BUILD_REQUEST_TAG);
     return dartRequest;
-  }
-}
-
-/**
- * Utility class for computing the code completion replacement range
- */
-class ReplacementRange {
-  int offset;
-  int length;
-
-  ReplacementRange(this.offset, this.length);
-
-  factory ReplacementRange.compute(int requestOffset, CompletionTarget target) {
-    bool isKeywordOrIdentifier(Token token) =>
-        token.type.isKeyword || token.type == TokenType.IDENTIFIER;
-
-    //TODO(danrubel) Ideally this needs to be pushed down into the contributors
-    // but that implies that each suggestion can have a different
-    // replacement offsent/length which would mean an API change
-
-    var entity = target.entity;
-    Token token = entity is AstNode ? entity.beginToken : entity;
-    if (token != null && requestOffset < token.offset) {
-      token = token.previous;
-    }
-    if (token != null) {
-      if (requestOffset == token.offset && !isKeywordOrIdentifier(token)) {
-        // If the insertion point is at the beginning of the current token
-        // and the current token is not an identifier
-        // then check the previous token to see if it should be replaced
-        token = token.previous;
-      }
-      if (token != null && isKeywordOrIdentifier(token)) {
-        if (token.offset <= requestOffset && requestOffset <= token.end) {
-          // Replacement range for typical identifier completion
-          return new ReplacementRange(token.offset, token.length);
-        }
-      }
-      if (token is StringToken) {
-        SimpleStringLiteral uri =
-            astFactory.simpleStringLiteral(token, token.lexeme);
-        Keyword keyword = token.previous?.keyword;
-        if (keyword == Keyword.IMPORT ||
-            keyword == Keyword.EXPORT ||
-            keyword == Keyword.PART) {
-          int start = uri.contentsOffset;
-          var end = uri.contentsEnd;
-          if (start <= requestOffset && requestOffset <= end) {
-            // Replacement range for import URI
-            return new ReplacementRange(start, end - start);
-          }
-        }
-      }
-    }
-    return new ReplacementRange(requestOffset, 0);
   }
 }
