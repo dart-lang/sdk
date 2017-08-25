@@ -36,6 +36,11 @@ void_type_callbacks_test: Skip # Requires strong mode
 void_type_function_types_test: Skip # Requires strong mode
 void_type_override_test: Skip # Requires strong mode
 void_type_usage_test: Skip # Requires strong mode
+compile_time_constant_static_test: Skip # Requires strong mode
+compile_time_constant_static2_test: Skip # Requires strong mode
+compile_time_constant_static3_test: Skip # Requires strong mode
+compile_time_constant_static4_test: Skip # Requires strong mode
+compile_time_constant_static5_test: Skip # Requires strong mode
 
 [ $compiler == dartdevc ]
 compile_time_constant_e_test: RuntimeError # Issue 30466
