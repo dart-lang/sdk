@@ -2400,7 +2400,6 @@ stack_overflow_stacktrace_test: RuntimeError
 stacktrace_test: RuntimeError
 static_getter_no_setter1_test/01: RuntimeError
 static_getter_no_setter3_test/01: RuntimeError
-string_interpolation_and_buffer_test: RuntimeError
 switch_fallthru_test: RuntimeError
 top_level_func_test: RuntimeError
 top_level_getter_no_setter1_test/01: RuntimeError
