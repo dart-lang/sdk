@@ -32,7 +32,6 @@ class A {
 }
 
 const a1 = const A(99, 100);
-const a1n = const A.n(99, 100);
 const a2 = const A.named(z: 99, t: 100);
 const a3 = const A.named2(t: 1, z: 2, y: 3, x: 4);
 const a4 = const A();
@@ -51,9 +50,9 @@ main() {
   Expect.equals(99, a1.z);
   Expect.equals(100, a1.t);
   Expect.equals("A 3 499 99 100", a1.toString());
-  Expect.isTrue(identical(a1, a2));
-  Expect.isTrue(identical(a1, a4));
-  Expect.isTrue(identical(a1, a5));
+  Expect.identical(a1, a2);
+  Expect.identical(a1, a4);
+  Expect.identical(a1, a5);
 
   Expect.equals(1, a3.x);
   Expect.equals(2, a3.y);
@@ -79,7 +78,7 @@ main() {
   Expect.equals(null, a8.t);
   Expect.equals("A null null null null", a8.toString());
 
-  Expect.isTrue(identical(a3, a9));
+  Expect.identical(a3, a9);
 
   Expect.equals(4, a10.x);
   Expect.equals(3, a10.y);

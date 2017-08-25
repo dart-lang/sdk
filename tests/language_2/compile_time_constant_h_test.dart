@@ -4,25 +4,17 @@
 
 import "package:expect/expect.dart";
 
-class A {
+class A implements B {
   final x;
-  const A([x = 499]) : this.x = x;
+  const A(this.x);
 }
 
-class B extends A {
-  const B();
-  final z = 99;
+abstract class B {
+  const factory B(x) = A;
 }
 
-class C extends B {
-  const C(this.y);
-  final y;
-}
-
-const v = const C(42);
+const dynamic b1 = const B(499);
 
 main() {
-  Expect.equals(42, v.y);
-  Expect.equals(499, v.x);
-  Expect.equals(99, v.z);
+  Expect.equals(499, b1.x);
 }

@@ -5,15 +5,18 @@
 import "package:expect/expect.dart";
 
 const x = const {
-                  'a': 3, // //# 01: static type warning
+  'a': 3, // //# 01: compile-time error
   'a': 4
 };
-const y = const { 'a': 10, 'b': 11, 'a': 12, // //# 02: static type warning
-                  'b': 13, 'a': 14 }; //        //# 02: continued
+const y = const {
+  'a': 10, 'b': 11, 'a': 12, // //# 02: compile-time error
+  'b': 13, 'a': 14 //           //# 02: continued
+};
+
 const z = const {
-                  '__proto__': 496, // //# 03: static type warning
-                  '__proto__': 497, // //# 03: continued
-                  '__proto__': 498, // //# 03: continued
+  '__proto__': 496, // //# 03: compile-time error
+  '__proto__': 497, // //# 03: continued
+  '__proto__': 498, // //# 03: continued
   '__proto__': 499
 };
 

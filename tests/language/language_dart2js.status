@@ -575,13 +575,6 @@ class_cycle_test/03: MissingCompileTimeError
 closure_in_field_test/01: Crash
 closure_in_field_test/02: Crash
 closure_in_field_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 340 pos 14: 'value != null': No value for field j:field(Mixin.field)
-compile_time_constant_a_test: Crash
-compile_time_constant_b_test: Crash
-compile_time_constant_c_test/02: Crash
-compile_time_constant_k_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-compile_time_constant_k_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-compile_time_constant_k_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-compile_time_constant_k_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 compile_time_constant_m_test: RuntimeError
 compile_time_constant_o_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 compile_time_constant_o_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
@@ -1596,9 +1589,6 @@ class_cycle_test/03: MissingCompileTimeError
 closure_in_field_test/01: Crash
 closure_in_field_test/02: Crash
 closure_in_field_test/none: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-compile_time_constant_a_test: Crash
-compile_time_constant_b_test: Crash
-compile_time_constant_c_test/02: Crash
 compile_time_constant_m_test: RuntimeError
 compile_time_constant_p_test/01: Crash
 conditional_import_string_test: CompileTimeError

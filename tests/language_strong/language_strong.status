@@ -24,16 +24,6 @@ body_less_constructor_wrong_arg_negative_test: Skip
 callable_test: Skip
 check_member_static_test: Skip
 check_method_override_test: Skip
-compile_time_constant_arguments_test: Skip
-compile_time_constant_c_test: Skip
-compile_time_constant_checked2_test: Skip
-compile_time_constant_checked3_test: Skip
-compile_time_constant_checked4_test: Skip
-compile_time_constant_checked5_test: Skip
-compile_time_constant_checked_test: Skip
-compile_time_constant_e_test: Skip
-compile_time_constant_h_test: Skip
-compile_time_constant_k_test: Skip
 compile_time_constant_o_test: Skip
 compile_time_constant_p_test: Skip
 compile_time_constant_r_test: Skip
@@ -673,9 +663,6 @@ bit_operations_test/none: RuntimeError # No bigints on web.
 canonical_const2_test: RuntimeError # Ints and doubles are unified.
 canonical_const_test: RuntimeError # Ints and doubles are unified.
 call_closurization_test: RuntimeError # Issue 29920
-compile_time_constant_a_test: RuntimeError # Allows mutating const map.
-compile_time_constant_b_test: RuntimeError # Issue 29920
-compile_time_constant_d_test: RuntimeError # Issue 29920
 const_evaluation_test/01: RuntimeError # Issue 29920
 const_switch_test/02: RuntimeError # Issue 29920
 const_switch_test/04: RuntimeError # Ints and doubles are unified.

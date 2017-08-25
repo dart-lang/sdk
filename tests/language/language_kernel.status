@@ -76,7 +76,6 @@ config_import_test: RuntimeError # KernelVM bug: Configurable imports.
 library_env_test/has_html_support: RuntimeError # KernelVM bug: Configurable imports.
 library_env_test/has_no_io_support: RuntimeError # KernelVM bug: Configurable imports.
 
-compile_time_constant_c_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_map2_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_map3_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
@@ -92,9 +91,6 @@ switch_case_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation
 switch_case_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 
-compile_time_constant_k_test/01: RuntimeError # KernelVM bug: Constant map duplicated key.
-compile_time_constant_k_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
-compile_time_constant_k_test/03: RuntimeError # KernelVM bug: Constant map duplicated key.
 compile_time_constant_o_test/01: RuntimeError # KernelVM bug: Constant map duplicated key.
 compile_time_constant_o_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
 const_dynamic_type_literal_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
@@ -223,7 +219,6 @@ regress_23498_test: Crash
 # dartk: checked mode failures
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 async_await_test: RuntimeError
-compile_time_constant_checked_test/02: MissingCompileTimeError
 const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError
 const_constructor2_test/24: MissingCompileTimeError

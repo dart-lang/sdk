@@ -12,12 +12,12 @@ class A {
   const A.a6(int x) : this.x = x;
 }
 
-const a1 = const A.a1(); //# 01: static type warning, checked mode compile-time error
-const a2 = const A.a2('foo'); //# 02: static type warning, checked mode compile-time error
-const a3 = const A.a3(); //# 03: static type warning, checked mode compile-time error
-const a4 = const A.a4('foo'); //# 04: static type warning, checked mode compile-time error
-const a5 = const A.a5('foo'); //# 05: static type warning, checked mode compile-time error
-const a6 = const A.a6('foo'); //# 06: static type warning, checked mode compile-time error
+const a1 = const A.a1(); //# 01: compile-time error
+const a2 = const A.a2('foo'); //# 02: compile-time error
+const a3 = const A.a3(); //# 03: compile-time error
+const a4 = const A.a4('foo'); //# 04: compile-time error
+const a5 = const A.a5('foo'); //# 05: compile-time error
+const a6 = const A.a6('foo'); //# 06: compile-time error
 
 main() {
   print(a1); //# 01: continued

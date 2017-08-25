@@ -78,6 +78,7 @@ assert_initializer_test/46: MissingCompileTimeError # KernelVM bug: Constant eva
 assert_initializer_test/47: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 assert_initializer_test/48: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 assert_initializer_test/none: RuntimeError # KernelVM bug: Constant evaluation.
+compile_time_constant_checked_test/02: MissingCompileTimeError
 
 [ $compiler == dartk || $compiler == dartkp ]
 assert_trailing_comma_test/none: CompileTimeError # Issue 29959
@@ -184,6 +185,7 @@ function_type/function_type9_test: RuntimeError
 cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 cha_deopt2_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 cha_deopt3_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+compile_time_constant_c_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 assign_static_type_test/02: MissingCompileTimeError

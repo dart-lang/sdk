@@ -122,3 +122,6 @@ generic_method_types_test/02: RuntimeError
 generic_method_types_test/03: RuntimeError
 generic_methods_new_test: RuntimeError
 getter_closure_execution_order_test: RuntimeError # Issue 29920
+compile_time_constant_a_test: RuntimeError # Issue 30526
+compile_time_constant_b_test: RuntimeError # Issue 29920
+compile_time_constant_d_test: RuntimeError # Issue 29920

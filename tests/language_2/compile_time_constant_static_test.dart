@@ -2,19 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-
-class A implements B {
-  final x;
-  const A(this.x);
-}
-
-abstract class B {
-  const factory B(x) = A;
-}
-
-const b1 = const B(499);
+final int x = 'foo'; //# 01: compile-time error
+const int y = 'foo'; //# 02: compile-time error
+int z = 'foo'; //# 03: compile-time error
 
 main() {
-  Expect.equals(499, b1.x);
+  print(x); //# 01: continued
+  print(y); //# 02: continued
+  print(z); //# 03: continued
 }
