@@ -15,19 +15,29 @@ part of dart.convert;
  * serializable, the [cause] is null.
  */
 class JsonUnsupportedObjectError extends Error {
-  /** The object that could not be serialized. */
-  final unsupportedObject;
-  /** The exception thrown when trying to convert the object. */
-  final cause;
+  /// The object that could not be serialized.
+  final Object unsupportedObject;
 
-  JsonUnsupportedObjectError(this.unsupportedObject, {this.cause});
+  /// The exception thrown when trying to convert the object.
+  final Object cause;
+
+  /// The partial result of the conversion, up until the error happened.
+  ///
+  /// May be null.
+  final String partialResult;
+
+  JsonUnsupportedObjectError(this.unsupportedObject,
+      {this.cause, this.partialResult});
 
   String toString() {
+    String safeString = Error.safeToString(unsupportedObject);
+    String prefix;
     if (cause != null) {
-      return "Converting object to an encodable object failed.";
+      prefix = "Converting object to an encodable object failed:";
     } else {
-      return "Converting object did not return an encodable object.";
+      prefix = "Converting object did not return an encodable object:";
     }
+    return "$prefix $safeString";
   }
 }
 
@@ -542,6 +552,8 @@ abstract class _JsonStringifier {
   _JsonStringifier(toEncodable(o))
       : _toEncodable = toEncodable ?? _defaultToEncodable;
 
+  String get _partialResult;
+
   /** Append a string to the JSON output. */
   void writeString(String characters);
   /** Append part of a string to the JSON output. */
@@ -647,11 +659,13 @@ abstract class _JsonStringifier {
     try {
       var customJson = _toEncodable(object);
       if (!writeJsonValue(customJson)) {
-        throw new JsonUnsupportedObjectError(object);
+        throw new JsonUnsupportedObjectError(object,
+            partialResult: _partialResult);
       }
       _removeSeen(object);
     } catch (e) {
-      throw new JsonUnsupportedObjectError(object, cause: e);
+      throw new JsonUnsupportedObjectError(object,
+          cause: e, partialResult: _partialResult);
     }
   }
 
@@ -852,6 +866,8 @@ class _JsonStringStringifier extends _JsonStringifier {
     stringifier.writeObject(object);
   }
 
+  String get _partialResult => _sink is StringBuffer ? _sink.toString() : null;
+
   void writeNumber(num number) {
     _sink.write(number.toString());
   }
@@ -935,6 +951,8 @@ class _JsonUtf8Stringifier extends _JsonStringifier {
     buffer = null;
     index = 0;
   }
+
+  String get _partialResult => null;
 
   void writeNumber(num number) {
     writeAsciiString(number.toString());
