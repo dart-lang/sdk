@@ -365,18 +365,28 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
 
-  // TODO(sgjesse): Use a MTU value here. Only the loopback adapter can
-  // handle 64k datagrams.
-  IsolateData* isolate_data =
-      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
-  if (isolate_data->udp_receive_buffer == NULL) {
-    isolate_data->udp_receive_buffer =
-        reinterpret_cast<uint8_t*>(malloc(65536));
+  const intptr_t available = SocketBase::Available(socket->fd());
+  if (available < 0) {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    return;
   }
+  if (available == 0) {
+    Dart_SetReturnValue(args, Dart_Null());
+    return;
+  }
+
+  // Allocate a buffer of the exact size into which data can be read.
+  uint8_t* data_buffer = NULL;
+  Dart_Handle data = IOBuffer::Allocate(available, &data_buffer);
+  if (Dart_IsError(data)) {
+    Dart_PropagateError(data);
+  }
+  ASSERT(data_buffer != NULL);
+
+  // Read data into the buffer.
   RawAddr addr;
-  intptr_t bytes_read =
-      SocketBase::RecvFrom(socket->fd(), isolate_data->udp_receive_buffer,
-                           65536, &addr, SocketBase::kAsync);
+  const intptr_t bytes_read = SocketBase::RecvFrom(
+      socket->fd(), data_buffer, available, &addr, SocketBase::kAsync);
   if (bytes_read == 0) {
     Dart_SetReturnValue(args, Dart_Null());
     return;
@@ -386,15 +396,6 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     return;
   }
-  // Datagram data read. Copy into buffer of the exact size,
-  ASSERT(bytes_read > 0);
-  uint8_t* data_buffer = NULL;
-  Dart_Handle data = IOBuffer::Allocate(bytes_read, &data_buffer);
-  if (Dart_IsError(data)) {
-    Dart_PropagateError(data);
-  }
-  ASSERT(data_buffer != NULL);
-  memmove(data_buffer, isolate_data->udp_receive_buffer, bytes_read);
 
   // Get the port and clear it in the sockaddr structure.
   int port = SocketAddress::GetAddrPort(addr);
