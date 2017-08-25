@@ -143,6 +143,7 @@ class CodeGenerator extends Object
 
   final ClassElement boolClass;
   final ClassElement intClass;
+  final ClassElement doubleClass;
   final ClassElement interceptorClass;
   final ClassElement nullClass;
   final ClassElement numClass;
@@ -216,6 +217,7 @@ class CodeGenerator extends Object
         dartCoreLibrary = _getLibrary(c, 'dart:core'),
         boolClass = _getLibrary(c, 'dart:core').getType('bool'),
         intClass = _getLibrary(c, 'dart:core').getType('int'),
+        doubleClass = _getLibrary(c, 'dart:core').getType('double'),
         numClass = _getLibrary(c, 'dart:core').getType('num'),
         nullClass = _getLibrary(c, 'dart:core').getType('Null'),
         objectClass = _getLibrary(c, 'dart:core').getType('Object'),
@@ -846,8 +848,11 @@ class CodeGenerator extends Object
       block.add(js.statement('# = #;', [className, classExpr]));
     }
 
+    JS.Statement finishGenericTypeTest;
+
     if (!isMixinAlias) {
       block.addAll(_defineConstructors(classElem, className, [], []));
+      finishGenericTypeTest = _emitClassTypeTests(classElem, className, block);
     }
 
     if (classElem.interfaces.isNotEmpty) {
@@ -859,8 +864,10 @@ class CodeGenerator extends Object
     }
 
     if (isGeneric) {
-      return _defineClassTypeArguments(
-          classElem, typeFormals, _statement(block));
+      var classDef =
+          _defineClassTypeArguments(classElem, typeFormals, _statement(block));
+      if (finishGenericTypeTest == null) return classDef;
+      block = [classDef, finishGenericTypeTest];
     }
     return _statement(block);
   }
@@ -938,7 +945,7 @@ class CodeGenerator extends Object
     JS.Statement deferredBaseClass =
         _setBaseClass(classElem, className, jsPeerNames, body);
 
-    _emitClassTypeTests(classElem, className, body);
+    var finishGenericTypeTest = _emitClassTypeTests(classElem, className, body);
 
     _emitVirtualFieldSymbols(classElem, body);
     _emitClassSignature(methods, allFields, classElem, ctors, className, body);
@@ -955,6 +962,7 @@ class CodeGenerator extends Object
 
     body = <JS.Statement>[classDef];
     _emitStaticFields(staticFields, classElem, body);
+    if (finishGenericTypeTest != null) body.add(finishGenericTypeTest);
     for (var peer in jsPeerNames) {
       _registerExtensionType(classElem, peer, body);
     }
@@ -963,200 +971,211 @@ class CodeGenerator extends Object
     return _statement(body);
   }
 
-  void _emitClassTypeTests(ClassElement classElem, JS.Expression className,
-      List<JS.Statement> body) {
-    if (classElem == objectClass) {
-      // We rely on ES6 static inheritance.  All types that are represented by
-      // class constructor functions will see these definitions, with [this]
-      // being bound to the class constructor.
-
-      // The 'instanceof' checks don't work for primitive types (which have fast
-      // definitions below) and don't work for native types. In those cases we
-      // fall through to the general purpose checking code.
-      body.add(js.statement(
-          '#.is = function is_Object(o) {'
-          '  if (o instanceof this) return true;'
-          '  return #.is(o, this);'
-          '}',
-          [className, _runtimeModule]));
-      body.add(js.statement(
-          '#.as = function as_Object(o) {'
-          '  if (o == null || o instanceof this) return o;'
-          '  return #.as(o, this);'
-          '}',
-          [className, _runtimeModule]));
-      body.add(js.statement(
-          '#._check = function check_Object(o) {'
-          '  if (o == null || o instanceof this) return o;'
-          '  return #.check(o, this);'
-          '}',
-          [className, _runtimeModule]));
-      return;
-    }
-    if (classElem == stringClass) {
-      body.add(js.statement(
-          '#.is = function is_String(o) { return typeof o == "string"; }',
-          className));
-      body.add(js.statement(
-          '#.as = function as_String(o) {'
-          '  if (typeof o == "string" || o == null) return o;'
-          '  return #.as(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      body.add(js.statement(
-          '#._check = function check_String(o) {'
-          '  if (typeof o == "string" || o == null) return o;'
-          '  return #.check(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      return;
-    }
-    if (classElem == functionClass) {
-      body.add(js.statement(
-          '#.is = function is_Function(o) { return typeof o == "function"; }',
-          className));
-      body.add(js.statement(
-          '#.as = function as_Function(o) {'
-          '  if (typeof o == "function" || o == null) return o;'
-          '  return #.as(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      body.add(js.statement(
-          '#._check = function check_String(o) {'
-          '  if (typeof o == "function" || o == null) return o;'
-          '  return #.check(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      return;
-    }
-
-    if (classElem == intClass) {
-      body.add(js.statement(
-          '#.is = function is_int(o) {'
-          '  return typeof o == "number" && Math.floor(o) == o;'
-          '}',
-          className));
-      body.add(js.statement(
-          '#.as = function as_int(o) {'
-          '  if ((typeof o == "number" && Math.floor(o) == o) || o == null)'
-          '    return o;'
-          '  return #.as(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      body.add(js.statement(
-          '#._check = function check_int(o) {'
-          '  if ((typeof o == "number" && Math.floor(o) == o) || o == null)'
-          '    return o;'
-          '  return #.check(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      return;
-    }
-    if (classElem == nullClass) {
-      body.add(js.statement(
-          '#.is = function is_Null(o) { return o == null; }', className));
-      body.add(js.statement(
-          '#.as = function as_Null(o) {'
-          '  if (o == null) return o;'
-          '  return #.as(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      body.add(js.statement(
-          '#._check = function check_Null(o) {'
-          '  if (o == null) return o;'
-          '  return #.check(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      return;
-    }
-    if (classElem == numClass) {
-      body.add(js.statement(
-          '#.is = function is_num(o) { return typeof o == "number"; }',
-          className));
-      body.add(js.statement(
-          '#.as = function as_num(o) {'
-          '  if (typeof o == "number" || o == null) return o;'
-          '  return #.as(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      body.add(js.statement(
-          '#._check = function check_num(o) {'
-          '  if (typeof o == "number" || o == null) return o;'
-          '  return #.check(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      return;
-    }
-    if (classElem == boolClass) {
-      body.add(js.statement(
-          '#.is = function is_bool(o) { return o === true || o === false; }',
-          className));
-      body.add(js.statement(
-          '#.as = function as_bool(o) {'
-          '  if (o === true || o === false || o == null) return o;'
-          '  return #.as(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      body.add(js.statement(
-          '#._check = function check_bool(o) {'
-          '  if (o === true || o === false || o == null) return o;'
-          '  return #.check(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      return;
-    }
-    // TODO(sra): Add special cases for hot tests like `x is html.Element`.
-
-    // `instanceof` check is futile for classes that are Interceptor classes.
-    ClassElement parent = classElem;
-    while (parent != objectClass) {
-      if (parent == interceptorClass) {
-        if (classElem == interceptorClass) {
-          // Place non-instanceof version of checks on Interceptor. All
-          // interceptor classes will inherit the methods via ES6 class static
-          // inheritance.
-          body.add(_callHelperStatement('addTypeTests(#);', className));
-
-          // TODO(sra): We could place on the extension type a pointer to the
-          // peer constructor and use that for the `instanceof` check, e.g.
-          //
-          //    if (o instanceof this[_peerConstructor]) return o;
-          //
+  JS.Statement _emitClassTypeTests(ClassElement classElem,
+      JS.Expression className, List<JS.Statement> body) {
+    JS.Expression getInterfaceSymbol(ClassElement c) {
+      var library = c.library;
+      if (library.isDartCore || library.isDartAsync) {
+        switch (c.name) {
+          case 'List':
+          case 'Map':
+          case 'Iterable':
+          case 'Future':
+          case 'Stream':
+          case 'StreamSubscription':
+            return _callHelper('is' + c.name);
         }
-        return;
       }
-      parent = parent.type.superclass.element;
+      return null;
     }
 
-    // Choose between 'simple' checks, which are often accelerated by
-    // `instanceof`, and other checks, which are slowed down by taking time to
-    // do an `instanceof` check that is futile or likely futile.
-    //
-    // The `instanceof` check is futile for (1) a class that is only used as a
-    // mixin, or (2) is only used as an interface in an `implements` clause, and
-    // is likely futile (3) if the class has type parameters, since `Foo` aka
-    // `Foo<dynamic>` is not a superclass of `Foo<int>`. The first two are
-    // whole-program properites, but we can check for the last case.
-
-    // Since ES6 classes have inheritance of static properties, we need only
-    // install checks that differ from the parent.
-
-    bool isSimple(ClassElement classElement) {
-      if (classElement.typeParameters.isNotEmpty) return false;
-      return true;
+    void markSubtypeOf(JS.Expression testSymbol) {
+      body.add(js.statement('#.prototype[#] = true', [className, testSymbol]));
     }
 
-    assert(classElem != objectClass);
-    bool thisIsSimple = isSimple(classElem);
-    bool superIsSimple = isSimple(classElem.type.superclass.element);
-
-    if (thisIsSimple == superIsSimple) return;
-
-    if (thisIsSimple) {
-      body.add(_callHelperStatement('addSimpleTypeTests(#);', className));
-    } else {
-      body.add(_callHelperStatement('addTypeTests(#);', className));
+    for (var iface in classElem.interfaces) {
+      var prop = getInterfaceSymbol(iface.element);
+      if (prop != null) markSubtypeOf(prop);
     }
+
+    if (classElem.library.isDartCore) {
+      if (classElem == objectClass) {
+        // Everything is an Object.
+        body.add(js.statement(
+            '#.is = function is_Object(o) { return true; }', [className]));
+        body.add(js.statement(
+            '#.as = function as_Object(o) { return o; }', [className]));
+        body.add(js.statement(
+            '#._check = function check_Object(o) { return o; }', [className]));
+        return null;
+      }
+      if (classElem == stringClass) {
+        body.add(js.statement(
+            '#.is = function is_String(o) { return typeof o == "string"; }',
+            className));
+        body.add(js.statement(
+            '#.as = function as_String(o) {'
+            '  if (typeof o == "string" || o == null) return o;'
+            '  return #.as(o, #, false);'
+            '}',
+            [className, _runtimeModule, className]));
+        body.add(js.statement(
+            '#._check = function check_String(o) {'
+            '  if (typeof o == "string" || o == null) return o;'
+            '  return #.as(o, #, true);'
+            '}',
+            [className, _runtimeModule, className]));
+        return null;
+      }
+      if (classElem == functionClass) {
+        body.add(js.statement(
+            '#.is = function is_Function(o) { return typeof o == "function"; }',
+            className));
+        body.add(js.statement(
+            '#.as = function as_Function(o) {'
+            '  if (typeof o == "function" || o == null) return o;'
+            '  return #.as(o, #, false);'
+            '}',
+            [className, _runtimeModule, className]));
+        body.add(js.statement(
+            '#._check = function check_String(o) {'
+            '  if (typeof o == "function" || o == null) return o;'
+            '  return #.as(o, #, true);'
+            '}',
+            [className, _runtimeModule, className]));
+        return null;
+      }
+      if (classElem == intClass) {
+        body.add(js.statement(
+            '#.is = function is_int(o) {'
+            '  return typeof o == "number" && Math.floor(o) == o;'
+            '}',
+            className));
+        body.add(js.statement(
+            '#.as = function as_int(o) {'
+            '  if ((typeof o == "number" && Math.floor(o) == o) || o == null)'
+            '    return o;'
+            '  return #.as(o, #, false);'
+            '}',
+            [className, _runtimeModule, className]));
+        body.add(js.statement(
+            '#._check = function check_int(o) {'
+            '  if ((typeof o == "number" && Math.floor(o) == o) || o == null)'
+            '    return o;'
+            '  return #.as(o, #, true);'
+            '}',
+            [className, _runtimeModule, className]));
+        return null;
+      }
+      if (classElem == nullClass) {
+        body.add(js.statement(
+            '#.is = function is_Null(o) { return o == null; }', className));
+        body.add(js.statement(
+            '#.as = function as_Null(o) {'
+            '  if (o == null) return o;'
+            '  return #.as(o, #, false);'
+            '}',
+            [className, _runtimeModule, className]));
+        body.add(js.statement(
+            '#._check = function check_Null(o) {'
+            '  if (o == null) return o;'
+            '  return #.as(o, #, true);'
+            '}',
+            [className, _runtimeModule, className]));
+        return null;
+      }
+      if (classElem == numClass || classElem == doubleClass) {
+        body.add(js.statement(
+            '#.is = function is_num(o) { return typeof o == "number"; }',
+            className));
+        body.add(js.statement(
+            '#.as = function as_num(o) {'
+            '  if (typeof o == "number" || o == null) return o;'
+            '  return #.as(o, #, false);'
+            '}',
+            [className, _runtimeModule, className]));
+        body.add(js.statement(
+            '#._check = function check_num(o) {'
+            '  if (typeof o == "number" || o == null) return o;'
+            '  return #.as(o, #, true);'
+            '}',
+            [className, _runtimeModule, className]));
+        return null;
+      }
+      if (classElem == boolClass) {
+        body.add(js.statement(
+            '#.is = function is_bool(o) { return o === true || o === false; }',
+            className));
+        body.add(js.statement(
+            '#.as = function as_bool(o) {'
+            '  if (o === true || o === false || o == null) return o;'
+            '  return #.as(o, #, false);'
+            '}',
+            [className, _runtimeModule, className]));
+        body.add(js.statement(
+            '#._check = function check_bool(o) {'
+            '  if (o === true || o === false || o == null) return o;'
+            '  return #.as(o, #, true);'
+            '}',
+            [className, _runtimeModule, className]));
+        return null;
+      }
+    }
+    if (classElem.library.isDartAsync) {
+      if (classElem == types.futureOrType.element) {
+        var typeParamT = classElem.typeParameters[0].type;
+        var tOrFutureOfT = js.call('#.is(o) || #.is(o)', [
+          _emitType(typeParamT),
+          _emitType(types.futureType.instantiate([typeParamT]))
+        ]);
+        body.add(js.statement('''
+            #.is = function is_FutureOr(o) {
+              return #;
+            }
+            ''', [className, tOrFutureOfT]));
+        body.add(js.statement('''
+            #.as = function as_FutureOr(o) {
+              if (o == null || #) return o;
+              return #.castError(o, this, false);
+            }
+            ''', [className, tOrFutureOfT, _runtimeModule]));
+        body.add(js.statement('''
+            #._check = function check_FutureOr(o) {
+              if (o == null || #) return o;
+              return #.castError(o, this, true);
+            }
+            ''', [className, tOrFutureOfT, _runtimeModule]));
+        return null;
+      }
+    }
+
+    body.add(_callHelperStatement('addTypeTests(#);', [className]));
+
+    if (classElem.typeParameters.isEmpty) return null;
+
+    // For generics, testing against the default instantiation is common,
+    // so optimize that.
+    var isClassSymbol = getInterfaceSymbol(classElem);
+    if (isClassSymbol == null) {
+      // TODO(jmesserly): we could export these symbols, if we want to mark
+      // implemented interfaces for user-defined classes.
+      var id = new JS.TemporaryId("_is_${classElem.name}_default");
+      _moduleItems.add(
+          js.statement('const # = Symbol(#);', [id, js.string(id.name, "'")]));
+      isClassSymbol = id;
+    }
+    // Marking every generic type instantiation as a subtype of its default
+    // instantiation.
+    markSubtypeOf(isClassSymbol);
+
+    // Define the type tests on the default instantiation to check for that
+    // marker.
+    var defaultInst = _emitTopLevelName(classElem);
+
+    // Return this `addTypeTests` call so we can emit it outside of the generic
+    // type parameter scope.
+    return _callHelperStatement(
+        'addTypeTests(#, #);', [defaultInst, isClassSymbol]);
   }
 
   void _emitSuperHelperSymbols(List<JS.Statement> body) {
@@ -1288,6 +1307,7 @@ class CodeGenerator extends Object
     }
     var genericDef = js.statement(
         '# = #;', [_emitTopLevelName(element, suffix: r'$'), genericCall]);
+    // TODO(jmesserly): this should be instantiate to bounds
     var dynType = fillDynamicTypeArgs(element.type);
     var genericInst = _emitType(dynType, lowerGeneric: true);
     return js.statement(
@@ -1846,6 +1866,14 @@ class CodeGenerator extends Object
         : callMethod != null;
 
     var body = <JS.Statement>[];
+    if (isCallable) {
+      // Our class instances will have JS `typeof this == "function"`,
+      // so make sure to attach the runtime type information the same way
+      // we would do it for function types.
+      body.add(js.statement('#.prototype[#] = #;',
+          [className, _callHelper('_runtimeType'), className]));
+    }
+
     void addConstructor(ConstructorElement element, JS.Expression jsCtor) {
       var ctorName = _constructorName(element);
       if (JS.invalidStaticFieldName(element.name)) {

@@ -747,9 +747,11 @@ class TypeErrorImplementation extends Error implements TypeError {
    * Normal type error caused by a failed subtype test.
    */
   // TODO(sra): Include [value] in message.
-  TypeErrorImplementation(Object value, Object actualType, Object expectedType)
+  TypeErrorImplementation(Object value, Object actualType, Object expectedType,
+      bool strongModeError)
       : message = "Type '${actualType}' is not a subtype "
-            "of type '${expectedType}'";
+            "of type '${expectedType}'" +
+            (strongModeError ? "" : " in strong mode");
 
   TypeErrorImplementation.fromMessage(String this.message);
 
@@ -765,37 +767,18 @@ class CastErrorImplementation extends Error implements CastError {
    * Normal cast error caused by a failed type cast.
    */
   // TODO(sra): Include [value] in message.
-  CastErrorImplementation(Object value, Object actualType, Object expectedType)
+  CastErrorImplementation(Object value, Object actualType, Object expectedType,
+      bool strongModeError)
       : message = "CastError: Casting value of type '$actualType' to"
-            " incompatible type '$expectedType'";
+            " type '$expectedType' which is incompatible" +
+            (strongModeError ? "" : " in strong mode");
 
-  String toString() => message;
-}
-
-/// Thrown by type assertions that fail in strong mode that would have passed in
-/// standard Dart.
-class StrongModeTypeError extends Error implements TypeError, StrongModeError {
-  final String message;
-  // TODO(sra): Include [value] in message.
-  StrongModeTypeError(Object value, Object actualType, Object expectedType)
-      : message = "Type '${actualType}' is not a subtype "
-            "of type '${expectedType}' in strong mode";
-  String toString() => message;
-}
-
-/// Thrown by casts that fail in strong mode that would have passed in standard
-/// Dart.
-class StrongModeCastError extends Error implements CastError, StrongModeError {
-  final String message;
-  // TODO(sra): Include [value] in message.
-  StrongModeCastError(Object value, Object actualType, Object expectedType)
-      : message = "CastError: Casting value of type '$actualType' to"
-            " type '$expectedType' which is incompatible in strong mode";
   String toString() => message;
 }
 
 /// Used for Strong-mode errors other than type assertions and casts.
-class StrongModeErrorImplementation extends Error implements StrongModeError {
+// TODO(jmesserly): remove this: https://github.com/dart-lang/sdk/issues/30095
+class StrongModeErrorImplementation extends Error {
   final String message;
   StrongModeErrorImplementation(this.message);
   String toString() => message;

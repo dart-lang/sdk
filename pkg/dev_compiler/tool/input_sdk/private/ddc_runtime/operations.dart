@@ -154,7 +154,7 @@ dputMirror(obj, field, value) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
       setterType = _stripGenericArguments(setterType);
-      return JS('', '#[#] = #', obj, f, check(value, setterType));
+      return JS('', '#[#] = #._check(#)', obj, f, setterType, value);
     }
   }
   return noSuchMethod(
@@ -167,7 +167,7 @@ dput(obj, field, value) {
   if (f != null) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
-      return JS('', '#[#] = #', obj, f, check(value, setterType));
+      return JS('', '#[#] = #._check(#)', obj, f, setterType, value);
     }
     // Always allow for JS interop objects.
     if (isJsInterop(obj)) {
@@ -189,7 +189,7 @@ _checkApply(type, actuals) => JS('', '''(() => {
   if ($actuals.length < $type.args.length) return false;
   let index = 0;
   for(let i = 0; i < $type.args.length; ++i) {
-    $check($actuals[i], $type.args[i]);
+    $type.args[i]._check($actuals[i]);
     ++index;
   }
   if ($actuals.length == $type.args.length) return true;
@@ -197,7 +197,7 @@ _checkApply(type, actuals) => JS('', '''(() => {
   if ($type.optionals.length > 0) {
     if (extras > $type.optionals.length) return false;
     for(let i = 0, j=index; i < extras; ++i, ++j) {
-      $check($actuals[j], $type.optionals[i]);
+      $type.optionals[i]._check($actuals[j]);
     }
     return true;
   }
@@ -215,7 +215,7 @@ _checkApply(type, actuals) => JS('', '''(() => {
     if (!($hasOwnProperty.call($type.named, name))) {
       return false;
     }
-    $check(opts[name], $type.named[name]);
+    $type.named[name]._check(opts[name]);
   }
   return true;
 })()''');
@@ -482,68 +482,30 @@ final _ignoreTypeFailure = JS('', '''(() => {
   });
 })()''');
 
-/// Returns true if [obj] is an instance of [type] in strong mode, otherwise
-/// false.
-///
-/// This also allows arbitrary JS function objects to be subtypes of every Dart
-/// function types.
-bool strongInstanceOf(obj, type, ignoreFromWhiteList) => JS('', '''(() => {
-  let actual = $getReifiedType($obj);
-  let result = $isSubtype(actual, $type);
-  if (result ||
-      (actual == $int && $isSubtype($double, $type)) ||
-      (actual == $jsobject && $_isFunctionType(type) &&
-          typeof(obj) === 'function')) {
-    return true;
-  }
-  if (result === null &&
-      dart.__ignoreWhitelistedErrors &&
-      $ignoreFromWhiteList &&
-      $_ignoreTypeFailure(actual, $type)) {
-    return true;
-  }
-  return false;
-})()''');
-
-/// Returns true if [obj] is null or an instance of [type]
-/// Returns false if [obj] is non-null and not an instance of [type]
-/// in strong mode
-bool instanceOfOrNull(obj, type) {
-  // If strongInstanceOf returns null, convert to false here.
-  return obj == null || JS('bool', '#', strongInstanceOf(obj, type, true));
-}
-
 @JSExportName('is')
 bool instanceOf(obj, type) {
   if (obj == null) {
     return JS('bool', '# == # || #', type, Null, _isTop(type));
   }
-  return strongInstanceOf(obj, type, false);
+  return JS('#', '!!#', isSubtype(getReifiedType(obj), type));
 }
 
 @JSExportName('as')
-cast(obj, type) {
-  if (JS('bool', '# == #', type, dynamic) || obj == null) return obj;
-  bool result = strongInstanceOf(obj, type, true);
-  if (JS('bool', '#', result)) return obj;
-  if (JS('bool', '!dart.__ignoreAllErrors')) {
-    _throwCastError(obj, type, result);
+cast(obj, type, bool typeError) {
+  if (obj == null) return obj;
+  var actual = getReifiedType(obj);
+  var result = isSubtype(actual, type);
+  if (JS(
+      'bool',
+      '# === true || # === null && dart.__ignoreWhitelistedErrors && #(#, #)',
+      result,
+      result,
+      _ignoreTypeFailure,
+      actual,
+      type)) {
+    return obj;
   }
-  JS('', 'console.error(#)',
-      'Actual: ${typeName(getReifiedType(obj))} Expected: ${typeName(type)}');
-  return obj;
-}
-
-check(obj, type) {
-  if (JS('bool', '# == #', type, dynamic) || obj == null) return obj;
-  bool result = strongInstanceOf(obj, type, true);
-  if (JS('bool', '#', result)) return obj;
-  if (JS('bool', '!dart.__ignoreAllErrors')) {
-    _throwTypeError(obj, type, result);
-  }
-  JS('', 'console.error(#)',
-      'Actual: ${typeName(getReifiedType(obj))} Expected: ${typeName(type)}');
-  return obj;
+  return castError(obj, type, typeError);
 }
 
 bool test(bool obj) {
@@ -570,63 +532,33 @@ void booleanConversionFailed(obj) {
       "type '${typeName(expected)}' in boolean expression");
 }
 
-void _throwCastError(obj, type, bool result) {
-  var actual = getReifiedType(obj);
-  if (result == false) throwCastError(obj, actual, type);
+castError(obj, type, bool typeError) {
+  var objType = getReifiedType(obj);
+  if (JS('bool', '!dart.__ignoreAllErrors')) {
+    var errorInStrongMode = isSubtype(objType, type) == null;
 
-  throwStrongModeCastError(obj, actual, type);
-}
+    var actual = typeName(objType);
+    var expected = typeName(type);
+    if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
 
-void _throwTypeError(obj, type, bool result) {
-  var actual = getReifiedType(obj);
-  if (result == false) throwTypeError(obj, actual, type);
-
-  throwStrongModeTypeError(obj, actual, type);
+    var error = JS('bool', '#', typeError)
+        ? new TypeErrorImplementation(obj, actual, expected, errorInStrongMode)
+        : new CastErrorImplementation(obj, actual, expected, errorInStrongMode);
+    throw error;
+  }
+  JS('', 'console.error(#)',
+      'Actual: ${typeName(objType)} Expected: ${typeName(type)}');
+  return obj;
 }
 
 asInt(obj) {
   if (obj == null) return null;
 
   if (JS('bool', 'Math.floor(#) != #', obj, obj)) {
-    throwCastError(obj, getReifiedType(obj), JS('', '#', int));
+    castError(obj, JS('', '#', int), false);
   }
   return obj;
 }
-
-/// Adds type type test predicates to a constructor for a non-parameterized
-/// type. Non-parameterized types can use `instanceof` for subclass checks and
-/// fall through to a helper for subtype tests.
-addSimpleTypeTests(ctor) => JS('', '''(() => {
-  $ctor.is = function is_C(object) {
-    // This is incorrect for classes [Null] and [Object], so we do not use
-    // [addSimpleTypeTests] for these classes.
-    if (object instanceof this) return true;
-    return dart.is(object, this);
-  };
-  $ctor.as = function as_C(object) {
-    if (object instanceof this) return object;
-    return dart.as(object, this);
-  };
-  $ctor._check = function check_C(object) {
-    if (object instanceof this) return object;
-    return dart.check(object, this);
-  };
-})()''');
-
-/// Adds type type test predicates to a constructor. Used for parmeterized
-/// types. We avoid `instanceof` for, e.g. `x is ListQueue` since there is
-/// no common class for `ListQueue<int>` and `ListQueue<String>`.
-addTypeTests(ctor) => JS('', '''(() => {
-  $ctor.as = function as_G(object) {
-    return dart.as(object, this);
-  };
-  $ctor.is = function is_G(object) {
-    return dart.is(object, this);
-  };
-  $ctor._check = function check_G(object) {
-    return dart.check(object, this);
-  };
-})()''');
 
 // TODO(vsm): Consider optimizing this.  We may be able to statically
 // determine which == operation to invoke given the static types.
@@ -933,21 +865,29 @@ noSuchMethod(obj, Invocation invocation) {
 constFn(x) => JS('', '() => x');
 
 runtimeType(obj) {
-  // Handle primitives where the method isn't on the object.
-  var result = _checkPrimitiveType(obj);
-  if (result != null) return wrapType(result);
-
-  // Delegate to the (possibly user-defined) method on the object.
-  var extension = getExtensionType(obj);
-  if (extension != null) {
-    result = JS('', '#[dartx.runtimeType]', obj);
-    // If extension doesn't override runtimeType, return the extension type.
-    return result ?? wrapType(extension);
+  if (obj == null) return Null;
+  if (JS('bool', '# instanceof #', obj, Object)) {
+    // A normal Dart object: get `obj.runtimeType`
+    // (callable Dart classes are also handled here)
+    return JS('', '#.runtimeType', obj);
   }
-  if (JS('bool', 'typeof # == "function" && # instanceof Function', obj, obj)) {
-    return wrapType(getReifiedType(obj));
+  if (JS('bool', 'typeof obj == "object"')) {
+    // Some other kind of JS object.
+    var extensionType = JS('', '#[#]', obj, _extensionType);
+    if (extensionType != null) {
+      // An extension type: get `obj[dartx.runtimeType]`
+      var result = JS('', '#[dartx.runtimeType]', obj);
+      // If the extension doesn't override runtimeType, handle that.
+      // TODO(jmesserly): is this still possible? Object members should always
+      // be defined on extension types.
+      if (result != null) return result;
+    } else {
+      extensionType = jsobject;
+    }
+    return wrapType(extensionType);
   }
-  return JS('', '#.runtimeType', obj);
+  // All other types: fall back to `getReifiedType`
+  return wrapType(getReifiedType(obj));
 }
 
 /// Implements Dart's interpolated strings as ES2015 tagged template literals.

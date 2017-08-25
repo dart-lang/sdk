@@ -75,39 +75,6 @@ final _runtimeType = JS('', 'Symbol("_runtimeType")');
 
 final _moduleName = JS('', 'Symbol("_moduleName")');
 
-_checkPrimitiveType(obj) {
-  // TODO(jmesserly): JS is used to prevent type literal wrapping.  Is there a
-  // better way we can handle this?  (sra: It is super dodgy that the values
-  // passed to JS are different to the values passed to a regular function - the
-  // semantics are not longer that of calling an interpreter. dart2js has other
-  // special functions, we could do the same.)
-
-  // Check for null and undefined
-  if (obj == null) return JS('', '#', Null);
-
-  if (JS('bool', 'typeof # == "number"', obj)) {
-    if (JS('bool', 'Math.floor(#) == #', obj, obj)) {
-      return JS('', '#', int);
-    }
-    return JS('', '#', double);
-  }
-
-  if (JS('bool', 'typeof # == "boolean"', obj)) {
-    return JS('', '#', bool);
-  }
-
-  if (JS('bool', 'typeof # == "string"', obj)) {
-    return JS('', '#', String);
-  }
-
-  if (JS('bool', 'typeof # == "symbol"', obj)) {
-    // Note: this is a JS Symbol, not a Dart one.
-    return JS('', '#', jsobject);
-  }
-
-  return null;
-}
-
 getFunctionType(obj) {
   // TODO(vsm): Encode this properly on the function for Dart-generated code.
   var args = JS('List', 'Array(#.length).fill(#)', obj, dynamic);
@@ -120,34 +87,32 @@ getFunctionType(obj) {
 /// different from the user-visible Type object returned by calling
 /// `runtimeType` on some Dart object.
 getReifiedType(obj) {
-  var result = _checkPrimitiveType(obj);
-  if (result != null) return result;
-  return _nonPrimitiveRuntimeType(obj);
-}
-
-/// Assumes that obj is non-null
-_nonPrimitiveRuntimeType(obj) {
-  // Lookup recorded *real* type (not user definable runtimeType)
-  // TODO(vsm): Should we treat Dart and JS objects differently here?
-  // E.g., we can check if obj instanceof core.Object to differentiate.
-  var result = _getRuntimeType(obj);
-  if (result != null) return result;
-
-  // Lookup extension type
-  result = getExtensionType(obj);
-  if (result != null) return result;
-
-  // Fallback on constructor for class types
-  result = JS('', '#.constructor', obj);
-  if (JS('bool', '# === Function', result)) {
-    // An undecorated Function should have come from JavaScript.
-    // Treat as untyped.
-    return JS('', '#', jsobject);
+  switch (JS('String', 'typeof #', obj)) {
+    case "object":
+      if (obj == null) return JS('', '#', Null);
+      if (JS('bool', '# instanceof #', obj, Object)) {
+        return JS('', '#.constructor', obj);
+      }
+      var result = JS('', '#[#]', obj, _extensionType);
+      if (result == null) return JS('', '#', jsobject);
+      return result;
+    case "function":
+      // All Dart functions and callable classes must set _runtimeType
+      var result = JS('', '#[#]', obj, _runtimeType);
+      if (result != null) return result;
+      return JS('', '#', jsobject);
+    case "undefined":
+      return JS('', '#', Null);
+    case "number":
+      return JS('', 'Math.floor(#) == # ? # : #', obj, obj, int, double);
+    case "boolean":
+      return JS('', '#', bool);
+    case "string":
+      return JS('', '#', String);
+    case "symbol":
+    default:
+      return JS('', '#', jsobject);
   }
-  if (result == null) {
-    return JS('', '#', jsobject);
-  }
-  return result;
 }
 
 /// Given an internal runtime type object, wraps it in a `WrappedType` object

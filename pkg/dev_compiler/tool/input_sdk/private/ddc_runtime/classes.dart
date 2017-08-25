@@ -129,7 +129,7 @@ flattenFutures(builder) => JS('', '''(() => {
 })()''');
 
 /// Memoize a generic type constructor function.
-generic(typeConstructor, [setBaseClass]) => JS('', '''(() => {
+generic(typeConstructor, setBaseClass) => JS('', '''(() => {
   let length = $typeConstructor.length;
   if (length < 1) {
     $throwInternalError('must have at least one generic type argument');
@@ -561,3 +561,67 @@ defineEnumValues(enumClass, names) {
   }
   JS('', '#.values = #', enumClass, constList(values, enumClass));
 }
+
+/// Adds type test predicates to a class/interface type [ctor], using the
+/// provided [isClass] JS Symbol.
+///
+/// This will operate quickly for non-generic types, native extension types,
+/// as well as matching exact generic type arguments:
+///
+///     class C<T> {}
+///     class D extends C<int> {}
+///     main() { dynamic d = new D(); d as C<int>; }
+///
+addTypeTests(ctor, isClass) {
+  if (isClass == null) isClass = JS('', 'Symbol("_is_" + ctor.name)');
+  // TODO(jmesserly): since we know we're dealing with class/interface types,
+  // we can optimize this rather than go through the generic `dart.is` helpers.
+  JS('', '#.prototype[#] = true', ctor, isClass);
+  JS(
+      '',
+      '''#.is = function is_C(obj) {
+    if (obj != null && obj[#]) return true;
+    return #(obj, this);
+  }''',
+      ctor,
+      isClass,
+      instanceOf);
+  JS(
+      '',
+      '''#.as = function as_C(obj) {
+    if (obj == null || obj[#]) return obj;
+    return #(obj, this, false);
+  }''',
+      ctor,
+      isClass,
+      cast);
+  JS(
+      '',
+      '''#._check = function check_C(obj) {
+    if (obj == null || obj[#]) return obj;
+    return #(obj, this, true);
+  }''',
+      ctor,
+      isClass,
+      cast);
+}
+
+// TODO(jmesserly): should we do this for all interfaces?
+
+/// The well known symbol for testing `is Future`
+final isFuture = JS('', 'Symbol("_is_Future")');
+
+/// The well known symbol for testing `is Iterable`
+final isIterable = JS('', 'Symbol("_is_Iterable")');
+
+/// The well known symbol for testing `is List`
+final isList = JS('', 'Symbol("_is_List")');
+
+/// The well known symbol for testing `is Map`
+final isMap = JS('', 'Symbol("_is_Map")');
+
+/// The well known symbol for testing `is Stream`
+final isStream = JS('', 'Symbol("_is_Stream")');
+
+/// The well known symbol for testing `is StreamSubscription`
+final isStreamSubscription = JS('', 'Symbol("_is_StreamSubscription")');

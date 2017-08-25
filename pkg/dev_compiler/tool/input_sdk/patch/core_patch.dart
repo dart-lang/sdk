@@ -179,9 +179,6 @@ class AbstractClassInstantiationError {
   String toString() => "Cannot instantiate abstract class: '$_className'";
 }
 
-/// An interface type for all Strong-mode errors.
-class StrongModeError extends Error {}
-
 // Patch for DateTime implementation.
 @patch
 class DateTime {

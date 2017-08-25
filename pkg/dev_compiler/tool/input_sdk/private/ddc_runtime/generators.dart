@@ -185,7 +185,9 @@ final _AsyncStarStreamController = JS(
       // that we should schedule `await` in `async*` the same as in `async`.
       this.isWaiting = true;
       let future = iter.value;
-      if (!$instanceOf(future, ${getGenericClass(Future)})) {
+      // TODO(jmesserly): `async` uses a different check that looks for the
+      // (private) implementation type of `Future`, rather than the public type.
+      if (!$Future.is(future)) {
         future = $Future.value(future);
       }
       return future.then($dynamic)((x) => this.runBody(x),
