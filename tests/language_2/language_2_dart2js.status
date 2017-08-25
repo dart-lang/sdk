@@ -128,10 +128,7 @@ generic_methods_type_expression_test: RuntimeError
 generic_methods_unused_parameter_test: RuntimeError
 generic_tearoff_test: CompileTimeError
 
-[ $compiler == dart2js && $host_checked ]
-generic_methods_local_variable_declaration_test: RuntimeError
-
-[ $compiler == dart2js && $checked ]
+[ $compiler == dart2js && !$minified && $runtime != d8]
 generic_methods_local_variable_declaration_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != none ]
