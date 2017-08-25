@@ -4,12 +4,12 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/analysis_server.dart' show AnalysisServer;
-import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 
 void new_sendDartNotificationNavigation(
     AnalysisServer analysisServer, AnalysisResult result) {
