@@ -48,6 +48,7 @@ class RastaSsaBuilder extends SsaAstBuilderBase {
           backend.compiler.codegenWorldBuilder,
           work.registry,
           backend.compiler.backendStrategy.closureDataLookup,
+          backend.emitter.nativeEmitter,
           sourceInformationFactory.createBuilderForContext(work.element),
           resolvedAst.kind == ResolvedAstKind.PARSED ? resolvedAst.node : null);
       HGraph graph = builder.build();

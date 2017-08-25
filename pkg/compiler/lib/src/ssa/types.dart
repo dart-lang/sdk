@@ -51,6 +51,7 @@ class TypeMaskFactory {
       }
 
       if (type.isVoid) return commonMasks.nullType;
+      if (type.isDynamic) return commonMasks.dynamicType;
       if (type.element == commonElements.nullClass) return commonMasks.nullType;
       if (type.treatAsDynamic) return commonMasks.dynamicType;
       return new TypeMask.nonNullSubtype(type.element, closedWorld);

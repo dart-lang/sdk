@@ -25,6 +25,7 @@ import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
+import '../js_emitter/js_emitter.dart' show NativeEmitter;
 import '../kernel/element_map.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
@@ -93,6 +94,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   LoopHandler<ir.Node> loopHandler;
   TypeBuilder typeBuilder;
 
+  final NativeEmitter nativeEmitter;
+
   final Map<ir.VariableDeclaration, HInstruction> letBindings =
       <ir.VariableDeclaration, HInstruction>{};
 
@@ -111,6 +114,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       this._worldBuilder,
       this.registry,
       this.closureDataLookup,
+      this.nativeEmitter,
       // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
       this.sourceInformationBuilder,
       this.functionNode) {
@@ -727,6 +731,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     if (closedWorld.nativeData.isNativeMember(targetElement)) {
+      nativeEmitter.nativeMethods.add(targetElement);
       String nativeName;
       if (closedWorld.nativeData.hasFixedBackendName(targetElement)) {
         nativeName = closedWorld.nativeData.getFixedBackendName(targetElement);

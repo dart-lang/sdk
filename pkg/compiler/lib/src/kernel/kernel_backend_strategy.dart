@@ -103,6 +103,7 @@ class KernelSsaBuilder implements SsaBuilder {
         _compiler.codegenWorldBuilder,
         work.registry,
         _compiler.backendStrategy.closureDataLookup,
+        _compiler.backend.emitter.nativeEmitter,
         // TODO(redemption): Support these:
         const SourceInformationBuilder(),
         null); // Function node used as capture scope id.
