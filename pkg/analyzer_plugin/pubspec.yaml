@@ -7,7 +7,7 @@ environment:
   sdk: '>=1.0.0 <2.0.0'
 
 dependencies:
-  analyzer: ^0.30.0
+  analyzer: ^0.31.0-alpha.1
   charcode: ^1.1.0
   html: any
   path: any
