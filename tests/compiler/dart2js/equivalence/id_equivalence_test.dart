@@ -4,6 +4,7 @@
 
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
@@ -34,9 +35,11 @@ main() {
         String annotatedCode =
             await new File.fromUri(entity.uri).readAsString();
         IdData data1 = await computeData(
-            annotatedCode, computeAstMemberData, compileFromSource);
+            annotatedCode, computeAstMemberData, compileFromSource,
+            options: [Flags.disableTypeInference]);
         IdData data2 = await computeData(
-            annotatedCode, computeIrMemberData, compileFromDill);
+            annotatedCode, computeIrMemberData, compileFromDill,
+            options: [Flags.disableTypeInference]);
         data1.actualMap.forEach((Id id, ActualData actualData1) {
           String value1 = actualData1.value;
           String value2 = data2.actualMap[id]?.value;

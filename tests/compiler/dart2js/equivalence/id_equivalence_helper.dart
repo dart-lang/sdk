@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
@@ -45,7 +44,7 @@ Future<Compiler> compileFromDill(
   Compiler compiler = await compileWithDill(
       entryPoint: mainUri,
       memorySourceFiles: {'main.dart': code.sourceCode},
-      options: [Flags.disableTypeInference]..addAll(options),
+      options: options,
       beforeRun: (Compiler compiler) {
         compiler.stopAfterTypeInference = true;
       });
@@ -172,7 +171,9 @@ class IdData {
 /// contains the name of the test file it isn't tested for kernel.
 Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     ComputeMemberDataFunction computeFromKernel,
-    {List<String> skipForKernel: const <String>[], bool verbose: false}) async {
+    {List<String> skipForKernel: const <String>[],
+    List<String> options: const <String>[],
+    bool verbose: false}) async {
   await for (FileSystemEntity entity in dataDir.list()) {
     print('----------------------------------------------------------------');
     print('Checking ${entity.uri}');
@@ -180,14 +181,14 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     String annotatedCode = await new File.fromUri(entity.uri).readAsString();
     print('--from ast------------------------------------------------------');
     await checkCode(annotatedCode, computeFromAst, compileFromSource,
-        verbose: verbose);
+        options: options, verbose: verbose);
     if (skipForKernel.contains(entity.uri.pathSegments.last)) {
       print('--skipped for kernel------------------------------------------');
       continue;
     }
     print('--from kernel---------------------------------------------------');
     await checkCode(annotatedCode, computeFromKernel, compileFromDill,
-        verbose: verbose);
+        options: options, verbose: verbose);
   }
 }
 

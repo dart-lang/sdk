@@ -5,6 +5,7 @@
 import 'dart:io' hide Link;
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
@@ -27,6 +28,7 @@ main(List<String> args) {
     await checkTests(dataDir, computeClosureData, computeKernelClosureData,
         // TODO(johnnniwinther,efortuna): Enable these tests for .dill.
         skipForKernel: ['captured_variable.dart'],
+        options: [Flags.disableTypeInference],
         verbose: verbose);
   });
 }

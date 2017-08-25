@@ -4,6 +4,7 @@
 
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
@@ -21,7 +22,8 @@ import 'package:kernel/ast.dart' as ir;
 main() {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, computeJumpsData, computeKernelJumpsData);
+    await checkTests(dataDir, computeJumpsData, computeKernelJumpsData,
+        options: [Flags.disableTypeInference]);
   });
 }
 
