@@ -21,7 +21,30 @@ nestedForLoopWithLabelledBreak(count) {
   }
 }
 
+nestedForLoopWithLabelledContinue(count) {
+  outer:
+  /*0@continue*/
+  for (int i = 0; i < count; i = i + 1) {
+    for (int j = 0; j < count; j = j + 1) {
+      if (i % 2 == 0) /*target=0*/ continue outer;
+    }
+  }
+}
+
+nestedForLoopWithLabelledBreakAndContinue(count) {
+  outer:
+  /*0@break,continue*/
+  for (int i = 0; i < count; i = i + 1) {
+    for (int j = 0; j < count; j = j + 1) {
+      if (i % 2 == 0) /*target=0*/ break outer;
+      if (i % 3 == 0) /*target=0*/ continue outer;
+    }
+  }
+}
+
 main() {
   nestedForLoopWithBreakAndContinue(10);
   nestedForLoopWithLabelledBreak(10);
+  nestedForLoopWithLabelledContinue(10);
+  nestedForLoopWithLabelledBreakAndContinue(10);
 }

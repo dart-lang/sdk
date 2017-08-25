@@ -557,11 +557,14 @@ class KernelJumpTarget implements JumpTargetX {
 
   @override
   LabelDefinition<ast.Node> addLabel(ast.Label label, String labelName,
-      {bool isBreakTarget: false}) {
+      {bool isBreakTarget: false, bool isContinueTarget: false}) {
     LabelDefinitionX result = new LabelDefinitionX(label, labelName, this);
     labels.add(result);
     if (isBreakTarget) {
       result.setBreakTarget();
+    }
+    if (isContinueTarget) {
+      result.setContinueTarget();
     }
     return result;
   }
@@ -574,6 +577,8 @@ class KernelJumpTarget implements JumpTargetX {
 
   @override
   bool get isSwitch => targetStatement is ir.SwitchStatement;
+
+  bool get isSwitchCase => targetStatement is ir.SwitchCase;
 
   @override
   bool get isTarget => isBreakTarget || isContinueTarget;

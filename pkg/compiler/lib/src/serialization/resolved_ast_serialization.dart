@@ -209,7 +209,7 @@ class ResolvedAstSerializer extends Visitor {
 
   /// Serialize [label] into [encoder].
   void serializeLabelDefinition(
-      LabelDefinition labelDefinition, ObjectEncoder encoder) {
+      LabelDefinitionX labelDefinition, ObjectEncoder encoder) {
     encoder.setInt(Key.NODE, nodeIndices[labelDefinition.label]);
     encoder.setString(Key.NAME, labelDefinition.labelName);
     encoder.setBool(Key.IS_BREAK_TARGET, labelDefinition.isBreakTarget);
