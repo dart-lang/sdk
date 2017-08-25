@@ -45,6 +45,13 @@ import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:meta/meta.dart';
 
 /**
+ * TODO(scheglov) We could use generalized Function in [AnalysisDriverTestView],
+ * but this breaks `AnalysisContext` and code generation. So, for now let's
+ * work around them, and rewrite generators to [AnalysisDriver].
+ */
+typedef Future<Null> WorkToWaitAfterComputingResult(String path);
+
+/**
  * This class computes [AnalysisResult]s for Dart files.
  *
  * Let the set of "explicitly analyzed files" denote the set of paths that have
@@ -1675,7 +1682,7 @@ class AnalysisDriverTestView {
 
   int numOfAnalyzedLibraries = 0;
 
-  Future<Null> Function(String path) workToWaitAfterComputingResult;
+  WorkToWaitAfterComputingResult workToWaitAfterComputingResult;
 
   AnalysisDriverTestView(this.driver);
 
