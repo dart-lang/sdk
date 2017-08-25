@@ -81,7 +81,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
    */
   @override
   Future<WorkResponse> performRequest(WorkRequest request) async {
-    return logger.run('Perform request', () async {
+    return logger.runAsync('Perform request', () async {
       errorBuffer.clear();
       outBuffer.clear();
       try {
