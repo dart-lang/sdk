@@ -283,6 +283,7 @@ class Isolate : public BaseIsolate {
   void DoneLoading();
   void DoneFinalizing();
 
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   // By default the reload context is deleted. This parameter allows
   // the caller to delete is separately if it is still needed.
   bool ReloadSources(JSONStream* js,
@@ -290,6 +291,7 @@ class Isolate : public BaseIsolate {
                      const char* root_script_url = NULL,
                      const char* packages_url = NULL,
                      bool dont_delete_reload_context = false);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   bool MakeRunnable();
   void Run();

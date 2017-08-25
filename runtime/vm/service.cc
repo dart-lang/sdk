@@ -2559,6 +2559,7 @@ static const MethodParameter* reload_sources_params[] = {
 };
 
 static bool ReloadSources(Thread* thread, JSONStream* js) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   Isolate* isolate = thread->isolate();
   if (!isolate->compilation_allowed()) {
     js->PrintError(kFeatureDisabled,
@@ -2596,6 +2597,11 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
   Service::CheckForPause(isolate, js);
 
   return true;
+#else   // !defined(DART_PRECOMPILED_RUNTIME)
+  js->PrintError(kFeatureDisabled,
+                 "This isolate cannot reload sources right now.");
+  return true;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Service::CheckForPause(Isolate* isolate, JSONStream* stream) {
