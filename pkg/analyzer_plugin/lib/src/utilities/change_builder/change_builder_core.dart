@@ -50,7 +50,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
     FileEditBuilderImpl builder = await createFileEditBuilder(path);
     buildFileEdit(builder);
     _change.addFileEdit(builder.fileEdit);
-    builder.finalize();
+    await builder.finalize();
   }
 
   /**
@@ -301,7 +301,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
   /**
    * Finalize the source file edit that is being built.
    */
-  void finalize() {
+  Future<Null> finalize() async {
     // Nothing to do.
   }
 
