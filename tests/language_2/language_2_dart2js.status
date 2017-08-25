@@ -128,9 +128,6 @@ generic_methods_type_expression_test: RuntimeError
 generic_methods_unused_parameter_test: RuntimeError
 generic_tearoff_test: CompileTimeError
 
-[ $compiler == dart2js && !$minified && $runtime != d8]
-generic_methods_local_variable_declaration_test: RuntimeError
-
 [ $compiler == dart2js && $runtime != none ]
 bit_operations_test: RuntimeError, OK # Issue 1533
 generic_instanceof_test: RuntimeError
@@ -167,6 +164,7 @@ accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
 accessor_conflict_import_test: RuntimeError # Issue 25626
 branch_canonicalization_test: RuntimeError # Issue 638.
+generic_methods_local_variable_declaration_test: RuntimeError
 
 [ $compiler == dart2js && ! $checked && ! $enable_asserts && ! $dart2js_with_kernel && $runtime != none ]
 assertion_test: RuntimeError # Issue 12748
