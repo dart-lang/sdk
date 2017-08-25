@@ -487,10 +487,12 @@ class Parser : public ValueObject {
   const Instance& EvaluateConstExpr(TokenPosition expr_pos, AstNode* expr);
   StaticGetterNode* RunStaticFieldInitializer(const Field& field,
                                               TokenPosition field_ref_pos);
-  RawObject* EvaluateConstConstructorCall(const Class& type_class,
-                                          const TypeArguments& type_arguments,
-                                          const Function& constructor,
-                                          ArgumentListNode* arguments);
+  RawObject* EvaluateConstConstructorCall(
+      const Class& type_class,
+      const TypeArguments& type_arguments,
+      const Function& constructor,
+      ArgumentListNode* arguments,
+      bool obfuscate_symbol_instances = true);
   LiteralNode* FoldConstExpr(TokenPosition expr_pos, AstNode* expr);
 
   // Support for parsing of scripts.

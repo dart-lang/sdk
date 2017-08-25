@@ -4047,6 +4047,11 @@ class Library : public Object {
 
   static RawLibrary* New();
 
+  // These methods are only used by the Precompiler to obfuscate
+  // the name and url.
+  void set_name(const String& name) const;
+  void set_url(const String& url) const;
+
   void set_num_imports(intptr_t value) const;
   bool HasExports() const;
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
@@ -5662,6 +5667,7 @@ class Instance : public Object {
   friend class InstanceDeserializationCluster;
   friend class ClassDeserializationCluster;  // vtable
   friend class InstanceMorpher;
+  friend class Obfuscator;  // RawGetFieldAtOffset, RawSetFieldAtOffset
 };
 
 class LibraryPrefix : public Instance {

@@ -28,6 +28,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
+#include "vm/precompiler.h"
 #include "vm/regexp_assembler.h"
 #include "vm/resolver.h"
 #include "vm/safepoint.h"
@@ -6272,6 +6273,10 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
         pieces.Add(Symbols::Dot(), allocation_space_);
         ConsumeToken();
         pieces.Add(*ExpectIdentifier("identifier expected"), allocation_space_);
+      }
+      if (I->obfuscate()) {
+        // If we are obfuscating then we need to deobfuscate environment name.
+        Obfuscator::Deobfuscate(T, pieces);
       }
       AstNode* valueNode = NULL;
       if (CurrentToken() == Token::kEQ) {
@@ -12651,7 +12656,8 @@ RawObject* Parser::EvaluateConstConstructorCall(
     const Class& type_class,
     const TypeArguments& type_arguments,
     const Function& constructor,
-    ArgumentListNode* arguments) {
+    ArgumentListNode* arguments,
+    bool obfuscate_symbol_instances /* = true */) {
   NoReloadScope no_reload_scope(isolate(), thread());
   NoOOBMessageScope no_msg_scope(thread());
   // Factories and constructors are not generic functions.
@@ -12705,6 +12711,10 @@ RawObject* Parser::EvaluateConstConstructorCall(
     if (constructor.IsFactory()) {
       // The factory method returns the allocated object.
       instance ^= result.raw();
+    }
+    if (obfuscate_symbol_instances && I->obfuscate() &&
+        (instance.clazz() == I->object_store()->symbol_class())) {
+      Obfuscator::ObfuscateSymbolInstance(T, instance);
     }
     return TryCanonicalize(instance, TokenPos());
   }
@@ -13768,9 +13778,10 @@ AstNode* Parser::ParseSymbolLiteral() {
   const Function& constr = Function::ZoneHandle(
       Z, symbol_class.LookupConstructor(Symbols::SymbolCtor()));
   ASSERT(!constr.IsNull());
-  const Object& result = Object::Handle(
-      Z, EvaluateConstConstructorCall(symbol_class, TypeArguments::Handle(Z),
-                                      constr, constr_args));
+  const Object& result =
+      Object::Handle(Z, EvaluateConstConstructorCall(
+                            symbol_class, TypeArguments::Handle(Z), constr,
+                            constr_args, /*obfuscate_symbol_instances=*/false));
   if (result.IsUnhandledException()) {
     ReportErrors(Error::Cast(result), script_, symbol_pos,
                  "error executing const Symbol constructor");

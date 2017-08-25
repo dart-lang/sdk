@@ -693,31 +693,74 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
 }
 
 void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
+  const bool false_by_default = false;
+  const bool true_by_default = true;
+  USE(true_by_default);
+  USE(false_by_default);
+
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
-#define INIT_FROM_FLAG(name, bitname, isolate_flag, flag)                      \
+#define INIT_FROM_FLAG(when, name, bitname, isolate_flag, flag)                \
   api_flags->isolate_flag = flag;
   ISOLATE_FLAG_LIST(INIT_FROM_FLAG)
 #undef INIT_FROM_FLAG
   api_flags->use_dart_frontend = false;
+  api_flags->entry_points = NULL;
 }
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
-#define INIT_FROM_FIELD(name, bitname, isolate_flag, flag)                     \
+#define INIT_FROM_FIELD(when, name, bitname, isolate_flag, flag)               \
   api_flags->isolate_flag = name();
   ISOLATE_FLAG_LIST(INIT_FROM_FIELD)
 #undef INIT_FROM_FIELD
   api_flags->use_dart_frontend = use_dart_frontend();
+  api_flags->entry_points = NULL;
 }
 
 void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
+#if defined(DART_PRECOMPILER)
+#define FLAG_FOR_PRECOMPILER(action) action
+#else
+#define FLAG_FOR_PRECOMPILER(action)
+#endif
+
 #if !defined(PRODUCT)
-#define SET_FROM_FLAG(name, bitname, isolate_flag, flag)                       \
-  isolate_flags_ = bitname##Bit::update(api_flags.isolate_flag, isolate_flags_);
+#define FLAG_FOR_NONPRODUCT(action) action
+#else
+#define FLAG_FOR_NONPRODUCT(action)
+#endif
+
+#define SET_FROM_FLAG(when, name, bitname, isolate_flag, flag)                 \
+  FLAG_FOR_##when(isolate_flags_ = bitname##Bit::update(                       \
+                      api_flags.isolate_flag, isolate_flags_));
+
   ISOLATE_FLAG_LIST(SET_FROM_FLAG)
+
+#undef FLAG_FOR_NONPRODUCT
+#undef FLAG_FOR_PRECOMPILER
 #undef SET_FROM_FLAG
-#endif  // !defined(PRODUCT)
+
   set_use_dart_frontend(api_flags.use_dart_frontend);
+
+  // Copy entry points list.
+  ASSERT(embedder_entry_points_ == NULL);
+  if (api_flags.entry_points != NULL) {
+    intptr_t count = 0;
+    while (api_flags.entry_points[count].function_name != NULL)
+      count++;
+    embedder_entry_points_ = new Dart_QualifiedFunctionName[count + 1];
+    for (intptr_t i = 0; i < count; i++) {
+      embedder_entry_points_[i].library_uri =
+          strdup(api_flags.entry_points[i].library_uri);
+      embedder_entry_points_[i].class_name =
+          strdup(api_flags.entry_points[i].class_name);
+      embedder_entry_points_[i].function_name =
+          strdup(api_flags.entry_points[i].function_name);
+    }
+    memset(&embedder_entry_points_[count], 0,
+           sizeof(Dart_QualifiedFunctionName));
+  }
+
   // Leave others at defaults.
 }
 
@@ -815,7 +858,9 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       spawn_count_monitor_(new Monitor()),
       spawn_count_(0),
       handler_info_cache_(),
-      catch_entry_state_cache_() {
+      catch_entry_state_cache_(),
+      embedder_entry_points_(NULL),
+      obfuscation_map_(NULL) {
   FlagsCopyFrom(api_flags);
   SetErrorsFatal(true);
   set_compilation_allowed(true);
@@ -823,6 +868,13 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to
   // move to the OSThread structure.
   set_user_tag(UserTags::kDefaultUserTag);
+
+  if (obfuscate()) {
+    OS::PrintErr(
+        "Warning: This VM has been configured to obfuscate symbol information "
+        "which violates the Dart standard.\n"
+        "         See dartbug.com/30524 for more information.\n");
+  }
 }
 
 #undef REUSABLE_HANDLE_SCOPE_INIT
@@ -870,6 +922,22 @@ Isolate::~Isolate() {
   delete spawn_count_monitor_;
   delete safepoint_handler_;
   delete thread_registry_;
+
+  if (obfuscation_map_ != NULL) {
+    for (intptr_t i = 0; obfuscation_map_[i] != NULL; i++) {
+      delete[] obfuscation_map_[i];
+    }
+    delete[] obfuscation_map_;
+  }
+
+  if (embedder_entry_points_ != NULL) {
+    for (intptr_t i = 0; embedder_entry_points_[i].function_name != NULL; i++) {
+      free(const_cast<char*>(embedder_entry_points_[i].library_uri));
+      free(const_cast<char*>(embedder_entry_points_[i].class_name));
+      free(const_cast<char*>(embedder_entry_points_[i].function_name));
+    }
+    delete[] embedder_entry_points_;
+  }
 }
 
 void Isolate::InitOnce() {

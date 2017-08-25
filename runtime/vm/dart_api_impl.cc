@@ -1162,6 +1162,10 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
   return reinterpret_cast<Dart_Isolate>(NULL);
 }
 
+DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags) {
+  Isolate::FlagsInitialize(flags);
+}
+
 DART_EXPORT Dart_Isolate
 Dart_CreateIsolate(const char* script_uri,
                    const char* main,
@@ -6689,6 +6693,47 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   *isolate_snapshot_instructions_size =
       isolate_image_writer.InstructionsBlobSize();
 
+  return Api::Success();
+#endif
+}
+
+DART_EXPORT Dart_Handle Dart_GetObfuscationMap(uint8_t** buffer,
+                                               intptr_t* buffer_length) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("No obfuscation map to save on an AOT runtime.");
+#elif !defined(DART_PRECOMPILER)
+  return Api::NewError("Obfuscation is only supported for AOT compiler.");
+#else
+  Thread* thread = Thread::Current();
+  DARTSCOPE(thread);
+  Isolate* isolate = thread->isolate();
+
+  if (buffer == NULL) {
+    RETURN_NULL_ERROR(buffer);
+  }
+  if (buffer_length == NULL) {
+    RETURN_NULL_ERROR(buffer_length);
+  }
+
+  // Note: can't use JSONStream in PRODUCT builds.
+  const intptr_t kInitialBufferSize = 1 * MB;
+  TextBuffer text_buffer(kInitialBufferSize);
+
+  text_buffer.AddChar('[');
+  if (isolate->obfuscation_map() != NULL) {
+    for (intptr_t i = 0; isolate->obfuscation_map()[i] != NULL; i++) {
+      if (i > 0) {
+        text_buffer.AddChar(',');
+      }
+      text_buffer.AddChar('"');
+      text_buffer.AddEscapedString(isolate->obfuscation_map()[i]);
+      text_buffer.AddChar('"');
+    }
+  }
+  text_buffer.AddChar(']');
+
+  *buffer_length = text_buffer.length();
+  *reinterpret_cast<char**>(buffer) = text_buffer.Steal();
   return Api::Success();
 #endif
 }

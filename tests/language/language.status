@@ -477,3 +477,32 @@ vm/regress_27201_test: Fail # Flutter Issue 9110
 asyncstar_yield_test: Skip # Flutter Issue 9110
 await_for_test: Skip # Flutter Issue 9110
 await_for_cancel_test: Skip # Flutter Issue 9110
+
+[ $runtime == dart_precompiled && $minified ]
+enum_duplicate_test/*: Skip  # Uses Enum.toString()
+enum_private_test/*: Skip  # Uses Enum.toString()
+enum_test: Skip  # Uses Enum.toString()
+no_such_method_dispatcher_test: Skip  # Uses new Symbol()
+# Tests below rely on Type.toString()
+cyclic_type_test/*: Skip
+f_bounded_quantification4_test: Skip
+f_bounded_quantification5_test: Skip
+mixin_generic_test: Skip
+mixin_mixin2_test: Skip
+mixin_mixin3_test: Skip
+mixin_mixin5_test: Skip
+mixin_mixin6_test: Skip
+mixin_mixin_bound2_test: Skip
+mixin_mixin_type_arguments_test: Skip
+mixin_super_2_test: Skip
+# Tests below rely on Stacktrace.toString()
+full_stacktrace1_test: Skip
+full_stacktrace2_test: Skip
+full_stacktrace3_test: Skip
+stacktrace_rethrow_error_test: Skip
+stacktrace_rethrow_nonerror_test: Skip
+vm/no_such_args_error_message_vm_test: Skip
+vm/no_such_method_error_message_callable_vm_test: Skip
+vm/no_such_method_error_message_vm_test: Skip
+vm/regress_28325_test:Skip
+

@@ -963,3 +963,7 @@ iterable_fold_test/01: Pass
 
 [ $compiler == dart2analyzer && $strong  && !$checked ]
 iterable_fold_test/01: CompileTimeError
+
+[ $runtime == dart_precompiled && $minified ]
+apply_test: Skip  # Uses new Symbol via symbolMapToStringMap helper
+error_stack_trace1_test: Skip  # Expects unobfuscated stack trace

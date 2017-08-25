@@ -123,6 +123,12 @@ static bool parse_all = false;
 // of assembly/shared libraries for precompilation.
 static bool use_blobs = false;
 
+// Global flag is used to indicate that we want to obfuscate identifiers.
+static bool obfuscate = false;
+
+// Value of the --save-obfuscation-map= flag.
+static const char* obfuscation_map_filename = NULL;
+
 // Global flag that is used to indicate that we want to trace resolution of
 // URIs and the loading of libraries, parts and scripts.
 static bool trace_loading = false;
@@ -378,6 +384,23 @@ static bool ProcessUseBlobsOption(const char* arg,
   return true;
 }
 
+static bool ProcessObfuscateOption(const char* arg,
+                                   CommandLineOptions* vm_options) {
+  ASSERT(arg != NULL);
+  if (*arg != '\0') {
+    return false;
+  }
+  obfuscate = true;
+  return true;
+}
+
+static bool ProcessObfuscationMapFilenameOption(
+    const char* filename,
+    CommandLineOptions* vm_options) {
+  obfuscation_map_filename = filename;
+  return true;
+}
+
 static bool ProcessSnapshotFilenameOption(const char* filename,
                                           CommandLineOptions* vm_options) {
   snapshot_filename = filename;
@@ -587,6 +610,8 @@ static struct {
     {"--snapshot-kind=", ProcessSnapshotKindOption},
     {"--snapshot-depfile=", ProcessSnapshotDepsFilenameOption},
     {"--use-blobs", ProcessUseBlobsOption},
+    {"--obfuscate", ProcessObfuscateOption},
+    {"--save-obfuscation-map=", ProcessObfuscationMapFilenameOption},
     {"--save-compilation-trace=", ProcessSaveCompilationTraceOption},
     {"--load-compilation-trace=", ProcessLoadCompilationTraceOption},
     {"--save-feedback=", ProcessSaveFeedbackOption},
@@ -1414,6 +1439,59 @@ static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
   file->Release();
 }
 
+static Dart_QualifiedFunctionName standalone_entry_points[] = {
+    // Functions.
+    {"dart:_builtin", "::", "_getPrintClosure"},
+    {"dart:_builtin", "::", "_libraryFilePath"},
+    {"dart:_builtin", "::", "_resolveInWorkingDirectory"},
+    {"dart:_builtin", "::", "_setPackageRoot"},
+    {"dart:_builtin", "::", "_setPackagesMap"},
+    {"dart:_builtin", "::", "_setWorkingDirectory"},
+    {"dart:async", "::", "_setScheduleImmediateClosure"},
+    {"dart:io", "::", "_getWatchSignalInternal"},
+    {"dart:io", "::", "_getUriBaseClosure"},
+    {"dart:io", "::", "_makeDatagram"},
+    {"dart:io", "::", "_makeUint8ListView"},
+    {"dart:io", "::", "_setupHooks"},
+    {"dart:io", "CertificateException", "CertificateException."},
+    {"dart:io", "Directory", "Directory."},
+    {"dart:io", "File", "File."},
+    {"dart:io", "FileSystemException", "FileSystemException."},
+    {"dart:io", "HandshakeException", "HandshakeException."},
+    {"dart:io", "Link", "Link."},
+    {"dart:io", "OSError", "OSError."},
+    {"dart:io", "TlsException", "TlsException."},
+    {"dart:io", "X509Certificate", "X509Certificate._"},
+    {"dart:io", "_ExternalBuffer", "get:end"},
+    {"dart:io", "_ExternalBuffer", "get:start"},
+    {"dart:io", "_ExternalBuffer", "set:data"},
+    {"dart:io", "_ExternalBuffer", "set:end"},
+    {"dart:io", "_ExternalBuffer", "set:start"},
+    {"dart:io", "_Platform", "set:_nativeScript"},
+    {"dart:io", "_ProcessStartStatus", "set:_errorCode"},
+    {"dart:io", "_ProcessStartStatus", "set:_errorMessage"},
+    {"dart:io", "_SecureFilterImpl", "get:ENCRYPTED_SIZE"},
+    {"dart:io", "_SecureFilterImpl", "get:SIZE"},
+    {"dart:io", "_SecureFilterImpl", "get:buffers"},
+    {"dart:isolate", "::", "_getIsolateScheduleImmediateClosure"},
+    {"dart:isolate", "::", "_setupHooks"},
+    {"dart:isolate", "::", "_startMainIsolate"},
+    {"dart:vmservice_io", "::", "main"},
+    // Fields
+    {"dart:_builtin", "::", "_isolateId"},
+    {"dart:_builtin", "::", "_loadPort"},
+    {"dart:_internal", "::", "_printClosure"},
+    {"dart:vmservice_io", "::", "_autoStart"},
+    {"dart:vmservice_io", "::", "_ip"},
+    {"dart:vmservice_io", "::", "_isFuchsia"},
+    {"dart:vmservice_io", "::", "_isWindows"},
+    {"dart:vmservice_io", "::", "_originCheckDisabled"},
+    {"dart:vmservice_io", "::", "_port"},
+    {"dart:vmservice_io", "::", "_signalWatch"},
+    {"dart:vmservice_io", "::", "_traceLoading"},
+    {NULL, NULL, NULL}  // Must be terminated with NULL entries.
+};
+
 bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
@@ -1421,9 +1499,17 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   bool is_main_isolate = true;
   int exit_code = 0;
   char* isolate_name = BuildIsolateName(script_name, "main");
+  Dart_IsolateFlags flags;
+  Dart_IsolateFlagsInitialize(&flags);
+
+  if (gen_snapshot_kind == kAppAOT) {
+    flags.obfuscate = obfuscate;
+    flags.entry_points = standalone_entry_points;
+  }
+
   Dart_Isolate isolate = CreateIsolateAndSetupHelper(
       is_main_isolate, script_name, "main", commandline_package_root,
-      commandline_packages_file, NULL, &error, &exit_code);
+      commandline_packages_file, &flags, &error, &exit_code);
   if (isolate == NULL) {
     delete[] isolate_name;
     Log::PrintErr("%s\n", error);
@@ -1497,46 +1583,6 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     }
 
     if (gen_snapshot_kind == kAppAOT) {
-      Dart_QualifiedFunctionName standalone_entry_points[] = {
-          {"dart:_builtin", "::", "_getPrintClosure"},
-          {"dart:_builtin", "::", "_libraryFilePath"},
-          {"dart:_builtin", "::", "_resolveInWorkingDirectory"},
-          {"dart:_builtin", "::", "_setPackageRoot"},
-          {"dart:_builtin", "::", "_setPackagesMap"},
-          {"dart:_builtin", "::", "_setWorkingDirectory"},
-          {"dart:async", "::", "_setScheduleImmediateClosure"},
-          {"dart:io", "::", "_getWatchSignalInternal"},
-          {"dart:io", "::", "_getUriBaseClosure"},
-          {"dart:io", "::", "_makeDatagram"},
-          {"dart:io", "::", "_makeUint8ListView"},
-          {"dart:io", "::", "_setupHooks"},
-          {"dart:io", "CertificateException", "CertificateException."},
-          {"dart:io", "Directory", "Directory."},
-          {"dart:io", "File", "File."},
-          {"dart:io", "FileSystemException", "FileSystemException."},
-          {"dart:io", "HandshakeException", "HandshakeException."},
-          {"dart:io", "Link", "Link."},
-          {"dart:io", "OSError", "OSError."},
-          {"dart:io", "TlsException", "TlsException."},
-          {"dart:io", "X509Certificate", "X509Certificate._"},
-          {"dart:io", "_ExternalBuffer", "get:end"},
-          {"dart:io", "_ExternalBuffer", "get:start"},
-          {"dart:io", "_ExternalBuffer", "set:data"},
-          {"dart:io", "_ExternalBuffer", "set:end"},
-          {"dart:io", "_ExternalBuffer", "set:start"},
-          {"dart:io", "_Platform", "set:_nativeScript"},
-          {"dart:io", "_ProcessStartStatus", "set:_errorCode"},
-          {"dart:io", "_ProcessStartStatus", "set:_errorMessage"},
-          {"dart:io", "_SecureFilterImpl", "get:ENCRYPTED_SIZE"},
-          {"dart:io", "_SecureFilterImpl", "get:SIZE"},
-          {"dart:io", "_SecureFilterImpl", "get:buffers"},
-          {"dart:isolate", "::", "_getIsolateScheduleImmediateClosure"},
-          {"dart:isolate", "::", "_setupHooks"},
-          {"dart:isolate", "::", "_startMainIsolate"},
-          {"dart:vmservice_io", "::", "main"},
-          {NULL, NULL, NULL}  // Must be terminated with NULL entries.
-      };
-
       uint8_t* feedback_buffer = NULL;
       intptr_t feedback_length = 0;
       if (load_feedback_filename != NULL) {
@@ -1558,6 +1604,14 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
         free(feedback_buffer);
       }
       CHECK_RESULT(result);
+
+      if (obfuscate && obfuscation_map_filename != NULL) {
+        uint8_t* buffer = NULL;
+        intptr_t size = 0;
+        result = Dart_GetObfuscationMap(&buffer, &size);
+        CHECK_RESULT(result);
+        WriteFile(obfuscation_map_filename, buffer, size);
+      }
     }
 
     if (gen_snapshot_kind == kAppAOT) {
