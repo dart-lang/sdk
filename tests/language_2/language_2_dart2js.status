@@ -612,10 +612,15 @@ regress_30339_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called
 typevariable_substitution2_test/02: RuntimeError
 generic_instanceof_test: Crash
 generic_local_functions_test: Crash
-generic_method_types_test/01: Crash
-generic_method_types_test/02: Crash
+generic_methods_closure_test: Crash
+generic_methods_generic_class_tearoff_test: Crash
 generic_methods_generic_function_parameter_test: Crash
+generic_methods_named_parameters_test: Crash
+generic_methods_optional_parameters_test: Crash
+generic_methods_shadowing_test: Crash
+generic_methods_tearoff_specialization_test: Crash
 generic_methods_test: Crash
+generic_methods_type_expression_test: Crash
 generic_native_test: Crash
 generic_syntax_test: Crash
 generic_test: Crash
