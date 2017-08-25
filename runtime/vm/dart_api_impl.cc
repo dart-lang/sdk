@@ -5035,6 +5035,11 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
     }
     library ^= Library::LookupLibrary(T, resolved_url_str);
     if (library.IsNull()) {
+      // If the URL string does not match, use the library object
+      // returned by the kernel reader.
+      library ^= Api::UnwrapHandle(result);
+    }
+    if (library.IsNull()) {
       return Api::NewError("%s: Unable to load script '%s' correctly.",
                            CURRENT_FUNC, resolved_url_str.ToCString());
     }
