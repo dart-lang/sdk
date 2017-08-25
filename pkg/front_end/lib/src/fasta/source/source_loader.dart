@@ -34,8 +34,6 @@ import '../compiler_context.dart' show CompilerContext;
 
 import '../deprecated_problems.dart' show deprecated_inputError;
 
-import '../problems.dart' show internalProblem;
-
 import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
@@ -47,7 +45,6 @@ import '../fasta_codes.dart'
         templateIllegalMixin,
         templateIllegalMixinDueToConstructors,
         templateIllegalMixinDueToConstructorsCause,
-        templateInternalProblemUriMissingScheme,
         templateUnspecified;
 
 import '../kernel/kernel_shadow_ast.dart' show KernelTypeInferenceEngine;
@@ -99,14 +96,11 @@ class SourceLoader<L> extends Loader<L> {
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
     Uri uri = library.fileUri;
-    if (uri == null) {
+    // TODO(sigmund): source-loader shouldn't check schemes, but defer to the
+    // underlying file system to decide whether it is supported.
+    if (uri == null || uri.scheme != "file" && uri.scheme != "multi-root") {
       return deprecated_inputError(
           library.uri, -1, "Not found: ${library.uri}.");
-    } else if (!uri.hasScheme) {
-      return internalProblem(
-          templateInternalProblemUriMissingScheme.withArguments(uri),
-          -1,
-          library.uri);
     }
 
     // Get the library text from the cache, or read from the file system.
