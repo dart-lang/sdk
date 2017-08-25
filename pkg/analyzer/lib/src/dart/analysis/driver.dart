@@ -1320,17 +1320,18 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
-   * Tests need a reliable way to simulate file changes during analysis.
+   * Runs any asynchronous work that was injected as part of a test using
+   * [AnalysisDriverTestView.workToWaitAfterComputingResult].
    *
-   * When a change happens, the driver must make sure that [getResult] produces
-   * results that include these changes. It is OK for the [results] stream
-   * to produce stale results as long as it eventually produces results that
-   * also include the changes.
+   * If the test view indicates that there is work to do, performs the work
+   * and returns a [Future] that will be signaled when the work completes.
+   *
+   * This gives tests a reliable way to simulate file changes during analysis.
    */
   Future _runTestAsyncWorkDuringAnalysis(String path) {
     var work = _testView.workToWaitAfterComputingResult;
     _testView.workToWaitAfterComputingResult = null;
-    return work != null ? work(path) : null;
+    return work != null ? work(path) : new Future.value();
   }
 
   /**
@@ -1682,6 +1683,12 @@ class AnalysisDriverTestView {
 
   int numOfAnalyzedLibraries = 0;
 
+  /**
+   * If non-null, a function that should be executed asynchronously after
+   * the next result is computed.
+   *
+   * This can be used by a test to simulate file changes during analysis.
+   */
   WorkToWaitAfterComputingResult workToWaitAfterComputingResult;
 
   AnalysisDriverTestView(this.driver);
