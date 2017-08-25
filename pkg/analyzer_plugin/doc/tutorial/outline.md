@@ -10,7 +10,7 @@ subscribed for outline information in some set of files, then the plugin should
 send the information in an `analysis.outline` notification whenever the
 information needs to be updated.
 
-When a notification needs to be sent, the method`sendOutlineNotification` will
+When a notification needs to be sent, the method `sendOutlineNotification` will
 be invoked. This method is responsible for sending the notification.
 
 The easiest way to add support for this notification is by adding the classes
