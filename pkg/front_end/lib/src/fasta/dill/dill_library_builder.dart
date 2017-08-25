@@ -4,8 +4,20 @@
 
 library fasta.dill_library_builder;
 
+import 'dart:convert' show JSON;
+
 import 'package:kernel/ast.dart'
-    show Class, Field, Library, ListLiteral, Member, StaticGet, Typedef;
+    show
+        Class,
+        Field,
+        Library,
+        ListLiteral,
+        Member,
+        StaticGet,
+        StringLiteral,
+        Typedef;
+
+import '../fasta_codes.dart' show templateUnspecified;
 
 import '../problems.dart' show unimplemented;
 
@@ -34,6 +46,19 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   final DillLoader loader;
 
   Library library;
+
+  /// Exports in addition to the members declared in this library.
+  ///
+  /// Each entry in the list is either two or three elements long.
+  ///
+  /// The first element is the library URI, if it is null, this is an ambiguous
+  /// export and the list has three elements. Otherwise the list has two
+  /// elements.
+  ///
+  /// The second element is the name of the exported element.
+  ///
+  /// The third element (if present) is an error message.
+  List<List<String>> additionalExports;
 
   DillLibraryBuilder(this.uri, this.loader)
       : super(uri, new Scope.top(), new Scope.top());
@@ -64,9 +89,9 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   void addMember(Member member) {
     String name = member.name.name;
     if (name == "_exports#") {
-      // TODO(ahe): Add this to exportScope.
-      // This is a hack / work around for storing exports in dill files. See
-      // [compile_platform_dartk.dart](../analyzer/compile_platform_dartk.dart).
+      Field field = member;
+      StringLiteral string = field.initializer;
+      additionalExports = JSON.decode(string.value);
     } else {
       addBuilder(name, new DillMemberBuilder(member, this), member.fileOffset);
     }
@@ -117,5 +142,29 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   @override
   String get fullNameForErrors {
     return library.name ?? "<library '${library.fileUri}'>";
+  }
+
+  void finalizeExports() {
+    if (additionalExports != null) {
+      for (List<String> additionalExport in additionalExports) {
+        Uri originUri = Uri.parse(additionalExport[0]);
+        String name = additionalExport[1];
+        Builder builder;
+        if (originUri == null) {
+          builder = new KernelInvalidTypeBuilder(name, -1, null,
+              templateUnspecified.withArguments(additionalExport[2]));
+        } else {
+          DillLibraryBuilder library = loader.read(originUri, -1);
+          builder = library.exportScopeBuilder[name];
+          if (library != null) {
+            builder = library.exportScopeBuilder[name];
+          }
+          if (builder == null) {
+            builder = new KernelInvalidTypeBuilder(name, -1, null);
+          }
+        }
+        exportScopeBuilder.addMember(name, builder);
+      }
+    }
   }
 }

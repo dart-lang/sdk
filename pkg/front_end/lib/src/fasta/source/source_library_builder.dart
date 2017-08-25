@@ -17,6 +17,7 @@ import '../builder/builder.dart'
         ConstructorReferenceBuilder,
         FormalParameterBuilder,
         FunctionTypeBuilder,
+        InvalidTypeBuilder,
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
@@ -95,6 +96,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   DeclarationBuilder<T> currentDeclaration;
 
   bool canAddImplementationBuilders = false;
+
+  /// Exports in addition to the members declared in this library.
+  ///
+  /// See [../dill/dill_library_builder.dart] for additional details on the
+  /// format used.
+  List<List<String>> additionalExports;
 
   SourceLibraryBuilder(SourceLoader loader, Uri fileUri)
       : this.fromScopes(loader, fileUri, new DeclarationBuilder<T>.library(),
@@ -512,6 +519,19 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         addToScope(name, member, -1, true);
       });
     }
+    exportScope.forEach((String name, Builder member) {
+      if (member.parent != this) {
+        additionalExports ??= <List<String>>[];
+        Builder parent = member.parent;
+        if (parent is LibraryBuilder) {
+          additionalExports.add(<String>["${parent.uri}", name]);
+        } else {
+          InvalidTypeBuilder invalidType = member;
+          String message = invalidType.message.message;
+          additionalExports.add(<String>[null, name, message]);
+        }
+      }
+    });
   }
 
   @override

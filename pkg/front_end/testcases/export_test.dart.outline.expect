@@ -1,0 +1,6 @@
+library;
+import self as self;
+
+static const field dynamic _exports# = "[[\"dart:core\",\"print\"]]" /* from null */;
+static method main() → dynamic
+  ;

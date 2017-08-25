@@ -4,6 +4,8 @@
 
 library fasta.kernel_library_builder;
 
+import 'dart:convert' show JSON;
+
 import 'package:front_end/src/fasta/combinator.dart' as fasta;
 import 'package:front_end/src/fasta/export.dart';
 import 'package:front_end/src/fasta/import.dart';
@@ -780,6 +782,14 @@ class KernelLibraryBuilder
 
     library.name = name;
     library.procedures.sort(compareProcedures);
+
+    if (additionalExports != null) {
+      library.addMember(new Field(new Name("_exports#", library),
+          initializer: new StringLiteral(JSON.encode(additionalExports)),
+          isStatic: true,
+          isConst: true));
+    }
+
     return library;
   }
 

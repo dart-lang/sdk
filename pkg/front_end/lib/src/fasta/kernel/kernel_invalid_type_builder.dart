@@ -13,6 +13,7 @@ import 'kernel_builder.dart'
 
 class KernelInvalidTypeBuilder
     extends InvalidTypeBuilder<KernelTypeBuilder, DartType> {
+  @override
   final Message message;
 
   KernelInvalidTypeBuilder(String name, int charOffset, Uri fileUri,

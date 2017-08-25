@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:developer" as dev;
+
+static const field dynamic _exports# = "[[\"dart:core\",\"print\"]]" /* from null */;
+static method main() → dynamic {
+  core::print(dev::UserTag);
+}
