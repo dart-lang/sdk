@@ -1906,6 +1906,18 @@ class AstBuilder extends ScopeListener {
   void addCompileTimeError(Message message, int charOffset) {
     Code code = message.code;
     Map<String, dynamic> arguments = message.arguments;
+
+    String stringOrTokenLexeme() {
+      var text = arguments['string'];
+      if (text == null) {
+        Token token = arguments['token'];
+        if (token != null) {
+          text = token.lexeme;
+        }
+      }
+      return text;
+    }
+
     switch (code.analyzerCode) {
       case "EXPECTED_TYPE_NAME":
         errorReporter?.reportErrorForOffset(
@@ -1923,20 +1935,19 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_STRING_LITERAL, charOffset, 1);
         return;
+      case "EXTRANEOUS_MODIFIER":
+        String text = stringOrTokenLexeme();
+        errorReporter?.reportErrorForOffset(ParserErrorCode.EXTRANEOUS_MODIFIER,
+            charOffset, text.length, [text]);
+        return;
       case "UNEXPECTED_TOKEN":
-        String text = arguments['string'];
-        if (text == null) {
-          Token token = arguments['token'];
-          if (token != null) {
-            text = token.lexeme;
-          }
-        }
+        String text = stringOrTokenLexeme();
         if (text == ';') {
           errorReporter?.reportErrorForOffset(
               ParserErrorCode.EXPECTED_TOKEN, charOffset, text.length, [text]);
         } else {
-          errorReporter?.reportErrorForOffset(
-              ParserErrorCode.UNEXPECTED_TOKEN, charOffset, 1, [text]);
+          errorReporter?.reportErrorForOffset(ParserErrorCode.UNEXPECTED_TOKEN,
+              charOffset, text.length, [text]);
         }
         return;
       default:

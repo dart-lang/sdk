@@ -1025,7 +1025,8 @@ const Template<Message Function(Token token)> templateExtraneousModifier =
 const Code<Message Function(Token token)> codeExtraneousModifier =
     const Code<Message Function(Token token)>(
         "ExtraneousModifier", templateExtraneousModifier,
-        analyzerCode: "UNEXPECTED_TOKEN", dart2jsCode: "EXTRANEOUS_MODIFIER");
+        analyzerCode: "EXTRANEOUS_MODIFIER",
+        dart2jsCode: "EXTRANEOUS_MODIFIER");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExtraneousModifier(Token token) {
