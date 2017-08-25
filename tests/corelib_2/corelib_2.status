@@ -181,6 +181,7 @@ integer_to_string_test/01: RuntimeError
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 int_parse_radix_test/01: RuntimeError
 int_parse_radix_test/02: RuntimeError
+string_split_test: RuntimeError # does not return List<String>
 
 [ $compiler == dart2js && $runtime == drt && $csp && $minified ]
 core_runtime_types_test: Pass, Fail # Issue 27913
@@ -460,6 +461,9 @@ stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
 
 [ $runtime == vm ]
 string_case_test/01: RuntimeError
+
+[ $runtime == vm || $runtime == dart_precompiled ]
+string_split_test: RuntimeError # does not return List<String>
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 apply2_test: Crash
