@@ -2360,6 +2360,7 @@ type_variable_function_type_test: RuntimeError
 type_variable_nested_test: Crash
 typecheck_multifield_declaration_test: Crash
 typedef_is_test: Crash
+variable_declaration_metadata_test/none: Crash
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 context_test: RuntimeError
