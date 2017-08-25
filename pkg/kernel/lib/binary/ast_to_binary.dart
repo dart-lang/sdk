@@ -969,6 +969,7 @@ class BinaryPrinter extends Visitor {
   visitSwitchStatement(SwitchStatement node) {
     _switchCaseIndexer.enter(node);
     writeByte(Tag.SwitchStatement);
+    writeOffset(node.fileOffset);
     writeNode(node.expression);
     writeNodeList(node.cases);
     _switchCaseIndexer.exit(node);

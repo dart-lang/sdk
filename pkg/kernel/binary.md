@@ -851,6 +851,7 @@ type AsyncForInStatement extends Statement {
 
 type SwitchStatement extends Statement {
   Byte tag = 71;
+  FileOffset fileOffset;
   Expression expression;
   List<SwitchCase> cases;
 }

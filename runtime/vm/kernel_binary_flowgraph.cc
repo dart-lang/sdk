@@ -1280,6 +1280,7 @@ void StreamingScopeBuilder::VisitStatement() {
     }
     case kSwitchStatement: {
       AddSwitchVariable();
+      builder_->ReadPosition();                     // read position.
       VisitExpression();                            // read condition.
       int case_count = builder_->ReadListLength();  // read number of cases.
       for (intptr_t i = 0; i < case_count; ++i) {
@@ -4563,6 +4564,7 @@ void StreamingFlowGraphBuilder::SkipStatement() {
       SkipStatement();            // read body.
       return;
     case kSwitchStatement: {
+      ReadPosition();                     // read position.
       SkipExpression();                   // read condition.
       int case_count = ReadListLength();  // read number of cases.
       for (intptr_t i = 0; i < case_count; ++i) {
@@ -6750,6 +6752,7 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
+  ReadPosition();  // read position.
   // We need the number of cases. So start by getting that, then go back.
   intptr_t offset = ReaderOffset();
   SkipExpression();                   // temporarily skip condition
