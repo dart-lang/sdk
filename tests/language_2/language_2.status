@@ -42,6 +42,12 @@ compile_time_constant_static3_test: Skip # Requires strong mode
 compile_time_constant_static4_test: Skip # Requires strong mode
 compile_time_constant_static5_test: Skip # Requires strong mode
 
+[ $strong ]
+compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
+compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
+compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
+compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
+
 [ $compiler == dartdevc ]
 compile_time_constant_e_test: RuntimeError # Issue 30466
 compile_time_constant_k_test/none: RuntimeError # Issue 30466
