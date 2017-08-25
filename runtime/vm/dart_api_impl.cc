@@ -4978,11 +4978,7 @@ static Dart_Handle LoadKernelProgram(Thread* T,
   kernel::KernelReader reader(program);
   const Object& tmp = reader.ReadProgram();
   delete program;
-
-  if (tmp.IsError()) {
-    return Api::NewHandle(T, tmp.raw());
-  }
-  return Dart_Null();
+  return Api::NewHandle(T, tmp.raw());
 }
 #endif
 
