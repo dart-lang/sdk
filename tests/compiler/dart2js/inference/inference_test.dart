@@ -7,14 +7,16 @@ import 'package:async_helper/async_helper.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import 'inference_test_helper.dart';
 
+const List<String> skipforKernel = const <String>[
+  'super_get.dart',
+  'super_set.dart',
+];
+
 main() {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await for (FileSystemEntity entity in dataDir.list()) {
-      print('Checking ${entity.uri}');
-      String annotatedCode = await new File.fromUri(entity.uri).readAsString();
-      await checkCode(
-          annotatedCode, computeMemberAstTypeMasks, compileFromSource);
-    }
+    await checkTests(
+        dataDir, computeMemberAstTypeMasks, computeMemberIrTypeMasks,
+        skipForKernel: skipforKernel);
   });
 }

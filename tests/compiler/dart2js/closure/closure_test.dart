@@ -24,23 +24,10 @@ main(List<String> args) {
   bool verbose = args.contains('-v');
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await for (FileSystemEntity entity in dataDir.list()) {
-      print('----------------------------------------------------------------');
-      print('Checking ${entity.uri}');
-      print('----------------------------------------------------------------');
-      String annotatedCode = await new File.fromUri(entity.uri).readAsString();
-      print('--from source---------------------------------------------------');
-      await checkCode(annotatedCode, computeClosureData, compileFromSource,
-          verbose: verbose);
-      // TODO(johnnniwinther,efortuna): Enable the these tests for .dill.
-      if (['captured_variable.dart'].contains(entity.uri.pathSegments.last)) {
-        print('--skipped for dill--------------------------------------------');
-        continue;
-      }
-      print('--from dill-----------------------------------------------------');
-      await checkCode(annotatedCode, computeKernelClosureData, compileFromDill,
-          verbose: verbose);
-    }
+    await checkTests(dataDir, computeClosureData, computeKernelClosureData,
+        // TODO(johnnniwinther,efortuna): Enable these tests for .dill.
+        skipForKernel: ['captured_variable.dart'],
+        verbose: verbose);
   });
 }
 

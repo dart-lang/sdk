@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
+
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
@@ -162,6 +164,30 @@ class IdData {
       }
     });
     return withAnnotations(annotations);
+  }
+}
+
+/// Check code for all test files int [data] using [computeFromAst] and
+/// [computeFromKernel] from the respective front ends. If [skipForKernel]
+/// contains the name of the test file it isn't tested for kernel.
+Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
+    ComputeMemberDataFunction computeFromKernel,
+    {List<String> skipForKernel: const <String>[], bool verbose: false}) async {
+  await for (FileSystemEntity entity in dataDir.list()) {
+    print('----------------------------------------------------------------');
+    print('Checking ${entity.uri}');
+    print('----------------------------------------------------------------');
+    String annotatedCode = await new File.fromUri(entity.uri).readAsString();
+    print('--from ast------------------------------------------------------');
+    await checkCode(annotatedCode, computeFromAst, compileFromSource,
+        verbose: verbose);
+    if (skipForKernel.contains(entity.uri.pathSegments.last)) {
+      print('--skipped for kernel------------------------------------------');
+      continue;
+    }
+    print('--from kernel---------------------------------------------------');
+    await checkCode(annotatedCode, computeFromKernel, compileFromDill,
+        verbose: verbose);
   }
 }
 

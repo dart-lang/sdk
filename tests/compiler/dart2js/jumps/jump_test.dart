@@ -21,16 +21,7 @@ import 'package:kernel/ast.dart' as ir;
 main() {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await for (FileSystemEntity entity in dataDir.list()) {
-      print('----------------------------------------------------------------');
-      print('Checking ${entity.uri}');
-      print('----------------------------------------------------------------');
-      String annotatedCode = await new File.fromUri(entity.uri).readAsString();
-      print('--from source---------------------------------------------------');
-      await checkCode(annotatedCode, computeJumpsData, compileFromSource);
-      print('--from dill-----------------------------------------------------');
-      await checkCode(annotatedCode, computeKernelJumpsData, compileFromDill);
-    }
+    await checkTests(dataDir, computeJumpsData, computeKernelJumpsData);
   });
 }
 
@@ -56,8 +47,7 @@ void computeKernelJumpsData(
   KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
   GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
   MemberDefinition definition = elementMap.getMemberDefinition(member);
-  new JumpsIrChecker(
-          actualMap, elementMap, member, localsMap.getLocalsMap(member))
+  new JumpsIrChecker(actualMap, localsMap.getLocalsMap(member))
       .run(definition.node);
 }
 
@@ -164,8 +154,7 @@ class JumpsAstComputer extends AstDataExtractor with JumpsMixin {
 class JumpsIrChecker extends IrDataExtractor with JumpsMixin {
   final KernelToLocalsMap _localsMap;
 
-  JumpsIrChecker(Map<Id, ActualData> actualMap, KernelToElementMap elementMap,
-      MemberEntity member, this._localsMap)
+  JumpsIrChecker(Map<Id, ActualData> actualMap, this._localsMap)
       : super(actualMap);
 
   void run(ir.Node root) {
