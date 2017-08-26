@@ -125,19 +125,24 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
   {
     MonitorLocker ml(&monitor_);
     if (FLAG_trace_isolates) {
-      const char* source_name = "<native code>";
       Isolate* source_isolate = Isolate::Current();
       if (source_isolate) {
-        source_name = source_isolate->name();
+        OS::Print(
+            "[>] Posting message:\n"
+            "\tlen:        %" Pd "\n\tsource:     (%" Pd64
+            ") %s\n\tdest:       %s\n"
+            "\tdest_port:  %" Pd64 "\n",
+            message->len(), static_cast<int64_t>(source_isolate->main_port()),
+            source_isolate->name(), name(), message->dest_port());
+      } else {
+        OS::Print(
+            "[>] Posting message:\n"
+            "\tlen:        %" Pd
+            "\n\tsource:     <native code>\n"
+            "\tdest:       %s\n"
+            "\tdest_port:  %" Pd64 "\n",
+            message->len(), name(), message->dest_port());
       }
-      OS::Print(
-          "[>] Posting message:\n"
-          "\tlen:        %" Pd
-          "\n"
-          "\tsource:     %s\n"
-          "\tdest:       %s\n"
-          "\tdest_port:  %" Pd64 "\n",
-          message->len(), source_name, name(), message->dest_port());
     }
 
     saved_priority = message->priority();

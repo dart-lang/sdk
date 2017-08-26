@@ -143,8 +143,8 @@ char* CompilerStats::BenchmarkOutput() {
   Update();
   Log log(PrintToStats);
   LogBlock lb(Thread::Current(), &log);
-  log.Print("==== Compiler Stats for isolate '%s' ====\n",
-            isolate_->debugger_name());
+  log.Print("==== Compiler Stats for isolate (%" Pd64 ") '%s' ====\n",
+            static_cast<int64_t>(isolate_->main_port()), isolate_->name());
 
   log.Print("NumberOfTokens: %" Pd64 "\n", num_tokens_total);
   log.Print("NumClassesParsed: %" Pd64 "\n", num_classes_parsed);
@@ -203,8 +203,8 @@ char* CompilerStats::PrintToZone() {
   Log log(PrintToStats);
   LogBlock lb(Thread::Current(), &log);
 
-  log.Print("==== Compiler Stats for isolate '%s' ====\n",
-            isolate_->debugger_name());
+  log.Print("==== Compiler Stats for isolate  (%" Pd64 ") '%s' ====\n",
+            static_cast<int64_t>(isolate_->main_port()), isolate_->name());
   log.Print("Number of tokens:        %" Pd64 "\n", num_tokens_total);
   log.Print("Source length:           %" Pd64 " characters\n", src_length);
   log.Print("Number of source tokens: %" Pd64 "\n", num_tokens_scanned);

@@ -119,7 +119,7 @@ main(args, msg) {
       if (event.kind == ServiceEvent.kIsolateSpawn) {
         expect(event.spawnToken, equals('mySpawnToken0'));
         expect(event.isolate, isNotNull);
-        expect(event.isolate.name, equals('devfs_file0.dart\$main'));
+        expect(event.isolate.name, equals('devfs_file0.dart:main()'));
         completer.complete(event.isolate);
         sub.cancel();
       }
@@ -147,7 +147,7 @@ main(args, msg) {
       if (event.kind == ServiceEvent.kIsolateSpawn) {
         expect(event.spawnToken, equals('mySpawnToken1'));
         expect(event.isolate, isNotNull);
-        expect(event.isolate.name, equals('devfs_file1.dart\$main'));
+        expect(event.isolate.name, equals('devfs_file1.dart:main()'));
         completer.complete(event.isolate);
         sub.cancel();
       }
@@ -176,7 +176,7 @@ main(args, msg) {
       if (event.kind == ServiceEvent.kIsolateSpawn) {
         expect(event.spawnToken, equals('mySpawnToken2'));
         expect(event.isolate, isNotNull);
-        expect(event.isolate.name, equals('devfs_file2.dart\$main'));
+        expect(event.isolate.name, equals('devfs_file2.dart:main()'));
         completer.complete(event.isolate);
         sub.cancel();
       }

@@ -1096,9 +1096,9 @@ static char* BuildIsolateName(const char* script_uri, const char* main) {
   }
 
   char* chars = NULL;
-  intptr_t len = OS::SNPrint(NULL, 0, "%s$%s", script_uri, main) + 1;
+  intptr_t len = OS::SNPrint(NULL, 0, "%s:%s()", script_uri, main) + 1;
   chars = reinterpret_cast<char*>(malloc(len));
-  OS::SNPrint(chars, len, "%s$%s", script_uri, main);
+  OS::SNPrint(chars, len, "%s:%s()", script_uri, main);
   return chars;
 }
 
@@ -1239,7 +1239,9 @@ DART_EXPORT void* Dart_IsolateData(Dart_Isolate isolate) {
 DART_EXPORT Dart_Handle Dart_DebugName() {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
-  return Api::NewHandle(T, String::New(I->name()));
+  return Api::NewHandle(
+      T, String::NewFormatted("(%" Pd64 ") '%s'",
+                              static_cast<int64_t>(I->main_port()), I->name()));
 }
 
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {

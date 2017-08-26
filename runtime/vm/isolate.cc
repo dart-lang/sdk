@@ -802,7 +802,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       background_compiler_disabled_depth_(0),
       background_compiler_(NULL),
 #if !defined(PRODUCT)
-      debugger_name_(NULL),
       debugger_(NULL),
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
       last_allocationprofile_accumulator_reset_timestamp_(0),
@@ -882,7 +881,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
 
 Isolate::~Isolate() {
 #if !defined(PRODUCT)
-  free(debugger_name_);
   delete debugger_;
   if (FLAG_support_service) {
     delete object_id_ring_;
@@ -1049,12 +1047,10 @@ void Isolate::ScheduleMessageInterrupts() {
   }
 }
 
-#if !defined(PRODUCT)
-void Isolate::set_debugger_name(const char* name) {
-  free(debugger_name_);
-  debugger_name_ = strdup(name);
+void Isolate::set_name(const char* name) {
+  free(name_);
+  name_ = strdup(name);
 }
-#endif  // !defined(PRODUCT)
 
 int64_t Isolate::UptimeMicros() const {
   return OS::GetCurrentMonotonicMicros() - start_time_micros_;
@@ -1090,14 +1086,10 @@ RawError* Isolate::PausePostRequest() {
 void Isolate::BuildName(const char* name_prefix) {
   ASSERT(name_ == NULL);
   if (name_prefix == NULL) {
-    name_prefix = "isolate";
-  }
-  NOT_IN_PRODUCT(set_debugger_name(name_prefix));
-  if (ServiceIsolate::NameEquals(name_prefix)) {
+    name_ = OS::SCreate(NULL, "isolate-%" Pd64 "", main_port());
+  } else {
     name_ = strdup(name_prefix);
-    return;
   }
-  name_ = OS::SCreate(NULL, "%s-%" Pd64 "", name_prefix, main_port());
 }
 
 void Isolate::DoneLoading() {
@@ -1975,7 +1967,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddFixedServiceId(ISOLATE_SERVICE_ID_FORMAT_STRING,
                           static_cast<int64_t>(main_port()));
 
-  jsobj.AddProperty("name", debugger_name());
+  jsobj.AddProperty("name", name());
   jsobj.AddPropertyF("number", "%" Pd64 "", static_cast<int64_t>(main_port()));
   if (ref) {
     return;

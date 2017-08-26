@@ -502,17 +502,10 @@ void Heap::Init(Isolate* isolate,
 }
 
 void Heap::RegionName(Heap* heap, Space space, char* name, intptr_t name_size) {
-#if defined(PRODUCT)
   const bool no_isolate_name = (heap == NULL) || (heap->isolate() == NULL) ||
                                (heap->isolate()->name() == NULL);
   const char* isolate_name =
       no_isolate_name ? "<unknown>" : heap->isolate()->name();
-#else
-  const bool no_isolate_name = (heap == NULL) || (heap->isolate() == NULL) ||
-                               (heap->isolate()->debugger_name() == NULL);
-  const char* isolate_name =
-      no_isolate_name ? "<unknown>" : heap->isolate()->debugger_name();
-#endif  // !defined(PRODUCT)
   const char* space_name = NULL;
   switch (space) {
     case kNew:

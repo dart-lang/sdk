@@ -219,11 +219,7 @@ class Isolate : public BaseIsolate {
   bool IsMutatorThreadScheduled() { return scheduled_mutator_thread_ != NULL; }
 
   const char* name() const { return name_; }
-
-#if !defined(PRODUCT)
-  const char* debugger_name() const { return debugger_name_; }
-  void set_debugger_name(const char* name);
-#endif  // !defined(PRODUCT)
+  void set_name(const char* name);
 
   int64_t UptimeMicros() const;
 
@@ -861,7 +857,6 @@ class Isolate : public BaseIsolate {
 // Fields that aren't needed in a product build go here with boolean flags at
 // the top.
 #if !defined(PRODUCT)
-  char* debugger_name_;
   Debugger* debugger_;
   int64_t last_resume_timestamp_;
 
