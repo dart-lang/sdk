@@ -126,9 +126,8 @@ class IdData {
   String get diffCode {
     Map<int, String> annotations = <int, String>{};
     actualMap.forEach((Id id, ActualData data) {
-      String expected = expectedMap[id];
+      String expected = expectedMap[id] ?? '';
       if (data.value != expected) {
-        expected ??= '---';
         annotations[data.sourceSpan.begin] = '${expected} | ${data.value}';
       }
     });
