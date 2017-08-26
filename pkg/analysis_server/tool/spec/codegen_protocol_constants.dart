@@ -9,8 +9,8 @@ import 'api.dart';
 import 'codegen_dart.dart';
 import 'from_html.dart';
 
-final GeneratedFile target =
-    new GeneratedFile('lib/protocol/protocol_constants.dart', (String pkgPath) {
+final GeneratedFile target = new GeneratedFile(
+    'lib/protocol/protocol_constants.dart', (String pkgPath) async {
   CodegenVisitor visitor = new CodegenVisitor(readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });

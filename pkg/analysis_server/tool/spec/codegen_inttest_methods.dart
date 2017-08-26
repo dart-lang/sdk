@@ -16,8 +16,9 @@ import 'codegen_dart.dart';
 import 'from_html.dart';
 import 'to_html.dart';
 
-final GeneratedFile target = new GeneratedFile(
-    'test/integration/support/integration_test_methods.dart', (String pkgPath) {
+final GeneratedFile target =
+    new GeneratedFile('test/integration/support/integration_test_methods.dart',
+        (String pkgPath) async {
   CodegenInttestMethodsVisitor visitor = new CodegenInttestMethodsVisitor(
       path.basename(pkgPath), readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);

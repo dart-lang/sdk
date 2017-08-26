@@ -30,7 +30,7 @@ const Map<String, String> specialElementFlags = const {
 
 GeneratedFile target(bool responseRequiresRequestTime) {
   return new GeneratedFile('lib/protocol/protocol_generated.dart',
-      (String pkgPath) {
+      (String pkgPath) async {
     CodegenProtocolVisitor visitor = new CodegenProtocolVisitor(
         path.basename(pkgPath), responseRequiresRequestTime, readApi(pkgPath));
     return visitor.collectCode(visitor.visitApi);
