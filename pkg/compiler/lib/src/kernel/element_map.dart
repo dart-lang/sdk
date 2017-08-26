@@ -244,6 +244,9 @@ abstract class MemberDefinition {
 enum ClassKind {
   regular,
   closure,
+  // TODO(efortuna, johnniwinther): Container is not a class, but is
+  // masquerading as one currently for consistency with the old element model.
+  record,
 }
 
 /// A member directly defined by its [ir.Member] node.

@@ -456,21 +456,21 @@ compile_time_constant_k_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals
 compile_time_constant_k_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 generic_instanceof_test: Crash
 generic_local_functions_test: Crash
-generic_methods_generic_function_parameter_test: Crash
-generic_methods_test: Crash
-generic_native_test: Crash
-generic_syntax_test: Crash
-generic_test: Crash
-generic_test: RuntimeError
 generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_methods_generic_class_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_methods_generic_function_parameter_test: Crash
 generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_new_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_methods_test: Crash
 generic_methods_type_expression_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+generic_native_test: Crash
 generic_sync_star_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call))
+generic_syntax_test: Crash
+generic_test: Crash
+generic_test: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generics_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 many_generic_instanceof_test: Crash

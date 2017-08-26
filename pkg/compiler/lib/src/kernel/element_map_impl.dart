@@ -2250,14 +2250,13 @@ class JsKernelToElementMap extends KernelToElementMapBase
     // all the others.
     Local capturedLocal = localsMap.getLocalVariable(variable);
     if (cls.isBoxed(capturedLocal)) {
-      FieldEntity boxedField = new JBoxedField(
+      FieldEntity boxedField = new JRecordField(
           _getClosureVariableName(capturedLocal.name, fieldNumber),
           _memberData.length,
           new BoxLocal(box.name,
               localsMap.getLocalVariable(box.executableContext), member),
           cls.closureClassEntity,
-          variable.isConst,
-          variable.isFinal || variable.isConst);
+          variable.isConst);
       cls.localToFieldMap[capturedLocal] = boxedField;
       _memberList.add(boxedField);
       _memberData.add(new ClosureFieldData(new ClosureMemberDefinition(

@@ -375,26 +375,40 @@ class ClassEnvImpl implements ClassEnv {
   }
 }
 
-class ClosureClassEnv implements ClassEnv {
+class ClosureClassEnv extends RecordEnv {
+  ClosureClassEnv(Map<String, MemberEntity> memberMap) : super(memberMap);
+
+  @override
+  MemberEntity lookupMember(KernelToElementMap elementMap, String name,
+      {bool setter: false}) {
+    if (setter) {
+      // All closure fields are final.
+      return null;
+    }
+    return super.lookupMember(elementMap, name, setter: setter);
+  }
+}
+
+class RecordEnv implements ClassEnv {
   final Map<String, MemberEntity> _memberMap;
 
-  ClosureClassEnv(this._memberMap);
+  RecordEnv(this._memberMap);
 
   @override
   void forEachConstructorBody(void f(ConstructorBodyEntity constructor)) {
-    // We do not create constructor bodies for closure classes.
+    // We do not create constructor bodies for containers.
   }
 
   @override
   void forEachConstructor(
       KernelToElementMap elementMap, void f(ConstructorEntity constructor)) {
-    // We do not create constructors for closure classes.
+    // We do not create constructors for containers.
   }
 
   @override
   ConstructorEntity lookupConstructor(
       KernelToElementMap elementMap, String name) {
-    // We do not create constructors for closure classes.
+    // We do not create constructors for containers.
     return null;
   }
 
@@ -407,10 +421,6 @@ class ClosureClassEnv implements ClassEnv {
   @override
   MemberEntity lookupMember(KernelToElementMap elementMap, String name,
       {bool setter: false}) {
-    if (setter) {
-      // All closure fields are final.
-      return null;
-    }
     return _memberMap[name];
   }
 

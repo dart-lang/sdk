@@ -21,7 +21,7 @@ abstract class _MinifiedFieldNamer implements Namer {
     _FieldNamingScope names;
     if (element is BoxFieldElement) {
       names = new _FieldNamingScope.forBox(element.box, fieldRegistry);
-    } else if (element is JBoxedField) {
+    } else if (element is JRecordField) {
       names = new _FieldNamingScope.forBox(element.box, fieldRegistry);
     } else {
       ClassEntity cls = element.enclosingClass;
