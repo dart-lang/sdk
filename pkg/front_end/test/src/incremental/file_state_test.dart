@@ -416,6 +416,12 @@ import 'b.dart';
     expect(cycles[2].libraries, unorderedEquals([b, c]));
     expect(cycles[3].libraries, unorderedEquals([d]));
 
+    expect(cycles[0].directDependencies, isEmpty);
+    expect(cycles[1].directDependencies, unorderedEquals([cycles[0]]));
+    expect(cycles[2].directDependencies, unorderedEquals([cycles[0]]));
+    expect(cycles[3].directDependencies,
+        unorderedEquals([cycles[0], cycles[1], cycles[2]]));
+
     expect(cycles[0].directUsers,
         unorderedEquals([cycles[1], cycles[2], cycles[3]]));
     expect(cycles[1].directUsers, unorderedEquals([cycles[3]]));

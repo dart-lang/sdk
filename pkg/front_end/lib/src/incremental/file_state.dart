@@ -10,9 +10,9 @@ import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/resolve_relative_uri.dart';
+import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/dependency_walker.dart' as graph;
 import 'package:front_end/src/fasta/uri_translator.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/incremental/format.dart';
 import 'package:front_end/src/incremental/unlinked_unit.dart';
 import 'package:kernel/target/targets.dart';
@@ -379,8 +379,10 @@ class FileSystemState {
 class LibraryCycle {
   final List<FileState> libraries = <FileState>[];
 
-  /// [LibraryCycle]s that contain libraries directly import or export
-  /// this [LibraryCycle].
+  /// The cycles this cycle directly depends on.
+  final Set<LibraryCycle> directDependencies = new Set<LibraryCycle>();
+
+  /// The cycles that directly import or export this cycle.
   final List<LibraryCycle> directUsers = <LibraryCycle>[];
 
   bool get _isForVm {
@@ -486,8 +488,8 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 /// sorted [LibraryCycle]s.
 class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   final nodesOfFiles = <FileState, _LibraryNode>{};
-  final topologicallySortedCycles = <LibraryCycle>[];
   final fileToCycleMap = <FileState, LibraryCycle>{};
+  final topologicallySortedCycles = <LibraryCycle>[];
 
   @override
   void evaluate(_LibraryNode v) {
@@ -498,30 +500,35 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   void evaluateScc(List<_LibraryNode> scc) {
     var cycle = new LibraryCycle();
 
-    // Build the set of cycles this cycle directly depends on.
-    var directDependencies = new Set<LibraryCycle>();
+    // Compute direct dependencies.
     for (var node in scc) {
       var file = node.file;
       for (var importedLibrary in file.importedLibraries) {
         var importedCycle = fileToCycleMap[importedLibrary];
-        if (importedCycle != null) directDependencies.add(importedCycle);
+        if (importedCycle != null) {
+          cycle.directDependencies.add(importedCycle);
+        }
       }
       for (var exportedLibrary in file.exportedLibraries) {
         var exportedCycle = fileToCycleMap[exportedLibrary];
-        if (exportedCycle != null) directDependencies.add(exportedCycle);
+        if (exportedCycle != null) {
+          cycle.directDependencies.add(exportedCycle);
+        }
       }
     }
 
     // Register this cycle as a direct user of the direct dependencies.
-    for (var directDependency in directDependencies) {
+    for (var directDependency in cycle.directDependencies) {
       directDependency.directUsers.add(cycle);
     }
 
+    // Fill the cycle with libraries.
     for (var node in scc) {
       node.isEvaluated = true;
       cycle.libraries.add(node.file);
       fileToCycleMap[node.file] = cycle;
     }
+
     topologicallySortedCycles.add(cycle);
   }
 
