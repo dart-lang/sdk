@@ -46,14 +46,11 @@ abstract class ClosureDataLookup<T> {
 
   /// This returns the same information as ScopeInfo, but can be called in
   /// situations when you are sure you are dealing with a closure specifically.
-  // TODO(johnniwinther,efortuna): Can we use [getScopeInfo] instead?
+  // TODO(johnniwinther,efortuna): Remove the need for this. It is now only
+  // used in inference.
   ClosureRepresentationInfo getClosureInfoForMember(MemberEntity member);
 
   ClosureRepresentationInfo getClosureInfo(T localFunction);
-
-  ClosureRepresentationInfo getClosureInfoForMemberTesting(MemberEntity member);
-
-  ClosureRepresentationInfo getClosureInfoForTesting(T localFunction);
 
   /// Look up information about a loop, in case any variables it declares need
   /// to be boxed/snapshotted.
@@ -297,16 +294,6 @@ class ClosureTask extends ClosureConversionTask<Node> {
 
   ClosureRepresentationInfo getClosureInfo(covariant FunctionExpression node) {
     return _getClosureMapping(node);
-  }
-
-  ClosureRepresentationInfo getClosureInfoForMemberTesting(
-      MemberEntity member) {
-    return getClosureInfoForMember(member);
-  }
-
-  ClosureRepresentationInfo getClosureInfoForTesting(
-      covariant FunctionExpression node) {
-    return getClosureInfo(node);
   }
 
   CapturedLoopScope getCapturedLoopScope(Node loopNode) {

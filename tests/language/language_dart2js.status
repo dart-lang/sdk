@@ -799,12 +799,7 @@ full_stacktrace2_test: Crash
 full_stacktrace3_test: Crash
 function_literals2_test: Crash
 function_malformed_result_type_test: Crash
-function_propagation_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:method(A.call). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call))
-function_subtype3_test: Crash
 function_subtype_bound_closure6_test: Crash
-function_subtype_call0_test: Crash
-function_subtype_call1_test: Crash
-function_subtype_call2_test: Crash
 function_subtype_cast2_test: Crash
 function_subtype_cast3_test: Crash
 function_subtype_checked0_test: Crash

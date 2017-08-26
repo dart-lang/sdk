@@ -5,7 +5,11 @@
 library dart2js.js_emitter.runtime_type_generator;
 
 import '../closure.dart'
-    show ClosureRepresentationInfo, ClosureFieldElement, ClosureConversionTask;
+    show
+        ClosureRepresentationInfo,
+        ClosureFieldElement,
+        ClosureConversionTask,
+        ScopeInfo;
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
@@ -174,10 +178,9 @@ class RuntimeTypeGenerator {
       assert(!(method is MethodElement && !method.isImplementation));
       jsAst.Expression thisAccess = new jsAst.This();
       if (!method.isAbstract) {
-        ClosureRepresentationInfo closureData =
-            _closureDataLookup.getClosureInfoForMember(method);
-        if (closureData != null) {
-          ClosureFieldElement thisLocal = closureData.thisFieldEntity;
+        ScopeInfo scopeInfo = _closureDataLookup.getScopeInfo(method);
+        if (scopeInfo is ClosureRepresentationInfo) {
+          ClosureFieldElement thisLocal = scopeInfo.thisFieldEntity;
           if (thisLocal != null) {
             jsAst.Name thisName = _namer.instanceFieldPropertyName(thisLocal);
             thisAccess = js('this.#', thisName);

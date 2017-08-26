@@ -133,13 +133,8 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
       target = kernel.functions[originTarget];
       // Closures require a lookup one level deeper in the closure class mapper.
       if (target == null) {
-        MethodElement originTargetFunction = originTarget;
-        ClosureRepresentationInfo classMap = _compiler
-            .backendStrategy.closureDataLookup
-            .getClosureInfoForMember(originTargetFunction);
-        if (classMap.closureEntity != null) {
-          target = kernel.localFunctions[classMap.closureEntity];
-        }
+        SynthesizedCallMethodElementX originTargetFunction = originTarget;
+        target = kernel.localFunctions[originTargetFunction.expression];
       }
     } else if (originTarget is FieldElement) {
       target = kernel.fields[originTarget];

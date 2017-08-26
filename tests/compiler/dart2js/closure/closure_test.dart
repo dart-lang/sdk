@@ -96,7 +96,7 @@ class ClosureAstComputer extends AstDataExtractor with ComputeValueMixin {
   String computeNodeValue(ast.Node node, [AstElement element]) {
     if (element != null && element.isLocal) {
       if (element.isFunction) {
-        return computeEntityValue(element);
+        return computeObjectValue(element);
       } else {
         LocalElement local = element;
         return computeLocalValue(local);
@@ -110,7 +110,7 @@ class ClosureAstComputer extends AstDataExtractor with ComputeValueMixin {
   String computeElementValue(AstElement element) {
     // TODO(johnniwinther,efortuna): Collect data for the member
     // (has thisLocal, has box, etc.).
-    return computeEntityValue(element);
+    return computeObjectValue(element);
   }
 }
 
@@ -147,18 +147,20 @@ class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin<ir.Node> {
   @override
   String computeNodeValue(ir.Node node) {
     if (node is ir.VariableDeclaration) {
+      if (node.parent is ir.FunctionDeclaration) {
+        return computeObjectValue(node.parent);
+      }
       Local local = _localsMap.getLocalVariable(node);
       return computeLocalValue(local);
+    } else if (node is ir.FunctionExpression) {
+      return computeObjectValue(node);
     }
-    // TODO(johnniwinther,efortuna): Collect data for other nodes?
     return null;
   }
 
   @override
   String computeMemberValue(ir.Member node) {
-    // TODO(johnniwinther,efortuna): Collect data for the member
-    // (has thisLocal, has box, etc.).
-    return computeEntityValue(member);
+    return computeObjectValue(member);
   }
 }
 
@@ -171,25 +173,24 @@ abstract class ComputeValueMixin<T> {
   Link<ClosureRepresentationInfo> closureRepresentationInfoStack =
       const Link<ClosureRepresentationInfo>();
   ClosureRepresentationInfo get closureRepresentationInfo =>
-      closureRepresentationInfoStack.head;
+      closureRepresentationInfoStack.isNotEmpty
+          ? closureRepresentationInfoStack.head
+          : null;
 
   void pushMember(MemberEntity member) {
     scopeInfoStack =
         scopeInfoStack.prepend(closureDataLookup.getScopeInfo(member));
     capturedScope = closureDataLookup.getCapturedScope(member);
-    closureRepresentationInfoStack = closureRepresentationInfoStack
-        .prepend(closureDataLookup.getClosureInfoForMemberTesting(member));
     dump(member);
   }
 
   void popMember() {
     scopeInfoStack = scopeInfoStack.tail;
-    closureRepresentationInfoStack = closureRepresentationInfoStack.tail;
   }
 
   void pushLocalFunction(T node) {
     closureRepresentationInfoStack = closureRepresentationInfoStack
-        .prepend(closureDataLookup.getClosureInfoForTesting(node));
+        .prepend(closureDataLookup.getClosureInfo(node));
     dump(node);
   }
 
@@ -254,7 +255,7 @@ abstract class ComputeValueMixin<T> {
     return (features.toList()..sort()).join(',');
   }
 
-  String computeEntityValue(Entity entity) {
+  String computeObjectValue(Object object) {
     Map<String, String> features = <String, String>{};
 
     void addLocals(String name, forEach(f(Local local, _))) {
@@ -269,17 +270,17 @@ abstract class ComputeValueMixin<T> {
       String value = names.isEmpty ? null : '[${(names..sort()).join(',')}]';
       if (features.containsKey(name)) {
         Expect.equals(
-            features[name], value, "Inconsistent values for $name on $entity.");
+            features[name], value, "Inconsistent values for $name on $object.");
       }
       features[name] = value;
     }
 
-    if (scopeInfo.thisLocal != null) {
-      features['hasThis'] = '';
-    }
-    addLocals('boxed', scopeInfo.forEachBoxedVariable);
+    if (object is MemberEntity) {
+      if (scopeInfo.thisLocal != null) {
+        features['hasThis'] = '';
+      }
+      addLocals('boxed', scopeInfo.forEachBoxedVariable);
 
-    if (entity is MemberEntity) {
       if (capturedScope.requiresContextBox) {
         features['requiresBox'] = '';
       }

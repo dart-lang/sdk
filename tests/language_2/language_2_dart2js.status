@@ -417,7 +417,6 @@ call_through_getter_test/none: Crash # Assertion failure: Cannot find value Inst
 call_with_no_such_method_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Primitives.applyFunctionWithNamedArguments#bad) is stored in a closure field.
 canonical_const2_test: RuntimeError
 canonical_const_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-cascade2_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:method(A.call). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), j:closure_call(Expect_throwsNoSuchMethodError_closure.call), j:closure_call(unwrapException_closure.call))
 cascade_in_expression_function_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 cast_test/none: RuntimeError
 cha_deopt1_test: CompileTimeError
