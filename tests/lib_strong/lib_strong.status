@@ -337,7 +337,7 @@ html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast f
 html/indexeddb_2_test: RuntimeError, Timeout # Issue 29922, strong mode cast failure
 html/xhr_test/xhr: RuntimeError # Issue 29922, strong mode cast failure
 
-html/transition_event_test: Pass, Slow
+html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
 
 [ $compiler == dartdevc && $runtime == chrome ]
 html/css_test: RuntimeError # Issue 29922
