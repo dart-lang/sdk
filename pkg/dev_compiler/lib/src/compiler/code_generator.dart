@@ -118,6 +118,8 @@ class CodeGenerator extends Object
       new HashMap<ParameterElement, JS.TemporaryId>();
 
   JS.Identifier _extensionSymbolsModule;
+  final _extensionSymbols = new Map<String, JS.TemporaryId>();
+
   JS.Identifier _runtimeModule;
   final namedArgumentTemp = new JS.TemporaryId('opts');
 
@@ -322,6 +324,7 @@ class CodeGenerator extends Object
 
     // Initialize our library variables.
     var items = <JS.ModuleItem>[];
+    var isBuildingSdk = false;
     for (var unit in compilationUnits) {
       var library =
           resolutionMap.elementDeclaredByCompilationUnit(unit).library;
@@ -337,6 +340,7 @@ class CodeGenerator extends Object
       // dart:_runtime has a magic module that holds extension method symbols.
       // TODO(jmesserly): find a cleaner design for this.
       if (isSdkInternalRuntime(library)) {
+        isBuildingSdk = true;
         items.add(new JS.ExportDeclaration(js
             .call('const # = Object.create(null)', [_extensionSymbolsModule])));
       }
@@ -376,6 +380,15 @@ class CodeGenerator extends Object
 
     // Declare imports
     _finishImports(items);
+    // Initialize extension symbols
+    _extensionSymbols.forEach((name, id) {
+      var value =
+          new JS.PropertyAccess(_extensionSymbolsModule, _propertyName(name));
+      if (isBuildingSdk) {
+        value = js.call('# = Symbol(#)', [value, js.string("dartx.$name")]);
+      }
+      items.add(js.statement('const # = #;', [id, value]));
+    });
 
     // Discharge the type table cache variables and
     // hoisted definitions.
@@ -938,7 +951,6 @@ class CodeGenerator extends Object
         fields: allFields);
 
     var body = <JS.Statement>[];
-    _initExtensionSymbols(classElem, methods, fields, body);
     _emitSuperHelperSymbols(body);
 
     // Emit the class, e.g. `core.Object = class Object { ... }`
@@ -1183,10 +1195,15 @@ class CodeGenerator extends Object
         'addTypeTests(#, #);', [defaultInst, isClassSymbol]);
   }
 
-  void _emitSuperHelperSymbols(List<JS.Statement> body) {
-    for (var id in _superHelpers.values.map((m) => m.name as JS.TemporaryId)) {
+  void _emitSymbols(Iterable<JS.TemporaryId> vars, List<JS.ModuleItem> body) {
+    for (var id in vars) {
       body.add(js.statement('const # = Symbol(#)', [id, js.string(id.name)]));
     }
+  }
+
+  void _emitSuperHelperSymbols(List<JS.Statement> body) {
+    _emitSymbols(
+        _superHelpers.values.map((m) => m.name as JS.TemporaryId), body);
     _superHelpers.clear();
   }
 
@@ -2157,38 +2174,6 @@ class CodeGenerator extends Object
     if (classElem == objectClass) {
       body.add(_callHelperStatement('tagComputed(#, () => #.#);',
           [className, emitLibraryName(dartCoreLibrary), 'Type']));
-    }
-  }
-
-  /// Ensure `dartx.` symbols we will use are present.
-  void _initExtensionSymbols(
-      ClassElement classElem,
-      List<MethodDeclaration> methods,
-      List<FieldDeclaration> fields,
-      List<JS.Statement> body) {
-    if (_extensionTypes.hasNativeSubtype(classElem.type)) {
-      var dartxNames = <JS.Expression>[];
-      for (var m in methods) {
-        if (!m.isAbstract &&
-            !m.isStatic &&
-            resolutionMap.elementDeclaredByMethodDeclaration(m).isPublic) {
-          dartxNames.add(_declareMemberName(m.element, useExtension: false));
-        }
-      }
-      for (var fieldDecl in fields) {
-        if (!fieldDecl.isStatic) {
-          for (var field in fieldDecl.fields.variables) {
-            var e = field.element as FieldElement;
-            if (e.isPublic) {
-              dartxNames.add(_declareMemberName(e.getter, useExtension: false));
-            }
-          }
-        }
-      }
-      if (dartxNames.isNotEmpty) {
-        body.add(_callHelperStatement('defineExtensionNames(#)',
-            [new JS.ArrayInitializer(dartxNames, multiline: true)]));
-      }
     }
   }
 
@@ -5682,13 +5667,11 @@ class CodeGenerator extends Object
         break;
     }
 
-    var result = _propertyName(name);
-
-    useExtension ??= _isSymbolizedMember(type, name);
-
-    return useExtension
-        ? js.call('#.#', [_extensionSymbolsModule, result])
-        : result;
+    if (useExtension ?? _isSymbolizedMember(type, name)) {
+      return _extensionSymbols.putIfAbsent(name,
+          () => new JS.TemporaryId('\$${_friendlyOperatorName[name] ?? name}'));
+    }
+    return _propertyName(name);
   }
 
   var _forwardingCache = new HashMap<Element, Map<String, ExecutableElement>>();
@@ -6100,3 +6083,23 @@ bool _isDeferredLoadLibrary(Expression target, SimpleIdentifier name) {
 
 bool _annotatedNullCheck(Element e) =>
     e != null && findAnnotation(e, isNullCheckAnnotation) != null;
+
+final _friendlyOperatorName = {
+  '<': 'lessThan',
+  '>': 'greaterThan',
+  '<=': 'lessOrEquals',
+  '>=': 'greaterOrEquals',
+  '==': 'equals',
+  '-': 'minus',
+  '+': 'plus',
+  '/': 'divide',
+  '~/': 'floorDivide',
+  '*': 'times',
+  '%': 'modulo',
+  '|': 'bitOr',
+  '^': 'bitXor',
+  '&': 'bitAnd',
+  '<<': 'leftShift',
+  '>>': 'rightShift',
+  '~': 'bitNot'
+};

@@ -391,18 +391,6 @@ getExtensionType(obj) => JS('', '#[#]', obj, _extensionType);
 
 final dartx = JS('', 'dartx');
 
-getExtensionSymbol(name) {
-  var sym = JS('', 'dartx[#]', name);
-  if (sym == null) {
-    sym = JS('', 'Symbol("dartx." + #.toString())', name);
-    JS('', 'dartx[#] = #', name, sym);
-  }
-  return sym;
-}
-
-defineExtensionNames(names) =>
-    JS('', '#.forEach(#)', names, getExtensionSymbol);
-
 /// Install properties in prototype-first order.  Properties / descriptors from
 /// more specific types should overwrite ones from less specific types.
 void _installProperties(jsProto, dartType, installedParent) {
@@ -429,7 +417,7 @@ void _installPropertiesForObject(jsProto) {
   for (int i = 0; i < JS('int', '#.length', names); ++i) {
     var name = JS('', '#[#]', names, i);
     var desc = getOwnPropertyDescriptor(coreObjProto, name);
-    defineProperty(jsProto, getExtensionSymbol(name), desc);
+    defineProperty(jsProto, JS('', '#.#', dartx, name), desc);
   }
 }
 
@@ -501,7 +489,7 @@ defineExtensionMembers(type, methodNames) => JS('', '''(() => {
   let proto = $type.prototype;
   for (let name of $methodNames) {
     let method = $getOwnPropertyDescriptor(proto, name);
-    $defineProperty(proto, $getExtensionSymbol(name), method);
+    $defineProperty(proto, $dartx[name], method);
   }
   // Ensure the signature is available too.
   // TODO(jmesserly): not sure if we can do this in a cleaner way. Essentially
@@ -519,7 +507,7 @@ defineExtensionMembers(type, methodNames) => JS('', '''(() => {
       let propertyNames = Object.getOwnPropertyNames(sig);
       for (let name of methodNames) {
         if (name in sig) {
-          sig[$getExtensionSymbol(name)] = sig[name];
+          sig[$dartx[name]] = sig[name];
         }
       }
       return sig;
