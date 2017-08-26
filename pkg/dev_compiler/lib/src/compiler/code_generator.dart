@@ -1141,27 +1141,27 @@ class CodeGenerator extends Object
     if (classElem.library.isDartAsync) {
       if (classElem == types.futureOrType.element) {
         var typeParamT = classElem.typeParameters[0].type;
-        var tOrFutureOfT = js.call('#.is(o) || #.is(o)', [
-          _emitType(typeParamT),
-          _emitType(types.futureType.instantiate([typeParamT]))
-        ]);
+        var typeT = _emitType(typeParamT);
+        var futureOrT = _emitType(types.futureType.instantiate([typeParamT]));
         body.add(js.statement('''
             #.is = function is_FutureOr(o) {
-              return #;
+              return #.is(o) || #.is(o);
             }
-            ''', [className, tOrFutureOfT]));
+            ''', [className, typeT, futureOrT]));
+        // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
+        // _ignoreTypeFailure logic.
         body.add(js.statement('''
             #.as = function as_FutureOr(o) {
-              if (o == null || #) return o;
-              return #.castError(o, this, false);
+              if (o == null || #.is(o) || #.is(o)) return o;
+              return #.as(o, this, false);
             }
-            ''', [className, tOrFutureOfT, _runtimeModule]));
+            ''', [className, typeT, futureOrT, _runtimeModule]));
         body.add(js.statement('''
             #._check = function check_FutureOr(o) {
-              if (o == null || #) return o;
-              return #.castError(o, this, true);
+              if (o == null || #.is(o) || #.is(o)) return o;
+              return #.as(o, this, true);
             }
-            ''', [className, tOrFutureOfT, _runtimeModule]));
+            ''', [className, typeT, futureOrT, _runtimeModule]));
         return null;
       }
     }
