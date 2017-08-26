@@ -165,10 +165,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       entity = constructorBody.constructor;
     }
 
-    ScopeInfo scopeInfo = _scopeMap[entity];
-    assert(
-        scopeInfo != null, failedAt(entity, "Missing scope info for $entity."));
-    return scopeInfo;
+    return _scopeMap[entity] ?? getClosureInfoForMember(entity);
   }
 
   // TODO(efortuna): Eventually capturedScopesMap[node] should always
@@ -211,6 +208,17 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
         "Corresponding closure class not found for $node. "
         "Closures found for ${_localClosureRepresentationMap.keys}");
     return closure;
+  }
+
+  @override
+  ClosureRepresentationInfo getClosureInfoForMemberTesting(
+      MemberEntity entity) {
+    return _memberClosureRepresentationMap[entity];
+  }
+
+  @override
+  ClosureRepresentationInfo getClosureInfoForTesting(ir.Node node) {
+    return _localClosureRepresentationMap[node];
   }
 }
 

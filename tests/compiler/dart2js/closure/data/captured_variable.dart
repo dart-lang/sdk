@@ -13,14 +13,14 @@ readParameterInClosure(/**/ parameter) {
   return func;
 }
 
-/*writeParameterInAnonymousClosure:boxed=[parameter],requiresBox*/
+/*writeParameterInAnonymousClosure:boxed=[parameter],captured=[parameter],requiresBox*/
 writeParameterInAnonymousClosure(/*boxed*/ parameter) {
   return /*boxed=[parameter],captured=[parameter],free=[box,parameter]*/ () {
     parameter = 42;
   };
 }
 
-/*writeParameterInClosure:boxed=[parameter],requiresBox*/
+/*writeParameterInClosure:boxed=[parameter],captured=[parameter],requiresBox*/
 writeParameterInClosure(/*boxed*/ parameter) {
   /*boxed=[parameter],captured=[parameter],free=[box,parameter]*/ func() {
     parameter = 42;
@@ -42,7 +42,7 @@ readLocalInClosure(/**/ parameter) {
   return func;
 }
 
-/*writeLocalInAnonymousClosure:boxed=[local],requiresBox*/
+/*writeLocalInAnonymousClosure:boxed=[local],captured=[local],requiresBox*/
 writeLocalInAnonymousClosure(/**/ parameter) {
   // ignore: UNUSED_LOCAL_VARIABLE
   var /*boxed*/ local = parameter;
@@ -51,7 +51,7 @@ writeLocalInAnonymousClosure(/**/ parameter) {
   };
 }
 
-/*writeLocalInClosure:boxed=[local],requiresBox*/
+/*writeLocalInClosure:boxed=[local],captured=[local],requiresBox*/
 writeLocalInClosure(/**/ parameter) {
   // ignore: UNUSED_LOCAL_VARIABLE
   var /*boxed*/ local = parameter;
