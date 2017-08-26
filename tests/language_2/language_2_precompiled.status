@@ -110,7 +110,6 @@ generic_methods_named_parameters_test: RuntimeError
 generic_methods_optional_parameters_test: RuntimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_overriding_test/03: MissingCompileTimeError
-generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_reuse_type_variables_test: RuntimeError
 generic_methods_simple_as_expression_test/02: MissingRuntimeError
 generic_methods_simple_is_expression_test: RuntimeError
@@ -144,6 +143,7 @@ function_subtype_inline2_test: RuntimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
+generic_methods_recursive_bound_test/02: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == precompiler && $runtime == dart_precompiled && $checked ]
@@ -182,6 +182,8 @@ async_star_regression_2238_test: CompileTimeError, RuntimeError
 [ $runtime == dart_precompiled ]
 async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
+generic_methods_recursive_bound_test/02: Crash
+generic_methods_recursive_bound_test/03: Crash
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
