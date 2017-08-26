@@ -201,6 +201,7 @@ generic_methods_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
 generic_test: CompileTimeError
 generics_test: CompileTimeError
+multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 regress_30339_test: CompileTimeError
 void_type_function_types_test/none: Crash # Issue 30177
 void_type_function_types_test/01: Crash # Issue 30177
@@ -299,6 +300,7 @@ generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30207
 generic_methods_type_expression_test: StaticWarning # Issue 30530
 closure_type_test: Pass
+multiple_interface_inheritance_test: StaticWarning # Issue 30552
 
 [ $compiler == dart2analyzer && $runtime == none ]
 assertion_initializer_const_error2_test/none: CompileTimeError

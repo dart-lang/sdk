@@ -36,6 +36,7 @@ generic_tearoff_test: CompileTimeError
 generic_test: CompileTimeError
 generics_test: CompileTimeError
 get_set_syntax_test/none: CompileTimeError
+multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 
 [ $strong && $compiler == dartdevc ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
