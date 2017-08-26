@@ -18,33 +18,40 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
    * Constructor for adding type parameters to an existing JavaScript
    * Array. Used for creating literal lists.
    */
-  factory JSArray.of(allocation) {
+  factory JSArray.of(list) {
     // TODO(sra): Move this to core.List for better readability.
     // Capture the parameterized ES6 'JSArray' class.
-    return JS('-dynamic', '#', dart.setType(allocation, JS('', 'JSArray')));
+    JS('', '#.__proto__ = JSArray.prototype', list);
+    return JS('-dynamic', '#', list);
   }
 
   // TODO(jmesserly): consider a fixed array subclass instead.
-  factory JSArray.markFixed(allocation) =>
-      new JSArray<E>.of(markFixedList(allocation));
-
-  factory JSArray.markGrowable(allocation) = JSArray<E>.of;
-
-  static List markFixedList(List list) {
-    // Functions are stored in the hidden class and not as properties in
-    // the object. We never actually look at the value, but only want
-    // to know if the property exists.
-    JS('void', r'#.fixed$length = Array', list);
-    return JS('JSFixedArray', '#', list);
+  factory JSArray.fixed(list) {
+    JS('', '#.__proto__ = JSArray.prototype', list);
+    JS('', r'#.fixed$length = Array', list);
+    return JS('-dynamic', '#', list);
   }
 
-  static List markUnmodifiableList(List list) {
+  factory JSArray.unmodifiable(list) {
+    JS('', '#.__proto__ = JSArray.prototype', list);
+    JS('', r'#.fixed$length = Array', list);
+    JS('', r'#.immutable$list = Array', list);
+    return JS('-dynamic', '#', list);
+  }
+
+  static void markFixedList(list) {
     // Functions are stored in the hidden class and not as properties in
     // the object. We never actually look at the value, but only want
     // to know if the property exists.
-    JS('void', r'#.fixed$length = Array', list);
-    JS('void', r'#.immutable$list = Array', list);
-    return JS('JSUnmodifiableArray', '#', list);
+    JS('', r'#.fixed$length = Array', list);
+  }
+
+  static void markUnmodifiableList(list) {
+    // Functions are stored in the hidden class and not as properties in
+    // the object. We never actually look at the value, but only want
+    // to know if the property exists.
+    JS('', r'#.fixed$length = Array', list);
+    JS('', r'#.immutable$list = Array', list);
   }
 
   checkMutable(reason) {

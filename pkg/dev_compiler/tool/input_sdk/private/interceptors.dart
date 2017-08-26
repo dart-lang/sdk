@@ -104,9 +104,21 @@ class NullError extends Interceptor implements NoSuchMethodError {
     // TODO(vsm): Distinguish between null reference errors and other
     // TypeErrors.  We should not get non-null TypeErrors from DDC code,
     // but we may from native JavaScript.
-    var message = JS('String', '#.message', this);
-    return "NullError: $message";
+    return "NullError: ${JS('String', '#.message', this)}";
   }
+}
+
+// Note that this needs to be in interceptors.dart in order for
+// it to be picked up as an extension type.
+@JsPeerInterface(name: 'RangeError')
+class JSRangeError extends Interceptor implements ArgumentError {
+  StackTrace get stackTrace => Primitives.extractStackTrace(this);
+
+  get invalidValue => null;
+  get name => null;
+  get message => JS('String', '#.message', this);
+
+  String toString() => "Invalid argument: $message";
 }
 
 // Obsolete in dart dev compiler. Added only so that the same version of

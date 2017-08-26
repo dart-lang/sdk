@@ -20,8 +20,14 @@ pushd $LIBROOT > /dev/null
 # script, so you could debug the output without recompiling?
 echo "
     let sdk = require(\"dart_sdk\");
-    let main = require(\"$BASENAME\").$BASENAME.main;
-    sdk._isolate_helper.startRootIsolate(main, []);" \
+    let main = require(\"./$BASENAME\").$BASENAME.main;
+    sdk.dart.ignoreWhitelistedErrors(false);
+    try {
+      sdk._isolate_helper.startRootIsolate(main, []);
+    } catch(e) {
+      console.error(e.toString(), sdk.dart.stackTrace(e).toString());
+      process.exit(1);
+    }" \
     > $LIBROOT/$BASENAME.run.js
-node $BASENAME.run.js
+node $BASENAME.run.js || exit 1
 popd > /dev/null

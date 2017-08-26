@@ -531,12 +531,6 @@ defineExtensionMembers(type, methodNames) => JS('', '''(() => {
   upgradeSig($_setterSig);
 })()''');
 
-/// Sets the type of `obj` to be `type`
-setType(obj, type) {
-  JS('', '#.__proto__ = #.prototype', obj, type);
-  return obj;
-}
-
 /// Link the extension to the type it's extending as a base class.
 setBaseClass(derived, base) {
   JS('', '#.prototype.__proto__ = #.prototype', derived, base);

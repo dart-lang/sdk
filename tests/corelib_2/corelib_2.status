@@ -87,17 +87,12 @@ apply2_test: RuntimeError # Issue 29921
 apply3_test: RuntimeError # Issue 29921
 big_integer_arith_vm_test: RuntimeError # Issue 30170
 big_integer_parsed_arith_vm_test: RuntimeError # Issue 29921
-const_list_literal_test: RuntimeError # Issue 29921
-const_list_remove_range_test: RuntimeError # Issue 29921
-const_list_set_range_test: RuntimeError # Issue 29921
 compare_to2_test: RuntimeError # Issue 30170
 date_time10_test: RuntimeError # Issue 29921
-growable_list_test: RuntimeError # Issue 29921
 hash_set_test/01: RuntimeError # Issue 29921
 iterable_reduce_test/none: RuntimeError
 iterable_to_list_test/*: RuntimeError
-list_test/none: RuntimeError
-list_test/01: RuntimeError
+list_concurrent_modify_test: RuntimeError # DDC uses ES6 array iterators so it does not issue this
 nan_infinity_test/01: RuntimeError # Issue 29921
 null_nosuchmethod_test: RuntimeError # Issue 29921
 main_test: RuntimeError # Issue 29921
@@ -181,7 +176,9 @@ integer_to_string_test/01: RuntimeError
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 int_parse_radix_test/01: RuntimeError
 int_parse_radix_test/02: RuntimeError
+list_test/*: RuntimeError # dart2js doesn't implement strong mode covariance checks
 string_split_test: RuntimeError # does not return List<String>
+list_concurrent_modify_test: RuntimeError # dart2js does not fully implement these
 
 [ $compiler == dart2js && $runtime == drt && $csp && $minified ]
 core_runtime_types_test: Pass, Fail # Issue 27913
@@ -192,8 +189,6 @@ iterable_element_at_test/static: MissingCompileTimeError
 
 [ $compiler == dartdevc && $runtime != none ]
 error_stack_trace_test/nullThrown: RuntimeError # .stackTrace not present for exception caught from 'throw null;'
-list_fill_range_test: RuntimeError # Issue 29921
-list_insert_test: RuntimeError # Issue 29921
 list_removeat_test: RuntimeError # Issue 29921
 list_replace_range_test: RuntimeError # Issue 29921
 list_set_all_test: RuntimeError # Issue 29921
@@ -326,6 +321,7 @@ big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
 [ $compiler == none && ($runtime == vm || $runtime == flutter)]
 string_trimlr_test/02: RuntimeError # Issue 29060
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
+
 
 [ $compiler == precompiler || $compiler == app_jit ]
 string_trimlr_test/02: RuntimeError # Issue 29060
@@ -464,6 +460,7 @@ string_case_test/01: RuntimeError
 
 [ $runtime == vm || $runtime == dart_precompiled ]
 string_split_test: RuntimeError # does not return List<String>
+list_test/*: RuntimeError # VM doesn't implement strong mode covariance checks
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 apply2_test: Crash

@@ -151,6 +151,7 @@ class CodeGenerator extends Object
   final ClassElement stringClass;
   final ClassElement functionClass;
   final ClassElement privateSymbolClass;
+  final PropertyAccessorElement _undefinedConstant;
 
   ConstFieldVisitor _constants;
 
@@ -225,7 +226,10 @@ class CodeGenerator extends Object
         functionClass = _getLibrary(c, 'dart:core').getType('Function'),
         privateSymbolClass =
             _getLibrary(c, 'dart:_internal').getType('PrivateSymbol'),
-        dartJSLibrary = _getLibrary(c, 'dart:js') {
+        dartJSLibrary = _getLibrary(c, 'dart:js'),
+        _undefinedConstant =
+            _getLibrary(c, 'dart:_runtime').publicNamespace.get('undefined') {
+    assert(_undefinedConstant != null);
     typeRep = new JSTypeRep(rules, types);
   }
 
@@ -595,7 +599,8 @@ class CodeGenerator extends Object
     for (var declaration in unit.declarations) {
       if (declaration is TopLevelVariableDeclaration) {
         inferNullableTypes(declaration);
-        if (isInternalSdk && declaration.variables.isFinal) {
+        if (isInternalSdk &&
+            (declaration.variables.isFinal || declaration.variables.isConst)) {
           _emitInternalSdkFields(declaration.variables.variables);
         } else {
           (fields ??= []).addAll(declaration.variables.variables);
@@ -2439,25 +2444,38 @@ class CodeGenerator extends Object
     for (var param in parameters.parameters) {
       var jsParam = _emitSimpleIdentifier(param.identifier);
 
-      if (!options.destructureNamedParams) {
+      if (!options.destructureNamedParams &&
+          param.kind != ParameterKind.REQUIRED) {
         if (param.kind == ParameterKind.NAMED) {
           // Parameters will be passed using their real names, not the (possibly
           // renamed) local variable.
           var paramName = js.string(param.identifier.name, "'");
-
-          // TODO(ochafik): Fix `'prop' in obj` to please Closure's renaming.
-          body.add(js.statement('let # = # && # in # ? #.# : #;', [
-            jsParam,
-            namedArgumentTemp,
-            paramName,
-            namedArgumentTemp,
-            namedArgumentTemp,
-            paramName,
-            _defaultParamValue(param),
-          ]));
+          var defaultValue = _defaultParamValue(param);
+          if (defaultValue != null) {
+            // TODO(ochafik): Fix `'prop' in obj` to please Closure's renaming.
+            body.add(js.statement('let # = # && # in # ? #.# : #;', [
+              jsParam,
+              namedArgumentTemp,
+              paramName,
+              namedArgumentTemp,
+              namedArgumentTemp,
+              paramName,
+              defaultValue,
+            ]));
+          } else {
+            body.add(js.statement('let # = # && #.#;', [
+              jsParam,
+              namedArgumentTemp,
+              namedArgumentTemp,
+              paramName,
+            ]));
+          }
         } else if (param.kind == ParameterKind.POSITIONAL) {
-          body.add(js.statement('if (# === void 0) # = #;',
-              [jsParam, jsParam, _defaultParamValue(param)]));
+          var defaultValue = _defaultParamValue(param);
+          if (defaultValue != null) {
+            body.add(js.statement(
+                'if (# === void 0) # = #;', [jsParam, jsParam, defaultValue]));
+          }
         }
       }
 
@@ -2481,10 +2499,16 @@ class CodeGenerator extends Object
 
   JS.Expression _defaultParamValue(FormalParameter param) {
     if (param is DefaultFormalParameter && param.defaultValue != null) {
-      return _visit(param.defaultValue);
+      var defaultValue = param.defaultValue;
+      return _isJSUndefined(defaultValue) ? null : _visit(defaultValue);
     } else {
       return new JS.LiteralNull();
     }
+  }
+
+  bool _isJSUndefined(Expression expr) {
+    expr = expr is AsExpression ? expr.expression : expr;
+    return expr is Identifier && expr.staticElement == _undefinedConstant;
   }
 
   JS.Fun _emitNativeFunctionBody(MethodDeclaration node) {
@@ -3947,18 +3971,19 @@ class CodeGenerator extends Object
           } else {
             name = _visit(param.identifier);
           }
+
+          var defaultValue = _defaultParamValue(param);
           namedVars.add(new JS.DestructuredVariable(
-              name: name,
-              structure: structure,
-              defaultValue: _defaultParamValue(param)));
+              name: name, structure: structure, defaultValue: defaultValue));
         } else {
           needsOpts = true;
         }
       } else {
         var jsParam = _visit(param);
-        result.add(param is DefaultFormalParameter && destructure
+        var defaultValue = _defaultParamValue(param);
+        result.add(destructure && defaultValue != null
             ? new JS.DestructuredVariable(
-                name: jsParam, defaultValue: _defaultParamValue(param))
+                name: jsParam, defaultValue: defaultValue)
             : jsParam);
       }
     }
@@ -4066,7 +4091,7 @@ class CodeGenerator extends Object
   }
 
   /// This is not used--we emit top-level fields as we are emitting the
-  /// compilation unit, see [_emitCompilationUnit].
+  /// compilation unit, see [visitCompilationUnit].
   @override
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     assert(false);
@@ -4127,6 +4152,9 @@ class CodeGenerator extends Object
   // TODO(jmesserly): it'd be nice to avoid this special case.
   void _emitInternalSdkFields(List<VariableDeclaration> fields) {
     for (var field in fields) {
+      // Skip our magic undefined constant.
+      var element = field.element as TopLevelVariableElement;
+      if (element.getter == _undefinedConstant) continue;
       _moduleItems.add(annotate(
           js.statement('# = #;',
               [_emitTopLevelName(field.element), _visitInitializer(field)]),

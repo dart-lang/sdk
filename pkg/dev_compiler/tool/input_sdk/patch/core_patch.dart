@@ -21,6 +21,8 @@ import 'dart:_js_helper'
         Primitives,
         stringJoinUnchecked;
 
+import 'dart:_runtime' show undefined;
+
 import 'dart:_foreign_helper' show JS;
 
 import 'dart:_native_typed_data' show NativeUint8List;
@@ -318,39 +320,39 @@ class Stopwatch {
 @patch
 class List<E> {
   @patch
-  factory List([int _length]) {
+  factory List([int _length = undefined]) {
     dynamic list;
-    if (_length == null) {
+    if (JS('bool', '# === void 0', _length)) {
       list = JS('', '[]');
     } else {
-      @notNull
-      var length = _length;
-      if (length < 0) {
+      var length = JS('int', '#', _length);
+      if (_length == null || length < 0) {
         throw new ArgumentError(
-            "Length must be a non-negative integer: $length");
+            "Length must be a non-negative integer: $_length");
       }
-      list = JSArray.markFixedList(JS('', 'new Array(#)', length));
+      list = JS('', 'new Array(#)', length);
+      JSArray.markFixedList(list);
     }
     return new JSArray<E>.of(list);
   }
 
   @patch
-  factory List.filled(int length, E fill, {bool growable: true}) {
-    List<E> result = new List<E>(length);
+  factory List.filled(@nullCheck int length, E fill, {bool growable: false}) {
+    var list = new JSArray<E>.of(JS('', 'new Array(#)', length));
     if (length != 0 && fill != null) {
       @notNull
-      var length = result.length;
+      var length = list.length;
       for (int i = 0; i < length; i++) {
-        result[i] = fill;
+        list[i] = fill;
       }
     }
-    if (growable) return result;
-    return makeListFixedLength<E>(result);
+    if (!growable) JSArray.markFixedList(list);
+    return list;
   }
 
   @patch
   factory List.from(Iterable elements, {bool growable: true}) {
-    List<E> list = new List<E>();
+    var list = new JSArray<E>.of(JS('', '[]'));
     // Specialize the copy loop for the case that doesn't need a
     // runtime check.
     if (elements is Iterable<E>) {
@@ -362,14 +364,15 @@ class List<E> {
         list.add(e as E);
       }
     }
-    if (growable) return list;
-    return makeListFixedLength/*<E>*/(list);
+    if (!growable) JSArray.markFixedList(list);
+    return list;
   }
 
   @patch
   factory List.unmodifiable(Iterable elements) {
-    var result = new List<E>.from(elements, growable: false);
-    return makeFixedListUnmodifiable/*<E>*/(result);
+    var list = new List<E>.from(elements);
+    JSArray.markUnmodifiableList(list);
+    return list;
   }
 }
 

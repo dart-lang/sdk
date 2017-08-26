@@ -271,8 +271,6 @@ mirrors/library_enumeration_deferred_loading_test: RuntimeError # Issue 29922
 mirrors/library_metadata_test: RuntimeError # Issue 29922
 mirrors/library_uri_io_test: RuntimeError # Issue 29922
 mirrors/library_uri_package_test: RuntimeError # Issue 29922
-mirrors/list_constructor_test/01: RuntimeError # Issue 29922
-mirrors/list_constructor_test/none: RuntimeError # Issue 29922
 mirrors/local_function_is_static_test: RuntimeError # Issue 29922
 mirrors/local_isolate_test: RuntimeError # Issue 29922
 mirrors/metadata_constructed_constant_test: RuntimeError # Issue 29922

@@ -790,9 +790,9 @@ constList(elements, elementType) => JS('', '''(() => {
   let value = map.get($elementType);
   if (value) return value;
 
-  value = $setType($elements, ${getGenericClass(JSArray)}($elementType));
-  map.set($elementType, value);
-  return value;
+  ${getGenericClass(JSArray)}($elementType).unmodifiable($elements);
+  map.set($elementType, elements);
+  return elements;
 })()''');
 
 // The following are helpers for Object methods when the receiver

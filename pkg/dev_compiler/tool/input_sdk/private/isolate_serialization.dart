@@ -263,7 +263,7 @@ class _Deserializer {
     assert(x[0] == 'fixed');
     List result = x[1];
     deserializedObjects.add(result);
-    return new JSArray.markFixed(deserializeArrayInPlace(result));
+    return new JSArray.fixed(deserializeArrayInPlace(result));
   }
 
   // ['extendable', <array>].
@@ -271,7 +271,7 @@ class _Deserializer {
     assert(x[0] == 'extendable');
     List result = x[1];
     deserializedObjects.add(result);
-    return new JSArray.markGrowable(deserializeArrayInPlace(result));
+    return new JSArray.of(deserializeArrayInPlace(result));
   }
 
   // ['mutable', <array>].
@@ -288,7 +288,7 @@ class _Deserializer {
     List result = x[1];
     deserializedObjects.add(result);
     // TODO(floitsch): need to mark list as non-changeable.
-    return new JSArray.markFixed(deserializeArrayInPlace(result));
+    return new JSArray.unmodifiable(deserializeArrayInPlace(result));
   }
 
   // ['map', <key-list>, <value-list>].
