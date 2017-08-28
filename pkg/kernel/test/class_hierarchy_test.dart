@@ -288,6 +288,45 @@ class E = self::D with self::A implements self::B {}
     _assertOverridePairs(e, ['test::A::foo overrides test::B::foo']);
   }
 
+  /// An abstract member declared in the class is overridden by a member in
+  /// one of the interfaces.
+  void test_forEachOverridePair_supertypeOverridesThis() {
+    var a = addClass(new Class(
+        name: 'A',
+        supertype: objectSuper,
+        procedures: [newEmptyMethod('foo')]));
+    var b = addClass(new Class(
+        name: 'B',
+        supertype: a.asThisSupertype,
+        procedures: [newEmptyMethod('foo', isAbstract: true)]));
+    var c = addClass(new Class(
+        name: 'C',
+        supertype: a.asThisSupertype,
+        procedures: [newEmptyMethod('foo', isAbstract: true)],
+        isAbstract: true));
+
+    _assertTestLibraryText('''
+class A {
+  method foo() → void {}
+}
+class B extends self::A {
+  abstract method foo() → void;
+}
+abstract class C extends self::A {
+  abstract method foo() → void;
+}
+''');
+
+    _assertOverridePairs(b, [
+      'test::A::foo overrides test::B::foo',
+      'test::B::foo overrides test::A::foo'
+    ]);
+    _assertOverridePairs(c, [
+      'test::A::foo overrides test::C::foo',
+      'test::C::foo overrides test::A::foo'
+    ]);
+  }
+
   /// 3. A non-abstract member is inherited from a superclass, and it overrides
   /// an abstract member declared in this class.
   void test_forEachOverridePair_supertypeOverridesThisAbstract() {
