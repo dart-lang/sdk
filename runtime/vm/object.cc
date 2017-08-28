@@ -6008,7 +6008,8 @@ intptr_t Function::NumImplicitParameters() const {
   }
   if ((k == RawFunction::kClosureFunction) ||
       (k == RawFunction::kImplicitClosureFunction) ||
-      (k == RawFunction::kSignatureFunction)) {
+      (k == RawFunction::kSignatureFunction) ||
+      (k == RawFunction::kConvertedClosureFunction)) {
     return 1;  // Closure object.
   }
   if (!is_static()) {
@@ -6332,10 +6333,22 @@ RawFunction* Function::InstantiateSignatureFrom(
   // the original uninstantiated parent signatures. That is not a problem.
   const Function& parent = Function::Handle(zone, parent_function());
   ASSERT(!HasInstantiatedSignature());
-  Function& sig = Function::Handle(
-      zone, Function::NewSignatureFunction(owner, parent,
-                                           TokenPosition::kNoSource, space));
-  sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
+
+  Function& sig = Function::Handle(zone, Function::null());
+  if (IsConvertedClosureFunction()) {
+    sig = Function::NewConvertedClosureFunction(
+        String::Handle(zone, name()), parent, TokenPosition::kNoSource);
+    // TODO(sjindel): Kernel generic methods undone. Handle type parameters
+    // correctly when generic closures are supported. Until then, all type
+    // parameters to this target are used for captured type variables, so they
+    // aren't relevant to the type of the function.
+    sig.set_type_parameters(TypeArguments::Handle(zone, TypeArguments::null()));
+  } else {
+    sig = Function::NewSignatureFunction(owner, parent,
+                                         TokenPosition::kNoSource, space);
+    sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
+  }
+
   AbstractType& type = AbstractType::Handle(zone, result_type());
   if (!type.IsInstantiated()) {
     type =
@@ -6406,6 +6419,7 @@ bool Function::TestParameterType(TypeTestKind test_kind,
 bool Function::HasSameTypeParametersAndBounds(const Function& other) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+
   const intptr_t num_type_params = NumTypeParameters(thread);
   if (num_type_params != other.NumTypeParameters(thread)) {
     return false;
@@ -7174,6 +7188,34 @@ RawString* Function::BuildSignature(NameVisibility name_visibility) const {
 bool Function::HasInstantiatedSignature(Genericity genericity,
                                         intptr_t num_free_fun_type_params,
                                         TrailPtr trail) const {
+  // This function works differently for converted closures.
+  //
+  // Unlike regular closures, it's not possible to know which type parameters
+  // are supposed to come from parent functions or classes and which are
+  // actually parameters to the closure it represents. For example, consider:
+  //
+  //     class C<T> {
+  //       getf() => (T x) { return x; }
+  //     }
+  //
+  //     class D {
+  //       getf() {
+  //         dynamic fn<T>(T x) { return x; }
+  //         return fn;
+  //       }
+  //     }
+  //
+  // The signature of `fn` as a converted closure will in both cases look like
+  // `<T>(T) => dynamic`, because the signaute of the converted closure function
+  // is the same as it's top-level target function. However, in the first case
+  // the closure's type is instantiated, and in the second case it's not.
+  //
+  // Since we can never assume a converted closure is instantiated if it has any
+  // type parameters, we always return true in these cases.
+  if (IsConvertedClosureFunction()) {
+    return genericity == kCurrentClass || NumTypeParameters() == 0;
+  }
+
   if (genericity != kCurrentClass) {
     // A generic typedef may declare a non-generic function type and get
     // instantiated with unrelated function type parameters. In that case, its
@@ -15361,46 +15403,6 @@ bool Instance::IsInstanceOf(
     Function& other_signature =
         Function::Handle(zone, Type::Cast(instantiated_other).signature());
     Function& sig_fun = Function::Handle(zone, Closure::Cast(*this).function());
-    if (sig_fun.IsConvertedClosureFunction()) {
-      const String& closure_name = String::Handle(zone, sig_fun.name());
-      const Function& new_sig_fun = Function::Handle(
-          zone,
-          Function::NewConvertedClosureFunction(
-              closure_name, Function::Handle(zone, sig_fun.parent_function()),
-              TokenPosition::kNoSource));
-
-      new_sig_fun.set_type_parameters(
-          TypeArguments::Handle(zone, sig_fun.type_parameters()));
-      new_sig_fun.set_result_type(
-          AbstractType::Handle(zone, sig_fun.result_type()));
-      new_sig_fun.set_end_token_pos(TokenPosition::kNoSource);
-
-      new_sig_fun.set_is_debuggable(false);
-      new_sig_fun.set_is_visible(false);
-
-      // The converted closed top-level function type should have its first
-      // required optional parameter, i.e. context, removed.
-      const int num_fixed_params = sig_fun.num_fixed_parameters() - 1;
-      const int num_opt_params = sig_fun.NumOptionalParameters();
-      const bool has_opt_pos_params = sig_fun.HasOptionalPositionalParameters();
-      const int num_params = num_fixed_params + num_opt_params;
-      new_sig_fun.set_num_fixed_parameters(num_fixed_params);
-      new_sig_fun.SetNumOptionalParameters(num_opt_params, has_opt_pos_params);
-      new_sig_fun.set_parameter_types(
-          Array::Handle(zone, Array::New(num_params, Heap::kOld)));
-      new_sig_fun.set_parameter_names(
-          Array::Handle(zone, Array::New(num_params, Heap::kOld)));
-      AbstractType& param_type = AbstractType::Handle(zone);
-      String& param_name = String::Handle(zone);
-      for (int i = 0; i < num_params; i++) {
-        param_type = sig_fun.ParameterTypeAt(i + 1);
-        new_sig_fun.SetParameterTypeAt(i, param_type);
-        param_name = sig_fun.ParameterNameAt(i + 1);
-        new_sig_fun.SetParameterNameAt(i, param_name);
-      }
-
-      sig_fun = new_sig_fun.raw();
-    }
     if (!sig_fun.HasInstantiatedSignature()) {
       const TypeArguments& instantiator_type_arguments = TypeArguments::Handle(
           zone, Closure::Cast(*this).instantiator_type_arguments());

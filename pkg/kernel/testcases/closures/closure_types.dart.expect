@@ -1,0 +1,49 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef ct = (core::int) → void;
+typedef dt = (core::int) → core::String;
+class C<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method getf() → void {
+    final (self::C::T) → self::C::T fn = MakeClosure<<T extends core::Object>(T) → T, self::C::T>(self::closure#C#getf#fn, MakeVector(1));
+    ;
+    return fn;
+  }
+}
+class D<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method getf() → void {
+    final (dynamic) → self::D::T fn = MakeClosure<<T extends core::Object>(dynamic) → T, self::D::T>(self::closure#D#getf#fn, MakeVector(1));
+    return fn;
+  }
+}
+static method test_c() → void {
+  dynamic x = new self::C::•<core::int>().getf();
+  assert(x is (core::int) → void);
+  dynamic y = new self::C::•<core::String>().getf();
+  assert(!(y is (core::int) → void));
+}
+static method test_d() → void {
+  dynamic x = new self::D::•<core::String>().getf();
+  assert(x is (core::int) → core::String);
+  dynamic y = new self::D::•<core::int>().getf();
+  assert(!(y is (core::int) → core::String));
+  dynamic z = new self::D::•<core::int>().getf();
+  assert(!(z is (core::int) → core::String));
+}
+static method main() → dynamic {
+  self::test_c();
+  self::test_d();
+}
+static method closure#C#getf#fn<T extends core::Object>(dynamic #contextParameter, self::closure#C#getf#fn::T x) → self::closure#C#getf#fn::T {
+  return x;
+}
+static method closure#D#getf#fn<T extends core::Object>(dynamic #contextParameter, dynamic y) → self::closure#D#getf#fn::T {
+  return null;
+}

@@ -10,7 +10,7 @@ class X extends core::Object {
     ;
 }
 static method startIsolateMock(dynamic parentPort, dynamic entryPoint, dynamic args, dynamic message, dynamic isSpawnUri, dynamic controlPort, core::List<dynamic> capabilities) → void {
-  final Vector #context = MakeVector(7);
+  final dynamic #context = MakeVector(7);
   #context[2] = entryPoint;
   #context[3] = args;
   #context[4] = message;
@@ -31,8 +31,8 @@ static method startIsolateMock(dynamic parentPort, dynamic entryPoint, dynamic a
   (#context[6]).sendPort.send(null);
 }
 static method main() → dynamic {}
-static method closure#startIsolateMock#function(Vector #contextParameter, dynamic _) → dynamic {}
-static method closure#startIsolateMock#function#1(Vector #contextParameter, dynamic _) → dynamic {
+static method closure#startIsolateMock#function(dynamic #contextParameter, dynamic _) → dynamic {}
+static method closure#startIsolateMock#function#1(dynamic #contextParameter, dynamic _) → dynamic {
   (#contextParameter[6]).close();
   if(#contextParameter[5]) {
     if((#contextParameter[2]) is (dynamic, dynamic) → dynamic) {

@@ -6409,8 +6409,6 @@ Fragment StreamingFlowGraphBuilder::BuildClosureCreation(
   instructions +=
       StoreInstanceField(TokenPosition::kNoSource, Closure::context_offset());
 
-  instructions += Drop();
-
   SkipDartType();  // skip function type of the closure.
 
   // TODO(30455): Kernel generic methods undone. When generic methods are
@@ -6421,16 +6419,25 @@ Fragment StreamingFlowGraphBuilder::BuildClosureCreation(
 
   intptr_t types_count = ReadListLength();  // read type count.
   if (types_count > 0) {
-    instructions += LoadLocal(context);
-
     const TypeArguments& type_args =
         T.BuildTypeArguments(types_count);  // read list of type arguments.
     instructions += TranslateInstantiatedTypeArguments(type_args);
+    LocalVariable* type_args_slot = MakeTemporary();
 
+    instructions += LoadLocal(context);
+    instructions += LoadLocal(type_args_slot);
     instructions += StoreInstanceField(TokenPosition::kNoSource,
                                        Context::variable_offset(0));
+
+    instructions += LoadLocal(closure);
+    instructions += LoadLocal(type_args_slot);
+    instructions += StoreInstanceField(
+        TokenPosition::kNoSource, Closure::function_type_arguments_offset());
+
+    instructions += Drop();  // type args
   }
 
+  instructions += Drop();  // context
   return instructions;
 }
 

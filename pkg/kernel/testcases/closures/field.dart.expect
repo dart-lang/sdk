@@ -31,15 +31,15 @@ static method main() → dynamic {
   if(!"z".==(self::C::z.call()))
     throw "z";
 }
-static method closure#C#v#function<T extends core::Object>(Vector #contextParameter, dynamic x) → dynamic {
+static method closure#C#v#function<T extends core::Object>(dynamic #contextParameter, dynamic x) → dynamic {
   return x is self::closure#C#v#function::T;
 }
-static method closure#C#y#function(Vector #contextParameter) → dynamic {
+static method closure#C#y#function(dynamic #contextParameter) → dynamic {
   return "y";
 }
-static method closure#C#z#function(Vector #contextParameter) → dynamic {
+static method closure#C#z#function(dynamic #contextParameter) → dynamic {
   return "z";
 }
-static method closure#x#function(Vector #contextParameter) → dynamic {
+static method closure#x#function(dynamic #contextParameter) → dynamic {
   return "x";
 }

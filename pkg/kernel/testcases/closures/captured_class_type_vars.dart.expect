@@ -16,6 +16,6 @@ static method main() → dynamic {
   dynamic iser = isgen.getfn();
   assert(!iser.call(x));
 }
-static method closure#Isgen#getfn#function<B extends core::Object>(Vector #contextParameter, dynamic x) → dynamic {
+static method closure#Isgen#getfn#function<B extends core::Object>(dynamic #contextParameter, dynamic x) → dynamic {
   return x is self::closure#Isgen#getfn#function::B;
 }

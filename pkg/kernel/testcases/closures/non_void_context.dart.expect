@@ -3,7 +3,7 @@ import self as self;
 
 static field dynamic v;
 static method main(dynamic arguments) → dynamic {
-  final Vector #context = MakeVector(3);
+  final dynamic #context = MakeVector(3);
   #context[2] = null;
   (MakeClosure<(dynamic) → dynamic>(self::closure#main#function, #context)).call(87);
   if(!self::v.==(87)) {
@@ -21,10 +21,10 @@ static method main(dynamic arguments) → dynamic {
     throw "Unexpected value in w: ${#context[2]}";
   }
 }
-static method closure#main#function(Vector #contextParameter, dynamic x) → dynamic {
+static method closure#main#function(dynamic #contextParameter, dynamic x) → dynamic {
   return self::v = #contextParameter[2] = x;
 }
-static method closure#main#function#1(Vector #contextParameter) → dynamic {
+static method closure#main#function#1(dynamic #contextParameter) → dynamic {
   for (; #contextParameter[2] = self::v; ) {
     self::v = false;
   }
