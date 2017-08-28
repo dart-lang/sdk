@@ -5,6 +5,7 @@
 #include "vm/object_graph.h"
 
 #include "vm/dart.h"
+#include "vm/dart_api_state.h"
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
@@ -596,6 +597,26 @@ class WriteGraphVisitor : public ObjectGraph::Visitor {
   intptr_t count_;
 };
 
+class WriteGraphExternalSizesVisitor : public HandleVisitor {
+ public:
+  WriteGraphExternalSizesVisitor(Thread* thread, WriteStream* stream)
+      : HandleVisitor(thread), stream_(stream) {}
+
+  void VisitHandle(uword addr) {
+    FinalizablePersistentHandle* weak_persistent_handle =
+        reinterpret_cast<FinalizablePersistentHandle*>(addr);
+    if (!weak_persistent_handle->raw()->IsHeapObject()) {
+      return;  // Free handle.
+    }
+
+    WritePtr(weak_persistent_handle->raw(), stream_);
+    stream_->WriteUnsigned(weak_persistent_handle->external_size());
+  }
+
+ private:
+  WriteStream* stream_;
+};
+
 intptr_t ObjectGraph::Serialize(WriteStream* stream,
                                 SnapshotRoots roots,
                                 bool collect_garbage) {
@@ -641,6 +662,11 @@ intptr_t ObjectGraph::Serialize(WriteStream* stream,
 
   WriteGraphVisitor visitor(isolate(), stream, roots);
   IterateObjects(&visitor);
+  stream->WriteUnsigned(0);
+
+  WriteGraphExternalSizesVisitor external_visitor(Thread::Current(), stream);
+  isolate()->VisitWeakPersistentHandles(&external_visitor);
+  stream->WriteUnsigned(0);
 
   intptr_t object_count = visitor.count();
   if (roots == kVM) {
