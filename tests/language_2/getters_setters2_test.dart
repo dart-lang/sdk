@@ -62,7 +62,7 @@ main() {
 
   instance1.field = new B();
   A resultA = instance1.field;
-  instance1.field = new A(); //# 03: dynamic type error
+  Expect.throwsTypeError(() => instance1.field = new A() as dynamic);
   B resultB = instance1.field;
 
   int result;
@@ -70,7 +70,7 @@ main() {
   Expect.equals(37, result);
 
   // Type 'A' has no method named 'b'
-  instance1.field.b(); //# 02: static type warning
+  instance1.field.b(); //# 02: compile-time error
 
   instance3.field = new B();
   result = instance3.field.a();

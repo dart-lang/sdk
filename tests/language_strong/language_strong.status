@@ -194,16 +194,6 @@ function_type_parameter2_negative_test: Skip
 function_type_parameter_negative_test: Skip
 function_type_test: Skip
 generic_closure_test: Skip
-generic_field_mixin6_test: Skip
-getter_declaration_negative_test: Skip
-getter_no_setter2_test: Skip
-getter_no_setter_test: Skip
-getter_override2_test: Skip
-getter_override_test: Skip
-getter_parameters_test: Skip
-getter_setter_in_lib_test: Skip
-getters_setters2_test: Skip
-getters_setters_test: Skip
 hidden_import_test: Skip
 identical_const_test: Skip
 if_null_assignment_behavior_test: Skip

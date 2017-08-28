@@ -9,28 +9,12 @@ class Example {
   static int _var = 1;
   static int get nextVar => _var++;
   Example() {
-    {
-      bool flag_exception = false;
-      try {
-        nextVar++; // //# 03: static type warning
-      } catch (excpt) {
-        flag_exception = true;
-      }
-      Expect.isTrue(flag_exception); // //# 03: continued
-    }
-    {
-      bool flag_exception = false;
-      try {
-        this.nextVar++; // //# 00: static type warning
-      } catch (excpt) {
-        flag_exception = true;
-      }
-      Expect.isTrue(flag_exception); //  //# 00: continued
-    }
+    nextVar = 1; //# 03: compile-time error
+    this.nextVar = 1; //# 00: compile-time error
   }
   static test() {
-    nextVar++; // //# 01: runtime error
-    this.nextVar++; // //# 02: compile-time error
+    nextVar = 0; //# 01: compile-time error
+    this.nextVar = 0; //# 02: compile-time error
   }
 }
 

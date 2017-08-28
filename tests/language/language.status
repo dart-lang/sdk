@@ -150,7 +150,6 @@ deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 
 [ $runtime == dart_precompiled || $compiler == app_jit ]
 ct_const2_test: Skip # Incompatible flag: --compile_all
-hello_dart_test: Skip # Incompatible flag: --compile_all
 vm/type_vm_test: RuntimeError # Expects line and column numbers
 vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 

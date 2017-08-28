@@ -189,7 +189,6 @@ const_locals_test: RuntimeError
 const_string_test: RuntimeError
 const_syntax_test/08: MissingCompileTimeError
 ct_const2_test: Pass, Crash # Flaky
-hello_dart_test: Crash
 library_env_test/has_no_mirror_support: RuntimeError
 redirecting_factory_reflection_test: Crash
 redirecting_factory_reflection_test: RuntimeError
@@ -199,7 +198,6 @@ setter_declaration_negative_test: Fail
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $mode == debug ]
 deopt_inlined_function_lazy_test: Skip
-hello_dart_test: Crash  # error: expected: cls.is_type_finalized()
 
 # dartk: precompilation failures
 [ $compiler == dartkp ]

@@ -11,7 +11,7 @@ class A {
   var foo = 42; // //# 00: compile-time error
   get foo => 42; // //# 01: compile-time error
   foo() => 42; // //# 02: compile-time error
-  set foo(value) { } // //# 03: static type warning
+  set foo(value) { } // //# 03: compile-time error
 }
 
 class B extends A {

@@ -81,6 +81,14 @@ generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_shadowing_test: StaticWarning
 generic_methods_simple_is_expression_test: StaticWarning
 generic_tearoff_test: CompileTimeError
+getter_no_setter2_test/00: MissingCompileTimeError
+getter_no_setter2_test/01: MissingCompileTimeError
+getter_no_setter2_test/03: MissingCompileTimeError
+getter_no_setter_test/00: MissingCompileTimeError
+getter_no_setter_test/01: MissingCompileTimeError
+getter_no_setter_test/03: MissingCompileTimeError
+getter_override_test/03: MissingCompileTimeError
+getters_setters2_test/02: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && ! $strong && $checked ]
 abstract_beats_arguments_test: MissingCompileTimeError
@@ -161,6 +169,14 @@ generic_tearoff_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
 generic_test: CompileTimeError
 generics_test: CompileTimeError
+getter_no_setter2_test/00: MissingCompileTimeError
+getter_no_setter2_test/01: MissingCompileTimeError
+getter_no_setter2_test/03: MissingCompileTimeError
+getter_no_setter_test/00: MissingCompileTimeError
+getter_no_setter_test/01: MissingCompileTimeError
+getter_no_setter_test/03: MissingCompileTimeError
+getter_override_test/03: MissingCompileTimeError
+getters_setters2_test/02: MissingCompileTimeError
 
 [ $compiler == dart2analyzer ]
 async_return_types_test/nestedFuture: MissingCompileTimeError
@@ -182,6 +198,9 @@ get_set_syntax_test/none: fail # Issue 11575
 generic_list_checked_test: StaticWarning
 generics_test: StaticWarning
 generic_test: StaticWarning
+getter_setter_in_lib_test: Fail # Issue 23286
+getter_setter_in_lib_test: Fail # Issue 23286
+getter_declaration_negative_test: CompileTimeError
 
 [ $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
