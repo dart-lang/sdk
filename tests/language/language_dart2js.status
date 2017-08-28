@@ -1678,8 +1678,6 @@ example_constructor_test: Crash
 execute_finally7_test: RuntimeError
 exhaustive_for_test: Crash
 expect_test: RuntimeError
-export_double_same_main_test: CompileTimeError
-export_main_test: CompileTimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
