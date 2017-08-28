@@ -14,7 +14,7 @@ void expectUOE(f()) {
   Expect.throws(f, (e) => e is UnsupportedError);
 }
 
-testImmutable(var list) {
+testImmutable(List list) {
   expectUOE(() {
     list.setRange(0, 0, const []);
   });

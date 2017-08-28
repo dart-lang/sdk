@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show ElementKind, Location;
@@ -31,6 +32,13 @@ abstract class DartNavigationRequest implements NavigationRequest {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class NavigationCollector {
+  /**
+   * Record a new navigation region corresponding to the given [range] that
+   * should navigate to the given [targetLocation].
+   */
+  void addRange(
+      SourceRange range, ElementKind targetKind, Location targetLocation);
+
   /**
    * Record a new navigation region with the given [offset] and [length] that
    * should navigate to the given [targetLocation].

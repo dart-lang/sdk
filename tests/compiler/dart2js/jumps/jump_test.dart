@@ -4,6 +4,7 @@
 
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
@@ -21,12 +22,8 @@ import 'package:kernel/ast.dart' as ir;
 main() {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await for (FileSystemEntity entity in dataDir.list()) {
-      print('Checking ${entity.uri}');
-      String annotatedCode = await new File.fromUri(entity.uri).readAsString();
-      await checkCode(annotatedCode, computeJumpsData, compileFromSource);
-      await checkCode(annotatedCode, computeKernelJumpsData, compileFromDill);
-    }
+    await checkTests(dataDir, computeJumpsData, computeKernelJumpsData,
+        options: [Flags.disableTypeInference]);
   });
 }
 
@@ -52,8 +49,7 @@ void computeKernelJumpsData(
   KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
   GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
   MemberDefinition definition = elementMap.getMemberDefinition(member);
-  new JumpsIrChecker(
-          actualMap, elementMap, member, localsMap.getLocalsMap(member))
+  new JumpsIrChecker(actualMap, localsMap.getLocalsMap(member))
       .run(definition.node);
 }
 
@@ -64,6 +60,9 @@ class TargetData {
   final JumpTarget target;
 
   TargetData(this.index, this.id, this.sourceSpan, this.target);
+
+  String toString() => 'TargetData(index=$index,id=$id,'
+      'sourceSpan=$sourceSpan,target=$target)';
 }
 
 class GotoData {
@@ -72,6 +71,8 @@ class GotoData {
   final JumpTarget target;
 
   GotoData(this.id, this.sourceSpan, this.target);
+
+  String toString() => 'GotoData(id=$id,sourceSpan=$sourceSpan,target=$target)';
 }
 
 abstract class JumpsMixin {
@@ -105,6 +106,7 @@ abstract class JumpsMixin {
       StringBuffer sb = new StringBuffer();
       sb.write('target=');
       TargetData targetData = targets[data.target];
+      assert(targetData != null, "No TargetData for ${data.target}");
       sb.write(targetData.index);
       String value = sb.toString();
       registerValue(data.sourceSpan, data.id, value, data);
@@ -148,10 +150,22 @@ class JumpsAstComputer extends AstDataExtractor with JumpsMixin {
   @override
   visitGotoStatement(ast.GotoStatement node) {
     JumpTarget target = elements.getTargetOf(node);
+    assert(target != null, 'No target for $node.');
     NodeId id = computeGotoNodeId(node);
     SourceSpan sourceSpan = computeSourceSpan(node);
     gotos.add(new GotoData(id, sourceSpan, target));
     super.visitGotoStatement(node);
+  }
+
+  @override
+  visitSwitchStatement(ast.SwitchStatement node) {
+    JumpTarget target = elements.getTargetDefinition(node);
+    if (target != null) {
+      NodeId id = computeLoopNodeId(node);
+      SourceSpan sourceSpan = computeSourceSpan(node);
+      targets[target] = new TargetData(index++, id, sourceSpan, target);
+    }
+    super.visitSwitchStatement(node);
   }
 }
 
@@ -159,8 +173,7 @@ class JumpsAstComputer extends AstDataExtractor with JumpsMixin {
 class JumpsIrChecker extends IrDataExtractor with JumpsMixin {
   final KernelToLocalsMap _localsMap;
 
-  JumpsIrChecker(Map<Id, ActualData> actualMap, KernelToElementMap elementMap,
-      MemberEntity member, this._localsMap)
+  JumpsIrChecker(Map<Id, ActualData> actualMap, this._localsMap)
       : super(actualMap);
 
   void run(ir.Node root) {
@@ -179,17 +192,33 @@ class JumpsIrChecker extends IrDataExtractor with JumpsMixin {
     return null;
   }
 
-  visitForStatement(ir.ForStatement node) {
-    JumpTarget target = _localsMap.getJumpTargetForFor(node);
+  void addTargetData(ir.TreeNode node, JumpTarget target) {
     if (target != null) {
       NodeId id = computeLoopNodeId(node);
       SourceSpan sourceSpan = computeSourceSpan(node);
       targets[target] = new TargetData(index++, id, sourceSpan, target);
     }
+  }
+
+  visitForStatement(ir.ForStatement node) {
+    addTargetData(node, _localsMap.getJumpTargetForFor(node));
     super.visitForStatement(node);
   }
 
-  // TODO(johnniwinther): Support testing of do, for-in and while loops.
+  visitForInStatement(ir.ForInStatement node) {
+    addTargetData(node, _localsMap.getJumpTargetForForIn(node));
+    super.visitForInStatement(node);
+  }
+
+  visitWhileStatement(ir.WhileStatement node) {
+    addTargetData(node, _localsMap.getJumpTargetForWhile(node));
+    super.visitWhileStatement(node);
+  }
+
+  visitDoStatement(ir.DoStatement node) {
+    addTargetData(node, _localsMap.getJumpTargetForDo(node));
+    super.visitDoStatement(node);
+  }
 
   visitBreakStatement(ir.BreakStatement node) {
     JumpTarget target = _localsMap.getJumpTargetForBreak(node);
@@ -198,5 +227,10 @@ class JumpsIrChecker extends IrDataExtractor with JumpsMixin {
     SourceSpan sourceSpan = computeSourceSpan(node);
     gotos.add(new GotoData(id, sourceSpan, target));
     super.visitBreakStatement(node);
+  }
+
+  visitSwitchStatement(ir.SwitchStatement node) {
+    addTargetData(node, _localsMap.getJumpTargetForSwitch(node));
+    super.visitSwitchStatement(node);
   }
 }

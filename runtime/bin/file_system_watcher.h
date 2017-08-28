@@ -5,10 +5,6 @@
 #ifndef RUNTIME_BIN_FILE_SYSTEM_WATCHER_H_
 #define RUNTIME_BIN_FILE_SYSTEM_WATCHER_H_
 
-#if defined(DART_IO_DISABLED)
-#error "file_system_watcher.h can only be included on builds with IO enabled"
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

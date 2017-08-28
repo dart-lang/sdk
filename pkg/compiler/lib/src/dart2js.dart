@@ -278,8 +278,12 @@ Future<api.CompilationResult> compile(List<String> argv) {
     passThrough('--categories=${categories.join(",")}');
   }
 
-  void setPreviewDart2(String argument) {
+  void setUseKernel(String argument) {
     useKernel = true;
+    // TODO(sigmund): remove once we support inlining and type-inference
+    // with `useKernel`.
+    options.add(Flags.disableInlining);
+    options.add(Flags.disableTypeInference);
     passThrough(argument);
   }
 
@@ -335,7 +339,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     // implemented.
     new OptionHandler(Flags.kernelGlobalInference, passThrough),
     new OptionHandler(Flags.useKernelInSsa, passThrough),
-    new OptionHandler(Flags.useKernel, setPreviewDart2),
+    new OptionHandler(Flags.useKernel, setUseKernel),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
     new OptionHandler(Flags.version, (_) => wantVersion = true),

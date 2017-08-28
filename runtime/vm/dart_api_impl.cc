@@ -1096,9 +1096,9 @@ static char* BuildIsolateName(const char* script_uri, const char* main) {
   }
 
   char* chars = NULL;
-  intptr_t len = OS::SNPrint(NULL, 0, "%s$%s", script_uri, main) + 1;
+  intptr_t len = OS::SNPrint(NULL, 0, "%s:%s()", script_uri, main) + 1;
   chars = reinterpret_cast<char*>(malloc(len));
-  OS::SNPrint(chars, len, "%s$%s", script_uri, main);
+  OS::SNPrint(chars, len, "%s:%s()", script_uri, main);
   return chars;
 }
 
@@ -1160,6 +1160,10 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
   }
   Dart::ShutdownIsolate();
   return reinterpret_cast<Dart_Isolate>(NULL);
+}
+
+DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags) {
+  Isolate::FlagsInitialize(flags);
 }
 
 DART_EXPORT Dart_Isolate
@@ -1235,7 +1239,9 @@ DART_EXPORT void* Dart_IsolateData(Dart_Isolate isolate) {
 DART_EXPORT Dart_Handle Dart_DebugName() {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
-  return Api::NewHandle(T, String::New(I->name()));
+  return Api::NewHandle(
+      T, String::NewFormatted("(%" Pd64 ") '%s'",
+                              static_cast<int64_t>(I->main_port()), I->name()));
 }
 
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
@@ -4974,11 +4980,7 @@ static Dart_Handle LoadKernelProgram(Thread* T,
   kernel::KernelReader reader(program);
   const Object& tmp = reader.ReadProgram();
   delete program;
-
-  if (tmp.IsError()) {
-    return Api::NewHandle(T, tmp.raw());
-  }
-  return Dart_Null();
+  return Api::NewHandle(T, tmp.raw());
 }
 #endif
 
@@ -5030,6 +5032,11 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
       return result;
     }
     library ^= Library::LookupLibrary(T, resolved_url_str);
+    if (library.IsNull()) {
+      // If the URL string does not match, use the library object
+      // returned by the kernel reader.
+      library ^= Api::UnwrapHandle(result);
+    }
     if (library.IsNull()) {
       return Api::NewError("%s: Unable to load script '%s' correctly.",
                            CURRENT_FUNC, resolved_url_str.ToCString());
@@ -5746,7 +5753,7 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
 // --- Dart Front-End (Kernel) support ---
 
 DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate) {
-#ifdef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
   return false;
 #else
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
@@ -5755,7 +5762,7 @@ DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate) {
 }
 
 DART_EXPORT bool Dart_KernelIsolateIsRunning() {
-#ifdef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
   return false;
 #else
   return KernelIsolate::IsRunning();
@@ -5763,7 +5770,7 @@ DART_EXPORT bool Dart_KernelIsolateIsRunning() {
 }
 
 DART_EXPORT Dart_Port Dart_KernelPort() {
-#ifdef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
   return false;
 #else
   return KernelIsolate::KernelPort();
@@ -5772,7 +5779,7 @@ DART_EXPORT Dart_Port Dart_KernelPort() {
 
 DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileToKernel(const char* script_uri, const char* platform_kernel) {
-#ifdef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
   Dart_KernelCompilationResult result;
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileToKernel is unsupported.");
@@ -5788,7 +5795,7 @@ Dart_CompileSourcesToKernel(const char* script_uri,
                             int source_files_count,
                             Dart_SourceFile sources[],
                             bool incremental_compile) {
-#ifdef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
   Dart_KernelCompilationResult result;
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
@@ -5973,6 +5980,7 @@ Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback) {
   if (!FLAG_support_service) {
     return Api::Success();
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (file_modified_callback != NULL) {
     if (IsolateReloadContext::file_modified_callback() != NULL) {
       return Api::NewError(
@@ -5988,6 +5996,7 @@ Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback) {
     }
   }
   IsolateReloadContext::SetFileModifiedCallback(file_modified_callback);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return Api::Success();
 }
 
@@ -6687,6 +6696,47 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   *isolate_snapshot_instructions_size =
       isolate_image_writer.InstructionsBlobSize();
 
+  return Api::Success();
+#endif
+}
+
+DART_EXPORT Dart_Handle Dart_GetObfuscationMap(uint8_t** buffer,
+                                               intptr_t* buffer_length) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("No obfuscation map to save on an AOT runtime.");
+#elif !defined(DART_PRECOMPILER)
+  return Api::NewError("Obfuscation is only supported for AOT compiler.");
+#else
+  Thread* thread = Thread::Current();
+  DARTSCOPE(thread);
+  Isolate* isolate = thread->isolate();
+
+  if (buffer == NULL) {
+    RETURN_NULL_ERROR(buffer);
+  }
+  if (buffer_length == NULL) {
+    RETURN_NULL_ERROR(buffer_length);
+  }
+
+  // Note: can't use JSONStream in PRODUCT builds.
+  const intptr_t kInitialBufferSize = 1 * MB;
+  TextBuffer text_buffer(kInitialBufferSize);
+
+  text_buffer.AddChar('[');
+  if (isolate->obfuscation_map() != NULL) {
+    for (intptr_t i = 0; isolate->obfuscation_map()[i] != NULL; i++) {
+      if (i > 0) {
+        text_buffer.AddChar(',');
+      }
+      text_buffer.AddChar('"');
+      text_buffer.AddEscapedString(isolate->obfuscation_map()[i]);
+      text_buffer.AddChar('"');
+    }
+  }
+  text_buffer.AddChar(']');
+
+  *buffer_length = text_buffer.length();
+  *reinterpret_cast<char**>(buffer) = text_buffer.Steal();
   return Api::Success();
 #endif
 }

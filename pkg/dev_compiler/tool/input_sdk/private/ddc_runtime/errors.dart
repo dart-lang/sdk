@@ -26,34 +26,6 @@ argumentError(value) {
   throw new ArgumentError.value(value);
 }
 
-throwCastError(object, actual, type) {
-  var found = typeName(actual);
-  var expected = typeName(type);
-  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
-  throw new CastErrorImplementation(object, found, expected);
-}
-
-throwTypeError(object, actual, type) {
-  var found = typeName(actual);
-  var expected = typeName(type);
-  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
-  throw new TypeErrorImplementation(object, found, expected);
-}
-
-throwStrongModeCastError(object, actual, type) {
-  var found = typeName(actual);
-  var expected = typeName(type);
-  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
-  throw new StrongModeCastError(object, found, expected);
-}
-
-throwStrongModeTypeError(object, actual, type) {
-  var found = typeName(actual);
-  var expected = typeName(type);
-  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
-  throw new StrongModeTypeError(object, found, expected);
-}
-
 throwUnimplementedError(String message) {
   if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   throw new UnimplementedError(message);

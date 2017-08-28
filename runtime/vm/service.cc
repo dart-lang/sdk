@@ -914,9 +914,12 @@ void Service::SendEvent(const char* stream_id,
 
   if (FLAG_trace_service) {
     OS::PrintErr(
-        "vm-service: Pushing ServiceEvent(isolate='%s', kind='%s',"
+        "vm-service: Pushing ServiceEvent(isolate='%s', "
+        "isolateId='" ISOLATE_SERVICE_ID_FORMAT_STRING
+        "', kind='%s',"
         " len=%" Pd ") to stream %s\n",
-        isolate->name(), event_type, bytes_length, stream_id);
+        isolate->name(), static_cast<int64_t>(isolate->main_port()), event_type,
+        bytes_length, stream_id);
   }
 
   bool result;
@@ -982,42 +985,40 @@ void Service::SendEventWithData(const char* stream_id,
 }
 
 static void ReportPauseOnConsole(ServiceEvent* event) {
-  const char* name = event->isolate()->debugger_name();
+  const char* name = event->isolate()->name();
+  const int64_t main_port = static_cast<int64_t>(event->isolate()->main_port());
   switch (event->kind()) {
     case ServiceEvent::kPauseStart:
-      OS::PrintErr(
-          "vm-service: isolate '%s' has no debugger attached and is paused at "
-          "start.",
-          name);
+      OS::PrintErr("vm-service: isolate(%" Pd64
+                   ") '%s' has no debugger attached and is paused at start.",
+                   main_port, name);
       break;
     case ServiceEvent::kPauseExit:
-      OS::PrintErr(
-          "vm-service: isolate '%s' has no debugger attached and is paused at "
-          "exit.",
-          name);
+      OS::PrintErr("vm-service: isolate(%" Pd64
+                   ")  '%s' has no debugger attached and is paused at exit.",
+                   main_port, name);
       break;
     case ServiceEvent::kPauseException:
       OS::PrintErr(
-          "vm-service: isolate '%s' has no debugger attached and is paused due "
-          "to exception.",
-          name);
+          "vm-service: isolate (%" Pd64
+          ") '%s' has no debugger attached and is paused due to exception.",
+          main_port, name);
       break;
     case ServiceEvent::kPauseInterrupted:
       OS::PrintErr(
-          "vm-service: isolate '%s' has no debugger attached and is paused due "
-          "to interrupt.",
-          name);
+          "vm-service: isolate (%" Pd64
+          ") '%s' has no debugger attached and is paused due to interrupt.",
+          main_port, name);
       break;
     case ServiceEvent::kPauseBreakpoint:
-      OS::PrintErr(
-          "vm-service: isolate '%s' has no debugger attached and is paused.",
-          name);
+      OS::PrintErr("vm-service: isolate (%" Pd64
+                   ") '%s' has no debugger attached and is paused.",
+                   main_port, name);
       break;
     case ServiceEvent::kPausePostRequest:
-      OS::PrintErr(
-          "vm-service: isolate '%s' has no debugger attached and is paused "
-          "post reload.",
-          name);
+      OS::PrintErr("vm-service: isolate (%" Pd64
+                   ") '%s' has no debugger attached and is paused post reload.",
+                   main_port, name);
       break;
     default:
       UNREACHABLE();
@@ -1094,14 +1095,19 @@ void Service::PostEvent(Isolate* isolate,
   list_values[1] = &json_cobj;
 
   if (FLAG_trace_service) {
-    const char* isolate_name = "<no current isolate>";
     if (isolate != NULL) {
-      isolate_name = isolate->name();
+      OS::PrintErr(
+          "vm-service: Pushing ServiceEvent(isolate='%s', "
+          "isolateId='" ISOLATE_SERVICE_ID_FORMAT_STRING
+          "', kind='%s') to stream %s\n",
+          isolate->name(), static_cast<int64_t>(isolate->main_port()), kind,
+          stream_id);
+    } else {
+      OS::PrintErr(
+          "vm-service: Pushing ServiceEvent(isolate='<no current isolate>', "
+          "kind='%s') to stream %s\n",
+          kind, stream_id);
     }
-    OS::PrintErr(
-        "vm-service: Pushing ServiceEvent(isolate='%s', kind='%s') "
-        "to stream %s\n",
-        isolate_name, kind, stream_id);
   }
 
   Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
@@ -2559,6 +2565,7 @@ static const MethodParameter* reload_sources_params[] = {
 };
 
 static bool ReloadSources(Thread* thread, JSONStream* js) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   Isolate* isolate = thread->isolate();
   if (!isolate->compilation_allowed()) {
     js->PrintError(kFeatureDisabled,
@@ -2596,6 +2603,11 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
   Service::CheckForPause(isolate, js);
 
   return true;
+#else   // !defined(DART_PRECOMPILED_RUNTIME)
+  js->PrintError(kFeatureDisabled,
+                 "This isolate cannot reload sources right now.");
+  return true;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Service::CheckForPause(Isolate* isolate, JSONStream* stream) {
@@ -4018,7 +4030,7 @@ static const MethodParameter* set_name_params[] = {
 
 static bool SetName(Thread* thread, JSONStream* js) {
   Isolate* isolate = thread->isolate();
-  isolate->set_debugger_name(js->LookupParam("name"));
+  isolate->set_name(js->LookupParam("name"));
   if (Service::isolate_stream.enabled()) {
     ServiceEvent event(isolate, ServiceEvent::kIsolateUpdate);
     Service::HandleEvent(&event);

@@ -390,3 +390,8 @@ Language/Expressions/Await_Expressions/syntax_t08: CompileTimeError
 Language/Expressions/Await_Expressions/syntax_t09: CompileTimeError
 Language/Expressions/Identifier_Reference/async_and_generator_t01: CompileTimeError
 
+# Obfuscated mode expectations
+[ $runtime == dart_precompiled && $minified ]
+Language/Enums/declaration_equivalent_t01: Skip  # Enum.toString is obfuscated.
+Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t01: Skip  # Uses new Symbol() instead of const Symbol()
+LibTest/core/Symbol/Symbol_A01_t01: Skip  # Uses new Symbol()

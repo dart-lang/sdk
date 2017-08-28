@@ -330,6 +330,11 @@ class ParserErrorCode extends ErrorCode {
       "Typedefs can't be declared to be 'external'.",
       "Try removing the keyword 'external'.");
 
+  static const ParserErrorCode EXTRANEOUS_MODIFIER = const ParserErrorCode(
+      'EXTRANEOUS_MODIFIER',
+      "Can't have modifier '{0}' here.",
+      "Try removing '{0}'.");
+
   static const ParserErrorCode FACTORY_TOP_LEVEL_DECLARATION =
       const ParserErrorCode(
           'FACTORY_TOP_LEVEL_DECLARATION',

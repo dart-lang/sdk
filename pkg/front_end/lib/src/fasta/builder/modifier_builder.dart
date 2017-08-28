@@ -8,6 +8,7 @@ import '../modifier.dart'
     show
         abstractMask,
         constMask,
+        covariantMask,
         externalMask,
         finalMask,
         namedMixinApplicationMask,
@@ -26,6 +27,8 @@ abstract class ModifierBuilder extends Builder {
   bool get isAbstract => (modifiers & abstractMask) != 0;
 
   bool get isConst => (modifiers & constMask) != 0;
+
+  bool get isCovariant => (modifiers & covariantMask) != 0;
 
   bool get isExternal => (modifiers & externalMask) != 0;
 

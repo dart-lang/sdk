@@ -8,7 +8,6 @@ import 'entities.dart';
 
 /// The label entity defined by a labeled statement.
 abstract class LabelDefinition<T> extends Entity {
-  T get label;
   String get labelName;
   JumpTarget<T> get target;
 
@@ -32,7 +31,8 @@ abstract class JumpTarget<T> extends Local {
   bool get isBreakTarget;
   bool get isContinueTarget;
   bool get isSwitch;
+  bool get isSwitchCase;
 
   LabelDefinition<T> addLabel(covariant T label, String labelName,
-      {bool isBreakTarget: false});
+      {bool isBreakTarget: false, bool isContinueTarget: false});
 }

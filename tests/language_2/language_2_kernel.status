@@ -15,6 +15,24 @@ assertion_initializer_test: CompileTimeError
 cha_deopt1_test: RuntimeError
 cha_deopt2_test: RuntimeError
 cha_deopt3_test: RuntimeError
+generic_methods_bounds_test/01: MissingCompileTimeError
+generic_methods_bounds_test/02: MissingRuntimeError
+generic_methods_dynamic_test/01: MissingCompileTimeError
+generic_methods_dynamic_test/02: MissingRuntimeError
+generic_methods_dynamic_test/03: MissingCompileTimeError
+generic_methods_dynamic_test/04: MissingRuntimeError
+generic_methods_generic_class_tearoff_test: RuntimeError
+generic_methods_generic_function_result_test/none: RuntimeError
+generic_methods_named_parameters_test: RuntimeError
+generic_methods_optional_parameters_test: RuntimeError
+generic_methods_overriding_test/01: MissingCompileTimeError
+generic_methods_overriding_test/03: MissingCompileTimeError
+generic_methods_recursive_bound_test/02: MissingCompileTimeError
+generic_methods_simple_as_expression_test/02: MissingRuntimeError
+generic_methods_simple_is_expression_test: RuntimeError
+generic_methods_tearoff_specialization_test: RuntimeError
+generic_methods_unused_parameter_test: RuntimeError
+generic_tearoff_test: CompileTimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
@@ -60,6 +78,7 @@ assert_initializer_test/46: MissingCompileTimeError # KernelVM bug: Constant eva
 assert_initializer_test/47: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 assert_initializer_test/48: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 assert_initializer_test/none: RuntimeError # KernelVM bug: Constant evaluation.
+compile_time_constant_checked_test/02: MissingCompileTimeError
 
 [ $compiler == dartk || $compiler == dartkp ]
 assert_trailing_comma_test/none: CompileTimeError # Issue 29959
@@ -166,6 +185,7 @@ function_type/function_type9_test: RuntimeError
 cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 cha_deopt2_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 cha_deopt3_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+compile_time_constant_c_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 assign_static_type_test/02: MissingCompileTimeError
@@ -179,3 +199,6 @@ async_star_pause_test: Fail, OK
 
 [ $compiler == dartk && $runtime == vm ]
 async_star_cancel_while_paused_test: RuntimeError
+
+[ $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
+generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460

@@ -1714,6 +1714,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
       AnalysisError data = errors[i];
       ErrorCode dataErrorCode = data.errorCode;
       if (identical(dataErrorCode,
+              CompileTimeErrorCode.CONST_EVAL_THROWS_ASSERT_FALSE) ||
+          identical(dataErrorCode,
+              CompileTimeErrorCode.CONST_EVAL_THROWS_ASSERT_NOT_BOOL) ||
+          identical(dataErrorCode,
               CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION) ||
           identical(
               dataErrorCode, CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE) ||
@@ -6139,11 +6143,7 @@ class ResolverVisitor extends ScopedVisitor {
     // have to clone the initializers for non-static final fields (because if
     // they occur in a class with a const constructor, they will be needed to
     // evaluate the const constructor).
-    if ((element.isConst ||
-            (element is FieldElement &&
-                element.isFinal &&
-                !element.isStatic)) &&
-        node.initializer != null) {
+    if (element is ConstVariableElement) {
       (element as ConstVariableElement).constantInitializer =
           new ConstantAstCloner().cloneNode(node.initializer);
     }

@@ -2858,7 +2858,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endSwitchStatement(Token switchKeyword, Token endToken) {
     debugEvent("SwitchStatement");
-    // Do nothing. Handled by [endSwitchBlock].
+
+    List<SwitchCase> cases = pop();
+    JumpTarget target = exitBreakTarget();
+    exitSwitchScope();
+    exitLocalScope();
+    Expression expression = popForValue();
+    Statement result = new KernelSwitchStatement(expression, cases)
+      ..fileOffset = switchKeyword.charOffset;
+    if (target.hasUsers) {
+      result = new KernelLabeledStatement(result);
+      target.resolveBreaks(result);
+    }
+    exitLoopOrSwitch(result);
   }
 
   @override
@@ -2909,16 +2921,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             new ExpressionStatement(buildFallThroughError(current.fileOffset)));
       }
     }
-    JumpTarget target = exitBreakTarget();
-    exitSwitchScope();
-    exitLocalScope();
-    Expression expression = popForValue();
-    Statement result = new KernelSwitchStatement(expression, cases);
-    if (target.hasUsers) {
-      result = new KernelLabeledStatement(result);
-      target.resolveBreaks(result);
-    }
-    exitLoopOrSwitch(result);
+
+    push(cases);
   }
 
   @override
@@ -2990,7 +2994,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (target.isGotoTarget &&
           target.functionNestingLevel == functionNestingLevel) {
         ContinueSwitchStatement statement =
-            new KernelContinueSwitchStatement(null);
+            new KernelContinueSwitchStatement(null)
+              ..fileOffset = continueKeyword.charOffset;
         target.addGoto(statement);
         push(statement);
         return;

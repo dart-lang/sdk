@@ -45,6 +45,7 @@
 #include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/type_table.h"
+#include "vm/unicode.h"
 #include "vm/version.h"
 
 namespace dart {
@@ -482,6 +483,7 @@ void Precompiler::DoCompileAll(
       I->object_store()->set_async_star_move_next_helper(null_function);
       I->object_store()->set_complete_on_async_return(null_function);
       I->object_store()->set_async_star_stream_controller(null_class);
+      DropMetadata();
       DropLibraryEntries();
     }
     DropClasses();
@@ -489,6 +491,7 @@ void Precompiler::DoCompileAll(
 
     BindStaticCalls();
     SwitchICCalls();
+    Obfuscate();
 
     ProgramVisitor::Dedup();
 
@@ -610,30 +613,7 @@ void Precompiler::PrecompileConstructors() {
   }
 }
 
-void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
-  // Note that <rootlibrary>.main is not a root. The appropriate main will be
-  // discovered through _getMainClosure.
-
-  AddSelector(Symbols::NoSuchMethod());
-
-  AddSelector(Symbols::Call());  // For speed, not correctness.
-
-  // Allocated from C++.
-  Class& cls = Class::Handle(Z);
-  for (intptr_t cid = kInstanceCid; cid < kNumPredefinedCids; cid++) {
-    ASSERT(isolate()->class_table()->IsValidIndex(cid));
-    if (!isolate()->class_table()->HasValidClassAt(cid)) {
-      continue;
-    }
-    if ((cid == kDynamicCid) || (cid == kVoidCid) ||
-        (cid == kFreeListElement) || (cid == kForwardingCorpse)) {
-      continue;
-    }
-    cls = isolate()->class_table()->At(cid);
-    AddInstantiatedClass(cls);
-  }
-
-  Dart_QualifiedFunctionName vm_entry_points[] = {
+static Dart_QualifiedFunctionName vm_entry_points[] = {
     // Functions
     {"dart:core", "::", "_completeDeferredLoads"},
     {"dart:core", "::", "identityHashCode"},
@@ -673,9 +653,33 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
 #endif  // !PRODUCT
     // Fields
     {"dart:core", "Error", "_stackTrace"},
+    {"dart:core", "::", "_uriBaseClosure"},
     {"dart:math", "_Random", "_state"},
     {NULL, NULL, NULL}  // Must be terminated with NULL entries.
-  };
+};
+
+void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
+  // Note that <rootlibrary>.main is not a root. The appropriate main will be
+  // discovered through _getMainClosure.
+
+  AddSelector(Symbols::NoSuchMethod());
+
+  AddSelector(Symbols::Call());  // For speed, not correctness.
+
+  // Allocated from C++.
+  Class& cls = Class::Handle(Z);
+  for (intptr_t cid = kInstanceCid; cid < kNumPredefinedCids; cid++) {
+    ASSERT(isolate()->class_table()->IsValidIndex(cid));
+    if (!isolate()->class_table()->HasValidClassAt(cid)) {
+      continue;
+    }
+    if ((cid == kDynamicCid) || (cid == kVoidCid) ||
+        (cid == kFreeListElement) || (cid == kForwardingCorpse)) {
+      continue;
+    }
+    cls = isolate()->class_table()->At(cid);
+    AddInstantiatedClass(cls);
+  }
 
   AddEntryPoints(vm_entry_points);
   AddEntryPoints(embedder_entry_points);
@@ -1968,6 +1972,36 @@ void Precompiler::TraceTypesFromRetainedClasses() {
   }
 }
 
+void Precompiler::DropMetadata() {
+  Library& lib = Library::Handle(Z);
+  const GrowableObjectArray& null_growable_list =
+      GrowableObjectArray::Handle(Z);
+  Array& dependencies = Array::Handle(Z);
+  Namespace& ns = Namespace::Handle(Z);
+  const Field& null_field = Field::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    lib.set_metadata(null_growable_list);
+
+    dependencies = lib.imports();
+    for (intptr_t j = 0; j < dependencies.Length(); j++) {
+      ns ^= dependencies.At(j);
+      if (!ns.IsNull()) {
+        ns.set_metadata_field(null_field);
+      }
+    }
+
+    dependencies = lib.exports();
+    for (intptr_t j = 0; j < dependencies.Length(); j++) {
+      ns ^= dependencies.At(j);
+      if (!ns.IsNull()) {
+        ns.set_metadata_field(null_field);
+      }
+    }
+  }
+}
+
 void Precompiler::DropLibraryEntries() {
   Library& lib = Library::Handle(Z);
   Array& dict = Array::Handle(Z);
@@ -2296,6 +2330,82 @@ void Precompiler::SwitchICCalls() {
     visitor.Visit(**current);
   }
 #endif
+}
+
+void Precompiler::Obfuscate() {
+  if (!I->obfuscate()) {
+    return;
+  }
+
+  class ScriptsCollector : public ObjectVisitor {
+   public:
+    explicit ScriptsCollector(Zone* zone,
+                              GrowableHandlePtrArray<const Script>* scripts)
+        : script_(Script::Handle(zone)), scripts_(scripts) {}
+
+    void VisitObject(RawObject* obj) {
+      if (obj->GetClassId() == kScriptCid) {
+        script_ ^= obj;
+        scripts_->Add(Script::Cast(script_));
+      }
+    }
+
+   private:
+    Script& script_;
+    GrowableHandlePtrArray<const Script>* scripts_;
+  };
+
+  GrowableHandlePtrArray<const Script> scripts(Z, 100);
+  Isolate::Current()->heap()->CollectAllGarbage();
+  {
+    HeapIterationScope his(T);
+    ScriptsCollector visitor(Z, &scripts);
+    I->heap()->VisitObjects(&visitor);
+  }
+
+  {
+    // Note: when this object is destroyed it will commit obfuscation
+    // mappings into the ObjectStore. Hence the block around it - to
+    // ensure that destructor is called before we save obfuscation
+    // mappings and clear the ObjectStore.
+    Obfuscator obfuscator(T, /*private_key=*/String::Handle(Z));
+    String& str = String::Handle(Z);
+    for (intptr_t i = 0; i < scripts.length(); i++) {
+      const Script& script = scripts.At(i);
+
+      str = script.url();
+      str = Symbols::New(T, str);
+      str = obfuscator.Rename(str, /*atomic=*/true);
+      script.set_url(str);
+
+      str = script.resolved_url();
+      str = Symbols::New(T, str);
+      str = obfuscator.Rename(str, /*atomic=*/true);
+      script.set_resolved_url(str);
+    }
+
+    Library& lib = Library::Handle();
+    for (intptr_t i = 0; i < libraries_.Length(); i++) {
+      lib ^= libraries_.At(i);
+      if (!lib.is_dart_scheme()) {
+        str = lib.name();
+        str = obfuscator.Rename(str, /*atomic=*/true);
+        lib.set_name(str);
+
+        str = lib.url();
+        str = Symbols::New(T, str);
+        str = obfuscator.Rename(str, /*atomic=*/true);
+        lib.set_url(str);
+      }
+    }
+    Library::RegisterLibraries(T, libraries_);
+  }
+
+  // Obfuscation is done. Move obfuscation map into malloced memory.
+  I->set_obfuscation_map(Obfuscator::SerializeMap(T));
+
+  // Discard obfuscation mappings to avoid including them into snapshot.
+  I->object_store()->set_obfuscation_map(Array::Handle(Z));
 }
 
 void Precompiler::FinalizeAllClasses() {
@@ -3344,6 +3454,426 @@ RawError* Precompiler::CompileFunction(Precompiler* precompiler,
   const bool optimized = function.IsOptimizable();  // False for natives.
   DartPrecompilationPipeline pipeline(zone, field_type_map);
   return PrecompileFunctionHelper(precompiler, &pipeline, function, optimized);
+}
+
+Obfuscator::Obfuscator(Thread* thread, const String& private_key)
+    : state_(NULL) {
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+  if (!isolate->obfuscate()) {
+    // Nothing to do.
+    return;
+  }
+
+  // Create ObfuscationState from ObjectStore::obfusction_map().
+  ObjectStore* store = thread->isolate()->object_store();
+  Array& obfuscation_state = Array::Handle(zone, store->obfuscation_map());
+
+  if (store->obfuscation_map() == Array::null()) {
+    // We are just starting the obfuscation. Create initial state.
+    const int kInitialPrivateCapacity = 256;
+    obfuscation_state = Array::New(kSavedStateSize);
+    obfuscation_state.SetAt(
+        1, Array::Handle(zone, HashTables::New<ObfuscationMap>(
+                                   kInitialPrivateCapacity, Heap::kOld)));
+  }
+
+  state_ = new (zone) ObfuscationState(thread, obfuscation_state, private_key);
+
+  if (store->obfuscation_map() == Array::null()) {
+    // We are just starting the obfuscation. Initialize the renaming map.
+    // Note: InitializeRenamingMap uses state_.
+    InitializeRenamingMap(isolate);
+  }
+}
+
+Obfuscator::~Obfuscator() {
+  if (state_ != NULL) {
+    state_->SaveState();
+  }
+}
+
+void Obfuscator::InitializeRenamingMap(Isolate* isolate) {
+  // Prevent renaming of classes and method names mentioned in the
+  // entry points lists.
+  PreventRenaming(vm_entry_points);
+  PreventRenaming(isolate->embedder_entry_points());
+
+// Prevent renaming of all pseudo-keywords and operators.
+// Note: not all pseudo-keywords are mentioned in DART_KEYWORD_LIST
+// (for example 'hide', 'show' and async related keywords are omitted).
+// Those are protected from renaming as part of all symbols.
+#define PREVENT_RENAMING(name, value, priority, attr)                          \
+  do {                                                                         \
+    if (Token::CanBeOverloaded(Token::name) ||                                 \
+        ((Token::attr & Token::kPseudoKeyword) != 0)) {                        \
+      PreventRenaming(value);                                                  \
+    }                                                                          \
+  } while (0);
+
+  DART_TOKEN_LIST(PREVENT_RENAMING)
+  DART_KEYWORD_LIST(PREVENT_RENAMING)
+#undef PREVENT_RENAMING
+
+  // this is a keyword token unless it occurs in the string interpolation
+  // which causes it to be obfuscated.
+  PreventRenaming("this");
+
+// Protect all symbols from renaming.
+#define PREVENT_RENAMING(name, value) PreventRenaming(value);
+  PREDEFINED_SYMBOLS_LIST(PREVENT_RENAMING)
+#undef PREVENT_RENAMING
+
+  // Protect NativeFieldWrapperClassX names from being obfuscated. Those
+  // classes are created manually by the runtime system.
+  // TODO(dartbug.com/30524) instead call to Obfuscator::Rename from a place
+  // where these are created.
+  PreventRenaming("NativeFieldWrapperClass1");
+  PreventRenaming("NativeFieldWrapperClass2");
+  PreventRenaming("NativeFieldWrapperClass3");
+  PreventRenaming("NativeFieldWrapperClass4");
+
+// Prevent renaming of ClassID.cid* fields. These fields are injected by
+// runtime.
+// TODO(dartbug.com/30524) instead call to Obfuscator::Rename from a place
+// where these are created.
+#define CLASS_LIST_WITH_NULL(V)                                                \
+  V(Null)                                                                      \
+  CLASS_LIST_NO_OBJECT(V)
+#define PREVENT_RENAMING(clazz) PreventRenaming("cid" #clazz);
+  CLASS_LIST_WITH_NULL(PREVENT_RENAMING)
+#undef PREVENT_RENAMING
+#undef CLASS_LIST_WITH_NULL
+
+// Prevent renaming of methods that are looked up by method recognizer.
+// TODO(dartbug.com/30524) instead call to Obfuscator::Rename from a place
+// where these are looked up.
+#define PREVENT_RENAMING(class_name, function_name, recognized_enum,           \
+                         result_type, fingerprint)                             \
+  do {                                                                         \
+    PreventRenaming(#class_name);                                              \
+    PreventRenaming(#function_name);                                           \
+  } while (0);
+  RECOGNIZED_LIST(PREVENT_RENAMING)
+#undef PREVENT_RENAMING
+
+// Prevent renaming of methods that are looked up by method recognizer.
+// TODO(dartbug.com/30524) instead call to Obfuscator::Rename from a place
+// where these are looked up.
+#define PREVENT_RENAMING(class_name, function_name, recognized_enum,           \
+                         fingerprint)                                          \
+  do {                                                                         \
+    PreventRenaming(#class_name);                                              \
+    PreventRenaming(#function_name);                                           \
+  } while (0);
+  INLINE_WHITE_LIST(PREVENT_RENAMING)
+  INLINE_BLACK_LIST(PREVENT_RENAMING)
+  POLYMORPHIC_TARGET_LIST(PREVENT_RENAMING)
+#undef PREVENT_RENAMING
+
+  // These are not mentioned by entry points but are still looked up by name.
+  // (They are not mentioned in the entry points because we don't need them
+  // after the compilation)
+  PreventRenaming("_resolveScriptUri");
+
+  // Precompiler is looking up "main".
+  // TODO(dartbug.com/30524) instead call to Obfuscator::Rename from a place
+  // where these are created.
+  PreventRenaming("main");
+
+  // Fast path for common conditional import. See Deobfuscate method.
+  PreventRenaming("dart");
+  PreventRenaming("library");
+  PreventRenaming("io");
+  PreventRenaming("html");
+}
+
+RawString* Obfuscator::ObfuscationState::RenameImpl(const String& name,
+                                                    bool atomic) {
+  ASSERT(name.IsSymbol());
+
+  renamed_ ^= renames_.GetOrNull(name);
+  if (renamed_.IsNull()) {
+    renamed_ = BuildRename(name, atomic);
+    renames_.UpdateOrInsert(name, renamed_);
+  }
+  return renamed_.raw();
+}
+
+void Obfuscator::PreventRenaming(Dart_QualifiedFunctionName entry_points[]) {
+  for (intptr_t i = 0; entry_points[i].function_name != NULL; i++) {
+    const char* class_name = entry_points[i].class_name;
+    const char* function_name = entry_points[i].function_name;
+
+    const size_t class_name_len = strlen(class_name);
+    if (strncmp(function_name, class_name, class_name_len) == 0 &&
+        function_name[class_name_len] == '.') {
+      const char* ctor_name = function_name + class_name_len + 1;
+      if (ctor_name[0] != '\0') {
+        PreventRenaming(ctor_name);
+      }
+    } else {
+      PreventRenaming(function_name);
+    }
+    PreventRenaming(class_name);
+  }
+}
+
+static const char* const kGetterPrefix = "get:";
+static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
+static const char* const kSetterPrefix = "set:";
+static const intptr_t kSetterPrefixLength = strlen(kSetterPrefix);
+
+void Obfuscator::PreventRenaming(const char* name) {
+  // For constructor names Class.name skip class name (if any) and a dot.
+  const char* dot = strchr(name, '.');
+  if (dot != NULL) {
+    name = dot + 1;
+  }
+
+  // Empty name: do nothing.
+  if (name[0] == '\0') {
+    return;
+  }
+
+  // Skip get: and set: prefixes.
+  if (strncmp(name, kGetterPrefix, kGetterPrefixLength) == 0) {
+    name = name + kGetterPrefixLength;
+  } else if (strncmp(name, kSetterPrefix, kSetterPrefixLength) == 0) {
+    name = name + kSetterPrefixLength;
+  }
+
+  state_->PreventRenaming(name);
+}
+
+void Obfuscator::ObfuscationState::SaveState() {
+  saved_state_.SetAt(kSavedStateNameIndex, String::Handle(String::New(name_)));
+  saved_state_.SetAt(kSavedStateRenamesIndex, renames_.Release());
+  thread_->isolate()->object_store()->set_obfuscation_map(saved_state_);
+}
+
+void Obfuscator::ObfuscationState::PreventRenaming(const char* name) {
+  string_ = Symbols::New(thread_, name);
+  PreventRenaming(string_);
+}
+
+void Obfuscator::ObfuscationState::PreventRenaming(const String& name) {
+  renames_.UpdateOrInsert(name, name);
+}
+
+void Obfuscator::ObfuscationState::NextName() {
+  // We apply the following rules:
+  //
+  //         inc(a) = b, ... , inc(z) = A, ..., inc(Z) = a & carry.
+  //
+  for (intptr_t i = 0;; i++) {
+    const char digit = name_[i];
+    if (digit == '\0') {
+      name_[i] = 'a';
+    } else if (digit < 'Z') {
+      name_[i]++;
+    } else if (digit == 'Z') {
+      name_[i] = 'a';
+      continue;  // Carry.
+    } else if (digit < 'z') {
+      name_[i]++;
+    } else {
+      name_[i] = 'A';
+    }
+    break;
+  }
+}
+
+RawString* Obfuscator::ObfuscationState::NewAtomicRename(
+    bool should_be_private) {
+  do {
+    NextName();
+    renamed_ = Symbols::NewFormatted(thread_, "%s%s",
+                                     should_be_private ? "_" : "", name_);
+    // Must check if our generated name clashes with something that will
+    // have an identity renaming.
+  } while (renames_.GetOrNull(renamed_) == renamed_.raw());
+  return renamed_.raw();
+}
+
+RawString* Obfuscator::ObfuscationState::BuildRename(const String& name,
+                                                     bool atomic) {
+  const bool is_private = name.CharAt(0) == '_';
+  if (!atomic && is_private) {
+    // Find the first '@'.
+    intptr_t i = 0;
+    while (i < name.Length() && name.CharAt(i) != '@') {
+      i++;
+    }
+    const intptr_t end = i;
+
+    // Follow the rule:
+    //
+    //         Rename(_ident@key) = Rename(_ident)@private_key_.
+    //
+    string_ = Symbols::New(thread_, name, 0, end);
+    string_ = RenameImpl(string_, /*atomic=*/true);
+    return Symbols::FromConcat(thread_, string_, private_key_);
+  } else {
+    return NewAtomicRename(is_private);
+  }
+}
+
+void Obfuscator::ObfuscateSymbolInstance(Thread* thread,
+                                         const Instance& symbol) {
+  // Note: this must match dart:internal.Symbol declaration.
+  const intptr_t kSymbolNameOffset = kWordSize;
+
+  Object& name_value = String::Handle();
+  name_value = symbol.RawGetFieldAtOffset(kSymbolNameOffset);
+  if (!name_value.IsString()) {
+    // dart:internal.Symbol constructor does not validate its input.
+    return;
+  }
+
+  String& name = String::Handle();
+  name ^= name_value.raw();
+
+  // TODO(vegorov) it is quite wasteful to create an obfuscator per-symbol.
+  Obfuscator obfuscator(thread, /*private_key=*/String::Handle());
+
+  // Symbol can be a sequence of identifiers separated by dots.
+  // We split such symbols into components and obfuscate individual identifiers
+  // separately.
+  String& component = String::Handle();
+  GrowableHandlePtrArray<const String> renamed(thread->zone(), 2);
+
+  const intptr_t length = name.Length();
+  intptr_t i = 0, start = 0;
+  while (i < length) {
+    // First look for a '.' in the symbol.
+    start = i;
+    while (i < length && name.CharAt(i) != '.') {
+      i++;
+    }
+    const intptr_t end = i;
+    if (end == length) {
+      break;
+    }
+
+    if (start != end) {
+      component = Symbols::New(thread, name, start, end - start);
+      component = obfuscator.Rename(component, /*atomic=*/true);
+      renamed.Add(component);
+    }
+
+    renamed.Add(Symbols::Dot());
+    i++;  // Skip '.'
+  }
+
+  // Handle the last component [start, length).
+  // If symbol ends up at = and it is not one of '[]=', '==', '<=' or
+  // '>=' then we treat it as a setter symbol and follow the rule:
+  //
+  //              Rename('ident=') = Rename('ident') '='
+  //
+  const bool is_setter = (length - start) > 1 &&
+                         name.CharAt(length - 1) == '=' &&
+                         !(name.Equals(Symbols::AssignIndexToken()) ||
+                           name.Equals(Symbols::EqualOperator()) ||
+                           name.Equals(Symbols::GreaterEqualOperator()) ||
+                           name.Equals(Symbols::LessEqualOperator()));
+  const intptr_t end = length - (is_setter ? 1 : 0);
+
+  if ((start == 0) && (end == length) && name.IsSymbol()) {
+    component = name.raw();
+  } else {
+    component = Symbols::New(thread, name, start, end - start);
+  }
+  component = obfuscator.Rename(component, /*atomic=*/true);
+  renamed.Add(component);
+
+  if (is_setter) {
+    renamed.Add(Symbols::Equals());
+  }
+
+  name = Symbols::FromConcatAll(thread, renamed);
+  symbol.RawSetFieldAtOffset(kSymbolNameOffset, name);
+}
+
+void Obfuscator::Deobfuscate(Thread* thread,
+                             const GrowableObjectArray& pieces) {
+  const Array& obfuscation_state = Array::Handle(
+      thread->zone(), thread->isolate()->object_store()->obfuscation_map());
+  if (obfuscation_state.IsNull()) {
+    return;
+  }
+
+  const Array& renames = Array::Handle(
+      thread->zone(), GetRenamesFromSavedState(obfuscation_state));
+
+  ObfuscationMap renames_map(renames.raw());
+  String& piece = String::Handle();
+  for (intptr_t i = 0; i < pieces.Length(); i++) {
+    piece ^= pieces.At(i);
+    ASSERT(piece.IsSymbol());
+
+    // Fast path: skip '.'
+    if (piece.raw() == Symbols::Dot().raw()) {
+      continue;
+    }
+
+    // Fast path: check if piece has an identity obfuscation.
+    if (renames_map.GetOrNull(piece) == piece.raw()) {
+      continue;
+    }
+
+    // Search through the whole obfuscation map until matching value is found.
+    // We are using linear search instead of generating a reverse mapping
+    // because we assume that Deobfuscate() method is almost never called.
+    ObfuscationMap::Iterator it(&renames_map);
+    while (it.MoveNext()) {
+      const intptr_t entry = it.Current();
+      if (renames_map.GetPayload(entry, 0) == piece.raw()) {
+        piece ^= renames_map.GetKey(entry);
+        pieces.SetAt(i, piece);
+        break;
+      }
+    }
+  }
+  renames_map.Release();
+}
+
+static const char* StringToCString(const String& str) {
+  const intptr_t len = Utf8::Length(str);
+  char* result = new char[len + 1];
+  str.ToUTF8(reinterpret_cast<uint8_t*>(result), len);
+  result[len] = 0;
+  return result;
+}
+
+const char** Obfuscator::SerializeMap(Thread* thread) {
+  const Array& obfuscation_state = Array::Handle(
+      thread->zone(), thread->isolate()->object_store()->obfuscation_map());
+  if (obfuscation_state.IsNull()) {
+    return NULL;
+  }
+
+  const Array& renames = Array::Handle(
+      thread->zone(), GetRenamesFromSavedState(obfuscation_state));
+  ObfuscationMap renames_map(renames.raw());
+
+  const char** result = new const char*[renames_map.NumOccupied() * 2 + 1];
+  intptr_t idx = 0;
+  String& str = String::Handle();
+
+  ObfuscationMap::Iterator it(&renames_map);
+  while (it.MoveNext()) {
+    const intptr_t entry = it.Current();
+    str ^= renames_map.GetKey(entry);
+    result[idx++] = StringToCString(str);
+    str ^= renames_map.GetPayload(entry, 0);
+    result[idx++] = StringToCString(str);
+  }
+  result[idx++] = NULL;
+  renames_map.Release();
+
+  return result;
 }
 
 #endif  // DART_PRECOMPILER

@@ -681,6 +681,7 @@ class Printer extends Visitor<Null> {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeModifier(node.isStatic, 'static');
+    writeModifier(node.isCovariant, 'covariant');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     // Only show implicit getter/setter modifiers in cases where they are
@@ -1419,6 +1420,7 @@ class Printer extends Visitor<Null> {
   void writeVariableDeclaration(VariableDeclaration node,
       {bool useVarKeyword: false}) {
     if (showOffsets) writeWord("[${node.fileOffset}]");
+    writeModifier(node.isCovariant, 'covariant');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     if (node.type != null) {

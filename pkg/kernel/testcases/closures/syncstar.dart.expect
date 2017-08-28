@@ -1,0 +1,35 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method range(core::int high) → dynamic {
+  final Vector #context = MakeVector(3);
+  #context[2] = high;
+  final (core::int) → dynamic iter = MakeClosure<(core::int) → dynamic>(self::closure#range#iter, #context);
+  return iter;
+}
+static method main() → dynamic {
+  dynamic sum = 0;
+  for (dynamic x in self::range(10).call(2))
+    sum = sum.+(x);
+  if(!sum.==(44)) {
+    throw core::Exception::•("Incorrect output.");
+  }
+}
+static method closure#range#iter(Vector #contextParameter, core::int low) → dynamic /* originally sync* */ {
+  final Vector #context = MakeVector(3);
+  #context[1] = #contextParameter;
+  #context[2] = low;
+  dynamic :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :sync_op = (core::Iterator<dynamic> :iterator) → core::bool yielding {
+    {
+      while ((let final dynamic #t1 = #contextParameter[2] in let final dynamic #t2 = #contextParameter[2] = #t1.-(1) in #t1).>(#context[2])) {
+        :iterator._current = #context[1][2];
+        [yield] true;
+      }
+    }
+    return false;
+  };
+  return new core::_SyncIterable::•(:sync_op);
+}

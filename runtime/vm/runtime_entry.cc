@@ -14,6 +14,7 @@
 #include "vm/deopt_instructions.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
+#include "vm/kernel_isolate.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/object_store.h"
@@ -1622,7 +1623,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     UNREACHABLE();
   }
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   // The following code is used to stress test deoptimization and
   // debugger stack tracing.
   bool do_deopt = false;
@@ -1632,18 +1633,28 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
       isolate->reload_every_n_stack_overflow_checks();
   if ((FLAG_deoptimize_every > 0) || (FLAG_stacktrace_every > 0) ||
       (isolate_reload_every > 0)) {
-    // TODO(turnidge): To make --deoptimize_every and
-    // --stacktrace-every faster we could move this increment/test to
-    // the generated code.
-    int32_t count = thread->IncrementAndGetStackOverflowCount();
-    if (FLAG_deoptimize_every > 0 && (count % FLAG_deoptimize_every) == 0) {
-      do_deopt = true;
-    }
-    if (FLAG_stacktrace_every > 0 && (count % FLAG_stacktrace_every) == 0) {
-      do_stacktrace = true;
-    }
-    if ((isolate_reload_every > 0) && (count % isolate_reload_every) == 0) {
-      do_reload = isolate->CanReload();
+    bool is_auxiliary_isolate = ServiceIsolate::IsServiceIsolate(isolate);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    // Certain flags should not effect the kernel isolate itself.  They might be
+    // used by tests via the "VMOptions=--..." annotation to test VM
+    // functionality in the main isolate.
+    is_auxiliary_isolate =
+        is_auxiliary_isolate || KernelIsolate::IsKernelIsolate(isolate);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    if (!is_auxiliary_isolate) {
+      // TODO(turnidge): To make --deoptimize_every and
+      // --stacktrace-every faster we could move this increment/test to
+      // the generated code.
+      int32_t count = thread->IncrementAndGetStackOverflowCount();
+      if (FLAG_deoptimize_every > 0 && (count % FLAG_deoptimize_every) == 0) {
+        do_deopt = true;
+      }
+      if (FLAG_stacktrace_every > 0 && (count % FLAG_stacktrace_every) == 0) {
+        do_stacktrace = true;
+      }
+      if ((isolate_reload_every > 0) && (count % isolate_reload_every) == 0) {
+        do_reload = isolate->CanReload();
+      }
     }
   }
   if ((FLAG_deoptimize_filter != NULL) || (FLAG_stacktrace_filter != NULL) ||
@@ -1721,7 +1732,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     }
     FLAG_stacktrace_every = saved_stacktrace_every;
   }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   const Error& error = Error::Handle(thread->HandleInterrupts());
   if (!error.IsNull()) {

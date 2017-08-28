@@ -44,6 +44,7 @@ front_end/test/fasta/ast_builder_test: Pass, Slow
 
 # These are not tests but input for tests.
 kernel/testcases/*: Skip
+front_end/testcases/*: Skip
 
 front_end/test/fasta/analyze_test: Pass, Slow
 

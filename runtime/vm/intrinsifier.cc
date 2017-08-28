@@ -88,7 +88,10 @@ void Intrinsifier::InitializeState() {
     }                                                                          \
     func = cls.LookupFunctionAllowPrivate(str);                                \
   }                                                                            \
-  ASSERT(!func.IsNull());                                                      \
+  if (func.IsNull()) {                                                         \
+    FATAL2("Intrinsifier failed to find method %s in class %s\n",              \
+           #function_name, #class_name);                                       \
+  }                                                                            \
   func.set_is_intrinsic(true);
 
   // Set up all core lib functions that can be intrinsified.

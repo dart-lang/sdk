@@ -12,7 +12,7 @@
 #include "bin/file.h"
 #include "bin/lockers.h"
 #include "bin/log.h"
-#if !defined(DART_IO_DISABLED) && !defined(PLATFORM_DISABLE_SOCKET)
+#if !defined(PLATFORM_DISABLE_SOCKET)
 #include "bin/socket.h"
 #endif
 #include "bin/thread.h"
@@ -231,7 +231,7 @@ const char* Platform::LocaleName() {
 }
 
 bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
-#if defined(DART_IO_DISABLED) || defined(PLATFORM_DISABLE_SOCKET)
+#if defined(PLATFORM_DISABLE_SOCKET)
   return false;
 #else
   if (!SocketBase::Initialize()) {

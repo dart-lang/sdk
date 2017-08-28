@@ -86,6 +86,7 @@ next_through_closure_test: RuntimeError
 step_through_switch_test: RuntimeError
 step_through_constructor_calls_test: RuntimeError
 step_through_function_test: RuntimeError
+step_through_switch_with_continue_test: RuntimeError
 
 [ $compiler == dart2analyzer ]
 evaluate_activation_in_method_class_test: CompileTimeError # Issue 24478

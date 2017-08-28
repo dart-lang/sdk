@@ -17,6 +17,7 @@
 #include "vm/flow_graph_allocator.h"
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
+#include "vm/kernel_isolate.h"
 #include "vm/locations.h"
 #include "vm/log.h"
 #include "vm/longjump.h"
@@ -24,6 +25,7 @@
 #include "vm/parser.h"
 #include "vm/raw_object.h"
 #include "vm/resolver.h"
+#include "vm/service_isolate.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
@@ -301,7 +303,17 @@ bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
 #if !defined(PRODUCT)
   if ((FLAG_stacktrace_every > 0) || (FLAG_deoptimize_every > 0) ||
       (isolate()->reload_every_n_stack_overflow_checks() > 0)) {
-    return true;
+    bool is_auxiliary_isolate = ServiceIsolate::IsServiceIsolate(isolate());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    // Certain flags should not effect the kernel isolate itself.  They might be
+    // used by tests via the "VMOptions=--..." annotation to test VM
+    // functionality in the main isolate.
+    is_auxiliary_isolate =
+        is_auxiliary_isolate || KernelIsolate::IsKernelIsolate(isolate());
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    if (!is_auxiliary_isolate) {
+      return true;
+    }
   }
   if (FLAG_stacktrace_filter != NULL &&
       strstr(parsed_function().function().ToFullyQualifiedCString(),

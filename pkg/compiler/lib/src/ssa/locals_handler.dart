@@ -10,7 +10,7 @@ import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
-import '../js_model/closure.dart' show JBoxedField, JClosureField;
+import '../js_model/closure.dart' show JRecordField, JClosureField;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../world.dart' show ClosedWorld;
@@ -362,7 +362,7 @@ class LocalsHandler {
       // the box.
       if (redirect is BoxFieldElement) {
         localBox = redirect.box;
-      } else if (redirect is JBoxedField) {
+      } else if (redirect is JRecordField) {
         localBox = redirect.box;
       }
       assert(localBox != null);
@@ -432,7 +432,7 @@ class LocalsHandler {
       BoxLocal localBox;
       if (redirect is BoxFieldElement) {
         localBox = redirect.box;
-      } else if (redirect is JBoxedField) {
+      } else if (redirect is JRecordField) {
         localBox = redirect.box;
       }
       assert(localBox != null);

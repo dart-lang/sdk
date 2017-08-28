@@ -8,7 +8,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
-    show DartCompletionRequestImpl, ReplacementRange;
+    show DartCompletionRequestImpl;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -475,7 +475,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     });
     request = await performAnalysis(times, requestCompleter);
 
-    var range = new ReplacementRange.compute(request.offset, request.target);
+    var range = request.target.computeReplacementRange(request.offset);
     replacementOffset = range.offset;
     replacementLength = range.length;
     Completer<List<CompletionSuggestion>> suggestionCompleter =

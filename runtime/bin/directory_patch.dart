@@ -46,3 +46,16 @@ class _AsyncDirectoryListerOpsImpl extends NativeFieldWrapperClass1
       native "Directory_SetAsyncDirectoryListerPointer";
   int getPointer() native "Directory_GetAsyncDirectoryListerPointer";
 }
+
+// Corelib 'Uri.base' implementation.
+// Uri.base is susceptible to changes in the current working directory.
+Uri _uriBaseClosure() {
+  var result = _Directory._current();
+  if (result is OSError) {
+    throw new FileSystemException(
+        "Getting current working directory failed", "", result);
+  }
+  return new Uri.directory(result);
+}
+
+_getUriBaseClosure() => _uriBaseClosure;

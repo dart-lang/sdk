@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if defined(DART_IO_DISABLED) || defined(DART_IO_SECURE_SOCKET_DISABLED)
+#if defined(DART_IO_SECURE_SOCKET_DISABLED)
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
@@ -160,4 +160,4 @@ CObject* SSLFilter::ProcessFilterRequest(const CObjectArray& request) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(DART_IO_DISABLED) || defined(DART_IO_SECURE_SOCKET_DISABLED)
+#endif  // defined(DART_IO_SECURE_SOCKET_DISABLED)

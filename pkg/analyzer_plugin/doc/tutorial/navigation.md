@@ -15,7 +15,10 @@ When an `analysis.getNavigation` request is received, the method
 `handleAnalysisGetNavigation` will be invoked. This method is responsible for
 returning a response that contains the available navigation information.
 
-The easiest way to implement the method `handleAnalysisGetNavigation` is by
+When a notification needs to be sent, the method `sendNavigationNotification`
+will be invoked. This method is responsible for sending the notification.
+
+The easiest way to add support for both the request and the notification is by
 adding the classes `NavigationMixin` and `DartNavigationMixin` (from
 `package:analyzer_plugin/plugin/navigation_mixin.dart`) to the list of mixins
 for your subclass of `ServerPlugin`. This will leave you with one abstract

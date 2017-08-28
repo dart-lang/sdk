@@ -8,6 +8,8 @@ import 'dart:async' show Future;
 
 import 'package:kernel/ast.dart' show Library, Program, Source;
 
+import '../kernel/kernel_builder.dart' show LibraryBuilder;
+
 import '../loader.dart' show Loader;
 
 import '../problems.dart' show unhandled;
@@ -54,5 +56,12 @@ class DillLoader extends Loader<Library> {
 
   Future<Null> buildBody(DillLibraryBuilder builder) {
     return buildOutline(builder);
+  }
+
+  void finalizeExports() {
+    builders.forEach((Uri uri, LibraryBuilder builder) {
+      DillLibraryBuilder library = builder;
+      library.finalizeExports();
+    });
   }
 }

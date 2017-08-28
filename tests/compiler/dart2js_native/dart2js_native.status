@@ -133,8 +133,8 @@ native_class_inheritance3_frog_test: Crash # Issue 27394
 native_wrapping_function3_frog_test: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-bound_closure_super_test: Crash
-bound_closure_test: Crash
+bound_closure_super_test: RuntimeError
+bound_closure_test: RuntimeError
 compute_this_script_test: Crash
 core_type_check_native_test: RuntimeError
 event_loop_test: Crash
@@ -144,25 +144,14 @@ internal_library_test: Crash
 is_check_test: CompileTimeError
 load_elim_refinement_test: CompileTimeError
 mirror_intercepted_field_test: CompileTimeError
-native_call_arity1_frog_test: Crash
-native_call_arity2_frog_test: Crash
-native_call_arity3_frog_test: Crash
-native_class_inheritance1_frog_test: Crash
-native_class_inheritance2_frog_test: Crash
-native_class_inheritance3_frog_test: Crash
-native_class_inheritance4_frog_test: Crash
-native_class_with_dart_methods_frog_test: Crash
-native_closure_identity_frog_test: Crash
+native_class_inheritance1_frog_test: RuntimeError
+native_class_inheritance2_frog_test: RuntimeError
+native_class_inheritance3_frog_test: RuntimeError
 native_exception2_test: Crash
 native_exception_test: Crash
 native_exceptions1_frog_test: Crash
-native_field_invocation6_test: Crash
-native_field_optimization_test: Crash
-native_field_rename_1_frog_test: Crash
-native_field_rename_2_frog_test: Crash
 native_library_same_name_used_frog_test: CompileTimeError
 native_method_inlining_test: Crash
-native_method_rename1_frog_test: Crash
 native_mirror_test: Crash
 native_mixin_field_test: RuntimeError
 native_mixin_multiple3_test: Crash
@@ -172,15 +161,12 @@ native_named_constructors3_frog_test: CompileTimeError
 native_no_such_method_exception3_frog_test: Crash
 native_no_such_method_exception4_frog_test: Crash
 native_no_such_method_exception5_frog_test: Crash
-native_novel_html_test: Crash
-native_null_frog_test: Crash
 native_property_frog_test: CompileTimeError
-native_wrapping_function3_frog_test: Crash
-native_wrapping_function_frog_test: Crash
+native_wrapping_function3_frog_test: RuntimeError
 optimization_hints_test: Crash
 rti_only_native_test: Crash
 runtimetype_test: CompileTimeError
-subclassing_constructor_1_test: Crash
+subclassing_constructor_1_test: RuntimeError
 subclassing_constructor_2_test: RuntimeError
 subclassing_super_call_test: RuntimeError
 subclassing_super_field_1_test: RuntimeError
@@ -196,24 +182,14 @@ internal_library_test: Crash # NoSuchMethodError: The getter 'memberIndex' was c
 is_check_test: CompileTimeError
 load_elim_refinement_test: CompileTimeError
 mirror_intercepted_field_test: CompileTimeError
-native_call_arity1_frog_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'type'.
-native_call_arity3_frog_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'type'.
 native_class_inheritance1_frog_test: RuntimeError
 native_class_inheritance2_frog_test: RuntimeError
-native_class_inheritance3_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_class_inheritance4_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_class_with_dart_methods_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_closure_identity_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
+native_class_inheritance3_frog_test: RuntimeError
 native_exception2_test: RuntimeError
 native_exception_test: RuntimeError
 native_exceptions1_frog_test: CompileTimeError
-native_field_invocation6_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_field_optimization_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_field_rename_1_frog_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'type'.
-native_field_rename_2_frog_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'type'.
 native_library_same_name_used_frog_test: CompileTimeError
 native_method_inlining_test: Crash # NoSuchMethodError: The method 'accept' was called on null.
-native_method_rename1_frog_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'type'.
 native_mirror_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 native_mixin_field_test: RuntimeError
 native_mixin_multiple3_test: Crash # Assertion failure: Super constructor for k:constructor(D.) not found.
@@ -223,15 +199,12 @@ native_named_constructors3_frog_test: CompileTimeError
 native_no_such_method_exception3_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 native_no_such_method_exception4_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 native_no_such_method_exception5_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_novel_html_test: Crash # Assertion failure: Tag 'HTMLElement' already in use by 'Element'
-native_null_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 native_property_frog_test: CompileTimeError
-native_wrapping_function3_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-native_wrapping_function_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
+native_wrapping_function3_frog_test: RuntimeError
 optimization_hints_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 rti_only_native_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 runtimetype_test: CompileTimeError
-subclassing_constructor_1_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
+subclassing_constructor_1_test: RuntimeError
 subclassing_constructor_2_test: RuntimeError
 subclassing_super_call_test: RuntimeError
 subclassing_super_field_1_test: RuntimeError

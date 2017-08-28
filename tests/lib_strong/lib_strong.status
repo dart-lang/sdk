@@ -271,8 +271,6 @@ mirrors/library_enumeration_deferred_loading_test: RuntimeError # Issue 29922
 mirrors/library_metadata_test: RuntimeError # Issue 29922
 mirrors/library_uri_io_test: RuntimeError # Issue 29922
 mirrors/library_uri_package_test: RuntimeError # Issue 29922
-mirrors/list_constructor_test/01: RuntimeError # Issue 29922
-mirrors/list_constructor_test/none: RuntimeError # Issue 29922
 mirrors/local_function_is_static_test: RuntimeError # Issue 29922
 mirrors/local_isolate_test: RuntimeError # Issue 29922
 mirrors/metadata_constructed_constant_test: RuntimeError # Issue 29922
@@ -338,6 +336,8 @@ convert/streamed_conversion_utf8_encode_test: RuntimeError # Issue 29922, strong
 html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure
 html/indexeddb_2_test: RuntimeError, Timeout # Issue 29922, strong mode cast failure
 html/xhr_test/xhr: RuntimeError # Issue 29922, strong mode cast failure
+
+html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
 
 [ $compiler == dartdevc && $runtime == chrome ]
 html/css_test: RuntimeError # Issue 29922

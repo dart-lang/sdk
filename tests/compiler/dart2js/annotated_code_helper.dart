@@ -10,7 +10,7 @@ const Pattern atBraceStart = '@{';
 const Pattern braceEnd = '}';
 
 final Pattern commentStart = new RegExp(r'/\*');
-final Pattern commentEnd = new RegExp(r'\*/ *');
+final Pattern commentEnd = new RegExp(r'\*/\s*');
 
 class Annotation {
   /// 1-based line number of the annotation.

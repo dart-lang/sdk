@@ -18,10 +18,10 @@ import 'to_html.dart' as to_html;
 /**
  * Generate all targets.
  */
-main() {
+main() async {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
   String pkgPath = normalize(join(dirname(script), '..', '..'));
-  GeneratedContent.generateAll(pkgPath, allTargets);
+  await GeneratedContent.generateAll(pkgPath, allTargets);
 }
 
 /**

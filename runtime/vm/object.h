@@ -4047,10 +4047,16 @@ class Library : public Object {
 
   static RawLibrary* New();
 
+  // These methods are only used by the Precompiler to obfuscate
+  // the name and url.
+  void set_name(const String& name) const;
+  void set_url(const String& url) const;
+
   void set_num_imports(intptr_t value) const;
   bool HasExports() const;
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
   RawGrowableObjectArray* metadata() const { return raw_ptr()->metadata_; }
+  void set_metadata(const GrowableObjectArray& value) const;
   RawArray* dictionary() const { return raw_ptr()->dictionary_; }
   void InitClassDictionary() const;
 
@@ -4128,6 +4134,7 @@ class Namespace : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Namespace, Object);
   friend class Class;
+  friend class Precompiler;
 };
 
 // ObjectPool contains constants, immediates and addresses embedded in code
@@ -5660,6 +5667,7 @@ class Instance : public Object {
   friend class InstanceDeserializationCluster;
   friend class ClassDeserializationCluster;  // vtable
   friend class InstanceMorpher;
+  friend class Obfuscator;  // RawGetFieldAtOffset, RawSetFieldAtOffset
 };
 
 class LibraryPrefix : public Instance {

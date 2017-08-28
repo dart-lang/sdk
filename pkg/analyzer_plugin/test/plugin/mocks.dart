@@ -49,9 +49,12 @@ class MockAnalysisDriver extends AnalysisDriver {
 class MockChannel implements PluginCommunicationChannel {
   bool _closed = false;
 
-  void Function(Request) _onRequest;
-  Function _onError;
   void Function() _onDone;
+  Function _onError;
+  void Function(Notification) _onNotification;
+  void Function(Request) _onRequest;
+
+  List<Notification> sentNotifications = <Notification>[];
 
   int idCounter = 0;
 
@@ -64,10 +67,11 @@ class MockChannel implements PluginCommunicationChannel {
 
   @override
   void listen(void onRequest(Request request),
-      {Function onError, void onDone()}) {
-    _onRequest = onRequest;
-    _onError = onError;
+      {void onDone(), Function onError, Function onNotification}) {
     _onDone = onDone;
+    _onError = onError;
+    _onNotification = onNotification;
+    _onRequest = onRequest;
   }
 
   void sendDone() {
@@ -83,10 +87,16 @@ class MockChannel implements PluginCommunicationChannel {
     if (_closed) {
       throw new StateError('Sent a notification to a closed channel');
     }
-    fail('Unexpected invocation of sendNotification');
+    if (_onNotification == null) {
+      fail('Unexpected invocation of sendNotification');
+    }
+    _onNotification(notification);
   }
 
   Future<Response> sendRequest(RequestParams params) {
+    if (_onRequest == null) {
+      fail('Unexpected invocation of sendNotification');
+    }
     String id = (idCounter++).toString();
     Request request = params.toRequest(id);
     Completer<Response> completer = new Completer<Response>();

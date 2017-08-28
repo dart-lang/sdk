@@ -2065,35 +2065,35 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     createParser('abstract C.c();');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
+    assertErrorsWithCodes([ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
   }
 
   void test_abstractClassMember_field() {
     createParser('abstract C f;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
+    assertErrorsWithCodes([ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
   }
 
   void test_abstractClassMember_getter() {
     createParser('abstract get m;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
+    assertErrorsWithCodes([ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
   }
 
   void test_abstractClassMember_method() {
     createParser('abstract m();');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
+    assertErrorsWithCodes([ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
   }
 
   void test_abstractClassMember_setter() {
     createParser('abstract set m(v);');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
+    assertErrorsWithCodes([ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
   }
 
   void test_abstractEnum() {
@@ -7801,7 +7801,7 @@ abstract class FormalParameterParserTestMixin
     expect(parameter, isNotNull);
     if (usingFastaParser) {
       // TODO(danrubel): should not be generating an error
-      assertErrorsWithCodes([ParserErrorCode.UNEXPECTED_TOKEN]);
+      assertErrorsWithCodes([ParserErrorCode.EXTRANEOUS_MODIFIER]);
     } else {
       assertNoErrors();
     }
@@ -7819,7 +7819,7 @@ abstract class FormalParameterParserTestMixin
     expect(parameter, isNotNull);
     if (usingFastaParser) {
       // TODO(danrubel): should not be generating an error
-      assertErrorsWithCodes([ParserErrorCode.UNEXPECTED_TOKEN]);
+      assertErrorsWithCodes([ParserErrorCode.EXTRANEOUS_MODIFIER]);
     } else {
       assertNoErrors();
     }
@@ -8179,7 +8179,7 @@ abstract class FormalParameterParserTestMixin
     expect(parameter, isNotNull);
     if (usingFastaParser) {
       // TODO(danrubel): should not be generating an error
-      assertErrorsWithCodes([ParserErrorCode.UNEXPECTED_TOKEN]);
+      assertErrorsWithCodes([ParserErrorCode.EXTRANEOUS_MODIFIER]);
     } else {
       assertNoErrors();
     }
@@ -8195,7 +8195,7 @@ abstract class FormalParameterParserTestMixin
     expect(parameter, isNotNull);
     if (usingFastaParser) {
       // TODO(danrubel): should not be generating an error
-      assertErrorsWithCodes([ParserErrorCode.UNEXPECTED_TOKEN]);
+      assertErrorsWithCodes([ParserErrorCode.EXTRANEOUS_MODIFIER]);
     } else {
       assertNoErrors();
     }

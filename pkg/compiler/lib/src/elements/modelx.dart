@@ -3413,16 +3413,21 @@ class JumpTargetX extends JumpTarget<Node> {
   MemberElement get memberContext => executableContext.memberContext;
 
   LabelDefinition<Node> addLabel(Label label, String labelName,
-      {bool isBreakTarget: false}) {
+      {bool isBreakTarget: false, bool isContinueTarget: false}) {
     LabelDefinitionX result = new LabelDefinitionX(label, labelName, this);
     labels.add(result);
     if (isBreakTarget) {
       result.setBreakTarget();
     }
+    if (isContinueTarget) {
+      result.setContinueTarget();
+    }
     return result;
   }
 
   bool get isSwitch => statement is SwitchStatement;
+
+  bool get isSwitchCase => statement is SwitchCase;
 
   String toString() => 'Target:$statement';
 }

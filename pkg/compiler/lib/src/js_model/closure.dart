@@ -165,7 +165,10 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       entity = constructorBody.constructor;
     }
 
-    return _scopeMap[entity] ?? getClosureInfoForMember(entity);
+    ScopeInfo scopeInfo = _scopeMap[entity];
+    assert(
+        scopeInfo != null, failedAt(entity, "Missing scope info for $entity."));
+    return scopeInfo;
   }
 
   // TODO(efortuna): Eventually capturedScopesMap[node] should always
@@ -208,17 +211,6 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
         "Corresponding closure class not found for $node. "
         "Closures found for ${_localClosureRepresentationMap.keys}");
     return closure;
-  }
-
-  @override
-  ClosureRepresentationInfo getClosureInfoForMemberTesting(
-      MemberEntity entity) {
-    return _memberClosureRepresentationMap[entity];
-  }
-
-  @override
-  ClosureRepresentationInfo getClosureInfoForTesting(ir.Node node) {
-    return _localClosureRepresentationMap[node];
   }
 }
 
@@ -372,21 +364,10 @@ class KernelClosureClass extends JsScopeInfo
       this.closureClassEntity,
       ir.FunctionNode closureSourceNode,
       KernelScopeInfo info,
-      KernelToLocalsMap localsMap)
-      : closureEntity = closureSourceNode.parent is ir.Member
-            ? null
-            // TODO(johnniwinther,efortuna): This is the only place we call
-            // [getLocalFunction]. Therefore the [closureEntity] doesn't need
-            // to be derived from the node.
-            //
-            // What we should do instead: If `closureSourceNode.parent` is
-            // an [ir.FunctionDeclaration] we should use the local for its
-            // variable. If `closureSourceNode.parent` is an
-            // [ir.FunctionExpression], we should create a fresh local.
-            : localsMap.getLocalFunction(closureSourceNode.parent),
-        thisLocal =
-            info.hasThisLocal ? new ThisLocal(localsMap.currentMember) : null,
-        super.from(info, localsMap);
+      KernelToLocalsMap localsMap,
+      this.closureEntity,
+      this.thisLocal)
+      : super.from(info, localsMap);
 
   List<Local> get createdFieldEntities => localToFieldMap.keys.toList();
 
@@ -399,14 +380,14 @@ class KernelClosureClass extends JsScopeInfo
   @override
   void forEachBoxedVariable(f(Local local, JField field)) {
     for (Local l in localToFieldMap.keys) {
-      if (localToFieldMap[l] is JBoxedField) f(l, localToFieldMap[l]);
+      if (localToFieldMap[l] is JRecordField) f(l, localToFieldMap[l]);
     }
   }
 
   void forEachFreeVariable(f(Local variable, JField field)) {
     for (Local l in localToFieldMap.keys) {
       var jField = localToFieldMap[l];
-      if (jField is! JBoxedField && jField is! BoxLocal) f(l, jField);
+      if (jField is! JRecordField && jField is! BoxLocal) f(l, jField);
     }
   }
 
@@ -448,18 +429,39 @@ class JClosureField extends JField {
             isStatic: false);
 }
 
-/// A ClosureField that has been "boxed" to prevent name shadowing with the
+/// A container for variables declared in a particular scope that are accessed
+/// elsewhere.
+// TODO(efortuna, johnniwinther): Don't implement JClass. This isn't actually a
+// class.
+class JRecord implements JClass {
+  final JLibrary library;
+  final String name;
+
+  /// Index into the classData, classList and classEnvironment lists where this
+  /// entity is stored in [JsToFrontendMapImpl].
+  final int classIndex;
+
+  JRecord(this.library, this.classIndex, this.name);
+
+  bool get isAbstract => false;
+
+  bool get isClosure => false;
+
+  String toString() => '${jsElementPrefix}record_container($name)';
+}
+
+/// A variable that has been "boxed" to prevent name shadowing with the
 /// original variable and ensure that this variable is updated/read with the
 /// most recent value.
 /// This corresponds to BoxFieldElement; we reuse BoxLocal from the original
 /// algorithm to correspond to the actual name of the variable.
-class JBoxedField extends JField {
+class JRecordField extends JField {
   final BoxLocal box;
-  JBoxedField(String name, int memberIndex, this.box, JClass containingClass,
-      bool isConst, bool isAssignable)
+  JRecordField(String name, int memberIndex, this.box, JClass containingClass,
+      bool isConst)
       : super(memberIndex, containingClass.library, containingClass,
             new Name(name, containingClass.library),
-            isAssignable: isAssignable, isConst: isConst);
+            isStatic: false, isAssignable: true, isConst: isConst);
 }
 
 class ClosureClassDefinition implements ClassDefinition {
@@ -557,6 +559,21 @@ class ClosureMemberDefinition implements MemberDefinition {
 
   String toString() =>
       'ClosureMemberDefinition(kind:$kind,member:$member,location:$location)';
+}
+
+class RecordContainerDefinition implements ClassDefinition {
+  final ClassEntity cls;
+  final SourceSpan location;
+
+  RecordContainerDefinition(this.cls, this.location);
+
+  ClassKind get kind => ClassKind.record;
+
+  ir.Node get node =>
+      throw new UnsupportedError('RecordContainerDefinition.node for $cls');
+
+  String toString() =>
+      'RecordContainerDefinition(kind:$kind,cls:$cls,location:$location)';
 }
 
 /// Collection of scope data collected for a single member.

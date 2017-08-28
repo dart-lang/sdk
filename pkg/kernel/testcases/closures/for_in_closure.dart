@@ -6,8 +6,9 @@ const numbers = const <int>[0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 main() {
   var closures = [];
+  var captured_outside = 0;
   for (int i in numbers) {
-    closures.add(() => i);
+    closures.add(() => i + captured_outside);
   }
   int sum = 0;
   for (Function f in closures) {

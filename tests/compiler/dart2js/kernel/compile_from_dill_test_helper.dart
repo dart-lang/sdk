@@ -164,9 +164,20 @@ main() {
     if (i == 7) break;
     i++;
   } while (i < 10);
-  outer: for (var a in [3, 5]) {
+  outer1: for (var a in [3, 5]) {
     for (var b in [2, 4]) {
-      if (a == b) break outer;
+      if (a == b) break outer1;
+    }
+  }
+  outer2: for (var a in [3, 5]) {
+    for (var b in [2, 4]) {
+      if (a != b) continue outer2;
+    }
+  }
+  outer3: for (var a in [3, 5]) {
+    for (var b in [2, 4]) {
+      if (a == b) break outer3;
+      if (a != b) continue outer3;
     }
   }
   print(x);
@@ -300,6 +311,43 @@ Future<ResultKind> runTest(
       options: <String>[]..addAll(commonOptions)..addAll(options),
       printSteps: true,
       compilerOutput: collector2);
+
+  // Print the middle section of the outputs if they are not line-wise
+  // identical.
+  collector1.outputMap
+      .forEach((OutputType outputType, Map<String, BufferedOutputSink> map1) {
+    if (outputType == OutputType.sourceMap) {
+      return;
+    }
+    Map<String, BufferedOutputSink> map2 = collector2.outputMap[outputType];
+    checkSets(map1.keys, map2.keys, 'output', equality);
+    map1.forEach((String name, BufferedOutputSink output1) {
+      BufferedOutputSink output2 = map2[name];
+      if (output1.text == output2.text) return;
+      List<String> lines1 = output1.text.split('\n');
+      List<String> lines2 = output2.text.split('\n');
+      int prefix = 0;
+      while (prefix < lines1.length && prefix < lines2.length) {
+        if (lines1[prefix] != lines2[prefix]) {
+          break;
+        }
+        prefix++;
+      }
+      int suffix1 = lines1.length - 1;
+      int suffix2 = lines2.length - 1;
+      while (suffix1 >= 0 && suffix2 >= 0) {
+        if (lines1[suffix1] != lines2[suffix2]) {
+          break;
+        }
+        suffix1--;
+        suffix2--;
+      }
+      print('--- from source, lines [${prefix}-${suffix1}] ------------------');
+      lines1.sublist(prefix, suffix1 + 1).forEach(print);
+      print('--- from dill, lines [${prefix}-${suffix2}] --------------------');
+      lines2.sublist(prefix, suffix2 + 1).forEach(print);
+    });
+  });
 
   KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
   KernelToElementMap elementMap = frontendStrategy.elementMap;

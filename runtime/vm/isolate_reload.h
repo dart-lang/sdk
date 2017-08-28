@@ -34,6 +34,8 @@ DECLARE_FLAG(bool, trace_reload_verbose);
   if (FLAG_trace_reload_verbose) Log::Current()->Print(format, ##__VA_ARGS__)
 #endif
 
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
 namespace dart {
 
 class BitVector;
@@ -358,5 +360,7 @@ class IsolateReloadContext {
 };
 
 }  // namespace dart
+
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #endif  // RUNTIME_VM_ISOLATE_RELOAD_H_

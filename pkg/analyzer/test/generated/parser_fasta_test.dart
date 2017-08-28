@@ -137,32 +137,8 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
   @override
   @failingTest
-  void test_abstractClassMember_constructor() {
-    super.test_abstractClassMember_constructor();
-  }
-
-  @override
-  @failingTest
   void test_abstractClassMember_field() {
     super.test_abstractClassMember_field();
-  }
-
-  @override
-  @failingTest
-  void test_abstractClassMember_getter() {
-    super.test_abstractClassMember_getter();
-  }
-
-  @override
-  @failingTest
-  void test_abstractClassMember_method() {
-    super.test_abstractClassMember_method();
-  }
-
-  @override
-  @failingTest
-  void test_abstractClassMember_setter() {
-    super.test_abstractClassMember_setter();
   }
 
   @override
@@ -2261,6 +2237,11 @@ class FastaParserTestCase extends Object
 
   @override
   void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
+    expectedErrorCodes = expectedErrorCodes.map((code) {
+      if (code == ParserErrorCode.ABSTRACT_CLASS_MEMBER)
+        return ParserErrorCode.EXTRANEOUS_MODIFIER;
+      return code;
+    }).toList();
     _parserProxy._errorListener.assertErrorsWithCodes(expectedErrorCodes);
   }
 

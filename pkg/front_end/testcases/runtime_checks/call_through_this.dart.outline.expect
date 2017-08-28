@@ -24,7 +24,7 @@ class D extends self::C<core::int> {
 class E extends self::C<core::num> {
   default constructor •() → void
     ;
-  method f(core::int x) → void
+  method f(covariant core::int x) → void
     ;
 }
 static method test() → dynamic

@@ -118,6 +118,8 @@ class CodeGenerator extends Object
       new HashMap<ParameterElement, JS.TemporaryId>();
 
   JS.Identifier _extensionSymbolsModule;
+  final _extensionSymbols = new Map<String, JS.TemporaryId>();
+
   JS.Identifier _runtimeModule;
   final namedArgumentTemp = new JS.TemporaryId('opts');
 
@@ -143,6 +145,7 @@ class CodeGenerator extends Object
 
   final ClassElement boolClass;
   final ClassElement intClass;
+  final ClassElement doubleClass;
   final ClassElement interceptorClass;
   final ClassElement nullClass;
   final ClassElement numClass;
@@ -150,6 +153,7 @@ class CodeGenerator extends Object
   final ClassElement stringClass;
   final ClassElement functionClass;
   final ClassElement privateSymbolClass;
+  final PropertyAccessorElement _undefinedConstant;
 
   ConstFieldVisitor _constants;
 
@@ -216,6 +220,7 @@ class CodeGenerator extends Object
         dartCoreLibrary = _getLibrary(c, 'dart:core'),
         boolClass = _getLibrary(c, 'dart:core').getType('bool'),
         intClass = _getLibrary(c, 'dart:core').getType('int'),
+        doubleClass = _getLibrary(c, 'dart:core').getType('double'),
         numClass = _getLibrary(c, 'dart:core').getType('num'),
         nullClass = _getLibrary(c, 'dart:core').getType('Null'),
         objectClass = _getLibrary(c, 'dart:core').getType('Object'),
@@ -223,7 +228,10 @@ class CodeGenerator extends Object
         functionClass = _getLibrary(c, 'dart:core').getType('Function'),
         privateSymbolClass =
             _getLibrary(c, 'dart:_internal').getType('PrivateSymbol'),
-        dartJSLibrary = _getLibrary(c, 'dart:js') {
+        dartJSLibrary = _getLibrary(c, 'dart:js'),
+        _undefinedConstant =
+            _getLibrary(c, 'dart:_runtime').publicNamespace.get('undefined') {
+    assert(_undefinedConstant != null);
     typeRep = new JSTypeRep(rules, types);
   }
 
@@ -316,6 +324,7 @@ class CodeGenerator extends Object
 
     // Initialize our library variables.
     var items = <JS.ModuleItem>[];
+    var isBuildingSdk = false;
     for (var unit in compilationUnits) {
       var library =
           resolutionMap.elementDeclaredByCompilationUnit(unit).library;
@@ -331,6 +340,7 @@ class CodeGenerator extends Object
       // dart:_runtime has a magic module that holds extension method symbols.
       // TODO(jmesserly): find a cleaner design for this.
       if (isSdkInternalRuntime(library)) {
+        isBuildingSdk = true;
         items.add(new JS.ExportDeclaration(js
             .call('const # = Object.create(null)', [_extensionSymbolsModule])));
       }
@@ -370,6 +380,15 @@ class CodeGenerator extends Object
 
     // Declare imports
     _finishImports(items);
+    // Initialize extension symbols
+    _extensionSymbols.forEach((name, id) {
+      var value =
+          new JS.PropertyAccess(_extensionSymbolsModule, _propertyName(name));
+      if (isBuildingSdk) {
+        value = js.call('# = Symbol(#)', [value, js.string("dartx.$name")]);
+      }
+      items.add(js.statement('const # = #;', [id, value]));
+    });
 
     // Discharge the type table cache variables and
     // hoisted definitions.
@@ -593,7 +612,8 @@ class CodeGenerator extends Object
     for (var declaration in unit.declarations) {
       if (declaration is TopLevelVariableDeclaration) {
         inferNullableTypes(declaration);
-        if (isInternalSdk && declaration.variables.isFinal) {
+        if (isInternalSdk &&
+            (declaration.variables.isFinal || declaration.variables.isConst)) {
           _emitInternalSdkFields(declaration.variables.variables);
         } else {
           (fields ??= []).addAll(declaration.variables.variables);
@@ -846,8 +866,11 @@ class CodeGenerator extends Object
       block.add(js.statement('# = #;', [className, classExpr]));
     }
 
+    JS.Statement finishGenericTypeTest;
+
     if (!isMixinAlias) {
       block.addAll(_defineConstructors(classElem, className, [], []));
+      finishGenericTypeTest = _emitClassTypeTests(classElem, className, block);
     }
 
     if (classElem.interfaces.isNotEmpty) {
@@ -859,8 +882,10 @@ class CodeGenerator extends Object
     }
 
     if (isGeneric) {
-      return _defineClassTypeArguments(
-          classElem, typeFormals, _statement(block));
+      var classDef =
+          _defineClassTypeArguments(classElem, typeFormals, _statement(block));
+      if (finishGenericTypeTest == null) return classDef;
+      block = [classDef, finishGenericTypeTest];
     }
     return _statement(block);
   }
@@ -926,7 +951,6 @@ class CodeGenerator extends Object
         fields: allFields);
 
     var body = <JS.Statement>[];
-    _initExtensionSymbols(classElem, methods, fields, body);
     _emitSuperHelperSymbols(body);
 
     // Emit the class, e.g. `core.Object = class Object { ... }`
@@ -938,7 +962,7 @@ class CodeGenerator extends Object
     JS.Statement deferredBaseClass =
         _setBaseClass(classElem, className, jsPeerNames, body);
 
-    _emitClassTypeTests(classElem, className, body);
+    var finishGenericTypeTest = _emitClassTypeTests(classElem, className, body);
 
     _emitVirtualFieldSymbols(classElem, body);
     _emitClassSignature(methods, allFields, classElem, ctors, className, body);
@@ -955,6 +979,7 @@ class CodeGenerator extends Object
 
     body = <JS.Statement>[classDef];
     _emitStaticFields(staticFields, classElem, body);
+    if (finishGenericTypeTest != null) body.add(finishGenericTypeTest);
     for (var peer in jsPeerNames) {
       _registerExtensionType(classElem, peer, body);
     }
@@ -963,206 +988,222 @@ class CodeGenerator extends Object
     return _statement(body);
   }
 
-  void _emitClassTypeTests(ClassElement classElem, JS.Expression className,
-      List<JS.Statement> body) {
-    if (classElem == objectClass) {
-      // We rely on ES6 static inheritance.  All types that are represented by
-      // class constructor functions will see these definitions, with [this]
-      // being bound to the class constructor.
-
-      // The 'instanceof' checks don't work for primitive types (which have fast
-      // definitions below) and don't work for native types. In those cases we
-      // fall through to the general purpose checking code.
-      body.add(js.statement(
-          '#.is = function is_Object(o) {'
-          '  if (o instanceof this) return true;'
-          '  return #.is(o, this);'
-          '}',
-          [className, _runtimeModule]));
-      body.add(js.statement(
-          '#.as = function as_Object(o) {'
-          '  if (o == null || o instanceof this) return o;'
-          '  return #.as(o, this);'
-          '}',
-          [className, _runtimeModule]));
-      body.add(js.statement(
-          '#._check = function check_Object(o) {'
-          '  if (o == null || o instanceof this) return o;'
-          '  return #.check(o, this);'
-          '}',
-          [className, _runtimeModule]));
-      return;
-    }
-    if (classElem == stringClass) {
-      body.add(js.statement(
-          '#.is = function is_String(o) { return typeof o == "string"; }',
-          className));
-      body.add(js.statement(
-          '#.as = function as_String(o) {'
-          '  if (typeof o == "string" || o == null) return o;'
-          '  return #.as(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      body.add(js.statement(
-          '#._check = function check_String(o) {'
-          '  if (typeof o == "string" || o == null) return o;'
-          '  return #.check(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      return;
-    }
-    if (classElem == functionClass) {
-      body.add(js.statement(
-          '#.is = function is_Function(o) { return typeof o == "function"; }',
-          className));
-      body.add(js.statement(
-          '#.as = function as_Function(o) {'
-          '  if (typeof o == "function" || o == null) return o;'
-          '  return #.as(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      body.add(js.statement(
-          '#._check = function check_String(o) {'
-          '  if (typeof o == "function" || o == null) return o;'
-          '  return #.check(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      return;
-    }
-
-    if (classElem == intClass) {
-      body.add(js.statement(
-          '#.is = function is_int(o) {'
-          '  return typeof o == "number" && Math.floor(o) == o;'
-          '}',
-          className));
-      body.add(js.statement(
-          '#.as = function as_int(o) {'
-          '  if ((typeof o == "number" && Math.floor(o) == o) || o == null)'
-          '    return o;'
-          '  return #.as(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      body.add(js.statement(
-          '#._check = function check_int(o) {'
-          '  if ((typeof o == "number" && Math.floor(o) == o) || o == null)'
-          '    return o;'
-          '  return #.check(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      return;
-    }
-    if (classElem == nullClass) {
-      body.add(js.statement(
-          '#.is = function is_Null(o) { return o == null; }', className));
-      body.add(js.statement(
-          '#.as = function as_Null(o) {'
-          '  if (o == null) return o;'
-          '  return #.as(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      body.add(js.statement(
-          '#._check = function check_Null(o) {'
-          '  if (o == null) return o;'
-          '  return #.check(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      return;
-    }
-    if (classElem == numClass) {
-      body.add(js.statement(
-          '#.is = function is_num(o) { return typeof o == "number"; }',
-          className));
-      body.add(js.statement(
-          '#.as = function as_num(o) {'
-          '  if (typeof o == "number" || o == null) return o;'
-          '  return #.as(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      body.add(js.statement(
-          '#._check = function check_num(o) {'
-          '  if (typeof o == "number" || o == null) return o;'
-          '  return #.check(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      return;
-    }
-    if (classElem == boolClass) {
-      body.add(js.statement(
-          '#.is = function is_bool(o) { return o === true || o === false; }',
-          className));
-      body.add(js.statement(
-          '#.as = function as_bool(o) {'
-          '  if (o === true || o === false || o == null) return o;'
-          '  return #.as(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      body.add(js.statement(
-          '#._check = function check_bool(o) {'
-          '  if (o === true || o === false || o == null) return o;'
-          '  return #.check(o, #);'
-          '}',
-          [className, _runtimeModule, className]));
-      return;
-    }
-    // TODO(sra): Add special cases for hot tests like `x is html.Element`.
-
-    // `instanceof` check is futile for classes that are Interceptor classes.
-    ClassElement parent = classElem;
-    while (parent != objectClass) {
-      if (parent == interceptorClass) {
-        if (classElem == interceptorClass) {
-          // Place non-instanceof version of checks on Interceptor. All
-          // interceptor classes will inherit the methods via ES6 class static
-          // inheritance.
-          body.add(_callHelperStatement('addTypeTests(#);', className));
-
-          // TODO(sra): We could place on the extension type a pointer to the
-          // peer constructor and use that for the `instanceof` check, e.g.
-          //
-          //    if (o instanceof this[_peerConstructor]) return o;
-          //
+  JS.Statement _emitClassTypeTests(ClassElement classElem,
+      JS.Expression className, List<JS.Statement> body) {
+    JS.Expression getInterfaceSymbol(ClassElement c) {
+      var library = c.library;
+      if (library.isDartCore || library.isDartAsync) {
+        switch (c.name) {
+          case 'List':
+          case 'Map':
+          case 'Iterable':
+          case 'Future':
+          case 'Stream':
+          case 'StreamSubscription':
+            return _callHelper('is' + c.name);
         }
-        return;
       }
-      parent = parent.type.superclass.element;
+      return null;
     }
 
-    // Choose between 'simple' checks, which are often accelerated by
-    // `instanceof`, and other checks, which are slowed down by taking time to
-    // do an `instanceof` check that is futile or likely futile.
-    //
-    // The `instanceof` check is futile for (1) a class that is only used as a
-    // mixin, or (2) is only used as an interface in an `implements` clause, and
-    // is likely futile (3) if the class has type parameters, since `Foo` aka
-    // `Foo<dynamic>` is not a superclass of `Foo<int>`. The first two are
-    // whole-program properites, but we can check for the last case.
-
-    // Since ES6 classes have inheritance of static properties, we need only
-    // install checks that differ from the parent.
-
-    bool isSimple(ClassElement classElement) {
-      if (classElement.typeParameters.isNotEmpty) return false;
-      return true;
+    void markSubtypeOf(JS.Expression testSymbol) {
+      body.add(js.statement('#.prototype[#] = true', [className, testSymbol]));
     }
 
-    assert(classElem != objectClass);
-    bool thisIsSimple = isSimple(classElem);
-    bool superIsSimple = isSimple(classElem.type.superclass.element);
+    for (var iface in classElem.interfaces) {
+      var prop = getInterfaceSymbol(iface.element);
+      if (prop != null) markSubtypeOf(prop);
+    }
 
-    if (thisIsSimple == superIsSimple) return;
+    if (classElem.library.isDartCore) {
+      if (classElem == objectClass) {
+        // Everything is an Object.
+        body.add(js.statement(
+            '#.is = function is_Object(o) { return true; }', [className]));
+        body.add(js.statement(
+            '#.as = function as_Object(o) { return o; }', [className]));
+        body.add(js.statement(
+            '#._check = function check_Object(o) { return o; }', [className]));
+        return null;
+      }
+      if (classElem == stringClass) {
+        body.add(js.statement(
+            '#.is = function is_String(o) { return typeof o == "string"; }',
+            className));
+        body.add(js.statement(
+            '#.as = function as_String(o) {'
+            '  if (typeof o == "string" || o == null) return o;'
+            '  return #.as(o, #, false);'
+            '}',
+            [className, _runtimeModule, className]));
+        body.add(js.statement(
+            '#._check = function check_String(o) {'
+            '  if (typeof o == "string" || o == null) return o;'
+            '  return #.as(o, #, true);'
+            '}',
+            [className, _runtimeModule, className]));
+        return null;
+      }
+      if (classElem == functionClass) {
+        body.add(js.statement(
+            '#.is = function is_Function(o) { return typeof o == "function"; }',
+            className));
+        body.add(js.statement(
+            '#.as = function as_Function(o) {'
+            '  if (typeof o == "function" || o == null) return o;'
+            '  return #.as(o, #, false);'
+            '}',
+            [className, _runtimeModule, className]));
+        body.add(js.statement(
+            '#._check = function check_String(o) {'
+            '  if (typeof o == "function" || o == null) return o;'
+            '  return #.as(o, #, true);'
+            '}',
+            [className, _runtimeModule, className]));
+        return null;
+      }
+      if (classElem == intClass) {
+        body.add(js.statement(
+            '#.is = function is_int(o) {'
+            '  return typeof o == "number" && Math.floor(o) == o;'
+            '}',
+            className));
+        body.add(js.statement(
+            '#.as = function as_int(o) {'
+            '  if ((typeof o == "number" && Math.floor(o) == o) || o == null)'
+            '    return o;'
+            '  return #.as(o, #, false);'
+            '}',
+            [className, _runtimeModule, className]));
+        body.add(js.statement(
+            '#._check = function check_int(o) {'
+            '  if ((typeof o == "number" && Math.floor(o) == o) || o == null)'
+            '    return o;'
+            '  return #.as(o, #, true);'
+            '}',
+            [className, _runtimeModule, className]));
+        return null;
+      }
+      if (classElem == nullClass) {
+        body.add(js.statement(
+            '#.is = function is_Null(o) { return o == null; }', className));
+        body.add(js.statement(
+            '#.as = function as_Null(o) {'
+            '  if (o == null) return o;'
+            '  return #.as(o, #, false);'
+            '}',
+            [className, _runtimeModule, className]));
+        body.add(js.statement(
+            '#._check = function check_Null(o) {'
+            '  if (o == null) return o;'
+            '  return #.as(o, #, true);'
+            '}',
+            [className, _runtimeModule, className]));
+        return null;
+      }
+      if (classElem == numClass || classElem == doubleClass) {
+        body.add(js.statement(
+            '#.is = function is_num(o) { return typeof o == "number"; }',
+            className));
+        body.add(js.statement(
+            '#.as = function as_num(o) {'
+            '  if (typeof o == "number" || o == null) return o;'
+            '  return #.as(o, #, false);'
+            '}',
+            [className, _runtimeModule, className]));
+        body.add(js.statement(
+            '#._check = function check_num(o) {'
+            '  if (typeof o == "number" || o == null) return o;'
+            '  return #.as(o, #, true);'
+            '}',
+            [className, _runtimeModule, className]));
+        return null;
+      }
+      if (classElem == boolClass) {
+        body.add(js.statement(
+            '#.is = function is_bool(o) { return o === true || o === false; }',
+            className));
+        body.add(js.statement(
+            '#.as = function as_bool(o) {'
+            '  if (o === true || o === false || o == null) return o;'
+            '  return #.as(o, #, false);'
+            '}',
+            [className, _runtimeModule, className]));
+        body.add(js.statement(
+            '#._check = function check_bool(o) {'
+            '  if (o === true || o === false || o == null) return o;'
+            '  return #.as(o, #, true);'
+            '}',
+            [className, _runtimeModule, className]));
+        return null;
+      }
+    }
+    if (classElem.library.isDartAsync) {
+      if (classElem == types.futureOrType.element) {
+        var typeParamT = classElem.typeParameters[0].type;
+        var typeT = _emitType(typeParamT);
+        var futureOrT = _emitType(types.futureType.instantiate([typeParamT]));
+        body.add(js.statement('''
+            #.is = function is_FutureOr(o) {
+              return #.is(o) || #.is(o);
+            }
+            ''', [className, typeT, futureOrT]));
+        // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
+        // _ignoreTypeFailure logic.
+        body.add(js.statement('''
+            #.as = function as_FutureOr(o) {
+              if (o == null || #.is(o) || #.is(o)) return o;
+              return #.as(o, this, false);
+            }
+            ''', [className, typeT, futureOrT, _runtimeModule]));
+        body.add(js.statement('''
+            #._check = function check_FutureOr(o) {
+              if (o == null || #.is(o) || #.is(o)) return o;
+              return #.as(o, this, true);
+            }
+            ''', [className, typeT, futureOrT, _runtimeModule]));
+        return null;
+      }
+    }
 
-    if (thisIsSimple) {
-      body.add(_callHelperStatement('addSimpleTypeTests(#);', className));
-    } else {
-      body.add(_callHelperStatement('addTypeTests(#);', className));
+    body.add(_callHelperStatement('addTypeTests(#);', [className]));
+
+    if (classElem.typeParameters.isEmpty) return null;
+
+    // For generics, testing against the default instantiation is common,
+    // so optimize that.
+    var isClassSymbol = getInterfaceSymbol(classElem);
+    if (isClassSymbol == null) {
+      // TODO(jmesserly): we could export these symbols, if we want to mark
+      // implemented interfaces for user-defined classes.
+      var id = new JS.TemporaryId("_is_${classElem.name}_default");
+      _moduleItems.add(
+          js.statement('const # = Symbol(#);', [id, js.string(id.name, "'")]));
+      isClassSymbol = id;
+    }
+    // Marking every generic type instantiation as a subtype of its default
+    // instantiation.
+    markSubtypeOf(isClassSymbol);
+
+    // Define the type tests on the default instantiation to check for that
+    // marker.
+    var defaultInst = _emitTopLevelName(classElem);
+
+    // Return this `addTypeTests` call so we can emit it outside of the generic
+    // type parameter scope.
+    return _callHelperStatement(
+        'addTypeTests(#, #);', [defaultInst, isClassSymbol]);
+  }
+
+  void _emitSymbols(Iterable<JS.TemporaryId> vars, List<JS.ModuleItem> body) {
+    for (var id in vars) {
+      body.add(js.statement('const # = Symbol(#)', [id, js.string(id.name)]));
     }
   }
 
   void _emitSuperHelperSymbols(List<JS.Statement> body) {
-    for (var id in _superHelpers.values.map((m) => m.name as JS.TemporaryId)) {
-      body.add(js.statement('const # = Symbol(#)', [id, js.string(id.name)]));
-    }
+    _emitSymbols(
+        _superHelpers.values.map((m) => m.name as JS.TemporaryId), body);
     _superHelpers.clear();
   }
 
@@ -1288,6 +1329,7 @@ class CodeGenerator extends Object
     }
     var genericDef = js.statement(
         '# = #;', [_emitTopLevelName(element, suffix: r'$'), genericCall]);
+    // TODO(jmesserly): this should be instantiate to bounds
     var dynType = fillDynamicTypeArgs(element.type);
     var genericInst = _emitType(dynType, lowerGeneric: true);
     return js.statement(
@@ -1846,6 +1888,14 @@ class CodeGenerator extends Object
         : callMethod != null;
 
     var body = <JS.Statement>[];
+    if (isCallable) {
+      // Our class instances will have JS `typeof this == "function"`,
+      // so make sure to attach the runtime type information the same way
+      // we would do it for function types.
+      body.add(js.statement('#.prototype[#] = #;',
+          [className, _callHelper('_runtimeType'), className]));
+    }
+
     void addConstructor(ConstructorElement element, JS.Expression jsCtor) {
       var ctorName = _constructorName(element);
       if (JS.invalidStaticFieldName(element.name)) {
@@ -2127,38 +2177,6 @@ class CodeGenerator extends Object
     }
   }
 
-  /// Ensure `dartx.` symbols we will use are present.
-  void _initExtensionSymbols(
-      ClassElement classElem,
-      List<MethodDeclaration> methods,
-      List<FieldDeclaration> fields,
-      List<JS.Statement> body) {
-    if (_extensionTypes.hasNativeSubtype(classElem.type)) {
-      var dartxNames = <JS.Expression>[];
-      for (var m in methods) {
-        if (!m.isAbstract &&
-            !m.isStatic &&
-            resolutionMap.elementDeclaredByMethodDeclaration(m).isPublic) {
-          dartxNames.add(_declareMemberName(m.element, useExtension: false));
-        }
-      }
-      for (var fieldDecl in fields) {
-        if (!fieldDecl.isStatic) {
-          for (var field in fieldDecl.fields.variables) {
-            var e = field.element as FieldElement;
-            if (e.isPublic) {
-              dartxNames.add(_declareMemberName(e.getter, useExtension: false));
-            }
-          }
-        }
-      }
-      if (dartxNames.isNotEmpty) {
-        body.add(_callHelperStatement('defineExtensionNames(#)',
-            [new JS.ArrayInitializer(dartxNames, multiline: true)]));
-      }
-    }
-  }
-
   JS.Expression _emitConstructor(ConstructorDeclaration node,
       List<FieldDeclaration> fields, bool isCallable, JS.Expression className) {
     var params = _emitFormalParameterList(node.parameters);
@@ -2411,25 +2429,38 @@ class CodeGenerator extends Object
     for (var param in parameters.parameters) {
       var jsParam = _emitSimpleIdentifier(param.identifier);
 
-      if (!options.destructureNamedParams) {
+      if (!options.destructureNamedParams &&
+          param.kind != ParameterKind.REQUIRED) {
         if (param.kind == ParameterKind.NAMED) {
           // Parameters will be passed using their real names, not the (possibly
           // renamed) local variable.
           var paramName = js.string(param.identifier.name, "'");
-
-          // TODO(ochafik): Fix `'prop' in obj` to please Closure's renaming.
-          body.add(js.statement('let # = # && # in # ? #.# : #;', [
-            jsParam,
-            namedArgumentTemp,
-            paramName,
-            namedArgumentTemp,
-            namedArgumentTemp,
-            paramName,
-            _defaultParamValue(param),
-          ]));
+          var defaultValue = _defaultParamValue(param);
+          if (defaultValue != null) {
+            // TODO(ochafik): Fix `'prop' in obj` to please Closure's renaming.
+            body.add(js.statement('let # = # && # in # ? #.# : #;', [
+              jsParam,
+              namedArgumentTemp,
+              paramName,
+              namedArgumentTemp,
+              namedArgumentTemp,
+              paramName,
+              defaultValue,
+            ]));
+          } else {
+            body.add(js.statement('let # = # && #.#;', [
+              jsParam,
+              namedArgumentTemp,
+              namedArgumentTemp,
+              paramName,
+            ]));
+          }
         } else if (param.kind == ParameterKind.POSITIONAL) {
-          body.add(js.statement('if (# === void 0) # = #;',
-              [jsParam, jsParam, _defaultParamValue(param)]));
+          var defaultValue = _defaultParamValue(param);
+          if (defaultValue != null) {
+            body.add(js.statement(
+                'if (# === void 0) # = #;', [jsParam, jsParam, defaultValue]));
+          }
         }
       }
 
@@ -2453,10 +2484,16 @@ class CodeGenerator extends Object
 
   JS.Expression _defaultParamValue(FormalParameter param) {
     if (param is DefaultFormalParameter && param.defaultValue != null) {
-      return _visit(param.defaultValue);
+      var defaultValue = param.defaultValue;
+      return _isJSUndefined(defaultValue) ? null : _visit(defaultValue);
     } else {
       return new JS.LiteralNull();
     }
+  }
+
+  bool _isJSUndefined(Expression expr) {
+    expr = expr is AsExpression ? expr.expression : expr;
+    return expr is Identifier && expr.staticElement == _undefinedConstant;
   }
 
   JS.Fun _emitNativeFunctionBody(MethodDeclaration node) {
@@ -3919,18 +3956,19 @@ class CodeGenerator extends Object
           } else {
             name = _visit(param.identifier);
           }
+
+          var defaultValue = _defaultParamValue(param);
           namedVars.add(new JS.DestructuredVariable(
-              name: name,
-              structure: structure,
-              defaultValue: _defaultParamValue(param)));
+              name: name, structure: structure, defaultValue: defaultValue));
         } else {
           needsOpts = true;
         }
       } else {
         var jsParam = _visit(param);
-        result.add(param is DefaultFormalParameter && destructure
+        var defaultValue = _defaultParamValue(param);
+        result.add(destructure && defaultValue != null
             ? new JS.DestructuredVariable(
-                name: jsParam, defaultValue: _defaultParamValue(param))
+                name: jsParam, defaultValue: defaultValue)
             : jsParam);
       }
     }
@@ -4038,7 +4076,7 @@ class CodeGenerator extends Object
   }
 
   /// This is not used--we emit top-level fields as we are emitting the
-  /// compilation unit, see [_emitCompilationUnit].
+  /// compilation unit, see [visitCompilationUnit].
   @override
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     assert(false);
@@ -4099,6 +4137,9 @@ class CodeGenerator extends Object
   // TODO(jmesserly): it'd be nice to avoid this special case.
   void _emitInternalSdkFields(List<VariableDeclaration> fields) {
     for (var field in fields) {
+      // Skip our magic undefined constant.
+      var element = field.element as TopLevelVariableElement;
+      if (element.getter == _undefinedConstant) continue;
       _moduleItems.add(annotate(
           js.statement('# = #;',
               [_emitTopLevelName(field.element), _visitInitializer(field)]),
@@ -5626,13 +5667,11 @@ class CodeGenerator extends Object
         break;
     }
 
-    var result = _propertyName(name);
-
-    useExtension ??= _isSymbolizedMember(type, name);
-
-    return useExtension
-        ? js.call('#.#', [_extensionSymbolsModule, result])
-        : result;
+    if (useExtension ?? _isSymbolizedMember(type, name)) {
+      return _extensionSymbols.putIfAbsent(name,
+          () => new JS.TemporaryId('\$${_friendlyOperatorName[name] ?? name}'));
+    }
+    return _propertyName(name);
   }
 
   var _forwardingCache = new HashMap<Element, Map<String, ExecutableElement>>();
@@ -6044,3 +6083,23 @@ bool _isDeferredLoadLibrary(Expression target, SimpleIdentifier name) {
 
 bool _annotatedNullCheck(Element e) =>
     e != null && findAnnotation(e, isNullCheckAnnotation) != null;
+
+final _friendlyOperatorName = {
+  '<': 'lessThan',
+  '>': 'greaterThan',
+  '<=': 'lessOrEquals',
+  '>=': 'greaterOrEquals',
+  '==': 'equals',
+  '-': 'minus',
+  '+': 'plus',
+  '/': 'divide',
+  '~/': 'floorDivide',
+  '*': 'times',
+  '%': 'modulo',
+  '|': 'bitOr',
+  '^': 'bitXor',
+  '&': 'bitAnd',
+  '<<': 'leftShift',
+  '>>': 'rightShift',
+  '~': 'bitNot'
+};

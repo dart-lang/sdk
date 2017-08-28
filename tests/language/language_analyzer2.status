@@ -4,8 +4,6 @@
 
 [ $compiler == dart2analyzer ]
 
-generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
-generic_local_functions_test: CompileTimeError # Issue 28515
 
 regress_26668_test: Fail # Issue 26678
 regress_27617_test/1: MissingCompileTimeError
@@ -64,7 +62,6 @@ final_syntax_test/01: Fail # Issue 11124
 final_syntax_test/04: Fail # Issue 11124
 final_syntax_test/02: Fail # Issue 11124
 final_syntax_test/03: Fail # Issue 11124
-get_set_syntax_test/none: fail # Issue 11575
 implicit_this_test/none: fail # Issue 11575
 interface_test/none: fail # Issue 11575
 syntax_test/none: fail # Issue 11575
@@ -171,9 +168,6 @@ function_subtype_inline1_test: StaticWarning
 function_type2_test: StaticWarning
 function_type_parameter2_negative_test: CompileTimeError
 function_type_parameter_negative_test: CompileTimeError
-generic_list_checked_test: StaticWarning
-generics_test: StaticWarning
-generic_test: StaticWarning
 getter_declaration_negative_test: CompileTimeError
 getter_no_setter2_test/01: StaticWarning
 getter_no_setter_test/01: StaticWarning

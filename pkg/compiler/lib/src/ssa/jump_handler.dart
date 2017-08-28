@@ -99,7 +99,7 @@ class TargetJumpHandler implements JumpHandler {
       continueInstruction = new HContinue.toLabel(label);
       // Switch case continue statements must be handled by the
       // [SwitchCaseJumpHandler].
-      assert(label.target.statement is! ast.SwitchCase);
+      assert(!label.target.isSwitchCase);
     }
     LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
     builder.close(continueInstruction);

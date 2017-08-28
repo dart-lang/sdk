@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:compiler/src/commandline_options.dart';
+import 'dart:io';
+
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
@@ -43,7 +44,7 @@ Future<Compiler> compileFromDill(
   Compiler compiler = await compileWithDill(
       entryPoint: mainUri,
       memorySourceFiles: {'main.dart': code.sourceCode},
-      options: [Flags.disableTypeInference]..addAll(options),
+      options: options,
       beforeRun: (Compiler compiler) {
         compiler.stopAfterTypeInference = true;
       });
@@ -125,9 +126,8 @@ class IdData {
   String get diffCode {
     Map<int, String> annotations = <int, String>{};
     actualMap.forEach((Id id, ActualData data) {
-      String expected = expectedMap[id];
+      String expected = expectedMap[id] ?? '';
       if (data.value != expected) {
-        expected ??= '---';
         annotations[data.sourceSpan.begin] = '${expected} | ${data.value}';
       }
     });
@@ -162,6 +162,32 @@ class IdData {
       }
     });
     return withAnnotations(annotations);
+  }
+}
+
+/// Check code for all test files int [data] using [computeFromAst] and
+/// [computeFromKernel] from the respective front ends. If [skipForKernel]
+/// contains the name of the test file it isn't tested for kernel.
+Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
+    ComputeMemberDataFunction computeFromKernel,
+    {List<String> skipForKernel: const <String>[],
+    List<String> options: const <String>[],
+    bool verbose: false}) async {
+  await for (FileSystemEntity entity in dataDir.list()) {
+    print('----------------------------------------------------------------');
+    print('Checking ${entity.uri}');
+    print('----------------------------------------------------------------');
+    String annotatedCode = await new File.fromUri(entity.uri).readAsString();
+    print('--from ast------------------------------------------------------');
+    await checkCode(annotatedCode, computeFromAst, compileFromSource,
+        options: options, verbose: verbose);
+    if (skipForKernel.contains(entity.uri.pathSegments.last)) {
+      print('--skipped for kernel------------------------------------------');
+      continue;
+    }
+    print('--from kernel---------------------------------------------------');
+    await checkCode(annotatedCode, computeFromKernel, compileFromDill,
+        options: options, verbose: verbose);
   }
 }
 

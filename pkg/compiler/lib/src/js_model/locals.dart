@@ -34,7 +34,7 @@ class GlobalLocalsMap {
 
 class KernelToLocalsMapImpl implements KernelToLocalsMap {
   final List<MemberEntity> _members = <MemberEntity>[];
-  Map<ir.TreeNode, JLocal> _map = <ir.TreeNode, JLocal>{};
+  Map<ir.VariableDeclaration, JLocal> _map = <ir.VariableDeclaration, JLocal>{};
   Map<ir.TreeNode, JJumpTarget> _jumpTargetMap;
   Set<ir.BreakStatement> _breaksAsContinue;
 
@@ -143,28 +143,6 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   }
 
   @override
-  // TODO(johnniwinther): Split this out into two methods -- one for
-  // FunctionDeclaration and one for FunctionExpression, since basically the
-  // whole thing is different depending on the node type. The reason it's not
-  // done yet is the version of this function that it's overriding has a little
-  // bit of commonality.
-  Local getLocalFunction(ir.TreeNode node) {
-    assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression,
-        failedAt(currentMember, 'Invalid local function node: $node'));
-    var lookupName = node;
-    if (node is ir.FunctionDeclaration) lookupName = node.variable;
-    return _map.putIfAbsent(lookupName, () {
-      String name;
-      if (node is ir.FunctionDeclaration) {
-        name = node.variable.name;
-      } else if (node is ir.FunctionExpression) {
-        name = '';
-      }
-      return new JLocal(name, currentMember);
-    });
-  }
-
-  @override
   CapturedLoopScope getCapturedLoopScope(
       ClosureDataLookup closureLookup, ir.TreeNode node) {
     return closureLookup.getCapturedLoopScope(node);
@@ -191,6 +169,14 @@ class JumpVisitor extends ir.Visitor {
     return jumpTargetMap.putIfAbsent(node, () {
       return new JJumpTarget(member, jumpIndex++);
     });
+  }
+
+  JLabelDefinition _getOrCreateLabel(JJumpTarget target, ir.Node node) {
+    if (target.labels.isEmpty) {
+      return target.addLabel(node, 'label${labelIndex++}');
+    } else {
+      return target.labels.single;
+    }
   }
 
   @override
@@ -239,8 +225,8 @@ class JumpVisitor extends ir.Visitor {
         search = search.parent;
       }
       if (needsLabel) {
-        target.addLabel(node.target, 'label${labelIndex++}',
-            isBreakTarget: true);
+        JLabelDefinition label = _getOrCreateLabel(target, node.target);
+        label.isBreakTarget = true;
       }
     } else if (_canBeContinueTarget(parent)) {
       // We have code like
@@ -253,6 +239,19 @@ class JumpVisitor extends ir.Visitor {
       target = _getJumpTarget(parent);
       target.isContinueTarget = true;
       breaksAsContinue.add(node);
+      ir.TreeNode search = node;
+      bool needsLabel = false;
+      while (search != node.target) {
+        if (_canBeContinueTarget(search)) {
+          needsLabel = search != body;
+          break;
+        }
+        search = search.parent;
+      }
+      if (needsLabel) {
+        JLabelDefinition label = _getOrCreateLabel(target, node.target);
+        label.isContinueTarget = true;
+      }
     } else {
       target = _getJumpTarget(node.target);
       target.isBreakTarget = true;
@@ -266,23 +265,25 @@ class JJumpTarget extends JumpTarget<ir.Node> {
   final MemberEntity memberContext;
   final int nestingLevel;
   List<LabelDefinition<ir.Node>> _labels;
+  final bool isSwitch;
+  final bool isSwitchCase;
 
-  JJumpTarget(this.memberContext, this.nestingLevel);
+  JJumpTarget(this.memberContext, this.nestingLevel,
+      {this.isSwitch: false, this.isSwitchCase: false});
 
   bool isBreakTarget = false;
   bool isContinueTarget = false;
-  bool isSwitch = false;
 
   @override
   Entity get executableContext => memberContext;
 
   @override
   LabelDefinition<ir.Node> addLabel(ir.Node label, String labelName,
-      {bool isBreakTarget: false}) {
+      {bool isBreakTarget: false, bool isContinueTarget: false}) {
     _labels ??= <LabelDefinition<ir.Node>>[];
     LabelDefinition<ir.Node> labelDefinition = new JLabelDefinition(
-        this, label, labelName,
-        isBreakTarget: isBreakTarget);
+        this, labelName,
+        isBreakTarget: isBreakTarget, isContinueTarget: isContinueTarget);
     _labels.add(labelDefinition);
     return labelDefinition;
   }
@@ -319,12 +320,11 @@ class JJumpTarget extends JumpTarget<ir.Node> {
 
 class JLabelDefinition extends LabelDefinition<ir.Node> {
   final JumpTarget<ir.Node> target;
-  final ir.Node label;
   final String labelName;
-  final bool isBreakTarget;
-  final bool isContinueTarget;
+  bool isBreakTarget;
+  bool isContinueTarget;
 
-  JLabelDefinition(this.target, this.label, this.labelName,
+  JLabelDefinition(this.target, this.labelName,
       {this.isBreakTarget: false, this.isContinueTarget: false});
 
   @override
@@ -332,8 +332,6 @@ class JLabelDefinition extends LabelDefinition<ir.Node> {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('JLabelDefinition(');
-    sb.write('label=');
-    sb.write(label);
     sb.write(',labelName=');
     sb.write(labelName);
     sb.write(',isBreakTarget=');

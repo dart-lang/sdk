@@ -418,6 +418,11 @@ class ClassElementImpl extends AbstractClassElementImpl
   final kernel.Class _kernel;
 
   /**
+   * If this class is resynthesized, whether it has a constant constructor.
+   */
+  bool _hasConstConstructorCached;
+
+  /**
    * The actual supertype extracted from desugared [_kernel].
    */
   kernel.Supertype _kernelSupertype;
@@ -1018,8 +1023,22 @@ class ClassElementImpl extends AbstractClassElementImpl
     return null;
   }
 
-  bool get _hasConstConstructorKernel =>
-      _kernel != null && _kernel.constructors.any((c) => c.isConst);
+  /**
+   * Return whether the class is resynthesized and has a constant constructor.
+   */
+  bool get _hasConstConstructor {
+    if (_hasConstConstructorCached == null) {
+      _hasConstConstructorCached = false;
+      if (_kernel != null) {
+        _hasConstConstructorCached = _kernel.constructors.any((c) => c.isConst);
+      }
+      if (_unlinkedClass != null) {
+        _hasConstConstructorCached = _unlinkedClass.executables.any(
+            (c) => c.kind == UnlinkedExecutableKind.constructor && c.isConst);
+      }
+    }
+    return _hasConstConstructorCached;
+  }
 
   @override
   void appendTo(StringBuffer buffer) {
@@ -4552,7 +4571,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
   factory FieldElementImpl.forKernelFactory(
       ClassElementImpl enclosingClass, kernel.Field kernel) {
     if (kernel.isConst ||
-        kernel.isFinal && enclosingClass._hasConstConstructorKernel) {
+        kernel.isFinal &&
+            !kernel.isStatic &&
+            enclosingClass._hasConstConstructor) {
       return new ConstFieldElementImpl.forKernel(enclosingClass, kernel);
     } else {
       return new FieldElementImpl.forKernel(enclosingClass, kernel);
@@ -4578,7 +4599,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
       UnlinkedVariable unlinkedVariable, ClassElementImpl enclosingClass) {
     if (unlinkedVariable.initializer?.bodyExpr != null &&
         (unlinkedVariable.isConst ||
-            unlinkedVariable.isFinal && !unlinkedVariable.isStatic)) {
+            unlinkedVariable.isFinal &&
+                !unlinkedVariable.isStatic &&
+                enclosingClass._hasConstConstructor)) {
       return new ConstFieldElementImpl.forSerialized(
           unlinkedVariable, enclosingClass);
     } else {
@@ -4594,6 +4617,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
    * Return `true` if this field was explicitly marked as being covariant.
    */
   bool get isCovariant {
+    if (_kernel != null) {
+      return _kernel.isCovariant;
+    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.isCovariant;
     }
@@ -8218,6 +8244,9 @@ class ParameterElementImpl extends VariableElementImpl
    * Return true if this parameter is explicitly marked as being covariant.
    */
   bool get isExplicitlyCovariant {
+    if (_kernel != null) {
+      return _kernel.isCovariant;
+    }
     if (_unlinkedParam != null) {
       return _unlinkedParam.isExplicitlyCovariant;
     }

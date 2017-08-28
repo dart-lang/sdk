@@ -1038,19 +1038,21 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   @override
-  void finalize() {
-    CompilationUnitElement unitElement = unit.element;
-    LibraryElement libraryElement = unitElement.library;
-    CompilationUnitElement definingUnitElement =
-        libraryElement.definingCompilationUnit;
-    if (definingUnitElement == unitElement) {
-      _addLibraryImports(libraryElement, librariesToImport);
-    } else {
-      (changeBuilder as DartChangeBuilder).addFileEdit(
-          definingUnitElement.source.fullName, (DartFileEditBuilder builder) {
-        (builder as DartFileEditBuilderImpl)
-            ._addLibraryImports(libraryElement, librariesToImport);
-      });
+  Future<Null> finalize() async {
+    if (librariesToImport.isNotEmpty) {
+      CompilationUnitElement unitElement = unit.element;
+      LibraryElement libraryElement = unitElement.library;
+      CompilationUnitElement definingUnitElement =
+          libraryElement.definingCompilationUnit;
+      if (definingUnitElement == unitElement) {
+        _addLibraryImports(libraryElement, librariesToImport);
+      } else {
+        await (changeBuilder as DartChangeBuilder).addFileEdit(
+            definingUnitElement.source.fullName, (DartFileEditBuilder builder) {
+          (builder as DartFileEditBuilderImpl)
+              ._addLibraryImports(libraryElement, librariesToImport);
+        });
+      }
     }
   }
 

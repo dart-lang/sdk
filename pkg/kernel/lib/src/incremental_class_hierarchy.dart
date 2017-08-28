@@ -271,6 +271,12 @@ class IncrementalClassHierarchy implements ClassHierarchy {
   }
 
   @override
+  List<Member> getInterfaceMembers(Class class_, {bool setters: false}) {
+    var info = _getInfo(class_);
+    return setters ? info.interfaceSetters : info.interfaceGettersAndCalls;
+  }
+
+  @override
   Iterable<Class> getOrderedClasses(Iterable<Class> unordered) {
     unordered.forEach(_getInfo);
     var unorderedSet = unordered.toSet();

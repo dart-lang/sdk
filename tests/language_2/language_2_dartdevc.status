@@ -5,24 +5,38 @@
 # Sections in this file should contain "$compiler == dartdevc".
 
 [ $compiler == dartdevc ]
+assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_function_test/01: CompileTimeError
+assertion_initializer_test: CompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
+bad_initializer1_negative_test: CompileTimeError # Issue 14529
+bad_initializer2_negative_test: fail # Issue 14880
+bad_named_constructor_negative_test: CompileTimeError # Issue 18693
 bit_operations_test/01: MissingCompileTimeError
 bit_operations_test/02: MissingCompileTimeError
 bit_operations_test/03: MissingCompileTimeError
 bit_operations_test/04: MissingCompileTimeError
-generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
-assertion_initializer_test: CompileTimeError
-assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_function_test/01: CompileTimeError
-bad_initializer2_negative_test: fail # Issue 14880
 black_listed_test/none: fail # Issue 14228
-bad_initializer1_negative_test: CompileTimeError # Issue 14529
-bad_named_constructor_negative_test: CompileTimeError # Issue 18693
 body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
-covariant_subtyping_with_substitution_test: RuntimeError # Issue 30461
-function_subtype_inline2_test: RuntimeError
+generic_list_checked_test: CompileTimeError
+generic_local_functions_test: CompileTimeError
+generic_methods_closure_test: CompileTimeError # Issue 29920
+generic_methods_generic_function_parameter_test: CompileTimeError
+generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
+generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29920
+generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
+generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
+generic_methods_shadowing_test: CompileTimeError # Issue 29920
+generic_methods_simple_is_expression_test: CompileTimeError # Issue 29920
+generic_methods_test: CompileTimeError
+generic_methods_type_expression_test: CompileTimeError
+generic_tearoff_test: CompileTimeError
+generic_test: CompileTimeError
+generics_test: CompileTimeError
+get_set_syntax_test/none: CompileTimeError
+multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 
 [ $strong && $compiler == dartdevc ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -32,6 +46,56 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
+void_type_callbacks_test/00: MissingCompileTimeError # Issue 30514
+void_type_callbacks_test/01: MissingCompileTimeError # Issue 30514
+void_type_function_types_test/00: Crash # Issue 30514
+void_type_function_types_test/01: Crash # Issue 30514
+void_type_function_types_test/03: Crash # Issue 30514
+void_type_function_types_test/04: Crash # Issue 30514
+void_type_function_types_test/05: Crash # Issue 30514
+void_type_function_types_test/06: Crash # Issue 30514
+void_type_function_types_test/07: Crash # Issue 30514
+void_type_function_types_test/08: Crash # Issue 30514
+void_type_function_types_test/09: Crash # Issue 30514
+void_type_function_types_test/none: Crash # Issue 30514
+void_type_override_test/none: CompileTimeError # Issue 30514
+void_type_usage_test/call_as: CompileTimeError # Issue 30514
+void_type_usage_test/call_for: CompileTimeError # Issue 30514
+void_type_usage_test/call_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/field_assign2: CompileTimeError # Issue 30514
+void_type_usage_test/field_assign: CompileTimeError # Issue 30514
+void_type_usage_test/final_local_as: CompileTimeError # Issue 30514
+void_type_usage_test/final_local_for: CompileTimeError # Issue 30514
+void_type_usage_test/final_local_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/global_as: CompileTimeError # Issue 30514
+void_type_usage_test/global_for: CompileTimeError # Issue 30514
+void_type_usage_test/global_for_in2: CompileTimeError # Issue 30514
+void_type_usage_test/global_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/instance2_as: CompileTimeError # Issue 30514
+void_type_usage_test/instance2_for: CompileTimeError # Issue 30514
+void_type_usage_test/instance2_for_in3: CompileTimeError # Issue 30514
+void_type_usage_test/instance2_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/instance3_as: CompileTimeError # Issue 30514
+void_type_usage_test/instance3_for: CompileTimeError # Issue 30514
+void_type_usage_test/instance3_for_in3: CompileTimeError # Issue 30514
+void_type_usage_test/instance3_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/instance_as: CompileTimeError # Issue 30514
+void_type_usage_test/instance_for: CompileTimeError # Issue 30514
+void_type_usage_test/instance_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/local_as: CompileTimeError # Issue 30514
+void_type_usage_test/local_assign: CompileTimeError # Issue 30514
+void_type_usage_test/local_for: CompileTimeError  # Issue 30514
+void_type_usage_test/local_for_in2: CompileTimeError # Issue 30514
+void_type_usage_test/local_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/none: CompileTimeError # Issue 30514
+void_type_usage_test/param_as: CompileTimeError # Issue 30514
+void_type_usage_test/param_for: CompileTimeError # Issue 30514
+void_type_usage_test/param_for_in2: CompileTimeError # Issue 30514
+void_type_usage_test/param_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/paren_as: CompileTimeError # Issue 30514
+void_type_usage_test/paren_for: CompileTimeError # Issue 30514
+void_type_usage_test/paren_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/setter_assign: CompileTimeError # Issue 30514
 
 [ $compiler == dartdevc && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920
@@ -46,6 +110,19 @@ call_closurization_test: RuntimeError # Issue 29920
 call_test: RuntimeError
 canonical_const2_test: RuntimeError # Ints and doubles are unified.
 canonical_const_test: RuntimeError # Ints and doubles are unified.
+compile_time_constant10_test/none: RuntimeError
+covariant_subtyping_with_substitution_test: RuntimeError # Issue 30461
+function_subtype_inline2_test: RuntimeError
 function_type/function_type50_test: RuntimeError # Issue 29920
 function_type/function_type58_test: RuntimeError # Issue 29920
-compile_time_constant10_test/none: RuntimeError 
+generic_instanceof2_test: RuntimeError # Issue 29920
+generic_instanceof2_test: RuntimeError # Issue 29920
+generic_is_check_test: RuntimeError # Issue 29920
+generic_method_types_test/01: RuntimeError
+generic_method_types_test/02: RuntimeError
+generic_method_types_test/03: RuntimeError
+generic_methods_new_test: RuntimeError
+getter_closure_execution_order_test: RuntimeError # Issue 29920
+compile_time_constant_a_test: RuntimeError # Issue 30526
+compile_time_constant_b_test: RuntimeError # Issue 29920
+compile_time_constant_d_test: RuntimeError # Issue 29920

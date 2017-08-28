@@ -69,6 +69,18 @@ call_through_getter_test/01: MissingCompileTimeError
 call_through_getter_test/02: MissingCompileTimeError
 call_type_literal_test/01: MissingCompileTimeError
 covariant_subtyping_with_substitution_test: StaticWarning
+generic_methods_bounds_test/01: MissingCompileTimeError
+generic_methods_closure_test: StaticWarning
+generic_methods_dynamic_test/01: MissingCompileTimeError
+generic_methods_dynamic_test/03: MissingCompileTimeError
+generic_methods_local_variable_declaration_test: StaticWarning
+generic_methods_overriding_test/01: MissingCompileTimeError
+generic_methods_overriding_test/03: MissingCompileTimeError
+generic_methods_overriding_test/06: StaticWarning
+generic_methods_recursive_bound_test/02: MissingCompileTimeError
+generic_methods_shadowing_test: StaticWarning
+generic_methods_simple_is_expression_test: StaticWarning
+generic_tearoff_test: CompileTimeError
 
 [ $compiler == dart2analyzer && ! $strong && $checked ]
 abstract_beats_arguments_test: MissingCompileTimeError
@@ -133,6 +145,22 @@ call_through_getter_test/01: MissingCompileTimeError
 call_through_getter_test/02: MissingCompileTimeError
 call_type_literal_test/01: MissingCompileTimeError
 covariant_subtyping_with_substitution_test: StaticWarning
+generic_list_checked_test: CompileTimeError
+generic_methods_bounds_test/01: MissingCompileTimeError
+generic_methods_closure_test: StaticWarning
+generic_methods_dynamic_test/01: MissingCompileTimeError
+generic_methods_dynamic_test/03: MissingCompileTimeError
+generic_methods_local_variable_declaration_test: StaticWarning
+generic_methods_overriding_test/01: MissingCompileTimeError
+generic_methods_overriding_test/03: MissingCompileTimeError
+generic_methods_overriding_test/06: StaticWarning
+generic_methods_recursive_bound_test/02: MissingCompileTimeError
+generic_methods_shadowing_test: StaticWarning
+generic_methods_simple_is_expression_test: StaticWarning
+generic_tearoff_test: CompileTimeError
+generic_tearoff_test: CompileTimeError
+generic_test: CompileTimeError
+generics_test: CompileTimeError
 
 [ $compiler == dart2analyzer ]
 async_return_types_test/nestedFuture: MissingCompileTimeError
@@ -148,6 +176,12 @@ body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
 built_in_identifier_prefix_test: CompileTimeError
 cascade_test/none: fail # Issue 11577
 closure_call_wrong_argument_count_negative_test: skip
+generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
+generic_local_functions_test: CompileTimeError # Issue 28515
+get_set_syntax_test/none: fail # Issue 11575
+generic_list_checked_test: StaticWarning
+generics_test: StaticWarning
+generic_test: StaticWarning
 
 [ $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -161,8 +195,64 @@ bit_operations_test/01: MissingStaticWarning # Issue 28823
 bit_operations_test/02: MissingStaticWarning # Issue 28823
 bit_operations_test/03: MissingStaticWarning # Issue 28823
 bit_operations_test/04: MissingStaticWarning # Issue 28823
+generic_list_checked_test: CompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
+generic_methods_test: CompileTimeError
+generic_tearoff_test: CompileTimeError
+generic_test: CompileTimeError
+generics_test: CompileTimeError
+multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 regress_30339_test: CompileTimeError
+void_type_function_types_test/none: Crash # Issue 30177
+void_type_function_types_test/01: Crash # Issue 30177
+void_type_function_types_test/07: Crash # Issue 30177
+void_type_function_types_test/03: Crash # Issue 30177
+void_type_function_types_test/00: Crash # Issue 30177
+void_type_function_types_test/09: Crash # Issue 30177
+void_type_function_types_test/08: Crash # Issue 30177
+void_type_function_types_test/04: Crash # Issue 30177
+void_type_function_types_test/05: Crash # Issue 30177
+void_type_function_types_test/06: Crash # Issue 30177
+void_type_usage_test/param_as: CompileTimeError # Issue 30177
+void_type_usage_test/param_for: CompileTimeError # Issue 30177
+void_type_usage_test/none: CompileTimeError # Issue 30177
+void_type_usage_test/call_as: CompileTimeError # Issue 30177
+void_type_usage_test/call_stmt: CompileTimeError # Issue 30177
+void_type_usage_test/call_for: CompileTimeError # Issue 30177
+void_type_usage_test/local_stmt: CompileTimeError # Issue 30177
+void_type_usage_test/local_assign: CompileTimeError # Issue 30177
+void_type_usage_test/local_for: CompileTimeError # Issue 30177
+void_type_usage_test/local_as: CompileTimeError # Issue 30177
+void_type_usage_test/param_stmt: CompileTimeError # Issue 30177
+void_type_usage_test/local_for_in2: CompileTimeError # Issue 30177
+void_type_usage_test/final_local_stmt: CompileTimeError # Issue 30177
+void_type_usage_test/final_local_for: CompileTimeError # Issue 30177
+void_type_usage_test/final_local_as: CompileTimeError # Issue 30177
+void_type_usage_test/global_stmt: CompileTimeError # Issue 30177
+void_type_usage_test/global_for: CompileTimeError # Issue 30177
+void_type_usage_test/global_as: CompileTimeError # Issue 30177
+void_type_usage_test/global_for_in2: CompileTimeError # Issue 30177
+void_type_usage_test/instance_stmt: CompileTimeError # Issue 30177
+void_type_usage_test/param_for_in2: CompileTimeError # Issue 30177
+void_type_usage_test/instance_for: CompileTimeError # Issue 30177
+void_type_usage_test/instance_as: CompileTimeError # Issue 30177
+void_type_usage_test/instance2_for_in3: CompileTimeError # Issue 30177
+void_type_usage_test/field_assign: CompileTimeError # Issue 30177
+void_type_usage_test/instance3_for_in3: CompileTimeError # Issue 30177
+void_type_usage_test/instance2_stmt: CompileTimeError # Issue 30177
+void_type_usage_test/instance2_for: CompileTimeError # Issue 30177
+void_type_usage_test/field_assign2: CompileTimeError # Issue 30177
+void_type_usage_test/instance2_as: CompileTimeError # Issue 30177
+void_type_usage_test/setter_assign: CompileTimeError # Issue 30177
+void_type_usage_test/instance3_stmt: CompileTimeError # Issue 30177
+void_type_usage_test/instance3_for: CompileTimeError # Issue 30177
+void_type_usage_test/instance3_as: CompileTimeError # Issue 30177
+void_type_usage_test/paren_as: CompileTimeError # Issue 30177
+void_type_usage_test/paren_stmt: CompileTimeError # Issue 30177
+void_type_usage_test/paren_for: CompileTimeError # Issue 30177
+void_type_callbacks_test/01: MissingCompileTimeError # Issue 30177
+void_type_callbacks_test/00: MissingCompileTimeError # Issue 30177
+void_type_override_test/none: CompileTimeError # Issue 30177
 
 [ ! $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: StaticWarning # Issue 25626
@@ -208,9 +298,20 @@ generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30207
+generic_methods_type_expression_test: StaticWarning # Issue 30530
 closure_type_test: Pass
+multiple_interface_inheritance_test: StaticWarning # Issue 30552
 
 [ $compiler == dart2analyzer && $runtime == none ]
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_test/01: CompileTimeError
 assertion_initializer_test: CompileTimeError
+
+[ $compiler == dart2analyzer && $strong ]
+generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29070
+generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29070
+generic_methods_shadowing_test: CompileTimeError # Issue 29070
+generic_methods_closure_test: CompileTimeError # Issue 29070
+generic_methods_simple_is_expression_test: CompileTimeError # Issue 29070
+generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29070
+generic_methods_type_expression_test: CompileTimeError # Incorrectly disallows type parameter in "is" test.

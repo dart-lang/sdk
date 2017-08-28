@@ -57,10 +57,12 @@ DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
 // Reload flags.
-DECLARE_FLAG(bool, check_reloaded);
 DECLARE_FLAG(int, reload_every);
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+DECLARE_FLAG(bool, check_reloaded);
 DECLARE_FLAG(bool, reload_every_back_off);
 DECLARE_FLAG(bool, trace_reload);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(PRODUCT)
 static void CheckedModeHandler(bool value) {
@@ -144,29 +146,29 @@ NoOOBMessageScope::~NoOOBMessageScope() {
 
 NoReloadScope::NoReloadScope(Isolate* isolate, Thread* thread)
     : StackResource(thread), isolate_(isolate) {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(isolate_ != NULL);
   AtomicOperations::FetchAndIncrement(&(isolate_->no_reload_scope_depth_));
   ASSERT(AtomicOperations::LoadRelaxed(&(isolate_->no_reload_scope_depth_)) >=
          0);
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 NoReloadScope::~NoReloadScope() {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   AtomicOperations::FetchAndDecrement(&(isolate_->no_reload_scope_depth_));
   ASSERT(AtomicOperations::LoadRelaxed(&(isolate_->no_reload_scope_depth_)) >=
          0);
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Isolate::RegisterClass(const Class& cls) {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (IsReloading()) {
     reload_context()->RegisterClass(cls);
     return;
   }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   class_table()->Register(cls);
 }
 
@@ -691,31 +693,74 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
 }
 
 void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
+  const bool false_by_default = false;
+  const bool true_by_default = true;
+  USE(true_by_default);
+  USE(false_by_default);
+
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
-#define INIT_FROM_FLAG(name, bitname, isolate_flag, flag)                      \
+#define INIT_FROM_FLAG(when, name, bitname, isolate_flag, flag)                \
   api_flags->isolate_flag = flag;
   ISOLATE_FLAG_LIST(INIT_FROM_FLAG)
 #undef INIT_FROM_FLAG
   api_flags->use_dart_frontend = false;
+  api_flags->entry_points = NULL;
 }
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
-#define INIT_FROM_FIELD(name, bitname, isolate_flag, flag)                     \
+#define INIT_FROM_FIELD(when, name, bitname, isolate_flag, flag)               \
   api_flags->isolate_flag = name();
   ISOLATE_FLAG_LIST(INIT_FROM_FIELD)
 #undef INIT_FROM_FIELD
   api_flags->use_dart_frontend = use_dart_frontend();
+  api_flags->entry_points = NULL;
 }
 
 void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
+#if defined(DART_PRECOMPILER)
+#define FLAG_FOR_PRECOMPILER(action) action
+#else
+#define FLAG_FOR_PRECOMPILER(action)
+#endif
+
 #if !defined(PRODUCT)
-#define SET_FROM_FLAG(name, bitname, isolate_flag, flag)                       \
-  isolate_flags_ = bitname##Bit::update(api_flags.isolate_flag, isolate_flags_);
+#define FLAG_FOR_NONPRODUCT(action) action
+#else
+#define FLAG_FOR_NONPRODUCT(action)
+#endif
+
+#define SET_FROM_FLAG(when, name, bitname, isolate_flag, flag)                 \
+  FLAG_FOR_##when(isolate_flags_ = bitname##Bit::update(                       \
+                      api_flags.isolate_flag, isolate_flags_));
+
   ISOLATE_FLAG_LIST(SET_FROM_FLAG)
+
+#undef FLAG_FOR_NONPRODUCT
+#undef FLAG_FOR_PRECOMPILER
 #undef SET_FROM_FLAG
-#endif  // !defined(PRODUCT)
+
   set_use_dart_frontend(api_flags.use_dart_frontend);
+
+  // Copy entry points list.
+  ASSERT(embedder_entry_points_ == NULL);
+  if (api_flags.entry_points != NULL) {
+    intptr_t count = 0;
+    while (api_flags.entry_points[count].function_name != NULL)
+      count++;
+    embedder_entry_points_ = new Dart_QualifiedFunctionName[count + 1];
+    for (intptr_t i = 0; i < count; i++) {
+      embedder_entry_points_[i].library_uri =
+          strdup(api_flags.entry_points[i].library_uri);
+      embedder_entry_points_[i].class_name =
+          strdup(api_flags.entry_points[i].class_name);
+      embedder_entry_points_[i].function_name =
+          strdup(api_flags.entry_points[i].function_name);
+    }
+    memset(&embedder_entry_points_[count], 0,
+           sizeof(Dart_QualifiedFunctionName));
+  }
+
   // Leave others at defaults.
 }
 
@@ -757,7 +802,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       background_compiler_disabled_depth_(0),
       background_compiler_(NULL),
 #if !defined(PRODUCT)
-      debugger_name_(NULL),
       debugger_(NULL),
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
       last_allocationprofile_accumulator_reset_timestamp_(0),
@@ -813,7 +857,9 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       spawn_count_monitor_(new Monitor()),
       spawn_count_(0),
       handler_info_cache_(),
-      catch_entry_state_cache_() {
+      catch_entry_state_cache_(),
+      embedder_entry_points_(NULL),
+      obfuscation_map_(NULL) {
   FlagsCopyFrom(api_flags);
   SetErrorsFatal(true);
   set_compilation_allowed(true);
@@ -821,6 +867,13 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to
   // move to the OSThread structure.
   set_user_tag(UserTags::kDefaultUserTag);
+
+  if (obfuscate()) {
+    OS::PrintErr(
+        "Warning: This VM has been configured to obfuscate symbol information "
+        "which violates the Dart standard.\n"
+        "         See dartbug.com/30524 for more information.\n");
+  }
 }
 
 #undef REUSABLE_HANDLE_SCOPE_INIT
@@ -828,7 +881,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
 
 Isolate::~Isolate() {
 #if !defined(PRODUCT)
-  free(debugger_name_);
   delete debugger_;
   if (FLAG_support_service) {
     delete object_id_ring_;
@@ -868,6 +920,22 @@ Isolate::~Isolate() {
   delete spawn_count_monitor_;
   delete safepoint_handler_;
   delete thread_registry_;
+
+  if (obfuscation_map_ != NULL) {
+    for (intptr_t i = 0; obfuscation_map_[i] != NULL; i++) {
+      delete[] obfuscation_map_[i];
+    }
+    delete[] obfuscation_map_;
+  }
+
+  if (embedder_entry_points_ != NULL) {
+    for (intptr_t i = 0; embedder_entry_points_[i].function_name != NULL; i++) {
+      free(const_cast<char*>(embedder_entry_points_[i].library_uri));
+      free(const_cast<char*>(embedder_entry_points_[i].class_name));
+      free(const_cast<char*>(embedder_entry_points_[i].function_name));
+    }
+    delete[] embedder_entry_points_;
+  }
 }
 
 void Isolate::InitOnce() {
@@ -979,12 +1047,10 @@ void Isolate::ScheduleMessageInterrupts() {
   }
 }
 
-#if !defined(PRODUCT)
-void Isolate::set_debugger_name(const char* name) {
-  free(debugger_name_);
-  debugger_name_ = strdup(name);
+void Isolate::set_name(const char* name) {
+  free(name_);
+  name_ = strdup(name);
 }
-#endif  // !defined(PRODUCT)
 
 int64_t Isolate::UptimeMicros() const {
   return OS::GetCurrentMonotonicMicros() - start_time_micros_;
@@ -1020,14 +1086,10 @@ RawError* Isolate::PausePostRequest() {
 void Isolate::BuildName(const char* name_prefix) {
   ASSERT(name_ == NULL);
   if (name_prefix == NULL) {
-    name_prefix = "isolate";
-  }
-  NOT_IN_PRODUCT(set_debugger_name(name_prefix));
-  if (ServiceIsolate::NameEquals(name_prefix)) {
+    name_ = OS::SCreate(NULL, "isolate-%" Pd64 "", main_port());
+  } else {
     name_ = strdup(name_prefix);
-    return;
   }
-  name_ = OS::SCreate(NULL, "%s-%" Pd64 "", name_prefix, main_port());
 }
 
 void Isolate::DoneLoading() {
@@ -1046,7 +1108,7 @@ void Isolate::DoneLoading() {
   TokenStream::CloseSharedTokenList(this);
 }
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 bool Isolate::CanReload() const {
   return !ServiceIsolate::IsServiceIsolateDescendant(this) && is_runnable() &&
          !IsReloading() &&
@@ -1078,14 +1140,14 @@ void Isolate::DeleteReloadContext() {
   delete reload_context_;
   reload_context_ = NULL;
 }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 void Isolate::DoneFinalizing() {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (IsReloading()) {
     reload_context_->FinalizeLoading();
   }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 bool Isolate::MakeRunnable() {
@@ -1466,7 +1528,7 @@ static void ShutdownIsolate(uword parameter) {
       VerifyCanonicalVisitor check_canonical(thread);
       iteration.IterateObjects(&check_canonical);
     }
-#endif  // DEBUG
+#endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
     const Error& error = Error::Handle(thread->sticky_error());
     if (!error.IsNull() && !error.IsUnwindError()) {
       OS::PrintErr("in ShutdownIsolate: %s\n", error.ToErrorCString());
@@ -1635,7 +1697,7 @@ void Isolate::StopBackgroundCompiler() {
   }
 }
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
   if (FLAG_reload_every_back_off) {
     if (reload_every_n_stack_overflow_checks_ < 5000) {
@@ -1649,7 +1711,7 @@ void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
     }
   }
 }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
@@ -1695,7 +1757,7 @@ void Isolate::Shutdown() {
     }
   }
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_check_reloaded && is_runnable() && (this != Dart::vm_isolate()) &&
       !ServiceIsolate::IsServiceIsolateDescendant(this)) {
     if (!HasAttemptedReload()) {
@@ -1704,7 +1766,7 @@ void Isolate::Shutdown() {
           "--check-reloaded is enabled.\n");
     }
   }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   // Then, proceed with low-level teardown.
   LowLevelShutdown();
@@ -1792,11 +1854,12 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 #if !defined(PRODUCT)
   // Visit objects in the debugger.
   debugger()->VisitObjectPointers(visitor);
-
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Visit objects that are being used for isolate reload.
   if (reload_context() != NULL) {
     reload_context()->VisitObjectPointers(visitor);
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (ServiceIsolate::IsServiceIsolate(this)) {
     ServiceIsolate::VisitObjectPointers(visitor);
   }
@@ -1807,7 +1870,7 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   if (deopt_context() != NULL) {
     deopt_context()->VisitObjectPointers(visitor);
   }
-#endif
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   VisitStackPointers(visitor, validate_frames);
 }
@@ -1830,7 +1893,7 @@ void Isolate::PrepareForGC() {
 
 RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   RawClass* raw_class = NULL;
-#ifndef PRODUCT
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (IsReloading()) {
     raw_class = reload_context()->GetClassForHeapWalkAt(cid);
   } else {
@@ -1838,7 +1901,7 @@ RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   }
 #else
   raw_class = class_table()->At(cid);
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(raw_class != NULL);
   ASSERT(remapping_cids() || raw_class->ptr()->id_ == cid);
   return raw_class;
@@ -1904,7 +1967,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddFixedServiceId(ISOLATE_SERVICE_ID_FORMAT_STRING,
                           static_cast<int64_t>(main_port()));
 
-  jsobj.AddProperty("name", debugger_name());
+  jsobj.AddProperty("name", name());
   jsobj.AddPropertyF("number", "%" Pd64 "", static_cast<int64_t>(main_port()));
   if (ref) {
     return;
@@ -1923,7 +1986,9 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddProperty("runnable", is_runnable());
   jsobj.AddProperty("livePorts", message_handler()->live_ports());
   jsobj.AddProperty("pauseOnExit", message_handler()->should_pause_on_exit());
+#if !defined(DART_PRECOMPILED_RUNTIME)
   jsobj.AddProperty("_isReloading", IsReloading());
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   if (!is_runnable()) {
     // Isolate is not yet runnable.
@@ -2305,9 +2370,11 @@ void Isolate::PauseEventHandler() {
   Dart_MessageNotifyCallback saved_notify_callback = message_notify_callback();
   set_message_notify_callback(Isolate::WakePauseEventHandler);
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   const bool had_isolate_reload_context = reload_context() != NULL;
   const int64_t start_time_micros =
       !had_isolate_reload_context ? 0 : reload_context()->start_time_micros();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   bool resume = false;
   while (true) {
     // Handle all available vm service messages, up to a resume
@@ -2321,6 +2388,7 @@ void Isolate::PauseEventHandler() {
       break;
     }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
     if (had_isolate_reload_context && (reload_context() == NULL)) {
       if (FLAG_trace_reload) {
         const int64_t reload_time_micros =
@@ -2330,6 +2398,7 @@ void Isolate::PauseEventHandler() {
       }
       break;
     }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
     // Wait for more service messages.
     Monitor::WaitResult res = ml.Wait();
@@ -2561,6 +2630,10 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     os_thread->set_thread(thread);
     if (is_mutator) {
       scheduled_mutator_thread_ = thread;
+      if (this != Dart::vm_isolate()) {
+        scheduled_mutator_thread_->set_top(heap()->new_space()->top());
+        scheduled_mutator_thread_->set_end(heap()->new_space()->end());
+      }
     }
     Thread::SetCurrent(thread);
     os_thread->EnableThreadInterrupts();
@@ -2599,6 +2672,12 @@ void Isolate::UnscheduleThread(Thread* thread,
   os_thread->set_thread(NULL);
   OSThread::SetCurrent(os_thread);
   if (is_mutator) {
+    if (this != Dart::vm_isolate()) {
+      heap()->new_space()->set_top(scheduled_mutator_thread_->top_);
+      heap()->new_space()->set_end(scheduled_mutator_thread_->end_);
+    }
+    scheduled_mutator_thread_->top_ = 0;
+    scheduled_mutator_thread_->end_ = 0;
     scheduled_mutator_thread_ = NULL;
   }
   thread->isolate_ = NULL;

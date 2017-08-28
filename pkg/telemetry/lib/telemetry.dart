@@ -16,6 +16,9 @@ export 'package:usage/usage.dart' show Analytics;
 // TODO(devoncarew): Hard-coded to off for now. Remove when we're ready to ship.
 final bool _HARD_CODE_OFF = true;
 
+// TODO(devoncarew): Don't show the UI until we're ready to ship.
+final bool SHOW_ANALYTICS_UI = false;
+
 final String _dartDirectoryName = '.dart';
 final String _settingsFileName = 'analytics.json';
 

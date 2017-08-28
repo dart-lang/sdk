@@ -128,8 +128,7 @@ Token defaultRecoveryStrategy(
   }
 
   recoverExponent() {
-    return synthesizeToken(errorTail.charOffset, "NaN", TokenType.DOUBLE)
-      ..next = errorTail.next;
+    return errorTail.next;
   }
 
   recoverString() {

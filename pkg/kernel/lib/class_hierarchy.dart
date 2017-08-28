@@ -88,6 +88,16 @@ abstract class ClassHierarchy {
   /// member from the first declared supertype is returned.
   Member getInterfaceMember(Class class_, Name name, {bool setter: false});
 
+  /// Returns the list of members denoting the interface for [class_], which
+  /// may include abstract members.
+  ///
+  /// The list may contain multiple members with a given name.  This happens
+  /// when members are inherited through different supertypes and not overridden
+  /// in the class.
+  ///
+  /// Also see [getInterfaceMember].
+  List<Member> getInterfaceMembers(Class class_, {bool setters: false});
+
   /// Invokes [callback] for every member declared in or inherited by [class_]
   /// that overrides or implements a member in a supertype of [class_]
   /// (or in rare cases, overrides a member declared in [class_]).
@@ -385,14 +395,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     return _findMemberByName(list, name);
   }
 
-  /// Returns the list of members denoting the interface for [class_], which
-  /// may include abstract members.
-  ///
-  /// The list may contain multiple members with a given name.  This happens
-  /// when members are inherited through different supertypes and not overridden
-  /// in the class.
-  ///
-  /// Also see [getInterfaceMember].
+  @override
   List<Member> getInterfaceMembers(Class class_, {bool setters: false}) {
     return _buildInterfaceMembers(class_, _infoFor[class_], setters: setters);
   }

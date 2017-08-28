@@ -244,6 +244,9 @@ abstract class MemberDefinition {
 enum ClassKind {
   regular,
   closure,
+  // TODO(efortuna, johnniwinther): Container is not a class, but is
+  // masquerading as one currently for consistency with the old element model.
+  record,
 }
 
 /// A member directly defined by its [ir.Member] node.
@@ -390,10 +393,6 @@ abstract class KernelToLocalsMap {
   // TODO(efortuna, johnniwinther): convey this information without a boolean
   // parameter.
   Local getLocalVariable(ir.VariableDeclaration node);
-
-  /// Returns the [Local] corresponding to the [node]. The node must be either
-  /// a [ir.FunctionDeclaration] or [ir.FunctionExpression].
-  Local getLocalFunction(ir.TreeNode node);
 
   /// Returns the [JumpTarget] for the break statement [node].
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node);

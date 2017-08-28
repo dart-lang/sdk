@@ -34,6 +34,122 @@ namespace bin {
 
 DFE dfe;
 
+// Option processing helpers.
+// TODO(dartbug.com/30534) share option processing between main.cc and
+// gen_snapshot.cc
+
+static const char* ProcessOption(const char* option, const char* name) {
+  const intptr_t length = strlen(name);
+  for (intptr_t i = 0; i < length; i++) {
+    if (option[i] != name[i]) {
+      if (name[i] == '_' && option[i] == '-') {
+        continue;
+      }
+      return NULL;
+    }
+  }
+  return option + length;
+}
+
+typedef bool (*OptionProcessorCallback)(const char* arg);
+
+class OptionProcessor {
+ public:
+  OptionProcessor() : next_(first_) { first_ = this; }
+
+  virtual ~OptionProcessor() {}
+
+  virtual bool Process(const char* option) = 0;
+
+  static bool TryProcess(const char* option) {
+    for (OptionProcessor* p = first_; p != NULL; p = p->next_) {
+      if (p->Process(option)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+ private:
+  static OptionProcessor* first_;
+  OptionProcessor* next_;
+};
+
+class CallbackOptionProcessor : public OptionProcessor {
+ public:
+  explicit CallbackOptionProcessor(OptionProcessorCallback cb) : cb_(cb) {}
+  virtual bool Process(const char* option) { return cb_(option); }
+
+ private:
+  OptionProcessorCallback cb_;
+};
+
+OptionProcessor* OptionProcessor::first_ = NULL;
+
+#define DEFINE_CB_OPTION(callback)                                             \
+  static CallbackOptionProcessor option_##callback(&callback);
+
+#define DEFINE_STRING_OPTION_CB(name, callback)                                \
+  class OptionProcessor_##name : public OptionProcessor {                      \
+   public:                                                                     \
+    virtual bool Process(const char* option) {                                 \
+      const char* value = ProcessOption(option, "--" #name "=");               \
+      if (value == NULL) {                                                     \
+        return false;                                                          \
+      }                                                                        \
+      if (*value == '\0') {                                                    \
+        Log::PrintErr("Empty value for option " #name "\n");                   \
+        return false;                                                          \
+      }                                                                        \
+      callback;                                                                \
+      return true;                                                             \
+    }                                                                          \
+  };                                                                           \
+  static OptionProcessor_##name option_##name;
+
+#define DEFINE_ENUM_OPTION(name, enum_name, variable)                          \
+  DEFINE_STRING_OPTION_CB(name, {                                              \
+    const char** kNames = k##enum_name##Names;                                 \
+    for (intptr_t i = 0; kNames[i] != NULL; i++) {                             \
+      if (strcmp(value, kNames[i]) == 0) {                                     \
+        variable = static_cast<enum_name>(i);                                  \
+        return true;                                                           \
+      }                                                                        \
+    }                                                                          \
+    Log::PrintErr(                                                             \
+        "Unrecognized value for " #name ": '%s'\nValid values are: ", value);  \
+    for (intptr_t i = 0; kNames[i] != NULL; i++) {                             \
+      Log::PrintErr("%s%s", i > 0 ? ", " : "", kNames[i]);                     \
+    }                                                                          \
+    Log::PrintErr("\n");                                                       \
+  })
+
+#define DEFINE_STRING_OPTION(name, variable)                                   \
+  static const char* variable = NULL;                                          \
+  DEFINE_STRING_OPTION_CB(name, { variable = value; })
+
+#define DEFINE_BOOL_OPTION(name, variable)                                     \
+  static bool variable = false;                                                \
+  class OptionProcessor_##name : public OptionProcessor {                      \
+   public:                                                                     \
+    virtual bool Process(const char* option) {                                 \
+      const char* value = ProcessOption(option, "--" #name);                   \
+      if (value == NULL) {                                                     \
+        return false;                                                          \
+      }                                                                        \
+      if (*value == '=') {                                                     \
+        Log::PrintErr("Non-empty value for option " #name "\n");               \
+        return false;                                                          \
+      }                                                                        \
+      if (*value != '\0') {                                                    \
+        return false;                                                          \
+      }                                                                        \
+      variable = true;                                                         \
+      return true;                                                             \
+    }                                                                          \
+  };                                                                           \
+  static OptionProcessor_##name option_##name;
+
 // Exit code indicating an API error.
 static const int kApiErrorExitCode = 253;
 // Exit code indicating a compilation error.
@@ -72,30 +188,6 @@ enum SnapshotKind {
   kAppAOTAssembly,
 };
 static SnapshotKind snapshot_kind = kCore;
-static const char* vm_snapshot_data_filename = NULL;
-static const char* vm_snapshot_instructions_filename = NULL;
-static const char* isolate_snapshot_data_filename = NULL;
-static const char* isolate_snapshot_instructions_filename = NULL;
-static const char* assembly_filename = NULL;
-static const char* script_snapshot_filename = NULL;
-static bool dependencies_only = false;
-static bool print_dependencies = false;
-static const char* dependencies_filename = NULL;
-
-// Value of the --load-compilation-trace flag.
-// (This pointer points into an argv buffer and does not need to be
-// free'd.)
-static const char* load_compilation_trace_filename = NULL;
-
-// Value of the --package-root flag.
-// (This pointer points into an argv buffer and does not need to be
-// free'd.)
-static const char* commandline_package_root = NULL;
-
-// Value of the --packages flag.
-// (This pointer points into an argv buffer and does not need to be
-// free'd.)
-static const char* commandline_packages_file = NULL;
 
 // Global state which contains a pointer to the script name for which
 // a snapshot needs to be created (NULL would result in the creation
@@ -196,203 +288,32 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
   return result;
 }
 
-static const char* ProcessOption(const char* option, const char* name) {
-  const intptr_t length = strlen(name);
-  if (strncmp(option, name, length) == 0) {
-    return (option + length);
-  }
-  return NULL;
-}
+static const char* kSnapshotKindNames[] = {
+    "core", "core-jit", "script", "app-aot-blobs", "app-aot-assembly", NULL,
+};
 
-static bool ProcessSnapshotKindOption(const char* option) {
-  const char* kind = ProcessOption(option, "--snapshot_kind=");
-  if (kind == NULL) {
-    kind = ProcessOption(option, "--snapshot-kind=");
-  }
-  if (kind == NULL) {
-    return false;
-  }
-  if (strcmp(kind, "core-jit") == 0) {
-    snapshot_kind = kCoreJIT;
-    return true;
-  } else if (strcmp(kind, "core") == 0) {
-    snapshot_kind = kCore;
-    return true;
-  } else if (strcmp(kind, "script") == 0) {
-    snapshot_kind = kScript;
-    return true;
-  } else if (strcmp(kind, "app-aot-blobs") == 0) {
-    snapshot_kind = kAppAOTBlobs;
-    return true;
-  } else if (strcmp(kind, "app-aot-assembly") == 0) {
-    snapshot_kind = kAppAOTAssembly;
-    return true;
-  }
-  Log::PrintErr(
-      "Unrecognized snapshot kind: '%s'\nValid kinds are: "
-      "core, script, app-aot-blobs, app-aot-assembly\n",
-      kind);
-  return false;
-}
-
-static bool ProcessVmSnapshotDataOption(const char* option) {
-  const char* name = ProcessOption(option, "--vm_snapshot_data=");
-  if (name == NULL) {
-    name = ProcessOption(option, "--vm-snapshot-data=");
-  }
-  if (name != NULL) {
-    vm_snapshot_data_filename = name;
-    return true;
-  }
-  return false;
-}
-
-static bool ProcessVmSnapshotInstructionsOption(const char* option) {
-  const char* name = ProcessOption(option, "--vm_snapshot_instructions=");
-  if (name == NULL) {
-    name = ProcessOption(option, "--vm-snapshot-instructions=");
-  }
-  if (name != NULL) {
-    vm_snapshot_instructions_filename = name;
-    return true;
-  }
-  return false;
-}
-
-static bool ProcessIsolateSnapshotDataOption(const char* option) {
-  const char* name = ProcessOption(option, "--isolate_snapshot_data=");
-  if (name == NULL) {
-    name = ProcessOption(option, "--isolate-snapshot-data=");
-  }
-  if (name != NULL) {
-    isolate_snapshot_data_filename = name;
-    return true;
-  }
-  return false;
-}
-
-static bool ProcessIsolateSnapshotInstructionsOption(const char* option) {
-  const char* name = ProcessOption(option, "--isolate_snapshot_instructions=");
-  if (name == NULL) {
-    name = ProcessOption(option, "--isolate-snapshot-instructions=");
-  }
-  if (name != NULL) {
-    isolate_snapshot_instructions_filename = name;
-    return true;
-  }
-  return false;
-}
-
-static bool ProcessAssemblyOption(const char* option) {
-  const char* name = ProcessOption(option, "--assembly=");
-  if (name != NULL) {
-    assembly_filename = name;
-    return true;
-  }
-  return false;
-}
-
-static bool ProcessScriptSnapshotOption(const char* option) {
-  const char* name = ProcessOption(option, "--script_snapshot=");
-  if (name == NULL) {
-    name = ProcessOption(option, "--script-snapshot=");
-  }
-  if (name != NULL) {
-    script_snapshot_filename = name;
-    return true;
-  }
-  return false;
-}
-
-static bool ProcessDependenciesOption(const char* option) {
-  const char* name = ProcessOption(option, "--dependencies=");
-  if (name != NULL) {
-    dependencies_filename = name;
-    return true;
-  }
-  return false;
-}
-
-static bool ProcessDependenciesOnlyOption(const char* option) {
-  const char* name = ProcessOption(option, "--dependencies_only");
-  if (name == NULL) {
-    name = ProcessOption(option, "--dependencies-only");
-  }
-  if (name != NULL) {
-    dependencies_only = true;
-    return true;
-  }
-  return false;
-}
-
-static bool ProcessPrintDependenciesOption(const char* option) {
-  const char* name = ProcessOption(option, "--print_dependencies");
-  if (name == NULL) {
-    name = ProcessOption(option, "--print-dependencies");
-  }
-  if (name != NULL) {
-    print_dependencies = true;
-    return true;
-  }
-  return false;
-}
-
-static bool ProcessEmbedderEntryPointsManifestOption(const char* option) {
-  const char* name = ProcessOption(option, "--embedder_entry_points_manifest=");
-  if (name == NULL) {
-    name = ProcessOption(option, "--embedder-entry-points-manifest=");
-  }
-  if (name != NULL) {
-    entry_points_files->AddArgument(name);
-    return true;
-  }
-  return false;
-}
-
-static bool ProcessLoadCompilationTraceOption(const char* option) {
-  const char* name = ProcessOption(option, "--load_compilation_trace=");
-  if (name == NULL) {
-    name = ProcessOption(option, "--load-compilation-trace=");
-  }
-  if (name != NULL) {
-    load_compilation_trace_filename = name;
-    return true;
-  }
-  return false;
-}
-
-static bool ProcessPackageRootOption(const char* option) {
-  const char* name = ProcessOption(option, "--package_root=");
-  if (name == NULL) {
-    name = ProcessOption(option, "--package-root=");
-  }
-  if (name != NULL) {
-    commandline_package_root = name;
-    return true;
-  }
-  return false;
-}
-
-static bool ProcessPackagesOption(const char* option) {
-  const char* name = ProcessOption(option, "--packages=");
-  if (name != NULL) {
-    commandline_packages_file = name;
-    return true;
-  }
-  return false;
-}
-
-static bool ProcessURLmappingOption(const char* option) {
-  const char* mapping = ProcessOption(option, "--url_mapping=");
-  if (mapping == NULL) {
-    mapping = ProcessOption(option, "--url-mapping=");
-  }
-  if (mapping != NULL) {
-    DartUtils::url_mapping->AddArgument(mapping);
-    return true;
-  }
-  return false;
-}
+DEFINE_ENUM_OPTION(snapshot_kind, SnapshotKind, snapshot_kind);
+DEFINE_STRING_OPTION(vm_snapshot_data, vm_snapshot_data_filename);
+DEFINE_STRING_OPTION(vm_snapshot_instructions,
+                     vm_snapshot_instructions_filename);
+DEFINE_STRING_OPTION(isolate_snapshot_data, isolate_snapshot_data_filename);
+DEFINE_STRING_OPTION(isolate_snapshot_instructions,
+                     isolate_snapshot_instructions_filename);
+DEFINE_STRING_OPTION(assembly, assembly_filename);
+DEFINE_STRING_OPTION(script_snapshot, script_snapshot_filename);
+DEFINE_STRING_OPTION(dependencies, dependencies_filename);
+DEFINE_BOOL_OPTION(dependencies_only, dependencies_only);
+DEFINE_BOOL_OPTION(print_dependencies, print_dependencies);
+DEFINE_STRING_OPTION_CB(embedder_entry_points_manifest,
+                        { entry_points_files->AddArgument(value); });
+DEFINE_STRING_OPTION(load_compilation_trace, load_compilation_trace_filename);
+DEFINE_STRING_OPTION(package_root, commandline_package_root);
+DEFINE_STRING_OPTION(packages, commandline_packages_file);
+DEFINE_STRING_OPTION_CB(url_mapping,
+                        { DartUtils::url_mapping->AddArgument(value); });
+DEFINE_CB_OPTION(ProcessEnvironmentOption);
+DEFINE_BOOL_OPTION(obfuscate, obfuscate);
+DEFINE_STRING_OPTION(save_obfuscation_map, obfuscation_map_filename);
 
 static bool IsSnapshottingForPrecompilation() {
   return (snapshot_kind == kAppAOTBlobs) || (snapshot_kind == kAppAOTAssembly);
@@ -412,21 +333,7 @@ static int ParseArguments(int argc,
 
   // Parse out the vm options.
   while ((i < argc) && IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
-    if (ProcessSnapshotKindOption(argv[i]) ||
-        ProcessVmSnapshotDataOption(argv[i]) ||
-        ProcessVmSnapshotInstructionsOption(argv[i]) ||
-        ProcessIsolateSnapshotDataOption(argv[i]) ||
-        ProcessIsolateSnapshotInstructionsOption(argv[i]) ||
-        ProcessAssemblyOption(argv[i]) ||
-        ProcessScriptSnapshotOption(argv[i]) ||
-        ProcessDependenciesOption(argv[i]) ||
-        ProcessDependenciesOnlyOption(argv[i]) ||
-        ProcessPrintDependenciesOption(argv[i]) ||
-        ProcessEmbedderEntryPointsManifestOption(argv[i]) ||
-        ProcessURLmappingOption(argv[i]) ||
-        ProcessLoadCompilationTraceOption(argv[i]) ||
-        ProcessPackageRootOption(argv[i]) || ProcessPackagesOption(argv[i]) ||
-        ProcessEnvironmentOption(argv[i])) {
+    if (OptionProcessor::TryProcess(argv[i])) {
       i += 1;
       continue;
     }
@@ -517,6 +424,19 @@ static int ParseArguments(int argc,
     Log::PrintErr(
         "Building an AOT snapshot requires at least one embedder "
         "entry points manifest.\n\n");
+    return -1;
+  }
+
+  if (!obfuscate && obfuscation_map_filename != NULL) {
+    Log::PrintErr(
+        "--obfuscation_map=<...> should only be specified when obfuscation is "
+        "enabled by --obfuscate flag.\n\n");
+    return -1;
+  }
+
+  if (obfuscate && !IsSnapshottingForPrecompilation()) {
+    Log::PrintErr(
+        "Obfuscation can only be enabled when building AOT snapshot.\n\n");
     return -1;
   }
 
@@ -970,6 +890,8 @@ static void PrintUsage() {
 "   --isolate_snapshot_data=<output-file>                                    \n"
 "   --isolate_snapshot_instructions=<output-file>                            \n"
 "   {--embedder_entry_points_manifest=<input-file>}                          \n"
+"   [--obfuscate]                                                            \n"
+"   [--save-obfuscation-map=<map-filename>]                                  \n"
 "   <dart-script-file>                                                       \n"
 "                                                                            \n"
 " To create an AOT application snapshot as assembly suitable for compilation \n"
@@ -978,6 +900,8 @@ static void PrintUsage() {
 "   --snapshot_kind=app-aot-blobs                                            \n"
 "   --assembly=<output-file>                                                 \n"
 "   {--embedder_entry_points_manifest=<input-file>}                          \n"
+"   [--obfuscate]                                                            \n"
+"   [--save-obfuscation-map=<map-filename>]                                  \n"
 "   <dart-script-file>                                                       \n"
 "                                                                            \n"
 " AOT snapshots require entry points manifest files, which list the places   \n"
@@ -990,6 +914,13 @@ static void PrintUsage() {
 "                                                                            \n"
 "   Example:                                                                 \n"
 "     dart:something,SomeClass,doSomething                                   \n"
+"                                                                            \n"
+" AOT snapshots can be obfuscated: that is all identifiers will be renamed   \n"
+" during compilation. This mode is enabled with --obfuscate flag. Mapping    \n"
+" between original and obfuscated names can be serialized as a JSON array    \n"
+" using --save-obfuscation-map=<filename> option. See dartbug.com/30524      \n"
+" for implementation details and limitations of the obfuscation pass.        \n"
+"                                                                            \n"
 "\n");
 }
 // clang-format on
@@ -1467,6 +1398,16 @@ static void CreateAndWritePrecompiledSnapshot(
               isolate_snapshot_instructions_buffer,
               isolate_snapshot_instructions_size);
   }
+
+  // Serialize obfuscation map if requested.
+  if (obfuscation_map_filename != NULL) {
+    ASSERT(obfuscate);
+    uint8_t* buffer = NULL;
+    intptr_t size = 0;
+    result = Dart_GetObfuscationMap(&buffer, &size);
+    CHECK_RESULT(result);
+    WriteFile(obfuscation_map_filename, buffer, size);
+  }
 }
 
 static void SetupForUriResolution() {
@@ -1664,6 +1605,12 @@ int main(int argc, char** argv) {
     return kErrorExitCode;
   }
 
+  Dart_IsolateFlags flags;
+  Dart_IsolateFlagsInitialize(&flags);
+
+  Dart_QualifiedFunctionName* entry_points =
+      ParseEntryPointsManifestIfPresent();
+
   IsolateData* isolate_data = new IsolateData(NULL, commandline_package_root,
                                               commandline_packages_file, NULL);
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, isolate_snapshot_data,
@@ -1718,6 +1665,11 @@ int main(int argc, char** argv) {
       isolate_data->set_dependencies(new MallocGrowableArray<char*>());
     }
 
+    if (IsSnapshottingForPrecompilation()) {
+      flags.obfuscate = obfuscate;
+      flags.entry_points = entry_points;
+    }
+
     Dart_Isolate isolate = NULL;
     void* kernel_program = dfe.ReadScript(app_script_name);
     if (kernel_program != NULL) {
@@ -1725,7 +1677,7 @@ int main(int argc, char** argv) {
                                              isolate_data, &error);
     } else {
       isolate = Dart_CreateIsolate(NULL, NULL, isolate_snapshot_data,
-                                   isolate_snapshot_instructions, NULL,
+                                   isolate_snapshot_instructions, &flags,
                                    isolate_data, &error);
     }
     if (isolate == NULL) {
@@ -1745,9 +1697,6 @@ int main(int argc, char** argv) {
     if (commandline_packages_file != NULL) {
       AddDependency(commandline_packages_file);
     }
-
-    Dart_QualifiedFunctionName* entry_points =
-        ParseEntryPointsManifestIfPresent();
 
     if (kernel_program != NULL) {
       Dart_Handle resolved_uri = ResolveUriInWorkingDirectory(app_script_name);

@@ -980,6 +980,7 @@ class Field extends Member {
   Field(Name name,
       {this.type: const DynamicType(),
       this.initializer,
+      bool isCovariant: false,
       bool isFinal: false,
       bool isConst: false,
       bool isStatic: false,
@@ -991,6 +992,7 @@ class Field extends Member {
       : super(name, reference) {
     assert(type != null);
     initializer?.parent = this;
+    this.isCovariant = isCovariant;
     this.isFinal = isFinal;
     this.isConst = isConst;
     this.isStatic = isStatic;
@@ -1004,6 +1006,10 @@ class Field extends Member {
   static const int FlagStatic = 1 << 2;
   static const int FlagHasImplicitGetter = 1 << 3;
   static const int FlagHasImplicitSetter = 1 << 4;
+  static const int FlagCovariant = 1 << 5;
+
+  /// Whether the field is declared with the `covariant` keyword.
+  bool get isCovariant => flags & FlagCovariant != 0;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
@@ -1028,6 +1034,10 @@ class Field extends Member {
   ///
   /// By default, all non-static, non-final fields have implicit setters.
   bool get hasImplicitSetter => flags & FlagHasImplicitSetter != 0;
+
+  void set isCovariant(bool value) {
+    flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
+  }
 
   void set isFinal(bool value) {
     flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
@@ -3798,12 +3808,14 @@ class VariableDeclaration extends Statement {
       this.type: const DynamicType(),
       bool isFinal: false,
       bool isConst: false,
-      bool isFieldFormal: false}) {
+      bool isFieldFormal: false,
+      bool isCovariant: false}) {
     assert(type != null);
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
     this.isFieldFormal = isFieldFormal;
+    this.isCovariant = isCovariant;
   }
 
   /// Creates a synthetic variable with the given expression as initializer.
@@ -3822,10 +3834,14 @@ class VariableDeclaration extends Statement {
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
   static const int FlagConst = 1 << 1;
   static const int FlagFieldFormal = 1 << 2;
-  static const int FlagInScope = 1 << 3; // Temporary flag used by verifier.
+  static const int FlagCovariant = 1 << 3;
+  static const int FlagInScope = 1 << 4; // Temporary flag used by verifier.
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
+
+  /// Whether the parameter is declared with the `covariant` keyword.
+  bool get isCovariant => flags & FlagCovariant != 0;
 
   /// Whether the variable is declared as a field formal parameter of
   /// a constructor.
@@ -3838,6 +3854,10 @@ class VariableDeclaration extends Statement {
 
   void set isConst(bool value) {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
+  }
+
+  void set isCovariant(bool value) {
+    flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
   }
 
   @informative

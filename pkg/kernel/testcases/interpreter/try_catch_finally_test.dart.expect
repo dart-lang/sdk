@@ -1,14 +1,20 @@
 print(String: hello1)
 print(String: hello2)
 print(String: hello3)
-static-invocation-foo
+static-invocation-fReturns
 print(String: foo 1)
 return
 print(String: foo 2)
 return
 print(int: 2)
-static-invocation-bar
+static-invocation-fFinalizes
 print(String: bar 1)
 return
 print(String: bar 2)
 print(int: 1)
+static-invocation-fThrows
+print(int: 37)
+print(String: Caught Error)
+print(String: Finalizer)
+return
+print(int: 34)

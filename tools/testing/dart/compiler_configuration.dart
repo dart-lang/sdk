@@ -511,6 +511,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       args.add('--no-sim-use-hardfp');
     }
 
+    if (_configuration.isMinified) {
+      args.add('--obfuscate');
+    }
+
     args.addAll(arguments);
 
     return Command.compilation('precompiler', tempDir, bootstrapDependencies(),

@@ -133,13 +133,8 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
       target = kernel.functions[originTarget];
       // Closures require a lookup one level deeper in the closure class mapper.
       if (target == null) {
-        MethodElement originTargetFunction = originTarget;
-        ClosureRepresentationInfo classMap = _compiler
-            .backendStrategy.closureDataLookup
-            .getClosureInfoForMember(originTargetFunction);
-        if (classMap.closureEntity != null) {
-          target = kernel.localFunctions[classMap.closureEntity];
-        }
+        SynthesizedCallMethodElementX originTargetFunction = originTarget;
+        target = kernel.localFunctions[originTargetFunction.expression];
       }
     } else if (originTarget is FieldElement) {
       target = kernel.fields[originTarget];
@@ -557,11 +552,14 @@ class KernelJumpTarget implements JumpTargetX {
 
   @override
   LabelDefinition<ast.Node> addLabel(ast.Label label, String labelName,
-      {bool isBreakTarget: false}) {
+      {bool isBreakTarget: false, bool isContinueTarget: false}) {
     LabelDefinitionX result = new LabelDefinitionX(label, labelName, this);
     labels.add(result);
     if (isBreakTarget) {
       result.setBreakTarget();
+    }
+    if (isContinueTarget) {
+      result.setContinueTarget();
     }
     return result;
   }
@@ -574,6 +572,8 @@ class KernelJumpTarget implements JumpTargetX {
 
   @override
   bool get isSwitch => targetStatement is ir.SwitchStatement;
+
+  bool get isSwitchCase => targetStatement is ir.SwitchCase;
 
   @override
   bool get isTarget => isBreakTarget || isContinueTarget;

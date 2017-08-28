@@ -390,6 +390,7 @@ class Precompiler : public ValueObject {
   void DropTypes();
   void DropTypeArguments();
   void DropScriptData();
+  void DropMetadata();
   void DropLibraryEntries();
   void DropClasses();
   void DropLibraries();
@@ -397,6 +398,8 @@ class Precompiler : public ValueObject {
   void BindStaticCalls();
   void SwitchICCalls();
   void ResetPrecompilerState();
+
+  void Obfuscate();
 
   void CollectDynamicFunctionNames();
 
@@ -475,6 +478,212 @@ class FunctionsTraits {
 };
 
 typedef UnorderedHashSet<FunctionsTraits> UniqueFunctionsSet;
+
+#if defined(DART_PRECOMPILER)
+// ObfuscationMap maps Strings to Strings.
+class ObfuscationMapTraits {
+ public:
+  static const char* Name() { return "ObfuscationMapTraits"; }
+  static bool ReportStats() { return false; }
+
+  // Only for non-descriptor lookup and table expansion.
+  static bool IsMatch(const Object& a, const Object& b) {
+    return a.raw() == b.raw();
+  }
+
+  static uword Hash(const Object& key) { return String::Cast(key).Hash(); }
+};
+typedef UnorderedHashMap<ObfuscationMapTraits> ObfuscationMap;
+
+// Obfuscator is a helper class that is responsible for obfuscating
+// identifiers when obfuscation is enabled via isolate flags.
+//
+class Obfuscator : public ValueObject {
+ public:
+  // Create Obfuscator for the given |thread|, with the given |private_key|.
+  // This private key will be used when obfuscating private identifiers
+  // (those starting with '_').
+  //
+  // If obfuscation is enabled constructor will restore obfuscation state
+  // from ObjectStore::obfuscation_map()
+  //
+  // Note: only a single instance of obfuscator should exist at any given
+  // moment on the stack because Obfuscator takes ownership of obfuscation
+  // map. ObjectStore::obfuscation_map() will only be updated when
+  // this Obfuscator is destroyed.
+  Obfuscator(Thread* thread, const String& private_key);
+
+  // If obfuscation is enabled - commit accumulated renames to ObjectStore.
+  ~Obfuscator();
+
+  // If obfuscation is enabled return a rename for the given |name|,
+  // otherwise it is a no-op.
+  //
+  // Note: |name| *must* be a Symbol.
+  //
+  // By default renames are aware about mangling scheme used for private names:
+  // '_ident@key' and '_ident' will be renamed consistently. If such
+  // interpretation is undesirable e.g. it is known that name does not
+  // contain a private key suffix or name is not a Dart identifier at all
+  // then this function should be called with |atomic| set to true.
+  //
+  // Note: if obfuscator was created with private_key then all
+  // renames *must* be atomic.
+  //
+  // This method is guaranteed to return the same value for the same
+  // input and it always preserves leading '_' even for atomic renames.
+  RawString* Rename(const String& name, bool atomic = false) {
+    if (state_ == NULL) {
+      return name.raw();
+    }
+
+    return state_->RenameImpl(name, atomic);
+  }
+
+  // Given a constant |instance| of dart:internal.Symbol rename it by updating
+  // its |name| field.
+  static void ObfuscateSymbolInstance(Thread* thread, const Instance& instance);
+
+  // Given a sequence of obfuscated identifiers deobfuscate it.
+  //
+  // This method is only used by parser when resolving conditional imports
+  // because it needs deobfuscated names to lookup in the environment.
+  //
+  // Note: this operation is not optimized because is very infrequent.
+  static void Deobfuscate(Thread* thread, const GrowableObjectArray& pieces);
+
+  // Serialize renaming map as a malloced array of strings.
+  static const char** SerializeMap(Thread* thread);
+
+ private:
+  // Populate renaming map with names that should have identity renaming.
+  // (or in other words: with those names that should not be renamed).
+  void InitializeRenamingMap(Isolate* isolate);
+  void PreventRenaming(Dart_QualifiedFunctionName* entry_points);
+  void PreventRenaming(const char* name);
+  void PreventRenaming(const String& name) { state_->PreventRenaming(name); }
+
+  // ObjectStore::obfuscation_map() is an Array with two elements:
+  // first element is the last used rename and the second element is
+  // renaming map.
+  static const intptr_t kSavedStateNameIndex = 0;
+  static const intptr_t kSavedStateRenamesIndex = 1;
+  static const intptr_t kSavedStateSize = 2;
+
+  static RawArray* GetRenamesFromSavedState(const Array& saved_state) {
+    Array& renames = Array::Handle();
+    renames ^= saved_state.At(kSavedStateRenamesIndex);
+    return renames.raw();
+  }
+
+  static RawString* GetNameFromSavedState(const Array& saved_state) {
+    String& name = String::Handle();
+    name ^= saved_state.At(kSavedStateNameIndex);
+    return name.raw();
+  }
+
+  class ObfuscationState : public ZoneAllocated {
+   public:
+    ObfuscationState(Thread* thread,
+                     const Array& saved_state,
+                     const String& private_key)
+        : thread_(thread),
+          saved_state_(saved_state),
+          renames_(GetRenamesFromSavedState(saved_state)),
+          private_key_(private_key),
+          string_(String::Handle(thread->zone())),
+          renamed_(String::Handle(thread->zone())) {
+      memset(name_, 0, sizeof(name_));
+
+      // Restore last used rename.
+      string_ = GetNameFromSavedState(saved_state);
+      if (!string_.IsNull()) {
+        string_.ToUTF8(reinterpret_cast<uint8_t*>(name_), sizeof(name_));
+      }
+    }
+
+    void SaveState();
+
+    // Return a rename for the given |name|.
+    //
+    // Note: |name| *must* be a Symbol.
+    //
+    // By default renames are aware about mangling scheme used for private
+    // names: '_ident@key' and '_ident' will be renamed consistently. If such
+    // interpretation is undesirable e.g. it is known that name does not
+    // contain a private key suffix or name is not a Dart identifier at all
+    // then this function should be called with |atomic| set to true.
+    //
+    // Note: if obfuscator was created with private_key then all
+    // renames *must* be atomic.
+    //
+    // This method is guaranteed to return the same value for the same
+    // input.
+    RawString* RenameImpl(const String& name, bool atomic);
+
+    // Register an identity (name -> name) mapping in the renaming map.
+    //
+    // This essentially prevents the given name from being renamed.
+    void PreventRenaming(const String& name);
+    void PreventRenaming(const char* name);
+
+   private:
+    // Build rename for the given |name|.
+    //
+    // For atomic renames BuildRename just returns the next
+    // available rename generated by AtomicRename(...).
+    //
+    // For non-atomic renames BuildRename ensures that private mangled
+    // identifiers (_ident@key) are renamed consistently with non-mangled
+    // counterparts (_ident).
+    RawString* BuildRename(const String& name, bool atomic);
+
+    // Generate a new rename. If |should_be_private| is set to true
+    // then we prefix returned identifier with '_'.
+    RawString* NewAtomicRename(bool should_be_private);
+
+    // Update next_ to generate the next free rename.
+    void NextName();
+
+    Thread* thread_;
+
+    // Saved obfuscation state (ObjectStore::obfuscation_map())
+    const Array& saved_state_;
+
+    // Last used rename. Renames are only using a-zA-Z characters
+    // and are generated in order: a, b, ..., z, A, ..., Z, aa, ba, ...
+    char name_[100];
+
+    ObfuscationMap renames_;
+
+    const String& private_key_;
+
+    // Temporary handles.
+    String& string_;
+    String& renamed_;
+  };
+
+  // Current obfucation state or NULL if obfuscation is not enabled.
+  ObfuscationState* state_;
+};
+#else
+// Minimal do-nothing implementation of an Obfuscator for non-precompiler
+// builds.
+class Obfuscator {
+ public:
+  Obfuscator(Thread* thread, const String& private_key) {}
+  ~Obfuscator() {}
+
+  RawString* Rename(const String& name, bool atomic = false) {
+    return name.raw();
+  }
+
+  static void ObfuscateSymbolInstance(Thread* thread,
+                                      const Instance& instance) {}
+
+  static void Deobfuscate(Thread* thread, const GrowableObjectArray& pieces) {}
+};
+#endif  // DART_PRECOMPILER
 
 }  // namespace dart
 

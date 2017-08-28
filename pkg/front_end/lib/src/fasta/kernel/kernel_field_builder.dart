@@ -70,6 +70,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
     }
     bool isInstanceMember = !isStatic && !isTopLevel;
     field
+      ..isCovariant = isCovariant
       ..isFinal = isFinal
       ..isConst = isConst
       ..hasImplicitGetter = isInstanceMember

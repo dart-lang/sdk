@@ -166,8 +166,7 @@ void CompileType::PrintTo(BufferFormatter* f) const {
     const Class& cls =
         Class::Handle(Isolate::Current()->class_table()->At(cid_));
     type_name = String::Handle(cls.ScrubbedName()).ToCString();
-  } else if (type_ != NULL &&
-             !type_->Equals(Type::Handle(Type::DynamicType()))) {
+  } else if (type_ != NULL && !type_->IsDynamicType()) {
     type_name = type_->ToCString();
   } else if (!is_nullable()) {
     type_name = "!null";
@@ -368,7 +367,8 @@ void Definition::PrintTo(BufferFormatter* f) const {
   }
 
   if (type_ != NULL &&
-      ((type_->ToNullableCid() != kDynamicCid) || !type_->is_nullable())) {
+      ((type_->ToNullableCid() != kDynamicCid) ||
+       !type_->ToAbstractType()->IsDynamicType() || !type_->is_nullable())) {
     f->Print(" ");
     type_->PrintTo(f);
   }

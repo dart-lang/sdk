@@ -679,7 +679,8 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     ASSERT(!Dart_IsServiceIsolate(current) && !Dart_IsKernelIsolate(current));
     return dfe.ReadKernelBinary(current, url_string);
   }
-  ASSERT(!dfe.UseDartFrontend() && !dfe.kernel_file_specified());
+  ASSERT(Dart_IsKernelIsolate(Dart_CurrentIsolate()) ||
+         (!dfe.UseDartFrontend() && !dfe.kernel_file_specified()));
   if (tag != Dart_kScriptTag) {
     // Special case for handling dart: imports and parts.
     // Grab the library's url.

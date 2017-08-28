@@ -105,10 +105,38 @@ covariant_subtyping_with_substitution_test: RuntimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
+generic_methods_bounds_test/01: MissingCompileTimeError
+generic_methods_bounds_test/02: MissingRuntimeError
+generic_methods_closure_test: RuntimeError
+generic_methods_dynamic_test/01: MissingCompileTimeError
+generic_methods_dynamic_test/02: MissingRuntimeError
+generic_methods_dynamic_test/03: MissingCompileTimeError
+generic_methods_dynamic_test/04: MissingRuntimeError
+generic_methods_generic_class_tearoff_test: RuntimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
+generic_methods_named_parameters_test: RuntimeError
+generic_methods_optional_parameters_test: RuntimeError
+generic_methods_overriding_test/01: MissingCompileTimeError
+generic_methods_overriding_test/03: MissingCompileTimeError
+generic_methods_recursive_bound_test/02: MissingCompileTimeError
+generic_methods_reuse_type_variables_test: RuntimeError
+generic_methods_shadowing_test: RuntimeError
+generic_methods_simple_as_expression_test/02: MissingRuntimeError
+generic_methods_simple_is_expression_test: RuntimeError
+generic_methods_tearoff_specialization_test: RuntimeError
+generic_methods_type_expression_test: RuntimeError
+generic_methods_unused_parameter_test: RuntimeError
+generic_tearoff_test: CompileTimeError
 
 [ $compiler == dart2js && $runtime != none ]
 bit_operations_test: RuntimeError, OK # Issue 1533
+generic_instanceof_test: RuntimeError
+generic_typedef_test: RuntimeError
+many_generic_instanceof_test: RuntimeError
+
+[ $compiler == dart2js && $runtime != none && !$checked ]
+generic_list_checked_test: RuntimeError
+typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
 accessor_conflict_export2_test: Crash # Issue 25626
@@ -136,6 +164,7 @@ accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
 accessor_conflict_import_test: RuntimeError # Issue 25626
 branch_canonicalization_test: RuntimeError # Issue 638.
+generic_methods_local_variable_declaration_test: RuntimeError
 
 [ $compiler == dart2js && ! $checked && ! $enable_asserts && ! $dart2js_with_kernel && $runtime != none ]
 assertion_test: RuntimeError # Issue 12748
@@ -164,6 +193,11 @@ black_listed_test/13c: Crash # Issue 27394
 black_listed_test/14c: Crash # Issue 27394
 bootstrap_test: RuntimeError # Issue 27394
 call_nonexistent_static_test/10: Crash # Issue 27394
+generic_local_functions_test: Crash # Issue 27394
+generic_metadata_test/02: Crash # Issue 27394
+generic_metadata_test/03: Crash # Issue 27394
+generic_methods_generic_function_parameter_test: Crash # Issue 27394
+get_set_syntax_test/00: Crash # Issue 27394
 
 [ $compiler == dart2js && !$checked ]
 function_subtype_inline2_test: RuntimeError
@@ -383,7 +417,6 @@ call_through_getter_test/none: Crash # Assertion failure: Cannot find value Inst
 call_with_no_such_method_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Primitives.applyFunctionWithNamedArguments#bad) is stored in a closure field.
 canonical_const2_test: RuntimeError
 canonical_const_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-cascade2_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:method(A.call). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), j:closure_call(Expect_throwsNoSuchMethodError_closure.call), j:closure_call(unwrapException_closure.call))
 cascade_in_expression_function_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 cast_test/none: RuntimeError
 cha_deopt1_test: CompileTimeError
@@ -413,6 +446,33 @@ closures_initializer2_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closur
 closures_initializer_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 207 pos 9: 'closure != null': Corresponding closure class not found for () → dynamic => #lib1::B::T. Closures found for (() → dynamic {
 closures_with_complex_params_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'cls' where
 compile_time_constant10_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+compile_time_constant_a_test: Crash
+compile_time_constant_b_test: Crash
+compile_time_constant_c_test/02: Crash
+compile_time_constant_k_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+compile_time_constant_k_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+compile_time_constant_k_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+compile_time_constant_k_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+generic_instanceof_test: Crash
+generic_local_functions_test: Crash
+generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
+generic_methods_generic_class_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_methods_generic_function_parameter_test: Crash
+generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_methods_new_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_methods_test: Crash
+generic_methods_type_expression_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+generic_native_test: Crash
+generic_sync_star_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call))
+generic_syntax_test: Crash
+generic_test: Crash
+generic_test: RuntimeError
+generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generics_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+many_generic_instanceof_test: Crash
 regress_30339_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
 typevariable_substitution2_test/02: RuntimeError
 
@@ -562,6 +622,27 @@ closures_initializer_test: Crash # NoSuchMethodError: The getter 'closureClassEn
 closures_with_complex_params_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'supertype'.
 regress_30339_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 typevariable_substitution2_test/02: RuntimeError
+generic_instanceof_test: Crash
+generic_local_functions_test: Crash
+generic_methods_closure_test: Crash
+generic_methods_generic_class_tearoff_test: Crash
+generic_methods_generic_function_parameter_test: Crash
+generic_methods_named_parameters_test: Crash
+generic_methods_optional_parameters_test: Crash
+generic_methods_shadowing_test: Crash
+generic_methods_tearoff_specialization_test: Crash
+generic_methods_test: Crash
+generic_methods_type_expression_test: Crash
+generic_native_test: Crash
+generic_sync_star_test: Crash
+generic_syntax_test: Crash
+generic_test: Crash
+generic_test: RuntimeError
+generic_typedef_test: Crash
+many_generic_instanceof_test: Crash
+compile_time_constant_a_test: Crash
+compile_time_constant_b_test: Crash
+compile_time_constant_c_test/02: Crash
 
 [ $compiler == dart2js && ! $dart2js_with_kernel && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
@@ -581,6 +662,7 @@ assert_with_message_test: RuntimeError
 [ $compiler == dart2js && ! $checked && ! $dart2js_with_kernel ]
 bool_check_test: RuntimeError # Issue 29647
 bool_condition_check_test: RuntimeError
+generic_test: RuntimeError, OK
 
 [ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
 function_type/function_type14_test: Crash # Issue 27394

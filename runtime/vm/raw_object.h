@@ -690,6 +690,7 @@ class RawObject {
   friend class InstanceMorpher;  // GetClassId
   friend class VerifyCanonicalVisitor;
   friend class ObjectGraph::Stack;  // GetClassId
+  friend class Precompiler;         // GetClassId
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);

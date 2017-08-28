@@ -29,8 +29,14 @@ abstract class DartNavigationMixin implements NavigationMixin {
       AnalysisGetNavigationParams parameters) async {
     String path = parameters.file;
     ResolveResult result = await getResolveResult(path);
+    int offset = parameters.offset;
+    int length = parameters.length;
+    if (offset < 0 && length < 0) {
+      offset = 0;
+      length = result.content.length;
+    }
     return new DartNavigationRequestImpl(
-        resourceProvider, parameters.offset, parameters.length, result);
+        resourceProvider, offset, length, result);
   }
 }
 
@@ -68,5 +74,24 @@ abstract class NavigationMixin implements ServerPlugin {
         await generator.generateNavigationResponse(request);
     result.sendNotifications(channel);
     return result.result;
+  }
+
+  /**
+   * Send a navigation notification for the file with the given [path] to the
+   * server.
+   */
+  @override
+  Future<Null> sendNavigationNotification(String path) async {
+    try {
+      NavigationRequest request = await getNavigationRequest(
+          new AnalysisGetNavigationParams(path, -1, -1));
+      NavigationGenerator generator =
+          new NavigationGenerator(getNavigationContributors(path));
+      GeneratorResult generatorResult =
+          await generator.generateNavigationNotification(request);
+      generatorResult.sendNotifications(channel);
+    } on RequestFailure {
+      // If we couldn't analyze the file, then don't send a notification.
+    }
   }
 }

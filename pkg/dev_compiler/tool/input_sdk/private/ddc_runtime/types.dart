@@ -58,14 +58,15 @@ final _typeObject = JS('', 'Symbol("typeObject")');
 class TypeRep implements Type {
   String get name => this.toString();
 
+  // TODO(jmesserly): these should never be reached.
   @JSExportName('is')
   bool is_T(object) => instanceOf(object, this);
 
   @JSExportName('as')
-  as_T(object) => cast(object, this);
+  as_T(object) => cast(object, this, false);
 
   @JSExportName('_check')
-  check_T(object) => check(object, this);
+  check_T(object) => cast(object, this, true);
 }
 
 class Dynamic extends TypeRep {
@@ -97,13 +98,21 @@ class LazyJSType extends TypeRep {
   }
 
   @JSExportName('is')
-  bool is_T(obj) => instanceOf(obj, rawJSTypeForCheck());
+  bool is_T(obj) {
+    return JS('bool', '# instanceof #', obj, rawJSTypeForCheck());
+  }
 
   @JSExportName('as')
-  as_T(obj) => cast(obj, rawJSTypeForCheck());
+  as_T(obj) =>
+      JS('bool', '# instanceof #', obj, rawJSTypeForCheck()) || obj == null
+          ? obj
+          : castError(obj, this, false);
 
   @JSExportName('_check')
-  check_T(obj) => check(obj, rawJSTypeForCheck());
+  check_T(obj) =>
+      JS('bool', '# instanceof #', obj, rawJSTypeForCheck()) || obj == null
+          ? obj
+          : castError(obj, this, true);
 }
 
 /// An anonymous JS type
@@ -115,20 +124,24 @@ class AnonymousJSType extends TypeRep {
   toString() => _dartName;
 
   @JSExportName('is')
-  bool is_T(obj) => _isJSType(getReifiedType(obj));
+  bool is_T(obj) => JS('bool', '# === #', getReifiedType(obj), jsobject);
 
   @JSExportName('as')
-  as_T(obj) => is_T(obj) ? obj : cast(obj, this);
+  as_T(obj) =>
+      JS('bool', '# == null || # === #', obj, getReifiedType(obj), jsobject)
+          ? obj
+          : castError(obj, this, false);
 
   @JSExportName('_check')
-  check_T(obj) => is_T(obj) ? obj : check(obj, this);
+  check_T(obj) =>
+      JS('bool', '# == null || # === #', obj, getReifiedType(obj), jsobject)
+          ? obj
+          : castError(obj, this, true);
 }
 
 void _warn(arg) {
   JS('void', 'console.warn(#)', arg);
 }
-
-bool _isJSType(t) => JS('bool', '!#[dart._runtimeType]', t);
 
 var _lazyJSTypes = JS('', 'new Map()');
 var _anonymousJSTypes = JS('', 'new Map()');
@@ -211,9 +224,7 @@ final _fnTypeTypeMap = JS('', 'new Map()');
 /// index path (if present) is the canonical function type.
 final List _fnTypeSmallMap = JS('', '[new Map(), new Map(), new Map()]');
 
-_memoizeArray(map, arr, create) => JS(
-    '',
-    '''(() => {
+_memoizeArray(map, arr, create) => JS('', '''(() => {
   let len = $arr.length;
   $map = $_lookupNonTerminal($map, len);
   for (var i = 0; i < len-1; ++i) {
@@ -229,9 +240,7 @@ _memoizeArray(map, arr, create) => JS(
 // we slice off the remaining meta-data and make
 // it the second element of a packet for processing
 // later on in the constructor.
-_normalizeParameter(a) => JS(
-    '',
-    '''(() => {
+_normalizeParameter(a) => JS('', '''(() => {
   if ($a instanceof Array) {
     let result = [];
     result.push(($a[0] == $dynamic) ? $bottom : $a[0]);
@@ -241,9 +250,7 @@ _normalizeParameter(a) => JS(
   return ($a == $dynamic) ? $bottom : $a;
 })()''');
 
-List _canonicalizeArray(definite, array, map) => JS(
-    '',
-    '''(() => {
+List _canonicalizeArray(definite, array, map) => JS('', '''(() => {
   let arr = ($definite)
      ? $array
      : $array.map($_normalizeParameter);
@@ -252,9 +259,7 @@ List _canonicalizeArray(definite, array, map) => JS(
 
 // TODO(leafp): This only canonicalizes of the names are
 // emitted in a consistent order.
-_canonicalizeNamed(definite, named, map) => JS(
-    '',
-    '''(() => {
+_canonicalizeNamed(definite, named, map) => JS('', '''(() => {
   let key = [];
   let names = $getOwnPropertyNames($named);
   let r = {};
@@ -269,9 +274,7 @@ _canonicalizeNamed(definite, named, map) => JS(
   return $_memoizeArray($map, key, () => $named);
 })()''');
 
-_lookupNonTerminal(map, key) => JS(
-    '',
-    '''(() => {
+_lookupNonTerminal(map, key) => JS('', '''(() => {
   let result = $map.get($key);
   if (result !== void 0) return result;
   $map.set($key, result = new Map());
@@ -281,9 +284,7 @@ _lookupNonTerminal(map, key) => JS(
 // TODO(leafp): This handles some low hanging fruit, but
 // really we should make all of this faster, and also
 // handle more cases here.
-_createSmall(count, definite, returnType, required) => JS(
-    '',
-    '''(() => {
+_createSmall(count, definite, returnType, required) => JS('', '''(() => {
   let map = $_fnTypeSmallMap[$count];
   let args = ($definite) ? $required
     : $required.map($_normalizeParameter);
@@ -414,6 +415,39 @@ class FunctionType extends AbstractFunctionType {
     _stringValue = buffer;
     return buffer;
   }
+
+  @JSExportName('is')
+  bool is_T(obj) {
+    if (JS('bool', 'typeof # == "function"', obj)) {
+      var actual = JS('', '#[#]', obj, _runtimeType);
+      // If there's no actual type, it's a JS function.
+      // Allow them to subtype all Dart function types.
+      return JS('bool', '# == null || !!#', actual, isSubtype(actual, this));
+    }
+    return false;
+  }
+
+  @JSExportName('as')
+  as_T(obj, [bool typeError]) {
+    if (obj == null) return obj;
+    if (JS('bool', 'typeof # == "function"', obj)) {
+      var actual = JS('', '#[#]', obj, _runtimeType);
+      // If there's no actual type, it's a JS function.
+      // Allow them to subtype all Dart function types.
+      if (actual == null) return obj;
+      var result = isSubtype(actual, this);
+      if (result == true) return obj;
+      if (result == null && JS('bool', 'dart.__ignoreWhitelistedErrors')) {
+        JS('', "console.warn(#)",
+            'Ignoring cast fail from ${typeName(actual)} to ${typeName(this)}');
+        return obj;
+      }
+    }
+    return castError(obj, this, typeError);
+  }
+
+  @JSExportName('_check')
+  check_T(obj) => as_T(obj, true);
 }
 
 class Typedef extends AbstractFunctionType {
@@ -431,6 +465,15 @@ class Typedef extends AbstractFunctionType {
     var ft = _functionType;
     return ft == null ? _functionType = _closure() : ft;
   }
+
+  @JSExportName('is')
+  bool is_T(object) => functionType.is_T(object);
+
+  @JSExportName('as')
+  as_T(object) => functionType.as_T(object);
+
+  @JSExportName('_check')
+  check_T(object) => functionType.check_T(object);
 }
 
 /// A type variable, used by [GenericFunctionType] to represent a type formal.
@@ -604,8 +647,28 @@ class GenericFunctionType extends AbstractFunctionType {
           'recursive generic bounds: ${typeName(this)}. '
           'Try passing explicit type arguments.');
     }
-
     return defaults;
+  }
+
+  @JSExportName('is')
+  bool is_T(obj) {
+    if (JS('bool', 'typeof # == "function"', obj)) {
+      var actual = JS('', '#[#]', obj, _runtimeType);
+      return JS('bool', '# != null && !!#', actual, isSubtype(actual, this));
+    }
+    return false;
+  }
+
+  @JSExportName('as')
+  as_T(obj) {
+    if (obj == null || JS('bool', '#', is_T(obj))) return obj;
+    return castError(obj, this, false);
+  }
+
+  @JSExportName('_check')
+  check_T(obj) {
+    if (obj == null || JS('bool', '#', is_T(obj))) return obj;
+    return castError(obj, this, true);
   }
 }
 
@@ -653,9 +716,7 @@ getFunctionTypeMirror(AbstractFunctionType type) {
 
 bool isType(obj) => JS('', '# === #', _getRuntimeType(obj), Type);
 
-String typeName(type) => JS(
-    '',
-    '''(() => {
+String typeName(type) => JS('', '''(() => {
   if ($type === void 0) return "undefined type";
   if ($type === null) return "null type";
   // Non-instance types
@@ -710,9 +771,7 @@ bool _isFunctionType(type) => JS('bool', '# instanceof # || # === #', type,
 /// If [isCovariant] is true, then we are checking subtyping in a covariant
 /// position, and hence the direction of the check for function types
 /// corresponds to the direction of the check according to the Dart spec.
-isFunctionSubtype(ft1, ft2, isCovariant) => JS(
-    '',
-    '''(() => {
+isFunctionSubtype(ft1, ft2, isCovariant) => JS('', '''(() => {
   if ($ft2 === $Function) {
     return true;
   }
@@ -795,20 +854,22 @@ bool isSubtype(t1, t2) {
   // TODO(leafp): This duplicates code in operations.dart.
   // I haven't found a way to factor it out that makes the
   // code generator happy though.
-  var map = JS('', '#.get(#)', _memo, t1);
+  var map;
   bool result;
-  if (JS('bool', '# !== void 0', map)) {
-    result = JS('bool', '#.get(#)', map, t2);
-    if (JS('bool', '# !== void 0', result)) return result;
+  if (JS('bool', '!#.hasOwnProperty(#)', t1, _subtypeCache)) {
+    JS('', '#[#] = # = new Map()', t1, _subtypeCache, map);
   } else {
-    JS('', '#.set(#, # = new Map())', _memo, t1, map);
+    map = JS('', '#[#]', t1, _subtypeCache);
+    result = JS('bool|Null', '#.get(#)', map, t2);
+    if (JS('bool', '# !== void 0', result)) return result;
   }
-  result = JS('', '# === # || #(#, #, true)', t1, t2, _isSubtype, t1, t2);
+  result =
+      JS('bool|Null', '# === # || #(#, #, true)', t1, t2, _isSubtype, t1, t2);
   JS('', '#.set(#, #)', map, t2, result);
   return result;
 }
 
-final _memo = JS('', 'new Map()');
+final _subtypeCache = JS('', 'Symbol("_subtypeCache")');
 
 _isBottom(type) => JS('bool', '# == # || # == #', type, bottom, type, Null);
 
@@ -823,9 +884,7 @@ _isTop(type) {
 bool _isFutureOr(type) =>
     JS('bool', '# === #', getGenericClass(type), getGenericClass(FutureOr));
 
-bool _isSubtype(t1, t2, isCovariant) => JS(
-    '',
-    '''(() => {
+bool _isSubtype(t1, t2, isCovariant) => JS('', '''(() => {
   if ($t1 === $t2) return true;
 
   // Trivially true.
@@ -879,7 +938,7 @@ bool _isSubtype(t1, t2, isCovariant) => JS(
 
   if ($t2 instanceof $AnonymousJSType) {
     // All JS types are subtypes of anonymous JS types.
-    return $_isJSType($t1);
+    return $t1 === $jsobject;
   }
   if ($t2 instanceof $LazyJSType) {
     return $_isSubtype($t1, $t2.rawJSTypeForCheck(), isCovariant);
@@ -948,9 +1007,7 @@ bool _isSubtype(t1, t2, isCovariant) => JS(
   return false;
 })()''');
 
-isClassSubType(t1, t2, isCovariant) => JS(
-    '',
-    '''(() => {
+isClassSubType(t1, t2, isCovariant) => JS('', '''(() => {
   // We support Dart's covariant generics with the caveat that we do not
   // substitute bottom for dynamic in subtyping rules.
   // I.e., given T1, ..., Tn where at least one Ti != dynamic we disallow:

@@ -13,7 +13,7 @@ class C<T extends core::Object> extends core::Object {
 class D extends self::C<core::num> {
   default constructor •() → void
     ;
-  method f1(core::int x) → void
+  method f1(covariant core::int x) → void
     ;
 }
 static method g1(dynamic d) → void

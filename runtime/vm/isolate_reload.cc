@@ -25,13 +25,15 @@
 
 namespace dart {
 
+DEFINE_FLAG(int, reload_every, 0, "Reload every N stack overflow checks.");
 DEFINE_FLAG(bool, trace_reload, false, "Trace isolate reloading");
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 DEFINE_FLAG(bool,
             trace_reload_verbose,
             false,
             "trace isolate reloading verbose");
 DEFINE_FLAG(bool, identity_reload, false, "Enable checks for identity reload.");
-DEFINE_FLAG(int, reload_every, 0, "Reload every N stack overflow checks.");
 DEFINE_FLAG(bool, reload_every_optimized, true, "Only from optimized code.");
 DEFINE_FLAG(bool,
             reload_every_back_off,
@@ -45,7 +47,6 @@ DEFINE_FLAG(bool,
             check_reloaded,
             false,
             "Assert that an isolate has reloaded at least once.")
-#ifndef PRODUCT
 
 #define I (isolate())
 #define Z (thread->zone())
@@ -486,7 +487,6 @@ class Aborted : public ReasonForCancelling {
   }
 };
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 static intptr_t CommonSuffixLength(const char* a, const char* b) {
   const intptr_t a_length = strlen(a);
   const intptr_t b_length = strlen(b);
@@ -691,12 +691,6 @@ void IsolateReloadContext::Reload(bool force_reload,
     FinalizeFailedLoad(Error::Cast(result));
   }
 }
-#else
-// NOTE: This function returns *after* FinalizeLoading is called.
-void IsolateReloadContext::Reload(bool force_reload,
-                                  const char* root_script_url,
-                                  const char* packages_url_) {}
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void IsolateReloadContext::RegisterClass(const Class& new_cls) {
   const Class& old_cls = Class::Handle(OldClassOrNull(new_cls));
@@ -1892,6 +1886,6 @@ void IsolateReloadContext::RebuildDirectSubclasses() {
   }
 }
 
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

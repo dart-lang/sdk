@@ -440,10 +440,8 @@ class CompilerOptions implements DiagnosticOptions {
         suppressWarnings: suppressWarnings,
         suppressHints: suppressHints,
         shownPackageWarnings: shownPackageWarnings,
-        // TODO(sigmund): remove once we support inlining and type-inference
-        // with `useKernel`.
-        disableInlining: disableInlining || useKernel,
-        disableTypeInference: disableTypeInference || useKernel,
+        disableInlining: disableInlining,
+        disableTypeInference: disableTypeInference,
         dumpInfo: dumpInfo,
         enableAssertMessage: enableAssertMessage,
         enableExperimentalMirrors: enableExperimentalMirrors,

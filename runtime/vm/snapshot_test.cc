@@ -600,6 +600,48 @@ TEST_CASE(SerializeArray) {
   CheckEncodeDecodeMessage(root);
 }
 
+TEST_CASE(SerializeArrayWithTypeArgument) {
+  // Write snapshot with object content.
+  const int kArrayLength = 10;
+  Array& array = Array::Handle(Array::New(kArrayLength));
+
+  TypeArguments& type_args = TypeArguments::Handle();
+  type_args ^= TypeArguments::New(1);
+  type_args.SetTypeAt(0, Type::Handle(Type::ObjectType()));
+  type_args = type_args.Canonicalize();
+
+  array.SetTypeArguments(type_args);
+
+  Smi& smi = Smi::Handle();
+  for (int i = 0; i < kArrayLength; i++) {
+    smi ^= Smi::New(i);
+    array.SetAt(i, smi);
+  }
+  uint8_t* buffer;
+  MessageWriter writer(&buffer, &zone_allocator, &zone_deallocator, true);
+  writer.WriteMessage(array);
+  intptr_t buffer_len = writer.BytesWritten();
+
+  // Read object back from the snapshot.
+  MessageSnapshotReader reader(buffer, buffer_len, thread);
+  Array& serialized_array = Array::Handle();
+  serialized_array ^= reader.ReadObject();
+  EXPECT(array.CanonicalizeEquals(serialized_array));
+
+  // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
+  ApiMessageReader api_reader(buffer, buffer_len);
+  Dart_CObject* root = api_reader.ReadMessage();
+  EXPECT_EQ(Dart_CObject_kArray, root->type);
+  EXPECT_EQ(kArrayLength, root->value.as_array.length);
+  for (int i = 0; i < kArrayLength; i++) {
+    Dart_CObject* element = root->value.as_array.values[i];
+    EXPECT_EQ(Dart_CObject_kInt32, element->type);
+    EXPECT_EQ(i, element->value.as_int32);
+  }
+  CheckEncodeDecodeMessage(root);
+}
+
 TEST_CASE(FailSerializeLargeArray) {
   Dart_CObject root;
   root.type = Dart_CObject_kArray;
