@@ -15,6 +15,7 @@ if (typeof global != "undefined") self = global;  // Node.js.
   "use strict"; // Should be first statement of this function.
 
   // Location (Uri.base)
+
   var baseUri = 'org-dartlang-d8-preamble:///mock/uri/base/';
   if (typeof process != "undefined" &&
              typeof process.cwd == "function") {
@@ -77,7 +78,7 @@ if (typeof global != "undefined") self = global;  // Node.js.
     var id = timerIdCounter++;
     f.$timerId = id;
     timerIds[id] = f;
-    if (ms == 0 && !isNextTimerDue()) {
+    if (ms == 0) {
       zeroTimerQueue.push(f);
     } else {
       addDelayedTimer(f, ms);
@@ -126,10 +127,7 @@ if (typeof global != "undefined") self = global;  // Node.js.
   var originalDate = Date;
   var originalNow = originalDate.now;
   function advanceTimeTo(time) {
-    var now = originalNow();
-    if (timeOffset < time - now) {
-      timeOffset = time - now;
-    }
+    timeOffset = time - originalNow();
   }
   function installMockDate() {
     var NewDate = function Date(Y, M, D, h, m, s, ms) {
@@ -172,12 +170,6 @@ if (typeof global != "undefined") self = global;  // Node.js.
     } else {
       timerList.push(f);
     }
-  }
-
-  function isNextTimerDue() {
-    if (timerHeap.length == 0) return false;
-    var head = timerHeap[0];
-    return head[0] < originalNow() + timeOffset;
   }
 
   function nextDelayedTimerQueue() {
@@ -269,7 +261,7 @@ if (typeof global != "undefined") self = global;  // Node.js.
 
   // Global properties. "self" refers to the global object, so adding a
   // property to "self" defines a global variable.
-  self.self = self;
+  self.self = self
   self.dartMainRunner = function(main, args) {
     // Initialize.
     var action = function() { main(args); }

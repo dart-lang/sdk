@@ -10,9 +10,6 @@ async/catch_errors20_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors28_test: Fail # Timer interface not supported: Issue 7728.
 async/future_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/future_constructor2_test: Fail # Timer interface not supported: Issue 7728.
-async/periodic_timer_test:  Fail # Timer interface not supported: Issue 7728.
-async/periodic_timer2_test:  Fail # Timer interface not supported: Issue 7728.
-async/periodic_timer3_test:  Fail # Timer interface not supported: Issue 7728.
 
 [ $compiler == dart2js ]
 async/future_or_strong_test: RuntimeError
