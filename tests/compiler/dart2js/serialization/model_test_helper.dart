@@ -125,35 +125,40 @@ void checkBackendInfo(Compiler compilerNormal, Compiler compilerDeserialized,
       compilerDeserialized.deferredLoadTask.isProgramSplit,
       "isProgramSplit mismatch");
 
-  Map<ConstantValue, OutputUnit> constants1 =
-      compilerNormal.deferredLoadTask.outputUnitForConstantsForTesting;
-  Map<ConstantValue, OutputUnit> constants2 =
-      compilerDeserialized.deferredLoadTask.outputUnitForConstantsForTesting;
+  Iterable<ConstantValue> constants1 =
+      compilerNormal.deferredLoadTask.constantsForTesting;
+  Iterable<ConstantValue> constants2 =
+      compilerDeserialized.deferredLoadTask.constantsForTesting;
   checkSets(
-      constants1.keys,
-      constants2.keys,
+      constants1,
+      constants2,
       'deferredLoadTask._outputUnitForConstants.keys',
       areConstantValuesEquivalent,
       failOnUnfound: false,
       failOnExtra: false,
       onSameElement: (ConstantValue value1, ConstantValue value2) {
-    OutputUnit outputUnit1 = constants1[value1];
-    OutputUnit outputUnit2 = constants2[value2];
     checkOutputUnits(
-        outputUnit1,
-        outputUnit2,
+        compilerNormal,
+        compilerDeserialized,
+        compilerNormal.deferredLoadTask.outputUnitForConstant(value1),
+        compilerDeserialized.deferredLoadTask.outputUnitForConstant(value2),
         'for ${value1.toStructuredText()} '
         'vs ${value2.toStructuredText()}');
   }, onUnfoundElement: (ConstantValue value1) {
-    OutputUnit outputUnit1 = constants1[value1];
+    OutputUnit outputUnit1 =
+        compilerNormal.deferredLoadTask.outputUnitForConstant(value1);
     Expect.isTrue(outputUnit1.isMainOutput,
         "Missing deferred constant: ${value1.toStructuredText()}");
   }, onExtraElement: (ConstantValue value2) {
-    OutputUnit outputUnit2 = constants2[value2];
+    OutputUnit outputUnit2 =
+        compilerDeserialized.deferredLoadTask.outputUnitForConstant(value2);
     Expect.isTrue(outputUnit2.isMainOutput,
         "Extra deferred constant: ${value2.toStructuredText()}");
   }, elementToString: (a) {
-    return '${a.toStructuredText()} -> ${constants1[a]}/${constants2[a]}';
+    OutputUnit o1 = compilerNormal.deferredLoadTask.outputUnitForConstant(a);
+    OutputUnit o2 =
+        compilerDeserialized.deferredLoadTask.outputUnitForConstant(a);
+    return '${a.toStructuredText()} -> ${o1}/${o2}';
   });
 }
 
@@ -284,10 +289,11 @@ void checkElementOutputUnits(Compiler compiler1, Compiler compiler2,
       compiler1.deferredLoadTask.getOutputUnitForElementForTesting(element1);
   OutputUnit outputUnit2 =
       compiler2.deferredLoadTask.getOutputUnitForElementForTesting(element2);
-  checkOutputUnits(outputUnit1, outputUnit2, 'for $element1 vs $element2');
+  checkOutputUnits(compiler1, compiler2, outputUnit1, outputUnit2,
+      'for $element1 vs $element2');
 }
 
-void checkOutputUnits(
+void checkOutputUnits(Compiler compiler1, Compiler compiler2,
     OutputUnit outputUnit1, OutputUnit outputUnit2, String message) {
   if (outputUnit1 == null && outputUnit2 == null) return;
   check(outputUnit1, outputUnit2, 'OutputUnit.isMainOutput $message',
@@ -296,7 +302,7 @@ void checkOutputUnits(
       outputUnit1,
       outputUnit2,
       'OutputUnit.imports $message',
-      outputUnit1.imports,
-      outputUnit2.imports,
+      compiler1.deferredLoadTask.getImportNames(outputUnit1),
+      compiler2.deferredLoadTask.getImportNames(outputUnit2),
       (a, b) => areElementsEquivalent(a.declaration, b.declaration));
 }
