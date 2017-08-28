@@ -430,6 +430,33 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
   }
 
   @override
+  visitDeclaredIdentifier(DeclaredIdentifier node) {
+    // variable
+    var variableVName = addNodeAndFacts(schema.VARIABLE_KIND,
+        element: node.element,
+        subKind: schema.LOCAL_SUBKIND,
+        completeFact: schema.DEFINITION);
+
+    // anchor
+    addAnchorEdgesContainingEdge(
+        syntacticEntity: node.identifier,
+        edges: [
+          schema.DEFINES_BINDING_EDGE,
+        ],
+        target: variableVName,
+        enclosingTarget: _enclosingVName);
+
+    // type
+    addEdge(
+        variableVName,
+        schema.TYPED_EDGE,
+        _vNameFromType(
+            resolutionMap.elementDeclaredByDeclaredIdentifier(node).type));
+
+    // no children
+  }
+
+  @override
   visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     // constant node
     var constDeclVName =
