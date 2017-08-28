@@ -1296,7 +1296,8 @@ void StreamingScopeBuilder::VisitStatement() {
       return;
     }
     case kContinueSwitchStatement:
-      builder_->ReadUInt();  // read target_index.
+      builder_->ReadPosition();  // read position.
+      builder_->ReadUInt();      // read target_index.
       return;
     case kIfStatement:
       VisitExpression();  // read condition.
@@ -4579,7 +4580,8 @@ void StreamingFlowGraphBuilder::SkipStatement() {
       return;
     }
     case kContinueSwitchStatement:
-      ReadUInt();  // read target_index.
+      ReadPosition();  // read position.
+      ReadUInt();      // read target_index.
       return;
     case kIfStatement:
       SkipExpression();  // read condition.
@@ -6958,7 +6960,8 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildContinueSwitchStatement() {
-  intptr_t target_index = ReadUInt();  // read target index.
+  TokenPosition position = ReadPosition();  // read position.
+  intptr_t target_index = ReadUInt();       // read target index.
 
   TryFinallyBlock* outer_finally = NULL;
   intptr_t target_context_depth = -1;
@@ -6969,6 +6972,9 @@ Fragment StreamingFlowGraphBuilder::BuildContinueSwitchStatement() {
   instructions +=
       TranslateFinallyFinalizers(outer_finally, target_context_depth);
   if (instructions.is_open()) {
+    if (NeedsDebugStepCheck(parsed_function()->function(), position)) {
+      instructions += DebugStepCheck(position);
+    }
     instructions += Goto(entry);
   }
   return instructions;

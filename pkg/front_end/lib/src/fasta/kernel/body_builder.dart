@@ -2994,7 +2994,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (target.isGotoTarget &&
           target.functionNestingLevel == functionNestingLevel) {
         ContinueSwitchStatement statement =
-            new KernelContinueSwitchStatement(null);
+            new KernelContinueSwitchStatement(null)
+              ..fileOffset = continueKeyword.charOffset;
         target.addGoto(statement);
         push(statement);
         return;

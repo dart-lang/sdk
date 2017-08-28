@@ -865,6 +865,7 @@ type SwitchCase {
 
 type ContinueSwitchStatement extends Statement {
   Byte tag = 72;
+  FileOffset fileOffset;
 
   // Reference to the Nth SwitchCase in scope.
   //

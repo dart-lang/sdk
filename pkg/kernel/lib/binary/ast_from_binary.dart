@@ -1067,8 +1067,10 @@ class BinaryBuilder {
         switchCaseStack.length -= count;
         return new SwitchStatement(expression, cases)..fileOffset = offset;
       case Tag.ContinueSwitchStatement:
+        int offset = readOffset();
         int index = readUInt();
-        return new ContinueSwitchStatement(switchCaseStack[index]);
+        return new ContinueSwitchStatement(switchCaseStack[index])
+          ..fileOffset = offset;
       case Tag.IfStatement:
         return new IfStatement(
             readExpression(), readStatement(), readStatementOrNullIfEmpty());
