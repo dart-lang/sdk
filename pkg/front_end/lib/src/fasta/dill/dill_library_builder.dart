@@ -147,21 +147,16 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   void finalizeExports() {
     if (additionalExports != null) {
       for (List<String> additionalExport in additionalExports) {
-        Uri originUri = Uri.parse(additionalExport[0]);
+        String uriString = additionalExport[0];
         String name = additionalExport[1];
         Builder builder;
-        if (originUri == null) {
+        if (uriString == null) {
           builder = new KernelInvalidTypeBuilder(name, -1, null,
               templateUnspecified.withArguments(additionalExport[2]));
         } else {
-          DillLibraryBuilder library = loader.read(originUri, -1);
-          builder = library.exportScopeBuilder[name];
-          if (library != null) {
-            builder = library.exportScopeBuilder[name];
-          }
-          if (builder == null) {
-            builder = new KernelInvalidTypeBuilder(name, -1, null);
-          }
+          DillLibraryBuilder library = loader.read(uri.resolve(uriString), -1);
+          builder = library?.exportScopeBuilder[name] ??
+              new KernelInvalidTypeBuilder(name, -1, null);
         }
         exportScopeBuilder.addMember(name, builder);
       }

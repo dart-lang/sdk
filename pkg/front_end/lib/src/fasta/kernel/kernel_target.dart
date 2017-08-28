@@ -371,7 +371,7 @@ class KernelTarget extends TargetImplementation {
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource);
     if (loader.first != null) {
       // TODO(sigmund): do only for full program
-      Builder builder = loader.first.lookup("main", -1, null);
+      Builder builder = loader.first.exportScope.lookup("main", -1, null);
       if (builder is KernelProcedureBuilder) {
         program.mainMethod = builder.procedure;
       }

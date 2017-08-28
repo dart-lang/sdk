@@ -90,13 +90,10 @@ rasta/deferred_lib: Fail
 rasta/deferred_load: Fail
 rasta/duplicated_mixin: Fail
 rasta/enum: Fail
-rasta/export: Fail
 rasta/external_factory_redirection: Fail
-rasta/foo: Fail
 rasta/for_loop: Fail
 rasta/generic_factory: Fail
 rasta/hello: Fail
-rasta/import_export: Fail
 rasta/issue_000001: Fail
 rasta/issue_000002: Fail
 rasta/issue_000004: Fail
@@ -190,3 +187,7 @@ runtime_checks/dynamic_invocation_of_getter: Fail
 
 illegal_named_function_expression: RuntimeError
 local_generic_function: RuntimeError
+
+ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
+rasta/export: RuntimeError # Expected, this file has no main method.
+rasta/foo: RuntimeError # Expected, this file has no main method.

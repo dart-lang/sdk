@@ -54,6 +54,8 @@ import '../import.dart' show Import;
 
 import '../problems.dart' show unhandled;
 
+import '../util/relativize.dart' show relativizeUri;
+
 import 'source_loader.dart' show SourceLoader;
 
 abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
@@ -524,7 +526,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         additionalExports ??= <List<String>>[];
         Builder parent = member.parent;
         if (parent is LibraryBuilder) {
-          additionalExports.add(<String>["${parent.uri}", name]);
+          additionalExports.add(<String>[
+            relativizeUri(parent.uri, base: uri.resolve(".")),
+            name
+          ]);
         } else {
           InvalidTypeBuilder invalidType = member;
           String message = invalidType.message.message;

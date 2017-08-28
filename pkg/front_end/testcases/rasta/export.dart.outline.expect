@@ -1,2 +1,4 @@
 library export;
 import self as self;
+
+static const field dynamic _exports# = "[[\"foo.dart\",\"foo\"]]" /* from null */;
