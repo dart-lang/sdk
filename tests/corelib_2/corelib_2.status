@@ -412,6 +412,8 @@ string_static_test: MissingCompileTimeError
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel]
 error_stack_trace1_test: RuntimeError # Issue 12399
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
+
+[ $compiler == dart2js && $runtime != none ]
 regexp/pcre_test: Pass, Slow # Issue 21593
 
 [ !$checked && (($compiler == none && $runtime == vm) || $compiler == dart2js) ]
