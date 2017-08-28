@@ -427,8 +427,6 @@ class_cycle_test/03: MissingCompileTimeError
 class_syntax2_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 class_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.closureRef#)) for j:closure_call(Sub_closureRef_closure.call).
 classes_static_method_clash_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Primitives.applyFunctionWithNamedArguments#bad) is stored in a closure field.
-closure4_test: Crash # Assertion failure: Cannot find value local(main#fun) in () for j:method(main).
-closure5_test: Crash # Assertion failure: Cannot find value local(main#fun) in () for j:method(main).
 closure6_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.foo#)) for j:closure_call(A_foo_closure.call).
 closure_cycles_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(doIt_closure.call), ..., j:closure_call(Duration_toString_closure.call), j:closure_call(Y_Y_closure.call))
 closure_in_constructor_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
@@ -603,15 +601,13 @@ class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 class_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.closureRef#)) for j:closure_call(Sub_closureRef_closure.call).
 classes_static_method_clash_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(JsLinkedHashMap.addAll#key), local(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
-closure4_test: Crash # Assertion failure: Cannot find value local(main#fun) in () for j:method(main).
-closure5_test: Crash # Assertion failure: Cannot find value local(main#fun) in () for j:method(main).
 closure6_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.foo#)) for j:closure_call(A_foo_closure.call).
 closure_cycles_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 closure_in_constructor_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
-closure_in_initializer2_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+closure_in_initializer2_test: RuntimeError
 closure_in_initializer_test: Crash # NoSuchMethodError: The getter 'parent' was called on null.
 closure_parameter_types_test: RuntimeError
-closure_self_reference_test: Crash # Stack Overflow
+closure_self_reference_test: RuntimeError
 closure_shared_state_test: RuntimeError
 closure_type_variable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 closure_type_variables_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
@@ -620,8 +616,9 @@ closure_with_super_send_test: Crash # Assertion failure: Cannot find value Insta
 closures_initializer2_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 closures_initializer_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 closures_with_complex_params_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'supertype'.
-regress_30339_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-typevariable_substitution2_test/02: RuntimeError
+compile_time_constant_a_test: Crash
+compile_time_constant_b_test: Crash
+compile_time_constant_c_test/02: Crash
 generic_instanceof_test: Crash
 generic_local_functions_test: Crash
 generic_methods_closure_test: Crash
@@ -640,9 +637,8 @@ generic_test: Crash
 generic_test: RuntimeError
 generic_typedef_test: Crash
 many_generic_instanceof_test: Crash
-compile_time_constant_a_test: Crash
-compile_time_constant_b_test: Crash
-compile_time_constant_c_test/02: Crash
+regress_30339_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && ! $dart2js_with_kernel && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853

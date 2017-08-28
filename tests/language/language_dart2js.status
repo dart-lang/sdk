@@ -797,7 +797,6 @@ for_variable_capture_test: Crash
 full_stacktrace1_test: Crash
 full_stacktrace2_test: Crash
 full_stacktrace3_test: Crash
-function_literals2_test: Crash
 function_malformed_result_type_test: Crash
 function_subtype_bound_closure6_test: Crash
 function_subtype_cast2_test: Crash
@@ -821,7 +820,6 @@ function_subtype_typearg4_test: Crash
 function_subtype_typearg5_test: Crash
 function_syntax_test/none: Crash
 function_test: Crash
-function_type2_test: Crash
 function_type_alias3_test: Crash
 function_type_alias_test: Crash
 function_type_parameter2_negative_test: Crash
@@ -889,8 +887,6 @@ import_self_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dar
 inference_mixin_field_test: Crash
 infinite_switch_label_test: Crash
 infinity_test: RuntimeError
-initializing_formal_capture_test: Crash
-initializing_formal_final_test: Crash
 inline_super_field_test: Crash
 inlined_throw_test: Crash
 instance_creation_in_function_annotation_test: Crash
@@ -912,9 +908,7 @@ issue10204_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': 
 issue10721_test: Crash
 issue10747_test: Crash
 issue13474_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#a) is stored in a closure field.
-issue14014_2_test: Crash
 issue14014_3_test: Crash
-issue14014_test: Crash
 issue14242_test: Crash
 issue15720_test: Crash
 issue21079_test: Crash
@@ -923,7 +917,6 @@ issue4295001_test: Crash
 issue9602_test: Crash
 issue9939_test: RuntimeError
 issue_1751477_test: CompileTimeError
-issue_22780_test/01: Crash
 issue_23914_test: Crash
 issue_25671a_test/01: Crash
 issue_25671b_test/01: Crash
@@ -934,7 +927,6 @@ left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
-library_prefixes_test: Crash
 list_is_test: Crash
 list_literal3_test: Crash
 list_literal4_test: RuntimeError
@@ -1180,7 +1172,6 @@ null_test/none: Crash
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
 ordered_maps_test: Crash
-osr_test: Crash
 overridden_no_such_method_test: Crash
 override_field_method1_negative_test: Crash
 override_field_method2_negative_test: Fail
@@ -1739,7 +1730,6 @@ for_variable_capture_test: Crash
 full_stacktrace1_test: Crash
 full_stacktrace2_test: Crash
 full_stacktrace3_test: Crash
-function_literals2_test: Crash
 function_subtype_bound_closure6_test: Crash
 function_subtype_cast2_test: Crash
 function_subtype_cast3_test: Crash
@@ -1762,7 +1752,6 @@ function_subtype_typearg4_test: Crash
 function_subtype_typearg5_test: Crash
 function_syntax_test/none: Crash
 function_test: Crash
-function_type2_test: Crash
 function_type_alias3_test: Crash
 function_type_alias_test: Crash
 function_type_parameter2_negative_test: Crash
@@ -1821,8 +1810,6 @@ import_collection_no_prefix_test: Crash
 inference_mixin_field_test: Crash
 infinite_switch_label_test: Crash
 infinity_test: RuntimeError
-initializing_formal_capture_test: Crash
-initializing_formal_final_test: Crash
 inline_super_field_test: Crash
 inlined_throw_test: Crash
 instance_creation_in_function_annotation_test: Crash
@@ -1843,9 +1830,7 @@ is_object_test: RuntimeError
 issue10721_test: Crash
 issue10747_test: Crash
 issue13474_test: RuntimeError
-issue14014_2_test: Crash
 issue14014_3_test: Crash
-issue14014_test: Crash
 issue14242_test: Crash
 issue15720_test: Crash
 issue21079_test: Crash
@@ -1854,7 +1839,6 @@ issue4295001_test: Crash
 issue9602_test: Crash
 issue9939_test: RuntimeError
 issue_1751477_test: CompileTimeError
-issue_22780_test/01: Crash
 issue_23914_test: Crash
 issue_25671a_test/01: Crash
 issue_25671b_test/01: Crash
@@ -1864,7 +1848,6 @@ left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
-library_prefixes_test: Crash
 list_is_test: Crash
 list_literal3_test: Crash
 list_literal4_test: RuntimeError
@@ -2098,7 +2081,7 @@ null_test/none: Crash
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
 ordered_maps_test: Crash
-osr_test: Crash
+function_syntax_test/none: RuntimeError
 overridden_no_such_method_test: Crash
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
@@ -2118,7 +2101,7 @@ override_inheritance_no_such_method_test/13: Crash
 override_method_with_field_test/01: MissingCompileTimeError
 parameter_initializer_test: Crash
 parameter_types_specialization_test: RuntimeError
-parse_closures_in_initializers_test: Crash
+parse_closures_in_initializers_test: RuntimeError
 positional_parameters_type_test/01: Crash
 positional_parameters_type_test/02: Crash
 positional_parameters_type_test/none: Crash

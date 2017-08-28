@@ -36,14 +36,14 @@ class KernelClosureAnalysis {
         hasThisLocal: entity.isInstanceMember || entity.isConstructor);
     if (entity.isField) {
       if (node is ir.Field && node.initializer != null) {
-        translator.translateLazyInitializer(node);
+        node.accept(translator);
       } else {
         assert(entity.isInstanceMember);
         model.scopeInfo = new KernelScopeInfo(true);
       }
     } else {
       assert(node is ir.Procedure || node is ir.Constructor);
-      translator.translateConstructorOrProcedure(node);
+      node.accept(translator);
     }
     return model;
   }
@@ -77,8 +77,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       <MemberEntity, ClosureRepresentationInfo>{};
 
   // The key is either a [ir.FunctionDeclaration] or [ir.FunctionExpression].
-  Map<ir.Node, ClosureRepresentationInfo> _localClosureRepresentationMap =
-      <ir.Node, ClosureRepresentationInfo>{};
+  Map<ir.TreeNode, ClosureRepresentationInfo> _localClosureRepresentationMap =
+      <ir.TreeNode, ClosureRepresentationInfo>{};
 
   KernelClosureConversionTask(Measurer measurer, this._elementMap,
       this._globalLocalsMap, this._closureModels)
@@ -114,11 +114,19 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
         }
       });
 
-      Map<ir.FunctionNode, KernelScopeInfo> closuresToGenerate =
+      Map<ir.TreeNode, KernelScopeInfo> closuresToGenerate =
           model.closuresToGenerate;
-      for (ir.FunctionNode node in closuresToGenerate.keys) {
+      for (ir.TreeNode node in closuresToGenerate.keys) {
+        ir.FunctionNode functionNode;
+        if (node is ir.FunctionDeclaration) {
+          functionNode = node.function;
+        } else if (node is ir.FunctionExpression) {
+          functionNode = node.function;
+        } else {
+          failedAt(member, "Unexpected closure node ${node}");
+        }
         KernelClosureClass closureClass = _produceSyntheticElements(
-            member, node, closuresToGenerate[node], closedWorldRefiner);
+            member, functionNode, closuresToGenerate[node], closedWorldRefiner);
         // Add also for the call method.
         _scopeMap[closureClass.callMethod] = closureClass;
       }
@@ -205,6 +213,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
 
   @override
   ClosureRepresentationInfo getClosureInfo(ir.Node node) {
+    assert(node is ir.FunctionExpression || node is ir.FunctionDeclaration);
     var closure = _localClosureRepresentationMap[node];
     assert(
         closure != null,
@@ -586,6 +595,6 @@ class ScopeModel {
       <ir.Node, KernelCapturedScope>{};
 
   /// Collected [ScopeInfo] data for nodes.
-  Map<ir.FunctionNode, KernelScopeInfo> closuresToGenerate =
-      <ir.FunctionNode, KernelScopeInfo>{};
+  Map<ir.TreeNode, KernelScopeInfo> closuresToGenerate =
+      <ir.TreeNode, KernelScopeInfo>{};
 }

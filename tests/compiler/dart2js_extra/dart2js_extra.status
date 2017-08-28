@@ -233,7 +233,6 @@ if_null3_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Fa
 if_null_test: Crash
 inference_nsm_mirrors_test: Crash
 inference_super_set_call_test: RuntimeError
-inline_position_crash_test: Crash
 interceptor_named_arguments_test: Crash
 invalid_annotation2_test/none: Crash
 is_check_instanceof_test: Crash
@@ -364,7 +363,6 @@ hash_code_test: Crash # UnimplementedError: Unexpected constant expression new #
 if_null_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 inference_nsm_mirrors_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
 inference_super_set_call_test: RuntimeError
-inline_position_crash_test: Crash # NoSuchMethodError: The getter 'classIndex' was called on null.
 interceptor_named_arguments_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 invalid_annotation2_test/none: Crash # NoSuchMethodError: Class 'DynamicType' has no instance getter 'element'.
 is_check_instanceof_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
