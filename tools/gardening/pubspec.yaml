@@ -4,6 +4,9 @@ name: gardening
 #version: do-not-upload
 dependencies:
   args:
+  html:
+  http:
+  path:
   expect:
     path: ../../pkg/expect/
   testing:
