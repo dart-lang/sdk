@@ -8,4 +8,5 @@ async/future_timeout_test: RuntimeError
 
 [ $strong && $runtime == vm ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
-async/multiple_timer_test: RuntimeError
+
+

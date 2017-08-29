@@ -16,4 +16,3 @@ async/future_or_strong_test: RuntimeError
 
 [ $compiler != dart2js ]
 async/dart2js_uncaught_error_test: Skip  # JS-integration only test
-async/multiple_timer_test: RuntimeError,OK # Needs Timer to run.

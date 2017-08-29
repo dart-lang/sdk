@@ -2,11 +2,7 @@ library catch_errors;
 
 import 'dart:async';
 
-<<<<<<< HEAD
 Stream catchErrors(dynamic body()) {
-=======
-Stream catchErrors(void body()) {
->>>>>>> Migrated test block 170 to Dart 2.0.
   StreamController controller;
 
   bool onError(e, st) {

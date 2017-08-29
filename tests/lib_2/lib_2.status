@@ -7,6 +7,3 @@ async/future_or_only_in_async_test/00: MissingCompileTimeError
 
 [ !$strong && !$checked]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
-
-[ $hot_reload || $hot_reload_rollback ]
-async/multiple_timer_test: Pass, Fail # Timing related
