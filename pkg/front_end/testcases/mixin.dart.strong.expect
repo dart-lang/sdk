@@ -45,9 +45,9 @@ class D<S extends core::Object> extends self::_Object&G1^^#T0<self::D::S> {
     ;
 }
 static method main() → dynamic {
-  new self::B::•(null).m();
-  new self::C::•(null).m();
-  new self::D::•<dynamic>().m();
-  new self::D::•<core::int>().m();
-  new self::D::•<core::List<core::int>>().m();
+  new self::B::•(null).{self::M2::m}();
+  new self::C::•(null).{self::M2::m}();
+  new self::D::•<dynamic>().{self::G1::m}();
+  new self::D::•<core::int>().{self::G1::m}();
+  new self::D::•<core::List<core::int>>().{self::G1::m}();
 }

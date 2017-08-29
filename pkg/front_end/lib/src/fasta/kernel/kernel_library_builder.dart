@@ -242,7 +242,7 @@ class KernelLibraryBuilder
       if (index != -1) {
         name = name.substring(0, index);
       }
-      name = "$name&${mixin.name}$signature";
+      name = "_$name&${mixin.name}$signature";
       builder = mixinApplicationClasses[name];
     }
     if (builder == null) {

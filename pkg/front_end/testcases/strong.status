@@ -33,7 +33,6 @@ invocations: Fail
 literals: Fail
 map: Fail
 micro: Fail
-mixin: Fail
 named_parameters: Fail
 null_aware: Fail
 operators: Fail
@@ -88,7 +87,6 @@ rasta/class_member: Fail
 rasta/constant_get_and_invoke: Fail
 rasta/deferred_lib: Fail
 rasta/deferred_load: Fail
-rasta/duplicated_mixin: Fail
 rasta/enum: Fail
 rasta/external_factory_redirection: Fail
 rasta/for_loop: Fail
@@ -98,7 +96,6 @@ rasta/issue_000001: Fail
 rasta/issue_000002: Fail
 rasta/issue_000004: Fail
 rasta/issue_000006: Fail
-rasta/issue_000007: Fail
 rasta/issue_000008: Fail
 rasta/issue_000011: Fail
 rasta/issue_000012: Fail
@@ -126,7 +123,6 @@ rasta/issue_000067: Fail
 rasta/issue_000068: Fail
 rasta/issue_000069: Fail
 rasta/issue_000070: Fail
-rasta/issue_000080: Fail
 rasta/issue_000081: Fail
 rasta/malformed_const_constructor: Fail
 rasta/malformed_function: Fail
@@ -189,5 +185,6 @@ illegal_named_function_expression: RuntimeError
 local_generic_function: RuntimeError
 
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
+rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.
 rasta/export: RuntimeError # Expected, this file has no main method.
 rasta/foo: RuntimeError # Expected, this file has no main method.

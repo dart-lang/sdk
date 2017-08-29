@@ -39,9 +39,9 @@ class F extends core::Object implements self::B {
     : super core::Object::•()
     ;
 }
-abstract class Object&B = core::Object with self::B {
+abstract class _Object&B = core::Object with self::B {
 }
-class G extends self::Object&B {
+class G extends self::_Object&B {
   field dynamic x = null;
   default constructor •() → void
     : super core::Object::•()

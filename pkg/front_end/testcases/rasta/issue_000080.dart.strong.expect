@@ -22,7 +22,7 @@ class Foo extends self::_Object&Mixin {
     return super.{self::Mixin::field};
 }
 static method main() → dynamic {
-  dynamic f = new self::Foo::•();
-  f.field = 42;
-  core::print(f.bar());
+  self::Foo f = new self::Foo::•();
+  f.{self::Mixin::field} = 42;
+  core::print(f.{self::Foo::bar}());
 }

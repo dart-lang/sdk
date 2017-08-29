@@ -4,5 +4,5 @@ Tree-shaker preserved the following:
 library pkg/front_end/testcases/shaker/lib/lib.dart:
   - class M2
   - class M3
-  - class Object&M2
+  - class _Object&M2
   - class M1
