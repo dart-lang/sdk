@@ -527,7 +527,6 @@ expando_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Fai
 for_in_test: Crash
 growable_list_test: Crash
 hash_map2_test: Crash
-hash_map_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 hash_set_test/01: Crash
 hash_set_test/none: Crash
 hash_set_type_check_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(SetMixin.length). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_LinkedCustomHashSet_closure.call), j:constructor(_LinkedCustomHashSet.))
@@ -591,22 +590,17 @@ list_replace_range_test: Crash
 list_reversed_test: Crash
 list_set_all_test: Crash
 list_set_range_test: Crash
-list_sort_test: RuntimeError
 list_test/01: Crash
 list_test/none: Crash
 list_unmodifiable_test: Crash
 main_test: Crash
-map_contains_key_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 map_contains_value_test: Crash
 map_from_iterable_test: Crash
 map_from_iterables_test: Crash
 map_from_test: Crash
-map_index_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 map_keys2_test: Crash
 map_keys_test: Crash
-map_remove_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 map_test: Crash # Issue 27394
-map_to_string_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 map_values2_test: Crash
 map_values3_test: Crash
 map_values4_test: Crash
@@ -650,7 +644,7 @@ set_retainAll_test: Crash
 set_test: Crash
 set_to_string_test: Crash
 shuffle_test: Crash
-sort_test: RuntimeError
+expando_test: RuntimeError
 splay_tree_from_iterable_test: Crash
 splay_tree_from_iterables_test: Crash
 splay_tree_test/01: Crash
@@ -840,7 +834,6 @@ list_replace_range_test: Crash
 list_reversed_test: Crash
 list_set_all_test: Crash
 list_set_range_test: Crash
-list_sort_test: RuntimeError
 list_test/01: Crash
 list_test/none: Crash
 list_unmodifiable_test: Crash
@@ -852,7 +845,6 @@ map_from_test: Crash
 map_keys2_test: Crash
 map_keys_test: Crash
 map_test: Crash # Issue 27394
-map_to_string_test: RuntimeError
 map_values2_test: Crash
 map_values3_test: Crash
 map_values4_test: Crash
@@ -897,7 +889,7 @@ set_retainAll_test: Crash
 set_test: Crash
 set_to_string_test: Crash
 shuffle_test: Crash
-sort_test: RuntimeError
+regexp/ascii-regexp-subject_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
 splay_tree_from_iterable_test: Crash
 splay_tree_from_iterables_test: Crash
 splay_tree_test/01: Crash

@@ -541,13 +541,14 @@ class ClosureClassElement extends ClassElementX {
 /// fields.
 class BoxLocal extends Local {
   final String name;
-  final Entity executableContext;
   final MemberEntity memberContext;
 
   final int hashCode = _nextHashCode = (_nextHashCode + 10007).toUnsigned(30);
   static int _nextHashCode = 0;
 
-  BoxLocal(this.name, this.executableContext, this.memberContext);
+  BoxLocal(this.name, this.memberContext);
+
+  Entity get executableContext => memberContext;
 
   String toString() => 'BoxLocal($name)';
 }
@@ -1260,8 +1261,7 @@ class ClosureTranslator extends Visitor {
         if (box == null) {
           // TODO(floitsch): construct better box names.
           String boxName = getBoxFieldName(closureFieldCounter++);
-          box = new BoxLocal(
-              boxName, executableContext, executableContext.memberContext);
+          box = new BoxLocal(boxName, executableContext.memberContext);
         }
         String elementName = variable.name;
         String boxedName =

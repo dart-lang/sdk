@@ -11,8 +11,6 @@ import 'closure.dart';
 /// various points to build CapturedScope that can respond to queries
 /// about how a particular variable is being used at any point in the code.
 class CapturedScopeBuilder extends ir.Visitor {
-  ir.TreeNode _currentLocalFunction;
-
   ScopeModel _model;
 
   /// A map of each visited call node with the associated information about what
@@ -84,12 +82,10 @@ class CapturedScopeBuilder extends ir.Visitor {
     }
     if (!capturedVariablesForScope.isEmpty) {
       assert(_model.scopeInfo != null);
-      assert(_currentLocalFunction != null);
       KernelScopeInfo from = _model.scopeInfo;
       var capturedScope = new KernelCapturedScope(
           capturedVariablesForScope,
           new NodeBox(getBoxName(), _executableContext),
-          _currentLocalFunction,
           from.localsUsedInTryOrSync,
           from.freeVariables,
           _hasThisLocal);
@@ -155,6 +151,15 @@ class CapturedScopeBuilder extends ir.Visitor {
     node.visitChildren(this);
   }
 
+  @override
+  visitVariableDeclaration(ir.VariableDeclaration declaration) {
+    if (!declaration.isFieldFormal) {
+      _scopeVariables.add(declaration);
+    }
+
+    declaration.visitChildren(this);
+  }
+
   /// Add this variable to the set of free variables if appropriate and add to
   /// the tally of variables used in try or sync blocks.
   void _markVariableAsUsed(ir.VariableDeclaration variable) {
@@ -214,7 +219,6 @@ class CapturedScopeBuilder extends ir.Visitor {
         scope.boxedVariables,
         scope.capturedVariablesAccessor,
         boxedLoopVariables,
-        scope.context,
         scope.localsUsedInTryOrSync,
         scope.freeVariables,
         scope.hasThisLocal);
@@ -227,7 +231,6 @@ class CapturedScopeBuilder extends ir.Visitor {
     bool oldIsInsideClosure = _isInsideClosure;
     ir.TreeNode oldExecutableContext = _executableContext;
     KernelScopeInfo oldScopeInfo = _currentScopeInfo;
-    ir.TreeNode oldLocalFunction = _currentLocalFunction;
 
     // _outermostNode is only null the first time we enter the body of the
     // field, constructor, or method that is being analyzed.
@@ -237,7 +240,6 @@ class CapturedScopeBuilder extends ir.Visitor {
     _currentScopeInfo = new KernelScopeInfo(_hasThisLocal);
     if (_isInsideClosure) {
       _closuresToGenerate[node] = _currentScopeInfo;
-      _currentLocalFunction = node.parent;
     } else {
       _outermostNode = node;
     }
@@ -254,7 +256,6 @@ class CapturedScopeBuilder extends ir.Visitor {
     _isInsideClosure = oldIsInsideClosure;
     _currentScopeInfo = oldScopeInfo;
     _executableContext = oldExecutableContext;
-    _currentLocalFunction = oldLocalFunction;
 
     // Mark all free variables as captured and expect to encounter them in the
     // outer function.

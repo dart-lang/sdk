@@ -18,6 +18,7 @@ import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js_backend/js_backend.dart';
 import '../js_backend/native_data.dart';
+import '../js_model/closure.dart' show KernelScopeInfo, JRecordField;
 import '../kernel/element_map.dart';
 import '../kernel/element_map_mixins.dart';
 import '../kernel/kernel.dart';
@@ -409,6 +410,12 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
       ClosureDataLookup closureLookup, ir.TreeNode node) {
     LocalFunctionElement localFunction = getElement(node);
     return closureLookup.getClosureInfo(localFunction.node);
+  }
+
+  @override
+  Map<Local, JRecordField> makeRecordContainer(
+      KernelScopeInfo info, MemberEntity member, KernelToLocalsMap localsMap) {
+    throw new UnsupportedError('KernelAstAdapter.makeRecordContainer');
   }
 }
 

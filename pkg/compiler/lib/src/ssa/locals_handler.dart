@@ -11,6 +11,7 @@ import '../io/source_information.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_model/closure.dart' show JRecordField, JClosureField;
+import '../js_model/locals.dart' show JLocal;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../world.dart' show ClosedWorld;
@@ -155,12 +156,17 @@ class LocalsHandler {
     directLocals[closureInfo.context] = box;
     // Make sure that accesses to the boxed locals go into the box. We also
     // need to make sure that parameters are copied into the box if necessary.
-    closureInfo.forEachBoxedVariable((_from, _to) {
-      LocalVariableElement from = _from;
-      BoxFieldElement to = _to;
+    closureInfo.forEachBoxedVariable((Local from, FieldEntity to) {
       // The [from] can only be a parameter for function-scopes and not
       // loop scopes.
-      if (from.isRegularParameter && !forGenerativeConstructorBody) {
+      bool isParameter;
+      if (from is JLocal) {
+        isParameter = from.isRegularParameter;
+      } else if (from is LocalVariableElement) {
+        isParameter = from.isRegularParameter;
+      }
+      assert(isParameter != null);
+      if (isParameter && !forGenerativeConstructorBody) {
         // Now that the redirection is set up, the update to the local will
         // write the parameter value into the box.
         // Store the captured parameter in the box. Get the current value

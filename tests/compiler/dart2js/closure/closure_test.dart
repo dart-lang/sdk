@@ -26,13 +26,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, computeClosureData, computeKernelClosureData,
-        // TODO(johnnniwinther,efortuna): Enable these tests for .dill.
-        skipForKernel: [
-          'captured_variable.dart',
-          'mixed.dart',
-          'mutations.dart',
-          'nested_closures.dart'
-        ],
+        skipForKernel: [],
         options: [Flags.disableTypeInference],
         verbose: verbose);
   });

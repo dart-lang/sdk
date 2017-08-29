@@ -139,7 +139,6 @@ compute_this_script_test: Crash
 core_type_check_native_test: RuntimeError
 event_loop_test: Crash
 fake_thing_test: RuntimeError
-inference_of_helper_methods_test: Crash
 internal_library_test: Crash
 is_check_test: CompileTimeError
 load_elim_refinement_test: CompileTimeError
@@ -147,8 +146,6 @@ mirror_intercepted_field_test: CompileTimeError
 native_class_inheritance1_frog_test: RuntimeError
 native_class_inheritance2_frog_test: RuntimeError
 native_class_inheritance3_frog_test: RuntimeError
-native_exception2_test: Crash
-native_exception_test: Crash
 native_exceptions1_frog_test: Crash
 native_library_same_name_used_frog_test: CompileTimeError
 native_method_inlining_test: Crash
@@ -185,8 +182,6 @@ mirror_intercepted_field_test: CompileTimeError
 native_class_inheritance1_frog_test: RuntimeError
 native_class_inheritance2_frog_test: RuntimeError
 native_class_inheritance3_frog_test: RuntimeError
-native_exception2_test: RuntimeError
-native_exception_test: RuntimeError
 native_exceptions1_frog_test: CompileTimeError
 native_library_same_name_used_frog_test: CompileTimeError
 native_method_inlining_test: Crash # NoSuchMethodError: The method 'accept' was called on null.

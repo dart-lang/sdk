@@ -2169,10 +2169,69 @@ class JsKernelToElementMap extends KernelToElementMapBase
     env.forEachConstructorBody(f);
   }
 
+  JRecordField _constructBoxedField(
+      ir.VariableDeclaration variable,
+      BoxLocal boxLocal,
+      JClass container,
+      Map<String, MemberEntity> memberMap,
+      KernelToLocalsMap localsMap) {
+    Local local = localsMap.getLocalVariable(variable);
+    var boxedField = new JRecordField(
+        local.name, _memberData.length, boxLocal, container, variable.isConst);
+    _memberList.add(boxedField);
+    _memberData.add(new ClosureFieldData(new ClosureMemberDefinition(
+        boxedField,
+        computeSourceSpanFromTreeNode(variable),
+        MemberKind.closureField,
+        variable)));
+    memberMap[boxedField.name] = boxedField;
+
+    return boxedField;
+  }
+
+  /// Make a container controlling access to records, that is, variables that
+  /// are accessed in different scopes. This function creates the container
+  /// and returns a map of locals to the corresponding records created.
+  Map<Local, JRecordField> makeRecordContainer(
+      KernelScopeInfo info, MemberEntity member, KernelToLocalsMap localsMap) {
+    Map<Local, JRecordField> boxedFields = {};
+    if (info.boxedVariables.isNotEmpty) {
+      NodeBox box = info.capturedVariablesAccessor;
+
+      var container = new JRecord(member.library, _classEnvs.length, box.name);
+      _classList.add(container);
+      Map<String, MemberEntity> memberMap = <String, MemberEntity>{};
+      _classEnvs.add(new RecordEnv(memberMap));
+
+      var containerData = new ClassData(
+          null,
+          new ClosureClassDefinition(container,
+              computeSourceSpanFromTreeNode(getMemberDefinition(member).node)));
+      containerData
+        ..isMixinApplication = false
+        ..thisType = new InterfaceType(container, const <DartType>[])
+        ..supertype = commonElements.objectType
+        ..interfaces = const <InterfaceType>[];
+      var setBuilder = new _KernelOrderedTypeSetBuilder(this, container);
+      _classData.add(containerData);
+      containerData.orderedTypeSet = setBuilder.createOrderedTypeSet(
+          containerData.supertype, const Link<InterfaceType>());
+
+      BoxLocal boxLocal = new BoxLocal(box.name, member);
+      for (ir.VariableDeclaration variable in info.boxedVariables) {
+        boxedFields[localsMap.getLocalVariable(variable)] =
+            _constructBoxedField(
+                variable, boxLocal, container, memberMap, localsMap);
+      }
+    }
+    return boxedFields;
+  }
+
   KernelClosureClass constructClosureClass(
       MemberEntity member,
       ir.FunctionNode node,
       JLibrary enclosingLibrary,
+      Map<Local, JRecordField> boxedCapturedVariables,
       KernelScopeInfo info,
       ir.Location location,
       KernelToLocalsMap localsMap,
@@ -2212,14 +2271,27 @@ class JsKernelToElementMap extends KernelToElementMapBase
         info.hasThisLocal ? new ThisLocal(localsMap.currentMember) : null;
 
     KernelClosureClass cls = new KernelClosureClass.fromScopeInfo(
-        classEntity, node, info, localsMap, closureEntity, thisLocal);
-    int i = 0;
+        classEntity,
+        node,
+        <Local, JRecordField>{},
+        info,
+        localsMap,
+        closureEntity,
+        thisLocal);
+    int fieldNumber = 0;
     for (ir.VariableDeclaration variable in info.freeVariables) {
       // Make a corresponding field entity in this closure class for every
       // single freeVariable in the KernelScopeInfo.freeVariable.
-      _constructClosureFields(member, cls, memberMap, variable, i,
-          info.capturedVariablesAccessor, localsMap);
-      i++;
+      _constructClosureField(
+          member,
+          cls,
+          memberMap,
+          variable,
+          boxedCapturedVariables,
+          fieldNumber,
+          info.capturedVariablesAccessor,
+          localsMap);
+      fieldNumber++;
     }
 
     FunctionEntity callMethod = cls.callMethod = new JClosureCallMethod(
@@ -2238,11 +2310,12 @@ class JsKernelToElementMap extends KernelToElementMapBase
     return cls;
   }
 
-  _constructClosureFields(
+  _constructClosureField(
       MemberEntity member,
       KernelClosureClass cls,
       Map<String, MemberEntity> memberMap,
       ir.VariableDeclaration variable,
+      Map<Local, JRecordField> boxedCapturedVariables,
       int fieldNumber,
       NodeBox box,
       KernelToLocalsMap localsMap) {
@@ -2250,37 +2323,25 @@ class JsKernelToElementMap extends KernelToElementMapBase
     // old Element version. The old version did all the boxed items and then
     // all the others.
     Local capturedLocal = localsMap.getLocalVariable(variable);
-    if (cls.isBoxed(capturedLocal)) {
-      FieldEntity boxedField = new JRecordField(
-          _getClosureVariableName(capturedLocal.name, fieldNumber),
-          _memberData.length,
-          new BoxLocal(box.name,
-              localsMap.getLocalVariable(box.executableContext), member),
-          cls.closureClassEntity,
-          variable.isConst);
-      cls.localToFieldMap[capturedLocal] = boxedField;
-      _memberList.add(boxedField);
-      _memberData.add(new ClosureFieldData(new ClosureMemberDefinition(
-          boxedField,
-          computeSourceSpanFromTreeNode(variable),
-          MemberKind.closureField,
-          variable)));
-      memberMap[boxedField.name] = boxedField;
+    JRecordField field = boxedCapturedVariables[capturedLocal];
+    FieldEntity closureField = new JClosureField(
+        _getClosureVariableName(capturedLocal.name, fieldNumber),
+        _memberData.length,
+        cls,
+        variable.isConst,
+        variable.isFinal || variable.isConst);
+    _memberList.add(closureField);
+    _memberData.add(new ClosureFieldData(new ClosureMemberDefinition(
+        cls.localToFieldMap[capturedLocal],
+        computeSourceSpanFromTreeNode(variable),
+        MemberKind.closureField,
+        variable)));
+    memberMap[closureField.name] = closureField;
+    if (boxedCapturedVariables.containsKey(capturedLocal)) {
+      cls.localToFieldMap[field.box] = closureField;
+      cls.boxedVariables[capturedLocal] = field;
     } else {
-      FieldEntity closureField = new JClosureField(
-          _getClosureVariableName(capturedLocal.name, fieldNumber),
-          _memberData.length,
-          cls,
-          variable.isConst,
-          variable.isFinal || variable.isConst);
       cls.localToFieldMap[capturedLocal] = closureField;
-      _memberList.add(closureField);
-      _memberData.add(new ClosureFieldData(new ClosureMemberDefinition(
-          cls.localToFieldMap[capturedLocal],
-          computeSourceSpanFromTreeNode(variable),
-          MemberKind.closureField,
-          variable)));
-      memberMap[closureField.name] = closureField;
     }
   }
 
