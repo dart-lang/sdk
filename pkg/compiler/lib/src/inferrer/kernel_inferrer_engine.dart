@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 
+import '../../compiler_new.dart';
 import '../closure.dart';
 import '../common.dart';
 import '../common_elements.dart';
@@ -11,6 +12,9 @@ import '../compiler.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../js_backend/annotations.dart';
+import '../js_backend/mirrors_data.dart';
+import '../js_backend/no_such_method_registry.dart';
 import '../js_model/locals.dart';
 import '../kernel/element_map.dart';
 import '../options.dart';
@@ -41,8 +45,20 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
 
   @override
   InferrerEngine<ir.Node> createInferrerEngineFor(FunctionEntity main) {
-    return new KernelInferrerEngine(_compiler, _elementMap, _globalLocalsMap,
-        _closureDataLookup, closedWorld, closedWorldRefiner, main);
+    return new KernelInferrerEngine(
+        _compiler.options,
+        _compiler.progress,
+        _compiler.reporter,
+        _compiler.outputProvider,
+        _compiler.backend.optimizerHints,
+        _elementMap,
+        _globalLocalsMap,
+        _closureDataLookup,
+        closedWorld,
+        closedWorldRefiner,
+        _compiler.backend.mirrorsData,
+        _compiler.backend.noSuchMethodRegistry,
+        main);
   }
 
   @override
@@ -78,24 +94,34 @@ class KernelGlobalTypeInferenceResults
 }
 
 class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
-  final CompilerOptions _options;
   final KernelToElementMapForBuilding _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
   final ClosureDataLookup<ir.Node> _closureDataLookup;
 
   KernelInferrerEngine(
-      Compiler compiler,
+      CompilerOptions options,
+      Progress progress,
+      DiagnosticReporter reporter,
+      CompilerOutput compilerOutput,
+      OptimizerHintsForTests optimizerHints,
       this._elementMap,
       this._globalLocalsMap,
       this._closureDataLookup,
       ClosedWorld closedWorld,
       ClosedWorldRefiner closedWorldRefiner,
+      MirrorsData mirrorsData,
+      NoSuchMethodRegistry noSuchMethodRegistry,
       FunctionEntity mainElement)
-      : this._options = compiler.options,
-        super(
-            compiler,
+      : super(
+            options,
+            progress,
+            reporter,
+            compilerOutput,
+            optimizerHints,
             closedWorld,
             closedWorldRefiner,
+            mirrorsData,
+            noSuchMethodRegistry,
             mainElement,
             new KernelTypeSystemStrategy(
                 _elementMap, _globalLocalsMap, _closureDataLookup));
@@ -118,7 +144,7 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
   TypeInformation computeMemberTypeInformation(
       MemberEntity member, ir.Node body) {
     KernelTypeGraphBuilder visitor = new KernelTypeGraphBuilder(
-        _options, closedWorld, _closureDataLookup, this, member, body);
+        options, closedWorld, _closureDataLookup, this, member, body);
     return visitor.run();
   }
 

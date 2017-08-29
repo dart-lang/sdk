@@ -542,8 +542,10 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       infoCollector = new ElementInfoCollector(compiler, closedWorld)..run();
       StringBuffer jsonBuffer = new StringBuffer();
       dumpInfoJson(jsonBuffer, closedWorld);
-      compiler.outputProvider(compiler.options.outputUri.pathSegments.last,
-          'info.json', OutputType.info)
+      compiler.outputProvider.createOutputSink(
+          compiler.options.outputUri.pathSegments.last,
+          'info.json',
+          OutputType.info)
         ..add(jsonBuffer.toString())
         ..close();
     });

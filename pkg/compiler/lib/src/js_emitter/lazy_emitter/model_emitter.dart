@@ -170,7 +170,7 @@ class ModelEmitter {
               backend.sourceInformationStrategy)
           .getText();
       totalSize += code.length;
-      compiler.outputProvider(
+      compiler.outputProvider.createOutputSink(
           fragments[i + 1].outputFileName, deferredExtension, OutputType.jsPart)
         ..add(code)
         ..close();
@@ -180,10 +180,11 @@ class ModelEmitter {
         .createCodeBuffer(
             mainAst, compiler.options, backend.sourceInformationStrategy)
         .getText();
-    compiler.outputProvider(mainFragment.outputFileName, 'js', OutputType.js)
-      ..add(buildGeneratedBy(compiler))
-      ..add(mainCode)
-      ..close();
+    compiler.outputProvider
+        .createOutputSink(mainFragment.outputFileName, 'js', OutputType.js)
+          ..add(buildGeneratedBy(compiler))
+          ..add(mainCode)
+          ..close();
     totalSize += mainCode.length;
 
     return totalSize;

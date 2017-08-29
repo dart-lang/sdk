@@ -1534,7 +1534,8 @@ class Emitter extends js_emitter.EmitterBase {
     }
 
     CodeOutput mainOutput = new StreamCodeOutput(
-        compiler.outputProvider('', 'js', OutputType.js), codeOutputListeners);
+        compiler.outputProvider.createOutputSink('', 'js', OutputType.js),
+        codeOutputListeners);
     outputBuffers[mainOutputUnit] = mainOutput;
 
     mainOutput.addBuffer(jsAst.createCodeBuffer(
@@ -1874,7 +1875,8 @@ class Emitter extends js_emitter.EmitterBase {
       String partPrefix = compiler.deferredLoadTask
           .deferredPartFileName(outputUnit.name, addExtension: false);
       CodeOutput output = new StreamCodeOutput(
-          compiler.outputProvider(partPrefix, 'part.js', OutputType.jsPart),
+          compiler.outputProvider
+              .createOutputSink(partPrefix, 'part.js', OutputType.jsPart),
           outputListeners);
 
       outputBuffers[outputUnit] = output;
@@ -1943,7 +1945,7 @@ class Emitter extends js_emitter.EmitterBase {
     mapping["_comment"] = "This mapping shows which compiled `.js` files are "
         "needed for a given deferred library import.";
     mapping.addAll(compiler.deferredLoadTask.computeDeferredMap());
-    compiler.outputProvider(
+    compiler.outputProvider.createOutputSink(
         compiler.options.deferredMapUri.path, '', OutputType.info)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
       ..close();

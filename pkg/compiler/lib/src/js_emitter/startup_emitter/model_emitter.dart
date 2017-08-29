@@ -267,7 +267,8 @@ class ModelEmitter {
     }
 
     CodeOutput mainOutput = new StreamCodeOutput(
-        compiler.outputProvider('', 'js', OutputType.js), codeOutputListeners);
+        compiler.outputProvider.createOutputSink('', 'js', OutputType.js),
+        codeOutputListeners);
     outputBuffers[fragment] = mainOutput;
 
     js.Program program = new js.Program([
@@ -318,8 +319,8 @@ class ModelEmitter {
     String hunkPrefix = fragment.outputFileName;
 
     CodeOutput output = new StreamCodeOutput(
-        compiler.outputProvider(
-            hunkPrefix, deferredExtension, OutputType.jsPart),
+        compiler.outputProvider
+            .createOutputSink(hunkPrefix, deferredExtension, OutputType.jsPart),
         outputListeners);
 
     outputBuffers[fragment] = output;
@@ -396,7 +397,7 @@ class ModelEmitter {
     mapping["_comment"] = "This mapping shows which compiled `.js` files are "
         "needed for a given deferred library import.";
     mapping.addAll(compiler.deferredLoadTask.computeDeferredMap());
-    compiler.outputProvider(
+    compiler.outputProvider.createOutputSink(
         compiler.options.deferredMapUri.path, '', OutputType.info)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
       ..close();

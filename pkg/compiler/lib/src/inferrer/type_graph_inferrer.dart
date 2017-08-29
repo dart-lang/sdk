@@ -68,6 +68,7 @@ abstract class TypeGraphInferrer<T> implements TypesInferrer<T> {
 
   void analyzeMain(FunctionEntity main) {
     inferrer = createInferrerEngineFor(main);
+    if (_disableTypeInference) return;
     inferrer.runOverAllElements();
   }
 

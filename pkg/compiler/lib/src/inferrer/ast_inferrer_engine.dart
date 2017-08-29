@@ -19,9 +19,21 @@ import 'type_graph_nodes.dart';
 import 'type_system.dart';
 
 class AstInferrerEngine extends InferrerEngineImpl<ast.Node> {
-  AstInferrerEngine(Compiler compiler, ClosedWorld closedWorld,
+  final Compiler compiler;
+
+  AstInferrerEngine(this.compiler, ClosedWorld closedWorld,
       ClosedWorldRefiner closedWorldRefiner, FunctionEntity mainElement)
-      : super(compiler, closedWorld, closedWorldRefiner, mainElement,
+      : super(
+            compiler.options,
+            compiler.progress,
+            compiler.reporter,
+            compiler.outputProvider,
+            compiler.backend.optimizerHints,
+            closedWorld,
+            closedWorldRefiner,
+            compiler.backend.mirrorsData,
+            compiler.backend.noSuchMethodRegistry,
+            mainElement,
             const TypeSystemStrategyImpl());
 
   GlobalTypeInferenceElementData<ast.Node> createElementData() =>

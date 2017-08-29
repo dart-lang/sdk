@@ -8,7 +8,6 @@ import 'dart:collection' show IterableBase;
 
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
-import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../elements/elements.dart'
     show ConstructorElement, LocalElement, MemberElement;
@@ -472,9 +471,8 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   }
 
   TypeMask potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
-    Compiler compiler = inferrer.compiler;
-    if (!compiler.options.trustTypeAnnotations &&
-        !compiler.options.enableTypeAssertions &&
+    if (!inferrer.options.trustTypeAnnotations &&
+        !inferrer.options.enableTypeAssertions &&
         !inferrer.optimizerHints.trustTypeAnnotations(_member)) {
       return mask;
     }
@@ -522,8 +520,7 @@ class FieldTypeInformation extends MemberTypeInformation {
       : super._internal(element);
 
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
-    if (!inferrer.backend.canFieldBeUsedForGlobalOptimizations(
-            _field, inferrer.closedWorld) ||
+    if (!inferrer.canFieldBeUsedForGlobalOptimizations(_field) ||
         inferrer.optimizerHints.assumeDynamic(_field)) {
       // Do not infer types for fields that have a corresponding annotation or
       // are assigned by synthesized calls
@@ -732,8 +729,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   // TODO(herhut): Cleanup into one conditional.
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
-    if (!inferrer.backend.canFunctionParametersBeUsedForGlobalOptimizations(
-            _method, inferrer.closedWorld) ||
+    if (!inferrer.canFunctionParametersBeUsedForGlobalOptimizations(_method) ||
         inferrer.optimizerHints.assumeDynamic(_method)) {
       // Do not infer types for parameters that have a corresponding annotation
       // or that are assigned by synthesized calls.
@@ -781,15 +777,14 @@ class ParameterTypeInformation extends ElementTypeInformation {
   }
 
   TypeMask potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
-    Compiler compiler = inferrer.compiler;
-    if (!compiler.options.trustTypeAnnotations &&
+    if (!inferrer.options.trustTypeAnnotations &&
         !inferrer.optimizerHints.trustTypeAnnotations(_method)) {
       return mask;
     }
     // When type assertions are enabled (aka checked mode), we have to always
     // ignore type annotations to ensure that the checks are actually inserted
     // into the function body and retained until runtime.
-    assert(!compiler.options.enableTypeAssertions);
+    assert(!inferrer.options.enableTypeAssertions);
     return _narrowType(inferrer.closedWorld, mask, _type);
   }
 
@@ -1027,7 +1022,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
       return e.isFunction &&
           e.isInstanceMember &&
           e.name == Identifiers.noSuchMethod_ &&
-          inferrer.backend.noSuchMethodRegistry.isComplex(e);
+          inferrer.noSuchMethodRegistry.isComplex(e);
     });
   }
 

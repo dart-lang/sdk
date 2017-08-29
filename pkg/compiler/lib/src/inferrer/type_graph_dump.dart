@@ -30,6 +30,7 @@ import 'debug.dart';
 class TypeGraphDump {
   static const String outputDir = 'typegraph';
 
+  final CompilerOutput compilerOutput;
   final InferrerEngine inferrer;
   final Map<TypeInformation, Set<TypeInformation>> assignmentsBeforeAnalysis =
       <TypeInformation, Set<TypeInformation>>{};
@@ -37,7 +38,7 @@ class TypeGraphDump {
       <TypeInformation, Set<TypeInformation>>{};
   final Set<String> usedFilenames = new Set<String>();
 
-  TypeGraphDump(this.inferrer);
+  TypeGraphDump(this.compilerOutput, this.inferrer);
 
   /// Take a copy of the assignment set for each node, since that may change
   /// during the analysis.
@@ -77,8 +78,8 @@ class TypeGraphDump {
       OutputSink output;
       try {
         String name = filenameFromElement(element);
-        output = inferrer.compiler
-            .outputProvider('$outputDir/$name', 'dot', OutputType.debug);
+        output = compilerOutput.createOutputSink(
+            '$outputDir/$name', 'dot', OutputType.debug);
         _GraphGenerator visitor = new _GraphGenerator(this, element, output);
         for (TypeInformation node in nodes[element]) {
           visitor.visit(node);

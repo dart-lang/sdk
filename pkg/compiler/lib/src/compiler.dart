@@ -108,7 +108,9 @@ abstract class Compiler {
   bool stopAfterTypeInference = false;
 
   /// Output provider from user of Compiler API.
-  api.CompilerOutput userOutputProvider;
+  api.CompilerOutput _outputProvider;
+
+  api.CompilerOutput get outputProvider => _outputProvider;
 
   List<Uri> librariesToAnalyzeWhenRun;
 
@@ -162,11 +164,7 @@ abstract class Compiler {
 
   bool get hasCrashed => _reporter.hasCrashed;
 
-  Stopwatch progress;
-
-  bool get shouldPrintProgress {
-    return options.verbose && progress.elapsedMilliseconds > 500;
-  }
+  Progress progress = const Progress();
 
   static const int PHASE_SCANNING = 0;
   static const int PHASE_RESOLVING = 1;
@@ -181,10 +179,8 @@ abstract class Compiler {
       api.CompilerOutput outputProvider,
       this.environment: const _EmptyEnvironment(),
       MakeReporterFunction makeReporter})
-      : this.options = options,
-        this.userOutputProvider = outputProvider == null
-            ? const NullCompilerOutput()
-            : outputProvider {
+      : this.options = options {
+    _outputProvider = new _CompilerOutput(this, outputProvider);
     if (makeReporter != null) {
       _reporter = makeReporter(this, options);
     } else {
@@ -199,7 +195,7 @@ abstract class Compiler {
     _resolution = createResolution();
 
     if (options.verbose) {
-      progress = new Stopwatch()..start();
+      progress = new ProgressImpl(_reporter);
     }
 
     backend = createBackend();
@@ -482,6 +478,7 @@ abstract class Compiler {
   /// when the '--analyze-main' option is used.
   Future<LibraryElement> analyzeUri(Uri libraryUri,
       {bool skipLibraryWithPartOfTag: true}) async {
+    phase = PHASE_RESOLVING;
     assert(options.analyzeMain);
     reporter.log('Analyzing $libraryUri (${options.buildId})');
     LoadedLibraries loadedLibraries = await libraryLoader
@@ -592,7 +589,7 @@ abstract class Compiler {
         if (options.resolveOnly && !compilationFailed) {
           reporter.log('Serializing to ${options.resolutionOutput}');
           serialization.serializeToSink(
-              userOutputProvider.createOutputSink(
+              outputProvider.createOutputSink(
                   '', 'data', api.OutputType.serializationData),
               libraryLoader.libraries.where((LibraryEntity library) {
             return !serialization.isDeserialized(library);
@@ -761,9 +758,7 @@ abstract class Compiler {
       {void onProgress(Enqueuer enqueuer)}) {
     selfTask.measureSubtask("Compiler.processQueue", () {
       enqueuer.open(impactStrategy, mainMethod, libraries);
-      if (options.verbose) {
-        progress.reset();
-      }
+      progress.startPhase();
       emptyQueue(enqueuer, onProgress: onProgress);
       enqueuer.queueIsClosed = true;
       enqueuer.close();
@@ -809,23 +804,14 @@ abstract class Compiler {
   }
 
   void showResolutionProgress(Enqueuer enqueuer) {
-    if (shouldPrintProgress) {
-      // TODO(ahe): Add structured diagnostics to the compiler API and
-      // use it to separate this from the --verbose option.
-      assert(phase == PHASE_RESOLVING);
-      reporter.log('Resolved ${enqueuer.processedEntities.length} '
-          'elements.');
-      progress.reset();
-    }
+    assert(phase == PHASE_RESOLVING, 'Unexpected phase: $phase');
+    progress.showProgress(
+        'Resolved ', enqueuer.processedEntities.length, ' elements.');
   }
 
   void showCodegenProgress(Enqueuer enqueuer) {
-    if (shouldPrintProgress) {
-      // TODO(ahe): Add structured diagnostics to the compiler API and
-      // use it to separate this from the --verbose option.
-      reporter.log('Compiled ${enqueuer.processedEntities.length} methods.');
-      progress.reset();
-    }
+    progress.showProgress(
+        'Compiled ', enqueuer.processedEntities.length, ' methods.');
   }
 
   void reportDiagnostic(DiagnosticMessage message,
@@ -973,18 +959,28 @@ abstract class Compiler {
           .add(message);
     }
   }
+}
 
-  api.OutputSink outputProvider(
+class _CompilerOutput implements api.CompilerOutput {
+  final Compiler _compiler;
+  final api.CompilerOutput _userOutput;
+
+  _CompilerOutput(this._compiler, api.CompilerOutput output)
+      : this._userOutput = output ?? const NullCompilerOutput();
+
+  @override
+  api.OutputSink createOutputSink(
       String name, String extension, api.OutputType type) {
-    if (compilationFailed) {
-      if (!options.generateCodeWithCompileTimeErrors || options.testMode) {
+    if (_compiler.compilationFailed) {
+      if (!_compiler.options.generateCodeWithCompileTimeErrors ||
+          _compiler.options.testMode) {
         // Disable output in test mode: The build bot currently uses the time
         // stamp of the generated file to determine whether the output is
         // up-to-date.
         return NullSink.outputProvider(name, extension, type);
       }
     }
-    return userOutputProvider.createOutputSink(name, extension, type);
+    return _userOutput.createOutputSink(name, extension, type);
   }
 }
 
@@ -1611,4 +1607,36 @@ class _EmptyEnvironment implements Environment {
   const _EmptyEnvironment();
 
   String valueOf(String key) => null;
+}
+
+/// Interface for showing progress during compilation.
+class Progress {
+  const Progress();
+
+  /// Starts a new phase for which to show progress.
+  void startPhase() {}
+
+  /// Shows progress of the current phase if needed. The shown message is
+  /// computed as '$prefix$count$suffix'.
+  void showProgress(String prefix, int count, String suffix) {}
+}
+
+/// Progress implementations that prints progress to the [DiagnosticReporter]
+/// with 500ms intervals.
+class ProgressImpl implements Progress {
+  final DiagnosticReporter _reporter;
+  final Stopwatch _stopwatch = new Stopwatch()..start();
+
+  ProgressImpl(this._reporter);
+
+  void showProgress(String prefix, int count, String suffix) {
+    if (_stopwatch.elapsedMilliseconds > 500) {
+      _reporter.log('$prefix$count$suffix');
+      _stopwatch.reset();
+    }
+  }
+
+  void startPhase() {
+    _stopwatch.reset();
+  }
 }
