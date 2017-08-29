@@ -26,7 +26,9 @@ class Bound {}
 
 class Base<T extends Bound> {}
 
-typedef T MyTypedef<T>(T arg);
+typedef T Typedef1<T>(T arg);
+
+typedef String Typedef2(int arg);
 
 class F {
   K field;

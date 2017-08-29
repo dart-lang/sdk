@@ -42,6 +42,10 @@ abstract class RetainedData {
   /// included.
   bool isClassUsed(Class cls);
 
+  /// Whether a typedef should be preserved. If a typedef is preserved, its
+  /// return type and types of parameters will be preserved too.
+  bool isTypedefUsed(Typedef node);
+
   /// Whether a member should be preserved. If so, its enclosing class/library
   /// will be preserved too.
   bool isMemberUsed(Member member);
@@ -61,6 +65,9 @@ class RetainedDataBuilder extends RetainedData {
   /// Classes that are transitively reachable from the included libraries.
   final Set<Class> classes = new Set<Class>();
 
+  /// Typedefs that are transitively reachable from the included libraries.
+  final Set<Typedef> typedefs = new Set<Typedef>();
+
   /// Members that are transitively reachable from the included libraries.
   final Set<Member> members = new Set<Member>();
 
@@ -71,6 +78,9 @@ class RetainedDataBuilder extends RetainedData {
 
   @override
   bool isClassUsed(Class cls) => classes.contains(cls);
+
+  @override
+  bool isTypedefUsed(Typedef node) => typedefs.contains(node);
 
   @override
   bool isMemberUsed(Member m) => members.contains(m);
@@ -96,6 +106,12 @@ class RetainedDataBuilder extends RetainedData {
     cls.typeParameters.forEach((t) => t.bound.accept(typeMarker));
   }
 
+  /// Mark the typedef.
+  void markTypedef(Typedef node) {
+    if (node == null || !typedefs.add(node)) return;
+    markLibrary(node.parent);
+  }
+
   /// Mark the class and type arguments of [node].
   void markSupertype(Supertype node) {
     if (node == null) return;
@@ -118,6 +134,10 @@ class RetainedDataBuilder extends RetainedData {
   void markMemberInterface(Member node) {
     if (node is Field) {
       node.type.accept(typeMarker);
+    } else if (node is Constructor) {
+      var function = node.function;
+      function.positionalParameters.forEach((p) => p.type.accept(typeMarker));
+      function.namedParameters.forEach((p) => p.type.accept(typeMarker));
     } else if (node is Procedure) {
       var function = node.function;
       function.typeParameters.forEach((p) => p.bound.accept(typeMarker));
@@ -144,6 +164,7 @@ class TypeMarker extends DartTypeVisitor {
     node.positionalParameters.forEach((t) => t.accept(this));
     node.namedParameters.forEach((t) => t.type.accept(this));
     node.returnType.accept(this);
+    data.markTypedef(node.typedefReference?.asTypedef);
   }
 
   visitTypeParameterType(TypeParameterType node) {
@@ -229,8 +250,11 @@ class RootsMarker extends RecursiveVisitor {
   visitConstructor(Constructor node) {
     if (!node.initializers.any((i) => i is SuperInitializer)) {
       // super() is currently implicit.
-      for (var ctor in node.enclosingClass.supertype.classNode.constructors) {
-        if (ctor.name.name == '') data.markMember(ctor);
+      var supertype = node.enclosingClass.supertype;
+      if (supertype != null) {
+        for (var constructor in supertype.classNode.constructors) {
+          if (constructor.name.name == '') data.markMember(constructor);
+        }
       }
     }
     node.visitChildren(this);
@@ -324,6 +348,12 @@ class RootsMarker extends RecursiveVisitor {
   }
 
   @override
+  visitFunctionType(FunctionType node) {
+    data.markTypedef(node.typedefReference?.asTypedef);
+    super.visitFunctionType(node);
+  }
+
+  @override
   visitInterfaceType(InterfaceType node) {
     data.markClass(node.classNode);
     node.visitChildren(this);
@@ -384,6 +414,7 @@ class KernelOutlineShaker extends Transformer {
       if (node is Procedure) {
         node.function.body = null;
       } else if (node is Field) {
+        if (node.name.name == '_exports#') return null;
         node.initializer = null;
       } else if (node is Constructor) {
         node.initializers.clear();
@@ -393,11 +424,15 @@ class KernelOutlineShaker extends Transformer {
     }
   }
 
-  /// Types appear to be encoded directly, so we have no need to preserve
-  /// typedefs.
-  // TODO(sigmund): revisit if this is not the case, the `inputError` in
-  // [RootsMarker] is meant to detect this.
-  Typedef visitTypedef(Typedef node) => null;
+  Typedef visitTypedef(Typedef node) {
+    if (!data.isTypedefUsed(node)) {
+      node.canonicalName?.unbind();
+      return null; // Remove the typedef.
+    } else {
+      node.transformChildren(this);
+      return node;
+    }
+  }
 
   TreeNode defaultTreeNode(TreeNode node) => node;
 }

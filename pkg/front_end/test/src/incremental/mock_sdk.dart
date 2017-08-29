@@ -197,6 +197,7 @@ abstract class Iterable<E> {
 
 class List<E> implements Iterable<E> {
   List();
+  factory List.from(Iterable elements, {bool growable: true}) => null;
   void add(E value) {}
   void addAll(Iterable<E> iterable) {}
   E operator [](int index) => null;
@@ -226,6 +227,7 @@ external bool identical(Object a, Object b);
 void print(Object o) {}
 
 abstract class _SyncIterable implements Iterable {}
+class _InvocationMirror {}
 ''';
 
 /// Create SDK libraries which are used by Fasta to perform kernel generation.

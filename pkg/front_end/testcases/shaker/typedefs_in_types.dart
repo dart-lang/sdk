@@ -5,4 +5,6 @@
 import 'lib/lib.dart';
 
 /// Kernel directly represents this as a type, so typedef is not preserved.
-foo(MyTypedef<dynamic> x) => null;
+foo(Typedef1<dynamic> x) => null;
+
+bar(Typedef2 x) => null;
