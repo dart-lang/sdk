@@ -346,7 +346,18 @@ void MessageHandler::TaskCallback() {
         PausedOnStartLocked(&ml, false);
       }
     }
-#endif
+    if (is_paused_on_exit()) {
+      status = HandleMessages(&ml, false, false);
+      if (ShouldPauseOnExit(status)) {
+        // Still paused.
+        ASSERT(oob_queue_->IsEmpty());
+        task_ = NULL;  // No task in queue.
+        return;
+      } else {
+        PausedOnExitLocked(&ml, false);
+      }
+    }
+#endif  // !defined(PRODUCT)
 
     if (status == kOK) {
       if (start_callback_) {
@@ -373,17 +384,15 @@ void MessageHandler::TaskCallback() {
     if (status != kOK || !HasLivePorts()) {
 #if !defined(PRODUCT)
       if (ShouldPauseOnExit(status)) {
-        if (!is_paused_on_exit()) {
-          if (FLAG_trace_service_pause_events) {
-            OS::PrintErr(
-                "Isolate %s paused before exiting. "
-                "Use the Observatory to release it.\n",
-                name());
-          }
-          PausedOnExitLocked(&ml, true);
-          // More messages may have come in while we released the monitor.
-          status = HandleMessages(&ml, false, false);
+        if (FLAG_trace_service_pause_events) {
+          OS::PrintErr(
+              "Isolate %s paused before exiting. "
+              "Use the Observatory to release it.\n",
+              name());
         }
+        PausedOnExitLocked(&ml, true);
+        // More messages may have come in while we released the monitor.
+        status = HandleMessages(&ml, false, false);
         if (ShouldPauseOnExit(status)) {
           // Still paused.
           ASSERT(oob_queue_->IsEmpty());
