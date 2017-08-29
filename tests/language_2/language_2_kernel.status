@@ -70,6 +70,7 @@ generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError
+generic_no_such_method_dispatcher_test : CompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_recursive_bound_test/03: Pass
 generic_methods_reuse_type_variables_test: Pass
