@@ -11,6 +11,7 @@ enum_test: Fail # Issue 28340
 regress_28341_test: Fail # Issue 28340
 regress_29349_test: CompileTimeError # Issue 29745
 regress_29481_test: Crash # Issue 29754
+deferred_not_loaded_check_test: Fail # Issue 27577
 method_name_test: Fail # issue 25574
 setter4_test: CompileTimeError # issue 13639
 
