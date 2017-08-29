@@ -404,43 +404,50 @@ class FixProcessor {
     }
     // lints
     if (errorCode is LintCode) {
-      if (errorCode.name == LintNames.annotate_overrides) {
+      String name = errorCode.name;
+      if (name == LintNames.always_require_non_null_named_parameters) {
+        await _addFix_addRequiredAnnotation();
+      }
+      if (name == LintNames.annotate_overrides) {
         await _addFix_addOverrideAnnotation();
       }
-      if (errorCode.name == LintNames.avoid_annotating_with_dynamic) {
+      if (name == LintNames.avoid_annotating_with_dynamic) {
         await _addFix_removeTypeName();
       }
-      if (errorCode.name == LintNames.avoid_init_to_null) {
+      if (name == LintNames.avoid_empty_else) {
+        await _addFix_removeEmptyElse();
+      }
+      if (name == LintNames.avoid_init_to_null) {
         await _addFix_removeInitializer();
       }
-      if (errorCode.name == LintNames.avoid_return_types_on_setters) {
+      if (name == LintNames.avoid_return_types_on_setters) {
         await _addFix_removeTypeName();
       }
-      if (errorCode.name == LintNames.avoid_types_on_closure_parameters) {
+      if (name == LintNames.avoid_types_on_closure_parameters) {
         await _addFix_replaceWithIdentifier();
       }
-      if (errorCode.name == LintNames.await_only_futures) {
+      if (name == LintNames.await_only_futures) {
         await _addFix_removeAwait();
       }
-      if (errorCode.name == LintNames.empty_statements) {
+      if (name == LintNames.empty_statements) {
         await _addFix_removeEmptyStatement();
       }
-      if (errorCode.name == LintNames.prefer_collection_literals) {
+      if (name == LintNames.prefer_collection_literals) {
         await _addFix_replaceWithLiteral();
       }
-      if (errorCode.name == LintNames.prefer_conditional_assignment) {
+      if (name == LintNames.prefer_conditional_assignment) {
         await _addFix_replaceWithConditionalAssignment();
       }
-      if (errorCode.name == LintNames.unnecessary_brace_in_string_interp) {
+      if (name == LintNames.unnecessary_brace_in_string_interp) {
         await _addFix_removeInterpolationBraces();
       }
-      if (errorCode.name == LintNames.unnecessary_lambdas) {
+      if (name == LintNames.unnecessary_lambdas) {
         await _addFix_replaceWithTearOff();
       }
-      if (errorCode.name == LintNames.unnecessary_override) {
+      if (name == LintNames.unnecessary_override) {
         await _addFix_removeMethodDeclaration();
       }
-      if (errorCode.name == LintNames.unnecessary_this) {
+      if (name == LintNames.unnecessary_this) {
         await _addFix_removeThisExpression();
       }
     }
@@ -658,6 +665,14 @@ class FixProcessor {
     });
     changeBuilder.setSelection(exitPosition);
     _addFixFromBuilder(changeBuilder, DartFixKind.LINT_ADD_OVERRIDE);
+  }
+
+  Future<Null> _addFix_addRequiredAnnotation() async {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleInsertion(node.parent.offset, '@required ');
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.LINT_ADD_REQUIRED);
   }
 
   Future<Null> _addFix_boolInsteadOfBoolean() async {
@@ -1923,6 +1938,16 @@ class FixProcessor {
     }
   }
 
+  Future<Null> _addFix_removeEmptyElse() async {
+    IfStatement ifStatement = node.parent;
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addDeletion(utils.getLinesRange(
+          range.startEnd(ifStatement.elseKeyword, ifStatement.elseStatement)));
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_EMPTY_ELSE);
+  }
+
   Future<Null> _addFix_removeEmptyStatement() async {
     EmptyStatement emptyStatement = node;
     if (emptyStatement.parent is Block) {
@@ -3137,9 +3162,12 @@ class FixProcessor {
  * An enumeration of lint names.
  */
 class LintNames {
+  static const String always_require_non_null_named_parameters =
+      'always_require_non_null_named_parameters';
   static const String annotate_overrides = 'annotate_overrides';
   static const String avoid_annotating_with_dynamic =
       'avoid_annotating_with_dynamic';
+  static const String avoid_empty_else = 'avoid_empty_else';
   static const String avoid_init_to_null = 'avoid_init_to_null';
   static const String avoid_return_types_on_setters =
       'avoid_return_types_on_setters';

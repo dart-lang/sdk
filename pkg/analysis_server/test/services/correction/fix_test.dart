@@ -5561,6 +5561,21 @@ class LintFixTest extends BaseFixProcessorTest {
         new LintCode(lintCode, '<ignored>'));
   }
 
+  test_addRequiredAnnotation() async {
+    String src = '''
+void function({String /*LINT*/param}) {
+  assert(param != null);
+}
+''';
+    await findLint(src, LintNames.always_require_non_null_named_parameters);
+    await applyFix(DartFixKind.LINT_ADD_REQUIRED);
+    verifyResult('''
+void function({@required String param}) {
+  assert(param != null);
+}
+''');
+  }
+
   test_lint_addMissingOverride_field() async {
     String src = '''
 class abstract Test {
@@ -5791,6 +5806,49 @@ bad() async {
     verifyResult('''
 bad() async {
   print('hola');
+}
+''');
+  }
+
+  test_removeEmptyElse_newLine() async {
+    String src = '''
+void foo(bool cond) {
+  if (cond) {
+    //
+  }
+  else /*LINT*/;
+}
+''';
+    await findLint(src, LintNames.avoid_empty_else);
+
+    await applyFix(DartFixKind.REMOVE_EMPTY_ELSE);
+
+    verifyResult('''
+void foo(bool cond) {
+  if (cond) {
+    //
+  }
+}
+''');
+  }
+
+  test_removeEmptyElse_sameLine() async {
+    String src = '''
+void foo(bool cond) {
+  if (cond) {
+    //
+  } else /*LINT*/;
+}
+''';
+    await findLint(src, LintNames.avoid_empty_else);
+
+    await applyFix(DartFixKind.REMOVE_EMPTY_ELSE);
+
+    verifyResult('''
+void foo(bool cond) {
+  if (cond) {
+    //
+  }
 }
 ''');
   }
