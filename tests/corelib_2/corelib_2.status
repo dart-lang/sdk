@@ -523,7 +523,6 @@ core_runtime_types_test: Crash
 data_uri_test: Crash
 dynamic_nosuchmethod_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(NoSuchMethodError.toString#comma) is stored in a closure field.
 error_stack_trace1_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(unwrapException_closure.call))
-error_stack_trace2_test: Crash # Assertion failure: Unexpected constructor j:constructor(A.) in ConstructorDataImpl._getConstructorConstant
 expando_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 for_in_test: Crash
 growable_list_test: Crash
@@ -747,7 +746,6 @@ core_runtime_types_test: Crash
 data_uri_test: Crash
 dynamic_nosuchmethod_test: Crash
 error_stack_trace1_test: Crash
-error_stack_trace2_test: Crash
 expando_test: RuntimeError
 for_in_test: Crash
 from_environment_const_type_test/02: Crash

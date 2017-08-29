@@ -707,7 +707,6 @@ deferred_type_dependency_test/as: CompileTimeError
 deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
 deferred_type_dependency_test/type_annotation: CompileTimeError
-deopt_inlined_function_test: Crash
 double_int_to_string_test: RuntimeError
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -1193,7 +1192,6 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: Crash
 redirecting_factory_reflection_test: Crash
 reg_exp_test: Crash
-regress_11010_test: Crash
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
 regress_18535_test: Crash
@@ -1383,7 +1381,6 @@ type_variable_field_initializer_closure_test: Crash
 type_variable_function_type_test: RuntimeError
 type_variable_initializer_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 type_variable_nested_test: Crash
-typecheck_multifield_declaration_test: Crash
 wrong_number_type_arguments_test/00: Crash
 wrong_number_type_arguments_test/02: Crash
 yieldstar_pause_test: Crash
@@ -1631,7 +1628,6 @@ deferred_type_dependency_test/as: CompileTimeError
 deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
 deferred_type_dependency_test/type_annotation: CompileTimeError
-deopt_inlined_function_test: Crash
 double_int_to_string_test: RuntimeError
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -2082,7 +2078,6 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: Crash
 redirecting_factory_reflection_test: Crash
 reg_exp_test: Crash
-regress_11010_test: Crash
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
 regress_18535_test: Crash
@@ -2229,6 +2224,5 @@ type_variable_field_initializer_closure2_test: Crash
 type_variable_field_initializer_closure_test: Crash
 type_variable_function_type_test: RuntimeError
 type_variable_nested_test: Crash
-typecheck_multifield_declaration_test: Crash
 yieldstar_pause_test: Crash
 
