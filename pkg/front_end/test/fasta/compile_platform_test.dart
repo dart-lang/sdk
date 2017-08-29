@@ -4,6 +4,7 @@
 
 library fasta.test.compile_platform_test;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:async_helper/async_helper.dart';
@@ -14,7 +15,7 @@ import '../../tool/_fasta/compile_platform.dart' show compilePlatform;
 
 main(List<String> arguments) async {
   await asyncTest(() async {
-    await withTemporyDirectory("compile_platform_test_", (Uri tmp) async {
+    await withTemporaryDirectory("compile_platform_test_", (Uri tmp) async {
       String patchedSdk = Uri.base
           .resolveUri(new Uri.file(Platform.resolvedExecutable))
           .resolve("patched_sdk")
@@ -51,7 +52,7 @@ main(List<String> arguments) async {
   });
 }
 
-withTemporyDirectory(String prefix, Future f(Uri tmp)) async {
+withTemporaryDirectory(String prefix, Future f(Uri tmp)) async {
   Directory tmp = await Directory.systemTemp.createTemp(prefix);
   try {
     await f(tmp.uri);
