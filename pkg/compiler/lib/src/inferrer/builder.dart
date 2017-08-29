@@ -219,7 +219,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   TypeInformation visitLiteralDouble(ast.LiteralDouble node) {
-    ConstantSystem constantSystem = compiler.backend.constantSystem;
+    ConstantSystem constantSystem = closedWorld.constantSystem;
     // The JavaScript backend may turn this literal into an integer at
     // runtime.
     return types.getConcreteTypeFor(
@@ -227,7 +227,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   TypeInformation visitLiteralInt(ast.LiteralInt node) {
-    ConstantSystem constantSystem = compiler.backend.constantSystem;
+    ConstantSystem constantSystem = closedWorld.constantSystem;
     // The JavaScript backend may turn this literal into a double at
     // runtime.
     return types.getConcreteTypeFor(

@@ -6,10 +6,11 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
 import '../common.dart';
-import '../compiler.dart';
+import '../constants/constant_system.dart';
 import '../elements/entities.dart';
-import '../kernel/element_map.dart';
-import '../universe/side_effects.dart' show SideEffects;
+import '../options.dart';
+import '../types/constants.dart';
+import '../world.dart';
 import 'inferrer_engine.dart';
 import 'locals_handler.dart';
 import 'type_graph_nodes.dart';
@@ -22,49 +23,42 @@ import 'type_system.dart';
 /// construct a set of inference-nodes that abstractly represent what the code
 /// is doing.
 class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
-  final Compiler compiler;
-  final MemberEntity analyzedMember;
-  final ir.Node analyzedNode;
-  final TypeSystem<ir.Node> types;
-  LocalsHandler locals;
-  final InferrerEngine<ir.Node> inferrer;
-  SideEffects sideEffects = new SideEffects.empty();
-  int loopLevel = 0;
-  bool get inLoop => loopLevel > 0;
-  TypeInformation returnType;
+  final CompilerOptions _options;
+  final ClosedWorld _closedWorld;
+  final ClosureDataLookup<ir.Node> _closureDataLookup;
+  final InferrerEngine<ir.Node> _inferrer;
+  final TypeSystem<ir.Node> _types;
+  final MemberEntity _analyzedMember;
+  final ir.Node _analyzedNode;
+  LocalsHandler _locals;
 
-  final Set<Local> capturedVariables = new Set<Local>();
+  TypeInformation _returnType;
 
-  KernelTypeGraphBuilder.internal(this.analyzedMember, this.inferrer,
-      this.compiler, this.locals, this.analyzedNode)
-      : this.types = inferrer.types {
-    if (locals != null) return;
+  KernelTypeGraphBuilder(
+      this._options,
+      this._closedWorld,
+      this._closureDataLookup,
+      this._inferrer,
+      this._analyzedMember,
+      this._analyzedNode,
+      [this._locals])
+      : this._types = _inferrer.types {
+    if (_locals != null) return;
 
     FieldInitializationScope<ir.Node> fieldScope =
-        analyzedNode is ir.Constructor
-            ? new FieldInitializationScope(types)
+        _analyzedNode is ir.Constructor
+            ? new FieldInitializationScope(_types)
             : null;
-    locals = new LocalsHandler(
-        inferrer, types, compiler.options, analyzedNode, fieldScope);
-  }
-
-  factory KernelTypeGraphBuilder(
-      MemberEntity element,
-      Compiler compiler,
-      KernelToElementMapForBuilding elementMap,
-      InferrerEngine<ir.Node> inferrer,
-      ir.TreeNode analyzedNode,
-      [LocalsHandler<ir.Node> handler]) {
-    return new KernelTypeGraphBuilder.internal(
-        element, inferrer, compiler, handler, analyzedNode);
+    _locals = new LocalsHandler(
+        _inferrer, _types, _options, _analyzedNode, fieldScope);
   }
 
   TypeInformation run() {
-    if (analyzedMember.isField) {
-      if (analyzedNode == null || analyzedNode is ir.NullLiteral) {
+    if (_analyzedMember.isField) {
+      if (_analyzedNode == null || _analyzedNode is ir.NullLiteral) {
         // Eagerly bailout, because computing the closure data only
         // works for functions and field assignments.
-        return types.nullType;
+        return _types.nullType;
       }
     }
 
@@ -72,29 +66,28 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // be handled specially, in that we are computing their LUB at
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
-    ClosureRepresentationInfo closureData = compiler
-        .backendStrategy.closureDataLookup
-        .getClosureInfoForMember(analyzedMember);
+    ClosureRepresentationInfo closureData =
+        _closureDataLookup.getClosureInfoForMember(_analyzedMember);
     closureData.forEachCapturedVariable((variable, field) {
-      locals.setCaptured(variable, field);
+      _locals.setCaptured(variable, field);
     });
     closureData.forEachBoxedVariable((variable, field) {
-      locals.setCapturedAndBoxed(variable, field);
+      _locals.setCapturedAndBoxed(variable, field);
     });
 
-    return analyzedNode.accept(this);
+    return _analyzedNode.accept(this);
   }
 
   void recordReturnType(TypeInformation type) {
-    FunctionEntity analyzedMethod = analyzedMember;
-    returnType =
-        inferrer.addReturnTypeForMethod(analyzedMethod, returnType, type);
+    FunctionEntity analyzedMethod = _analyzedMember;
+    _returnType =
+        _inferrer.addReturnTypeForMethod(analyzedMethod, _returnType, type);
   }
 
   void initializationIsIndefinite() {
-    MemberEntity member = analyzedMember;
+    MemberEntity member = _analyzedMember;
     if (member is ConstructorEntity && member.isGenerativeConstructor) {
-      locals.fieldScope.isIndefinite = true;
+      _locals.fieldScope.isIndefinite = true;
     }
   }
 
@@ -110,55 +103,55 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     visit(node.body);
     switch (node.asyncMarker) {
       case ir.AsyncMarker.Sync:
-        if (returnType == null) {
+        if (_returnType == null) {
           // No return in the body.
-          returnType = locals.seenReturnOrThrow
-              ? types.nonNullEmpty() // Body always throws.
-              : types.nullType;
-        } else if (!locals.seenReturnOrThrow) {
+          _returnType = _locals.seenReturnOrThrow
+              ? _types.nonNullEmpty() // Body always throws.
+              : _types.nullType;
+        } else if (!_locals.seenReturnOrThrow) {
           // We haven'TypeInformation seen returns on all branches. So the method may
           // also return null.
-          recordReturnType(types.nullType);
+          recordReturnType(_types.nullType);
         }
         break;
 
       case ir.AsyncMarker.SyncStar:
         // TODO(asgerf): Maybe make a ContainerTypeMask for these? The type
         //               contained is the method body's return type.
-        recordReturnType(types.syncStarIterableType);
+        recordReturnType(_types.syncStarIterableType);
         break;
 
       case ir.AsyncMarker.Async:
-        recordReturnType(types.asyncFutureType);
+        recordReturnType(_types.asyncFutureType);
         break;
 
       case ir.AsyncMarker.AsyncStar:
-        recordReturnType(types.asyncStarStreamType);
+        recordReturnType(_types.asyncStarStreamType);
         break;
       case ir.AsyncMarker.SyncYielding:
         failedAt(
-            analyzedMember, "Unexpected async marker: ${node.asyncMarker}");
+            _analyzedMember, "Unexpected async marker: ${node.asyncMarker}");
         break;
     }
-    return returnType;
+    return _returnType;
   }
 
   @override
   TypeInformation defaultExpression(ir.Expression expression) {
     // TODO(efortuna): Remove when more is implemented.
-    return types.dynamicType;
+    return _types.dynamicType;
   }
 
   @override
   TypeInformation visitNullLiteral(ir.NullLiteral literal) {
-    return types.nullType;
+    return _types.nullType;
   }
 
   @override
   TypeInformation visitBlock(ir.Block block) {
     for (ir.Statement statement in block.statements) {
       statement.accept(this);
-      if (locals.aborts) break;
+      if (_locals.aborts) break;
     }
     return null;
   }
@@ -167,23 +160,23 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitListLiteral(ir.ListLiteral listLiteral) {
     // We only set the type once. We don't need to re-visit the children
     // when re-analyzing the node.
-    return inferrer.concreteTypes.putIfAbsent(listLiteral, () {
+    return _inferrer.concreteTypes.putIfAbsent(listLiteral, () {
       TypeInformation elementType;
       int length = 0;
       for (ir.Expression element in listLiteral.expressions) {
         TypeInformation type = element.accept(this);
         elementType = elementType == null
-            ? types.allocatePhi(null, null, type, isTry: false)
-            : types.addPhiInput(null, elementType, type);
+            ? _types.allocatePhi(null, null, type, isTry: false)
+            : _types.addPhiInput(null, elementType, type);
         length++;
       }
       elementType = elementType == null
-          ? types.nonNullEmpty()
-          : types.simplifyPhi(null, null, elementType);
+          ? _types.nonNullEmpty()
+          : _types.simplifyPhi(null, null, elementType);
       TypeInformation containerType =
-          listLiteral.isConst ? types.constListType : types.growableListType;
-      return types.allocateList(
-          containerType, listLiteral, analyzedMember, elementType, length);
+          listLiteral.isConst ? _types.constListType : _types.growableListType;
+      return _types.allocateList(
+          containerType, listLiteral, _analyzedMember, elementType, length);
     });
   }
 
@@ -191,9 +184,27 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitReturnStatement(ir.ReturnStatement node) {
     ir.Node expression = node.expression;
     recordReturnType(
-        expression == null ? types.nullType : expression.accept(this));
-    locals.seenReturnOrThrow = true;
+        expression == null ? _types.nullType : expression.accept(this));
+    _locals.seenReturnOrThrow = true;
     initializationIsIndefinite();
     return null;
+  }
+
+  @override
+  TypeInformation visitIntLiteral(ir.IntLiteral node) {
+    ConstantSystem constantSystem = _closedWorld.constantSystem;
+    // The JavaScript backend may turn this literal into a double at
+    // runtime.
+    return _types.getConcreteTypeFor(
+        computeTypeMask(_closedWorld, constantSystem.createInt(node.value)));
+  }
+
+  @override
+  TypeInformation visitDoubleLiteral(ir.DoubleLiteral node) {
+    ConstantSystem constantSystem = _closedWorld.constantSystem;
+    // The JavaScript backend may turn this literal into an integer at
+    // runtime.
+    return _types.getConcreteTypeFor(
+        computeTypeMask(_closedWorld, constantSystem.createDouble(node.value)));
   }
 }

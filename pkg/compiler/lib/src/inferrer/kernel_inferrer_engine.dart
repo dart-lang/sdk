@@ -11,8 +11,9 @@ import '../compiler.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../kernel/element_map.dart';
 import '../js_model/locals.dart';
+import '../kernel/element_map.dart';
+import '../options.dart';
 import '../types/types.dart';
 import '../world.dart';
 import 'builder_kernel.dart';
@@ -77,6 +78,7 @@ class KernelGlobalTypeInferenceResults
 }
 
 class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
+  final CompilerOptions _options;
   final KernelToElementMapForBuilding _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
   final ClosureDataLookup<ir.Node> _closureDataLookup;
@@ -89,7 +91,8 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
       ClosedWorld closedWorld,
       ClosedWorldRefiner closedWorldRefiner,
       FunctionEntity mainElement)
-      : super(
+      : this._options = compiler.options,
+        super(
             compiler,
             closedWorld,
             closedWorldRefiner,
@@ -114,8 +117,8 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
   @override
   TypeInformation computeMemberTypeInformation(
       MemberEntity member, ir.Node body) {
-    KernelTypeGraphBuilder visitor =
-        new KernelTypeGraphBuilder(member, compiler, _elementMap, this, body);
+    KernelTypeGraphBuilder visitor = new KernelTypeGraphBuilder(
+        _options, closedWorld, _closureDataLookup, this, member, body);
     return visitor.run();
   }
 
