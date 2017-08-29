@@ -137,38 +137,8 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
   @override
   @failingTest
-  void test_abstractClassMember_field() {
-    super.test_abstractClassMember_field();
-  }
-
-  @override
-  @failingTest
   void test_abstractEnum() {
     super.test_abstractEnum();
-  }
-
-  @override
-  @failingTest
-  void test_abstractTopLevelFunction_function() {
-    super.test_abstractTopLevelFunction_function();
-  }
-
-  @override
-  @failingTest
-  void test_abstractTopLevelFunction_getter() {
-    super.test_abstractTopLevelFunction_getter();
-  }
-
-  @override
-  @failingTest
-  void test_abstractTopLevelFunction_setter() {
-    super.test_abstractTopLevelFunction_setter();
-  }
-
-  @override
-  @failingTest
-  void test_abstractTopLevelVariable() {
-    super.test_abstractTopLevelVariable();
   }
 
   @override
@@ -2237,12 +2207,8 @@ class FastaParserTestCase extends Object
 
   @override
   void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
-    expectedErrorCodes = expectedErrorCodes.map((code) {
-      if (code == ParserErrorCode.ABSTRACT_CLASS_MEMBER)
-        return ParserErrorCode.EXTRANEOUS_MODIFIER;
-      return code;
-    }).toList();
-    _parserProxy._errorListener.assertErrorsWithCodes(expectedErrorCodes);
+    _parserProxy._errorListener.assertErrorsWithCodes(
+        _toFastaGeneratedAnalyzerErrorCodes(expectedErrorCodes));
   }
 
   @override
@@ -2332,7 +2298,8 @@ class FastaParserTestCase extends Object
     CompilationUnit unit = parser.parseCompilationUnit(_fastaTokens);
 
     // Assert and return result
-    listener.assertErrorsWithCodes(expectedErrorCodes);
+    listener.assertErrorsWithCodes(
+        _toFastaGeneratedAnalyzerErrorCodes(expectedErrorCodes));
     expect(unit, isNotNull);
     return unit;
   }
@@ -2599,6 +2566,16 @@ class FastaParserTestCase extends Object
     createParser(source);
     return _parserProxy._run(getParseFunction);
   }
+
+  List<ErrorCode> _toFastaGeneratedAnalyzerErrorCodes(
+          List<ErrorCode> expectedErrorCodes) =>
+      expectedErrorCodes.map((code) {
+        if (code == ParserErrorCode.ABSTRACT_CLASS_MEMBER ||
+            code == ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION ||
+            code == ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE)
+          return ParserErrorCode.EXTRANEOUS_MODIFIER;
+        return code;
+      }).toList();
 }
 
 /**
