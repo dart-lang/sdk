@@ -27,10 +27,6 @@ second() {
 }
 
 main() {
-  // Make sure the "none" test fails if "??" is not implemented.  This makes
-  // status files easier to maintain.
-  var _ = null ?? null;
-
-  Expect.equals(1, 1 ?? bad()); //# 01: ok
-  Expect.equals(2, first() ?? second()); //# 02: ok
+  Expect.equals(1, 1 ?? bad());
+  Expect.equals(2, first() ?? second());
 }

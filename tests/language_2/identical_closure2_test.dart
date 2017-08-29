@@ -6,13 +6,9 @@ import "package:expect/expect.dart";
 
 var myIdentical = identical;
 
-class Point {
-  num x, y;
-  Point(this.x, this.y);
-}
-
 main() {
   // Bigint (2^76).
+  // TODO(rnystrom): Figure out how to change this to work on the web.
   Expect.isTrue(myIdentical(75557863725914323419136, 75557863725914323419136));
   Expect.isFalse(myIdentical(75557863725914323419136, 75557863725914323419137));
 

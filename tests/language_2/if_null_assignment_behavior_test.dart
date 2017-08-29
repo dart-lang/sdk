@@ -128,8 +128,8 @@ class C {
     // v ??= e is equivalent to ((x) => x == null ? v = e : x)(v)
     vGetValue = 1; check(1, () => v ??= bad(), ['$s.v']); //# 01: ok
     yGetValue = 1; check(1, () => v ??= y, ['$s.v', 'y', '$s.v=1']); //# 02: ok
-    check(1, () => finalOne ??= bad(), []); //# 03: static type warning
-    yGetValue = 1; checkThrows(noMethod, () => finalNull ??= y, ['y']); //# 04: static type warning
+    finalOne ??= null; //# 03: compile-time error
+    yGetValue = 1;
   }
 }
 
@@ -166,9 +166,8 @@ main() {
   yGetValue = 1; check(1, () => h.x ??= y, ['h.x', 'y', 'h.x=1']); //# 10: ok
   { var l = 1; check(1, () => l ??= bad(), []); } //# 11: ok
   { var l; yGetValue = 1; check(1, () => l ??= y, ['y']); Expect.equals(1, l); } //# 12: ok
-  { final l = 1; check(1, () => l ??= bad(), []); } //# 13: static type warning
-  { final l = null; yGetValue = 1; checkThrows(noMethod, () => l ??= y, ['y']); } //# 14: static type warning
-  check(C, () => C ??= bad(), []); //# 15: static type warning
+  { final l = 1; l ??= null; } //# 13: compile-time error
+  C ??= null; //# 15: compile-time error
   h ??= null; //# 29: compile-time error
   h[0] ??= null; //# 30: compile-time error
 

@@ -14,14 +14,14 @@ const identical_gg = identical(g, g);
 
 // Verify proper compile time computation of identical()
 const a = const {
-  identical_ff: 0, //# 01: static type warning
-  identical_gg: 0, //# 02: static type warning
+  identical_ff: 0, //# 01: compile-time error
+  identical_gg: 0, //# 02: compile-time error
   true: 0
 };
 
 const b = const {
-  identical_fg: 0, //# 03: static type warning
-  identical_gf: 0, //# 04: static type warning
+  identical_fg: 0, //# 03: compile-time error
+  identical_gf: 0, //# 04: compile-time error
   false: 0
 };
 

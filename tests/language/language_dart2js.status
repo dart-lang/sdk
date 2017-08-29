@@ -129,8 +129,6 @@ ref_before_declaration_test/06: MissingCompileTimeError
 
 regress_22976_test: CompileTimeError # Issue 23132
 
-if_null_assignment_behavior_test/13: Crash # Issue 23491
-if_null_assignment_behavior_test/14: Crash # Issue 23491
 
 multiline_newline_test/01: CompileTimeError # Issue 23888
 multiline_newline_test/02: CompileTimeError # Issue 23888
@@ -201,7 +199,6 @@ symbol_conflict_test: RuntimeError # Issue 23857
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
 malformed_test/none: Fail # Expect failure in lib/_internal/js_runtime/lib/preambles/d8.js
 
-identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
 integer_division_by_zero_test: RuntimeError # Issue 8301
 number_identity2_test: RuntimeError # Issue 12596
 double_int_to_string_test: RuntimeError # Issue 1533
@@ -322,15 +319,6 @@ generic_field_mixin2_test: Crash # Issue 27394
 generic_field_mixin3_test: Crash # Issue 27394
 generic_field_mixin6_test/01: Crash # Issue 27394
 generic_field_mixin_test: Crash # Issue 27394
-if_null_assignment_behavior_test/06: RuntimeError # Issue 27394
-if_null_assignment_static_test/01: RuntimeError # Issue 27394
-if_null_assignment_static_test/03: RuntimeError # Issue 27394
-if_null_assignment_static_test/04: RuntimeError # Issue 27394
-if_null_assignment_static_test/05: RuntimeError # Issue 27394
-illegal_initializer_test/01: Crash # Issue 27394
-illegal_initializer_test/02: Crash # Issue 27394
-illegal_initializer_test/03: Crash # Issue 27394
-illegal_initializer_test/04: Crash # Issue 27394
 inference_mixin_field_test: Crash # Issue 27394
 initializing_formal_final_test: RuntimeError # Issue 27394
 inline_super_field_test: Crash # Issue 27394
@@ -841,7 +829,6 @@ getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
-hash_map_null_key_foreach_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#c) is stored in a closure field.
 identical_closure2_test: RuntimeError
 identical_const_test/05: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 identical_const_test/06: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
@@ -2209,5 +2196,57 @@ type_variable_field_initializer_closure2_test: Crash
 type_variable_field_initializer_closure_test: Crash
 type_variable_function_type_test: RuntimeError
 type_variable_nested_test: Crash
+typecheck_multifield_declaration_test: Crash
+typedef_is_test: Crash
+const_map2_test/00: MissingCompileTimeError
+const_map3_test/00: MissingCompileTimeError
+context_test: RuntimeError
+deferred_call_empty_before_load_test: RuntimeError
+deferred_inheritance_constraints_test/redirecting_constructor: RuntimeError
+enum_duplicate_test/02: RuntimeError
+enum_duplicate_test/none: RuntimeError
+enum_private_test/01: RuntimeError
+enum_private_test/02: RuntimeError
+enum_private_test/none: RuntimeError
+enum_test: RuntimeError
+execute_finally7_test: RuntimeError
+expect_test: RuntimeError
+external_test/20: MissingRuntimeError
+f_bounded_quantification5_test: RuntimeError
+for2_test: RuntimeError
+getter_no_setter2_test/00: RuntimeError
+getter_no_setter2_test/03: RuntimeError
+getter_no_setter_test/00: RuntimeError
+getter_no_setter_test/none: RuntimeError
+hash_map_null_key_foreach_test: RuntimeError
+integer_division_by_zero_test: RuntimeError
+is_object_test: RuntimeError
+issue13474_test: RuntimeError
+issue9939_test: RuntimeError
+lazy_static8_test: RuntimeError
+list_literal4_test: RuntimeError
+local_function2_test: RuntimeError
+local_function3_test: RuntimeError
+malformed_test/none: RuntimeError
+map_literal3_test: RuntimeError
+map_literal4_test: RuntimeError
+method_override4_test: RuntimeError
+method_override5_test: RuntimeError
+modulo_test: RuntimeError
+regress_13494_test: RuntimeError
+regress_17382_test: RuntimeError
+regress_21795_test: RuntimeError
+regress_22822_test: RuntimeError
+regress_22936_test/01: RuntimeError
+stack_overflow_stacktrace_test: RuntimeError
+stacktrace_test: RuntimeError
+static_getter_no_setter1_test/01: RuntimeError
+static_getter_no_setter3_test/01: RuntimeError
+switch_fallthru_test: RuntimeError
+top_level_func_test: RuntimeError
+top_level_getter_no_setter1_test/01: RuntimeError
+top_level_getter_no_setter2_test/01: RuntimeError
+truncdiv_test: RuntimeError
+try_catch_test/01: MissingCompileTimeError
+type_checks_in_factory_method_test: RuntimeError
 yieldstar_pause_test: Crash
-

@@ -127,3 +127,4 @@ getter_closure_execution_order_test: RuntimeError # Issue 29920
 compile_time_constant_a_test: RuntimeError # Issue 30526
 compile_time_constant_b_test: RuntimeError # Issue 29920
 compile_time_constant_d_test: RuntimeError # Issue 29920
+identical_closure2_test: RuntimeError # Issue 29920

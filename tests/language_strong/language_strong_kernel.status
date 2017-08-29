@@ -112,7 +112,6 @@ generic_field_mixin2_test: RuntimeError
 generic_field_mixin4_test: DartkCompileTimeError
 generic_field_mixin5_test: DartkCompileTimeError
 generic_inheritance_test: RuntimeError
-if_null_evaluation_order_test: Crash # VM does not support BottomType
 inferrer_closure_test: RuntimeError
 initializing_formal_final_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError

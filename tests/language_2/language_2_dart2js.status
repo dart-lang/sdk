@@ -142,6 +142,42 @@ getter_no_setter_test/00: MissingCompileTimeError
 getter_no_setter_test/01: MissingCompileTimeError
 getter_no_setter_test/03: MissingCompileTimeError
 getters_setters2_test/02: MissingCompileTimeError
+identical_const_test/01: MissingCompileTimeError
+identical_const_test/02: MissingCompileTimeError
+identical_const_test/03: MissingCompileTimeError
+identical_const_test/04: MissingCompileTimeError
+if_null_assignment_behavior_test/03: MissingCompileTimeError
+if_null_assignment_behavior_test/13: MissingCompileTimeError
+if_null_assignment_behavior_test/15: MissingCompileTimeError
+if_null_assignment_static_test/02: MissingCompileTimeError
+if_null_assignment_static_test/04: MissingCompileTimeError
+if_null_assignment_static_test/06: MissingCompileTimeError
+if_null_assignment_static_test/07: MissingCompileTimeError
+if_null_assignment_static_test/09: MissingCompileTimeError
+if_null_assignment_static_test/11: MissingCompileTimeError
+if_null_assignment_static_test/13: MissingCompileTimeError
+if_null_assignment_static_test/14: MissingCompileTimeError
+if_null_assignment_static_test/16: MissingCompileTimeError
+if_null_assignment_static_test/18: MissingCompileTimeError
+if_null_assignment_static_test/20: MissingCompileTimeError
+if_null_assignment_static_test/21: MissingCompileTimeError
+if_null_assignment_static_test/23: MissingCompileTimeError
+if_null_assignment_static_test/25: MissingCompileTimeError
+if_null_assignment_static_test/27: MissingCompileTimeError
+if_null_assignment_static_test/28: MissingCompileTimeError
+if_null_assignment_static_test/30: MissingCompileTimeError
+if_null_assignment_static_test/32: MissingCompileTimeError
+if_null_assignment_static_test/34: MissingCompileTimeError
+if_null_assignment_static_test/35: MissingCompileTimeError
+if_null_assignment_static_test/37: MissingCompileTimeError
+if_null_assignment_static_test/39: MissingCompileTimeError
+if_null_assignment_static_test/41: MissingCompileTimeError
+if_null_assignment_static_test/42: MissingCompileTimeError
+if_null_precedence_test/06: MissingCompileTimeError
+if_null_precedence_test/07: MissingCompileTimeError
+
+[ $compiler == dart2js && !$minified && $runtime != d8]
+generic_methods_local_variable_declaration_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != none ]
 bit_operations_test: RuntimeError, OK # Issue 1533
@@ -153,6 +189,7 @@ many_generic_instanceof_test: RuntimeError
 generic_list_checked_test: RuntimeError
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
+if_null_precedence_test/none: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
@@ -175,6 +212,9 @@ bad_typedef_test/00: Crash # Issue 28214
 call_function_apply_test: RuntimeError # Issue 23873
 canonical_const2_test: RuntimeError, OK # Issue 1533
 getter_setter_in_lib_test: Fail # Issue 23288
+if_null_assignment_behavior_test/13: Crash # Issue 23491
+if_null_assignment_behavior_test/14: Crash # Issue 23491
+identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
 
 [ $compiler == dart2js && $runtime != none && ! $dart2js_with_kernel ]
 accessor_conflict_import2_test: RuntimeError # Issue 25626
@@ -216,6 +256,15 @@ generic_metadata_test/02: Crash # Issue 27394
 generic_metadata_test/03: Crash # Issue 27394
 generic_methods_generic_function_parameter_test: Crash # Issue 27394
 get_set_syntax_test/00: Crash # Issue 27394
+if_null_assignment_behavior_test/06: RuntimeError # Issue 27394
+if_null_assignment_static_test/01: RuntimeError # Issue 27394
+if_null_assignment_static_test/03: RuntimeError # Issue 27394
+if_null_assignment_static_test/04: RuntimeError # Issue 27394
+if_null_assignment_static_test/05: RuntimeError # Issue 27394
+illegal_initializer_test/01: Crash # Issue 27394
+illegal_initializer_test/02: Crash # Issue 27394
+illegal_initializer_test/03: Crash # Issue 27394
+illegal_initializer_test/04: Crash # Issue 27394
 
 [ $compiler == dart2js && !$checked ]
 function_subtype_inline2_test: RuntimeError
@@ -308,7 +357,6 @@ function_type/function_type8_test: RuntimeError # Issue 30476
 function_type/function_type90_test: RuntimeError # Issue 30476
 function_type/function_type96_test: RuntimeError # Issue 30476
 function_type/function_type9_test: RuntimeError # Issue 30476
-
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 abstract_exact_selector_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(NoSuchMethodError.toString#comma) is stored in a closure field.
@@ -496,6 +544,32 @@ hash_map_null_key_foreach_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_
 many_generic_instanceof_test: Crash
 regress_30339_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
 typevariable_substitution2_test/02: RuntimeError
+identical_closure2_test: RuntimeError
+identical_const_test/05: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+identical_const_test/06: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+identical_const_test/07: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+identical_const_test/08: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+if_null_assignment_behavior_test/01: Crash
+if_null_assignment_behavior_test/02: Crash
+if_null_assignment_behavior_test/03: Crash
+if_null_assignment_behavior_test/04: Crash
+if_null_assignment_behavior_test/05: Crash
+if_null_assignment_behavior_test/06: Crash
+if_null_assignment_behavior_test/11: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#l) is stored in a closure field.
+if_null_assignment_behavior_test/12: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#l) is stored in a closure field.
+if_null_assignment_behavior_test/12: RuntimeError
+if_null_assignment_behavior_test/14: RuntimeError
+if_null_assignment_behavior_test/14: RuntimeError
+if_null_assignment_static_test/01: RuntimeError
+if_null_assignment_static_test/01: RuntimeError
+if_null_assignment_static_test/02: Crash
+if_null_assignment_static_test/03: RuntimeError
+if_null_assignment_static_test/03: RuntimeError
+if_null_assignment_static_test/04: RuntimeError
+if_null_assignment_static_test/04: RuntimeError
+if_null_assignment_static_test/05: RuntimeError
+if_null_assignment_static_test/05: RuntimeError
+if_null_assignment_static_test/06: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 abstract_exact_selector_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
@@ -662,6 +736,27 @@ getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 hash_map_null_key_foreach_test: RuntimeError
+identical_closure2_test: RuntimeError
+if_null_assignment_behavior_test/01: Crash
+if_null_assignment_behavior_test/02: Crash
+if_null_assignment_behavior_test/03: Crash
+if_null_assignment_behavior_test/04: Crash
+if_null_assignment_behavior_test/05: Crash
+if_null_assignment_behavior_test/06: Crash
+if_null_assignment_behavior_test/12: RuntimeError
+if_null_assignment_behavior_test/14: RuntimeError
+if_null_assignment_static_test/01: RuntimeError
+if_null_assignment_static_test/02: Crash
+if_null_assignment_static_test/03: RuntimeError
+if_null_assignment_static_test/04: RuntimeError
+if_null_assignment_static_test/05: RuntimeError
+if_null_assignment_static_test/06: Crash
+if_null_assignment_behavior_test/12: RuntimeError
+if_null_assignment_behavior_test/14: RuntimeError
+if_null_assignment_static_test/01: RuntimeError
+if_null_assignment_static_test/03: RuntimeError
+if_null_assignment_static_test/04: RuntimeError
+if_null_assignment_static_test/05: RuntimeError
 many_generic_instanceof_test: Crash
 regress_30339_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 typevariable_substitution2_test/02: RuntimeError
