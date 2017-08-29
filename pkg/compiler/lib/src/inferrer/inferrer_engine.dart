@@ -69,11 +69,6 @@ abstract class InferrerEngine<T> {
   TypeSystem<T> get types;
   Map<T, TypeInformation> get concreteTypes;
 
-  /// Parallel structure for concreteTypes.
-  // TODO(efortuna): Remove concreteTypes and/or parameterize InferrerEngine by
-  // ir.Node or ast.Node type. Then remove this in favor of `concreteTypes`.
-  Map<ir.Node, TypeInformation> get concreteKernelTypes;
-
   FunctionEntity get mainElement;
 
   void runOverAllElements();
@@ -633,7 +628,8 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
 
   /// Call [analyze] for all live members.
   void analyzeAllElements() {
-    sortMembers(compiler, computeMemberSize).forEach((MemberEntity member) {
+    sortMembers(closedWorld.processedMembers, computeMemberSize)
+        .forEach((MemberEntity member) {
       if (compiler.shouldPrintProgress) {
         reporter.log('Added $addedInGraph elements in inferencing graph.');
         compiler.progress.reset();
@@ -1119,9 +1115,9 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   // to get the same results for [ListTracer] compared to the
   // [SimpleTypesInferrer].
   static Iterable<MemberEntity> sortMembers(
-      Compiler compiler, int computeSize(MemberEntity member)) {
+      Iterable<MemberEntity> members, int computeSize(MemberEntity member)) {
     Map<int, Set<MemberEntity>> methodSizes =
-        groupMembers(compiler, computeSize);
+        groupMembers(members, computeSize);
     int max = methodSizes.keys.fold(0, (a, b) => a > b ? a : b);
     List<MemberEntity> result = <MemberEntity>[];
     for (int i = 0; i <= max; i++) {
@@ -1132,10 +1128,9 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   }
 
   static Map<int, Set<MemberEntity>> groupMembers(
-      Compiler compiler, int computeSize(MemberEntity member)) {
+      Iterable<MemberEntity> members, int computeSize(MemberEntity member)) {
     Map<int, Set<MemberEntity>> methodSizes = <int, Set<MemberEntity>>{};
-    compiler.enqueuer.resolution.processedEntities
-        .forEach((MemberEntity element) {
+    members.forEach((MemberEntity element) {
       if (element.isAbstract) return;
       // Put the other operators in buckets by size, later to be added in
       // size order.

@@ -214,10 +214,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// extension format.
   final bool useKernel;
 
-  // Whether to use kernel internally for global type inference calculations.
-  // TODO(efortuna): Remove this and consolidate with useKernel.
-  final bool kernelGlobalInference;
-
   /// When obfuscating for minification, whether to use the frequency of a name
   /// as an heuristic to pick shorter names.
   final bool useFrequencyNamer;
@@ -313,7 +309,6 @@ class CompilerOptions implements DiagnosticOptions {
         generateCodeWithCompileTimeErrors:
             _hasOption(options, Flags.generateCodeWithCompileTimeErrors),
         generateSourceMap: !_hasOption(options, Flags.noSourceMaps),
-        kernelGlobalInference: _hasOption(options, Flags.kernelGlobalInference),
         outputUri: _extractUriOption(options, '--out='),
         platformConfigUri:
             _resolvePlatformConfigFromOptions(libraryRoot, options),
@@ -454,7 +449,6 @@ class CompilerOptions implements DiagnosticOptions {
         generateCodeWithCompileTimeErrors:
             generateCodeWithCompileTimeErrors && !useKernel,
         generateSourceMap: generateSourceMap,
-        kernelGlobalInference: kernelGlobalInference,
         outputUri: outputUri,
         platformConfigUri: platformConfigUri ??
             _resolvePlatformConfig(libraryRoot, null, const []),
@@ -507,7 +501,6 @@ class CompilerOptions implements DiagnosticOptions {
       this.experimentalAllocationsPath: null,
       this.generateCodeWithCompileTimeErrors: false,
       this.generateSourceMap: true,
-      this.kernelGlobalInference: false,
       this.outputUri: null,
       this.platformConfigUri: null,
       this.preserveComments: false,
@@ -635,8 +628,6 @@ class CompilerOptions implements DiagnosticOptions {
         generateCodeWithCompileTimeErrors: generateCodeWithCompileTimeErrors ??
             options.generateCodeWithCompileTimeErrors,
         generateSourceMap: generateSourceMap ?? options.generateSourceMap,
-        kernelGlobalInference:
-            kernelGlobalInference ?? options.kernelGlobalInference,
         outputUri: outputUri ?? options.outputUri,
         platformConfigUri: platformConfigUri ?? options.platformConfigUri,
         preserveComments: preserveComments ?? options.preserveComments,

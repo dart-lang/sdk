@@ -271,6 +271,16 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   }
 
   @override
+  ir.FunctionNode getFunctionNodeForParameter(Local parameter) {
+    throw new UnsupportedError('KernelAstAdapter.getFunctionNodeForParameter');
+  }
+
+  @override
+  ir.DartType getParameterType(Local parameter) {
+    throw new UnsupportedError('KernelAstAdapter.getParameterType');
+  }
+
+  @override
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node) {
     return getJumpTarget(node.target);
   }

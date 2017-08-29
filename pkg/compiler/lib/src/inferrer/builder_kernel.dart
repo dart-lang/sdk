@@ -5,12 +5,10 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
+import '../common.dart';
 import '../compiler.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../kernel/kernel.dart';
-import '../ssa/kernel_ast_adapter.dart';
-import '../tree/tree.dart' as ast;
+import '../kernel/element_map.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import 'inferrer_engine.dart';
 import 'locals_handler.dart';
@@ -25,67 +23,51 @@ import 'type_system.dart';
 /// is doing.
 class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final Compiler compiler;
-  final MemberElement originalElement;
-  // TODO(efortuna): Remove this.
-  final MemberElement outermostElement;
+  final MemberEntity analyzedMember;
   final ir.Node analyzedNode;
-  final ResolvedAst resolvedAst;
-  // TODO(johnniwinther): This should be TypeSystem<ir.Node>.
-  final TypeSystem<ast.Node> types;
+  final TypeSystem<ir.Node> types;
   LocalsHandler locals;
-  final InferrerEngine inferrer;
+  final InferrerEngine<ir.Node> inferrer;
   SideEffects sideEffects = new SideEffects.empty();
   int loopLevel = 0;
   bool get inLoop => loopLevel > 0;
 
-  final Set<Entity> capturedVariables = new Set<Entity>();
+  final Set<Local> capturedVariables = new Set<Local>();
 
-  final KernelAstAdapter astAdapter;
-
-  KernelTypeGraphBuilder.internal(
-      this.originalElement,
-      this.resolvedAst,
-      this.outermostElement,
-      this.inferrer,
-      this.compiler,
-      this.locals,
-      this.astAdapter,
-      this.analyzedNode)
+  KernelTypeGraphBuilder.internal(this.analyzedMember, this.inferrer,
+      this.compiler, this.locals, this.analyzedNode)
       : this.types = inferrer.types {
     if (locals != null) return;
 
-    ast.Node node;
-    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-      node = resolvedAst.node;
-    }
-    FieldInitializationScope fieldScope = (analyzedNode is ir.Constructor)
-        ? new FieldInitializationScope(types)
-        : null;
-    locals =
-        new LocalsHandler(inferrer, types, compiler.options, node, fieldScope);
+    FieldInitializationScope<ir.Node> fieldScope =
+        analyzedNode is ir.Constructor
+            ? new FieldInitializationScope(types)
+            : null;
+    locals = new LocalsHandler(
+        inferrer, types, compiler.options, analyzedNode, fieldScope);
   }
 
   factory KernelTypeGraphBuilder(
-      MemberElement element, Compiler compiler, InferrerEngine inferrer,
-      [LocalsHandler handler]) {
-    var adapter = _createKernelAdapter(compiler, element.resolvedAst);
-    var node = adapter.getMemberNode(element);
+      MemberEntity element,
+      Compiler compiler,
+      KernelToElementMapForBuilding elementMap,
+      InferrerEngine<ir.Node> inferrer,
+      [LocalsHandler<ir.Node> handler]) {
+    ir.Node analyzedNode;
+    MemberDefinition definition = elementMap.getMemberDefinition(element);
+    switch (definition.kind) {
+      case MemberKind.regular:
+      case MemberKind.closureCall:
+      case MemberKind.constructor:
+      case MemberKind.constructorBody:
+        analyzedNode = definition.node;
+        break;
+      case MemberKind.closureField:
+        failedAt(element, "Unexpected member: $definition");
+        break;
+    }
     return new KernelTypeGraphBuilder.internal(
-        element,
-        element.resolvedAst,
-        element.outermostEnclosingMemberOrTopLevel.implementation,
-        inferrer,
-        compiler,
-        handler,
-        adapter,
-        node);
-  }
-
-  static KernelAstAdapter _createKernelAdapter(
-      Compiler compiler, ResolvedAst resolvedAst) {
-    Kernel kernel = compiler.backend.kernelTask.kernel;
-    return new KernelAstAdapter(kernel, compiler.backend, resolvedAst,
-        kernel.nodeToAst, kernel.nodeToElement);
+        element, inferrer, compiler, handler, analyzedNode);
   }
 
   TypeInformation run() {
@@ -106,7 +88,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // previous analysis of [outermostElement].
     ClosureRepresentationInfo closureData = compiler
         .backendStrategy.closureDataLookup
-        .getClosureInfoForMember(outermostElement);
+        .getClosureInfoForMember(analyzedMember);
     closureData.forEachCapturedVariable((variable, field) {
       locals.setCaptured(variable, field);
     });
@@ -149,7 +131,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitListLiteral(ir.ListLiteral listLiteral) {
     // We only set the type once. We don't need to re-visit the children
     // when re-analyzing the node.
-    return inferrer.concreteKernelTypes.putIfAbsent(listLiteral, () {
+    return inferrer.concreteTypes.putIfAbsent(listLiteral, () {
       TypeInformation elementType;
       int length = 0;
       for (ir.Expression element in listLiteral.expressions) {
@@ -166,8 +148,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           listLiteral.isConst ? types.constListType : types.growableListType;
       // TODO(efortuna): Change signature of allocateList and the rest of
       // type_system to deal with Kernel elements.
-      return types.allocateList(containerType, astAdapter.getNode(listLiteral),
-          outermostElement, elementType, length);
+      return types.allocateList(
+          containerType, listLiteral, analyzedMember, elementType, length);
     });
   }
 }

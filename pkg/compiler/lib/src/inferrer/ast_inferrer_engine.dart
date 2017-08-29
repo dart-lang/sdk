@@ -14,7 +14,6 @@ import '../tree/nodes.dart' as ast;
 import '../types/types.dart';
 import '../world.dart';
 import 'builder.dart';
-import 'builder_kernel.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
@@ -59,10 +58,8 @@ class AstInferrerEngine extends InferrerEngineImpl<ast.Node> {
 
   TypeInformation computeMemberTypeInformation(
       MemberEntity member, ast.Node body) {
-    dynamic visitor = compiler.options.kernelGlobalInference
-        ? new KernelTypeGraphBuilder(member, compiler, this)
-        : new ElementGraphBuilder(member, compiler, this);
-    // ignore: UNDEFINED_METHOD
+    ElementGraphBuilder visitor =
+        new ElementGraphBuilder(member, compiler, this);
     return visitor.run();
   }
 

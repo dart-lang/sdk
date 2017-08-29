@@ -335,9 +335,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(
         '--output-type=dart|--output-type=dart-multi|--output-type=js',
         setOutputType),
-    // TODO(efortuna): Remove this once kernel global inference is fully
-    // implemented.
-    new OptionHandler(Flags.kernelGlobalInference, passThrough),
     new OptionHandler(Flags.useKernelInSsa, passThrough),
     new OptionHandler(Flags.useKernel, setUseKernel),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
