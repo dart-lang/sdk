@@ -493,7 +493,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
             if (debug.VERBOSE) {
               print("traced closure $element as ${true} (bail)");
             }
-            forEachParameter(element, (Local parameter) {
+            types.strategy.forEachParameter(element, (Local parameter) {
               types
                   .getInferredTypeOfParameter(parameter)
                   .giveUp(this, clearAssignments: false);
@@ -505,7 +505,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
         elements
             .where((e) => !bailedOutOn.contains(e))
             .forEach((FunctionEntity element) {
-          forEachParameter(element, (Local parameter) {
+          types.strategy.forEachParameter(element, (Local parameter) {
             ParameterTypeInformation info =
                 types.getInferredTypeOfParameter(parameter);
             info.maybeResume();
@@ -648,9 +648,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
 
   /// Returns the body node for [member].
   T computeMemberBody(MemberEntity member);
-
-  /// Calls [f] for each parameter of [method].
-  void forEachParameter(FunctionEntity method, void f(Local parameter));
 
   /// Returns the `call` method on [cls] or the `noSuchMethod` if [cls] doesn't
   /// implement `call`.
@@ -817,7 +814,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
           // can benefit from further refinement of the selector.
           types.allocatedClosures.add(caller);
         }
-        forEachParameter(callee, (Local parameter) {
+        types.strategy.forEachParameter(callee, (Local parameter) {
           ParameterTypeInformation info =
               types.getInferredTypeOfParameter(parameter);
           info.tagAsTearOffClosureParameter(this);
@@ -828,7 +825,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       FunctionEntity method = callee;
       ParameterStructure parameterStructure = method.parameterStructure;
       int parameterIndex = 0;
-      forEachParameter(callee, (Local parameter) {
+      types.strategy.forEachParameter(callee, (Local parameter) {
         TypeInformation type;
         if (parameterIndex < parameterStructure.requiredParameters) {
           type = arguments.positional[parameterIndex];

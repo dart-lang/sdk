@@ -38,16 +38,6 @@ class AstInferrerEngine extends InferrerEngineImpl<ast.Node> {
     return body;
   }
 
-  void forEachParameter(
-      covariant MethodElement method, void f(Local parameter)) {
-    MethodElement implementation = method.implementation;
-    implementation.functionSignature
-        .forEachParameter((FormalElement _parameter) {
-      ParameterElement parameter = _parameter;
-      f(parameter);
-    });
-  }
-
   FunctionEntity lookupCallMethod(covariant ClassElement cls) {
     MethodElement callMethod = cls.lookupMember(Identifiers.call);
     if (callMethod == null) {

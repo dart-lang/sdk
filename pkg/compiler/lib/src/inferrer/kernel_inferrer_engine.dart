@@ -125,11 +125,6 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
   }
 
   @override
-  void forEachParameter(FunctionEntity method, void f(Local parameter)) {
-    throw new UnimplementedError('KernelInferrerEngine.forEachParameter');
-  }
-
-  @override
   ir.Node computeMemberBody(MemberEntity member) {
     MemberDefinition definition = _elementMap.getMemberDefinition(member);
     switch (definition.kind) {
@@ -205,7 +200,50 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy<ir.Node> {
 
   @override
   void forEachParameter(FunctionEntity function, void f(Local parameter)) {
-    throw new UnimplementedError('KernelTypeSystemStrategy.forEachParameter');
+    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
+
+    void processFunctionNode(ir.FunctionNode node) {
+      for (ir.VariableDeclaration variable in node.positionalParameters) {
+        f(localsMap.getLocalVariable(variable));
+      }
+      for (ir.VariableDeclaration variable in node.namedParameters) {
+        f(localsMap.getLocalVariable(variable));
+      }
+    }
+
+    MemberDefinition definition = _elementMap.getMemberDefinition(function);
+    switch (definition.kind) {
+      case MemberKind.regular:
+        ir.Node node = definition.node;
+        if (node is ir.Procedure) {
+          processFunctionNode(node.function);
+          return;
+        }
+        break;
+      case MemberKind.constructor:
+      case MemberKind.constructorBody:
+        ir.Node node = definition.node;
+        if (node is ir.Procedure) {
+          processFunctionNode(node.function);
+          return;
+        } else if (node is ir.Constructor) {
+          processFunctionNode(node.function);
+          return;
+        }
+        break;
+      case MemberKind.closureCall:
+        ir.Node node = definition.node;
+        if (node is ir.FunctionDeclaration) {
+          processFunctionNode(node.function);
+          return;
+        } else if (node is ir.FunctionExpression) {
+          processFunctionNode(node.function);
+          return;
+        }
+        break;
+      default:
+    }
+    failedAt(function, "Unexpected function definition $definition.");
   }
 
   @override

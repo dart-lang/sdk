@@ -182,8 +182,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           : types.simplifyPhi(null, null, elementType);
       TypeInformation containerType =
           listLiteral.isConst ? types.constListType : types.growableListType;
-      // TODO(efortuna): Change signature of allocateList and the rest of
-      // type_system to deal with Kernel elements.
       return types.allocateList(
           containerType, listLiteral, analyzedMember, elementType, length);
     });
