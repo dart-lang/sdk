@@ -286,7 +286,6 @@ regress/4562_test/none: CompileTimeError
 regress/4639_test: Crash
 string_interpolation_dynamic_test: RuntimeError
 string_interpolation_test: RuntimeError
-super_constructor1_test: Crash
 switch_test/none: Crash
 timer_test: Crash
 truncation_errors_test: Crash
@@ -414,7 +413,6 @@ regress/4639_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was ca
 runtime_type_test: Crash
 string_interpolation_dynamic_test: RuntimeError
 string_interpolation_test: RuntimeError
-super_constructor1_test: Crash # Assertion failure: Cannot find value local(C.#null) in (local(C.#i)) for j:constructor(C.).
 switch_test/none: Crash # UnimplementedError: KernelToLocalsMapImpl.getJumpTargetForSwitchCase
 timer_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 to_string_test: Crash

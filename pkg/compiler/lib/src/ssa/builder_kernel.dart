@@ -96,6 +96,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   final NativeEmitter nativeEmitter;
 
+  // [ir.Let] and [ir.LocalInitializer] bindings.
   final Map<ir.VariableDeclaration, HInstruction> letBindings =
       <ir.VariableDeclaration, HInstruction>{};
 
@@ -494,7 +495,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
             'Expected ${localsMap.currentMember} '
             'but found ${_elementMap.getConstructor(constructor)}.'));
     constructorChain.add(constructor);
-
     var foundSuperOrRedirectCall = false;
     for (var initializer in constructor.initializers) {
       if (initializer is ir.FieldInitializer) {
@@ -511,7 +511,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _inlineRedirectingInitializer(
             initializer, constructorChain, fieldValues, constructor);
       } else if (initializer is ir.LocalInitializer) {
-        assert(false, 'ir.LocalInitializer not handled');
+        // LocalInitializer is like a let-expression that is in scope for the
+        // rest of the initializers.
+        ir.VariableDeclaration variable = initializer.variable;
+        assert(variable.isFinal);
+        variable.initializer.accept(this);
+        HInstruction value = pop();
+        // TODO(sra): Apply inferred type information.
+        letBindings[variable] = value;
       } else if (initializer is ir.InvalidInitializer) {
         assert(false, 'ir.InvalidInitializer not handled');
       }

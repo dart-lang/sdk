@@ -315,12 +315,14 @@ abstract_exact_selector_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/loca
 abstract_getter_test/01: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Foo.i). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(checkIt_closure.call), ..., j:closure_call(checkIt_closure.call), j:closure_call(unwrapException_closure.call))
 abstract_method_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(A.length). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call))
 abstract_object_method_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:method(B.==). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(NoSuchMethodError_toString_closure.call))
+abstract_override_adds_optional_args_concrete_subclass_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
+abstract_override_adds_optional_args_concrete_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
+abstract_override_adds_optional_args_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
 assert_message_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
 assert_trailing_comma_test/none: CompileTimeError
 assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc02 (Constructor)
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C::bc02 (Constructor)
-assertion_initializer_const_function_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 513 pos 16: 'false': ir.LocalInitializer not handled
 assertion_initializer_test: CompileTimeError
 assertion_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(unwrapException_closure.call), j:closure_call(testClosureReturnsFalse_closure.call))
 async_and_or_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(test2_closure.call), j:closure_call(test2_closure.call))
@@ -500,6 +502,9 @@ abstract_exact_selector_test/none: Crash # NoSuchMethodError: The getter 'thisLo
 abstract_getter_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 abstract_method_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 abstract_object_method_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+abstract_override_adds_optional_args_concrete_subclass_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+abstract_override_adds_optional_args_concrete_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+abstract_override_adds_optional_args_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 assert_message_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 assert_trailing_comma_test/none: CompileTimeError
 assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc02 (Constructor)
