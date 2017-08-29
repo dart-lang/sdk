@@ -419,11 +419,11 @@ bound_closure_equality_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closu
 bound_closure_primitives_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call))
 branch_canonicalization_test: RuntimeError
 break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-call_closurization_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'cls' where
+call_closurization_test: RuntimeError
 call_function2_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 call_function_apply_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Primitives.applyFunctionWithNamedArguments#bad) is stored in a closure field.
 call_operator_test: RuntimeError
-call_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'cls' where
+call_test: RuntimeError
 call_through_getter_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.g3#x), local(B.g3#y), local(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
 call_through_getter_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.g3#x), local(B.g3#y), local(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
 call_through_getter_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.g3#x), local(B.g3#y), local(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
@@ -455,7 +455,6 @@ closure_with_super_field_test: Crash # Assertion failure: Cannot find value Inst
 closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.test#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
 closures_initializer2_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 207 pos 9: 'closure != null': Corresponding closure class not found for () → dynamic => #lib1::A::T. Closures found for (() → dynamic {
 closures_initializer_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 207 pos 9: 'closure != null': Corresponding closure class not found for () → dynamic => #lib1::B::T. Closures found for (() → dynamic {
-closures_with_complex_params_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'cls' where
 compile_time_constant10_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 compile_time_constant_a_test: Crash
 compile_time_constant_b_test: Crash
@@ -603,10 +602,10 @@ bound_closure_equality_test: Crash # NoSuchMethodError: The getter 'thisLocal' w
 bound_closure_primitives_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 branch_canonicalization_test: RuntimeError
 break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-call_closurization_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'supertype'.
+call_closurization_test: RuntimeError
 call_function_apply_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(JsLinkedHashMap.addAll#key), local(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
 call_operator_test: RuntimeError
-call_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'supertype'.
+call_test: RuntimeError
 call_through_getter_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.g3#x), local(B.g3#y), local(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
 call_through_getter_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.g3#x), local(B.g3#y), local(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
 call_through_getter_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.g3#x), local(B.g3#y), local(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
@@ -635,7 +634,9 @@ closure_with_super_field_test: Crash # Assertion failure: Cannot find value Inst
 closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.test#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
 closures_initializer2_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 closures_initializer_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-closures_with_complex_params_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'supertype'.
+compile_time_constant_a_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(ConstantStringMap.values#key), local(ConstantStringMap.values#)) for j:closure_call(ConstantStringMap_values_closure.call).
+compile_time_constant_b_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(ConstantStringMap.values#key), local(ConstantStringMap.values#)) for j:closure_call(ConstantStringMap_values_closure.call).
+compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
 generic_instanceof_test: Crash
 generic_local_functions_test: Crash
 generic_methods_closure_test: Crash
@@ -650,11 +651,8 @@ generic_methods_type_expression_test: Crash
 generic_native_test: Crash
 generic_sync_star_test: Crash
 generic_syntax_test: Crash
-generic_typedef_test: Crash
-compile_time_constant_a_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(ConstantStringMap.values#key), local(ConstantStringMap.values#)) for j:closure_call(ConstantStringMap_values_closure.call).
-compile_time_constant_b_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(ConstantStringMap.values#key), local(ConstantStringMap.values#)) for j:closure_call(ConstantStringMap_values_closure.call).
-compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
 generic_test: RuntimeError
+generic_typedef_test: Crash
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError

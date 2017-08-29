@@ -217,13 +217,20 @@ class ParameterStubGenerator {
   // (3) foo$3$d(a, b, d) => MyClass.foo$4$c$d(this, a, b, null, d);
   List<ParameterStubMethod> generateParameterStubs(FunctionEntity member,
       {bool canTearOff: true}) {
-    if (member.enclosingClass != null && member.enclosingClass.isClosure) {
-      ClosureClassElement cls = member.enclosingClass;
-      if (cls.supertype.element == _commonElements.boundClosureClass) {
-        failedAt(cls.methodElement, 'Bound closure1.');
-      }
-      if (cls.methodElement.isInstanceMember) {
-        failedAt(cls.methodElement, 'Bound closure2.');
+    {
+      var enclosingClass = member.enclosingClass;
+      if (enclosingClass != null && enclosingClass.isClosure) {
+        if (enclosingClass is ClosureClassElement) {
+          // TODO(redemption): What is the equivalent invariant for J-entities?
+          var methodElement = enclosingClass.methodElement;
+          if (enclosingClass.supertype.element ==
+              _commonElements.boundClosureClass) {
+            failedAt(methodElement, 'Bound closure1.');
+          }
+          if (methodElement.isInstanceMember) {
+            failedAt(methodElement, 'Bound closure2.');
+          }
+        }
       }
     }
 

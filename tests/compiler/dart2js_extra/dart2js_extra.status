@@ -186,10 +186,7 @@ big_allocation_expression_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_
 bound_closure_interceptor_methods_test: Crash
 bound_closure_interceptor_type_test: Crash
 break_test: Crash
-closure3_test: Crash
 closure4_test: RuntimeError
-closure6_test: Crash
-closure7_test: Crash
 closure_capture2_test: RuntimeError
 closure_capture3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Closure.nestedClosure#)) for j:closure_call(Closure_nestedClosure_closure.call).
 closure_capture4_test: RuntimeError
@@ -318,10 +315,7 @@ async_stacktrace_test: Crash # NoSuchMethodError: The getter 'memberIndex' was c
 bound_closure_interceptor_methods_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 bound_closure_interceptor_type_test: Crash # NoSuchMethodError: The getter 'classIndex' was called on null.
 break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-closure3_test: Crash # NoSuchMethodError: Class 'KernelClosureClass' has no instance getter 'supertype'.
 closure4_test: RuntimeError
-closure6_test: Crash # NoSuchMethodError: Class 'KernelClosureClass' has no instance getter 'supertype'.
-closure7_test: Crash # NoSuchMethodError: Class 'KernelClosureClass' has no instance getter 'supertype'.
 closure_capture2_test: RuntimeError
 closure_capture3_test: Crash # Assertion failure: Cannot find value local(Closure_nestedClosure_closure.call#f) in (local(Closure.nestedClosure#)) for j:closure_call(Closure_nestedClosure_closure.call).
 closure_capture4_test: RuntimeError
