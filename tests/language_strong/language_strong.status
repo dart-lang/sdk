@@ -194,6 +194,7 @@ function_type_parameter2_negative_test: Skip
 function_type_parameter_negative_test: Skip
 function_type_test: Skip
 generic_closure_test: Skip
+generic_field_mixin6_test: Skip
 hidden_import_test: Skip
 identical_const_test: Skip
 if_null_assignment_behavior_test: Skip
