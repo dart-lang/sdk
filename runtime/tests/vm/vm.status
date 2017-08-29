@@ -228,21 +228,13 @@ dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloa
 dart/redirection_type_shuffling_test/00: RuntimeError # Issue 29201
 
 [ ($compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
-dart/byte_array_optimized_test: RuntimeError
-dart/byte_array_test: RuntimeError
 dart/data_uri_import_test/base64: CompileTimeError
 dart/data_uri_import_test/nocharset: CompileTimeError
 dart/data_uri_import_test/nomime: CompileTimeError
 dart/data_uri_import_test/percentencoded: CompileTimeError
 dart/data_uri_import_test/wrongmime: CompileTimeError
 dart/data_uri_spawn_test: RuntimeError
-dart/double_materialize_test: RuntimeError
-dart/double_to_smi_test: RuntimeError
-dart/error_stacktrace_test: RuntimeError
-dart/inline_stack_frame_test: RuntimeError
-dart/optimized_stacktrace_line_test: RuntimeError
-dart/redirection_type_shuffling_test/none: RuntimeError # Issue 29201
-dart/regress29620_test: RuntimeError
+dart/redirection_type_shuffling_test: Crash
 dart/spawn_shutdown_test: SkipSlow
 
 [ ($compiler != dartk) ]

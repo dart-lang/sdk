@@ -18,7 +18,6 @@ cha_deopt1_test: RuntimeError
 cha_deopt2_test: RuntimeError
 cha_deopt3_test: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
-generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/02: MissingRuntimeError
 generic_methods_dynamic_test/03: MissingCompileTimeError
@@ -47,13 +46,37 @@ getters_setters2_test/none: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+generic_methods_bounds_test/02: MissingRuntimeError
 
 [ $compiler == dartk && $runtime == vm && $checked ]
 assertion_initializer_const_function_test/01: RuntimeError
 regress_30339_test: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled ]
+assert_assignable_type_test: Crash
 assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_test: Crash
+assert_with_type_test_or_cast_test: Pass, Crash
+bool_check_test: RuntimeError
+bool_condition_check_test: RuntimeError
+built_in_identifier_prefix_test: CompileTimeError
+checked_null_test/01: MissingCompileTimeError
+checked_setter2_test: MissingCompileTimeError
+checked_setter3_test/01: MissingCompileTimeError
+checked_setter3_test/02: MissingCompileTimeError
+checked_setter3_test/03: MissingCompileTimeError
+function_subtype_inline2_test: RuntimeError
+generic_constructor_mixin2_test/01: MissingCompileTimeError
+generic_constructor_mixin3_test/01: MissingCompileTimeError
+generic_constructor_mixin_test/01: MissingCompileTimeError
+generic_methods_generic_function_result_test/none: CompileTimeError
+generic_methods_recursive_bound_test/02: MissingCompileTimeError
+generic_methods_recursive_bound_test/03: Pass
+generic_methods_reuse_type_variables_test: Pass
+generic_tearoff_test: CompileTimeError
+generic_test: Crash
+typevariable_substitution2_test/02: RuntimeError
+
 
 [ $compiler == dartkp && $runtime == dart_precompiled && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError

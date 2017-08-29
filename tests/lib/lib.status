@@ -554,8 +554,14 @@ mirrors/typedef_test: RuntimeError
 mirrors/typevariable_mirror_metadata_test: RuntimeError
 mirrors/variable_is_const_test/01: MissingCompileTimeError
 
+[ $compiler == dartkp ]
+mirrors/*: Skip # mirrors are not supported by under precompilation
+
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 mirrors/variable_is_const_test/01: Crash
+
+[ $compiler == dartkp && $mode == debug ]
+vm/async_await_catch_stacktrace_test/01: Crash
 
 # dartk: checked mode failures
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
@@ -575,3 +581,6 @@ mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kerne
 
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
+
+[ $compiler == dartkp && $mode == debug ]
+mirrors/variable_is_const_test/01: Crash

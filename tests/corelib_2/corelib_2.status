@@ -303,6 +303,39 @@ string_from_environment3_test/03: MissingCompileTimeError
 string_from_environment3_test/04: MissingCompileTimeError
 string_from_environment3_test/05: MissingCompileTimeError
 
+[ $compiler == dartkp ]
+apply3_test: Crash
+from_environment_const_type_test/02: MissingCompileTimeError
+from_environment_const_type_test/03: MissingCompileTimeError
+from_environment_const_type_test/04: MissingCompileTimeError
+from_environment_const_type_test/06: MissingCompileTimeError
+from_environment_const_type_test/07: MissingCompileTimeError
+from_environment_const_type_test/08: MissingCompileTimeError
+from_environment_const_type_test/09: MissingCompileTimeError
+from_environment_const_type_test/11: MissingCompileTimeError
+from_environment_const_type_test/12: MissingCompileTimeError
+from_environment_const_type_test/13: MissingCompileTimeError
+from_environment_const_type_test/14: MissingCompileTimeError
+from_environment_const_type_test/16: MissingCompileTimeError
+from_environment_const_type_undefined_test/02: MissingCompileTimeError
+from_environment_const_type_undefined_test/03: MissingCompileTimeError
+from_environment_const_type_undefined_test/04: MissingCompileTimeError
+from_environment_const_type_undefined_test/06: MissingCompileTimeError
+from_environment_const_type_undefined_test/07: MissingCompileTimeError
+from_environment_const_type_undefined_test/08: MissingCompileTimeError
+from_environment_const_type_undefined_test/09: MissingCompileTimeError
+from_environment_const_type_undefined_test/11: MissingCompileTimeError
+from_environment_const_type_undefined_test/12: MissingCompileTimeError
+from_environment_const_type_undefined_test/13: MissingCompileTimeError
+from_environment_const_type_undefined_test/14: MissingCompileTimeError
+from_environment_const_type_undefined_test/16: MissingCompileTimeError
+int_parse_radix_bad_handler_test: MissingCompileTimeError
+int_parse_radix_test/badTypes: RuntimeError
+iterable_generate_test/01: RuntimeError
+iterable_to_set_test: RuntimeError
+regexp/stack-overflow_test: RuntimeError
+splay_tree_from_iterable_test: RuntimeError
+
 [ $runtime == ff || $runtime == jsshell ]
 double_parse_test/02: Fail, OK # Issue 30468
 regexp/UC16_test: RuntimeError
