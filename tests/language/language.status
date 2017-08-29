@@ -79,7 +79,6 @@ dynamic_prefix_core_test/none: Fail # Issue 12478
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $arch == arm64 ]
 large_class_declaration_test: SkipSlow # Uses too much memory.
-closure_cycles_test: Pass, Slow
 
 [ $runtime == vm || $runtime == dart_precompiled ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
