@@ -44,7 +44,8 @@ class BeginToken extends SimpleToken {
    * Initialize a newly created token to have the given [type] at the given
    * [offset].
    */
-  BeginToken(TokenType type, int offset) : super(type, offset) {
+  BeginToken(TokenType type, int offset, [CommentToken precedingComment])
+      : super(type, offset, precedingComment) {
     assert(type == TokenType.LT ||
         type == TokenType.OPEN_CURLY_BRACKET ||
         type == TokenType.OPEN_PAREN ||
@@ -53,7 +54,7 @@ class BeginToken extends SimpleToken {
   }
 
   @override
-  Token copy() => new BeginToken(type, offset);
+  Token copy() => new BeginToken(type, offset, copyComments(precedingComments));
 
   /**
    * The token that corresponds to this token.
@@ -69,47 +70,13 @@ class BeginToken extends SimpleToken {
 }
 
 /**
- * A begin token that is preceded by comments.
- */
-class BeginTokenWithComment extends BeginToken implements TokenWithComment {
-  /**
-   * The first comment in the list of comments that precede this token.
-   */
-  @override
-  CommentToken _precedingComment;
-
-  /**
-   * Initialize a newly created token to have the given [type] at the given
-   * [offset] and to be preceded by the comments reachable from the given
-   * [_precedingComment].
-   */
-  BeginTokenWithComment(TokenType type, int offset, this._precedingComment)
-      : super(type, offset) {
-    _setCommentParent(_precedingComment);
-  }
-
-  @override
-  CommentToken get precedingComments => _precedingComment;
-
-  @override
-  void set precedingComments(CommentToken comment) {
-    _precedingComment = comment;
-    _setCommentParent(_precedingComment);
-  }
-
-  @override
-  Token copy() =>
-      new BeginTokenWithComment(type, offset, copyComments(precedingComments));
-}
-
-/**
  * A token representing a comment.
  */
 class CommentToken extends StringToken {
   /**
    * The token that contains this comment.
    */
-  TokenWithComment parent;
+  SimpleToken parent;
 
   /**
    * Initialize a newly created token to represent a token of the given [type]
@@ -451,49 +418,18 @@ class KeywordToken extends SimpleToken {
    * Initialize a newly created token to represent the given [keyword] at the
    * given [offset].
    */
-  KeywordToken(this.keyword, int offset) : super(keyword, offset);
+  KeywordToken(this.keyword, int offset, [CommentToken precedingComment])
+      : super(keyword, offset, precedingComment);
 
   @override
-  Token copy() => new KeywordToken(keyword, offset);
+  Token copy() =>
+      new KeywordToken(keyword, offset, copyComments(precedingComments));
 
   @override
   bool get isIdentifier => keyword.isPseudo || keyword.isBuiltIn;
 
   @override
   Object value() => keyword;
-}
-
-/**
- * A keyword token that is preceded by comments.
- */
-class KeywordTokenWithComment extends KeywordToken implements TokenWithComment {
-  /**
-   * The first comment in the list of comments that precede this token.
-   */
-  @override
-  CommentToken _precedingComment;
-
-  /**
-   * Initialize a newly created token to to represent the given [keyword] at the
-   * given [offset] and to be preceded by the comments reachable from the given
-   * [_precedingComment].
-   */
-  KeywordTokenWithComment(Keyword keyword, int offset, this._precedingComment)
-      : super(keyword, offset) {
-    _setCommentParent(_precedingComment);
-  }
-
-  @override
-  CommentToken get precedingComments => _precedingComment;
-
-  void set precedingComments(CommentToken comment) {
-    _precedingComment = comment;
-    _setCommentParent(_precedingComment);
-  }
-
-  @override
-  Token copy() => new KeywordTokenWithComment(
-      keyword, offset, copyComments(precedingComments));
 }
 
 /**
@@ -524,9 +460,16 @@ class SimpleToken implements Token {
   Token next;
 
   /**
+   * The first comment in the list of comments that precede this token.
+   */
+  CommentToken _precedingComment;
+
+  /**
    * Initialize a newly created token to have the given [type] and [offset].
    */
-  SimpleToken(this.type, this.offset);
+  SimpleToken(this.type, this.offset, [this._precedingComment]) {
+    _setCommentParent(_precedingComment);
+  }
 
   @override
   int get charCount => length;
@@ -568,13 +511,19 @@ class SimpleToken implements Token {
   String get lexeme => type.lexeme;
 
   @override
-  CommentToken get precedingComments => null;
+  CommentToken get precedingComments => _precedingComment;
+
+  void set precedingComments(CommentToken comment) {
+    _precedingComment = comment;
+    _setCommentParent(_precedingComment);
+  }
 
   @override
   String get stringValue => type.stringValue;
 
   @override
-  Token copy() => new Token(type, offset);
+  Token copy() =>
+      new SimpleToken(type, offset, copyComments(precedingComments));
 
   @override
   Token copyComments(Token token) {
@@ -645,7 +594,9 @@ class StringToken extends SimpleToken {
    * Initialize a newly created token to represent a token of the given [type]
    * with the given [value] at the given [offset].
    */
-  StringToken(TokenType type, String value, int offset) : super(type, offset) {
+  StringToken(TokenType type, String value, int offset,
+      [CommentToken precedingComment])
+      : super(type, offset, precedingComment) {
     this._value = StringUtilities.intern(value);
   }
 
@@ -656,43 +607,11 @@ class StringToken extends SimpleToken {
   String get lexeme => _value;
 
   @override
-  Token copy() => new StringToken(type, _value, offset);
+  Token copy() =>
+      new StringToken(type, _value, offset, copyComments(precedingComments));
 
   @override
   String value() => _value;
-}
-
-/**
- * A string token that is preceded by comments.
- */
-class StringTokenWithComment extends StringToken implements TokenWithComment {
-  /**
-   * The first comment in the list of comments that precede this token.
-   */
-  CommentToken _precedingComment;
-
-  /**
-   * Initialize a newly created token to have the given [type] at the given
-   * [offset] and to be preceded by the comments reachable from the given
-   * [comment].
-   */
-  StringTokenWithComment(
-      TokenType type, String value, int offset, this._precedingComment)
-      : super(type, value, offset) {
-    _setCommentParent(_precedingComment);
-  }
-
-  @override
-  CommentToken get precedingComments => _precedingComment;
-
-  void set precedingComments(CommentToken comment) {
-    _precedingComment = comment;
-    _setCommentParent(_precedingComment);
-  }
-
-  @override
-  Token copy() => new StringTokenWithComment(
-      type, lexeme, offset, copyComments(precedingComments));
 }
 
 /**
@@ -759,15 +678,14 @@ abstract class Token implements SyntacticEntity {
   /**
    * Initialize a newly created token to have the given [type] and [offset].
    */
-  factory Token(TokenType type, int offset) = SimpleToken;
+  factory Token(TokenType type, int offset, [CommentToken preceedingComment]) =
+      SimpleToken;
 
   /**
    * Initialize a newly created end-of-file token to have the given [offset].
    */
   factory Token.eof(int offset, [CommentToken precedingComments]) {
-    Token eof = precedingComments == null
-        ? new SimpleToken(TokenType.EOF, offset)
-        : new TokenWithComment(TokenType.EOF, offset, precedingComments);
+    Token eof = new SimpleToken(TokenType.EOF, offset, precedingComments);
     // EOF points to itself so there's always infinite look-ahead.
     eof.previous = eof;
     eof.next = eof;
@@ -1663,36 +1581,4 @@ class TokenType {
    */
   @deprecated
   String get value => lexeme;
-}
-
-/**
- * A normal token that is preceded by comments.
- */
-class TokenWithComment extends SimpleToken {
-  /**
-   * The first comment in the list of comments that precede this token.
-   */
-  CommentToken _precedingComment;
-
-  /**
-   * Initialize a newly created token to have the given [type] at the given
-   * [offset] and to be preceded by the comments reachable from the given
-   * [comment].
-   */
-  TokenWithComment(TokenType type, int offset, this._precedingComment)
-      : super(type, offset) {
-    _setCommentParent(_precedingComment);
-  }
-
-  @override
-  CommentToken get precedingComments => _precedingComment;
-
-  void set precedingComments(CommentToken comment) {
-    _precedingComment = comment;
-    _setCommentParent(_precedingComment);
-  }
-
-  @override
-  Token copy() =>
-      new TokenWithComment(type, offset, copyComments(precedingComments));
 }

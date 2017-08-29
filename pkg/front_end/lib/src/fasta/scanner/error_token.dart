@@ -4,7 +4,7 @@
 
 library dart_scanner.error_token;
 
-import '../../scanner/token.dart' show BeginToken, TokenType, TokenWithComment;
+import '../../scanner/token.dart' show BeginToken, SimpleToken, TokenType;
 
 import '../fasta_codes.dart'
     show
@@ -65,7 +65,7 @@ ErrorToken buildUnexpectedCharacterToken(int character, int charOffset) {
 ///
 /// It's considered an implementation error to access [lexeme] of an
 /// [ErrorToken].
-abstract class ErrorToken extends TokenWithComment {
+abstract class ErrorToken extends SimpleToken {
   ErrorToken(int offset) : super(TokenType.BAD_INPUT, offset, null);
 
   /// This is a token that wraps around an error message. Return 1
