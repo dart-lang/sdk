@@ -9,5 +9,4 @@ analyzer:
     - tests/service/developer_extension_test.dart
     - tests/service/evaluate_activation_in_method_class_test.dart
     - tests/service/get_isolate_after_language_error_test.dart
-    - tests/service/get_user_level_retaining_path_rpc_test.dart
     - tests/service/pause_on_unhandled_async_exceptions_test.dart
