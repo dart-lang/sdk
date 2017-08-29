@@ -1,7 +1,7 @@
 library;
 import self as self;
 
-const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29942.dart:8:5: Error: Expected a function body or '=>'.\nTry adding {}.\nf() =\n    ^", "pkg/front_end/testcases/regress/issue_29942.dart:8:5: Error: Expected a function body or '=>'.\nf() =\n    ^", "pkg/front_end/testcases/regress/issue_29942.dart:10:1: Error: A function expression can't have a name.\nh() => null;\n^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29942.dart:8:5: Error: Expected a function body or '=>'.\nTry adding {}.\nf() =\n    ^", "pkg/front_end/testcases/regress/issue_29942.dart:8:5: Error: Expected a function body or '=>'.\nf() =\n    ^", "pkg/front_end/testcases/regress/issue_29942.dart:10:1: Error: A function expression can't have a name.\nh() => null;\n^"]/* from null */;
 static method main() → dynamic {}
 static method f() → dynamic
   return let final () → dynamic h = () → dynamic => null in h;

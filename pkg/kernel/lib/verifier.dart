@@ -57,8 +57,12 @@ class VerifyingVisitor extends RecursiveVisitor {
 
   bool inCatchBlock = false;
 
+  Library currentLibrary;
+
   Member currentMember;
+
   Class currentClass;
+
   TreeNode currentParent;
 
   TreeNode get context => currentMember ?? currentClass;
@@ -187,6 +191,12 @@ class VerifyingVisitor extends RecursiveVisitor {
     }
   }
 
+  void visitLibrary(Library node) {
+    currentLibrary = node;
+    super.visitLibrary(node);
+    currentLibrary = null;
+  }
+
   void checkTypedef(Typedef node) {
     var state = typedefState[node];
     if (state == TypedefState.Done) return;
@@ -216,6 +226,15 @@ class VerifyingVisitor extends RecursiveVisitor {
   visitField(Field node) {
     currentMember = node;
     var oldParent = enterParent(node);
+    bool isTopLevel = node.parent == currentLibrary;
+    if (isTopLevel && !node.isStatic) {
+      problem(node, "The top-level field '${node.name.name}' should be static",
+          context: node);
+    }
+    if (node.isConst && !node.isStatic) {
+      problem(node, "The const field '${node.name.name}' should be static",
+          context: node);
+    }
     classTypeParametersAreInScope = !node.isStatic;
     node.initializer?.accept(this);
     node.type.accept(this);

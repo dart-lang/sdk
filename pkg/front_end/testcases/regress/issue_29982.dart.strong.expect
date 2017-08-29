@@ -1,6 +1,6 @@
 library;
 import self as self;
 
-static method main() → dynamic {
+static method #main() → dynamic {
   throw "pkg/front_end/testcases/regress/issue_29982.dart:7:17: Error: Expected ']' before this.\n  print('\${eh[\u0233h']}');\n                ^";
 }

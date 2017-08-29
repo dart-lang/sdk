@@ -318,7 +318,8 @@ class KernelTarget extends TargetImplementation {
     }
     mainLibrary.library.addMember(new Field(new Name("#errors"),
         initializer: new ListLiteral(expressions, isConst: true),
-        isConst: true));
+        isConst: true,
+        isStatic: true));
   }
 
   Program erroneousProgram(bool isFullProgram) {
@@ -337,7 +338,7 @@ class KernelTarget extends TargetImplementation {
           null,
           0,
           null,
-          "main",
+          "#main",
           null,
           null,
           ProcedureKind.Method,

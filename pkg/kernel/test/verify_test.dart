@@ -1,10 +1,15 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
+
+const String varRegexp = "#t[0-9]+";
+
+const String tvarRegexp = "#T[0-9]+";
 
 /// Checks that the verifier correctly find errors in invalid programs.
 ///
@@ -17,46 +22,64 @@ main() {
   positiveTest('Test harness has no errors', (TestHarness test) {
     return new NullLiteral();
   });
-  negativeTest('VariableGet out of scope', (TestHarness test) {
+  negativeTest('VariableGet out of scope',
+      matches("Variable '$varRegexp' used out of scope\\."),
+      (TestHarness test) {
     return new VariableGet(test.makeVariable());
   });
-  negativeTest('VariableSet out of scope', (TestHarness test) {
+  negativeTest('VariableSet out of scope',
+      matches("Variable '$varRegexp' used out of scope\\."),
+      (TestHarness test) {
     return new VariableSet(test.makeVariable(), new NullLiteral());
   });
-  negativeTest('Variable block scope', (TestHarness test) {
+  negativeTest('Variable block scope',
+      matches("Variable '$varRegexp' used out of scope\\."),
+      (TestHarness test) {
     VariableDeclaration variable = test.makeVariable();
     return new Block([
       new Block([variable]),
       new ReturnStatement(new VariableGet(variable))
     ]);
   });
-  negativeTest('Variable let scope', (TestHarness test) {
+  negativeTest('Variable let scope',
+      matches("Variable '$varRegexp' used out of scope\\."),
+      (TestHarness test) {
     VariableDeclaration variable = test.makeVariable();
     return new LogicalExpression(new Let(variable, new VariableGet(variable)),
         '&&', new VariableGet(variable));
   });
-  negativeTest('Variable redeclared', (TestHarness test) {
+  negativeTest('Variable redeclared',
+      matches("Variable '$varRegexp' declared more than once\\."),
+      (TestHarness test) {
     VariableDeclaration variable = test.makeVariable();
     return new Block([variable, variable]);
   });
-  negativeTest('Member redeclared', (TestHarness test) {
+  negativeTest('Member redeclared',
+      "Member 'test_lib::Test::field' has been declared more than once.",
+      (TestHarness test) {
     Field field = new Field(new Name('field'), initializer: new NullLiteral());
     return new Class(
         name: 'Test',
         supertype: test.objectClass.asRawSupertype,
         fields: [field, field]);
   });
-  negativeTest('Class redeclared', (TestHarness test) {
+  negativeTest('Class redeclared',
+      "Class 'test_lib::OtherClass' declared more than once.",
+      (TestHarness test) {
     return test.otherClass; // Test harness also adds otherClass to program.
   });
-  negativeTest('Class type parameter redeclared', (TestHarness test) {
+  negativeTest('Class type parameter redeclared',
+      matches("Type parameter 'test_lib::Test::$tvarRegexp' redeclared\\."),
+      (TestHarness test) {
     var parameter = test.makeTypeParameter();
     return new Class(
         name: 'Test',
         supertype: test.objectClass.asRawSupertype,
         typeParameters: [parameter, parameter]);
   });
-  negativeTest('Member type parameter redeclared', (TestHarness test) {
+  negativeTest('Member type parameter redeclared',
+      matches("Type parameter '$tvarRegexp' redeclared\\."),
+      (TestHarness test) {
     var parameter = test.makeTypeParameter();
     return new Procedure(
         new Name('bar'),
@@ -64,15 +87,24 @@ main() {
         new FunctionNode(new ReturnStatement(new NullLiteral()),
             typeParameters: [parameter, parameter]));
   });
-  negativeTest('Type parameter out of scope', (TestHarness test) {
+  negativeTest(
+      'Type parameter out of scope',
+      matches("Type parameter '$tvarRegexp' referenced out of scope,"
+          " parent is: 'null'\\."), (TestHarness test) {
     var parameter = test.makeTypeParameter();
     return new ListLiteral([], typeArgument: new TypeParameterType(parameter));
   });
-  negativeTest('Class type parameter from another class', (TestHarness test) {
+  negativeTest(
+      'Class type parameter from another class',
+      "Type parameter 'test_lib::OtherClass::OtherT' referenced out of scope,"
+      " parent is: 'test_lib::OtherClass'.", (TestHarness test) {
     return new TypeLiteral(
         new TypeParameterType(test.otherClass.typeParameters[0]));
   });
-  negativeTest('Class type parameter in static method', (TestHarness test) {
+  negativeTest(
+      'Class type parameter in static method',
+      "Type parameter 'test_lib::TestClass::T' referenced from static context,"
+      " parent is 'test_lib::TestClass'.", (TestHarness test) {
     return new Procedure(
         new Name('bar'),
         ProcedureKind.Method,
@@ -80,13 +112,19 @@ main() {
             new TypeLiteral(new TypeParameterType(test.classTypeParameter)))),
         isStatic: true);
   });
-  negativeTest('Class type parameter in static field', (TestHarness test) {
+  negativeTest(
+      'Class type parameter in static field',
+      "Type parameter 'test_lib::TestClass::T' referenced from static context,"
+      " parent is 'test_lib::TestClass'.", (TestHarness test) {
     return new Field(new Name('field'),
         initializer:
             new TypeLiteral(new TypeParameterType(test.classTypeParameter)),
         isStatic: true);
   });
-  negativeTest('Method type parameter out of scope', (TestHarness test) {
+  negativeTest(
+      'Method type parameter out of scope',
+      matches("Type parameter '$tvarRegexp' referenced out of scope,"
+          " parent is: '<FunctionNode>'\\."), (TestHarness test) {
     var parameter = test.makeTypeParameter();
     return new Class(
         name: 'Test',
@@ -104,38 +142,59 @@ main() {
                   new TypeLiteral(new TypeParameterType(parameter)))))
         ]);
   });
-  negativeTest('Interface type arity too low', (TestHarness test) {
+  negativeTest(
+      'Interface type arity too low',
+      "Type test_lib::OtherClass provides 0 type arguments"
+      " but the class declares 1 parameters.", (TestHarness test) {
     return new TypeLiteral(new InterfaceType(test.otherClass, []));
   });
-  negativeTest('Interface type arity too high', (TestHarness test) {
+  negativeTest(
+      'Interface type arity too high',
+      "Type test_lib::OtherClass<dynamic, dynamic> provides 2 type arguments"
+      " but the class declares 1 parameters.", (TestHarness test) {
     return new TypeLiteral(new InterfaceType(
         test.otherClass, [new DynamicType(), new DynamicType()]));
   });
-  negativeTest('Dangling interface type', (TestHarness test) {
+  negativeTest(
+      'Dangling interface type',
+      matches("Dangling reference to 'null::#class[0-9]+',"
+          " parent is: 'null'\\."), (TestHarness test) {
     var orphan = new Class();
     return new TypeLiteral(new InterfaceType(orphan));
   });
-  negativeTest('Dangling field get', (TestHarness test) {
+  negativeTest('Dangling field get',
+      "Dangling reference to 'null::foo', parent is: 'null'.",
+      (TestHarness test) {
     var orphan = new Field(new Name('foo'));
     return new DirectPropertyGet(new NullLiteral(), orphan);
   });
-  negativeTest('Missing block parent pointer', (TestHarness test) {
+  negativeTest(
+      'Missing block parent pointer',
+      "Incorrect parent pointer on ReturnStatement:"
+      " expected 'Block', but found: 'Null'.", (TestHarness test) {
     var block = new Block([]);
     block.statements.add(new ReturnStatement());
     return block;
   });
-  negativeTest('Missing function parent pointer', (TestHarness test) {
+  negativeTest(
+      'Missing function parent pointer',
+      "Incorrect parent pointer on FunctionNode:"
+      " expected 'Procedure', but found: 'Null'.", (TestHarness test) {
     var procedure = new Procedure(new Name('bar'), ProcedureKind.Method, null);
     procedure.function = new FunctionNode(new EmptyStatement());
     return procedure;
   });
-  negativeTest('StaticGet without target', (TestHarness test) {
+  negativeTest('StaticGet without target', "StaticGet without target.",
+      (TestHarness test) {
     return new StaticGet(null);
   });
-  negativeTest('StaticSet without target', (TestHarness test) {
+  negativeTest('StaticSet without target', "StaticSet without target.",
+      (TestHarness test) {
     return new StaticSet(null, new NullLiteral());
   });
-  negativeTest('StaticInvocation without target', (TestHarness test) {
+  negativeTest(
+      'StaticInvocation without target', "StaticInvocation without target.",
+      (TestHarness test) {
     return new StaticInvocation(null, new Arguments.empty());
   });
   positiveTest('Correct StaticInvocation', (TestHarness test) {
@@ -148,14 +207,20 @@ main() {
     test.enclosingClass.addMember(method);
     return new StaticInvocation(method, new Arguments([new NullLiteral()]));
   });
-  negativeTest('StaticInvocation with too many parameters', (TestHarness test) {
+  negativeTest(
+      'StaticInvocation with too many parameters',
+      "StaticInvocation with incompatible arguments for"
+      " 'test_lib::TestClass::bar'.", (TestHarness test) {
     var method = new Procedure(new Name('bar'), ProcedureKind.Method,
         new FunctionNode(new EmptyStatement()),
         isStatic: true);
     test.enclosingClass.addMember(method);
     return new StaticInvocation(method, new Arguments([new NullLiteral()]));
   });
-  negativeTest('StaticInvocation with too few parameters', (TestHarness test) {
+  negativeTest(
+      'StaticInvocation with too few parameters',
+      "StaticInvocation with incompatible arguments for"
+      " 'test_lib::TestClass::bar'.", (TestHarness test) {
     var method = new Procedure(
         new Name('bar'),
         ProcedureKind.Method,
@@ -165,8 +230,10 @@ main() {
     test.enclosingClass.addMember(method);
     return new StaticInvocation(method, new Arguments.empty());
   });
-  negativeTest('StaticInvocation with unmatched named parameter',
-      (TestHarness test) {
+  negativeTest(
+      'StaticInvocation with unmatched named parameter',
+      "StaticInvocation with incompatible arguments for"
+      " 'test_lib::TestClass::bar'.", (TestHarness test) {
     var method = new Procedure(new Name('bar'), ProcedureKind.Method,
         new FunctionNode(new EmptyStatement()),
         isStatic: true);
@@ -176,8 +243,10 @@ main() {
         new Arguments([],
             named: [new NamedExpression('p', new NullLiteral())]));
   });
-  negativeTest('StaticInvocation with missing type argument',
-      (TestHarness test) {
+  negativeTest(
+      'StaticInvocation with missing type argument',
+      "StaticInvocation with wrong number of type arguments for"
+      " 'test_lib::TestClass::bar'.", (TestHarness test) {
     var method = new Procedure(
         new Name('bar'),
         ProcedureKind.Method,
@@ -187,8 +256,10 @@ main() {
     test.enclosingClass.addMember(method);
     return new StaticInvocation(method, new Arguments.empty());
   });
-  negativeTest('ConstructorInvocation with missing type argument',
-      (TestHarness test) {
+  negativeTest(
+      'ConstructorInvocation with missing type argument',
+      "ConstructorInvocation with wrong number of type arguments for"
+      " 'test_lib::TestClass::foo'.", (TestHarness test) {
     var class_ = new Class(
         name: 'Test',
         typeParameters: [test.makeTypeParameter()],
@@ -228,33 +299,49 @@ main() {
   positiveTest('Valid typedef type in field', (TestHarness test) {
     var typedef_ = new Typedef(
         'Foo', new FunctionType([test.otherClass.rawType], const VoidType()));
-    var field = new Field(new Name('field'), type: new TypedefType(typedef_));
+    var field = new Field(new Name('field'),
+        type: new TypedefType(typedef_), isStatic: true);
     test.enclosingLibrary.addTypedef(typedef_);
     test.enclosingLibrary.addMember(field);
   });
-  negativeTest('Invalid typedef Foo = Foo', (TestHarness test) {
+  negativeTest(
+      'Invalid typedef Foo = Foo',
+      "The typedef 'typedef Foo = test_lib::Foo;\n'"
+      " refers to itself", (TestHarness test) {
     var typedef_ = new Typedef('Foo', null);
     typedef_.type = new TypedefType(typedef_);
     test.enclosingLibrary.addTypedef(typedef_);
   });
-  negativeTest('Invalid typedef Foo = `(Foo) => void`', (TestHarness test) {
+  negativeTest(
+      'Invalid typedef Foo = `(Foo) => void`',
+      "The typedef 'typedef Foo = (test_lib::Foo) → void;\n'"
+      " refers to itself", (TestHarness test) {
     var typedef_ = new Typedef('Foo', null);
     typedef_.type =
         new FunctionType([new TypedefType(typedef_)], const VoidType());
     test.enclosingLibrary.addTypedef(typedef_);
   });
-  negativeTest('Invalid typedef Foo = `() => Foo`', (TestHarness test) {
+  negativeTest(
+      'Invalid typedef Foo = `() => Foo`',
+      "The typedef 'typedef Foo = () → test_lib::Foo;\n'"
+      " refers to itself", (TestHarness test) {
     var typedef_ = new Typedef('Foo', null);
     typedef_.type = new FunctionType([], new TypedefType(typedef_));
     test.enclosingLibrary.addTypedef(typedef_);
   });
-  negativeTest('Invalid typedef Foo = C<Foo>', (TestHarness test) {
+  negativeTest(
+      'Invalid typedef Foo = C<Foo>',
+      "The typedef 'typedef Foo = test_lib::OtherClass<test_lib::Foo>;\n'"
+      " refers to itself", (TestHarness test) {
     var typedef_ = new Typedef('Foo', null);
     typedef_.type =
         new InterfaceType(test.otherClass, [new TypedefType(typedef_)]);
     test.enclosingLibrary.addTypedef(typedef_);
   });
-  negativeTest('Invalid typedefs Foo = Bar, Bar = Foo', (TestHarness test) {
+  negativeTest(
+      'Invalid typedefs Foo = Bar, Bar = Foo',
+      "The typedef 'typedef Foo = test_lib::Bar;\n'"
+      " refers to itself", (TestHarness test) {
     var foo = new Typedef('Foo', null);
     var bar = new Typedef('Bar', null);
     foo.type = new TypedefType(bar);
@@ -262,7 +349,10 @@ main() {
     test.enclosingLibrary.addTypedef(foo);
     test.enclosingLibrary.addTypedef(bar);
   });
-  negativeTest('Invalid typedefs Foo = Bar, Bar = C<Foo>', (TestHarness test) {
+  negativeTest(
+      'Invalid typedefs Foo = Bar, Bar = C<Foo>',
+      "The typedef 'typedef Foo = test_lib::Bar;\n'"
+      " refers to itself", (TestHarness test) {
     var foo = new Typedef('Foo', null);
     var bar = new Typedef('Bar', null);
     foo.type = new TypedefType(bar);
@@ -270,8 +360,10 @@ main() {
     test.enclosingLibrary.addTypedef(foo);
     test.enclosingLibrary.addTypedef(bar);
   });
-  negativeTest('Invalid typedefs Foo = C<Bar>, Bar = C<Foo>',
-      (TestHarness test) {
+  negativeTest(
+      'Invalid typedefs Foo = C<Bar>, Bar = C<Foo>',
+      "The typedef 'typedef Foo = test_lib::OtherClass<test_lib::Bar>;\n'"
+      " refers to itself", (TestHarness test) {
     var foo = new Typedef('Foo', null);
     var bar = new Typedef('Bar', null);
     foo.type = new InterfaceType(test.otherClass, [new TypedefType(bar)]);
@@ -288,8 +380,10 @@ main() {
       test.enclosingLibrary.addTypedef(typedef_);
     }
   });
-  negativeTest('Invalid long typedefs C20 = C19 = ... = C1 = C0 = C20',
-      (TestHarness test) {
+  negativeTest(
+      'Invalid long typedefs C20 = C19 = ... = C1 = C0 = C20',
+      "The typedef 'typedef C0 = test_lib::C19;\n'"
+      " refers to itself", (TestHarness test) {
     var typedef_ = new Typedef('C0', null);
     test.enclosingLibrary.addTypedef(typedef_);
     var first = typedef_;
@@ -328,8 +422,10 @@ main() {
     test.enclosingLibrary.addTypedef(foo);
     test.enclosingLibrary.addTypedef(bar);
   });
-  negativeTest('Invalid typedefs Foo<T extends Bar<T>>, Bar<T extends Foo<T>>',
-      (TestHarness test) {
+  negativeTest(
+      'Invalid typedefs Foo<T extends Bar<T>>, Bar<T extends Foo<T>>',
+      "The typedef 'typedef Foo<T extends test_lib::Bar<T>> = dynamic;\n'"
+      " refers to itself", (TestHarness test) {
     var fooParam = test.makeTypeParameter('T');
     var foo =
         new Typedef('Foo', const DynamicType(), typeParameters: [fooParam]);
@@ -342,8 +438,11 @@ main() {
     test.enclosingLibrary.addTypedef(foo);
     test.enclosingLibrary.addTypedef(bar);
   });
-  negativeTest('Invalid typedef Foo<T extends Foo<dynamic> = C<T>',
-      (TestHarness test) {
+  negativeTest(
+      'Invalid typedef Foo<T extends Foo<dynamic> = C<T>',
+      "The typedef 'typedef Foo<T extends test_lib::Foo<dynamic>> = "
+      "test_lib::OtherClass<T>;\n'"
+      " refers to itself", (TestHarness test) {
     var param = new TypeParameter('T', null);
     var foo = new Typedef('Foo',
         new InterfaceType(test.otherClass, [new TypeParameterType(param)]),
@@ -351,30 +450,42 @@ main() {
     param.bound = new TypedefType(foo, [const DynamicType()]);
     test.enclosingLibrary.addTypedef(foo);
   });
-  negativeTest('Typedef arity error', (TestHarness test) {
+  negativeTest(
+      'Typedef arity error',
+      "The typedef type test_lib::Foo provides 0 type arguments"
+      " but the typedef declares 1 parameters.", (TestHarness test) {
     var param = test.makeTypeParameter('T');
     var foo =
         new Typedef('Foo', test.otherClass.rawType, typeParameters: [param]);
-    var field = new Field(new Name('field'), type: new TypedefType(foo, []));
+    var field = new Field(new Name('field'),
+        type: new TypedefType(foo, []), isStatic: true);
     test.enclosingLibrary.addTypedef(foo);
     test.enclosingLibrary.addMember(field);
   });
-  negativeTest('Dangling typedef reference', (TestHarness test) {
+  negativeTest(
+      'Dangling typedef reference',
+      "Dangling reference to 'typedef Foo = test_lib::OtherClass<dynamic>;\n'"
+      ", parent is: 'null'", (TestHarness test) {
     var foo = new Typedef('Foo', test.otherClass.rawType, typeParameters: []);
-    var field = new Field(new Name('field'), type: new TypedefType(foo, []));
+    var field = new Field(new Name('field'),
+        type: new TypedefType(foo, []), isStatic: true);
+    test.enclosingLibrary.addMember(field);
+  });
+  negativeTest('Non-static top-level field',
+      "The top-level field 'field' should be static", (TestHarness test) {
+    var field = new Field(new Name('field'));
     test.enclosingLibrary.addMember(field);
   });
 }
 
-checkHasError(Program program) {
-  bool passed = false;
+checkHasError(Program program, Matcher matcher) {
   try {
     verifyProgram(program);
-    passed = true;
-  } catch (e) {}
-  if (passed) {
-    fail('Failed to reject invalid program:\n${programToString(program)}');
+  } on VerificationError catch (e) {
+    expect(e.details, matcher);
+    return;
   }
+  fail('Failed to reject invalid program:\n${programToString(program)}');
 }
 
 class TestHarness {
@@ -460,11 +571,14 @@ class TestHarness {
   }
 }
 
-negativeTest(String name, TreeNode makeTestCase(TestHarness test)) {
+negativeTest(String name, matcher, TreeNode makeTestCase(TestHarness test)) {
+  if (matcher is String) {
+    matcher = equals(matcher);
+  }
   test(name, () {
     var test = new TestHarness();
     test.addNode(makeTestCase(test));
-    checkHasError(test.program);
+    checkHasError(test.program, matcher);
   });
 }
 
