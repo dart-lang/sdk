@@ -120,6 +120,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   bool get isPart => partOfName != null || partOfUri != null;
 
+  @override
   bool get isPatch;
 
   List<T> get types => libraryDeclaration.types;
