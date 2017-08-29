@@ -1297,6 +1297,13 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(assertInitializer.message, isNull);
   }
 
+  void test_parseConstructor_factory_const_external() {
+    createParser('external const factory C();');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertNoErrors();
+  }
+
   void test_parseConstructor_factory_named() {
     createParser('factory C.foo() => null;');
     var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
@@ -2658,6 +2665,20 @@ class Foo {
     expect(clazz.name.name, 'A');
   }
 
+  void test_expectedToken_semicolonMissingAfterExpression() {
+    parseStatement("x");
+    assertErrorsWithCodes([ParserErrorCode.EXPECTED_TOKEN]);
+  }
+
+  void test_expectedToken_semicolonMissingAfterImport() {
+    CompilationUnit unit = parseCompilationUnit(
+        "import '' class A {}", [ParserErrorCode.EXPECTED_TOKEN]);
+    ImportDirective directive = unit.directives[0] as ImportDirective;
+    Token semicolon = directive.semicolon;
+    expect(semicolon, isNotNull);
+    expect(semicolon.isSynthetic, isTrue);
+  }
+
   void test_expectedToken_uriAndSemicolonMissingAfterExport() {
     CompilationUnit unit = parseCompilationUnit("export class A {}", [
       ParserErrorCode.EXPECTED_STRING_LITERAL,
@@ -2673,20 +2694,6 @@ class Foo {
     expect(semicolon.isSynthetic, isTrue);
     ClassDeclaration clazz = unit.declarations[0] as ClassDeclaration;
     expect(clazz.name.name, 'A');
-  }
-
-  void test_expectedToken_semicolonMissingAfterExpression() {
-    parseStatement("x");
-    assertErrorsWithCodes([ParserErrorCode.EXPECTED_TOKEN]);
-  }
-
-  void test_expectedToken_semicolonMissingAfterImport() {
-    CompilationUnit unit = parseCompilationUnit(
-        "import '' class A {}", [ParserErrorCode.EXPECTED_TOKEN]);
-    ImportDirective directive = unit.directives[0] as ImportDirective;
-    Token semicolon = directive.semicolon;
-    expect(semicolon, isNotNull);
-    expect(semicolon.isSynthetic, isTrue);
   }
 
   void test_expectedToken_whileMissingInDoStatement() {
@@ -8277,13 +8284,6 @@ abstract class FormalParameterParserTestMixin
 
 @reflectiveTest
 class NonErrorParserTest extends ParserTestCase {
-  void test_constFactory_external() {
-    createParser('external const factory C();');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-  }
-
   void test_staticMethod_notParsingFunctionBodies() {
     ParserTestCase.parseFunctionBodies = false;
     try {

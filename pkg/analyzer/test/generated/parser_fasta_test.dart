@@ -269,12 +269,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_constTypedef() {
-    super.test_constTypedef();
-  }
-
-  @override
-  @failingTest
   void test_constructorWithReturnType() {
     super.test_constructorWithReturnType();
   }
@@ -283,6 +277,12 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_constructorWithReturnType_var() {
     super.test_constructorWithReturnType_var();
+  }
+
+  @override
+  @failingTest
+  void test_constTypedef() {
+    super.test_constTypedef();
   }
 
   @override
@@ -425,12 +425,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_duplicateLabelInSwitchStatement() {
-    super.test_duplicateLabelInSwitchStatement();
-  }
-
-  @override
-  @failingTest
   void test_duplicatedModifier_const() {
     super.test_duplicatedModifier_const();
   }
@@ -463,6 +457,12 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_duplicatedModifier_var() {
     super.test_duplicatedModifier_var();
+  }
+
+  @override
+  @failingTest
+  void test_duplicateLabelInSwitchStatement() {
+    super.test_duplicateLabelInSwitchStatement();
   }
 
   @override
@@ -1290,12 +1290,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingIdentifierForParameterGroup() {
-    super.test_missingIdentifierForParameterGroup();
-  }
-
-  @override
-  @failingTest
   void test_missingIdentifier_afterOperator() {
     super.test_missingIdentifier_afterOperator();
   }
@@ -1328,6 +1322,12 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_missingIdentifier_number() {
     super.test_missingIdentifier_number();
+  }
+
+  @override
+  @failingTest
+  void test_missingIdentifierForParameterGroup() {
+    super.test_missingIdentifierForParameterGroup();
   }
 
   @override
@@ -1776,6 +1776,12 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
+  void test_topLevelOperator_withoutType() {
+    super.test_topLevelOperator_withoutType();
+  }
+
+  @override
+  @failingTest
   void test_topLevelOperator_withType() {
     super.test_topLevelOperator_withType();
   }
@@ -1788,26 +1794,8 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_topLevelOperator_withoutType() {
-    super.test_topLevelOperator_withoutType();
-  }
-
-  @override
-  @failingTest
   void test_topLevelVariable_withMetadata() {
     super.test_topLevelVariable_withMetadata();
-  }
-
-  @override
-  @failingTest
-  void test_typedefInClass_withReturnType() {
-    super.test_typedefInClass_withReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_typedefInClass_withoutReturnType() {
-    super.test_typedefInClass_withoutReturnType();
   }
 
   @override
@@ -1820,6 +1808,18 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_typedef_namedFunction() {
     super.test_typedef_namedFunction();
+  }
+
+  @override
+  @failingTest
+  void test_typedefInClass_withoutReturnType() {
+    super.test_typedefInClass_withoutReturnType();
+  }
+
+  @override
+  @failingTest
+  void test_typedefInClass_withReturnType() {
+    super.test_typedefInClass_withReturnType();
   }
 
   @override
@@ -1968,18 +1968,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_voidVariable_parseCompilationUnitMember_initializer() {
-    super.test_voidVariable_parseCompilationUnitMember_initializer();
-  }
-
-  @override
-  @failingTest
-  void test_voidVariable_parseCompilationUnitMember_noInitializer() {
-    super.test_voidVariable_parseCompilationUnitMember_noInitializer();
-  }
-
-  @override
-  @failingTest
   void test_voidVariable_parseCompilationUnit_initializer() {
     super.test_voidVariable_parseCompilationUnit_initializer();
   }
@@ -1988,6 +1976,18 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_voidVariable_parseCompilationUnit_noInitializer() {
     super.test_voidVariable_parseCompilationUnit_noInitializer();
+  }
+
+  @override
+  @failingTest
+  void test_voidVariable_parseCompilationUnitMember_initializer() {
+    super.test_voidVariable_parseCompilationUnitMember_initializer();
+  }
+
+  @override
+  @failingTest
+  void test_voidVariable_parseCompilationUnitMember_noInitializer() {
+    super.test_voidVariable_parseCompilationUnitMember_noInitializer();
   }
 
   @override
@@ -2157,9 +2157,6 @@ class FastaParserTestCase extends Object
   @override
   bool allowNativeClause = false;
 
-  @override
-  GatheringErrorListener get listener => _parserProxy._errorListener;
-
   /**
    * Whether generic method comments should be enabled for the test.
    */
@@ -2198,6 +2195,9 @@ class FastaParserTestCase extends Object
           'URIs in "part of" declarations cannot be disabled in Fasta.');
     }
   }
+
+  @override
+  GatheringErrorListener get listener => _parserProxy._errorListener;
 
   @override
   analyzer.Parser get parser => _parserProxy;
@@ -2598,6 +2598,20 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     super.test_parseFormalParameterList_prefixedType_partial2();
   }
 
+  @failingTest
+  void test_parseNormalFormalParameter_field_const_noType2() {
+    // TODO(danrubel): should not be generating an error
+    super.test_parseNormalFormalParameter_field_const_noType();
+    assertNoErrors();
+  }
+
+  @failingTest
+  void test_parseNormalFormalParameter_field_const_type2() {
+    // TODO(danrubel): should not be generating an error
+    super.test_parseNormalFormalParameter_field_const_type();
+    assertNoErrors();
+  }
+
   @override
   @failingTest
   void test_parseNormalFormalParameter_function_noType_nullable() {
@@ -2642,20 +2656,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     // TODO(scheglov): Not implemented: Nnbd
     super
         .test_parseNormalFormalParameter_function_void_typeParameters_nullable();
-  }
-
-  @failingTest
-  void test_parseNormalFormalParameter_field_const_noType2() {
-    // TODO(danrubel): should not be generating an error
-    super.test_parseNormalFormalParameter_field_const_noType();
-    assertNoErrors();
-  }
-
-  @failingTest
-  void test_parseNormalFormalParameter_field_const_type2() {
-    // TODO(danrubel): should not be generating an error
-    super.test_parseNormalFormalParameter_field_const_type();
-    assertNoErrors();
   }
 
   @failingTest
@@ -2898,6 +2898,11 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class TopLevelParserTest_Fasta extends FastaParserTestCase
     with TopLevelParserTestMixin {
+  void test_parseClassDeclaration_native_allowed() {
+    allowNativeClause = true;
+    test_parseClassDeclaration_native();
+  }
+
   void test_parseClassDeclaration_native_missing_literal() {
     createParser('class A native {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
@@ -2915,11 +2920,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     expect(declaration.nativeClause.nativeKeyword, isNotNull);
     expect(declaration.nativeClause.name, isNull);
     expect(declaration.endToken.type, TokenType.CLOSE_CURLY_BRACKET);
-  }
-
-  void test_parseClassDeclaration_native_allowed() {
-    allowNativeClause = true;
-    test_parseClassDeclaration_native();
   }
 
   void test_parseClassDeclaration_native_missing_literal_allowed() {
@@ -2960,16 +2960,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     super.test_parseCompilationUnit_exportAsPrefix_parameterized();
   }
 
-  @override
-  @failingTest
-  void test_parseDirectives_mixed() {
-    // TODO(paulberry,ahe): This test verifies the analyzer parser's ability to
-    // stop parsing as soon as the first non-directive is encountered; this is
-    // useful for quickly traversing an import graph.  Consider adding a similar
-    // ability to Fasta's parser.
-    super.test_parseDirectives_mixed();
-  }
-
   @failingTest
   void test_parseCompilationUnit_operatorAsPrefix_parameterized2() {
     // TODO(danrubel): should not be generating an error
@@ -2989,5 +2979,15 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     // TODO(danrubel): should not be generating an error
     super.test_parseCompilationUnitMember_abstractAsPrefix();
     assertNoErrors();
+  }
+
+  @override
+  @failingTest
+  void test_parseDirectives_mixed() {
+    // TODO(paulberry,ahe): This test verifies the analyzer parser's ability to
+    // stop parsing as soon as the first non-directive is encountered; this is
+    // useful for quickly traversing an import graph.  Consider adding a similar
+    // ability to Fasta's parser.
+    super.test_parseDirectives_mixed();
   }
 }
