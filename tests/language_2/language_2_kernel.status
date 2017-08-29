@@ -40,13 +40,13 @@ getter_no_setter2_test/03: MissingCompileTimeError
 getter_no_setter_test/00: MissingCompileTimeError
 getter_no_setter_test/01: MissingCompileTimeError
 getter_no_setter_test/03: MissingCompileTimeError
-getters_setters2_test/01: RuntimeError
 getters_setters2_test/02: MissingCompileTimeError
-getters_setters2_test/none: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 generic_methods_bounds_test/02: MissingRuntimeError
+getters_setters2_test/none: RuntimeError
+getters_setters2_test/01: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && $checked ]
 assertion_initializer_const_function_test/01: RuntimeError
