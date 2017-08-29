@@ -2836,8 +2836,8 @@ class ScopeProxy implements Scope {
   final _locals = <String, Builder>{};
 
   @override
-  Scope createNestedScope({bool isModifiable: true}) {
-    return new Scope.nested(this, isModifiable: isModifiable);
+  Scope createNestedScope(String debugName, {bool isModifiable: true}) {
+    return new Scope.nested(this, debugName, isModifiable: isModifiable);
   }
 
   @override

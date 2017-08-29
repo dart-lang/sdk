@@ -28,7 +28,13 @@ class MutableScope {
   /// level scope.
   Scope parent;
 
-  MutableScope(this.local, this.setters, this.parent);
+  final String debugName;
+
+  MutableScope(this.local, this.setters, this.parent, this.debugName) {
+    assert(debugName != null);
+  }
+
+  String toString() => "Scope($debugName, ${local.keys})";
 }
 
 class Scope extends MutableScope {
@@ -43,19 +49,22 @@ class Scope extends MutableScope {
   Map<String, int> usedNames;
 
   Scope(Map<String, Builder> local, Map<String, Builder> setters, Scope parent,
-      {this.isModifiable: true})
-      : super(local, setters = setters ?? const <String, Builder>{}, parent);
+      String debugName, {this.isModifiable: true})
+      : super(local, setters = setters ?? const <String, Builder>{}, parent,
+            debugName);
 
   Scope.top({bool isModifiable: false})
-      : this(<String, Builder>{}, <String, Builder>{}, null,
+      : this(<String, Builder>{}, <String, Builder>{}, null, "top",
             isModifiable: isModifiable);
 
   Scope.immutable()
       : this(const <String, Builder>{}, const <String, Builder>{}, null,
+            "immutable",
             isModifiable: false);
 
-  Scope.nested(Scope parent, {bool isModifiable: true})
-      : this(<String, Builder>{}, null, parent, isModifiable: isModifiable);
+  Scope.nested(Scope parent, String debugName, {bool isModifiable: true})
+      : this(<String, Builder>{}, null, parent, debugName,
+            isModifiable: isModifiable);
 
   /// Don't use this. Use [becomePartOf] instead.
   void set local(_) => unsupported("local=", -1, null);
@@ -76,13 +85,14 @@ class Scope extends MutableScope {
     super.parent = scope.parent;
   }
 
-  Scope createNestedScope({bool isModifiable: true}) {
-    return new Scope.nested(this, isModifiable: isModifiable);
+  Scope createNestedScope(String debugName, {bool isModifiable: true}) {
+    return new Scope.nested(this, debugName, isModifiable: isModifiable);
   }
 
   Scope withTypeVariables(List<TypeVariableBuilder> typeVariables) {
     if (typeVariables == null) return this;
-    Scope newScope = new Scope.nested(this, isModifiable: false);
+    Scope newScope =
+        new Scope.nested(this, "type variables", isModifiable: false);
     for (TypeVariableBuilder t in typeVariables) {
       newScope.local[t.name] = t;
     }
@@ -97,7 +107,7 @@ class Scope extends MutableScope {
   ///     x = 42;
   ///     print("The answer is $x.");
   Scope createNestedLabelScope() {
-    return new Scope(local, setters, parent, isModifiable: true);
+    return new Scope(local, setters, parent, "label", isModifiable: true);
   }
 
   void recordUse(String name, int charOffset, Uri fileUri) {

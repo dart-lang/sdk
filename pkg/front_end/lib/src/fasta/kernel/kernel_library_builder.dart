@@ -136,14 +136,14 @@ class KernelLibraryBuilder
     Map<String, MemberBuilder> constructors = declaration.constructors;
     Map<String, MemberBuilder> setters = declaration.setters;
 
-    Scope classScope = new Scope(
-        members, setters, scope.withTypeVariables(typeVariables),
+    Scope classScope = new Scope(members, setters,
+        scope.withTypeVariables(typeVariables), "class $className",
         isModifiable: false);
 
     // When looking up a constructor, we don't consider type variables or the
     // library scope.
-    Scope constructorScope =
-        new Scope(constructors, null, null, isModifiable: false);
+    Scope constructorScope = new Scope(constructors, null, null, "constructors",
+        isModifiable: false);
     ClassBuilder cls = new SourceClassBuilder(
         documentationComment,
         metadata,
@@ -256,8 +256,9 @@ class KernelLibraryBuilder
           interfaces,
           new Scope(<String, MemberBuilder>{}, <String, MemberBuilder>{},
               scope.withTypeVariables(typeVariables),
+              "mixin $name", isModifiable: false),
+          new Scope(constructors, null, null, "constructors",
               isModifiable: false),
-          new Scope(constructors, null, null, isModifiable: false),
           this,
           <ConstructorReferenceBuilder>[],
           charOffset,

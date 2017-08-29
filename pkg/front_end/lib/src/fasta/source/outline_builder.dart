@@ -279,7 +279,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginClassOrNamedMixinApplication(Token token) {
-    library.beginNestedDeclaration(null);
+    library.beginNestedDeclaration("class or mixin application");
   }
 
   @override

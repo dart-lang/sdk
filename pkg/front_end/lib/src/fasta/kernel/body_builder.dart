@@ -1730,8 +1730,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   void enterFunctionTypeScope() {
+    debugEvent("enterFunctionTypeScope");
     List typeVariables = pop();
-    enterLocalScope(scope.createNestedScope(isModifiable: false));
+    enterLocalScope(null,
+        scope.createNestedScope("function-type scope", isModifiable: false));
     push(typeVariables ?? NullValue.TypeVariables);
     if (typeVariables != null) {
       ScopeBuilder scopeBuilder = new ScopeBuilder(scope);
@@ -1945,8 +1947,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(formals);
     if ((inCatchClause || functionNestingLevel != 0) &&
         kind != MemberKind.GeneralizedFunctionType) {
-      enterLocalScope(formals.computeFormalParameterScope(
-          scope, member ?? classBuilder ?? library, this));
+      enterLocalScope(
+          null,
+          formals.computeFormalParameterScope(
+              scope, member ?? classBuilder ?? library, this));
     }
   }
 
@@ -2458,7 +2462,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     List typeVariables = pop();
     // Create an additional scope in which the named function expression is
     // declared.
-    enterLocalScope();
+    enterLocalScope("named function");
     push(typeVariables ?? NullValue.TypeVariables);
     enterFunction();
   }
@@ -2580,7 +2584,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void beginForInExpression(Token token) {
-    enterLocalScope(scope.parent);
+    enterLocalScope(null, scope.parent);
   }
 
   @override
@@ -2658,7 +2662,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void beginLabeledStatement(Token token, int labelCount) {
     debugEvent("beginLabeledStatement");
     List<Label> labels = popList(labelCount);
-    enterLocalScope(scope.createNestedLabelScope());
+    enterLocalScope(null, scope.createNestedLabelScope());
     LabelTarget target =
         new LabelTarget(member, functionNestingLevel, token.charOffset);
     for (Label label in labels) {
@@ -2800,7 +2804,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void beginSwitchBlock(Token token) {
     debugEvent("beginSwitchBlock");
-    enterLocalScope();
+    enterLocalScope("switch block");
     enterSwitchScope();
     enterBreakTarget(token.charOffset);
   }
@@ -2831,7 +2835,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     push(expressions);
     push(labels);
-    enterLocalScope();
+    enterLocalScope("switch case");
   }
 
   @override
@@ -3769,7 +3773,7 @@ class FormalParameters {
             new KernelVariableBuilder(parameter, builder, builder.fileUri);
       }
     }
-    return new Scope(local, null, parent, isModifiable: false);
+    return new Scope(local, null, parent, "formals", isModifiable: false);
   }
 }
 
