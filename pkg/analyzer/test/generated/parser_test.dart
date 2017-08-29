@@ -8833,11 +8833,14 @@ class ParserTestHelpers {
 }
 
 /**
- * The class `RecoveryParserTest` defines parser tests that test the parsing of invalid code
- * sequences to ensure that the correct recovery steps are taken in the parser.
+ * The class `RecoveryParserTest` defines parser tests that test the parsing of
+ * invalid code sequences to ensure that the correct recovery steps are taken in
+ * the parser.
  */
 @reflectiveTest
-class RecoveryParserTest extends ParserTestCase {
+class RecoveryParserTest extends ParserTestCase with RecoveryParserTestMixin {}
+
+abstract class RecoveryParserTestMixin implements AbstractParserTestCase {
   void test_additiveExpression_missing_LHS() {
     BinaryExpression expression =
         parseExpression("+ y", [ParserErrorCode.MISSING_IDENTIFIER]);

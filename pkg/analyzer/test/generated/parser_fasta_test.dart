@@ -33,6 +33,7 @@ main() {
     defineReflectiveTests(ErrorParserTest_Fasta);
     defineReflectiveTests(ExpressionParserTest_Fasta);
     defineReflectiveTests(FormalParameterParserTest_Fasta);
+    defineReflectiveTests(RecoveryParserTest_Fasta);
     defineReflectiveTests(StatementParserTest_Fasta);
     defineReflectiveTests(TopLevelParserTest_Fasta);
   });
@@ -2800,6 +2801,700 @@ class ParserProxy implements analyzer.Parser {
     expect(_currentFastaToken.isEof, isTrue);
     expect(_astBuilder.stack, hasLength(1));
     return _astBuilder.pop();
+  }
+}
+
+@reflectiveTest
+class RecoveryParserTest_Fasta extends FastaParserTestCase
+    with RecoveryParserTestMixin {
+  @override
+  @failingTest
+  void test_additiveExpression_missing_LHS() {
+    super.test_additiveExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_additiveExpression_missing_LHS_RHS() {
+    super.test_additiveExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_additiveExpression_missing_RHS() {
+    super.test_additiveExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_additiveExpression_missing_RHS_super() {
+    super.test_additiveExpression_missing_RHS_super();
+  }
+
+  @override
+  @failingTest
+  void test_additiveExpression_precedence_multiplicative_left() {
+    super.test_additiveExpression_precedence_multiplicative_left();
+  }
+
+  @override
+  @failingTest
+  void test_additiveExpression_precedence_multiplicative_right() {
+    super.test_additiveExpression_precedence_multiplicative_right();
+  }
+
+  @override
+  @failingTest
+  void test_additiveExpression_super() {
+    super.test_additiveExpression_super();
+  }
+
+  @override
+  @failingTest
+  void test_assignableSelector() {
+    super.test_assignableSelector();
+  }
+
+  @override
+  @failingTest
+  void test_assignmentExpression_missing_compound1() {
+    super.test_assignmentExpression_missing_compound1();
+  }
+
+  @override
+  @failingTest
+  void test_assignmentExpression_missing_compound2() {
+    super.test_assignmentExpression_missing_compound2();
+  }
+
+  @override
+  @failingTest
+  void test_assignmentExpression_missing_compound3() {
+    super.test_assignmentExpression_missing_compound3();
+  }
+
+  @override
+  @failingTest
+  void test_assignmentExpression_missing_LHS() {
+    super.test_assignmentExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_assignmentExpression_missing_RHS() {
+    super.test_assignmentExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseAndExpression_missing_LHS() {
+    super.test_bitwiseAndExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseAndExpression_missing_LHS_RHS() {
+    super.test_bitwiseAndExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseAndExpression_missing_RHS() {
+    super.test_bitwiseAndExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseAndExpression_missing_RHS_super() {
+    super.test_bitwiseAndExpression_missing_RHS_super();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseAndExpression_precedence_equality_left() {
+    super.test_bitwiseAndExpression_precedence_equality_left();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseAndExpression_precedence_equality_right() {
+    super.test_bitwiseAndExpression_precedence_equality_right();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseAndExpression_super() {
+    super.test_bitwiseAndExpression_super();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseOrExpression_missing_LHS() {
+    super.test_bitwiseOrExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseOrExpression_missing_LHS_RHS() {
+    super.test_bitwiseOrExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseOrExpression_missing_RHS() {
+    super.test_bitwiseOrExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseOrExpression_missing_RHS_super() {
+    super.test_bitwiseOrExpression_missing_RHS_super();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseOrExpression_precedence_xor_left() {
+    super.test_bitwiseOrExpression_precedence_xor_left();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseOrExpression_precedence_xor_right() {
+    super.test_bitwiseOrExpression_precedence_xor_right();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseOrExpression_super() {
+    super.test_bitwiseOrExpression_super();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseXorExpression_missing_LHS() {
+    super.test_bitwiseXorExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseXorExpression_missing_LHS_RHS() {
+    super.test_bitwiseXorExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseXorExpression_missing_RHS() {
+    super.test_bitwiseXorExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseXorExpression_missing_RHS_super() {
+    super.test_bitwiseXorExpression_missing_RHS_super();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseXorExpression_precedence_and_left() {
+    super.test_bitwiseXorExpression_precedence_and_left();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseXorExpression_precedence_and_right() {
+    super.test_bitwiseXorExpression_precedence_and_right();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseXorExpression_super() {
+    super.test_bitwiseXorExpression_super();
+  }
+
+  @override
+  @failingTest
+  void test_classTypeAlias_withBody() {
+    super.test_classTypeAlias_withBody();
+  }
+
+  @override
+  @failingTest
+  void test_conditionalExpression_missingElse() {
+    super.test_conditionalExpression_missingElse();
+  }
+
+  @override
+  @failingTest
+  void test_conditionalExpression_missingThen() {
+    super.test_conditionalExpression_missingThen();
+  }
+
+  @override
+  @failingTest
+  void test_declarationBeforeDirective() {
+    super.test_declarationBeforeDirective();
+  }
+
+  @override
+  @failingTest
+  void test_equalityExpression_missing_LHS() {
+    super.test_equalityExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_equalityExpression_missing_LHS_RHS() {
+    super.test_equalityExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_equalityExpression_missing_RHS() {
+    super.test_equalityExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_equalityExpression_missing_RHS_super() {
+    super.test_equalityExpression_missing_RHS_super();
+  }
+
+  @override
+  @failingTest
+  void test_equalityExpression_precedence_relational_left() {
+    super.test_equalityExpression_precedence_relational_left();
+  }
+
+  @override
+  @failingTest
+  void test_equalityExpression_precedence_relational_right() {
+    super.test_equalityExpression_precedence_relational_right();
+  }
+
+  @override
+  @failingTest
+  void test_equalityExpression_super() {
+    super.test_equalityExpression_super();
+  }
+
+  @override
+  @failingTest
+  void test_expressionList_multiple_end() {
+    super.test_expressionList_multiple_end();
+  }
+
+  @override
+  @failingTest
+  void test_expressionList_multiple_middle() {
+    super.test_expressionList_multiple_middle();
+  }
+
+  @override
+  @failingTest
+  void test_expressionList_multiple_start() {
+    super.test_expressionList_multiple_start();
+  }
+
+  @override
+  @failingTest
+  void test_functionExpression_in_ConstructorFieldInitializer() {
+    super.test_functionExpression_in_ConstructorFieldInitializer();
+  }
+
+  @override
+  @failingTest
+  void test_functionExpression_named() {
+    super.test_functionExpression_named();
+  }
+
+  @override
+  @failingTest
+  void test_importDirectivePartial_as() {
+    super.test_importDirectivePartial_as();
+  }
+
+  @override
+  @failingTest
+  void test_importDirectivePartial_hide() {
+    super.test_importDirectivePartial_hide();
+  }
+
+  @override
+  @failingTest
+  void test_importDirectivePartial_show() {
+    super.test_importDirectivePartial_show();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_conditionalExpression() {
+    super.test_incomplete_conditionalExpression();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_constructorInitializers_empty() {
+    super.test_incomplete_constructorInitializers_empty();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_constructorInitializers_missingEquals() {
+    super.test_incomplete_constructorInitializers_missingEquals();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_constructorInitializers_variable() {
+    super.test_incomplete_constructorInitializers_variable();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_returnType() {
+    super.test_incomplete_returnType();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_topLevelFunction() {
+    super.test_incomplete_topLevelFunction();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_topLevelVariable() {
+    super.test_incomplete_topLevelVariable();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_topLevelVariable_const() {
+    super.test_incomplete_topLevelVariable_const();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_topLevelVariable_final() {
+    super.test_incomplete_topLevelVariable_final();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_topLevelVariable_var() {
+    super.test_incomplete_topLevelVariable_var();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteField_const() {
+    super.test_incompleteField_const();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteField_final() {
+    super.test_incompleteField_final();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteField_var() {
+    super.test_incompleteField_var();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteForEach() {
+    super.test_incompleteForEach();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteLocalVariable_atTheEndOfBlock() {
+    super.test_incompleteLocalVariable_atTheEndOfBlock();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteLocalVariable_beforeIdentifier() {
+    super.test_incompleteLocalVariable_beforeIdentifier();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteLocalVariable_beforeKeyword() {
+    super.test_incompleteLocalVariable_beforeKeyword();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteLocalVariable_beforeNextBlock() {
+    super.test_incompleteLocalVariable_beforeNextBlock();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteLocalVariable_parameterizedType() {
+    super.test_incompleteLocalVariable_parameterizedType();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteTypeArguments_field() {
+    super.test_incompleteTypeArguments_field();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteTypeParameters() {
+    super.test_incompleteTypeParameters();
+  }
+
+  @override
+  @failingTest
+  void test_invalidFunctionBodyModifier() {
+    super.test_invalidFunctionBodyModifier();
+  }
+
+  @override
+  @failingTest
+  void test_isExpression_noType() {
+    super.test_isExpression_noType();
+  }
+
+  @override
+  @failingTest
+  void test_keywordInPlaceOfIdentifier() {
+    super.test_keywordInPlaceOfIdentifier();
+  }
+
+  @override
+  @failingTest
+  void test_logicalAndExpression_missing_LHS() {
+    super.test_logicalAndExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_logicalAndExpression_missing_LHS_RHS() {
+    super.test_logicalAndExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_logicalAndExpression_missing_RHS() {
+    super.test_logicalAndExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_logicalAndExpression_precedence_bitwiseOr_left() {
+    super.test_logicalAndExpression_precedence_bitwiseOr_left();
+  }
+
+  @override
+  @failingTest
+  void test_logicalAndExpression_precedence_bitwiseOr_right() {
+    super.test_logicalAndExpression_precedence_bitwiseOr_right();
+  }
+
+  @override
+  @failingTest
+  void test_logicalOrExpression_missing_LHS() {
+    super.test_logicalOrExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_logicalOrExpression_missing_LHS_RHS() {
+    super.test_logicalOrExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_logicalOrExpression_missing_RHS() {
+    super.test_logicalOrExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_logicalOrExpression_precedence_logicalAnd_left() {
+    super.test_logicalOrExpression_precedence_logicalAnd_left();
+  }
+
+  @override
+  @failingTest
+  void test_logicalOrExpression_precedence_logicalAnd_right() {
+    super.test_logicalOrExpression_precedence_logicalAnd_right();
+  }
+
+  @override
+  @failingTest
+  void test_missing_commaInArgumentList() {
+    super.test_missing_commaInArgumentList();
+  }
+
+  @override
+  @failingTest
+  void test_missingComma_beforeNamedArgument() {
+    super.test_missingComma_beforeNamedArgument();
+  }
+
+  @override
+  @failingTest
+  void test_missingGet() {
+    super.test_missingGet();
+  }
+
+  @override
+  @failingTest
+  void test_missingIdentifier_afterAnnotation() {
+    super.test_missingIdentifier_afterAnnotation();
+  }
+
+  @override
+  @failingTest
+  void test_missingSemicolon_varialeDeclarationList() {
+    super.test_missingSemicolon_varialeDeclarationList();
+  }
+
+  @override
+  @failingTest
+  void test_multiplicativeExpression_missing_LHS() {
+    super.test_multiplicativeExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_multiplicativeExpression_missing_LHS_RHS() {
+    super.test_multiplicativeExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_multiplicativeExpression_missing_RHS() {
+    super.test_multiplicativeExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_multiplicativeExpression_missing_RHS_super() {
+    super.test_multiplicativeExpression_missing_RHS_super();
+  }
+
+  @override
+  @failingTest
+  void test_multiplicativeExpression_precedence_unary_left() {
+    super.test_multiplicativeExpression_precedence_unary_left();
+  }
+
+  @override
+  @failingTest
+  void test_multiplicativeExpression_precedence_unary_right() {
+    super.test_multiplicativeExpression_precedence_unary_right();
+  }
+
+  @override
+  @failingTest
+  void test_multiplicativeExpression_super() {
+    super.test_multiplicativeExpression_super();
+  }
+
+  @override
+  @failingTest
+  void test_nonStringLiteralUri_import() {
+    super.test_nonStringLiteralUri_import();
+  }
+
+  @override
+  @failingTest
+  void test_prefixExpression_missing_operand_minus() {
+    super.test_prefixExpression_missing_operand_minus();
+  }
+
+  @override
+  @failingTest
+  void test_primaryExpression_argumentDefinitionTest() {
+    super.test_primaryExpression_argumentDefinitionTest();
+  }
+
+  @override
+  @failingTest
+  void test_relationalExpression_missing_LHS() {
+    super.test_relationalExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_relationalExpression_missing_LHS_RHS() {
+    super.test_relationalExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_relationalExpression_missing_RHS() {
+    super.test_relationalExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_relationalExpression_precedence_shift_right() {
+    super.test_relationalExpression_precedence_shift_right();
+  }
+
+  @override
+  @failingTest
+  void test_shiftExpression_missing_LHS() {
+    super.test_shiftExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_shiftExpression_missing_LHS_RHS() {
+    super.test_shiftExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_shiftExpression_missing_RHS() {
+    super.test_shiftExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_shiftExpression_missing_RHS_super() {
+    super.test_shiftExpression_missing_RHS_super();
+  }
+
+  @override
+  @failingTest
+  void test_shiftExpression_precedence_unary_left() {
+    super.test_shiftExpression_precedence_unary_left();
+  }
+
+  @override
+  @failingTest
+  void test_shiftExpression_precedence_unary_right() {
+    super.test_shiftExpression_precedence_unary_right();
+  }
+
+  @override
+  @failingTest
+  void test_shiftExpression_super() {
+    super.test_shiftExpression_super();
+  }
+
+  @override
+  @failingTest
+  void test_typedef_eof() {
+    super.test_typedef_eof();
+  }
+
+  @override
+  @failingTest
+  void test_unaryPlus() {
+    super.test_unaryPlus();
   }
 }
 
