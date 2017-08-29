@@ -104,18 +104,20 @@ class IncrementalClassHierarchy implements ClassHierarchy {
       _reportOverrides(info.declaredSetters, superSetters, callback,
           isSetter: true, onlyAbstract: true);
     }
-    // If a class declares an abstract method M whose
-    // implementation M' is inherited from the superclass, then the inherited
-    // method M' overrides the declared method M.
-    // This flies in the face of conventional override logic, but is necessary
-    // because an instance of the class will contain the method M' which can
-    // be invoked through the interface of M.
-    // Note that [_reportOverrides] does not report self-overrides, so in
-    // most cases these calls will just scan both lists and report nothing.
-    _reportOverrides(info.implementedGettersAndCalls,
-        info.declaredGettersAndCalls, callback);
-    _reportOverrides(info.implementedSetters, info.declaredSetters, callback,
-        isSetter: true);
+    if (!node.isAbstract) {
+      // If a non-abstract class declares an abstract method M whose
+      // implementation M' is inherited from the superclass, then the inherited
+      // method M' overrides the declared method M.
+      // This flies in the face of conventional override logic, but is necessary
+      // because an instance of the class will contain the method M' which can
+      // be invoked through the interface of M.
+      // Note that [_reportOverrides] does not report self-overrides, so in
+      // most cases these calls will just scan both lists and report nothing.
+      _reportOverrides(info.implementedGettersAndCalls,
+          info.declaredGettersAndCalls, callback);
+      _reportOverrides(info.implementedSetters, info.declaredSetters, callback,
+          isSetter: true);
+    }
   }
 
   @override
