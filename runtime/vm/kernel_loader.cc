@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/kernel_reader.h"
+#include "vm/kernel_loader.h"
 
 #include <string.h>
 
 #include "vm/dart_api_impl.h"
 #include "vm/kernel_binary.h"
-#include "vm/kernel_binary_flowgraph.h"
 #include "vm/kernel_to_il.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
@@ -104,7 +103,7 @@ class SimpleExpressionConverter {
   StreamingFlowGraphBuilder* builder_;
 };
 
-RawArray* KernelReader::MakeFunctionsArray() {
+RawArray* KernelLoader::MakeFunctionsArray() {
   const intptr_t len = functions_.length();
   const Array& res = Array::Handle(zone_, Array::New(len, Heap::kOld));
   for (intptr_t i = 0; i < len; i++) {
@@ -115,14 +114,14 @@ RawArray* KernelReader::MakeFunctionsArray() {
 
 RawLibrary* BuildingTranslationHelper::LookupLibraryByKernelLibrary(
     NameIndex library) {
-  return reader_->LookupLibrary(library).raw();
+  return loader_->LookupLibrary(library).raw();
 }
 
 RawClass* BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass) {
-  return reader_->LookupClass(klass).raw();
+  return loader_->LookupClass(klass).raw();
 }
 
-KernelReader::KernelReader(Program* program)
+KernelLoader::KernelLoader(Program* program)
     : program_(program),
       thread_(Thread::Current()),
       zone_(thread_->zone()),
@@ -173,12 +172,12 @@ KernelReader::KernelReader(Program* program)
   H.SetCanonicalNames(names);
 }
 
-Object& KernelReader::ReadProgram() {
+Object& KernelLoader::LoadProgram() {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     intptr_t length = program_->library_count();
     for (intptr_t i = 0; i < length; i++) {
-      ReadLibrary(library_offset(i));
+      LoadLibrary(library_offset(i));
     }
 
     for (intptr_t i = 0; i < length; i++) {
@@ -211,7 +210,7 @@ Object& KernelReader::ReadProgram() {
   return error;
 }
 
-void KernelReader::FindModifiedLibraries(Isolate* isolate,
+void KernelLoader::FindModifiedLibraries(Isolate* isolate,
                                          BitVector* modified_libs,
                                          bool force_reload) {
   LongJumpScope jump;
@@ -248,7 +247,7 @@ void KernelReader::FindModifiedLibraries(Isolate* isolate,
   }
 }
 
-void KernelReader::ReadLibrary(intptr_t kernel_offset) {
+void KernelLoader::LoadLibrary(intptr_t kernel_offset) {
   builder_.SetOffset(kernel_offset);
   LibraryHelper library_helper(&builder_);
   library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
@@ -289,7 +288,7 @@ void KernelReader::ReadLibrary(intptr_t kernel_offset) {
   // Load all classes.
   int class_count = builder_.ReadListLength();  // read list length.
   for (intptr_t i = 0; i < class_count; ++i) {
-    classes.Add(ReadClass(library, toplevel_class), Heap::kOld);
+    classes.Add(LoadClass(library, toplevel_class), Heap::kOld);
   }
 
   fields_.Clear();
@@ -341,7 +340,7 @@ void KernelReader::ReadLibrary(intptr_t kernel_offset) {
   // Load toplevel procedures.
   intptr_t procedure_count = builder_.ReadListLength();  // read list length.
   for (intptr_t i = 0; i < procedure_count; ++i) {
-    ReadProcedure(library, toplevel_class, false);
+    LoadProcedure(library, toplevel_class, false);
   }
 
   toplevel_class.SetFunctions(Array::Handle(MakeFunctionsArray()));
@@ -349,7 +348,7 @@ void KernelReader::ReadLibrary(intptr_t kernel_offset) {
   classes.Add(toplevel_class, Heap::kOld);
 }
 
-void KernelReader::ReadPreliminaryClass(Class* klass,
+void KernelLoader::LoadPreliminaryClass(Class* klass,
                                         ClassHelper* class_helper,
                                         intptr_t type_parameter_count) {
   // Note: This assumes that ClassHelper is exactly at the position where
@@ -358,7 +357,7 @@ void KernelReader::ReadPreliminaryClass(Class* klass,
   // kImplementedClasses, [...].
 
   // Set type parameters.
-  ReadAndSetupTypeParameters(*klass, type_parameter_count, *klass,
+  LoadAndSetupTypeParameters(*klass, type_parameter_count, *klass,
                              Function::Handle(Z));
 
   // Set super type.  Some classes (e.g., Object) do not have one.
@@ -389,7 +388,7 @@ void KernelReader::ReadPreliminaryClass(Class* klass,
   if (class_helper->is_abstract_) klass->set_is_abstract();
 }
 
-Class& KernelReader::ReadClass(const Library& library,
+Class& KernelLoader::LoadClass(const Library& library,
                                const Class& toplevel_class) {
   ClassHelper class_helper(&builder_);
   intptr_t class_offset = builder_.ReaderOffset();
@@ -416,7 +415,7 @@ Class& KernelReader::ReadClass(const Library& library,
 
   ActiveClassScope active_class_scope(&active_class_, &klass);
   if (!klass.is_cycle_free()) {
-    ReadPreliminaryClass(&klass, &class_helper, type_parameter_counts);
+    LoadPreliminaryClass(&klass, &class_helper, type_parameter_counts);
   } else {
     for (intptr_t i = 0; i < type_parameter_counts; ++i) {
       builder_.SkipStringReference();  // read ith name index.
@@ -533,7 +532,7 @@ Class& KernelReader::ReadClass(const Library& library,
   class_helper.ReadUntilExcluding(ClassHelper::kProcedures);
   int procedure_count = builder_.ReadListLength();  // read list length.
   for (intptr_t i = 0; i < procedure_count; ++i) {
-    ReadProcedure(library, klass, true);
+    LoadProcedure(library, klass, true);
   }
   class_helper.SetJustRead(ClassHelper::kProcedures);
 
@@ -555,7 +554,7 @@ Class& KernelReader::ReadClass(const Library& library,
   return klass;
 }
 
-void KernelReader::ReadProcedure(const Library& library,
+void KernelLoader::LoadProcedure(const Library& library,
                                  const Class& owner,
                                  bool in_class) {
   intptr_t procedure_offset = builder_.ReaderOffset();
@@ -675,7 +674,7 @@ void KernelReader::ReadProcedure(const Library& library,
     // Read type_parameters list length.
     intptr_t type_parameter_count = builder_.ReadListLength();
     // Set type parameters.
-    ReadAndSetupTypeParameters(function, type_parameter_count, Class::Handle(Z),
+    LoadAndSetupTypeParameters(function, type_parameter_count, Class::Handle(Z),
                                function);
     function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
   }
@@ -707,7 +706,7 @@ void KernelReader::ReadProcedure(const Library& library,
   }
 }
 
-void KernelReader::ReadAndSetupTypeParameters(
+void KernelLoader::LoadAndSetupTypeParameters(
     const Object& set_on,
     intptr_t type_parameter_count,
     const Class& parameterized_class,
@@ -766,7 +765,7 @@ void KernelReader::ReadAndSetupTypeParameters(
   }
 }
 
-const Object& KernelReader::ClassForScriptAt(const Class& klass,
+const Object& KernelLoader::ClassForScriptAt(const Class& klass,
                                              intptr_t source_uri_index) {
   Script& correct_script = ScriptAt(source_uri_index);
   if (klass.script() != correct_script.raw()) {
@@ -782,7 +781,7 @@ const Object& KernelReader::ClassForScriptAt(const Class& klass,
   return klass;
 }
 
-Script& KernelReader::ScriptAt(intptr_t index, StringIndex import_uri) {
+Script& KernelLoader::ScriptAt(intptr_t index, StringIndex import_uri) {
   Script& script = Script::ZoneHandle(Z);
   script ^= scripts_.At(index);
   if (script.IsNull()) {
@@ -805,7 +804,7 @@ Script& KernelReader::ScriptAt(intptr_t index, StringIndex import_uri) {
   return script;
 }
 
-void KernelReader::GenerateFieldAccessors(const Class& klass,
+void KernelLoader::GenerateFieldAccessors(const Class& klass,
                                           const Field& field,
                                           FieldHelper* field_helper,
                                           intptr_t field_offset) {
@@ -892,7 +891,7 @@ void KernelReader::GenerateFieldAccessors(const Class& klass,
   }
 }
 
-void KernelReader::SetupFieldAccessorFunction(const Class& klass,
+void KernelLoader::SetupFieldAccessorFunction(const Class& klass,
                                               const Function& function) {
   bool is_setter = function.IsImplicitSetterFunction();
   bool is_method = !function.IsStaticFunction();
@@ -918,7 +917,7 @@ void KernelReader::SetupFieldAccessorFunction(const Class& klass,
   }
 }
 
-Library& KernelReader::LookupLibrary(NameIndex library) {
+Library& KernelLoader::LookupLibrary(NameIndex library) {
   Library* handle = NULL;
   if (!libraries_.Lookup(library, &handle)) {
     const String& url = H.DartSymbol(H.CanonicalNameString(library));
@@ -933,7 +932,7 @@ Library& KernelReader::LookupLibrary(NameIndex library) {
   return *handle;
 }
 
-Class& KernelReader::LookupClass(NameIndex klass) {
+Class& KernelLoader::LookupClass(NameIndex klass) {
   Class* handle = NULL;
   if (!classes_.Lookup(klass, &handle)) {
     Library& library = LookupLibrary(H.CanonicalNameParent(klass));
@@ -952,7 +951,7 @@ Class& KernelReader::LookupClass(NameIndex klass) {
   return *handle;
 }
 
-RawFunction::Kind KernelReader::GetFunctionType(
+RawFunction::Kind KernelLoader::GetFunctionType(
     ProcedureHelper::Kind procedure_kind) {
   intptr_t lookuptable[] = {
       RawFunction::kRegularFunction,  // Procedure::kMethod
@@ -964,24 +963,6 @@ RawFunction::Kind KernelReader::GetFunctionType(
   intptr_t kind = static_cast<int>(procedure_kind);
   ASSERT(0 <= kind && kind <= ProcedureHelper::kFactory);
   return static_cast<RawFunction::Kind>(lookuptable[kind]);
-}
-
-bool KernelReader::FieldHasFunctionLiteralInitializer(const Field& field,
-                                                      TokenPosition* start,
-                                                      TokenPosition* end) {
-  Zone* zone = Thread::Current()->zone();
-  const Script& script = Script::Handle(zone, field.Script());
-
-  TranslationHelper translation_helper(
-      Thread::Current(), script.kernel_string_offsets(),
-      script.kernel_string_data(), script.kernel_canonical_names());
-
-  StreamingFlowGraphBuilder builder(
-      &translation_helper, zone, field.kernel_offset(),
-      TypedData::Handle(zone, field.kernel_data()));
-  kernel::FieldHelper field_helper(&builder);
-  field_helper.ReadUntilExcluding(kernel::FieldHelper::kEnd, true);
-  return field_helper.FieldHasFunctionLiteralInitializer(start, end);
 }
 
 ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field) {

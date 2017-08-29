@@ -11035,7 +11035,7 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel) {
   }
   // NOTE: If we bootstrap from a Kernel IR file we want to generate the
   // synthetic constructors for the native wrapper classes.  We leave this up to
-  // the [KernelReader] who will take care of it later.
+  // the [KernelLoader] who will take care of it later.
   if (!is_kernel) {
     native_flds_lib.SetLoaded();
   }

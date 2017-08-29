@@ -10,6 +10,7 @@
 #include "vm/allocation.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
+#include "vm/object.h"
 #include "vm/token_position.h"
 
 namespace dart {
@@ -83,6 +84,10 @@ class Program {
 };
 
 ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field);
+
+bool FieldHasFunctionLiteralInitializer(const Field& field,
+                                        TokenPosition* start,
+                                        TokenPosition* end);
 
 }  // namespace kernel
 

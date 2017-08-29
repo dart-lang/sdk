@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef RUNTIME_VM_KERNEL_READER_H_
-#define RUNTIME_VM_KERNEL_READER_H_
+#ifndef RUNTIME_VM_KERNEL_LOADER_H_
+#define RUNTIME_VM_KERNEL_LOADER_H_
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include <map>
@@ -16,19 +16,19 @@
 namespace dart {
 namespace kernel {
 
-class KernelReader;
+class KernelLoader;
 
 class BuildingTranslationHelper : public TranslationHelper {
  public:
-  BuildingTranslationHelper(KernelReader* reader, Thread* thread)
-      : TranslationHelper(thread), reader_(reader) {}
+  BuildingTranslationHelper(KernelLoader* loader, Thread* thread)
+      : TranslationHelper(thread), loader_(loader) {}
   virtual ~BuildingTranslationHelper() {}
 
   virtual RawLibrary* LookupLibraryByKernelLibrary(NameIndex library);
   virtual RawClass* LookupClassByKernelClass(NameIndex klass);
 
  private:
-  KernelReader* reader_;
+  KernelLoader* loader_;
 };
 
 template <typename VmType>
@@ -52,13 +52,13 @@ class Mapping {
   MapType map_;
 };
 
-class KernelReader {
+class KernelLoader {
  public:
-  explicit KernelReader(Program* program);
+  explicit KernelLoader(Program* program);
 
   // Returns the library containing the main procedure, null if there
   // was no main procedure, or a failure object if there was an error.
-  Object& ReadProgram();
+  Object& LoadProgram();
 
   // Finds all libraries that have been modified in this incremental
   // version of the kernel program file.
@@ -66,7 +66,7 @@ class KernelReader {
                              BitVector* modified_libs,
                              bool force_reload);
 
-  void ReadLibrary(intptr_t kernel_offset);
+  void LoadLibrary(intptr_t kernel_offset);
 
   const String& DartSymbol(StringIndex index) {
     return translation_helper_.DartSymbol(index);
@@ -100,20 +100,16 @@ class KernelReader {
 
   uint8_t CharacterAt(StringIndex string_index, intptr_t index);
 
-  static bool FieldHasFunctionLiteralInitializer(const Field& field,
-                                                 TokenPosition* start,
-                                                 TokenPosition* end);
-
  private:
   friend class BuildingTranslationHelper;
 
-  void ReadPreliminaryClass(Class* klass,
+  void LoadPreliminaryClass(Class* klass,
                             ClassHelper* class_helper,
                             intptr_t type_parameter_count);
-  Class& ReadClass(const Library& library, const Class& toplevel_class);
-  void ReadProcedure(const Library& library, const Class& owner, bool in_class);
+  Class& LoadClass(const Library& library, const Class& toplevel_class);
+  void LoadProcedure(const Library& library, const Class& owner, bool in_class);
 
-  void ReadAndSetupTypeParameters(const Object& set_on,
+  void LoadAndSetupTypeParameters(const Object& set_on,
                                   intptr_t type_parameter_count,
                                   const Class& parameterized_class,
                                   const Function& parameterized_function);
@@ -161,4 +157,4 @@ class KernelReader {
 }  // namespace dart
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-#endif  // RUNTIME_VM_KERNEL_READER_H_
+#endif  // RUNTIME_VM_KERNEL_LOADER_H_

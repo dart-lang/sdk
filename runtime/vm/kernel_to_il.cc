@@ -9,7 +9,7 @@
 #include "vm/compiler.h"
 #include "vm/intermediate_language.h"
 #include "vm/kernel_binary_flowgraph.h"
-#include "vm/kernel_reader.h"
+#include "vm/kernel_loader.h"
 #include "vm/longjump.h"
 #include "vm/method_recognizer.h"
 #include "vm/object_store.h"

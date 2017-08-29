@@ -10,7 +10,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/hash_table.h"
 #include "vm/isolate.h"
-#include "vm/kernel_reader.h"
+#include "vm/kernel_loader.h"
 #include "vm/log.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -570,8 +570,8 @@ void IsolateReloadContext::Reload(bool force_reload,
         ASSERT(data_len == 1);
         kernel_program = reinterpret_cast<kernel::Program*>(data);
         Dart_TypedDataReleaseData(retval);
-        kernel::KernelReader reader(kernel_program);
-        reader.FindModifiedLibraries(I, modified_libs_, force_reload);
+        kernel::KernelLoader loader(kernel_program);
+        loader.FindModifiedLibraries(I, modified_libs_, force_reload);
       }
     }
     if (result.IsError()) {
@@ -642,9 +642,9 @@ void IsolateReloadContext::Reload(bool force_reload,
   // propagating the UnwindError or an UnhandledException error.
 
   if (isolate()->use_dart_frontend()) {
-    // Read the kernel program.
-    kernel::KernelReader reader(kernel_program);
-    const Object& tmp = reader.ReadProgram();
+    // Load the kernel program.
+    kernel::KernelLoader loader(kernel_program);
+    const Object& tmp = loader.LoadProgram();
     if (!tmp.IsError()) {
       Library& lib = Library::Handle(thread->zone());
       lib ^= tmp.raw();
