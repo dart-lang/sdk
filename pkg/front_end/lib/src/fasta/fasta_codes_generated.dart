@@ -1671,6 +1671,27 @@ Message _withArgumentsInternalProblemUnsupported(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Uri uri_)>
+    templateInternalProblemUriMissingScheme =
+    const Template<Message Function(Uri uri_)>(
+        messageTemplate: r"""The URI '#uri' has no scheme.""",
+        withArguments: _withArgumentsInternalProblemUriMissingScheme);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_)> codeInternalProblemUriMissingScheme =
+    const Code<Message Function(Uri uri_)>(
+  "InternalProblemUriMissingScheme",
+  templateInternalProblemUriMissingScheme,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemUriMissingScheme(Uri uri_) {
+  String uri = relativizeUri(uri_);
+  return new Message(codeInternalProblemUriMissingScheme,
+      message: """The URI '$uri' has no scheme.""", arguments: {'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)>
     templateInternalVerificationError =
     const Template<Message Function(String string)>(
