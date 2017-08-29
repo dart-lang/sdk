@@ -186,10 +186,7 @@ big_allocation_expression_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_
 bound_closure_interceptor_methods_test: Crash
 bound_closure_interceptor_type_test: Crash
 break_test: Crash
-closure3_test: Crash
 closure4_test: RuntimeError
-closure6_test: Crash
-closure7_test: Crash
 closure_capture2_test: RuntimeError
 closure_capture3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Closure.nestedClosure#)) for j:closure_call(Closure_nestedClosure_closure.call).
 closure_capture4_test: RuntimeError
@@ -233,7 +230,6 @@ if_null3_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Fa
 if_null_test: Crash
 inference_nsm_mirrors_test: Crash
 inference_super_set_call_test: RuntimeError
-inline_position_crash_test: Crash
 interceptor_named_arguments_test: Crash
 invalid_annotation2_test/none: Crash
 is_check_instanceof_test: Crash
@@ -319,10 +315,7 @@ async_stacktrace_test: Crash # NoSuchMethodError: The getter 'memberIndex' was c
 bound_closure_interceptor_methods_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 bound_closure_interceptor_type_test: Crash # NoSuchMethodError: The getter 'classIndex' was called on null.
 break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-closure3_test: Crash # NoSuchMethodError: Class 'KernelClosureClass' has no instance getter 'supertype'.
 closure4_test: RuntimeError
-closure6_test: Crash # NoSuchMethodError: Class 'KernelClosureClass' has no instance getter 'supertype'.
-closure7_test: Crash # NoSuchMethodError: Class 'KernelClosureClass' has no instance getter 'supertype'.
 closure_capture2_test: RuntimeError
 closure_capture3_test: Crash # Assertion failure: Cannot find value local(Closure_nestedClosure_closure.call#f) in (local(Closure.nestedClosure#)) for j:closure_call(Closure_nestedClosure_closure.call).
 closure_capture4_test: RuntimeError
@@ -364,7 +357,6 @@ hash_code_test: Crash # UnimplementedError: Unexpected constant expression new #
 if_null_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 inference_nsm_mirrors_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
 inference_super_set_call_test: RuntimeError
-inline_position_crash_test: Crash # NoSuchMethodError: The getter 'classIndex' was called on null.
 interceptor_named_arguments_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 invalid_annotation2_test/none: Crash # NoSuchMethodError: Class 'DynamicType' has no instance getter 'element'.
 is_check_instanceof_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.

@@ -4083,6 +4083,80 @@ static bool SetTraceClassAllocation(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static const MethodParameter* get_default_classes_aliases_params[] = {
+    NO_ISOLATE_PARAMETER, NULL,
+};
+
+static bool GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "ClassesAliasesMap");
+
+  JSONObject map(&jsobj, "map");
+
+#define DEFINE_ADD_VALUE_F(id)                                                 \
+  internals.AddValueF("classes/%" Pd, static_cast<intptr_t>(id));
+#define DEFINE_ADD_VALUE_F_CID(clazz) DEFINE_ADD_VALUE_F(k##clazz##Cid)
+  {
+    JSONArray internals(&map, "<VM Internals>");
+    for (intptr_t id = kClassCid; id < kInstanceCid; ++id) {
+      DEFINE_ADD_VALUE_F(id);
+    }
+    DEFINE_ADD_VALUE_F_CID(LibraryPrefix);
+  }
+  {
+    JSONArray internals(&map, "Type");
+    for (intptr_t id = kAbstractTypeCid; id <= kMixinAppTypeCid; ++id) {
+      DEFINE_ADD_VALUE_F(id);
+    }
+  }
+  {
+    JSONArray internals(&map, "Object");
+    DEFINE_ADD_VALUE_F_CID(Instance);
+  }
+  {
+    JSONArray internals(&map, "Closure");
+    DEFINE_ADD_VALUE_F_CID(Closure);
+    DEFINE_ADD_VALUE_F_CID(Context);
+  }
+  {
+    JSONArray internals(&map, "Int");
+    for (intptr_t id = kIntegerCid; id <= kBigintCid; ++id) {
+      DEFINE_ADD_VALUE_F(id);
+    }
+  }
+  {
+    JSONArray internals(&map, "Double");
+    DEFINE_ADD_VALUE_F_CID(Double);
+  }
+  {
+    JSONArray internals(&map, "String");
+    CLASS_LIST_STRINGS(DEFINE_ADD_VALUE_F_CID)
+  }
+  {
+    JSONArray internals(&map, "List");
+    CLASS_LIST_ARRAYS(DEFINE_ADD_VALUE_F_CID)
+    DEFINE_ADD_VALUE_F_CID(GrowableObjectArray)
+    DEFINE_ADD_VALUE_F_CID(ByteBuffer)
+  }
+  {
+    JSONArray internals(&map, "Map");
+    DEFINE_ADD_VALUE_F_CID(LinkedHashMap)
+  }
+#define DEFINE_ADD_MAP_KEY(clazz)                                              \
+  {                                                                            \
+    JSONArray internals(&map, #clazz);                                         \
+    DEFINE_ADD_VALUE_F_CID(TypedData##clazz)                                   \
+    DEFINE_ADD_VALUE_F_CID(TypedData##clazz)                                   \
+    DEFINE_ADD_VALUE_F_CID(ExternalTypedData##clazz)                           \
+  }
+  CLASS_LIST_TYPED_DATA(DEFINE_ADD_MAP_KEY)
+#undef DEFINE_ADD_MAP_KEY
+#undef DEFINE_ADD_VALUE_F_CID
+#undef DEFINE_ADD_VALUE_F
+
+  return true;
+}
+
 // clang-format off
 static const ServiceMethodDescriptor service_methods_[] = {
   { "_dumpIdZone", DumpIdZone, NULL },
@@ -4202,6 +4276,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     set_vm_timeline_flags_params },
   { "_collectAllGarbage", CollectAllGarbage,
     collect_all_garbage_params },
+  { "_getDefaultClassesAliases", GetDefaultClassesAliases,
+    get_default_classes_aliases_params },
 };
 // clang-format on
 

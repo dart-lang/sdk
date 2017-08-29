@@ -635,7 +635,7 @@ const AbstractType* CompileType::ToAbstractType() {
 
     // VM-internal objects don't have a compile-type. Return dynamic-type
     // in this case.
-    if (cid_ < kInstanceCid) {
+    if ((cid_ < kInstanceCid) || (cid_ == kTypeArgumentsCid)) {
       type_ = &Object::dynamic_type();
       return type_;
     }
@@ -880,7 +880,7 @@ CompileType ConstantInstr::ComputeType() const {
 
   intptr_t cid = value().GetClassId();
 
-  if (value().IsInstance()) {
+  if ((cid != kTypeArgumentsCid) && value().IsInstance()) {
     // Allocate in old-space since this may be invoked from the
     // background compiler.
     return CompileType::Create(

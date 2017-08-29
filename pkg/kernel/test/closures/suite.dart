@@ -106,6 +106,7 @@ class Run extends Step<Uri, int, ClosureConversionContext> {
       final StdioProcess process = await StdioProcess.run(vm.toFilePath(), [
         "--reify",
         "--reify_generic_functions",
+        "-c",
         generated.path,
         "Hello, World!"
       ]);

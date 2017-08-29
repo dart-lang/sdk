@@ -6,11 +6,11 @@ static method main(core::List<core::String> arguments) → dynamic {
   final (dynamic) → dynamic foo = MakeClosure<(dynamic) → dynamic>(self::closure#main#foo, null);
   foo.call(arguments.[](0)).call();
 }
-static method closure#main#foo#bar(Vector #contextParameter) → dynamic {
+static method closure#main#foo#bar(dynamic #contextParameter) → dynamic {
   core::print(#contextParameter[2]);
 }
-static method closure#main#foo(Vector #contextParameter, dynamic x) → dynamic {
-  final Vector #context = MakeVector(3);
+static method closure#main#foo(dynamic #contextParameter, dynamic x) → dynamic {
+  final dynamic #context = MakeVector(3);
   #context[1] = #contextParameter;
   #context[2] = x;
   final () → dynamic bar = MakeClosure<() → dynamic>(self::closure#main#foo#bar, #context);

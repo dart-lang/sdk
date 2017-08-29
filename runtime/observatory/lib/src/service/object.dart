@@ -2486,6 +2486,14 @@ class Allocations implements M.Allocations {
     current.bytes = stats[LIVE_AFTER_GC_SIZE] + stats[ALLOCATED_SINCE_GC_SIZE];
   }
 
+  void combine(Iterable<Allocations> allocations) {
+    accumulated.instances =
+        allocations.fold(0, (v, a) => v + a.accumulated.instances);
+    accumulated.bytes = allocations.fold(0, (v, a) => v + a.accumulated.bytes);
+    current.instances = allocations.fold(0, (v, a) => v + a.current.instances);
+    current.bytes = allocations.fold(0, (v, a) => v + a.current.bytes);
+  }
+
   bool get empty => accumulated.empty && current.empty;
   bool get notEmpty => accumulated.notEmpty || current.notEmpty;
 }

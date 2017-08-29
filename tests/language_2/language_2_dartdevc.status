@@ -5,19 +5,18 @@
 # Sections in this file should contain "$compiler == dartdevc".
 
 [ $compiler == dartdevc ]
+abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
+abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
+additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_test/01: CompileTimeError
 assertion_initializer_test: CompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
-bad_initializer1_negative_test: CompileTimeError # Issue 14529
-bad_initializer2_negative_test: fail # Issue 14880
-bad_named_constructor_negative_test: CompileTimeError # Issue 18693
 bit_operations_test/01: MissingCompileTimeError
 bit_operations_test/02: MissingCompileTimeError
 bit_operations_test/03: MissingCompileTimeError
 bit_operations_test/04: MissingCompileTimeError
 black_listed_test/none: fail # Issue 14228
-body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
 generic_list_checked_test: CompileTimeError
@@ -32,10 +31,12 @@ generic_methods_shadowing_test: CompileTimeError # Issue 29920
 generic_methods_simple_is_expression_test: CompileTimeError # Issue 29920
 generic_methods_test: CompileTimeError
 generic_methods_type_expression_test: CompileTimeError
+generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
 generic_test: CompileTimeError
 generics_test: CompileTimeError
 get_set_syntax_test/none: CompileTimeError
+getter_setter_in_lib_test: CompileTimeError
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 
 [ $strong && $compiler == dartdevc ]

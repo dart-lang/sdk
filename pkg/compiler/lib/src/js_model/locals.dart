@@ -37,6 +37,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   Map<ir.VariableDeclaration, JLocal> _map = <ir.VariableDeclaration, JLocal>{};
   Map<ir.TreeNode, JJumpTarget> _jumpTargetMap;
   Set<ir.BreakStatement> _breaksAsContinue;
+  List<ir.VariableDeclaration> _parameterList = <ir.VariableDeclaration>[];
 
   MemberEntity get currentMember => _members.last;
 
@@ -137,9 +138,24 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   @override
   Local getLocalVariable(ir.VariableDeclaration node) {
     return _map.putIfAbsent(node, () {
-      return new JLocal(
-          node.name, currentMember, node.parent is ir.FunctionNode);
+      Local local;
+      if (node.parent is ir.FunctionNode) {
+        local = new JParameter(_parameterList.length, node.name, currentMember);
+        _parameterList.add(node);
+      } else {
+        local = new JLocal(node.name, currentMember);
+      }
+      return local;
     });
+  }
+
+  @override
+  ir.FunctionNode getFunctionNodeForParameter(covariant JParameter parameter) {
+    return _parameterList[parameter.parameterIndex].parent;
+  }
+
+  ir.DartType getParameterType(covariant JParameter parameter) {
+    return _parameterList[parameter.parameterIndex].type;
   }
 
   @override
@@ -347,18 +363,19 @@ class JLocal implements Local {
   final String name;
   final MemberEntity memberContext;
 
-  /// True if this local represents a local parameter.
-  final bool isRegularParameter;
+  JLocal(this.name, this.memberContext);
 
-  JLocal(this.name, this.memberContext, [isParameter = false])
-      : isRegularParameter = isParameter;
+  /// True if this local represents a local parameter.
+  bool get isRegularParameter => false;
 
   @override
   Entity get executableContext => memberContext;
 
+  String get _kind => 'local';
+
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.write('local(');
+    sb.write('$_kind(');
     if (memberContext.enclosingClass != null) {
       sb.write(memberContext.enclosingClass.name);
       sb.write('.');
@@ -369,4 +386,15 @@ class JLocal implements Local {
     sb.write(')');
     return sb.toString();
   }
+}
+
+class JParameter extends JLocal {
+  final int parameterIndex;
+
+  JParameter(this.parameterIndex, String name, MemberEntity memberContext)
+      : super(name, memberContext);
+
+  bool get isRegularParameter => true;
+
+  String get _kind => 'parameter';
 }

@@ -697,10 +697,10 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     return data.getConstructorConstant(this, constructor);
   }
 
-  ConstantExpression _getFieldConstant(IndexedField field) {
+  ConstantExpression _getFieldConstantExpression(IndexedField field) {
     assert(checkFamily(field));
     FieldData data = _memberData[field.memberIndex];
-    return data.getFieldConstant(this, field);
+    return data.getFieldConstantExpression(this);
   }
 
   InterfaceType _asInstanceOf(InterfaceType type, ClassEntity cls) {
@@ -1650,7 +1650,7 @@ class _EvaluationEnvironment implements EvaluationEnvironment {
 
   @override
   ConstantExpression getFieldConstant(FieldEntity field) {
-    return _elementMap._getFieldConstant(field);
+    return _elementMap._getFieldConstantExpression(field);
   }
 
   @override
@@ -1819,6 +1819,7 @@ class KernelClosedWorld extends ClosedWorldBase
       Iterable<ClassEntity> liveNativeClasses,
       Iterable<MemberEntity> liveInstanceMembers,
       Iterable<MemberEntity> assignedInstanceMembers,
+      Iterable<MemberEntity> processedMembers,
       Set<TypedefEntity> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
@@ -1836,6 +1837,7 @@ class KernelClosedWorld extends ClosedWorldBase
             liveNativeClasses,
             liveInstanceMembers,
             assignedInstanceMembers,
+            processedMembers,
             allTypedefs,
             mixinUses,
             typesImplementedBySubclasses,
@@ -2137,23 +2139,22 @@ class JsKernelToElementMap extends KernelToElementMapBase
   }
 
   @override
-  ConstantValue getFieldConstantValue(ir.Field field) {
-    // TODO(johnniwinther): Cache the result in [FieldData].
-    return getConstantValue(field.initializer,
-        requireConstant: field.isConst, implicitNull: !field.isConst);
+  ConstantValue getFieldConstantValue(covariant IndexedField field) {
+    assert(checkFamily(field));
+    FieldData data = _memberData[field.memberIndex];
+    return data.getFieldConstantValue(this);
   }
 
   bool hasConstantFieldInitializer(covariant IndexedField field) {
+    assert(checkFamily(field));
     FieldData data = _memberData[field.memberIndex];
-    return getFieldConstantValue(data.definition.node) != null;
+    return data.hasConstantFieldInitializer(this);
   }
 
   ConstantValue getConstantFieldInitializer(covariant IndexedField field) {
+    assert(checkFamily(field));
     FieldData data = _memberData[field.memberIndex];
-    ConstantValue value = getFieldConstantValue(data.definition.node);
-    assert(value != null,
-        failedAt(field, "Field $field doesn't have a constant initial value."));
-    return value;
+    return data.getConstantFieldInitializer(this);
   }
 
   void forEachParameter(covariant IndexedFunction function,

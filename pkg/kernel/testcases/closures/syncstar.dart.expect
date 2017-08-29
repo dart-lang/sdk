@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method range(core::int high) → dynamic {
-  final Vector #context = MakeVector(3);
+  final dynamic #context = MakeVector(3);
   #context[2] = high;
   final (core::int) → dynamic iter = MakeClosure<(core::int) → dynamic>(self::closure#range#iter, #context);
   return iter;
@@ -16,8 +16,8 @@ static method main() → dynamic {
     throw core::Exception::•("Incorrect output.");
   }
 }
-static method closure#range#iter(Vector #contextParameter, core::int low) → dynamic /* originally sync* */ {
-  final Vector #context = MakeVector(3);
+static method closure#range#iter(dynamic #contextParameter, core::int low) → dynamic /* originally sync* */ {
+  final dynamic #context = MakeVector(3);
   #context[1] = #contextParameter;
   #context[2] = low;
   dynamic :await_jump_var = 0;

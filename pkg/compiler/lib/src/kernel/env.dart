@@ -575,13 +575,23 @@ class ConstructorDataImpl extends FunctionDataImpl implements ConstructorData {
 abstract class FieldData extends MemberData {
   DartType getFieldType(KernelToElementMap elementMap);
 
-  ConstantExpression getFieldConstant(
-      KernelToElementMapBase elementMap, FieldEntity field);
+  ConstantExpression getFieldConstantExpression(
+      KernelToElementMapBase elementMap);
+
+  /// Return the [ConstantValue] the initial value of [field] or `null` if
+  /// the initializer is not a constant expression.
+  ConstantValue getFieldConstantValue(KernelToElementMapBase elementMap);
+
+  bool hasConstantFieldInitializer(KernelToElementMapBase elementMap);
+
+  ConstantValue getConstantFieldInitializer(KernelToElementMapBase elementMap);
 }
 
 class FieldDataImpl extends MemberDataImpl implements FieldData {
   DartType _type;
-  ConstantExpression _constant;
+  bool _isConstantComputed = false;
+  ConstantValue _constantValue;
+  ConstantExpression _constantExpression;
 
   FieldDataImpl(ir.Field node, MemberDefinition definition)
       : super(node, definition);
@@ -592,19 +602,45 @@ class FieldDataImpl extends MemberDataImpl implements FieldData {
     return _type ??= elementMap.getDartType(node.type);
   }
 
-  ConstantExpression getFieldConstant(
-      KernelToElementMapBase elementMap, FieldEntity field) {
-    if (_constant == null) {
+  ConstantExpression getFieldConstantExpression(
+      KernelToElementMapBase elementMap) {
+    if (_constantExpression == null) {
       if (node.isConst) {
-        _constant = new Constantifier(elementMap).visit(node.initializer);
+        _constantExpression =
+            new Constantifier(elementMap).visit(node.initializer);
       } else {
         failedAt(
-            field,
-            "Unexpected field $field in "
+            definition.member,
+            "Unexpected field ${definition.member} in "
             "FieldDataImpl.getFieldConstant");
       }
     }
-    return _constant;
+    return _constantExpression;
+  }
+
+  @override
+  ConstantValue getFieldConstantValue(KernelToElementMapBase elementMap) {
+    if (!_isConstantComputed) {
+      _constantValue = elementMap.getConstantValue(node.initializer,
+          requireConstant: node.isConst, implicitNull: !node.isConst);
+      _isConstantComputed = true;
+    }
+    return _constantValue;
+  }
+
+  @override
+  bool hasConstantFieldInitializer(KernelToElementMapBase elementMap) {
+    return getFieldConstantValue(elementMap) != null;
+  }
+
+  @override
+  ConstantValue getConstantFieldInitializer(KernelToElementMapBase elementMap) {
+    ConstantValue value = getFieldConstantValue(elementMap);
+    assert(
+        value != null,
+        failedAt(definition.member,
+            "Field ${definition.member} doesn't have a constant initial value."));
+    return value;
   }
 
   @override

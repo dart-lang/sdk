@@ -8,6 +8,11 @@ define(['dart_sdk'], function(dart_sdk) {
   const sunflower = Object.create(null);
   const circle = Object.create(null);
   const painter = Object.create(null);
+  const $getContext = dartx.getContext;
+  const $addEventListener = dartx.addEventListener;
+  const $text = dartx.text;
+  const $arc = dartx.arc;
+  const $fill = dartx.fill;
   let StringToElement = () => (StringToElement = dart.constFn(dart.fnType(html.Element, [core.String])))();
   let EventTovoid = () => (EventTovoid = dart.constFn(dart.fnType(dart.void, [html.Event])))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.fnType(dart.void, [])))();
@@ -37,7 +42,7 @@ define(['dart_sdk'], function(dart_sdk) {
       return html.CanvasElement.as(sunflower.querySelector("#canvas"));
     },
     get context() {
-      return html.CanvasRenderingContext2D.as(sunflower.canvas[dartx.getContext]('2d'));
+      return html.CanvasRenderingContext2D.as(sunflower.canvas[$getContext]('2d'));
     },
     get slider() {
       return html.InputElement.as(sunflower.querySelector("#slider"));
@@ -54,7 +59,7 @@ define(['dart_sdk'], function(dart_sdk) {
     set seeds(_) {}
   });
   sunflower.main = function() {
-    sunflower.slider[dartx.addEventListener]('change', dart.fn(e => sunflower.draw(), EventTovoid()));
+    sunflower.slider[$addEventListener]('change', dart.fn(e => sunflower.draw(), EventTovoid()));
     sunflower.draw();
   };
   dart.fn(sunflower.main, VoidTovoid());
@@ -68,7 +73,7 @@ define(['dart_sdk'], function(dart_sdk) {
       let y = sunflower.centerY - r * math.sin(theta);
       new sunflower.SunflowerSeed.new(x, y, sunflower.SEED_RADIUS).draw(sunflower.context);
     }
-    sunflower.notes[dartx.text] = dart.str`${sunflower.seeds} seeds`;
+    sunflower.notes[$text] = dart.str`${sunflower.seeds} seeds`;
   };
   dart.fn(sunflower.draw, VoidTovoid());
   circle.Circle = class Circle extends core.Object {
@@ -96,6 +101,7 @@ define(['dart_sdk'], function(dart_sdk) {
     this[y$] = y;
     this[radius$] = radius;
   }).prototype = circle.Circle.prototype;
+  dart.addTypeTests(circle.Circle);
   const x$ = Symbol("Circle.x");
   const y$ = Symbol("Circle.y");
   const radius$ = Symbol("Circle.radius");
@@ -118,8 +124,8 @@ define(['dart_sdk'], function(dart_sdk) {
       context.lineWidth = 2;
       context.fillStyle = this.color;
       context.strokeStyle = this.color;
-      context[dartx.arc](this.x, this.y, this.radius, 0, painter.TAU, false);
-      context[dartx.fill]();
+      context[$arc](this.x, this.y, this.radius, 0, painter.TAU, false);
+      context[$fill]();
       context.closePath();
       context.stroke();
     }
@@ -127,6 +133,7 @@ define(['dart_sdk'], function(dart_sdk) {
   (painter.CirclePainter.new = function() {
     this[color] = painter.ORANGE;
   }).prototype = painter.CirclePainter.prototype;
+  dart.addTypeTests(painter.CirclePainter);
   const color = Symbol("CirclePainter.color");
   painter.CirclePainter[dart.implements] = () => [circle.Circle];
   dart.setSignature(painter.CirclePainter, {
@@ -139,6 +146,7 @@ define(['dart_sdk'], function(dart_sdk) {
     sunflower.SunflowerSeed.__proto__.new.call(this, x, y, radius);
     if (color != null) this.color = color;
   }).prototype = sunflower.SunflowerSeed.prototype;
+  dart.addTypeTests(sunflower.SunflowerSeed);
   dart.defineLazy(painter, {
     get ORANGE() {
       return "orange";
@@ -162,7 +170,7 @@ define(['dart_sdk'], function(dart_sdk) {
       return html.CanvasElement.as(painter.querySelector("#canvas"));
     },
     get context() {
-      return html.CanvasRenderingContext2D.as(painter.canvas[dartx.getContext]('2d'));
+      return html.CanvasRenderingContext2D.as(painter.canvas[$getContext]('2d'));
     }
   });
   dart.trackLibraries("sunflower", {

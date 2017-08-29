@@ -68,6 +68,7 @@ abstract class TypeGraphInferrer<T> implements TypesInferrer<T> {
 
   void analyzeMain(FunctionEntity main) {
     inferrer = createInferrerEngineFor(main);
+    if (_disableTypeInference) return;
     inferrer.runOverAllElements();
   }
 
@@ -76,7 +77,7 @@ abstract class TypeGraphInferrer<T> implements TypesInferrer<T> {
   TypeMask getReturnTypeOfMember(MemberEntity element) {
     if (_disableTypeInference) return _dynamicType;
     // Currently, closure calls return dynamic.
-    if (element is! FunctionElement) return _dynamicType;
+    if (element is! FunctionEntity) return _dynamicType;
     return inferrer.types.getInferredTypeOfMember(element).type;
   }
 

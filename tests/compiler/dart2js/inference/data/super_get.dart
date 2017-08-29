@@ -14,5 +14,5 @@ class Sub extends Super {
 
 /*main:[null]*/
 main() {
-  new Sub()./*[exact=Sub]*/method();
+  new Sub(). /*[exact=Sub]*/ method();
 }

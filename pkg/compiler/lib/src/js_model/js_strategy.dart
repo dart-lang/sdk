@@ -45,7 +45,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
   ElementEnvironment _elementEnvironment;
   CommonElements _commonElements;
   JsKernelToElementMap _elementMap;
-  ClosureConversionTask _closureDataLookup;
+  KernelClosureConversionTask _closureDataLookup;
   final GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
   Sorter _sorter;
 
@@ -292,6 +292,9 @@ class JsBackendStrategy implements KernelBackendStrategy {
     Iterable<ClassEntity> liveNativeClasses =
         map.toBackendClassSet(closedWorld.liveNativeClasses);
 
+    Iterable<MemberEntity> processedMembers =
+        map.toBackendMemberSet(closedWorld.processedMembers);
+
     RuntimeTypesNeed rtiNeed =
         _convertRuntimeTypesNeed(map, backendUsage, closedWorld.rtiNeed);
 
@@ -310,6 +313,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
         liveNativeClasses: liveNativeClasses,
         liveInstanceMembers: liveInstanceMembers,
         assignedInstanceMembers: assignedInstanceMembers,
+        processedMembers: processedMembers,
         mixinUses: mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         // TODO(johnniwinther): Support this:
@@ -361,8 +365,8 @@ class JsBackendStrategy implements KernelBackendStrategy {
   @override
   TypesInferrer createTypesInferrer(ClosedWorldRefiner closedWorldRefiner,
       {bool disableTypeInference: false}) {
-    return new KernelTypeGraphInferrer(
-        _compiler, closedWorldRefiner.closedWorld, closedWorldRefiner,
+    return new KernelTypeGraphInferrer(_compiler, _elementMap, _globalLocalsMap,
+        _closureDataLookup, closedWorldRefiner.closedWorld, closedWorldRefiner,
         disableTypeInference: disableTypeInference);
   }
 }
@@ -384,6 +388,7 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
       Iterable<ClassEntity> liveNativeClasses,
       Iterable<MemberEntity> liveInstanceMembers,
       Iterable<MemberEntity> assignedInstanceMembers,
+      Iterable<MemberEntity> processedMembers,
       Set<TypedefEntity> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
@@ -401,6 +406,7 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             liveNativeClasses,
             liveInstanceMembers,
             assignedInstanceMembers,
+            processedMembers,
             allTypedefs,
             mixinUses,
             typesImplementedBySubclasses,

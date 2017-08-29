@@ -640,6 +640,9 @@ InternalProblemMissingContext:
 InternalProblemProvidedBothCompileSdkAndSdkSummary:
   template: "The compileSdk and sdkSummary options are mutually exclusive"
 
+InternalProblemUriMissingScheme:
+  template: "The URI '#uri' has no scheme."
+
 InternalVerificationError:
   template: "Verification of the generated program failed: #string."
 

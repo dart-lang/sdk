@@ -1,0 +1,129 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Note: if you edit this file, you must also edit libraries.json in this
+# directory:
+#
+#     python ./tools/yaml2json.py sdk/lib/libraries.yaml sdk/lib/libraries.json
+#
+# We currently have several different files that needs to be updated when
+# changing libraries, sources, and patch files.  See
+# https://github.com/dart-lang/sdk/issues/28836.
+
+vm:
+  libraries:
+    _builtin:
+      uri: "../../runtime/bin/builtin.dart"
+
+    _internal:
+      uri: "internal/internal.dart"
+      patches:
+        - "../../runtime/lib/internal_patch.dart"
+        - "../../runtime/lib/class_id.dart"
+        - "../../runtime/lib/print_patch.dart"
+        - "../../runtime/lib/symbol_patch.dart"
+
+    async:
+      uri: "async/async.dart"
+      patches:
+        - "../../runtime/lib/async_patch.dart"
+        - "../../runtime/lib/deferred_load_patch.dart"
+        - "../../runtime/lib/schedule_microtask_patch.dart"
+        - "../../runtime/lib/timer_patch.dart"
+
+    collection:
+      uri: "collection/collection.dart"
+      patches:
+        - "../../runtime/lib/collection_patch.dart"
+        - "../../runtime/lib/compact_hash.dart"
+
+    convert:
+      uri: "convert/convert.dart"
+      patches: "../../runtime/lib/convert_patch.dart"
+
+    core:
+      uri: "core/core.dart"
+      patches:
+        - "../../runtime/lib/core_patch.dart"
+        - "../../runtime/lib/array.dart"
+        - "../../runtime/lib/array_patch.dart"
+        - "../../runtime/lib/bigint.dart"
+        - "../../runtime/lib/bool_patch.dart"
+        - "../../runtime/lib/date_patch.dart"
+        - "../../runtime/lib/double.dart"
+        - "../../runtime/lib/double_patch.dart"
+        - "../../runtime/lib/errors_patch.dart"
+        - "../../runtime/lib/expando_patch.dart"
+        - "../../runtime/lib/function.dart"
+        - "../../runtime/lib/function_patch.dart"
+        - "../../runtime/lib/growable_array.dart"
+        - "../../runtime/lib/identical_patch.dart"
+        - "../../runtime/lib/immutable_map.dart"
+        - "../../runtime/lib/integers.dart"
+        - "../../runtime/lib/integers_patch.dart"
+        - "../../runtime/lib/invocation_mirror_patch.dart"
+        - "../../runtime/lib/lib_prefix.dart"
+        - "../../runtime/lib/map_patch.dart"
+        - "../../runtime/lib/null_patch.dart"
+        - "../../runtime/lib/object_patch.dart"
+        - "../../runtime/lib/regexp_patch.dart"
+        - "../../runtime/lib/stacktrace.dart"
+        - "../../runtime/lib/stopwatch_patch.dart"
+        - "../../runtime/lib/string_buffer_patch.dart"
+        - "../../runtime/lib/string_patch.dart"
+        - "../../runtime/lib/type_patch.dart"
+        - "../../runtime/lib/uri_patch.dart"
+        - "../../runtime/lib/weak_property.dart"
+
+    developer:
+      uri: "developer/developer.dart"
+      patches:
+        - "../../runtime/lib/developer.dart"
+        - "../../runtime/lib/profiler.dart"
+        - "../../runtime/lib/timeline.dart"
+
+    io:
+      uri: "io/io.dart"
+      patches:
+        - "../../runtime/bin/common_patch.dart"
+        - "../../runtime/bin/directory_patch.dart"
+        - "../../runtime/bin/eventhandler_patch.dart"
+        - "../../runtime/bin/file_patch.dart"
+        - "../../runtime/bin/file_system_entity_patch.dart"
+        - "../../runtime/bin/filter_patch.dart"
+        - "../../runtime/bin/io_service_patch.dart"
+        - "../../runtime/bin/platform_patch.dart"
+        - "../../runtime/bin/process_patch.dart"
+        - "../../runtime/bin/socket_patch.dart"
+        - "../../runtime/bin/stdio_patch.dart"
+        - "../../runtime/bin/secure_socket_patch.dart"
+        - "../../runtime/bin/sync_socket_patch.dart"
+
+    isolate:
+      uri: "isolate/isolate.dart"
+      patches:
+        - "../../runtime/lib/isolate_patch.dart"
+        - "../../runtime/lib/timer_impl.dart"
+
+    math:
+      uri: "math/math.dart"
+      patches: "../../runtime/lib/math_patch.dart"
+
+    mirrors:
+      uri: "mirrors/mirrors.dart"
+      patches:
+        - "../../runtime/lib/mirrors_patch.dart"
+        - "../../runtime/lib/mirrors_impl.dart"
+        - "../../runtime/lib/mirror_reference.dart"
+
+    nativewrappers:
+      uri: "html/dartium/nativewrappers.dart"
+
+    profiler:
+      uri: "profiler/profiler.dart"
+      patches: "../../runtime/lib/empty_source.dart"
+
+    typed_data:
+      uri: "typed_data/typed_data.dart"
+      patches: "../../runtime/lib/typed_data_patch.dart"

@@ -89,6 +89,10 @@ abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
   /// Register the constant [use] with this world builder. Returns `true` if
   /// the constant use was new to the world.
   bool registerConstantUse(ConstantUse use);
+
+  bool isMemberProcessed(MemberEntity member);
+  void registerProcessedMember(MemberEntity member);
+  Iterable<MemberEntity> get processedMembers;
 }
 
 /// The type and kind of an instantiation registered through
@@ -372,6 +376,8 @@ abstract class ResolutionWorldBuilderBase
 
   final Set<ConstantValue> _constantValues = new Set<ConstantValue>();
 
+  Set<MemberEntity> _processedMembers = new Set<MemberEntity>();
+
   bool get isClosed => _closed;
 
   ResolutionWorldBuilderBase(
@@ -390,6 +396,14 @@ abstract class ResolutionWorldBuilderBase
 
   Iterable<ClassEntity> get processedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls].isInstantiated);
+
+  bool isMemberProcessed(MemberEntity member) =>
+      _processedMembers.contains(member);
+  void registerProcessedMember(MemberEntity member) {
+    _processedMembers.add(member);
+  }
+
+  Iterable<MemberEntity> get processedMembers => _processedMembers;
 
   ClosedWorld get closedWorldForTesting {
     if (!_closed) {
@@ -1003,6 +1017,7 @@ abstract class KernelResolutionWorldBuilderBase
         liveNativeClasses: _nativeResolutionEnqueuer.liveNativeClasses,
         liveInstanceMembers: _liveInstanceMembers,
         assignedInstanceMembers: computeAssignedInstanceMembers(),
+        processedMembers: _processedMembers,
         allTypedefs: _allTypedefs,
         mixinUses: _mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,

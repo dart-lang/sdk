@@ -16,7 +16,7 @@
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/json_stream.h"
-#include "vm/kernel_reader.h"
+#include "vm/kernel.h"
 #include "vm/longjump.h"
 #include "vm/message_handler.h"
 #include "vm/object.h"
@@ -2672,8 +2672,7 @@ bool Debugger::FindBestFit(const Script& script,
 #ifndef DART_PRECOMPILED_RUNTIME
         if (isolate_->use_dart_frontend()) {
           has_func_literal_initializer =
-              kernel::KernelReader::FieldHasFunctionLiteralInitializer(
-                  field, &start, &end);
+              kernel::FieldHasFunctionLiteralInitializer(field, &start, &end);
         } else {
 #endif  // !DART_PRECOMPILED_RUNTIME
           has_func_literal_initializer =

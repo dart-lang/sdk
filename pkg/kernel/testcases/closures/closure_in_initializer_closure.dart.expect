@@ -5,7 +5,7 @@ import "dart:core" as core;
 class C extends core::Object {
   field dynamic t;
   constructor foo(dynamic f) → void
-    : final Vector #context = MakeVector(3), dynamic #t1 = #context[2] = f, self::C::t = MakeClosure<() → dynamic>(self::closure#C#foo#function, #context), super core::Object::•() {
+    : final dynamic #context = MakeVector(3), dynamic #t1 = #context[2] = f, self::C::t = MakeClosure<() → dynamic>(self::closure#C#foo#function, #context), super core::Object::•() {
     core::print(1);
   }
 }
@@ -16,17 +16,17 @@ static method main() → dynamic {
   c.t().call("fisk");
   core::print(3);
 }
-static method closure#C#foo#function#function(Vector #contextParameter, dynamic x) → dynamic {
+static method closure#C#foo#function#function(dynamic #contextParameter, dynamic x) → dynamic {
   (#contextParameter[1][2]).call("${#contextParameter[2]}${x}");
 }
-static method closure#C#foo#function(Vector #contextParameter) → dynamic {
-  final Vector #context = MakeVector(3);
+static method closure#C#foo#function(dynamic #contextParameter) → dynamic {
+  final dynamic #context = MakeVector(3);
   #context[1] = #contextParameter;
   #context[2] = null;
   dynamic g = MakeClosure<(dynamic) → dynamic>(self::closure#C#foo#function#function, #context);
   #context[2] = "hest";
   return g;
 }
-static method closure#main#function(Vector #contextParameter, dynamic x) → dynamic {
+static method closure#main#function(dynamic #contextParameter, dynamic x) → dynamic {
   return core::print(x);
 }

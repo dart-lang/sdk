@@ -27,7 +27,12 @@ main(List<String> args) {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, computeClosureData, computeKernelClosureData,
         // TODO(johnnniwinther,efortuna): Enable these tests for .dill.
-        skipForKernel: ['captured_variable.dart'],
+        skipForKernel: [
+          'captured_variable.dart',
+          'mixed.dart',
+          'mutations.dart',
+          'nested_closures.dart'
+        ],
         options: [Flags.disableTypeInference],
         verbose: verbose);
   });
@@ -84,9 +89,11 @@ class ClosureAstComputer extends AstDataExtractor with ComputeValueMixin {
   visitFunctionExpression(ast.FunctionExpression node) {
     Entity localFunction = resolvedAst.elements.getFunctionDefinition(node);
     if (localFunction is LocalFunctionElement) {
+      pushMember(localFunction.callMethod);
       pushLocalFunction(node);
       super.visitFunctionExpression(node);
       popLocalFunction();
+      popMember();
     } else {
       super.visitFunctionExpression(node);
     }
@@ -96,7 +103,8 @@ class ClosureAstComputer extends AstDataExtractor with ComputeValueMixin {
   String computeNodeValue(ast.Node node, [AstElement element]) {
     if (element != null && element.isLocal) {
       if (element.isFunction) {
-        return computeObjectValue(element);
+        LocalFunctionElement localFunction = element;
+        return computeObjectValue(localFunction.callMethod);
       } else {
         LocalElement local = element;
         return computeLocalValue(local);
@@ -107,7 +115,7 @@ class ClosureAstComputer extends AstDataExtractor with ComputeValueMixin {
   }
 
   @override
-  String computeElementValue(AstElement element) {
+  String computeElementValue(covariant MemberElement element) {
     // TODO(johnniwinther,efortuna): Collect data for the member
     // (has thisLocal, has box, etc.).
     return computeObjectValue(element);
@@ -133,27 +141,36 @@ class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin<ir.Node> {
   }
 
   visitFunctionExpression(ir.FunctionExpression node) {
+    ClosureRepresentationInfo info = closureDataLookup.getClosureInfo(node);
+    pushMember(info.callMethod);
     pushLocalFunction(node);
     super.visitFunctionExpression(node);
     popLocalFunction();
+    popMember();
   }
 
   visitFunctionDeclaration(ir.FunctionDeclaration node) {
+    ClosureRepresentationInfo info = closureDataLookup.getClosureInfo(node);
+    pushMember(info.callMethod);
     pushLocalFunction(node);
     super.visitFunctionDeclaration(node);
     popLocalFunction();
+    popMember();
   }
 
   @override
   String computeNodeValue(ir.Node node) {
     if (node is ir.VariableDeclaration) {
       if (node.parent is ir.FunctionDeclaration) {
-        return computeObjectValue(node.parent);
+        ClosureRepresentationInfo info =
+            closureDataLookup.getClosureInfo(node.parent);
+        return computeObjectValue(info.callMethod);
       }
       Local local = _localsMap.getLocalVariable(node);
       return computeLocalValue(local);
     } else if (node is ir.FunctionExpression) {
-      return computeObjectValue(node);
+      ClosureRepresentationInfo info = closureDataLookup.getClosureInfo(node);
+      return computeObjectValue(info.callMethod);
     }
     return null;
   }
@@ -166,10 +183,12 @@ class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin<ir.Node> {
 
 abstract class ComputeValueMixin<T> {
   bool get verbose;
+  Map<BoxLocal, String> boxNames = <BoxLocal, String>{};
   ClosureDataLookup<T> get closureDataLookup;
   Link<ScopeInfo> scopeInfoStack = const Link<ScopeInfo>();
   ScopeInfo get scopeInfo => scopeInfoStack.head;
-  CapturedScope capturedScope;
+  CapturedScope get capturedScope => capturedScopeStack.head;
+  Link<CapturedScope> capturedScopeStack = const Link<CapturedScope>();
   Link<ClosureRepresentationInfo> closureRepresentationInfoStack =
       const Link<ClosureRepresentationInfo>();
   ClosureRepresentationInfo get closureRepresentationInfo =>
@@ -180,12 +199,17 @@ abstract class ComputeValueMixin<T> {
   void pushMember(MemberEntity member) {
     scopeInfoStack =
         scopeInfoStack.prepend(closureDataLookup.getScopeInfo(member));
-    capturedScope = closureDataLookup.getCapturedScope(member);
+    capturedScopeStack =
+        capturedScopeStack.prepend(closureDataLookup.getCapturedScope(member));
+    if (capturedScope.requiresContextBox) {
+      boxNames[capturedScope.context] = 'box${boxNames.length}';
+    }
     dump(member);
   }
 
   void popMember() {
     scopeInfoStack = scopeInfoStack.tail;
+    capturedScopeStack = capturedScopeStack.tail;
   }
 
   void pushLocalFunction(T node) {
@@ -203,19 +227,17 @@ abstract class ComputeValueMixin<T> {
 
     print('object: $object');
     if (object is MemberEntity) {
-      print(' scopeInfo (${scopeInfo.runtimeType})');
-      scopeInfo.forEachBoxedVariable((a, b) => print('  boxed1: $a->$b'));
       print(' capturedScope (${capturedScope.runtimeType})');
-      capturedScope.forEachBoxedVariable((a, b) => print('  boxed2: $a->$b'));
+      capturedScope.forEachBoxedVariable((a, b) => print('  boxed: $a->$b'));
     }
     print(
         ' closureRepresentationInfo (${closureRepresentationInfo.runtimeType})');
     closureRepresentationInfo
         ?.forEachCapturedVariable((a, b) => print('  captured: $a->$b'));
     closureRepresentationInfo
-        ?.forEachFreeVariable((a, b) => print('  free3: $a->$b'));
+        ?.forEachFreeVariable((a, b) => print('  free: $a->$b'));
     closureRepresentationInfo
-        ?.forEachBoxedVariable((a, b) => print('  boxed3: $a->$b'));
+        ?.forEachBoxedVariable((a, b) => print('  boxed: $a->$b'));
   }
 
   /// Compute a string representation of the data stored for [local] in [info].
@@ -228,14 +250,13 @@ abstract class ComputeValueMixin<T> {
     } else {
       //Expect.isFalse(capturedScope.localIsUsedInTryOrSync(local));
     }
-    if (scopeInfo.isBoxed(local)) {
+    if (capturedScope.isBoxed(local)) {
       features.add('boxed');
-      Expect.isTrue(capturedScope.isBoxed(local));
-    } else {
-      Expect.isFalse(capturedScope.isBoxed(local));
     }
     if (capturedScope.context == local) {
-      features.add('local');
+      // TODO(johnniwinther): This shouldn't happen! Remove branch/throw error
+      // when we verify it can't happen.
+      features.add('error-box');
     }
     if (capturedScope is CapturedLoopScope) {
       CapturedLoopScope loopScope = capturedScope;
@@ -247,22 +268,19 @@ abstract class ComputeValueMixin<T> {
       if (closureRepresentationInfo.createdFieldEntities.contains(local)) {
         features.add('field');
       }
-      if (closureRepresentationInfo.isVariableBoxed(local)) {
-        features.add('variable-boxed');
-      }
     }
     // TODO(johnniwinther,efortuna): Add more info?
     return (features.toList()..sort()).join(',');
   }
 
-  String computeObjectValue(Object object) {
+  String computeObjectValue(MemberEntity member) {
     Map<String, String> features = <String, String>{};
 
     void addLocals(String name, forEach(f(Local local, _))) {
       List<String> names = <String>[];
       forEach((Local local, _) {
         if (local is BoxLocal) {
-          names.add('box');
+          names.add(boxNames[local]);
         } else {
           names.add(local.name);
         }
@@ -270,26 +288,23 @@ abstract class ComputeValueMixin<T> {
       String value = names.isEmpty ? null : '[${(names..sort()).join(',')}]';
       if (features.containsKey(name)) {
         Expect.equals(
-            features[name], value, "Inconsistent values for $name on $object.");
+            features[name], value, "Inconsistent values for $name on $member.");
       }
       features[name] = value;
     }
 
-    if (object is MemberEntity) {
-      if (scopeInfo.thisLocal != null) {
-        features['hasThis'] = '';
-      }
-      addLocals('boxed', scopeInfo.forEachBoxedVariable);
-
-      if (capturedScope.requiresContextBox) {
-        features['requiresBox'] = '';
-      }
-      addLocals('boxed', capturedScope.forEachBoxedVariable);
+    if (scopeInfo.thisLocal != null) {
+      features['hasThis'] = '';
+    }
+    if (capturedScope.requiresContextBox) {
+      var keyword = 'boxed';
+      addLocals(keyword, capturedScope.forEachBoxedVariable);
+      features['box'] = '(${boxNames[capturedScope.context]} which holds '
+          '${features[keyword]})';
+      features.remove(keyword);
     }
 
     if (closureRepresentationInfo != null) {
-      addLocals('boxed', closureRepresentationInfo.forEachBoxedVariable);
-      addLocals('captured', closureRepresentationInfo.forEachCapturedVariable);
       addLocals('free', closureRepresentationInfo.forEachFreeVariable);
     }
 

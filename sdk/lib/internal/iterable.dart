@@ -174,7 +174,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
 
   Iterable<T> map<T>(T f(E element)) => new MappedListIterable<E, T>(this, f);
 
-  E reduce(E combine(var value, E element)) {
+  E reduce(E combine(E value, E element)) {
     int length = this.length;
     if (length == 0) throw IterableElementError.noElement();
     E value = elementAt(0);

@@ -382,7 +382,7 @@ abstract class Future<T> {
     try {
       // As each future completes, put its value into the corresponding
       // position in the list of values.
-      for (Future future in futures) {
+      for (var future in futures) {
         int pos = remaining;
         future.then((T value) {
           remaining--;

@@ -276,6 +276,7 @@ bool TypeRangeCache::InstanceOfHasClassRange(const AbstractType& type,
     HANDLESCOPE(thread_);
 
     if (!table->HasValidClassAt(cid)) continue;
+    if (cid == kTypeArgumentsCid) continue;
     if (cid == kVoidCid) continue;
     if (cid == kDynamicCid) continue;
     if (cid == kNullCid) continue;  // Instance is not at Bottom like Null type.
@@ -673,8 +674,9 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     if (!isolate()->class_table()->HasValidClassAt(cid)) {
       continue;
     }
-    if ((cid == kDynamicCid) || (cid == kVoidCid) ||
-        (cid == kFreeListElement) || (cid == kForwardingCorpse)) {
+    if ((cid == kTypeArgumentsCid) || (cid == kDynamicCid) ||
+        (cid == kVoidCid) || (cid == kFreeListElement) ||
+        (cid == kForwardingCorpse)) {
       continue;
     }
     cls = isolate()->class_table()->At(cid);
@@ -964,6 +966,8 @@ void Precompiler::AddCalleesOf(const Function& function) {
         instance ^= entry.raw();
         if (entry.IsAbstractType()) {
           AddType(AbstractType::Cast(entry));
+        } else if (entry.IsTypeArguments()) {
+          AddTypeArguments(TypeArguments::Cast(entry));
         } else {
           AddConstObject(instance);
         }
@@ -977,8 +981,6 @@ void Precompiler::AddCalleesOf(const Function& function) {
           cls ^= target_code.owner();
           AddInstantiatedClass(cls);
         }
-      } else if (entry.IsTypeArguments()) {
-        AddTypeArguments(TypeArguments::Cast(entry));
       }
     }
   }
@@ -1157,7 +1159,9 @@ void Precompiler::AddConstObject(const Instance& instance) {
     virtual void VisitPointers(RawObject** first, RawObject** last) {
       for (RawObject** current = first; current <= last; current++) {
         subinstance_ = *current;
-        if (subinstance_.IsInstance()) {
+        if (subinstance_.IsTypeArguments()) {
+          precompiler_->AddTypeArguments(TypeArguments::Cast(subinstance_));
+        } else if (subinstance_.IsInstance()) {
           precompiler_->AddConstObject(Instance::Cast(subinstance_));
         }
       }

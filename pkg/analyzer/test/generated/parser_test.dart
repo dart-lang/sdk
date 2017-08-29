@@ -1297,6 +1297,13 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(assertInitializer.message, isNull);
   }
 
+  void test_parseConstructor_factory_const_external() {
+    createParser('external const factory C();');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertNoErrors();
+  }
+
   void test_parseConstructor_factory_named() {
     createParser('factory C.foo() => null;');
     var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
@@ -2658,6 +2665,20 @@ class Foo {
     expect(clazz.name.name, 'A');
   }
 
+  void test_expectedToken_semicolonMissingAfterExpression() {
+    parseStatement("x");
+    assertErrorsWithCodes([ParserErrorCode.EXPECTED_TOKEN]);
+  }
+
+  void test_expectedToken_semicolonMissingAfterImport() {
+    CompilationUnit unit = parseCompilationUnit(
+        "import '' class A {}", [ParserErrorCode.EXPECTED_TOKEN]);
+    ImportDirective directive = unit.directives[0] as ImportDirective;
+    Token semicolon = directive.semicolon;
+    expect(semicolon, isNotNull);
+    expect(semicolon.isSynthetic, isTrue);
+  }
+
   void test_expectedToken_uriAndSemicolonMissingAfterExport() {
     CompilationUnit unit = parseCompilationUnit("export class A {}", [
       ParserErrorCode.EXPECTED_STRING_LITERAL,
@@ -2673,20 +2694,6 @@ class Foo {
     expect(semicolon.isSynthetic, isTrue);
     ClassDeclaration clazz = unit.declarations[0] as ClassDeclaration;
     expect(clazz.name.name, 'A');
-  }
-
-  void test_expectedToken_semicolonMissingAfterExpression() {
-    parseStatement("x");
-    assertErrorsWithCodes([ParserErrorCode.EXPECTED_TOKEN]);
-  }
-
-  void test_expectedToken_semicolonMissingAfterImport() {
-    CompilationUnit unit = parseCompilationUnit(
-        "import '' class A {}", [ParserErrorCode.EXPECTED_TOKEN]);
-    ImportDirective directive = unit.directives[0] as ImportDirective;
-    Token semicolon = directive.semicolon;
-    expect(semicolon, isNotNull);
-    expect(semicolon.isSynthetic, isTrue);
   }
 
   void test_expectedToken_whileMissingInDoStatement() {
@@ -8277,13 +8284,6 @@ abstract class FormalParameterParserTestMixin
 
 @reflectiveTest
 class NonErrorParserTest extends ParserTestCase {
-  void test_constFactory_external() {
-    createParser('external const factory C();');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-  }
-
   void test_staticMethod_notParsingFunctionBodies() {
     ParserTestCase.parseFunctionBodies = false;
     try {
@@ -8728,7 +8728,9 @@ class ParserTestCase extends EngineTestCase
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
     scanner.scanGenericMethodComments = enableGenericMethodComments;
-    scanner.scanLazyAssignmentOperators = enableLazyAssignmentOperators;
+    if (enableLazyAssignmentOperators != null) {
+      scanner.scanLazyAssignmentOperators = enableLazyAssignmentOperators;
+    }
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
@@ -8833,11 +8835,17 @@ class ParserTestHelpers {
 }
 
 /**
- * The class `RecoveryParserTest` defines parser tests that test the parsing of invalid code
- * sequences to ensure that the correct recovery steps are taken in the parser.
+ * Tests of the analyzer parser based on [RecoveryParserTestMixin].
  */
 @reflectiveTest
-class RecoveryParserTest extends ParserTestCase {
+class RecoveryParserTest extends ParserTestCase with RecoveryParserTestMixin {}
+
+/**
+ * The class `RecoveryParserTest` defines parser tests that test the parsing of
+ * invalid code sequences to ensure that the correct recovery steps are taken in
+ * the parser.
+ */
+abstract class RecoveryParserTestMixin implements AbstractParserTestCase {
   void test_additiveExpression_missing_LHS() {
     BinaryExpression expression =
         parseExpression("+ y", [ParserErrorCode.MISSING_IDENTIFIER]);
@@ -10033,14 +10041,10 @@ class C {
 }
 
 /**
- * The class `SimpleParserTest` defines parser tests that test individual parsing method. The
- * code fragments should be as minimal as possible in order to test the method, but should not test
- * the interactions between the method under test and other methods.
- *
- * More complex tests should be defined in the class [ComplexParserTest].
+ * Tests of the analyzer parser based on [SimpleParserTestMixin].
  */
 @reflectiveTest
-class SimpleParserTest extends ParserTestCase {
+class SimpleParserTest extends ParserTestCase with SimpleParserTestMixin {
   void test_computeStringValue_emptyInterpolationPrefix() {
     expect(_computeStringValue("'''", true, false), "");
   }
@@ -10327,310 +10331,6 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_isSwitchMember_false() {
     expect(_isSwitchMember("break;"), isFalse);
-  }
-
-  void test_parseAnnotation_n1() {
-    createParser('@A');
-    Annotation annotation = parser.parseAnnotation();
-    expectNotNullIfNoErrors(annotation);
-    listener.assertNoErrors();
-    expect(annotation.atSign, isNotNull);
-    expect(annotation.name, isNotNull);
-    expect(annotation.period, isNull);
-    expect(annotation.constructorName, isNull);
-    expect(annotation.arguments, isNull);
-  }
-
-  void test_parseAnnotation_n1_a() {
-    createParser('@A(x,y)');
-    Annotation annotation = parser.parseAnnotation();
-    expectNotNullIfNoErrors(annotation);
-    listener.assertNoErrors();
-    expect(annotation.atSign, isNotNull);
-    expect(annotation.name, isNotNull);
-    expect(annotation.period, isNull);
-    expect(annotation.constructorName, isNull);
-    expect(annotation.arguments, isNotNull);
-  }
-
-  void test_parseAnnotation_n2() {
-    createParser('@A.B');
-    Annotation annotation = parser.parseAnnotation();
-    expectNotNullIfNoErrors(annotation);
-    listener.assertNoErrors();
-    expect(annotation.atSign, isNotNull);
-    expect(annotation.name, isNotNull);
-    expect(annotation.period, isNull);
-    expect(annotation.constructorName, isNull);
-    expect(annotation.arguments, isNull);
-  }
-
-  void test_parseAnnotation_n2_a() {
-    createParser('@A.B(x,y)');
-    Annotation annotation = parser.parseAnnotation();
-    expectNotNullIfNoErrors(annotation);
-    listener.assertNoErrors();
-    expect(annotation.atSign, isNotNull);
-    expect(annotation.name, isNotNull);
-    expect(annotation.period, isNull);
-    expect(annotation.constructorName, isNull);
-    expect(annotation.arguments, isNotNull);
-  }
-
-  void test_parseAnnotation_n3() {
-    createParser('@A.B.C');
-    Annotation annotation = parser.parseAnnotation();
-    expectNotNullIfNoErrors(annotation);
-    listener.assertNoErrors();
-    expect(annotation.atSign, isNotNull);
-    expect(annotation.name, isNotNull);
-    expect(annotation.period, isNotNull);
-    expect(annotation.constructorName, isNotNull);
-    expect(annotation.arguments, isNull);
-  }
-
-  void test_parseAnnotation_n3_a() {
-    createParser('@A.B.C(x,y)');
-    Annotation annotation = parser.parseAnnotation();
-    expectNotNullIfNoErrors(annotation);
-    listener.assertNoErrors();
-    expect(annotation.atSign, isNotNull);
-    expect(annotation.name, isNotNull);
-    expect(annotation.period, isNotNull);
-    expect(annotation.constructorName, isNotNull);
-    expect(annotation.arguments, isNotNull);
-  }
-
-  void test_parseArgument_named() {
-    createParser('n: x');
-    Expression expression = parser.parseArgument();
-    expectNotNullIfNoErrors(expression);
-    listener.assertNoErrors();
-    expect(expression, new isInstanceOf<NamedExpression>());
-    NamedExpression namedExpression = expression;
-    Label name = namedExpression.name;
-    expect(name, isNotNull);
-    expect(name.label, isNotNull);
-    expect(name.colon, isNotNull);
-    expect(namedExpression.expression, isNotNull);
-  }
-
-  void test_parseArgument_unnamed() {
-    String lexeme = "x";
-    createParser(lexeme);
-    Expression expression = parser.parseArgument();
-    expectNotNullIfNoErrors(expression);
-    listener.assertNoErrors();
-    var identifier = expression as SimpleIdentifier;
-    expect(identifier.name, lexeme);
-  }
-
-  void test_parseArgumentList_empty() {
-    createParser('()');
-    ArgumentList argumentList = parser.parseArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    listener.assertNoErrors();
-    NodeList<Expression> arguments = argumentList.arguments;
-    expect(arguments, hasLength(0));
-  }
-
-  void test_parseArgumentList_mixed() {
-    createParser('(w, x, y: y, z: z)');
-    ArgumentList argumentList = parser.parseArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    listener.assertNoErrors();
-    NodeList<Expression> arguments = argumentList.arguments;
-    expect(arguments, hasLength(4));
-  }
-
-  void test_parseArgumentList_noNamed() {
-    createParser('(x, y, z)');
-    ArgumentList argumentList = parser.parseArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    listener.assertNoErrors();
-    NodeList<Expression> arguments = argumentList.arguments;
-    expect(arguments, hasLength(3));
-  }
-
-  void test_parseArgumentList_onlyNamed() {
-    createParser('(x: x, y: y)');
-    ArgumentList argumentList = parser.parseArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    listener.assertNoErrors();
-    NodeList<Expression> arguments = argumentList.arguments;
-    expect(arguments, hasLength(2));
-  }
-
-  void test_parseArgumentList_trailing_comma() {
-    createParser('(x, y, z,)');
-    ArgumentList argumentList = parser.parseArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    listener.assertNoErrors();
-    NodeList<Expression> arguments = argumentList.arguments;
-    expect(arguments, hasLength(3));
-  }
-
-  void test_parseCombinator_hide() {
-    createParser('hide a;');
-    Combinator combinator = parser.parseCombinator();
-    expectNotNullIfNoErrors(combinator);
-    listener.assertNoErrors();
-    expect(combinator, new isInstanceOf<HideCombinator>());
-    HideCombinator hideCombinator = combinator;
-    expect(hideCombinator.keyword, isNotNull);
-    expect(hideCombinator.hiddenNames, hasLength(1));
-  }
-
-  void test_parseCombinator_show() {
-    createParser('show a;');
-    Combinator combinator = parser.parseCombinator();
-    expectNotNullIfNoErrors(combinator);
-    listener.assertNoErrors();
-    expect(combinator, new isInstanceOf<ShowCombinator>());
-    ShowCombinator showCombinator = combinator;
-    expect(showCombinator.keyword, isNotNull);
-    expect(showCombinator.shownNames, hasLength(1));
-  }
-
-  void test_parseCombinators_h() {
-    createParser('hide a;');
-    List<Combinator> combinators = parser.parseCombinators();
-    expectNotNullIfNoErrors(combinators);
-    listener.assertNoErrors();
-    expect(combinators, hasLength(1));
-    HideCombinator combinator = combinators[0] as HideCombinator;
-    expect(combinator, isNotNull);
-    expect(combinator.keyword, isNotNull);
-    expect(combinator.hiddenNames, hasLength(1));
-  }
-
-  void test_parseCombinators_hs() {
-    createParser('hide a show b;');
-    List<Combinator> combinators = parser.parseCombinators();
-    expectNotNullIfNoErrors(combinators);
-    listener.assertNoErrors();
-    expect(combinators, hasLength(2));
-    HideCombinator hideCombinator = combinators[0] as HideCombinator;
-    expect(hideCombinator, isNotNull);
-    expect(hideCombinator.keyword, isNotNull);
-    expect(hideCombinator.hiddenNames, hasLength(1));
-    ShowCombinator showCombinator = combinators[1] as ShowCombinator;
-    expect(showCombinator, isNotNull);
-    expect(showCombinator.keyword, isNotNull);
-    expect(showCombinator.shownNames, hasLength(1));
-  }
-
-  void test_parseCombinators_hshs() {
-    createParser('hide a show b hide c show d;');
-    List<Combinator> combinators = parser.parseCombinators();
-    expectNotNullIfNoErrors(combinators);
-    listener.assertNoErrors();
-    expect(combinators, hasLength(4));
-  }
-
-  void test_parseCombinators_s() {
-    createParser('show a;');
-    List<Combinator> combinators = parser.parseCombinators();
-    expectNotNullIfNoErrors(combinators);
-    listener.assertNoErrors();
-    expect(combinators, hasLength(1));
-    ShowCombinator combinator = combinators[0] as ShowCombinator;
-    expect(combinator, isNotNull);
-    expect(combinator.keyword, isNotNull);
-    expect(combinator.shownNames, hasLength(1));
-  }
-
-  void test_parseCommentAndMetadata_c() {
-    createParser('/** 1 */ void');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
-    listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, isNull);
-  }
-
-  void test_parseCommentAndMetadata_cmc() {
-    createParser('/** 1 */ @A /** 2 */ void');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
-    listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, hasLength(1));
-  }
-
-  void test_parseCommentAndMetadata_cmcm() {
-    createParser('/** 1 */ @A /** 2 */ @B void');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
-    listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, hasLength(2));
-  }
-
-  void test_parseCommentAndMetadata_cmm() {
-    createParser('/** 1 */ @A @B void');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
-    listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, hasLength(2));
-  }
-
-  void test_parseCommentAndMetadata_m() {
-    createParser('@A void');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
-    listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNull);
-    expect(commentAndMetadata.metadata, hasLength(1));
-  }
-
-  void test_parseCommentAndMetadata_mcm() {
-    createParser('@A /** 1 */ @B void');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
-    listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, hasLength(2));
-  }
-
-  void test_parseCommentAndMetadata_mcmc() {
-    createParser('@A /** 1 */ @B /** 2 */ void');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
-    listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, hasLength(2));
-  }
-
-  void test_parseCommentAndMetadata_mm() {
-    createParser('@A @B(x) void');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
-    listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNull);
-    expect(commentAndMetadata.metadata, hasLength(2));
-  }
-
-  void test_parseCommentAndMetadata_none() {
-    createParser('void');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
-    listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNull);
-    expect(commentAndMetadata.metadata, isNull);
-  }
-
-  void test_parseCommentAndMetadata_singleLine() {
-    createParser(r'''
-/// 1
-/// 2
-void''');
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    expectNotNullIfNoErrors(commentAndMetadata);
-    listener.assertNoErrors();
-    expect(commentAndMetadata.comment, isNotNull);
-    expect(commentAndMetadata.metadata, isNull);
   }
 
   void test_parseCommentReference_new_prefixed() {
@@ -11070,6 +10770,540 @@ void''');
     expect(reference.offset, 15);
   }
 
+  void test_Parser() {
+    expect(new Parser(null, null), isNotNull);
+  }
+
+  void test_skipPrefixedIdentifier_invalid() {
+    createParser('+');
+    Token following = parser.skipPrefixedIdentifier(parser.currentToken);
+    expect(following, isNull);
+  }
+
+  void test_skipPrefixedIdentifier_notPrefixed() {
+    createParser('a +');
+    Token following = parser.skipPrefixedIdentifier(parser.currentToken);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
+  }
+
+  void test_skipPrefixedIdentifier_prefixed() {
+    createParser('a.b +');
+    Token following = parser.skipPrefixedIdentifier(parser.currentToken);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
+  }
+
+  void test_skipReturnType_invalid() {
+    // TODO(eernst): `skipReturnType` eliminated, delete this test?
+    createParser('+');
+    Token following = parser.skipTypeAnnotation(parser.currentToken);
+    expect(following, isNull);
+  }
+
+  void test_skipReturnType_type() {
+    // TODO(eernst): `skipReturnType` eliminated, delete this test?
+    createParser('C +');
+    Token following = parser.skipTypeAnnotation(parser.currentToken);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
+  }
+
+  void test_skipReturnType_void() {
+    // TODO(eernst): `skipReturnType` eliminated, delete this test?
+    createParser('void +');
+    Token following = parser.skipTypeAnnotation(parser.currentToken);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
+  }
+
+  void test_skipSimpleIdentifier_identifier() {
+    createParser('i +');
+    Token following = parser.skipSimpleIdentifier(parser.currentToken);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
+  }
+
+  void test_skipSimpleIdentifier_invalid() {
+    createParser('9 +');
+    Token following = parser.skipSimpleIdentifier(parser.currentToken);
+    expect(following, isNull);
+  }
+
+  void test_skipSimpleIdentifier_pseudoKeyword() {
+    createParser('as +');
+    Token following = parser.skipSimpleIdentifier(parser.currentToken);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
+  }
+
+  void test_skipStringLiteral_adjacent() {
+    createParser("'a' 'b' +");
+    Token following = parser.skipStringLiteral(parser.currentToken);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
+  }
+
+  void test_skipStringLiteral_interpolated() {
+    createParser("'a\${b}c' +");
+    Token following = parser.skipStringLiteral(parser.currentToken);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
+  }
+
+  void test_skipStringLiteral_invalid() {
+    createParser('a');
+    Token following = parser.skipStringLiteral(parser.currentToken);
+    expect(following, isNull);
+  }
+
+  void test_skipStringLiteral_single() {
+    createParser("'a' +");
+    Token following = parser.skipStringLiteral(parser.currentToken);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
+  }
+
+  void test_skipTypeArgumentList_invalid() {
+    createParser('+');
+    Token following = parser.skipTypeArgumentList(parser.currentToken);
+    expect(following, isNull);
+  }
+
+  void test_skipTypeArgumentList_multiple() {
+    createParser('<E, F, G> +');
+    Token following = parser.skipTypeArgumentList(parser.currentToken);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
+  }
+
+  void test_skipTypeArgumentList_single() {
+    createParser('<E> +');
+    Token following = parser.skipTypeArgumentList(parser.currentToken);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
+  }
+
+  void test_skipTypeName_invalid() {
+    createParser('+');
+    Token following = parser.skipTypeName(parser.currentToken);
+    expect(following, isNull);
+  }
+
+  void test_skipTypeName_parameterized() {
+    createParser('C<E<F<G>>> +');
+    Token following = parser.skipTypeName(parser.currentToken);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
+  }
+
+  void test_skipTypeName_simple() {
+    createParser('C +');
+    Token following = parser.skipTypeName(parser.currentToken);
+    expect(following, isNotNull);
+    expect(following.type, TokenType.PLUS);
+  }
+
+  /**
+   * Invoke the method [Parser.computeStringValue] with the given argument.
+   *
+   * @param lexeme the argument to the method
+   * @param first `true` if this is the first token in a string literal
+   * @param last `true` if this is the last token in a string literal
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   */
+  String _computeStringValue(String lexeme, bool first, bool last) {
+    createParser('');
+    String value = parser.computeStringValue(lexeme, first, last);
+    listener.assertNoErrors();
+    return value;
+  }
+
+  /**
+   * Invoke the method [Parser.isFunctionDeclaration] with the parser set to the token
+   * stream produced by scanning the given source.
+   *
+   * @param source the source to be scanned to produce the token stream being tested
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   */
+  bool _isFunctionDeclaration(String source) {
+    createParser(source);
+    bool result = parser.isFunctionDeclaration();
+    expectNotNullIfNoErrors(result);
+    return result;
+  }
+
+  /**
+   * Invoke the method [Parser.isFunctionExpression] with the parser set to the token stream
+   * produced by scanning the given source.
+   *
+   * @param source the source to be scanned to produce the token stream being tested
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   */
+  bool _isFunctionExpression(String source) {
+    createParser(source);
+    return parser.isFunctionExpression(parser.currentToken);
+  }
+
+  /**
+   * Invoke the method [Parser.isInitializedVariableDeclaration] with the parser set to the
+   * token stream produced by scanning the given source.
+   *
+   * @param source the source to be scanned to produce the token stream being tested
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   */
+  bool _isInitializedVariableDeclaration(String source) {
+    createParser(source);
+    bool result = parser.isInitializedVariableDeclaration();
+    expectNotNullIfNoErrors(result);
+    return result;
+  }
+
+  /**
+   * Invoke the method [Parser.isSwitchMember] with the parser set to the token stream
+   * produced by scanning the given source.
+   *
+   * @param source the source to be scanned to produce the token stream being tested
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   */
+  bool _isSwitchMember(String source) {
+    createParser(source);
+    bool result = parser.isSwitchMember();
+    expectNotNullIfNoErrors(result);
+    return result;
+  }
+}
+
+/**
+ * Parser tests that test individual parsing methods. The code fragments should
+ * be as minimal as possible in order to test the method, but should not test
+ * the interactions between the method under test and other methods.
+ *
+ * More complex tests should be defined in the class [ComplexParserTest].
+ */
+abstract class SimpleParserTestMixin implements AbstractParserTestCase {
+  /**
+   * Parse the given [content] as a sequence of statements by enclosing it in a
+   * block. The [expectedCount] is the number of statements that are expected to
+   * be parsed. If [errorCodes] are provided, verify that the error codes of the
+   * errors that are expected are found.
+   */
+  void parseStatementList(String content, int expectedCount) {
+    Statement statement = parseStatement('{$content}');
+    expect(statement, new isInstanceOf<Block>());
+    Block block = statement;
+    expect(block.statements, hasLength(expectedCount));
+  }
+
+  void test_parseAnnotation_n1() {
+    createParser('@A');
+    Annotation annotation = parser.parseAnnotation();
+    expectNotNullIfNoErrors(annotation);
+    listener.assertNoErrors();
+    expect(annotation.atSign, isNotNull);
+    expect(annotation.name, isNotNull);
+    expect(annotation.period, isNull);
+    expect(annotation.constructorName, isNull);
+    expect(annotation.arguments, isNull);
+  }
+
+  void test_parseAnnotation_n1_a() {
+    createParser('@A(x,y)');
+    Annotation annotation = parser.parseAnnotation();
+    expectNotNullIfNoErrors(annotation);
+    listener.assertNoErrors();
+    expect(annotation.atSign, isNotNull);
+    expect(annotation.name, isNotNull);
+    expect(annotation.period, isNull);
+    expect(annotation.constructorName, isNull);
+    expect(annotation.arguments, isNotNull);
+  }
+
+  void test_parseAnnotation_n2() {
+    createParser('@A.B');
+    Annotation annotation = parser.parseAnnotation();
+    expectNotNullIfNoErrors(annotation);
+    listener.assertNoErrors();
+    expect(annotation.atSign, isNotNull);
+    expect(annotation.name, isNotNull);
+    expect(annotation.period, isNull);
+    expect(annotation.constructorName, isNull);
+    expect(annotation.arguments, isNull);
+  }
+
+  void test_parseAnnotation_n2_a() {
+    createParser('@A.B(x,y)');
+    Annotation annotation = parser.parseAnnotation();
+    expectNotNullIfNoErrors(annotation);
+    listener.assertNoErrors();
+    expect(annotation.atSign, isNotNull);
+    expect(annotation.name, isNotNull);
+    expect(annotation.period, isNull);
+    expect(annotation.constructorName, isNull);
+    expect(annotation.arguments, isNotNull);
+  }
+
+  void test_parseAnnotation_n3() {
+    createParser('@A.B.C');
+    Annotation annotation = parser.parseAnnotation();
+    expectNotNullIfNoErrors(annotation);
+    listener.assertNoErrors();
+    expect(annotation.atSign, isNotNull);
+    expect(annotation.name, isNotNull);
+    expect(annotation.period, isNotNull);
+    expect(annotation.constructorName, isNotNull);
+    expect(annotation.arguments, isNull);
+  }
+
+  void test_parseAnnotation_n3_a() {
+    createParser('@A.B.C(x,y)');
+    Annotation annotation = parser.parseAnnotation();
+    expectNotNullIfNoErrors(annotation);
+    listener.assertNoErrors();
+    expect(annotation.atSign, isNotNull);
+    expect(annotation.name, isNotNull);
+    expect(annotation.period, isNotNull);
+    expect(annotation.constructorName, isNotNull);
+    expect(annotation.arguments, isNotNull);
+  }
+
+  void test_parseArgument_named() {
+    createParser('n: x');
+    Expression expression = parser.parseArgument();
+    expectNotNullIfNoErrors(expression);
+    listener.assertNoErrors();
+    expect(expression, new isInstanceOf<NamedExpression>());
+    NamedExpression namedExpression = expression;
+    Label name = namedExpression.name;
+    expect(name, isNotNull);
+    expect(name.label, isNotNull);
+    expect(name.colon, isNotNull);
+    expect(namedExpression.expression, isNotNull);
+  }
+
+  void test_parseArgument_unnamed() {
+    String lexeme = "x";
+    createParser(lexeme);
+    Expression expression = parser.parseArgument();
+    expectNotNullIfNoErrors(expression);
+    listener.assertNoErrors();
+    var identifier = expression as SimpleIdentifier;
+    expect(identifier.name, lexeme);
+  }
+
+  void test_parseArgumentList_empty() {
+    createParser('()');
+    ArgumentList argumentList = parser.parseArgumentList();
+    expectNotNullIfNoErrors(argumentList);
+    listener.assertNoErrors();
+    NodeList<Expression> arguments = argumentList.arguments;
+    expect(arguments, hasLength(0));
+  }
+
+  void test_parseArgumentList_mixed() {
+    createParser('(w, x, y: y, z: z)');
+    ArgumentList argumentList = parser.parseArgumentList();
+    expectNotNullIfNoErrors(argumentList);
+    listener.assertNoErrors();
+    NodeList<Expression> arguments = argumentList.arguments;
+    expect(arguments, hasLength(4));
+  }
+
+  void test_parseArgumentList_noNamed() {
+    createParser('(x, y, z)');
+    ArgumentList argumentList = parser.parseArgumentList();
+    expectNotNullIfNoErrors(argumentList);
+    listener.assertNoErrors();
+    NodeList<Expression> arguments = argumentList.arguments;
+    expect(arguments, hasLength(3));
+  }
+
+  void test_parseArgumentList_onlyNamed() {
+    createParser('(x: x, y: y)');
+    ArgumentList argumentList = parser.parseArgumentList();
+    expectNotNullIfNoErrors(argumentList);
+    listener.assertNoErrors();
+    NodeList<Expression> arguments = argumentList.arguments;
+    expect(arguments, hasLength(2));
+  }
+
+  void test_parseArgumentList_trailing_comma() {
+    createParser('(x, y, z,)');
+    ArgumentList argumentList = parser.parseArgumentList();
+    expectNotNullIfNoErrors(argumentList);
+    listener.assertNoErrors();
+    NodeList<Expression> arguments = argumentList.arguments;
+    expect(arguments, hasLength(3));
+  }
+
+  void test_parseCombinator_hide() {
+    createParser('hide a;');
+    Combinator combinator = parser.parseCombinator();
+    expectNotNullIfNoErrors(combinator);
+    listener.assertNoErrors();
+    expect(combinator, new isInstanceOf<HideCombinator>());
+    HideCombinator hideCombinator = combinator;
+    expect(hideCombinator.keyword, isNotNull);
+    expect(hideCombinator.hiddenNames, hasLength(1));
+  }
+
+  void test_parseCombinator_show() {
+    createParser('show a;');
+    Combinator combinator = parser.parseCombinator();
+    expectNotNullIfNoErrors(combinator);
+    listener.assertNoErrors();
+    expect(combinator, new isInstanceOf<ShowCombinator>());
+    ShowCombinator showCombinator = combinator;
+    expect(showCombinator.keyword, isNotNull);
+    expect(showCombinator.shownNames, hasLength(1));
+  }
+
+  void test_parseCombinators_h() {
+    createParser('hide a;');
+    List<Combinator> combinators = parser.parseCombinators();
+    expectNotNullIfNoErrors(combinators);
+    listener.assertNoErrors();
+    expect(combinators, hasLength(1));
+    HideCombinator combinator = combinators[0] as HideCombinator;
+    expect(combinator, isNotNull);
+    expect(combinator.keyword, isNotNull);
+    expect(combinator.hiddenNames, hasLength(1));
+  }
+
+  void test_parseCombinators_hs() {
+    createParser('hide a show b;');
+    List<Combinator> combinators = parser.parseCombinators();
+    expectNotNullIfNoErrors(combinators);
+    listener.assertNoErrors();
+    expect(combinators, hasLength(2));
+    HideCombinator hideCombinator = combinators[0] as HideCombinator;
+    expect(hideCombinator, isNotNull);
+    expect(hideCombinator.keyword, isNotNull);
+    expect(hideCombinator.hiddenNames, hasLength(1));
+    ShowCombinator showCombinator = combinators[1] as ShowCombinator;
+    expect(showCombinator, isNotNull);
+    expect(showCombinator.keyword, isNotNull);
+    expect(showCombinator.shownNames, hasLength(1));
+  }
+
+  void test_parseCombinators_hshs() {
+    createParser('hide a show b hide c show d;');
+    List<Combinator> combinators = parser.parseCombinators();
+    expectNotNullIfNoErrors(combinators);
+    listener.assertNoErrors();
+    expect(combinators, hasLength(4));
+  }
+
+  void test_parseCombinators_s() {
+    createParser('show a;');
+    List<Combinator> combinators = parser.parseCombinators();
+    expectNotNullIfNoErrors(combinators);
+    listener.assertNoErrors();
+    expect(combinators, hasLength(1));
+    ShowCombinator combinator = combinators[0] as ShowCombinator;
+    expect(combinator, isNotNull);
+    expect(combinator.keyword, isNotNull);
+    expect(combinator.shownNames, hasLength(1));
+  }
+
+  void test_parseCommentAndMetadata_c() {
+    createParser('/** 1 */ void');
+    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
+    expectNotNullIfNoErrors(commentAndMetadata);
+    listener.assertNoErrors();
+    expect(commentAndMetadata.comment, isNotNull);
+    expect(commentAndMetadata.metadata, isNull);
+  }
+
+  void test_parseCommentAndMetadata_cmc() {
+    createParser('/** 1 */ @A /** 2 */ void');
+    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
+    expectNotNullIfNoErrors(commentAndMetadata);
+    listener.assertNoErrors();
+    expect(commentAndMetadata.comment, isNotNull);
+    expect(commentAndMetadata.metadata, hasLength(1));
+  }
+
+  void test_parseCommentAndMetadata_cmcm() {
+    createParser('/** 1 */ @A /** 2 */ @B void');
+    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
+    expectNotNullIfNoErrors(commentAndMetadata);
+    listener.assertNoErrors();
+    expect(commentAndMetadata.comment, isNotNull);
+    expect(commentAndMetadata.metadata, hasLength(2));
+  }
+
+  void test_parseCommentAndMetadata_cmm() {
+    createParser('/** 1 */ @A @B void');
+    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
+    expectNotNullIfNoErrors(commentAndMetadata);
+    listener.assertNoErrors();
+    expect(commentAndMetadata.comment, isNotNull);
+    expect(commentAndMetadata.metadata, hasLength(2));
+  }
+
+  void test_parseCommentAndMetadata_m() {
+    createParser('@A void');
+    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
+    expectNotNullIfNoErrors(commentAndMetadata);
+    listener.assertNoErrors();
+    expect(commentAndMetadata.comment, isNull);
+    expect(commentAndMetadata.metadata, hasLength(1));
+  }
+
+  void test_parseCommentAndMetadata_mcm() {
+    createParser('@A /** 1 */ @B void');
+    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
+    expectNotNullIfNoErrors(commentAndMetadata);
+    listener.assertNoErrors();
+    expect(commentAndMetadata.comment, isNotNull);
+    expect(commentAndMetadata.metadata, hasLength(2));
+  }
+
+  void test_parseCommentAndMetadata_mcmc() {
+    createParser('@A /** 1 */ @B /** 2 */ void');
+    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
+    expectNotNullIfNoErrors(commentAndMetadata);
+    listener.assertNoErrors();
+    expect(commentAndMetadata.comment, isNotNull);
+    expect(commentAndMetadata.metadata, hasLength(2));
+  }
+
+  void test_parseCommentAndMetadata_mm() {
+    createParser('@A @B(x) void');
+    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
+    expectNotNullIfNoErrors(commentAndMetadata);
+    listener.assertNoErrors();
+    expect(commentAndMetadata.comment, isNull);
+    expect(commentAndMetadata.metadata, hasLength(2));
+  }
+
+  void test_parseCommentAndMetadata_none() {
+    createParser('void');
+    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
+    expectNotNullIfNoErrors(commentAndMetadata);
+    listener.assertNoErrors();
+    expect(commentAndMetadata.comment, isNull);
+    expect(commentAndMetadata.metadata, isNull);
+  }
+
+  void test_parseCommentAndMetadata_singleLine() {
+    createParser(r'''
+/// 1
+/// 2
+void''');
+    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
+    expectNotNullIfNoErrors(commentAndMetadata);
+    listener.assertNoErrors();
+    expect(commentAndMetadata.comment, isNotNull);
+    expect(commentAndMetadata.metadata, isNull);
+  }
+
   void test_parseConfiguration_noOperator_dottedIdentifier() {
     createParser("if (a.b) 'c.dart'");
     Configuration configuration = parser.parseConfiguration();
@@ -11124,10 +11358,6 @@ void''');
     expect(configuration.value, isNotNull);
     expect(configuration.rightParenthesis, isNotNull);
     expect(configuration.uri, isNotNull);
-  }
-
-  void test_parseConstructor() {
-    // TODO(brianwilkerson) Implement tests for this method.
   }
 
   void test_parseConstructorName_named_noPrefix() {
@@ -11686,10 +11916,6 @@ void''');
     // TODO(brianwilkerson) Implement tests for this method.
   }
 
-  void test_Parser() {
-    expect(new Parser(null, null), isNotNull);
-  }
-
   void test_parseReturnStatement_noValue() {
     createParser('return;');
     ReturnStatement statement = parser.parseReturnStatement();
@@ -11756,13 +11982,11 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseStatements_multiple() {
-    List<Statement> statements = parseStatements("return; return;", 2);
-    expect(statements, hasLength(2));
+    parseStatementList("return; return;", 2);
   }
 
   void test_parseStatements_single() {
-    List<Statement> statements = parseStatements("return;", 1);
-    expect(statements, hasLength(1));
+    parseStatementList("return;", 1);
   }
 
   void test_parseTypeAnnotation_function_noReturnType_noParameters() {
@@ -12221,210 +12445,6 @@ Function<A>(core.List<core.int> x) m() => null;
     listener.assertNoErrors();
     expect(clause.withKeyword, isNotNull);
     expect(clause.mixinTypes, hasLength(1));
-  }
-
-  void test_skipPrefixedIdentifier_invalid() {
-    createParser('+');
-    Token following = parser.skipPrefixedIdentifier(parser.currentToken);
-    expect(following, isNull);
-  }
-
-  void test_skipPrefixedIdentifier_notPrefixed() {
-    createParser('a +');
-    Token following = parser.skipPrefixedIdentifier(parser.currentToken);
-    expect(following, isNotNull);
-    expect(following.type, TokenType.PLUS);
-  }
-
-  void test_skipPrefixedIdentifier_prefixed() {
-    createParser('a.b +');
-    Token following = parser.skipPrefixedIdentifier(parser.currentToken);
-    expect(following, isNotNull);
-    expect(following.type, TokenType.PLUS);
-  }
-
-  void test_skipReturnType_invalid() {
-    // TODO(eernst): `skipReturnType` eliminated, delete this test?
-    createParser('+');
-    Token following = parser.skipTypeAnnotation(parser.currentToken);
-    expect(following, isNull);
-  }
-
-  void test_skipReturnType_type() {
-    // TODO(eernst): `skipReturnType` eliminated, delete this test?
-    createParser('C +');
-    Token following = parser.skipTypeAnnotation(parser.currentToken);
-    expect(following, isNotNull);
-    expect(following.type, TokenType.PLUS);
-  }
-
-  void test_skipReturnType_void() {
-    // TODO(eernst): `skipReturnType` eliminated, delete this test?
-    createParser('void +');
-    Token following = parser.skipTypeAnnotation(parser.currentToken);
-    expect(following, isNotNull);
-    expect(following.type, TokenType.PLUS);
-  }
-
-  void test_skipSimpleIdentifier_identifier() {
-    createParser('i +');
-    Token following = parser.skipSimpleIdentifier(parser.currentToken);
-    expect(following, isNotNull);
-    expect(following.type, TokenType.PLUS);
-  }
-
-  void test_skipSimpleIdentifier_invalid() {
-    createParser('9 +');
-    Token following = parser.skipSimpleIdentifier(parser.currentToken);
-    expect(following, isNull);
-  }
-
-  void test_skipSimpleIdentifier_pseudoKeyword() {
-    createParser('as +');
-    Token following = parser.skipSimpleIdentifier(parser.currentToken);
-    expect(following, isNotNull);
-    expect(following.type, TokenType.PLUS);
-  }
-
-  void test_skipStringLiteral_adjacent() {
-    createParser("'a' 'b' +");
-    Token following = parser.skipStringLiteral(parser.currentToken);
-    expect(following, isNotNull);
-    expect(following.type, TokenType.PLUS);
-  }
-
-  void test_skipStringLiteral_interpolated() {
-    createParser("'a\${b}c' +");
-    Token following = parser.skipStringLiteral(parser.currentToken);
-    expect(following, isNotNull);
-    expect(following.type, TokenType.PLUS);
-  }
-
-  void test_skipStringLiteral_invalid() {
-    createParser('a');
-    Token following = parser.skipStringLiteral(parser.currentToken);
-    expect(following, isNull);
-  }
-
-  void test_skipStringLiteral_single() {
-    createParser("'a' +");
-    Token following = parser.skipStringLiteral(parser.currentToken);
-    expect(following, isNotNull);
-    expect(following.type, TokenType.PLUS);
-  }
-
-  void test_skipTypeArgumentList_invalid() {
-    createParser('+');
-    Token following = parser.skipTypeArgumentList(parser.currentToken);
-    expect(following, isNull);
-  }
-
-  void test_skipTypeArgumentList_multiple() {
-    createParser('<E, F, G> +');
-    Token following = parser.skipTypeArgumentList(parser.currentToken);
-    expect(following, isNotNull);
-    expect(following.type, TokenType.PLUS);
-  }
-
-  void test_skipTypeArgumentList_single() {
-    createParser('<E> +');
-    Token following = parser.skipTypeArgumentList(parser.currentToken);
-    expect(following, isNotNull);
-    expect(following.type, TokenType.PLUS);
-  }
-
-  void test_skipTypeName_invalid() {
-    createParser('+');
-    Token following = parser.skipTypeName(parser.currentToken);
-    expect(following, isNull);
-  }
-
-  void test_skipTypeName_parameterized() {
-    createParser('C<E<F<G>>> +');
-    Token following = parser.skipTypeName(parser.currentToken);
-    expect(following, isNotNull);
-    expect(following.type, TokenType.PLUS);
-  }
-
-  void test_skipTypeName_simple() {
-    createParser('C +');
-    Token following = parser.skipTypeName(parser.currentToken);
-    expect(following, isNotNull);
-    expect(following.type, TokenType.PLUS);
-  }
-
-  /**
-   * Invoke the method [Parser.computeStringValue] with the given argument.
-   *
-   * @param lexeme the argument to the method
-   * @param first `true` if this is the first token in a string literal
-   * @param last `true` if this is the last token in a string literal
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   */
-  String _computeStringValue(String lexeme, bool first, bool last) {
-    createParser('');
-    String value = parser.computeStringValue(lexeme, first, last);
-    listener.assertNoErrors();
-    return value;
-  }
-
-  /**
-   * Invoke the method [Parser.isFunctionDeclaration] with the parser set to the token
-   * stream produced by scanning the given source.
-   *
-   * @param source the source to be scanned to produce the token stream being tested
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   */
-  bool _isFunctionDeclaration(String source) {
-    createParser(source);
-    bool result = parser.isFunctionDeclaration();
-    expectNotNullIfNoErrors(result);
-    return result;
-  }
-
-  /**
-   * Invoke the method [Parser.isFunctionExpression] with the parser set to the token stream
-   * produced by scanning the given source.
-   *
-   * @param source the source to be scanned to produce the token stream being tested
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   */
-  bool _isFunctionExpression(String source) {
-    createParser(source);
-    return parser.isFunctionExpression(parser.currentToken);
-  }
-
-  /**
-   * Invoke the method [Parser.isInitializedVariableDeclaration] with the parser set to the
-   * token stream produced by scanning the given source.
-   *
-   * @param source the source to be scanned to produce the token stream being tested
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   */
-  bool _isInitializedVariableDeclaration(String source) {
-    createParser(source);
-    bool result = parser.isInitializedVariableDeclaration();
-    expectNotNullIfNoErrors(result);
-    return result;
-  }
-
-  /**
-   * Invoke the method [Parser.isSwitchMember] with the parser set to the token stream
-   * produced by scanning the given source.
-   *
-   * @param source the source to be scanned to produce the token stream being tested
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   */
-  bool _isSwitchMember(String source) {
-    createParser(source);
-    bool result = parser.isSwitchMember();
-    expectNotNullIfNoErrors(result);
-    return result;
   }
 }
 

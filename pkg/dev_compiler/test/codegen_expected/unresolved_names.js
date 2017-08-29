@@ -8,6 +8,7 @@ define(['dart_sdk'], function(dart_sdk) {
   unresolved_names.C = class C extends core.Object {};
   (unresolved_names.C.new = function() {
   }).prototype = unresolved_names.C.prototype;
+  dart.addTypeTests(unresolved_names.C);
   unresolved_names.main = function() {
     new (dart.throw(Error("compile error: unresolved constructor: dynamic.<unnamed>")))();
     new (dart.throw(Error("compile error: unresolved constructor: C.bar")))();

@@ -318,7 +318,8 @@ class KernelTarget extends TargetImplementation {
     }
     mainLibrary.library.addMember(new Field(new Name("#errors"),
         initializer: new ListLiteral(expressions, isConst: true),
-        isConst: true));
+        isConst: true,
+        isStatic: true));
   }
 
   Program erroneousProgram(bool isFullProgram) {
@@ -337,7 +338,7 @@ class KernelTarget extends TargetImplementation {
           null,
           0,
           null,
-          "main",
+          "#main",
           null,
           null,
           ProcedureKind.Method,
@@ -371,7 +372,7 @@ class KernelTarget extends TargetImplementation {
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource);
     if (loader.first != null) {
       // TODO(sigmund): do only for full program
-      Builder builder = loader.first.lookup("main", -1, null);
+      Builder builder = loader.first.exportScope.lookup("main", -1, null);
       if (builder is KernelProcedureBuilder) {
         program.mainMethod = builder.procedure;
       }

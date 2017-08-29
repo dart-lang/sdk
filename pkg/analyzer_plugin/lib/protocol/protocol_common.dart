@@ -2940,10 +2940,10 @@ class HighlightRegionType implements Enum {
  *
  * {
  *   "source": KytheVName
- *   "kind": String
- *   "target": KytheVName
+ *   "kind": optional String
+ *   "target": optional KytheVName
  *   "fact": String
- *   "value": List<int>
+ *   "value": optional List<int>
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -2960,12 +2960,12 @@ class KytheEntry implements HasToJson {
   List<int> _value;
 
   /**
-   * The ticket of the source node (must not be empty).
+   * The ticket of the source node.
    */
   KytheVName get source => _source;
 
   /**
-   * The ticket of the source node (must not be empty).
+   * The ticket of the source node.
    */
   void set source(KytheVName value) {
     assert(value != null);
@@ -2973,42 +2973,36 @@ class KytheEntry implements HasToJson {
   }
 
   /**
-   * An edge label (may be empty). The schema defines which labels are
-   * meaningful.
+   * An edge label. The schema defines which labels are meaningful.
    */
   String get kind => _kind;
 
   /**
-   * An edge label (may be empty). The schema defines which labels are
-   * meaningful.
+   * An edge label. The schema defines which labels are meaningful.
    */
   void set kind(String value) {
-    assert(value != null);
     this._kind = value;
   }
 
   /**
-   * The ticket of the target node (may be empty).
+   * The ticket of the target node.
    */
   KytheVName get target => _target;
 
   /**
-   * The ticket of the target node (may be empty).
+   * The ticket of the target node.
    */
   void set target(KytheVName value) {
-    assert(value != null);
     this._target = value;
   }
 
   /**
-   * A fact label (must not be empty). The schema defines which fact labels are
-   * meaningful.
+   * A fact label. The schema defines which fact labels are meaningful.
    */
   String get fact => _fact;
 
   /**
-   * A fact label (must not be empty). The schema defines which fact labels are
-   * meaningful.
+   * A fact label. The schema defines which fact labels are meaningful.
    */
   void set fact(String value) {
     assert(value != null);
@@ -3016,20 +3010,19 @@ class KytheEntry implements HasToJson {
   }
 
   /**
-   * The String value of the fact (may be empty).
+   * The String value of the fact.
    */
   List<int> get value => _value;
 
   /**
-   * The String value of the fact (may be empty).
+   * The String value of the fact.
    */
   void set value(List<int> value) {
-    assert(value != null);
     this._value = value;
   }
 
-  KytheEntry(KytheVName source, String kind, KytheVName target, String fact,
-      List<int> value) {
+  KytheEntry(KytheVName source, String fact,
+      {String kind, KytheVName target, List<int> value}) {
     this.source = source;
     this.kind = kind;
     this.target = target;
@@ -3053,15 +3046,11 @@ class KytheEntry implements HasToJson {
       String kind;
       if (json.containsKey("kind")) {
         kind = jsonDecoder.decodeString(jsonPath + ".kind", json["kind"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "kind");
       }
       KytheVName target;
       if (json.containsKey("target")) {
         target = new KytheVName.fromJson(
             jsonDecoder, jsonPath + ".target", json["target"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "target");
       }
       String fact;
       if (json.containsKey("fact")) {
@@ -3073,10 +3062,9 @@ class KytheEntry implements HasToJson {
       if (json.containsKey("value")) {
         value = jsonDecoder.decodeList(
             jsonPath + ".value", json["value"], jsonDecoder.decodeInt);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "value");
       }
-      return new KytheEntry(source, kind, target, fact, value);
+      return new KytheEntry(source, fact,
+          kind: kind, target: target, value: value);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "KytheEntry", json);
     }
@@ -3086,10 +3074,16 @@ class KytheEntry implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["source"] = source.toJson();
-    result["kind"] = kind;
-    result["target"] = target.toJson();
+    if (kind != null) {
+      result["kind"] = kind;
+    }
+    if (target != null) {
+      result["target"] = target.toJson();
+    }
     result["fact"] = fact;
-    result["value"] = value;
+    if (value != null) {
+      result["value"] = value;
+    }
     return result;
   }
 

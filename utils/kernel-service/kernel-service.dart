@@ -64,7 +64,6 @@ abstract class Compiler {
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernel
       ..verbose = verbose
-      ..throwOnErrors = false
       ..reportMessages = true
       ..onError = (CompilationMessage e) {
         if (e.severity == Severity.error) {

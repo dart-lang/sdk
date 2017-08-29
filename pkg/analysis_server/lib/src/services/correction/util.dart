@@ -866,7 +866,15 @@ class CorrectionUtils {
     }
     // end
     int endOffset = sourceRange.end;
-    int afterEndLineOffset = getLineContentEnd(endOffset);
+    int afterEndLineOffset = endOffset;
+    int lineStart = unit.lineInfo.getOffsetOfLine(
+        unit.lineInfo.getLocation(startLineOffset).lineNumber - 1);
+    if (lineStart == startLineOffset) {
+      // Only consume line ends after the end of the range if there is nothing
+      // else on the line containing the beginning of the range. Otherwise this
+      // will end up incorrectly merging two line.
+      afterEndLineOffset = getLineContentEnd(endOffset);
+    }
     // range
     return range.startOffsetEndOffset(startLineOffset, afterEndLineOffset);
   }

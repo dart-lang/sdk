@@ -383,6 +383,7 @@ package/scenarios/invalid/same_package_twice_test: CompileTimeError
 
 [ $compiler == dartkp ]
 causal_async_stack_test: Fail
+dwarf_stack_trace_test: RuntimeError
 
 [ $runtime == flutter ]
 io/raw_datagram_socket_test: Crash # Flutter Issue 9115

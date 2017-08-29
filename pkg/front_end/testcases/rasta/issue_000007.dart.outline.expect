@@ -12,9 +12,9 @@ class Mixin extends core::Object {
   method foo() → dynamic
     ;
 }
-abstract class Base&Mixin = self::Base with self::Mixin {
+abstract class _Base&Mixin = self::Base with self::Mixin {
 }
-class Sub extends self::Base&Mixin {
+class Sub extends self::_Base&Mixin {
   default constructor •() → void
     ;
 }

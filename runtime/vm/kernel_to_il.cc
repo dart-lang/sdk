@@ -9,7 +9,7 @@
 #include "vm/compiler.h"
 #include "vm/intermediate_language.h"
 #include "vm/kernel_binary_flowgraph.h"
-#include "vm/kernel_reader.h"
+#include "vm/kernel_loader.h"
 #include "vm/longjump.h"
 #include "vm/method_recognizer.h"
 #include "vm/object_store.h"
@@ -2026,8 +2026,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   Fragment body(normal_entry);
   body += CheckStackOverflowInPrologue();
 
-  // TODO(regis): Check if a type argument vector is passed.
-
   // The receiver is the first argument to noSuchMethod, and it is the first
   // argument passed to the dispatcher function.
   LocalScope* scope = parsed_function_->node_sequence()->scope();
@@ -2045,13 +2043,23 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
 
   // Third, an array containing the original arguments.  Create it and fill
   // it in.
+  const intptr_t receiver_index = descriptor.TypeArgsLen() > 0 ? 1 : 0;
   body += Constant(TypeArguments::ZoneHandle(Z, TypeArguments::null()));
-  body += IntConstant(descriptor.Count());
+  body += IntConstant(receiver_index + descriptor.Count());
   body += CreateArray();
   LocalVariable* array = MakeTemporary();
+  if (receiver_index > 0) {
+    LocalVariable* type_args = parsed_function_->function_type_arguments();
+    ASSERT(type_args != NULL);
+    body += LoadLocal(array);
+    body += IntConstant(0);
+    body += LoadLocal(type_args);
+    body += StoreIndexed(kArrayCid);
+    body += Drop();
+  }
   for (intptr_t i = 0; i < descriptor.PositionalCount(); ++i) {
     body += LoadLocal(array);
-    body += IntConstant(i);
+    body += IntConstant(receiver_index + i);
     body += LoadLocal(scope->VariableAt(i));
     body += StoreIndexed(kArrayCid);
     body += Drop();
@@ -2062,7 +2070,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
     name = descriptor.NameAt(i);
     name = Symbols::New(H.thread(), name);
     body += LoadLocal(array);
-    body += IntConstant(descriptor.PositionAt(i));
+    body += IntConstant(receiver_index + descriptor.PositionAt(i));
     body += LoadLocal(scope->VariableAt(parameter_index));
     body += StoreIndexed(kArrayCid);
     body += Drop();

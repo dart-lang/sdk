@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 
+import '../../compiler_new.dart';
 import '../common.dart';
 import '../common/names.dart';
 import '../compiler.dart';
@@ -19,8 +20,10 @@ import '../elements/elements.dart'
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../js_backend/annotations.dart';
-import '../js_backend/js_backend.dart';
+import '../js_backend/mirrors_data.dart';
+import '../js_backend/no_such_method_registry.dart';
 import '../native/behavior.dart' as native;
+import '../options.dart';
 import '../types/constants.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
@@ -57,22 +60,20 @@ abstract class InferrerEngine<T> {
     new Selector.call(const PublicName('removeLast'), CallStructure.NO_ARGS)
   ]);
 
-  Compiler get compiler;
+  CompilerOptions get options;
   ClosedWorld get closedWorld;
   ClosedWorldRefiner get closedWorldRefiner;
-  JavaScriptBackend get backend => compiler.backend;
-  OptimizerHintsForTests get optimizerHints => backend.optimizerHints;
-  DiagnosticReporter get reporter => compiler.reporter;
+  OptimizerHintsForTests get optimizerHints;
+  DiagnosticReporter get reporter;
   CommonMasks get commonMasks => closedWorld.commonMasks;
   CommonElements get commonElements => closedWorld.commonElements;
 
+  // TODO(johnniwinther): This should be part of [ClosedWorld] or
+  // [ClosureWorldRefiner].
+  NoSuchMethodRegistry get noSuchMethodRegistry;
+
   TypeSystem<T> get types;
   Map<T, TypeInformation> get concreteTypes;
-
-  /// Parallel structure for concreteTypes.
-  // TODO(efortuna): Remove concreteTypes and/or parameterize InferrerEngine by
-  // ir.Node or ast.Node type. Then remove this in favor of `concreteTypes`.
-  Map<ir.Node, TypeInformation> get concreteKernelTypes;
 
   FunctionEntity get mainElement;
 
@@ -228,6 +229,21 @@ abstract class InferrerEngine<T> {
   bool returnsMapValueType(Selector selector, TypeMask mask);
 
   void clear();
+
+  /// Returns true if global optimizations such as type inferencing can apply to
+  /// the field [element].
+  ///
+  /// One category of elements that do not apply is runtime helpers that the
+  /// backend calls, but the optimizations don't see those calls.
+  bool canFieldBeUsedForGlobalOptimizations(FieldEntity element);
+
+  /// Returns true if global optimizations such as type inferencing can apply to
+  /// the parameter [element].
+  ///
+  /// One category of elements that do not apply is runtime helpers that the
+  /// backend calls, but the optimizations don't see those calls.
+  bool canFunctionParametersBeUsedForGlobalOptimizations(
+      FunctionEntity function);
 }
 
 abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
@@ -245,7 +261,11 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   int overallRefineCount = 0;
   int addedInGraph = 0;
 
-  final Compiler compiler;
+  final CompilerOptions options;
+  final Progress progress;
+  final DiagnosticReporter reporter;
+  final CompilerOutput _compilerOutput;
+  final OptimizerHintsForTests optimizerHints;
 
   /// The [ClosedWorld] on which inference reasoning is based.
   final ClosedWorld closedWorld;
@@ -264,14 +284,24 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   final Map<MemberEntity, GlobalTypeInferenceElementData> _memberData =
       new Map<MemberEntity, GlobalTypeInferenceElementData>();
 
+  // TODO(johnniwinther): This should be accessible throught [closedWorld].
+  final MirrorsData mirrorsData;
+
+  final NoSuchMethodRegistry noSuchMethodRegistry;
+
   InferrerEngineImpl(
-      this.compiler,
-      ClosedWorld closedWorld,
+      this.options,
+      this.progress,
+      this.reporter,
+      this._compilerOutput,
+      this.optimizerHints,
+      this.closedWorld,
       this.closedWorldRefiner,
+      this.mirrorsData,
+      this.noSuchMethodRegistry,
       this.mainElement,
       TypeSystemStrategy<T> typeSystemStrategy)
-      : this.types = new TypeSystem<T>(closedWorld, typeSystemStrategy),
-        this.closedWorld = closedWorld;
+      : this.types = new TypeSystem<T>(closedWorld, typeSystemStrategy);
 
   void forEachElementMatching(
       Selector selector, TypeMask mask, bool f(MemberEntity element)) {
@@ -462,13 +492,12 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   }
 
   void runOverAllElements() {
-    if (compiler.disableTypeInference) return;
-    if (compiler.options.verbose) {
-      compiler.progress.reset();
-    }
+    progress.startPhase();
+
     analyzeAllElements();
 
-    TypeGraphDump dump = debug.PRINT_GRAPH ? new TypeGraphDump(this) : null;
+    TypeGraphDump dump =
+        debug.PRINT_GRAPH ? new TypeGraphDump(_compilerOutput, this) : null;
 
     dump?.beforeAnalysis();
     buildWorkQueue();
@@ -498,7 +527,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
             if (debug.VERBOSE) {
               print("traced closure $element as ${true} (bail)");
             }
-            forEachParameter(element, (Local parameter) {
+            types.strategy.forEachParameter(element, (Local parameter) {
               types
                   .getInferredTypeOfParameter(parameter)
                   .giveUp(this, clearAssignments: false);
@@ -510,7 +539,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
         elements
             .where((e) => !bailedOutOn.contains(e))
             .forEach((FunctionEntity element) {
-          forEachParameter(element, (Local parameter) {
+          types.strategy.forEachParameter(element, (Local parameter) {
             ParameterTypeInformation info =
                 types.getInferredTypeOfParameter(parameter);
             info.maybeResume();
@@ -633,11 +662,10 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
 
   /// Call [analyze] for all live members.
   void analyzeAllElements() {
-    sortMembers(compiler, computeMemberSize).forEach((MemberEntity member) {
-      if (compiler.shouldPrintProgress) {
-        reporter.log('Added $addedInGraph elements in inferencing graph.');
-        compiler.progress.reset();
-      }
+    sortMembers(closedWorld.processedMembers, computeMemberSize)
+        .forEach((MemberEntity member) {
+      progress.showProgress(
+          'Added ', addedInGraph, ' elements in inferencing graph.');
       // This also forces the creation of the [ElementTypeInformation] to ensure
       // it is in the graph.
       T body = computeMemberBody(member);
@@ -652,9 +680,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
 
   /// Returns the body node for [member].
   T computeMemberBody(MemberEntity member);
-
-  /// Calls [f] for each parameter of [method].
-  void forEachParameter(FunctionEntity method, void f(Local parameter));
 
   /// Returns the `call` method on [cls] or the `noSuchMethod` if [cls] doesn't
   /// implement `call`.
@@ -754,10 +779,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
 
   void refine() {
     while (!workQueue.isEmpty) {
-      if (compiler.shouldPrintProgress) {
-        reporter.log('Inferred $overallRefineCount types.');
-        compiler.progress.reset();
-      }
+      progress.showProgress('Inferred ', overallRefineCount, ' types.');
       TypeInformation info = workQueue.remove();
       TypeMask oldType = info.type;
       TypeMask newType = info.refine(this);
@@ -821,7 +843,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
           // can benefit from further refinement of the selector.
           types.allocatedClosures.add(caller);
         }
-        forEachParameter(callee, (Local parameter) {
+        types.strategy.forEachParameter(callee, (Local parameter) {
           ParameterTypeInformation info =
               types.getInferredTypeOfParameter(parameter);
           info.tagAsTearOffClosureParameter(this);
@@ -832,7 +854,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       FunctionEntity method = callee;
       ParameterStructure parameterStructure = method.parameterStructure;
       int parameterIndex = 0;
-      forEachParameter(callee, (Local parameter) {
+      types.strategy.forEachParameter(callee, (Local parameter) {
         TypeInformation type;
         if (parameterIndex < parameterStructure.requiredParameters) {
           type = arguments.positional[parameterIndex];
@@ -1078,10 +1100,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   }
 
   Iterable<MemberEntity> getCallersOf(MemberEntity element) {
-    if (compiler.disableTypeInference) {
-      throw new UnsupportedError(
-          "Cannot query the type inferrer when type inference is disabled.");
-    }
     MemberTypeInformation info = types.getInferredTypeOfMember(element);
     return info.callers;
   }
@@ -1115,13 +1133,39 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
     }
   }
 
+  /// Returns true if global optimizations such as type inferencing can apply to
+  /// the field [element].
+  ///
+  /// One category of elements that do not apply is runtime helpers that the
+  /// backend calls, but the optimizations don't see those calls.
+  bool canFieldBeUsedForGlobalOptimizations(FieldEntity element) {
+    if (closedWorld.backendUsage.isFieldUsedByBackend(element)) {
+      return false;
+    }
+    if ((element.isTopLevel || element.isStatic) && !element.isAssignable) {
+      return true;
+    }
+    return !mirrorsData.isMemberAccessibleByReflection(element);
+  }
+
+  /// Returns true if global optimizations such as type inferencing can apply to
+  /// the parameter [element].
+  ///
+  /// One category of elements that do not apply is runtime helpers that the
+  /// backend calls, but the optimizations don't see those calls.
+  bool canFunctionParametersBeUsedForGlobalOptimizations(
+      FunctionEntity function) {
+    return !closedWorld.backendUsage.isFunctionUsedByBackend(function) &&
+        !mirrorsData.isMemberAccessibleByReflection(function);
+  }
+
   // Sorts the resolved elements by size. We do this for this inferrer
   // to get the same results for [ListTracer] compared to the
   // [SimpleTypesInferrer].
   static Iterable<MemberEntity> sortMembers(
-      Compiler compiler, int computeSize(MemberEntity member)) {
+      Iterable<MemberEntity> members, int computeSize(MemberEntity member)) {
     Map<int, Set<MemberEntity>> methodSizes =
-        groupMembers(compiler, computeSize);
+        groupMembers(members, computeSize);
     int max = methodSizes.keys.fold(0, (a, b) => a > b ? a : b);
     List<MemberEntity> result = <MemberEntity>[];
     for (int i = 0; i <= max; i++) {
@@ -1132,10 +1176,9 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   }
 
   static Map<int, Set<MemberEntity>> groupMembers(
-      Compiler compiler, int computeSize(MemberEntity member)) {
+      Iterable<MemberEntity> members, int computeSize(MemberEntity member)) {
     Map<int, Set<MemberEntity>> methodSizes = <int, Set<MemberEntity>>{};
-    compiler.enqueuer.resolution.processedEntities
-        .forEach((MemberEntity element) {
+    members.forEach((MemberEntity element) {
       if (element.isAbstract) return;
       // Put the other operators in buckets by size, later to be added in
       // size order.

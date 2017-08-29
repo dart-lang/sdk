@@ -98,7 +98,7 @@ Future computeSummary(List<String> args,
       }
     };
   } else {
-    options.throwOnWarnings = true;
+    options.throwOnWarningsForDebugging = true;
   }
 
   var sources = parsedArgs['source'].map(Uri.parse).toList();

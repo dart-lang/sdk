@@ -6,10 +6,10 @@ static const field core::int max = 100;
 static method main() → dynamic {
   dynamic closures = <dynamic>[];
   dynamic closures2 = <dynamic>[];
-  final Vector #context = MakeVector(3);
+  final dynamic #context = MakeVector(3);
   #context[2] = null;
   {
-    Vector #context = MakeVector(3);
+    dynamic #context = MakeVector(3);
     #context[1] = #context;
     #context[2] = 0;
     for (; (#context[2]).<(self::max); #context = CopyVector(#context), #context[2] = (#context[2]).+(1)) {
@@ -29,10 +29,10 @@ static method main() → dynamic {
     throw core::Exception::•("Unexpected sum = ${sum} != ${expectedSum}");
   }
 }
-static method closure#main#function(Vector #contextParameter) → dynamic {
+static method closure#main#function(dynamic #contextParameter) → dynamic {
   return #contextParameter[1][2] = #contextParameter[2];
 }
-static method closure#main#function#1(Vector #contextParameter) → dynamic {
+static method closure#main#function#1(dynamic #contextParameter) → dynamic {
   if(!(#contextParameter[1][2]).==(self::max.-(1)))
     throw "last: ${#contextParameter[1][2]} != ${self::max.-(1)}";
 }

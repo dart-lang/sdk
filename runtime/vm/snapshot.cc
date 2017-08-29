@@ -34,6 +34,7 @@ static const int kNumInitialReferences = 32;
 static bool IsSingletonClassId(intptr_t class_id) {
   // Check if this is a singleton object class which is shared by all isolates.
   return ((class_id >= kClassCid && class_id <= kUnwindErrorCid) ||
+          (class_id == kTypeArgumentsCid) ||
           (class_id >= kNullCid && class_id <= kVoidCid));
 }
 

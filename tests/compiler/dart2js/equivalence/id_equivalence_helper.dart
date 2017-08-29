@@ -211,7 +211,7 @@ Future checkCode(
         reportHere(
             data.compiler.reporter,
             actualData.sourceSpan,
-            'Id $id for ${actualData.object} '
+            'Id $id = ${actual} for ${actualData.object} '
             '(${actualData.object.runtimeType}) '
             'not expected in ${data.expectedMap.keys}');
         print('--annotations diff--------------------------------------------');
@@ -220,7 +220,7 @@ Future checkCode(
       }
       Expect.equals('', actual);
     } else {
-      String expected = data.expectedMap.remove(id);
+      String expected = data.expectedMap[id];
       if (actual != expected) {
         reportHere(
             data.compiler.reporter,
@@ -235,14 +235,17 @@ Future checkCode(
     }
   });
 
+  Set<Id> missingIds = new Set<Id>();
   data.expectedMap.forEach((Id id, String expected) {
-    reportHere(
-        data.compiler.reporter,
-        computeSpannable(data.elementEnvironment, data.mainUri, id),
-        'Expected $expected for id $id missing in ${data.actualMap.keys}');
+    if (!data.actualMap.containsKey(id)) {
+      missingIds.add(id);
+      reportHere(
+          data.compiler.reporter,
+          computeSpannable(data.elementEnvironment, data.mainUri, id),
+          'Expected $expected for id $id missing in ${data.actualMap.keys}');
+    }
   });
-  Expect.isTrue(
-      data.expectedMap.isEmpty, "Ids not found: ${data.expectedMap}.");
+  Expect.isTrue(missingIds.isEmpty, "Ids not found: ${missingIds}.");
 }
 
 /// Compute a [Spannable] from an [id] in the library [mainUri].

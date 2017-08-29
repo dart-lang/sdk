@@ -507,7 +507,7 @@ class StreamingDartTypeTranslator {
   bool finalize_;
 
   friend class StreamingScopeBuilder;
-  friend class KernelReader;
+  friend class KernelLoader;
 };
 
 class StreamingScopeBuilder {
@@ -1079,7 +1079,7 @@ class StreamingFlowGraphBuilder {
   friend class LibraryHelper;
   friend class ConstructorHelper;
   friend class SimpleExpressionConverter;
-  friend class KernelReader;
+  friend class KernelLoader;
 };
 
 // A helper class that saves the current reader position, goes to another reader

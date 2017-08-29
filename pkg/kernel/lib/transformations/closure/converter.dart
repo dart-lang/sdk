@@ -15,6 +15,7 @@ import '../../ast.dart'
         Constructor,
         DartType,
         DoStatement,
+        DynamicType,
         EmptyStatement,
         Expression,
         ExpressionStatement,
@@ -53,7 +54,6 @@ import '../../ast.dart'
         VariableGet,
         VariableSet,
         VectorCreation,
-        VectorType,
         WhileStatement,
         transformList;
 
@@ -370,7 +370,7 @@ class ClosureConverter extends Transformer {
     rewriter = makeRewriterForBody(function);
 
     VariableDeclaration contextVariable =
-        new VariableDeclaration("#contextParameter", type: const VectorType());
+        new VariableDeclaration("#contextParameter", type: const DynamicType());
     Context parent = context;
     context = context.toNestedContext(
         new VariableAccessor(contextVariable, null, TreeNode.noOffset));

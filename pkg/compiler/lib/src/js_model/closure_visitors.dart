@@ -25,7 +25,7 @@ class CapturedScopeBuilder extends ir.Visitor {
   /// A map of the nodes that we have flagged as necessary to generate closure
   /// classes for in a later stage. We map that node to information ascertained
   /// about variable usage in the surrounding scope.
-  Map<ir.FunctionNode, KernelScopeInfo> get _closuresToGenerate =>
+  Map<ir.TreeNode, KernelScopeInfo> get _closuresToGenerate =>
       _model.closuresToGenerate;
 
   /// The local variables that have been declared in the current scope.
@@ -221,6 +221,9 @@ class CapturedScopeBuilder extends ir.Visitor {
   }
 
   void visitInvokable(ir.TreeNode node) {
+    assert(node is ir.Member ||
+        node is ir.FunctionExpression ||
+        node is ir.FunctionDeclaration);
     bool oldIsInsideClosure = _isInsideClosure;
     ir.TreeNode oldExecutableContext = _executableContext;
     KernelScopeInfo oldScopeInfo = _currentScopeInfo;
@@ -274,15 +277,28 @@ class CapturedScopeBuilder extends ir.Visitor {
     return node == _executableContext;
   }
 
-  void translateLazyInitializer(ir.Field field) {
+  @override
+  void visitField(ir.Field field) {
     visitInvokable(field);
   }
 
-  void translateConstructorOrProcedure(ir.Node constructorOrProcedure) {
-    constructorOrProcedure.accept(this);
+  @override
+  void visitConstructor(ir.Constructor constructor) {
+    visitInvokable(constructor);
   }
 
-  void visitFunctionNode(ir.FunctionNode functionNode) {
-    visitInvokable(functionNode);
+  @override
+  void visitProcedure(ir.Procedure procedure) {
+    visitInvokable(procedure);
+  }
+
+  @override
+  void visitFunctionExpression(ir.FunctionExpression functionExpression) {
+    visitInvokable(functionExpression);
+  }
+
+  @override
+  void visitFunctionDeclaration(ir.FunctionDeclaration functionDeclaration) {
+    visitInvokable(functionDeclaration);
   }
 }

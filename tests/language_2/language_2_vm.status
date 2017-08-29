@@ -10,7 +10,11 @@ abstract_beats_arguments_test: MissingCompileTimeError
 abstract_exact_selector_test/01: MissingCompileTimeError
 abstract_factory_constructor_test/00: MissingCompileTimeError
 abstract_getter_test/01: MissingCompileTimeError
+abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
+abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError
 abstract_syntax_test/00: MissingCompileTimeError
+additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
+additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 assign_static_type_test/01: MissingCompileTimeError
 assign_static_type_test/02: MissingCompileTimeError
 assign_static_type_test/03: MissingCompileTimeError
@@ -103,6 +107,7 @@ class_literal_test/23: MissingCompileTimeError
 class_literal_test/24: MissingCompileTimeError
 class_literal_test/25: MissingCompileTimeError
 covariant_subtyping_with_substitution_test: RuntimeError
+covariant_tear_off_type_test: RuntimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
@@ -121,6 +126,14 @@ generic_methods_tearoff_specialization_test: RuntimeError
 generic_methods_unused_parameter_test: RuntimeError
 generic_tearoff_test: RuntimeError
 generic_typedef_test: RuntimeError
+getter_no_setter2_test/00: MissingCompileTimeError
+getter_no_setter2_test/01: MissingCompileTimeError
+getter_no_setter2_test/03: MissingCompileTimeError
+getter_no_setter_test/00: MissingCompileTimeError
+getter_no_setter_test/01: MissingCompileTimeError
+getter_no_setter_test/03: MissingCompileTimeError
+getter_override_test/03: MissingCompileTimeError
+getters_setters2_test/02: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
 
 [ $compiler == none && $runtime == vm ]
@@ -275,6 +288,8 @@ bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 generic_list_checked_test: RuntimeError
+getters_setters2_test/01: RuntimeError
+getters_setters2_test/none: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 
 # The VM doesn't enforce that potentially const expressions are actually

@@ -9,7 +9,7 @@ class HeapSnapshot implements M.HeapSnapshot {
   DateTime timestamp;
   int get objects => graph.vertexCount;
   int get references => graph.edgeCount;
-  int get size => graph.size;
+  int get size => graph.internalSize + graph.externalSize;
   HeapSnapshotDominatorNode dominatorTree;
   HeapSnapshotMergedDominatorNode mergedDominatorTree;
   List<MergedVertex> classReferences;
@@ -150,6 +150,7 @@ class HeapSnapshotDominatorNode implements M.HeapSnapshotDominatorNode {
 
   int get retainedSize => v.retainedSize;
   int get shallowSize => v.shallowSize;
+  int get externalSize => v.externalSize;
 
   HeapSnapshotDominatorNode(S.Isolate isolate, ObjectVertex vertex)
       : isolate = isolate,
@@ -182,6 +183,7 @@ class HeapSnapshotMergedDominatorNode
   int get instanceCount => v.instanceCount;
   int get retainedSize => v.retainedSize;
   int get shallowSize => v.shallowSize;
+  int get externalSize => v.externalSize;
 
   HeapSnapshotMergedDominatorNode(S.Isolate isolate, MergedObjectVertex vertex)
       : isolate = isolate,

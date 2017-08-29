@@ -80,21 +80,21 @@ static method main(dynamic arguments) → dynamic {
   self::test(new self::D::•<core::int>());
   self::test(new self::E::•<core::int>());
 }
-static method closure#C#g#function(Vector #contextParameter, dynamic x) → dynamic {
+static method closure#C#g#function(dynamic #contextParameter, dynamic x) → dynamic {
   return "g(${x})";
 }
-static method closure#C#f#function(Vector #contextParameter) → dynamic {
+static method closure#C#f#function(dynamic #contextParameter) → dynamic {
   return "f";
 }
-static method closure#D#g#function(Vector #contextParameter, dynamic x) → dynamic {
+static method closure#D#g#function(dynamic #contextParameter, dynamic x) → dynamic {
   return "g(${x})";
 }
-static method closure#D#f#function(Vector #contextParameter) → dynamic {
+static method closure#D#f#function(dynamic #contextParameter) → dynamic {
   return "f";
 }
-static method closure#E#g#function<T extends core::Object>(Vector #contextParameter, self::closure#E#g#function::T x) → dynamic {
+static method closure#E#g#function<T extends core::Object>(dynamic #contextParameter, self::closure#E#g#function::T x) → dynamic {
   return "g(${x})";
 }
-static method closure#E#f#function(Vector #contextParameter) → dynamic {
+static method closure#E#f#function(dynamic #contextParameter) → dynamic {
   return "f";
 }

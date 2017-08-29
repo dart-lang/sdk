@@ -21,7 +21,8 @@ class PhysicalFileSystem implements FileSystem {
   @override
   FileSystemEntity entityForUri(Uri uri) {
     if (uri.scheme != 'file' && uri.scheme != '') {
-      throw new ArgumentError('File URI expected');
+      throw new FileSystemException(
+          uri, 'PhysicalFileSystem only supports file:* URIs');
     }
     return new _PhysicalFileSystemEntity(Uri.base.resolveUri(uri));
   }

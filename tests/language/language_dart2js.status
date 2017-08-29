@@ -12,7 +12,6 @@ regress_28341_test: Fail # Issue 28340
 regress_29349_test: CompileTimeError # Issue 29745
 regress_29481_test: Crash # Issue 29754
 deferred_not_loaded_check_test: Fail # Issue 27577
-getter_setter_in_lib_test: Fail # Issue 23288
 method_name_test: Fail # issue 25574
 setter4_test: CompileTimeError # issue 13639
 
@@ -449,8 +448,6 @@ syntax_test/none: Crash # Issue #30176.
 [ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
 abstract_beats_arguments2_test/01: RuntimeError # Issue 27394
 final_super_field_set_test/01: RuntimeError # Issue 27394
-generic_function_typedef_test: Crash # Issue 27394
-getter_setter_in_lib_test: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked && ! $dart2js_with_kernel ]
 conditional_method_invocation_test/02: Crash # Issue 27394
@@ -710,7 +707,6 @@ deferred_type_dependency_test/as: CompileTimeError
 deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
 deferred_type_dependency_test/type_annotation: CompileTimeError
-deopt_inlined_function_test: Crash
 double_int_to_string_test: RuntimeError
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -734,8 +730,6 @@ example_constructor_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kerne
 execute_finally7_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Helper.f1#k) is stored in a closure field.
 exhaustive_for_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 expect_test: RuntimeError
-export_double_same_main_test: CompileTimeError
-export_main_test: CompileTimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
@@ -797,7 +791,6 @@ for_variable_capture_test: Crash
 full_stacktrace1_test: Crash
 full_stacktrace2_test: Crash
 full_stacktrace3_test: Crash
-function_literals2_test: Crash
 function_malformed_result_type_test: Crash
 function_subtype_bound_closure6_test: Crash
 function_subtype_cast2_test: Crash
@@ -805,14 +798,10 @@ function_subtype_cast3_test: Crash
 function_subtype_checked0_test: Crash
 function_subtype_closure0_test: Crash
 function_subtype_closure1_test: Crash
-function_subtype_inline0_test: Crash
-function_subtype_inline1_test: Crash
-function_subtype_local0_test: Crash
-function_subtype_local1_test: Crash
-function_subtype_local2_test: Crash
-function_subtype_local3_test: Crash
-function_subtype_local4_test: Crash
-function_subtype_local5_test: Crash
+function_subtype_inline0_test: RuntimeError
+function_subtype_inline1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_local3_test: RuntimeError
+function_subtype_local4_test: RuntimeError
 function_subtype_not3_test: Crash
 function_subtype_typearg1_test: Crash
 function_subtype_typearg2_test: Crash
@@ -821,9 +810,7 @@ function_subtype_typearg4_test: Crash
 function_subtype_typearg5_test: Crash
 function_syntax_test/none: Crash
 function_test: Crash
-function_type2_test: Crash
 function_type_alias3_test: Crash
-function_type_alias_test: Crash
 function_type_parameter2_negative_test: Crash
 function_type_parameter_negative_test: Crash
 generalized_void_syntax_test: CompileTimeError
@@ -889,8 +876,6 @@ import_self_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dar
 inference_mixin_field_test: Crash
 infinite_switch_label_test: Crash
 infinity_test: RuntimeError
-initializing_formal_capture_test: Crash
-initializing_formal_final_test: Crash
 inline_super_field_test: Crash
 inlined_throw_test: Crash
 instance_creation_in_function_annotation_test: Crash
@@ -912,9 +897,7 @@ issue10204_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': 
 issue10721_test: Crash
 issue10747_test: Crash
 issue13474_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#a) is stored in a closure field.
-issue14014_2_test: Crash
 issue14014_3_test: Crash
-issue14014_test: Crash
 issue14242_test: Crash
 issue15720_test: Crash
 issue21079_test: Crash
@@ -923,7 +906,6 @@ issue4295001_test: Crash
 issue9602_test: Crash
 issue9939_test: RuntimeError
 issue_1751477_test: CompileTimeError
-issue_22780_test/01: Crash
 issue_23914_test: Crash
 issue_25671a_test/01: Crash
 issue_25671b_test/01: Crash
@@ -934,7 +916,6 @@ left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
-library_prefixes_test: Crash
 list_is_test: Crash
 list_literal3_test: Crash
 list_literal4_test: RuntimeError
@@ -1147,19 +1128,16 @@ multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
-named_argument_test: Crash
 named_constructor_test/01: MissingRuntimeError
-named_parameters_default_eq_test/02: Crash
-named_parameters_default_eq_test/none: Crash
+named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_passing_falsy_test: RuntimeError
 named_parameters_passing_null_test: RuntimeError
 named_parameters_passing_zero_test: RuntimeError
 named_parameters_test/none: RuntimeError
-named_parameters_type_test/01: Crash
-named_parameters_type_test/02: Crash
-named_parameters_type_test/03: Crash
-named_parameters_type_test/none: Crash
-named_parameters_with_conversions_test: Crash
+named_parameters_type_test/01: MissingRuntimeError
+named_parameters_type_test/02: MissingRuntimeError
+named_parameters_type_test/03: MissingRuntimeError
+named_parameters_with_conversions_test: RuntimeError
 named_parameters_with_dollars_test: RuntimeError
 naming_test: Crash
 nan_identical_test: RuntimeError
@@ -1180,7 +1158,6 @@ null_test/none: Crash
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
 ordered_maps_test: Crash
-osr_test: Crash
 overridden_no_such_method_test: Crash
 override_field_method1_negative_test: Crash
 override_field_method2_negative_test: Fail
@@ -1201,9 +1178,8 @@ override_method_with_field_test/01: MissingCompileTimeError
 parameter_initializer_test: Crash
 parameter_types_specialization_test: RuntimeError
 parse_closures_in_initializers_test: Crash
-positional_parameters_type_test/01: Crash
-positional_parameters_type_test/02: Crash
-positional_parameters_type_test/none: Crash
+positional_parameters_type_test/01: MissingRuntimeError
+positional_parameters_type_test/02: MissingRuntimeError
 private_mixin2_test: Crash
 private_mixin_exception_throw_test: Crash
 private_super_constructor_test/01: Crash
@@ -1216,10 +1192,8 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: Crash
 redirecting_factory_reflection_test: Crash
 reg_exp_test: Crash
-regress_11010_test: Crash
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
-regress_18435_test: Crash
 regress_18535_test: Crash
 regress_18713_test: Crash
 regress_20394_test/01: Crash
@@ -1407,8 +1381,6 @@ type_variable_field_initializer_closure_test: Crash
 type_variable_function_type_test: RuntimeError
 type_variable_initializer_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 type_variable_nested_test: Crash
-typecheck_multifield_declaration_test: Crash
-typedef_is_test: Crash
 wrong_number_type_arguments_test/00: Crash
 wrong_number_type_arguments_test/02: Crash
 yieldstar_pause_test: Crash
@@ -1656,7 +1628,6 @@ deferred_type_dependency_test/as: CompileTimeError
 deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
 deferred_type_dependency_test/type_annotation: CompileTimeError
-deopt_inlined_function_test: Crash
 double_int_to_string_test: RuntimeError
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -1678,8 +1649,6 @@ example_constructor_test: Crash
 execute_finally7_test: RuntimeError
 exhaustive_for_test: Crash
 expect_test: RuntimeError
-export_double_same_main_test: CompileTimeError
-export_main_test: CompileTimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
@@ -1741,32 +1710,25 @@ for_variable_capture_test: Crash
 full_stacktrace1_test: Crash
 full_stacktrace2_test: Crash
 full_stacktrace3_test: Crash
-function_literals2_test: Crash
 function_subtype_bound_closure6_test: Crash
 function_subtype_cast2_test: Crash
 function_subtype_cast3_test: Crash
 function_subtype_checked0_test: Crash
 function_subtype_closure0_test: Crash
 function_subtype_closure1_test: Crash
-function_subtype_inline0_test: Crash
-function_subtype_inline1_test: Crash
-function_subtype_local0_test: Crash
-function_subtype_local1_test: Crash
-function_subtype_local2_test: Crash
-function_subtype_local3_test: Crash
-function_subtype_local4_test: Crash
-function_subtype_local5_test: Crash
+function_subtype_inline0_test: RuntimeError
+function_subtype_inline1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_local3_test: RuntimeError
+function_subtype_local4_test: RuntimeError
 function_subtype_not3_test: Crash
 function_subtype_typearg1_test: Crash
 function_subtype_typearg2_test: Crash
 function_subtype_typearg3_test: Crash
 function_subtype_typearg4_test: Crash
 function_subtype_typearg5_test: Crash
-function_syntax_test/none: Crash
+function_syntax_test/none: RuntimeError
 function_test: Crash
-function_type2_test: Crash
 function_type_alias3_test: Crash
-function_type_alias_test: Crash
 function_type_parameter2_negative_test: Crash
 function_type_parameter_negative_test: Crash
 generalized_void_syntax_test: CompileTimeError
@@ -1790,15 +1752,6 @@ generic_methods_type_expression_test/none: Crash
 generic_native_test: Crash
 generic_syntax_test: Crash
 generic_test: RuntimeError
-getter_no_setter2_test/00: RuntimeError
-getter_no_setter2_test/03: RuntimeError
-getter_no_setter_test/00: RuntimeError
-getter_no_setter_test/none: RuntimeError
-getter_override2_test/02: MissingCompileTimeError
-getter_override_test/00: MissingCompileTimeError
-getter_override_test/01: MissingCompileTimeError
-getter_override_test/02: MissingCompileTimeError
-hash_map_null_key_foreach_test: RuntimeError
 identical_closure2_test: RuntimeError
 if_null_assignment_behavior_test/01: Crash
 if_null_assignment_behavior_test/02: Crash
@@ -1809,7 +1762,7 @@ if_null_assignment_behavior_test/06: Crash
 if_null_assignment_behavior_test/12: RuntimeError
 if_null_assignment_behavior_test/14: RuntimeError
 if_null_assignment_static_test/01: RuntimeError
-if_null_assignment_static_test/02: Crash
+if_null_assignment_static_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(DerivedClass.derivedTest#)) for j:closure_call(DerivedClass_derivedTest_closure.call).
 if_null_assignment_static_test/03: RuntimeError
 if_null_assignment_static_test/04: RuntimeError
 if_null_assignment_static_test/05: RuntimeError
@@ -1823,8 +1776,6 @@ import_collection_no_prefix_test: Crash
 inference_mixin_field_test: Crash
 infinite_switch_label_test: Crash
 infinity_test: RuntimeError
-initializing_formal_capture_test: Crash
-initializing_formal_final_test: Crash
 inline_super_field_test: Crash
 inlined_throw_test: Crash
 instance_creation_in_function_annotation_test: Crash
@@ -1845,9 +1796,7 @@ is_object_test: RuntimeError
 issue10721_test: Crash
 issue10747_test: Crash
 issue13474_test: RuntimeError
-issue14014_2_test: Crash
 issue14014_3_test: Crash
-issue14014_test: Crash
 issue14242_test: Crash
 issue15720_test: Crash
 issue21079_test: Crash
@@ -1856,7 +1805,6 @@ issue4295001_test: Crash
 issue9602_test: Crash
 issue9939_test: RuntimeError
 issue_1751477_test: CompileTimeError
-issue_22780_test/01: Crash
 issue_23914_test: Crash
 issue_25671a_test/01: Crash
 issue_25671b_test/01: Crash
@@ -1866,7 +1814,6 @@ left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
-library_prefixes_test: Crash
 list_is_test: Crash
 list_literal3_test: Crash
 list_literal4_test: RuntimeError
@@ -2067,19 +2014,16 @@ multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
-named_argument_test: Crash
 named_constructor_test/01: MissingRuntimeError
-named_parameters_default_eq_test/02: Crash
-named_parameters_default_eq_test/none: Crash
+named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_passing_falsy_test: RuntimeError
 named_parameters_passing_null_test: RuntimeError
 named_parameters_passing_zero_test: RuntimeError
 named_parameters_test/none: RuntimeError
-named_parameters_type_test/01: Crash
-named_parameters_type_test/02: Crash
-named_parameters_type_test/03: Crash
-named_parameters_type_test/none: Crash
-named_parameters_with_conversions_test: Crash
+named_parameters_type_test/01: MissingRuntimeError
+named_parameters_type_test/02: MissingRuntimeError
+named_parameters_type_test/03: MissingRuntimeError
+named_parameters_with_conversions_test: RuntimeError
 named_parameters_with_dollars_test: RuntimeError
 naming_test: Crash
 nan_identical_test: RuntimeError
@@ -2100,7 +2044,6 @@ null_test/none: Crash
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
 ordered_maps_test: Crash
-osr_test: Crash
 overridden_no_such_method_test: Crash
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
@@ -2120,10 +2063,9 @@ override_inheritance_no_such_method_test/13: Crash
 override_method_with_field_test/01: MissingCompileTimeError
 parameter_initializer_test: Crash
 parameter_types_specialization_test: RuntimeError
-parse_closures_in_initializers_test: Crash
-positional_parameters_type_test/01: Crash
-positional_parameters_type_test/02: Crash
-positional_parameters_type_test/none: Crash
+parse_closures_in_initializers_test: RuntimeError
+positional_parameters_type_test/01: MissingRuntimeError
+positional_parameters_type_test/02: MissingRuntimeError
 private_mixin2_test: Crash
 private_mixin_exception_throw_test: Crash
 private_super_constructor_test/01: MissingCompileTimeError
@@ -2136,10 +2078,8 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: Crash
 redirecting_factory_reflection_test: Crash
 reg_exp_test: Crash
-regress_11010_test: Crash
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
-regress_18435_test: Crash
 regress_18535_test: Crash
 regress_18713_test: Crash
 regress_20394_test/01: MissingCompileTimeError
@@ -2284,7 +2224,5 @@ type_variable_field_initializer_closure2_test: Crash
 type_variable_field_initializer_closure_test: Crash
 type_variable_function_type_test: RuntimeError
 type_variable_nested_test: Crash
-typecheck_multifield_declaration_test: Crash
-typedef_is_test: Crash
 yieldstar_pause_test: Crash
 

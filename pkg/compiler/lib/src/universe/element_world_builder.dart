@@ -196,6 +196,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
         liveNativeClasses: _nativeResolutionEnqueuer.liveNativeClasses,
         liveInstanceMembers: _liveInstanceMembers,
         assignedInstanceMembers: computeAssignedInstanceMembers(),
+        processedMembers: _processedMembers,
         allTypedefs: _allTypedefs,
         mixinUses: _mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,

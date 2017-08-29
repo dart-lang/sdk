@@ -5,13 +5,12 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
-import '../compiler.dart';
-import '../elements/elements.dart';
+import '../common.dart';
+import '../constants/constant_system.dart';
 import '../elements/entities.dart';
-import '../kernel/kernel.dart';
-import '../ssa/kernel_ast_adapter.dart';
-import '../tree/tree.dart' as ast;
-import '../universe/side_effects.dart' show SideEffects;
+import '../options.dart';
+import '../types/constants.dart';
+import '../world.dart';
 import 'inferrer_engine.dart';
 import 'locals_handler.dart';
 import 'type_graph_nodes.dart';
@@ -24,79 +23,42 @@ import 'type_system.dart';
 /// construct a set of inference-nodes that abstractly represent what the code
 /// is doing.
 class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
-  final Compiler compiler;
-  final MemberElement originalElement;
-  // TODO(efortuna): Remove this.
-  final MemberElement outermostElement;
-  final ir.Node analyzedNode;
-  final ResolvedAst resolvedAst;
-  // TODO(johnniwinther): This should be TypeSystem<ir.Node>.
-  final TypeSystem<ast.Node> types;
-  LocalsHandler locals;
-  final InferrerEngine inferrer;
-  SideEffects sideEffects = new SideEffects.empty();
-  int loopLevel = 0;
-  bool get inLoop => loopLevel > 0;
+  final CompilerOptions _options;
+  final ClosedWorld _closedWorld;
+  final ClosureDataLookup<ir.Node> _closureDataLookup;
+  final InferrerEngine<ir.Node> _inferrer;
+  final TypeSystem<ir.Node> _types;
+  final MemberEntity _analyzedMember;
+  final ir.Node _analyzedNode;
+  LocalsHandler _locals;
 
-  final Set<Entity> capturedVariables = new Set<Entity>();
+  TypeInformation _returnType;
 
-  final KernelAstAdapter astAdapter;
+  KernelTypeGraphBuilder(
+      this._options,
+      this._closedWorld,
+      this._closureDataLookup,
+      this._inferrer,
+      this._analyzedMember,
+      this._analyzedNode,
+      [this._locals])
+      : this._types = _inferrer.types {
+    if (_locals != null) return;
 
-  KernelTypeGraphBuilder.internal(
-      this.originalElement,
-      this.resolvedAst,
-      this.outermostElement,
-      this.inferrer,
-      this.compiler,
-      this.locals,
-      this.astAdapter,
-      this.analyzedNode)
-      : this.types = inferrer.types {
-    if (locals != null) return;
-
-    ast.Node node;
-    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-      node = resolvedAst.node;
-    }
-    FieldInitializationScope fieldScope = (analyzedNode is ir.Constructor)
-        ? new FieldInitializationScope(types)
-        : null;
-    locals =
-        new LocalsHandler(inferrer, types, compiler.options, node, fieldScope);
-  }
-
-  factory KernelTypeGraphBuilder(
-      MemberElement element, Compiler compiler, InferrerEngine inferrer,
-      [LocalsHandler handler]) {
-    var adapter = _createKernelAdapter(compiler, element.resolvedAst);
-    var node = adapter.getMemberNode(element);
-    return new KernelTypeGraphBuilder.internal(
-        element,
-        element.resolvedAst,
-        element.outermostEnclosingMemberOrTopLevel.implementation,
-        inferrer,
-        compiler,
-        handler,
-        adapter,
-        node);
-  }
-
-  static KernelAstAdapter _createKernelAdapter(
-      Compiler compiler, ResolvedAst resolvedAst) {
-    Kernel kernel = compiler.backend.kernelTask.kernel;
-    return new KernelAstAdapter(kernel, compiler.backend, resolvedAst,
-        kernel.nodeToAst, kernel.nodeToElement);
+    FieldInitializationScope<ir.Node> fieldScope =
+        _analyzedNode is ir.Constructor
+            ? new FieldInitializationScope(_types)
+            : null;
+    _locals = new LocalsHandler(
+        _inferrer, _types, _options, _analyzedNode, fieldScope);
   }
 
   TypeInformation run() {
-    ir.Expression initializer;
-    if (analyzedNode is ir.Field) {
-      ir.Field field = analyzedNode;
-      initializer = field.initializer;
-      if (initializer == null || initializer is ir.NullLiteral) {
+    if (_analyzedMember.isField) {
+      if (_analyzedNode == null || _analyzedNode is ir.NullLiteral) {
         // Eagerly bailout, because computing the closure data only
         // works for functions and field assignments.
-        return types.nullType;
+        return _types.nullType;
       }
     }
 
@@ -104,43 +66,92 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // be handled specially, in that we are computing their LUB at
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
-    ClosureRepresentationInfo closureData = compiler
-        .backendStrategy.closureDataLookup
-        .getClosureInfoForMember(outermostElement);
+    ClosureRepresentationInfo closureData =
+        _closureDataLookup.getClosureInfoForMember(_analyzedMember);
     closureData.forEachCapturedVariable((variable, field) {
-      locals.setCaptured(variable, field);
+      _locals.setCaptured(variable, field);
     });
     closureData.forEachBoxedVariable((variable, field) {
-      locals.setCapturedAndBoxed(variable, field);
+      _locals.setCapturedAndBoxed(variable, field);
     });
 
-    if (analyzedNode is ir.Field) {
-      return initializer.accept(this);
-    }
-    return _processFunctionNode(analyzedNode);
+    return _analyzedNode.accept(this);
   }
 
-  TypeInformation _processFunctionNode(ir.FunctionNode funcNode) {
-    // TODO(efortuna): Implement.
-    return types.dynamicType;
+  void recordReturnType(TypeInformation type) {
+    FunctionEntity analyzedMethod = _analyzedMember;
+    _returnType =
+        _inferrer.addReturnTypeForMethod(analyzedMethod, _returnType, type);
+  }
+
+  void initializationIsIndefinite() {
+    MemberEntity member = _analyzedMember;
+    if (member is ConstructorEntity && member.isGenerativeConstructor) {
+      _locals.fieldScope.isIndefinite = true;
+    }
+  }
+
+  TypeInformation visit(ir.Node node) {
+    return node == null ? null : node.accept(this);
+  }
+
+  @override
+  TypeInformation visitFunctionNode(ir.FunctionNode node) {
+    // TODO(redemption): Handle constructors.
+    // TODO(redemption): Handle native methods.
+    // TODO(redemption): Set up parameters.
+    visit(node.body);
+    switch (node.asyncMarker) {
+      case ir.AsyncMarker.Sync:
+        if (_returnType == null) {
+          // No return in the body.
+          _returnType = _locals.seenReturnOrThrow
+              ? _types.nonNullEmpty() // Body always throws.
+              : _types.nullType;
+        } else if (!_locals.seenReturnOrThrow) {
+          // We haven'TypeInformation seen returns on all branches. So the method may
+          // also return null.
+          recordReturnType(_types.nullType);
+        }
+        break;
+
+      case ir.AsyncMarker.SyncStar:
+        // TODO(asgerf): Maybe make a ContainerTypeMask for these? The type
+        //               contained is the method body's return type.
+        recordReturnType(_types.syncStarIterableType);
+        break;
+
+      case ir.AsyncMarker.Async:
+        recordReturnType(_types.asyncFutureType);
+        break;
+
+      case ir.AsyncMarker.AsyncStar:
+        recordReturnType(_types.asyncStarStreamType);
+        break;
+      case ir.AsyncMarker.SyncYielding:
+        failedAt(
+            _analyzedMember, "Unexpected async marker: ${node.asyncMarker}");
+        break;
+    }
+    return _returnType;
   }
 
   @override
   TypeInformation defaultExpression(ir.Expression expression) {
     // TODO(efortuna): Remove when more is implemented.
-    return types.dynamicType;
+    return _types.dynamicType;
   }
 
   @override
   TypeInformation visitNullLiteral(ir.NullLiteral literal) {
-    return types.nullType;
+    return _types.nullType;
   }
 
   @override
   TypeInformation visitBlock(ir.Block block) {
     for (ir.Statement statement in block.statements) {
       statement.accept(this);
-      if (locals.aborts) break;
+      if (_locals.aborts) break;
     }
     return null;
   }
@@ -149,25 +160,51 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitListLiteral(ir.ListLiteral listLiteral) {
     // We only set the type once. We don't need to re-visit the children
     // when re-analyzing the node.
-    return inferrer.concreteKernelTypes.putIfAbsent(listLiteral, () {
+    return _inferrer.concreteTypes.putIfAbsent(listLiteral, () {
       TypeInformation elementType;
       int length = 0;
       for (ir.Expression element in listLiteral.expressions) {
         TypeInformation type = element.accept(this);
         elementType = elementType == null
-            ? types.allocatePhi(null, null, type, isTry: false)
-            : types.addPhiInput(null, elementType, type);
+            ? _types.allocatePhi(null, null, type, isTry: false)
+            : _types.addPhiInput(null, elementType, type);
         length++;
       }
       elementType = elementType == null
-          ? types.nonNullEmpty()
-          : types.simplifyPhi(null, null, elementType);
+          ? _types.nonNullEmpty()
+          : _types.simplifyPhi(null, null, elementType);
       TypeInformation containerType =
-          listLiteral.isConst ? types.constListType : types.growableListType;
-      // TODO(efortuna): Change signature of allocateList and the rest of
-      // type_system to deal with Kernel elements.
-      return types.allocateList(containerType, astAdapter.getNode(listLiteral),
-          outermostElement, elementType, length);
+          listLiteral.isConst ? _types.constListType : _types.growableListType;
+      return _types.allocateList(
+          containerType, listLiteral, _analyzedMember, elementType, length);
     });
+  }
+
+  @override
+  TypeInformation visitReturnStatement(ir.ReturnStatement node) {
+    ir.Node expression = node.expression;
+    recordReturnType(
+        expression == null ? _types.nullType : expression.accept(this));
+    _locals.seenReturnOrThrow = true;
+    initializationIsIndefinite();
+    return null;
+  }
+
+  @override
+  TypeInformation visitIntLiteral(ir.IntLiteral node) {
+    ConstantSystem constantSystem = _closedWorld.constantSystem;
+    // The JavaScript backend may turn this literal into a double at
+    // runtime.
+    return _types.getConcreteTypeFor(
+        computeTypeMask(_closedWorld, constantSystem.createInt(node.value)));
+  }
+
+  @override
+  TypeInformation visitDoubleLiteral(ir.DoubleLiteral node) {
+    ConstantSystem constantSystem = _closedWorld.constantSystem;
+    // The JavaScript backend may turn this literal into an integer at
+    // runtime.
+    return _types.getConcreteTypeFor(
+        computeTypeMask(_closedWorld, constantSystem.createDouble(node.value)));
   }
 }

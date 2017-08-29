@@ -31,10 +31,12 @@ main() {
   test('elements created', () async {
     final completer = new Completer<AllocationProfileMock>();
     final repo = new AllocationProfileRepositoryMock(
-        getter: expectAsync((M.IsolateRef i, bool gc, bool reset) {
+        getter:
+            expectAsync((M.IsolateRef i, bool gc, bool reset, bool combine) {
       expect(i, equals(isolate));
       expect(gc, isFalse);
       expect(reset, isFalse);
+      expect(combine, isFalse);
       return completer.future;
     }, count: 1));
     final e = new AllocationProfileElement(vm, isolate, events, notif, repo);
@@ -54,8 +56,10 @@ main() {
       final completer = new Completer<AllocationProfileMock>();
       int step = 0;
       final repo = new AllocationProfileRepositoryMock(
-          getter: expectAsync((M.IsolateRef i, bool gc, bool reset) {
+          getter:
+              expectAsync((M.IsolateRef i, bool gc, bool reset, bool combine) {
         expect(i, equals(isolate));
+        expect(combine, isFalse);
         switch (step) {
           case 0:
             expect(gc, isFalse);
@@ -95,10 +99,12 @@ main() {
       final completer = new Completer<AllocationProfileMock>();
       int count = 0;
       final repo = new AllocationProfileRepositoryMock(
-          getter: expectAsync((M.IsolateRef i, bool gc, bool reset) {
+          getter:
+              expectAsync((M.IsolateRef i, bool gc, bool reset, bool combine) {
         expect(i, equals(isolate));
         expect(gc, isFalse);
         expect(reset, isFalse);
+        expect(combine, isFalse);
         count++;
         return completer.future;
       }, count: 2));
@@ -144,10 +150,12 @@ main() {
       ]);
       final completer = new Completer<AllocationProfileMock>();
       final repo = new AllocationProfileRepositoryMock(
-          getter: expectAsync((M.IsolateRef i, bool gc, bool reset) {
+          getter:
+              expectAsync((M.IsolateRef i, bool gc, bool reset, bool combine) {
         expect(i, equals(isolate));
         expect(gc, isFalse);
         expect(reset, isFalse);
+        expect(combine, isFalse);
         return completer.future;
       }, count: 1));
       final e = new AllocationProfileElement(vm, isolate, events, notif, repo);

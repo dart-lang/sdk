@@ -204,7 +204,7 @@ class PhysicalFileSystemTest extends _BaseTest {
     expect(
         () => PhysicalFileSystem.instance
             .entityForUri(Uri.parse('package:foo/bar.dart')),
-        throwsA(new isInstanceOf<Error>()));
+        _throwsFileSystemException);
   }
 
   test_entityForUri_normalize_dot() {

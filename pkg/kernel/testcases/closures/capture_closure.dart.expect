@@ -2,14 +2,14 @@ library;
 import self as self;
 
 static method main(dynamic arguments) → dynamic {
-  final Vector #context = MakeVector(3);
+  final dynamic #context = MakeVector(3);
   #context[2] = MakeClosure<() → dynamic>(self::closure#main#f, #context);
   final () → dynamic g = MakeClosure<() → dynamic>(self::closure#main#g, #context);
   g.call();
 }
-static method closure#main#f(Vector #contextParameter) → dynamic {
+static method closure#main#f(dynamic #contextParameter) → dynamic {
   return null;
 }
-static method closure#main#g(Vector #contextParameter) → dynamic {
+static method closure#main#g(dynamic #contextParameter) → dynamic {
   return (#contextParameter[2]).call();
 }

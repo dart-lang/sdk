@@ -2,9 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dartk && $mode == debug ]
-Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash
-
 [ $compiler == dartk || $compiler == dartkp ]
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: MissingCompileTimeError
 Language/Classes/Constructors/Factories/const_modifier_t01: MissingCompileTimeError
@@ -159,6 +156,8 @@ LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for def
 LibTest/isolate/Isolate/spawnUri_A01_t06: Skip
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
+Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash
+Language/Classes/Constructors/Generative_Constructors/execution_t04: Crash
 Language/Classes/Instance_Variables/constant_t01: Crash
 
 # dartk: JIT failures
@@ -186,9 +185,29 @@ Language/Expressions/Constants/depending_on_itself_t02: Crash
 Language/Overview/Scoping/hiding_declaration_t11: Crash
 Language/Overview/Scoping/hiding_declaration_t12: Crash
 
+Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: Pass
+Language/Expressions/Await_Expressions/evaluation_throws_t03: Crash
+Language/Expressions/Await_Expressions/evaluation_throws_t04: Crash
+Language/Expressions/Await_Expressions/evaluation_throws_t06: Crash
+Language/Expressions/Await_Expressions/evaluation_throws_t07: Crash
+Language/Expressions/Constants/bitwise_operators_t05: Crash
+Language/Expressions/Constants/exception_t01: Crash
+Language/Expressions/Constants/exception_t02: Crash
+Language/Expressions/Constants/exception_t03: Crash
+Language/Expressions/Constants/logical_expression_t02: Crash
+Language/Expressions/Constants/logical_expression_t04: Crash
+Language/Expressions/Constants/math_operators_t02: Crash
+Language/Expressions/Constants/math_operators_t03: Crash
+Language/Expressions/Constants/ternary_operator_t02: Crash
+Language/Expressions/Instance_Creation/Const/exception_t01: Crash
+Language/Overview/Scoping/hiding_declaration_t11: Pass
+Language/Overview/Scoping/hiding_declaration_t12: Pass
+
+
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $mode == debug ]
 Language/Functions/External_Functions/not_connected_to_a_body_t01: Crash
+Language/Statements/For/Asynchronous_For_in/execution_t04: Crash
 
 # dartk: checked mode failures
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]

@@ -379,4 +379,19 @@ DEFINE_NATIVE_ENTRY(Internal_prependTypeArguments, 3) {
   return result.Canonicalize();
 }
 
+DEFINE_NATIVE_ENTRY(InvocationMirror_unpackTypeArguments, 1) {
+  const TypeArguments& type_arguments =
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const intptr_t len = type_arguments.Length();
+  ASSERT(len > 0);
+  const Array& type_list = Array::Handle(zone, Array::New(len));
+  AbstractType& type = AbstractType::Handle(zone);
+  for (intptr_t i = 0; i < len; i++) {
+    type = type_arguments.TypeAt(i);
+    type_list.SetAt(i, type);
+  }
+  type_list.MakeImmutable();
+  return type_list.raw();
+}
+
 }  // namespace dart

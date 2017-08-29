@@ -19,7 +19,7 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #if !defined(DART_PRECOMPILED_RUNTIME)
-#include "vm/kernel_reader.h"
+#include "vm/kernel_loader.h"
 #endif
 #include "vm/exceptions.h"
 #include "vm/flags.h"
@@ -4977,8 +4977,8 @@ static Dart_Handle LoadKernelProgram(Thread* T,
   // NOTE: Now the VM owns the [kernel_program] memory!
   // We will promptly delete it when done.
   kernel::Program* program = reinterpret_cast<kernel::Program*>(kernel);
-  kernel::KernelReader reader(program);
-  const Object& tmp = reader.ReadProgram();
+  kernel::KernelLoader loader(program);
+  const Object& tmp = loader.LoadProgram();
   delete program;
   return Api::NewHandle(T, tmp.raw());
 }
@@ -5034,7 +5034,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
     library ^= Library::LookupLibrary(T, resolved_url_str);
     if (library.IsNull()) {
       // If the URL string does not match, use the library object
-      // returned by the kernel reader.
+      // returned by the kernel loader.
       library ^= Api::UnwrapHandle(result);
     }
     if (library.IsNull()) {
@@ -5162,8 +5162,8 @@ DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program) {
   // NOTE: Now the VM owns the [kernel_program] memory!
   // We will promptly delete it when done.
   kernel::Program* program = reinterpret_cast<kernel::Program*>(kernel_program);
-  kernel::KernelReader reader(program);
-  const Object& tmp = reader.ReadProgram();
+  kernel::KernelLoader loader(program);
+  const Object& tmp = loader.LoadProgram();
   delete program;
 
   if (tmp.IsError()) {

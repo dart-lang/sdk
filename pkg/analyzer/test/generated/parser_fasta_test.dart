@@ -33,6 +33,8 @@ main() {
     defineReflectiveTests(ErrorParserTest_Fasta);
     defineReflectiveTests(ExpressionParserTest_Fasta);
     defineReflectiveTests(FormalParameterParserTest_Fasta);
+    defineReflectiveTests(RecoveryParserTest_Fasta);
+    defineReflectiveTests(SimpleParserTest_Fasta);
     defineReflectiveTests(StatementParserTest_Fasta);
     defineReflectiveTests(TopLevelParserTest_Fasta);
   });
@@ -137,38 +139,8 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
   @override
   @failingTest
-  void test_abstractClassMember_field() {
-    super.test_abstractClassMember_field();
-  }
-
-  @override
-  @failingTest
   void test_abstractEnum() {
     super.test_abstractEnum();
-  }
-
-  @override
-  @failingTest
-  void test_abstractTopLevelFunction_function() {
-    super.test_abstractTopLevelFunction_function();
-  }
-
-  @override
-  @failingTest
-  void test_abstractTopLevelFunction_getter() {
-    super.test_abstractTopLevelFunction_getter();
-  }
-
-  @override
-  @failingTest
-  void test_abstractTopLevelFunction_setter() {
-    super.test_abstractTopLevelFunction_setter();
-  }
-
-  @override
-  @failingTest
-  void test_abstractTopLevelVariable() {
-    super.test_abstractTopLevelVariable();
   }
 
   @override
@@ -299,12 +271,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_constTypedef() {
-    super.test_constTypedef();
-  }
-
-  @override
-  @failingTest
   void test_constructorWithReturnType() {
     super.test_constructorWithReturnType();
   }
@@ -313,6 +279,12 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_constructorWithReturnType_var() {
     super.test_constructorWithReturnType_var();
+  }
+
+  @override
+  @failingTest
+  void test_constTypedef() {
+    super.test_constTypedef();
   }
 
   @override
@@ -455,12 +427,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_duplicateLabelInSwitchStatement() {
-    super.test_duplicateLabelInSwitchStatement();
-  }
-
-  @override
-  @failingTest
   void test_duplicatedModifier_const() {
     super.test_duplicatedModifier_const();
   }
@@ -493,6 +459,12 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_duplicatedModifier_var() {
     super.test_duplicatedModifier_var();
+  }
+
+  @override
+  @failingTest
+  void test_duplicateLabelInSwitchStatement() {
+    super.test_duplicateLabelInSwitchStatement();
   }
 
   @override
@@ -1320,12 +1292,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingIdentifierForParameterGroup() {
-    super.test_missingIdentifierForParameterGroup();
-  }
-
-  @override
-  @failingTest
   void test_missingIdentifier_afterOperator() {
     super.test_missingIdentifier_afterOperator();
   }
@@ -1358,6 +1324,12 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_missingIdentifier_number() {
     super.test_missingIdentifier_number();
+  }
+
+  @override
+  @failingTest
+  void test_missingIdentifierForParameterGroup() {
+    super.test_missingIdentifierForParameterGroup();
   }
 
   @override
@@ -1806,6 +1778,12 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
+  void test_topLevelOperator_withoutType() {
+    super.test_topLevelOperator_withoutType();
+  }
+
+  @override
+  @failingTest
   void test_topLevelOperator_withType() {
     super.test_topLevelOperator_withType();
   }
@@ -1818,26 +1796,8 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_topLevelOperator_withoutType() {
-    super.test_topLevelOperator_withoutType();
-  }
-
-  @override
-  @failingTest
   void test_topLevelVariable_withMetadata() {
     super.test_topLevelVariable_withMetadata();
-  }
-
-  @override
-  @failingTest
-  void test_typedefInClass_withReturnType() {
-    super.test_typedefInClass_withReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_typedefInClass_withoutReturnType() {
-    super.test_typedefInClass_withoutReturnType();
   }
 
   @override
@@ -1850,6 +1810,18 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_typedef_namedFunction() {
     super.test_typedef_namedFunction();
+  }
+
+  @override
+  @failingTest
+  void test_typedefInClass_withoutReturnType() {
+    super.test_typedefInClass_withoutReturnType();
+  }
+
+  @override
+  @failingTest
+  void test_typedefInClass_withReturnType() {
+    super.test_typedefInClass_withReturnType();
   }
 
   @override
@@ -1998,18 +1970,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_voidVariable_parseCompilationUnitMember_initializer() {
-    super.test_voidVariable_parseCompilationUnitMember_initializer();
-  }
-
-  @override
-  @failingTest
-  void test_voidVariable_parseCompilationUnitMember_noInitializer() {
-    super.test_voidVariable_parseCompilationUnitMember_noInitializer();
-  }
-
-  @override
-  @failingTest
   void test_voidVariable_parseCompilationUnit_initializer() {
     super.test_voidVariable_parseCompilationUnit_initializer();
   }
@@ -2018,6 +1978,18 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_voidVariable_parseCompilationUnit_noInitializer() {
     super.test_voidVariable_parseCompilationUnit_noInitializer();
+  }
+
+  @override
+  @failingTest
+  void test_voidVariable_parseCompilationUnitMember_initializer() {
+    super.test_voidVariable_parseCompilationUnitMember_initializer();
+  }
+
+  @override
+  @failingTest
+  void test_voidVariable_parseCompilationUnitMember_noInitializer() {
+    super.test_voidVariable_parseCompilationUnitMember_noInitializer();
   }
 
   @override
@@ -2187,9 +2159,6 @@ class FastaParserTestCase extends Object
   @override
   bool allowNativeClause = false;
 
-  @override
-  GatheringErrorListener get listener => _parserProxy._errorListener;
-
   /**
    * Whether generic method comments should be enabled for the test.
    */
@@ -2230,6 +2199,9 @@ class FastaParserTestCase extends Object
   }
 
   @override
+  GatheringErrorListener get listener => _parserProxy._errorListener;
+
+  @override
   analyzer.Parser get parser => _parserProxy;
 
   @override
@@ -2237,12 +2209,8 @@ class FastaParserTestCase extends Object
 
   @override
   void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
-    expectedErrorCodes = expectedErrorCodes.map((code) {
-      if (code == ParserErrorCode.ABSTRACT_CLASS_MEMBER)
-        return ParserErrorCode.EXTRANEOUS_MODIFIER;
-      return code;
-    }).toList();
-    _parserProxy._errorListener.assertErrorsWithCodes(expectedErrorCodes);
+    _parserProxy._errorListener.assertErrorsWithCodes(
+        _toFastaGeneratedAnalyzerErrorCodes(expectedErrorCodes));
   }
 
   @override
@@ -2332,7 +2300,8 @@ class FastaParserTestCase extends Object
     CompilationUnit unit = parser.parseCompilationUnit(_fastaTokens);
 
     // Assert and return result
-    listener.assertErrorsWithCodes(expectedErrorCodes);
+    listener.assertErrorsWithCodes(
+        _toFastaGeneratedAnalyzerErrorCodes(expectedErrorCodes));
     expect(unit, isNotNull);
     return unit;
   }
@@ -2599,6 +2568,16 @@ class FastaParserTestCase extends Object
     createParser(source);
     return _parserProxy._run(getParseFunction);
   }
+
+  List<ErrorCode> _toFastaGeneratedAnalyzerErrorCodes(
+          List<ErrorCode> expectedErrorCodes) =>
+      expectedErrorCodes.map((code) {
+        if (code == ParserErrorCode.ABSTRACT_CLASS_MEMBER ||
+            code == ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION ||
+            code == ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE)
+          return ParserErrorCode.EXTRANEOUS_MODIFIER;
+        return code;
+      }).toList();
 }
 
 /**
@@ -2619,6 +2598,20 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   void test_parseFormalParameterList_prefixedType_partial2() {
     // TODO(scheglov): Unimplemented: errors
     super.test_parseFormalParameterList_prefixedType_partial2();
+  }
+
+  @failingTest
+  void test_parseNormalFormalParameter_field_const_noType2() {
+    // TODO(danrubel): should not be generating an error
+    super.test_parseNormalFormalParameter_field_const_noType();
+    assertNoErrors();
+  }
+
+  @failingTest
+  void test_parseNormalFormalParameter_field_const_type2() {
+    // TODO(danrubel): should not be generating an error
+    super.test_parseNormalFormalParameter_field_const_type();
+    assertNoErrors();
   }
 
   @override
@@ -2665,20 +2658,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     // TODO(scheglov): Not implemented: Nnbd
     super
         .test_parseNormalFormalParameter_function_void_typeParameters_nullable();
-  }
-
-  @failingTest
-  void test_parseNormalFormalParameter_field_const_noType2() {
-    // TODO(danrubel): should not be generating an error
-    super.test_parseNormalFormalParameter_field_const_noType();
-    assertNoErrors();
-  }
-
-  @failingTest
-  void test_parseNormalFormalParameter_field_const_type2() {
-    // TODO(danrubel): should not be generating an error
-    super.test_parseNormalFormalParameter_field_const_type();
-    assertNoErrors();
   }
 
   @failingTest
@@ -2826,6 +2805,700 @@ class ParserProxy implements analyzer.Parser {
   }
 }
 
+@reflectiveTest
+class RecoveryParserTest_Fasta extends FastaParserTestCase
+    with RecoveryParserTestMixin {
+  @override
+  @failingTest
+  void test_additiveExpression_missing_LHS() {
+    super.test_additiveExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_additiveExpression_missing_LHS_RHS() {
+    super.test_additiveExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_additiveExpression_missing_RHS() {
+    super.test_additiveExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_additiveExpression_missing_RHS_super() {
+    super.test_additiveExpression_missing_RHS_super();
+  }
+
+  @override
+  @failingTest
+  void test_additiveExpression_precedence_multiplicative_left() {
+    super.test_additiveExpression_precedence_multiplicative_left();
+  }
+
+  @override
+  @failingTest
+  void test_additiveExpression_precedence_multiplicative_right() {
+    super.test_additiveExpression_precedence_multiplicative_right();
+  }
+
+  @override
+  @failingTest
+  void test_additiveExpression_super() {
+    super.test_additiveExpression_super();
+  }
+
+  @override
+  @failingTest
+  void test_assignableSelector() {
+    super.test_assignableSelector();
+  }
+
+  @override
+  @failingTest
+  void test_assignmentExpression_missing_compound1() {
+    super.test_assignmentExpression_missing_compound1();
+  }
+
+  @override
+  @failingTest
+  void test_assignmentExpression_missing_compound2() {
+    super.test_assignmentExpression_missing_compound2();
+  }
+
+  @override
+  @failingTest
+  void test_assignmentExpression_missing_compound3() {
+    super.test_assignmentExpression_missing_compound3();
+  }
+
+  @override
+  @failingTest
+  void test_assignmentExpression_missing_LHS() {
+    super.test_assignmentExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_assignmentExpression_missing_RHS() {
+    super.test_assignmentExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseAndExpression_missing_LHS() {
+    super.test_bitwiseAndExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseAndExpression_missing_LHS_RHS() {
+    super.test_bitwiseAndExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseAndExpression_missing_RHS() {
+    super.test_bitwiseAndExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseAndExpression_missing_RHS_super() {
+    super.test_bitwiseAndExpression_missing_RHS_super();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseAndExpression_precedence_equality_left() {
+    super.test_bitwiseAndExpression_precedence_equality_left();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseAndExpression_precedence_equality_right() {
+    super.test_bitwiseAndExpression_precedence_equality_right();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseAndExpression_super() {
+    super.test_bitwiseAndExpression_super();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseOrExpression_missing_LHS() {
+    super.test_bitwiseOrExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseOrExpression_missing_LHS_RHS() {
+    super.test_bitwiseOrExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseOrExpression_missing_RHS() {
+    super.test_bitwiseOrExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseOrExpression_missing_RHS_super() {
+    super.test_bitwiseOrExpression_missing_RHS_super();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseOrExpression_precedence_xor_left() {
+    super.test_bitwiseOrExpression_precedence_xor_left();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseOrExpression_precedence_xor_right() {
+    super.test_bitwiseOrExpression_precedence_xor_right();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseOrExpression_super() {
+    super.test_bitwiseOrExpression_super();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseXorExpression_missing_LHS() {
+    super.test_bitwiseXorExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseXorExpression_missing_LHS_RHS() {
+    super.test_bitwiseXorExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseXorExpression_missing_RHS() {
+    super.test_bitwiseXorExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseXorExpression_missing_RHS_super() {
+    super.test_bitwiseXorExpression_missing_RHS_super();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseXorExpression_precedence_and_left() {
+    super.test_bitwiseXorExpression_precedence_and_left();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseXorExpression_precedence_and_right() {
+    super.test_bitwiseXorExpression_precedence_and_right();
+  }
+
+  @override
+  @failingTest
+  void test_bitwiseXorExpression_super() {
+    super.test_bitwiseXorExpression_super();
+  }
+
+  @override
+  @failingTest
+  void test_classTypeAlias_withBody() {
+    super.test_classTypeAlias_withBody();
+  }
+
+  @override
+  @failingTest
+  void test_conditionalExpression_missingElse() {
+    super.test_conditionalExpression_missingElse();
+  }
+
+  @override
+  @failingTest
+  void test_conditionalExpression_missingThen() {
+    super.test_conditionalExpression_missingThen();
+  }
+
+  @override
+  @failingTest
+  void test_declarationBeforeDirective() {
+    super.test_declarationBeforeDirective();
+  }
+
+  @override
+  @failingTest
+  void test_equalityExpression_missing_LHS() {
+    super.test_equalityExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_equalityExpression_missing_LHS_RHS() {
+    super.test_equalityExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_equalityExpression_missing_RHS() {
+    super.test_equalityExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_equalityExpression_missing_RHS_super() {
+    super.test_equalityExpression_missing_RHS_super();
+  }
+
+  @override
+  @failingTest
+  void test_equalityExpression_precedence_relational_left() {
+    super.test_equalityExpression_precedence_relational_left();
+  }
+
+  @override
+  @failingTest
+  void test_equalityExpression_precedence_relational_right() {
+    super.test_equalityExpression_precedence_relational_right();
+  }
+
+  @override
+  @failingTest
+  void test_equalityExpression_super() {
+    super.test_equalityExpression_super();
+  }
+
+  @override
+  @failingTest
+  void test_expressionList_multiple_end() {
+    super.test_expressionList_multiple_end();
+  }
+
+  @override
+  @failingTest
+  void test_expressionList_multiple_middle() {
+    super.test_expressionList_multiple_middle();
+  }
+
+  @override
+  @failingTest
+  void test_expressionList_multiple_start() {
+    super.test_expressionList_multiple_start();
+  }
+
+  @override
+  @failingTest
+  void test_functionExpression_in_ConstructorFieldInitializer() {
+    super.test_functionExpression_in_ConstructorFieldInitializer();
+  }
+
+  @override
+  @failingTest
+  void test_functionExpression_named() {
+    super.test_functionExpression_named();
+  }
+
+  @override
+  @failingTest
+  void test_importDirectivePartial_as() {
+    super.test_importDirectivePartial_as();
+  }
+
+  @override
+  @failingTest
+  void test_importDirectivePartial_hide() {
+    super.test_importDirectivePartial_hide();
+  }
+
+  @override
+  @failingTest
+  void test_importDirectivePartial_show() {
+    super.test_importDirectivePartial_show();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_conditionalExpression() {
+    super.test_incomplete_conditionalExpression();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_constructorInitializers_empty() {
+    super.test_incomplete_constructorInitializers_empty();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_constructorInitializers_missingEquals() {
+    super.test_incomplete_constructorInitializers_missingEquals();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_constructorInitializers_variable() {
+    super.test_incomplete_constructorInitializers_variable();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_returnType() {
+    super.test_incomplete_returnType();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_topLevelFunction() {
+    super.test_incomplete_topLevelFunction();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_topLevelVariable() {
+    super.test_incomplete_topLevelVariable();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_topLevelVariable_const() {
+    super.test_incomplete_topLevelVariable_const();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_topLevelVariable_final() {
+    super.test_incomplete_topLevelVariable_final();
+  }
+
+  @override
+  @failingTest
+  void test_incomplete_topLevelVariable_var() {
+    super.test_incomplete_topLevelVariable_var();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteField_const() {
+    super.test_incompleteField_const();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteField_final() {
+    super.test_incompleteField_final();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteField_var() {
+    super.test_incompleteField_var();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteForEach() {
+    super.test_incompleteForEach();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteLocalVariable_atTheEndOfBlock() {
+    super.test_incompleteLocalVariable_atTheEndOfBlock();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteLocalVariable_beforeIdentifier() {
+    super.test_incompleteLocalVariable_beforeIdentifier();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteLocalVariable_beforeKeyword() {
+    super.test_incompleteLocalVariable_beforeKeyword();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteLocalVariable_beforeNextBlock() {
+    super.test_incompleteLocalVariable_beforeNextBlock();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteLocalVariable_parameterizedType() {
+    super.test_incompleteLocalVariable_parameterizedType();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteTypeArguments_field() {
+    super.test_incompleteTypeArguments_field();
+  }
+
+  @override
+  @failingTest
+  void test_incompleteTypeParameters() {
+    super.test_incompleteTypeParameters();
+  }
+
+  @override
+  @failingTest
+  void test_invalidFunctionBodyModifier() {
+    super.test_invalidFunctionBodyModifier();
+  }
+
+  @override
+  @failingTest
+  void test_isExpression_noType() {
+    super.test_isExpression_noType();
+  }
+
+  @override
+  @failingTest
+  void test_keywordInPlaceOfIdentifier() {
+    super.test_keywordInPlaceOfIdentifier();
+  }
+
+  @override
+  @failingTest
+  void test_logicalAndExpression_missing_LHS() {
+    super.test_logicalAndExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_logicalAndExpression_missing_LHS_RHS() {
+    super.test_logicalAndExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_logicalAndExpression_missing_RHS() {
+    super.test_logicalAndExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_logicalAndExpression_precedence_bitwiseOr_left() {
+    super.test_logicalAndExpression_precedence_bitwiseOr_left();
+  }
+
+  @override
+  @failingTest
+  void test_logicalAndExpression_precedence_bitwiseOr_right() {
+    super.test_logicalAndExpression_precedence_bitwiseOr_right();
+  }
+
+  @override
+  @failingTest
+  void test_logicalOrExpression_missing_LHS() {
+    super.test_logicalOrExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_logicalOrExpression_missing_LHS_RHS() {
+    super.test_logicalOrExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_logicalOrExpression_missing_RHS() {
+    super.test_logicalOrExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_logicalOrExpression_precedence_logicalAnd_left() {
+    super.test_logicalOrExpression_precedence_logicalAnd_left();
+  }
+
+  @override
+  @failingTest
+  void test_logicalOrExpression_precedence_logicalAnd_right() {
+    super.test_logicalOrExpression_precedence_logicalAnd_right();
+  }
+
+  @override
+  @failingTest
+  void test_missing_commaInArgumentList() {
+    super.test_missing_commaInArgumentList();
+  }
+
+  @override
+  @failingTest
+  void test_missingComma_beforeNamedArgument() {
+    super.test_missingComma_beforeNamedArgument();
+  }
+
+  @override
+  @failingTest
+  void test_missingGet() {
+    super.test_missingGet();
+  }
+
+  @override
+  @failingTest
+  void test_missingIdentifier_afterAnnotation() {
+    super.test_missingIdentifier_afterAnnotation();
+  }
+
+  @override
+  @failingTest
+  void test_missingSemicolon_varialeDeclarationList() {
+    super.test_missingSemicolon_varialeDeclarationList();
+  }
+
+  @override
+  @failingTest
+  void test_multiplicativeExpression_missing_LHS() {
+    super.test_multiplicativeExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_multiplicativeExpression_missing_LHS_RHS() {
+    super.test_multiplicativeExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_multiplicativeExpression_missing_RHS() {
+    super.test_multiplicativeExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_multiplicativeExpression_missing_RHS_super() {
+    super.test_multiplicativeExpression_missing_RHS_super();
+  }
+
+  @override
+  @failingTest
+  void test_multiplicativeExpression_precedence_unary_left() {
+    super.test_multiplicativeExpression_precedence_unary_left();
+  }
+
+  @override
+  @failingTest
+  void test_multiplicativeExpression_precedence_unary_right() {
+    super.test_multiplicativeExpression_precedence_unary_right();
+  }
+
+  @override
+  @failingTest
+  void test_multiplicativeExpression_super() {
+    super.test_multiplicativeExpression_super();
+  }
+
+  @override
+  @failingTest
+  void test_nonStringLiteralUri_import() {
+    super.test_nonStringLiteralUri_import();
+  }
+
+  @override
+  @failingTest
+  void test_prefixExpression_missing_operand_minus() {
+    super.test_prefixExpression_missing_operand_minus();
+  }
+
+  @override
+  @failingTest
+  void test_primaryExpression_argumentDefinitionTest() {
+    super.test_primaryExpression_argumentDefinitionTest();
+  }
+
+  @override
+  @failingTest
+  void test_relationalExpression_missing_LHS() {
+    super.test_relationalExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_relationalExpression_missing_LHS_RHS() {
+    super.test_relationalExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_relationalExpression_missing_RHS() {
+    super.test_relationalExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_relationalExpression_precedence_shift_right() {
+    super.test_relationalExpression_precedence_shift_right();
+  }
+
+  @override
+  @failingTest
+  void test_shiftExpression_missing_LHS() {
+    super.test_shiftExpression_missing_LHS();
+  }
+
+  @override
+  @failingTest
+  void test_shiftExpression_missing_LHS_RHS() {
+    super.test_shiftExpression_missing_LHS_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_shiftExpression_missing_RHS() {
+    super.test_shiftExpression_missing_RHS();
+  }
+
+  @override
+  @failingTest
+  void test_shiftExpression_missing_RHS_super() {
+    super.test_shiftExpression_missing_RHS_super();
+  }
+
+  @override
+  @failingTest
+  void test_shiftExpression_precedence_unary_left() {
+    super.test_shiftExpression_precedence_unary_left();
+  }
+
+  @override
+  @failingTest
+  void test_shiftExpression_precedence_unary_right() {
+    super.test_shiftExpression_precedence_unary_right();
+  }
+
+  @override
+  @failingTest
+  void test_shiftExpression_super() {
+    super.test_shiftExpression_super();
+  }
+
+  @override
+  @failingTest
+  void test_typedef_eof() {
+    super.test_typedef_eof();
+  }
+
+  @override
+  @failingTest
+  void test_unaryPlus() {
+    super.test_unaryPlus();
+  }
+}
+
 /**
  * Proxy implementation of [Scope] used by Fasta parser tests.
  *
@@ -2836,8 +3509,8 @@ class ScopeProxy implements Scope {
   final _locals = <String, Builder>{};
 
   @override
-  Scope createNestedScope({bool isModifiable: true}) {
-    return new Scope.nested(this, isModifiable: isModifiable);
+  Scope createNestedScope(String debugName, {bool isModifiable: true}) {
+    return new Scope.nested(this, debugName, isModifiable: isModifiable);
   }
 
   @override
@@ -2852,6 +3525,789 @@ class ScopeProxy implements Scope {
       _locals.putIfAbsent(name, () => new BuilderProxy());
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+@reflectiveTest
+class SimpleParserTest_Fasta extends FastaParserTestCase
+    with SimpleParserTestMixin {
+  @override
+  @failingTest
+  void test_parseAnnotation_n1() {
+    super.test_parseAnnotation_n1();
+  }
+
+  @override
+  @failingTest
+  void test_parseAnnotation_n1_a() {
+    super.test_parseAnnotation_n1_a();
+  }
+
+  @override
+  @failingTest
+  void test_parseAnnotation_n2() {
+    super.test_parseAnnotation_n2();
+  }
+
+  @override
+  @failingTest
+  void test_parseAnnotation_n2_a() {
+    super.test_parseAnnotation_n2_a();
+  }
+
+  @override
+  @failingTest
+  void test_parseAnnotation_n3() {
+    super.test_parseAnnotation_n3();
+  }
+
+  @override
+  @failingTest
+  void test_parseAnnotation_n3_a() {
+    super.test_parseAnnotation_n3_a();
+  }
+
+  @override
+  @failingTest
+  void test_parseArgument_named() {
+    super.test_parseArgument_named();
+  }
+
+  @override
+  @failingTest
+  void test_parseArgument_unnamed() {
+    super.test_parseArgument_unnamed();
+  }
+
+  @override
+  @failingTest
+  void test_parseArgumentList_empty() {
+    super.test_parseArgumentList_empty();
+  }
+
+  @override
+  @failingTest
+  void test_parseArgumentList_mixed() {
+    super.test_parseArgumentList_mixed();
+  }
+
+  @override
+  @failingTest
+  void test_parseArgumentList_noNamed() {
+    super.test_parseArgumentList_noNamed();
+  }
+
+  @override
+  @failingTest
+  void test_parseArgumentList_onlyNamed() {
+    super.test_parseArgumentList_onlyNamed();
+  }
+
+  @override
+  @failingTest
+  void test_parseArgumentList_trailing_comma() {
+    super.test_parseArgumentList_trailing_comma();
+  }
+
+  @override
+  @failingTest
+  void test_parseCombinator_hide() {
+    super.test_parseCombinator_hide();
+  }
+
+  @override
+  @failingTest
+  void test_parseCombinator_show() {
+    super.test_parseCombinator_show();
+  }
+
+  @override
+  @failingTest
+  void test_parseCombinators_h() {
+    super.test_parseCombinators_h();
+  }
+
+  @override
+  @failingTest
+  void test_parseCombinators_hs() {
+    super.test_parseCombinators_hs();
+  }
+
+  @override
+  @failingTest
+  void test_parseCombinators_hshs() {
+    super.test_parseCombinators_hshs();
+  }
+
+  @override
+  @failingTest
+  void test_parseCombinators_s() {
+    super.test_parseCombinators_s();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentAndMetadata_c() {
+    super.test_parseCommentAndMetadata_c();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentAndMetadata_cmc() {
+    super.test_parseCommentAndMetadata_cmc();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentAndMetadata_cmcm() {
+    super.test_parseCommentAndMetadata_cmcm();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentAndMetadata_cmm() {
+    super.test_parseCommentAndMetadata_cmm();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentAndMetadata_m() {
+    super.test_parseCommentAndMetadata_m();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentAndMetadata_mcm() {
+    super.test_parseCommentAndMetadata_mcm();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentAndMetadata_mcmc() {
+    super.test_parseCommentAndMetadata_mcmc();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentAndMetadata_mm() {
+    super.test_parseCommentAndMetadata_mm();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentAndMetadata_none() {
+    super.test_parseCommentAndMetadata_none();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentAndMetadata_singleLine() {
+    super.test_parseCommentAndMetadata_singleLine();
+  }
+
+  @override
+  @failingTest
+  void test_parseConfiguration_noOperator_dottedIdentifier() {
+    super.test_parseConfiguration_noOperator_dottedIdentifier();
+  }
+
+  @override
+  @failingTest
+  void test_parseConfiguration_noOperator_simpleIdentifier() {
+    super.test_parseConfiguration_noOperator_simpleIdentifier();
+  }
+
+  @override
+  @failingTest
+  void test_parseConfiguration_operator_dottedIdentifier() {
+    super.test_parseConfiguration_operator_dottedIdentifier();
+  }
+
+  @override
+  @failingTest
+  void test_parseConfiguration_operator_simpleIdentifier() {
+    super.test_parseConfiguration_operator_simpleIdentifier();
+  }
+
+  @override
+  @failingTest
+  void test_parseConstructorName_named_noPrefix() {
+    super.test_parseConstructorName_named_noPrefix();
+  }
+
+  @override
+  @failingTest
+  void test_parseConstructorName_named_prefixed() {
+    super.test_parseConstructorName_named_prefixed();
+  }
+
+  @override
+  @failingTest
+  void test_parseConstructorName_unnamed_noPrefix() {
+    super.test_parseConstructorName_unnamed_noPrefix();
+  }
+
+  @override
+  @failingTest
+  void test_parseConstructorName_unnamed_prefixed() {
+    super.test_parseConstructorName_unnamed_prefixed();
+  }
+
+  @override
+  @failingTest
+  void test_parseDocumentationComment_block() {
+    super.test_parseDocumentationComment_block();
+  }
+
+  @override
+  @failingTest
+  void test_parseDocumentationComment_block_withReference() {
+    super.test_parseDocumentationComment_block_withReference();
+  }
+
+  @override
+  @failingTest
+  void test_parseDocumentationComment_endOfLine() {
+    super.test_parseDocumentationComment_endOfLine();
+  }
+
+  @override
+  @failingTest
+  void test_parseDottedName_multiple() {
+    super.test_parseDottedName_multiple();
+  }
+
+  @override
+  @failingTest
+  void test_parseDottedName_single() {
+    super.test_parseDottedName_single();
+  }
+
+  @override
+  @failingTest
+  void test_parseExtendsClause() {
+    super.test_parseExtendsClause();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_const_functionType() {
+    super.test_parseFinalConstVarOrType_const_functionType();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_const_namedType() {
+    super.test_parseFinalConstVarOrType_const_namedType();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_const_noType() {
+    super.test_parseFinalConstVarOrType_const_noType();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_final_functionType() {
+    super.test_parseFinalConstVarOrType_final_functionType();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_final_namedType() {
+    super.test_parseFinalConstVarOrType_final_namedType();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_final_noType() {
+    super.test_parseFinalConstVarOrType_final_noType();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_final_prefixedType() {
+    super.test_parseFinalConstVarOrType_final_prefixedType();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_type_function() {
+    super.test_parseFinalConstVarOrType_type_function();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_type_parameterized() {
+    super.test_parseFinalConstVarOrType_type_parameterized();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_type_prefixed() {
+    super.test_parseFinalConstVarOrType_type_prefixed();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_type_prefixed_noIdentifier() {
+    super.test_parseFinalConstVarOrType_type_prefixed_noIdentifier();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_type_prefixedAndParameterized() {
+    super.test_parseFinalConstVarOrType_type_prefixedAndParameterized();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_type_simple() {
+    super.test_parseFinalConstVarOrType_type_simple();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_type_simple_noIdentifier_inFunctionType() {
+    super
+        .test_parseFinalConstVarOrType_type_simple_noIdentifier_inFunctionType();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_var() {
+    super.test_parseFinalConstVarOrType_var();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_void() {
+    super.test_parseFinalConstVarOrType_void();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_void_identifier() {
+    super.test_parseFinalConstVarOrType_void_identifier();
+  }
+
+  @override
+  @failingTest
+  void test_parseFinalConstVarOrType_void_noIdentifier() {
+    super.test_parseFinalConstVarOrType_void_noIdentifier();
+  }
+
+  @override
+  @failingTest
+  void test_parseFunctionBody_block() {
+    super.test_parseFunctionBody_block();
+  }
+
+  @override
+  @failingTest
+  void test_parseFunctionBody_block_async() {
+    super.test_parseFunctionBody_block_async();
+  }
+
+  @override
+  @failingTest
+  void test_parseFunctionBody_block_asyncGenerator() {
+    super.test_parseFunctionBody_block_asyncGenerator();
+  }
+
+  @override
+  @failingTest
+  void test_parseFunctionBody_block_syncGenerator() {
+    super.test_parseFunctionBody_block_syncGenerator();
+  }
+
+  @override
+  @failingTest
+  void test_parseFunctionBody_empty() {
+    super.test_parseFunctionBody_empty();
+  }
+
+  @override
+  @failingTest
+  void test_parseFunctionBody_expression() {
+    super.test_parseFunctionBody_expression();
+  }
+
+  @override
+  @failingTest
+  void test_parseFunctionBody_expression_async() {
+    super.test_parseFunctionBody_expression_async();
+  }
+
+  @override
+  @failingTest
+  void test_parseFunctionBody_skip_block() {
+    super.test_parseFunctionBody_skip_block();
+  }
+
+  @override
+  @failingTest
+  void test_parseFunctionBody_skip_block_invalid() {
+    super.test_parseFunctionBody_skip_block_invalid();
+  }
+
+  @override
+  @failingTest
+  void test_parseFunctionBody_skip_blocks() {
+    super.test_parseFunctionBody_skip_blocks();
+  }
+
+  @override
+  @failingTest
+  void test_parseFunctionBody_skip_expression() {
+    super.test_parseFunctionBody_skip_expression();
+  }
+
+  @override
+  @failingTest
+  void test_parseIdentifierList_multiple() {
+    super.test_parseIdentifierList_multiple();
+  }
+
+  @override
+  @failingTest
+  void test_parseIdentifierList_single() {
+    super.test_parseIdentifierList_single();
+  }
+
+  @override
+  @failingTest
+  void test_parseImplementsClause_multiple() {
+    super.test_parseImplementsClause_multiple();
+  }
+
+  @override
+  @failingTest
+  void test_parseImplementsClause_single() {
+    super.test_parseImplementsClause_single();
+  }
+
+  @override
+  @failingTest
+  void test_parseLibraryIdentifier_multiple() {
+    super.test_parseLibraryIdentifier_multiple();
+  }
+
+  @override
+  @failingTest
+  void test_parseLibraryIdentifier_single() {
+    super.test_parseLibraryIdentifier_single();
+  }
+
+  @override
+  @failingTest
+  void test_parseModifiers_abstract() {
+    super.test_parseModifiers_abstract();
+  }
+
+  @override
+  @failingTest
+  void test_parseModifiers_const() {
+    super.test_parseModifiers_const();
+  }
+
+  @override
+  @failingTest
+  void test_parseModifiers_covariant() {
+    super.test_parseModifiers_covariant();
+  }
+
+  @override
+  @failingTest
+  void test_parseModifiers_external() {
+    super.test_parseModifiers_external();
+  }
+
+  @override
+  @failingTest
+  void test_parseModifiers_factory() {
+    super.test_parseModifiers_factory();
+  }
+
+  @override
+  @failingTest
+  void test_parseModifiers_final() {
+    super.test_parseModifiers_final();
+  }
+
+  @override
+  @failingTest
+  void test_parseModifiers_static() {
+    super.test_parseModifiers_static();
+  }
+
+  @override
+  @failingTest
+  void test_parseModifiers_var() {
+    super.test_parseModifiers_var();
+  }
+
+  @override
+  @failingTest
+  void test_parseReturnStatement_noValue() {
+    super.test_parseReturnStatement_noValue();
+  }
+
+  @override
+  @failingTest
+  void test_parseReturnStatement_value() {
+    super.test_parseReturnStatement_value();
+  }
+
+  @override
+  @failingTest
+  void test_parseReturnType_function() {
+    super.test_parseReturnType_function();
+  }
+
+  @override
+  @failingTest
+  void test_parseReturnType_named() {
+    super.test_parseReturnType_named();
+  }
+
+  @override
+  @failingTest
+  void test_parseReturnType_void() {
+    super.test_parseReturnType_void();
+  }
+
+  @override
+  @failingTest
+  void test_parseStatement_function_noReturnType() {
+    super.test_parseStatement_function_noReturnType();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeAnnotation_function_noReturnType_noParameters() {
+    super.test_parseTypeAnnotation_function_noReturnType_noParameters();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeAnnotation_function_noReturnType_parameters() {
+    super.test_parseTypeAnnotation_function_noReturnType_parameters();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeAnnotation_function_noReturnType_typeParameters() {
+    super.test_parseTypeAnnotation_function_noReturnType_typeParameters();
+  }
+
+  @override
+  @failingTest
+  void
+      test_parseTypeAnnotation_function_noReturnType_typeParameters_parameters() {
+    super
+        .test_parseTypeAnnotation_function_noReturnType_typeParameters_parameters();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeAnnotation_function_returnType_classFunction() {
+    super.test_parseTypeAnnotation_function_returnType_classFunction();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeAnnotation_function_returnType_function() {
+    super.test_parseTypeAnnotation_function_returnType_function();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeAnnotation_function_returnType_noParameters() {
+    super.test_parseTypeAnnotation_function_returnType_noParameters();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeAnnotation_function_returnType_parameters() {
+    super.test_parseTypeAnnotation_function_returnType_parameters();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeAnnotation_function_returnType_simple() {
+    super.test_parseTypeAnnotation_function_returnType_simple();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeAnnotation_function_returnType_typeParameters() {
+    super.test_parseTypeAnnotation_function_returnType_typeParameters();
+  }
+
+  @override
+  @failingTest
+  void
+      test_parseTypeAnnotation_function_returnType_typeParameters_parameters() {
+    super
+        .test_parseTypeAnnotation_function_returnType_typeParameters_parameters();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeAnnotation_function_returnType_withArguments() {
+    super.test_parseTypeAnnotation_function_returnType_withArguments();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeAnnotation_named() {
+    super.test_parseTypeAnnotation_named();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeArgumentList_empty() {
+    super.test_parseTypeArgumentList_empty();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeArgumentList_multiple() {
+    super.test_parseTypeArgumentList_multiple();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeArgumentList_nested() {
+    super.test_parseTypeArgumentList_nested();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeArgumentList_nested_withComment_double() {
+    super.test_parseTypeArgumentList_nested_withComment_double();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeArgumentList_nested_withComment_tripple() {
+    super.test_parseTypeArgumentList_nested_withComment_tripple();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeArgumentList_single() {
+    super.test_parseTypeArgumentList_single();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeName_parameterized() {
+    super.test_parseTypeName_parameterized();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeName_parameterized_nullable() {
+    super.test_parseTypeName_parameterized_nullable();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeName_simple() {
+    super.test_parseTypeName_simple();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeName_simple_nullable() {
+    super.test_parseTypeName_simple_nullable();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeParameter_bounded_functionType_noReturn() {
+    super.test_parseTypeParameter_bounded_functionType_noReturn();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeParameter_bounded_functionType_return() {
+    super.test_parseTypeParameter_bounded_functionType_return();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeParameter_bounded_generic() {
+    super.test_parseTypeParameter_bounded_generic();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeParameter_bounded_nullable() {
+    super.test_parseTypeParameter_bounded_nullable();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeParameter_bounded_simple() {
+    super.test_parseTypeParameter_bounded_simple();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeParameter_simple() {
+    super.test_parseTypeParameter_simple();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeParameterList_multiple() {
+    super.test_parseTypeParameterList_multiple();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeParameterList_parameterizedWithTrailingEquals() {
+    super.test_parseTypeParameterList_parameterizedWithTrailingEquals();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeParameterList_single() {
+    super.test_parseTypeParameterList_single();
+  }
+
+  @override
+  @failingTest
+  void test_parseTypeParameterList_withTrailingEquals() {
+    super.test_parseTypeParameterList_withTrailingEquals();
+  }
+
+  @override
+  @failingTest
+  void test_parseVariableDeclaration_equals() {
+    super.test_parseVariableDeclaration_equals();
+  }
+
+  @override
+  @failingTest
+  void test_parseVariableDeclaration_noEquals() {
+    super.test_parseVariableDeclaration_noEquals();
+  }
+
+  @override
+  @failingTest
+  void test_parseWithClause_multiple() {
+    super.test_parseWithClause_multiple();
+  }
+
+  @override
+  @failingTest
+  void test_parseWithClause_single() {
+    super.test_parseWithClause_single();
+  }
 }
 
 /**
@@ -2921,6 +4377,11 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class TopLevelParserTest_Fasta extends FastaParserTestCase
     with TopLevelParserTestMixin {
+  void test_parseClassDeclaration_native_allowed() {
+    allowNativeClause = true;
+    test_parseClassDeclaration_native();
+  }
+
   void test_parseClassDeclaration_native_missing_literal() {
     createParser('class A native {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
@@ -2938,11 +4399,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     expect(declaration.nativeClause.nativeKeyword, isNotNull);
     expect(declaration.nativeClause.name, isNull);
     expect(declaration.endToken.type, TokenType.CLOSE_CURLY_BRACKET);
-  }
-
-  void test_parseClassDeclaration_native_allowed() {
-    allowNativeClause = true;
-    test_parseClassDeclaration_native();
   }
 
   void test_parseClassDeclaration_native_missing_literal_allowed() {
@@ -2983,16 +4439,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     super.test_parseCompilationUnit_exportAsPrefix_parameterized();
   }
 
-  @override
-  @failingTest
-  void test_parseDirectives_mixed() {
-    // TODO(paulberry,ahe): This test verifies the analyzer parser's ability to
-    // stop parsing as soon as the first non-directive is encountered; this is
-    // useful for quickly traversing an import graph.  Consider adding a similar
-    // ability to Fasta's parser.
-    super.test_parseDirectives_mixed();
-  }
-
   @failingTest
   void test_parseCompilationUnit_operatorAsPrefix_parameterized2() {
     // TODO(danrubel): should not be generating an error
@@ -3012,5 +4458,15 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     // TODO(danrubel): should not be generating an error
     super.test_parseCompilationUnitMember_abstractAsPrefix();
     assertNoErrors();
+  }
+
+  @override
+  @failingTest
+  void test_parseDirectives_mixed() {
+    // TODO(paulberry,ahe): This test verifies the analyzer parser's ability to
+    // stop parsing as soon as the first non-directive is encountered; this is
+    // useful for quickly traversing an import graph.  Consider adding a similar
+    // ability to Fasta's parser.
+    super.test_parseDirectives_mixed();
   }
 }

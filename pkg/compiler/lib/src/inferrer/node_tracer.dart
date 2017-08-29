@@ -5,7 +5,6 @@
 library compiler.src.inferrer.node_tracer;
 
 import '../common/names.dart' show Identifiers;
-import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../types/types.dart' show ContainerTypeMask, MapTypeMask;
@@ -76,15 +75,12 @@ Set<String> doesNotEscapeMapSet = new Set<String>.from(const <String>[
 abstract class TracerVisitor implements TypeInformationVisitor {
   final TypeInformation tracedType;
   final InferrerEngine inferrer;
-  final Compiler compiler;
 
   static const int MAX_ANALYSIS_COUNT =
       const int.fromEnvironment('dart2js.tracing.limit', defaultValue: 32);
   final Setlet<MemberEntity> analyzedElements = new Setlet<MemberEntity>();
 
-  TracerVisitor(this.tracedType, InferrerEngine inferrer)
-      : this.inferrer = inferrer,
-        this.compiler = inferrer.compiler;
+  TracerVisitor(this.tracedType, this.inferrer);
 
   // Work list that gets populated with [TypeInformation] that could
   // contain the container.
@@ -454,8 +450,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Returned from a closure');
     }
     if (info.member.isField &&
-        !inferrer.compiler.backend.canFieldBeUsedForGlobalOptimizations(
-            info.member, inferrer.closedWorld)) {
+        !inferrer.canFieldBeUsedForGlobalOptimizations(info.member)) {
       bailout('Escape to code that has special backend treatment');
     }
     addNewEscapeInformation(info);
@@ -465,9 +460,8 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     if (inferrer.closedWorld.nativeData.isNativeMember(info.method)) {
       bailout('Passed to a native method');
     }
-    if (!inferrer.compiler.backend
-        .canFunctionParametersBeUsedForGlobalOptimizations(
-            info.method, inferrer.closedWorld)) {
+    if (!inferrer
+        .canFunctionParametersBeUsedForGlobalOptimizations(info.method)) {
       bailout('Escape to code that has special backend treatment');
     }
     if (isParameterOfListAddingMethod(info.parameter) ||

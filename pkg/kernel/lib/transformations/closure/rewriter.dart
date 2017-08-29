@@ -35,7 +35,7 @@ abstract class AstRewriter {
     // works as a link to the parent context.
     vectorCreation = new VectorCreation(2);
     contextDeclaration = new VariableDeclaration.forValue(vectorCreation,
-        type: new VectorType());
+        type: const DynamicType());
     contextDeclaration.name = "#context";
   }
 }

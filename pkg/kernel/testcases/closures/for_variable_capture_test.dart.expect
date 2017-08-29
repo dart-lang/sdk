@@ -4,7 +4,7 @@ import self as self;
 static method main() → dynamic {
   dynamic closure;
   {
-    Vector #context = MakeVector(3);
+    dynamic #context = MakeVector(3);
     #context[2] = 0;
     dynamic fn = MakeClosure<() → dynamic>(self::closure#main#function, #context);
     for (; (#context[2]).<(3); #context = CopyVector(#context), #context[2] = (#context[2]).+(1)) {
@@ -17,6 +17,6 @@ static method main() → dynamic {
     throw "Expected 1, but got ${x}.";
   }
 }
-static method closure#main#function(Vector #contextParameter) → dynamic {
+static method closure#main#function(dynamic #contextParameter) → dynamic {
   return #contextParameter[2];
 }

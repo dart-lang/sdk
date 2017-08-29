@@ -217,18 +217,19 @@ class CompilerOptions {
 
   /// Whether the compiler should throw as soon as it encounters a
   /// compilation error.
-  // TODO(sigmund): change the default (issue #30194).
-  bool throwOnErrors = true;
+  ///
+  /// Typically used by developers to debug internals of the compiler.
+  bool throwOnErrorsForDebugging = false;
 
   /// Whether the compiler should throw as soon as it encounters a
   /// compilation warning.
   ///
   /// Typically used by developers to debug internals of the compiler.
-  bool throwOnWarnings = false;
+  bool throwOnWarningsForDebugging = false;
 
   /// Whether the compiler should throw as soon as it encounters a
   /// compilation nit.
   ///
   /// Typically used by developers to debug internals of the compiler.
-  bool throwOnNits = false;
+  bool throwOnNitsForDebugging = false;
 }

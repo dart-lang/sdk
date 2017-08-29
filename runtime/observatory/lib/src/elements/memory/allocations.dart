@@ -109,7 +109,14 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
         new VirtualCollectionElement(
             _createCollectionLine, _updateCollectionLine,
             createHeader: _createCollectionHeader,
-            items: _profile.members.toList()..sort(_createSorter()),
+            items: _profile.members
+                .where((member) =>
+                    member.newSpace.accumulated.instances != 0 ||
+                    member.newSpace.current.instances != 0 ||
+                    member.oldSpace.accumulated.instances != 0 ||
+                    member.oldSpace.current.instances != 0)
+                .toList()
+                  ..sort(_createSorter()),
             queue: _r.queue)
       ];
     }
@@ -233,6 +240,12 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
     e.children[1].text = '${_getAccumulatedInstances(item)}';
     e.children[2].text = Utils.formatSize(_getCurrentSize(item));
     e.children[3].text = '${_getCurrentInstances(item)}';
+    if (item.clazz == null) {
+      e.children[4] = new SpanElement()
+        ..text = item.displayName
+        ..classes = ['name'];
+      return;
+    }
     e.children[4] = new ClassRefElement(_isolate, item.clazz, queue: _r.queue)
       ..classes = ['name'];
     Element.clickEvent.forTarget(e.children[4], useCapture: true).listen((e) {
@@ -246,7 +259,8 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
   Future _refresh({bool gc: false, bool reset: false}) async {
     _profile = null;
     _r.dirty();
-    _profile = await _repository.get(_isolate, gc: gc, reset: reset);
+    _profile =
+        await _repository.get(_isolate, gc: gc, reset: reset, combine: true);
     _r.dirty();
   }
 

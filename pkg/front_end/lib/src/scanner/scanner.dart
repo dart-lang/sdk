@@ -490,7 +490,7 @@ abstract class Scanner {
     if (_firstComment == null) {
       token = new BeginToken(type, _tokenStart);
     } else {
-      token = new BeginTokenWithComment(type, _tokenStart, _firstComment);
+      token = new BeginToken(type, _tokenStart, _firstComment);
       _firstComment = null;
       _lastComment = null;
     }
@@ -528,7 +528,7 @@ abstract class Scanner {
     if (_firstComment == null) {
       token = new Token(type, _tokenStart);
     } else {
-      token = new TokenWithComment(type, _tokenStart, _firstComment);
+      token = new Token(type, _tokenStart, _firstComment);
       _firstComment = null;
       _lastComment = null;
     }
@@ -565,8 +565,8 @@ abstract class Scanner {
     if (_firstComment == null) {
       _tail = _tail.setNext(new KeywordToken(keyword, _tokenStart));
     } else {
-      _tail = _tail.setNext(
-          new KeywordTokenWithComment(keyword, _tokenStart, _firstComment));
+      _tail =
+          _tail.setNext(new KeywordToken(keyword, _tokenStart, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
@@ -576,8 +576,8 @@ abstract class Scanner {
     if (_firstComment == null) {
       _tail = _tail.setNext(new StringToken(type, value, _tokenStart));
     } else {
-      _tail = _tail.setNext(
-          new StringTokenWithComment(type, value, _tokenStart, _firstComment));
+      _tail = _tail
+          .setNext(new StringToken(type, value, _tokenStart, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
@@ -587,8 +587,8 @@ abstract class Scanner {
     if (_firstComment == null) {
       _tail = _tail.setNext(new StringToken(type, value, _tokenStart + offset));
     } else {
-      _tail = _tail.setNext(new StringTokenWithComment(
-          type, value, _tokenStart + offset, _firstComment));
+      _tail = _tail.setNext(
+          new StringToken(type, value, _tokenStart + offset, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
@@ -598,8 +598,7 @@ abstract class Scanner {
     if (_firstComment == null) {
       _tail = _tail.setNext(new Token(type, _tokenStart));
     } else {
-      _tail =
-          _tail.setNext(new TokenWithComment(type, _tokenStart, _firstComment));
+      _tail = _tail.setNext(new Token(type, _tokenStart, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
@@ -609,7 +608,7 @@ abstract class Scanner {
     if (_firstComment == null) {
       _tail = _tail.setNext(new Token(type, offset));
     } else {
-      _tail = _tail.setNext(new TokenWithComment(type, offset, _firstComment));
+      _tail = _tail.setNext(new Token(type, offset, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }

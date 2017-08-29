@@ -8,7 +8,7 @@ import 'package:front_end/compiler_options.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
-import 'package:front_end/src/fasta/fasta.dart' show ByteSink;
+import 'package:front_end/src/fasta/util/bytes_sink.dart' show BytesSink;
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/kernel.dart'
@@ -93,7 +93,7 @@ class ProcessedOptionsTest {
   }
 
   void writeMockSummaryTo(Uri uri) {
-    var sink = new ByteSink();
+    var sink = new BytesSink();
     new BinaryPrinter(sink).writeProgramFile(mockSummary);
     fileSystem.entityForUri(uri).writeAsBytesSync(sink.builder.takeBytes());
   }

@@ -12,29 +12,16 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
+import 'package:analyzer/src/generated/bazel.dart';
+import 'package:analyzer/src/generated/gn.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show KytheEntry, KytheVName;
 
 import 'schema.dart' as schema;
 
 const int _notFound = -1;
-
-/// Computes analysis of the given compilation [unit]. The unit is assumed to
-/// exist in the given [corpus] and to have the given text [contents]. Analysis
-/// results are returned as a list of [KytheEntry] objects.
-List<KytheEntry> computeIndex(
-    String corpus, CompilationUnit unit, String contents) {
-  final List<KytheEntry> entries = [];
-  var visitor = new KytheDartVisitor(
-      entries,
-      corpus,
-      new InheritanceManager(
-          resolutionMap.elementDeclaredByCompilationUnit(unit).library),
-      contents);
-  unit.accept(visitor);
-  return entries;
-}
 
 /// Given some [ConstructorElement], this method returns '<class-name>' as the
 /// name of the constructor, unless the constructor is a named constructor in
@@ -54,7 +41,7 @@ String _getAnchorSignature(int start, int end) {
   return '$start-$end';
 }
 
-String _getPath(Element e) {
+String _getPath(ResourceProvider provider, Element e) {
   // TODO(jwren) This method simply serves to provide the WORKSPACE relative
   // path for sources in Elements, it needs to be written in a more robust way.
   // TODO(jwren) figure out what source generates a e != null, but
@@ -64,21 +51,32 @@ String _getPath(Element e) {
     // "dynamic"
     return '';
   }
-  var path = e.source.fullName;
-  assert(path.lastIndexOf('CORPUS_NAME') != -1);
-  return path.substring(path.lastIndexOf('CORPUS_NAME') + 12);
+  String path = e.source.fullName;
+  BazelWorkspace bazelWorkspace = BazelWorkspace.find(provider, path);
+  if (bazelWorkspace != null) {
+    return provider.pathContext.relative(path, from: bazelWorkspace.root);
+  }
+  GnWorkspace gnWorkspace = GnWorkspace.find(provider, path);
+  if (gnWorkspace != null) {
+    return provider.pathContext.relative(path, from: gnWorkspace.root);
+  }
+  if (path.lastIndexOf('CORPUS_NAME') != -1) {
+    return path.substring(path.lastIndexOf('CORPUS_NAME') + 12);
+  }
+  return path;
 }
 
 /// If a non-null element is passed, the [SignatureElementVisitor] is used to
 /// generate and return a [String] signature, otherwise [schema.DYNAMIC_KIND] is
 /// returned.
-String _getSignature(Element element, String nodeKind, String corpus) {
+String _getSignature(ResourceProvider provider, Element element,
+    String nodeKind, String corpus) {
   assert(nodeKind != schema.ANCHOR_KIND); // Call _getAnchorSignature instead
   if (element == null) {
     return schema.DYNAMIC_KIND;
   }
   if (element is CompilationUnitElement) {
-    return _getPath(element);
+    return _getPath(provider, element);
   }
   return '$nodeKind:${element.accept(SignatureElementVisitor.instance)}';
 }
@@ -92,19 +90,21 @@ class CodedBufferWriter {
 /// Schema here https://kythe.io/docs/schema/.  This visitor handles all nodes,
 /// facts and edges.
 class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
+  final ResourceProvider resourceProvider;
   final List<KytheEntry> entries;
   final String corpus;
   final InheritanceManager _inheritanceManager;
+  final String _contents;
+
   String _enclosingFilePath = '';
   Element _enclosingElement;
   ClassElement _enclosingClassElement;
   KytheVName _enclosingVName;
   KytheVName _enclosingFileVName;
   KytheVName _enclosingClassVName;
-  final String _contents;
 
-  KytheDartVisitor(
-      this.entries, this.corpus, this._inheritanceManager, this._contents);
+  KytheDartVisitor(this.resourceProvider, this.entries, this.corpus,
+      this._inheritanceManager, this._contents);
 
   @override
   String get enclosingFilePath => _enclosingFilePath;
@@ -338,7 +338,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
 
   @override
   visitCompilationUnit(CompilationUnit node) {
-    _enclosingFilePath = _getPath(node.element);
+    _enclosingFilePath = _getPath(resourceProvider, node.element);
     return _withEnclosingElement(node.element, () {
       addFact(_enclosingFileVName, schema.NODE_KIND_FACT,
           _encode(schema.FILE_KIND));
@@ -427,6 +427,33 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
       _safelyVisitList(node.initializers);
       _safelyVisit(node.body);
     });
+  }
+
+  @override
+  visitDeclaredIdentifier(DeclaredIdentifier node) {
+    // variable
+    var variableVName = addNodeAndFacts(schema.VARIABLE_KIND,
+        element: node.element,
+        subKind: schema.LOCAL_SUBKIND,
+        completeFact: schema.DEFINITION);
+
+    // anchor
+    addAnchorEdgesContainingEdge(
+        syntacticEntity: node.identifier,
+        edges: [
+          schema.DEFINES_BINDING_EDGE,
+        ],
+        target: variableVName,
+        enclosingTarget: _enclosingVName);
+
+    // type
+    addEdge(
+        variableVName,
+        schema.TYPED_EDGE,
+        _vNameFromType(
+            resolutionMap.elementDeclaredByDeclaredIdentifier(node).type));
+
+    // no children
   }
 
   @override
@@ -1098,13 +1125,19 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
 abstract class OutputUtils {
   /// A set of [String]s which have already had a name [KytheVName] created.
   final Set<String> nameNodes = new Set<String>();
+
   String get corpus;
+
   KytheVName get dynamicBuiltin => _vName(schema.DYNAMIC_KIND, '', '', '');
 
   String get enclosingFilePath;
 
   List<KytheEntry> get entries;
+
   KytheVName get fnBuiltin => _vName(schema.FN_BUILTIN, '', '', '');
+
+  ResourceProvider get resourceProvider;
+
   KytheVName get voidBuiltin => _vName(schema.VOID_BUILTIN, '', '', '');
 
   /// This is a convenience method for adding anchors. If the [start] and [end]
@@ -1195,7 +1228,8 @@ abstract class OutputUtils {
       edgeKind = null;
       target = null;
     }
-    var entry = new KytheEntry(source, edgeKind, target, factName, factValue);
+    var entry = new KytheEntry(source, factName,
+        kind: edgeKind, target: target, value: factValue);
     entries.add(entry);
     return entry;
   }
@@ -1323,7 +1357,8 @@ abstract class OutputUtils {
   KytheVName _vNameFromElement(Element e, String nodeKind) {
     assert(nodeKind != schema.FILE_KIND);
     // general case
-    return _vName(_getSignature(e, nodeKind, corpus), corpus, '', _getPath(e));
+    return _vName(_getSignature(resourceProvider, e, nodeKind, corpus), corpus,
+        '', _getPath(resourceProvider, e));
   }
 
   /// Returns a [KytheVName] corresponding to the given [DartType].

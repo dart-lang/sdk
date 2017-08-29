@@ -615,9 +615,9 @@ static void GenerateDispatcherCode(Assembler* assembler,
 
   // Adjust arguments count.
   __ LoadFieldFromOffset(R3, R4, ArgumentsDescriptor::type_args_len_offset());
-  __ AddImmediate(TMP, R2, Smi::RawValue(1));  // Include the type arguments.
+  __ AddImmediate(TMP, R2, 1);  // Include the type arguments.
   __ cmp(R3, Operand(0));
-  __ csinc(R2, R2, TMP, EQ);  // R2 <- (R3 == 0) ? R2 : TMP.
+  __ csinc(R2, R2, TMP, EQ);  // R2 <- (R3 == 0) ? R2 : TMP + 1 (R2 : R2 + 2).
 
   // R2: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
@@ -1269,9 +1269,9 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
 
   // Adjust arguments count.
   __ LoadFieldFromOffset(R3, R4, ArgumentsDescriptor::type_args_len_offset());
-  __ AddImmediate(TMP, R2, Smi::RawValue(1));  // Include the type arguments.
+  __ AddImmediate(TMP, R2, 1);  // Include the type arguments.
   __ cmp(R3, Operand(0));
-  __ csinc(R2, R2, TMP, EQ);  // R2 <- (R3 == 0) ? R2 : TMP.
+  __ csinc(R2, R2, TMP, EQ);  // R2 <- (R3 == 0) ? R2 : TMP + 1 (R2 : R2 + 2).
 
   // R2: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);

@@ -228,10 +228,7 @@ class CodeGenerator extends Object
         functionClass = _getLibrary(c, 'dart:core').getType('Function'),
         privateSymbolClass =
             _getLibrary(c, 'dart:_internal').getType('PrivateSymbol'),
-        dartJSLibrary = _getLibrary(c, 'dart:js'),
-        _undefinedConstant =
-            _getLibrary(c, 'dart:_runtime').publicNamespace.get('undefined') {
-    assert(_undefinedConstant != null);
+        dartJSLibrary = _getLibrary(c, 'dart:js') {
     typeRep = new JSTypeRep(rules, types);
   }
 
@@ -2493,7 +2490,12 @@ class CodeGenerator extends Object
 
   bool _isJSUndefined(Expression expr) {
     expr = expr is AsExpression ? expr.expression : expr;
-    return expr is Identifier && expr.staticElement == _undefinedConstant;
+    if (expr is Identifier) {
+      var element = expr.staticElement;
+      return isSdkInternalRuntime(element.library) &&
+          element.name == 'undefined';
+    }
+    return false;
   }
 
   JS.Fun _emitNativeFunctionBody(MethodDeclaration node) {
@@ -4139,7 +4141,7 @@ class CodeGenerator extends Object
     for (var field in fields) {
       // Skip our magic undefined constant.
       var element = field.element as TopLevelVariableElement;
-      if (element.getter == _undefinedConstant) continue;
+      if (element.name == 'undefined') continue;
       _moduleItems.add(annotate(
           js.statement('# = #;',
               [_emitTopLevelName(field.element), _visitInitializer(field)]),

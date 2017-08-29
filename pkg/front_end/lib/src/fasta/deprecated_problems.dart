@@ -11,7 +11,7 @@ import 'dart:convert' show JSON;
 import 'dart:io'
     show ContentType, HttpClient, HttpClientRequest, SocketException, stderr;
 
-import 'command_line_reporting.dart' show isFatal;
+import 'command_line_reporting.dart' show shouldThrowOn;
 
 import 'messages.dart' show LocatedMessage, isVerbose, templateUnspecified;
 
@@ -38,7 +38,7 @@ Uri firstSourceUri;
 /// handled correctly, the user will never see a stack trace that says "user
 /// error".
 dynamic deprecated_inputError(Uri uri, int charOffset, Object error) {
-  if (isFatal(Severity.error) && isVerbose) {
+  if (shouldThrowOn(Severity.error) && isVerbose) {
     print(StackTrace.current);
   }
   throw new deprecated_InputError(uri, charOffset, error);

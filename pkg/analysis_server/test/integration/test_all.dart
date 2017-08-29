@@ -11,6 +11,7 @@ import 'coverage_test.dart' as coverage_test;
 import 'diagnostic/test_all.dart' as diagnostic_test_all;
 import 'edit/test_all.dart' as edit_test_all;
 import 'execution/test_all.dart' as execution_test_all;
+import 'kythe/test_all.dart' as kythe_test_all;
 import 'search/test_all.dart' as search_test_all;
 import 'server/test_all.dart' as server_test_all;
 
@@ -25,6 +26,7 @@ main() {
     diagnostic_test_all.main();
     edit_test_all.main();
     execution_test_all.main();
+    kythe_test_all.main();
     search_test_all.main();
     server_test_all.main();
 

@@ -338,30 +338,32 @@ class StatusFileUpdatePrinter extends EventListener {
   }
 
   void _printFailureSummary() {
-    var groupedStatuses = new Map<String, List<String>>();
-    statusToConfigs.forEach((String status, List<String> configs) {
-      var runtimeToConfiguration = new Map<String, List<String>>();
-      for (String config in configs) {
-        String runtime = _extractRuntime(config);
-        var runtimeConfigs =
-            runtimeToConfiguration.putIfAbsent(runtime, () => <String>[]);
-        runtimeConfigs.add(config);
+    var groupedStatuses = <String, List<String>>{};
+    statusToConfigs.forEach((status, configs) {
+      var runtimeToConfiguration = <String, List<String>>{};
+      for (var config in configs) {
+        var runtime = _extractRuntime(config);
+        runtimeToConfiguration
+            .putIfAbsent(runtime, () => <String>[])
+            .add(config);
       }
-      runtimeToConfiguration
-          .forEach((String runtime, List<String> runtimeConfigs) {
+
+      runtimeToConfiguration.forEach((runtime, runtimeConfigs) {
         runtimeConfigs.sort((a, b) => a.compareTo(b));
-        List<String> statuses = groupedStatuses.putIfAbsent(
+        var statuses = groupedStatuses.putIfAbsent(
             '$runtime: $runtimeConfigs', () => <String>[]);
         statuses.add(status);
       });
     });
+
+    if (groupedStatuses.isEmpty) return;
 
     print('\n\nNecessary status file updates:');
     groupedStatuses.forEach((String config, List<String> statuses) {
       print('');
       print('$config:');
       statuses.sort((a, b) => a.compareTo(b));
-      for (String status in statuses) {
+      for (var status in statuses) {
         print('  $status');
       }
     });

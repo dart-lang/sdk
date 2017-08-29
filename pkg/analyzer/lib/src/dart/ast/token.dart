@@ -7,15 +7,11 @@ library analyzer.src.dart.ast.token;
 export 'package:front_end/src/scanner/token.dart'
     show
         BeginToken,
-        BeginTokenWithComment,
         CommentToken,
         DocumentationCommentToken,
         KeywordToken,
-        KeywordTokenWithComment,
         SimpleToken,
         StringToken,
-        StringTokenWithComment,
         SyntheticKeywordToken,
         SyntheticStringToken,
-        TokenClass,
-        TokenWithComment;
+        TokenClass;

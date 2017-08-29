@@ -186,7 +186,7 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
 
   /// Return the [ConstantValue] the initial value of [field] or `null` if
   /// the initializer is not a constant expression.
-  ConstantValue getFieldConstantValue(ir.Field field);
+  ConstantValue getFieldConstantValue(FieldEntity field);
 
   /// Returns the `noSuchMethod` [FunctionEntity] call from a
   /// `super.noSuchMethod` invocation within [cls].
@@ -215,7 +215,7 @@ enum MemberKind {
   // A constructor whose body is defined by an [ir.Constructor] node.
   constructorBody,
   // A closure class `call` method whose body is defined by an
-  // [ir.FunctionExpression].
+  // [ir.FunctionExpression] or [ir.FunctionDeclaration].
   closureCall,
   // A field corresponding to a captured variable in the closure. It does not
   // have a corresponding ir.Node.
@@ -393,6 +393,12 @@ abstract class KernelToLocalsMap {
   // TODO(efortuna, johnniwinther): convey this information without a boolean
   // parameter.
   Local getLocalVariable(ir.VariableDeclaration node);
+
+  /// Returns the [ir.FunctionNode] that declared [parameter].
+  ir.FunctionNode getFunctionNodeForParameter(Local parameter);
+
+  /// Returns the [ir.DartType] of [parameter].
+  ir.DartType getParameterType(Local parameter);
 
   /// Returns the [JumpTarget] for the break statement [node].
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node);

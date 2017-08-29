@@ -149,8 +149,8 @@ constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer r
 
 malformed_test/none: RuntimeError # Fasta bug: Leads to assertion error in Fasta.
 
-export_double_same_main_test: CompileTimeError # Issue 29989
-export_main_test: CompileTimeError # Issue 29989
+export_double_same_main_test: RuntimeError # Issue 29989
+export_main_test: RuntimeError # Issue 29989
 
 const_constructor_nonconst_field_test/01: MissingCompileTimeError # Fasta bug: Non-const expression in field initializer.
 
@@ -189,7 +189,6 @@ const_locals_test: RuntimeError
 const_string_test: RuntimeError
 const_syntax_test/08: MissingCompileTimeError
 ct_const2_test: Pass, Crash # Flaky
-hello_dart_test: Crash
 library_env_test/has_no_mirror_support: RuntimeError
 redirecting_factory_reflection_test: Crash
 redirecting_factory_reflection_test: RuntimeError
@@ -199,22 +198,42 @@ setter_declaration_negative_test: Fail
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $mode == debug ]
 deopt_inlined_function_lazy_test: Skip
-hello_dart_test: Crash  # error: expected: cls.is_type_finalized()
 
 # dartk: precompilation failures
 [ $compiler == dartkp ]
+const_conditional_test/08: Crash
 const_syntax_test/08: Crash
-final_syntax_test/09: MissingCompileTimeError
-ref_before_declaration_test/none: Crash
+const_syntax_test/09: Crash
+const_syntax_test/10: Crash
+factory3_test: Crash
+final_syntax_test/09: Crash
+implicit_closure1_test: Crash
+named_parameters_type_test/01: Crash
+named_parameters_type_test/02: Crash
+named_parameters_type_test/03: Crash
+named_parameters_type_test/none: Crash
+positional_parameters_type_test/01: Crash
+positional_parameters_type_test/02: Crash
+positional_parameters_type_test/none: Crash
+ref_before_declaration_test/none: Pass
 setter_declaration2_negative_test: Crash
 setter_declaration_negative_test: Crash
+stacktrace_demangle_ctors_test: RuntimeError
+type_checks_in_factory_method_test: Crash
+vm/integer_type_propagation_test: Crash
+vm/optimized_stacktrace_test: Crash
+vm/regress_27671_test: Crash
+vm/type_vm_test: Crash
+
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $mode == debug ]
 external_test/13: Crash
 final_syntax_test/09: Crash
-regress_22445_test: Crash
-regress_23498_test: Crash
+malbounded_type_cast_test: Crash
+regress_29025_test: Crash
+vm/async_await_catch_stacktrace_test: Crash
+
 
 # dartk: checked mode failures
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]

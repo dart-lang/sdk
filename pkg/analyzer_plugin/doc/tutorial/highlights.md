@@ -68,7 +68,7 @@ class HighlightsVisitor extends RecursiveAstVisitor {
   HighlightsVisitor(this.collector);
 
   @override
-  void visitSimpleIdentifier(ClassDeclaration node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     // ...
   }
 }

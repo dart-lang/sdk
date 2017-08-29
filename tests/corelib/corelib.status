@@ -93,7 +93,6 @@ error_stack_trace_test: Crash
 exception_implementation_test: Crash
 expando_test: Crash
 for_in_test: Crash
-growable_list_test: Crash
 has_next_iterator_test: Crash
 hash_map2_test: Crash
 iterable_skip_while_test: Crash
@@ -204,7 +203,6 @@ error_stack_trace_test: Crash
 exception_implementation_test: Crash
 expando_test: Crash
 for_in_test: Crash
-growable_list_test: Crash
 has_next_iterator_test: Crash
 hash_map2_test: Crash
 int_parse_radix_bad_handler_test: Crash
@@ -315,3 +313,4 @@ symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/09: Crash
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_reserved_word_test/12: Crash
+
