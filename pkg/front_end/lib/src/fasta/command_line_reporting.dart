@@ -16,7 +16,8 @@ import 'colors.dart' show cyan, magenta, red;
 
 import 'compiler_context.dart' show CompilerContext;
 
-import 'deprecated_problems.dart' show deprecated_InputError;
+import 'deprecated_problems.dart'
+    show Crash, deprecated_InputError, safeToString;
 
 import 'fasta_codes.dart' show LocatedMessage, Message;
 
@@ -37,45 +38,53 @@ const bool hideWarnings = false;
 /// This is shared implementation used by methods below, and isn't intended to
 /// be called directly.
 String formatInternal(Message message, Severity severity, Uri uri, int offset) {
-  String text =
-      "${severityName(severity, capitalized: true)}: ${message.message}";
-  if (message.tip != null) {
-    text += "\n${message.tip}";
-  }
-  if (CompilerContext.enableColors) {
-    switch (severity) {
-      case Severity.error:
-      case Severity.internalProblem:
-        text = red(text);
-        break;
-
-      case Severity.nit:
-        text = cyan(text);
-        break;
-
-      case Severity.warning:
-        text = magenta(text);
-        break;
+  try {
+    String text =
+        "${severityName(severity, capitalized: true)}: ${message.message}";
+    if (message.tip != null) {
+      text += "\n${message.tip}";
     }
-  }
+    if (CompilerContext.enableColors) {
+      switch (severity) {
+        case Severity.error:
+        case Severity.internalProblem:
+          text = red(text);
+          break;
 
-  if (uri != null) {
-    String path = relativizeUri(uri);
-    Location location = offset == -1 ? null : getLocation(path, offset);
-    String sourceLine = getSourceLine(location);
-    if (sourceLine == null) {
-      sourceLine = "";
+        case Severity.nit:
+          text = cyan(text);
+          break;
+
+        case Severity.warning:
+          text = magenta(text);
+          break;
+      }
+    }
+
+    if (uri != null) {
+      String path = relativizeUri(uri);
+      Location location = offset == -1 ? null : getLocation(path, offset);
+      String sourceLine = getSourceLine(location);
+      if (sourceLine == null) {
+        sourceLine = "";
+      } else {
+        // TODO(ahe): We only print a single point in the source line as we
+        // don't have end positions. Also, we should be able to use
+        // package:source_span to produce this.
+        sourceLine = "\n$sourceLine\n"
+            "${' ' * (location.column - 1)}^";
+      }
+      String position = location?.toString() ?? path;
+      return "$position: $text$sourceLine";
     } else {
-      // TODO(ahe): We only print a single point in the source line as we don't
-      // have end positions. Also, we should be able to use package:source_span
-      // to produce this.
-      sourceLine = "\n$sourceLine\n"
-          "${' ' * (location.column - 1)}^";
+      return text;
     }
-    String position = location?.toString() ?? path;
-    return "$position: $text$sourceLine";
-  } else {
-    return text;
+  } catch (error, trace) {
+    print("Crash when formatting: "
+        "[${message.code.name}] ${safeToString(message.message)}\n"
+        "${safeToString(error)}\n"
+        "$trace");
+    throw new Crash(uri, offset, error, trace);
   }
 }
 
