@@ -13,6 +13,7 @@
               'third_party/firefox_jsshell/',
               'tests/',
               'pkg/async_helper/',
+              'pkg/browser/',
               'pkg/expect/',
               'pkg/js/',
               'pkg/meta/',
