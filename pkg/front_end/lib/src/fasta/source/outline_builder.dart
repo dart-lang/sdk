@@ -978,6 +978,6 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void debugEvent(String name) {
-    // printEvent(name);
+    // printEvent('OutlineBuilder: $name');
   }
 }

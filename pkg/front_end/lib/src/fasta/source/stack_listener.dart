@@ -116,7 +116,8 @@ abstract class StackListener extends Listener {
       }
       print(s);
     }
-    print("$name\n");
+    print(name);
+    print('------------------\n');
   }
 
   @override

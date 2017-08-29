@@ -665,7 +665,7 @@ class DietListener extends StackListener {
 
   @override
   void debugEvent(String name) {
-    // printEvent(name);
+    // printEvent('DietListener: $name');
   }
 
   void parseMetadata(Builder builder, Token metadata,

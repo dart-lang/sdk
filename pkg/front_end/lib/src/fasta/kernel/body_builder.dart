@@ -3363,7 +3363,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void debugEvent(String name) {
-    // printEvent(name);
+    // printEvent('BodyBuilder: $name');
   }
 
   @override
