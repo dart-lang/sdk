@@ -37,8 +37,8 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
       if ((*current)->IsHeapObject() && !(*current)->IsMarked()) {
         if (!include_vm_objects_) {
           intptr_t cid = (*current)->GetClassId();
-          if ((cid < kInstanceCid) && (cid != kContextCid) &&
-              (cid != kFieldCid)) {
+          if (((cid < kInstanceCid) || (cid == kTypeArgumentsCid)) &&
+              (cid != kContextCid) && (cid != kFieldCid)) {
             continue;
           }
         }
@@ -535,7 +535,8 @@ class WritePointerVisitor : public ObjectPointerVisitor {
         // we'll need to encode which fields were omitted here.
         continue;
       }
-      if (only_instances_ && (object->GetClassId() < kInstanceCid)) {
+      if (only_instances_ && ((object->GetClassId() < kInstanceCid) ||
+                              (object->GetClassId() == kTypeArgumentsCid))) {
         continue;
       }
       WritePtr(object, stream_);

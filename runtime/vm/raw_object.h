@@ -19,7 +19,6 @@ namespace dart {
 #define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                           \
   V(Class)                                                                     \
   V(UnresolvedClass)                                                           \
-  V(TypeArguments)                                                             \
   V(PatchClass)                                                                \
   V(Function)                                                                  \
   V(ClosureData)                                                               \
@@ -53,6 +52,7 @@ namespace dart {
   V(UnwindError)                                                               \
   V(Instance)                                                                  \
   V(LibraryPrefix)                                                             \
+  V(TypeArguments)                                                             \
   V(AbstractType)                                                              \
   V(Type)                                                                      \
   V(TypeRef)                                                                   \
@@ -780,37 +780,6 @@ class RawUnresolvedClass : public RawObject {
   RawString* ident_;                      // Name of the unresolved identifier.
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->ident_); }
   TokenPosition token_pos_;
-};
-
-class RawTypeArguments : public RawObject {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(TypeArguments);
-
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->instantiations_);
-  }
-  // The instantiations_ array remains empty for instantiated type arguments.
-  RawArray* instantiations_;  // Array of paired canonical vectors:
-                              // Even index: instantiator.
-                              // Odd index: instantiated (without bound error).
-  // Instantiations leading to bound errors do not get cached.
-  RawSmi* length_;
-
-  RawSmi* hash_;
-
-  // Variable length data follows here.
-  RawAbstractType* const* types() const {
-    OPEN_ARRAY_START(RawAbstractType*, RawAbstractType*);
-  }
-  RawAbstractType** types() {
-    OPEN_ARRAY_START(RawAbstractType*, RawAbstractType*);
-  }
-  RawObject** to(intptr_t length) {
-    return reinterpret_cast<RawObject**>(&ptr()->types()[length - 1]);
-  }
-
-  friend class Object;
-  friend class SnapshotReader;
 };
 
 class RawPatchClass : public RawObject {
@@ -1690,6 +1659,37 @@ class RawLibraryPrefix : public RawInstance {
   uint16_t num_imports_;  // Number of library entries in libraries_.
   bool is_deferred_load_;
   bool is_loaded_;
+};
+
+class RawTypeArguments : public RawInstance {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(TypeArguments);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->instantiations_);
+  }
+  // The instantiations_ array remains empty for instantiated type arguments.
+  RawArray* instantiations_;  // Array of paired canonical vectors:
+                              // Even index: instantiator.
+                              // Odd index: instantiated (without bound error).
+  // Instantiations leading to bound errors do not get cached.
+  RawSmi* length_;
+
+  RawSmi* hash_;
+
+  // Variable length data follows here.
+  RawAbstractType* const* types() const {
+    OPEN_ARRAY_START(RawAbstractType*, RawAbstractType*);
+  }
+  RawAbstractType** types() {
+    OPEN_ARRAY_START(RawAbstractType*, RawAbstractType*);
+  }
+  RawObject** to(intptr_t length) {
+    return reinterpret_cast<RawObject**>(&ptr()->types()[length - 1]);
+  }
+
+  friend class Object;
+  friend class SnapshotReader;
 };
 
 class RawAbstractType : public RawInstance {

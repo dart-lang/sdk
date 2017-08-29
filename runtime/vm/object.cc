@@ -913,6 +913,15 @@ void Object::InitOnce(Isolate* isolate) {
   cls = vector_class_;
   *vector_type_ = Type::NewNonParameterizedType(cls);
 
+  // Since TypeArguments objects are passed as function arguments, make them
+  // behave as Dart instances, although they are just VM objects.
+  // Note that we cannot set the super type to ObjectType, which does not live
+  // in the vm isolate. See special handling in Class::SuperClass().
+  cls = type_arguments_class_;
+  cls.set_interfaces(Object::empty_array());
+  cls.SetFields(Object::empty_array());
+  cls.SetFunctions(Object::empty_array());
+
   // Allocate and initialize singleton true and false boolean objects.
   cls = Class::New<Bool>();
   isolate->object_store()->set_bool_class(cls);
@@ -2082,7 +2091,8 @@ RawClass* Class::New() {
   COMPILE_ASSERT((FakeObject::kClassId != kInstanceCid));
   result.set_id(FakeObject::kClassId);
   result.set_state_bits(0);
-  if (FakeObject::kClassId < kInstanceCid) {
+  if ((FakeObject::kClassId < kInstanceCid) ||
+      (FakeObject::kClassId == kTypeArgumentsCid)) {
     // VM internal classes are done. There is no finalization needed or
     // possible in this case.
     result.set_is_finalized();
@@ -2514,6 +2524,10 @@ RawClass* Class::SuperClass(bool original_classes) const {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   if (super_type() == AbstractType::null()) {
+    if (id() == kTypeArgumentsCid) {
+      // Pretend TypeArguments objects are Dart instances.
+      return isolate->class_table()->At(kInstanceCid);
+    }
     return Class::null();
   }
   const AbstractType& sup_type = AbstractType::Handle(zone, super_type());

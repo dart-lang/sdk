@@ -2418,11 +2418,16 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
   // including the function type arguments and the receiver.
   ArrayNode* args_array =
       new ArrayNode(args_pos, Type::ZoneHandle(Type::ArrayType()));
-  // The type_args_var is only used in the generated body of an implicit closure
-  // where noSuchMethod should never be called.
-  ASSERT(function_args.type_args_var() == NULL);
-  if (!function_args.type_arguments().IsNull()) {
-    // TODO(regis): Pass the original type arguments to the invocation mirror.
+  // A type_args_var is allocated in the generated body of an implicit
+  // closure and in the generated body of a noSuchMethodDispatcher.
+  // Pass the type arguments to the invocation mirror as the first argument.
+  if (function_args.type_args_var() != NULL) {
+    ASSERT(function_args.type_arguments().IsNull());
+    args_array->AddElement(
+        new LoadLocalNode(args_pos, function_args.type_args_var()));
+  } else if (!function_args.type_arguments().IsNull()) {
+    args_array->AddElement(
+        new LiteralNode(args_pos, function_args.type_arguments()));
   }
   for (intptr_t i = 0; i < function_args.length(); i++) {
     AstNode* arg = function_args.NodeAt(i);

@@ -86,7 +86,8 @@ VerifyCanonicalVisitor::VerifyCanonicalVisitor(Thread* thread)
     : thread_(thread), instanceHandle_(Instance::Handle(thread->zone())) {}
 
 void VerifyCanonicalVisitor::VisitObject(RawObject* obj) {
-  if (obj->GetClassId() >= kInstanceCid) {
+  if ((obj->GetClassId() >= kInstanceCid) &&
+      (obj->GetClassId() != kTypeArgumentsCid)) {
     if (obj->IsCanonical()) {
       instanceHandle_ ^= obj;
       const bool is_canonical = instanceHandle_.CheckIsCanonical(thread_);

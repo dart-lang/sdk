@@ -1326,6 +1326,9 @@ void IsolateReloadContext::RehashConstants() {
   Class& cls = Class::Handle(zone_);
   const intptr_t top = class_table->NumCids();
   for (intptr_t cid = kInstanceCid; cid < top; cid++) {
+    if (cid == kTypeArgumentsCid) {
+      continue;
+    }
     if (!class_table->IsValidIndex(cid) || !class_table->HasValidClassAt(cid)) {
       // Skip invalid classes.
       continue;

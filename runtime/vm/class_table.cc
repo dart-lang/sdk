@@ -37,6 +37,7 @@ ClassTable::ClassTable()
     for (intptr_t i = kObjectCid; i < kInstanceCid; i++) {
       table_[i] = vm_class_table->At(i);
     }
+    table_[kTypeArgumentsCid] = vm_class_table->At(kTypeArgumentsCid);
     table_[kFreeListElement] = vm_class_table->At(kFreeListElement);
     table_[kForwardingCorpse] = vm_class_table->At(kForwardingCorpse);
     table_[kDynamicCid] = vm_class_table->At(kDynamicCid);
