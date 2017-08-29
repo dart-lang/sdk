@@ -204,11 +204,13 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   @override
   ClosureRepresentationInfo getClosureInfoForMember(MemberEntity entity) {
     var closure = _memberClosureRepresentationMap[entity];
-    assert(
+    // TODO(johnniwinther): Re-insert assertion or remove
+    // [getClosureInfoForMember].
+    /*assert(
         closure != null,
         "Corresponding closure class not found for $entity. "
-        "Closures found for ${_memberClosureRepresentationMap.keys}");
-    return closure;
+        "Closures found for ${_memberClosureRepresentationMap.keys}");*/
+    return closure ?? const ClosureRepresentationInfo();
   }
 
   @override
@@ -548,12 +550,30 @@ class ClosureFieldData extends ClosureMemberData implements FieldData {
   }
 
   @override
-  ConstantExpression getFieldConstant(
-      KernelToElementMap elementMap, FieldEntity field) {
+  ConstantExpression getFieldConstantExpression(KernelToElementMap elementMap) {
     failedAt(
-        field,
-        "Unexpected field $field in "
-        "ClosureFieldData.getFieldConstant");
+        definition.member,
+        "Unexpected field ${definition.member} in "
+        "ClosureFieldData.getFieldConstantExpression");
+    return null;
+  }
+
+  @override
+  ConstantValue getConstantFieldInitializer(KernelToElementMap elementMap) {
+    failedAt(
+        definition.member,
+        "Unexpected field ${definition.member} in "
+        "ClosureFieldData.getConstantFieldInitializer");
+    return null;
+  }
+
+  @override
+  bool hasConstantFieldInitializer(KernelToElementMap elementMap) {
+    return false;
+  }
+
+  @override
+  ConstantValue getFieldConstantValue(KernelToElementMap elementMap) {
     return null;
   }
 }

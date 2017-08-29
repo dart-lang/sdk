@@ -186,7 +186,7 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
 
   /// Return the [ConstantValue] the initial value of [field] or `null` if
   /// the initializer is not a constant expression.
-  ConstantValue getFieldConstantValue(ir.Field field);
+  ConstantValue getFieldConstantValue(FieldEntity field);
 
   /// Returns the `noSuchMethod` [FunctionEntity] call from a
   /// `super.noSuchMethod` invocation within [cls].

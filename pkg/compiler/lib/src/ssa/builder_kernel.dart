@@ -223,10 +223,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   @override
   ConstantValue getFieldInitialConstantValue(FieldEntity field) {
     assert(field == targetElement);
-    MemberDefinition definition = _elementMap.getMemberDefinition(field);
-    assert(definition.kind == MemberKind.regular,
-        failedAt(field, "Unexpected member definition: $definition"));
-    return _elementMap.getFieldConstantValue(definition.node);
+    return _elementMap.getFieldConstantValue(field);
   }
 
   void buildField(ir.Field field) {
@@ -2241,7 +2238,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           _typeInferenceMap.getReturnTypeOf(getter));
     } else if (staticTarget is ir.Field) {
       FieldEntity field = _elementMap.getField(staticTarget);
-      ConstantValue value = _elementMap.getFieldConstantValue(staticTarget);
+      ConstantValue value = _elementMap.getFieldConstantValue(field);
       if (value != null) {
         if (!field.isAssignable) {
           stack.add(graph.addConstant(value, closedWorld));

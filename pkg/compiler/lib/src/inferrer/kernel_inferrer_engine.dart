@@ -97,23 +97,25 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
             new KernelTypeSystemStrategy(
                 _elementMap, _globalLocalsMap, _closureDataLookup));
 
+  ElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
+
   @override
   ConstantValue getFieldConstant(FieldEntity field) {
-    throw new UnimplementedError('KernelInferrerEngine.getFieldConstant');
+    return _elementMap.getFieldConstantValue(field);
   }
 
   @override
   bool isFieldInitializerPotentiallyNull(
       FieldEntity field, ir.Node initializer) {
-    throw new UnimplementedError(
-        'KernelInferrerEngine.isFieldInitializerPotentiallyNull');
+    // TODO(johnniwinther): Implement the ad-hoc check in ast inferrer?
+    return true;
   }
 
   @override
   TypeInformation computeMemberTypeInformation(
       MemberEntity member, ir.Node body) {
     KernelTypeGraphBuilder visitor =
-        new KernelTypeGraphBuilder(member, compiler, _elementMap, this);
+        new KernelTypeGraphBuilder(member, compiler, _elementMap, this, body);
     return visitor.run();
   }
 

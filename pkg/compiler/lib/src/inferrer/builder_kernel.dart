@@ -31,6 +31,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   SideEffects sideEffects = new SideEffects.empty();
   int loopLevel = 0;
   bool get inLoop => loopLevel > 0;
+  TypeInformation returnType;
 
   final Set<Local> capturedVariables = new Set<Local>();
 
@@ -52,30 +53,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       Compiler compiler,
       KernelToElementMapForBuilding elementMap,
       InferrerEngine<ir.Node> inferrer,
+      ir.TreeNode analyzedNode,
       [LocalsHandler<ir.Node> handler]) {
-    ir.Node analyzedNode;
-    MemberDefinition definition = elementMap.getMemberDefinition(element);
-    switch (definition.kind) {
-      case MemberKind.regular:
-      case MemberKind.closureCall:
-      case MemberKind.constructor:
-      case MemberKind.constructorBody:
-        analyzedNode = definition.node;
-        break;
-      case MemberKind.closureField:
-        failedAt(element, "Unexpected member: $definition");
-        break;
-    }
     return new KernelTypeGraphBuilder.internal(
         element, inferrer, compiler, handler, analyzedNode);
   }
 
   TypeInformation run() {
-    ir.Expression initializer;
-    if (analyzedNode is ir.Field) {
-      ir.Field field = analyzedNode;
-      initializer = field.initializer;
-      if (initializer == null || initializer is ir.NullLiteral) {
+    if (analyzedMember.isField) {
+      if (analyzedNode == null || analyzedNode is ir.NullLiteral) {
         // Eagerly bailout, because computing the closure data only
         // works for functions and field assignments.
         return types.nullType;
@@ -96,15 +82,65 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       locals.setCapturedAndBoxed(variable, field);
     });
 
-    if (analyzedNode is ir.Field) {
-      return initializer.accept(this);
-    }
-    return _processFunctionNode(analyzedNode);
+    return analyzedNode.accept(this);
   }
 
-  TypeInformation _processFunctionNode(ir.FunctionNode funcNode) {
-    // TODO(efortuna): Implement.
-    return types.dynamicType;
+  void recordReturnType(TypeInformation type) {
+    FunctionEntity analyzedMethod = analyzedMember;
+    returnType =
+        inferrer.addReturnTypeForMethod(analyzedMethod, returnType, type);
+  }
+
+  void initializationIsIndefinite() {
+    MemberEntity member = analyzedMember;
+    if (member is ConstructorEntity && member.isGenerativeConstructor) {
+      locals.fieldScope.isIndefinite = true;
+    }
+  }
+
+  TypeInformation visit(ir.Node node) {
+    return node == null ? null : node.accept(this);
+  }
+
+  @override
+  TypeInformation visitFunctionNode(ir.FunctionNode node) {
+    // TODO(redemption): Handle constructors.
+    // TODO(redemption): Handle native methods.
+    // TODO(redemption): Set up parameters.
+    visit(node.body);
+    switch (node.asyncMarker) {
+      case ir.AsyncMarker.Sync:
+        if (returnType == null) {
+          // No return in the body.
+          returnType = locals.seenReturnOrThrow
+              ? types.nonNullEmpty() // Body always throws.
+              : types.nullType;
+        } else if (!locals.seenReturnOrThrow) {
+          // We haven'TypeInformation seen returns on all branches. So the method may
+          // also return null.
+          recordReturnType(types.nullType);
+        }
+        break;
+
+      case ir.AsyncMarker.SyncStar:
+        // TODO(asgerf): Maybe make a ContainerTypeMask for these? The type
+        //               contained is the method body's return type.
+        recordReturnType(types.syncStarIterableType);
+        break;
+
+      case ir.AsyncMarker.Async:
+        recordReturnType(types.asyncFutureType);
+        break;
+
+      case ir.AsyncMarker.AsyncStar:
+        recordReturnType(types.asyncStarStreamType);
+        break;
+      case ir.AsyncMarker.SyncYielding:
+        failedAt(
+            analyzedMember, "Unexpected async marker: ${node.asyncMarker}");
+        break;
+    }
+    return returnType;
   }
 
   @override
@@ -151,5 +187,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       return types.allocateList(
           containerType, listLiteral, analyzedMember, elementType, length);
     });
+  }
+
+  @override
+  TypeInformation visitReturnStatement(ir.ReturnStatement node) {
+    ir.Node expression = node.expression;
+    recordReturnType(
+        expression == null ? types.nullType : expression.accept(this));
+    locals.seenReturnOrThrow = true;
+    initializationIsIndefinite();
+    return null;
   }
 }

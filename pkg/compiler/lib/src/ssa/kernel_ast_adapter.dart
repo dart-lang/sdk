@@ -110,8 +110,7 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   }
 
   @override
-  ConstantValue getFieldConstantValue(ir.Field field) {
-    FieldElement element = getField(field);
+  ConstantValue getFieldConstantValue(covariant FieldElement element) {
     if (element.constant != null) {
       return computeConstantValue(element.constant);
     }
