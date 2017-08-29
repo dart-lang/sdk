@@ -63,6 +63,10 @@ main() {
       expect(errors.first.message, messageMissingMain.message);
     });
 
+    // TODO(ahe): This test is wrong at least with respect to expecting that
+    // [deprecated_InputError] leaks through the API. Furthermore, the default
+    // behavior should be to recover from errors, as this is the most important
+    // use case we have.
     test('default error handler throws on errors', () async {
       var options = new CompilerOptions();
       var exceptionThrown = false;
@@ -73,7 +77,7 @@ main() {
         expect('${e.error}', contains("Compilation aborted"));
       }
       expect(exceptionThrown, isTrue);
-    });
+    }, skip: true /* Issue 30194 */);
 
     test('generated program contains source-info', () async {
       var program = await compileScript('a() => print("hi"); main() {}',

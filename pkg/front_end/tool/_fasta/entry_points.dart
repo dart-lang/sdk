@@ -2,41 +2,39 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta;
+library fasta.tool.entry_points;
 
 import 'dart:async' show Future;
 
 import 'dart:convert' show JSON;
 
-import 'dart:io' show BytesBuilder, File, exitCode;
+import 'dart:io' show File, exitCode;
 
-import 'package:front_end/compiler_options.dart';
-import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/physical_file_system.dart';
-import 'package:front_end/src/fasta/kernel/utils.dart';
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+
+import 'package:front_end/src/fasta/deprecated_problems.dart'
+    show deprecated_InputError, deprecated_inputError;
+
+import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
+
+import 'package:front_end/src/fasta/kernel/kernel_target.dart'
+    show KernelTarget;
+
+import 'package:front_end/src/fasta/kernel/utils.dart'
+    show printProgramText, writeProgramToFile;
+
+import 'package:front_end/src/fasta/severity.dart' show Severity;
+
+import 'package:front_end/src/fasta/ticker.dart' show Ticker;
+
+import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 import 'package:kernel/kernel.dart' show Program, loadProgramFromBytes;
 
-import 'compiler_command_line.dart' show CompilerCommandLine;
-
-import 'compiler_context.dart' show CompilerContext;
-
-import 'deprecated_problems.dart'
-    show deprecated_InputError, deprecated_inputError;
-
-import 'kernel/kernel_target.dart' show KernelTarget;
-
-import 'package:kernel/target/targets.dart' show Target;
-
-import 'dill/dill_target.dart' show DillTarget;
-
-import 'severity.dart' show Severity;
-
-import 'ticker.dart' show Ticker;
-
-import 'uri_translator.dart' show UriTranslator;
+import 'command_line.dart' show withGlobalOptions;
 
 const bool summary = const bool.fromEnvironment("summary", defaultValue: false);
+
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 
 compileEntryPoint(List<String> arguments) async {
@@ -71,8 +69,8 @@ outlineEntryPoint(List<String> arguments) async {
 
 Future<KernelTarget> outline(List<String> arguments) async {
   try {
-    return await CompilerCommandLine.withGlobalOptions(
-        "outline", arguments, true, (CompilerContext c, _) async {
+    return await withGlobalOptions("outline", arguments, true,
+        (CompilerContext c, _) async {
       if (c.options.verbose) {
         print("Building outlines for ${arguments.join(' ')}");
       }
@@ -90,8 +88,8 @@ Future<KernelTarget> outline(List<String> arguments) async {
 
 Future<Uri> compile(List<String> arguments) async {
   try {
-    return await CompilerCommandLine.withGlobalOptions(
-        "compile", arguments, true, (CompilerContext c, _) async {
+    return await withGlobalOptions("compile", arguments, true,
+        (CompilerContext c, _) async {
       if (c.options.verbose) {
         print("Compiling directly to Kernel: ${arguments.join(' ')}");
       }
@@ -169,37 +167,6 @@ class CompileTask {
   }
 }
 
-// TODO(sigmund): reimplement this API using the directive listener intead.
-Future<List<Uri>> getDependencies(Uri script,
-    {Uri sdk,
-    Uri packages,
-    Uri platform,
-    bool verbose: false,
-    Target target}) async {
-  var options = new CompilerOptions()
-    ..target = target
-    ..verbose = verbose
-    ..packagesFileUri = packages
-    ..sdkSummary = platform
-    ..sdkRoot = sdk;
-  var pOptions = new ProcessedOptions(options);
-  return await CompilerContext.runWithOptions(pOptions,
-      (CompilerContext c) async {
-    UriTranslator uriTranslator = await c.options.getUriTranslator();
-    c.options.ticker.logMs("Read packages file");
-    DillTarget dillTarget =
-        new DillTarget(c.options.ticker, uriTranslator, c.options.target);
-    if (platform != null) _appendDillForUri(dillTarget, platform);
-    KernelTarget kernelTarget = new KernelTarget(PhysicalFileSystem.instance,
-        false, dillTarget, uriTranslator, c.uriToSource);
-
-    kernelTarget.read(script);
-    await dillTarget.buildOutlines();
-    await kernelTarget.loader.buildOutlines();
-    return await kernelTarget.loader.getDependencies();
-  });
-}
-
 /// Load the [Program] from the given [uri] and append its libraries
 /// to the [dillTarget].
 void _appendDillForUri(DillTarget dillTarget, Uri uri) {
@@ -207,17 +174,4 @@ void _appendDillForUri(DillTarget dillTarget, Uri uri) {
   var platformProgram = loadProgramFromBytes(bytes);
   platformProgram.unbindCanonicalNames();
   dillTarget.loader.appendLibraries(platformProgram);
-}
-
-// TODO(ahe): https://github.com/dart-lang/sdk/issues/28316
-class ByteSink implements Sink<List<int>> {
-  final BytesBuilder builder = new BytesBuilder();
-
-  void add(List<int> data) {
-    builder.add(data);
-  }
-
-  void close() {
-    // Nothing to do.
-  }
 }

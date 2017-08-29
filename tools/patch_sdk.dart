@@ -17,11 +17,12 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:front_end/front_end.dart';
+
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 
-import 'package:front_end/src/fasta/fasta.dart' as fasta show getDependencies;
+import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
 import 'package:front_end/src/fasta/kernel/utils.dart' show writeProgramToFile;
 
 import 'package:kernel/target/targets.dart';
@@ -206,7 +207,7 @@ Future _main(List<String> argv) async {
     platformForDeps = outDirUri.resolve('../patched_sdk/platform.dill');
     sdkDir = outDirUri.resolve('../patched_sdk/');
   }
-  deps.addAll(await fasta.getDependencies(Platform.script,
+  deps.addAll(await getDependencies(Platform.script,
       sdk: sdkDir, packages: packages, platform: platformForDeps));
   await writeDepsFile(platformFinalLocation,
       Uri.base.resolveUri(new Uri.file("$outDir.d")), deps);

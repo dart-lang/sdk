@@ -232,8 +232,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
 
   Future<Result<Program>> run(
       TestDescription description, FastaContext context) async {
-    var options =
-        new ProcessedOptions(new CompilerOptions()..throwOnErrors = false);
+    var options = new ProcessedOptions(new CompilerOptions());
     return await CompilerContext.runWithOptions(options, (_) async {
       // Disable colors to ensure that expectation files are the same across
       // platforms and independent of stdin/stderr.

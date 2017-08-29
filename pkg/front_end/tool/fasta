@@ -3,6 +3,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# TODO(ahe): This should be replaced by a Dart script that works on Windows,
+# Linux, and Mac.
+
 set -e
 
 REPO_DIR="$(cd ${BASH_SOURCE%/*} && git rev-parse --show-toplevel)"
@@ -15,14 +18,16 @@ KERNEL_BIN="${REPO_DIR}/pkg/kernel/bin"
 
 function stop {
   echo "$@" >&2
-  exit 1
+  exit 2
 }
 
 export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
 
 case "${1//_/-}" in
   abcompile) SCRIPT="${TOOL_DIR}/abcompile.dart";;
-  analyzer-compile) SCRIPT="${TOOL_DIR}/analyzer_compile.dart";;
+  analyzer-compile)
+    stop "'$1' isn't supported anymore, please use 'compile' instead."
+    ;;
   compile) SCRIPT="${TOOL_DIR}/compile.dart";;
   compile-platform) SCRIPT="${TOOL_DIR}/compile_platform.dart";;
   compile-platform-dartk)
@@ -35,7 +40,9 @@ case "${1//_/-}" in
   logd) SCRIPT="${TOOL_DIR}/log_collector.dart";;
   outline) SCRIPT="${TOOL_DIR}/outline.dart";;
   parser) SCRIPT="${TOOL_DIR}/parser.dart";;
-  run) SCRIPT="${TOOL_DIR}/run.dart";;
+  run)
+    stop "'$1' isn't supported anymore, please use 'kernel-service' instead."
+    ;;
   scanner) SCRIPT="${TOOL_DIR}/scanner.dart";;
   dump-partial) SCRIPT="${TOOL_DIR}/dump_partial.dart";;
   dump-ir)

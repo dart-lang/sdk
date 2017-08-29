@@ -106,21 +106,21 @@ bool isHidden(Severity severity) {
 
 /// Are problems of [severity] fatal? That is, should the compiler terminate
 /// immediately?
-bool isFatal(Severity severity) {
+bool shouldThrowOn(Severity severity) {
   switch (severity) {
     case Severity.error:
-      return CompilerContext.current.options.throwOnErrors;
+      return CompilerContext.current.options.throwOnErrorsForDebugging;
 
     case Severity.internalProblem:
       return true;
 
     case Severity.nit:
-      return CompilerContext.current.options.throwOnNits;
+      return CompilerContext.current.options.throwOnNitsForDebugging;
 
     case Severity.warning:
-      return CompilerContext.current.options.throwOnWarnings;
+      return CompilerContext.current.options.throwOnWarningsForDebugging;
   }
-  return unhandled("$severity", "isFatal", -1, null);
+  return unhandled("$severity", "shouldThrowOn", -1, null);
 }
 
 /// Convert [severity] to a name that can be used to prefix a message.
@@ -144,7 +144,7 @@ String severityName(Severity severity, {bool capitalized: false}) {
 /// Print a formatted message and throw when errors are treated as fatal.
 /// Also set [exitCode] depending on the value of
 /// `CompilerContext.current.options.setExitCodeOnProblem`.
-void _printAndThrowIfFatal(
+void _printAndThrowIfDebugging(
     String text, Severity severity, Uri uri, int charOffset) {
   // I believe we should only set it if we are reporting something, if we are
   // formatting to embed the error in the program, then we probably don't want
@@ -156,7 +156,7 @@ void _printAndThrowIfFatal(
     exitCode = 1;
   }
   print(text);
-  if (isFatal(severity)) {
+  if (shouldThrowOn(severity)) {
     if (isVerbose) print(StackTrace.current);
     // TODO(sigmund,ahe): ensure there is no circularity when InputError is
     // handled.
@@ -172,7 +172,7 @@ void _printAndThrowIfFatal(
 /// [CompilerContext.report] instead.
 void report(LocatedMessage message, Severity severity) {
   if (isHidden(severity)) return;
-  _printAndThrowIfFatal(
+  _printAndThrowIfDebugging(
       format(message, severity), severity, message.uri, message.charOffset);
 }
 
@@ -182,7 +182,7 @@ void report(LocatedMessage message, Severity severity) {
 /// [CompilerContext.reportWithoutLocation] instead.
 void reportWithoutLocation(Message message, Severity severity) {
   if (isHidden(severity)) return;
-  _printAndThrowIfFatal(
+  _printAndThrowIfDebugging(
       formatWithoutLocation(message, severity), severity, null, -1);
 }
 
