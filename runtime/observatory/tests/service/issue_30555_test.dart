@@ -32,45 +32,46 @@ void test() {
 }
 
 var tests = [
-  (VM vm) async {
-    await vm.load();
-    bool started = false;
+  hasPausedAtStart,
+  (Isolate isolate) async {
     int step = 0;
     var completer = new Completer();
     var sub;
-    await hasPausedAtStart(vm.isolates[0]);
-    sub = await vm.listenEventStream("Debug", (ServiceEvent c) {
+    final Isolate firstIsolate = isolate;
+    Isolate secondIsolate;
+    sub = await isolate.vm.listenEventStream(VM.kDebugStream, (ServiceEvent c) {
       switch (step) {
         case 0:
           expect(c.kind, equals("Resume"),
               reason: "First isolate should resume");
-          expect(c.isolate.id, equals(vm.isolates[0].id),
+          expect(c.isolate.id, equals(firstIsolate.id),
               reason: "First isolate should resume");
           break;
         case 1:
           expect(c.kind, equals("PauseStart"),
               reason: "Second isolate should pause on start");
-          expect(c.isolate.id, equals(vm.isolates[1].id),
+          expect(c.isolate.id, equals(isolate.vm.isolates[1].id),
               reason: "Second isolate should pause on start");
-          vm.isolates[1].resume();
+          secondIsolate = c.isolate;
+          secondIsolate.resume();
           break;
         case 2:
           expect(c.kind, equals("Resume"),
               reason: "Second isolate should resume");
-          expect(c.isolate.id, equals(vm.isolates[1].id),
+          expect(c.isolate.id, equals(secondIsolate.id),
               reason: "Second isolate should resume");
           break;
         case 3:
           expect(c.kind, equals("PauseBreakpoint"),
               reason: "First isolate should stop at debugger()");
-          expect(c.isolate.id, equals(vm.isolates[0].id),
+          expect(c.isolate.id, equals(firstIsolate.id),
               reason: "First isolate should stop at debugger()");
-          vm.isolates[0].resume();
+          firstIsolate.resume();
           break;
         case 4:
           expect(c.kind, equals("Resume"),
               reason: "First isolate should resume (1)");
-          expect(c.isolate.id, equals(vm.isolates[0].id),
+          expect(c.isolate.id, equals(firstIsolate.id),
               reason: "First isolate should resume (1)");
           break;
         case 5:
@@ -80,25 +81,25 @@ var tests = [
         case 6:
           expect(c.kind, equals("PauseBreakpoint"),
               reason: "First & Second isolate should stop at debugger()");
-          vm.isolates[1].resume();
+          secondIsolate.resume();
           break;
         case 7:
           expect(c.kind, equals("Resume"),
               reason: "Second isolate should resume before the exception");
-          expect(c.isolate.id, equals(vm.isolates[1].id),
+          expect(c.isolate.id, equals(secondIsolate.id),
               reason: "Second isolate should resume before the exception");
           break;
         case 8:
           expect(c.kind, equals("PauseExit"),
               reason: "Second isolate should exit at the exception");
-          expect(c.isolate.id, equals(vm.isolates[1].id),
+          expect(c.isolate.id, equals(secondIsolate.id),
               reason: "Second isolate should exit at the exception");
-          vm.isolates[0].resume();
+          firstIsolate.resume();
           break;
         case 9:
           expect(c.kind, equals("Resume"),
               reason: "First isolate should resume after the exception");
-          expect(c.isolate.id, equals(vm.isolates[0].id),
+          expect(c.isolate.id, equals(firstIsolate.id),
               reason: "First isolate should resume after the exception");
           break;
         case 10:
@@ -107,7 +108,7 @@ var tests = [
                   "should stop at debugger() after exception.\n"
                   "Probably the second resumed even though it was not expect "
                   "to do it.");
-          expect(c.isolate.id, equals(vm.isolates[0].id),
+          expect(c.isolate.id, equals(firstIsolate.id),
               reason: "First "
                   "isolate should stop at debugger() after exception.\n"
                   "Probably the second resumed even though it was not expect "
@@ -115,14 +116,13 @@ var tests = [
           completer.complete();
           break;
         default:
-          expect(false, isTrue,
-              reason: "Shouldn't get here, the second "
-                  "isolate resumed even though it was not expect to do it");
+          fail("Shouldn't get here, the second isolate resumed even though it "
+              "was not expect to do it");
           break;
       }
       step++;
     });
-    vm.isolates[0].resume();
+    firstIsolate.resume();
     await completer.future;
     // We wait 1 second to account for delays in the service protocol.
     // A late message can still arrive.
@@ -132,5 +132,5 @@ var tests = [
   }
 ];
 
-main(args) async => runVMTests(args, tests,
+main(args) async => runIsolateTests(args, tests,
     pause_on_start: true, pause_on_exit: true, testeeConcurrent: test);
