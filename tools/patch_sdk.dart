@@ -43,7 +43,7 @@ final deps = new Set<Uri>();
 File getInputFile(String path, {canBeMissing: false}) {
   final file = new File(path);
   if (!file.existsSync()) {
-    if (!canBeMissing) throw "patch_sdk.dart expects all inputs to exist $path";
+    if (!canBeMissing) throw "patch_sdk.dart expects all inputs to exist";
     return null;
   }
   deps.add(Uri.base.resolveUri(file.uri));

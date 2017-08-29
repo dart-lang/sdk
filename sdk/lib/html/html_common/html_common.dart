@@ -21,3 +21,4 @@ part 'device.dart';
 part 'filtered_element_list.dart';
 part 'lists.dart';
 part 'conversions.dart';
+part 'conversions_dartium.dart';
