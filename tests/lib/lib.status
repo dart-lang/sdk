@@ -166,7 +166,6 @@ async/slow_consumer3_test: RuntimeError # Timer interface not supported; Issue 7
 async/slow_consumer_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/stream_from_iterable_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/stream_state_nonzero_timer_test: RuntimeError # Timer interface not supported; Issue 7728.
-async/multiple_timer_test: RuntimeError,OK # Needs Timer to run.
 async/timer_cancel_test: RuntimeError,OK # Needs Timer to run.
 async/timer_cancel1_test: RuntimeError,OK # Needs Timer to run.
 async/timer_cancel2_test: RuntimeError,OK # Needs Timer to run.
@@ -226,13 +225,10 @@ mirrors/*: Skip # Issue 27929: Triage
 [ $runtime == flutter ]
 mirrors/*: Skip # Flutter does not support mirrors.
 async/catch_errors11_test: Skip # Flutter Issue 9113
-async/intercept_schedule_microtask2_test: Skip # Flutter Issue 9113
 async/run_zoned6_test/01: Skip # Flutter Issue 9113
 async/schedule_microtask_test: Skip # Flutter Issue 9113
-async/intercept_schedule_microtask6_test: Skip # Flutter Issue 9113
 async/stream_empty_test: Skip # Flutter Issue 9113
 async/run_zoned9_test/01: Skip # Flutter Issue 9113
-async/intercept_schedule_microtask5_test: Skip # Flutter Issue 9113
 async/stream_event_transformed_test: Skip # Flutter Issue 9113
 math/random_secure_test: RuntimeError # Flutter Issue 9113
 
@@ -287,7 +283,8 @@ mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a
 
 [ $runtime == vm && $system == fuchsia ]
 # These use package:unittest
-async/multiple_timer_test: RuntimeError
+async/first_regression_test: RuntimeError
+async/future_timeout_test: RuntimeError
 async/schedule_microtask2_test: RuntimeError
 async/schedule_microtask3_test: RuntimeError
 async/schedule_microtask5_test: RuntimeError
@@ -423,7 +420,6 @@ convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
 
 [ $hot_reload || $hot_reload_rollback ]
-async/multiple_timer_test: Pass, Fail # Timing related
 async/stream_transformer_test: Pass, Fail # Closure identity
 mirrors/closurization_equivalence_test: SkipByDesign # Method equality
 mirrors/fake_function_with_call_test: SkipByDesign # Method equality
