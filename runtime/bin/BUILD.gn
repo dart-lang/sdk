@@ -104,21 +104,11 @@ gen_library_src_path("generate_io_patch_cc_file") {
   output = "$target_gen_dir/io_patch_gen.cc"
 }
 
-gen_library_src_path("generate_html_cc_file") {
-  name = "html"
-  kind = "source"
-  sources = [
-    "../../sdk/lib/html/dartium/html_dartium.dart",
-  ]
-  output = "$target_gen_dir/html_gen.cc"
-}
-
 gen_library_src_path("generate_html_common_cc_file") {
   name = "html_common"
   kind = "source"
   sources = [
     "../../sdk/lib/html/html_common/conversions.dart",
-    "../../sdk/lib/html/html_common/conversions_dartium.dart",
     "../../sdk/lib/html/html_common/css_class_set.dart",
     "../../sdk/lib/html/html_common/device.dart",
     "../../sdk/lib/html/html_common/filtered_element_list.dart",
@@ -126,61 +116,6 @@ gen_library_src_path("generate_html_common_cc_file") {
     "../../sdk/lib/html/html_common/lists.dart",
   ]
   output = "$target_gen_dir/html_common_gen.cc"
-}
-
-gen_library_src_path("generate_js_cc_file") {
-  name = "js"
-  kind = "source"
-  sources = [
-    "../../sdk/lib/js/dartium/js_dartium.dart",
-  ]
-  output = "$target_gen_dir/js_gen.cc"
-}
-
-gen_library_src_path("generate_js_util_cc_file") {
-  name = "js_util"
-  kind = "source"
-  sources = [
-    "../../sdk/lib/js_util/dartium/js_util_dartium.dart",
-  ]
-  output = "$target_gen_dir/js_util_gen.cc"
-}
-
-gen_library_src_path("generate_blink_cc_file") {
-  name = "_blink"
-  kind = "source"
-  sources = [
-    "../../sdk/lib/_blink/dartium/_blink_dartium.dart",
-  ]
-  output = "$target_gen_dir/blink_gen.cc"
-}
-
-gen_library_src_path("generate_indexed_db_cc_file") {
-  name = "indexed_db"
-  kind = "source"
-  sources = [
-    "../../sdk/lib/indexed_db/dartium/indexed_db_dartium.dart",
-  ]
-  output = "$target_gen_dir/indexed_db_gen.cc"
-}
-
-gen_library_src_path("generate_cached_patches_cc_file") {
-  name = "cached_patches"
-  library_name = "cached_patches.dart"
-  kind = "source"
-  sources = [
-    "../../sdk/lib/js/dartium/cached_patches.dart",
-  ]
-  output = "$target_gen_dir/cached_patches_gen.cc"
-}
-
-gen_library_src_path("generate_web_gl_cc_file") {
-  name = "web_gl"
-  kind = "source"
-  sources = [
-    "../../sdk/lib/web_gl/dartium/web_gl_dartium.dart",
-  ]
-  output = "$target_gen_dir/web_gl_gen.cc"
 }
 
 gen_library_src_path("generate_metadata_cc_file") {
@@ -191,33 +126,6 @@ gen_library_src_path("generate_metadata_cc_file") {
     "../../sdk/lib/html/html_common/metadata.dart",
   ]
   output = "$target_gen_dir/metadata_gen.cc"
-}
-
-gen_library_src_path("generate_web_sql_cc_file") {
-  name = "web_sql"
-  kind = "source"
-  sources = [
-    "../../sdk/lib/web_sql/dartium/web_sql_dartium.dart",
-  ]
-  output = "$target_gen_dir/web_sql_gen.cc"
-}
-
-gen_library_src_path("generate_svg_cc_file") {
-  name = "svg"
-  kind = "source"
-  sources = [
-    "../../sdk/lib/svg/dartium/svg_dartium.dart",
-  ]
-  output = "$target_gen_dir/svg_gen.cc"
-}
-
-gen_library_src_path("generate_web_audio_cc_file") {
-  name = "web_audio"
-  kind = "source"
-  sources = [
-    "../../sdk/lib/web_audio/dartium/web_audio_dartium.dart",
-  ]
-  output = "$target_gen_dir/web_audio_gen.cc"
 }
 
 config("libdart_builtin_config") {
@@ -244,21 +152,11 @@ template("build_libdart_builtin") {
     }
     public_configs = [ ":libdart_builtin_config" ]
     deps = [
-      ":generate_blink_cc_file",
       ":generate_builtin_cc_file",
-      ":generate_cached_patches_cc_file",
-      ":generate_html_cc_file",
       ":generate_html_common_cc_file",
-      ":generate_indexed_db_cc_file",
       ":generate_io_cc_file",
       ":generate_io_patch_cc_file",
-      ":generate_js_cc_file",
-      ":generate_js_util_cc_file",
       ":generate_metadata_cc_file",
-      ":generate_svg_cc_file",
-      ":generate_web_audio_cc_file",
-      ":generate_web_gl_cc_file",
-      ":generate_web_sql_cc_file",
     ]
     include_dirs = [ ".." ]
     set_sources_assignment_filter([
@@ -800,21 +698,11 @@ dart_executable("dart_bootstrap") {
   ]
   extra_deps = [
     ":gen_resources_cc",
-    ":generate_blink_cc_file",
     ":generate_builtin_cc_file",
-    ":generate_cached_patches_cc_file",
-    ":generate_html_cc_file",
     ":generate_html_common_cc_file",
-    ":generate_indexed_db_cc_file",
     ":generate_io_cc_file",
     ":generate_io_patch_cc_file",
-    ":generate_js_cc_file",
-    ":generate_js_util_cc_file",
     ":generate_metadata_cc_file",
-    ":generate_svg_cc_file",
-    ":generate_web_audio_cc_file",
-    ":generate_web_gl_cc_file",
-    ":generate_web_sql_cc_file",
     "..:libdart_nosnapshot_with_precompiler",
   ]
   extra_defines = [ "NO_OBSERVATORY" ]
@@ -831,22 +719,12 @@ dart_executable("dart_bootstrap") {
     "snapshot_empty.cc",
 
     # Include generated source files.
-    "$target_gen_dir/blink_gen.cc",
     "$target_gen_dir/builtin_gen.cc",
-    "$target_gen_dir/cached_patches_gen.cc",
     "$target_gen_dir/html_common_gen.cc",
-    "$target_gen_dir/html_gen.cc",
-    "$target_gen_dir/indexed_db_gen.cc",
     "$target_gen_dir/io_gen.cc",
     "$target_gen_dir/io_patch_gen.cc",
-    "$target_gen_dir/js_gen.cc",
-    "$target_gen_dir/js_util_gen.cc",
     "$target_gen_dir/metadata_gen.cc",
     "$target_gen_dir/resources_gen.cc",
-    "$target_gen_dir/svg_gen.cc",
-    "$target_gen_dir/web_audio_gen.cc",
-    "$target_gen_dir/web_gl_gen.cc",
-    "$target_gen_dir/web_sql_gen.cc",
   ]
 }
 
