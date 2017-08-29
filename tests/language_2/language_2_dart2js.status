@@ -170,7 +170,6 @@ bad_typedef_test/00: Crash # Issue 28214
 call_function_apply_test: RuntimeError # Issue 23873
 canonical_const2_test: RuntimeError, OK # Issue 1533
 getter_setter_in_lib_test: Fail # Issue 23288
-getter_setter_in_lib_test: Fail # Issue 23288
 
 [ $compiler == dart2js && $runtime != none && ! $dart2js_with_kernel ]
 accessor_conflict_import2_test: RuntimeError # Issue 25626
@@ -480,14 +479,12 @@ generic_methods_type_expression_test: Crash # type 'JClass' is not a subtype of 
 generic_native_test: Crash
 generic_sync_star_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call))
 generic_syntax_test: Crash
-generic_test: Crash
 generic_test: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generics_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 getter_no_setter2_test/00: RuntimeError
 getter_no_setter2_test/03: RuntimeError
 getter_no_setter_test/00: RuntimeError
-getter_no_setter_test/none: RuntimeError
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
@@ -639,9 +636,6 @@ closure_with_super_send_test: Crash # Assertion failure: Cannot find value Insta
 closures_initializer2_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 closures_initializer_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 closures_with_complex_params_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'supertype'.
-compile_time_constant_a_test: Crash
-compile_time_constant_b_test: Crash
-compile_time_constant_c_test/02: Crash
 generic_instanceof_test: Crash
 generic_local_functions_test: Crash
 generic_methods_closure_test: Crash
@@ -656,27 +650,17 @@ generic_methods_type_expression_test: Crash
 generic_native_test: Crash
 generic_sync_star_test: Crash
 generic_syntax_test: Crash
-generic_test: Crash
-generic_test: RuntimeError
 generic_typedef_test: Crash
-many_generic_instanceof_test: Crash
-getter_no_setter2_test/00: RuntimeError
-getter_no_setter2_test/03: RuntimeError
-getter_no_setter_test/00: RuntimeError
-getter_no_setter_test/none: RuntimeError
+compile_time_constant_a_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(ConstantStringMap.values#key), local(ConstantStringMap.values#)) for j:closure_call(ConstantStringMap_values_closure.call).
+compile_time_constant_b_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(ConstantStringMap.values#key), local(ConstantStringMap.values#)) for j:closure_call(ConstantStringMap_values_closure.call).
+compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
+generic_test: RuntimeError
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 hash_map_null_key_foreach_test: RuntimeError
-getter_no_setter2_test/00: RuntimeError
-getter_no_setter2_test/03: RuntimeError
-getter_no_setter_test/00: RuntimeError
-getter_no_setter_test/none: RuntimeError
-hash_map_null_key_foreach_test: RuntimeError
-compile_time_constant_a_test: Crash
-compile_time_constant_b_test: Crash
-compile_time_constant_c_test/02: Crash
+many_generic_instanceof_test: Crash
 regress_30339_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 typevariable_substitution2_test/02: RuntimeError
 
@@ -745,7 +729,6 @@ function_type/function_type6_test: Crash # Issue 27394
 function_type/function_type7_test: Crash # Issue 27394
 function_type/function_type98_test: Crash # Issue 27394
 function_type/function_type99_test: Crash # Issue 27394
-getter_setter_in_lib_test: Crash # Issue 27394
 getter_setter_in_lib_test: Crash # Issue 27394
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
