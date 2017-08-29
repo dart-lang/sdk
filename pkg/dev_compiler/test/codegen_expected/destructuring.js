@@ -13,49 +13,49 @@ define(['dart_sdk'], function(dart_sdk) {
   let __Todynamic$ = () => (__Todynamic$ = dart.constFn(dart.fnType(dart.dynamic, [], {let: core.int, function: dart.dynamic, arguments: dart.dynamic})))();
   let __Todynamic$0 = () => (__Todynamic$0 = dart.constFn(dart.fnType(dart.dynamic, [], {constructor: core.int, valueOf: dart.dynamic, hasOwnProperty: dart.dynamic})))();
   let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.fnType(dart.dynamic, [dart.dynamic])))();
-  destructuring.f = function(a, b, c = 1) {
+  destructuring.f = function(a = null, b = null, c = 1) {
     destructuring.f(a, b, c);
   };
   dart.fn(destructuring.f, intAnddynamic__Todynamic());
   destructuring.f_sync = function(a, b, c) {
-    return dart.syncStar(function*(a, b, c = 1) {
+    return dart.syncStar(function*(a = null, b = null, c = 1) {
     }, dart.dynamic, a, b, c);
   };
   dart.fn(destructuring.f_sync, intAnddynamic__Todynamic());
   destructuring.f_async = function(a, b, c) {
-    return dart.asyncStar(function*(stream, a, b, c = 1) {
+    return dart.asyncStar(function*(stream, a = null, b = null, c = 1) {
     }, dart.dynamic, a, b, c);
   };
   dart.fn(destructuring.f_async, intAnddynamic__Todynamic());
-  destructuring.g = function(a, b, {c = 1} = {}) {
+  destructuring.g = function(a = null, b = null, {c = 1} = {}) {
     destructuring.f(a, b, c);
   };
   dart.fn(destructuring.g, intAnddynamic__Todynamic$());
   destructuring.g_sync = function(a, b, opts) {
-    return dart.syncStar(function*(a, b, {c = 1} = {}) {
+    return dart.syncStar(function*(a = null, b = null, {c = 1} = {}) {
     }, dart.dynamic, a, b, opts);
   };
   dart.fn(destructuring.g_sync, intAnddynamic__Todynamic$());
   destructuring.g_async = function(a, b, opts) {
-    return dart.asyncStar(function*(stream, a, b, {c = 1} = {}) {
+    return dart.asyncStar(function*(stream, a = null, b = null, {c = 1} = {}) {
     }, dart.dynamic, a, b, opts);
   };
   dart.fn(destructuring.g_async, intAnddynamic__Todynamic$());
-  destructuring.r = function(a, ...others) {
+  destructuring.r = function(a = null, ...others = null) {
     destructuring.r(a, ...others);
   };
   dart.fn(destructuring.r, intAnddynamicTodynamic());
   destructuring.r_sync = function(a, ...others) {
-    return dart.syncStar(function*(a, ...others) {
+    return dart.syncStar(function*(a = null, ...others = null) {
     }, dart.dynamic, a, ...others);
   };
   dart.fn(destructuring.r_sync, intAnddynamicTodynamic());
   destructuring.r_async = function(a, ...others) {
-    return dart.asyncStar(function*(stream, a, ...others) {
+    return dart.asyncStar(function*(stream, a = null, ...others = null) {
     }, dart.dynamic, a, ...others);
   };
   dart.fn(destructuring.r_async, intAnddynamicTodynamic());
-  destructuring.invalid_names1 = function(let$, func, arguments$) {
+  destructuring.invalid_names1 = function(let$ = null, func = null, arguments$ = null) {
     destructuring.f(let$, func, arguments$);
   };
   dart.fn(destructuring.invalid_names1, intAnddynamicAnddynamicTodynamic());
@@ -74,12 +74,13 @@ define(['dart_sdk'], function(dart_sdk) {
   src__varargs._Rest = class _Rest extends core.Object {};
   (src__varargs._Rest.new = function() {
   }).prototype = src__varargs._Rest.prototype;
+  dart.addTypeTests(src__varargs._Rest);
   dart.defineLazy(src__varargs, {
     get rest() {
       return dart.const(new src__varargs._Rest.new());
     }
   });
-  src__varargs.spread = function(args) {
+  src__varargs.spread = function(args = null) {
     dart.throw(new core.StateError.new('The spread function cannot be called, ' + 'it should be compiled away.'));
   };
   dart.fn(src__varargs.spread, dynamicTodynamic());

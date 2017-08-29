@@ -4,6 +4,8 @@ define(['dart_sdk'], function(dart_sdk) {
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
   const BenchmarkBase$ = Object.create(null);
+  const $length = dartx.length;
+  const $_get = dartx._get;
   let VoidToNull = () => (VoidToNull = dart.constFn(dart.fnType(core.Null, [])))();
   BenchmarkBase$.Expect = class Expect extends core.Object {
     static equals(expected, actual) {
@@ -12,11 +14,11 @@ define(['dart_sdk'], function(dart_sdk) {
       }
     }
     static listEquals(expected, actual) {
-      if (expected[dartx.length] != actual[dartx.length]) {
-        dart.throw(dart.str`Lists have different lengths: ${expected[dartx.length]} vs ${actual[dartx.length]}`);
+      if (expected[$length] != actual[$length]) {
+        dart.throw(dart.str`Lists have different lengths: ${expected[$length]} vs ${actual[$length]}`);
       }
-      for (let i = 0; i < dart.notNull(actual[dartx.length]); i++) {
-        BenchmarkBase$.Expect.equals(expected[dartx._get](i), actual[dartx._get](i));
+      for (let i = 0; i < dart.notNull(actual[$length]); i++) {
+        BenchmarkBase$.Expect.equals(expected[$_get](i), actual[$_get](i));
       }
     }
     fail(message) {
@@ -25,6 +27,7 @@ define(['dart_sdk'], function(dart_sdk) {
   };
   (BenchmarkBase$.Expect.new = function() {
   }).prototype = BenchmarkBase$.Expect.prototype;
+  dart.addTypeTests(BenchmarkBase$.Expect);
   dart.setSignature(BenchmarkBase$.Expect, {
     methods: () => ({fail: dart.fnType(dart.dynamic, [dart.dynamic])}),
     statics: () => ({
@@ -83,6 +86,7 @@ define(['dart_sdk'], function(dart_sdk) {
   (BenchmarkBase$.BenchmarkBase.new = function(name) {
     this[name$] = name;
   }).prototype = BenchmarkBase$.BenchmarkBase.prototype;
+  dart.addTypeTests(BenchmarkBase$.BenchmarkBase);
   const name$ = Symbol("BenchmarkBase.name");
   dart.setSignature(BenchmarkBase$.BenchmarkBase, {
     fields: () => ({name: dart.finalFieldType(core.String)}),
