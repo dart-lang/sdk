@@ -380,7 +380,7 @@ class BinaryPrinter extends Visitor {
   int _encodeClassFlags(bool isAbstract, bool isEnum,
       bool isSyntheticMixinImplementation, ClassLevel level) {
     int abstractFlag = isAbstract ? 1 : 0;
-    int isEnumFlag = isSyntheticMixinImplementation ? 2 : 0;
+    int isEnumFlag = isEnum ? 2 : 0;
     int isSyntheticMixinImplementationFlag =
         isSyntheticMixinImplementation ? 4 : 0;
     int levelFlags = (level.index - 1) << 3;
