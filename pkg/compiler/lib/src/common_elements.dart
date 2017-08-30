@@ -14,6 +14,7 @@ import 'elements/types.dart';
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'js_backend/constant_system_javascript.dart';
 import 'js_backend/native_data.dart' show NativeBasicData;
+import 'constants/expressions.dart' show ConstantExpression;
 import 'universe/call_structure.dart' show CallStructure;
 import 'universe/selector.dart' show Selector;
 import 'universe/call_structure.dart';
@@ -1252,12 +1253,21 @@ abstract class ElementEnvironment {
       ClassEntity cls, void f(ClassEntity declarer, MemberEntity member));
 
   /// Calls [f] for every constructor declared in [cls].
+  ///
+  /// Will ensure that the class and all constructors are resolved if
+  /// [ensureResolved] is `true`.
+  // TODO(redemption): Remove the 'ensureResolved' parameter
   void forEachConstructor(
-      ClassEntity cls, void f(ConstructorEntity constructor));
+      ClassEntity cls, void f(ConstructorEntity constructor),
+      {bool ensureResolved: true});
 
   /// Calls [f] for every constructor body in [cls].
   void forEachConstructorBody(
       ClassEntity cls, void f(ConstructorBodyEntity constructorBody));
+
+  /// Calls [f] for each nested closure in [member].
+  void forEachNestedClosure(
+      MemberEntity member, void f(FunctionEntity closure));
 
   /// Returns the superclass of [cls].
   ///
@@ -1337,6 +1347,9 @@ abstract class ElementEnvironment {
 
   /// Returns the type of the [local] function.
   FunctionType getLocalFunctionType(Local local);
+
+  /// Gets the constant value of [field], or `null` if [field] is non-const.
+  ConstantExpression getFieldConstant(FieldEntity field);
 
   /// Returns the 'unaliased' type of [type]. For typedefs this is the function
   /// type it is an alias of, for other types it is the type itself.

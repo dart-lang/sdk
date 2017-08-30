@@ -18,6 +18,10 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
   void forEachParameter(covariant FunctionEntity function,
       void f(DartType type, String name, ConstantValue defaultValue));
 
+  /// Calls [f] for each parameter - given as a [Local] - of [function].
+  void forEachParameterAsLocal(
+      covariant FunctionEntity function, void f(Local parameter));
+
   void forEachInvokedName(
       f(String name, Map<Selector, SelectorConstraints> selectors));
 
@@ -584,6 +588,8 @@ class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {
   @override
   void forEachParameter(MethodElement function,
       void f(DartType type, String name, ConstantValue defaultValue)) {
+    if (!function.hasFunctionSignature) return;
+    function = function.implementation;
     FunctionSignature parameters = function.functionSignature;
     parameters.orderedForEachParameter((_parameter) {
       ParameterElement parameter = _parameter;
@@ -592,6 +598,18 @@ class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {
         value = _constants.getConstantValue(parameter.constant);
       }
       f(parameter.type, parameter.name, value);
+    });
+  }
+
+  @override
+  void forEachParameterAsLocal(
+      MethodElement function, void f(Local parameter)) {
+    if (!function.hasFunctionSignature) return;
+    function = function.implementation;
+    FunctionSignature parameters = function.functionSignature;
+    parameters.orderedForEachParameter((_parameter) {
+      ParameterElement parameter = _parameter;
+      f(parameter);
     });
   }
 
@@ -652,6 +670,13 @@ class KernelCodegenWorldBuilder extends CodegenWorldBuilderImpl {
   void forEachParameter(FunctionEntity function,
       void f(DartType type, String name, ConstantValue defaultValue)) {
     _elementMap.forEachParameter(function, f);
+  }
+
+  @override
+  void forEachParameterAsLocal(
+      FunctionEntity function, void f(Local parameter)) {
+    throw new UnimplementedError(
+        'KernelCodegenWorldBuilder.forEachParameterAsLocal');
   }
 
   @override

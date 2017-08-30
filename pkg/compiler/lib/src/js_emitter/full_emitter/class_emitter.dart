@@ -101,7 +101,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
     jsAst.Name constructorName = namer.className(classElement);
     OutputUnit outputUnit =
-        compiler.deferredLoadTask.outputUnitForElement(classElement);
+        compiler.deferredLoadTask.outputUnitForEntity(classElement);
     emitter.assemblePrecompiledConstructor(
         outputUnit, constructorName, constructorAst, fieldNames);
   }
@@ -205,7 +205,7 @@ class ClassEmitter extends CodeEmitterHelper {
         jsAst.Literal fieldNameAst = js.concatenateStrings(fieldNameParts);
         builder.addField(fieldNameAst);
         // Add 1 because adding a field to the class also requires a comma
-        compiler.dumpInfoTask.registerElementAst(fieldElement, fieldNameAst);
+        compiler.dumpInfoTask.registerEntityAst(fieldElement, fieldNameAst);
         fieldsAdded = true;
       }
     }
@@ -226,7 +226,7 @@ class ClassEmitter extends CodeEmitterHelper {
       jsAst.Expression code = method.code;
       jsAst.Name setterName = method.name;
       compiler.dumpInfoTask
-          .registerElementAst(member, builder.addProperty(setterName, code));
+          .registerEntityAst(member, builder.addProperty(setterName, code));
       generateReflectionDataForFieldGetterOrSetter(member, setterName, builder,
           isGetter: false);
     }
@@ -252,7 +252,7 @@ class ClassEmitter extends CodeEmitterHelper {
   void emitStubs(Iterable<StubMethod> stubs, ClassBuilder builder) {
     for (Method method in stubs) {
       jsAst.Property property = builder.addProperty(method.name, method.code);
-      compiler.dumpInfoTask.registerElementAst(method.element, property);
+      compiler.dumpInfoTask.registerEntityAst(method.element, property);
     }
   }
 
@@ -340,9 +340,9 @@ class ClassEmitter extends CodeEmitterHelper {
     if (emitFields(cls, staticsBuilder, emitStatics: true)) {
       jsAst.ObjectInitializer initializer =
           staticsBuilder.toObjectInitializer();
-      compiler.dumpInfoTask.registerElementAst(classEntity, initializer);
+      compiler.dumpInfoTask.registerEntityAst(classEntity, initializer);
       jsAst.Node property = initializer.properties.single;
-      compiler.dumpInfoTask.registerElementAst(classEntity, property);
+      compiler.dumpInfoTask.registerEntityAst(classEntity, property);
       statics.add(property);
     }
 
@@ -362,7 +362,7 @@ class ClassEmitter extends CodeEmitterHelper {
     // TODO(ahe): This method (generateClass) should return a jsAst.Expression.
     jsAst.ObjectInitializer propertyValue = classBuilder.toObjectInitializer();
     compiler.dumpInfoTask
-        .registerElementAst(classBuilder.element, propertyValue);
+        .registerEntityAst(classBuilder.element, propertyValue);
     enclosingBuilder.addProperty(className, propertyValue);
 
     String reflectionName =
@@ -413,7 +413,7 @@ class ClassEmitter extends CodeEmitterHelper {
     ClassEntity cls = member.enclosingClass;
     jsAst.Name className = namer.className(cls);
     OutputUnit outputUnit =
-        compiler.deferredLoadTask.outputUnitForElement(member);
+        compiler.deferredLoadTask.outputUnitForEntity(member);
     emitter
         .cspPrecompiledFunctionFor(outputUnit)
         .add(js('#.prototype.# = #', [className, getterName, function]));
@@ -433,7 +433,7 @@ class ClassEmitter extends CodeEmitterHelper {
     ClassEntity cls = member.enclosingClass;
     jsAst.Name className = namer.className(cls);
     OutputUnit outputUnit =
-        compiler.deferredLoadTask.outputUnitForElement(member);
+        compiler.deferredLoadTask.outputUnitForEntity(member);
     emitter
         .cspPrecompiledFunctionFor(outputUnit)
         .add(js('#.prototype.# = #', [className, setterName, function]));

@@ -1103,7 +1103,7 @@ abstract class ExecutableElement extends Element
 abstract class MemberElement extends Element
     implements ExecutableElement, MemberEntity {
   /// The local functions defined within this member.
-  List<FunctionElement> get nestedClosures;
+  List<MethodElement> get nestedClosures;
 
   /// The name of this member, taking privacy into account.
   Name get memberName;

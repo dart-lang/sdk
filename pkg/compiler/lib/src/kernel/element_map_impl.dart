@@ -1354,6 +1354,11 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  ConstantExpression getFieldConstant(FieldEntity field) {
+    return elementMap._getFieldConstantExpression(field);
+  }
+
+  @override
   DartType getUnaliasedType(DartType type) => type;
 
   @override
@@ -1412,7 +1417,8 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   void forEachConstructor(
-      ClassEntity cls, void f(ConstructorEntity constructor)) {
+      ClassEntity cls, void f(ConstructorEntity constructor),
+      {bool ensureResolved: true}) {
     elementMap._forEachConstructor(cls, f);
   }
 
@@ -1420,6 +1426,13 @@ class KernelElementEnvironment implements ElementEnvironment {
   void forEachConstructorBody(
       ClassEntity cls, void f(ConstructorBodyEntity constructor)) {
     elementMap._forEachConstructorBody(cls, f);
+  }
+
+  @override
+  void forEachNestedClosure(
+      MemberEntity member, void f(FunctionEntity closure)) {
+    throw new UnimplementedError(
+        'KernelElementEnvironment.forEachNestedClosure');
   }
 
   @override

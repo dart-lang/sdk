@@ -43,12 +43,12 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     if (!needStructuredInfo) {
       compiler.dumpInfoTask
-          .registerElementAst(member, builder.addProperty(name, code));
+          .registerEntityAst(member, builder.addProperty(name, code));
 
       for (ParameterStubMethod stub in method.parameterStubs) {
         assert(stub.callName == null);
         jsAst.Property property = builder.addProperty(stub.name, stub.code);
-        compiler.dumpInfoTask.registerElementAst(member, property);
+        compiler.dumpInfoTask.registerEntityAst(member, property);
         emitter.interceptorEmitter
             .recordMangledNameOfMemberMethod(member, stub.name);
       }
@@ -100,7 +100,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       jsAst.ArrayInitializer arrayInit =
           new jsAst.ArrayInitializer(expressions);
       compiler.dumpInfoTask
-          .registerElementAst(member, builder.addProperty(name, arrayInit));
+          .registerEntityAst(member, builder.addProperty(name, arrayInit));
       return;
     }
 
@@ -186,7 +186,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     jsAst.ArrayInitializer arrayInit =
         new jsAst.ArrayInitializer(expressions.toList());
     compiler.dumpInfoTask
-        .registerElementAst(member, builder.addProperty(name, arrayInit));
+        .registerEntityAst(member, builder.addProperty(name, arrayInit));
   }
 
   void addMemberField(Field field, ClassBuilder builder) {

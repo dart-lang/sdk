@@ -1554,7 +1554,7 @@ class ForwardingConstructorElementZ extends ElementZ
   String get name => definingConstructor.name;
 
   @override
-  List<FunctionElement> get nestedClosures => const <FunctionElement>[];
+  List<MethodElement> get nestedClosures => const <MethodElement>[];
 
   @override
   List<ParameterElement> get parameters {
@@ -1586,7 +1586,7 @@ class ForwardingConstructorElementZ extends ElementZ
 
 abstract class MemberElementMixin
     implements DeserializedElementZ, MemberElement {
-  final List<FunctionElement> nestedClosures = <FunctionElement>[];
+  final List<MethodElement> nestedClosures = <MethodElement>[];
 
   @override
   MemberElement get memberContext => this;

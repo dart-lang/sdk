@@ -463,7 +463,7 @@ class ClosureFieldElement extends ElementX
       closureClass.methodElement.analyzableElement;
 
   @override
-  List<FunctionElement> get nestedClosures => const <FunctionElement>[];
+  List<MethodElement> get nestedClosures => const <MethodElement>[];
 
   @override
   bool get hasConstant => false;
@@ -593,7 +593,7 @@ class BoxFieldElement extends ElementX
   MemberElement get memberContext => box.memberContext;
 
   @override
-  List<FunctionElement> get nestedClosures => const <FunctionElement>[];
+  List<MethodElement> get nestedClosures => const <MethodElement>[];
 
   @override
   VariableDefinitions get node {
