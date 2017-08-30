@@ -2023,6 +2023,7 @@ redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: Crash
 redirecting_factory_reflection_test: Crash
+reexport_core_test: Crash
 reg_exp_test: Crash
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError

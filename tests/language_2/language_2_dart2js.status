@@ -715,7 +715,6 @@ async_star_regression_23116_test: Crash # NoSuchMethodError: The getter 'thisLoc
 async_star_regression_fisk_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_star_stream_take_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_star_take_reyield_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-bad_constructor_test/05: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
@@ -760,17 +759,18 @@ closures_initializer_test: Crash # NoSuchMethodError: The getter 'closureClassEn
 compile_time_constant_a_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(ConstantStringMap.values#key), local(ConstantStringMap.values#)) for j:closure_call(ConstantStringMap_values_closure.call).
 compile_time_constant_b_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(ConstantStringMap.values#key), local(ConstantStringMap.values#)) for j:closure_call(ConstantStringMap_values_closure.call).
 compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
-closures_with_complex_params_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'supertype'.
-compile_time_constant_a_test: Crash
-compile_time_constant_b_test: Crash
-compile_time_constant_c_test/02: Crash
 generalized_void_syntax_test: CompileTimeError
+generic_async_star_test: Crash
+generic_async_test: Crash
 generic_closure_test: RuntimeError
 generic_field_mixin2_test: Crash
 generic_field_mixin3_test: Crash
 generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
+generic_field_mixin6_test/none: Crash
+generic_field_mixin6_test/01: Crash
 generic_field_mixin_test: Crash
+generic_function_typedef_test/01: Crash
 generic_function_typedef2_test/04: Crash
 generic_function_typedef_test/none: Crash
 generic_functions_test: Crash
@@ -785,8 +785,6 @@ generic_methods_shadowing_test: Crash
 generic_methods_tearoff_specialization_test: Crash
 generic_methods_test: Crash
 generic_methods_type_expression_test: Crash
-generic_method_types_test/01: Crash
-generic_method_types_test/02: Crash
 generic_methods_generic_function_parameter_test: Crash
 generic_methods_test: Crash
 generic_native_test: Crash
@@ -824,8 +822,9 @@ many_generic_instanceof_test: Crash
 regress_30339_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 typevariable_substitution2_test/02: RuntimeError
 type_variable_nested_test: Crash
-typecheck_multifield_declaration_test: Crash
+unused_overridden_async_test: Crash
 vm/async_await_catch_stacktrace_test: Crash
+vm/allocation_sinking_vm_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 typedef_is_test: Crash

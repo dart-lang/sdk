@@ -191,6 +191,7 @@ ct_const2_test: Pass, Crash # Flaky
 library_env_test/has_no_mirror_support: RuntimeError
 redirecting_factory_reflection_test: Crash
 redirecting_factory_reflection_test: RuntimeError
+reexport_core_test: DartkCrash
 setter_declaration2_negative_test: DartkCrash
 setter_declaration_negative_test: Fail
 
