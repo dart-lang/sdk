@@ -448,6 +448,7 @@ runtime_checks/covariant_setter: Crash
 runtime_checks/dynamic_invocation: Fail
 runtime_checks/dynamic_invocation_generic: Fail
 runtime_checks/dynamic_invocation_of_getter: Crash
+runtime_checks_new/derived_class_typed: Fail
 static_setter: Crash
 store_load: Crash
 stringliteral: Crash
