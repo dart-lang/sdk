@@ -293,7 +293,7 @@ const char* Platform::ResolveExecutablePath() {
   }
   char* path = StringUtilsWin::WideToUtf8(tmp_buffer);
   // Return the canonical path as the returned path might contain symlinks.
-  const char* canon_path = File::GetCanonicalPath(path);
+  const char* canon_path = File::GetCanonicalPath(NULL, path);
   return canon_path;
 }
 

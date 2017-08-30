@@ -323,7 +323,7 @@ void SSLCertContext::LoadRootCertFile(const char* file) {
   if (SSL_LOG_STATUS) {
     Log::Print("Looking for trusted roots in %s\n", file);
   }
-  if (!File::Exists(file)) {
+  if (!File::Exists(NULL, file)) {
     SecureSocketUtils::ThrowIOException(-1, "TlsException",
                                         "Failed to find root cert file", NULL);
   }
@@ -369,7 +369,7 @@ void SSLCertContext::LoadRootCertCache(const char* cache) {
   if (SSL_LOG_STATUS) {
     Log::Print("Looking for trusted roots in %s\n", cache);
   }
-  if (Directory::Exists(cache) != Directory::EXISTS) {
+  if (Directory::Exists(NULL, cache) != Directory::EXISTS) {
     SecureSocketUtils::ThrowIOException(-1, "TlsException",
                                         "Failed to find root cert cache", NULL);
   }

@@ -7,6 +7,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/namespace.h"
 #include "bin/reference_counting.h"
 #include "bin/thread.h"
 #include "platform/globals.h"
@@ -62,7 +63,7 @@ struct LinkList;
 class DirectoryListingEntry {
  public:
   explicit DirectoryListingEntry(DirectoryListingEntry* parent)
-      : parent_(parent), lister_(0), done_(false), link_(NULL) {}
+      : parent_(parent), fd_(-1), lister_(0), done_(false), link_(NULL) {}
 
   ~DirectoryListingEntry();
 
@@ -78,6 +79,7 @@ class DirectoryListingEntry {
 
  private:
   DirectoryListingEntry* parent_;
+  intptr_t fd_;
   intptr_t lister_;
   bool done_;
   int path_length_;
@@ -88,8 +90,12 @@ class DirectoryListingEntry {
 
 class DirectoryListing {
  public:
-  DirectoryListing(const char* dir_name, bool recursive, bool follow_links)
-      : top_(NULL),
+  DirectoryListing(Namespace* namespc,
+                   const char* dir_name,
+                   bool recursive,
+                   bool follow_links)
+      : namespc_(namespc),
+        top_(NULL),
         error_(false),
         recursive_(recursive),
         follow_links_(follow_links) {
@@ -124,6 +130,8 @@ class DirectoryListing {
     }
   }
 
+  Namespace* namespc() const { return namespc_; }
+
   DirectoryListingEntry* top() const { return top_; }
 
   bool recursive() const { return recursive_; }
@@ -138,6 +146,7 @@ class DirectoryListing {
 
  private:
   PathBuffer path_buffer_;
+  Namespace* namespc_;
   DirectoryListingEntry* top_;
   bool error_;
   bool recursive_;
@@ -155,9 +164,12 @@ class AsyncDirectoryListing : public ReferenceCounted<AsyncDirectoryListing>,
     kListDone = 4
   };
 
-  AsyncDirectoryListing(const char* dir_name, bool recursive, bool follow_links)
+  AsyncDirectoryListing(Namespace* namespc,
+                        const char* dir_name,
+                        bool recursive,
+                        bool follow_links)
       : ReferenceCounted(),
-        DirectoryListing(dir_name, recursive, follow_links),
+        DirectoryListing(namespc, dir_name, recursive, follow_links),
         array_(NULL),
         index_(0),
         length_(0) {}
@@ -191,10 +203,11 @@ class AsyncDirectoryListing : public ReferenceCounted<AsyncDirectoryListing>,
 class SyncDirectoryListing : public DirectoryListing {
  public:
   SyncDirectoryListing(Dart_Handle results,
+                       Namespace* namespc,
                        const char* dir_name,
                        bool recursive,
                        bool follow_links)
-      : DirectoryListing(dir_name, recursive, follow_links),
+      : DirectoryListing(namespc, dir_name, recursive, follow_links),
         results_(results),
         dart_error_(Dart_Null()) {
     add_string_ = DartUtils::NewString("add");
@@ -227,7 +240,7 @@ class Directory {
   enum ExistsResult { UNKNOWN, EXISTS, DOES_NOT_EXIST };
 
   static void List(DirectoryListing* listing);
-  static ExistsResult Exists(const char* path);
+  static ExistsResult Exists(Namespace* namespc, const char* path);
 
   // Returns the current working directory. The caller must call
   // free() on the result.
@@ -235,15 +248,17 @@ class Directory {
 
   // Returns the current working directory. The returned string is allocated
   // with Dart_ScopeAllocate(). It lasts only as long as the current API scope.
-  static const char* Current();
-  static const char* SystemTemp();
-  static const char* CreateTemp(const char* path);
+  static const char* Current(Namespace* namespc);
+  static const char* SystemTemp(Namespace* namespc);
+  static const char* CreateTemp(Namespace* namespc, const char* path);
   // Set the system temporary directory.
   static void SetSystemTemp(const char* path);
-  static bool SetCurrent(const char* path);
-  static bool Create(const char* path);
-  static bool Delete(const char* path, bool recursive);
-  static bool Rename(const char* path, const char* new_path);
+  static bool SetCurrent(Namespace* namespc, const char* path);
+  static bool Create(Namespace* namespc, const char* path);
+  static bool Delete(Namespace* namespc, const char* path, bool recursive);
+  static bool Rename(Namespace* namespc,
+                     const char* path,
+                     const char* new_path);
 
   static CObject* CreateRequest(const CObjectArray& request);
   static CObject* DeleteRequest(const CObjectArray& request);

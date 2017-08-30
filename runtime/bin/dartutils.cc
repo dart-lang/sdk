@@ -9,6 +9,7 @@
 #include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/io_buffer.h"
+#include "bin/namespace.h"
 #include "bin/platform.h"
 #include "bin/utils.h"
 
@@ -195,7 +196,8 @@ char* DartUtils::DirName(const char* url) {
 }
 
 void* DartUtils::OpenFile(const char* name, bool write) {
-  File* file = File::Open(name, write ? File::kWriteTruncate : File::kRead);
+  File* file =
+      File::Open(NULL, name, write ? File::kWriteTruncate : File::kRead);
   return reinterpret_cast<void*>(file);
 }
 
@@ -528,11 +530,24 @@ Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,
   return result;
 }
 
-Dart_Handle DartUtils::SetupIOLibrary(const char* script_uri) {
+Dart_Handle DartUtils::SetupIOLibrary(const char* namespc_path,
+                                      const char* script_uri) {
   Dart_Handle io_lib_url = NewString(kIOLibURL);
   RETURN_IF_ERROR(io_lib_url);
   Dart_Handle io_lib = Dart_LookupLibrary(io_lib_url);
   RETURN_IF_ERROR(io_lib);
+
+  if (namespc_path != NULL) {
+    Dart_Handle namespc_type = GetDartType(DartUtils::kIOLibURL, "_Namespace");
+    RETURN_IF_ERROR(namespc_type);
+    Dart_Handle args[1];
+    args[0] = NewString(namespc_path);
+    RETURN_IF_ERROR(args[0]);
+    Dart_Handle result =
+        Dart_Invoke(namespc_type, NewString("_setupNamespace"), 1, args);
+    RETURN_IF_ERROR(result);
+  }
+
   Dart_Handle platform_type = GetDartType(DartUtils::kIOLibURL, "_Platform");
   RETURN_IF_ERROR(platform_type);
   Dart_Handle script_name = NewString("_nativeScript");

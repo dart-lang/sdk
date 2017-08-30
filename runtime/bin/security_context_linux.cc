@@ -51,12 +51,12 @@ void SSLCertContext::TrustBuiltinRoots() {
   // https://www.happyassassin.net/2015/01/12/a-note-about-ssltls-trusted-certificate-stores-and-platforms/
   const char* bundle = "/etc/pki/tls/certs/ca-bundle.crt";
   const char* cachedir = "/etc/ssl/certs";
-  if (File::Exists(bundle)) {
+  if (File::Exists(NULL, bundle)) {
     LoadRootCertFile(bundle);
     return;
   }
 
-  if (Directory::Exists(cachedir) == Directory::EXISTS) {
+  if (Directory::Exists(NULL, cachedir) == Directory::EXISTS) {
     LoadRootCertCache(cachedir);
     return;
   }

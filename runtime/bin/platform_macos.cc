@@ -201,7 +201,7 @@ const char* Platform::ResolveExecutablePath() {
     return NULL;
   }
   // Return the canonical path as the returned path might contain symlinks.
-  const char* canon_path = File::GetCanonicalPath(path);
+  const char* canon_path = File::GetCanonicalPath(NULL, path);
   return canon_path;
 }
 

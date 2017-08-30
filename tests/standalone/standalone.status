@@ -292,7 +292,6 @@ io/secure_unauthorized_test: Pass, RuntimeError # Issue 28719
 
 [ $system == android ]
 io/process_exit_test: RuntimeError # Issue 29578
-io/platform_resolved_executable_test: RuntimeError # Issue 26376
 io/process_path_test: RuntimeError # Issue 26376
 io/file_test: RuntimeError # Issue 26376
 io/process_path_environment_test: RuntimeError # Issue 26376

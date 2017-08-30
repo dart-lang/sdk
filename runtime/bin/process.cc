@@ -7,6 +7,7 @@
 #include "bin/dartutils.h"
 #include "bin/io_buffer.h"
 #include "bin/log.h"
+#include "bin/namespace.h"
 #include "bin/platform.h"
 #include "bin/socket.h"
 #include "bin/utils.h"
@@ -82,12 +83,13 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   intptr_t process_stdout;
   intptr_t process_stderr;
   intptr_t exit_event;
-  Dart_Handle result;
-  Dart_Handle status_handle = Dart_GetNativeArgument(args, 10);
-  Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
+  Namespace* namespc = Namespace::GetNamespace(args, 1);
+  Dart_Handle status_handle = Dart_GetNativeArgument(args, 11);
+  Dart_Handle path_handle = Dart_GetNativeArgument(args, 2);
   // The Dart code verifies that the path implements the String
   // interface. However, only builtin Strings are handled by
   // GetStringValue.
+  Dart_Handle result;
   if (!Dart_IsString(path_handle)) {
     result = DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
     if (Dart_IsError(result)) {
@@ -98,20 +100,20 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     if (Dart_IsError(result)) {
       Dart_PropagateError(result);
     }
-    Dart_SetReturnValue(args, Dart_NewBoolean(false));
+    Dart_SetBooleanReturnValue(args, false);
     return;
   }
   const char* path = DartUtils::GetStringValue(path_handle);
-  Dart_Handle arguments = Dart_GetNativeArgument(args, 2);
+  Dart_Handle arguments = Dart_GetNativeArgument(args, 3);
   intptr_t args_length = 0;
   char** string_args =
       ExtractCStringList(arguments, status_handle,
                          "Arguments must be builtin strings", &args_length);
   if (string_args == NULL) {
-    Dart_SetReturnValue(args, Dart_NewBoolean(false));
+    Dart_SetBooleanReturnValue(args, false);
     return;
   }
-  Dart_Handle working_directory_handle = Dart_GetNativeArgument(args, 3);
+  Dart_Handle working_directory_handle = Dart_GetNativeArgument(args, 4);
   // Defaults to the current working directoy.
   const char* working_directory = NULL;
   if (Dart_IsString(working_directory_handle)) {
@@ -127,10 +129,10 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     if (Dart_IsError(result)) {
       Dart_PropagateError(result);
     }
-    Dart_SetReturnValue(args, Dart_NewBoolean(false));
+    Dart_SetBooleanReturnValue(args, false);
     return;
   }
-  Dart_Handle environment = Dart_GetNativeArgument(args, 4);
+  Dart_Handle environment = Dart_GetNativeArgument(args, 5);
   intptr_t environment_length = 0;
   char** string_environment = NULL;
   if (!Dart_IsNull(environment)) {
@@ -143,18 +145,19 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     }
   }
   int64_t mode =
-      DartUtils::GetInt64ValueCheckRange(Dart_GetNativeArgument(args, 5), 0, 2);
-  Dart_Handle stdin_handle = Dart_GetNativeArgument(args, 6);
-  Dart_Handle stdout_handle = Dart_GetNativeArgument(args, 7);
-  Dart_Handle stderr_handle = Dart_GetNativeArgument(args, 8);
-  Dart_Handle exit_handle = Dart_GetNativeArgument(args, 9);
+      DartUtils::GetInt64ValueCheckRange(Dart_GetNativeArgument(args, 6), 0, 2);
+  Dart_Handle stdin_handle = Dart_GetNativeArgument(args, 7);
+  Dart_Handle stdout_handle = Dart_GetNativeArgument(args, 8);
+  Dart_Handle stderr_handle = Dart_GetNativeArgument(args, 9);
+  Dart_Handle exit_handle = Dart_GetNativeArgument(args, 10);
   intptr_t pid = -1;
   char* os_error_message = NULL;  // Scope allocated by Process::Start.
 
   int error_code = Process::Start(
-      path, string_args, args_length, working_directory, string_environment,
-      environment_length, static_cast<ProcessStartMode>(mode), &process_stdout,
-      &process_stdin, &process_stderr, &pid, &exit_event, &os_error_message);
+      namespc, path, string_args, args_length, working_directory,
+      string_environment, environment_length,
+      static_cast<ProcessStartMode>(mode), &process_stdout, &process_stdin,
+      &process_stderr, &pid, &exit_event, &os_error_message);
   if (error_code == 0) {
     if (mode != kDetached) {
       Socket::SetSocketIdNativeField(stdin_handle, process_stdin,
@@ -183,7 +186,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
       Dart_PropagateError(result);
     }
   }
-  Dart_SetReturnValue(args, Dart_NewBoolean(error_code == 0));
+  Dart_SetBooleanReturnValue(args, error_code == 0);
 }
 
 void FUNCTION_NAME(Process_Wait)(Dart_NativeArguments args) {
@@ -233,7 +236,7 @@ void FUNCTION_NAME(Process_KillPid)(Dart_NativeArguments args) {
   intptr_t pid = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
   intptr_t signal = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
   bool success = Process::Kill(pid, signal);
-  Dart_SetReturnValue(args, Dart_NewBoolean(success));
+  Dart_SetBooleanReturnValue(args, success);
 }
 
 void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
@@ -253,7 +256,7 @@ void FUNCTION_NAME(Process_SetExitCode)(Dart_NativeArguments args) {
 }
 
 void FUNCTION_NAME(Process_GetExitCode)(Dart_NativeArguments args) {
-  Dart_SetReturnValue(args, Dart_NewInteger(Process::GlobalExitCode()));
+  Dart_SetIntegerReturnValue(args, Process::GlobalExitCode());
 }
 
 void FUNCTION_NAME(Process_Sleep)(Dart_NativeArguments args) {
@@ -273,7 +276,7 @@ void FUNCTION_NAME(Process_Pid)(Dart_NativeArguments args) {
   } else {
     Process::GetProcessIdNativeField(process, &pid);
   }
-  Dart_SetReturnValue(args, Dart_NewInteger(pid));
+  Dart_SetIntegerReturnValue(args, pid);
 }
 
 void FUNCTION_NAME(Process_SetSignalHandler)(Dart_NativeArguments args) {
@@ -282,7 +285,7 @@ void FUNCTION_NAME(Process_SetSignalHandler)(Dart_NativeArguments args) {
   if (id == -1) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   } else {
-    Dart_SetReturnValue(args, Dart_NewInteger(id));
+    Dart_SetIntegerReturnValue(args, id);
   }
 }
 

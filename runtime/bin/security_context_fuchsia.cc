@@ -45,7 +45,7 @@ void SSLCertContext::TrustBuiltinRoots() {
   }
 
   const char* bundle = "/system/data/boringssl/cert.pem";
-  if (!File::Exists(bundle)) {
+  if (!File::Exists(NULL, bundle)) {
     FATAL1("Failed to find trusted certs at %s\n", bundle);
   }
 

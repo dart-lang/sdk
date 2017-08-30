@@ -17,6 +17,7 @@
 
 #include "bin/builtin.h"
 #include "bin/log.h"
+#include "bin/namespace.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
 #include "platform/utils.h"
@@ -272,7 +273,7 @@ File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
   return new File(new FileHandle(fd));
 }
 
-File* File::Open(const char* path, FileOpenMode mode) {
+File* File::Open(Namespace* namespc, const char* path, FileOpenMode mode) {
   Utf8ToWideScope system_name(path);
   File* file = FileOpenW(system_name.wide(), mode);
   return file;
@@ -306,13 +307,13 @@ static bool StatHelper(wchar_t* path, struct __stat64* st) {
   return true;
 }
 
-bool File::Exists(const char* name) {
+bool File::Exists(Namespace* namespc, const char* name) {
   struct __stat64 st;
   Utf8ToWideScope system_name(name);
   return StatHelper(system_name.wide(), &st);
 }
 
-bool File::Create(const char* name) {
+bool File::Create(Namespace* namespc, const char* name) {
   Utf8ToWideScope system_name(name);
   int fd = _wopen(system_name.wide(), O_RDONLY | O_CREAT, 0666);
   if (fd < 0) {
@@ -354,7 +355,9 @@ typedef struct _REPARSE_DATA_BUFFER {
 static const int kReparseDataHeaderSize = sizeof ULONG + 2 * sizeof USHORT;
 static const int kMountPointHeaderSize = 4 * sizeof USHORT;
 
-bool File::CreateLink(const char* utf8_name, const char* utf8_target) {
+bool File::CreateLink(Namespace* namespc,
+                      const char* utf8_name,
+                      const char* utf8_target) {
   Utf8ToWideScope name(utf8_name);
   int create_status = CreateDirectoryW(name.wide(), NULL);
   // If the directory already existed, treat it as a success.
@@ -411,13 +414,13 @@ bool File::CreateLink(const char* utf8_name, const char* utf8_target) {
   return (result != 0);
 }
 
-bool File::Delete(const char* name) {
+bool File::Delete(Namespace* namespc, const char* name) {
   Utf8ToWideScope system_name(name);
   int status = _wremove(system_name.wide());
   return status != -1;
 }
 
-bool File::DeleteLink(const char* name) {
+bool File::DeleteLink(Namespace* namespc, const char* name) {
   Utf8ToWideScope system_name(name);
   bool result = false;
   DWORD attributes = GetFileAttributesW(system_name.wide());
@@ -431,8 +434,10 @@ bool File::DeleteLink(const char* name) {
   return result;
 }
 
-bool File::Rename(const char* old_path, const char* new_path) {
-  File::Type type = GetType(old_path, false);
+bool File::Rename(Namespace* namespc,
+                  const char* old_path,
+                  const char* new_path) {
+  File::Type type = GetType(namespc, old_path, false);
   if (type == kIsFile) {
     Utf8ToWideScope system_old_path(old_path);
     Utf8ToWideScope system_new_path(new_path);
@@ -446,8 +451,10 @@ bool File::Rename(const char* old_path, const char* new_path) {
   return false;
 }
 
-bool File::RenameLink(const char* old_path, const char* new_path) {
-  File::Type type = GetType(old_path, false);
+bool File::RenameLink(Namespace* namespc,
+                      const char* old_path,
+                      const char* new_path) {
+  File::Type type = GetType(namespc, old_path, false);
   if (type == kIsLink) {
     Utf8ToWideScope system_old_path(old_path);
     Utf8ToWideScope system_new_path(new_path);
@@ -461,8 +468,10 @@ bool File::RenameLink(const char* old_path, const char* new_path) {
   return false;
 }
 
-bool File::Copy(const char* old_path, const char* new_path) {
-  File::Type type = GetType(old_path, false);
+bool File::Copy(Namespace* namespc,
+                const char* old_path,
+                const char* new_path) {
+  File::Type type = GetType(namespc, old_path, false);
   if (type == kIsFile) {
     Utf8ToWideScope system_old_path(old_path);
     Utf8ToWideScope system_new_path(new_path);
@@ -475,7 +484,7 @@ bool File::Copy(const char* old_path, const char* new_path) {
   return false;
 }
 
-int64_t File::LengthFromPath(const char* name) {
+int64_t File::LengthFromPath(Namespace* namespc, const char* name) {
   struct __stat64 st;
   Utf8ToWideScope system_name(name);
   if (!StatHelper(system_name.wide(), &st)) {
@@ -484,7 +493,7 @@ int64_t File::LengthFromPath(const char* name) {
   return st.st_size;
 }
 
-const char* File::LinkTarget(const char* pathname) {
+const char* File::LinkTarget(Namespace* namespc, const char* pathname) {
   const wchar_t* name = StringUtilsWin::Utf8ToWide(pathname);
   HANDLE dir_handle = CreateFileW(
       name, GENERIC_READ,
@@ -547,8 +556,8 @@ const char* File::LinkTarget(const char* pathname) {
   return utf8_target;
 }
 
-void File::Stat(const char* name, int64_t* data) {
-  File::Type type = GetType(name, false);
+void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
+  File::Type type = GetType(namespc, name, false);
   data[kType] = type;
   if (type != kDoesNotExist) {
     struct _stat64 st;
@@ -566,7 +575,7 @@ void File::Stat(const char* name, int64_t* data) {
   }
 }
 
-time_t File::LastAccessed(const char* name) {
+time_t File::LastAccessed(Namespace* namespc, const char* name) {
   struct __stat64 st;
   Utf8ToWideScope system_name(name);
   if (!StatHelper(system_name.wide(), &st)) {
@@ -575,7 +584,7 @@ time_t File::LastAccessed(const char* name) {
   return st.st_atime;
 }
 
-time_t File::LastModified(const char* name) {
+time_t File::LastModified(Namespace* namespc, const char* name) {
   struct __stat64 st;
   Utf8ToWideScope system_name(name);
   if (!StatHelper(system_name.wide(), &st)) {
@@ -584,7 +593,9 @@ time_t File::LastModified(const char* name) {
   return st.st_mtime;
 }
 
-bool File::SetLastAccessed(const char* name, int64_t millis) {
+bool File::SetLastAccessed(Namespace* namespc,
+                           const char* name,
+                           int64_t millis) {
   // First get the current times.
   struct __stat64 st;
   Utf8ToWideScope system_name(name);
@@ -599,7 +610,9 @@ bool File::SetLastAccessed(const char* name, int64_t millis) {
   return _wutime64(system_name.wide(), &times) == 0;
 }
 
-bool File::SetLastModified(const char* name, int64_t millis) {
+bool File::SetLastModified(Namespace* namespc,
+                           const char* name,
+                           int64_t millis) {
   // First get the current times.
   struct __stat64 st;
   Utf8ToWideScope system_name(name);
@@ -623,7 +636,7 @@ bool File::IsAbsolutePath(const char* pathname) {
           ((pathname[2] == '\\') || (pathname[2] == '/')));
 }
 
-const char* File::GetCanonicalPath(const char* pathname) {
+const char* File::GetCanonicalPath(Namespace* namespc, const char* pathname) {
   Utf8ToWideScope system_name(pathname);
   HANDLE file_handle =
       CreateFileW(system_name.wide(), 0, FILE_SHARE_READ, NULL, OPEN_EXISTING,
@@ -675,7 +688,9 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   return kPipe;
 }
 
-File::Type File::GetType(const char* pathname, bool follow_links) {
+File::Type File::GetType(Namespace* namespc,
+                         const char* pathname,
+                         bool follow_links) {
   // Convert to wchar_t string.
   Utf8ToWideScope name(pathname);
   DWORD attributes = GetFileAttributesW(name.wide());
@@ -703,7 +718,9 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
   return result;
 }
 
-File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
+File::Identical File::AreIdentical(Namespace* namespc,
+                                   const char* file_1,
+                                   const char* file_2) {
   BY_HANDLE_FILE_INFORMATION file_info[2];
   const char* file_names[2] = {file_1, file_2};
   for (int i = 0; i < 2; ++i) {

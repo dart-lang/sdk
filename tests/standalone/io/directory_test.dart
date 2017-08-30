@@ -372,6 +372,22 @@ class DirectoryTest {
     }
   }
 
+  static void testCreateTempRelative() {
+    String template = 'dart_relative_temp_dir';
+    Directory base = new Directory('tmp');
+    base.createSync();
+    Expect.isTrue(base.existsSync());
+    try {
+      Directory tmp = base.createTempSync(template);
+      Expect.isTrue(tmp.existsSync());
+      Directory tmpCurrent = Directory.current.createTempSync(template);
+      Expect.isTrue(tmpCurrent.existsSync());
+      tmpCurrent.deleteSync();
+    } finally {
+      base.deleteSync(recursive: true);
+    }
+  }
+
   static void testCreateSystemTemp() {
     String template = 'dart_system_temp_dir';
     asyncStart();
@@ -444,6 +460,7 @@ class DirectoryTest {
     testListBrokenLinkSync();
     testListLinkSync();
     testCreateTemp();
+    testCreateTempRelative();
     testCreateSystemTemp();
     testCreateDeleteTemp();
     testCurrent();

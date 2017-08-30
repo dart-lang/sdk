@@ -11,6 +11,8 @@
 #include <sys/inotify.h>  // NOLINT
 
 #include "bin/fdutils.h"
+#include "bin/file.h"
+#include "bin/socket.h"
 #include "platform/signal_blocker.h"
 
 namespace dart {
@@ -37,6 +39,7 @@ void FileSystemWatcher::Close(intptr_t id) {
 }
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
+                                      Namespace* namespc,
                                       const char* path,
                                       int events,
                                       bool recursive) {
@@ -53,7 +56,10 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
   if ((events & kMove) != 0) {
     list_events |= IN_MOVE;
   }
-  int path_id = NO_RETRY_EXPECTED(inotify_add_watch(id, path, list_events));
+  const char* resolved_path = File::GetCanonicalPath(namespc, path);
+  path = resolved_path != NULL ? resolved_path : path;
+  int path_id =
+      NO_RETRY_EXPECTED(inotify_add_watch(id, resolved_path, list_events));
   if (path_id < 0) {
     return -1;
   }

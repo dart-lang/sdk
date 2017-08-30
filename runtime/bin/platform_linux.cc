@@ -114,7 +114,7 @@ const char* Platform::GetExecutableName() {
 }
 
 const char* Platform::ResolveExecutablePath() {
-  return File::LinkTarget("/proc/self/exe");
+  return File::ReadLink("/proc/self/exe");
 }
 
 void Platform::Exit(int exit_code) {
