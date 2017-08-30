@@ -1,5 +1,5 @@
 name: dart2js_info
-version: 0.5.5
+version: 0.5.5+1
 description: >
   Libraries and tools to process data produced when running dart2js with
   --dump-info.

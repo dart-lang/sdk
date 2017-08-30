@@ -1,3 +1,7 @@
+## 0.5.5+1
+
+- Support the latest versions of `shelf` and `args` packages.
+
 ## 0.5.5
 
 - Added `diff` tool.
