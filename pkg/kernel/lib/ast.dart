@@ -983,6 +983,17 @@ class Field extends Member {
   /// The uri of the source file this field was loaded from.
   String fileUri;
 
+  /// Formal safety of the implicit setter's formal parameter (if there is one).
+  ///
+  /// See [FormalSafety] for details.
+  FormalSafety setterFormalSafety = FormalSafety.unsafe;
+
+  /// Interface safety of the implicit setter's formal parameter (if there is
+  /// one).
+  ///
+  /// See [InterfaceSafety] for details.
+  InterfaceSafety setterInterfaceSafety = InterfaceSafety.semiTyped;
+
   Field(Name name,
       {this.type: const DynamicType(),
       this.initializer,
@@ -1753,6 +1764,7 @@ class VariableSet extends Expression {
 class PropertyGet extends Expression {
   Expression receiver;
   Name name;
+  DispatchCategory dispatchCategory = DispatchCategory.dynamicDispatch;
 
   Reference interfaceTargetReference;
 
@@ -1861,6 +1873,7 @@ class PropertySet extends Expression {
 class DirectPropertyGet extends Expression {
   Expression receiver;
   Reference targetReference;
+  DispatchCategory dispatchCategory = DispatchCategory.dynamicDispatch;
 
   DirectPropertyGet(Expression receiver, Member target)
       : this.byReference(receiver, getMemberReference(target));
@@ -1950,6 +1963,7 @@ class DirectMethodInvocation extends InvocationExpression {
   Expression receiver;
   Reference targetReference;
   Arguments arguments;
+  DispatchCategory dispatchCategory = DispatchCategory.dynamicDispatch;
 
   DirectMethodInvocation(
       Expression receiver, Procedure target, Arguments arguments)
@@ -2012,6 +2026,7 @@ class DirectMethodInvocation extends InvocationExpression {
 class SuperPropertyGet extends Expression {
   Name name;
   Reference interfaceTargetReference;
+  DispatchCategory get dispatchCategory => DispatchCategory.viaThis;
 
   SuperPropertyGet(Name name, [Member interfaceTarget])
       : this.byReference(name, getMemberReference(interfaceTarget));
@@ -2229,6 +2244,7 @@ class MethodInvocation extends InvocationExpression {
   Expression receiver;
   Name name;
   Arguments arguments;
+  DispatchCategory dispatchCategory = DispatchCategory.dynamicDispatch;
 
   Reference interfaceTargetReference;
 
@@ -2316,6 +2332,7 @@ class MethodInvocation extends InvocationExpression {
 class SuperMethodInvocation extends InvocationExpression {
   Name name;
   Arguments arguments;
+  DispatchCategory get dispatchCategory => DispatchCategory.viaThis;
 
   Reference interfaceTargetReference;
 
@@ -3775,6 +3792,152 @@ class YieldStatement extends Statement {
   }
 }
 
+/// Indication of when a runtime type check of a formal parameter (or type
+/// parameter) needs to be included in the code generated for a method.
+///
+/// [FormalSafety] annotations are considered to be part of a method's body;
+/// they only apply to concrete methods, and they affect any calls that resolve
+/// to the annotated method at runtime.  So for instance, in the following code,
+/// the "unsafe" annotation means that the type of `o` will have to be checked
+/// in the second call to `g` (when the runtime type of `c` is `D`), but not in
+/// the first.
+///
+///     class C {
+///       void f(Object o /*safe*/) { ... }
+///     }
+///     class D {
+///       void f(covariant int o /*unsafe*/) { ... }
+///     }
+///     void g(C c) {
+///       c.f('hi');
+///     }
+///     void main() {
+///       g(new C());
+///       g(new D());
+///     }
+enum FormalSafety {
+  /// Full safety; a runtime check is only needed for dynamic invocations.
+  ///
+  /// For a [FormalParameterDeclaration], the type system can guarantee that the
+  /// actual value that will be passed to the method at runtime will be an
+  /// instance of the formal parameter's type
+  /// ([FormalParameterDeclaration.type]), *provided that* the call site is not
+  /// annotated as [DispatchCategory.dynamicDispatch].
+  ///
+  /// For a [TypeParameter], the type system can guarantee that the actual type
+  /// that will be used to instantiate the type parameter at runtime will be a
+  /// subtype of the type parameter's bound ([TypeParameter.bound]),
+  /// *provided that* the call site is not annotated as
+  /// [DispatchCategory.dynamicDispatch].
+  ///
+  /// This annotation is used for static and top level methods since they never
+  /// require additional runtime checks due to covariance.
+  safe,
+
+  /// Partial safety; a runtime check is not needed for "typed" or "this"
+  /// invocations.
+  ///
+  /// For a [FormalParameterDeclaration], the type system can guarantee that the
+  /// actual value that will be passed to the method at runtime will be an
+  /// instance of the formal parameter's type
+  /// ([FormalParameterDeclaration.type]), *provided that* the invocation comes
+  /// through an invocation target that marks the corresponding type parameter
+  /// with [InterfaceSafety.typed], or the call site is annotated as
+  /// [DispatchCategory.viaThis].
+  ///
+  /// For a [TypeParameter], the type system can guarantee that the actual type
+  /// that will be used to instantiate the type parameter at runtime will be a
+  /// subtype of the type parameter's bound ([TypeParameter.bound]),
+  /// *provided that* the invocation comes through an invocation target that
+  /// marks the corresponding type parameter with [InterfaceSafety.typed], or
+  /// the call site is annotated as [DispatchCategory.viaThis].
+  semiSafe,
+
+  /// No safety; a runtime type check is always required.
+  ///
+  /// For a [FormalParameterDeclaration], the type system cannot guarantee that
+  /// the actual value that will be passed to the method at runtime will be an
+  /// instance of the formal parameter's type
+  /// ([FormalParameterDeclaration.type]).  Therefore, in the absence of
+  /// additional information from whole program analysis, a runtime type check
+  /// needs to be compiled into the body of the method.
+  ///
+  /// Not used for [TypeParameter]s.
+  unsafe,
+}
+
+/// Indication of when a call site can skip a runtime type check that would have
+/// otherwise been required by [FormalSafety].
+///
+/// [InterfaceSafety] annotations are considered to be part of a class's API;
+/// they apply to both concrete and abstract methods, and they affect any calls
+/// that resolve to the annotated method statically.  So for instance, in the
+/// following code, the "semi-typed" annotation means that the call site at g1
+/// (which statically resolves to C.f) needs a runtime type check for both
+/// arguments, but the call site at g2 (which statically resolves to D.f) only
+/// needs a runtime check for the second argument.
+///
+///     class C<S, T> {
+///       void f(S x /*semi-typed*/, T y /*semi-typed*/) { ... }
+///     }
+///     class D<T> extends C<num, T> {
+///       void f(num x /*typed*/, T y /*semi-typed*/);
+///     }
+///     void g1(C<num, num> c) {
+///       c.f(1.5, 1.5);
+///     }
+///     void g2(D<num> d) {
+///       d.f(1.5, 1.5);
+///     }
+enum InterfaceSafety {
+  /// Full type guarantee; a runtime check is only needed if the concrete
+  /// parameter bound at runtime is "unsafe".
+  ///
+  /// This annotation is used for static and top level methods since they never
+  /// require additional runtime checks due to covariance.
+  ///
+  /// See [FormalSafety] for details.
+  typed,
+
+  /// Partial type guarantee; a runtime check is needed if the concrete
+  /// parameter bound at runtime is "unsafe" or "semiSafe".
+  ///
+  /// See [FormalSafety] for details.
+  semiTyped,
+}
+
+/// Categorization of a call site indicating its effect on type guarantees.
+enum DispatchCategory {
+  /// This call site binds to its callee through a specific interface.
+  ///
+  /// The front end guarantees that the target of the call exists, has the
+  /// correct arity, and accepts all of the supplied named parameters.  Further,
+  /// it guarantees that the number of type parameters supplied matches the
+  /// number of type parameters expected by the target of the call.
+  interface,
+
+  /// This call site binds to its callee via a call on `this`.
+  ///
+  /// Similar to [interface], however the target of the call is a method on
+  /// `this` or `super`, therefore all of the class's type parameters are known
+  /// to match exactly.
+  viaThis,
+
+  /// This call site is an invocation of a function object (formed either by a
+  /// tear off or a function literal).
+  ///
+  /// Similar to [interface], however the interface target of the call is not
+  /// known.
+  closure,
+
+  /// The call site is dynamic.
+  ///
+  /// The front end makes no guarantees that the target of the call will accept
+  /// the actual runtime types of the parameters, nor that the target of the
+  /// call even exists.  Everything must be checked at runtime.
+  dynamicDispatch,
+}
+
 /// Declaration of a local variable.
 ///
 /// This may occur as a statement, but is also used in several non-statement
@@ -3808,6 +3971,18 @@ class VariableDeclaration extends Statement {
   ///
   /// Should be null in other cases.
   Expression initializer; // May be null.
+
+  /// If this is a formal parameter of a concrete method, its formal safety.
+  /// Otherwise ignored.
+  ///
+  /// See [FormalSafety] for details.
+  FormalSafety formalSafety = FormalSafety.safe;
+
+  /// If this is a formal parameter of a method, its interface safety.
+  /// Otherwise ignored.
+  ///
+  /// See [InterfaceSafety] for details.
+  InterfaceSafety interfaceSafety = InterfaceSafety.typed;
 
   VariableDeclaration(this.name,
       {this.initializer,
@@ -4427,6 +4602,18 @@ class TypeParameter extends TreeNode {
   /// Should not be null except temporarily during IR construction.  Should
   /// be set to the root class for type parameters without an explicit bound.
   DartType bound;
+
+  /// If this is a type parameter of a concrete generic method, its formal
+  /// safety.  Otherwise ignored.
+  ///
+  /// See [FormalSafety] for details.
+  FormalSafety formalSafety = FormalSafety.safe;
+
+  /// If this is a type parameter of a generic method, its interface safety.
+  /// Otherwise ignored.
+  ///
+  /// See [InterfaceSafety] for details.
+  InterfaceSafety interfaceSafety = InterfaceSafety.typed;
 
   TypeParameter([this.name, this.bound]);
 
