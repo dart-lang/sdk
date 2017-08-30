@@ -5,6 +5,7 @@
 /// Server component to display inference results using a web app.
 library dart2js_info.bin.inference.server;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:shelf/shelf.dart' as shelf;
@@ -15,7 +16,7 @@ String jsonDataFile;
 String indexFile;
 String scriptFile;
 
-main(args) async {
+main(List<String> args) async {
   var host = 'localhost';
   var port = 8080;
 
@@ -26,7 +27,7 @@ main(args) async {
   await shelf.serve(_handler, host, port);
 }
 
-_handler(shelf.Request request) async {
+Future<shelf.Response> _handler(shelf.Request request) async {
   var path = request.url.path;
   if (path == 'data') {
     return new shelf.Response.ok(await new File(jsonDataFile).readAsString());

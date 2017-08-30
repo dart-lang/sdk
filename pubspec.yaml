@@ -9,12 +9,12 @@ homepage: https://github.com/dart-lang/dart2js_info/
 environment:
   sdk: '>=1.21.1 <2.0.0'
 dependencies:
-  args: ^0.13.0
+  args: '>=0.13.0 <2.0.0'
   charcode: ^1.1.0
   collection: ^1.10.1
   path: ^1.3.6
   quiver: '>=0.21.0 <0.26.0'
-  shelf: ^0.6.1+2
+  shelf: '>=0.6.1+2 <0.8.0'
   shelf_static: ^0.2.4
   yaml: ^2.1.0
 dev_dependencies:
