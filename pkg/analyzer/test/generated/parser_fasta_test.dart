@@ -2561,12 +2561,10 @@ class FastaParserTestCase extends Object
   Object _runParser(
       String source, ParseFunction getParseFunction(fasta.Parser parser),
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    if (errorCodes.isNotEmpty) {
-      // TODO(paulberry): Check that the parser generates the proper errors.
-      throw new UnimplementedError();
-    }
     createParser(source);
-    return _parserProxy._run(getParseFunction);
+    Object result = _parserProxy._run(getParseFunction);
+    assertErrorsWithCodes(errorCodes);
+    return result;
   }
 
   List<ErrorCode> _toFastaGeneratedAnalyzerErrorCodes(
@@ -2589,15 +2587,21 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseFormalParameterList_prefixedType_partial() {
-    // TODO(scheglov): Unimplemented: errors
     super.test_parseFormalParameterList_prefixedType_partial();
   }
 
   @override
   @failingTest
   void test_parseFormalParameterList_prefixedType_partial2() {
-    // TODO(scheglov): Unimplemented: errors
     super.test_parseFormalParameterList_prefixedType_partial2();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_field_const_noType() {
+    // TODO(brianwilkerson) Extra error:
+    // Expected 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (1)
+    super.test_parseNormalFormalParameter_field_const_noType();
   }
 
   @failingTest
@@ -2605,6 +2609,14 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     // TODO(danrubel): should not be generating an error
     super.test_parseNormalFormalParameter_field_const_noType();
     assertNoErrors();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_field_const_type() {
+    // TODO(brianwilkerson) Extra error:
+    // Expected 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (1)
+    super.test_parseNormalFormalParameter_field_const_type();
   }
 
   @failingTest
@@ -2660,11 +2672,27 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
         .test_parseNormalFormalParameter_function_void_typeParameters_nullable();
   }
 
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_simple_const_noType() {
+    // TODO(brianwilkerson) Extra error:
+    // Expected 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (1)
+    super.test_parseNormalFormalParameter_simple_const_noType();
+  }
+
   @failingTest
   void test_parseNormalFormalParameter_simple_const_noType2() {
     // TODO(danrubel): should not be generating an error
     super.test_parseNormalFormalParameter_simple_const_noType();
     assertNoErrors();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_simple_const_type() {
+    // TODO(brianwilkerson) Extra error:
+    // Expected 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (1)
+    super.test_parseNormalFormalParameter_simple_const_type();
   }
 
   @failingTest
@@ -2756,6 +2784,16 @@ class ParserProxy implements analyzer.Parser {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
+  Annotation parseAnnotation() {
+    return _run((parser) => parser.parseMetadata) as Annotation;
+  }
+
+  @override
+  ArgumentList parseArgumentList() {
+    return _run((parser) => parser.parseArguments) as ArgumentList;
+  }
+
+  @override
   ClassMember parseClassMember(String className) {
     _astBuilder.className = className;
     _eventListener.begin('CompilationUnit');
@@ -2765,11 +2803,25 @@ class ParserProxy implements analyzer.Parser {
     return result;
   }
 
+  List<Combinator> parseCombinators() {
+    return _run((parser) => parser.parseCombinators);
+  }
+
   @override
   CompilationUnit parseCompilationUnit2() {
     var result = _run(null) as CompilationUnit;
     _eventListener.expectEmpty();
     return result;
+  }
+
+  @override
+  Configuration parseConfiguration() {
+    return _run((parser) => parser.parseConditionalUri) as Configuration;
+  }
+
+  @override
+  Statement parseStatement2() {
+    return _run((parser) => parser.parseStatement) as Statement;
   }
 
   AnnotatedNode parseTopLevelDeclaration(bool isDirective) {
@@ -2784,6 +2836,16 @@ class ParserProxy implements analyzer.Parser {
     _eventListener.end('CompilationUnit');
     return (isDirective ? _astBuilder.directives : _astBuilder.declarations)
         .first;
+  }
+
+  @override
+  TypeAnnotation parseTypeAnnotation(bool inExpression) {
+    return _run((parser) => parser.parseType) as TypeAnnotation;
+  }
+
+  @override
+  TypeArgumentList parseTypeArgumentList() {
+    return _run((parser) => parser.parseTypeVariablesOpt) as TypeArgumentList;
   }
 
   /**
@@ -2811,690 +2873,854 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_additiveExpression_missing_LHS() {
+    // TODO(brianwilkerson) Unhandled compile-time error:
+    // '+' is not a prefix operator.
     super.test_additiveExpression_missing_LHS();
   }
 
   @override
   @failingTest
   void test_additiveExpression_missing_LHS_RHS() {
+    // TODO(brianwilkerson) Unhandled compile-time error:
+    // '+' is not a prefix operator.
     super.test_additiveExpression_missing_LHS_RHS();
   }
 
   @override
   @failingTest
   void test_additiveExpression_missing_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_additiveExpression_missing_RHS();
   }
 
   @override
   @failingTest
   void test_additiveExpression_missing_RHS_super() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_additiveExpression_missing_RHS_super();
   }
 
   @override
   @failingTest
   void test_additiveExpression_precedence_multiplicative_left() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_additiveExpression_precedence_multiplicative_left();
   }
 
   @override
   @failingTest
   void test_additiveExpression_precedence_multiplicative_right() {
+    // TODO(brianwilkerson) Unhandled compile-time error:
+    // '+' is not a prefix operator.
     super.test_additiveExpression_precedence_multiplicative_right();
   }
 
   @override
   @failingTest
   void test_additiveExpression_super() {
+    // TODO(brianwilkerson) Unhandled compile-time error:
+    // '+' is not a prefix operator.
     super.test_additiveExpression_super();
   }
 
   @override
   @failingTest
   void test_assignableSelector() {
+    // TODO(brianwilkerson) Failed to use all tokens.
     super.test_assignableSelector();
   }
 
   @override
   @failingTest
   void test_assignmentExpression_missing_compound1() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_assignmentExpression_missing_compound1();
   }
 
   @override
   @failingTest
   void test_assignmentExpression_missing_compound2() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_assignmentExpression_missing_compound2();
   }
 
   @override
   @failingTest
   void test_assignmentExpression_missing_compound3() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_assignmentExpression_missing_compound3();
   }
 
   @override
   @failingTest
   void test_assignmentExpression_missing_LHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_assignmentExpression_missing_LHS();
   }
 
   @override
   @failingTest
   void test_assignmentExpression_missing_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_assignmentExpression_missing_RHS();
   }
 
   @override
   @failingTest
   void test_bitwiseAndExpression_missing_LHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseAndExpression_missing_LHS();
   }
 
   @override
   @failingTest
   void test_bitwiseAndExpression_missing_LHS_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseAndExpression_missing_LHS_RHS();
   }
 
   @override
   @failingTest
   void test_bitwiseAndExpression_missing_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseAndExpression_missing_RHS();
   }
 
   @override
   @failingTest
   void test_bitwiseAndExpression_missing_RHS_super() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseAndExpression_missing_RHS_super();
   }
 
   @override
   @failingTest
   void test_bitwiseAndExpression_precedence_equality_left() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseAndExpression_precedence_equality_left();
   }
 
   @override
   @failingTest
   void test_bitwiseAndExpression_precedence_equality_right() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseAndExpression_precedence_equality_right();
   }
 
   @override
   @failingTest
   void test_bitwiseAndExpression_super() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseAndExpression_super();
   }
 
   @override
   @failingTest
   void test_bitwiseOrExpression_missing_LHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseOrExpression_missing_LHS();
   }
 
   @override
   @failingTest
   void test_bitwiseOrExpression_missing_LHS_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseOrExpression_missing_LHS_RHS();
   }
 
   @override
   @failingTest
   void test_bitwiseOrExpression_missing_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseOrExpression_missing_RHS();
   }
 
   @override
   @failingTest
   void test_bitwiseOrExpression_missing_RHS_super() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseOrExpression_missing_RHS_super();
   }
 
   @override
   @failingTest
   void test_bitwiseOrExpression_precedence_xor_left() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseOrExpression_precedence_xor_left();
   }
 
   @override
   @failingTest
   void test_bitwiseOrExpression_precedence_xor_right() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseOrExpression_precedence_xor_right();
   }
 
   @override
   @failingTest
   void test_bitwiseOrExpression_super() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseOrExpression_super();
   }
 
   @override
   @failingTest
   void test_bitwiseXorExpression_missing_LHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseXorExpression_missing_LHS();
   }
 
   @override
   @failingTest
   void test_bitwiseXorExpression_missing_LHS_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseXorExpression_missing_LHS_RHS();
   }
 
   @override
   @failingTest
   void test_bitwiseXorExpression_missing_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseXorExpression_missing_RHS();
   }
 
   @override
   @failingTest
   void test_bitwiseXorExpression_missing_RHS_super() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseXorExpression_missing_RHS_super();
   }
 
   @override
   @failingTest
   void test_bitwiseXorExpression_precedence_and_left() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseXorExpression_precedence_and_left();
   }
 
   @override
   @failingTest
   void test_bitwiseXorExpression_precedence_and_right() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseXorExpression_precedence_and_right();
   }
 
   @override
   @failingTest
   void test_bitwiseXorExpression_super() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_bitwiseXorExpression_super();
   }
 
   @override
   @failingTest
   void test_classTypeAlias_withBody() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_classTypeAlias_withBody();
   }
 
   @override
   @failingTest
   void test_conditionalExpression_missingElse() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_conditionalExpression_missingElse();
   }
 
   @override
   @failingTest
   void test_conditionalExpression_missingThen() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_conditionalExpression_missingThen();
   }
 
   @override
   @failingTest
   void test_declarationBeforeDirective() {
+    // TODO(brianwilkerson) Missing error:
+    // Expected 1 errors of type ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, found 0
     super.test_declarationBeforeDirective();
   }
 
   @override
   @failingTest
   void test_equalityExpression_missing_LHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_equalityExpression_missing_LHS();
   }
 
   @override
   @failingTest
   void test_equalityExpression_missing_LHS_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_equalityExpression_missing_LHS_RHS();
   }
 
   @override
   @failingTest
   void test_equalityExpression_missing_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_equalityExpression_missing_RHS();
   }
 
   @override
   @failingTest
   void test_equalityExpression_missing_RHS_super() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_equalityExpression_missing_RHS_super();
   }
 
   @override
   @failingTest
   void test_equalityExpression_precedence_relational_left() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_equalityExpression_precedence_relational_left();
   }
 
   @override
   @failingTest
   void test_equalityExpression_precedence_relational_right() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_equalityExpression_precedence_relational_right();
   }
 
   @override
   @failingTest
   void test_equalityExpression_super() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_equalityExpression_super();
   }
 
   @override
   @failingTest
   void test_expressionList_multiple_end() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_expressionList_multiple_end();
   }
 
   @override
   @failingTest
   void test_expressionList_multiple_middle() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_expressionList_multiple_middle();
   }
 
   @override
   @failingTest
   void test_expressionList_multiple_start() {
+    // TODO(brianwilkerson) Missing error:
+    // Expected 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0
     super.test_expressionList_multiple_start();
   }
 
   @override
   @failingTest
   void test_functionExpression_in_ConstructorFieldInitializer() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_functionExpression_in_ConstructorFieldInitializer();
   }
 
   @override
   @failingTest
   void test_functionExpression_named() {
+    // TODO(brianwilkerson) Unhandled compile-time error:
+    // A function expression can't have a name.
     super.test_functionExpression_named();
   }
 
   @override
   @failingTest
   void test_importDirectivePartial_as() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_importDirectivePartial_as();
   }
 
   @override
   @failingTest
   void test_importDirectivePartial_hide() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_importDirectivePartial_hide();
   }
 
   @override
   @failingTest
   void test_importDirectivePartial_show() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_importDirectivePartial_show();
   }
 
   @override
   @failingTest
   void test_incomplete_conditionalExpression() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incomplete_conditionalExpression();
   }
 
   @override
   @failingTest
   void test_incomplete_constructorInitializers_empty() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incomplete_constructorInitializers_empty();
   }
 
   @override
   @failingTest
   void test_incomplete_constructorInitializers_missingEquals() {
+    // TODO(brianwilkerson) exception:
+    //   NoSuchMethodError: The getter 'thisKeyword' was called on null.
+    //   Receiver: null
+    //   Tried calling: thisKeyword
+    //   dart:core                                                          Object.noSuchMethod
+    //   package:analyzer/src/fasta/ast_builder.dart 440:42                 AstBuilder.endInitializers
+    //   test/generated/parser_fasta_listener.dart 872:14                   ForwardingTestListener.endInitializers
+    //   package:front_end/src/fasta/parser/parser.dart 1942:14             Parser.parseInitializers
+    //   package:front_end/src/fasta/parser/parser.dart 1923:14             Parser.parseInitializersOpt
+    //   package:front_end/src/fasta/parser/parser.dart 2412:13             Parser.parseMethod
+    //   package:front_end/src/fasta/parser/parser.dart 2316:11             Parser.parseMember
     super.test_incomplete_constructorInitializers_missingEquals();
   }
 
   @override
   @failingTest
   void test_incomplete_constructorInitializers_variable() {
+    // TODO(brianwilkerson) Missing error:
+    // Expected 1 errors of type ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, found 0
     super.test_incomplete_constructorInitializers_variable();
   }
 
   @override
   @failingTest
   void test_incomplete_returnType() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incomplete_returnType();
   }
 
   @override
   @failingTest
   void test_incomplete_topLevelFunction() {
+    // TODO(brianwilkerson) exception:
+    //   NoSuchMethodError: Class '_KernelLibraryBuilder' has no instance method 'addCompileTimeError'.
+    //   Receiver: Instance of '_KernelLibraryBuilder'
+    //   Tried calling: addCompileTimeError(Instance of 'MessageCode', 6, Instance of '_Uri')
+    //   dart:core                                                          Object.noSuchMethod
+    //   package:analyzer/src/generated/parser_fasta.dart 20:60             _KernelLibraryBuilder.noSuchMethod
+    //   package:analyzer/src/fasta/ast_builder.dart 1956:13                AstBuilder.addCompileTimeError
+    //   package:front_end/src/fasta/source/stack_listener.dart 271:5       StackListener.handleRecoverableError
+    //   package:front_end/src/fasta/parser/parser.dart 4078:16             Parser.reportRecoverableError
     super.test_incomplete_topLevelFunction();
   }
 
   @override
   @failingTest
   void test_incomplete_topLevelVariable() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incomplete_topLevelVariable();
   }
 
   @override
   @failingTest
   void test_incomplete_topLevelVariable_const() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incomplete_topLevelVariable_const();
   }
 
   @override
   @failingTest
   void test_incomplete_topLevelVariable_final() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incomplete_topLevelVariable_final();
   }
 
   @override
   @failingTest
   void test_incomplete_topLevelVariable_var() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incomplete_topLevelVariable_var();
   }
 
   @override
   @failingTest
   void test_incompleteField_const() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteField_const();
   }
 
   @override
   @failingTest
   void test_incompleteField_final() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteField_final();
   }
 
   @override
   @failingTest
   void test_incompleteField_var() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteField_var();
   }
 
   @override
   @failingTest
   void test_incompleteForEach() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteForEach();
   }
 
   @override
   @failingTest
   void test_incompleteLocalVariable_atTheEndOfBlock() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteLocalVariable_atTheEndOfBlock();
   }
 
   @override
   @failingTest
   void test_incompleteLocalVariable_beforeIdentifier() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteLocalVariable_beforeIdentifier();
   }
 
   @override
   @failingTest
   void test_incompleteLocalVariable_beforeKeyword() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteLocalVariable_beforeKeyword();
   }
 
   @override
   @failingTest
   void test_incompleteLocalVariable_beforeNextBlock() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteLocalVariable_beforeNextBlock();
   }
 
   @override
   @failingTest
   void test_incompleteLocalVariable_parameterizedType() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteLocalVariable_parameterizedType();
   }
 
   @override
   @failingTest
   void test_incompleteTypeArguments_field() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteTypeArguments_field();
   }
 
   @override
   @failingTest
   void test_incompleteTypeParameters() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteTypeParameters();
   }
 
   @override
   @failingTest
   void test_invalidFunctionBodyModifier() {
+    // TODO(brianwilkerson) exception:
+    //   NoSuchMethodError: Class '_KernelLibraryBuilder' has no instance method 'addCompileTimeError'.
+    //   Receiver: Instance of '_KernelLibraryBuilder'
+    //   Tried calling: addCompileTimeError(Instance of 'MessageCode', 5, Instance of '_Uri')
+    //   dart:core                                                          Object.noSuchMethod
+    //   package:analyzer/src/generated/parser_fasta.dart 20:60             _KernelLibraryBuilder.noSuchMethod
+    //   package:analyzer/src/fasta/ast_builder.dart 1956:13                AstBuilder.addCompileTimeError
+    //   package:front_end/src/fasta/source/stack_listener.dart 271:5       StackListener.handleRecoverableError
+    //   package:front_end/src/fasta/parser/parser.dart 4078:16             Parser.reportRecoverableError
     super.test_invalidFunctionBodyModifier();
   }
 
   @override
   @failingTest
   void test_isExpression_noType() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_isExpression_noType();
   }
 
   @override
   @failingTest
   void test_keywordInPlaceOfIdentifier() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_keywordInPlaceOfIdentifier();
   }
 
   @override
   @failingTest
   void test_logicalAndExpression_missing_LHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_logicalAndExpression_missing_LHS();
   }
 
   @override
   @failingTest
   void test_logicalAndExpression_missing_LHS_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_logicalAndExpression_missing_LHS_RHS();
   }
 
   @override
   @failingTest
   void test_logicalAndExpression_missing_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_logicalAndExpression_missing_RHS();
   }
 
   @override
   @failingTest
   void test_logicalAndExpression_precedence_bitwiseOr_left() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_logicalAndExpression_precedence_bitwiseOr_left();
   }
 
   @override
   @failingTest
   void test_logicalAndExpression_precedence_bitwiseOr_right() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_logicalAndExpression_precedence_bitwiseOr_right();
   }
 
   @override
   @failingTest
   void test_logicalOrExpression_missing_LHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_logicalOrExpression_missing_LHS();
   }
 
   @override
   @failingTest
   void test_logicalOrExpression_missing_LHS_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_logicalOrExpression_missing_LHS_RHS();
   }
 
   @override
   @failingTest
   void test_logicalOrExpression_missing_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_logicalOrExpression_missing_RHS();
   }
 
   @override
   @failingTest
   void test_logicalOrExpression_precedence_logicalAnd_left() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_logicalOrExpression_precedence_logicalAnd_left();
   }
 
   @override
   @failingTest
   void test_logicalOrExpression_precedence_logicalAnd_right() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_logicalOrExpression_precedence_logicalAnd_right();
   }
 
   @override
   @failingTest
   void test_missing_commaInArgumentList() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_missing_commaInArgumentList();
   }
 
   @override
   @failingTest
   void test_missingComma_beforeNamedArgument() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_missingComma_beforeNamedArgument();
   }
 
   @override
   @failingTest
   void test_missingGet() {
+    // TODO(brianwilkerson) exception:
+    //   NoSuchMethodError: Class '_KernelLibraryBuilder' has no instance method 'addCompileTimeError'.
+    //   Receiver: Instance of '_KernelLibraryBuilder'
+    //   Tried calling: addCompileTimeError(Instance of 'Message', 17, Instance of '_Uri')
+    //   dart:core                                                          Object.noSuchMethod
+    //   package:analyzer/src/generated/parser_fasta.dart 20:60             _KernelLibraryBuilder.noSuchMethod
+    //   package:analyzer/src/fasta/ast_builder.dart 1956:13                AstBuilder.addCompileTimeError
+    //   package:front_end/src/fasta/source/stack_listener.dart 271:5       StackListener.handleRecoverableError
+    //   package:front_end/src/fasta/parser/parser.dart 4099:16             Parser.reportRecoverableErrorWithToken
+    //   package:front_end/src/fasta/parser/parser.dart 1744:7              Parser.checkFormals
+    //    package:front_end/src/fasta/parser/parser.dart 2406:5              Parser.parseMethod
     super.test_missingGet();
   }
 
   @override
   @failingTest
   void test_missingIdentifier_afterAnnotation() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_missingIdentifier_afterAnnotation();
   }
 
   @override
   @failingTest
   void test_missingSemicolon_varialeDeclarationList() {
+    // TODO(brianwilkerson) wrong errors:
+    // Expected 1 errors of type ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, found 0;
+    // 1 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0;
+    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (8)
     super.test_missingSemicolon_varialeDeclarationList();
   }
 
   @override
   @failingTest
   void test_multiplicativeExpression_missing_LHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_multiplicativeExpression_missing_LHS();
   }
 
   @override
   @failingTest
   void test_multiplicativeExpression_missing_LHS_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_multiplicativeExpression_missing_LHS_RHS();
   }
 
   @override
   @failingTest
   void test_multiplicativeExpression_missing_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_multiplicativeExpression_missing_RHS();
   }
 
   @override
   @failingTest
   void test_multiplicativeExpression_missing_RHS_super() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_multiplicativeExpression_missing_RHS_super();
   }
 
   @override
   @failingTest
   void test_multiplicativeExpression_precedence_unary_left() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_multiplicativeExpression_precedence_unary_left();
   }
 
   @override
   @failingTest
   void test_multiplicativeExpression_precedence_unary_right() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_multiplicativeExpression_precedence_unary_right();
   }
 
   @override
   @failingTest
   void test_multiplicativeExpression_super() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_multiplicativeExpression_super();
   }
 
   @override
   @failingTest
   void test_nonStringLiteralUri_import() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_nonStringLiteralUri_import();
   }
 
   @override
   @failingTest
   void test_prefixExpression_missing_operand_minus() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_prefixExpression_missing_operand_minus();
   }
 
   @override
   @failingTest
   void test_primaryExpression_argumentDefinitionTest() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_primaryExpression_argumentDefinitionTest();
   }
 
   @override
   @failingTest
   void test_relationalExpression_missing_LHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_relationalExpression_missing_LHS();
   }
 
   @override
   @failingTest
   void test_relationalExpression_missing_LHS_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_relationalExpression_missing_LHS_RHS();
   }
 
   @override
   @failingTest
   void test_relationalExpression_missing_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_relationalExpression_missing_RHS();
   }
 
   @override
   @failingTest
   void test_relationalExpression_precedence_shift_right() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_relationalExpression_precedence_shift_right();
   }
 
   @override
   @failingTest
   void test_shiftExpression_missing_LHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_shiftExpression_missing_LHS();
   }
 
   @override
   @failingTest
   void test_shiftExpression_missing_LHS_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_shiftExpression_missing_LHS_RHS();
   }
 
   @override
   @failingTest
   void test_shiftExpression_missing_RHS() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_shiftExpression_missing_RHS();
   }
 
   @override
   @failingTest
   void test_shiftExpression_missing_RHS_super() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_shiftExpression_missing_RHS_super();
   }
 
   @override
   @failingTest
   void test_shiftExpression_precedence_unary_left() {
+    // TODO(brianwilkerson) Unhandled compile-time error:
+    // '+' is not a prefix operator.
     super.test_shiftExpression_precedence_unary_left();
   }
 
   @override
   @failingTest
   void test_shiftExpression_precedence_unary_right() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_shiftExpression_precedence_unary_right();
   }
 
   @override
   @failingTest
   void test_shiftExpression_super() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_shiftExpression_super();
   }
 
   @override
   @failingTest
   void test_typedef_eof() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_typedef_eof();
   }
 
   @override
   @failingTest
   void test_unaryPlus() {
+    // TODO(brianwilkerson) Unhandled compile-time error:
+    // '+' is not a prefix operator.
     super.test_unaryPlus();
   }
 }
@@ -3532,343 +3758,399 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
     with SimpleParserTestMixin {
   @override
   @failingTest
-  void test_parseAnnotation_n1() {
-    super.test_parseAnnotation_n1();
-  }
-
-  @override
-  @failingTest
-  void test_parseAnnotation_n1_a() {
-    super.test_parseAnnotation_n1_a();
-  }
-
-  @override
-  @failingTest
-  void test_parseAnnotation_n2() {
-    super.test_parseAnnotation_n2();
-  }
-
-  @override
-  @failingTest
-  void test_parseAnnotation_n2_a() {
-    super.test_parseAnnotation_n2_a();
-  }
-
-  @override
-  @failingTest
-  void test_parseAnnotation_n3() {
-    super.test_parseAnnotation_n3();
-  }
-
-  @override
-  @failingTest
-  void test_parseAnnotation_n3_a() {
-    super.test_parseAnnotation_n3_a();
-  }
-
-  @override
-  @failingTest
   void test_parseArgument_named() {
+    // Uninteresting. Covered by the test_parseArgumentList_* methods.
     super.test_parseArgument_named();
   }
 
   @override
   @failingTest
   void test_parseArgument_unnamed() {
+    // Uninteresting. Covered by the test_parseArgumentList_* methods.
     super.test_parseArgument_unnamed();
   }
 
   @override
   @failingTest
   void test_parseArgumentList_empty() {
+    // TODO(brianwilkerson) Produces a method invocation rather than an empty
+    // argument list.
     super.test_parseArgumentList_empty();
   }
 
   @override
   @failingTest
   void test_parseArgumentList_mixed() {
+    // TODO(brianwilkerson) Produces a method invocation rather than an empty
+    // argument list.
     super.test_parseArgumentList_mixed();
   }
 
   @override
   @failingTest
   void test_parseArgumentList_noNamed() {
+    // TODO(brianwilkerson) Produces a method invocation rather than an empty
+    // argument list.
     super.test_parseArgumentList_noNamed();
   }
 
   @override
   @failingTest
   void test_parseArgumentList_onlyNamed() {
+    // TODO(brianwilkerson) Produces a method invocation rather than an empty
+    // argument list.
     super.test_parseArgumentList_onlyNamed();
   }
 
   @override
   @failingTest
   void test_parseArgumentList_trailing_comma() {
+    // TODO(brianwilkerson) Produces a method invocation rather than an empty
+    // argument list.
     super.test_parseArgumentList_trailing_comma();
   }
 
   @override
   @failingTest
   void test_parseCombinator_hide() {
+    // TODO(brianwilkerson) exception:
+    // Uninteresting. Covered by the test_parseCombinators_* methods.
     super.test_parseCombinator_hide();
   }
 
   @override
   @failingTest
   void test_parseCombinator_show() {
+    // TODO(brianwilkerson) exception:
+    // Uninteresting. Covered by the test_parseCombinators_* methods.
     super.test_parseCombinator_show();
   }
 
   @override
   @failingTest
   void test_parseCombinators_h() {
+    // TODO(brianwilkerson) Failed to use all tokens.
     super.test_parseCombinators_h();
   }
 
   @override
   @failingTest
   void test_parseCombinators_hs() {
+    // TODO(brianwilkerson) Failed to use all tokens.
     super.test_parseCombinators_hs();
   }
 
   @override
   @failingTest
   void test_parseCombinators_hshs() {
+    // TODO(brianwilkerson) Failed to use all tokens.
     super.test_parseCombinators_hshs();
   }
 
   @override
   @failingTest
   void test_parseCombinators_s() {
+    // TODO(brianwilkerson) Failed to use all tokens.
     super.test_parseCombinators_s();
   }
 
   @override
   @failingTest
   void test_parseCommentAndMetadata_c() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
     super.test_parseCommentAndMetadata_c();
   }
 
   @override
   @failingTest
   void test_parseCommentAndMetadata_cmc() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
     super.test_parseCommentAndMetadata_cmc();
   }
 
   @override
   @failingTest
   void test_parseCommentAndMetadata_cmcm() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
     super.test_parseCommentAndMetadata_cmcm();
   }
 
   @override
   @failingTest
   void test_parseCommentAndMetadata_cmm() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
     super.test_parseCommentAndMetadata_cmm();
   }
 
   @override
   @failingTest
   void test_parseCommentAndMetadata_m() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
     super.test_parseCommentAndMetadata_m();
   }
 
   @override
   @failingTest
   void test_parseCommentAndMetadata_mcm() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
     super.test_parseCommentAndMetadata_mcm();
   }
 
   @override
   @failingTest
   void test_parseCommentAndMetadata_mcmc() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
     super.test_parseCommentAndMetadata_mcmc();
   }
 
   @override
   @failingTest
   void test_parseCommentAndMetadata_mm() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
     super.test_parseCommentAndMetadata_mm();
   }
 
   @override
   @failingTest
   void test_parseCommentAndMetadata_none() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
     super.test_parseCommentAndMetadata_none();
   }
 
   @override
   @failingTest
   void test_parseCommentAndMetadata_singleLine() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
     super.test_parseCommentAndMetadata_singleLine();
   }
 
   @override
   @failingTest
   void test_parseConfiguration_noOperator_dottedIdentifier() {
+    // TODO(brianwilkerson) Missing right parenthesis.
     super.test_parseConfiguration_noOperator_dottedIdentifier();
   }
 
   @override
   @failingTest
   void test_parseConfiguration_noOperator_simpleIdentifier() {
+    // TODO(brianwilkerson) Missing right parenthesis.
     super.test_parseConfiguration_noOperator_simpleIdentifier();
   }
 
   @override
   @failingTest
   void test_parseConfiguration_operator_dottedIdentifier() {
+    // TODO(brianwilkerson) Missing right parenthesis.
     super.test_parseConfiguration_operator_dottedIdentifier();
   }
 
   @override
   @failingTest
   void test_parseConfiguration_operator_simpleIdentifier() {
+    // TODO(brianwilkerson) Missing right parenthesis.
     super.test_parseConfiguration_operator_simpleIdentifier();
   }
 
   @override
   @failingTest
   void test_parseConstructorName_named_noPrefix() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseConstructorName'.
     super.test_parseConstructorName_named_noPrefix();
   }
 
   @override
   @failingTest
   void test_parseConstructorName_named_prefixed() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseConstructorName'.
     super.test_parseConstructorName_named_prefixed();
   }
 
   @override
   @failingTest
   void test_parseConstructorName_unnamed_noPrefix() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseConstructorName'.
     super.test_parseConstructorName_unnamed_noPrefix();
   }
 
   @override
   @failingTest
   void test_parseConstructorName_unnamed_prefixed() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseConstructorName'.
     super.test_parseConstructorName_unnamed_prefixed();
   }
 
   @override
   @failingTest
   void test_parseDocumentationComment_block() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseDocumentationCommentTokens'.
     super.test_parseDocumentationComment_block();
   }
 
   @override
   @failingTest
   void test_parseDocumentationComment_block_withReference() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseDocumentationCommentTokens'.
     super.test_parseDocumentationComment_block_withReference();
   }
 
   @override
   @failingTest
   void test_parseDocumentationComment_endOfLine() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseDocumentationCommentTokens'.
     super.test_parseDocumentationComment_endOfLine();
   }
 
   @override
   @failingTest
   void test_parseDottedName_multiple() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseDottedName'.
     super.test_parseDottedName_multiple();
   }
 
   @override
   @failingTest
   void test_parseDottedName_single() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseDottedName'.
     super.test_parseDottedName_single();
   }
 
   @override
   @failingTest
   void test_parseExtendsClause() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseExtendsClause'.
     super.test_parseExtendsClause();
   }
 
   @override
   @failingTest
   void test_parseFinalConstVarOrType_const_functionType() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_const_functionType();
   }
 
   @override
   @failingTest
   void test_parseFinalConstVarOrType_const_namedType() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_const_namedType();
   }
 
   @override
   @failingTest
   void test_parseFinalConstVarOrType_const_noType() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_const_noType();
   }
 
   @override
   @failingTest
   void test_parseFinalConstVarOrType_final_functionType() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_final_functionType();
   }
 
   @override
   @failingTest
   void test_parseFinalConstVarOrType_final_namedType() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_final_namedType();
   }
 
   @override
   @failingTest
   void test_parseFinalConstVarOrType_final_noType() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_final_noType();
   }
 
   @override
   @failingTest
   void test_parseFinalConstVarOrType_final_prefixedType() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_final_prefixedType();
   }
 
   @override
   @failingTest
   void test_parseFinalConstVarOrType_type_function() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_type_function();
   }
 
   @override
   @failingTest
   void test_parseFinalConstVarOrType_type_parameterized() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_type_parameterized();
   }
 
   @override
   @failingTest
   void test_parseFinalConstVarOrType_type_prefixed() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_type_prefixed();
   }
 
   @override
   @failingTest
   void test_parseFinalConstVarOrType_type_prefixed_noIdentifier() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_type_prefixed_noIdentifier();
   }
 
   @override
   @failingTest
   void test_parseFinalConstVarOrType_type_prefixedAndParameterized() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_type_prefixedAndParameterized();
   }
 
   @override
   @failingTest
   void test_parseFinalConstVarOrType_type_simple() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_type_simple();
   }
 
   @override
   @failingTest
   void test_parseFinalConstVarOrType_type_simple_noIdentifier_inFunctionType() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super
         .test_parseFinalConstVarOrType_type_simple_noIdentifier_inFunctionType();
   }
@@ -3876,436 +4158,493 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseFinalConstVarOrType_var() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_var();
   }
 
   @override
   @failingTest
   void test_parseFinalConstVarOrType_void() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_void();
   }
 
   @override
   @failingTest
   void test_parseFinalConstVarOrType_void_identifier() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_void_identifier();
   }
 
   @override
   @failingTest
   void test_parseFinalConstVarOrType_void_noIdentifier() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_void_noIdentifier();
   }
 
   @override
   @failingTest
   void test_parseFunctionBody_block() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
     super.test_parseFunctionBody_block();
   }
 
   @override
   @failingTest
   void test_parseFunctionBody_block_async() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
     super.test_parseFunctionBody_block_async();
   }
 
   @override
   @failingTest
   void test_parseFunctionBody_block_asyncGenerator() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
     super.test_parseFunctionBody_block_asyncGenerator();
   }
 
   @override
   @failingTest
   void test_parseFunctionBody_block_syncGenerator() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
     super.test_parseFunctionBody_block_syncGenerator();
   }
 
   @override
   @failingTest
   void test_parseFunctionBody_empty() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
     super.test_parseFunctionBody_empty();
   }
 
   @override
   @failingTest
   void test_parseFunctionBody_expression() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
     super.test_parseFunctionBody_expression();
   }
 
   @override
   @failingTest
   void test_parseFunctionBody_expression_async() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
     super.test_parseFunctionBody_expression_async();
   }
 
   @override
   @failingTest
   void test_parseFunctionBody_skip_block() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
     super.test_parseFunctionBody_skip_block();
   }
 
   @override
   @failingTest
   void test_parseFunctionBody_skip_block_invalid() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
     super.test_parseFunctionBody_skip_block_invalid();
   }
 
   @override
   @failingTest
   void test_parseFunctionBody_skip_blocks() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
     super.test_parseFunctionBody_skip_blocks();
   }
 
   @override
   @failingTest
   void test_parseFunctionBody_skip_expression() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
     super.test_parseFunctionBody_skip_expression();
   }
 
   @override
   @failingTest
   void test_parseIdentifierList_multiple() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseIdentifierList'.
     super.test_parseIdentifierList_multiple();
   }
 
   @override
   @failingTest
   void test_parseIdentifierList_single() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseIdentifierList'.
     super.test_parseIdentifierList_single();
   }
 
   @override
   @failingTest
   void test_parseImplementsClause_multiple() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseImplementsClause'.
     super.test_parseImplementsClause_multiple();
   }
 
   @override
   @failingTest
   void test_parseImplementsClause_single() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseImplementsClause'.
     super.test_parseImplementsClause_single();
   }
 
   @override
   @failingTest
   void test_parseLibraryIdentifier_multiple() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseLibraryIdentifier'.
     super.test_parseLibraryIdentifier_multiple();
   }
 
   @override
   @failingTest
   void test_parseLibraryIdentifier_single() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseLibraryIdentifier'.
     super.test_parseLibraryIdentifier_single();
   }
 
   @override
   @failingTest
   void test_parseModifiers_abstract() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseModifiers'.
     super.test_parseModifiers_abstract();
   }
 
   @override
   @failingTest
   void test_parseModifiers_const() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseModifiers'.
     super.test_parseModifiers_const();
   }
 
   @override
   @failingTest
   void test_parseModifiers_covariant() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseModifiers'.
     super.test_parseModifiers_covariant();
   }
 
   @override
   @failingTest
   void test_parseModifiers_external() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseModifiers'.
     super.test_parseModifiers_external();
   }
 
   @override
   @failingTest
   void test_parseModifiers_factory() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseModifiers'.
     super.test_parseModifiers_factory();
   }
 
   @override
   @failingTest
   void test_parseModifiers_final() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseModifiers'.
     super.test_parseModifiers_final();
   }
 
   @override
   @failingTest
   void test_parseModifiers_static() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseModifiers'.
     super.test_parseModifiers_static();
   }
 
   @override
   @failingTest
   void test_parseModifiers_var() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseModifiers'.
     super.test_parseModifiers_var();
   }
 
   @override
   @failingTest
-  void test_parseReturnStatement_noValue() {
-    super.test_parseReturnStatement_noValue();
-  }
-
-  @override
-  @failingTest
-  void test_parseReturnStatement_value() {
-    super.test_parseReturnStatement_value();
-  }
-
-  @override
-  @failingTest
-  void test_parseReturnType_function() {
-    super.test_parseReturnType_function();
-  }
-
-  @override
-  @failingTest
-  void test_parseReturnType_named() {
-    super.test_parseReturnType_named();
-  }
-
-  @override
-  @failingTest
   void test_parseReturnType_void() {
+    // TODO(brianwilkerson) Test isn't passing in enough context.
+    // Type 'void' can't be used here because it isn't a return type.
     super.test_parseReturnType_void();
   }
 
   @override
   @failingTest
-  void test_parseStatement_function_noReturnType() {
-    super.test_parseStatement_function_noReturnType();
-  }
-
-  @override
-  @failingTest
   void test_parseTypeAnnotation_function_noReturnType_noParameters() {
+    // TODO(brianwilkerson) Failed to use all tokens.
     super.test_parseTypeAnnotation_function_noReturnType_noParameters();
   }
 
   @override
   @failingTest
   void test_parseTypeAnnotation_function_noReturnType_parameters() {
+    // TODO(brianwilkerson) Failed to use all tokens.
     super.test_parseTypeAnnotation_function_noReturnType_parameters();
   }
 
   @override
   @failingTest
-  void test_parseTypeAnnotation_function_noReturnType_typeParameters() {
-    super.test_parseTypeAnnotation_function_noReturnType_typeParameters();
-  }
-
-  @override
-  @failingTest
-  void
-      test_parseTypeAnnotation_function_noReturnType_typeParameters_parameters() {
-    super
-        .test_parseTypeAnnotation_function_noReturnType_typeParameters_parameters();
-  }
-
-  @override
-  @failingTest
   void test_parseTypeAnnotation_function_returnType_classFunction() {
+    // TODO(brianwilkerson) Failed to use all tokens.
     super.test_parseTypeAnnotation_function_returnType_classFunction();
   }
 
   @override
   @failingTest
   void test_parseTypeAnnotation_function_returnType_function() {
+    // TODO(brianwilkerson) Failed to use all tokens.
     super.test_parseTypeAnnotation_function_returnType_function();
   }
 
   @override
   @failingTest
-  void test_parseTypeAnnotation_function_returnType_noParameters() {
-    super.test_parseTypeAnnotation_function_returnType_noParameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAnnotation_function_returnType_parameters() {
-    super.test_parseTypeAnnotation_function_returnType_parameters();
-  }
-
-  @override
-  @failingTest
   void test_parseTypeAnnotation_function_returnType_simple() {
+    // TODO(brianwilkerson) Failed to use all tokens.
     super.test_parseTypeAnnotation_function_returnType_simple();
   }
 
   @override
   @failingTest
-  void test_parseTypeAnnotation_function_returnType_typeParameters() {
-    super.test_parseTypeAnnotation_function_returnType_typeParameters();
-  }
-
-  @override
-  @failingTest
-  void
-      test_parseTypeAnnotation_function_returnType_typeParameters_parameters() {
-    super
-        .test_parseTypeAnnotation_function_returnType_typeParameters_parameters();
-  }
-
-  @override
-  @failingTest
   void test_parseTypeAnnotation_function_returnType_withArguments() {
+    // TODO(brianwilkerson) Failed to use all tokens.
     super.test_parseTypeAnnotation_function_returnType_withArguments();
   }
 
   @override
   @failingTest
   void test_parseTypeAnnotation_named() {
+    // TODO(brianwilkerson) Failed to use all tokens.
     super.test_parseTypeAnnotation_named();
   }
 
   @override
   @failingTest
   void test_parseTypeArgumentList_empty() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_parseTypeArgumentList_empty();
   }
 
   @override
   @failingTest
   void test_parseTypeArgumentList_multiple() {
+    // TODO(brianwilkerson) exception:
+    //   type 'TypeParameterListImpl' is not a subtype of type 'TypeArgumentList' in type cast where
+    //   TypeParameterListImpl is from package:analyzer/src/dart/ast/ast.dart
+    //   TypeArgumentList is from package:analyzer/dart/ast/ast.dart
+    //
+    //   dart:core                                                          Object._as
+    //   test/generated/parser_fasta_test.dart 2848:59                      ParserProxy.parseTypeArgumentList
     super.test_parseTypeArgumentList_multiple();
   }
 
   @override
   @failingTest
   void test_parseTypeArgumentList_nested() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_parseTypeArgumentList_nested();
   }
 
   @override
   @failingTest
   void test_parseTypeArgumentList_nested_withComment_double() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_parseTypeArgumentList_nested_withComment_double();
   }
 
   @override
   @failingTest
   void test_parseTypeArgumentList_nested_withComment_tripple() {
+    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_parseTypeArgumentList_nested_withComment_tripple();
   }
 
   @override
   @failingTest
   void test_parseTypeArgumentList_single() {
+    // TODO(brianwilkerson) exception:
+    //   type 'TypeParameterListImpl' is not a subtype of type 'TypeArgumentList' in type cast where
+    //   TypeParameterListImpl is from package:analyzer/src/dart/ast/ast.dart
+    //   TypeArgumentList is from package:analyzer/dart/ast/ast.dart
+    //
+    //   dart:core                                                          Object._as
+    //   test/generated/parser_fasta_test.dart 2848:59                      ParserProxy.parseTypeArgumentList
     super.test_parseTypeArgumentList_single();
   }
 
   @override
   @failingTest
   void test_parseTypeName_parameterized() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeName'.
     super.test_parseTypeName_parameterized();
   }
 
   @override
   @failingTest
   void test_parseTypeName_parameterized_nullable() {
+    // TODO(brianwilkerson) exception:
+    //   UnimplementedError
+    //   test/generated/parser_fasta_test.dart 2189:7                       FastaParserTestCase.enableNnbd=
+    //   test/generated/parser_test.dart 12270:5                            FastaParserTestCase&SimpleParserTestMixin.test_parseTypeName_parameterized_nullable
     super.test_parseTypeName_parameterized_nullable();
   }
 
   @override
   @failingTest
   void test_parseTypeName_simple() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeName'.
     super.test_parseTypeName_simple();
   }
 
   @override
   @failingTest
   void test_parseTypeName_simple_nullable() {
+    // TODO(brianwilkerson) exception:
+    //   UnimplementedError
+    //   test/generated/parser_fasta_test.dart 2189:7                       FastaParserTestCase.enableNnbd=
+    //   test/generated/parser_test.dart 12270:5                            FastaParserTestCase&SimpleParserTestMixin.test_parseTypeName_parameterized_nullable
     super.test_parseTypeName_simple_nullable();
   }
 
   @override
   @failingTest
   void test_parseTypeParameter_bounded_functionType_noReturn() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameter'.
     super.test_parseTypeParameter_bounded_functionType_noReturn();
   }
 
   @override
   @failingTest
   void test_parseTypeParameter_bounded_functionType_return() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameter'.
     super.test_parseTypeParameter_bounded_functionType_return();
   }
 
   @override
   @failingTest
   void test_parseTypeParameter_bounded_generic() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameter'.
     super.test_parseTypeParameter_bounded_generic();
   }
 
   @override
   @failingTest
   void test_parseTypeParameter_bounded_nullable() {
+    // TODO(brianwilkerson) exception:
+    //   UnimplementedError
+    //   test/generated/parser_fasta_test.dart 2189:7                       FastaParserTestCase.enableNnbd=
+    //   test/generated/parser_test.dart 12270:5                            FastaParserTestCase&SimpleParserTestMixin.test_parseTypeName_parameterized_nullable
     super.test_parseTypeParameter_bounded_nullable();
   }
 
   @override
   @failingTest
   void test_parseTypeParameter_bounded_simple() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameter'.
     super.test_parseTypeParameter_bounded_simple();
   }
 
   @override
   @failingTest
   void test_parseTypeParameter_simple() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameter'.
     super.test_parseTypeParameter_simple();
   }
 
   @override
   @failingTest
   void test_parseTypeParameterList_multiple() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameterList'.
     super.test_parseTypeParameterList_multiple();
   }
 
   @override
   @failingTest
   void test_parseTypeParameterList_parameterizedWithTrailingEquals() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameterList'.
     super.test_parseTypeParameterList_parameterizedWithTrailingEquals();
   }
 
   @override
   @failingTest
   void test_parseTypeParameterList_single() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameterList'.
     super.test_parseTypeParameterList_single();
   }
 
   @override
   @failingTest
   void test_parseTypeParameterList_withTrailingEquals() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameterList'.
     super.test_parseTypeParameterList_withTrailingEquals();
   }
 
   @override
   @failingTest
   void test_parseVariableDeclaration_equals() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseVariableDeclaration'.
     super.test_parseVariableDeclaration_equals();
   }
 
   @override
   @failingTest
   void test_parseVariableDeclaration_noEquals() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseVariableDeclaration'.
     super.test_parseVariableDeclaration_noEquals();
   }
 
   @override
   @failingTest
   void test_parseWithClause_multiple() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseWithClause'.
     super.test_parseWithClause_multiple();
   }
 
   @override
   @failingTest
   void test_parseWithClause_single() {
+    // TODO(brianwilkerson) exception:
+    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseWithClause'.
     super.test_parseWithClause_single();
   }
 }

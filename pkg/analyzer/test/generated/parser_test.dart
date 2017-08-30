@@ -9170,10 +9170,9 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_conditionalExpression_missingElse() {
-    createParser('x ? y :');
-    Expression expression = parser.parseConditionalExpression();
+    Expression expression =
+        parseExpression('x ? y :', [ParserErrorCode.MISSING_IDENTIFIER]);
     expectNotNullIfNoErrors(expression);
-    listener.assertErrorsWithCodes([ParserErrorCode.MISSING_IDENTIFIER]);
     expect(expression, new isInstanceOf<ConditionalExpression>());
     ConditionalExpression conditionalExpression = expression;
     expect(conditionalExpression.elseExpression,
@@ -9182,10 +9181,9 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_conditionalExpression_missingThen() {
-    createParser('x ? : z');
-    Expression expression = parser.parseConditionalExpression();
+    Expression expression =
+        parseExpression('x ? : z', [ParserErrorCode.MISSING_IDENTIFIER]);
     expectNotNullIfNoErrors(expression);
-    listener.assertErrorsWithCodes([ParserErrorCode.MISSING_IDENTIFIER]);
     expect(expression, new isInstanceOf<ConditionalExpression>());
     ConditionalExpression conditionalExpression = expression;
     expect(conditionalExpression.thenExpression,
@@ -9272,8 +9270,7 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_expressionList_multiple_end() {
-    createParser(', 2, 3, 4');
-    List<Expression> result = parser.parseExpressionList();
+    List<Expression> result = parseExpressionList(', 2, 3, 4');
     expectNotNullIfNoErrors(result);
     listener.assertErrorsWithCodes([ParserErrorCode.MISSING_IDENTIFIER]);
     expect(result, hasLength(4));
@@ -9284,8 +9281,7 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_expressionList_multiple_middle() {
-    createParser('1, 2, , 4');
-    List<Expression> result = parser.parseExpressionList();
+    List<Expression> result = parseExpressionList('1, 2, , 4');
     expectNotNullIfNoErrors(result);
     listener.assertErrorsWithCodes([ParserErrorCode.MISSING_IDENTIFIER]);
     expect(result, hasLength(4));
@@ -9296,8 +9292,7 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_expressionList_multiple_start() {
-    createParser('1, 2, 3,');
-    List<Expression> result = parser.parseExpressionList();
+    List<Expression> result = parseExpressionList('1, 2, 3,');
     expectNotNullIfNoErrors(result);
     listener.assertErrorsWithCodes([ParserErrorCode.MISSING_IDENTIFIER]);
     expect(result, hasLength(4));
@@ -11917,8 +11912,7 @@ void''');
   }
 
   void test_parseReturnStatement_noValue() {
-    createParser('return;');
-    ReturnStatement statement = parser.parseReturnStatement();
+    ReturnStatement statement = parseStatement('return;');
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();
     expect(statement.returnKeyword, isNotNull);
@@ -11927,8 +11921,7 @@ void''');
   }
 
   void test_parseReturnStatement_value() {
-    createParser('return x;');
-    ReturnStatement statement = parser.parseReturnStatement();
+    ReturnStatement statement = parseStatement('return x;');
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();
     expect(statement.returnKeyword, isNotNull);
