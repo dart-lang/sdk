@@ -4,7 +4,7 @@
 
 // VMOptions=--old_gen_heap_size=64
 
-library slow_consumer2_test;
+library slow_consumer3_test;
 
 import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
@@ -14,11 +14,11 @@ const int KB = 1024;
 const int MB = KB * KB;
 const int GB = KB * KB * KB;
 
-class SlowConsumer extends StreamConsumer {
+class SlowConsumer extends StreamConsumer<List<int>> {
   int receivedCount = 0;
   final int bytesPerSecond;
   final int bufferSize;
-  final List bufferedData = [];
+  final List<int> bufferedData = [];
   int usedBufferSize = 0;
   int finalCount;
 
@@ -60,60 +60,31 @@ class SlowConsumer extends StreamConsumer {
   }
 }
 
-class DataProvider {
-  final int chunkSize;
-  final int bytesPerSecond;
-  int sentCount = 0;
-  int targetCount;
-  StreamController controller;
-
-  DataProvider(int this.bytesPerSecond, int this.targetCount, this.chunkSize) {
-    controller = new StreamController(
-        sync: true, onPause: onPauseStateChange, onResume: onPauseStateChange);
-    Timer.run(send);
-  }
-
-  Stream get stream => controller.stream;
-
-  send() {
-    if (controller.isPaused) return;
-    if (sentCount == targetCount) {
-      controller.close();
-      return;
-    }
-    int listSize = chunkSize;
-    sentCount += listSize;
-    if (sentCount > targetCount) {
-      listSize -= sentCount - targetCount;
-      sentCount = targetCount;
-    }
-    controller.add(new List(listSize));
-    int ms = listSize * 1000 ~/ bytesPerSecond;
-    Duration duration = new Duration(milliseconds: ms);
-    if (!controller.isPaused) new Timer(duration, send);
-  }
-
-  onPauseStateChange() {
-    // We don't care if we just unpaused or paused. In either case we just
-    // call send which will test it for us.
-    send();
-  }
+Stream<List<int>> dataGenerator(int bytesTotal, int chunkSize) {
+  int chunks = bytesTotal ~/ chunkSize;
+  return new Stream.fromIterable(new Iterable.generate(chunks, (_) {
+    // This assumes one byte per entry. In practice it will be more.
+    return new List<int>(chunkSize);
+  }));
 }
 
 main() {
   asyncStart();
-  // The data provider can deliver 800MB/s of data. It sends 100MB of data to
-  // the slower consumer who can only read 200MB/s. The data is sent in 1MB
-  // chunks. The consumer has a buffer of 5MB. That is, it can accept a few
-  // packages without pausing its input.
+  // The data provider can deliver 800MBs of data as fast as it is
+  // requested. The data is sent in 0.5MB chunks. The consumer has a buffer of
+  // 3MB. That is, it can accept a few packages without pausing its input.
+  //
+  // Notice that we aren't really counting bytes, but words, since we use normal
+  // lists where each entry takes up a full word. In 64-bit VMs this will be
+  // 8 bytes per entry, so the 3*MB buffer is picked to stay below 32 actual
+  // MiB.
   //
   // This test is limited to 32MB of heap-space (see VMOptions on top of the
   // file). If the consumer doesn't pause the data-provider it will run out of
   // heap-space.
 
-  new DataProvider(800 * MB, 100 * MB, 1 * MB)
-      .stream
-      .pipe(new SlowConsumer(200 * MB, 5 * MB))
+  dataGenerator(100 * MB, 512 * KB)
+      .pipe(new SlowConsumer(200 * MB, 3 * MB))
       .then((count) {
     Expect.equals(100 * MB, count);
     asyncEnd();

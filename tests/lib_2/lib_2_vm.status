@@ -5,6 +5,9 @@
 [ $runtime == vm && $system == fuchsia ]
 async/first_regression_test: RuntimeError
 async/future_timeout_test: RuntimeError
+async/schedule_microtask2_test: RuntimeError
+async/schedule_microtask3_test: RuntimeError
+async/schedule_microtask5_test: RuntimeError
 
 [ $strong && $runtime == vm ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError

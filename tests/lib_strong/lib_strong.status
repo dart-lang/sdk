@@ -22,7 +22,8 @@ async/future_test/none: Skip
 async/future_test/01: Skip
 async/future_test/none: Skip
 async/future_value_chain4_test: Skip
-async/slow_consumer3_test: Skip
+async/print_test/01: Skip
+async/print_test/none: Skip
 async/stream_controller_test: Skip
 async/stream_event_transformed_test: Skip
 async/stream_transformer_test: Skip
@@ -188,7 +189,6 @@ html/custom/regress_194523002_test: Crash # Issue 29922
 async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_or_non_strong_test: RuntimeError # Issue 29922
 async/futures_test: RuntimeError # Issue 29922
-async/slow_consumer_test: Pass, Timeout # Issue 29922
 async/timer_not_available_test: RuntimeError # Issue 29922
 async/zone_error_callback_test: RuntimeError # Issue 29922
 async/zone_run_unary_test: RuntimeError # Issue 29922

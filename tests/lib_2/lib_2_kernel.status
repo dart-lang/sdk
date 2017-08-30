@@ -6,3 +6,4 @@
 async/future_or_strong_test: RuntimeError
 async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
+async/schedule_microtask2_test: RuntimeError

@@ -10,3 +10,9 @@ async/future_or_only_in_async_test/00: MissingCompileTimeError
 
 [ $hot_reload || $hot_reload_rollback ]
 async/multiple_timer_test: Pass, Fail # Timing related
+
+[ $runtime == chrome && $system == macos ]
+async/slow_consumer_test: Pass, Timeout # Issue 22696
+
+[ $runtime == chrome || $runtime == ff ]
+async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
