@@ -77,6 +77,10 @@ abstract class KernelToElementMap {
   MemberEntity getSuperMember(ir.Member context, ir.Name name, ir.Member target,
       {bool setter: false});
 
+  /// Returns the `noSuchMethod` [FunctionEntity] call from a
+  /// `super.noSuchMethod` invocation within [cls].
+  FunctionEntity getSuperNoSuchMethod(ClassEntity cls);
+
   /// Returns the [Name] corresponding to [name].
   Name getName(ir.Name name);
 
@@ -188,10 +192,6 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
   /// Return the [ConstantValue] the initial value of [field] or `null` if
   /// the initializer is not a constant expression.
   ConstantValue getFieldConstantValue(FieldEntity field);
-
-  /// Returns the `noSuchMethod` [FunctionEntity] call from a
-  /// `super.noSuchMethod` invocation within [cls].
-  FunctionEntity getSuperNoSuchMethod(ClassEntity cls);
 
   /// Returns a [Spannable] for a message pointing to the IR [node] in the
   /// context of [member].

@@ -367,7 +367,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
       }
       superclass = _getSuperType(superclass)?.element;
     }
-    throw failedAt(cls, "No super method member found for ${name} in $cls.");
+    return null;
   }
 
   @override
