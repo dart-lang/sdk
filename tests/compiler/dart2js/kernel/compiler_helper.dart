@@ -12,17 +12,14 @@ import 'dart:io';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
-import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/common/tasks.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/util/util.dart';
-import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../memory_compiler.dart';
 import '../../../../pkg/compiler/tool/generate_kernel.dart' as generate;
@@ -39,54 +36,25 @@ typedef Future<Compiler> CompileFunction();
 /// Currently, the returned compile function only runs with '--analyze-only'
 /// flag.
 Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
-  List<Uri> uris = <Uri>[];
   Uri entryPoint = Uri.parse('memory:main.dart');
-  Map<String, String> memorySourceFiles = <String, String>{
-    'main.dart': 'main() {}'
-  };
-  for (String source in sources) {
-    String name = 'input${memorySourceFiles.length}.dart';
-    Uri uri = Uri.parse('memory:$name');
-    memorySourceFiles[name] = source;
-    uris.add(uri);
-  }
-  Compiler compiler = compilerFor(
-      entryPoint: entryPoint,
-      memorySourceFiles: memorySourceFiles,
-      options: [
-        Flags.analyzeAll,
-        Flags.useKernelInSsa,
-        Flags.enableAssertMessage
-      ]);
-  compiler.librariesToAnalyzeWhenRun = uris;
-  await compiler.run(entryPoint);
 
   List<CompileFunction> compilers = <CompileFunction>[];
-  for (Uri uri in uris) {
+  for (String source in sources) {
     compilers.add(() async {
-      Compiler compiler2 = compilerFor(
-          entryPoint: uri,
-          memorySourceFiles: memorySourceFiles,
+      Compiler compiler = compilerFor(
+          entryPoint: entryPoint,
+          memorySourceFiles: {
+            'main.dart': source
+          },
           options: [
             Flags.analyzeOnly,
             Flags.enableAssertMessage,
             Flags.useKernel
           ]);
       ElementResolutionWorldBuilder.useInstantiationMap = true;
-      compiler2.resolution.retainCachesForTesting = true;
-      KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
-      KernelToElementMapForImpact elementMap = frontendStrategy.elementMap;
-      ir.Program program = new ir.Program(
-          libraries:
-              compiler.backend.kernelTask.kernel.libraryDependencies(uri));
-      LibraryElement library = compiler.libraryLoader.lookupLibrary(uri);
-      Expect.isNotNull(library, 'No library found for $uri');
-      program.mainMethod = compiler.backend.kernelTask.kernel
-          .functionToIr(library.findExported(Identifiers.main));
-      compiler2.libraryLoader = new MemoryKernelLibraryLoaderTask(
-          elementMap, compiler2.reporter, compiler2.measurer, program);
-      await compiler2.run(uri);
-      return compiler2;
+      compiler.resolution.retainCachesForTesting = true;
+      await compiler.run(entryPoint);
+      return compiler;
     });
   }
   return compilers;
