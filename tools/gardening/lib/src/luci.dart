@@ -6,94 +6,54 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:html/parser.dart' show parse;
+import 'package:archive/archive.dart';
 import 'try.dart';
 import 'cache_new.dart';
 
 const String LUCI_HOST = "luci-milo.appspot.com";
+const String CBE_HOST = "chrome-build-extract.appspot.com";
 
 typedef void ModifyRequestFunction(HttpClientRequest request);
 
 /// Base class for communicating with [Luci]
 /// Some information is found through the api
-/// <https://docs.google.com/document/d/1HbPp7Sy7ofC
-/// U7C9USqcE91VubGg_IIET2GUj9iknev4/edit#>
-/// and some information is found via screen-scraping.
-class LuciApi {
+/// <https://luci-milo.appspot.com/rpcexplorer/services/milo.Buildbot/>,
+/// some information is found via Cbe
+/// <https://chrome-build-extract.appspot.com/get_master/<client>>.
+class Luci {
   final HttpClient _client = new HttpClient();
 
-  LuciApi();
+  Luci();
 
-  /// [getBuildBots] fetches all build bots from luci (we cannot
-  /// get this from the api). The format is:
-  /// <li>
-  ///     <a href="/buildbot/client.crashpad/crashpad_win_x86_wow64_rel">
-  ///        crashpad_win_x86_wow64_rel</a>
-  /// </li>
-  /// <h3> client.dart </h3>
-  /// <li>
-  ///     <a href="/buildbot/client.dart/analyze-linux-be">analyze-linux-be</a>
-  /// </li>
-  /// <li>
-  ///     <a href="/buildbot/client.dart/analyze-linux-stable">
-  ///        analyze-linux-stable</a>
-  /// </li>
-  /// <li>
-  ///     <a href="/buildbot/client.dart/analyzer-linux-release-be">
-  ///        analyzer-linux-release-be</a>
-  /// </li>
-  ///
-  /// We look for the section header matching clients, then
-  /// if we are in the right section, we take the <li> element
-  /// and transform to a build bot
-  ///
-  Future<Try<List<LuciBuildBot>>> getAllBuildBots(
+  /// [getJsonFromChromeBuildExtract] gets json from Cbe, with information
+  /// about all bots and current builds.
+  Future<Try<dynamic>> getJsonFromChromeBuildExtract(
       String client, WithCacheFunction withCache) async {
-    return await tryStartAsync(() => withCache(
-            () => _makeGetRequest(
-                new Uri(scheme: 'https', host: LUCI_HOST, path: "/")),
-            "all_buildbots"))
-        .then((Try<String> tryRes) => tryRes.bind(parse).bind((htmlDoc) {
-              // This is really dirty, but the structure of
-              // the document is not really suited for anything else.
-              var takeSection = false;
-              return htmlDoc.body.children.where((node) {
-                if (node.localName == "li") return takeSection;
-                if (node.localName != "h3") {
-                  takeSection = false;
-                  return false;
-                }
-                // Current node is <h3>.
-                takeSection = client == node.text.trim();
-                return false;
-              });
-            }).bind((elements) {
-              // Here we hold an iterable of buildbot elements
-              // <li>
-              //     <a href="/buildbot/client.dart/analyzer-linux-release-be">
-              //        analyzer-linux-release-be</a>
-              // </li>
-              return elements.map((element) {
-                var name = element.children[0].text;
-                var url = element.children[0].attributes['href'];
-                return new LuciBuildBot(client, name, url);
-              }).toList();
-            }));
+    var result = await tryStartAsync(() => withCache(
+        () => _makeGetRequest(new Uri(
+            scheme: 'https', host: CBE_HOST, path: "/get_master/${client}")),
+        "cbe"));
+    return result.bind(JSON.decode);
   }
 
-  /// [getPrimaryBuilders] fetches all primary builders
-  /// (the ones usually used by gardeners) by not including buildbots with
-  /// the name -dev, -stable or -integration.
-  Future<Try<List<LuciBuildBot>>> getPrimaryBuilders(
+  /// [getMaster] fetches master information for all bots.
+  Future<Try<Object>> getMaster(
       String client, WithCacheFunction withCache) async {
-    return await getAllBuildBots(client, withCache)
-        .then((Try<List<LuciBuildBot>> tryRes) {
-      return tryRes
-          .bind((buildBots) => buildBots.where((LuciBuildBot buildBot) {
-                return !(buildBot.name.contains("-dev") ||
-                    buildBot.name.contains("-stable") ||
-                    buildBot.name.contains("-integration"));
-              }));
+    var uri = new Uri(
+        scheme: "https",
+        host: LUCI_HOST,
+        path: "prpc/milo.Buildbot/GetCompressedMasterJSON");
+    var body = {"name": client};
+    var result = await tryStartAsync(() => withCache(
+        () => _makePostRequest(uri, JSON.encode(body), {
+              HttpHeaders.CONTENT_TYPE: "application/json",
+              HttpHeaders.ACCEPT: "application/json"
+            }),
+        '${uri.path}'));
+    return result.bind(JSON.decode).bind((json) {
+      var data = JSON.decode(UTF8
+          .decode(new GZipDecoder().decodeBytes(BASE64.decode(json["data"]))));
+      return data;
     });
   }
 
@@ -231,22 +191,6 @@ BuildDetail getBuildDetailFromJson(
       build["blame"],
       timing,
       changes);
-}
-
-// Structured classes to relay information from api and web pages
-
-/// [LuciBuildBot] holds information about a build bot
-class LuciBuildBot {
-  final String client;
-  final String name;
-  final String url;
-
-  LuciBuildBot(this.client, this.name, this.url);
-
-  @override
-  String toString() {
-    return "LuciBuildBot { client: $client, name: $name, url: $url }";
-  }
 }
 
 /// [BuildDetail] holds data detailing a specific build

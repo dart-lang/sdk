@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:gardening/src/luci_api.dart';
+import 'package:gardening/src/luci.dart';
 import 'package:gardening/src/luci_services.dart';
 import 'package:gardening/src/logger.dart';
 import 'package:gardening/src/cache_new.dart';
@@ -22,13 +22,24 @@ ArgParser setupArgs() {
         help: "Use this flag to bypass caching. This may be slower.")
     ..addFlag("help",
         negatable: false,
-        help: "Shows information on how to use the luci_api tool.")
+        help: "Shows information on how to use the luci tool.")
     ..addFlag("build-bots",
         negatable: false,
         help: "Use this flag to see the primary build bots for --client.")
     ..addFlag("build-bots-all",
         negatable: false,
         help: "Use this flag to see all build bots for --client.")
+    ..addFlag("master",
+        negatable: false,
+        help: "Use this flag to see information about master for --client.")
+    ..addFlag("build-groups",
+        negatable: false,
+        help: "Use this flag to see all builder-groups not -dev, -stable "
+            "or -integration for --client.")
+    ..addFlag("builders-in-group",
+        negatable: false,
+        help: "Use this flag as `--build-bot-details <group>` to see all "
+            "builders (incl. shards) for a build group <group>.")
     ..addFlag("build-bot-details",
         negatable: false,
         help: "Use this flag as `--build-bot-details <name>` where "
@@ -39,11 +50,11 @@ ArgParser setupArgs() {
         help: "use this option as `--build-details <name> <buildNo>` where "
             "<name> is the name of the bot and "
             "<buildNo> is the number of the build.")
-    ..addFlag("commit-builds",
+    ..addFlag("builds-with-commit",
         negatable: false,
-        help: "Fetches all builds for a specific commit. Use this flag as "
-            "`--commit-builds <commit-hash>` where the <commit-hash> is the "
-            "hash of the commit");
+        help: "Fetches all builds with a specific commit. Use this flag as "
+            "`--builds-with-commit <commit-hash>` where the <commit-hash> is "
+            "the hash of the commit");
 }
 
 void printHelp(ArgParser parser) {
@@ -62,7 +73,7 @@ main(List<String> args) async {
     return;
   }
 
-  var luciApi = new LuciApi();
+  var luci = new Luci();
   Logger logger =
       new StdOutLogger(results['verbose'] ? Level.debug : Level.info);
   CreateCacheFunction createCache = results['no-cache']
@@ -70,26 +81,32 @@ main(List<String> args) async {
       : initCache(Uri.base.resolve('temp/gardening-cache/'), logger);
 
   if (results["build-bots"]) {
-    await performBuildBotsPrimary(luciApi, createCache, results);
+    await performBuildBotsPrimary(luci, createCache, results);
   } else if (results["build-bots-all"]) {
-    await performBuildBotsAll(luciApi, createCache, results);
+    await performBuildBotsAll(luci, createCache, results);
+  } else if (results["master"]) {
+    await performMaster(luci, createCache, results);
+  } else if (results["build-groups"]) {
+    await performBuilderGroups(luci, createCache, results);
+  } else if (results["builders-in-group"]) {
+    await performBuildersInGroup(luci, createCache, results);
   } else if (results["build-bot-details"]) {
-    await performBuildBotDetails(luciApi, createCache, results);
+    await performBuildBotDetails(luci, createCache, results);
   } else if (results["build-details"]) {
-    await performBuildDetails(luciApi, createCache, results);
-  } else if (results["commit-builds"]) {
-    await performFindBuildsForCommit(luciApi, createCache, logger, results);
+    await performBuildDetails(luci, createCache, results);
+  } else if (results["builds-with-commit"]) {
+    await performFindBuildsForCommit(luci, createCache, logger, results);
   } else {
     printHelp(parser);
   }
 
-  luciApi.close();
+  luci.close();
 }
 
 Future performBuildBotsPrimary(
-    LuciApi api, CreateCacheFunction createCache, ArgResults results) async {
-  var res = await api.getPrimaryBuilders(
-      results['client'], createCache(duration: new Duration(hours: 1)));
+    Luci luci, CreateCacheFunction createCache, ArgResults results) async {
+  var res = await getPrimaryBuilders(
+      luci, results['client'], createCache(duration: new Duration(hours: 1)));
   res.fold((ex, stackTrace) {
     print(ex);
     print(stackTrace);
@@ -97,22 +114,57 @@ Future performBuildBotsPrimary(
 }
 
 Future performBuildBotsAll(
-    LuciApi api, CreateCacheFunction cache, ArgResults results) async {
-  var res = await api.getAllBuildBots(
-      results['client'], cache(duration: new Duration(hours: 1)));
+    Luci luci, CreateCacheFunction cache, ArgResults results) async {
+  var res = await getAllBuilders(
+      luci, results['client'], cache(duration: new Duration(hours: 1)));
   res.fold((ex, stackTrace) {
     print(ex);
     print(stackTrace);
   }, (bots) => bots.forEach(print));
 }
 
+Future performMaster(
+    Luci luci, CreateCacheFunction cache, ArgResults results) async {
+  var res = await luci.getMaster(
+      results['client'], cache(duration: new Duration(minutes: 15)));
+  res.fold((ex, stackTrace) {
+    print(ex);
+    print(stackTrace);
+  }, (res) => print(res));
+}
+
+Future performBuilderGroups(
+    Luci luci, CreateCacheFunction cache, ArgResults results) async {
+  var res = await getBuilderGroups(
+      luci, results['client'], cache(duration: new Duration(minutes: 15)));
+  res.fold((ex, stackTrace) {
+    print(ex);
+    print(stackTrace);
+  }, (res) => res.forEach(print));
+}
+
+Future performBuildersInGroup(
+    Luci luci, CreateCacheFunction cache, ArgResults results) async {
+  if (results.rest.length == 0) {
+    print("No argument given for <group>. To see help, use --help");
+    return;
+  }
+
+  var res = await getBuildersInBuilderGroup(luci, results['client'],
+      cache(duration: new Duration(minutes: 15)), results.rest[0]);
+  res.fold((ex, stackTrace) {
+    print(ex);
+    print(stackTrace);
+  }, (res) => res.forEach(print));
+}
+
 Future performBuildBotDetails(
-    LuciApi api, CreateCacheFunction cache, ArgResults results) async {
+    Luci luci, CreateCacheFunction cache, ArgResults results) async {
   if (results.rest.length == 0) {
     print("No argument given for <name>. To see help, use --help");
     return;
   }
-  var result = await api.getBuildBotDetails(results['client'], results.rest[0],
+  var result = await luci.getBuildBotDetails(results['client'], results.rest[0],
       cache(duration: new Duration(minutes: 15)));
   result.fold((ex, stackTrace) {
     print(ex);
@@ -121,7 +173,7 @@ Future performBuildBotDetails(
 }
 
 Future performBuildDetails(
-    LuciApi api, CreateCacheFunction createCache, ArgResults results) async {
+    Luci luci, CreateCacheFunction createCache, ArgResults results) async {
   if (results.rest.length < 2) {
     print("Missing argument for <name> or <buildNo>. To see help, use --help");
     return;
@@ -133,7 +185,7 @@ Future performBuildDetails(
     return;
   }
 
-  var result = await api.getBuildBotBuildDetails(
+  var result = await luci.getBuildBotBuildDetails(
       results['client'],
       results.rest[0],
       buildNumber,
@@ -144,7 +196,7 @@ Future performBuildDetails(
   }, (detail) => print(detail));
 }
 
-Future performFindBuildsForCommit(LuciApi api, CreateCacheFunction createCache,
+Future performFindBuildsForCommit(Luci luci, CreateCacheFunction createCache,
     Logger logger, ArgResults results) async {
   if (results.rest.length == 0) {
     print("Missing argument for <commit>. To see help, use --help");
@@ -158,7 +210,7 @@ Future performFindBuildsForCommit(LuciApi api, CreateCacheFunction createCache,
       "Subsequent queries run faster if caching is not turned off...");
 
   var result = await fetchBuildsForCommmit(
-      api, logger, results['client'], results.rest[0], createCache, amount);
+      luci, logger, results['client'], results.rest[0], createCache, amount);
   result.fold((ex, st) {
     print(ex);
     print(st);
