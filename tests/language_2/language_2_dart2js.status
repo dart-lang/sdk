@@ -394,124 +394,125 @@ function_type/function_type96_test: RuntimeError # Issue 30476
 function_type/function_type9_test: RuntimeError # Issue 30476
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-abstract_exact_selector_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(NoSuchMethodError.toString#comma) is stored in a closure field.
-abstract_getter_test/01: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Foo.i). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(checkIt_closure.call), ..., j:closure_call(checkIt_closure.call), j:closure_call(unwrapException_closure.call))
-abstract_method_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(A.length). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call))
-abstract_object_method_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:method(B.==). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(NoSuchMethodError_toString_closure.call))
+abstract_exact_selector_test/none: Pass
+generic_methods_local_variable_declaration_test: Pass
+abstract_exact_selector_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+abstract_getter_test/01: Crash # Assertion failure: Missing scope info for j:getter(Foo.i).
+abstract_method_test: Crash # Assertion failure: Missing scope info for j:getter(A.length).
+abstract_object_method_test: Crash # Assertion failure: Missing scope info for j:method(B.==).
 abstract_override_adds_optional_args_concrete_subclass_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
 abstract_override_adds_optional_args_concrete_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
 abstract_override_adds_optional_args_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
-assert_message_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
+assert_message_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 assert_trailing_comma_test/none: CompileTimeError
 assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc02 (Constructor)
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C::bc02 (Constructor)
 assertion_initializer_test: CompileTimeError
-assertion_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(unwrapException_closure.call), j:closure_call(testClosureReturnsFalse_closure.call))
-async_and_or_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(test2_closure.call), j:closure_call(test2_closure.call))
-async_await_catch_regression_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(unwrapException_closure.call))
-async_await_foreign_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(ForeignFuture_then_closure.call), j:closure_call(ForeignFuture__addTask_closure.call))
-async_await_syntax_test/a01a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/a02a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/a03a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/a03b: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
+assertion_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_and_or_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_catch_regression_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_foreign_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/a01a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/a02a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/a03a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/a03b: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/a04a: RuntimeError
 async_await_syntax_test/a04c: RuntimeError
-async_await_syntax_test/a05a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/a05b: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(a05b_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/a06a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(Stream_Stream$fromIterable_closure.call))
+async_await_syntax_test/a05a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/a05b: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/a06a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/a07a: RuntimeError
 async_await_syntax_test/a08a: RuntimeError
-async_await_syntax_test/a09a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/a10a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
+async_await_syntax_test/a09a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/a10a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/a11b: RuntimeError
-async_await_syntax_test/a11c: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/a11d: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/a12g: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/b01a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/b02a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/b03a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
+async_await_syntax_test/a11c: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/a11d: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/a12g: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/b01a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/b02a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/b03a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/b04a: RuntimeError
-async_await_syntax_test/b05a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/b06a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(Stream_Stream$fromIterable_closure.call))
+async_await_syntax_test/b05a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/b06a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/b07a: RuntimeError
 async_await_syntax_test/b08a: RuntimeError
-async_await_syntax_test/b09a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/b10a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
+async_await_syntax_test/b09a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/b10a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/b11b: RuntimeError
-async_await_syntax_test/b11c: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/b11d: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/b12g: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/c01a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method1_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/c02a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method1_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/c03a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method1_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/c04a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method1_closure.call))
-async_await_syntax_test/c05a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method1_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/c06a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method1_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(Stream_Stream$fromIterable_closure.call))
-async_await_syntax_test/c07a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method1_closure.call))
-async_await_syntax_test/c08a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method1_closure.call))
-async_await_syntax_test/c09a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method1_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/c10a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method1_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/d01a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method2_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/d02a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method2_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/d03a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method2_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/d04a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method2_closure.call))
-async_await_syntax_test/d05a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method2_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/d06a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method2_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(Stream_Stream$fromIterable_closure.call))
-async_await_syntax_test/d07a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method2_closure.call))
-async_await_syntax_test/d08a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method2_closure.call))
-async_await_syntax_test/d08b: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method2_closure.call))
-async_await_syntax_test/d09a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method2_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_await_syntax_test/d10a: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(method2_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_break_in_finally_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_call_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(Future_Future_closure.call))
-async_cascade_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(Foo_foo_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_continue_label_test/await_in_body: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_continue_label_test/await_in_condition: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_continue_label_test/await_in_init: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_continue_label_test/await_in_update: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_continue_label_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_control_structures_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(unwrapException_closure.call), j:closure_call(expectThenValue_closure.call))
-async_finally_rethrow_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(_wrapJsFunctionForAsync_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(unwrapException_closure.call))
-async_regression_23058_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_rethrow_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(testRethrow_closure.call), ..., j:closure_call(testThrow_closure.call), j:closure_call(testThrow_closure.call))
-async_return_types_test/nestedFuture: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(Stream_last_closure.call), ..., j:closure_call(_AddStreamState_cancel_closure.call), j:closure_call(_AddStreamState_makeErrorHandler_closure.call))
-async_return_types_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(Stream_last_closure.call), ..., j:closure_call(_AddStreamState_cancel_closure.call), j:closure_call(_AddStreamState_makeErrorHandler_closure.call))
-async_return_types_test/tooManyTypeParameters: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(Stream_last_closure.call), ..., j:closure_call(_AddStreamState_cancel_closure.call), j:closure_call(_AddStreamState_makeErrorHandler_closure.call))
-async_return_types_test/wrongReturnType: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(Stream_last_closure.call), ..., j:closure_call(_AddStreamState_cancel_closure.call), j:closure_call(_AddStreamState_makeErrorHandler_closure.call))
-async_return_types_test/wrongTypeParameter: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(Stream_last_closure.call), ..., j:closure_call(_AddStreamState_cancel_closure.call), j:closure_call(_AddStreamState_makeErrorHandler_closure.call))
-async_star_await_pauses_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_StreamController__subscribe_closure.call), j:closure_call(_StreamController__recordCancel_closure.call))
-async_star_cancel_and_throw_in_finally_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_AddStreamState_cancel_closure.call), j:closure_call(_AddStreamState_makeErrorHandler_closure.call))
-async_star_cancel_while_paused_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(Duration_toString_closure.call), j:closure_call(Duration_toString_closure.call))
-async_star_no_cancel2_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(Duration_toString_closure.call), j:closure_call(Duration_toString_closure.call))
-async_star_no_cancel_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_star_pause_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(nextMicrotask_closure.call), j:closure_call(Future_Future$microtask_closure.call))
-async_star_regression_2238_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-async_star_regression_23116_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_AddStreamState_cancel_closure.call), j:closure_call(_AddStreamState_makeErrorHandler_closure.call))
-async_star_regression_fisk_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_AddStreamState_makeErrorHandler_closure.call), j:closure_call(Future_Future$microtask_closure.call))
-async_star_stream_take_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_AddStreamState_cancel_closure.call), j:closure_call(_AddStreamState_makeErrorHandler_closure.call))
-async_star_take_reyield_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(expectList_closure.call))
-bad_constructor_test/05: MissingCompileTimeError
+async_await_syntax_test/b11c: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/b11d: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/b12g: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/c01a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/c02a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/c03a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/c04a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/c05a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/c06a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/c07a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/c08a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/c09a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/c10a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/d01a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/d02a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/d03a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/d04a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/d05a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/d06a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/d07a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/d08a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/d08b: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/d09a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/d10a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_break_in_finally_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_call_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_cascade_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_continue_label_test/await_in_body: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_continue_label_test/await_in_condition: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_continue_label_test/await_in_init: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_continue_label_test/await_in_update: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_continue_label_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_control_structures_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_finally_rethrow_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_regression_23058_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_rethrow_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_return_types_test/nestedFuture: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_return_types_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_return_types_test/tooManyTypeParameters: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_return_types_test/wrongReturnType: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_return_types_test/wrongTypeParameter: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_star_await_pauses_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_star_cancel_and_throw_in_finally_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_star_cancel_while_paused_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_star_no_cancel2_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_star_no_cancel_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_star_pause_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_star_regression_2238_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_star_regression_23116_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_star_regression_fisk_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_star_stream_take_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_star_take_reyield_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 bad_override_test/03: MissingCompileTimeError
-bad_override_test/04: Crash # type 'KernelField' is not a subtype of type 'Procedure' of 'value' where
+bad_override_test/04: Crash # type 'ShadowField' is not a subtype of type 'Procedure' of 'value' where
 bad_override_test/05: MissingCompileTimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
-bool_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(BoolTest.testLogicalOp#falseCount) is stored in a closure field.
-bound_closure_equality_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(SetMixin.length). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_LinkedCustomHashSet_closure.call), j:constructor(_LinkedCustomHashSet.))
-bound_closure_primitives_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call))
+bool_test: RuntimeError
+bound_closure_equality_test: Crash # Assertion failure: Missing scope info for j:getter(SetMixin.length).
+bound_closure_primitives_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 branch_canonicalization_test: RuntimeError
 break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 call_closurization_test: RuntimeError
-call_function_apply_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Primitives.applyFunctionWithNamedArguments#bad) is stored in a closure field.
+call_function_apply_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
 call_operator_test: RuntimeError
 call_test: RuntimeError
-call_through_getter_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.g3#x), local(B.g3#y), local(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
-call_through_getter_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.g3#x), local(B.g3#y), local(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
-call_through_getter_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.g3#x), local(B.g3#y), local(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
-call_with_no_such_method_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Primitives.applyFunctionWithNamedArguments#bad) is stored in a closure field.
+call_through_getter_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
+call_through_getter_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
+call_through_getter_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
+call_with_no_such_method_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
 canonical_const2_test: RuntimeError
-canonical_const_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+canonical_const_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
 cast_test/none: RuntimeError
 cha_deopt1_test: CompileTimeError
 cha_deopt2_test: CompileTimeError
@@ -519,100 +520,73 @@ cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 class_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.closureRef#)) for j:closure_call(Sub_closureRef_closure.call).
-classes_static_method_clash_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Primitives.applyFunctionWithNamedArguments#bad) is stored in a closure field.
+classes_static_method_clash_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
 closure6_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.foo#)) for j:closure_call(A_foo_closure.call).
-closure_cycles_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(doIt_closure.call), ..., j:closure_call(Duration_toString_closure.call), j:closure_call(Y_Y_closure.call))
+closure_cycles_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 closure_in_constructor_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
-closure_in_initializer2_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 207 pos 9: 'closure != null': Corresponding closure class not found for () → dynamic => a = a.+(1). Closures found for (() → dynamic {
-closure_in_initializer_test: Crash # NoSuchMethodError: The getter 'parent' was called on null.
-closure_parameter_types_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#invokeCount) is stored in a closure field.
-closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#inner) is stored in a closure field.
+closure_in_initializer2_test: RuntimeError
+closure_in_initializer_test: Crash # Assertion failure: Cannot find value parameter(A.#a) in (parameter(C.#a), BoxLocal(_box_0), parameter(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
+closure_parameter_types_test: RuntimeError
+closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
 closure_type_variable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 closure_type_variables_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
 closure_with_super_field_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.returnSuperInClosure#)) for j:closure_call(B_returnSuperInClosure_closure.call).
-closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.test#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
-closures_initializer2_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 207 pos 9: 'closure != null': Corresponding closure class not found for () → dynamic => #lib1::A::T. Closures found for (() → dynamic {
-closures_initializer_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 207 pos 9: 'closure != null': Corresponding closure class not found for () → dynamic => #lib1::B::T. Closures found for (() → dynamic {
-compile_time_constant_a_test: Crash
-compile_time_constant_b_test: Crash
-compile_time_constant_c_test/02: Crash
-compile_time_constant_k_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-compile_time_constant_k_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-compile_time_constant_k_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-compile_time_constant_k_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-compile_time_constant10_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-compile_time_constant_a_test: Crash
-compile_time_constant_b_test: Crash
-compile_time_constant_c_test/02: Crash
-compile_time_constant_k_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-compile_time_constant_k_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-compile_time_constant_k_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-compile_time_constant_k_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(Sub.test#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
+closures_initializer2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+closures_initializer_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+compile_time_constant_a_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
+compile_time_constant_b_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
+compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
 generalized_void_syntax_test: CompileTimeError
-generic_closure_test: RuntimeError
-generic_field_mixin2_test: Crash
-generic_field_mixin3_test: Crash
-generic_field_mixin4_test: Crash # Issue 18651
-generic_field_mixin5_test: Crash # Issue 18651
-generic_field_mixin6_test/01: Crash
-generic_field_mixin_test: Crash
-generic_function_typedef_test/none: Crash
-generic_functions_test: Crash
-generic_instanceof_test: Crash
-generic_local_functions_test: Crash
+generic_async_star_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+generic_async_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+generic_field_mixin2_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field)
+generic_field_mixin3_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field)
+generic_field_mixin4_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field)
+generic_field_mixin5_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field)
+generic_field_mixin6_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field1)
+generic_field_mixin6_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field2)
+generic_field_mixin_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field)
+generic_function_typedef_test/01: Crash # Unsupported operation: Unsupported type parameter type node S.
+generic_function_typedef_test/none: Crash # Unsupported operation: Unsupported type parameter type node S.
+generic_functions_test: Crash # Assertion failure: Missing scope info for j:method(Iterator.moveNext).
+generic_instanceof_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_methods_generic_class_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_generic_function_parameter_test: Crash
+generic_methods_generic_function_parameter_test: Crash # Unsupported operation: Unsupported type parameter type node V.
 generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_test: Crash
+generic_methods_test: Crash # Assertion failure: Missing scope info for j:method(Iterator.moveNext).
 generic_methods_type_expression_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-generic_native_test: Crash
-generic_sync_star_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call))
-generic_syntax_test: Crash
+generic_native_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+generic_sync_star_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+generic_syntax_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_test: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-getter_no_setter2_test/00: RuntimeError
-getter_no_setter2_test/03: RuntimeError
-getter_no_setter_test/00: RuntimeError
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
-hash_map_null_key_foreach_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#c) is stored in a closure field.
-identical_closure2_test: RuntimeError
-if_null_assignment_behavior_test/01: Crash
-if_null_assignment_behavior_test/02: Crash
-if_null_assignment_behavior_test/03: Crash
-if_null_assignment_behavior_test/04: Crash
-if_null_assignment_behavior_test/05: Crash
-if_null_assignment_behavior_test/06: Crash
-bool_test: RuntimeError
-closure_in_initializer2_test: RuntimeError
-closure_parameter_types_test: RuntimeError
 hash_map_null_key_foreach_test: RuntimeError
-if_null_assignment_behavior_test/12: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#l) is stored in a closure field.
+identical_closure2_test: RuntimeError
+if_null_assignment_behavior_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.instanceTest#)) for j:closure_call(C_instanceTest_closure.call).
+if_null_assignment_behavior_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.instanceTest#)) for j:closure_call(C_instanceTest_closure.call).
+if_null_assignment_behavior_test/05: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
+if_null_assignment_behavior_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
 if_null_assignment_behavior_test/12: RuntimeError
-if_null_assignment_behavior_test/14: RuntimeError
-if_null_assignment_behavior_test/14: RuntimeError
 if_null_assignment_static_test/01: RuntimeError
-if_null_assignment_static_test/01: RuntimeError
-if_null_assignment_static_test/02: Crash
 if_null_assignment_static_test/03: RuntimeError
-if_null_assignment_static_test/03: RuntimeError
-if_null_assignment_static_test/04: RuntimeError
-if_null_assignment_static_test/04: RuntimeError
 if_null_assignment_static_test/05: RuntimeError
-if_null_assignment_static_test/05: RuntimeError
-if_null_assignment_static_test/06: Crash
-many_generic_instanceof_test: Crash
-regress_30339_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
-typevariable_substitution2_test/02: RuntimeError
-type_variable_nested_test: Crash
-typecheck_multifield_declaration_test: Crash
-typedef_is_test: Crash
+many_generic_instanceof_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+regress_30339_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+type_variable_nested_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+unused_overridden_async_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+vm/allocation_sinking_vm_test: RuntimeError
+vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 
 [ $compiler == dart2js && ! $dart2js_with_kernel && ! $minified ]
 vm/async_await_catch_stacktrace_test: RuntimeError
@@ -726,13 +700,13 @@ bound_closure_primitives_test: Crash # NoSuchMethodError: The getter 'thisLocal'
 branch_canonicalization_test: RuntimeError
 break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 call_closurization_test: RuntimeError
-call_function_apply_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(JsLinkedHashMap.addAll#key), local(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
+call_function_apply_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
 call_operator_test: RuntimeError
 call_test: RuntimeError
-call_through_getter_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.g3#x), local(B.g3#y), local(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
-call_through_getter_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.g3#x), local(B.g3#y), local(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
-call_through_getter_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.g3#x), local(B.g3#y), local(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
-call_with_no_such_method_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(JsLinkedHashMap.addAll#key), local(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
+call_through_getter_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
+call_through_getter_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
+call_through_getter_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
+call_with_no_such_method_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
 canonical_const2_test: RuntimeError
 canonical_const_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
 cast_test/none: RuntimeError
@@ -742,89 +716,73 @@ cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 class_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.closureRef#)) for j:closure_call(Sub_closureRef_closure.call).
-classes_static_method_clash_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(JsLinkedHashMap.addAll#key), local(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
+classes_static_method_clash_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
 closure6_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.foo#)) for j:closure_call(A_foo_closure.call).
 closure_cycles_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 closure_in_constructor_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
 closure_in_initializer2_test: RuntimeError
-closure_in_initializer_test: Crash # NoSuchMethodError: The getter 'parent' was called on null.
+closure_in_initializer_test: Crash # Assertion failure: Cannot find value parameter(A.#a) in (parameter(C.#a), BoxLocal(_box_0), parameter(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 closure_parameter_types_test: RuntimeError
 closure_self_reference_test: RuntimeError
 closure_type_variable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 closure_type_variables_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
 closure_with_super_field_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.returnSuperInClosure#)) for j:closure_call(B_returnSuperInClosure_closure.call).
-closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.test#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
-closures_initializer2_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-closures_initializer_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-compile_time_constant_a_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(ConstantStringMap.values#key), local(ConstantStringMap.values#)) for j:closure_call(ConstantStringMap_values_closure.call).
-compile_time_constant_b_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(ConstantStringMap.values#key), local(ConstantStringMap.values#)) for j:closure_call(ConstantStringMap_values_closure.call).
+closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(Sub.test#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
+closures_initializer2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+closures_initializer_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+compile_time_constant_a_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
+compile_time_constant_b_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
 compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
 generalized_void_syntax_test: CompileTimeError
-generic_async_star_test: Crash
-generic_async_test: Crash
-generic_closure_test: RuntimeError
-generic_field_mixin2_test: Crash
-generic_field_mixin3_test: Crash
-generic_field_mixin4_test: Crash # Issue 18651
-generic_field_mixin5_test: Crash # Issue 18651
-generic_field_mixin6_test/none: Crash
-generic_field_mixin6_test/01: Crash
-generic_field_mixin_test: Crash
-generic_function_typedef_test/01: Crash
-generic_function_typedef2_test/04: Crash
-generic_function_typedef_test/none: Crash
-generic_functions_test: Crash
-generic_instanceof_test: Crash
-generic_local_functions_test: Crash
-generic_methods_closure_test: Crash
-generic_methods_generic_class_tearoff_test: Crash
-generic_methods_generic_function_parameter_test: Crash
-generic_methods_named_parameters_test: Crash
-generic_methods_optional_parameters_test: Crash
-generic_methods_shadowing_test: Crash
-generic_methods_tearoff_specialization_test: Crash
-generic_methods_test: Crash
-generic_methods_type_expression_test: Crash
-generic_methods_generic_function_parameter_test: Crash
-generic_methods_test: Crash
-generic_native_test: Crash
-generic_sync_star_test: Crash
-generic_syntax_test: Crash
+generic_async_star_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+generic_async_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+generic_field_mixin2_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+generic_field_mixin3_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+generic_field_mixin4_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+generic_field_mixin5_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+generic_field_mixin6_test/01: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+generic_field_mixin6_test/none: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+generic_field_mixin_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+generic_function_typedef_test/01: Crash # Unsupported operation: Unsupported type parameter type node S.
+generic_function_typedef_test/none: Crash # Unsupported operation: Unsupported type parameter type node S.
+generic_functions_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+generic_instanceof_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
+generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
+generic_methods_generic_class_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_methods_generic_function_parameter_test: Crash # Unsupported operation: Unsupported type parameter type node V.
+generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_methods_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+generic_methods_type_expression_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+generic_native_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+generic_sync_star_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+generic_syntax_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_test: RuntimeError
-generic_typedef_test: Crash
+generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 hash_map_null_key_foreach_test: RuntimeError
 identical_closure2_test: RuntimeError
-if_null_assignment_behavior_test/01: Crash
-if_null_assignment_behavior_test/02: Crash
-if_null_assignment_behavior_test/03: Crash
-if_null_assignment_behavior_test/04: Crash
-if_null_assignment_behavior_test/05: Crash
-if_null_assignment_behavior_test/06: Crash
+if_null_assignment_behavior_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.instanceTest#)) for j:closure_call(C_instanceTest_closure.call).
+if_null_assignment_behavior_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.instanceTest#)) for j:closure_call(C_instanceTest_closure.call).
+if_null_assignment_behavior_test/05: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
+if_null_assignment_behavior_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
 if_null_assignment_behavior_test/12: RuntimeError
-if_null_assignment_behavior_test/12: RuntimeError
-if_null_assignment_behavior_test/14: RuntimeError
-if_null_assignment_behavior_test/14: RuntimeError
 if_null_assignment_static_test/01: RuntimeError
-if_null_assignment_static_test/01: RuntimeError
-if_null_assignment_static_test/02: Crash
 if_null_assignment_static_test/03: RuntimeError
-if_null_assignment_static_test/03: RuntimeError
-if_null_assignment_static_test/04: RuntimeError
-if_null_assignment_static_test/04: RuntimeError
 if_null_assignment_static_test/05: RuntimeError
-if_null_assignment_static_test/05: RuntimeError
-if_null_assignment_static_test/06: Crash
-many_generic_instanceof_test: Crash
+many_generic_instanceof_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 regress_30339_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-typevariable_substitution2_test/02: RuntimeError
-type_variable_nested_test: Crash
-unused_overridden_async_test: Crash
-vm/async_await_catch_stacktrace_test: Crash
+type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+type_variable_nested_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+unused_overridden_async_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 vm/allocation_sinking_vm_test: RuntimeError
+vm/async_await_catch_stacktrace_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 typedef_is_test: Crash

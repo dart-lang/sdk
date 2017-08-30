@@ -463,181 +463,106 @@ named_parameters_test/07: Crash # Issue 27394
 named_parameters_test/09: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-async_await_test: Crash
-async_star_test: Crash
-async_switch_test/none: Crash
-async_switch_test/withDefault: Crash
-async_test/none: Crash
-async_test/type-mismatch1: Crash
-async_test/type-mismatch2: Crash
-async_test/type-mismatch3: Crash
-async_test/type-mismatch4: Crash
-async_this_bound_test: Crash
-async_throw_in_catch_test/forceAwait: Crash
-async_throw_in_catch_test/none: Crash
-asyncstar_concat_test: Crash
-asyncstar_throw_in_catch_test: Crash
-asyncstar_yield_test: Crash
-asyncstar_yieldstar_test: Crash
-await_backwards_compatibility_test/none: Crash
-await_exceptions_test: Crash
-await_for_cancel_test: Crash
-await_for_test: Crash
-await_for_use_local_test: Crash
-await_future_test: Crash
-await_nonfuture_test: Crash
-await_not_started_immediately_test: Crash
-await_null_aware_test: Crash
-await_postfix_expr_test: Crash
-await_regression_test: Crash
-await_test: Crash
-bad_named_parameters2_test/01: Crash
-bad_named_parameters2_test/none: Crash
-bad_named_parameters_test/01: Crash
-bad_named_parameters_test/02: Crash
-bad_named_parameters_test/03: Crash
-bad_named_parameters_test/04: Crash
-bad_named_parameters_test/05: Crash
-bad_named_parameters_test/none: Crash
-bad_override_test/03: MissingCompileTimeError
-bad_override_test/04: MissingCompileTimeError
-bad_override_test/05: MissingCompileTimeError
-bailout4_test: Crash
-bailout_test: Crash
-bind_test: Crash
-bit_operations_test/01: Crash
-bit_operations_test/02: Crash
-bit_operations_test/03: Crash
-bit_operations_test/04: Crash
-bit_operations_test/none: Crash
-black_listed_test/none: Crash
-bool_check_test: Crash
-bool_test: Crash
-bound_closure_equality_test: Crash
-bound_closure_primitives_test: Crash
-branch_canonicalization_test: RuntimeError
-break_test: Crash
-call_closurization_test: Crash
-call_constructor_on_unresolvable_class_test/07: Crash
-call_function_apply_test: Crash
-call_nonexistent_constructor_test/01: Crash
-call_nonexistent_constructor_test/02: Crash
-call_nonexistent_constructor_test/none: Crash
-call_nonexistent_static_test/01: Crash
-call_nonexistent_static_test/02: Crash
-call_nonexistent_static_test/03: Crash
-call_nonexistent_static_test/04: Crash
-call_nonexistent_static_test/05: Crash
-call_nonexistent_static_test/06: Crash
-call_nonexistent_static_test/07: Crash
-call_nonexistent_static_test/08: Crash
-call_nonexistent_static_test/09: Crash
-call_nonexistent_static_test/10: Crash
-call_nonexistent_static_test/none: Crash
-call_operator_test: RuntimeError
-call_property_test: Crash
-call_test: Crash
-call_through_getter_test: Crash
-call_through_null_getter_test: Crash
-call_type_literal_test/01: Crash
-call_with_no_such_method_test: Crash
-canonical_const2_test: RuntimeError
-canonical_const3_test: Crash
-canonical_const_test: Crash
-cascade2_test: Crash
-cascade_in_expression_function_test: Crash
-cascade_precedence_test: Crash
-cascade_test/none: Crash
-cast_test/04: RuntimeError
-cast_test/05: RuntimeError
-cast_test/none: RuntimeError
-catch_liveness_test: Crash
-cha_deopt1_test: CompileTimeError
-cha_deopt2_test: CompileTimeError
-cha_deopt3_test: CompileTimeError
+async_await_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_star_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_switch_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_switch_test/withDefault: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_test/type-mismatch1: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_test/type-mismatch2: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_test/type-mismatch3: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_test/type-mismatch4: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_this_bound_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_throw_in_catch_test/forceAwait: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_throw_in_catch_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+asyncstar_concat_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+asyncstar_throw_in_catch_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+asyncstar_yield_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+asyncstar_yieldstar_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+await_backwards_compatibility_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+await_exceptions_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+await_for_cancel_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+await_for_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+await_for_use_local_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+await_future_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+await_nonfuture_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+await_not_started_immediately_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+await_null_aware_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+await_postfix_expr_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+await_regression_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+await_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 check_member_static_test/02: MissingCompileTimeError
-class_cycle_test/02: MissingCompileTimeError
-class_cycle_test/03: MissingCompileTimeError
-closure_in_field_test/01: Crash
-closure_in_field_test/02: Crash
-closure_in_field_test/none: Crash # 'file:///c:/Users/johnniwinther/dart-repo3/sdk/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 340 pos 14: 'value != null': No value for field j:field(Mixin.field)
-compile_time_constant_a_test: Crash
-compile_time_constant_b_test: Crash
-compile_time_constant_c_test/02: Crash
-compile_time_constant_k_test/01: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-compile_time_constant_k_test/02: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-compile_time_constant_k_test/03: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-compile_time_constant_k_test/none: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+closure_in_field_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(Mixin.field)
+closure_in_field_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(Mixin.field)
+closure_in_field_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(Mixin.field)
 compile_time_constant_m_test: RuntimeError
-compile_time_constant_p_test/01: Crash
+compile_time_constant_p_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
 const_conditional_test/08: MissingCompileTimeError
-const_constructor_nonconst_field_test/01: Crash
-const_constructor_syntax_test/05: Crash
-const_error_multiply_initialized_test/01: Crash
-const_error_multiply_initialized_test/02: Crash
-const_error_multiply_initialized_test/03: Crash
-const_error_multiply_initialized_test/04: Crash
-const_evaluation_test/01: Crash
+const_constructor_nonconst_field_test/01: Crash # UnimplementedError: Unimplemented constant expression #lib2::f() (ShadowStaticInvocation)
+const_constructor_syntax_test/05: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+const_error_multiply_initialized_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+const_error_multiply_initialized_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+const_error_multiply_initialized_test/03: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+const_error_multiply_initialized_test/04: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+const_evaluation_test/01: Crash # Assertion failure: Missing scope info for j:getter(Iterator.current).
 const_factory_with_body_test/01: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
-const_map2_test/00: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 const_map2_test/00: MissingCompileTimeError
-const_map3_test/00: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 const_map3_test/00: MissingCompileTimeError
-const_map_test: Crash
-const_optional_args_negative_test: Crash
+const_map_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+const_optional_args_negative_test: Crash # UnimplementedError: Unimplemented constant expression <dynamic, dynamic>{} (ShadowMapLiteral)
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
 const_syntax_test/05: MissingCompileTimeError
-const_syntax_test/08: Crash
-const_syntax_test/09: Crash
+const_syntax_test/08: Crash # Stack Overflow
+const_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_syntax_test/10: MissingCompileTimeError
-const_types_test/01: Crash
-const_types_test/02: Crash
-const_types_test/03: Crash
-const_types_test/04: Crash
-const_types_test/05: Crash
-const_types_test/06: Crash
-const_types_test/13: Crash
-const_types_test/31: Crash
-const_types_test/32: Crash
-const_types_test/33: Crash
-const_types_test/34: Crash
-const_types_test/35: Crash
-const_types_test/36: Crash
-const_types_test/37: Crash
-const_types_test/38: Crash
-const_types_test/39: Crash
-const_types_test/40: Crash
-const_types_test/none: Crash
+const_types_test/01: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+const_types_test/02: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+const_types_test/03: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+const_types_test/04: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+const_types_test/05: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+const_types_test/06: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+const_types_test/13: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+const_types_test/31: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+const_types_test/32: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+const_types_test/33: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+const_types_test/34: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+const_types_test/35: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+const_types_test/36: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+const_types_test/37: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+const_types_test/38: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+const_types_test/39: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+const_types_test/40: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+const_types_test/none: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
 constants_test/05: MissingCompileTimeError
-constructor12_test: Crash
-constructor2_test: Crash
-constructor3_test: Crash
-constructor5_test: Crash
-constructor6_test: Crash
-constructor8_test: Crash
-constructor_duplicate_final_test/01: Crash
-constructor_duplicate_final_test/02: Crash
-constructor_duplicate_final_test/03: Crash
-constructor_named_arguments_test/01: Crash
+constructor12_test: RuntimeError
+constructor2_test: RuntimeError
+constructor3_test: RuntimeError
+constructor5_test: RuntimeError
+constructor6_test: Crash # Assertion failure: Cannot find value parameter(A.#arg) in (parameter(C.#x), parameter(C.#y), parameter(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
+constructor8_test: RuntimeError
+constructor_duplicate_final_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+constructor_duplicate_final_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+constructor_duplicate_final_test/03: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+constructor_named_arguments_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 529 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 constructor_named_arguments_test/none: RuntimeError
-constructor_redirect1_negative_test: Crash
-constructor_redirect2_negative_test: Crash
+constructor_redirect1_negative_test: Crash # Stack Overflow
+constructor_redirect2_negative_test: Crash # Stack Overflow
 constructor_redirect2_test/01: MissingCompileTimeError
-constructor_redirect_test/01: Crash
-crash_6725_test/01: Crash
-ct_const_test: Crash
-custom_await_stack_trace_test: Crash
-cyclic_constructor_test/01: Crash
-cyclic_default_values_test: Crash
-cyclic_type2_test: Crash
-dangling_else_test: Crash
+constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(A.named2#x), parameter(A.named2#y), parameter(A.named2#z)) for j:constructor(A.named2).
+crash_6725_test/01: Crash # NoSuchMethodError: The method 'startsWith' was called on null.
+ct_const_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+custom_await_stack_trace_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+cyclic_constructor_test/01: Crash # Stack Overflow
+cyclic_default_values_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
+cyclic_type2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+dangling_else_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: CompileTimeError
 deferred_constant_list_test: CompileTimeError
@@ -676,18 +601,17 @@ deferred_load_library_wrong_args_test/none: CompileTimeError
 deferred_mixin_test: CompileTimeError
 deferred_no_prefix_test/01: MissingCompileTimeError
 deferred_no_such_method_test: CompileTimeError
-deferred_not_loaded_check_test: Crash
 deferred_not_loaded_check_test: RuntimeError
 deferred_only_constant_test: CompileTimeError
 deferred_optimized_test: CompileTimeError
 deferred_redirecting_factory_test: CompileTimeError
 deferred_regression_22995_test: CompileTimeError
 deferred_regression_28678_test: CompileTimeError
-deferred_shadow_load_library_test: Crash
+deferred_shadow_load_library_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 deferred_shared_and_unshared_classes_test: CompileTimeError
 deferred_static_seperate_test: CompileTimeError
 deferred_super_dependency_test/01: CompileTimeError
-deferred_super_dependency_test/none: Crash
+deferred_super_dependency_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 deferred_type_dependency_test/as: CompileTimeError
 deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
@@ -700,266 +624,216 @@ duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
-efficient_length_warning_test: Crash
-enum_duplicate_test/01: Crash
-enum_duplicate_test/02: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+efficient_length_warning_test: Crash # Assertion failure: Missing scope info for j:getter(SetMixin.length).
+enum_duplicate_test/01: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
 enum_duplicate_test/02: RuntimeError
-enum_duplicate_test/none: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 enum_duplicate_test/none: RuntimeError
-enum_mirror_test: Crash
-enum_private_test/01: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+enum_mirror_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 enum_private_test/01: RuntimeError
-enum_private_test/02: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 enum_private_test/02: RuntimeError
-enum_private_test/none: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 enum_private_test/none: RuntimeError
-enum_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 enum_test: RuntimeError
-example_constructor_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 513 pos 16: 'false': ir.LocalInitializer not handled
-execute_finally7_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Helper.f1#k) is stored in a closure field.
+example_constructor_test: RuntimeError
+execute_finally7_test: RuntimeError
 exhaustive_for_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 expect_test: RuntimeError
-external_test/10: Crash
 external_test/10: MissingRuntimeError
-external_test/13: Crash
 external_test/13: MissingRuntimeError
-external_test/20: Crash
 external_test/20: MissingRuntimeError
-factory2_test: Crash
+factory2_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
 factory_redirection_test/07: MissingCompileTimeError
-factory_redirection_test/08: Crash
-factory_redirection_test/09: Crash
-factory_redirection_test/10: Crash
-factory_redirection_test/11: Crash
-factory_redirection_test/12: Crash
-factory_redirection_test/13: Crash
-factory_redirection_test/14: Crash
-factory_redirection_test/none: Crash
+factory_redirection_test/08: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/09: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/10: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/11: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/12: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/13: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/14: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
-field_increment_bailout_test: Crash
+field_increment_bailout_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 field_initialization_order_test: RuntimeError
 field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
-final_attempt_reinitialization_test/01: Crash
-final_attempt_reinitialization_test/02: Crash
+final_attempt_reinitialization_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+final_attempt_reinitialization_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 final_field_initialization_order_test: RuntimeError
-final_super_field_set_test/01: Crash
-final_syntax_test/09: Crash
-first_class_types_literals_test/01: Crash
-first_class_types_literals_test/02: Crash
-first_class_types_literals_test/03: Crash
-first_class_types_literals_test/04: Crash
-first_class_types_literals_test/05: Crash
-first_class_types_literals_test/06: Crash
-first_class_types_literals_test/07: Crash
-first_class_types_literals_test/08: Crash
-first_class_types_literals_test/09: Crash
-first_class_types_literals_test/10: Crash
-first_class_types_literals_test/11: Crash
-first_class_types_literals_test/12: Crash
-first_class_types_literals_test/none: Crash
-flatten_test/01: Crash
-flatten_test/02: Crash
-flatten_test/03: Crash
-flatten_test/04: Crash
-flatten_test/05: Crash
-flatten_test/06: Crash
-flatten_test/07: Crash
-flatten_test/08: Crash
-flatten_test/09: Crash
-flatten_test/10: Crash
-flatten_test/11: Crash
-flatten_test/12: Crash
-flatten_test/none: Crash
-for_in2_test: Crash
-for_variable_capture_test: Crash
-full_stacktrace1_test: Crash
-full_stacktrace2_test: Crash
-full_stacktrace3_test: Crash
-function_malformed_result_type_test: Crash
-function_subtype_bound_closure6_test: Crash
-function_subtype_cast2_test: Crash
-function_subtype_cast3_test: Crash
-function_subtype_checked0_test: Crash
-function_subtype_closure0_test: Crash
-function_subtype_closure1_test: Crash
-function_subtype_inline0_test: Crash
-function_subtype_inline1_test: Crash
-function_subtype_local3_test: Crash
-function_subtype_local4_test: Crash
-function_subtype_not3_test: Crash
-function_subtype_typearg1_test: Crash
-function_subtype_typearg2_test: Crash
-function_subtype_typearg3_test: Crash
-function_subtype_typearg4_test: Crash
-function_subtype_typearg5_test: Crash
-function_syntax_test/none: Crash
-function_test: Crash
-function_type_alias3_test: Crash
-function_type_parameter2_negative_test: Crash
-function_type_parameter_negative_test: Crash
-generic_local_functions_test: Crash
-generic_methods_generic_function_parameter_test: Crash
-generic_methods_new_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-generic_methods_test: Crash
-generic_methods_type_expression_test/01: Crash
-generic_methods_type_expression_test/03: Crash
-generic_methods_type_expression_test/none: Crash
-generic_native_test: Crash
-generic_syntax_test: Crash
-generic_test: RuntimeError
-generics_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-getter_no_setter2_test/00: RuntimeError
-getter_no_setter2_test/03: RuntimeError
-getter_no_setter_test/00: RuntimeError
-getter_no_setter_test/none: RuntimeError
-getter_override2_test/02: MissingCompileTimeError
-getter_override_test/00: MissingCompileTimeError
-getter_override_test/01: MissingCompileTimeError
-getter_override_test/02: MissingCompileTimeError
-hash_map_null_key_foreach_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#c) is stored in a closure field.
-identical_closure2_test: RuntimeError
-identical_const_test/05: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-identical_const_test/06: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-identical_const_test/07: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-identical_const_test/08: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-if_null_assignment_behavior_test/01: Crash
-if_null_assignment_behavior_test/02: Crash
-if_null_assignment_behavior_test/03: Crash
-if_null_assignment_behavior_test/04: Crash
-if_null_assignment_behavior_test/05: Crash
-if_null_assignment_behavior_test/06: Crash
-if_null_assignment_behavior_test/11: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#l) is stored in a closure field.
-if_null_assignment_behavior_test/12: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#l) is stored in a closure field.
-if_null_assignment_behavior_test/14: RuntimeError
-if_null_assignment_static_test/01: RuntimeError
-if_null_assignment_static_test/02: Crash
-if_null_assignment_static_test/03: RuntimeError
-if_null_assignment_static_test/04: RuntimeError
-if_null_assignment_static_test/05: RuntimeError
-if_null_assignment_static_test/06: Crash
-implicit_closure2_test: Crash
-implicit_closure_test: Crash
-implicit_this_test/01: Crash
-implicit_this_test/04: Crash
-implicit_this_test/none: Crash
-import_collection_no_prefix_test: Crash
-inference_mixin_field_test: Crash
-infinite_switch_label_test: Crash
+final_super_field_set_test/01: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+final_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+first_class_types_literals_test/01: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+first_class_types_literals_test/02: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+first_class_types_literals_test/03: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+first_class_types_literals_test/04: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+first_class_types_literals_test/05: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+first_class_types_literals_test/06: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+first_class_types_literals_test/07: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+first_class_types_literals_test/08: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+first_class_types_literals_test/09: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+first_class_types_literals_test/10: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+first_class_types_literals_test/11: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+first_class_types_literals_test/12: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+first_class_types_literals_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+flatten_test/01: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+flatten_test/02: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+flatten_test/03: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+flatten_test/04: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+flatten_test/05: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+flatten_test/06: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+flatten_test/07: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+flatten_test/08: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+flatten_test/09: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+flatten_test/10: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+flatten_test/11: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+flatten_test/12: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+flatten_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+for_in2_test: Crash # NoSuchMethodError: The method 'startsWith' was called on null.
+for_variable_capture_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+full_stacktrace1_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+full_stacktrace2_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+full_stacktrace3_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+function_malformed_result_type_test: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+function_subtype_bound_closure6_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.test#localMethod)) for j:closure_call(C_test_closure.call).
+function_subtype_cast2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+function_subtype_cast3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+function_subtype_checked0_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.test#)) for j:closure_call(C_test_closure.call).
+function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_closure1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_inline0_test: RuntimeError
+function_subtype_inline1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_local3_test: RuntimeError
+function_subtype_local4_test: RuntimeError
+function_subtype_not3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+function_subtype_typearg1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_typearg2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_typearg3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_typearg4_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_typearg5_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_syntax_test/none: RuntimeError
+function_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(FunctionTest.testThisBinding#)) for j:closure_call(FunctionTest_testThisBinding_closure.call).
+function_type_alias3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
+function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
+implicit_closure2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.foo#)) for j:closure_call(A_foo_closure.call).
+implicit_closure_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(First.foo1#local)) for j:closure_call(First_foo1_closure.call).
+implicit_this_test/01: Crash # Assertion failure: Missing scope info for j:getter(SubAbstract2.x).
+implicit_this_test/04: Crash # Assertion failure: Missing scope info for j:getter(SubAbstract2.x).
+implicit_this_test/none: Crash # Assertion failure: Missing scope info for j:getter(SubAbstract2.x).
+import_collection_no_prefix_test: Crash # Assertion failure: Missing scope info for j:getter(_SplayTree._root).
+inference_mixin_field_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(Mixin.field)
+infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 308 pos 12: 'local != null': is not true.
 infinity_test: RuntimeError
-inline_super_field_test: Crash
-inlined_throw_test: Crash
-instance_creation_in_function_annotation_test: Crash
-instanceof4_test/01: Crash
-instanceof4_test/none: Crash
+inline_super_field_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M1.bar)
+inlined_throw_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+instance_creation_in_function_annotation_test: Crash # Assertion failure: Missing scope info for j:getter(JsMirror._prettyName).
+instanceof4_test/01: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+instanceof4_test/none: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 integer_division_by_zero_test: RuntimeError
-interceptor3_test: Crash
-internal_library_test/02: Crash
-invocation_mirror2_test: Crash
-invocation_mirror_empty_arguments_test: Crash
-invocation_mirror_invoke_on2_test: Crash
-invocation_mirror_invoke_on_test: Crash
-invocation_mirror_test: Crash
-is_malformed_type_test/94: Crash
-is_malformed_type_test/96: Crash
-is_malformed_type_test/98: Crash
-is_object_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#evalCount) is stored in a closure field.
-issue10721_test: Crash
-issue10747_test: Crash
-issue13474_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#a) is stored in a closure field.
-issue14014_3_test: Crash
-issue14242_test: Crash
-issue15720_test: Crash
-issue21079_test: Crash
-issue23244_test: Crash
-issue4295001_test: Crash
-issue9602_test: Crash
+interceptor3_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
+invocation_mirror2_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+invocation_mirror_empty_arguments_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+invocation_mirror_invoke_on2_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+invocation_mirror_invoke_on_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+invocation_mirror_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
+is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
+is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
+is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
+is_object_test: RuntimeError
+issue10721_test: Crash # Assertion failure: Missing scope info for j:method(Iterator.moveNext).
+issue10747_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+issue13474_test: RuntimeError
+issue14014_3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+issue14242_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+issue15720_test: Crash # Assertion failure: Missing scope info for j:getter(SetMixin.length).
+issue21079_test: Crash # Assertion failure: Missing scope info for j:getter(Iterator.current).
+issue23244_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+issue4295001_test: Crash # Assertion failure: Cannot find value parameter(Issue4295001Test.#s) in (parameter(Issue4295001Test.#s), Instance of 'ThisLocal') for j:constructor_body(Issue4295001Test.).
+issue9602_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M._field)
 issue9939_test: RuntimeError
 issue_1751477_test: CompileTimeError
-issue_23914_test: Crash
-issue_25671a_test/01: Crash
-issue_25671b_test/01: Crash
-label_test: Crash
+issue_23914_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+issue_25671a_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
+issue_25671b_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
+label_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
-list_is_test: Crash
-list_literal3_test: Crash
+list_is_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+list_literal3_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
 list_literal4_test: RuntimeError
-list_test: Crash
+list_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 local_function3_test: RuntimeError
-local_function_test: Crash
-logical_expression_test: Crash
+local_function_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(LocalFunctionTest.testExecute#x), local(LocalFunctionTest.testExecute#)) for j:closure_call(LocalFunctionTest_testExecute_closure.call).
+logical_expression_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 main_not_a_function_test/01: CompileTimeError
-main_test/01: Crash
-main_test/02: Crash
-main_test/03: Crash
-main_test/04: Crash
-main_test/05: Crash
-main_test/20: Crash
-main_test/21: Crash
-main_test/22: Crash
-main_test/41: Crash
-main_test/42: Crash
-main_test/43: Crash
-main_test/44: Crash
-main_test/45: Crash
-malbounded_type_cast2_test: Crash
-malbounded_type_test2_test: Crash
-malformed_test/01: Crash
-malformed_test/02: Crash
-malformed_test/03: Crash
-malformed_test/04: Crash
+main_test/01: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+main_test/02: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+main_test/03: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+main_test/04: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+main_test/05: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+main_test/20: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+main_test/21: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+main_test/22: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+main_test/41: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+main_test/42: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+main_test/43: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+main_test/44: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+main_test/45: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+malbounded_type_cast2_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+malbounded_type_test2_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+malformed_test/01: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+malformed_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+malformed_test/03: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+malformed_test/04: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 malformed_test/06: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-malformed_test/none: Crash
-many_generic_instanceof_test: Crash
-many_named_arguments_test: Crash
-many_overridden_no_such_method_test: Crash
-map_literal10_test: Crash
-map_literal4_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-map_literal7_test: Crash
-map_literal8_test: Crash
-map_literal_syntax_test: Crash
-map_test: Crash
+malformed_test/none: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+many_named_arguments_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(ReflectionInfo.sortedIndex#name), local(ReflectionInfo.sortedIndex#)) for j:closure_call(ReflectionInfo_sortedIndex_closure.call).
+many_overridden_no_such_method_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+map_literal10_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+map_literal4_test: RuntimeError
+map_literal7_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+map_literal8_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+map_literal_syntax_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+map_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.containsValue#each), local(JsLinkedHashMap.containsValue#)) for j:closure_call(JsLinkedHashMap_containsValue_closure.call).
 method_name_test: CompileTimeError
 method_override4_test: RuntimeError
 method_override5_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
-method_override8_test/00: Crash
+method_override8_test/00: Crash # type 'ShadowField' is not a subtype of type 'Procedure' of 'value' where
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
-mixin_black_listed_test/02: Crash
-mixin_bound_test: Crash
-mixin_extends_field_test: Crash
-mixin_extends_is_test: Crash
-mixin_extends_method_test: Crash
-mixin_field_initializer_test: Crash
-mixin_field_test: Crash
-mixin_forwarding_constructor1_test: Crash
-mixin_forwarding_constructor2_test: Crash
-mixin_forwarding_constructor3_test: Crash
+mixin_black_listed_test/02: Crash # Assertion failure: Super constructor for k:constructor(D1.) not found.
+mixin_bound_test: Crash # Assertion failure: Missing scope info for j:getter(SubtractionWithStringConversion.operand1).
+mixin_extends_field_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
+mixin_extends_is_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
+mixin_extends_method_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
+mixin_field_initializer_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.m1)
+mixin_field_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M1.bar)
+mixin_forwarding_constructor1_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
+mixin_forwarding_constructor2_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
+mixin_forwarding_constructor3_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
-mixin_generic_test: Crash
-mixin_getter_regression_test: Crash
+mixin_generic_test: Crash # Assertion failure: Super constructor for k:constructor(C.) not found.
+mixin_getter_regression_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(C.x)
 mixin_illegal_super_use_test/01: MissingCompileTimeError
-mixin_illegal_super_use_test/02: Crash
-mixin_illegal_super_use_test/03: Crash
-mixin_illegal_super_use_test/04: Crash
-mixin_illegal_super_use_test/05: Crash
-mixin_illegal_super_use_test/06: Crash
-mixin_illegal_super_use_test/07: Crash
-mixin_illegal_super_use_test/08: Crash
-mixin_illegal_super_use_test/09: Crash
+mixin_illegal_super_use_test/02: Crash # NoSuchMethodError: The getter 'function' was called on null.
+mixin_illegal_super_use_test/03: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
+mixin_illegal_super_use_test/04: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(P0.foo#inner)) for j:closure_call(P0_foo_closure.call).
+mixin_illegal_super_use_test/05: Crash # NoSuchMethodError: The getter 'function' was called on null.
+mixin_illegal_super_use_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(P0.foo#inner)) for j:closure_call(P0_foo_closure.call).
+mixin_illegal_super_use_test/07: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(P0.foo#)) for j:closure_call(P0_foo_closure.call).
+mixin_illegal_super_use_test/08: Crash # NoSuchMethodError: The getter 'function' was called on null.
+mixin_illegal_super_use_test/09: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(P0.foo#)) for j:closure_call(P0_foo_closure.call).
 mixin_illegal_super_use_test/10: MissingCompileTimeError
 mixin_illegal_super_use_test/11: MissingCompileTimeError
 mixin_illegal_superclass_test/01: MissingCompileTimeError
@@ -979,34 +853,34 @@ mixin_illegal_superclass_test/14: MissingCompileTimeError
 mixin_illegal_superclass_test/15: MissingCompileTimeError
 mixin_illegal_superclass_test/16: MissingCompileTimeError
 mixin_illegal_superclass_test/17: MissingCompileTimeError
-mixin_illegal_superclass_test/18: Crash
+mixin_illegal_superclass_test/18: Crash # Assertion failure: Super constructor for k:constructor(D05.) not found.
 mixin_illegal_superclass_test/19: MissingCompileTimeError
-mixin_illegal_superclass_test/20: Crash
+mixin_illegal_superclass_test/20: Crash # Assertion failure: Super constructor for k:constructor(D07.) not found.
 mixin_illegal_superclass_test/21: MissingCompileTimeError
 mixin_illegal_superclass_test/22: MissingCompileTimeError
-mixin_illegal_superclass_test/23: Crash
+mixin_illegal_superclass_test/23: Crash # Assertion failure: Super constructor for k:constructor(D15.) not found.
 mixin_illegal_superclass_test/24: MissingCompileTimeError
-mixin_illegal_superclass_test/25: Crash
+mixin_illegal_superclass_test/25: Crash # Assertion failure: Super constructor for k:constructor(D17.) not found.
 mixin_illegal_superclass_test/26: MissingCompileTimeError
 mixin_illegal_superclass_test/27: MissingCompileTimeError
-mixin_illegal_superclass_test/28: Crash
+mixin_illegal_superclass_test/28: Crash # Assertion failure: Super constructor for k:constructor(D25.) not found.
 mixin_illegal_superclass_test/29: MissingCompileTimeError
-mixin_illegal_superclass_test/30: Crash
+mixin_illegal_superclass_test/30: Crash # Assertion failure: Super constructor for k:constructor(D27.) not found.
 mixin_issue10216_2_test: RuntimeError
-mixin_issue10216_test: Crash
-mixin_lib_extends_field_test: Crash
-mixin_lib_extends_method_test: Crash
+mixin_issue10216_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
+mixin_lib_extends_field_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
+mixin_lib_extends_method_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
 mixin_mixin2_test: RuntimeError
 mixin_mixin3_test: RuntimeError
 mixin_mixin4_test: RuntimeError
-mixin_mixin5_test: Crash
-mixin_mixin6_test: Crash
+mixin_mixin5_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+mixin_mixin6_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 mixin_mixin7_test: RuntimeError
-mixin_mixin_bound2_test: Crash
-mixin_mixin_bound_test: Crash
+mixin_mixin_bound2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+mixin_mixin_bound_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 mixin_mixin_test: RuntimeError
-mixin_mixin_type_arguments_test: Crash
-mixin_naming_test: Crash
+mixin_mixin_type_arguments_test: Crash # Assertion failure: Super constructor for k:constructor(CA.) not found.
+mixin_naming_test: Crash # Assertion failure: Super constructor for k:constructor(D.) not found.
 mixin_of_mixin_test/01: CompileTimeError
 mixin_of_mixin_test/02: CompileTimeError
 mixin_of_mixin_test/03: CompileTimeError
@@ -1030,22 +904,22 @@ mixin_of_mixin_test/20: CompileTimeError
 mixin_of_mixin_test/21: CompileTimeError
 mixin_of_mixin_test/22: CompileTimeError
 mixin_of_mixin_test/none: CompileTimeError
-mixin_only_for_rti_test: Crash
-mixin_prefix_test: Crash
-mixin_proto_test: Crash
-mixin_regress_11398_test: Crash
+mixin_only_for_rti_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+mixin_prefix_test: Crash # Assertion failure: Missing scope info for j:method(Converter.convert).
+mixin_proto_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(B.y)
+mixin_regress_11398_test: Crash # Assertion failure: Super constructor for k:constructor(HasValueB.) not found.
 mixin_super_2_test: CompileTimeError
 mixin_super_bound2_test/01: CompileTimeError
 mixin_super_bound2_test/none: CompileTimeError
-mixin_super_bound_test: Crash
-mixin_super_constructor2_test: Crash
-mixin_super_constructor_default_test: Crash
-mixin_super_constructor_multiple_test: Crash
-mixin_super_constructor_named_test/01: Crash
-mixin_super_constructor_named_test/none: Crash
-mixin_super_constructor_positionals_test/01: Crash
-mixin_super_constructor_positionals_test/none: Crash
-mixin_super_constructor_test: Crash
+mixin_super_bound_test: Crash # Assertion failure: Super constructor for k:constructor(MNA.) not found.
+mixin_super_constructor2_test: Crash # Assertion failure: Missing scope info for j:getter(M.i).
+mixin_super_constructor_default_test: Crash # Assertion failure: Missing scope info for j:getter(M.i).
+mixin_super_constructor_multiple_test: Crash # Assertion failure: Super constructor for k:constructor(C.foo) not found.
+mixin_super_constructor_named_test/01: Crash # Assertion failure: Missing scope info for j:getter(M.i).
+mixin_super_constructor_named_test/none: Crash # Assertion failure: Missing scope info for j:getter(M.i).
+mixin_super_constructor_positionals_test/01: Crash # Assertion failure: Missing scope info for j:getter(M.i).
+mixin_super_constructor_positionals_test/none: Crash # Assertion failure: Missing scope info for j:getter(M.i).
+mixin_super_constructor_test: Crash # Assertion failure: Missing scope info for j:getter(M.i).
 mixin_super_test: CompileTimeError
 mixin_super_use_test: CompileTimeError
 mixin_superclass_test: CompileTimeError
@@ -1073,19 +947,19 @@ mixin_supertype_subclass_test/03: CompileTimeError
 mixin_supertype_subclass_test/04: CompileTimeError
 mixin_supertype_subclass_test/05: CompileTimeError
 mixin_supertype_subclass_test/none: CompileTimeError
-mixin_type_parameter3_test: Crash
-mixin_type_parameter4_test: Crash
-mixin_type_parameter5_test: Crash
-mixin_type_parameter6_test: Crash
-mixin_type_parameters_simple_test: Crash
-mixin_type_variable_test/02: Crash
-mixin_type_variable_test/03: Crash
-mixin_type_variable_test/04: Crash
-mixin_type_variable_test/05: Crash
-mixin_type_variable_test/06: Crash
-mixin_type_variable_test/07: Crash
-mixin_type_variable_test/08: Crash
-mixin_typedef_constructor_test: Crash
+mixin_type_parameter3_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
+mixin_type_parameter4_test: Crash # 'package:js_ast/src/nodes.dart': Failed assertion: line 1316 pos 12: '_identifierRE.hasMatch(name)': is not true.
+mixin_type_parameter5_test: Crash # Assertion failure: Super constructor for k:constructor(C.) not found.
+mixin_type_parameter6_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+mixin_type_parameters_simple_test: Crash # Assertion failure: Super constructor for k:constructor(A.) not found.
+mixin_type_variable_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(A.field)
+mixin_type_variable_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(A.field)
+mixin_type_variable_test/04: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(A.field)
+mixin_type_variable_test/05: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(A.field)
+mixin_type_variable_test/06: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(A.field)
+mixin_type_variable_test/07: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(A.field)
+mixin_type_variable_test/08: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(A.field)
+mixin_typedef_constructor_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(Mixin.mixinField)
 modulo_test: RuntimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
@@ -1094,442 +968,330 @@ multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingRuntimeError
-named_parameters_default_eq_test/02: Crash
+named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_passing_falsy_test: RuntimeError
 named_parameters_passing_null_test: RuntimeError
 named_parameters_passing_zero_test: RuntimeError
 named_parameters_test/none: RuntimeError
-named_parameters_type_test/01: Crash
-named_parameters_type_test/02: Crash
-named_parameters_type_test/03: Crash
-named_parameters_with_conversions_test: Crash
+named_parameters_type_test/01: MissingRuntimeError
+named_parameters_type_test/02: MissingRuntimeError
+named_parameters_type_test/03: MissingRuntimeError
+named_parameters_with_conversions_test: RuntimeError
 named_parameters_with_dollars_test: RuntimeError
-naming_test: Crash
-nan_identical_test: Crash
-nested_switch_label_test: Crash
+naming_test: Crash # Assertion failure: Cannot find value parameter(Hoisting.negate#x) in (parameter(Hoisting.negate#x), Instance of 'ThisLocal') for j:constructor_body(Hoisting.negate).
+nan_identical_test: RuntimeError
+nested_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 308 pos 12: 'local != null': is not true.
 no_main_test/01: CompileTimeError
-no_such_method2_test: Crash
-no_such_method3_test: Crash
-no_such_method_dispatcher_test: Crash
-no_such_method_empty_selector_test: Crash
-no_such_method_subtype_test: Crash
-no_such_method_test: Crash
-not_enough_positional_arguments_test/01: Crash
-not_enough_positional_arguments_test/02: Crash
-not_enough_positional_arguments_test/05: Crash
-null_test/02: Crash
-null_test/03: Crash
-null_test/none: Crash
-number_identity2_test: Crash
+no_such_method2_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+no_such_method3_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+no_such_method_dispatcher_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+no_such_method_empty_selector_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+no_such_method_subtype_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+no_such_method_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+not_enough_positional_arguments_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 529 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+not_enough_positional_arguments_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 529 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+not_enough_positional_arguments_test/05: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 529 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+null_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(ReflectionInfo.sortedIndex#name), local(ReflectionInfo.sortedIndex#)) for j:closure_call(ReflectionInfo_sortedIndex_closure.call).
+null_test/03: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(ReflectionInfo.sortedIndex#name), local(ReflectionInfo.sortedIndex#)) for j:closure_call(ReflectionInfo_sortedIndex_closure.call).
+null_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(ReflectionInfo.sortedIndex#name), local(ReflectionInfo.sortedIndex#)) for j:closure_call(ReflectionInfo_sortedIndex_closure.call).
+number_identity2_test: RuntimeError
 numbers_test: RuntimeError
-ordered_maps_test: Crash
-overridden_no_such_method_test: Crash
-override_field_method1_negative_test: Crash
+ordered_maps_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.values#each), local(JsLinkedHashMap.values#)) for j:closure_call(JsLinkedHashMap_values_closure.call).
+overridden_no_such_method_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+override_field_method1_negative_test: Crash # type 'ShadowField' is not a subtype of type 'Procedure' of 'value' where
 override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
 override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
-override_inheritance_mixed_test/01: Crash
+override_inheritance_mixed_test/01: Crash # type 'ShadowField' is not a subtype of type 'Procedure' of 'value' where
 override_inheritance_mixed_test/02: MissingCompileTimeError
 override_inheritance_mixed_test/03: MissingCompileTimeError
 override_inheritance_mixed_test/04: MissingCompileTimeError
-override_inheritance_no_such_method_test/03: Crash
-override_inheritance_no_such_method_test/04: Crash
-override_inheritance_no_such_method_test/05: Crash
-override_inheritance_no_such_method_test/08: Crash
-override_inheritance_no_such_method_test/11: Crash
-override_inheritance_no_such_method_test/13: Crash
+override_inheritance_no_such_method_test/03: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+override_inheritance_no_such_method_test/04: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+override_inheritance_no_such_method_test/05: Crash # Assertion failure: Missing scope info for j:method(Class1.noSuchMethod).
+override_inheritance_no_such_method_test/08: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+override_inheritance_no_such_method_test/11: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+override_inheritance_no_such_method_test/13: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 override_method_with_field_test/01: MissingCompileTimeError
 parameter_types_specialization_test: RuntimeError
-parse_closures_in_initializers_test: Crash
-positional_parameters_type_test/01: Crash
-positional_parameters_type_test/02: Crash
-private_mixin2_test: Crash
-private_mixin_exception_throw_test: Crash
-private_super_constructor_test/01: Crash
-proxy4_test: Crash
-proxy5_test: Crash
+parse_closures_in_initializers_test: RuntimeError
+positional_parameters_type_test/01: MissingRuntimeError
+positional_parameters_type_test/02: MissingRuntimeError
+private_mixin2_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(C1._field)
+private_mixin_exception_throw_test: Crash # Assertion failure: Super constructor for k:constructor(_D.) not found.
+private_super_constructor_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 529 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+proxy4_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+proxy5_test: Crash # Assertion failure: Missing scope info for j:method(Mock.noSuchMethod).
 redirecting_constructor_initializer_test: RuntimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
-redirecting_factory_long_test: Crash
-redirecting_factory_reflection_test: Crash
-reg_exp_test: Crash
+redirecting_factory_long_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+redirecting_factory_reflection_test: Crash # Assertion failure: Missing scope info for j:getter(Iterator.current).
+reg_exp_test: Crash # Assertion failure: Missing scope info for j:getter(Iterator.current).
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
-regress_18535_test: Crash
-regress_18713_test: Crash
-regress_20394_test/01: Crash
-regress_20840_test: Crash
+regress_18535_test: Crash # Assertion failure: Missing scope info for j:getter(JsMirror._prettyName).
+regress_18713_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(S.sType)
+regress_20394_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 529 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+regress_20840_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(SomeClass.#o), local(SomeClass.#)) for j:closure_call(SomeClass_SomeClass_closure.call).
 regress_21795_test: RuntimeError
-regress_22438_test: Crash
+regress_22438_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 regress_22443_test: CompileTimeError
-regress_22445_test: Crash
-regress_22579_test: Crash
-regress_22666_test: Crash
-regress_22728_test: Crash
-regress_22777_test: Crash
+regress_22445_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+regress_22579_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+regress_22666_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(LinkedListEntry._list)
+regress_22728_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+regress_22777_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 regress_22936_test/01: RuntimeError
 regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError
 regress_22976_test/none: CompileTimeError
 regress_23408_test: CompileTimeError
-regress_23498_test: Crash
-regress_23500_test/01: Crash
-regress_23500_test/02: Crash
-regress_23500_test/none: Crash
-regress_23537_test: RuntimeError
-regress_23996_test: Crash
+regress_23498_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+regress_23500_test/01: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+regress_23500_test/02: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+regress_23500_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+regress_23537_test: Crash # RangeError (index): Invalid value: Not in range 0..1, inclusive: 2
+regress_23996_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 regress_24283_test: RuntimeError
-regress_24567_test: Crash
-regress_24935_test/01: Crash
-regress_24935_test/none: Crash
-regress_25246_1_test: Crash
-regress_25550_test: Crash
-regress_26133_test: Crash
-regress_26175_test: Crash
-regress_26230_test: Crash
-regress_26668_test: Crash
-regress_26948_test: Crash
-regress_27572_test: Crash
-regress_27617_test/1: Crash
-regress_27659_test: Crash
-regress_28217_test/01: Crash
-regress_28217_test/none: Crash
-regress_28255_test: Crash
+regress_24567_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+regress_24935_test/01: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+regress_24935_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+regress_25246_1_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(MixIn.test3)
+regress_25550_test: Crash # Assertion failure: Missing scope info for j:method(MockAdder.call).
+regress_26133_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+regress_26175_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+regress_26230_test: Crash # Assertion failure: Super constructor for k:constructor(_RenderTabBar.) not found.
+regress_26668_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+regress_26948_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+regress_27572_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
+regress_27659_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+regress_28217_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 529 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+regress_28217_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 529 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
+regress_28255_test: Crash # Assertion failure: Missing scope info for j:getter(Iterator.current).
 regress_28278_test: CompileTimeError
 regress_29349_test: CompileTimeError
-regress_29949_test: Crash
-regress_30121_test: Crash
-rewrite_implicit_this_test/01: Crash
-runtime_type_function_test: Crash
-setter_declaration2_negative_test: Crash
+regress_29949_test: Crash # Assertion failure: Super constructor for k:constructor(C.) not found.
+regress_30121_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+rewrite_implicit_this_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Foo.shadow_x_localInsideClosure#foo), local(Foo.shadow_x_localInsideClosure#x)) for j:closure_call(Foo_shadow_x_localInsideClosure_closure.call).
+runtime_type_function_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+setter_declaration2_negative_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 setter_declaration_negative_test: Fail
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-smaller_4_Interface_Types_A11_t02_test: Crash
+smaller_4_Interface_Types_A11_t02_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 stack_overflow_stacktrace_test: RuntimeError
-stack_trace_test: Crash
-stacktrace_demangle_ctors_test: Crash
-stacktrace_rethrow_error_test/none: Crash
-stacktrace_rethrow_error_test/withtraceparameter: Crash
-stacktrace_rethrow_nonerror_test: Crash
+stack_trace_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+stacktrace_demangle_ctors_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+stacktrace_rethrow_error_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+stacktrace_rethrow_error_test/withtraceparameter: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+stacktrace_rethrow_nonerror_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 stacktrace_test: RuntimeError
-statement_test: Crash
+statement_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 static_getter_no_setter1_test/01: RuntimeError
-static_getter_no_setter2_test/01: Crash
-static_getter_no_setter2_test/none: Crash
+static_getter_no_setter2_test/01: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+static_getter_no_setter2_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 static_getter_no_setter3_test/01: RuntimeError
-static_setter_get_test/01: Crash
+static_setter_get_test/01: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 string_join_test: RuntimeError
-string_split_test: Crash
+string_split_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 super_bound_closure_test/01: RuntimeError
 super_bound_closure_test/none: RuntimeError
-super_call4_test: Crash
-super_closure_test: Crash
-super_getter_setter_test: Crash
-super_no_such_method1_test/01: Crash
-super_no_such_method2_test/01: Crash
-super_no_such_method3_test/01: Crash
-super_no_such_method4_test/01: Crash
-super_no_such_method5_test/01: Crash
-super_operator_index5_test: Crash
-super_operator_index6_test: Crash
-super_operator_index7_test: Crash
-super_operator_index8_test: Crash
-super_operator_index_test/01: Crash
-super_operator_index_test/02: Crash
-super_operator_index_test/03: Crash
-super_operator_index_test/04: Crash
-super_operator_index_test/05: Crash
-super_operator_index_test/06: Crash
-super_operator_index_test/07: Crash
-super_operator_test: Crash
+super_call4_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_closure_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.buildClosures#)) for j:closure_call(Sub_buildClosures_closure.call).
+super_getter_setter_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+super_no_such_method1_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_no_such_method2_test/01: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+super_no_such_method3_test/01: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+super_no_such_method4_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_no_such_method5_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index5_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index6_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index7_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index8_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index_test/02: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index_test/03: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index_test/04: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index_test/05: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index_test/06: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index_test/07: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
 super_setter_interceptor_test: RuntimeError
-super_test: Crash
+super_test: RuntimeError
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
-switch_label2_test: Crash
-switch_label_test: Crash
-switch_try_catch_test: Crash
-symbol_conflict_test: Crash
-sync_generator1_test/01: Crash
-sync_generator1_test/none: Crash
-sync_generator2_test/none: Crash
-sync_generator3_test/test1: Crash
-sync_generator3_test/test2: Crash
-syncstar_less_than_test: Crash
-syncstar_yield_test/copyParameters: Crash
-syncstar_yield_test/none: Crash
-syncstar_yieldstar_test: Crash
-syntax_test/02: Crash
-syntax_test/03: Crash
-syntax_test/27: Crash
-syntax_test/49: Crash
-syntax_test/54: Crash
-syntax_test/59: Crash
-syntax_test/60: Crash
-syntax_test/61: Crash
-syntax_test/62: Crash
-syntax_test/none: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-temp_mangling_test: Crash
-top_level_getter_no_setter1_test/01: RuntimeError
-top_level_getter_no_setter2_test/01: RuntimeError
-truncdiv_test: RuntimeError
-try_catch_test/01: MissingCompileTimeError
-type_argument_substitution_test: Crash
-type_checks_in_factory_method_test: RuntimeError
-type_parameter_test/01: Crash
-type_parameter_test/02: Crash
-type_parameter_test/03: Crash
-type_parameter_test/04: Crash
-type_parameter_test/05: Crash
-type_parameter_test/06: Crash
-type_parameter_test/none: Crash
-type_propagation2_test: Crash
-type_variable_bounds3_test/00: Crash
-type_variable_bounds_test/10: Crash
-type_variable_closure2_test: Crash
-type_variable_closure3_test: Crash
-type_variable_closure4_test: Crash
-type_variable_closure_test: Crash
-type_variable_conflict2_test/01: Crash
-type_variable_conflict2_test/05: Crash
-type_variable_conflict2_test/07: Crash
-type_variable_conflict2_test/09: Crash
-type_variable_field_initializer_closure2_test: Crash
-type_variable_field_initializer_closure_test: Crash
-type_variable_function_type_test: RuntimeError
-type_variable_nested_test: Crash
-constructor12_test: RuntimeError
-constructor2_test: RuntimeError
-constructor3_test: RuntimeError
-constructor5_test: RuntimeError
-constructor8_test: RuntimeError
-example_constructor_test: RuntimeError
-execute_finally7_test: RuntimeError
-function_subtype_inline0_test: RuntimeError
-function_subtype_local3_test: RuntimeError
-function_subtype_local4_test: RuntimeError
-function_syntax_test/none: RuntimeError
-is_object_test: RuntimeError
-issue13474_test: RuntimeError
-map_literal4_test: RuntimeError
-named_parameters_default_eq_test/02: MissingCompileTimeError
-named_parameters_type_test/01: MissingRuntimeError
-named_parameters_type_test/02: MissingRuntimeError
-named_parameters_type_test/03: MissingRuntimeError
-named_parameters_with_conversions_test: RuntimeError
-nan_identical_test: RuntimeError
-number_identity2_test: RuntimeError
-parse_closures_in_initializers_test: RuntimeError
-positional_parameters_type_test/01: MissingRuntimeError
-positional_parameters_type_test/02: MissingRuntimeError
-regress_23537_test: Crash # RangeError (index): Invalid value: Not in range 0..1, inclusive: 2
-super_test: RuntimeError
+switch_label2_test: Crash # UnimplementedError: KernelToLocalsMapImpl.getJumpTargetForSwitchCase
+switch_label_test: Crash # UnimplementedError: KernelToLocalsMapImpl.getJumpTargetForSwitchCase
+switch_try_catch_test: Crash # UnimplementedError: KernelToLocalsMapImpl.getJumpTargetForSwitchCase
+symbol_conflict_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+sync_generator1_test/01: Crash # Assertion failure: Missing scope info for j:method(Iterator.moveNext).
+sync_generator1_test/none: Crash # Assertion failure: Missing scope info for j:method(Iterator.moveNext).
+sync_generator2_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+sync_generator3_test/test1: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+sync_generator3_test/test2: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+syncstar_less_than_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+syncstar_yield_test/copyParameters: Crash # Assertion failure: Missing scope info for j:method(Iterator.moveNext).
+syncstar_yield_test/none: Crash # Assertion failure: Missing scope info for j:method(Iterator.moveNext).
+syncstar_yieldstar_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+syntax_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+syntax_test/03: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+syntax_test/27: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/28: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/29: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/30: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/31: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/32: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/33: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-type_variable_initializer_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-wrong_number_type_arguments_test/00: Crash
-wrong_number_type_arguments_test/02: Crash
-yieldstar_pause_test: Crash
+syntax_test/49: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+syntax_test/54: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+syntax_test/59: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+syntax_test/60: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+syntax_test/61: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+syntax_test/62: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+syntax_test/none: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+temp_mangling_test: Crash # Assertion failure: Missing scope info for j:getter(SetMixin.length).
+top_level_getter_no_setter1_test/01: RuntimeError
+top_level_getter_no_setter2_test/01: RuntimeError
+truncdiv_test: RuntimeError
+try_catch_test/01: MissingCompileTimeError
+type_argument_substitution_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+type_checks_in_factory_method_test: RuntimeError
+type_parameter_test/01: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
+type_parameter_test/02: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
+type_parameter_test/03: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
+type_parameter_test/04: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
+type_parameter_test/05: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
+type_parameter_test/06: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
+type_parameter_test/none: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
+type_propagation2_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+type_variable_bounds3_test/00: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+type_variable_bounds_test/10: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+type_variable_closure2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+type_variable_closure3_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
+type_variable_closure4_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+type_variable_closure_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+type_variable_conflict2_test/01: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+type_variable_conflict2_test/05: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+type_variable_conflict2_test/07: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+type_variable_conflict2_test/09: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+type_variable_field_initializer_closure2_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
+type_variable_field_initializer_closure_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
+type_variable_function_type_test: RuntimeError
+wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+yieldstar_pause_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-async_await_test: Crash
-async_star_test: Crash
-async_switch_test/none: Crash
-async_switch_test/withDefault: Crash
-async_test/none: Crash
-async_test/type-mismatch1: Crash
-async_test/type-mismatch2: Crash
-async_test/type-mismatch3: Crash
-async_test/type-mismatch4: Crash
-async_this_bound_test: Crash
-async_throw_in_catch_test/forceAwait: Crash
-async_throw_in_catch_test/none: Crash
-asyncstar_concat_test: Crash
-asyncstar_throw_in_catch_test: Crash
-asyncstar_yield_test: Crash
-asyncstar_yieldstar_test: Crash
-await_backwards_compatibility_test/none: Crash
-await_exceptions_test: Crash
-await_for_cancel_test: Crash
-await_for_test: Crash
-await_for_use_local_test: Crash
-await_future_test: Crash
-await_nonfuture_test: Crash
-await_not_started_immediately_test: Crash
-await_null_aware_test: Crash
-await_postfix_expr_test: Crash
-await_regression_test: Crash
-await_test: Crash
-bad_constructor_test/05: Crash
-bad_constructor_test/none: Crash
-bad_named_parameters2_test/01: Crash
-bad_named_parameters2_test/none: Crash
-bad_named_parameters_test/01: Crash
-bad_named_parameters_test/02: Crash
-bad_named_parameters_test/03: Crash
-bad_named_parameters_test/04: Crash
-bad_named_parameters_test/05: Crash
-bad_named_parameters_test/none: Crash
-bad_override_test/01: Crash
-bad_override_test/02: Crash
-bad_override_test/03: Crash
-bad_override_test/04: Crash
-bad_override_test/05: Crash
-bad_override_test/06: Crash
-bad_override_test/none: Crash
-bad_typedef_test/none: Crash
-bailout2_test: Crash
-bailout3_test: Crash
-bailout4_test: Crash
-bailout5_test: Crash
-bailout6_test: Crash
-bailout7_test: Crash
-bailout_container_type_test: Crash
-bailout_test: Crash
-bind_test: Crash
-bit_operations_test/01: Crash
-bit_operations_test/02: Crash
-bit_operations_test/03: Crash
-bit_operations_test/04: Crash
-bit_operations_test/none: Crash
-bit_shift_test: Crash
-black_listed_test/none: Crash
-bool_check_test: Crash
-bool_condition_check_test/01: Crash
-bool_test: Crash
-bound_closure_equality_test: Crash
-bound_closure_primitives_test: Crash
-branch_canonicalization_test: Crash
-branches_test: Crash
-break_test: Crash
-call_closurization_test: Crash
-call_constructor_on_unresolvable_class_test/07: Crash
-call_function_apply_test: Crash
-call_nonexistent_constructor_test/01: Crash
-call_nonexistent_constructor_test/02: Crash
-call_nonexistent_constructor_test/none: Crash
-call_nonexistent_static_test/01: Crash
-call_nonexistent_static_test/02: Crash
-call_nonexistent_static_test/03: Crash
-call_nonexistent_static_test/04: Crash
-call_nonexistent_static_test/05: Crash
-call_nonexistent_static_test/06: Crash
-call_nonexistent_static_test/07: Crash
-call_nonexistent_static_test/08: Crash
-call_nonexistent_static_test/09: Crash
-call_nonexistent_static_test/10: Crash
-call_nonexistent_static_test/none: Crash
-call_operator_test: Crash
-call_test: Crash
-call_through_getter_test: Crash
-call_through_null_getter_test: Crash
-call_type_literal_test/01: Crash
-call_with_no_such_method_test: Crash
-canonical_const2_test: Crash
-canonical_const3_test: Crash
-canonical_const_test: Crash
-cascade2_test: Crash
-cascade_in_expression_function_test: Crash
-cascade_precedence_test: Crash
-cascade_test/none: Crash
-cast_test/04: Crash
-cast_test/05: Crash
-cast_test/none: Crash
-catch_liveness_test: Crash
-cha_deopt1_test: CompileTimeError
-cha_deopt2_test: CompileTimeError
-cha_deopt3_test: CompileTimeError
+async_await_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_star_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_switch_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_switch_test/withDefault: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_test/type-mismatch1: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_test/type-mismatch2: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_test/type-mismatch3: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_test/type-mismatch4: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_this_bound_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_throw_in_catch_test/forceAwait: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_throw_in_catch_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+asyncstar_concat_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+asyncstar_throw_in_catch_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+asyncstar_yield_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+asyncstar_yieldstar_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+await_backwards_compatibility_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+await_exceptions_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+await_for_cancel_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+await_for_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+await_for_use_local_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+await_future_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+await_nonfuture_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+await_not_started_immediately_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+await_null_aware_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+await_postfix_expr_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+await_regression_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+await_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 check_member_static_test/02: MissingCompileTimeError
-class_cycle_test/02: MissingCompileTimeError
-class_cycle_test/03: MissingCompileTimeError
-closure_in_field_test/01: Crash
-closure_in_field_test/02: Crash
+closure_in_field_test/01: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+closure_in_field_test/02: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 closure_in_field_test/none: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-compile_time_constant_a_test: Crash
-compile_time_constant_b_test: Crash
-compile_time_constant_c_test/02: Crash
 compile_time_constant_m_test: RuntimeError
-compile_time_constant_p_test/01: Crash
+compile_time_constant_p_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
 const_conditional_test/08: MissingCompileTimeError
-const_constructor_nonconst_field_test/01: Crash
-const_constructor_syntax_test/05: Crash
-const_error_multiply_initialized_test/01: Crash
-const_error_multiply_initialized_test/02: Crash
-const_error_multiply_initialized_test/03: Crash
-const_error_multiply_initialized_test/04: Crash
-const_evaluation_test/01: Crash
+const_constructor_nonconst_field_test/01: Crash # UnimplementedError: Unimplemented constant expression #lib1::f() (ShadowStaticInvocation)
+const_constructor_syntax_test/05: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+const_error_multiply_initialized_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+const_error_multiply_initialized_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+const_error_multiply_initialized_test/03: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+const_error_multiply_initialized_test/04: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+const_evaluation_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 const_factory_with_body_test/01: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
-const_map_test: Crash
-const_optional_args_negative_test: Crash
+const_map_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+const_optional_args_negative_test: Crash # UnimplementedError: Unimplemented constant expression <dynamic, dynamic>{} (ShadowMapLiteral)
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
 const_syntax_test/05: MissingCompileTimeError
-const_syntax_test/08: Crash
-const_syntax_test/09: Crash
+const_syntax_test/08: Crash # Stack Overflow
+const_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_syntax_test/10: MissingCompileTimeError
-const_types_test/01: Crash
-const_types_test/02: Crash
-const_types_test/03: Crash
-const_types_test/04: Crash
-const_types_test/05: Crash
-const_types_test/06: Crash
-const_types_test/13: Crash
-const_types_test/31: Crash
-const_types_test/32: Crash
-const_types_test/33: Crash
-const_types_test/34: Crash
-const_types_test/35: Crash
-const_types_test/36: Crash
-const_types_test/37: Crash
-const_types_test/38: Crash
-const_types_test/39: Crash
-const_types_test/40: Crash
-const_types_test/none: Crash
+const_types_test/01: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+const_types_test/02: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+const_types_test/03: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+const_types_test/04: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+const_types_test/05: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+const_types_test/06: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+const_types_test/13: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+const_types_test/31: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+const_types_test/32: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+const_types_test/33: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+const_types_test/34: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+const_types_test/35: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+const_types_test/36: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+const_types_test/37: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+const_types_test/38: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+const_types_test/39: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+const_types_test/40: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+const_types_test/none: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
 constants_test/05: MissingCompileTimeError
-constructor12_test: Crash
-constructor2_test: Crash
-constructor3_test: Crash
-constructor5_test: Crash
-constructor6_test: Crash
-constructor8_test: Crash
-constructor_duplicate_final_test/01: Crash
-constructor_duplicate_final_test/02: Crash
-constructor_duplicate_final_test/03: Crash
+constructor12_test: RuntimeError
+constructor2_test: RuntimeError
+constructor3_test: RuntimeError
+constructor5_test: RuntimeError
+constructor6_test: Crash # Assertion failure: Cannot find value parameter(A.#arg) in (parameter(C.#x), parameter(C.#y), parameter(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
+constructor8_test: RuntimeError
+constructor_duplicate_final_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+constructor_duplicate_final_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+constructor_duplicate_final_test/03: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 constructor_named_arguments_test/none: RuntimeError
-constructor_redirect1_negative_test: Crash
-constructor_redirect2_negative_test: Crash
+constructor_redirect1_negative_test: Crash # Stack Overflow
+constructor_redirect2_negative_test: Crash # Stack Overflow
 constructor_redirect2_test/01: MissingCompileTimeError
-constructor_redirect_test/01: Crash
-crash_6725_test/01: Crash
-ct_const_test: Crash
-custom_await_stack_trace_test: Crash
-cyclic_constructor_test/01: Crash
-cyclic_default_values_test: Crash
-cyclic_type2_test: Crash
+constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(A.named2#x), parameter(A.named2#y), parameter(A.named2#z)) for j:constructor(A.named2).
+crash_6725_test/01: Crash # NoSuchMethodError: The method 'startsWith' was called on null.
+ct_const_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+custom_await_stack_trace_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+cyclic_constructor_test/01: Crash # Stack Overflow
+cyclic_default_values_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
+cyclic_type2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 cyclic_type_test/00: RuntimeError
 cyclic_type_test/01: RuntimeError
 cyclic_type_test/02: RuntimeError
 cyclic_type_test/03: RuntimeError
 cyclic_type_test/04: RuntimeError
-dangling_else_test: Crash
+dangling_else_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: CompileTimeError
 deferred_constant_list_test: CompileTimeError
@@ -1568,18 +1330,17 @@ deferred_load_library_wrong_args_test/none: CompileTimeError
 deferred_mixin_test: CompileTimeError
 deferred_no_prefix_test/01: MissingCompileTimeError
 deferred_no_such_method_test: CompileTimeError
-deferred_not_loaded_check_test: Crash
 deferred_not_loaded_check_test: RuntimeError
 deferred_only_constant_test: CompileTimeError
 deferred_optimized_test: CompileTimeError
 deferred_redirecting_factory_test: CompileTimeError
 deferred_regression_22995_test: CompileTimeError
 deferred_regression_28678_test: CompileTimeError
-deferred_shadow_load_library_test: Crash
+deferred_shadow_load_library_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 deferred_shared_and_unshared_classes_test: CompileTimeError
 deferred_static_seperate_test: CompileTimeError
 deferred_super_dependency_test/01: CompileTimeError
-deferred_super_dependency_test/none: Crash
+deferred_super_dependency_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 deferred_type_dependency_test/as: CompileTimeError
 deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
@@ -1592,214 +1353,180 @@ duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
-efficient_length_warning_test: Crash
-enum_duplicate_test/01: Crash
+efficient_length_warning_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+enum_duplicate_test/01: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
 enum_duplicate_test/02: RuntimeError
 enum_duplicate_test/none: RuntimeError
-enum_mirror_test: Crash
+enum_mirror_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 enum_private_test/01: RuntimeError
 enum_private_test/02: RuntimeError
 enum_private_test/none: RuntimeError
 enum_test: RuntimeError
-example_constructor_test: Crash
+example_constructor_test: RuntimeError
 execute_finally7_test: RuntimeError
-exhaustive_for_test: Crash
+exhaustive_for_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 expect_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
 f_bounded_quantification4_test: RuntimeError
 f_bounded_quantification5_test: RuntimeError
-factory2_test: Crash
+factory2_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
 factory_redirection_test/07: MissingCompileTimeError
-factory_redirection_test/08: Crash
-factory_redirection_test/09: Crash
-factory_redirection_test/10: Crash
-factory_redirection_test/11: Crash
-factory_redirection_test/12: Crash
-factory_redirection_test/13: Crash
-factory_redirection_test/14: Crash
-factory_redirection_test/none: Crash
+factory_redirection_test/08: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/09: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/10: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/11: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/12: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/13: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/14: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
-field_increment_bailout_test: Crash
+field_increment_bailout_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 field_initialization_order_test: RuntimeError
 field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
-final_attempt_reinitialization_test/01: Crash
-final_attempt_reinitialization_test/02: Crash
+final_attempt_reinitialization_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+final_attempt_reinitialization_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 final_field_initialization_order_test: RuntimeError
-final_super_field_set_test/01: Crash
-final_syntax_test/09: Crash
-first_class_types_literals_test/01: Crash
-first_class_types_literals_test/02: Crash
-first_class_types_literals_test/03: Crash
-first_class_types_literals_test/04: Crash
-first_class_types_literals_test/05: Crash
-first_class_types_literals_test/06: Crash
-first_class_types_literals_test/07: Crash
-first_class_types_literals_test/08: Crash
-first_class_types_literals_test/09: Crash
-first_class_types_literals_test/10: Crash
-first_class_types_literals_test/11: Crash
-first_class_types_literals_test/12: Crash
-first_class_types_literals_test/none: Crash
-flatten_test/01: Crash
-flatten_test/02: Crash
-flatten_test/03: Crash
-flatten_test/04: Crash
-flatten_test/05: Crash
-flatten_test/06: Crash
-flatten_test/07: Crash
-flatten_test/08: Crash
-flatten_test/09: Crash
-flatten_test/10: Crash
-flatten_test/11: Crash
-flatten_test/12: Crash
-flatten_test/none: Crash
-for_in2_test: Crash
-for_variable_capture_test: Crash
-full_stacktrace1_test: Crash
-full_stacktrace2_test: Crash
-full_stacktrace3_test: Crash
-function_subtype_bound_closure6_test: Crash
-function_subtype_cast2_test: Crash
-function_subtype_cast3_test: Crash
-function_subtype_checked0_test: Crash
-function_subtype_closure0_test: Crash
-function_subtype_closure1_test: Crash
-function_subtype_inline0_test: Crash
-function_subtype_inline1_test: Crash
-function_subtype_local3_test: Crash
-function_subtype_local4_test: Crash
-function_subtype_not3_test: Crash
-function_subtype_typearg1_test: Crash
-function_subtype_typearg2_test: Crash
-function_subtype_typearg3_test: Crash
-function_subtype_typearg4_test: Crash
-function_subtype_typearg5_test: Crash
-function_syntax_test/none: Crash
-function_test: Crash
-function_type_alias3_test: Crash
-function_type_parameter2_negative_test: Crash
-function_type_parameter_negative_test: Crash
-generic_local_functions_test: Crash
-generic_methods_generic_function_parameter_test: Crash
-generic_methods_test: Crash
-generic_methods_type_expression_test/01: Crash
-generic_methods_type_expression_test/03: Crash
-generic_methods_type_expression_test/none: Crash
-generic_native_test: Crash
-generic_syntax_test: Crash
-generic_test: RuntimeError
-getter_no_setter2_test/00: RuntimeError
-getter_no_setter2_test/03: RuntimeError
-getter_no_setter_test/00: RuntimeError
-getter_no_setter_test/none: RuntimeError
-getter_override2_test/02: MissingCompileTimeError
-getter_override_test/00: MissingCompileTimeError
-getter_override_test/01: MissingCompileTimeError
-getter_override_test/02: MissingCompileTimeError
-hash_map_null_key_foreach_test: RuntimeError
-identical_closure2_test: RuntimeError
-if_null_assignment_behavior_test/01: Crash
-if_null_assignment_behavior_test/02: Crash
-if_null_assignment_behavior_test/03: Crash
-if_null_assignment_behavior_test/04: Crash
-if_null_assignment_behavior_test/05: Crash
-if_null_assignment_behavior_test/06: Crash
-if_null_assignment_behavior_test/12: RuntimeError
-if_null_assignment_behavior_test/14: RuntimeError
-if_null_assignment_static_test/01: RuntimeError
-if_null_assignment_static_test/02: Crash
-if_null_assignment_static_test/03: RuntimeError
-if_null_assignment_static_test/04: RuntimeError
-if_null_assignment_static_test/05: RuntimeError
-if_null_assignment_static_test/06: Crash
-implicit_closure2_test: Crash
-implicit_closure_test: Crash
-implicit_this_test/01: Crash
-implicit_this_test/04: Crash
-implicit_this_test/none: Crash
-import_collection_no_prefix_test: Crash
-inference_mixin_field_test: Crash
-infinite_switch_label_test: Crash
+final_super_field_set_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+final_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+first_class_types_literals_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+first_class_types_literals_test/02: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+first_class_types_literals_test/03: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+first_class_types_literals_test/04: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+first_class_types_literals_test/05: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+first_class_types_literals_test/06: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+first_class_types_literals_test/07: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+first_class_types_literals_test/08: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+first_class_types_literals_test/09: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+first_class_types_literals_test/10: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+first_class_types_literals_test/11: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+first_class_types_literals_test/12: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+first_class_types_literals_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+flatten_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+flatten_test/02: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+flatten_test/03: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+flatten_test/04: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+flatten_test/05: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+flatten_test/06: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+flatten_test/07: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+flatten_test/08: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+flatten_test/09: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+flatten_test/10: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+flatten_test/11: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+flatten_test/12: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+flatten_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+for_in2_test: Crash # NoSuchMethodError: The method 'startsWith' was called on null.
+for_variable_capture_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+full_stacktrace1_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+full_stacktrace2_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+full_stacktrace3_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+function_subtype_bound_closure6_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.test#localMethod)) for j:closure_call(C_test_closure.call).
+function_subtype_cast2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+function_subtype_cast3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+function_subtype_checked0_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.test#)) for j:closure_call(C_test_closure.call).
+function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_closure1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_inline0_test: RuntimeError
+function_subtype_inline1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_local3_test: RuntimeError
+function_subtype_local4_test: RuntimeError
+function_subtype_not3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+function_subtype_typearg1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_typearg2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_typearg3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_typearg4_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_typearg5_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_syntax_test/none: RuntimeError
+function_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(FunctionTest.testThisBinding#)) for j:closure_call(FunctionTest_testThisBinding_closure.call).
+function_type_alias3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
+function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
+implicit_closure2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.foo#)) for j:closure_call(A_foo_closure.call).
+implicit_closure_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(First.foo1#local)) for j:closure_call(First_foo1_closure.call).
+implicit_this_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+implicit_this_test/04: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+implicit_this_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+import_collection_no_prefix_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+inference_mixin_field_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
-inline_super_field_test: Crash
-inlined_throw_test: Crash
-instance_creation_in_function_annotation_test: Crash
-instanceof4_test/01: Crash
-instanceof4_test/none: Crash
+inline_super_field_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+inlined_throw_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+instance_creation_in_function_annotation_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+instanceof4_test/01: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+instanceof4_test/none: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 integer_division_by_zero_test: RuntimeError
-interceptor3_test: Crash
-internal_library_test/02: Crash
-invocation_mirror2_test: Crash
-invocation_mirror_empty_arguments_test: Crash
-invocation_mirror_invoke_on2_test: Crash
-invocation_mirror_invoke_on_test: Crash
-invocation_mirror_test: Crash
-is_malformed_type_test/94: Crash
-is_malformed_type_test/96: Crash
-is_malformed_type_test/98: Crash
+interceptor3_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
+invocation_mirror2_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+invocation_mirror_empty_arguments_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+invocation_mirror_invoke_on2_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+invocation_mirror_invoke_on_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+invocation_mirror_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
+is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
+is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
+is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
 is_object_test: RuntimeError
-issue10721_test: Crash
-issue10747_test: Crash
+issue10721_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+issue10747_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 issue13474_test: RuntimeError
-issue14014_3_test: Crash
-issue14242_test: Crash
-issue15720_test: Crash
-issue21079_test: Crash
-issue23244_test: Crash
-issue4295001_test: Crash
-issue9602_test: Crash
+issue14014_3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+issue14242_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+issue15720_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+issue21079_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+issue23244_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+issue4295001_test: Crash # Assertion failure: Cannot find value parameter(Issue4295001Test.#s) in (parameter(Issue4295001Test.#s), Instance of 'ThisLocal') for j:constructor_body(Issue4295001Test.).
+issue9602_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 issue9939_test: RuntimeError
 issue_1751477_test: CompileTimeError
-issue_23914_test: Crash
-issue_25671a_test/01: Crash
-issue_25671b_test/01: Crash
-label_test: Crash
+issue_23914_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+issue_25671a_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
+issue_25671b_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
+label_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
-list_is_test: Crash
-list_literal3_test: Crash
+list_is_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+list_literal3_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
 list_literal4_test: RuntimeError
-list_test: Crash
+list_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 local_function3_test: RuntimeError
-local_function_test: Crash
-logical_expression_test: Crash
+local_function_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(LocalFunctionTest.testExecute#x), local(LocalFunctionTest.testExecute#)) for j:closure_call(LocalFunctionTest_testExecute_closure.call).
+logical_expression_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 main_not_a_function_test/01: CompileTimeError
-main_test/01: Crash
-main_test/02: Crash
-main_test/03: Crash
-main_test/04: Crash
-main_test/05: Crash
-main_test/20: Crash
-main_test/21: Crash
-main_test/22: Crash
-main_test/41: Crash
-main_test/42: Crash
-main_test/43: Crash
-main_test/44: Crash
-main_test/45: Crash
-malbounded_type_cast2_test: Crash
-malbounded_type_test2_test: Crash
+main_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+main_test/02: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+main_test/03: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+main_test/04: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+main_test/05: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+main_test/20: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+main_test/21: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+main_test/22: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+main_test/41: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+main_test/42: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+main_test/43: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+main_test/44: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+main_test/45: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+malbounded_type_cast2_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+malbounded_type_test2_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 malformed_test/06: CompileTimeError
 malformed_test/none: RuntimeError
-many_generic_instanceof_test: Crash
-many_named_arguments_test: Crash
-many_overridden_no_such_method_test: Crash
-map_literal10_test: Crash
+many_named_arguments_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(ReflectionInfo.sortedIndex#name), local(ReflectionInfo.sortedIndex#)) for j:closure_call(ReflectionInfo_sortedIndex_closure.call).
+many_overridden_no_such_method_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+map_literal10_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 map_literal4_test: RuntimeError
-map_literal7_test: Crash
-map_literal8_test: Crash
-map_literal_syntax_test: Crash
-map_test: Crash
+map_literal7_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+map_literal8_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+map_literal_syntax_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+map_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.containsValue#each), local(JsLinkedHashMap.containsValue#)) for j:closure_call(JsLinkedHashMap_containsValue_closure.call).
 method_name_test: CompileTimeError
 method_override4_test: RuntimeError
 method_override5_test: RuntimeError
@@ -1809,30 +1536,30 @@ method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
-mixin_black_listed_test/02: Crash
-mixin_bound_test: Crash
-mixin_extends_field_test: Crash
-mixin_extends_is_test: Crash
-mixin_extends_method_test: Crash
-mixin_field_initializer_test: Crash
-mixin_field_test: Crash
-mixin_forwarding_constructor1_test: Crash
-mixin_forwarding_constructor2_test: Crash
-mixin_forwarding_constructor3_test: Crash
+mixin_black_listed_test/02: Crash # Assertion failure: Super constructor for k:constructor(D1.) not found.
+mixin_bound_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+mixin_extends_field_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
+mixin_extends_is_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
+mixin_extends_method_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
+mixin_field_initializer_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+mixin_field_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+mixin_forwarding_constructor1_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
+mixin_forwarding_constructor2_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
+mixin_forwarding_constructor3_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
-mixin_generic_test: Crash
-mixin_getter_regression_test: Crash
+mixin_generic_test: Crash # Assertion failure: Super constructor for k:constructor(C.) not found.
+mixin_getter_regression_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 mixin_illegal_super_use_test/01: MissingCompileTimeError
-mixin_illegal_super_use_test/02: Crash
-mixin_illegal_super_use_test/03: Crash
-mixin_illegal_super_use_test/04: Crash
-mixin_illegal_super_use_test/05: Crash
-mixin_illegal_super_use_test/06: Crash
-mixin_illegal_super_use_test/07: Crash
-mixin_illegal_super_use_test/08: Crash
-mixin_illegal_super_use_test/09: Crash
+mixin_illegal_super_use_test/02: Crash # NoSuchMethodError: The getter 'function' was called on null.
+mixin_illegal_super_use_test/03: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
+mixin_illegal_super_use_test/04: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(P0.foo#inner)) for j:closure_call(P0_foo_closure.call).
+mixin_illegal_super_use_test/05: Crash # NoSuchMethodError: The getter 'function' was called on null.
+mixin_illegal_super_use_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(P0.foo#inner)) for j:closure_call(P0_foo_closure.call).
+mixin_illegal_super_use_test/07: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(P0.foo#)) for j:closure_call(P0_foo_closure.call).
+mixin_illegal_super_use_test/08: Crash # NoSuchMethodError: The getter 'function' was called on null.
+mixin_illegal_super_use_test/09: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(P0.foo#)) for j:closure_call(P0_foo_closure.call).
 mixin_illegal_super_use_test/10: MissingCompileTimeError
 mixin_illegal_super_use_test/11: MissingCompileTimeError
 mixin_illegal_superclass_test/01: MissingCompileTimeError
@@ -1852,34 +1579,34 @@ mixin_illegal_superclass_test/14: MissingCompileTimeError
 mixin_illegal_superclass_test/15: MissingCompileTimeError
 mixin_illegal_superclass_test/16: MissingCompileTimeError
 mixin_illegal_superclass_test/17: MissingCompileTimeError
-mixin_illegal_superclass_test/18: Crash
+mixin_illegal_superclass_test/18: Crash # Assertion failure: Super constructor for k:constructor(D05.) not found.
 mixin_illegal_superclass_test/19: MissingCompileTimeError
-mixin_illegal_superclass_test/20: Crash
+mixin_illegal_superclass_test/20: Crash # Assertion failure: Super constructor for k:constructor(D07.) not found.
 mixin_illegal_superclass_test/21: MissingCompileTimeError
 mixin_illegal_superclass_test/22: MissingCompileTimeError
-mixin_illegal_superclass_test/23: Crash
+mixin_illegal_superclass_test/23: Crash # Assertion failure: Super constructor for k:constructor(D15.) not found.
 mixin_illegal_superclass_test/24: MissingCompileTimeError
-mixin_illegal_superclass_test/25: Crash
+mixin_illegal_superclass_test/25: Crash # Assertion failure: Super constructor for k:constructor(D17.) not found.
 mixin_illegal_superclass_test/26: MissingCompileTimeError
 mixin_illegal_superclass_test/27: MissingCompileTimeError
-mixin_illegal_superclass_test/28: Crash
+mixin_illegal_superclass_test/28: Crash # Assertion failure: Super constructor for k:constructor(D25.) not found.
 mixin_illegal_superclass_test/29: MissingCompileTimeError
-mixin_illegal_superclass_test/30: Crash
+mixin_illegal_superclass_test/30: Crash # Assertion failure: Super constructor for k:constructor(D27.) not found.
 mixin_issue10216_2_test: RuntimeError
-mixin_issue10216_test: Crash
-mixin_lib_extends_field_test: Crash
-mixin_lib_extends_method_test: Crash
+mixin_issue10216_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
+mixin_lib_extends_field_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
+mixin_lib_extends_method_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
 mixin_mixin2_test: RuntimeError
 mixin_mixin3_test: RuntimeError
 mixin_mixin4_test: RuntimeError
-mixin_mixin5_test: Crash
-mixin_mixin6_test: Crash
+mixin_mixin5_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+mixin_mixin6_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 mixin_mixin7_test: RuntimeError
-mixin_mixin_bound2_test: Crash
-mixin_mixin_bound_test: Crash
+mixin_mixin_bound2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+mixin_mixin_bound_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 mixin_mixin_test: RuntimeError
-mixin_mixin_type_arguments_test: Crash
-mixin_naming_test: Crash
+mixin_mixin_type_arguments_test: Crash # Assertion failure: Super constructor for k:constructor(CA.) not found.
+mixin_naming_test: Crash # Assertion failure: Super constructor for k:constructor(D.) not found.
 mixin_of_mixin_test/01: CompileTimeError
 mixin_of_mixin_test/02: CompileTimeError
 mixin_of_mixin_test/03: CompileTimeError
@@ -1903,22 +1630,22 @@ mixin_of_mixin_test/20: CompileTimeError
 mixin_of_mixin_test/21: CompileTimeError
 mixin_of_mixin_test/22: CompileTimeError
 mixin_of_mixin_test/none: CompileTimeError
-mixin_only_for_rti_test: Crash
-mixin_prefix_test: Crash
-mixin_proto_test: Crash
-mixin_regress_11398_test: Crash
+mixin_only_for_rti_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+mixin_prefix_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+mixin_proto_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+mixin_regress_11398_test: Crash # Assertion failure: Super constructor for k:constructor(HasValueB.) not found.
 mixin_super_2_test: CompileTimeError
 mixin_super_bound2_test/01: CompileTimeError
 mixin_super_bound2_test/none: CompileTimeError
-mixin_super_bound_test: Crash
-mixin_super_constructor2_test: Crash
-mixin_super_constructor_default_test: Crash
-mixin_super_constructor_multiple_test: Crash
-mixin_super_constructor_named_test/01: Crash
-mixin_super_constructor_named_test/none: Crash
-mixin_super_constructor_positionals_test/01: Crash
-mixin_super_constructor_positionals_test/none: Crash
-mixin_super_constructor_test: Crash
+mixin_super_bound_test: Crash # Assertion failure: Super constructor for k:constructor(MNA.) not found.
+mixin_super_constructor2_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+mixin_super_constructor_default_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+mixin_super_constructor_multiple_test: Crash # Assertion failure: Super constructor for k:constructor(C.foo) not found.
+mixin_super_constructor_named_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+mixin_super_constructor_named_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+mixin_super_constructor_positionals_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+mixin_super_constructor_positionals_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+mixin_super_constructor_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 mixin_super_test: CompileTimeError
 mixin_super_use_test: CompileTimeError
 mixin_superclass_test: CompileTimeError
@@ -1946,18 +1673,18 @@ mixin_supertype_subclass_test/03: CompileTimeError
 mixin_supertype_subclass_test/04: CompileTimeError
 mixin_supertype_subclass_test/05: CompileTimeError
 mixin_supertype_subclass_test/none: CompileTimeError
-mixin_type_parameter3_test: Crash
-mixin_type_parameter5_test: Crash
-mixin_type_parameter6_test: Crash
-mixin_type_parameters_simple_test: Crash
-mixin_type_variable_test/02: Crash
-mixin_type_variable_test/03: Crash
-mixin_type_variable_test/04: Crash
-mixin_type_variable_test/05: Crash
-mixin_type_variable_test/06: Crash
-mixin_type_variable_test/07: Crash
-mixin_type_variable_test/08: Crash
-mixin_typedef_constructor_test: Crash
+mixin_type_parameter3_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
+mixin_type_parameter5_test: Crash # Assertion failure: Super constructor for k:constructor(C.) not found.
+mixin_type_parameter6_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+mixin_type_parameters_simple_test: Crash # Assertion failure: Super constructor for k:constructor(A.) not found.
+mixin_type_variable_test/02: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+mixin_type_variable_test/03: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+mixin_type_variable_test/04: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+mixin_type_variable_test/05: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+mixin_type_variable_test/06: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+mixin_type_variable_test/07: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+mixin_type_variable_test/08: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+mixin_typedef_constructor_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 modulo_test: RuntimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
@@ -1966,33 +1693,33 @@ multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingRuntimeError
-named_parameters_default_eq_test/02: Crash
+named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_passing_falsy_test: RuntimeError
 named_parameters_passing_null_test: RuntimeError
 named_parameters_passing_zero_test: RuntimeError
 named_parameters_test/none: RuntimeError
-named_parameters_type_test/01: Crash
-named_parameters_type_test/02: Crash
-named_parameters_type_test/03: Crash
-named_parameters_with_conversions_test: Crash
+named_parameters_type_test/01: MissingRuntimeError
+named_parameters_type_test/02: MissingRuntimeError
+named_parameters_type_test/03: MissingRuntimeError
+named_parameters_with_conversions_test: RuntimeError
 named_parameters_with_dollars_test: RuntimeError
-naming_test: Crash
-nan_identical_test: Crash
-nested_switch_label_test: Crash
+naming_test: Crash # Assertion failure: Cannot find value parameter(Hoisting.negate#x) in (parameter(Hoisting.negate#x), Instance of 'ThisLocal') for j:constructor_body(Hoisting.negate).
+nan_identical_test: RuntimeError
+nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
-no_such_method2_test: Crash
-no_such_method3_test: Crash
-no_such_method_dispatcher_test: Crash
-no_such_method_empty_selector_test: Crash
-no_such_method_subtype_test: Crash
-no_such_method_test: Crash
-null_test/02: Crash
-null_test/03: Crash
-null_test/none: Crash
-number_identity2_test: Crash
+no_such_method2_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+no_such_method3_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+no_such_method_dispatcher_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+no_such_method_empty_selector_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+no_such_method_subtype_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+no_such_method_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+null_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(ReflectionInfo.sortedIndex#name), local(ReflectionInfo.sortedIndex#)) for j:closure_call(ReflectionInfo_sortedIndex_closure.call).
+null_test/03: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(ReflectionInfo.sortedIndex#name), local(ReflectionInfo.sortedIndex#)) for j:closure_call(ReflectionInfo_sortedIndex_closure.call).
+null_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(ReflectionInfo.sortedIndex#name), local(ReflectionInfo.sortedIndex#)) for j:closure_call(ReflectionInfo_sortedIndex_closure.call).
+number_identity2_test: RuntimeError
 numbers_test: RuntimeError
-ordered_maps_test: Crash
-overridden_no_such_method_test: Crash
+ordered_maps_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.values#each), local(JsLinkedHashMap.values#)) for j:closure_call(JsLinkedHashMap_values_closure.call).
+overridden_no_such_method_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
@@ -2002,89 +1729,87 @@ override_inheritance_mixed_test/01: MissingCompileTimeError
 override_inheritance_mixed_test/02: MissingCompileTimeError
 override_inheritance_mixed_test/03: MissingCompileTimeError
 override_inheritance_mixed_test/04: MissingCompileTimeError
-override_inheritance_no_such_method_test/03: Crash
-override_inheritance_no_such_method_test/04: Crash
-override_inheritance_no_such_method_test/05: Crash
-override_inheritance_no_such_method_test/08: Crash
-override_inheritance_no_such_method_test/11: Crash
-override_inheritance_no_such_method_test/13: Crash
+override_inheritance_no_such_method_test/03: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+override_inheritance_no_such_method_test/04: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+override_inheritance_no_such_method_test/05: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+override_inheritance_no_such_method_test/08: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+override_inheritance_no_such_method_test/11: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+override_inheritance_no_such_method_test/13: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 override_method_with_field_test/01: MissingCompileTimeError
 parameter_types_specialization_test: RuntimeError
-parse_closures_in_initializers_test: Crash
-positional_parameters_type_test/01: Crash
-positional_parameters_type_test/02: Crash
-private_mixin2_test: Crash
-private_mixin_exception_throw_test: Crash
+parse_closures_in_initializers_test: RuntimeError
+positional_parameters_type_test/01: MissingRuntimeError
+positional_parameters_type_test/02: MissingRuntimeError
+private_mixin2_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+private_mixin_exception_throw_test: Crash # Assertion failure: Super constructor for k:constructor(_D.) not found.
 private_super_constructor_test/01: MissingCompileTimeError
-proxy4_test: Crash
-proxy5_test: Crash
+proxy4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+proxy5_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 redirecting_constructor_initializer_test: RuntimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
-redirecting_factory_long_test: Crash
-redirecting_factory_reflection_test: Crash
-reexport_core_test: Crash
-reg_exp_test: Crash
+redirecting_factory_long_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+redirecting_factory_reflection_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+reg_exp_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
-regress_18535_test: Crash
-regress_18713_test: Crash
+regress_18535_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+regress_18713_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 regress_20394_test/01: MissingCompileTimeError
-regress_20840_test: Crash
+regress_20840_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(SomeClass.#o), local(SomeClass.#)) for j:closure_call(SomeClass_SomeClass_closure.call).
 regress_21795_test: RuntimeError
-regress_22438_test: Crash
+regress_22438_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_22443_test: CompileTimeError
-regress_22445_test: Crash
-regress_22579_test: Crash
-regress_22666_test: Crash
-regress_22728_test: Crash
-regress_22777_test: Crash
+regress_22445_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+regress_22579_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+regress_22666_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+regress_22728_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+regress_22777_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_22936_test/01: RuntimeError
 regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError
 regress_22976_test/none: CompileTimeError
 regress_23408_test: CompileTimeError
-regress_23498_test: Crash
-regress_23500_test/01: Crash
-regress_23500_test/02: Crash
-regress_23500_test/none: Crash
-regress_23537_test: Crash
-regress_23537_test: RuntimeError
-regress_23996_test: Crash
+regress_23498_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+regress_23500_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+regress_23500_test/02: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+regress_23500_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+regress_23537_test: Crash # RangeError (index): Invalid value: Not in range 0..1, inclusive: 2
+regress_23996_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_24283_test: RuntimeError
-regress_24567_test: Crash
-regress_24935_test/01: Crash
-regress_24935_test/none: Crash
-regress_25246_1_test: Crash
-regress_25550_test: Crash
-regress_26133_test: Crash
-regress_26175_test: Crash
-regress_26230_test: Crash
-regress_26668_test: Crash
-regress_26948_test: Crash
-regress_27572_test: Crash
-regress_27617_test/1: Crash
-regress_27659_test: Crash
+regress_24567_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+regress_24935_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+regress_24935_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+regress_25246_1_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+regress_25550_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+regress_26133_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+regress_26175_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+regress_26230_test: Crash # Assertion failure: Super constructor for k:constructor(_RenderTabBar.) not found.
+regress_26668_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+regress_26948_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+regress_27572_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
+regress_27659_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
-regress_28255_test: Crash
+regress_28255_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_28278_test: CompileTimeError
 regress_29349_test: CompileTimeError
-regress_29949_test: Crash
-regress_30121_test: Crash
-rewrite_implicit_this_test/01: Crash
-runtime_type_function_test: Crash
-setter_declaration2_negative_test: Crash
+regress_29949_test: Crash # Assertion failure: Super constructor for k:constructor(C.) not found.
+regress_30121_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+rewrite_implicit_this_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Foo.shadow_x_localInsideClosure#foo), local(Foo.shadow_x_localInsideClosure#x)) for j:closure_call(Foo_shadow_x_localInsideClosure_closure.call).
+runtime_type_function_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+setter_declaration2_negative_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 setter_declaration_negative_test: Fail
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-smaller_4_Interface_Types_A11_t02_test: Crash
+smaller_4_Interface_Types_A11_t02_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 stack_overflow_stacktrace_test: RuntimeError
-stack_trace_test: Crash
-stacktrace_demangle_ctors_test: Crash
-stacktrace_rethrow_error_test/none: Crash
-stacktrace_rethrow_error_test/withtraceparameter: Crash
-stacktrace_rethrow_nonerror_test: Crash
+stack_trace_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+stacktrace_demangle_ctors_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+stacktrace_rethrow_error_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+stacktrace_rethrow_error_test/withtraceparameter: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+stacktrace_rethrow_nonerror_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 stacktrace_test: RuntimeError
 statement_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 static_getter_no_setter1_test/01: RuntimeError
@@ -2093,96 +1818,76 @@ static_getter_no_setter2_test/none: Crash # NoSuchMethodError: The getter 'thisL
 static_getter_no_setter3_test/01: RuntimeError
 static_setter_get_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 string_join_test: RuntimeError
-string_split_test: Crash
+string_split_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 super_bound_closure_test/01: RuntimeError
 super_bound_closure_test/none: RuntimeError
-super_call4_test: Crash
-super_closure_test: Crash
-super_getter_setter_test: Crash
-super_no_such_method1_test/01: Crash
-super_no_such_method2_test/01: Crash
-super_no_such_method3_test/01: Crash
-super_no_such_method4_test/01: Crash
-super_no_such_method5_test/01: Crash
-super_operator_index5_test: Crash
-super_operator_index6_test: Crash
-super_operator_index7_test: Crash
-super_operator_index8_test: Crash
-super_operator_index_test/01: Crash
-super_operator_index_test/02: Crash
-super_operator_index_test/03: Crash
-super_operator_index_test/04: Crash
-super_operator_index_test/05: Crash
-super_operator_index_test/06: Crash
-super_operator_index_test/07: Crash
-super_operator_test: Crash
+super_call4_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_closure_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.buildClosures#)) for j:closure_call(Sub_buildClosures_closure.call).
+super_getter_setter_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+super_no_such_method1_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_no_such_method2_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+super_no_such_method3_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+super_no_such_method4_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_no_such_method5_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index5_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index6_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index7_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index8_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index_test/01: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index_test/02: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index_test/03: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index_test/04: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index_test/05: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index_test/06: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_index_test/07: Crash # NoSuchMethodError: The getter 'function' was called on null.
+super_operator_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
 super_setter_interceptor_test: RuntimeError
-super_test: Crash
+super_test: RuntimeError
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
-switch_label2_test: Crash
-switch_label_test: Crash
-switch_try_catch_test: Crash
-symbol_conflict_test: Crash
-sync_generator1_test/01: Crash
-sync_generator1_test/none: Crash
-sync_generator2_test/none: Crash
-sync_generator3_test/test1: Crash
-sync_generator3_test/test2: Crash
-syncstar_less_than_test: Crash
-syncstar_yield_test/copyParameters: Crash
-syncstar_yield_test/none: Crash
-syncstar_yieldstar_test: Crash
+switch_label2_test: Crash # UnimplementedError: KernelToLocalsMapImpl.getJumpTargetForSwitchCase
+switch_label_test: Crash # UnimplementedError: KernelToLocalsMapImpl.getJumpTargetForSwitchCase
+switch_try_catch_test: Crash # UnimplementedError: KernelToLocalsMapImpl.getJumpTargetForSwitchCase
+symbol_conflict_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+sync_generator1_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+sync_generator1_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+sync_generator2_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+sync_generator3_test/test1: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+sync_generator3_test/test2: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+syncstar_less_than_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+syncstar_yield_test/copyParameters: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+syncstar_yield_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+syncstar_yieldstar_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 syntax_test/none: CompileTimeError
-temp_mangling_test: Crash
+temp_mangling_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 top_level_getter_no_setter1_test/01: RuntimeError
 top_level_getter_no_setter2_test/01: RuntimeError
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
-type_argument_substitution_test: Crash
+type_argument_substitution_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 type_checks_in_factory_method_test: RuntimeError
-type_parameter_test/01: Crash
-type_parameter_test/02: Crash
-type_parameter_test/03: Crash
-type_parameter_test/04: Crash
-type_parameter_test/05: Crash
-type_parameter_test/06: Crash
-type_parameter_test/none: Crash
-type_propagation2_test: Crash
-type_variable_bounds3_test/00: Crash
-type_variable_closure2_test: Crash
-type_variable_closure3_test: Crash
-type_variable_closure4_test: Crash
-type_variable_closure_test: Crash
-type_variable_conflict2_test/01: Crash
-type_variable_conflict2_test/05: Crash
-type_variable_conflict2_test/07: Crash
-type_variable_conflict2_test/09: Crash
-type_variable_field_initializer_closure2_test: Crash
-type_variable_field_initializer_closure_test: Crash
+type_parameter_test/01: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
+type_parameter_test/02: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
+type_parameter_test/03: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
+type_parameter_test/04: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
+type_parameter_test/05: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
+type_parameter_test/06: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
+type_parameter_test/none: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
+type_propagation2_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+type_variable_bounds3_test/00: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+type_variable_closure2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+type_variable_closure3_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
+type_variable_closure4_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+type_variable_closure_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+type_variable_conflict2_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+type_variable_conflict2_test/05: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+type_variable_conflict2_test/07: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+type_variable_conflict2_test/09: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+type_variable_field_initializer_closure2_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
+type_variable_field_initializer_closure_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
 type_variable_function_type_test: RuntimeError
-constructor12_test: RuntimeError
-constructor2_test: RuntimeError
-constructor3_test: RuntimeError
-constructor5_test: RuntimeError
-constructor8_test: RuntimeError
-example_constructor_test: RuntimeError
-function_subtype_inline0_test: RuntimeError
-function_subtype_local3_test: RuntimeError
-function_subtype_local4_test: RuntimeError
-function_syntax_test/none: RuntimeError
-named_parameters_default_eq_test/02: MissingCompileTimeError
-named_parameters_type_test/01: MissingRuntimeError
-named_parameters_type_test/02: MissingRuntimeError
-named_parameters_type_test/03: MissingRuntimeError
-named_parameters_with_conversions_test: RuntimeError
-nan_identical_test: RuntimeError
-number_identity2_test: RuntimeError
-parse_closures_in_initializers_test: RuntimeError
-positional_parameters_type_test/01: MissingRuntimeError
-positional_parameters_type_test/02: MissingRuntimeError
-super_test: RuntimeError
-yieldstar_pause_test: Crash
+yieldstar_pause_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+
