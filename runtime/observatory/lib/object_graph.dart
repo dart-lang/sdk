@@ -444,6 +444,9 @@ class ObjectGraph {
   MergedObjectVertex get mergedRoot => new MergedObjectVertex._(ROOT, this);
   Iterable<ObjectVertex> get vertices => new _VerticesIterable(this);
 
+  int get numCids => _numCids;
+  int getOwnedByCid(int cid) => _ownedSizesByCid[cid];
+
   Iterable<ObjectVertex> getMostRetained({int classId, int limit}) {
     List<ObjectVertex> _mostRetained =
         new List<ObjectVertex>.from(vertices.where((u) => !u.isRoot));
@@ -468,26 +471,29 @@ class ObjectGraph {
       controller.add(["Remapping $_N objects...", 0.0]);
       await new Future(() => _remapNodes());
 
-      controller.add(["Remapping $_E references...", 15.0]);
+      controller.add(["Remapping $_E references...", 10.0]);
       await new Future(() => _remapEdges());
 
       _addrToId = null;
       _chunks = null;
 
-      controller.add(["Finding depth-first order...", 30.0]);
+      controller.add(["Finding depth-first order...", 20.0]);
       await new Future(() => _dfs());
 
-      controller.add(["Finding predecessors...", 40.0]);
+      controller.add(["Finding predecessors...", 30.0]);
       await new Future(() => _buildPredecessors());
 
-      controller.add(["Finding dominators...", 50.0]);
+      controller.add(["Finding dominators...", 40.0]);
       await new Future(() => _buildDominators());
-
-      _firstPreds = null;
-      _preds = null;
 
       _semi = null;
       _parent = null;
+
+      controller.add(["Finding in-degree(1) groups...", 50.0]);
+      await new Future(() => _buildOwnedSizes());
+
+      _firstPreds = null;
+      _preds = null;
 
       controller.add(["Finding retained sizes...", 60.0]);
       await new Future(() => _calculateRetainedSizes());
@@ -513,6 +519,8 @@ class ObjectGraph {
 
   int _kObjectAlignment;
   int _kStackCid;
+  int _kFieldCid;
+  int _numCids;
   int _N; // Objects in the snapshot.
   int _Nconnected; // Objects reachable from root.
   int _E; // References in the snapshot.
@@ -542,6 +550,7 @@ class ObjectGraph {
   Uint32List _retainedSizes;
   Uint32List _mergedDomHead;
   Uint32List _mergedDomNext;
+  Uint32List _ownedSizesByCid;
 
   void _remapNodes() {
     var N = _N;
@@ -559,6 +568,10 @@ class ObjectGraph {
     _kObjectAlignment = stream.clampedUint32;
     stream.readUnsigned();
     _kStackCid = stream.clampedUint32;
+    stream.readUnsigned();
+    _kFieldCid = stream.clampedUint32;
+    stream.readUnsigned();
+    _numCids = stream.clampedUint32;
 
     var id = ROOT;
     while (id <= N) {
@@ -613,6 +626,8 @@ class ObjectGraph {
     var stream = new ReadStream(_chunks);
     stream.skipUnsigned(); // kObjectAlignment
     stream.skipUnsigned(); // kStackCid
+    stream.skipUnsigned(); // kFieldCid
+    stream.skipUnsigned(); // numCids
 
     var id = 1, edge = 0;
     while (id <= N) {
@@ -789,6 +804,75 @@ class ObjectGraph {
 
     _firstPreds = firstPreds;
     _preds = preds;
+  }
+
+  // Fold the size of any object with in-degree(1) into its parent.
+  // Requires the DFS numbering and predecessor lists.
+  void _buildOwnedSizes() {
+    var N = _N;
+    var Nconnected = _Nconnected;
+    var kStackCid = _kStackCid;
+    var kFieldCid = _kFieldCid;
+
+    var cids = _cids;
+    var shallowSizes = _shallowSizes;
+    var externalSizes = _externalSizes;
+    var vertex = _vertex;
+    var firstPreds = _firstPreds;
+    var preds = _preds;
+
+    var ownedSizes = new Uint32List(N + 1);
+    for (var i = 1; i <= Nconnected; i++) {
+      var v = vertex[i];
+      ownedSizes[v] = shallowSizes[v] + externalSizes[v];
+      assert((ownedSizes[v] != 0) || cids[v] == kStackCid || v == ROOT);
+    }
+
+    for (var i = Nconnected; i > 1; i--) {
+      var w = vertex[i];
+      assert(w != ROOT);
+
+      var onlyPred = SENTINEL;
+
+      var startPred = firstPreds[w];
+      var limitPred = firstPreds[w + 1];
+      for (var predIndex = startPred; predIndex < limitPred; predIndex++) {
+        var v = preds[predIndex];
+        if (v == w) {
+          // Ignore self-predecessor.
+        } else if (onlyPred == SENTINEL) {
+          onlyPred = v;
+        } else if (onlyPred == v) {
+          // Repeated predecessor.
+        } else {
+          // Multiple-predecessors.
+          onlyPred = SENTINEL;
+          break;
+        }
+      }
+
+      // If this object has a single precessor which is not a Field, Stack or
+      // the root, blame its size against the precessor.
+      if ((onlyPred != SENTINEL) &&
+          (onlyPred != ROOT) &&
+          (cids[onlyPred] != kStackCid) &&
+          (cids[onlyPred] != kFieldCid)) {
+        assert(ownedSizes[w] != 0);
+        ownedSizes[onlyPred] += ownedSizes[w];
+        ownedSizes[w] = 0;
+      }
+    }
+
+    // TODO(rmacnak): Maybe keep the per-objects sizes to be able to provide
+    // examples of large owners for each class.
+    var ownedSizesByCid = new Uint32List(_numCids);
+    for (var i = 1; i <= Nconnected; i++) {
+      var v = vertex[i];
+      var cid = cids[v];
+      ownedSizesByCid[cid] += ownedSizes[v];
+    }
+
+    _ownedSizesByCid = ownedSizesByCid;
   }
 
   static int _eval(int v, Uint32List ancestor, Uint32List semi,

@@ -13,6 +13,7 @@ class HeapSnapshot implements M.HeapSnapshot {
   HeapSnapshotDominatorNode dominatorTree;
   HeapSnapshotMergedDominatorNode mergedDominatorTree;
   List<MergedVertex> classReferences;
+  List<HeapSnapshotOwnershipClass> ownershipClasses;
 
   static Future sleep([Duration duration = const Duration(microseconds: 0)]) {
     final Completer completer = new Completer();
@@ -40,6 +41,7 @@ class HeapSnapshot implements M.HeapSnapshot {
       mergedDominatorTree =
           new HeapSnapshotMergedDominatorNode(isolate, graph.mergedRoot);
       classReferences = await buildMergedVertices(isolate, graph, signal);
+      ownershipClasses = buildOwnershipClasses(isolate, graph);
       progress.close();
     }());
     return progress.stream;
@@ -98,6 +100,18 @@ class HeapSnapshot implements M.HeapSnapshot {
       }
     }
     return cidToMergedVertex.values.toList();
+  }
+
+  buildOwnershipClasses(S.Isolate isolate, ObjectGraph graph) {
+    var numCids = graph.numCids;
+    var classes = new List();
+    for (var cid = 0; cid < numCids; cid++) {
+      var size = graph.getOwnedByCid(cid);
+      if (size != 0) {
+        classes.add(new HeapSnapshotOwnershipClass(cid, isolate, size));
+      }
+    }
+    return classes;
   }
 
   List<Future<S.ServiceObject>> getMostRetained(S.Isolate isolate,
@@ -266,4 +280,13 @@ class HeapSnapshotClassOutbound implements M.HeapSnapshotClassOutbound {
   int get retainedSize => edge.retainedSize;
 
   HeapSnapshotClassOutbound(this.vertex, this.edge);
+}
+
+class HeapSnapshotOwnershipClass implements M.HeapSnapshotOwnershipClass {
+  final int cid;
+  final S.Isolate isolate;
+  S.Class get clazz => isolate.getClassByCid(cid);
+  final int size;
+
+  HeapSnapshotOwnershipClass(this.cid, this.isolate, this.size);
 }

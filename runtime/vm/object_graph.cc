@@ -635,6 +635,8 @@ intptr_t ObjectGraph::Serialize(WriteStream* stream,
 
   stream->WriteUnsigned(kObjectAlignment);
   stream->WriteUnsigned(kStackCid);
+  stream->WriteUnsigned(kFieldCid);
+  stream->WriteUnsigned(isolate()->class_table()->NumCids());
 
   if (roots == kVM) {
     // Write root "object".
