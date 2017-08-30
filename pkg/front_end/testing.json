@@ -117,7 +117,8 @@
         "\\.dart$"
       ],
       "exclude": [
-        "/shaker/lib/lib.dart"
+        "/shaker/lib/.*\\.dart$",
+        "/shaker/.*_lib\\.dart$"
       ]
     },
 

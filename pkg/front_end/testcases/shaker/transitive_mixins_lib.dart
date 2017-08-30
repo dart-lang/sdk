@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'lib/lib.dart';
+class A {}
 
-/// Kernel directly represents this as a type, so typedef is not preserved.
-foo(Typedef1<dynamic> x) => null;
+class B {}
 
-bar(Typedef2 x) => null;
+class C extends Object with A implements B {}
+
+class D {}

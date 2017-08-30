@@ -108,14 +108,12 @@ class BuildProgram
         await dillTarget.buildOutlines();
 
         var inputUri = description.uri;
-        var libUri = inputUri.resolve('lib/lib.dart');
-        sourceTarget.read(libUri);
         sourceTarget.read(inputUri);
         var contents = new File.fromUri(inputUri).readAsStringSync();
         var showCoreLibraries = contents.contains("@@SHOW_CORE_LIBRARIES@@");
         await sourceTarget.buildOutlines();
         var program = await sourceTarget.buildProgram();
-        bool isIncluded(Uri uri) => !_isTreeShaken(uri);
+        bool isIncluded(Uri uri) => uri == inputUri;
         trimProgram(program, isIncluded);
         return pass(
             new _IntermediateData(inputUri, program, showCoreLibraries));
@@ -168,7 +166,7 @@ class CheckShaker extends Step<_IntermediateData, String, ChainContext> {
     buffer.writeln('Tree-shaker preserved the following:');
     for (var library in program.libraries) {
       var importUri = library.importUri;
-      if (!_isTreeShaken(importUri)) continue;
+      if (importUri == entryUri) continue;
       if (importUri.isScheme('dart') && !data.showCoreLibraries) continue;
       String uri = relativizeUri(library.importUri);
       buffer.writeln('\nlibrary $uri:');
@@ -217,12 +215,3 @@ $buffer""");
     }
   }
 }
-
-/// A special library used only to test the shaker. The suite above will
-/// tree-shake the contents of this library.
-const _specialLibraryPath = 'pkg/front_end/testcases/shaker/lib/lib.dart';
-
-/// Tree-shake dart:* libraries and the library under [_specialLibraryPath].
-bool _isTreeShaken(Uri uri) =>
-    uri.isScheme('dart') ||
-    Uri.base.resolveUri(uri).path.endsWith(_specialLibraryPath);

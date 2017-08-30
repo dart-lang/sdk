@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'lib/lib.dart';
+class A {}
 
-/// We preserve K because it is mentioned in a type.
-K foo() => null;
+class B<T extends A> {}
+
+class C {}
