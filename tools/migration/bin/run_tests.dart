@@ -58,11 +58,38 @@ final allConfigs = {
   "analyzer-checked-strong": [analyzer, noRuntime, checked, strong, useSdk],
   "analyzer-strong": [analyzer, noRuntime, strong, useSdk],
   "dart2js": [dart2js, chrome, useSdk, dart2jsBatch],
-  "dart2js-d8-checked": [dart2js, d8, checked, fastStartup, useSdk, dart2jsBatch],
+  "dart2js-d8-checked": [
+    dart2js,
+    d8,
+    checked,
+    fastStartup,
+    useSdk,
+    dart2jsBatch
+  ],
   "dart2js-jsshell": [dart2js, jsshell, fastStartup, useSdk, dart2jsBatch],
   // TODO(rnystrom): Is it worth running dart2js on Firefox too?
   "dartdevc": [dartdevc, chrome, useSdk, strong],
 };
+
+/// A subset of the configurations that run quickly and give a decent amount of
+/// coverage for the platforms that do not implement Dart 2.0 yet.
+final oneConfigs = const [
+  "vm",
+  "vm-checked",
+  "analyzer",
+  "analyzer-checked",
+  "dart2js",
+  "dart2js-d8-checked",
+  "dartdevc",
+];
+
+/// The configurations that should correctly implement Dart 2.0 (more or less)
+/// already.
+final twoConfigs = const [
+  "analyzer-checked-strong",
+  "analyzer-strong",
+  "dartdevc"
+];
 
 final buildSteps = [
   // The SDK, which also builds the VM.
@@ -83,6 +110,10 @@ Future<Null> main(List<String> arguments) async {
   argParser.addOption("config",
       abbr: "c", allowMultiple: true, help: "Which configurations to run.");
   argParser.addFlag("help");
+  argParser.addFlag("1",
+      abbr: "1", help: "Run some of the 1.0-supporting configurations.");
+  argParser.addFlag("2",
+      abbr: "2", help: "Run the 2.0-supporting configurations.");
 
   var argResults = argParser.parse(arguments);
   if (argResults["help"] as bool) {
@@ -90,25 +121,38 @@ Future<Null> main(List<String> arguments) async {
     return;
   }
 
-  var remainingArgs = []..addAll(argResults.rest);
+  String start;
+  String end;
 
-  if (remainingArgs.length == 1) {
-    remainingArgs.add(remainingArgs.first);
-  }
-
-  if (remainingArgs.length != 2) {
+  if (argResults.rest.length == 1) {
+    // Just run a single test.
+    start = argResults.rest[0];
+    end = start;
+  } else if (argResults.rest.length == 2) {
+    start = argResults.rest[0];
+    end = argResults.rest[1];
+  } else {
     usage(argParser);
     exit(1);
   }
 
   var build = argResults["build"] as bool;
   var configs = argResults["config"] as List<String>;
-  if (configs.isEmpty) configs = allConfigs.keys.toList();
+
+  if (argResults["1"] as bool) {
+    configs.addAll(oneConfigs);
+  }
+
+  if (argResults["2"] as bool) {
+    configs.addAll(twoConfigs);
+  }
+
+  if (configs.isEmpty) configs.addAll(allConfigs.keys);
 
   var tests = scanTests();
 
-  var startIndex = findFork(tests, remainingArgs[0]);
-  var endIndex = findFork(tests, remainingArgs[1]);
+  var startIndex = findFork(tests, start);
+  var endIndex = findFork(tests, end);
 
   if (startIndex == null || endIndex == null) exit(1);
 
@@ -165,6 +209,8 @@ Future<Null> main(List<String> arguments) async {
     } else {
       passed.add(name);
     }
+
+    print("");
   }
 
   if (failed.length == 0) {
@@ -188,7 +234,7 @@ Future<Null> main(List<String> arguments) async {
 }
 
 void usage(ArgParser parser) {
-  print("Usage: dart run_tests.dart [--build] [--configs=...] "
+  print("Usage: dart run_tests.dart [--build] [-2] [-1] [--configs=...]"
       "<first file> [last file]");
   print("\n");
   print("Example:");
