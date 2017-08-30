@@ -8,7 +8,7 @@ reload_sources_test: Pass, Slow # Reload is slow on the bots
 get_retained_size_rpc_test: Pass, RuntimeError # Issue 28193
 pause_on_start_and_exit_test: Pass, RuntimeError # Issue 28624
 pause_on_start_then_step_test: Pass, RuntimeError # Issue 28624
-isolate_lifecycle_test: Pass, RuntimeError # Issue 24174
+isolate_lifecycle_test: Pass, RuntimeError, Timeout # Issue 24174
 field_script_test: Pass, RuntimeError
 get_isolate_rpc_test: Pass, RuntimeError # Issue 29324
 issue_30555_test: Pass, RuntimeError
