@@ -24,6 +24,7 @@ mirrors/deferred_mirrors_test: CompileTimeError
 mirrors/deferred_mirrors_metadata_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/deferred_mirrors_update_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/mirrors_test: Crash
 
 [ $compiler == dartk && $runtime == vm ]
 mirrors/class_mirror_location_test: RuntimeError
