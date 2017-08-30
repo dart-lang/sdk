@@ -175,6 +175,23 @@ if_null_assignment_static_test/41: MissingCompileTimeError
 if_null_assignment_static_test/42: MissingCompileTimeError
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
+type_variable_nested_test/01: RuntimeError
+type_variable_promotion_test: RuntimeError
+type_variable_scope_test/00: MissingCompileTimeError
+type_variable_scope_test/01: MissingCompileTimeError
+type_variable_scope_test/02: MissingCompileTimeError
+type_variable_scope_test/03: MissingCompileTimeError
+type_variable_scope_test/04: MissingCompileTimeError
+type_variable_scope_test/05: MissingCompileTimeError
+type_variable_scope2_test: MissingCompileTimeError
+type_variable_static_context_test: MissingCompileTimeError
+typed_selector2_test: MissingCompileTimeError
+unbound_getter_test: MissingCompileTimeError
+unresolved_default_constructor_test/01: MissingCompileTimeError
+unresolved_in_factory_test: MissingCompileTimeError
+unresolved_top_level_method_test: MissingCompileTimeError
+unresolved_top_level_var_test: MissingCompileTimeError
+vm/async_await_catch_stacktrace_test: RuntimeError
 
 [ $compiler == dart2js && !$minified && $runtime != d8]
 generic_methods_local_variable_declaration_test: RuntimeError
@@ -556,6 +573,9 @@ if_null_assignment_static_test/06: Crash
 many_generic_instanceof_test: Crash
 regress_30339_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_awaitOnObject_closure.call), j:closure_call(_awaitOnObject_closure.call))
 typevariable_substitution2_test/02: RuntimeError
+type_variable_nested_test: Crash
+typecheck_multifield_declaration_test: Crash
+typedef_is_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 abstract_exact_selector_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
@@ -745,6 +765,9 @@ if_null_assignment_static_test/06: Crash
 many_generic_instanceof_test: Crash
 regress_30339_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 typevariable_substitution2_test/02: RuntimeError
+type_variable_nested_test: Crash
+typecheck_multifield_declaration_test: Crash
+typedef_is_test: Crash
 
 [ $compiler == dart2js && ! $dart2js_with_kernel && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853

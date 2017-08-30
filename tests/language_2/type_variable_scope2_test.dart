@@ -4,22 +4,13 @@
 
 import "package:expect/expect.dart";
 
-// Test that malformed type arguments treated as dynamic in both production and
-// checked mode.
+// Test that malformed type arguments are treated as an error.
 
 class Foo<T> {
   // T is not in scope for a static method.
-  static Foo<T> m() {
+  static Foo<T> m() { /*@compile-error=unspecified*/
     return new Foo();
   }
 }
 
-main() {
-  try {
-    Expect.isTrue(Foo.m() is Foo);
-  } on TypeError catch (error) {
-    print(error);
-    // No type error in production nor checked mode.
-    Expect.fail();
-  }
-}
+main() {}

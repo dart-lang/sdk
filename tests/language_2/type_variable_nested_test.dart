@@ -21,7 +21,7 @@ main() {
   var a = new B();
   Expect.isFalse(a._copy is List<int>);
   Expect.isTrue(a._copy is List<A>);
-  Expect.isTrue(a._copy is List<A<int>>);
+  Expect.isFalse(a._copy is List<A<int>>); //# 01: ok
 
   a = new B<String>();
   Expect.isFalse(a._copy is List<String>);

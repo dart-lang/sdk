@@ -65,7 +65,6 @@ redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 generic_functions_test: Pass # Issue 25869
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) ]
-unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
@@ -265,13 +264,6 @@ method_override2_test/01: CompileTimeError
 regress_22438_test: CompileTimeError
 regress_13462_1_test: CompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
-type_variable_scope_test/none: CompileTimeError
-type_variable_scope_test/00: CompileTimeError
-type_variable_scope_test/01: CompileTimeError
-type_variable_scope_test/03: CompileTimeError
-type_variable_scope_test/02: CompileTimeError
-type_variable_scope_test/04: CompileTimeError
-type_variable_scope_test/05: CompileTimeError
 invocation_mirror_invoke_on_test: CompileTimeError
 method_override3_test/00: CompileTimeError
 method_override3_test/01: CompileTimeError
@@ -385,7 +377,6 @@ check_method_override_test/02: CompileTimeError
 malformed_inheritance_test/02: CompileTimeError
 malformed_inheritance_test/04: CompileTimeError
 malformed_inheritance_test/06: CompileTimeError
-unicode_bom_test: CompileTimeError
 prefix16_test: CompileTimeError
 deferred_not_loaded_check_test: CompileTimeError
 regress_23408_test: CompileTimeError
@@ -413,7 +404,6 @@ deferred_static_seperate_test: CompileTimeError
 default_factory_test/01: CompileTimeError
 internal_library_test/01: CompileTimeError
 internal_library_test/02: CompileTimeError
-type_variable_scope2_test: CompileTimeError
 mixin_super_bound_test: CompileTimeError
 invocation_mirror2_test: CompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: CompileTimeError

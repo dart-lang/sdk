@@ -581,22 +581,6 @@ type_variable_conflict2_test: Skip
 type_variable_conflict_test: Skip
 type_variable_function_type_test: Skip
 type_variable_identifier_expression_test: Skip
-type_variable_scope2_test: Skip
-type_variable_scope3_test: Skip
-type_variable_scope_test: Skip
-type_variable_static_context_negative_test: Skip
-typed_selector2_test: Skip
-unary_plus_negative_test: Skip
-unbalanced_brace_test: Skip
-unbound_getter_test: Skip
-unhandled_exception_negative_test: Skip
-unresolved_default_constructor_test: Skip
-unresolved_in_factory_negative_test: Skip
-unresolved_top_level_method_negative_test: Skip
-unresolved_top_level_var_negative_test: Skip
-unsigned_right_shift_test: Skip
-unsupported_operators_test: Skip
-variable_declaration_metadata_test: Skip
 void_type_test: Skip
 wrong_number_type_arguments_test: Skip
 
@@ -720,7 +704,6 @@ switch_label_test: RuntimeError # Issue 29920
 switch_try_catch_test: RuntimeError # Issue 29920
 throwing_lazy_variable_test: RuntimeError # Issue 29920
 truncdiv_test: RuntimeError # Issue 29920
-type_variable_nested_test: RuntimeError # Issue 29920
 
 # This test does not generate the expected compile time error, but it also does
 # not behave correctly at runtime. We cannot record this as "Fail" without

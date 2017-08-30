@@ -10,14 +10,12 @@ class Base {
 }
 
 class Sub1 extends Base {
-  @override
   Future<int> method() async {
     return 1;
   }
 }
 
 class Sub2 extends Base {
-  @override
   Future<int> method() async {
     return 2;
   }

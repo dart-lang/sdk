@@ -30,6 +30,6 @@ class Foo<T extends A> {
 main() {
   var foo = new Foo<B>();
   var b = new B();
-  Expect.equals(foo.foo(b), 'List<B>');
-  Expect.listEquals(foo.bar(b), [b]);
+  Expect.equals('List<B>', foo.foo(b));
+  Expect.listEquals([b], foo.bar(b));
 }

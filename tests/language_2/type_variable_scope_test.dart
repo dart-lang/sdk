@@ -8,11 +8,11 @@ class Foo<T> {
   Foo() {}
 
   static
-  Foo<T> //# 00: static type warning
+  Foo<T> //# 00: compile-time error
       m(
-    Foo<T> //# 01: static type warning
+    Foo<T> //# 01: compile-time error
           f) {
-    Foo<T> x = new Foo<String>(); //# 02: static type warning
+    Foo<T> x = new Foo<String>(); //# 02: compile-time error
     return new Foo<String>();
   }
 
@@ -22,16 +22,16 @@ class Foo<T> {
   }
 
   // T is not in scope for a static field.
-  static Foo<T> f1; //# 03: static type warning
+  static Foo<T> f1; //# 03: compile-time error
 
   static
-  Foo<T> //# 04: static type warning
+  Foo<T> //# 04: compile-time error
       get f {
     return new Foo<String>();
   }
 
   static void set f(
-                    Foo<T> //# 05: static type warning
+                    Foo<T> //# 05: compile-time error
       value) {}
 }
 

@@ -1371,6 +1371,7 @@ syntax_test/30: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder
 syntax_test/31: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/32: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/33: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+type_variable_initializer_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 wrong_number_type_arguments_test/00: Crash
 wrong_number_type_arguments_test/02: Crash
 yieldstar_pause_test: Crash
@@ -2209,7 +2210,6 @@ type_variable_conflict2_test/09: Crash
 type_variable_field_initializer_closure2_test: Crash
 type_variable_field_initializer_closure_test: Crash
 type_variable_function_type_test: RuntimeError
-type_variable_nested_test: Crash
 constructor12_test: RuntimeError
 constructor2_test: RuntimeError
 constructor3_test: RuntimeError
@@ -2232,4 +2232,3 @@ positional_parameters_type_test/01: MissingRuntimeError
 positional_parameters_type_test/02: MissingRuntimeError
 super_test: RuntimeError
 yieldstar_pause_test: Crash
-

@@ -2,15 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// A type variable can't be referenced in a static class
-
-class A<T> {
-  static int method() {
-    var foo =
-        new T(); // error, can't reference a type variable in a static context
-  }
-}
+// There is no unary plus operator in Dart.
 
 main() {
-  A.method();
+  var a = 1;
+  var b = +a; /*@compile-error=unspecified*/
 }

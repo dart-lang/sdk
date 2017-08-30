@@ -2,9 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+// Test that an unresolved method call in a factory is a compile error.
+
+class A {
+  factory A() {
+    foo(); /*@compile-error=unspecified*/
+  }
+}
 
 main() {
-  Expect.equals("\u{10412}", "𐐒"); // Second string is literal U+10412.
-  Expect.equals("\u{10412}".hashCode, "𐐒".hashCode);
+  new A();
 }

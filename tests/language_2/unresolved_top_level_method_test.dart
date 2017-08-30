@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that an unresolved method call at the top level does not crash
-// the parser.
+// Test that an unresolved method call at the top level creates a compile-
+// time error.
 
-var a = b();
+var a = b(); /*@compile-error=unspecified*/
 
 main() {
   print(a);

@@ -15,7 +15,7 @@ main() {
   if (a(1, 2) != 42) {
     // This call used to crash dart2js because 'foo' was a typed
     // selector with a typedef as a receiver type.
-    a.foo();
+    a.foo(); /*@compile-error=unspecified*/
   }
   var b = new A();
   b.foo();

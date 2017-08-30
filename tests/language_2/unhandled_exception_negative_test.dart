@@ -4,7 +4,7 @@
 // Dart test program for testing unhandled exceptions.
 
 class MyException {
-  const MyException(String message = "") : message_ = message;
+  const MyException(String message) : message_ = message;
   String getMessage() { return message_; }
   final String message_;
 }

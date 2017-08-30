@@ -167,6 +167,22 @@ if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
 if_null_precedence_test/none: RuntimeError
 many_generic_instanceof_test: RuntimeError
+type_variable_promotion_test: RuntimeError
+type_variable_nested_test/01: RuntimeError
+type_variable_scope_test/00: MissingCompileTimeError
+type_variable_scope_test/01: MissingCompileTimeError
+type_variable_scope_test/02: MissingCompileTimeError
+type_variable_scope_test/03: MissingCompileTimeError
+type_variable_scope_test/04: MissingCompileTimeError
+type_variable_scope_test/05: MissingCompileTimeError
+type_variable_scope2_test: MissingCompileTimeError
+type_variable_static_context_test: MissingCompileTimeError
+typed_selector2_test: MissingCompileTimeError
+unbound_getter_test: MissingCompileTimeError
+unresolved_default_constructor_test/01: MissingCompileTimeError
+unresolved_in_factory_test: MissingCompileTimeError
+unresolved_top_level_method_test: MissingCompileTimeError
+unresolved_top_level_var_test: MissingCompileTimeError
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError
@@ -236,6 +252,7 @@ generic_methods_recursive_bound_test/03: Crash, Pass
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
+unicode_bom_test: Fail # Issue 16067
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
 generic_methods_function_type_test: Pass # Issue 25869

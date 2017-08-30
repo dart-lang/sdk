@@ -6,8 +6,9 @@
 
 class A<T> {
   static int method() {
+    // error, can't reference a type variable in a static context
     var foo =
-        new T(); // error, can't reference a type variable in a static context
+        new T(); /*@compile-error=unspecified*/
   }
 }
 
