@@ -303,7 +303,6 @@ static bool DeleteRecursively(int dirfd, PathBuffer* path) {
       }
       // End of directory.
       int status = NO_RETRY_EXPECTED(closedir(dir_pointer));
-      FDUtils::SaveErrorAndClose(fd);
       if (status != 0) {
         return false;
       }
@@ -364,7 +363,6 @@ static bool DeleteRecursively(int dirfd, PathBuffer* path) {
   ASSERT(errno != 0);
   int err = errno;
   VOID_NO_RETRY_EXPECTED(closedir(dir_pointer));
-  FDUtils::SaveErrorAndClose(fd);
   errno = err;
   return false;
 }
