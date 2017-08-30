@@ -65,13 +65,11 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
       var staticElement = leftHandSide.identifier.staticElement;
       if (staticElement is PropertyAccessorElement && staticElement.isSetter) {
         var target = leftHandSide.prefix;
-        _annotateCheckCall(
+        _annotateCallKind(
             staticElement,
             target is ThisExpression,
             isDynamicInvoke(leftHandSide.identifier),
             target.staticType,
-            [],
-            [node.rightHandSide],
             leftHandSide.identifier.offset);
       }
     }
@@ -96,8 +94,10 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
       // Already handled via the contained parameter ast object
       return;
     }
-    _annotateFormalParameter(node.element, node.identifier.offset,
-        node.getAncestor((n) => n is ClassDeclaration));
+    if (node.element.enclosingElement.enclosingElement is ClassElement) {
+      _annotateFormalParameter(node.element, node.identifier.offset,
+          node.getAncestor((n) => n is ClassDeclaration));
+    }
   }
 
   @override
@@ -111,24 +111,12 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
       // function invocation.
       _annotateCheckReturn(
           getImplicitOperationCast(node), node.methodName.offset);
-      _annotateCheckCall(
-          null,
-          isThis,
-          isDynamicInvoke(node.methodName),
-          null,
-          node.typeArguments?.arguments,
-          node.argumentList.arguments,
+      _annotateCallKind(null, isThis, isDynamicInvoke(node.methodName), null,
           node.argumentList.offset);
     } else {
       _annotateCheckReturn(getImplicitCast(node), node.argumentList.offset);
-      _annotateCheckCall(
-          staticElement,
-          isThis,
-          isDynamicInvoke(node.methodName),
-          target?.staticType,
-          node.typeArguments?.arguments,
-          node.argumentList.arguments,
-          node.argumentList.offset);
+      _annotateCallKind(staticElement, isThis, isDynamicInvoke(node.methodName),
+          target?.staticType, node.argumentList.offset);
     }
   }
 
@@ -162,44 +150,21 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     }
   }
 
-  /// Generates the appropriate `@checkCall` annotation (if any) for a call
-  /// site.
+  /// Generates the appropriate `@callKind` annotation (if any) for a call site.
   ///
-  /// An annotation of `@checkCall=dynamic` indicates that the call is dynamic
+  /// An annotation of `@callKind=dynamic` indicates that the call is dynamic
   /// (so it will have to be fully type checked).  An annotation of
-  /// "@checkCall=interface(args)" indicates that the call statically resolves
-  /// to a member of an interface, but some of the arguments are "semi-typed" so
-  /// they may have to be type checked.  `args` lists the positional indices of
-  /// the semi-typed arguments (counting from 0).  If any type parameters need
-  /// to be checked, they are also listed by index, enclosed in `<>`.  For
-  /// example, `@checkCall=interface(<0>,1)` means that type parameter 0 and
-  /// regular parameter 1 are semi-typed.
-  ///
-  /// [staticElement] is the element being invoked, or `null` if there is no
-  /// static element (either because this is a dynamic invocation or because the
-  /// thing being invoked is function-typed).
-  ///
-  /// [isThis] indicates whether the receiver of the invocation is `this`.
-  ///
-  /// [isDynamic] indicates whether analyzer has classified this invocation as a
-  /// dynamic invocation.
-  ///
-  /// [targetType] is the type of the target of the invocation, or `null` if
-  /// there is no target (e.g. because of implicit `this` or because the thing
-  /// being invoked is function-typed).
-  ///
-  /// [typeArguments] and [arguments] are the type arguments and regular
-  /// arguments of the invocation, respectively.
-  ///
-  /// [offset] is the location of the invocation in source code.
-  void _annotateCheckCall(
-      Element staticElement,
-      bool isThis,
-      bool isDynamic,
-      DartType targetType,
-      List<TypeAnnotation> typeArguments,
-      List<Expression> arguments,
-      int offset) {
+  /// `@callKind=closure` indicates that the receiver of the call is a function
+  /// object (so any formals marked as "semiSafe" will have to be type checked).
+  /// An annotation of `@callKind=this` indicates that the call goes through
+  /// `super` or `this` (so formals marked as "semiSafe" don't need to be type
+  /// checked).  No annotation indicates that either the call is static, in
+  /// which case no parameters need to be type checked, or it goes through an
+  /// interface, in which case the set of arguments that have to be type checked
+  /// depends on the `@checkInterface` annotations on the static target of the
+  /// call.
+  void _annotateCallKind(Element staticElement, bool isThis, bool isDynamic,
+      DartType targetType, int offset) {
     if (staticElement is FunctionElement &&
         staticElement.enclosingElement is CompilationUnitElement) {
       // Invocation of a top level function; no annotation needed.
@@ -212,55 +177,23 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
         // Sometimes analyzer annotates invocations of function objects as
         // dynamic (presumably due to "dynamic is bottom" behavior).  Ignore
         // this.
+        _recordCallKind(offset, 'closure');
       } else {
-        _recordCheckCall(offset, 'dynamic');
+        _recordCallKind(offset, 'dynamic');
         return;
       }
     }
-    if (staticElement is MethodElement && isThis) {
-      // Calls through "this" are always typed because the type parameters match
-      // up perfectly; no annotation needed.
-      return;
-    }
-    var semiTypedArgs = <String>[];
-    if (typeArguments != null) {
-      for (int argPosition = 0;
-          argPosition < typeArguments.length;
-          argPosition++) {
-        DartType getArgument(FunctionType functionType) {
-          return functionType.typeFormals[argPosition].bound;
-        }
-
-        if (_isArgumentSemiTyped(targetType, staticElement, getArgument)) {
-          semiTypedArgs.add('<$argPosition>');
-        }
+    if (staticElement is MethodElement && !staticElement.isStatic ||
+        staticElement is PropertyAccessorElement && !staticElement.isStatic) {
+      if (isThis) {
+        _recordCallKind(offset, 'this');
+        return;
+      } else {
+        // Interface call; no annotation needed
+        return;
       }
     }
-    int argPosition = 0;
-    for (var argument in arguments) {
-      assert(argument is! NamedExpression); // TODO(paulberry): handle this
-      DartType getArgument(FunctionType functionType) {
-        // TODO(paulberry): handle named parameters
-        if (argPosition >= functionType.normalParameterTypes.length) {
-          return functionType.optionalParameterTypes[
-              argPosition - functionType.normalParameterTypes.length];
-        } else {
-          return functionType.normalParameterTypes[argPosition];
-        }
-      }
-
-      if (_isArgumentSemiTyped(targetType, staticElement, getArgument)) {
-        semiTypedArgs.add('$argPosition');
-      }
-      ++argPosition;
-    }
-    if (semiTypedArgs.isEmpty) {
-      // We don't annotate invocations where all arguments are typed because
-      // that's the common case.
-    } else {
-      _recordCheckCall(
-          offset, 'interface(semiTyped:${semiTypedArgs.join(',')})');
-    }
+    _recordCallKind(offset, 'closure');
   }
 
   /// Generates the appropriate `@checkReturn` annotation (if any) for a call
@@ -275,21 +208,24 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     }
   }
 
-  /// Generates the appropriate `@checkFormal` annotation (if any) for a method
-  /// formal parameter, method type parameter, or field declaration.
+  /// Generates the appropriate `@checkFormal` and `@checkInterface` annotations
+  /// (if any) for a method formal parameter, method type parameter, or field
+  /// declaration.
   ///
-  /// When this annotation is generated for a field declaration, it implicitly
-  /// refers to the value parameter of the synthetic setter.
+  /// When these annotations are generated for a field declaration, they
+  /// implicitly refer to the value parameter of the synthetic setter.
   ///
   /// An annotation of `@checkFormal=unsafe` indicates that the parameter needs
   /// to be type checked regardless of the call site.
   ///
   /// An annotation of `@checkFormal=semiSafe` indicates that the parameter
-  /// needs to be type checked when corresponding argument at the call site is
-  /// considered "semi-typed".
+  /// needs to be type checked when the call site is annotated
+  /// `@callKind=dynamic` or `@callKind=closure`, or the call site is
+  /// unannotated and the corresponding parameter in the interface target is
+  /// annotated `@checkInterface=semiTyped`.
   ///
-  /// No annotation indicates that the parameter only needs to be type checked
-  /// if the call site is a dynamic invocation.
+  /// No `@checkFormal` annotation indicates that the parameter only needs to be
+  /// type checked if the call site is annotated `@callKind=dynamic`.
   void _annotateFormalParameter(
       Element element, int offset, ClassDeclaration cls) {
     if (element is ParameterElement && element.isCovariant) {
@@ -298,6 +234,19 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
       var covariantParams = getClassCovariantParameters(cls);
       if (covariantParams != null && covariantParams.contains(element)) {
         _recordCheckFormal(offset, 'semiSafe');
+      }
+    }
+    if (cls?.typeParameters != null) {
+      if (element is ParameterElement) {
+        if (_isFormalSemiTyped(
+            cls.typeParameters.typeParameters, element.type)) {
+          _recordCheckInterface(offset, 'semiTyped');
+        }
+      } else if (element is TypeParameterElement && element.bound != null) {
+        if (_isFormalSemiTyped(
+            cls.typeParameters.typeParameters, element.bound)) {
+          _recordCheckInterface(offset, 'semiTyped');
+        }
       }
     }
   }
@@ -354,66 +303,40 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     }
   }
 
-  /// Determines whether an argument at a call site should be considered
+  /// Determines whether a method formal parameter should be considered
   /// "semi-typed".
   ///
-  /// [targetType] indicates the type of the interface being invoked.
+  /// [typeParameters] is the list of type parameters of the enclosing class.
   ///
-  /// [invocationTarget] is the method or getter/setter being invoked.
-  ///
-  /// [getArgument] is a callback for accessing the corresponding argument type
-  /// from a [FunctionType].
-  bool _isArgumentSemiTyped(InterfaceType targetType, Element invocationTarget,
-      DartType getArgument(FunctionType functionType)) {
-    bool _checkTypes(DartType originalArgumentType,
-        DartType lookupArgumentType(InterfaceType interfaceType)) {
-      // If the target type lacks type parameters, then everything is safe.
-      if (targetType.typeParameters.isEmpty) return false;
-
-      // To see if this argument needs to be semi-typed, we try substituting
-      // bottom in for all the active type parameters.  If the resulting
-      // argument static type is a supertype of its current static type, then
-      // that means that regardless of what we pass in, it won't fail a type
-      // check.
-      var substitutedInterfaceType = targetType.element.type.instantiate(
-          new List<DartType>.filled(
-              targetType.typeParameters.length, BottomTypeImpl.instance));
-      var substitutedArgumentType =
-          lookupArgumentType(substitutedInterfaceType);
-      return !_typeSystem.isSubtypeOf(
-          originalArgumentType, substitutedArgumentType);
-    }
-
-    if (invocationTarget is LocalVariableElement || invocationTarget == null) {
-      // This is an invocation of a closure, so every argument is semi-typed.
-      return true;
-    } else if (invocationTarget is PropertyAccessorElement &&
-        invocationTarget.isSetter) {
-      return _checkTypes(
-          invocationTarget.parameters[0].type,
-          (InterfaceType type) => type
-              .lookUpSetter(invocationTarget.name, invocationTarget.library)
-              .parameters[0]
-              .type);
-    } else if (invocationTarget is MethodElement) {
-      return _checkTypes(
-          getArgument(invocationTarget.type),
-          (InterfaceType type) => getArgument(type
-              .lookUpMethod(invocationTarget.name, invocationTarget.library)
-              .type));
-    } else {
-      throw new UnimplementedError(
-          'Unexpected invocation target type: ${invocationTarget.runtimeType}');
-    }
+  /// [formalType] is the type of the formal parameter (or the type bound, if
+  /// we are looking at a type parameter of a generic method).
+  bool _isFormalSemiTyped(
+      List<TypeParameter> typeParameters, DartType formalType) {
+    // To see if this parameter needs to be semi-typed, we try substituting
+    // bottom for all the active type parameters.  If the resulting parameter
+    // static type is a supertype of its current static type, then that means
+    // that regardless of what we pass in, it won't fail a type check.
+    var substitutedType = formalType.substitute2(
+        new List<DartType>.filled(
+            typeParameters.length, BottomTypeImpl.instance),
+        typeParameters
+            .map((p) => new TypeParameterTypeImpl(p.element))
+            .toList());
+    return !_typeSystem.isSubtypeOf(formalType, substitutedType);
   }
 
-  void _recordCheckCall(int offset, String safety) {
-    _instrumentation.record(uri, offset, 'checkCall',
-        new fasta.InstrumentationValueLiteral(safety));
+  void _recordCallKind(int offset, String kind) {
+    _instrumentation.record(
+        uri, offset, 'callKind', new fasta.InstrumentationValueLiteral(kind));
   }
 
   void _recordCheckFormal(int offset, String safety) {
     _instrumentation.record(uri, offset, 'checkFormal',
+        new fasta.InstrumentationValueLiteral(safety));
+  }
+
+  void _recordCheckInterface(int offset, String safety) {
+    _instrumentation.record(uri, offset, 'checkInterface',
         new fasta.InstrumentationValueLiteral(safety));
   }
 

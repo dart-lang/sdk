@@ -10,7 +10,7 @@ class B {
 }
 
 abstract class I<T> {
-  void f(T x);
+  void f(T /*@checkInterface=semiTyped*/ x);
 }
 
 class M {}
@@ -20,8 +20,8 @@ void g1(C c) {
   c.f(1);
 }
 
-void g2(/*safe*/ I<num> i) {
-  i.f /*@checkCall=interface(semiTyped:0)*/ (1.5);
+void g2(I<num> i) {
+  i.f(1.5);
 }
 
 void test() {

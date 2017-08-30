@@ -8,17 +8,18 @@ library test;
 typedef F<T>(T x);
 
 class C<T> {
-  void f(T /*@checkFormal=semiSafe*/ x) {}
-  void g1(T /*@checkFormal=semiSafe*/ x) {
-    this.f(x);
+  void f(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x) {}
+  void g1(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x) {
+    this.f /*@callKind=this*/ (x);
   }
 
-  void g2(T /*@checkFormal=semiSafe*/ x) {
-    f(x);
+  void g2(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x) {
+    f /*@callKind=this*/ (x);
   }
 
-  void g3(C<T> /*@checkFormal=semiSafe*/ c, T /*@checkFormal=semiSafe*/ x) {
-    c.f /*@checkCall=interface(semiTyped:0)*/ (x);
+  void g3(C<T> /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ c,
+      T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x) {
+    c.f(x);
   }
 
   F<T> g4() => this.f;
@@ -32,7 +33,7 @@ class E extends C<num> {
 
 test() {
   var x = new D().g4() as F<Object>;
-  x /*@checkCall=interface(semiTyped:0)*/ ('hi');
+  x /*@callKind=closure*/ ('hi');
   new E().g1(1.5);
 }
 

@@ -6,19 +6,21 @@
 library test;
 
 class C<T> {
-  void f< /*@checkFormal=semiSafe*/ U extends T>(U x) {}
-  void g1< /*@checkFormal=semiSafe*/ U extends T>() {
-    this.f<U>(1.5);
+  void f< /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ U extends T>(
+      U x) {}
+  void
+      g1< /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ U extends T>() {
+    this.f<U> /*@callKind=this*/ (1.5);
   }
 }
 
 void g2(C<Object> c) {
-  c.f<num> /*@checkCall=interface(semiTyped:<0>)*/ (1.5);
+  c.f<num>(1.5);
 }
 
 void test() {
-  new C<int>().g1<num> /*@checkCall=interface(semiTyped:<0>)*/ ();
-  g2(new C<int>()); // runtime error
+  new C<int>().g1<num>();
+  g2(new C<int>());
 }
 
 void main() {}

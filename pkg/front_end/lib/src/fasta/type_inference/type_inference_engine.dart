@@ -317,6 +317,8 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
           kernelVariableDeclaration.isSemiSafe = true;
           instrumentation?.record(Uri.parse(cls.fileUri), formal.fileOffset,
               'checkFormal', new InstrumentationValueLiteral('semiSafe'));
+          instrumentation?.record(Uri.parse(cls.fileUri), formal.fileOffset,
+              'checkInterface', new InstrumentationValueLiteral('semiTyped'));
         }
       }
 

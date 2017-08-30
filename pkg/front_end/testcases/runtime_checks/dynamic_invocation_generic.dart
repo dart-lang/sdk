@@ -6,15 +6,16 @@
 library test;
 
 class C<T> {
-  void f< /*@checkFormal=semiSafe*/ U extends T>(U x) {}
+  void f< /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ U extends T>(
+      U x) {}
 }
 
 void g1(dynamic d) {
-  d.f<num> /*@checkCall=dynamic*/ (1.5);
+  d.f<num> /*@callKind=dynamic*/ (1.5);
 }
 
 void g2(dynamic d) {
-  d.f /*@checkCall=dynamic*/ (1.5);
+  d.f /*@callKind=dynamic*/ (1.5);
 }
 
 void test() {

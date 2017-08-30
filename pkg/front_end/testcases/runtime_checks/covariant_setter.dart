@@ -8,14 +8,14 @@ library test;
 typedef void F<T>(T x);
 
 class C<T> {
-  T /*@checkFormal=semiSafe*/ x;
-  void f(T /*@checkFormal=semiSafe*/ value) {
+  T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x;
+  void f(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ value) {
     this.x = value;
   }
 }
 
 void g(C<num> c) {
-  c. /*@checkCall=interface(semiTyped:0)*/ x = 1.5;
+  c.x = 1.5;
 }
 
 void main() {}
