@@ -18,7 +18,7 @@ namespace dart {
 namespace bin {
 
 Namespace* Namespace::Create(const char* path) {
-  const intptr_t fd = TEMP_FAILURE_RETRY(open64(path, O_PATH));
+  const intptr_t fd = TEMP_FAILURE_RETRY(open64(path, O_DIRECTORY));
   if (fd < 0) {
     return NULL;
   }

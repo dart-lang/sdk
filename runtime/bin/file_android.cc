@@ -497,7 +497,7 @@ bool File::SetLastAccessed(Namespace* namespc,
                            const char* name,
                            int64_t millis) {
   // First get the current times.
-  struct stat64 st;
+  struct stat st;
   if (!StatHelper(namespc, name, &st)) {
     return false;
   }
@@ -514,7 +514,7 @@ bool File::SetLastModified(Namespace* namespc,
                            const char* name,
                            int64_t millis) {
   // First get the current times.
-  struct stat64 st;
+  struct stat st;
   if (!StatHelper(namespc, name, &st)) {
     return false;
   }
