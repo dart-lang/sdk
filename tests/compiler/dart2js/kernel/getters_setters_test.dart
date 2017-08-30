@@ -118,6 +118,6 @@ class B extends A {
 main() {
   new B().bar();
 }''';
-    return check(code);
+    return check(code, useKernelInSsa: true);
   });
 }

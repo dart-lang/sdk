@@ -67,7 +67,7 @@ main() {
     // This is the same test as above, but by enabling type inference
     // we allow the compiler to detect that it can iterate over the
     // array using indexing.
-    return check(code, disableTypeInference: false);
+    return check(code, disableTypeInference: false, useKernelInSsa: true);
   });
 
   test('for-in loop top-level variable', () {
@@ -80,7 +80,7 @@ main() {
   }
   return sum;
 }''';
-    return check(code, disableTypeInference: false);
+    return check(code, disableTypeInference: false, useKernelInSsa: true);
   });
 
   test('for loop with break to label', () {
@@ -97,6 +97,6 @@ main() {
   }
   return sum;
 }''';
-    return check(code, disableTypeInference: false);
+    return check(code, disableTypeInference: false, useKernelInSsa: true);
   });
 }

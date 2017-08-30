@@ -14,7 +14,9 @@ bool foo() => 2 + 2 == 4;
 main() {
   assert(foo());
 }''';
-    return check(code, extraOptions: const <String>[Flags.enableCheckedMode]);
+    return check(code,
+        extraOptions: const <String>[Flags.enableCheckedMode],
+        useKernelInSsa: true);
   });
 
   test('assert with message', () {
@@ -23,9 +25,11 @@ bool foo() => 2 + 2 == 4;
 main() {
   assert(foo(), "foo failed");
 }''';
-    return check(code, extraOptions: const <String>[
-      Flags.enableCheckedMode,
-      Flags.enableAssertMessage,
-    ]);
+    return check(code,
+        extraOptions: const <String>[
+          Flags.enableCheckedMode,
+          Flags.enableAssertMessage,
+        ],
+        useKernelInSsa: true);
   });
 }

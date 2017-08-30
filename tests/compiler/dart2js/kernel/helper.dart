@@ -4,9 +4,9 @@
 
 import 'dart:async';
 
+import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
-import 'package:compiler/src/elements/elements.dart'
-    show Element, LibraryElement;
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/backend.dart' as js
     show JavaScriptBackend;
 import 'package:compiler/src/commandline_options.dart' show Flags;
@@ -16,13 +16,15 @@ import '../memory_compiler.dart';
 
 Future<String> compile(String code,
     {dynamic lookup: 'main',
-    bool useKernelInSsa: true,
+    bool useKernel: false,
+    bool useKernelInSsa: false,
     bool disableTypeInference: true,
     List<String> extraOptions: const <String>[]}) async {
   List<String> options = <String>[
     Flags.disableInlining,
   ];
   if (disableTypeInference) options.add(Flags.disableTypeInference);
+  if (useKernel) options.add(Flags.useKernel);
   if (useKernelInSsa) options.add(Flags.useKernelInSsa);
   options.addAll(extraOptions);
 
@@ -33,11 +35,12 @@ Future<String> compile(String code,
       memorySourceFiles: {'main.dart': code}, options: options);
   expect(result.isSuccess, isTrue);
   Compiler compiler = result.compiler;
-  LibraryElement mainApp =
-      compiler.frontendStrategy.elementEnvironment.mainLibrary;
-  Element element;
+  ElementEnvironment elementEnvironment =
+      compiler.backendClosedWorldForTesting.elementEnvironment;
+  MemberEntity element;
   if (lookup is String) {
-    element = mainApp.find(lookup);
+    LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
+    element = elementEnvironment.lookupLibraryMember(mainLibrary, lookup);
   } else {
     element = lookup(compiler);
   }
@@ -51,11 +54,13 @@ Future<String> compile(String code,
 /// The function to check at the end is given by [lookup]. If [lookup] is a
 /// String, then the generated code for a top-level element named [lookup] is
 /// checked. Otherwise, [lookup] is a function that takes a [Compiler] and
-/// returns an [Element], and the returned [Element] is checked.
+/// returns an [MemberEntity], and the returned [MemberEntity] is checked.
 Future check(String code,
     {dynamic lookup: 'main',
     bool disableTypeInference: true,
-    List<String> extraOptions: const <String>[]}) async {
+    List<String> extraOptions: const <String>[],
+    // TODO(redemption): Remove the need for this.
+    bool useKernelInSsa: false}) async {
   var original = await compile(code,
       lookup: lookup,
       useKernelInSsa: false,
@@ -63,7 +68,8 @@ Future check(String code,
       extraOptions: extraOptions);
   var kernel = await compile(code,
       lookup: lookup,
-      useKernelInSsa: true,
+      useKernel: !useKernelInSsa,
+      useKernelInSsa: useKernelInSsa,
       disableTypeInference: disableTypeInference,
       extraOptions: extraOptions);
   expect(kernel, original);

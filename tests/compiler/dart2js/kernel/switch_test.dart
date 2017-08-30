@@ -35,7 +35,7 @@ main() {
 
   }
 }''';
-    return check(code);
+    return check(code, useKernelInSsa: true);
   });
 
 /*
@@ -95,7 +95,7 @@ main() {
     case 6:
   }
 }''';
-    return check(code);
+    return check(code, useKernelInSsa: true);
   });
 
   test('switch with labeled continue', () {
@@ -117,7 +117,7 @@ main() {
       print('bat');
   }
 }''';
-    return check(code);
+    return check(code, useKernelInSsa: true);
   });
 
   test('switch with continue to fall through', () {
@@ -139,7 +139,7 @@ main() {
       print('bat');
   }
 }''';
-    return check(code);
+    return check(code, useKernelInSsa: true);
   });
 
   test('switch with continue without default case', () {
@@ -159,10 +159,10 @@ main() {
       break;
   }
 }''';
-    return check(code);
+    return check(code, useKernelInSsa: true);
   });
 
-  test('switch with continue without default case', () {
+  test('switch with continue without default case and no matching case', () {
     String code = '''
 main() {
     int x = 8;
@@ -179,6 +179,6 @@ main() {
       break;
   }
 }''';
-    return check(code);
+    return check(code, useKernelInSsa: true);
   });
 }

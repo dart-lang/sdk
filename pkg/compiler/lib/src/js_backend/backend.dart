@@ -884,8 +884,9 @@ class JavaScriptBackend {
    *
    * Invariant: [element] must be a declaration element.
    */
-  String getGeneratedCode(Element element) {
-    assert(element.isDeclaration, failedAt(element));
+  String getGeneratedCode(MemberEntity element) {
+    assert(!(element is MemberElement && !element.isDeclaration),
+        failedAt(element));
     return jsAst.prettyPrint(generatedCode[element], compiler.options);
   }
 
