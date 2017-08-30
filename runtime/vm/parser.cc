@@ -3736,6 +3736,12 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
          func.end_token_pos() == end_token_pos);
   func.set_end_token_pos(end_token_pos);
   SequenceNode* body = CloseBlock();
+  if (FLAG_reify_generic_functions && func.IsGeneric() &&
+      !generated_body_closure.IsNull()) {
+    LocalVariable* existing_var = body->scope()->LookupVariable(
+        Symbols::FunctionTypeArgumentsVar(), false);
+    ASSERT((existing_var != NULL) && existing_var->is_captured());
+  }
   if (func.IsAsyncFunction()) {
     body = CloseAsyncFunction(generated_body_closure, body);
     generated_body_closure.set_end_token_pos(end_token_pos);
