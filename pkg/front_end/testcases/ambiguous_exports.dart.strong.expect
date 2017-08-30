@@ -1,4 +1,2 @@
 library;
 import self as self;
-
-static const field dynamic _exports# = "[[null,\"main\",\"'main' is exported from both 'pkg/front_end/testcases/hello.dart' and 'pkg/front_end/testcases/map.dart'.\"]]" /* from null */;

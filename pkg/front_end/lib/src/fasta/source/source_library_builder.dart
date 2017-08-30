@@ -4,7 +4,7 @@
 
 library fasta.source_library_builder;
 
-import 'package:kernel/ast.dart' show ProcedureKind;
+import 'package:kernel/ast.dart' show ProcedureKind, Reference;
 
 import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
@@ -17,7 +17,6 @@ import '../builder/builder.dart'
         ConstructorReferenceBuilder,
         FormalParameterBuilder,
         FunctionTypeBuilder,
-        InvalidTypeBuilder,
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
@@ -53,8 +52,6 @@ import '../fasta_codes.dart'
 import '../import.dart' show Import;
 
 import '../problems.dart' show unhandled;
-
-import '../util/relativize.dart' show relativizeUri;
 
 import 'source_loader.dart' show SourceLoader;
 
@@ -99,11 +96,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   bool canAddImplementationBuilders = false;
 
-  /// Exports in addition to the members declared in this library.
-  ///
-  /// See [../dill/dill_library_builder.dart] for additional details on the
-  /// format used.
-  List<List<String>> additionalExports;
+  /// References to nodes exported by `export` declarations that:
+  /// - aren't ambiguous, or
+  /// - aren't hidden by local declarations.
+  List<Reference> additionalExports;
 
   SourceLibraryBuilder(SourceLoader loader, Uri fileUri)
       : this.fromScopes(loader, fileUri, new DeclarationBuilder<T>.library(),
@@ -524,17 +520,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
     exportScope.forEach((String name, Builder member) {
       if (member.parent != this) {
-        additionalExports ??= <List<String>>[];
+        additionalExports ??= <Reference>[];
         Builder parent = member.parent;
         if (parent is LibraryBuilder) {
-          additionalExports.add(<String>[
-            relativizeUri(parent.uri, base: uri.resolve(".")),
-            name
-          ]);
-        } else {
-          InvalidTypeBuilder invalidType = member;
-          String message = invalidType.message.message;
-          additionalExports.add(<String>[null, name, message]);
+          additionalExports.add(member.target.reference);
         }
       }
     });

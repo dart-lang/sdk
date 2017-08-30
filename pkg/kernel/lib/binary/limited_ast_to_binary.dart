@@ -109,6 +109,14 @@ class ReferencesStringIndexer extends StringIndexer {
   }
 
   @override
+  visitLibrary(Library node) {
+    for (var reference in node.additionalExports) {
+      _handleReferencedName(reference.canonicalName);
+    }
+    super.visitLibrary(node);
+  }
+
+  @override
   visitLibraryDependency(LibraryDependency node) {
     _handleReferencedName(node.importedLibraryReference.canonicalName);
     super.visitLibraryDependency(node);

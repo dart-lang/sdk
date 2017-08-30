@@ -387,6 +387,7 @@ class BinaryBuilder {
       _skipNodeList(readExpression);
     }
     _readLibraryDependencies(library);
+    _readAdditionalExports(library);
     _readLibraryParts(library);
     _mergeNamedNodeList(library.typedefs, readTypedef, library);
     _mergeNamedNodeList(library.classes, readClass, library);
@@ -414,6 +415,17 @@ class BinaryBuilder {
       library.dependencies[i] = new LibraryDependency.byReference(
           flags, annotations, targetLibrary, prefixName, names)
         ..parent = library;
+    }
+  }
+
+  void _readAdditionalExports(Library library) {
+    int numExportedReference = readUInt();
+    if (numExportedReference != 0) {
+      for (int i = 0; i < numExportedReference; i++) {
+        CanonicalName exportedName = readCanonicalNameReference();
+        Reference reference = exportedName.getReference();
+        library.additionalExports.add(reference);
+      }
     }
   }
 
