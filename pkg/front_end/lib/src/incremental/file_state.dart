@@ -46,7 +46,6 @@ class FileState {
   bool _hasMixinApplication;
   List<int> _apiSignature;
 
-  List<NamespaceExport> _exports;
   List<FileState> _importedLibraries;
   List<FileState> _exportedLibraries;
   List<FileState> _partFiles;
@@ -80,9 +79,6 @@ class FileState {
 
   /// The list of the libraries exported by this library.
   List<FileState> get exportedLibraries => _exportedLibraries;
-
-  /// The list of the exported files with combinators.
-  List<NamespaceExport> get exports => _exports;
 
   @override
   int get hashCode => uri.hashCode;
@@ -168,7 +164,6 @@ class FileState {
     _importedLibraries = <FileState>[];
     _exportedLibraries = <FileState>[];
     _partFiles = <FileState>[];
-    _exports = <NamespaceExport>[];
     {
       FileState coreFile = await _getFileForRelativeUri('dart:core');
       // TODO(scheglov) add error handling
@@ -187,7 +182,6 @@ class FileState {
       FileState file = await _getFileForRelativeUri(export_.uri);
       if (file != null) {
         _exportedLibraries.add(file);
-        _exports.add(new NamespaceExport(file, export_.combinators));
       }
     }
     for (var part_ in unlinkedUnit.parts) {
@@ -395,30 +389,6 @@ class LibraryCycle {
       return '[core + vm]';
     }
     return '[' + libraries.join(', ') + ']';
-  }
-}
-
-/// Information about a single `export` directive.
-class NamespaceExport {
-  final FileState library;
-  final List<UnlinkedCombinator> combinators;
-
-  NamespaceExport(this.library, this.combinators);
-
-  /// Return `true` if the [name] satisfies the sequence of the [combinators].
-  bool isExposed(String name) {
-    for (var combinator in combinators) {
-      if (combinator.isShow) {
-        if (!combinator.names.contains(name)) {
-          return false;
-        }
-      } else {
-        if (combinator.names.contains(name)) {
-          return false;
-        }
-      }
-    }
-    return true;
   }
 }
 
