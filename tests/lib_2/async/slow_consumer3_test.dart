@@ -18,7 +18,7 @@ class SlowConsumer extends StreamConsumer<List<int>> {
   int receivedCount = 0;
   final int bytesPerSecond;
   final int bufferSize;
-  final List<int> bufferedData = [];
+  final List<List<int>> bufferedData = [];
   int usedBufferSize = 0;
   int finalCount;
 
