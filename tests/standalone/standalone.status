@@ -205,6 +205,7 @@ io/http_response_deadline_test: Skip
 io/http_server_close_response_after_error_test: Skip
 io/https_unauthorized_test: Skip
 io/named_pipe_script_test: Skip
+io/platform_resolved_executable_test: Skip
 io/print_sync_test: Skip
 io/process_check_arguments_test: Skip
 io/process_detached_test: Skip
