@@ -1074,6 +1074,11 @@ class AnalysisServerOptions {
   String clientVersion;
 
   /**
+   * Base path where to cache data.
+   */
+  String cacheFolder;
+
+  /**
    * The analytics instance; note, this object can be `null`, and should be
    * accessed via a null-aware operator.
    */

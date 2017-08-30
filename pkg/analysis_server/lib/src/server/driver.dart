@@ -253,6 +253,11 @@ class Driver implements ServerStarter {
   static const String SDK_OPTION = "sdk";
 
   /**
+   * The path to the data cache.
+   */
+  static const String CACHE_FOLDER = "cache";
+
+  /**
    * The instrumentation server that is to be used by the analysis server.
    */
   InstrumentationServer instrumentationServer;
@@ -308,6 +313,7 @@ class Driver implements ServerStarter {
         results[NEW_ANALYSIS_DRIVER_LOG];
     analysisServerOptions.clientId = results[CLIENT_ID];
     analysisServerOptions.clientVersion = results[CLIENT_VERSION];
+    analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
 
     ContextBuilderOptions.flutterRepo = results[FLUTTER_REPO];
 
@@ -526,6 +532,8 @@ class Driver implements ServerStarter {
               r"eol characters normalized to the single character new line ('\n')"
         },
         defaultsTo: "as-is");
+    parser.addOption(CACHE_FOLDER,
+        help: "[path] path to the location where to cache data");
 
     return parser;
   }
