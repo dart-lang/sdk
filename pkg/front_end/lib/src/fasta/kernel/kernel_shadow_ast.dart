@@ -2378,17 +2378,6 @@ class ShadowVariableDeclaration extends VariableDeclaration
 
   final bool _isLocalFunction;
 
-  /// If this variable declaration represents a formal parameter, indicates
-  /// whether uses of it need to be type-checked due to the covariance of class
-  /// type parameters.
-  ///
-  /// TODO(paulberry): replace this with an enum so that it can represent
-  /// "unsafe" parameters as well.
-  ///
-  /// TODO(paulberry): remove this once there is a corresponding annotation in
-  /// the kernel representation.
-  bool isSemiSafe = false;
-
   ShadowVariableDeclaration(String name, this._functionNestingLevel,
       {Expression initializer,
       DartType type,

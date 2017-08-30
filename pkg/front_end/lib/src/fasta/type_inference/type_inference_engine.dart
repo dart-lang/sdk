@@ -16,6 +16,7 @@ import 'package:kernel/ast.dart'
         DartType,
         DynamicType,
         Field,
+        FormalSafety,
         FunctionType,
         InterfaceType,
         Location,
@@ -311,10 +312,9 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     for (var procedure in cls.procedures) {
       if (procedure.isStatic) continue;
       void compute(VariableDeclaration formal) {
-        ShadowVariableDeclaration kernelVariableDeclaration = formal;
         var pessimisticType = pessimization.substituteType(formal.type);
         if (!typeSchemaEnvironment.isSubtypeOf(formal.type, pessimisticType)) {
-          kernelVariableDeclaration.isSemiSafe = true;
+          formal.formalSafety = FormalSafety.semiSafe;
           instrumentation?.record(Uri.parse(cls.fileUri), formal.fileOffset,
               'checkFormal', new InstrumentationValueLiteral('semiSafe'));
           instrumentation?.record(Uri.parse(cls.fileUri), formal.fileOffset,
