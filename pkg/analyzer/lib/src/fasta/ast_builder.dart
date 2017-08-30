@@ -1226,9 +1226,6 @@ class AstBuilder extends ScopeListener {
   void endConditionalUri(Token ifKeyword, Token equalitySign) {
     debugEvent("ConditionalUri");
     StringLiteral libraryUri = pop();
-    // TODO(paulberry,ahe): the parser should report the right paren token to
-    // the listener.
-    Token rightParen = null;
     StringLiteral value;
     if (equalitySign != null) {
       value = pop();
@@ -1239,6 +1236,9 @@ class AstBuilder extends ScopeListener {
     // recovery and then report both the ifKeyword and leftParen tokens to the
     // listener.
     Token leftParen = ifKeyword.next;
+    // TODO(paulberry,ahe): the parser should report the right paren token to
+    // the listener.
+    Token rightParen = name.endToken.next;
     push(ast.configuration(ifKeyword, leftParen, name, equalitySign, value,
         rightParen, libraryUri));
   }

@@ -10,6 +10,7 @@ import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
+import 'package:analyzer/src/generated/parser.dart' show CommentAndMetadata;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart' show Message;
@@ -19,6 +20,7 @@ import 'package:front_end/src/fasta/parser.dart' show IdentifierContext;
 import 'package:front_end/src/fasta/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
+import 'package:front_end/src/fasta/source/stack_listener.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -2808,6 +2810,24 @@ class ParserProxy implements analyzer.Parser {
   }
 
   @override
+  CommentAndMetadata parseCommentAndMetadata() {
+    List commentAndMetadata =
+        _run((parser) => parser.parseMetadataStar, nodeCount: -1);
+    expect(commentAndMetadata, hasLength(2));
+    Object comment = commentAndMetadata[0];
+    Object metadata = commentAndMetadata[1];
+    if (comment == NullValue.Comments) {
+      comment = null;
+    }
+    if (metadata == NullValue.Metadata) {
+      metadata = null;
+    } else {
+      metadata = new List<Annotation>.from(metadata);
+    }
+    return new CommentAndMetadata(comment, metadata);
+  }
+
+  @override
   CompilationUnit parseCompilationUnit2() {
     var result = _run(null) as CompilationUnit;
     _eventListener.expectEmpty();
@@ -2849,9 +2869,13 @@ class ParserProxy implements analyzer.Parser {
   }
 
   /**
-   * Runs a single parser function, and returns the result as an analyzer AST.
+   * Runs a single parser function (returned by [getParseFunction]), and returns
+   * the result as an analyzer AST. It checks that the parse consumed all of the
+   * tokens and that there were [nodeCount] AST nodes created (unless the node
+   * count is negative).
    */
-  Object _run(ParseFunction getParseFunction(fasta.Parser parser)) {
+  Object _run(ParseFunction getParseFunction(fasta.Parser parser),
+      {int nodeCount: 1}) {
     ParseFunction parseFunction;
     if (getParseFunction != null) {
       parseFunction = getParseFunction(_fastaParser);
@@ -2862,7 +2886,12 @@ class ParserProxy implements analyzer.Parser {
     }
     _currentFastaToken = parseFunction(_currentFastaToken);
     expect(_currentFastaToken.isEof, isTrue);
-    expect(_astBuilder.stack, hasLength(1));
+    if (nodeCount >= 0) {
+      expect(_astBuilder.stack, hasLength(nodeCount));
+    }
+    if (nodeCount != 1) {
+      return _astBuilder.stack.values;
+    }
     return _astBuilder.pop();
   }
 }
@@ -3813,7 +3842,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseCombinator_hide() {
-    // TODO(brianwilkerson) exception:
     // Uninteresting. Covered by the test_parseCombinators_* methods.
     super.test_parseCombinator_hide();
   }
@@ -3821,145 +3849,22 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseCombinator_show() {
-    // TODO(brianwilkerson) exception:
     // Uninteresting. Covered by the test_parseCombinators_* methods.
     super.test_parseCombinator_show();
   }
 
   @override
   @failingTest
-  void test_parseCombinators_h() {
-    // TODO(brianwilkerson) Failed to use all tokens.
-    super.test_parseCombinators_h();
-  }
-
-  @override
-  @failingTest
-  void test_parseCombinators_hs() {
-    // TODO(brianwilkerson) Failed to use all tokens.
-    super.test_parseCombinators_hs();
-  }
-
-  @override
-  @failingTest
-  void test_parseCombinators_hshs() {
-    // TODO(brianwilkerson) Failed to use all tokens.
-    super.test_parseCombinators_hshs();
-  }
-
-  @override
-  @failingTest
-  void test_parseCombinators_s() {
-    // TODO(brianwilkerson) Failed to use all tokens.
-    super.test_parseCombinators_s();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentAndMetadata_c() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
-    super.test_parseCommentAndMetadata_c();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentAndMetadata_cmc() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
-    super.test_parseCommentAndMetadata_cmc();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentAndMetadata_cmcm() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
-    super.test_parseCommentAndMetadata_cmcm();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentAndMetadata_cmm() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
-    super.test_parseCommentAndMetadata_cmm();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentAndMetadata_m() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
-    super.test_parseCommentAndMetadata_m();
-  }
-
-  @override
-  @failingTest
   void test_parseCommentAndMetadata_mcm() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
+    // TODO(brianwilkerson) Does not find comment if not before first annotation
     super.test_parseCommentAndMetadata_mcm();
   }
 
   @override
   @failingTest
   void test_parseCommentAndMetadata_mcmc() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
+    // TODO(brianwilkerson) Does not find comment if not before first annotation
     super.test_parseCommentAndMetadata_mcmc();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentAndMetadata_mm() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
-    super.test_parseCommentAndMetadata_mm();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentAndMetadata_none() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
-    super.test_parseCommentAndMetadata_none();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentAndMetadata_singleLine() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseCommentAndMetadata'.
-    super.test_parseCommentAndMetadata_singleLine();
-  }
-
-  @override
-  @failingTest
-  void test_parseConfiguration_noOperator_dottedIdentifier() {
-    // TODO(brianwilkerson) Missing right parenthesis.
-    super.test_parseConfiguration_noOperator_dottedIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_parseConfiguration_noOperator_simpleIdentifier() {
-    // TODO(brianwilkerson) Missing right parenthesis.
-    super.test_parseConfiguration_noOperator_simpleIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_parseConfiguration_operator_dottedIdentifier() {
-    // TODO(brianwilkerson) Missing right parenthesis.
-    super.test_parseConfiguration_operator_dottedIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_parseConfiguration_operator_simpleIdentifier() {
-    // TODO(brianwilkerson) Missing right parenthesis.
-    super.test_parseConfiguration_operator_simpleIdentifier();
   }
 
   @override
@@ -4393,55 +4298,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Test isn't passing in enough context.
     // Type 'void' can't be used here because it isn't a return type.
     super.test_parseReturnType_void();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAnnotation_function_noReturnType_noParameters() {
-    // TODO(brianwilkerson) Failed to use all tokens.
-    super.test_parseTypeAnnotation_function_noReturnType_noParameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAnnotation_function_noReturnType_parameters() {
-    // TODO(brianwilkerson) Failed to use all tokens.
-    super.test_parseTypeAnnotation_function_noReturnType_parameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAnnotation_function_returnType_classFunction() {
-    // TODO(brianwilkerson) Failed to use all tokens.
-    super.test_parseTypeAnnotation_function_returnType_classFunction();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAnnotation_function_returnType_function() {
-    // TODO(brianwilkerson) Failed to use all tokens.
-    super.test_parseTypeAnnotation_function_returnType_function();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAnnotation_function_returnType_simple() {
-    // TODO(brianwilkerson) Failed to use all tokens.
-    super.test_parseTypeAnnotation_function_returnType_simple();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAnnotation_function_returnType_withArguments() {
-    // TODO(brianwilkerson) Failed to use all tokens.
-    super.test_parseTypeAnnotation_function_returnType_withArguments();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAnnotation_named() {
-    // TODO(brianwilkerson) Failed to use all tokens.
-    super.test_parseTypeAnnotation_named();
   }
 
   @override

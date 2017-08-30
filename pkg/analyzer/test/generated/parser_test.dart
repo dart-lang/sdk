@@ -11137,7 +11137,7 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCombinator_hide() {
-    createParser('hide a;');
+    createParser('hide a');
     Combinator combinator = parser.parseCombinator();
     expectNotNullIfNoErrors(combinator);
     listener.assertNoErrors();
@@ -11148,7 +11148,7 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCombinator_show() {
-    createParser('show a;');
+    createParser('show a');
     Combinator combinator = parser.parseCombinator();
     expectNotNullIfNoErrors(combinator);
     listener.assertNoErrors();
@@ -11159,7 +11159,7 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCombinators_h() {
-    createParser('hide a;');
+    createParser('hide a');
     List<Combinator> combinators = parser.parseCombinators();
     expectNotNullIfNoErrors(combinators);
     listener.assertNoErrors();
@@ -11171,7 +11171,7 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCombinators_hs() {
-    createParser('hide a show b;');
+    createParser('hide a show b');
     List<Combinator> combinators = parser.parseCombinators();
     expectNotNullIfNoErrors(combinators);
     listener.assertNoErrors();
@@ -11187,7 +11187,7 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCombinators_hshs() {
-    createParser('hide a show b hide c show d;');
+    createParser('hide a show b hide c show d');
     List<Combinator> combinators = parser.parseCombinators();
     expectNotNullIfNoErrors(combinators);
     listener.assertNoErrors();
@@ -11195,7 +11195,7 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCombinators_s() {
-    createParser('show a;');
+    createParser('show a');
     List<Combinator> combinators = parser.parseCombinators();
     expectNotNullIfNoErrors(combinators);
     listener.assertNoErrors();
@@ -11207,7 +11207,7 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCommentAndMetadata_c() {
-    createParser('/** 1 */ void');
+    createParser('/** 1 */');
     CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
     expectNotNullIfNoErrors(commentAndMetadata);
     listener.assertNoErrors();
@@ -11216,7 +11216,7 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCommentAndMetadata_cmc() {
-    createParser('/** 1 */ @A /** 2 */ void');
+    createParser('/** 1 */ @A /** 2 */');
     CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
     expectNotNullIfNoErrors(commentAndMetadata);
     listener.assertNoErrors();
@@ -11225,7 +11225,7 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCommentAndMetadata_cmcm() {
-    createParser('/** 1 */ @A /** 2 */ @B void');
+    createParser('/** 1 */ @A /** 2 */ @B');
     CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
     expectNotNullIfNoErrors(commentAndMetadata);
     listener.assertNoErrors();
@@ -11234,7 +11234,7 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCommentAndMetadata_cmm() {
-    createParser('/** 1 */ @A @B void');
+    createParser('/** 1 */ @A @B');
     CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
     expectNotNullIfNoErrors(commentAndMetadata);
     listener.assertNoErrors();
@@ -11243,7 +11243,7 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCommentAndMetadata_m() {
-    createParser('@A void');
+    createParser('@A');
     CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
     expectNotNullIfNoErrors(commentAndMetadata);
     listener.assertNoErrors();
@@ -11252,7 +11252,7 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCommentAndMetadata_mcm() {
-    createParser('@A /** 1 */ @B void');
+    createParser('@A /** 1 */ @B');
     CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
     expectNotNullIfNoErrors(commentAndMetadata);
     listener.assertNoErrors();
@@ -11261,7 +11261,7 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCommentAndMetadata_mcmc() {
-    createParser('@A /** 1 */ @B /** 2 */ void');
+    createParser('@A /** 1 */ @B /** 2 */');
     CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
     expectNotNullIfNoErrors(commentAndMetadata);
     listener.assertNoErrors();
@@ -11270,7 +11270,7 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCommentAndMetadata_mm() {
-    createParser('@A @B(x) void');
+    createParser('@A @B(x)');
     CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
     expectNotNullIfNoErrors(commentAndMetadata);
     listener.assertNoErrors();
@@ -11279,7 +11279,7 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCommentAndMetadata_none() {
-    createParser('void');
+    createParser('');
     CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
     expectNotNullIfNoErrors(commentAndMetadata);
     listener.assertNoErrors();
@@ -11291,7 +11291,7 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
     createParser(r'''
 /// 1
 /// 2
-void''');
+''');
     CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
     expectNotNullIfNoErrors(commentAndMetadata);
     listener.assertNoErrors();
@@ -11983,7 +11983,7 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseTypeAnnotation_function_noReturnType_noParameters() {
-    createParser('Function() v');
+    createParser('Function()');
     GenericFunctionType functionType = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(functionType);
     listener.assertNoErrors();
@@ -11996,7 +11996,7 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseTypeAnnotation_function_noReturnType_parameters() {
-    createParser('Function(int, int) v');
+    createParser('Function(int, int)');
     GenericFunctionType functionType = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(functionType);
     listener.assertNoErrors();
@@ -12053,14 +12053,14 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseTypeAnnotation_function_returnType_classFunction() {
-    createParser('Function v');
+    createParser('Function');
     TypeName functionType = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(functionType);
     listener.assertNoErrors();
   }
 
   void test_parseTypeAnnotation_function_returnType_function() {
-    createParser('A Function(B, C) Function(D) v');
+    createParser('A Function(B, C) Function(D)');
     // TODO(scheglov) improve the test to verify also the node properties
     var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
     expectNotNullIfNoErrors(functionType);
@@ -12109,7 +12109,7 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseTypeAnnotation_function_returnType_simple() {
-    createParser('A Function(B, C) v');
+    createParser('A Function(B, C)');
     // TODO(scheglov) improve the test to verify also the node properties
     var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
     expectNotNullIfNoErrors(functionType);
@@ -12148,7 +12148,7 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseTypeAnnotation_function_returnType_withArguments() {
-    createParser('A<B> Function(C) v');
+    createParser('A<B> Function(C)');
     // TODO(scheglov) improve this test to verify also the node properties
     var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
     expectNotNullIfNoErrors(functionType);
@@ -12156,7 +12156,7 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseTypeAnnotation_named() {
-    createParser('A<B> v');
+    createParser('A<B>');
     TypeName typeName = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(typeName);
     listener.assertNoErrors();
