@@ -1323,6 +1323,7 @@ void LICM::TrySpecializeSmiPhi(PhiInstr* phi,
 
   // Replace value we are checking with phi's input.
   check->value()->BindTo(phi->InputAt(non_smi_input)->definition());
+  check->value()->SetReachingType(phi->InputAt(non_smi_input)->Type());
 
   phi->UpdateType(CompileType::FromCid(kSmiCid));
 }

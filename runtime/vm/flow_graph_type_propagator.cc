@@ -19,8 +19,6 @@ DEFINE_FLAG(bool,
             false,
             "Trace flow graph type propagation");
 
-DECLARE_FLAG(bool, propagate_types);
-
 static void TraceStrongModeType(const Instruction* instr,
                                 const AbstractType& type) {
   if (FLAG_trace_experimental_strong_mode) {
@@ -204,13 +202,22 @@ void FlowGraphTypePropagator::SetCid(Definition* def, intptr_t cid) {
 
 void FlowGraphTypePropagator::VisitValue(Value* value) {
   CompileType* type = TypeOf(value->definition());
-  value->SetReachingType(type);
+
+  // Force propagation of None type (which means unknown) to inputs of phis
+  // in order to avoid contamination of cycles of phis with previously inferred
+  // types.
+  if (type->IsNone() && value->instruction()->IsPhi()) {
+    value->SetReachingType(type);
+  } else {
+    value->RefineReachingType(type);
+  }
 
   if (FLAG_support_il_printer && FLAG_trace_type_propagation &&
       FlowGraphPrinter::ShouldPrint(flow_graph_->function())) {
     THR_Print("reaching type to %s for v%" Pd " is %s\n",
               value->instruction()->ToCString(),
-              value->definition()->ssa_temp_index(), type->ToCString());
+              value->definition()->ssa_temp_index(),
+              value->Type()->ToCString());
   }
 }
 
@@ -326,9 +333,9 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
       comparison->InputAt(0)->definition()->AsLoadClassId();
   InstanceCallInstr* call =
       comparison->InputAt(0)->definition()->AsInstanceCall();
-  InstanceOfInstr* instanceOf =
+  InstanceOfInstr* instance_of =
       comparison->InputAt(0)->definition()->AsInstanceOf();
-  bool is_simpleInstanceOf =
+  bool is_simple_instance_of =
       (call != NULL) && call->MatchesCoreName(Symbols::_simpleInstanceOf());
   RedefinitionInstr* redef = NULL;
   if (load_cid != NULL && comparison->InputAt(1)->BindsToConstant()) {
@@ -338,7 +345,7 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
     redef = flow_graph_->EnsureRedefinition(true_successor,
                                             load_cid->object()->definition(),
                                             CompileType::FromCid(cid));
-  } else if ((is_simpleInstanceOf || (instanceOf != NULL)) &&
+  } else if ((is_simple_instance_of || (instance_of != NULL)) &&
              comparison->InputAt(1)->BindsToConstant() &&
              comparison->InputAt(1)->BoundConstant().IsBool()) {
     if (comparison->InputAt(1)->BoundConstant().raw() == Bool::False().raw()) {
@@ -348,7 +355,7 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
         negated ? instr->false_successor() : instr->true_successor();
     const AbstractType* type = NULL;
     Definition* left = NULL;
-    if (is_simpleInstanceOf) {
+    if (is_simple_instance_of) {
       ASSERT(call->ArgumentAt(1)->IsConstant());
       const Object& type_obj = call->ArgumentAt(1)->AsConstant()->value();
       if (!type_obj.IsType()) {
@@ -357,8 +364,8 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
       type = &Type::Cast(type_obj);
       left = call->ArgumentAt(0);
     } else {
-      type = &(instanceOf->type());
-      left = instanceOf->value()->definition();
+      type = &(instance_of->type());
+      left = instance_of->value()->definition();
     }
     if (!type->IsDynamicType() && !type->IsObjectType()) {
       const bool is_nullable = type->IsNullType() ? CompileType::kNullable
@@ -508,17 +515,64 @@ void CompileType::Union(CompileType* other) {
     cid_ = kDynamicCid;
   }
 
-  const AbstractType* compile_type = ToAbstractType();
-  const AbstractType* other_compile_type = other->ToAbstractType();
-  if (compile_type->IsMoreSpecificThan(*other_compile_type, NULL, NULL,
-                                       Heap::kOld)) {
-    type_ = other_compile_type;
-  } else if (other_compile_type->IsMoreSpecificThan(*compile_type, NULL, NULL,
-                                                    Heap::kOld)) {
+  const AbstractType* abstract_type = ToAbstractType();
+  const AbstractType* other_abstract_type = other->ToAbstractType();
+  if (abstract_type->IsMoreSpecificThan(*other_abstract_type, NULL, NULL,
+                                        Heap::kOld)) {
+    type_ = other_abstract_type;
+  } else if (other_abstract_type->IsMoreSpecificThan(*abstract_type, NULL, NULL,
+                                                     Heap::kOld)) {
     // Nothing to do.
   } else {
     // Can't unify.
     type_ = &Object::dynamic_type();
+  }
+}
+
+CompileType* CompileType::ComputeRefinedType(CompileType* old_type,
+                                             CompileType* new_type) {
+  // In general, prefer the newly inferred type over old type.
+  // It is possible that new and old types are unrelated or do not intersect
+  // at all (for example, in case of unreachable code).
+
+  // Discard None type as it is used to denote an unknown type.
+  if (old_type->IsNone()) {
+    return new_type;
+  }
+  if (new_type->IsNone()) {
+    return old_type;
+  }
+
+  // Prefer exact Cid if known.
+  if (new_type->ToCid() != kDynamicCid) {
+    return new_type;
+  }
+  if (old_type->ToCid() != kDynamicCid) {
+    return old_type;
+  }
+
+  const AbstractType* old_abstract_type = old_type->ToAbstractType();
+  const AbstractType* new_abstract_type = new_type->ToAbstractType();
+
+  CompileType* preferred_type;
+  if (old_abstract_type->IsMoreSpecificThan(*new_abstract_type, NULL, NULL,
+                                            Heap::kOld)) {
+    // Prefer old type, as it is clearly more specific.
+    preferred_type = old_type;
+  } else {
+    // Prefer new type as it is more recent, even though it might be
+    // no better than the old type.
+    preferred_type = new_type;
+  }
+
+  // Refine non-nullability.
+  bool is_nullable = old_type->is_nullable() && new_type->is_nullable();
+
+  if (preferred_type->is_nullable() && !is_nullable) {
+    return new CompileType(preferred_type->CopyNonNullable());
+  } else {
+    ASSERT(preferred_type->is_nullable() == is_nullable);
+    return preferred_type;
   }
 }
 
@@ -712,6 +766,15 @@ CompileType* Value::Type() {
     reaching_type_ = definition()->Type();
   }
   return reaching_type_;
+}
+
+void Value::RefineReachingType(CompileType* type) {
+  ASSERT(type != NULL);
+  if (reaching_type_ == NULL) {
+    reaching_type_ = type;
+  } else {
+    reaching_type_ = CompileType::ComputeRefinedType(reaching_type_, type);
+  }
 }
 
 CompileType PhiInstr::ComputeType() const {

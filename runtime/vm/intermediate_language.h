@@ -149,6 +149,12 @@ class CompileType : public ZoneAllocated {
   // Perform a join operation over the type lattice.
   void Union(CompileType* other);
 
+  // Refine old type with newly inferred type (it could be more or less
+  // specific, or even unrelated to an old type in case of unreachable code).
+  // May return 'old_type', 'new_type' or create a new CompileType instance.
+  static CompileType* ComputeRefinedType(CompileType* old_type,
+                                         CompileType* new_type);
+
   // Returns true if this and other types are the same.
   bool IsEqualTo(CompileType* other) {
     return (is_nullable_ == other->is_nullable_) &&
@@ -234,17 +240,19 @@ class Value : public ZoneAllocated {
 
   Value* Copy(Zone* zone) { return new (zone) Value(definition_); }
 
-  // This function must only be used when the new Value is dominated by
+  // CopyWithType() must only be used when the new Value is dominated by
   // the original Value.
-  Value* CopyWithType() {
-    Value* copy = new Value(definition_);
+  Value* CopyWithType(Zone* zone) {
+    Value* copy = new (zone) Value(definition_);
     copy->reaching_type_ = reaching_type_;
     return copy;
   }
+  Value* CopyWithType() { return CopyWithType(Thread::Current()->zone()); }
 
   CompileType* Type();
 
   void SetReachingType(CompileType* type) { reaching_type_ = type; }
+  void RefineReachingType(CompileType* type);
 
   void PrintTo(BufferFormatter* f) const;
 
