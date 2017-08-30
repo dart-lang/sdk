@@ -13,6 +13,7 @@ import '../../scanner/token.dart' show Token;
 import '../builder/builder.dart'
     show
         Builder,
+        BuiltinTypeBuilder,
         ClassBuilder,
         ConstructorReferenceBuilder,
         FormalParameterBuilder,
@@ -522,7 +523,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       if (member.parent != this) {
         additionalExports ??= <Reference>[];
         Builder parent = member.parent;
-        if (parent is LibraryBuilder) {
+        if (parent is LibraryBuilder && member is! BuiltinTypeBuilder) {
           additionalExports.add(member.target.reference);
         }
       }
