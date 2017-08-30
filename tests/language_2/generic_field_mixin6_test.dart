@@ -7,9 +7,8 @@
 import 'package:expect/expect.dart';
 
 class M<T> {
-  var field = () {
-    return T;
-  }();
+  T field1 = 0; //# 01: compile-time error
+  T field2 = 0 as dynamic;
 }
 
 class A<U> {}
@@ -19,10 +18,15 @@ class C2 = Object with M<int>;
 class C3 = Object with M<String>;
 
 main() {
-  Expect.equals(int, new C1<int>().field);
-  Expect.equals(String, new C1<String>().field);
+  // no error: 0 is an int
+  new C1<int>();
+  new C2();
 
-  Expect.equals(int, new C2().field);
-
-  Expect.equals(String, new C3().field);
+  // type error: 0 is not a string
+  Expect.throws(() {
+    new C1<String>();
+  }, (e) => e is TypeError);
+  Expect.throws(() {
+    new C3();
+  }, (e) => e is TypeError);
 }

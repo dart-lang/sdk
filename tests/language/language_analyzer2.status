@@ -371,7 +371,6 @@ issue13474_test: StaticWarning, OK # Issue 13474
 factory1_test/00: StaticWarning # Issue 18726
 factory1_test/01: StaticWarning # Issue 18726
 factory1_test/none: StaticWarning # Issue 18726
-generic_closure_test: StaticWarning
 local_function2_test: StaticWarning
 redirecting_factory_long_test: StaticWarning
 

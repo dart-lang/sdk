@@ -102,6 +102,12 @@ checked_setter_test: MissingCompileTimeError
 class_literal_test/25: MissingCompileTimeError
 covariant_subtyping_with_substitution_test: RuntimeError
 covariant_tear_off_type_test: RuntimeError
+generic_closure_test: RuntimeError
+generic_field_mixin6_test/01: MissingCompileTimeError
+generic_function_bounds_test: RuntimeError
+generic_function_dcall_test: RuntimeError
+generic_function_typedef_test/01: RuntimeError
+generic_function_typedef2_test/04: MissingCompileTimeError
 generic_instanceof_test: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
@@ -239,6 +245,7 @@ assertion_initializer_const_error2_test/cc11: Pass, OK
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+generic_field_mixin6_test/none: RuntimeError
 
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 async_star_regression_2238_test: CompileTimeError, RuntimeError
@@ -255,7 +262,9 @@ class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
+generic_functions_test: Pass # Issue 25869
 generic_methods_function_type_test: Pass # Issue 25869
+generic_methods_generic_function_parameter_test: Pass # Issue 25869
 generic_methods_test: Pass # Issue 25869
 generic_methods_new_test: Pass # Issue 25869
 generic_local_functions_test: Pass # Issue 25869
@@ -263,3 +272,6 @@ generic_methods_generic_function_parameter_test: Pass # Issue 25869
 
 [ $runtime == dart_precompiled || $compiler == app_jit ]
 hello_dart_test: Skip # Incompatible flag: --compile_all
+
+[ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && ($compiler == none || $compiler == app_jit || $compiler == precompiler) ]
+generalized_void_syntax_test: CompileTimeError # Issue #30176.

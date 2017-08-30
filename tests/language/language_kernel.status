@@ -164,7 +164,6 @@ const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
 
 constants_test/05: Crash # Fasta bug: getter call in compile-time constant.
 
-generalized_void_syntax_test: CompileTimeError # Issue #30176.
 
 syntax_test/none: CompileTimeError # Issue #30176.
 

@@ -59,11 +59,6 @@ multiline_strings_test: Fail # Issue 23020
 deferred_redirecting_factory_test: Fail, Crash # Issue 23408
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 
-[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
-# These generic functions tests pass for the wrong reason in checked mode,
-# because the parsed type parameters are mapped to dynamic type.
-generic_functions_test: Pass # Issue 25869
-
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) ]
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 
@@ -244,7 +239,6 @@ config_import_corelib_test: StaticWarning, OK
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && ($compiler == none || $compiler == app_jit || $compiler == precompiler) ]
 await_for_test: RuntimeError # issue 28974
-generalized_void_syntax_test: CompileTimeError # Issue #30176.
 syntax_test/none: CompileTimeError # Issue #30176.
 
 # flutter uses --error_on_bad_type, --error_on_bad_override
@@ -421,7 +415,6 @@ list_literal_syntax_test/02: CompileTimeError
 vm/reflect_core_vm_test: CompileTimeError
 vm/debug_break_enabled_vm_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/none: CompileTimeError
-generic_function_typedef2_test/04: CompileTimeError
 const_types_test/01: CompileTimeError
 const_types_test/02: CompileTimeError
 const_types_test/03: CompileTimeError

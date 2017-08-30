@@ -101,5 +101,5 @@ main() {
 
   BinaryTree<num, num> iT = sT.map<num>((String s) => s.length);
 
-  Expect.equals(iT.foldPre<num>(0, (int i, num s) => i + s), 6);
+  Expect.equals(iT.foldPre<num>(0, (num i, num s) => i + s), 6);
 }

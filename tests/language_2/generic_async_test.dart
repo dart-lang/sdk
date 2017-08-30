@@ -6,8 +6,8 @@ import "package:expect/expect.dart";
 
 import 'dart:async';
 
-Future/*<T>*/ foo/*<T>*/(/*=T*/ x) async => x;
+Future<T> foo<T>(T x) async => x;
 
 main() async {
-  Expect.equals(1, await foo/*<int>*/(1));
+  Expect.equals(1, await foo<int>(1));
 }

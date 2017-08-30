@@ -17,6 +17,7 @@ assertion_initializer_test: CompileTimeError
 cha_deopt1_test: RuntimeError
 cha_deopt2_test: RuntimeError
 cha_deopt3_test: RuntimeError
+generic_function_dcall_test: CompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/02: MissingRuntimeError
@@ -256,6 +257,7 @@ cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel 
 cha_deopt2_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 cha_deopt3_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 compile_time_constant_c_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+generalized_void_syntax_test: CompileTimeError # Issue #30176.
 
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 assign_static_type_test/02: MissingCompileTimeError

@@ -36,16 +36,9 @@ library_env_test/has_no_mirror_support: RuntimeError, OK
 
 duplicate_part_test/01: MissingCompileTimeError # Issue 27517
 
-generic_function_typedef2_test/00: Crash # Issue 28214
-generic_function_typedef2_test/01: Crash # Issue 28214
-generic_function_typedef2_test/02: Crash # Issue 28214
-generic_function_typedef2_test/03: Crash # Issue 28214
-generic_function_typedef2_test/05: Crash # Issue 28214
-generic_function_typedef2_test/06: Crash # Issue 28214
 
 stacktrace_demangle_ctors_test: Fail # dart2js stack traces are not always compliant.
 
-generalized_void_syntax_test: CompileTimeError # Issue #30176.
 syntax_test/none: CompileTimeError # Issue #30176.
 
 [ $compiler == dart2js && $fast_startup && ! $dart2js_with_kernel ]
@@ -189,7 +182,6 @@ f_bounded_quantification5_test: Fail, OK # Issue 12605
 cyclic_type_test/0*: Fail # Issue 12605
 cyclic_type2_test: Fail # Issue 12605
 f_bounded_quantification4_test: Fail, Pass # Issue 12605
-generic_closure_test: Fail # Issue 12605
 mixin_generic_test: Fail # Issue 12605
 mixin_mixin2_test: Fail # Issue 12605
 mixin_mixin3_test: Fail # Issue 12605
@@ -266,8 +258,6 @@ stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
 regress_21795_test: RuntimeError # Issue 12605
 
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
-generic_field_mixin4_test: Crash # Issue 18651
-generic_field_mixin5_test: Crash # Issue 18651
 method_override5_test: RuntimeError # Issue 12809
 
 [ $compiler == dart2js && $runtime != drt ]
@@ -320,18 +310,6 @@ final_for_in_variable_test/01: MissingRuntimeError # Issue 27394
 final_param_test/01: MissingRuntimeError # Issue 27394
 final_variable_assignment_test/01: MissingRuntimeError # Issue 27394
 first_class_types_constants_test: RuntimeError # Issue 27394
-generic_field_mixin2_test: Crash # Issue 27394
-generic_field_mixin3_test: Crash # Issue 27394
-generic_field_mixin6_test/01: Crash # Issue 27394
-generic_field_mixin_test: Crash # Issue 27394
-generic_local_functions_test: Crash # Issue 27394
-generic_metadata_test/02: Crash # Issue 27394
-generic_metadata_test/03: Crash # Issue 27394
-generic_methods_generic_function_parameter_test: Crash # Issue 27394
-generic_methods_type_expression_test/01: RuntimeError # Issue 27394
-generic_methods_type_expression_test/03: RuntimeError # Issue 27394
-generic_methods_type_expression_test/none: RuntimeError # Issue 27394
-get_set_syntax_test/00: Crash # Issue 27394
 if_null_assignment_behavior_test/06: RuntimeError # Issue 27394
 if_null_assignment_static_test/01: RuntimeError # Issue 27394
 if_null_assignment_static_test/03: RuntimeError # Issue 27394
@@ -448,7 +426,6 @@ this_conditional_operator_test/01: Crash # Issue 27394
 try_catch_syntax_test/13: Crash # Issue 27394
 try_catch_syntax_test/14: Crash # Issue 27394
 try_catch_syntax_test/15: Crash # Issue 27394
-generalized_void_syntax_test: Crash # Issue #30176
 syntax_test/none: Crash # Issue #30176.
 
 # Note: there are two flags to test dart2js with kernel:
@@ -825,18 +802,6 @@ function_test: Crash
 function_type_alias3_test: Crash
 function_type_parameter2_negative_test: Crash
 function_type_parameter_negative_test: Crash
-generalized_void_syntax_test: CompileTimeError
-generic_closure_test: RuntimeError
-generic_field_mixin2_test: Crash
-generic_field_mixin3_test: Crash
-generic_field_mixin4_test: Crash # Issue 18651
-generic_field_mixin5_test: Crash # Issue 18651
-generic_field_mixin6_test/01: Crash
-generic_field_mixin_test: Crash
-generic_function_typedef2_test/04: Crash
-generic_function_typedef_test: Crash
-generic_functions_test: Crash
-generic_instanceof_test: Crash
 generic_local_functions_test: Crash
 generic_methods_generic_function_parameter_test: Crash
 generic_methods_new_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
@@ -1721,18 +1686,6 @@ function_test: Crash
 function_type_alias3_test: Crash
 function_type_parameter2_negative_test: Crash
 function_type_parameter_negative_test: Crash
-generalized_void_syntax_test: CompileTimeError
-generic_closure_test: RuntimeError
-generic_field_mixin2_test: Crash
-generic_field_mixin3_test: Crash
-generic_field_mixin4_test: Crash # Issue 18651
-generic_field_mixin5_test: Crash # Issue 18651
-generic_field_mixin6_test/01: Crash
-generic_field_mixin_test: Crash
-generic_function_typedef2_test/04: Crash
-generic_function_typedef_test: Crash
-generic_functions_test: Crash
-generic_instanceof_test: Crash
 generic_local_functions_test: Crash
 generic_methods_generic_function_parameter_test: Crash
 generic_methods_test: Crash

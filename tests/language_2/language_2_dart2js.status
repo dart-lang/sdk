@@ -110,6 +110,10 @@ covariant_tear_off_type_test: RuntimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
+generic_field_mixin6_test/01: MissingCompileTimeError
+generic_function_bounds_test: CompileTimeError
+generic_function_dcall_test: CompileTimeError
+generic_function_typedef2_test/04: MissingCompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_closure_test: RuntimeError
@@ -198,11 +202,14 @@ generic_methods_local_variable_declaration_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != none ]
 bit_operations_test: RuntimeError, OK # Issue 1533
+generic_closure_test: RuntimeError
+generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_typedef_test: RuntimeError
 many_generic_instanceof_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != none && !$checked ]
+generic_field_mixin6_test/none: RuntimeError
 generic_list_checked_test: RuntimeError
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
@@ -232,6 +239,19 @@ getter_setter_in_lib_test: Fail # Issue 23288
 if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/14: Crash # Issue 23491
 identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
+generic_function_typedef2_test/00: Crash # Issue 28214
+generic_function_typedef2_test/01: Crash # Issue 28214
+generic_function_typedef2_test/02: Crash # Issue 28214
+generic_function_typedef2_test/03: Crash # Issue 28214
+generic_function_typedef2_test/00: MissingCompileTimeError # Issue 28214
+generic_function_typedef2_test/01: MissingCompileTimeError # Issue 28214
+generic_function_typedef2_test/02: MissingCompileTimeError # Issue 28214
+generic_function_typedef2_test/03: MissingCompileTimeError # Issue 28214
+generic_function_typedef2_test/05: Crash # Issue 28214
+generic_function_typedef2_test/06: Crash # Issue 28214
+generalized_void_syntax_test: CompileTimeError # Issue #30176.
+generic_field_mixin4_test: Crash # Issue 18651
+generic_field_mixin5_test: Crash # Issue 18651
 
 [ $compiler == dart2js && $runtime != none && ! $dart2js_with_kernel ]
 accessor_conflict_import2_test: RuntimeError # Issue 25626
@@ -268,20 +288,16 @@ black_listed_test/13c: Crash # Issue 27394
 black_listed_test/14c: Crash # Issue 27394
 bootstrap_test: RuntimeError # Issue 27394
 call_nonexistent_static_test/10: Crash # Issue 27394
+generalized_void_syntax_test: Crash # Issue #30176
+generic_field_mixin2_test: Crash # Issue 27394
+generic_field_mixin3_test: Crash # Issue 27394
+generic_field_mixin6_test/01: Crash # Issue 27394
+generic_field_mixin_test: Crash # Issue 27394
 generic_local_functions_test: Crash # Issue 27394
 generic_metadata_test/02: Crash # Issue 27394
 generic_metadata_test/03: Crash # Issue 27394
 generic_methods_generic_function_parameter_test: Crash # Issue 27394
 get_set_syntax_test/00: Crash # Issue 27394
-if_null_assignment_behavior_test/06: RuntimeError # Issue 27394
-if_null_assignment_static_test/01: RuntimeError # Issue 27394
-if_null_assignment_static_test/03: RuntimeError # Issue 27394
-if_null_assignment_static_test/04: RuntimeError # Issue 27394
-if_null_assignment_static_test/05: RuntimeError # Issue 27394
-illegal_initializer_test/01: Crash # Issue 27394
-illegal_initializer_test/02: Crash # Issue 27394
-illegal_initializer_test/03: Crash # Issue 27394
-illegal_initializer_test/04: Crash # Issue 27394
 
 [ $compiler == dart2js && !$checked ]
 function_subtype_inline2_test: RuntimeError
@@ -521,6 +537,25 @@ compile_time_constant_c_test/02: Crash
 compile_time_constant_k_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 compile_time_constant_k_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 compile_time_constant_k_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+compile_time_constant_k_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+compile_time_constant10_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+compile_time_constant_a_test: Crash
+compile_time_constant_b_test: Crash
+compile_time_constant_c_test/02: Crash
+compile_time_constant_k_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+compile_time_constant_k_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+compile_time_constant_k_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+compile_time_constant_k_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+generalized_void_syntax_test: CompileTimeError
+generic_closure_test: RuntimeError
+generic_field_mixin2_test: Crash
+generic_field_mixin3_test: Crash
+generic_field_mixin4_test: Crash # Issue 18651
+generic_field_mixin5_test: Crash # Issue 18651
+generic_field_mixin6_test/01: Crash
+generic_field_mixin_test: Crash
+generic_function_typedef_test/none: Crash
+generic_functions_test: Crash
 generic_instanceof_test: Crash
 generic_local_functions_test: Crash
 generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
@@ -720,6 +755,20 @@ closures_initializer_test: Crash # NoSuchMethodError: The getter 'closureClassEn
 compile_time_constant_a_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(ConstantStringMap.values#key), local(ConstantStringMap.values#)) for j:closure_call(ConstantStringMap_values_closure.call).
 compile_time_constant_b_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(ConstantStringMap.values#key), local(ConstantStringMap.values#)) for j:closure_call(ConstantStringMap_values_closure.call).
 compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
+closures_with_complex_params_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'supertype'.
+compile_time_constant_a_test: Crash
+compile_time_constant_b_test: Crash
+compile_time_constant_c_test/02: Crash
+generalized_void_syntax_test: CompileTimeError
+generic_closure_test: RuntimeError
+generic_field_mixin2_test: Crash
+generic_field_mixin3_test: Crash
+generic_field_mixin4_test: Crash # Issue 18651
+generic_field_mixin5_test: Crash # Issue 18651
+generic_field_mixin_test: Crash
+generic_function_typedef2_test/04: Crash
+generic_function_typedef_test/none: Crash
+generic_functions_test: Crash
 generic_instanceof_test: Crash
 generic_local_functions_test: Crash
 generic_methods_closure_test: Crash
@@ -731,6 +780,10 @@ generic_methods_shadowing_test: Crash
 generic_methods_tearoff_specialization_test: Crash
 generic_methods_test: Crash
 generic_methods_type_expression_test: Crash
+generic_method_types_test/01: Crash
+generic_method_types_test/02: Crash
+generic_methods_generic_function_parameter_test: Crash
+generic_methods_test: Crash
 generic_native_test: Crash
 generic_sync_star_test: Crash
 generic_syntax_test: Crash
@@ -834,7 +887,12 @@ function_type/function_type6_test: Crash # Issue 27394
 function_type/function_type7_test: Crash # Issue 27394
 function_type/function_type98_test: Crash # Issue 27394
 function_type/function_type99_test: Crash # Issue 27394
+generic_function_typedef_test: Crash # Issue 27394
+generic_function_typedef_test/none: Crash # Issue 27394
 getter_setter_in_lib_test: Crash # Issue 27394
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 call_through_getter_test: Fail, OK
+
+[ $compiler == dart2js && $minified && ! $dart2js_with_kernel ]
+generic_closure_test: Fail # Issue 12605

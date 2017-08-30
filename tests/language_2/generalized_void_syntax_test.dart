@@ -68,7 +68,7 @@ class C extends A<void> with B<void, A<void>> {
 
   // Ensure that all members are used, and use `void` in expressions.
   void run() {
-    var ignore = [
+    List<dynamic> ignore = [
       x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, //
       g1, g2, g3, g4,
     ];
@@ -96,7 +96,7 @@ class C extends A<void> with B<void, A<void>> {
 
 // Testing syntax, just enforce compilation.
 main() {
-  var ignore = [x1, x2, x3, x4, x5, x6, x7, x8, g1, g2];
+  List<dynamic> ignore = [x1, x2, x3, x4, x5, x6, x7, x8, g1, g2];
 
   s1 = null;
   s2 = new A<void>(null);

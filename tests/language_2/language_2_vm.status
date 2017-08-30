@@ -108,9 +108,15 @@ class_literal_test/24: MissingCompileTimeError
 class_literal_test/25: MissingCompileTimeError
 covariant_subtyping_with_substitution_test: RuntimeError
 covariant_tear_off_type_test: RuntimeError
+generic_closure_test: RuntimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
+generic_field_mixin6_test/01: MissingCompileTimeError
+generic_function_bounds_test: RuntimeError
+generic_function_dcall_test: RuntimeError
+generic_function_typedef_test/01: RuntimeError
+generic_function_typedef2_test/04: MissingCompileTimeError
 generic_instanceof_test: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
@@ -336,6 +342,7 @@ function_type/function_type9_test: RuntimeError # Issue 30475
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
+generic_field_mixin6_test/none: RuntimeError
 generic_list_checked_test: RuntimeError
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
@@ -349,6 +356,7 @@ assert_initializer_test/4*: MissingCompileTimeError # Issue 392.
 
 [ $compiler == dartk && $runtime == vm ]
 arithmetic2_test: RuntimeError # Throws CastError instead of TypeError
+generic_function_bounds_test: CompileTimeError
 
 [ $compiler == none && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError

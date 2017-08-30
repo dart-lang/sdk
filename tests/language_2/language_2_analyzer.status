@@ -231,11 +231,10 @@ cascade_test/none: fail # Issue 11577
 closure_call_wrong_argument_count_negative_test: skip
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_local_functions_test: CompileTimeError # Issue 28515
-get_set_syntax_test/none: fail # Issue 11575
 generic_list_checked_test: StaticWarning
-generics_test: StaticWarning
 generic_test: StaticWarning
-getter_setter_in_lib_test: Fail # Issue 23286
+generics_test: StaticWarning
+get_set_syntax_test/none: fail # Issue 11575
 getter_setter_in_lib_test: Fail # Issue 23286
 getter_declaration_negative_test: CompileTimeError
 type_variable_scope_test/none: fail # Issue 11578
@@ -361,6 +360,8 @@ closure_type_test: Pass
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
+generic_field_mixin6_test/01: MissingCompileTimeError
+generic_function_typedef2_test/04: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30207
 generic_methods_type_expression_test: StaticWarning # Issue 30530
 identical_const_test/01: MissingCompileTimeError

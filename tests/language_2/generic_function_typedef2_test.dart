@@ -15,7 +15,7 @@ typedef I = A; //# 02: compile-time error
 typedef J = List<int>; //# 03: compile-time error
 typedef K = Function(
     Function<A>(A
-    <int> // //# 04: static type warning
+    <int> // //# 04: compile-time error
         ));
 typedef L = Function(
     {
@@ -34,11 +34,6 @@ typedef M = Function(
 foo({bool int}) {}
 main() {
   bool b = true;
-  Expect.isFalse(b is G); // //# 00: continued
-  Expect.isFalse(b is H); // //# 01: continued
-  Expect.isFalse(b is I); // //# 02: continued
-  Expect.isFalse(b is J); // //# 03: continued
-  Expect.isFalse(b is K); // //# 04: continued
   Expect.isFalse(b is L);
   Expect.isFalse(b is M);
   Expect.isTrue(foo is M);
