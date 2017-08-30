@@ -11,3 +11,6 @@ async/schedule_microtask5_test: RuntimeError
 
 [ $strong && $runtime == vm ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
+
+[ $runtime == vm ]
+mirrors/deferred_type_test: CompileTimeError

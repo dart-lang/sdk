@@ -6,4 +6,4 @@
 async/future_or_strong_test: RuntimeError
 
 [ $compiler == precompiler ]
-mirrors/*: Skip # Mirrors not supported on AOT.
+mirrors/*: SkipByDesign # Mirrors not supported on AOT.

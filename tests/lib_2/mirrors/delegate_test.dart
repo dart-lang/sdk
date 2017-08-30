@@ -1,35 +1,34 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.delegate_class;
+library test.invoke_named_test;
 
-@MirrorsUsed(targets: "test.delegate_class")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
 class C {
-  static method(a, b, c) => "$a-$b-$c";
-  static methodWithNamed(a, {b: 'B', c}) => "$a-$b-$c";
-  static methodWithOpt(a, [b, c = 'C']) => "$a-$b-$c";
-  static get getter => 'g';
-  static set setter(x) {
+  method(a, b, c) => "$a-$b-$c";
+  methodWithNamed(a, {b: 'B', c}) => "$a-$b-$c";
+  methodWithOpt(a, [b, c = 'C']) => "$a-$b-$c";
+  get getter => 'g';
+  set setter(x) {
     field = x * 2;
-    return 'unobservable value';
   }
 
-  static var field;
+  var field;
 }
 
 class Proxy {
   var targetMirror;
-  Proxy(this.targetMirror);
+  Proxy(target) : this.targetMirror = reflect(target);
   noSuchMethod(invocation) => targetMirror.delegate(invocation);
 }
 
 main() {
-  var proxy = new Proxy(reflectClass(C));
+  var c = new C();
+  dynamic proxy = new Proxy(c);
   var result;
 
   Expect.equals('X-Y-Z', proxy.method('X', 'Y', 'Z'));

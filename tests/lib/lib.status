@@ -18,12 +18,9 @@ math/random_big_test: RuntimeError  # Using bigint seeds for random.
 
 mirrors/invocation_fuzz_test: RuntimeError # Issue 29086
 mirrors/abstract_class_test: RuntimeError # Issue 12826
-mirrors/constructor_private_name_test: CompileTimeError # Issue 13597
-mirrors/delegate_class_test: RuntimeError
-mirrors/delegate_library_test: RuntimeError
-mirrors/deferred_type_test: RuntimeError # Issue 6335
-mirrors/empty_test: RuntimeError # Issue 6490
-mirrors/enum_test: RuntimeError # Issue 6490
+mirrors/class_declarations_test/none: RuntimeError # Issue 13440
+mirrors/class_mirror_location_test: RuntimeError # Issue 6490
+mirrors/closurization_equivalence_test: RuntimeError # Issue 6490
 mirrors/fake_function_with_call_test: RuntimeError # Issue 11612
 mirrors/fake_function_without_call_test: RuntimeError # Issue 11612
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError # Issue 12087
@@ -330,9 +327,7 @@ mirrors/mirrors_nsm_mismatch_test: StaticWarning, OK # Expect to trigger noSuchM
 
 mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional library name conflict.
 mirrors/removed_api_test: StaticWarning, OK # Deliberately refers to undeclared members.
-mirrors/deferred_type_test: StaticWarning, OK # Deliberately referes to a deferred type in a declaration.
 
-mirrors/deferred_mirrors_metadata_test: Fail # Issue 17522
 
 developer/metrics_test: Fail # Issue 20309
 developer/metrics_num_test: Fail # Issue 20309
@@ -414,9 +409,6 @@ mirrors/library_enumeration_deferred_loading_test: Crash # Deferred loading
 mirrors/library_imports_deferred_test: Crash # Deferred loading
 mirrors/library_import_deferred_loading_test: Crash # Deferred loading
 mirrors/typedef_deferred_library_test: Crash # Deferred loading
-mirrors/deferred_mirrors_update_test: Crash # Deferred loading
-mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading
-mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
 mirrors/load_library_test: Crash # Deferred loading
 
 [ $hot_reload ]
@@ -433,12 +425,11 @@ async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
 mirrors/abstract_class_test/00: RuntimeError
 mirrors/abstract_class_test/none: RuntimeError
-mirrors/constructor_private_name_test: RuntimeError
-mirrors/dart2js_mirrors_test: Crash
-mirrors/deferred_type_test: RuntimeError
-mirrors/empty_test: Crash
-mirrors/enum_test: RuntimeError
-mirrors/equality_test: RuntimeError
+mirrors/class_declarations_test/01: RuntimeError
+mirrors/class_declarations_test/none: RuntimeError
+mirrors/class_mirror_location_test: RuntimeError
+mirrors/constructor_kinds_test/01: RuntimeError
+mirrors/constructor_kinds_test/none: RuntimeError
 mirrors/function_type_mirror_test: RuntimeError
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError
@@ -550,9 +541,6 @@ mirrors/reflected_type_generics_test/02: Pass
 
 # Deferred loading kernel issue 28335.
 [ $compiler == dartk || $compiler == dartkp ]
-mirrors/deferred_mirrors_metadata_test: CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/deferred_mirrors_update_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/library_enumeration_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kernel issue 28335.

@@ -93,7 +93,7 @@ class Superclass<S> {
   factory Superclass.inheritedNormalFactory(y) =>
       new Superclass.inheritedRedirectingConstructor(y * 3);
   factory Superclass.inheritedRedirectingFactory(z) =
-      Superclass<S>.inheritedNormalFactory;
+      Superclass.inheritedNormalFactory;
 
   Superclass._inheritedGenerativeConstructor(this._inheritedInstanceVariable);
   Superclass._inheritedRedirectingConstructor(x)
@@ -101,7 +101,7 @@ class Superclass<S> {
   factory Superclass._inheritedNormalFactory(y) =>
       new Superclass._inheritedRedirectingConstructor(y * 3);
   factory Superclass._inheritedRedirectingFactory(z) =
-      Superclass<S>._inheritedNormalFactory;
+      Superclass._inheritedNormalFactory;
 }
 
 abstract class Class<C> extends Superclass<C>
@@ -135,13 +135,13 @@ abstract class Class<C> extends Superclass<C>
       : super.inheritedGenerativeConstructor(0);
   Class.redirectingConstructor(x) : this.generativeConstructor(x * 2);
   factory Class.normalFactory(y) => new ConcreteClass(y * 3);
-  factory Class.redirectingFactory(z) = Class<C>.normalFactory;
+  factory Class.redirectingFactory(z) = Class.normalFactory;
 
   Class._generativeConstructor(this._instanceVariable)
       : super._inheritedGenerativeConstructor(0);
   Class._redirectingConstructor(x) : this._generativeConstructor(x * 2);
   factory Class._normalFactory(y) => new ConcreteClass(y * 3);
-  factory Class._redirectingFactory(z) = Class<C>._normalFactory;
+  factory Class._redirectingFactory(z) = Class._normalFactory;
 }
 
 // This is just here as a target of Class's factories to appease the analyzer.

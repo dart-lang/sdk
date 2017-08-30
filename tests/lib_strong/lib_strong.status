@@ -54,15 +54,9 @@ html/wrapping_collections_test: Skip
 math/min_max_test: Skip
 mirrors/abstract_class_test: Skip
 mirrors/abstract_test: Skip
-mirrors/constructors_test: Skip
-mirrors/dart2js_mirrors_test: Skip
-mirrors/deferred_type_test: Skip
-mirrors/delegate_call_through_getter_test: Skip
-mirrors/delegate_class_test: Skip
-mirrors/delegate_function_invocation_test: Skip
-mirrors/delegate_library_test: Skip
-mirrors/delegate_test: Skip
-mirrors/enum_test: Skip
+mirrors/circular_factory_redirection_test: Skip
+mirrors/class_declarations_test: Skip
+mirrors/closures_test: Skip
 mirrors/fake_function_without_call_test: Skip
 mirrors/generic_bounded_by_type_parameter_test: Skip
 mirrors/generic_bounded_test: Skip
@@ -155,7 +149,6 @@ html/custom/element_upgrade_test: CompileTimeError # Issue 28969
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 28969
 
 [ $compiler == dart2analyzer && $strong ]
-mirrors/deferred_mirrors_metadata_test: StaticWarning # Issue 28969
 html/debugger_test: CompileTimeError # Issue 28969
 
 # TODO(29919): HTML tests are not supported on dartdevc in test.dart yet.
@@ -215,13 +208,11 @@ math/double_pow_test: RuntimeError # Issue 29922
 math/low_test: RuntimeError # Issue 29922
 math/random_big_test: RuntimeError # Issue 29922
 mirrors/accessor_cache_overflow_test: RuntimeError # Issue 29922
-mirrors/constructor_private_name_test: RuntimeError # Issue 29922
-mirrors/declarations_type_test: RuntimeError # Issue 29922
-mirrors/deferred_mirrors_metadata_test: RuntimeError # Issue 29922
-mirrors/deferred_mirrors_metatarget_test: RuntimeError # Issue 29922
-mirrors/deferred_mirrors_update_test: RuntimeError # Issue 29922
-mirrors/empty_test: RuntimeError # Issue 29922
-mirrors/equality_test: RuntimeError # Issue 29922
+mirrors/basic_types_in_dart_core_test: RuntimeError # Issue 29922
+mirrors/class_mirror_location_test: RuntimeError # Issue 29922
+mirrors/class_mirror_type_variables_test: RuntimeError # Issue 29922
+mirrors/closurization_equivalence_test: RuntimeError # Issue 29922
+mirrors/constructor_kinds_test/01: RuntimeError # Issue 29922
 mirrors/fake_function_with_call_test: RuntimeError # Issue 29922
 mirrors/field_metadata2_test: RuntimeError # Issue 29922
 mirrors/field_type_test: RuntimeError # Issue 29922

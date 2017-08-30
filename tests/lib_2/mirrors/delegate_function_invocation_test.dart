@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.delegate_function_invocation;
+library test.delgate_function_invocation;
 
-@MirrorsUsed(targets: "test.delegate_function_invocation")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -16,7 +15,7 @@ class Proxy {
 }
 
 testClosure() {
-  var proxy = new Proxy(() => 42);
+  dynamic proxy = new Proxy(() => 42);
   Expect.equals(42, proxy());
   Expect.equals(42, proxy.call());
 }
@@ -26,7 +25,7 @@ class FakeFunction {
 }
 
 testFakeFunction() {
-  var proxy = new Proxy(new FakeFunction());
+  dynamic proxy = new Proxy(new FakeFunction());
   Expect.equals(43, proxy());
   Expect.equals(43, proxy.call());
 }
@@ -34,7 +33,7 @@ testFakeFunction() {
 topLevelFunction() => 44;
 
 testTopLevelTearOff() {
-  var proxy = new Proxy(topLevelFunction);
+  dynamic proxy = new Proxy(topLevelFunction);
   Expect.equals(44, proxy());
   Expect.equals(44, proxy.call());
 }
@@ -44,7 +43,7 @@ class C {
 }
 
 testInstanceTearOff() {
-  var proxy = new Proxy(new C().method);
+  dynamic proxy = new Proxy(new C().method);
   Expect.equals(45, proxy());
   Expect.equals(45, proxy.call());
 }

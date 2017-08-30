@@ -4,7 +4,6 @@
 
 library test.invoke_call_through_getter;
 
-@MirrorsUsed(targets: "test.invoke_call_through_getter")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -30,11 +29,11 @@ class C {
 }
 
 class Forwarder {
-  noSuchMethod(msg) => reflect(new C()).delegate(msg);
+  dynamic noSuchMethod(Invocation msg) => reflect(new C()).delegate(msg);
 }
 
 main() {
-  var f = new Forwarder();
+  dynamic f = new Forwarder();
 
   Expect.equals('1 5 6', f.fakeFunctionCall(5, 6));
   Expect.equals('7, 8', f.fakeFunctionNSM(7, 8));

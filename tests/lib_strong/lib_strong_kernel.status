@@ -171,12 +171,10 @@ html/worker_test: DartkCompileTimeError
 html/xhr_cross_origin_test: DartkCompileTimeError
 html/xhr_test: DartkCompileTimeError
 html/xsltprocessor_test: DartkCompileTimeError
-mirrors/constructor_private_name_test: RuntimeError
-mirrors/deferred_mirrors_metadata_test: RuntimeError
-mirrors/deferred_mirrors_metatarget_test: RuntimeError
-mirrors/deferred_mirrors_update_test: RuntimeError
-mirrors/empty_test: RuntimeError
-mirrors/equality_test: RuntimeError
+mirrors/basic_types_in_dart_core_test: RuntimeError
+mirrors/class_mirror_location_test: RuntimeError
+mirrors/constructor_kinds_test/01: RuntimeError
+mirrors/constructor_kinds_test/none: RuntimeError
 mirrors/fake_function_with_call_test: Crash
 mirrors/field_type_test: RuntimeError
 mirrors/function_type_mirror_test: RuntimeError
