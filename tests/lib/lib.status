@@ -18,10 +18,6 @@ math/random_big_test: RuntimeError  # Using bigint seeds for random.
 
 mirrors/invocation_fuzz_test: RuntimeError # Issue 29086
 mirrors/abstract_class_test: RuntimeError # Issue 12826
-mirrors/class_declarations_test/none: RuntimeError # Issue 13440
-mirrors/class_mirror_location_test: RuntimeError # Issue 6490
-mirrors/closurization_equivalence_test: RuntimeError # Issue 6490
-mirrors/constructor_kinds_test: RuntimeError # Issue 13799
 mirrors/constructor_private_name_test: CompileTimeError # Issue 13597
 mirrors/delegate_class_test: RuntimeError
 mirrors/delegate_library_test: RuntimeError
@@ -122,7 +118,6 @@ mirrors/reflected_type_generics_test/02: Fail, Ok # Type check for a bounded typ
 
 [ $compiler == dart2js && $fast_startup ]
 mirrors/*: Fail # mirrors not supported
-mirrors/circular_factory_redirection_test/0*: Pass # expects failure, but it fails for the wrong reason
 mirrors/library_imports_bad_metadata_test/01: Pass # expects failure, but it fails for the wrong reason
 mirrors/library_metadata2_test/01: Pass # expects failure, but it fails for the wrong reason
 mirrors/metadata_allowed_values_test/0*: Pass # expects failure, but it fails for the wrong reason
@@ -413,7 +408,6 @@ convert/utf85_test: Pass, Timeout
 
 [ $hot_reload || $hot_reload_rollback ]
 async/stream_transformer_test: Pass, Fail # Closure identity
-mirrors/closurization_equivalence_test: SkipByDesign # Method equality
 mirrors/fake_function_with_call_test: SkipByDesign # Method equality
 
 mirrors/library_enumeration_deferred_loading_test: Crash # Deferred loading
@@ -439,12 +433,6 @@ async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
 mirrors/abstract_class_test/00: RuntimeError
 mirrors/abstract_class_test/none: RuntimeError
-mirrors/class_declarations_test/01: RuntimeError
-mirrors/class_declarations_test/none: RuntimeError
-mirrors/class_mirror_location_test: RuntimeError
-mirrors/constructor_kinds_test/01: RuntimeError
-mirrors/constructor_kinds_test/none: RuntimeError
-mirrors/constructor_optional_args_test: Crash # Issue 29201
 mirrors/constructor_private_name_test: RuntimeError
 mirrors/dart2js_mirrors_test: Crash
 mirrors/deferred_type_test: RuntimeError

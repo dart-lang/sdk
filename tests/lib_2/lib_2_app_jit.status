@@ -2,8 +2,5 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
-async/future_or_strong_test: RuntimeError
-
-[ $compiler == precompiler ]
-mirrors/*: Skip # Mirrors not supported on AOT.
+[ $compiler == app_jit ]
+mirrors/*: Skip # Issue 27929: Triage

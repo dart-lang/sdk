@@ -55,7 +55,7 @@ main() {
       'setters');
 
   // dart2js stops testing here.
-  return; // //# 01: ok
+  return; //# 01: ok
 
   Expect.setEquals(
       [
@@ -89,62 +89,74 @@ main() {
           .map(stringify),
       'constructors and factories');
 
-  Expect.setEquals([
-    'Method(s(Class._normalFactory) in s(Class), private, static, constructor)',
-    'Method(s(Class._redirectingFactory)'
-        ' in s(Class), private, static, constructor)',
-    'Method(s(Class.normalFactory) in s(Class), static, constructor)',
-    'Method(s(Class.redirectingFactory) in s(Class), static, constructor)',
-    'Method(s(_staticGetter) in s(Class), private, static, getter)',
-    'Method(s(_staticMethod) in s(Class), private, static)',
-    'Method(s(_staticSetter=) in s(Class), private, static, setter)',
-    'Variable(s(_staticVariable) in s(Class), private, static)',
-    'Method(s(staticGetter) in s(Class), static, getter)',
-    'Method(s(staticMethod) in s(Class), static)',
-    'Method(s(staticSetter=) in s(Class), static, setter)',
-    'Variable(s(staticVariable) in s(Class), static)'
-  ], cm.declarations.values.where((dm) => dm.isStatic).map(stringify),
+  Expect.setEquals(
+      [
+        'Method(s(Class._normalFactory) in s(Class), private, static, constructor)',
+        'Method(s(Class._redirectingFactory)'
+            ' in s(Class), private, static, constructor)',
+        'Method(s(Class.normalFactory) in s(Class), static, constructor)',
+        'Method(s(Class.redirectingFactory) in s(Class), static, constructor)',
+        'Method(s(_staticGetter) in s(Class), private, static, getter)',
+        'Method(s(_staticMethod) in s(Class), private, static)',
+        'Method(s(_staticSetter=) in s(Class), private, static, setter)',
+        'Variable(s(_staticVariable) in s(Class), private, static)',
+        'Method(s(staticGetter) in s(Class), static, getter)',
+        'Method(s(staticMethod) in s(Class), static)',
+        'Method(s(staticSetter=) in s(Class), static, setter)',
+        'Variable(s(staticVariable) in s(Class), static)'
+      ],
+      cm.declarations.values
+          .where((dm) => (dm as dynamic).isStatic)
+          .map(stringify),
       'statics');
 
-  Expect.setEquals([
-    'Method(s(+) in s(Class))',
-    'TypeVariable(s(C) in s(Class),'
-        ' upperBound = Class(s(Object) in s(dart.core), top-level))',
-    'Method(s(Class._generativeConstructor) in s(Class), private, constructor)',
-    'Method(s(Class._redirectingConstructor)'
-        ' in s(Class), private, constructor)',
-    'Method(s(Class.generativeConstructor) in s(Class), constructor)',
-    'Method(s(Class.redirectingConstructor) in s(Class), constructor)',
-    'Method(s(_instanceGetter) in s(Class), private, getter)',
-    'Method(s(_instanceMethod) in s(Class), private)',
-    'Method(s(_instanceSetter=) in s(Class), private, setter)',
-    'Variable(s(_instanceVariable) in s(Class), private)',
-    'Method(s(abstractMethod) in s(Class), abstract)',
-    'Method(s(instanceGetter) in s(Class), getter)',
-    'Method(s(instanceMethod) in s(Class))',
-    'Method(s(instanceSetter=) in s(Class), setter)',
-    'Variable(s(instanceVariable) in s(Class))'
-  ], cm.declarations.values.where((dm) => !dm.isStatic).map(stringify),
+  Expect.setEquals(
+      [
+        'Method(s(+) in s(Class))',
+        'TypeVariable(s(C) in s(Class),'
+            ' upperBound = Class(s(Object) in s(dart.core), top-level))',
+        'Method(s(Class._generativeConstructor) in s(Class), private, constructor)',
+        'Method(s(Class._redirectingConstructor)'
+            ' in s(Class), private, constructor)',
+        'Method(s(Class.generativeConstructor) in s(Class), constructor)',
+        'Method(s(Class.redirectingConstructor) in s(Class), constructor)',
+        'Method(s(_instanceGetter) in s(Class), private, getter)',
+        'Method(s(_instanceMethod) in s(Class), private)',
+        'Method(s(_instanceSetter=) in s(Class), private, setter)',
+        'Variable(s(_instanceVariable) in s(Class), private)',
+        'Method(s(abstractMethod) in s(Class), abstract)',
+        'Method(s(instanceGetter) in s(Class), getter)',
+        'Method(s(instanceMethod) in s(Class))',
+        'Method(s(instanceSetter=) in s(Class), setter)',
+        'Variable(s(instanceVariable) in s(Class))'
+      ],
+      cm.declarations.values
+          .where((dm) => !(dm as dynamic).isStatic)
+          .map(stringify),
       'non-statics');
 
-  Expect.setEquals([
-    'Method(s(+) in s(Class))',
-    'TypeVariable(s(C) in s(Class),'
-        ' upperBound = Class(s(Object) in s(dart.core), top-level))',
-    'Method(s(Class.generativeConstructor) in s(Class), constructor)',
-    'Method(s(Class.normalFactory) in s(Class), static, constructor)',
-    'Method(s(Class.redirectingConstructor) in s(Class), constructor)',
-    'Method(s(Class.redirectingFactory) in s(Class), static, constructor)',
-    'Method(s(abstractMethod) in s(Class), abstract)',
-    'Method(s(instanceGetter) in s(Class), getter)',
-    'Method(s(instanceMethod) in s(Class))',
-    'Method(s(instanceSetter=) in s(Class), setter)',
-    'Variable(s(instanceVariable) in s(Class))',
-    'Method(s(staticGetter) in s(Class), static, getter)',
-    'Method(s(staticMethod) in s(Class), static)',
-    'Method(s(staticSetter=) in s(Class), static, setter)',
-    'Variable(s(staticVariable) in s(Class), static)'
-  ], cm.declarations.values.where((dm) => !dm.isPrivate).map(stringify),
+  Expect.setEquals(
+      [
+        'Method(s(+) in s(Class))',
+        'TypeVariable(s(C) in s(Class),'
+            ' upperBound = Class(s(Object) in s(dart.core), top-level))',
+        'Method(s(Class.generativeConstructor) in s(Class), constructor)',
+        'Method(s(Class.normalFactory) in s(Class), static, constructor)',
+        'Method(s(Class.redirectingConstructor) in s(Class), constructor)',
+        'Method(s(Class.redirectingFactory) in s(Class), static, constructor)',
+        'Method(s(abstractMethod) in s(Class), abstract)',
+        'Method(s(instanceGetter) in s(Class), getter)',
+        'Method(s(instanceMethod) in s(Class))',
+        'Method(s(instanceSetter=) in s(Class), setter)',
+        'Variable(s(instanceVariable) in s(Class))',
+        'Method(s(staticGetter) in s(Class), static, getter)',
+        'Method(s(staticMethod) in s(Class), static)',
+        'Method(s(staticSetter=) in s(Class), static, setter)',
+        'Variable(s(staticVariable) in s(Class), static)'
+      ],
+      cm.declarations.values
+          .where((dm) => !(dm as dynamic).isPrivate)
+          .map(stringify),
       'public');
 
   Expect.setEquals([

@@ -8,7 +8,7 @@ import 'stringify.dart';
 
 testIntercepted() {
   var instance = [];
-  var closureMirror = reflect(instance.toString);
+  var closureMirror = reflect(instance.toString) as ClosureMirror;
   var methodMirror = closureMirror.function;
   Expect.equals(#toString, methodMirror.simpleName);
   Expect.equals('[]', closureMirror.apply([]).reflectee);
@@ -16,7 +16,7 @@ testIntercepted() {
 
 testNonIntercepted() {
   var closure = new Map().containsKey;
-  var closureMirror = reflect(closure);
+  var closureMirror = reflect(closure) as ClosureMirror;
   var methodMirror = closureMirror.function;
   Expect.equals(#containsKey, methodMirror.simpleName);
   Expect.isFalse(closureMirror.apply([7]).reflectee);

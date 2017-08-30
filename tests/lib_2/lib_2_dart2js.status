@@ -21,6 +21,7 @@ async/schedule_microtask3_test: RuntimeError
 
 [ $compiler == dart2js ]
 async/future_or_strong_test: RuntimeError
+mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
 
 [ $compiler != dart2js ]
 async/dart2js_uncaught_error_test: Skip  # JS-integration only test

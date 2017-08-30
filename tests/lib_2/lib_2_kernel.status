@@ -7,3 +7,15 @@ async/future_or_strong_test: RuntimeError
 async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
 async/schedule_microtask2_test: RuntimeError
+mirrors/class_declarations_test/01: RuntimeError
+mirrors/class_declarations_test/none: RuntimeError
+mirrors/class_mirror_location_test: RuntimeError
+mirrors/constructor_kinds_test/01: RuntimeError
+mirrors/constructor_kinds_test/none: RuntimeError
+mirrors/constructor_optional_args_test: Crash # Issue 29201
+
+[ $compiler == dartk && $runtime == vm ]
+mirrors/class_mirror_location_test: RuntimeError
+mirrors/constructor_kinds_test/01: RuntimeError
+mirrors/constructor_kinds_test/none: RuntimeError
+mirrors/constructor_optional_args_test: CompileTimeError
