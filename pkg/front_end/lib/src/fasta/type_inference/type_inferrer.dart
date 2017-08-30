@@ -520,7 +520,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Gets the initializer for the given [field], or `null` if there is no
   /// initializer.
-  Expression getFieldInitializer(KernelField field);
+  Expression getFieldInitializer(ShadowField field);
 
   DartType getSetterType(Member interfaceMember, DartType receiverType) {
     if (receiverType is InterfaceType) {
@@ -599,7 +599,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Derived classes should provide an implementation that calls
   /// [inferExpression] for the given [field]'s initializer expression.
   DartType inferFieldTopLevel(
-      KernelField field, DartType type, bool typeNeeded);
+      ShadowField field, DartType type, bool typeNeeded);
 
   @override
   void inferFunctionBody(
@@ -774,8 +774,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // Otherwise, if `Qi` is not `_`, let `Ri` be the greatest closure of
     // `Qi[T/S]` with respect to `?`.  Otherwise, let `Ri` be `dynamic`.
     for (int i = 0; i < formals.length; i++) {
-      KernelVariableDeclaration formal = formals[i];
-      if (KernelVariableDeclaration.isImplicitlyTyped(formal)) {
+      ShadowVariableDeclaration formal = formals[i];
+      if (ShadowVariableDeclaration.isImplicitlyTyped(formal)) {
         DartType inferredType;
         if (formalTypesFromContext[i] != null) {
           inferredType = greatestClosure(coreTypes,
@@ -943,8 +943,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
                 interfaceMember.kind == ProcedureKind.Getter) ||
             interfaceMember is Field)) {
       if (TypeInferenceEngineImpl.fullTopLevelInference) {
-        if (interfaceMember is KernelField) {
-          var accessorNode = KernelMember.getAccessorNode(interfaceMember);
+        if (interfaceMember is ShadowField) {
+          var accessorNode = ShadowMember.getAccessorNode(interfaceMember);
           if (accessorNode != null) {
             engine.inferAccessorFused(accessorNode, this.accessorNode);
           }

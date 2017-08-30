@@ -27,10 +27,10 @@ import 'body_builder.dart' show BodyBuilder;
 import 'kernel_builder.dart'
     show Builder, FieldBuilder, KernelTypeBuilder, MetadataBuilder;
 
-import 'kernel_shadow_ast.dart' show KernelField;
+import 'kernel_shadow_ast.dart' show ShadowField;
 
 class KernelFieldBuilder extends FieldBuilder<Expression> {
-  final KernelField field;
+  final ShadowField field;
   final List<MetadataBuilder> metadata;
   final KernelTypeBuilder type;
   final Token initializerTokenForInference;
@@ -46,7 +46,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       int charOffset,
       this.initializerTokenForInference,
       this.hasInitializer)
-      : field = new KernelField(null, fileUri: compilationUnit?.relativeFileUri)
+      : field = new ShadowField(null, fileUri: compilationUnit?.relativeFileUri)
           ..fileOffset = charOffset,
         super(
             documentationComment, name, modifiers, compilationUnit, charOffset);

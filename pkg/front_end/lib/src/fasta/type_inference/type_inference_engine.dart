@@ -40,7 +40,7 @@ import '../messages.dart' show getLocationFromNode;
 class AccessorNode extends dependencyWalker.Node<AccessorNode> {
   final TypeInferenceEngineImpl _typeInferenceEngine;
 
-  final KernelMember member;
+  final ShadowMember member;
 
   bool isImmediatelyEvident = false;
 
@@ -76,12 +76,12 @@ class AccessorNode extends dependencyWalker.Node<AccessorNode> {
   /// have to infer is its return type.
   bool get isTrivialSetter {
     var member = this.member;
-    if (member is KernelProcedure &&
+    if (member is ShadowProcedure &&
         member.isSetter &&
         member.function != null) {
       var parameters = member.function.positionalParameters;
       return parameters.length > 0 &&
-          !KernelVariableDeclaration.isImplicitlyTyped(parameters[0]);
+          !ShadowVariableDeclaration.isImplicitlyTyped(parameters[0]);
     }
     return false;
   }
@@ -113,7 +113,7 @@ enum InferenceState {
 /// Data structure for tracking dependencies among methods that require type
 /// inference.
 class MethodNode {
-  final KernelProcedure procedure;
+  final ShadowProcedure procedure;
 
   InferenceState state = InferenceState.NotInferredYet;
 
@@ -152,7 +152,7 @@ abstract class TypeInferenceEngine {
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
   TypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,
-      InterfaceType thisType, KernelMember member);
+      InterfaceType thisType, ShadowMember member);
 
   /// Performs the second phase of top level initializer inference, which is to
   /// visit all accessors and top level variables that were passed to
@@ -165,10 +165,10 @@ abstract class TypeInferenceEngine {
 
   /// Records that the given initializing [formal] will need top level type
   /// inference.
-  void recordInitializingFormal(KernelVariableDeclaration formal);
+  void recordInitializingFormal(ShadowVariableDeclaration formal);
 
   /// Records that the given [member] will need top level type inference.
-  void recordMember(KernelMember member);
+  void recordMember(ShadowMember member);
 }
 
 /// Derived class containing generic implementations of
@@ -209,7 +209,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   final methodNodes = <MethodNode>[];
 
-  final initializingFormals = <KernelVariableDeclaration>[];
+  final initializingFormals = <ShadowVariableDeclaration>[];
 
   @override
   CoreTypes coreTypes;
@@ -229,7 +229,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     if (candidateOverrides.isNotEmpty) {
       var dependencies = <AccessorNode>[];
       for (var override in candidateOverrides) {
-        var dep = KernelMember.getAccessorNode(override);
+        var dep = ShadowMember.getAccessorNode(override);
         if (dep != null) dependencies.add(dep);
       }
       accessorNode.isImmediatelyEvident = true;
@@ -238,7 +238,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
     // Otherwise its dependencies are based on the initializer expression.
     var member = accessorNode.member;
-    if (member is KernelField) {
+    if (member is ShadowField) {
       if (expandedTopLevelInference) {
         // In expanded top level inference, we determine the dependencies by
         // doing a "dry run" of top level inference and recording which static
@@ -261,7 +261,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         // expressions that are not "immediately evident".
         // TODO(paulberry): get rid of this mode once we are sure we no longer
         // need it.
-        var collector = new KernelDependencyCollector();
+        var collector = new ShadowDependencyCollector();
         collector.collectDependencies(member.initializer);
         accessorNode.isImmediatelyEvident = collector.isImmediatelyEvident;
         return collector.dependencies;
@@ -311,7 +311,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     for (var procedure in cls.procedures) {
       if (procedure.isStatic) continue;
       void compute(VariableDeclaration formal) {
-        KernelVariableDeclaration kernelVariableDeclaration = formal;
+        ShadowVariableDeclaration kernelVariableDeclaration = formal;
         var pessimisticType = pessimization.substituteType(formal.type);
         if (!typeSchemaEnvironment.isSubtypeOf(formal.type, pessimisticType)) {
           kernelVariableDeclaration.isSemiSafe = true;
@@ -328,10 +328,10 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   }
 
   /// Creates an [AccessorNode] to track dependencies of the given [member].
-  AccessorNode createAccessorNode(KernelMember member);
+  AccessorNode createAccessorNode(ShadowMember member);
 
   /// Creates a [MethodNode] to track dependencies of the given [procedure].
-  MethodNode createMethodNode(KernelProcedure procedure);
+  MethodNode createMethodNode(ShadowProcedure procedure);
 
   @override
   void finishTopLevel() {
@@ -347,7 +347,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         new _AccessorWalker().walk(accessorNode);
       }
     }
-    for (KernelVariableDeclaration formal in initializingFormals) {
+    for (ShadowVariableDeclaration formal in initializingFormals) {
       try {
         formal.type = _inferInitializingFormalType(formal);
       } catch (e, s) {
@@ -363,7 +363,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   /// Retrieve the [TypeInferrer] for the given [member], which was created by
   /// a previous call to [createTopLevelTypeInferrer].
-  TypeInferrerImpl getMemberTypeInferrer(KernelMember member);
+  TypeInferrerImpl getMemberTypeInferrer(ShadowMember member);
 
   /// Performs type inference on the given [accessorNode].
   void inferAccessor(AccessorNode accessorNode) {
@@ -372,13 +372,13 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     var member = accessorNode.member;
     if (strongMode) {
       var typeInferrer = getMemberTypeInferrer(member);
-      if (member is KernelProcedure && member.isSetter) {
-        KernelProcedure.inferSetterReturnType(member, this, typeInferrer.uri);
+      if (member is ShadowProcedure && member.isSetter) {
+        ShadowProcedure.inferSetterReturnType(member, this, typeInferrer.uri);
       }
       if (!accessorNode.isTrivialSetter) {
         var inferredType = tryInferAccessorByInheritance(accessorNode);
         if (inferredType == null) {
-          if (member is KernelField) {
+          if (member is ShadowField) {
             typeInferrer.isImmediatelyEvident = true;
             inferredType = accessorNode.isImmediatelyEvident
                 ? typeInferrer.inferDeclarationType(
@@ -405,7 +405,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     // TODO(paulberry): the following is a hack so that outlines don't contain
     // initializers.  But it means that we rebuild the initializers when doing
     // a full compile.  There should be a better way.
-    if (member is KernelField) {
+    if (member is ShadowField) {
       member.initializer = null;
     }
   }
@@ -421,7 +421,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     // TODO(paulberry): the following is a hack so that outlines don't contain
     // initializers.  But it means that we rebuild the initializers when doing
     // a full compile.  There should be a better way.
-    if (member is KernelField) {
+    if (member is ShadowField) {
       member.initializer = null;
     }
   }
@@ -487,13 +487,13 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   }
 
   @override
-  void recordInitializingFormal(KernelVariableDeclaration formal) {
+  void recordInitializingFormal(ShadowVariableDeclaration formal) {
     initializingFormals.add(formal);
   }
 
   @override
-  void recordMember(KernelMember member) {
-    if (member is KernelProcedure && !member.isGetter && !member.isSetter) {
+  void recordMember(ShadowMember member) {
+    if (member is ShadowProcedure && !member.isGetter && !member.isSetter) {
       methodNodes.add(createMethodNode(member));
     } else {
       accessorNodes.add(createAccessorNode(member));
@@ -519,7 +519,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   List<FunctionType> _computeMethodOverriddenTypes(MethodNode methodNode) {
     var overriddenTypes = <FunctionType>[];
     for (var override in methodNode.overrides) {
-      MethodNode overrideNode = KernelProcedure.getMethodNode(override);
+      MethodNode overrideNode = ShadowProcedure.getMethodNode(override);
       if (overrideNode != null) {
         inferMethodIfNeeded(overrideNode);
       }
@@ -560,7 +560,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   DartType _computeOverriddenAccessorType(
       Member override, AccessorNode accessorNode) {
     if (fusedTopLevelInference) {
-      AccessorNode dependency = KernelMember.getAccessorNode(override);
+      AccessorNode dependency = ShadowMember.getAccessorNode(override);
       if (dependency != null) {
         inferAccessorFused(dependency, accessorNode);
       }
@@ -595,8 +595,8 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         .substituteType(overriddenType);
   }
 
-  DartType _inferInitializingFormalType(KernelVariableDeclaration formal) {
-    assert(KernelVariableDeclaration.isImplicitlyTyped(formal));
+  DartType _inferInitializingFormalType(ShadowVariableDeclaration formal) {
+    assert(ShadowVariableDeclaration.isImplicitlyTyped(formal));
     var enclosingClass = formal.parent?.parent?.parent;
     if (enclosingClass is Class) {
       for (var field in enclosingClass.fields) {
@@ -635,7 +635,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
       return inferredType;
     }
 
-    if (KernelProcedure.hasImplicitReturnType(methodNode.procedure)) {
+    if (ShadowProcedure.hasImplicitReturnType(methodNode.procedure)) {
       var inferredType =
           matchTypes(overriddenTypes.map((type) => type.returnType));
       instrumentation?.record(
@@ -648,7 +648,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     var positionalParameters =
         methodNode.procedure.function.positionalParameters;
     for (int i = 0; i < positionalParameters.length; i++) {
-      if (KernelVariableDeclaration
+      if (ShadowVariableDeclaration
           .isImplicitlyTyped(positionalParameters[i])) {
         // Note that if the parameter is not present in the overridden method,
         // getPositionalParameterType treats it as dynamic.  This is consistent
@@ -677,7 +677,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
     var namedParameters = methodNode.procedure.function.namedParameters;
     for (int i = 0; i < namedParameters.length; i++) {
-      if (KernelVariableDeclaration.isImplicitlyTyped(namedParameters[i])) {
+      if (ShadowVariableDeclaration.isImplicitlyTyped(namedParameters[i])) {
         var name = namedParameters[i].name;
         var inferredType = matchTypes(
             overriddenTypes.map((type) => getNamedParameterType(type, name)));

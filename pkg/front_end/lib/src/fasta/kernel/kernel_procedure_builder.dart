@@ -73,7 +73,7 @@ import 'kernel_builder.dart'
         TypeVariableBuilder,
         isRedirectingGenerativeConstructorImplementation;
 
-import 'kernel_shadow_ast.dart' show KernelProcedure;
+import 'kernel_shadow_ast.dart' show ShadowProcedure;
 
 abstract class KernelFunctionBuilder
     extends ProcedureBuilder<KernelTypeBuilder> {
@@ -203,7 +203,7 @@ abstract class KernelFunctionBuilder
 }
 
 class KernelProcedureBuilder extends KernelFunctionBuilder {
-  final KernelProcedure procedure;
+  final ShadowProcedure procedure;
   final int charOpenParenOffset;
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
@@ -225,7 +225,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       int charEndOffset,
       [String nativeMethodName,
       this.redirectionTarget])
-      : procedure = new KernelProcedure(null, kind, null, returnType == null,
+      : procedure = new ShadowProcedure(null, kind, null, returnType == null,
             fileUri: compilationUnit?.relativeFileUri)
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,

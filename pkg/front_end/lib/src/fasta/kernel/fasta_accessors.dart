@@ -45,15 +45,15 @@ import 'kernel_builder.dart'
 
 import 'kernel_shadow_ast.dart'
     show
-        KernelArguments,
-        KernelComplexAssignment,
-        KernelIllegalAssignment,
-        KernelIndexAssign,
-        KernelPropertyAssign,
-        KernelStaticAssignment,
-        KernelThisExpression,
-        KernelTypeLiteral,
-        KernelVariableAssignment;
+        ShadowArguments,
+        ShadowComplexAssignment,
+        ShadowIllegalAssignment,
+        ShadowIndexAssign,
+        ShadowPropertyAssign,
+        ShadowStaticAssignment,
+        ShadowThisExpression,
+        ShadowTypeLiteral,
+        ShadowVariableAssignment;
 
 import 'utils.dart' show offsetForToken;
 
@@ -165,7 +165,7 @@ abstract class FastaAccessor implements Accessor {
   Expression makeInvalidWrite(Expression value) {
     return buildThrowNoSuchMethodError(
         new NullLiteral()..fileOffset = offsetForToken(token),
-        new KernelArguments(<Expression>[value]),
+        new ShadowArguments(<Expression>[value]),
         isSetter: true);
   }
 
@@ -207,8 +207,8 @@ abstract class FastaAccessor implements Accessor {
   bool get isThisPropertyAccessor => false;
 
   @override
-  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
-      new KernelIllegalAssignment(rhs);
+  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
+      new ShadowIllegalAssignment(rhs);
 }
 
 abstract class ErrorAccessor implements FastaAccessor {
@@ -255,7 +255,7 @@ abstract class ErrorAccessor implements FastaAccessor {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return buildError(new KernelArguments(<Expression>[value]), isSetter: true);
+    return buildError(new ShadowArguments(<Expression>[value]), isSetter: true);
   }
 
   @override
@@ -264,7 +264,7 @@ abstract class ErrorAccessor implements FastaAccessor {
       bool voidContext: false,
       Procedure interfaceTarget,
       bool isPreIncDec: false}) {
-    return buildError(new KernelArguments(<Expression>[value]), isGetter: true);
+    return buildError(new ShadowArguments(<Expression>[value]), isGetter: true);
   }
 
   @override
@@ -272,7 +272,7 @@ abstract class ErrorAccessor implements FastaAccessor {
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget}) {
-    return buildError(new KernelArguments(<Expression>[new IntLiteral(1)]),
+    return buildError(new ShadowArguments(<Expression>[new IntLiteral(1)]),
         isGetter: true);
   }
 
@@ -281,7 +281,7 @@ abstract class ErrorAccessor implements FastaAccessor {
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget}) {
-    return buildError(new KernelArguments(<Expression>[new IntLiteral(1)]),
+    return buildError(new ShadowArguments(<Expression>[new IntLiteral(1)]),
         isGetter: true);
   }
 
@@ -289,7 +289,7 @@ abstract class ErrorAccessor implements FastaAccessor {
   Expression buildNullAwareAssignment(
       Expression value, DartType type, int offset,
       {bool voidContext: false}) {
-    return buildError(new KernelArguments(<Expression>[value]), isSetter: true);
+    return buildError(new ShadowArguments(<Expression>[value]), isSetter: true);
   }
 
   @override
@@ -302,7 +302,7 @@ abstract class ErrorAccessor implements FastaAccessor {
 
   @override
   Expression makeInvalidWrite(Expression value) {
-    return buildError(new KernelArguments(<Expression>[value]), isSetter: true);
+    return buildError(new ShadowArguments(<Expression>[value]), isSetter: true);
   }
 }
 
@@ -325,7 +325,7 @@ class ThisAccessor extends FastaAccessor {
 
   Expression buildSimpleRead() {
     if (!isSuper) {
-      return new KernelThisExpression();
+      return new ShadowThisExpression();
     } else {
       return helper.deprecated_buildCompileTimeError(
           "Can't use `super` as an expression.", offsetForToken(token));
@@ -356,7 +356,7 @@ class ThisAccessor extends FastaAccessor {
       // Notice that 'this' or 'super' can't be null. So we can ignore the
       // value of [isNullAware].
       MethodInvocation result = helper.buildMethodInvocation(
-          new KernelThisExpression(),
+          new ShadowThisExpression(),
           send.name,
           send.arguments,
           offsetForToken(send.token));
@@ -379,7 +379,7 @@ class ThisAccessor extends FastaAccessor {
       return buildConstructorInitializer(offset, new Name(""), arguments);
     } else {
       return helper.buildMethodInvocation(
-          new KernelThisExpression(), callName, arguments, offset,
+          new ShadowThisExpression(), callName, arguments, offset,
           isImplicitCall: true);
     }
   }
@@ -663,8 +663,8 @@ class IndexAccessor extends kernel.IndexAccessor with FastaAccessor {
   }
 
   @override
-  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
-      new KernelIndexAssign(receiver, index, rhs);
+  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
+      new ShadowIndexAssign(receiver, index, rhs);
 }
 
 class PropertyAccessor extends kernel.PropertyAccessor with FastaAccessor {
@@ -704,8 +704,8 @@ class PropertyAccessor extends kernel.PropertyAccessor with FastaAccessor {
   }
 
   @override
-  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
-      new KernelPropertyAssign(receiver, rhs);
+  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
+      new ShadowPropertyAssign(receiver, rhs);
 }
 
 class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
@@ -760,8 +760,8 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
   toString() => "StaticAccessor()";
 
   @override
-  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
-      new KernelStaticAssignment(rhs);
+  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
+      new ShadowStaticAssignment(rhs);
 }
 
 class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
@@ -794,8 +794,8 @@ class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
   toString() => "SuperPropertyAccessor()";
 
   @override
-  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
-      new KernelPropertyAssign(null, rhs, isSuper: true);
+  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
+      new ShadowPropertyAssign(null, rhs, isSuper: true);
 }
 
 class ThisIndexAccessor extends kernel.ThisIndexAccessor with FastaAccessor {
@@ -816,8 +816,8 @@ class ThisIndexAccessor extends kernel.ThisIndexAccessor with FastaAccessor {
   toString() => "ThisIndexAccessor()";
 
   @override
-  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
-      new KernelIndexAssign(null, index, rhs);
+  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
+      new ShadowIndexAssign(null, index, rhs);
 }
 
 class SuperIndexAccessor extends kernel.SuperIndexAccessor with FastaAccessor {
@@ -838,8 +838,8 @@ class SuperIndexAccessor extends kernel.SuperIndexAccessor with FastaAccessor {
   toString() => "SuperIndexAccessor()";
 
   @override
-  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
-      new KernelIndexAssign(null, index, rhs, isSuper: true);
+  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
+      new ShadowIndexAssign(null, index, rhs, isSuper: true);
 }
 
 class ThisPropertyAccessor extends kernel.ThisPropertyAccessor
@@ -862,14 +862,14 @@ class ThisPropertyAccessor extends kernel.ThisPropertyAccessor
       interfaceTarget = null;
     }
     return helper.buildMethodInvocation(
-        new KernelThisExpression(), name, arguments, offset);
+        new ShadowThisExpression(), name, arguments, offset);
   }
 
   toString() => "ThisPropertyAccessor()";
 
   @override
-  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
-      new KernelPropertyAssign(null, rhs);
+  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
+      new ShadowPropertyAssign(null, rhs);
 }
 
 class NullAwarePropertyAccessor extends kernel.NullAwarePropertyAccessor
@@ -889,8 +889,8 @@ class NullAwarePropertyAccessor extends kernel.NullAwarePropertyAccessor
   toString() => "NullAwarePropertyAccessor()";
 
   @override
-  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
-      new KernelPropertyAssign(receiverExpression, rhs);
+  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
+      new ShadowPropertyAssign(receiverExpression, rhs);
 }
 
 int adjustForImplicitCall(String name, int offset) {
@@ -916,8 +916,8 @@ class VariableAccessor extends kernel.VariableAccessor with FastaAccessor {
   toString() => "VariableAccessor()";
 
   @override
-  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
-      new KernelVariableAssignment(rhs);
+  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
+      new ShadowVariableAssignment(rhs);
 }
 
 class ReadOnlyAccessor extends kernel.ReadOnlyAccessor with FastaAccessor {
@@ -965,7 +965,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
               ..fileOffset = offsetForToken(token))
           ..fileOffset = offset;
       } else {
-        super.expression = new KernelTypeLiteral(
+        super.expression = new ShadowTypeLiteral(
             buildType(null, nonInstanceAccessIsError: true))
           ..fileOffset = offsetForToken(token);
       }
