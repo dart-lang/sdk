@@ -89,7 +89,9 @@ class ExpectationSet {
     for (Map map in data) {
       String name;
       String group;
-      map.forEach((String key, String value) {
+      map.forEach((_key, _value) {
+        String key = _key;
+        String value = _value;
         switch (key) {
           case "name":
             name = value;

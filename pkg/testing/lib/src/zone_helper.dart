@@ -48,7 +48,8 @@ Future runGuarded(Future f(),
   ZoneSpecification specification = new ZoneSpecification(print: printWrapper);
 
   ReceivePort errorPort = new ReceivePort();
-  Future errorFuture = errorPort.listen((List errors) {
+  Future errorFuture = errorPort.listen((_errors) {
+    List errors = _errors;
     Isolate.current.removeErrorListener(errorPort.sendPort);
     errorPort.close();
     var error = errors[0];
