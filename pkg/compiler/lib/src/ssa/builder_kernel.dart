@@ -1933,6 +1933,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
       open(block);
       localsHandler = new LocalsHandler.from(savedLocals);
       buildSwitchCase(switchCase);
+      if (!isAborted() &&
+          switchCase == switchCases.last &&
+          !isDefaultCase(switchCase)) {
+        // If there is no default, we will add one later to avoid
+        // the critical edge. So we generate a break statement to make
+        // sure the last case does not fall through to the default case.
+        jumpHandler.generateBreak();
+      }
       statements.add(
           new HSubGraphBlockInformation(new SubGraph(block, lastOpenedBlock)));
     }

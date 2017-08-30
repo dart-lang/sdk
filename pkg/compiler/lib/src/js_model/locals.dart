@@ -275,6 +275,17 @@ class JumpVisitor extends ir.Visitor {
     jumpTargetMap[node] = target;
     super.visitBreakStatement(node);
   }
+
+  @override
+  visitSwitchStatement(ir.SwitchStatement node) {
+    node.expression.accept(this);
+    if (node.cases.isNotEmpty && !node.cases.last.isDefault) {
+      // Ensure that [node] has a corresponding target. We generate a break in
+      // case of a missing break on the last case if it isn't a default case.
+      _getJumpTarget(node);
+    }
+    super.visitSwitchStatement(node);
+  }
 }
 
 class JJumpTarget extends JumpTarget<ir.Node> {

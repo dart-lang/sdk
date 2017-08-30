@@ -12,6 +12,7 @@ regress_28341_test: Fail # Issue 28340
 regress_29349_test: CompileTimeError # Issue 29745
 regress_29481_test: Crash # Issue 29754
 deferred_not_loaded_check_test: Fail # Issue 27577
+getter_setter_in_lib_test: Fail # Issue 23288
 method_name_test: Fail # issue 25574
 setter4_test: CompileTimeError # issue 13639
 
@@ -129,6 +130,8 @@ ref_before_declaration_test/06: MissingCompileTimeError
 
 regress_22976_test: CompileTimeError # Issue 23132
 
+if_null_assignment_behavior_test/13: Crash # Issue 23491
+if_null_assignment_behavior_test/14: Crash # Issue 23491
 
 multiline_newline_test/01: CompileTimeError # Issue 23888
 multiline_newline_test/02: CompileTimeError # Issue 23888
@@ -168,6 +171,7 @@ default_factory2_test/01: Fail # Issue 14121
 
 [ $compiler == dart2js && ! $checked && ! $dart2js_with_kernel ]
 type_checks_in_factory_method_test: RuntimeError # Issue 12746
+generic_test: RuntimeError, OK
 map_literal4_test: RuntimeError, OK # Checked mode required.
 named_parameters_type_test/01: MissingRuntimeError, OK
 named_parameters_type_test/02: MissingRuntimeError, OK
@@ -199,6 +203,7 @@ symbol_conflict_test: RuntimeError # Issue 23857
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
 malformed_test/none: Fail # Expect failure in lib/_internal/js_runtime/lib/preambles/d8.js
 
+identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
 integer_division_by_zero_test: RuntimeError # Issue 8301
 number_identity2_test: RuntimeError # Issue 12596
 double_int_to_string_test: RuntimeError # Issue 1533
@@ -319,6 +324,23 @@ generic_field_mixin2_test: Crash # Issue 27394
 generic_field_mixin3_test: Crash # Issue 27394
 generic_field_mixin6_test/01: Crash # Issue 27394
 generic_field_mixin_test: Crash # Issue 27394
+generic_local_functions_test: Crash # Issue 27394
+generic_metadata_test/02: Crash # Issue 27394
+generic_metadata_test/03: Crash # Issue 27394
+generic_methods_generic_function_parameter_test: Crash # Issue 27394
+generic_methods_type_expression_test/01: RuntimeError # Issue 27394
+generic_methods_type_expression_test/03: RuntimeError # Issue 27394
+generic_methods_type_expression_test/none: RuntimeError # Issue 27394
+get_set_syntax_test/00: Crash # Issue 27394
+if_null_assignment_behavior_test/06: RuntimeError # Issue 27394
+if_null_assignment_static_test/01: RuntimeError # Issue 27394
+if_null_assignment_static_test/03: RuntimeError # Issue 27394
+if_null_assignment_static_test/04: RuntimeError # Issue 27394
+if_null_assignment_static_test/05: RuntimeError # Issue 27394
+illegal_initializer_test/01: Crash # Issue 27394
+illegal_initializer_test/02: Crash # Issue 27394
+illegal_initializer_test/03: Crash # Issue 27394
+illegal_initializer_test/04: Crash # Issue 27394
 inference_mixin_field_test: Crash # Issue 27394
 initializing_formal_final_test: RuntimeError # Issue 27394
 inline_super_field_test: Crash # Issue 27394
@@ -436,6 +458,8 @@ syntax_test/none: Crash # Issue #30176.
 [ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
 abstract_beats_arguments2_test/01: RuntimeError # Issue 27394
 final_super_field_set_test/01: RuntimeError # Issue 27394
+generic_function_typedef_test: Crash # Issue 27394
+getter_setter_in_lib_test: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked && ! $dart2js_with_kernel ]
 conditional_method_invocation_test/02: Crash # Issue 27394
@@ -559,9 +583,16 @@ class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 closure_in_field_test/01: Crash
 closure_in_field_test/02: Crash
-closure_in_field_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 340 pos 14: 'value != null': No value for field j:field(Mixin.field)
+closure_in_field_test/none: Crash # 'file:///c:/Users/johnniwinther/dart-repo3/sdk/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 340 pos 14: 'value != null': No value for field j:field(Mixin.field)
+compile_time_constant_a_test: Crash
+compile_time_constant_b_test: Crash
+compile_time_constant_c_test/02: Crash
+compile_time_constant_k_test/01: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+compile_time_constant_k_test/02: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+compile_time_constant_k_test/03: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+compile_time_constant_k_test/none: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 compile_time_constant_m_test: RuntimeError
-compile_time_constant_p_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
+compile_time_constant_p_test/01: Crash
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
@@ -576,9 +607,11 @@ const_error_multiply_initialized_test/04: Crash
 const_evaluation_test/01: Crash
 const_factory_with_body_test/01: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
-const_map2_test/00: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-const_map3_test/00: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-const_map_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+const_map2_test/00: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+const_map2_test/00: MissingCompileTimeError
+const_map3_test/00: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+const_map3_test/00: MissingCompileTimeError
+const_map_test: Crash
 const_optional_args_negative_test: Crash
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
@@ -607,9 +640,9 @@ const_types_test/40: Crash
 const_types_test/none: Crash
 constants_test/05: MissingCompileTimeError
 constructor12_test: Crash
-constructor2_test: RuntimeError
-constructor3_test: RuntimeError
-constructor5_test: RuntimeError
+constructor2_test: Crash
+constructor3_test: Crash
+constructor5_test: Crash
 constructor6_test: Crash
 constructor8_test: Crash
 constructor_duplicate_final_test/01: Crash
@@ -666,6 +699,7 @@ deferred_load_library_wrong_args_test/none: CompileTimeError
 deferred_mixin_test: CompileTimeError
 deferred_no_prefix_test/01: MissingCompileTimeError
 deferred_no_such_method_test: CompileTimeError
+deferred_not_loaded_check_test: Crash
 deferred_not_loaded_check_test: RuntimeError
 deferred_only_constant_test: CompileTimeError
 deferred_optimized_test: CompileTimeError
@@ -690,20 +724,29 @@ duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
 efficient_length_warning_test: Crash
-enum_duplicate_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-enum_duplicate_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-enum_duplicate_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-enum_mirror_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-enum_private_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-enum_private_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-enum_private_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-enum_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-example_constructor_test: RuntimeError
-execute_finally7_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Helper.f1#k) is stored in a closure field.
+enum_duplicate_test/01: Crash
+enum_duplicate_test/02: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+enum_duplicate_test/02: RuntimeError
+enum_duplicate_test/none: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+enum_duplicate_test/none: RuntimeError
+enum_mirror_test: Crash
+enum_private_test/01: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+enum_private_test/01: RuntimeError
+enum_private_test/02: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+enum_private_test/02: RuntimeError
+enum_private_test/none: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+enum_private_test/none: RuntimeError
+enum_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+enum_test: RuntimeError
+example_constructor_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 513 pos 16: 'false': ir.LocalInitializer not handled
+execute_finally7_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Helper.f1#k) is stored in a closure field.
 exhaustive_for_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 expect_test: RuntimeError
+external_test/10: Crash
 external_test/10: MissingRuntimeError
+external_test/13: Crash
 external_test/13: MissingRuntimeError
+external_test/20: Crash
 external_test/20: MissingRuntimeError
 factory2_test: Crash
 factory_redirection_test/07: MissingCompileTimeError
@@ -767,10 +810,10 @@ function_subtype_cast3_test: Crash
 function_subtype_checked0_test: Crash
 function_subtype_closure0_test: Crash
 function_subtype_closure1_test: Crash
-function_subtype_inline0_test: RuntimeError
-function_subtype_inline1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-function_subtype_local3_test: RuntimeError
-function_subtype_local4_test: RuntimeError
+function_subtype_inline0_test: Crash
+function_subtype_inline1_test: Crash
+function_subtype_local3_test: Crash
+function_subtype_local4_test: Crash
 function_subtype_not3_test: Crash
 function_subtype_typearg1_test: Crash
 function_subtype_typearg2_test: Crash
@@ -796,7 +839,7 @@ generic_functions_test: Crash
 generic_instanceof_test: Crash
 generic_local_functions_test: Crash
 generic_methods_generic_function_parameter_test: Crash
-generic_methods_new_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+generic_methods_new_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 generic_methods_test: Crash
 generic_methods_type_expression_test/01: Crash
 generic_methods_type_expression_test/03: Crash
@@ -804,7 +847,7 @@ generic_methods_type_expression_test/none: Crash
 generic_native_test: Crash
 generic_syntax_test: Crash
 generic_test: RuntimeError
-generics_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+generics_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 getter_no_setter2_test/00: RuntimeError
 getter_no_setter2_test/03: RuntimeError
 getter_no_setter_test/00: RuntimeError
@@ -813,19 +856,20 @@ getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
+hash_map_null_key_foreach_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#c) is stored in a closure field.
 identical_closure2_test: RuntimeError
-identical_const_test/05: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-identical_const_test/06: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-identical_const_test/07: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-identical_const_test/08: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+identical_const_test/05: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+identical_const_test/06: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+identical_const_test/07: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+identical_const_test/08: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 if_null_assignment_behavior_test/01: Crash
 if_null_assignment_behavior_test/02: Crash
 if_null_assignment_behavior_test/03: Crash
 if_null_assignment_behavior_test/04: Crash
 if_null_assignment_behavior_test/05: Crash
 if_null_assignment_behavior_test/06: Crash
-if_null_assignment_behavior_test/11: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#l) is stored in a closure field.
-if_null_assignment_behavior_test/12: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#l) is stored in a closure field.
+if_null_assignment_behavior_test/11: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#l) is stored in a closure field.
+if_null_assignment_behavior_test/12: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#l) is stored in a closure field.
 if_null_assignment_behavior_test/14: RuntimeError
 if_null_assignment_static_test/01: RuntimeError
 if_null_assignment_static_test/02: Crash
@@ -858,10 +902,10 @@ invocation_mirror_test: Crash
 is_malformed_type_test/94: Crash
 is_malformed_type_test/96: Crash
 is_malformed_type_test/98: Crash
-is_object_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#evalCount) is stored in a closure field.
+is_object_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#evalCount) is stored in a closure field.
 issue10721_test: Crash
 issue10747_test: Crash
-issue13474_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#a) is stored in a closure field.
+issue13474_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#a) is stored in a closure field.
 issue14014_3_test: Crash
 issue14242_test: Crash
 issue15720_test: Crash
@@ -909,10 +953,11 @@ malformed_test/03: Crash
 malformed_test/04: Crash
 malformed_test/06: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 malformed_test/none: Crash
+many_generic_instanceof_test: Crash
 many_named_arguments_test: Crash
 many_overridden_no_such_method_test: Crash
 map_literal10_test: Crash
-map_literal4_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+map_literal4_test: Crash # 'file:///c:/Users/johnniwinther/dart-repo1/sdk/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 map_literal7_test: Crash
 map_literal8_test: Crash
 map_literal_syntax_test: Crash
@@ -1084,18 +1129,18 @@ multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingRuntimeError
-named_parameters_default_eq_test/02: MissingCompileTimeError
+named_parameters_default_eq_test/02: Crash
 named_parameters_passing_falsy_test: RuntimeError
 named_parameters_passing_null_test: RuntimeError
 named_parameters_passing_zero_test: RuntimeError
 named_parameters_test/none: RuntimeError
-named_parameters_type_test/01: MissingRuntimeError
-named_parameters_type_test/02: MissingRuntimeError
-named_parameters_type_test/03: MissingRuntimeError
-named_parameters_with_conversions_test: RuntimeError
+named_parameters_type_test/01: Crash
+named_parameters_type_test/02: Crash
+named_parameters_type_test/03: Crash
+named_parameters_with_conversions_test: Crash
 named_parameters_with_dollars_test: RuntimeError
 naming_test: Crash
-nan_identical_test: RuntimeError
+nan_identical_test: Crash
 nested_switch_label_test: Crash
 no_main_test/01: CompileTimeError
 no_such_method2_test: Crash
@@ -1110,7 +1155,7 @@ not_enough_positional_arguments_test/05: Crash
 null_test/02: Crash
 null_test/03: Crash
 null_test/none: Crash
-number_identity2_test: RuntimeError
+number_identity2_test: Crash
 numbers_test: RuntimeError
 ordered_maps_test: Crash
 overridden_no_such_method_test: Crash
@@ -1132,8 +1177,8 @@ override_inheritance_no_such_method_test/13: Crash
 override_method_with_field_test/01: MissingCompileTimeError
 parameter_types_specialization_test: RuntimeError
 parse_closures_in_initializers_test: Crash
-positional_parameters_type_test/01: MissingRuntimeError
-positional_parameters_type_test/02: MissingRuntimeError
+positional_parameters_type_test/01: Crash
+positional_parameters_type_test/02: Crash
 private_mixin2_test: Crash
 private_mixin_exception_throw_test: Crash
 private_super_constructor_test/01: Crash
@@ -1236,16 +1281,14 @@ super_operator_index_test/06: Crash
 super_operator_index_test/07: Crash
 super_operator_test: Crash
 super_setter_interceptor_test: RuntimeError
-super_test: RuntimeError
+super_test: Crash
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
-switch_fallthru_test: RuntimeError
 switch_label2_test: Crash
 switch_label_test: Crash
-switch_test: RuntimeError
 switch_try_catch_test: Crash
 symbol_conflict_test: Crash
 sync_generator1_test/01: Crash
@@ -1260,12 +1303,6 @@ syncstar_yieldstar_test: Crash
 syntax_test/02: Crash
 syntax_test/03: Crash
 syntax_test/27: Crash
-syntax_test/28: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-syntax_test/29: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-syntax_test/30: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-syntax_test/31: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-syntax_test/32: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-syntax_test/33: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/49: Crash
 syntax_test/54: Crash
 syntax_test/59: Crash
@@ -1301,24 +1338,39 @@ type_variable_conflict2_test/09: Crash
 type_variable_field_initializer_closure2_test: Crash
 type_variable_field_initializer_closure_test: Crash
 type_variable_function_type_test: RuntimeError
-const_map2_test/00: MissingCompileTimeError
-const_map3_test/00: MissingCompileTimeError
+type_variable_nested_test: Crash
 constructor12_test: RuntimeError
+constructor2_test: RuntimeError
+constructor3_test: RuntimeError
+constructor5_test: RuntimeError
 constructor8_test: RuntimeError
-enum_duplicate_test/02: RuntimeError
-enum_duplicate_test/none: RuntimeError
-enum_private_test/01: RuntimeError
-enum_private_test/02: RuntimeError
-enum_private_test/none: RuntimeError
-enum_test: RuntimeError
+example_constructor_test: RuntimeError
 execute_finally7_test: RuntimeError
+function_subtype_inline0_test: RuntimeError
+function_subtype_local3_test: RuntimeError
+function_subtype_local4_test: RuntimeError
 function_syntax_test/none: RuntimeError
 is_object_test: RuntimeError
 issue13474_test: RuntimeError
 map_literal4_test: RuntimeError
+named_parameters_default_eq_test/02: MissingCompileTimeError
+named_parameters_type_test/01: MissingRuntimeError
+named_parameters_type_test/02: MissingRuntimeError
+named_parameters_type_test/03: MissingRuntimeError
+named_parameters_with_conversions_test: RuntimeError
+nan_identical_test: RuntimeError
+number_identity2_test: RuntimeError
 parse_closures_in_initializers_test: RuntimeError
+positional_parameters_type_test/01: MissingRuntimeError
+positional_parameters_type_test/02: MissingRuntimeError
 regress_23537_test: Crash # RangeError (index): Invalid value: Not in range 0..1, inclusive: 2
-type_variable_nested_test: Crash
+super_test: RuntimeError
+syntax_test/28: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+syntax_test/29: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+syntax_test/30: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+syntax_test/31: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+syntax_test/32: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+syntax_test/33: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 wrong_number_type_arguments_test/00: Crash
 wrong_number_type_arguments_test/02: Crash
 yieldstar_pause_test: Crash
@@ -1437,6 +1489,9 @@ class_cycle_test/03: MissingCompileTimeError
 closure_in_field_test/01: Crash
 closure_in_field_test/02: Crash
 closure_in_field_test/none: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+compile_time_constant_a_test: Crash
+compile_time_constant_b_test: Crash
+compile_time_constant_c_test/02: Crash
 compile_time_constant_m_test: RuntimeError
 compile_time_constant_p_test/01: Crash
 conditional_import_string_test: CompileTimeError
@@ -1454,8 +1509,6 @@ const_evaluation_test/01: Crash
 const_factory_with_body_test/01: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
-const_map2_test/00: MissingCompileTimeError
-const_map3_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_map_test: Crash
 const_optional_args_negative_test: Crash
@@ -1486,13 +1539,11 @@ const_types_test/40: Crash
 const_types_test/none: Crash
 constants_test/05: MissingCompileTimeError
 constructor12_test: Crash
-constructor12_test: RuntimeError
-constructor2_test: RuntimeError
-constructor3_test: RuntimeError
-constructor5_test: RuntimeError
+constructor2_test: Crash
+constructor3_test: Crash
+constructor5_test: Crash
 constructor6_test: Crash
 constructor8_test: Crash
-constructor8_test: RuntimeError
 constructor_duplicate_final_test/01: Crash
 constructor_duplicate_final_test/02: Crash
 constructor_duplicate_final_test/03: Crash
@@ -1513,7 +1564,6 @@ cyclic_type_test/02: RuntimeError
 cyclic_type_test/03: RuntimeError
 cyclic_type_test/04: RuntimeError
 dangling_else_test: Crash
-deferred_call_empty_before_load_test: RuntimeError
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: CompileTimeError
 deferred_constant_list_test: CompileTimeError
@@ -1544,7 +1594,6 @@ deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: RuntimeError
-deferred_inheritance_constraints_test/redirecting_constructor: RuntimeError
 deferred_inlined_test: CompileTimeError
 deferred_load_constants_test/none: CompileTimeError
 deferred_load_inval_code_test: CompileTimeError
@@ -1553,6 +1602,7 @@ deferred_load_library_wrong_args_test/none: CompileTimeError
 deferred_mixin_test: CompileTimeError
 deferred_no_prefix_test/01: MissingCompileTimeError
 deferred_no_such_method_test: CompileTimeError
+deferred_not_loaded_check_test: Crash
 deferred_not_loaded_check_test: RuntimeError
 deferred_only_constant_test: CompileTimeError
 deferred_optimized_test: CompileTimeError
@@ -1579,30 +1629,20 @@ dynamic_prefix_core_test/none: RuntimeError
 efficient_length_warning_test: Crash
 enum_duplicate_test/01: Crash
 enum_duplicate_test/02: RuntimeError
-enum_duplicate_test/02: RuntimeError
-enum_duplicate_test/none: RuntimeError
 enum_duplicate_test/none: RuntimeError
 enum_mirror_test: Crash
 enum_private_test/01: RuntimeError
-enum_private_test/01: RuntimeError
-enum_private_test/02: RuntimeError
 enum_private_test/02: RuntimeError
 enum_private_test/none: RuntimeError
-enum_private_test/none: RuntimeError
 enum_test: RuntimeError
-enum_test: RuntimeError
-example_constructor_test: RuntimeError
-execute_finally7_test: RuntimeError
+example_constructor_test: Crash
 execute_finally7_test: RuntimeError
 exhaustive_for_test: Crash
-expect_test: RuntimeError
 expect_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
-external_test/20: MissingRuntimeError
 f_bounded_quantification4_test: RuntimeError
-f_bounded_quantification5_test: RuntimeError
 f_bounded_quantification5_test: RuntimeError
 factory2_test: Crash
 factory_redirection_test/07: MissingCompileTimeError
@@ -1665,17 +1705,17 @@ function_subtype_cast3_test: Crash
 function_subtype_checked0_test: Crash
 function_subtype_closure0_test: Crash
 function_subtype_closure1_test: Crash
-function_subtype_inline0_test: RuntimeError
-function_subtype_inline1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-function_subtype_local3_test: RuntimeError
-function_subtype_local4_test: RuntimeError
+function_subtype_inline0_test: Crash
+function_subtype_inline1_test: Crash
+function_subtype_local3_test: Crash
+function_subtype_local4_test: Crash
 function_subtype_not3_test: Crash
 function_subtype_typearg1_test: Crash
 function_subtype_typearg2_test: Crash
 function_subtype_typearg3_test: Crash
 function_subtype_typearg4_test: Crash
 function_subtype_typearg5_test: Crash
-function_syntax_test/none: RuntimeError
+function_syntax_test/none: Crash
 function_test: Crash
 function_type_alias3_test: Crash
 function_type_parameter2_negative_test: Crash
@@ -1705,6 +1745,10 @@ getter_no_setter2_test/00: RuntimeError
 getter_no_setter2_test/03: RuntimeError
 getter_no_setter_test/00: RuntimeError
 getter_no_setter_test/none: RuntimeError
+getter_override2_test/02: MissingCompileTimeError
+getter_override_test/00: MissingCompileTimeError
+getter_override_test/01: MissingCompileTimeError
+getter_override_test/02: MissingCompileTimeError
 hash_map_null_key_foreach_test: RuntimeError
 identical_closure2_test: RuntimeError
 if_null_assignment_behavior_test/01: Crash
@@ -1716,7 +1760,7 @@ if_null_assignment_behavior_test/06: Crash
 if_null_assignment_behavior_test/12: RuntimeError
 if_null_assignment_behavior_test/14: RuntimeError
 if_null_assignment_static_test/01: RuntimeError
-if_null_assignment_static_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(DerivedClass.derivedTest#)) for j:closure_call(DerivedClass_derivedTest_closure.call).
+if_null_assignment_static_test/02: Crash
 if_null_assignment_static_test/03: RuntimeError
 if_null_assignment_static_test/04: RuntimeError
 if_null_assignment_static_test/05: RuntimeError
@@ -1736,7 +1780,6 @@ instance_creation_in_function_annotation_test: Crash
 instanceof4_test/01: Crash
 instanceof4_test/none: Crash
 integer_division_by_zero_test: RuntimeError
-integer_division_by_zero_test: RuntimeError
 interceptor3_test: Crash
 internal_library_test/02: Crash
 invocation_mirror2_test: Crash
@@ -1748,10 +1791,8 @@ is_malformed_type_test/94: Crash
 is_malformed_type_test/96: Crash
 is_malformed_type_test/98: Crash
 is_object_test: RuntimeError
-is_object_test: RuntimeError
 issue10721_test: Crash
 issue10747_test: Crash
-issue13474_test: RuntimeError
 issue13474_test: RuntimeError
 issue14014_3_test: Crash
 issue14242_test: Crash
@@ -1761,13 +1802,11 @@ issue23244_test: Crash
 issue4295001_test: Crash
 issue9602_test: Crash
 issue9939_test: RuntimeError
-issue9939_test: RuntimeError
 issue_1751477_test: CompileTimeError
 issue_23914_test: Crash
 issue_25671a_test/01: Crash
 issue_25671b_test/01: Crash
 label_test: Crash
-lazy_static8_test: RuntimeError
 lazy_static8_test: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
@@ -1776,9 +1815,7 @@ library_env_test/has_no_mirror_support: RuntimeError
 list_is_test: Crash
 list_literal3_test: Crash
 list_literal4_test: RuntimeError
-list_literal4_test: RuntimeError
 list_test: Crash
-local_function3_test: RuntimeError
 local_function3_test: RuntimeError
 local_function_test: Crash
 logical_expression_test: Crash
@@ -1800,11 +1837,10 @@ malbounded_type_cast2_test: Crash
 malbounded_type_test2_test: Crash
 malformed_test/06: CompileTimeError
 malformed_test/none: RuntimeError
-malformed_test/none: RuntimeError
+many_generic_instanceof_test: Crash
 many_named_arguments_test: Crash
 many_overridden_no_such_method_test: Crash
 map_literal10_test: Crash
-map_literal4_test: RuntimeError
 map_literal4_test: RuntimeError
 map_literal7_test: Crash
 map_literal8_test: Crash
@@ -1812,8 +1848,6 @@ map_literal_syntax_test: Crash
 map_test: Crash
 method_name_test: CompileTimeError
 method_override4_test: RuntimeError
-method_override4_test: RuntimeError
-method_override5_test: RuntimeError
 method_override5_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
@@ -1971,7 +2005,6 @@ mixin_type_variable_test/07: Crash
 mixin_type_variable_test/08: Crash
 mixin_typedef_constructor_test: Crash
 modulo_test: RuntimeError
-modulo_test: RuntimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
 multiline_newline_test/05: MissingCompileTimeError
@@ -1979,18 +2012,18 @@ multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingRuntimeError
-named_parameters_default_eq_test/02: MissingCompileTimeError
+named_parameters_default_eq_test/02: Crash
 named_parameters_passing_falsy_test: RuntimeError
 named_parameters_passing_null_test: RuntimeError
 named_parameters_passing_zero_test: RuntimeError
 named_parameters_test/none: RuntimeError
-named_parameters_type_test/01: MissingRuntimeError
-named_parameters_type_test/02: MissingRuntimeError
-named_parameters_type_test/03: MissingRuntimeError
-named_parameters_with_conversions_test: RuntimeError
+named_parameters_type_test/01: Crash
+named_parameters_type_test/02: Crash
+named_parameters_type_test/03: Crash
+named_parameters_with_conversions_test: Crash
 named_parameters_with_dollars_test: RuntimeError
 naming_test: Crash
-nan_identical_test: RuntimeError
+nan_identical_test: Crash
 nested_switch_label_test: Crash
 no_main_test/01: CompileTimeError
 no_such_method2_test: Crash
@@ -2002,7 +2035,7 @@ no_such_method_test: Crash
 null_test/02: Crash
 null_test/03: Crash
 null_test/none: Crash
-number_identity2_test: RuntimeError
+number_identity2_test: Crash
 numbers_test: RuntimeError
 ordered_maps_test: Crash
 overridden_no_such_method_test: Crash
@@ -2023,9 +2056,9 @@ override_inheritance_no_such_method_test/11: Crash
 override_inheritance_no_such_method_test/13: Crash
 override_method_with_field_test/01: MissingCompileTimeError
 parameter_types_specialization_test: RuntimeError
-parse_closures_in_initializers_test: RuntimeError
-positional_parameters_type_test/01: MissingRuntimeError
-positional_parameters_type_test/02: MissingRuntimeError
+parse_closures_in_initializers_test: Crash
+positional_parameters_type_test/01: Crash
+positional_parameters_type_test/02: Crash
 private_mixin2_test: Crash
 private_mixin_exception_throw_test: Crash
 private_super_constructor_test/01: MissingCompileTimeError
@@ -2038,14 +2071,11 @@ redirecting_factory_long_test: Crash
 redirecting_factory_reflection_test: Crash
 reg_exp_test: Crash
 regress_13494_test: RuntimeError
-regress_13494_test: RuntimeError
-regress_17382_test: RuntimeError
 regress_17382_test: RuntimeError
 regress_18535_test: Crash
 regress_18713_test: Crash
 regress_20394_test/01: MissingCompileTimeError
 regress_20840_test: Crash
-regress_21795_test: RuntimeError
 regress_21795_test: RuntimeError
 regress_22438_test: Crash
 regress_22443_test: CompileTimeError
@@ -2055,7 +2085,6 @@ regress_22666_test: Crash
 regress_22728_test: Crash
 regress_22777_test: Crash
 regress_22936_test/01: RuntimeError
-regress_22936_test/01: RuntimeError
 regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError
 regress_22976_test/none: CompileTimeError
@@ -2064,7 +2093,7 @@ regress_23498_test: Crash
 regress_23500_test/01: Crash
 regress_23500_test/02: Crash
 regress_23500_test/none: Crash
-regress_23537_test: Crash # RangeError (index): Invalid value: Not in range 0..1, inclusive: 2
+regress_23537_test: Crash
 regress_23537_test: RuntimeError
 regress_23996_test: Crash
 regress_24283_test: RuntimeError
@@ -2096,20 +2125,16 @@ setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 smaller_4_Interface_Types_A11_t02_test: Crash
 stack_overflow_stacktrace_test: RuntimeError
-stack_overflow_stacktrace_test: RuntimeError
 stack_trace_test: Crash
 stacktrace_demangle_ctors_test: Crash
 stacktrace_rethrow_error_test/none: Crash
 stacktrace_rethrow_error_test/withtraceparameter: Crash
 stacktrace_rethrow_nonerror_test: Crash
 stacktrace_test: RuntimeError
-stacktrace_test: RuntimeError
 statement_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-static_getter_no_setter1_test/01: RuntimeError
 static_getter_no_setter1_test/01: RuntimeError
 static_getter_no_setter2_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 static_getter_no_setter2_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-static_getter_no_setter3_test/01: RuntimeError
 static_getter_no_setter3_test/01: RuntimeError
 static_setter_get_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 string_join_test: RuntimeError
@@ -2137,17 +2162,14 @@ super_operator_index_test/06: Crash
 super_operator_index_test/07: Crash
 super_operator_test: Crash
 super_setter_interceptor_test: RuntimeError
-super_test: RuntimeError
+super_test: Crash
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
-switch_fallthru_test: RuntimeError
-switch_fallthru_test: RuntimeError
 switch_label2_test: Crash
 switch_label_test: Crash
-switch_test: RuntimeError
 switch_try_catch_test: Crash
 symbol_conflict_test: Crash
 sync_generator1_test/01: Crash
@@ -2162,15 +2184,10 @@ syncstar_yieldstar_test: Crash
 syntax_test/none: CompileTimeError
 temp_mangling_test: Crash
 top_level_getter_no_setter1_test/01: RuntimeError
-top_level_getter_no_setter1_test/01: RuntimeError
-top_level_getter_no_setter2_test/01: RuntimeError
 top_level_getter_no_setter2_test/01: RuntimeError
 truncdiv_test: RuntimeError
-truncdiv_test: RuntimeError
-try_catch_test/01: MissingCompileTimeError
 try_catch_test/01: MissingCompileTimeError
 type_argument_substitution_test: Crash
-type_checks_in_factory_method_test: RuntimeError
 type_checks_in_factory_method_test: RuntimeError
 type_parameter_test/01: Crash
 type_parameter_test/02: Crash
@@ -2193,5 +2210,26 @@ type_variable_field_initializer_closure2_test: Crash
 type_variable_field_initializer_closure_test: Crash
 type_variable_function_type_test: RuntimeError
 type_variable_nested_test: Crash
+constructor12_test: RuntimeError
+constructor2_test: RuntimeError
+constructor3_test: RuntimeError
+constructor5_test: RuntimeError
+constructor8_test: RuntimeError
+example_constructor_test: RuntimeError
+function_subtype_inline0_test: RuntimeError
+function_subtype_local3_test: RuntimeError
+function_subtype_local4_test: RuntimeError
+function_syntax_test/none: RuntimeError
+named_parameters_default_eq_test/02: MissingCompileTimeError
+named_parameters_type_test/01: MissingRuntimeError
+named_parameters_type_test/02: MissingRuntimeError
+named_parameters_type_test/03: MissingRuntimeError
+named_parameters_with_conversions_test: RuntimeError
+nan_identical_test: RuntimeError
+number_identity2_test: RuntimeError
+parse_closures_in_initializers_test: RuntimeError
+positional_parameters_type_test/01: MissingRuntimeError
+positional_parameters_type_test/02: MissingRuntimeError
+super_test: RuntimeError
 yieldstar_pause_test: Crash
 

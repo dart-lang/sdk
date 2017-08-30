@@ -32,10 +32,9 @@ main() {
       break;
     default:
       print('ladybug');
-
   }
 }''';
-    return check(code, useKernelInSsa: true);
+    return check(code);
   });
 
 /*
@@ -95,7 +94,7 @@ main() {
     case 6:
   }
 }''';
-    return check(code, useKernelInSsa: true);
+    return check(code);
   });
 
   test('switch with labeled continue', () {
