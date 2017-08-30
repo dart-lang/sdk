@@ -772,6 +772,8 @@ class CodeChecker extends RecursiveAstVisitor {
       {DartType from, bool opAssign: false, bool isDeclarationCast: false}) {
     from ??= _getDefiniteType(expr);
 
+    _hintOnFuzzyArrows(expr, to, from: from);
+
     if (_needsImplicitCast(expr, to,
             from: from, isDeclarationCast: isDeclarationCast) ==
         true) {
@@ -1075,6 +1077,23 @@ class CodeChecker extends RecursiveAstVisitor {
     return rules.anyParameterType(ft, (pt) => pt.isDynamic);
   }
 
+  void _hintOnFuzzyArrows(Expression expr, DartType to, {DartType from}) {
+    from ??= _getDefiniteType(expr);
+
+    // If it is a subtype with fuzzy arrows on,
+    // check to see if it still is with them off.
+    if (rules.isSubtypeOf(from, to)) {
+      try {
+        rules.allowDynamicAsBottom = false;
+        // If still true, no warning needed
+        if (rules.isSubtypeOf(from, to)) return;
+        _recordMessage(expr, HintCode.USES_DYNAMIC_AS_BOTTOM, [from, to]);
+      } finally {
+        rules.allowDynamicAsBottom = true;
+      }
+    }
+  }
+
   /// Returns true if we need an implicit cast of [expr] from [from] type to
   /// [to] type, returns false if no cast is needed, and returns null if the
   /// types are statically incompatible.
@@ -1224,7 +1243,9 @@ class CodeChecker extends RecursiveAstVisitor {
         errorCode.name.startsWith('STRONG_MODE_TOP_LEVEL_')) {
       severity = ErrorSeverity.ERROR;
     }
-    if (severity != ErrorSeverity.INFO || _options.strongModeHints) {
+    if (severity != ErrorSeverity.INFO ||
+        _options.strongModeHints ||
+        errorCode == HintCode.USES_DYNAMIC_AS_BOTTOM) {
       int begin = node is AnnotatedNode
           ? node.firstTokenAfterCommentAndMetadata.offset
           : node.offset;
