@@ -137,7 +137,7 @@ class MemoryKernelLibraryLoaderTask extends KernelLibraryLoaderTask {
 
   MemoryKernelLibraryLoaderTask(KernelToElementMapForImpact elementMap,
       DiagnosticReporter reporter, Measurer measurer, this.program)
-      : super(null, elementMap, null, reporter, measurer);
+      : super(null, null, elementMap, null, reporter, measurer);
 
   Future<LoadedLibraries> loadLibrary(Uri resolvedUri,
       {bool skipFileWithPartOfTag: false}) async {
@@ -188,14 +188,12 @@ Future<Compiler> compileWithDill(
     bool printSteps: false,
     CompilerOutput compilerOutput,
     void beforeRun(Compiler compiler)}) async {
-  Uri dillFile =
-      await generateDill(entryPoint, memorySourceFiles, printSteps: printSteps);
-
   if (printSteps) {
-    print('---- compile from dill $dillFile ---------------------------------');
+    print('---- compile from dill -------------------------------------------');
   }
   Compiler compiler = compilerFor(
-      entryPoint: dillFile,
+      entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
       options: [Flags.useKernel]..addAll(options),
       diagnosticHandler: diagnosticHandler,
       outputProvider: compilerOutput);
@@ -204,6 +202,6 @@ Future<Compiler> compileWithDill(
   if (beforeRun != null) {
     beforeRun(compiler);
   }
-  await compiler.run(dillFile);
+  await compiler.run(entryPoint);
   return compiler;
 }

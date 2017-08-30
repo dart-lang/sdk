@@ -275,14 +275,12 @@ Future<ResultKind> runTest(
   EnumCreator.matchKernelRepresentationForTesting = true;
   Elements.usePatchedDart2jsSdkSorting = true;
 
-  entryPoint =
-      await createTemp(entryPoint, memorySourceFiles, printSteps: true);
-
   print('---- compile from ast ----------------------------------------------');
   DiagnosticCollector collector = new DiagnosticCollector();
   OutputCollector collector1 = new OutputCollector();
   Compiler compiler1 = compilerFor(
       entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
       diagnosticHandler: collector,
       outputProvider: collector1,
       options: <String>[]..addAll(commonOptions)..addAll(options));
@@ -308,6 +306,7 @@ Future<ResultKind> runTest(
   OutputCollector collector2 = new OutputCollector();
   Compiler compiler2 = await compileWithDill(
       entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
       options: <String>[]..addAll(commonOptions)..addAll(options),
       printSteps: true,
       compilerOutput: collector2);
