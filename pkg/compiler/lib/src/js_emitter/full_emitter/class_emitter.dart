@@ -9,8 +9,7 @@ import '../../common/names.dart' show Names;
 import '../../common_elements.dart';
 import '../../elements/resolution_types.dart' show ResolutionDartType;
 import '../../deferred_load.dart' show OutputUnit;
-import '../../elements/elements.dart'
-    show ClassElement, FieldElement, MemberElement;
+import '../../elements/elements.dart' show ClassElement, FieldElement;
 import '../../elements/entities.dart';
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
@@ -95,7 +94,7 @@ class ClassEmitter extends CodeEmitterHelper {
       fieldNames = cls.fields.map((Field field) => field.name).toList();
     }
 
-    ClassElement classElement = cls.element;
+    ClassEntity classElement = cls.element;
 
     jsAst.Expression constructorAst = _stubGenerator.generateClassConstructor(
         classElement, fieldNames, cls.hasRtiField);
@@ -222,7 +221,7 @@ class ClassEmitter extends CodeEmitterHelper {
     if (cls.onlyForRti) return;
 
     for (StubMethod method in cls.checkedSetters) {
-      MemberElement member = method.element;
+      MemberEntity member = method.element;
       assert(member != null);
       jsAst.Expression code = method.code;
       jsAst.Name setterName = method.name;
@@ -238,7 +237,7 @@ class ClassEmitter extends CodeEmitterHelper {
     if (!compiler.options.useContentSecurityPolicy || cls.onlyForRti) return;
 
     for (Field field in cls.fields) {
-      FieldElement member = field.element;
+      FieldEntity member = field.element;
       reporter.withCurrentElement(member, () {
         if (field.needsGetter) {
           emitGetterForCSP(member, field.name, field.accessorName, builder);
@@ -405,13 +404,13 @@ class ClassEmitter extends CodeEmitterHelper {
         failedAt(member, '$previousName != ${memberName}'));
   }
 
-  void emitGetterForCSP(FieldElement member, jsAst.Name fieldName,
+  void emitGetterForCSP(FieldEntity member, jsAst.Name fieldName,
       jsAst.Name accessorName, ClassBuilder builder) {
     jsAst.Expression function =
         _stubGenerator.generateGetter(member, fieldName);
 
     jsAst.Name getterName = namer.deriveGetterName(accessorName);
-    ClassElement cls = member.enclosingClass;
+    ClassEntity cls = member.enclosingClass;
     jsAst.Name className = namer.className(cls);
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(member);
@@ -425,13 +424,13 @@ class ClassEmitter extends CodeEmitterHelper {
     }
   }
 
-  void emitSetterForCSP(FieldElement member, jsAst.Name fieldName,
+  void emitSetterForCSP(FieldEntity member, jsAst.Name fieldName,
       jsAst.Name accessorName, ClassBuilder builder) {
     jsAst.Expression function =
         _stubGenerator.generateSetter(member, fieldName);
 
     jsAst.Name setterName = namer.deriveSetterName(accessorName);
-    ClassElement cls = member.enclosingClass;
+    ClassEntity cls = member.enclosingClass;
     jsAst.Name className = namer.className(cls);
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(member);
@@ -446,7 +445,7 @@ class ClassEmitter extends CodeEmitterHelper {
   }
 
   void generateReflectionDataForFieldGetterOrSetter(
-      MemberElement member, jsAst.Name name, ClassBuilder builder,
+      MemberEntity member, jsAst.Name name, ClassBuilder builder,
       {bool isGetter}) {
     Selector selector = isGetter
         ? new Selector.getter(member.memberName.getter)
