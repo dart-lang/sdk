@@ -14107,12 +14107,7 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     createParser('abstract.A _abstract = new abstract.A();');
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expect(member, isNotNull);
-    if (usingFastaParser) {
-      // TODO(danrubel): should not be generating an error
-      assertErrorsWithCodes([ParserErrorCode.EXPECTED_TYPE_NAME]);
-    } else {
-      assertNoErrors();
-    }
+    assertNoErrors();
     expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
     TopLevelVariableDeclaration declaration = member;
     expect(declaration.semicolon, isNotNull);

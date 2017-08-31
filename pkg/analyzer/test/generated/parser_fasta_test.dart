@@ -141,18 +141,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
   @override
   @failingTest
-  void test_abstractEnum() {
-    super.test_abstractEnum();
-  }
-
-  @override
-  @failingTest
-  void test_abstractTypeDef() {
-    super.test_abstractTypeDef();
-  }
-
-  @override
-  @failingTest
   void test_annotationOnEnumConstant_first() {
     super.test_annotationOnEnumConstant_first();
   }
@@ -2573,8 +2561,10 @@ class FastaParserTestCase extends Object
           List<ErrorCode> expectedErrorCodes) =>
       expectedErrorCodes.map((code) {
         if (code == ParserErrorCode.ABSTRACT_CLASS_MEMBER ||
+            code == ParserErrorCode.ABSTRACT_ENUM ||
             code == ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION ||
-            code == ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE)
+            code == ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE ||
+            code == ParserErrorCode.ABSTRACT_TYPEDEF)
           return ParserErrorCode.EXTRANEOUS_MODIFIER;
         return code;
       }).toList();
@@ -4613,6 +4603,13 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
+  void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
+    // TODO(danrubel): built-in "abstract" cannot be used as a type
+    super.test_parseCompilationUnit_abstractAsPrefix_parameterized();
+  }
+
+  @override
+  @failingTest
   void test_parseCompilationUnit_builtIn_asFunctionName() {
     // TODO(paulberry,ahe): Fasta's parser is confused when one of the built-in
     // identifiers `export`, `import`, `library`, `part`, or `typedef` appears
@@ -4646,6 +4643,13 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     // TODO(danrubel): should not be generating an error
     super.test_parseCompilationUnit_typedefAsPrefix();
     assertNoErrors();
+  }
+
+  @override
+  @failingTest
+  void test_parseCompilationUnitMember_abstractAsPrefix() {
+    // TODO(danrubel): built-in "abstract" cannot be used as a prefix
+    super.test_parseCompilationUnitMember_abstractAsPrefix();
   }
 
   @failingTest

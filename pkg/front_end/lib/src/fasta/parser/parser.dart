@@ -270,9 +270,16 @@ class Parser {
       return parseScript(token);
     }
     token = parseMetadataStar(token);
-    final String value = token.stringValue;
-    if ((identical(value, 'abstract') && optional('class', token.next)) ||
-        identical(value, 'class')) {
+    String value = token.stringValue;
+    if (identical(value, 'abstract')) {
+      if (optional('class', token.next)) {
+        return parseClassOrNamedMixinApplication(token);
+      }
+      reportRecoverableErrorWithToken(token, fasta.templateExtraneousModifier);
+      token = token.next;
+      value = token.stringValue;
+    }
+    if (identical(value, 'class')) {
       return parseClassOrNamedMixinApplication(token);
     } else if (identical(value, 'enum')) {
       return parseEnum(token);
