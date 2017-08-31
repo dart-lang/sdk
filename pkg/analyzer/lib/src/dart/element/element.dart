@@ -772,9 +772,8 @@ class ClassElementImpl extends AbstractClassElementImpl
   List<InterfaceType> get interfaces {
     if (_interfaces == null) {
       if (_kernel != null) {
-        _interfaces = _kernel.implementedTypes
-            .map((k) => enclosingUnit._kernelContext.getInterfaceType(this, k))
-            .toList(growable: false);
+        var context = enclosingUnit._kernelContext;
+        _interfaces = context.getInterfaceTypes(this, _kernel.implementedTypes);
       }
       if (_unlinkedClass != null) {
         ResynthesizerContext context = enclosingUnit.resynthesizerContext;
@@ -909,9 +908,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       if (_kernel != null) {
         _initializeKernelMixins();
         var context = enclosingUnit._kernelContext;
-        _mixins = _kernelMixins.map((k) {
-          return context.getInterfaceType(this, k);
-        }).toList(growable: false);
+        _mixins = context.getInterfaceTypes(this, _kernelMixins);
       }
       if (_unlinkedClass != null) {
         ResynthesizerContext context = enclosingUnit.resynthesizerContext;
@@ -6195,6 +6192,13 @@ abstract class KernelUnitResynthesizerContext {
    * [type] does not correspond to an [InterfaceType].
    */
   InterfaceType getInterfaceType(ElementImpl context, kernel.Supertype type);
+
+  /**
+   * Return the [InterfaceType]s for the given Kernel [types], skipping
+   * the elements that don't correspond to an [InterfaceType].
+   */
+  List<InterfaceType> getInterfaceTypes(
+      ElementImpl context, List<kernel.Supertype> types);
 
   /**
    * Return the [ConstructorElementImpl] to which the given [kernelConstructor]

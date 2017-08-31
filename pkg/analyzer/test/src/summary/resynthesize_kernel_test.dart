@@ -301,11 +301,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_error_extendsEnum() async {
-    await super.test_error_extendsEnum();
-  }
-
-  @failingTest
   test_export_configurations_useDefault() async {
     await super.test_export_configurations_useDefault();
   }

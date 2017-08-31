@@ -745,8 +745,24 @@ class _KernelUnitResynthesizerContextImpl
   @override
   InterfaceType getInterfaceType(
       ElementImpl context, kernel.Supertype kernelType) {
+    if (kernelType.classNode.isEnum) {
+      return null;
+    }
     return _getInterfaceType(
         context, kernelType.className.canonicalName, kernelType.typeArguments);
+  }
+
+  @override
+  List<InterfaceType> getInterfaceTypes(
+      ElementImpl context, List<kernel.Supertype> types) {
+    var interfaceTypes = <InterfaceType>[];
+    for (kernel.Supertype kernelType in types) {
+      InterfaceType interfaceType = getInterfaceType(context, kernelType);
+      if (interfaceType != null) {
+        interfaceTypes.add(interfaceType);
+      }
+    }
+    return interfaceTypes;
   }
 
   @override
