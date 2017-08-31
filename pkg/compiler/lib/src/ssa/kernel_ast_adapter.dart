@@ -621,10 +621,11 @@ class KernelSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
     for (ir.SwitchCase switchCase in switchStatement.cases) {
       JumpTarget continueTarget =
           localsMap.getJumpTargetForSwitchCase(switchCase);
-      assert(continueTarget is KernelJumpTarget);
-      targetIndexMap[continueTarget] = switchIndex;
-      assert(builder.jumpTargets[continueTarget] == null);
-      builder.jumpTargets[continueTarget] = this;
+      if (continueTarget != null) {
+        targetIndexMap[continueTarget] = switchIndex;
+        assert(builder.jumpTargets[continueTarget] == null);
+        builder.jumpTargets[continueTarget] = this;
+      }
       switchIndex++;
     }
   }

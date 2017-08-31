@@ -186,6 +186,23 @@ main() {
   }, expectIdenticalOutput: false),
   const Test(const {
     'main.dart': '''
+main() {
+  var x = 42;
+  int i = 0;
+  switch (i) {
+  case 0:
+     print(x);
+     continue label1;
+  label1:
+     case 1:
+     print(x);
+     break;
+  }
+}    
+'''
+  }, expectIdenticalOutput: false),
+  const Test(const {
+    'main.dart': '''
 class A<U,V> {
   var a = U;
   var b = V;

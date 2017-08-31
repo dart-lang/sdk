@@ -9,7 +9,7 @@ void simpleSwitch(e) {
   }
 }
 
-void simpleLabelledSwitch(e) {
+void labelledSwitch(e) {
   target:
   /*0@break*/
   switch (e) {
@@ -18,7 +18,7 @@ void simpleLabelledSwitch(e) {
   }
 }
 
-void simpleNestedSwitch(l) {
+void switchNestedInLoop(l) {
   for (var e in l) {
     target:
     /*0@break*/
@@ -29,7 +29,7 @@ void simpleNestedSwitch(l) {
   }
 }
 
-void simpleNestedLabelledSwitch(l) {
+void labelledSwitchNestedInLoop(l) {
   target:
   /*0@break*/
   for (var e in l) {
@@ -42,9 +42,20 @@ void simpleNestedLabelledSwitch(l) {
   }
 }
 
+void switchWithContinue(e) {
+  /*0@break*/ switch (e) {
+    target:
+    case /*1@continue*/ 0:
+      /*target=0*/ break;
+    case 1:
+      /*target=1*/ continue target;
+  }
+}
+
 void main() {
   simpleSwitch(0);
-  simpleLabelledSwitch(0);
-  simpleNestedSwitch([]);
-  simpleNestedLabelledSwitch([]);
+  labelledSwitch(0);
+  switchNestedInLoop([]);
+  labelledSwitchNestedInLoop([]);
+  switchWithContinue(0);
 }

@@ -107,6 +107,10 @@ class ComputerMixin {
   String get loopName => 'loop';
 
   String get gotoName => 'goto';
+
+  String get switchName => 'switch';
+
+  String get switchCaseName => 'case';
 }
 
 /// AST visitor for computing a descriptive mapping of the [Id]s in a member.
@@ -124,6 +128,10 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
       return loopName;
     } else if (node is ast.GotoStatement) {
       return gotoName;
+    } else if (node is ast.SwitchStatement) {
+      return switchName;
+    } else if (node is ast.SwitchCase) {
+      return switchCaseName;
     }
 
     dynamic sendStructure;
@@ -221,6 +229,12 @@ class IrComputer extends IrDataExtractor with ComputerMixin {
       return loopName;
     } else if (node is ir.BreakStatement) {
       return gotoName;
+    } else if (node is ir.ContinueSwitchStatement) {
+      return gotoName;
+    } else if (node is ir.SwitchStatement) {
+      return switchName;
+    } else if (node is ir.SwitchCase) {
+      return switchCaseName;
     }
     return '<unknown:$node (${node.runtimeType})>';
   }

@@ -19,11 +19,11 @@ import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import 'package:kernel/ast.dart' as ir;
 
-main() {
+main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, computeJumpsData, computeKernelJumpsData,
-        options: [Flags.disableTypeInference]);
+        options: [Flags.disableTypeInference], args: args);
   });
 }
 
@@ -167,6 +167,17 @@ class JumpsAstComputer extends AstDataExtractor with JumpsMixin {
     }
     super.visitSwitchStatement(node);
   }
+
+  @override
+  visitSwitchCase(ast.SwitchCase node) {
+    JumpTarget target = elements.getTargetDefinition(node);
+    if (target != null) {
+      NodeId id = computeSwitchCaseNodeId(node);
+      SourceSpan sourceSpan = computeSourceSpan(node);
+      targets[target] = new TargetData(index++, id, sourceSpan, target);
+    }
+    super.visitSwitchCase(node);
+  }
 }
 
 /// Kernel IR visitor for computing jump data.
@@ -192,31 +203,34 @@ class JumpsIrChecker extends IrDataExtractor with JumpsMixin {
     return null;
   }
 
-  void addTargetData(ir.TreeNode node, JumpTarget target) {
+  void addTargetData(ir.TreeNode node, NodeId id, JumpTarget target) {
     if (target != null) {
-      NodeId id = computeLoopNodeId(node);
       SourceSpan sourceSpan = computeSourceSpan(node);
       targets[target] = new TargetData(index++, id, sourceSpan, target);
     }
   }
 
   visitForStatement(ir.ForStatement node) {
-    addTargetData(node, _localsMap.getJumpTargetForFor(node));
+    addTargetData(
+        node, computeLoopNodeId(node), _localsMap.getJumpTargetForFor(node));
     super.visitForStatement(node);
   }
 
   visitForInStatement(ir.ForInStatement node) {
-    addTargetData(node, _localsMap.getJumpTargetForForIn(node));
+    addTargetData(
+        node, computeLoopNodeId(node), _localsMap.getJumpTargetForForIn(node));
     super.visitForInStatement(node);
   }
 
   visitWhileStatement(ir.WhileStatement node) {
-    addTargetData(node, _localsMap.getJumpTargetForWhile(node));
+    addTargetData(
+        node, computeLoopNodeId(node), _localsMap.getJumpTargetForWhile(node));
     super.visitWhileStatement(node);
   }
 
   visitDoStatement(ir.DoStatement node) {
-    addTargetData(node, _localsMap.getJumpTargetForDo(node));
+    addTargetData(
+        node, computeLoopNodeId(node), _localsMap.getJumpTargetForDo(node));
     super.visitDoStatement(node);
   }
 
@@ -230,7 +244,23 @@ class JumpsIrChecker extends IrDataExtractor with JumpsMixin {
   }
 
   visitSwitchStatement(ir.SwitchStatement node) {
-    addTargetData(node, _localsMap.getJumpTargetForSwitch(node));
+    addTargetData(
+        node, computeLoopNodeId(node), _localsMap.getJumpTargetForSwitch(node));
     super.visitSwitchStatement(node);
+  }
+
+  visitSwitchCase(ir.SwitchCase node) {
+    addTargetData(node, computeSwitchCaseNodeId(node),
+        _localsMap.getJumpTargetForSwitchCase(node));
+    super.visitSwitchCase(node);
+  }
+
+  visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
+    JumpTarget target = _localsMap.getJumpTargetForContinueSwitch(node);
+    assert(target != null, 'No target for $node.');
+    NodeId id = computeGotoNodeId(node);
+    SourceSpan sourceSpan = computeSourceSpan(node);
+    gotos.add(new GotoData(id, sourceSpan, target));
+    super.visitContinueSwitchStatement(node);
   }
 }

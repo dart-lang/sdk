@@ -22,13 +22,10 @@ import '../equivalence/id_equivalence_helper.dart';
 import 'package:kernel/ast.dart' as ir;
 
 main(List<String> args) {
-  bool verbose = args.contains('-v');
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, computeClosureData, computeKernelClosureData,
-        skipForKernel: [],
-        options: [Flags.disableTypeInference],
-        verbose: verbose);
+        skipForKernel: [], options: [Flags.disableTypeInference], args: args);
   });
 }
 

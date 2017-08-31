@@ -172,8 +172,12 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     ComputeMemberDataFunction computeFromKernel,
     {List<String> skipForKernel: const <String>[],
     List<String> options: const <String>[],
-    bool verbose: false}) async {
+    List<String> args: const <String>[]}) async {
+  args = args.toList();
+  bool verbose = args.remove('-v');
   await for (FileSystemEntity entity in dataDir.list()) {
+    String name = entity.uri.pathSegments.last;
+    if (args.isNotEmpty && !args.contains(name)) continue;
     print('----------------------------------------------------------------');
     print('Checking ${entity.uri}');
     print('----------------------------------------------------------------');
@@ -181,7 +185,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     print('--from ast------------------------------------------------------');
     await checkCode(annotatedCode, computeFromAst, compileFromSource,
         options: options, verbose: verbose);
-    if (skipForKernel.contains(entity.uri.pathSegments.last)) {
+    if (skipForKernel.contains(name)) {
       print('--skipped for kernel------------------------------------------');
       continue;
     }

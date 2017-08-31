@@ -157,12 +157,23 @@ abstract class AstDataExtractor extends ast.Visitor {
     return new NodeId(node.getBeginToken().charOffset);
   }
 
-  NodeId computeLoopNodeId(ast.Node node) {
-    return new NodeId(node.getBeginToken().charOffset);
-  }
+  NodeId computeLoopNodeId(ast.Node node) => computeDefaultNodeId(node);
 
-  NodeId computeGotoNodeId(ast.Node node) {
-    return new NodeId(node.getBeginToken().charOffset);
+  NodeId computeGotoNodeId(ast.Node node) => computeDefaultNodeId(node);
+
+  NodeId computeSwitchNodeId(ast.SwitchStatement node) =>
+      computeDefaultNodeId(node);
+
+  NodeId computeSwitchCaseNodeId(ast.SwitchCase node) {
+    ast.Node position;
+    for (ast.Node child in node.labelsAndCases) {
+      if (child.asCaseMatch() != null) {
+        ast.CaseMatch caseMatch = child;
+        position = caseMatch.expression;
+        break;
+      }
+    }
+    return computeDefaultNodeId(position);
   }
 
   void run() {
@@ -221,6 +232,16 @@ abstract class AstDataExtractor extends ast.Visitor {
 
   visitGotoStatement(ast.GotoStatement node) {
     computeForNode(node, computeGotoNodeId(node));
+    visitNode(node);
+  }
+
+  visitSwitchStatement(ast.SwitchStatement node) {
+    computeForNode(node, computeSwitchNodeId(node));
+    visitNode(node);
+  }
+
+  visitSwitchCase(ast.SwitchCase node) {
+    computeForNode(node, computeSwitchCaseNodeId(node));
     visitNode(node);
   }
 }
@@ -285,6 +306,10 @@ abstract class IrDataExtractor extends ir.Visitor {
 
   NodeId computeLoopNodeId(ir.TreeNode node) => computeDefaultNodeId(node);
   NodeId computeGotoNodeId(ir.TreeNode node) => computeDefaultNodeId(node);
+  NodeId computeSwitchNodeId(ir.SwitchStatement node) =>
+      computeDefaultNodeId(node);
+  NodeId computeSwitchCaseNodeId(ir.SwitchCase node) =>
+      new NodeId(node.expressionOffsets.first);
 
   void run(ir.Node root) {
     root.accept(this);
@@ -352,5 +377,20 @@ abstract class IrDataExtractor extends ir.Visitor {
   visitBreakStatement(ir.BreakStatement node) {
     computeForNode(node, computeGotoNodeId(node));
     super.visitBreakStatement(node);
+  }
+
+  visitSwitchStatement(ir.SwitchStatement node) {
+    computeForNode(node, computeSwitchNodeId(node));
+    super.visitSwitchStatement(node);
+  }
+
+  visitSwitchCase(ir.SwitchCase node) {
+    computeForNode(node, computeSwitchCaseNodeId(node));
+    super.visitSwitchCase(node);
+  }
+
+  visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
+    computeForNode(node, computeGotoNodeId(node));
+    super.visitContinueSwitchStatement(node);
   }
 }

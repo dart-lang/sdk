@@ -12,11 +12,11 @@ const List<String> skipforKernel = const <String>[
   'super_set.dart',
 ];
 
-main() {
+main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(
         dataDir, computeMemberAstTypeMasks, computeMemberIrTypeMasks,
-        skipForKernel: skipforKernel);
+        args: args, skipForKernel: skipforKernel);
   });
 }
