@@ -231,9 +231,8 @@ class SourceLoader<L> extends Loader<L> {
       wasChanged = false;
       for (SourceLibraryBuilder exported in both) {
         for (Export export in exported.exporters) {
-          SourceLibraryBuilder exporter = export.exporter;
           exported.exportScope.forEach((String name, Builder member) {
-            if (exporter.addToExportScope(name, member)) {
+            if (export.addToExportScope(name, member)) {
               wasChanged = true;
             }
           });
