@@ -178,6 +178,42 @@ class CapturedScopeBuilder extends ir.Visitor {
   }
 
   @override
+  void visitThisExpression(ir.ThisExpression thisExpression) {
+    if (_hasThisLocal) _registerNeedsThis();
+  }
+
+  @override
+  void visitTypeParameter(ir.TypeParameter typeParameter) {
+    ir.TreeNode context = _executableContext;
+    if (_isInsideClosure && context is ir.Procedure && context.isFactory) {
+      // This is a closure in a factory constructor.  Since there is no
+      // [:this:], we have to mark the type arguments as free variables to
+      // capture them in the closure.
+      // TODO(efortuna): Implement for in the case of RTI.
+      // useTypeVariableAsLocal(typeParameter.bound);
+    }
+
+    if (_executableContext is ir.Member &&
+        _executableContext is! ir.Field &&
+        _hasThisLocal) {
+      // In checked mode, using a type variable in a type annotation may lead
+      // to a runtime type check that needs to access the type argument and
+      // therefore the closure needs a this-element, if it is not in a field
+      // initializer; field initializers are evaluated in a context where
+      // the type arguments are available in locals.
+      _registerNeedsThis();
+    }
+  }
+
+  /// Add `this` as a variable that needs to be accessed (and thus may become a
+  /// free/captured variable.
+  void _registerNeedsThis() {
+    if (_isInsideClosure) {
+      _currentScopeInfo.thisUsedAsFreeVariable = true;
+    }
+  }
+
+  @override
   void visitForStatement(ir.ForStatement node) {
     List<ir.VariableDeclaration> boxedLoopVariables =
         <ir.VariableDeclaration>[];

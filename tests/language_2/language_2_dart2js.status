@@ -396,9 +396,8 @@ function_type/function_type96_test: RuntimeError # Issue 30476
 function_type/function_type9_test: RuntimeError # Issue 30476
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-abstract_exact_selector_test/none: Pass
-generic_methods_local_variable_declaration_test: Pass
 abstract_exact_selector_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+abstract_exact_selector_test/none: Pass
 abstract_getter_test/01: Crash # Assertion failure: Missing scope info for j:getter(Foo.i).
 abstract_method_test: Crash # Assertion failure: Missing scope info for j:getter(A.length).
 abstract_object_method_test: Crash # Assertion failure: Missing scope info for j:method(B.==).
@@ -511,7 +510,6 @@ call_operator_test: RuntimeError
 call_test: RuntimeError
 call_through_getter_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
 call_through_getter_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
-call_through_getter_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
 call_with_no_such_method_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
 canonical_const2_test: RuntimeError
 canonical_const_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
@@ -521,9 +519,7 @@ cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-class_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.closureRef#)) for j:closure_call(Sub_closureRef_closure.call).
 classes_static_method_clash_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
-closure6_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.foo#)) for j:closure_call(A_foo_closure.call).
 closure_cycles_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 closure_in_constructor_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
 closure_in_initializer2_test: RuntimeError
@@ -557,6 +553,7 @@ generic_local_functions_test: Crash # Unsupported operation: Unsupported type pa
 generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_methods_generic_class_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_generic_function_parameter_test: Crash # Unsupported operation: Unsupported type parameter type node V.
+generic_methods_local_variable_declaration_test: Pass
 generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
@@ -574,8 +571,8 @@ getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 hash_map_null_key_foreach_test: RuntimeError
 identical_closure2_test: RuntimeError
-if_null_assignment_behavior_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.instanceTest#)) for j:closure_call(C_instanceTest_closure.call).
-if_null_assignment_behavior_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.instanceTest#)) for j:closure_call(C_instanceTest_closure.call).
+abstract_override_adds_optional_args_supercall_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
+bad_constructor_test/05: MissingCompileTimeError
 if_null_assignment_behavior_test/05: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
 if_null_assignment_behavior_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
 if_null_assignment_behavior_test/12: RuntimeError
@@ -707,7 +704,6 @@ call_operator_test: RuntimeError
 call_test: RuntimeError
 call_through_getter_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
 call_through_getter_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
-call_through_getter_test/none: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
 call_with_no_such_method_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
 canonical_const2_test: RuntimeError
 canonical_const_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
@@ -717,9 +713,7 @@ cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-class_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.closureRef#)) for j:closure_call(Sub_closureRef_closure.call).
 classes_static_method_clash_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
-closure6_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.foo#)) for j:closure_call(A_foo_closure.call).
 closure_cycles_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 closure_in_constructor_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
 closure_in_initializer2_test: RuntimeError
@@ -770,8 +764,8 @@ getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 hash_map_null_key_foreach_test: RuntimeError
 identical_closure2_test: RuntimeError
-if_null_assignment_behavior_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.instanceTest#)) for j:closure_call(C_instanceTest_closure.call).
-if_null_assignment_behavior_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.instanceTest#)) for j:closure_call(C_instanceTest_closure.call).
+abstract_override_adds_optional_args_supercall_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+bad_constructor_test/05: MissingCompileTimeError
 if_null_assignment_behavior_test/05: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
 if_null_assignment_behavior_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
 if_null_assignment_behavior_test/12: RuntimeError

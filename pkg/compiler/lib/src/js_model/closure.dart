@@ -253,6 +253,11 @@ class KernelScopeInfo {
   /// this scope.
   Set<ir.VariableDeclaration> freeVariables = new Set<ir.VariableDeclaration>();
 
+  /// If true, `this` is used as a free variable, in this scope. It is stored
+  /// separately from [freeVariables] because there is no single
+  /// `VariableDeclaration` node that represents `this`.
+  bool thisUsedAsFreeVariable = false;
+
   KernelScopeInfo(this.hasThisLocal)
       : localsUsedInTryOrSync = new Set<ir.VariableDeclaration>(),
         boxedVariables = new Set<ir.VariableDeclaration>(),
@@ -294,7 +299,11 @@ class JsScopeInfo extends ScopeInfo {
         this.localsUsedInTryOrSync =
             info.localsUsedInTryOrSync.map(localsMap.getLocalVariable).toSet(),
         this.freeVariables =
-            info.freeVariables.map(localsMap.getLocalVariable).toSet();
+            info.freeVariables.map(localsMap.getLocalVariable).toSet() {
+    if (info.thisUsedAsFreeVariable) {
+      this.freeVariables.add(this.thisLocal);
+    }
+  }
 
   void forEachBoxedVariable(f(Local local, FieldEntity field)) {
     boxedVariables.forEach((Local l, JRecordField box) {

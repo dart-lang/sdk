@@ -121,6 +121,7 @@ abstract class AstDataExtractor extends ast.Visitor {
 
   NodeId computeAccessId(ast.Send node, AccessSemantics access) {
     switch (access.kind) {
+      case AccessKind.THIS_PROPERTY:
       case AccessKind.DYNAMIC_PROPERTY:
       case AccessKind.LOCAL_VARIABLE:
       case AccessKind.FINAL_LOCAL_VARIABLE:

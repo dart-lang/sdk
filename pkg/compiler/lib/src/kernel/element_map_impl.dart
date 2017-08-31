@@ -2299,7 +2299,25 @@ class JsKernelToElementMap extends KernelToElementMapBase
           member,
           cls,
           memberMap,
+          localsMap.getLocalVariable(variable),
           variable,
+          variable.isConst,
+          !(variable.isFinal || variable.isConst),
+          boxedCapturedVariables,
+          fieldNumber,
+          info.capturedVariablesAccessor,
+          localsMap);
+      fieldNumber++;
+    }
+    if (info.thisUsedAsFreeVariable) {
+      _constructClosureField(
+          member,
+          cls,
+          memberMap,
+          cls.thisLocal,
+          getMemberDefinition(member).node,
+          true,
+          false,
           boxedCapturedVariables,
           fieldNumber,
           info.capturedVariablesAccessor,
@@ -2327,28 +2345,30 @@ class JsKernelToElementMap extends KernelToElementMapBase
       MemberEntity member,
       KernelClosureClass cls,
       Map<String, MemberEntity> memberMap,
-      ir.VariableDeclaration variable,
+      Local capturedLocal,
+      ir.TreeNode sourceNode,
+      bool isConst,
+      bool isAssignable,
       Map<Local, JRecordField> boxedCapturedVariables,
       int fieldNumber,
       NodeBox box,
       KernelToLocalsMap localsMap) {
-    // NOTE: This construction order may be slightly different than the
+    // NOTE: This construction *order* may be slightly different than the
     // old Element version. The old version did all the boxed items and then
     // all the others.
-    Local capturedLocal = localsMap.getLocalVariable(variable);
     JRecordField field = boxedCapturedVariables[capturedLocal];
     FieldEntity closureField = new JClosureField(
         _getClosureVariableName(capturedLocal.name, fieldNumber),
         _memberData.length,
         cls,
-        variable.isConst,
-        variable.isFinal || variable.isConst);
+        isConst,
+        isAssignable);
     _memberList.add(closureField);
     _memberData.add(new ClosureFieldData(new ClosureMemberDefinition(
         cls.localToFieldMap[capturedLocal],
-        computeSourceSpanFromTreeNode(variable),
+        computeSourceSpanFromTreeNode(sourceNode),
         MemberKind.closureField,
-        variable)));
+        sourceNode)));
     memberMap[closureField.name] = closureField;
     if (boxedCapturedVariables.containsKey(capturedLocal)) {
       cls.localToFieldMap[field.box] = closureField;

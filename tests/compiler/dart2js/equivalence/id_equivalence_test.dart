@@ -83,7 +83,7 @@ void computeAstMemberData(
   new ResolvedAstComputer(compiler.reporter, actualMap, resolvedAst).run();
 }
 
-/// Mixin used for0computing a descriptive mapping of the [Id]s in a member.
+/// Mixin used for computing a descriptive mapping of the [Id]s in a member.
 class ComputerMixin {
   String computeMemberName(String className, String memberName) {
     if (className != null) {
@@ -147,6 +147,7 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
           case AccessKind.FINAL_LOCAL_VARIABLE:
           case AccessKind.LOCAL_FUNCTION:
             return sendStructure.semantics.element.name;
+          case AccessKind.THIS_PROPERTY:
           case AccessKind.DYNAMIC_PROPERTY:
             DynamicAccess access = sendStructure.semantics;
             return access.name.text;

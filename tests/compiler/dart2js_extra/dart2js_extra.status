@@ -185,9 +185,9 @@ async_stacktrace_test: Crash
 bound_closure_interceptor_methods_test: Crash
 bound_closure_interceptor_type_test: Crash
 break_test: Crash
+closure4_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
 closure4_test: RuntimeError
 closure_capture2_test: RuntimeError
-closure_capture3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Closure.nestedClosure#)) for j:closure_call(Closure_nestedClosure_closure.call).
 closure_capture4_test: RuntimeError
 closure_type_reflection2_test: Crash
 closure_type_reflection_test: Crash
@@ -221,7 +221,6 @@ deferred_split_test: CompileTimeError
 dummy_compiler_test: CompileTimeError
 for_in_test: Crash
 hash_code_test: Crash
-closure4_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
 if_null_test: Crash
 inference_nsm_mirrors_test: Crash
 inference_super_set_call_test: RuntimeError
@@ -309,10 +308,9 @@ async_stacktrace_test: Crash # NoSuchMethodError: The getter 'memberIndex' was c
 bound_closure_interceptor_methods_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 bound_closure_interceptor_type_test: Crash # NoSuchMethodError: The getter 'classIndex' was called on null.
 break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-closure4_test: RuntimeError
-closure_capture3_test: Crash # Assertion failure: Cannot find value local(Closure_nestedClosure_closure.call#f) in (local(Closure.nestedClosure#)) for j:closure_call(Closure_nestedClosure_closure.call).
-closure_capture4_test: RuntimeError
 closure4_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
+closure4_test: RuntimeError
+closure_capture4_test: RuntimeError
 closure_type_reflection2_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 closure_type_reflection_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 code_motion_exception_test: Crash

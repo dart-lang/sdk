@@ -62,6 +62,15 @@ writeLocalInClosure(/**/ parameter) {
   return func;
 }
 
+class Foo {
+  int /*Foo.bar:hasThis*/ bar = 4;
+
+  /*Foo.baz:hasThis*/ baz() {
+    /*free=[this],hasThis*/ func() => bar;
+    return func;
+  }
+}
+
 main() {
   readParameterInAnonymousClosure(null);
   readParameterInClosure(null);
@@ -71,4 +80,5 @@ main() {
   readLocalInClosure(null);
   writeLocalInAnonymousClosure(null);
   writeLocalInClosure(null);
+  new Foo().baz();
 }

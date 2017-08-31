@@ -699,7 +699,6 @@ function_malformed_result_type_test: Crash # 'package:front_end/src/fasta/kernel
 function_subtype_bound_closure6_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.test#localMethod)) for j:closure_call(C_test_closure.call).
 function_subtype_cast2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 function_subtype_cast3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-function_subtype_checked0_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.test#)) for j:closure_call(C_test_closure.call).
 function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_subtype_closure1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_subtype_inline0_test: RuntimeError
@@ -717,8 +716,6 @@ function_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLoc
 function_type_alias3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
 function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
-implicit_closure2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.foo#)) for j:closure_call(A_foo_closure.call).
-implicit_closure_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(First.foo1#local)) for j:closure_call(First_foo1_closure.call).
 implicit_this_test/01: Crash # Assertion failure: Missing scope info for j:getter(SubAbstract2.x).
 implicit_this_test/04: Crash # Assertion failure: Missing scope info for j:getter(SubAbstract2.x).
 implicit_this_test/none: Crash # Assertion failure: Missing scope info for j:getter(SubAbstract2.x).
@@ -1034,7 +1031,6 @@ regress_17382_test: RuntimeError
 regress_18535_test: Crash # Assertion failure: Missing scope info for j:getter(JsMirror._prettyName).
 regress_18713_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(S.sType)
 regress_20394_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 529 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
-regress_20840_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(SomeClass.#o), local(SomeClass.#)) for j:closure_call(SomeClass_SomeClass_closure.call).
 regress_21795_test: RuntimeError
 regress_22438_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 regress_22443_test: CompileTimeError
@@ -1075,7 +1071,8 @@ regress_28278_test: CompileTimeError
 regress_29349_test: CompileTimeError
 regress_29949_test: Crash # Assertion failure: Super constructor for k:constructor(C.) not found.
 regress_30121_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-rewrite_implicit_this_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Foo.shadow_x_localInsideClosure#foo), local(Foo.shadow_x_localInsideClosure#x)) for j:closure_call(Foo_shadow_x_localInsideClosure_closure.call).
+function_test: RuntimeError
+local_function_test: RuntimeError
 runtime_type_function_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 setter_declaration2_negative_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 setter_declaration_negative_test: Fail
@@ -1426,7 +1423,6 @@ full_stacktrace3_test: Crash # NoSuchMethodError: The getter 'thisLocal' was cal
 function_subtype_bound_closure6_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.test#localMethod)) for j:closure_call(C_test_closure.call).
 function_subtype_cast2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 function_subtype_cast3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-function_subtype_checked0_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(C.test#)) for j:closure_call(C_test_closure.call).
 function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_subtype_closure1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_subtype_inline0_test: RuntimeError
@@ -1444,8 +1440,6 @@ function_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLoc
 function_type_alias3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
 function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
-implicit_closure2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.foo#)) for j:closure_call(A_foo_closure.call).
-implicit_closure_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(First.foo1#local)) for j:closure_call(First_foo1_closure.call).
 implicit_this_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 implicit_this_test/04: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 implicit_this_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
@@ -1753,7 +1747,6 @@ regress_17382_test: RuntimeError
 regress_18535_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_18713_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 regress_20394_test/01: MissingCompileTimeError
-regress_20840_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(SomeClass.#o), local(SomeClass.#)) for j:closure_call(SomeClass_SomeClass_closure.call).
 regress_21795_test: RuntimeError
 regress_22438_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_22443_test: CompileTimeError
@@ -1794,7 +1787,8 @@ regress_28278_test: CompileTimeError
 regress_29349_test: CompileTimeError
 regress_29949_test: Crash # Assertion failure: Super constructor for k:constructor(C.) not found.
 regress_30121_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-rewrite_implicit_this_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Foo.shadow_x_localInsideClosure#foo), local(Foo.shadow_x_localInsideClosure#x)) for j:closure_call(Foo_shadow_x_localInsideClosure_closure.call).
+function_test: RuntimeError
+local_function_test: RuntimeError
 runtime_type_function_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 setter_declaration2_negative_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 setter_declaration_negative_test: Fail

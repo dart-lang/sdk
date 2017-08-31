@@ -615,7 +615,6 @@ class BoxFieldElement extends ElementX
 /// A local variable used encode the direct (uncaptured) references to [this].
 class ThisLocal extends Local {
   final MemberEntity memberContext;
-  final hashCode = ElementX.newHashCode();
 
   ThisLocal(this.memberContext);
 
@@ -624,6 +623,15 @@ class ThisLocal extends Local {
   String get name => 'this';
 
   ClassEntity get enclosingClass => memberContext.enclosingClass;
+
+  bool operator ==(other) {
+    return other is ThisLocal &&
+        other.name == name &&
+        other.memberContext == memberContext &&
+        other.enclosingClass == enclosingClass;
+  }
+
+  int get hashCode => memberContext.hashCode + enclosingClass.hashCode;
 }
 
 /// Call method of a closure class.
