@@ -51,8 +51,6 @@ html/resource_http_test: Skip
 html/transferables_test: Skip
 html/webgl_1_test: Skip
 html/wrapping_collections_test: Skip
-mirrors/abstract_class_test: Skip
-mirrors/abstract_test: Skip
 mirrors/circular_factory_redirection_test: Skip
 mirrors/class_declarations_test: Skip
 mirrors/closures_test: Skip
@@ -205,7 +203,6 @@ html/worker_api_test: RuntimeError # Issue 29922
 html/xhr_cross_origin_test/functional: RuntimeError # Issue 29922
 math/double_pow_test: RuntimeError # Issue 29922
 math/low_test: RuntimeError # Issue 29922
-mirrors/accessor_cache_overflow_test: RuntimeError # Issue 29922
 mirrors/basic_types_in_dart_core_test: RuntimeError # Issue 29922
 mirrors/class_mirror_location_test: RuntimeError # Issue 29922
 mirrors/class_mirror_type_variables_test: RuntimeError # Issue 29922

@@ -17,8 +17,6 @@ async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 
 [ $hot_reload || $hot_reload_rollback ]
 mirrors/closurization_equivalence_test: SkipByDesign # Method equality
-
-[ $hot_reload || $hot_reload_rollback ]
 mirrors/deferred_mirrors_update_test: Crash # Deferred loading
 mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading
 mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading

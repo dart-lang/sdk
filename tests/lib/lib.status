@@ -16,7 +16,6 @@ math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
 
 mirrors/invocation_fuzz_test: RuntimeError # Issue 29086
-mirrors/abstract_class_test: RuntimeError # Issue 12826
 mirrors/class_declarations_test/none: RuntimeError # Issue 13440
 mirrors/class_mirror_location_test: RuntimeError # Issue 6490
 mirrors/closurization_equivalence_test: RuntimeError # Issue 6490
@@ -296,7 +295,6 @@ async/timer_isActive_test: RuntimeError
 async/timer_repeat_test: RuntimeError
 async/timer_test: RuntimeError
 convert/json_lib_test: RuntimeError
-math/rectangle_test: RuntimeError
 mirrors/library_uri_io_test: RuntimeError
 mirrors/library_uri_package_test: RuntimeError
 # fstat bug, MG-479.
@@ -414,11 +412,6 @@ async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
 mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
 
 [ $compiler == dartk || $compiler == dartkp ]
-async/future_or_strong_test: RuntimeError
-async/future_test/01: RuntimeError
-async/future_test/none: RuntimeError
-mirrors/abstract_class_test/00: RuntimeError
-mirrors/abstract_class_test/none: RuntimeError
 mirrors/class_declarations_test/01: RuntimeError
 mirrors/class_declarations_test/none: RuntimeError
 mirrors/class_mirror_location_test: RuntimeError

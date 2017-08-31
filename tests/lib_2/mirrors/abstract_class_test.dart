@@ -138,7 +138,6 @@ abstract class NamedMA = S with M;
 class SubNamedMA extends NamedMA {
   mixinFoo() {}
 }
-class ConcreteNamedMA = S with M; //# 00: static type warning
 
 abstract class NamedMA2 = S with M2;
 
@@ -168,10 +167,6 @@ testNamedMixinApplication() {
 
   // Application is concrete.
   {
-    // Mixin is abstract.
-  Expect.isFalse(reflectClass(ConcreteNamedMA).isAbstract); //# 00: ok
-  Expect.isFalse(reflectClass(ConcreteNamedMA).superclass.isAbstract); //# 00: ok
-
     // Mixin is concrete.
     Expect.isFalse(reflectClass(ConcreteNamedMA2).isAbstract);
     Expect.isFalse(reflectClass(ConcreteNamedMA2).superclass.isAbstract);
