@@ -48,7 +48,7 @@ type_variable_as_super: Fail
 typedef: Fail
 uninitialized_fields: Fail
 unused_methods: Fail
-void-methods: Fail
+void_methods: Fail
 
 inference/abstract_class_instantiation: Fail # Issue #30040
 inference/constructors_too_many_positional_arguments: Fail # Issue #30040

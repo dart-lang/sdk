@@ -458,4 +458,4 @@ type_variable_as_super: Crash
 typedef: Crash
 uninitialized_fields: Crash
 unused_methods: Crash
-void-methods: Crash
+void_methods: Crash
