@@ -201,10 +201,9 @@
     "uris": [
       "lib/",
       "tool/",
+      "test/",
       "../kernel/lib/"
     ],
-
-    "note": "Tests are included via git grep below.",
 
     "git grep": {
       "pathspecs": [ "*.dart" ],
