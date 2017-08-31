@@ -14,7 +14,6 @@ async/schedule_microtask6_test: RuntimeError # global error handling is not supp
 
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
-math/random_big_test: RuntimeError  # Using bigint seeds for random.
 
 mirrors/invocation_fuzz_test: RuntimeError # Issue 29086
 mirrors/abstract_class_test: RuntimeError # Issue 12826
@@ -219,7 +218,6 @@ async/intercept_schedule_microtask6_test: Skip # Flutter Issue 9113
 async/stream_empty_test: Skip # Flutter Issue 9113
 async/intercept_schedule_microtask5_test: Skip # Flutter Issue 9113
 async/stream_event_transformed_test: Skip # Flutter Issue 9113
-math/random_secure_test: RuntimeError # Flutter Issue 9113
 
 [ $compiler == dart2js && $minified ]
 mirrors/mirrors_used_get_name_test: RuntimeError
@@ -301,7 +299,6 @@ async/timer_isActive_test: RuntimeError
 async/timer_repeat_test: RuntimeError
 async/timer_test: RuntimeError
 convert/json_lib_test: RuntimeError
-math/point_test: RuntimeError
 math/rectangle_test: RuntimeError
 mirrors/library_uri_io_test: RuntimeError
 mirrors/library_uri_package_test: RuntimeError
