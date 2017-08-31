@@ -298,6 +298,7 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.UNUSED_IMPORT,
   HintCode.UNUSED_LOCAL_VARIABLE,
   HintCode.UNUSED_SHOWN_NAME,
+  HintCode.USES_DYNAMIC_AS_BOTTOM,
   HintCode.USE_OF_VOID_RESULT,
   HintCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
   HtmlErrorCode.PARSE_ERROR,
