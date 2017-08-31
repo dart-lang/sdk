@@ -65,10 +65,12 @@ class SocketServer {
 
     PhysicalResourceProvider resourceProvider;
     if (analysisServerOptions.fileReadMode == 'as-is') {
-      resourceProvider = PhysicalResourceProvider.INSTANCE;
+      resourceProvider = new PhysicalResourceProvider(null,
+          stateLocation: analysisServerOptions.cacheFolder);
     } else if (analysisServerOptions.fileReadMode == 'normalize-eol-always') {
       resourceProvider = new PhysicalResourceProvider(
-          PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS);
+          PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS,
+          stateLocation: analysisServerOptions.cacheFolder);
     } else {
       throw new Exception(
           'File read mode was set to the unknown mode: $analysisServerOptions.fileReadMode');

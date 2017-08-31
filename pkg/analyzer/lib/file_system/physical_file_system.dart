@@ -40,6 +40,24 @@ List<int> _pathsToTimes(List<String> paths) {
 }
 
 /**
+* The name of the directory containing plugin specific subfolders used to
+* store data across sessions.
+*/
+const String _SERVER_DIR = ".dartServer";
+
+/**
+ * Returns the path to the user's home directory.
+ */
+String _getStandardStateLocation() {
+  final home = io.Platform.isWindows
+      ? io.Platform.environment['LOCALAPPDATA']
+      : io.Platform.environment['HOME'];
+  return io.FileSystemEntity.isDirectorySync(home)
+      ? join(home, _SERVER_DIR)
+      : null;
+}
+
+/**
  * A `dart:io` based implementation of [ResourceProvider].
  */
 class PhysicalResourceProvider implements ResourceProvider {
@@ -50,10 +68,9 @@ class PhysicalResourceProvider implements ResourceProvider {
       new PhysicalResourceProvider(null);
 
   /**
-   * The name of the directory containing plugin specific subfolders used to
-   * store data across sessions.
+   * The path to the base folder where state is stored.
    */
-  static final String SERVER_DIR = ".dartServer";
+  final String _stateLocation;
 
   static _SingleIsolateRunnerProvider pathsToTimesIsolateProvider =
       new _SingleIsolateRunnerProvider();
@@ -62,7 +79,8 @@ class PhysicalResourceProvider implements ResourceProvider {
   final AbsolutePathContext absolutePathContext =
       new AbsolutePathContext(io.Platform.isWindows);
 
-  PhysicalResourceProvider(FileReadMode fileReadMode) {
+  PhysicalResourceProvider(FileReadMode fileReadMode, {String stateLocation})
+      : _stateLocation = stateLocation ?? _getStandardStateLocation() {
     if (fileReadMode != null) {
       FileBasedSource.fileReadMode = fileReadMode;
     }
@@ -101,15 +119,8 @@ class PhysicalResourceProvider implements ResourceProvider {
 
   @override
   Folder getStateLocation(String pluginId) {
-    String home;
-    if (io.Platform.isWindows) {
-      home = io.Platform.environment['LOCALAPPDATA'];
-    } else {
-      home = io.Platform.environment['HOME'];
-    }
-    if (home != null && io.FileSystemEntity.isDirectorySync(home)) {
-      io.Directory directory =
-          new io.Directory(join(home, SERVER_DIR, pluginId));
+    if (_stateLocation != null) {
+      io.Directory directory = new io.Directory(join(_stateLocation, pluginId));
       directory.createSync(recursive: true);
       return new _PhysicalFolder(directory);
     }
