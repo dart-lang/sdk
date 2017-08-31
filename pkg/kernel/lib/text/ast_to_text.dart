@@ -283,35 +283,7 @@ class Printer extends Visitor<Null> {
         endLine('import "$importPath" as $prefix;');
       }
     }
-
     // TODO(scheglov): Do we want to print dependencies? dartbug.com/30224
-    if (library.additionalExports.isNotEmpty) {
-      write('additionalExports = (');
-      for (var reference in library.additionalExports) {
-        var node = reference.node;
-        if (node is Class) {
-          Library nodeLibrary = node.enclosingLibrary;
-          String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-          write(prefix + '::' + node.name);
-        } else if (node is Field) {
-          Library nodeLibrary = node.enclosingLibrary;
-          String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-          write(prefix + '::' + node.name.name);
-        } else if (node is Procedure) {
-          Library nodeLibrary = node.enclosingLibrary;
-          String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-          write(prefix + '::' + node.name.name);
-        } else if (node is Typedef) {
-          Library nodeLibrary = node.enclosingLibrary;
-          String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-          write(prefix + '::' + node.name);
-        } else {
-          throw new UnimplementedError('${node.runtimeType}');
-        }
-      }
-      endLine(')');
-    }
-
     endLine();
     var inner = new Printer._inner(this, imports);
     library.typedefs.forEach(inner.writeNode);

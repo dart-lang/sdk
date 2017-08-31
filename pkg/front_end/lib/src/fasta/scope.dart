@@ -280,9 +280,7 @@ class ScopeBuilder {
     scope.setters[name] = builder;
   }
 
-  Builder operator [](String name) {
-    return scope.local[name] ?? scope.setters[name];
-  }
+  Builder operator [](String name) => scope.local[name];
 }
 
 abstract class ProblemBuilder extends Builder {

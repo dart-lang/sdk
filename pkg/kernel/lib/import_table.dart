@@ -102,13 +102,6 @@ class _ImportTableBuilder extends RecursiveVisitor {
     addLibraryImport(node.enclosingLibrary);
   }
 
-  visitLibrary(Library node) {
-    super.visitLibrary(node);
-    for (Reference exportedReference in node.additionalExports) {
-      addLibraryImport(exportedReference.node.parent);
-    }
-  }
-
   defaultMemberReference(Member node) {
     addLibraryImport(node.enclosingLibrary);
   }

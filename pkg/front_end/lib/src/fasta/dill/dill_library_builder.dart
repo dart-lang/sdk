@@ -4,6 +4,8 @@
 
 library fasta.dill_library_builder;
 
+import 'dart:convert' show JSON;
+
 import 'package:kernel/ast.dart'
     show
         Class,
@@ -11,9 +13,11 @@ import 'package:kernel/ast.dart'
         Library,
         ListLiteral,
         Member,
-        Reference,
         StaticGet,
+        StringLiteral,
         Typedef;
+
+import '../fasta_codes.dart' show templateUnspecified;
 
 import '../problems.dart' show unimplemented;
 
@@ -43,10 +47,18 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
 
   Library library;
 
-  /// References to nodes exported by `export` declarations that:
-  /// - aren't ambiguous, or
-  /// - aren't hidden by local declarations.
-  List<Reference> additionalExports;
+  /// Exports in addition to the members declared in this library.
+  ///
+  /// Each entry in the list is either two or three elements long.
+  ///
+  /// The first element is the library URI, if it is null, this is an ambiguous
+  /// export and the list has three elements. Otherwise the list has two
+  /// elements.
+  ///
+  /// The second element is the name of the exported element.
+  ///
+  /// The third element (if present) is an error message.
+  List<List<String>> additionalExports;
 
   DillLibraryBuilder(this.uri, this.loader)
       : super(uri, new Scope.top(), new Scope.top());
@@ -76,7 +88,13 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
 
   void addMember(Member member) {
     String name = member.name.name;
-    addBuilder(name, new DillMemberBuilder(member, this), member.fileOffset);
+    if (name == "_exports#") {
+      Field field = member;
+      StringLiteral string = field.initializer;
+      additionalExports = JSON.decode(string.value);
+    } else {
+      addBuilder(name, new DillMemberBuilder(member, this), member.fileOffset);
+    }
   }
 
   Builder addBuilder(String name, Builder builder, int charOffset) {
@@ -127,28 +145,19 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   }
 
   void finalizeExports() {
-    for (var reference in library.additionalExports) {
-      var node = reference.node;
-      Uri libraryUri;
-      String name;
-      if (node is Class) {
-        libraryUri = node.enclosingLibrary.importUri;
-        name = node.name;
-      } else if (node is Member) {
-        libraryUri = node.enclosingLibrary.importUri;
-        name = node.name.name;
-      } else if (node is Typedef) {
-        libraryUri = node.enclosingLibrary.importUri;
-        name = node.name;
-      } else {
-        unimplemented('${node.runtimeType}', -1, uri);
-      }
-      var library = loader.read(libraryUri, -1);
-      Builder builder = library.exportScopeBuilder[name];
-      assert(node == builder.target);
-      if (builder.isSetter) {
-        exportScopeBuilder.addSetter(name, builder);
-      } else {
+    if (additionalExports != null) {
+      for (List<String> additionalExport in additionalExports) {
+        String uriString = additionalExport[0];
+        String name = additionalExport[1];
+        Builder builder;
+        if (uriString == null) {
+          builder = new KernelInvalidTypeBuilder(name, -1, null,
+              templateUnspecified.withArguments(additionalExport[2]));
+        } else {
+          DillLibraryBuilder library = loader.read(uri.resolve(uriString), -1);
+          builder = library?.exportScopeBuilder[name] ??
+              new KernelInvalidTypeBuilder(name, -1, null);
+        }
         exportScopeBuilder.addMember(name, builder);
       }
     }

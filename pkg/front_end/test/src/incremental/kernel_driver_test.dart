@@ -108,31 +108,15 @@ static method main() → void {}
     String aPath = '/test/lib/a.dart';
     String bPath = '/test/lib/b.dart';
     String cPath = '/test/lib/c.dart';
-    String dPath = '/test/lib/d.dart';
     writeFile(aPath, 'class A {}');
-    Uri bUri = writeFile(bPath, 'export "a.dart";');
-    Uri cUri = writeFile(cPath, 'export "b.dart";');
-    Uri dUri = writeFile(dPath, r'''
-import 'c.dart';
+    writeFile(bPath, 'export "a.dart";');
+    Uri cUri = writeFile(cPath, r'''
+import 'b.dart';
 A a;
 ''');
 
-    KernelResult result = await driver.getKernel(dUri);
-    Library library = _getLibrary(result, dUri);
-    expect(_getLibraryText(_getLibrary(result, bUri)), r'''
-library;
-import self as self;
-import "./a.dart" as a;
-additionalExports = (a::A)
-
-''');
-    expect(_getLibraryText(_getLibrary(result, cUri)), r'''
-library;
-import self as self;
-import "./a.dart" as a;
-additionalExports = (a::A)
-
-''');
+    KernelResult result = await driver.getKernel(cUri);
+    Library library = _getLibrary(result, cUri);
     expect(_getLibraryText(library), r'''
 library;
 import self as self;

@@ -402,7 +402,6 @@ class LibraryHelper {
     kSourceUriIndex,
     kAnnotations,
     kDependencies,
-    kAdditionalExports,
     kParts,
     kTypedefs,
     kClasses,

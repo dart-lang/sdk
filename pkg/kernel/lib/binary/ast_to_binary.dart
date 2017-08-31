@@ -312,7 +312,6 @@ class BinaryPrinter extends Visitor {
     writeUriReference(node.fileUri ?? '');
     writeAnnotationList(node.annotations);
     writeLibraryDependencies(node);
-    writeAdditionalExports(node);
     writeLibraryParts(node);
     writeNodeList(node.typedefs);
     writeNodeList(node.classes);
@@ -329,13 +328,6 @@ class BinaryPrinter extends Visitor {
       var importNode = library.dependencies[i];
       _libraryDependencyIndex[importNode] = i;
       writeLibraryDependency(importNode);
-    }
-  }
-
-  void writeAdditionalExports(Library library) {
-    writeUInt30(library.additionalExports.length);
-    for (Reference ref in library.additionalExports) {
-      writeReference(ref);
     }
   }
 
