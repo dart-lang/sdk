@@ -301,36 +301,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_defaultValue_refersToGenericClass_constructor() async {
-    await super.test_defaultValue_refersToGenericClass_constructor();
-  }
-
-  @failingTest
-  test_defaultValue_refersToGenericClass_constructor2() async {
-    await super.test_defaultValue_refersToGenericClass_constructor2();
-  }
-
-  @failingTest
-  test_defaultValue_refersToGenericClass_functionG() async {
-    await super.test_defaultValue_refersToGenericClass_functionG();
-  }
-
-  @failingTest
-  test_defaultValue_refersToGenericClass_methodG() async {
-    await super.test_defaultValue_refersToGenericClass_methodG();
-  }
-
-  @failingTest
-  test_defaultValue_refersToGenericClass_methodG_classG() async {
-    await super.test_defaultValue_refersToGenericClass_methodG_classG();
-  }
-
-  @failingTest
-  test_defaultValue_refersToGenericClass_methodNG() async {
-    await super.test_defaultValue_refersToGenericClass_methodNG();
-  }
-
-  @failingTest
   test_error_extendsEnum() async {
     await super.test_error_extendsEnum();
   }

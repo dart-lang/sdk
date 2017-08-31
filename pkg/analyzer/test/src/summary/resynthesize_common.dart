@@ -5097,7 +5097,19 @@ class C<T> {
   const C([B<T> b = const B()]);
 }
 ''');
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+class B<T> {
+  const B();
+}
+class C<T> {
+  const C([B<T> b = const
+        B/*location: test.dart;B*/<
+        T/*location: test.dart;C;T*/>()]);
+}
+''');
+    } else {
+      checkElementText(library, r'''
 class B<T> {
   const B();
 }
@@ -5106,6 +5118,7 @@ class C<T> {
         B/*location: test.dart;B*/()]);
 }
 ''');
+    }
   }
 
   test_defaultValue_refersToGenericClass_constructor2() async {
@@ -5118,7 +5131,21 @@ class C<T> implements A<Iterable<T>> {
   const C([A<T> a = const B()]);
 }
 ''');
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+abstract class A<T> {
+}
+class B<T> implements A<T> {
+  const B();
+}
+class C<T> implements A<Iterable<T>> {
+  const C([A<T> a = const
+        B/*location: test.dart;B*/<
+        T/*location: test.dart;C;T*/>()]);
+}
+''');
+    } else {
+      checkElementText(library, r'''
 abstract class A<T> {
 }
 class B<T> implements A<T> {
@@ -5129,6 +5156,7 @@ class C<T> implements A<Iterable<T>> {
         B/*location: test.dart;B*/()]);
 }
 ''');
+    }
   }
 
   test_defaultValue_refersToGenericClass_functionG() async {
@@ -5138,13 +5166,24 @@ class B<T> {
 }
 void foo<T>([B<T> b = const B()]) {}
 ''');
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+class B<T> {
+  const B();
+}
+void foo<T>([B<T> b = const
+        B/*location: test.dart;B*/<
+        T/*location: test.dart;foo;T*/>()]) {}
+''');
+    } else {
+      checkElementText(library, r'''
 class B<T> {
   const B();
 }
 void foo<T>([B<T> b = const
         B/*location: test.dart;B*/()]) {}
 ''');
+    }
   }
 
   test_defaultValue_refersToGenericClass_methodG() async {
@@ -5156,7 +5195,19 @@ class C {
   void foo<T>([B<T> b = const B()]) {}
 }
 ''');
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+class B<T> {
+  const B();
+}
+class C {
+  void foo<T>([B<T> b = const
+        B/*location: test.dart;B*/<
+        T/*location: test.dart;C;foo;T*/>()]) {}
+}
+''');
+    } else {
+      checkElementText(library, r'''
 class B<T> {
   const B();
 }
@@ -5165,6 +5216,7 @@ class C {
         B/*location: test.dart;B*/()]) {}
 }
 ''');
+    }
   }
 
   test_defaultValue_refersToGenericClass_methodG_classG() async {
@@ -5176,7 +5228,20 @@ class C<E1> {
   void foo<E2>([B<E1, E2> b = const B()]) {}
 }
 ''');
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+class B<T1, T2> {
+  const B();
+}
+class C<E1> {
+  void foo<E2>([B<E1, E2> b = const
+        B/*location: test.dart;B*/<
+        E1/*location: test.dart;C;E1*/,
+        E2/*location: test.dart;C;foo;E2*/>()]) {}
+}
+''');
+    } else {
+      checkElementText(library, r'''
 class B<T1, T2> {
   const B();
 }
@@ -5185,6 +5250,7 @@ class C<E1> {
         B/*location: test.dart;B*/()]) {}
 }
 ''');
+    }
   }
 
   test_defaultValue_refersToGenericClass_methodNG() async {
@@ -5196,7 +5262,19 @@ class C<T> {
   void foo([B<T> b = const B()]) {}
 }
 ''');
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+class B<T> {
+  const B();
+}
+class C<T> {
+  void foo([B<T> b = const
+        B/*location: test.dart;B*/<
+        T/*location: test.dart;C;T*/>()]) {}
+}
+''');
+    } else {
+      checkElementText(library, r'''
 class B<T> {
   const B();
 }
@@ -5205,6 +5283,7 @@ class C<T> {
         B/*location: test.dart;B*/()]) {}
 }
 ''');
+    }
   }
 
   test_enum_documented() async {

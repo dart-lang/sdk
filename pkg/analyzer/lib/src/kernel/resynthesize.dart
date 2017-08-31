@@ -445,8 +445,8 @@ class _ExprBuilder {
       List<TypeAnnotation> arguments = _buildTypeArguments(type.typeArguments);
       return AstTestFactory.typeName3(name, arguments)..type = type;
     }
-    if (type is DynamicTypeImpl) {
-      var identifier = AstTestFactory.identifier3('dynamic')
+    if (type is DynamicTypeImpl || type is TypeParameterType) {
+      var identifier = AstTestFactory.identifier3(type.name)
         ..staticElement = type.element
         ..staticType = type;
       return AstTestFactory.typeName3(identifier)..type = type;
