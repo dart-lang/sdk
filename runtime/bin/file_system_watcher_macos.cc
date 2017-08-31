@@ -416,6 +416,7 @@ intptr_t FileSystemWatcher::Init() {
 void FileSystemWatcher::Close(intptr_t id) {}
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
+                                      Namespace* namespc,
                                       const char* path,
                                       int events,
                                       bool recursive) {
