@@ -21,18 +21,8 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
 
 #if defined(DART_NO_SNAPSHOT)
     // Only include these libraries in the dart_bootstrap case for now.
-    {"dart:html", html_source_paths_, NULL, NULL, true},
     {"dart:html_common", html_common_source_paths_, NULL, NULL, true},
-    {"dart:js", js_source_paths_, NULL, NULL, true},
-    {"dart:js_util", js_util_source_paths_, NULL, NULL, true},
-    {"dart:_blink", _blink_source_paths_, NULL, NULL, true},
-    {"dart:indexed_db", indexed_db_source_paths_, NULL, NULL, true},
-    {"cached_patches.dart", cached_patches_source_paths_, NULL, NULL, true},
-    {"dart:web_gl", web_gl_source_paths_, NULL, NULL, true},
     {"metadata.dart", metadata_source_paths_, NULL, NULL, true},
-    {"dart:web_sql", web_sql_source_paths_, NULL, NULL, true},
-    {"dart:svg", svg_source_paths_, NULL, NULL, true},
-    {"dart:web_audio", web_audio_source_paths_, NULL, NULL, true},
 #endif  // defined(DART_NO_SNAPSHOT)
 
     // End marker.
