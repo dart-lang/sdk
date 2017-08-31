@@ -306,11 +306,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_executable_parameter_type_typedef() async {
-    await super.test_executable_parameter_type_typedef();
-  }
-
-  @failingTest
   test_export_configurations_useDefault() async {
     await super.test_export_configurations_useDefault();
   }
@@ -363,11 +358,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_import_invalidUri_metadata() async {
     await super.test_import_invalidUri_metadata();
-  }
-
-  @failingTest
-  test_inferred_type_refers_to_function_typed_param_of_typedef() async {
-    await super.test_inferred_type_refers_to_function_typed_param_of_typedef();
   }
 
   @failingTest

@@ -8481,7 +8481,7 @@ class ParameterElementImpl extends VariableElementImpl
     if (_kernel != null && _type == null) {
       kernel.DartType type = _kernel.type;
       _type = enclosingUnit._kernelContext.getType(this, type);
-      if (type is kernel.FunctionType) {
+      if (type is kernel.FunctionType && type.typedefReference == null) {
         _parameters = new List<ParameterElement>(
             type.positionalParameters.length + type.namedParameters.length);
         int index = 0;
