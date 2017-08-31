@@ -113,6 +113,7 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_class_constructor_field_formal_multiple_matching_fields() async {
     // Fasta does not generate the class.
     // main() with a fatal error is generated instead.
@@ -234,11 +235,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   test_const_reference_unresolved_prefix2() async {
     // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_reference_unresolved_prefix2();
-  }
-
-  @failingTest
-  test_const_topLevel_ifNull() async {
-    await super.test_const_topLevel_ifNull();
   }
 
   @failingTest

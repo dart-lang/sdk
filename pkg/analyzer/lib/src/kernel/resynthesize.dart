@@ -262,6 +262,28 @@ class _ExprBuilder {
       return AstTestFactory.binaryExpression(left, operator, right);
     }
 
+    if (expr is kernel.Let) {
+      var body = expr.body;
+      if (body is kernel.ConditionalExpression) {
+        var condition = body.condition;
+        var otherwiseExpr = body.otherwise;
+        if (condition is kernel.MethodInvocation) {
+          var equalsReceiver = condition.receiver;
+          if (equalsReceiver is kernel.VariableGet &&
+              condition.name.name == '==' &&
+              condition.arguments.positional.length == 1 &&
+              condition.arguments.positional[0] is kernel.NullLiteral &&
+              otherwiseExpr is kernel.VariableGet &&
+              otherwiseExpr.variable == equalsReceiver.variable) {
+            var left = build(expr.variable.initializer);
+            var right = build(body.then);
+            return AstTestFactory.binaryExpression(
+                left, TokenType.QUESTION_QUESTION, right);
+          }
+        }
+      }
+    }
+
     if (expr is kernel.MethodInvocation) {
       kernel.Member member = expr.interfaceTarget;
       if (member is kernel.Procedure) {
