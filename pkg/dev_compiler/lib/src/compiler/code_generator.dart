@@ -963,6 +963,7 @@ class CodeGenerator extends Object
 
     _emitVirtualFieldSymbols(classElem, body);
     _emitClassSignature(methods, allFields, classElem, ctors, className, body);
+    _initExtensionSymbols(classElem, methods, fields);
     _defineExtensionMembers(className, body);
     _emitClassMetadata(node.metadata, className, body);
 
@@ -1979,6 +1980,30 @@ class CodeGenerator extends Object
         new JS.ArrayInitializer(
             new List<JS.Expression>.from(metadata.map(_instantiateAnnotation)))
       ]));
+    }
+  }
+
+  /// Ensure `dartx.` symbols we will use are present.
+  void _initExtensionSymbols(ClassElement classElem,
+      List<MethodDeclaration> methods, List<FieldDeclaration> fields) {
+    if (_extensionTypes.hasNativeSubtype(classElem.type)) {
+      for (var m in methods) {
+        if (!m.isAbstract &&
+            !m.isStatic &&
+            resolutionMap.elementDeclaredByMethodDeclaration(m).isPublic) {
+          _declareMemberName(m.element, useExtension: true);
+        }
+      }
+      for (var fieldDecl in fields) {
+        if (!fieldDecl.isStatic) {
+          for (var field in fieldDecl.fields.variables) {
+            var e = field.element as FieldElement;
+            if (e.isPublic) {
+              _declareMemberName(e.getter, useExtension: true);
+            }
+          }
+        }
+      }
     }
   }
 
