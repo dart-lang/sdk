@@ -47,8 +47,6 @@ typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<TypeImpl> visitedTypes);
 class StrongTypeSystemImpl extends TypeSystem {
   static bool _comparingTypeParameterBounds = false;
 
-  bool allowDynamicAsBottom = true;
-
   /**
    * True if declaration casts should be allowed, otherwise false.
    *
@@ -137,8 +135,6 @@ class StrongTypeSystemImpl extends TypeSystem {
   /// Computes the greatest lower bound of [type1] and [type2].
   DartType getGreatestLowerBound(DartType type1, DartType type2,
       {dynamicIsBottom: false}) {
-    dynamicIsBottom = dynamicIsBottom && allowDynamicAsBottom;
-
     // The greatest lower bound relation is reflexive.
     if (identical(type1, type2)) {
       return type1;
@@ -215,8 +211,6 @@ class StrongTypeSystemImpl extends TypeSystem {
   @override
   DartType getLeastUpperBound(DartType type1, DartType type2,
       {bool dynamicIsBottom: false}) {
-    dynamicIsBottom = dynamicIsBottom && allowDynamicAsBottom;
-
     if (isNullableType(type1) && isNonNullableType(type2)) {
       assert(type2 is InterfaceType);
       type2 = getLeastNullableSupertype(type2 as InterfaceType);
@@ -482,8 +476,7 @@ class StrongTypeSystemImpl extends TypeSystem {
 
     if (t is FunctionType) {
       if (!_isTop(t.returnType) ||
-          anyParameterType(t,
-              (pt) => !_isBottom(pt, dynamicIsBottom: allowDynamicAsBottom))) {
+          anyParameterType(t, (pt) => !_isBottom(pt, dynamicIsBottom: true))) {
         return false;
       } else {
         return true;
@@ -652,8 +645,7 @@ class StrongTypeSystemImpl extends TypeSystem {
       DartType paramType;
       if (fType != null && gType != null) {
         // If both functions have this parameter, include both of their types.
-        paramType = getLeastUpperBound(fType, gType,
-            dynamicIsBottom: allowDynamicAsBottom);
+        paramType = getLeastUpperBound(fType, gType, dynamicIsBottom: true);
       } else {
         paramType = fType ?? gType;
       }
@@ -735,7 +727,7 @@ class StrongTypeSystemImpl extends TypeSystem {
 
   @override
   DartType _functionParameterBound(DartType f, DartType g) =>
-      getGreatestLowerBound(f, g, dynamicIsBottom: allowDynamicAsBottom);
+      getGreatestLowerBound(f, g, dynamicIsBottom: true);
 
   /// Given a type return its name prepended with the URI to its containing
   /// library and separated by a comma.
@@ -819,7 +811,7 @@ class StrongTypeSystemImpl extends TypeSystem {
     return FunctionTypeImpl.relate(f1, f2, isSubtypeOf, instantiateToBounds,
         parameterRelation: (p1, p2) => _isSubtypeOf(
             p2.type, p1.type, visitedTypes,
-            dynamicIsBottom: allowDynamicAsBottom));
+            dynamicIsBottom: true));
   }
 
   bool _isInterfaceSubtypeOf(
@@ -878,8 +870,6 @@ class StrongTypeSystemImpl extends TypeSystem {
 
   bool _isSubtypeOf(DartType t1, DartType t2, Set<TypeImpl> visitedTypes,
       {bool dynamicIsBottom: false}) {
-    dynamicIsBottom = dynamicIsBottom && allowDynamicAsBottom;
-
     if (identical(t1, t2)) {
       return true;
     }
@@ -990,8 +980,6 @@ class StrongTypeSystemImpl extends TypeSystem {
 
   DartType _substituteForUnknownType(DartType type,
       {bool lowerBound: false, dynamicIsBottom: false}) {
-    dynamicIsBottom = dynamicIsBottom && allowDynamicAsBottom;
-
     if (identical(type, UnknownInferredType.instance)) {
       if (lowerBound && !dynamicIsBottom) {
         // TODO(jmesserly): this should be the bottom type, once i can be
@@ -1015,7 +1003,7 @@ class StrongTypeSystemImpl extends TypeSystem {
         // Parameters are contravariant, so flip the constraint direction.
         // Also pass dynamicIsBottom, because this is a fuzzy arrow.
         var newType = _substituteForUnknownType(p.type,
-            lowerBound: !lowerBound, dynamicIsBottom: allowDynamicAsBottom);
+            lowerBound: !lowerBound, dynamicIsBottom: true);
         return new ParameterElementImpl.synthetic(
             p.name, newType, p.parameterKind);
       });

@@ -489,7 +489,7 @@ void main() {
   f1("hello");
   dynamic f2 = foo;
   (/*info:DYNAMIC_INVOKE*/f2("hello"));
-  DynFun f3 = /*info:USES_DYNAMIC_AS_BOTTOM*/foo;
+  DynFun f3 = foo;
   (/*info:DYNAMIC_INVOKE*/f3("hello"));
   (/*info:DYNAMIC_INVOKE*/f3(42));
   StrFun f4 = foo;
@@ -673,7 +673,7 @@ void main() {
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(3);
   }
   {
-    A f = /*info:USES_DYNAMIC_AS_BOTTOM*/new B();
+    A f = new B();
     int x;
     double y;
     x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f(3);
@@ -686,7 +686,7 @@ void main() {
     /*info:DYNAMIC_INVOKE*/g.col(42.0);
     /*info:DYNAMIC_INVOKE*/g.foo(42.0);
     /*info:DYNAMIC_INVOKE*/g.x;
-    A f = /*info:USES_DYNAMIC_AS_BOTTOM*/new B();
+    A f = new B();
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(42.0);
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/foo(42.0);
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_GETTER*/x;
@@ -1062,9 +1062,9 @@ void main() {
     await checkFile('''
 class A {}
 
-typedef dynamic Top(Null x);     // Top of the lattice
+typedef dynamic Top(dynamic x);     // Top of the lattice
 typedef dynamic Left(A x);          // Left branch
-typedef A Right(Null x);         // Right branch
+typedef A Right(dynamic x);         // Right branch
 typedef A Bottom(A x);              // Bottom of the lattice
 
 void main() {
@@ -1123,9 +1123,9 @@ void main() {
     await checkFile('''
 class A {}
 
-typedef dynamic BotTop(Null x);
+typedef dynamic BotTop(dynamic x);
 typedef dynamic ATop(A x);
-typedef A BotA(Null x);
+typedef A BotA(dynamic x);
 typedef A AA(A x);
 typedef A TopA(Object x);
 typedef dynamic TopTop(Object x);
@@ -3091,7 +3091,7 @@ void main() {
   TakesA<int> f;
   TakesA<dynamic> g;
   TakesA<String> h;
-  g = /*info:USES_DYNAMIC_AS_BOTTOM*/h;
+  g = h;
   f = /*info:DOWN_CAST_COMPOSITE*/f ?? g;
 }
 ''');
