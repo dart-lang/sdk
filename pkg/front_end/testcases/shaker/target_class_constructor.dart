@@ -2,14 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-class _A {
-  int field;
-}
+import 'target_class_constructor_lib.dart';
 
-class B extends _A {
-  int field;
-}
-
-class C extends B {
-  int field;
+main() {
+  new B.namedConstructor();
 }

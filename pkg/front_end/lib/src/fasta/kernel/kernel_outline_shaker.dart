@@ -100,10 +100,21 @@ class RetainedDataBuilder extends RetainedData {
     markLibrary(cls.parent);
     // TODO(sigmund): retain annotations?
     // visitList(cls.annotations, this);
+    cls.typeParameters.forEach((t) => t.bound.accept(typeMarker));
     markSupertype(cls.supertype);
     markSupertype(cls.mixedInType);
     cls.implementedTypes.forEach(markSupertype);
-    cls.typeParameters.forEach((t) => t.bound.accept(typeMarker));
+
+    for (var field in cls.fields) {
+      if (!field.isStatic && !field.name.isPrivate) {
+        markMember(field);
+      }
+    }
+    for (var method in cls.procedures) {
+      if (!method.isStatic && !method.name.isPrivate) {
+        markMember(method);
+      }
+    }
   }
 
   /// Mark the typedef.

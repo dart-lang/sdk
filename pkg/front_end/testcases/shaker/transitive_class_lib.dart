@@ -31,7 +31,7 @@ class C {
   B b;
 
   C();
-  C.named();
+  C.namedConstructor();
 
   void publicMethod(A5 a) {}
   void _privateMethod(A6 a) {}

@@ -3,13 +3,15 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 class A {
-  int field;
-}
+  static int field1;
+  static int field2;
 
-class B<T extends A> {
-  int field;
-}
+  static int get getter1 => 0;
+  static int get getter2 => 0;
 
-class C {
-  int field;
+  static void set setter1(int x) {}
+  static void set setter2(int x) {}
+
+  static void method1() {}
+  static void method2() {}
 }
