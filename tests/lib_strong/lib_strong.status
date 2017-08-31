@@ -218,12 +218,6 @@ mirrors/function_type_mirror_test: RuntimeError # Issue 29922
 mirrors/generic_f_bounded_test/01: RuntimeError # Issue 29922
 mirrors/generic_f_bounded_test/none: RuntimeError # Issue 29922
 mirrors/generic_function_typedef_test: RuntimeError # Issue 29922
-mirrors/generic_local_function_test: RuntimeError # Issue 29922
-mirrors/generic_mixin_applications_test: RuntimeError # Issue 29922
-mirrors/generic_mixin_test: RuntimeError # Issue 29922
-mirrors/generic_superclass_test/01: RuntimeError # Issue 29922
-mirrors/generic_superclass_test/none: RuntimeError # Issue 29922
-mirrors/generic_type_mirror_test: RuntimeError # Issue 29922
 mirrors/generics_double_substitution_test/01: RuntimeError # Issue 29922
 mirrors/generics_double_substitution_test/none: RuntimeError # Issue 29922
 mirrors/generics_dynamic_test: RuntimeError # Issue 29922

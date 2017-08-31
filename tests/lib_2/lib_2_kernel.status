@@ -17,13 +17,14 @@ mirrors/constructor_private_name_test: RuntimeError
 mirrors/dart2js_mirrors_test: Crash
 mirrors/deferred_type_test: RuntimeError
 mirrors/empty_test: Crash
-mirrors/empty_test: Crash
 mirrors/enum_test: RuntimeError
 mirrors/equality_test: RuntimeError
 mirrors/deferred_mirrors_test: CompileTimeError
 mirrors/deferred_mirrors_metadata_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/deferred_mirrors_update_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/generic_mixin_applications_test: RuntimeError
+mirrors/generic_mixin_test: RuntimeError
 mirrors/mirrors_test: Crash
 
 [ $compiler == dartk && $runtime == vm ]
@@ -31,8 +32,6 @@ mirrors/class_mirror_location_test: RuntimeError
 mirrors/constructor_kinds_test/01: RuntimeError
 mirrors/constructor_kinds_test/none: RuntimeError
 mirrors/constructor_optional_args_test: CompileTimeError
-
-[ $compiler == dartk && $runtime == vm ]
 mirrors/constructor_private_name_test: RuntimeError
 mirrors/deferred_mirrors_metadata_test: RuntimeError
 mirrors/deferred_mirrors_metatarget_test: RuntimeError
@@ -40,3 +39,5 @@ mirrors/deferred_mirrors_update_test: RuntimeError
 mirrors/empty_test: RuntimeError
 mirrors/empty_test: RuntimeError
 mirrors/equality_test: RuntimeError
+mirrors/generic_mixin_applications_test: RuntimeError
+mirrors/generic_mixin_test: RuntimeError
