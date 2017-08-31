@@ -1126,9 +1126,6 @@ switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
-switch_label2_test: Crash # UnimplementedError: KernelToLocalsMapImpl.getJumpTargetForSwitchCase
-switch_label_test: Crash # UnimplementedError: KernelToLocalsMapImpl.getJumpTargetForSwitchCase
-switch_try_catch_test: Crash # UnimplementedError: KernelToLocalsMapImpl.getJumpTargetForSwitchCase
 symbol_conflict_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 sync_generator1_test/01: Crash # Assertion failure: Missing scope info for j:method(Iterator.moveNext).
 sync_generator1_test/none: Crash # Assertion failure: Missing scope info for j:method(Iterator.moveNext).
@@ -1848,9 +1845,6 @@ switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
-switch_label2_test: Crash # UnimplementedError: KernelToLocalsMapImpl.getJumpTargetForSwitchCase
-switch_label_test: Crash # UnimplementedError: KernelToLocalsMapImpl.getJumpTargetForSwitchCase
-switch_try_catch_test: Crash # UnimplementedError: KernelToLocalsMapImpl.getJumpTargetForSwitchCase
 symbol_conflict_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 sync_generator1_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 sync_generator1_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
