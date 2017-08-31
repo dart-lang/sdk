@@ -1995,11 +1995,22 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
     ServiceEvent pause_event(this, ServiceEvent::kNone);
     jsobj.AddProperty("pauseEvent", &pause_event);
-  } else if (message_handler()->is_paused_on_start() ||
-             message_handler()->should_pause_on_start()) {
-    ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
-    ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
-    jsobj.AddProperty("pauseEvent", &pause_event);
+  } else if (message_handler()->should_pause_on_start()) {
+    if (message_handler()->is_paused_on_start()) {
+      ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
+      ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
+      jsobj.AddProperty("pauseEvent", &pause_event);
+    } else {
+      // Isolate is runnable but not paused on start.
+      // Some service clients get confused if they see:
+      // NotRunnable -> Runnable -> PausedAtStart
+      // Treat Runnable+ShouldPauseOnStart as NotRunnable so they see:
+      // NonRunnable -> PausedAtStart
+      // The should_pause_on_start flag is set to false after resume.
+      ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
+      ServiceEvent pause_event(this, ServiceEvent::kNone);
+      jsobj.AddProperty("pauseEvent", &pause_event);
+    }
   } else if (message_handler()->is_paused_on_exit() &&
              ((debugger() == NULL) || (debugger()->PauseEvent() == NULL))) {
     ServiceEvent pause_event(this, ServiceEvent::kPauseExit);

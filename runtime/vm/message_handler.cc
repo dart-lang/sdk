@@ -517,14 +517,8 @@ void MessageHandler::PausedOnStart(bool paused) {
 void MessageHandler::PausedOnStartLocked(MonitorLocker* ml, bool paused) {
   if (paused) {
     ASSERT(!is_paused_on_start_);
-    is_paused_on_start_ = true;
+    ASSERT(paused_timestamp_ == -1);
     paused_timestamp_ = OS::GetCurrentTimeMillis();
-  } else {
-    ASSERT(is_paused_on_start_);
-    is_paused_on_start_ = false;
-    paused_timestamp_ = -1;
-  }
-  if (is_paused_on_start_) {
     // Temporarily release the monitor when calling out to
     // NotifyPauseOnStart.  This avoids a dead lock that can occur
     // when this message handler tries to post a message while a
@@ -532,12 +526,17 @@ void MessageHandler::PausedOnStartLocked(MonitorLocker* ml, bool paused) {
     ml->Exit();
     NotifyPauseOnStart();
     ml->Enter();
+    is_paused_on_start_ = true;
   } else {
+    ASSERT(is_paused_on_start_);
+    ASSERT(paused_timestamp_ != -1);
+    paused_timestamp_ = -1;
     // Resumed. Clear the resume request of the owning isolate.
     Isolate* owning_isolate = isolate();
     if (owning_isolate != NULL) {
       owning_isolate->GetAndClearResumeRequest();
     }
+    is_paused_on_start_ = false;
   }
 }
 
@@ -549,14 +548,8 @@ void MessageHandler::PausedOnExit(bool paused) {
 void MessageHandler::PausedOnExitLocked(MonitorLocker* ml, bool paused) {
   if (paused) {
     ASSERT(!is_paused_on_exit_);
-    is_paused_on_exit_ = true;
+    ASSERT(paused_timestamp_ == -1);
     paused_timestamp_ = OS::GetCurrentTimeMillis();
-  } else {
-    ASSERT(is_paused_on_exit_);
-    is_paused_on_exit_ = false;
-    paused_timestamp_ = -1;
-  }
-  if (is_paused_on_exit_) {
     // Temporarily release the monitor when calling out to
     // NotifyPauseOnExit.  This avoids a dead lock that can
     // occur when this message handler tries to post a message
@@ -564,12 +557,17 @@ void MessageHandler::PausedOnExitLocked(MonitorLocker* ml, bool paused) {
     ml->Exit();
     NotifyPauseOnExit();
     ml->Enter();
+    is_paused_on_exit_ = true;
   } else {
+    ASSERT(is_paused_on_exit_);
+    ASSERT(paused_timestamp_ != -1);
+    paused_timestamp_ = -1;
     // Resumed. Clear the resume request of the owning isolate.
     Isolate* owning_isolate = isolate();
     if (owning_isolate != NULL) {
       owning_isolate->GetAndClearResumeRequest();
     }
+    is_paused_on_exit_ = false;
   }
 }
 #endif  // !defined(PRODUCT)
