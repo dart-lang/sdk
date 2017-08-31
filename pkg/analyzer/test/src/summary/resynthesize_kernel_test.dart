@@ -39,6 +39,11 @@ main() {
 /// Tests marked with this annotation fail because of a Fasta problem.
 const fastaProblem = const Object();
 
+/// Tests marked with this annotation fail because they test features that
+/// were implemented in Analyzer, but are intentionally not included into
+/// the Dart 2.0 plan, so will not be implemented by Fasta.
+const notForDart2 = const Object();
+
 @reflectiveTest
 class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   static const DEBUG = false;
@@ -301,26 +306,31 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @notForDart2
   test_export_configurations_useDefault() async {
     await super.test_export_configurations_useDefault();
   }
 
   @failingTest
+  @notForDart2
   test_export_configurations_useFirst() async {
     await super.test_export_configurations_useFirst();
   }
 
   @failingTest
+  @notForDart2
   test_export_configurations_useSecond() async {
     await super.test_export_configurations_useSecond();
   }
 
   @failingTest
+  @notForDart2
   test_exportImport_configurations_useDefault() async {
     await super.test_exportImport_configurations_useDefault();
   }
 
   @failingTest
+  @notForDart2
   test_exportImport_configurations_useFirst() async {
     await super.test_exportImport_configurations_useFirst();
   }
@@ -336,11 +346,13 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @notForDart2
   test_import_configurations_useDefault() async {
     await super.test_import_configurations_useDefault();
   }
 
   @failingTest
+  @notForDart2
   test_import_configurations_useFirst() async {
     await super.test_import_configurations_useFirst();
   }
