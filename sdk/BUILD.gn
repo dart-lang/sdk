@@ -177,6 +177,7 @@ _platform_sdk_libraries = [
 ]
 
 _full_sdk_libraries = [
+  "_blink",
   "_chrome",
   "_internal",
   "async",
@@ -184,13 +185,21 @@ _full_sdk_libraries = [
   "convert",
   "core",
   "developer",
+  "html",
+  "indexed_db",
   "internal",
   "io",
   "isolate",
+  "js",
+  "js_util",
   "math",
   "mirrors",
   "profiler",
+  "svg",
   "typed_data",
+  "web_audio",
+  "web_gl",
+  "web_sql",
 ]
 
 # Package sources copied to lib/

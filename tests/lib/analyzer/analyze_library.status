@@ -23,6 +23,7 @@ lib/html/html_common/html_common_dart2js: CompileTimeError # Issue 16522
 lib/indexed_db/dart2js/indexed_db_dart2js: CompileTimeError # Issue 16522
 lib/indexed_db/dartium/indexed_db_dartium: Skip # TODO: Remove Dartium
 lib/js/dart2js/js_dart2js: CompileTimeError # Issue 16522
+lib/js_util/dart2js/js_util_dart2js: CompileTimeError # Issue 16522
 lib/svg/dart2js/svg_dart2js: CompileTimeError # Issue 16522
 lib/svg/dartium/svg_dartium: Skip # TODO: Remove Dartium
 lib/typed_data/dart2js/native_typed_data_dart2js: CompileTimeError # Issue 16522

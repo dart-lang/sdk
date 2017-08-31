@@ -196,6 +196,7 @@ LayoutTests/fast/mediastream/RTCPeerConnection-AddRemoveStream_t01: StaticWarnin
 LayoutTests/fast/multicol/vertical-lr/float-truncation_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/multicol/vertical-lr/image-inside-nested-blocks-with-border_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/multicol/vertical-rl/float-truncation_t01: StaticWarning # Please triage this failure.
+LayoutTests/fast/overflow/scroll-vertical-not-horizontal_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/ruby/after-doesnt-crash_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-big-box-border-radius_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-diamond-margin-polygon_t01: StaticWarning # Please triage this failure.

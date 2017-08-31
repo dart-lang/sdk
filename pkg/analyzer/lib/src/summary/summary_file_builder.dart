@@ -52,6 +52,9 @@ class SummaryBuilder {
     //
     Set<String> uriSet =
         sdk.sdkLibraries.map((SdkLibrary library) => library.shortName).toSet();
+    if (!strong) {
+      uriSet.add('dart:html/nativewrappers.dart');
+    }
     uriSet.add('dart:html_common/html_common_dart2js.dart');
 
     Set<Source> librarySources = new HashSet<Source>();
