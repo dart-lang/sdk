@@ -216,6 +216,7 @@ getters_setters2_test/02: MissingCompileTimeError
 [ $compiler == dart2analyzer ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
+abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
 async_return_types_test/nestedFuture: MissingCompileTimeError
 bad_initializer1_negative_test: CompileTimeError # Issue 14529
 bad_initializer2_negative_test: fail # Issue 14880
@@ -322,6 +323,7 @@ accessor_conflict_import_prefixed_test: StaticWarning # Issue 25626
 accessor_conflict_import_test: StaticWarning # Issue 25626
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
+additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 additional_interface_adds_optional_args_test: StaticWarning
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
