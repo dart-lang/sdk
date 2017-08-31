@@ -817,6 +817,11 @@ class InheritanceManager {
               // Tests: test_getMapOfMembersInheritedFromInterfaces_
               // union_multipleSubtypes_*
               //
+              // TODO(leafp): this produces (dynamic) -> dynamic even if
+              // the types are equal which gives bad error messages. If
+              // types are equal, we should consider using them.  Even
+              // better, consider using the GLB of the parameter types
+              // and the LUB of the return types
               List<ExecutableElement> elementArrayToMerge =
                   new List<ExecutableElement>(
                       subtypesOfAllOtherTypesIndexes.length);
@@ -920,7 +925,7 @@ class InheritanceManager {
    * <i>s</i> of type <b>dynamic</b> and return type <b>dynamic</b>.
    *
    */
-  static ExecutableElement _computeMergedExecutableElement(
+  ExecutableElement _computeMergedExecutableElement(
       List<ExecutableElement> elementArrayToMerge) {
     int h = _getNumOfPositionalParameters(elementArrayToMerge[0]);
     int r = _getNumOfRequiredParameters(elementArrayToMerge[0]);
@@ -956,13 +961,16 @@ class InheritanceManager {
    * @param namedParameters the list of [String]s that are the named parameters
    * @return the created synthetic element
    */
-  static ExecutableElement _createSyntheticExecutableElement(
+  ExecutableElement _createSyntheticExecutableElement(
       List<ExecutableElement> elementArrayToMerge,
       String name,
       int numOfRequiredParameters,
       int numOfPositionalParameters,
       List<String> namedParameters) {
     DynamicTypeImpl dynamicType = DynamicTypeImpl.instance;
+    DartType bottomType = _library.context.analysisOptions.strongMode
+        ? BottomTypeImpl.instance
+        : dynamicType;
     SimpleIdentifier nameIdentifier = astFactory
         .simpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, 0));
     ExecutableElementImpl executable;
@@ -991,20 +999,20 @@ class InheritanceManager {
     int i = 0;
     for (int j = 0; j < numOfRequiredParameters; j++, i++) {
       ParameterElementImpl parameter = new ParameterElementImpl("", 0);
-      parameter.type = dynamicType;
+      parameter.type = bottomType;
       parameter.parameterKind = ParameterKind.REQUIRED;
       parameters[i] = parameter;
     }
     for (int k = 0; k < numOfPositionalParameters; k++, i++) {
       ParameterElementImpl parameter = new ParameterElementImpl("", 0);
-      parameter.type = dynamicType;
+      parameter.type = bottomType;
       parameter.parameterKind = ParameterKind.POSITIONAL;
       parameters[i] = parameter;
     }
     for (int m = 0; m < namedParameters.length; m++, i++) {
       ParameterElementImpl parameter =
           new ParameterElementImpl(namedParameters[m], 0);
-      parameter.type = dynamicType;
+      parameter.type = bottomType;
       parameter.parameterKind = ParameterKind.NAMED;
       parameters[i] = parameter;
     }
