@@ -92,20 +92,6 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_conditionalExpression_precedence_nullableType_as() {
-    // TODO(paulberry,ahe): Fasta doesn't support NNBD syntax yet.
-    super.test_conditionalExpression_precedence_nullableType_as();
-  }
-
-  @override
-  @failingTest
-  void test_conditionalExpression_precedence_nullableType_is() {
-    // TODO(paulberry,ahe): Fasta doesn't support NNBD syntax yet.
-    super.test_conditionalExpression_precedence_nullableType_is();
-  }
-
-  @override
-  @failingTest
   void test_equalityExpression_normal() {
     // TODO(scheglov) error checking is not implemented
     super.test_equalityExpression_normal();
@@ -116,20 +102,6 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
   void test_equalityExpression_super() {
     // TODO(scheglov) error checking is not implemented
     super.test_equalityExpression_super();
-  }
-
-  @override
-  @failingTest
-  void test_logicalAndExpression_precedence_nullableType() {
-    // TODO(paulberry,ahe): Fasta doesn't support NNBD syntax yet.
-    super.test_logicalAndExpression_precedence_nullableType();
-  }
-
-  @override
-  @failingTest
-  void test_logicalOrExpression_precedence_nullableType() {
-    // TODO(paulberry,ahe): Fasta doesn't support NNBD syntax yet.
-    super.test_logicalOrExpression_precedence_nullableType();
   }
 }
 
@@ -1570,30 +1542,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_nullableTypeInExtends() {
-    super.test_nullableTypeInExtends();
-  }
-
-  @override
-  @failingTest
-  void test_nullableTypeInImplements() {
-    super.test_nullableTypeInImplements();
-  }
-
-  @override
-  @failingTest
-  void test_nullableTypeInWith() {
-    super.test_nullableTypeInWith();
-  }
-
-  @override
-  @failingTest
-  void test_nullableTypeParameter() {
-    super.test_nullableTypeParameter();
-  }
-
-  @override
-  @failingTest
   void test_optionalAfterNormalParameters_named() {
     super.test_optionalAfterNormalParameters_named();
   }
@@ -2095,12 +2043,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
-  @failingTest
-  void test_parseInstanceCreationExpression_type_typeArguments_nullable() {
-    super.test_parseInstanceCreationExpression_type_typeArguments_nullable();
-  }
-
-  @override
   void test_parseListLiteral_empty_oneToken_withComment() {
     super.test_parseListLiteral_empty_oneToken_withComment();
   }
@@ -2109,18 +2051,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_parsePrimaryExpression_super() {
     super.test_parsePrimaryExpression_super();
-  }
-
-  @override
-  @failingTest
-  void test_parseRelationalExpression_as_nullable() {
-    super.test_parseRelationalExpression_as_nullable();
-  }
-
-  @override
-  @failingTest
-  void test_parseRelationalExpression_is_nullable() {
-    super.test_parseRelationalExpression_is_nullable();
   }
 
   @override
@@ -2616,52 +2546,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     // TODO(danrubel): should not be generating an error
     super.test_parseNormalFormalParameter_field_const_type();
     assertNoErrors();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_function_noType_nullable() {
-    // TODO(scheglov): Not implemented: Nnbd
-    super.test_parseNormalFormalParameter_function_noType_nullable();
-  }
-
-  @override
-  @failingTest
-  void
-      test_parseNormalFormalParameter_function_noType_typeParameters_nullable() {
-    // TODO(scheglov): Not implemented: Nnbd
-    super
-        .test_parseNormalFormalParameter_function_noType_typeParameters_nullable();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_function_type_nullable() {
-    // TODO(scheglov): Not implemented: Nnbd
-    super.test_parseNormalFormalParameter_function_type_nullable();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_function_type_typeParameters_nullable() {
-    // TODO(scheglov): Not implemented: Nnbd
-    super
-        .test_parseNormalFormalParameter_function_type_typeParameters_nullable();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_function_void_nullable() {
-    // TODO(scheglov): Not implemented: Nnbd
-    super.test_parseNormalFormalParameter_function_void_nullable();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_function_void_typeParameters_nullable() {
-    // TODO(scheglov): Not implemented: Nnbd
-    super
-        .test_parseNormalFormalParameter_function_void_typeParameters_nullable();
   }
 
   @override
@@ -3804,34 +3688,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
     with SimpleParserTestMixin {
   @override
   @failingTest
-  void test_parseArgument_named() {
-    // Uninteresting. Covered by the test_parseArgumentList_* methods.
-    super.test_parseArgument_named();
-  }
-
-  @override
-  @failingTest
-  void test_parseArgument_unnamed() {
-    // Uninteresting. Covered by the test_parseArgumentList_* methods.
-    super.test_parseArgument_unnamed();
-  }
-
-  @override
-  @failingTest
-  void test_parseCombinator_hide() {
-    // Uninteresting. Covered by the test_parseCombinators_* methods.
-    super.test_parseCombinator_hide();
-  }
-
-  @override
-  @failingTest
-  void test_parseCombinator_show() {
-    // Uninteresting. Covered by the test_parseCombinators_* methods.
-    super.test_parseCombinator_show();
-  }
-
-  @override
-  @failingTest
   void test_parseCommentAndMetadata_mcm() {
     // TODO(brianwilkerson) Does not find comment if not before first annotation
     super.test_parseCommentAndMetadata_mcm();
@@ -4284,36 +4140,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Does not capture comment when splitting '>>' into
     // two tokens.
     super.test_parseTypeArgumentList_nested_withComment_tripple();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeName_parameterized_nullable() {
-    // TODO(brianwilkerson) exception:
-    //   UnimplementedError
-    //   test/generated/parser_fasta_test.dart 2189:7                       FastaParserTestCase.enableNnbd=
-    //   test/generated/parser_test.dart 12270:5                            FastaParserTestCase&SimpleParserTestMixin.test_parseTypeName_parameterized_nullable
-    super.test_parseTypeName_parameterized_nullable();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeName_simple_nullable() {
-    // TODO(brianwilkerson) exception:
-    //   UnimplementedError
-    //   test/generated/parser_fasta_test.dart 2189:7                       FastaParserTestCase.enableNnbd=
-    //   test/generated/parser_test.dart 12270:5                            FastaParserTestCase&SimpleParserTestMixin.test_parseTypeName_parameterized_nullable
-    super.test_parseTypeName_simple_nullable();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeParameter_bounded_nullable() {
-    // TODO(brianwilkerson) exception:
-    //   UnimplementedError
-    //   test/generated/parser_fasta_test.dart 2189:7                       FastaParserTestCase.enableNnbd=
-    //   test/generated/parser_test.dart 12270:5                            FastaParserTestCase&SimpleParserTestMixin.test_parseTypeName_parameterized_nullable
-    super.test_parseTypeParameter_bounded_nullable();
   }
 
   @override
