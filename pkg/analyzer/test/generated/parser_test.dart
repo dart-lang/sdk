@@ -10765,6 +10765,46 @@ class SimpleParserTest extends ParserTestCase with SimpleParserTestMixin {
     expect(reference.offset, 15);
   }
 
+  void test_parseFunctionBody_skip_block() {
+    ParserTestCase.parseFunctionBodies = false;
+    createParser('{}');
+    FunctionBody functionBody = parser.parseFunctionBody(false, null, false);
+    expectNotNullIfNoErrors(functionBody);
+    listener.assertNoErrors();
+    expect(functionBody, new isInstanceOf<EmptyFunctionBody>());
+  }
+
+  void test_parseFunctionBody_skip_block_invalid() {
+    ParserTestCase.parseFunctionBodies = false;
+    createParser('{');
+    FunctionBody functionBody = parser.parseFunctionBody(false, null, false);
+    expectNotNullIfNoErrors(functionBody);
+    listener.assertErrorsWithCodes([
+      fe.Scanner.useFasta
+          ? ScannerErrorCode.EXPECTED_TOKEN
+          : ParserErrorCode.EXPECTED_TOKEN
+    ]);
+    expect(functionBody, new isInstanceOf<EmptyFunctionBody>());
+  }
+
+  void test_parseFunctionBody_skip_blocks() {
+    ParserTestCase.parseFunctionBodies = false;
+    createParser('{ {} }');
+    FunctionBody functionBody = parser.parseFunctionBody(false, null, false);
+    expectNotNullIfNoErrors(functionBody);
+    listener.assertNoErrors();
+    expect(functionBody, new isInstanceOf<EmptyFunctionBody>());
+  }
+
+  void test_parseFunctionBody_skip_expression() {
+    ParserTestCase.parseFunctionBodies = false;
+    createParser('=> y;');
+    FunctionBody functionBody = parser.parseFunctionBody(false, null, false);
+    expectNotNullIfNoErrors(functionBody);
+    listener.assertNoErrors();
+    expect(functionBody, new isInstanceOf<EmptyFunctionBody>());
+  }
+
   void test_Parser() {
     expect(new Parser(null, null), isNotNull);
   }
@@ -11749,46 +11789,6 @@ abstract class SimpleParserTestMixin implements AbstractParserTestCase {
     expect(body.isAsynchronous, isTrue);
     expect(body.isGenerator, isFalse);
     expect(body.isSynchronous, isFalse);
-  }
-
-  void test_parseFunctionBody_skip_block() {
-    ParserTestCase.parseFunctionBodies = false;
-    createParser('{}');
-    FunctionBody functionBody = parser.parseFunctionBody(false, null, false);
-    expectNotNullIfNoErrors(functionBody);
-    listener.assertNoErrors();
-    expect(functionBody, new isInstanceOf<EmptyFunctionBody>());
-  }
-
-  void test_parseFunctionBody_skip_block_invalid() {
-    ParserTestCase.parseFunctionBodies = false;
-    createParser('{');
-    FunctionBody functionBody = parser.parseFunctionBody(false, null, false);
-    expectNotNullIfNoErrors(functionBody);
-    listener.assertErrorsWithCodes([
-      fe.Scanner.useFasta
-          ? ScannerErrorCode.EXPECTED_TOKEN
-          : ParserErrorCode.EXPECTED_TOKEN
-    ]);
-    expect(functionBody, new isInstanceOf<EmptyFunctionBody>());
-  }
-
-  void test_parseFunctionBody_skip_blocks() {
-    ParserTestCase.parseFunctionBodies = false;
-    createParser('{ {} }');
-    FunctionBody functionBody = parser.parseFunctionBody(false, null, false);
-    expectNotNullIfNoErrors(functionBody);
-    listener.assertNoErrors();
-    expect(functionBody, new isInstanceOf<EmptyFunctionBody>());
-  }
-
-  void test_parseFunctionBody_skip_expression() {
-    ParserTestCase.parseFunctionBodies = false;
-    createParser('=> y;');
-    FunctionBody functionBody = parser.parseFunctionBody(false, null, false);
-    expectNotNullIfNoErrors(functionBody);
-    listener.assertNoErrors();
-    expect(functionBody, new isInstanceOf<EmptyFunctionBody>());
   }
 
   void test_parseIdentifierList_multiple() {

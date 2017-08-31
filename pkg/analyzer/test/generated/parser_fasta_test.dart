@@ -2782,7 +2782,11 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   ArgumentList parseArgumentList() {
-    return _run((parser) => parser.parseArguments) as ArgumentList;
+    Object result = _run((parser) => parser.parseArguments);
+    if (result is MethodInvocation) {
+      return result.argumentList;
+    }
+    return result as ArgumentList;
   }
 
   @override
@@ -2830,6 +2834,14 @@ class ParserProxy implements analyzer.Parser {
   }
 
   @override
+  FunctionBody parseFunctionBody(
+      bool mayBeEmpty, ParserErrorCode emptyErrorCode, bool inExpression) {
+    return _run((parser) => (token) =>
+            parser.parseFunctionBody(token, inExpression, mayBeEmpty))
+        as FunctionBody;
+  }
+
+  @override
   Statement parseStatement2() {
     return _run((parser) => parser.parseStatement) as Statement;
   }
@@ -2855,7 +2867,22 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   TypeArgumentList parseTypeArgumentList() {
-    return _run((parser) => parser.parseTypeVariablesOpt) as TypeArgumentList;
+    return _run((parser) => parser.parseTypeArgumentsOpt) as TypeArgumentList;
+  }
+
+  @override
+  TypeName parseTypeName(bool inExpression) {
+    return _run((parser) => parser.parseType) as TypeName;
+  }
+
+  @override
+  TypeParameter parseTypeParameter() {
+    return _run((parser) => parser.parseTypeVariable) as TypeParameter;
+  }
+
+  @override
+  TypeParameterList parseTypeParameterList() {
+    return _run((parser) => parser.parseTypeVariablesOpt) as TypeParameterList;
   }
 
   /**
@@ -3791,46 +3818,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseArgumentList_empty() {
-    // TODO(brianwilkerson) Produces a method invocation rather than an empty
-    // argument list.
-    super.test_parseArgumentList_empty();
-  }
-
-  @override
-  @failingTest
-  void test_parseArgumentList_mixed() {
-    // TODO(brianwilkerson) Produces a method invocation rather than an empty
-    // argument list.
-    super.test_parseArgumentList_mixed();
-  }
-
-  @override
-  @failingTest
-  void test_parseArgumentList_noNamed() {
-    // TODO(brianwilkerson) Produces a method invocation rather than an empty
-    // argument list.
-    super.test_parseArgumentList_noNamed();
-  }
-
-  @override
-  @failingTest
-  void test_parseArgumentList_onlyNamed() {
-    // TODO(brianwilkerson) Produces a method invocation rather than an empty
-    // argument list.
-    super.test_parseArgumentList_onlyNamed();
-  }
-
-  @override
-  @failingTest
-  void test_parseArgumentList_trailing_comma() {
-    // TODO(brianwilkerson) Produces a method invocation rather than an empty
-    // argument list.
-    super.test_parseArgumentList_trailing_comma();
-  }
-
-  @override
-  @failingTest
   void test_parseCombinator_hide() {
     // Uninteresting. Covered by the test_parseCombinators_* methods.
     super.test_parseCombinator_hide();
@@ -4086,31 +4073,37 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_parseFunctionBody_block() {
     // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
+    //   'package:front_end/src/fasta/source/stack_listener.dart': Failed assertion: line 311 pos 12: 'arrayLength > 0': is not true.
+    //   dart:core                                                          _AssertionError._throwNew
+    //   package:front_end/src/fasta/source/stack_listener.dart 311:12      Stack.pop
+    //   package:front_end/src/fasta/source/stack_listener.dart 95:25       StackListener.pop
+    //   package:analyzer/src/fasta/ast_builder.dart 287:18                 AstBuilder.endBlockFunctionBody
+    //   test/generated/parser_fasta_listener.dart 592:14                   ForwardingTestListener.endBlockFunctionBody
+    //   package:front_end/src/fasta/parser/parser.dart 2648:14             Parser.parseFunctionBody
     super.test_parseFunctionBody_block();
   }
 
   @override
   @failingTest
   void test_parseFunctionBody_block_async() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
+    // TODO(brianwilkerson) The method 'parseFunctionBody' does not handle
+    // preceding modifiers.
     super.test_parseFunctionBody_block_async();
   }
 
   @override
   @failingTest
   void test_parseFunctionBody_block_asyncGenerator() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
+    // TODO(brianwilkerson) The method 'parseFunctionBody' does not handle
+    // preceding modifiers.
     super.test_parseFunctionBody_block_asyncGenerator();
   }
 
   @override
   @failingTest
   void test_parseFunctionBody_block_syncGenerator() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
+    // TODO(brianwilkerson) The method 'parseFunctionBody' does not handle
+    // preceding modifiers.
     super.test_parseFunctionBody_block_syncGenerator();
   }
 
@@ -4118,7 +4111,13 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_parseFunctionBody_empty() {
     // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
+    //   'package:front_end/src/fasta/source/stack_listener.dart': Failed assertion: line 311 pos 12: 'arrayLength > 0': is not true.
+    //   dart:core                                                          _AssertionError._throwNew
+    //   package:front_end/src/fasta/source/stack_listener.dart 311:12      Stack.pop
+    //   package:front_end/src/fasta/source/stack_listener.dart 95:25       StackListener.pop
+    //   package:analyzer/src/fasta/ast_builder.dart 269:5                  AstBuilder.handleEmptyFunctionBody
+    //   test/generated/parser_fasta_listener.dart 1171:14                  ForwardingTestListener.handleEmptyFunctionBody
+    //   package:front_end/src/fasta/parser/parser.dart 2607:16             Parser.parseFunctionBody
     super.test_parseFunctionBody_empty();
   }
 
@@ -4126,48 +4125,22 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_parseFunctionBody_expression() {
     // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
+    //   'package:front_end/src/fasta/source/stack_listener.dart': Failed assertion: line 311 pos 12: 'arrayLength > 0': is not true.
+    //   dart:core                                                          _AssertionError._throwNew
+    //   package:front_end/src/fasta/source/stack_listener.dart 311:12      Stack.pop
+    //   package:front_end/src/fasta/source/stack_listener.dart 95:25       StackListener.pop
+    //   package:analyzer/src/fasta/ast_builder.dart 379:18                 AstBuilder.handleExpressionFunctionBody
+    //   test/generated/parser_fasta_listener.dart 1177:14                  ForwardingTestListener.handleExpressionFunctionBody
+    //   package:front_end/src/fasta/parser/parser.dart 2614:18             Parser.parseFunctionBody
     super.test_parseFunctionBody_expression();
   }
 
   @override
   @failingTest
   void test_parseFunctionBody_expression_async() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
+    // TODO(brianwilkerson) The method 'parseFunctionBody' does not handle
+    // preceding modifiers.
     super.test_parseFunctionBody_expression_async();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_skip_block() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
-    super.test_parseFunctionBody_skip_block();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_skip_block_invalid() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
-    super.test_parseFunctionBody_skip_block_invalid();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_skip_blocks() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
-    super.test_parseFunctionBody_skip_blocks();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_skip_expression() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFunctionBody'.
-    super.test_parseFunctionBody_skip_expression();
   }
 
   @override
@@ -4293,63 +4266,24 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseTypeArgumentList_empty() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
+    // TODO(brianwilkerson) Does not recover from an empty list.
     super.test_parseTypeArgumentList_empty();
   }
 
   @override
   @failingTest
-  void test_parseTypeArgumentList_multiple() {
-    // TODO(brianwilkerson) exception:
-    //   type 'TypeParameterListImpl' is not a subtype of type 'TypeArgumentList' in type cast where
-    //   TypeParameterListImpl is from package:analyzer/src/dart/ast/ast.dart
-    //   TypeArgumentList is from package:analyzer/dart/ast/ast.dart
-    //
-    //   dart:core                                                          Object._as
-    //   test/generated/parser_fasta_test.dart 2848:59                      ParserProxy.parseTypeArgumentList
-    super.test_parseTypeArgumentList_multiple();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeArgumentList_nested() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_parseTypeArgumentList_nested();
-  }
-
-  @override
-  @failingTest
   void test_parseTypeArgumentList_nested_withComment_double() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
+    // TODO(brianwilkerson) Does not capture comment when splitting '>>' into
+    // two tokens.
     super.test_parseTypeArgumentList_nested_withComment_double();
   }
 
   @override
   @failingTest
   void test_parseTypeArgumentList_nested_withComment_tripple() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
+    // TODO(brianwilkerson) Does not capture comment when splitting '>>' into
+    // two tokens.
     super.test_parseTypeArgumentList_nested_withComment_tripple();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeArgumentList_single() {
-    // TODO(brianwilkerson) exception:
-    //   type 'TypeParameterListImpl' is not a subtype of type 'TypeArgumentList' in type cast where
-    //   TypeParameterListImpl is from package:analyzer/src/dart/ast/ast.dart
-    //   TypeArgumentList is from package:analyzer/dart/ast/ast.dart
-    //
-    //   dart:core                                                          Object._as
-    //   test/generated/parser_fasta_test.dart 2848:59                      ParserProxy.parseTypeArgumentList
-    super.test_parseTypeArgumentList_single();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeName_parameterized() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeName'.
-    super.test_parseTypeName_parameterized();
   }
 
   @override
@@ -4364,44 +4298,12 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseTypeName_simple() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeName'.
-    super.test_parseTypeName_simple();
-  }
-
-  @override
-  @failingTest
   void test_parseTypeName_simple_nullable() {
     // TODO(brianwilkerson) exception:
     //   UnimplementedError
     //   test/generated/parser_fasta_test.dart 2189:7                       FastaParserTestCase.enableNnbd=
     //   test/generated/parser_test.dart 12270:5                            FastaParserTestCase&SimpleParserTestMixin.test_parseTypeName_parameterized_nullable
     super.test_parseTypeName_simple_nullable();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeParameter_bounded_functionType_noReturn() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameter'.
-    super.test_parseTypeParameter_bounded_functionType_noReturn();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeParameter_bounded_functionType_return() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameter'.
-    super.test_parseTypeParameter_bounded_functionType_return();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeParameter_bounded_generic() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameter'.
-    super.test_parseTypeParameter_bounded_generic();
   }
 
   @override
@@ -4416,49 +4318,22 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseTypeParameter_bounded_simple() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameter'.
-    super.test_parseTypeParameter_bounded_simple();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeParameter_simple() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameter'.
-    super.test_parseTypeParameter_simple();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeParameterList_multiple() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameterList'.
-    super.test_parseTypeParameterList_multiple();
-  }
-
-  @override
-  @failingTest
   void test_parseTypeParameterList_parameterizedWithTrailingEquals() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameterList'.
+    // TODO(brianwilkerson) reportUnrecoverableError
     super.test_parseTypeParameterList_parameterizedWithTrailingEquals();
   }
 
   @override
   @failingTest
   void test_parseTypeParameterList_single() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameterList'.
+    // TODO(brianwilkerson) Does not use all tokens.
     super.test_parseTypeParameterList_single();
   }
 
   @override
   @failingTest
   void test_parseTypeParameterList_withTrailingEquals() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseTypeParameterList'.
+    // TODO(brianwilkerson) reportUnrecoverableError
     super.test_parseTypeParameterList_withTrailingEquals();
   }
 
@@ -4504,55 +4379,46 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseAssertStatement_trailingComma_message() {
+    // TODO(brianwilkerson) Does not handle optional trailing comma.
     super.test_parseAssertStatement_trailingComma_message();
   }
 
   @override
   @failingTest
   void test_parseAssertStatement_trailingComma_noMessage() {
+    // TODO(brianwilkerson) Does not handle optional trailing comma.
     super.test_parseAssertStatement_trailingComma_noMessage();
   }
 
   @override
   @failingTest
   void test_parseBreakStatement_noLabel() {
+    // TODO(brianwilkerson)
+    // Expected 1 errors of type ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, found 0
     super.test_parseBreakStatement_noLabel();
   }
 
   @override
   @failingTest
   void test_parseContinueStatement_label() {
+    // TODO(brianwilkerson)
+    // Expected 1 errors of type ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, found 0
     super.test_parseContinueStatement_label();
   }
 
   @override
   @failingTest
   void test_parseContinueStatement_noLabel() {
+    // TODO(brianwilkerson)
+    // Expected 1 errors of type ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, found 0
     super.test_parseContinueStatement_noLabel();
   }
 
   @override
   @failingTest
   void test_parseStatement_emptyTypeArgumentList() {
+    // TODO(brianwilkerson) Does not recover from empty list.
     super.test_parseStatement_emptyTypeArgumentList();
-  }
-
-  @override
-  @failingTest
-  void test_parseTryStatement_catch_finally() {
-    super.test_parseTryStatement_catch_finally();
-  }
-
-  @override
-  @failingTest
-  void test_parseTryStatement_on_catch() {
-    super.test_parseTryStatement_on_catch();
-  }
-
-  @override
-  @failingTest
-  void test_parseTryStatement_on_catch_finally() {
-    super.test_parseTryStatement_on_catch_finally();
   }
 }
 

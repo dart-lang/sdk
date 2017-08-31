@@ -986,13 +986,14 @@ class AstBuilder extends ScopeListener {
         stackTrace = catchParameters[1].identifier;
       }
     }
+    // TODO(brianwilkerson) The parser needs to pass in the comma token.
     push(ast.catchClause(
         onKeyword,
         type,
         catchKeyword,
         catchParameterList?.leftParenthesis,
         exception,
-        null,
+        stackTrace == null ? null : stackTrace.token.previous,
         stackTrace,
         catchParameterList?.rightParenthesis,
         body));
