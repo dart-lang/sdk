@@ -18,7 +18,7 @@ main() {
   });
 
   test("Access through dart:html", () {
-    var dartPerformance = window.performance;
+    var dartPerformance = js.JsNative.toTypedObject(js.context['performance']);
     var dartEntries = dartPerformance.getEntries();
     dartEntries.forEach((x) {
       expect(x is PerformanceEntry, isTrue);

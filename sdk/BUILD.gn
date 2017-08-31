@@ -177,6 +177,7 @@ _platform_sdk_libraries = [
 ]
 
 _full_sdk_libraries = [
+  "_blink",
   "_chrome",
   "_internal",
   "async",
