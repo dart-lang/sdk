@@ -323,6 +323,8 @@ Scavenger::Scavenger(Heap* heap,
       delayed_weak_properties_(NULL),
       gc_time_micros_(0),
       collections_(0),
+      scavenge_words_per_micro_(400),
+      idle_scavenge_threshold_in_words_(0),
       external_size_(0),
       failed_to_promote_(false) {
   // Verify assumptions about the first word in objects which the scavenger is
@@ -347,6 +349,7 @@ Scavenger::Scavenger(Heap* heap,
   end_ = to_->end();
 
   survivor_end_ = FirstObjectStart();
+  idle_scavenge_threshold_in_words_ = initial_semi_capacity_in_words;
 
   UpdateMaxHeapCapacity();
   UpdateMaxHeapUsage();
@@ -427,6 +430,45 @@ void Scavenger::Epilogue(Isolate* isolate, SemiSpace* from) {
     // objects candidates for promotion next time.
     survivor_end_ = end_;
   }
+
+  // Update estimate of scavenger speed. This statistic assumes survivorship
+  // rates don't change much.
+  intptr_t history_used = 0;
+  intptr_t history_micros = 0;
+  ASSERT(stats_history_.Size() > 0);
+  for (intptr_t i = 0; i < stats_history_.Size(); i++) {
+    history_used += stats_history_.Get(i).UsedBeforeInWords();
+    history_micros += stats_history_.Get(i).DurationMicros();
+  }
+  if (history_micros == 0) {
+    history_micros = 1;
+  }
+  scavenge_words_per_micro_ = history_used / history_micros;
+  if (scavenge_words_per_micro_ == 0) {
+    scavenge_words_per_micro_ = 1;
+  }
+
+  // Update amount of new-space we must allocate before performing an idle
+  // scavenge. This is based on the amount of work we expect to be able to
+  // complete in a typical idle period.
+  intptr_t average_idle_task_micros = 4000;
+  idle_scavenge_threshold_in_words_ =
+      scavenge_words_per_micro_ * average_idle_task_micros;
+  // Even if the scavenge speed is slow, make sure we don't scavenge too
+  // frequently, which just wastes power and falsely increases the promotion
+  // rate.
+  intptr_t lower_bound = 512 * KBInWords;
+  if (idle_scavenge_threshold_in_words_ < lower_bound) {
+    idle_scavenge_threshold_in_words_ = lower_bound;
+  }
+  // Even if the scavenge speed is very high, make sure we start considering
+  // idle scavenges before new space is full to avoid requiring a scavenge in
+  // the middle of a frame.
+  intptr_t upper_bound = 8 * CapacityInWords() / 10;
+  if (idle_scavenge_threshold_in_words_ > upper_bound) {
+    idle_scavenge_threshold_in_words_ = upper_bound;
+  }
+
 #if defined(DEBUG)
   // We can only safely verify the store buffers from old space if there is no
   // concurrent old space task. At the same time we prevent new tasks from
@@ -445,6 +487,18 @@ void Scavenger::Epilogue(Isolate* isolate, SemiSpace* from) {
   if (heap_ != NULL) {
     heap_->UpdateGlobalMaxUsed();
   }
+}
+
+bool Scavenger::ShouldPerformIdleScavenge(int64_t deadline) {
+  // TODO(rmacnak): Investigate collecting a history of idle period durations.
+  intptr_t used_in_words = UsedInWords();
+  if (used_in_words < idle_scavenge_threshold_in_words_) {
+    return false;
+  }
+  int64_t estimated_scavenge_completion =
+      OS::GetCurrentMonotonicMicros() +
+      used_in_words / scavenge_words_per_micro_;
+  return estimated_scavenge_completion <= deadline;
 }
 
 void Scavenger::IterateStoreBuffers(Isolate* isolate,
@@ -775,7 +829,7 @@ void Scavenger::Scavenge() {
   // TODO(koda): Consider moving SafepointThreads into allocation failure/retry
   // logic to avoid needless collections.
 
-  int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
+  int64_t start = OS::GetCurrentMonotonicMicros();
 
   Thread* thread = Thread::Current();
   SafepointOperationScope safepoint_scope(thread);
@@ -789,8 +843,8 @@ void Scavenger::Scavenge() {
   PageSpace* page_space = heap_->old_space();
   NoSafepointScope no_safepoints;
 
-  int64_t post_safe_point = OS::GetCurrentMonotonicMicros();
-  heap_->RecordTime(kSafePoint, post_safe_point - pre_safe_point);
+  int64_t safe_point = OS::GetCurrentMonotonicMicros();
+  heap_->RecordTime(kSafePoint, safe_point - start);
 
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_before_gc && !FLAG_concurrent_sweep) {
@@ -812,9 +866,9 @@ void Scavenger::Scavenge() {
     ScavengerVisitor visitor(isolate, this, from);
     page_space->AcquireDataLock();
     IterateRoots(isolate, &visitor);
-    int64_t start = OS::GetCurrentMonotonicMicros();
+    int64_t iterate_roots = OS::GetCurrentMonotonicMicros();
     ProcessToSpace(&visitor);
-    int64_t middle = OS::GetCurrentMonotonicMicros();
+    int64_t process_to_space = OS::GetCurrentMonotonicMicros();
     {
       TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
       ScavengerWeakVisitor weak_visitor(thread, this);
@@ -825,8 +879,8 @@ void Scavenger::Scavenge() {
 
     // Scavenge finished. Run accounting.
     int64_t end = OS::GetCurrentMonotonicMicros();
-    heap_->RecordTime(kProcessToSpace, middle - start);
-    heap_->RecordTime(kIterateWeaks, end - middle);
+    heap_->RecordTime(kProcessToSpace, process_to_space - iterate_roots);
+    heap_->RecordTime(kIterateWeaks, end - process_to_space);
     stats_history_.Add(ScavengeStats(
         start, end, usage_before, GetCurrentUsage(), promo_candidate_words,
         visitor.bytes_promoted() >> kWordSizeLog2));

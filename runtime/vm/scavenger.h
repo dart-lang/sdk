@@ -97,6 +97,8 @@ class ScavengeStats {
                : 0.0;
   }
 
+  intptr_t UsedBeforeInWords() const { return before_.used_in_words; }
+
   int64_t DurationMicros() const { return end_micros_ - start_micros_; }
 
  private:
@@ -200,6 +202,8 @@ class Scavenger {
   void AddRegionsToObjectSet(ObjectSet* set) const;
 
   void WriteProtect(bool read_only);
+
+  bool ShouldPerformIdleScavenge(int64_t deadline);
 
   void AddGCTime(int64_t micros) { gc_time_micros_ += micros; }
 
@@ -307,8 +311,11 @@ class Scavenger {
 
   int64_t gc_time_micros_;
   intptr_t collections_;
-  static const int kStatsHistoryCapacity = 2;
+  static const int kStatsHistoryCapacity = 4;
   RingBuffer<ScavengeStats, kStatsHistoryCapacity> stats_history_;
+
+  intptr_t scavenge_words_per_micro_;
+  intptr_t idle_scavenge_threshold_in_words_;
 
   // The total size of external data associated with objects in this scavenger.
   intptr_t external_size_;

@@ -47,6 +47,7 @@ class Heap {
     kPromotion,
     kOldSpace,
     kFull,
+    kIdle,
     kGCAtAlloc,
     kGCTestCase,
   };
@@ -103,6 +104,8 @@ class Heap {
   RawObject* FindOldObject(FindObjectVisitor* visitor) const;
   RawObject* FindNewObject(FindObjectVisitor* visitor) const;
   RawObject* FindObject(FindObjectVisitor* visitor) const;
+
+  void NotifyIdle(int64_t deadline);
 
   void CollectGarbage(Space space);
   void CollectGarbage(Space space, GCReason reason);
