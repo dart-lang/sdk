@@ -51,6 +51,8 @@ class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
 
   @override
   CodegenWorkItem createWorkItem(MemberEntity entity) {
+    if (entity.isAbstract) return null;
+
     // Codegen inlines field initializers. It only needs to generate
     // code for checked setters.
     if (entity.isField && entity.isInstanceMember) {

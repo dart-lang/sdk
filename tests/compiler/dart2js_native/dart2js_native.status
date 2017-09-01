@@ -151,7 +151,6 @@ native_library_same_name_used_frog_test: CompileTimeError
 native_method_inlining_test: Crash
 native_mirror_test: Crash
 native_mixin_field_test: RuntimeError
-native_mixin_with_plain_test: Crash
 native_named_constructors2_frog_test: CompileTimeError
 native_named_constructors3_frog_test: CompileTimeError
 native_no_such_method_exception3_frog_test: Crash
@@ -160,7 +159,11 @@ native_no_such_method_exception5_frog_test: Crash
 native_property_frog_test: CompileTimeError
 native_wrapping_function3_frog_test: RuntimeError
 optimization_hints_test: Crash
-rti_only_native_test: Crash
+native_method_inlining_test: RuntimeError
+native_no_such_method_exception3_frog_test: RuntimeError
+native_no_such_method_exception4_frog_test: RuntimeError
+native_no_such_method_exception5_frog_test: RuntimeError
+optimization_hints_test: RuntimeError
 runtimetype_test: CompileTimeError
 subclassing_constructor_1_test: RuntimeError
 subclassing_constructor_2_test: RuntimeError
@@ -186,7 +189,6 @@ native_library_same_name_used_frog_test: CompileTimeError
 native_method_inlining_test: Crash # NoSuchMethodError: The method 'accept' was called on null.
 native_mirror_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 native_mixin_field_test: RuntimeError
-native_mixin_with_plain_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 native_named_constructors2_frog_test: CompileTimeError
 native_named_constructors3_frog_test: CompileTimeError
 native_no_such_method_exception3_frog_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
@@ -195,7 +197,11 @@ native_no_such_method_exception5_frog_test: Crash # NoSuchMethodError: The gette
 native_property_frog_test: CompileTimeError
 native_wrapping_function3_frog_test: RuntimeError
 optimization_hints_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-rti_only_native_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
+native_method_inlining_test: RuntimeError
+native_no_such_method_exception3_frog_test: RuntimeError
+native_no_such_method_exception4_frog_test: RuntimeError
+native_no_such_method_exception5_frog_test: RuntimeError
+optimization_hints_test: RuntimeError
 runtimetype_test: CompileTimeError
 subclassing_constructor_1_test: RuntimeError
 subclassing_constructor_2_test: RuntimeError

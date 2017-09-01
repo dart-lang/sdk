@@ -169,7 +169,6 @@ regress/4562_test/01: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 16400_test: Crash
-17856_test: Crash
 19191_test: Crash
 21666_test: Crash
 22868_test: Crash
@@ -177,8 +176,6 @@ regress/4562_test/01: Crash # Issue 27394
 23404_test: RuntimeError
 23432_test: Crash
 23432b_test: Crash # type 'KMethod' is not a subtype of type 'MemberElement' of 'member' where
-23828_test: Crash
-assert_with_message_test: Crash
 async_stacktrace_test: Crash
 bound_closure_interceptor_methods_test: Crash
 bound_closure_interceptor_type_test: Crash
@@ -220,7 +217,6 @@ dummy_compiler_test: CompileTimeError
 for_in_test: Crash
 hash_code_test: Crash
 if_null_test: Crash
-inference_nsm_mirrors_test: Crash
 inference_super_set_call_test: RuntimeError
 interceptor_named_arguments_test: Crash
 invalid_annotation2_test/none: Crash
@@ -264,7 +260,6 @@ mirrors_used_warning_test/minif: Crash
 mirrors_used_warning_test/none: Crash
 no_such_method_mirrors_test: Crash
 no_such_method_test: Crash
-optional_parameter_test: Crash
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
 private_symbol_literal_test/03: MissingCompileTimeError
@@ -283,13 +278,16 @@ truncation_errors_test: Crash
 type_argument_factory_crash_test: Crash
 type_argument_factory_nocrash_test: Crash
 type_constant_switch_test/01: MissingCompileTimeError
-type_error_message_test: Crash
+23432_test: RuntimeError
+code_motion_exception_test: RuntimeError
+no_such_method_mirrors_test: RuntimeError
+regress/4639_test: RuntimeError
+truncation_errors_test: RuntimeError
 unconditional_dartio_import_test: CompileTimeError
-useful_error_message_1_test: Crash
+useful_error_message_1_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 16400_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-17856_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 19191_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
 21666_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 22868_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
@@ -297,8 +295,6 @@ useful_error_message_1_test: Crash
 23404_test: RuntimeError
 23432_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
 23432b_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
-23828_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
-assert_with_message_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 async_stacktrace_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 bound_closure_interceptor_methods_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 bound_closure_interceptor_type_test: Crash # NoSuchMethodError: The getter 'classIndex' was called on null.
@@ -340,7 +336,6 @@ dummy_compiler_test: CompileTimeError
 for_in_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 hash_code_test: Crash # UnimplementedError: Unexpected constant expression new #lib1::Hasher::•().hash (KernelPropertyGet)
 if_null_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-inference_nsm_mirrors_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
 inference_super_set_call_test: RuntimeError
 interceptor_named_arguments_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 invalid_annotation2_test/none: Crash # NoSuchMethodError: Class 'DynamicType' has no instance getter 'element'.
@@ -384,7 +379,6 @@ mirrors_used_warning_test/minif: Crash # NoSuchMethodError: The getter 'memberIn
 mirrors_used_warning_test/none: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 no_such_method_mirrors_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
 no_such_method_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
-optional_parameter_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
 private_symbol_literal_test/03: MissingCompileTimeError
@@ -405,7 +399,10 @@ truncation_errors_test: Crash # Assertion failure: Cannot find value local(main_
 type_argument_factory_crash_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 type_argument_factory_nocrash_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 type_constant_switch_test/01: MissingCompileTimeError
-type_error_message_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+23432_test: RuntimeError
+no_such_method_mirrors_test: RuntimeError
+regress/4639_test: RuntimeError
+truncation_errors_test: RuntimeError
 unconditional_dartio_import_test: CompileTimeError
-useful_error_message_1_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+useful_error_message_1_test: RuntimeError
 

@@ -398,12 +398,9 @@ function_type/function_type9_test: RuntimeError # Issue 30476
 abstract_exact_selector_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 abstract_exact_selector_test/none: Pass
 abstract_getter_test/01: Crash # Assertion failure: Missing scope info for j:getter(Foo.i).
-abstract_method_test: Crash # Assertion failure: Missing scope info for j:getter(A.length).
-abstract_object_method_test: Crash # Assertion failure: Missing scope info for j:method(B.==).
 abstract_override_adds_optional_args_concrete_subclass_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
 abstract_override_adds_optional_args_concrete_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
 abstract_override_adds_optional_args_supercall_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
-abstract_override_adds_optional_args_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
 assert_message_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 assert_trailing_comma_test/none: CompileTimeError
 assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc02 (Constructor)
@@ -502,7 +499,6 @@ bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 bool_test: RuntimeError
 bound_closure_equality_test: Crash # Assertion failure: Missing scope info for j:getter(SetMixin.length).
-bound_closure_primitives_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 branch_canonicalization_test: RuntimeError
 break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 call_closurization_test: RuntimeError
@@ -546,7 +542,6 @@ generic_field_mixin6_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder
 generic_field_mixin_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field)
 generic_function_typedef_test/01: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_function_typedef_test/none: Crash # Unsupported operation: Unsupported type parameter type node S.
-generic_functions_test: Crash # Assertion failure: Missing scope info for j:method(Iterator.moveNext).
 generic_instanceof_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
@@ -556,10 +551,16 @@ generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupporte
 generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_test: Crash # Assertion failure: Missing scope info for j:method(Iterator.moveNext).
+assertion_test: RuntimeError
+async_await_syntax_test/c04a: RuntimeError
+async_await_syntax_test/c07a: RuntimeError
+async_await_syntax_test/c08a: RuntimeError
+async_await_syntax_test/d04a: RuntimeError
+async_await_syntax_test/d07a: RuntimeError
+async_await_syntax_test/d08a: RuntimeError
 generic_methods_type_expression_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 generic_native_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-generic_sync_star_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+generic_sync_star_test: RuntimeError
 generic_syntax_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_test: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
@@ -587,14 +588,10 @@ vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Missing scope i
 vm/async_await_catch_stacktrace_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-abstract_exact_selector_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 abstract_getter_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-abstract_method_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-abstract_object_method_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 abstract_override_adds_optional_args_concrete_subclass_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 abstract_override_adds_optional_args_concrete_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 abstract_override_adds_optional_args_supercall_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-abstract_override_adds_optional_args_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 assert_message_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 assert_trailing_comma_test/none: CompileTimeError
 assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc02 (Constructor)
@@ -693,7 +690,6 @@ bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 bool_test: RuntimeError
 bound_closure_equality_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-bound_closure_primitives_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 branch_canonicalization_test: RuntimeError
 break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 call_closurization_test: RuntimeError
@@ -737,7 +733,6 @@ generic_field_mixin6_test/none: Crash # NoSuchMethodError: The getter 'usedBy' w
 generic_field_mixin_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 generic_function_typedef_test/01: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_function_typedef_test/none: Crash # Unsupported operation: Unsupported type parameter type node S.
-generic_functions_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 generic_instanceof_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
@@ -747,10 +742,16 @@ generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupporte
 generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+assertion_test: RuntimeError
+async_await_syntax_test/c04a: RuntimeError
+async_await_syntax_test/c07a: RuntimeError
+async_await_syntax_test/c08a: RuntimeError
+async_await_syntax_test/d04a: RuntimeError
+async_await_syntax_test/d07a: RuntimeError
+async_await_syntax_test/d08a: RuntimeError
 generic_methods_type_expression_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 generic_native_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-generic_sync_star_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+generic_sync_star_test: RuntimeError
 generic_syntax_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_test: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
