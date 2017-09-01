@@ -577,7 +577,7 @@ iterable_to_list_test/none: Crash
 iterable_to_set_test: Crash
 iterable_tostring_test: Crash
 json_map_test: Crash
-linked_hash_map_from_iterables_test: Crash
+linked_hash_map_from_iterable_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 linked_hash_map_test: Crash
 list_as_map_test: Crash
 list_concurrent_modify_test: Crash # Assertion failure: Missing scope info for j:method(Iterator.moveNext).

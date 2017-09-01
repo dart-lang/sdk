@@ -48,11 +48,14 @@ void deleteFile(String path) {
 /// assumed to be relative to the SDK's "tests" directory and having file
 /// [extension].
 Iterable<String> listFiles(String dir, {String extension = ".dart"}) {
-  return new Directory(p.join(testRoot, dir))
-      .listSync(recursive: true)
-      .map((entry) {
-    if (!entry.path.endsWith(extension)) return null;
-
-    return entry.path;
-  }).where((path) => path != null);
+  try {
+    return new Directory(p.join(testRoot, dir))
+        .listSync(recursive: true)
+        .map((entry) {
+      if (!entry.path.endsWith(extension)) return null;
+      return entry.path;
+    }).where((path) => path != null);
+  } catch (FileSystemException) {
+    return [];
+  }
 }

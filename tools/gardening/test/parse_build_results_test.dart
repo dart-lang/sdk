@@ -35,7 +35,6 @@ main(List<String> args) async {
         expectedStatus, status.status, "Unexpected status for '$testName'.");
   }
 
-  checkTest('corelib/list_growable_test', 'pass');
   checkTest('corelib_2/map_keys2_test', 'fail');
   client.close();
 }

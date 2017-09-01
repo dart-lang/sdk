@@ -101,7 +101,7 @@ void equalElementsTest() {
 }
 
 void genericTypeTest() {
-  var map = new LinkedHashMap<int, String>.fromIterable(<int>[1, 2, 3],
+  dynamic map = new LinkedHashMap<int, String>.fromIterable(<int>[1, 2, 3],
       value: (x) => '$x');
   Expect.isTrue(map is Map<int, String>);
   Expect.isTrue(map is LinkedHashMap<int, String>);
