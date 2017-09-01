@@ -24,7 +24,7 @@ DEPOT_PATH = find_depot_tools.add_depot_tools_to_path()
 
 def Update():
   path = os.path.join(BUILDTOOLS, 'update.sh')
-  command = ['/bin/bash', path, '--toolchain', '--gn']
+  command = ['/bin/bash', path, '--clang', '--gn']
   return subprocess.call(command, cwd=DART_ROOT)
 
 
