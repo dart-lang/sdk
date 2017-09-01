@@ -224,7 +224,7 @@ def Run(command, env=None):
   return bot.RunProcess(command, env=env)
 
 if __name__ == '__main__':
-  if len(sys.argv) > 1 and sys.argv[2] == 'api_docs':
+  if len(sys.argv) > 1 and sys.argv[1] == 'api_docs':
     if BUILD_OS == 'linux':
       CreateUploadAPIDocs()
   else:
