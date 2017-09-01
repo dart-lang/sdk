@@ -598,7 +598,6 @@ map_from_iterables_test: Crash
 map_from_test: Crash
 map_test: Crash # Issue 27394
 nan_infinity_test/01: RuntimeError
-null_nosuchmethod_test: Crash
 queue_test: Crash
 range_error_test: Crash
 range_error_test: RuntimeError
@@ -846,7 +845,6 @@ map_from_iterables_test: Crash
 map_from_test: Crash
 map_test: Crash # Issue 27394
 nan_infinity_test/01: RuntimeError
-null_nosuchmethod_test: Crash
 queue_test: Crash
 range_error_test: Crash
 range_error_test: RuntimeError

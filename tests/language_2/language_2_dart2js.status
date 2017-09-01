@@ -408,6 +408,7 @@ assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C::bc02 (Constructor)
 assertion_initializer_test: CompileTimeError
 assertion_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+assertion_test: RuntimeError
 async_and_or_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_catch_regression_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_foreign_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
@@ -446,20 +447,26 @@ async_await_syntax_test/c01a: Crash # Assertion failure: Missing scope info for 
 async_await_syntax_test/c02a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/c03a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/c04a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/c04a: RuntimeError
 async_await_syntax_test/c05a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/c06a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/c07a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/c07a: RuntimeError
 async_await_syntax_test/c08a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/c08a: RuntimeError
 async_await_syntax_test/c09a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/c10a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/d01a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/d02a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/d03a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/d04a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/d04a: RuntimeError
 async_await_syntax_test/d05a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/d06a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/d07a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/d07a: RuntimeError
 async_await_syntax_test/d08a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/d08a: RuntimeError
 async_await_syntax_test/d08b: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/d09a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_await_syntax_test/d10a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
@@ -551,17 +558,9 @@ generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupporte
 generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-assertion_test: RuntimeError
-async_await_syntax_test/c04a: RuntimeError
-async_await_syntax_test/c07a: RuntimeError
-async_await_syntax_test/c08a: RuntimeError
-async_await_syntax_test/d04a: RuntimeError
-async_await_syntax_test/d07a: RuntimeError
-async_await_syntax_test/d08a: RuntimeError
 generic_methods_type_expression_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 generic_native_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_sync_star_test: RuntimeError
-generic_syntax_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_test: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 getter_override2_test/02: MissingCompileTimeError
@@ -579,7 +578,6 @@ if_null_assignment_static_test/05: RuntimeError
 many_generic_instanceof_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 regress_30339_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-type_variable_nested_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 unused_overridden_async_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 vm/allocation_sinking_vm_test: RuntimeError
 vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
@@ -599,6 +597,7 @@ assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C::bc02 (Constructor)
 assertion_initializer_test: CompileTimeError
 assertion_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+assertion_test: RuntimeError
 async_and_or_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_await_catch_regression_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_await_foreign_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
@@ -637,20 +636,26 @@ async_await_syntax_test/c01a: Crash # NoSuchMethodError: The getter 'thisLocal' 
 async_await_syntax_test/c02a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_await_syntax_test/c03a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_await_syntax_test/c04a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_await_syntax_test/c04a: RuntimeError
 async_await_syntax_test/c05a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_await_syntax_test/c06a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_await_syntax_test/c07a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_await_syntax_test/c07a: RuntimeError
 async_await_syntax_test/c08a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_await_syntax_test/c08a: RuntimeError
 async_await_syntax_test/c09a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_await_syntax_test/c10a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_await_syntax_test/d01a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_await_syntax_test/d02a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_await_syntax_test/d03a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_await_syntax_test/d04a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_await_syntax_test/d04a: RuntimeError
 async_await_syntax_test/d05a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_await_syntax_test/d06a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_await_syntax_test/d07a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_await_syntax_test/d07a: RuntimeError
 async_await_syntax_test/d08a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_await_syntax_test/d08a: RuntimeError
 async_await_syntax_test/d08b: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_await_syntax_test/d09a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_await_syntax_test/d10a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
@@ -742,17 +747,9 @@ generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupporte
 generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-assertion_test: RuntimeError
-async_await_syntax_test/c04a: RuntimeError
-async_await_syntax_test/c07a: RuntimeError
-async_await_syntax_test/c08a: RuntimeError
-async_await_syntax_test/d04a: RuntimeError
-async_await_syntax_test/d07a: RuntimeError
-async_await_syntax_test/d08a: RuntimeError
 generic_methods_type_expression_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 generic_native_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_sync_star_test: RuntimeError
-generic_syntax_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_test: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 getter_override2_test/02: MissingCompileTimeError
@@ -770,7 +767,6 @@ if_null_assignment_static_test/05: RuntimeError
 many_generic_instanceof_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 regress_30339_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-type_variable_nested_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 unused_overridden_async_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 vm/allocation_sinking_vm_test: RuntimeError
 vm/async_await_catch_stacktrace_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
