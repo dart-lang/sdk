@@ -224,11 +224,14 @@ def Run(command, env=None):
   return bot.RunProcess(command, env=env)
 
 if __name__ == '__main__':
-  # We always clobber the bot, to make sure releases are build from scratch
-  force = CHANNEL != bot_utils.Channel.BLEEDING_EDGE
-  bot.Clobber(force=force)
+  if len(sys.argv) > 1 and sys.argv[2] == 'api_docs':
+    if BUILD_OS == 'linux':
+      CreateUploadAPIDocs()
+  else:
+    # We always clobber the bot, to make sure releases are build from scratch
+    force = CHANNEL != bot_utils.Channel.BLEEDING_EDGE
+    bot.Clobber(force=force)
 
-  CreateUploadSDK()
-  if BUILD_OS == 'linux':
-    CreateUploadVersionFile()
-    CreateUploadAPIDocs()
+    CreateUploadSDK()
+    if BUILD_OS == 'linux':
+      CreateUploadVersionFile()
