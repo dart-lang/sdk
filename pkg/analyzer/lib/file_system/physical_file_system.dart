@@ -52,7 +52,7 @@ String _getStandardStateLocation() {
   final home = io.Platform.isWindows
       ? io.Platform.environment['LOCALAPPDATA']
       : io.Platform.environment['HOME'];
-  return io.FileSystemEntity.isDirectorySync(home)
+  return home != null && io.FileSystemEntity.isDirectorySync(home)
       ? join(home, _SERVER_DIR)
       : null;
 }
