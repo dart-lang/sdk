@@ -18,6 +18,7 @@ import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
+import 'package:compiler/src/resolution/class_hierarchy.dart';
 import 'package:compiler/src/resolution/enum_creator.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/world.dart';
@@ -78,6 +79,20 @@ class Generic<T> {
 var toplevel;
 
 typedef Typedef();
+
+class Mixin1 {
+  var field1;
+}
+
+class Mixin2 {
+  var field2;
+}
+
+class MixinSub1 extends Object with Mixin1 {
+}
+
+class MixinSub2 extends Object with Mixin1, Mixin2 {
+}
 
 main() {
   foo();
@@ -141,6 +156,8 @@ main() {
   x = f(x);
   x = Object;
   x = Typedef;
+  new MixinSub2();
+  new MixinSub1();
   return x;
 }
 typedef NoArg();
@@ -291,6 +308,7 @@ Future<ResultKind> runTest(
   enableDebugMode();
   EnumCreator.matchKernelRepresentationForTesting = true;
   Elements.usePatchedDart2jsSdkSorting = true;
+  useOptimizedMixins = true;
 
   print('---- compile from ast ----------------------------------------------');
   DiagnosticCollector collector = new DiagnosticCollector();
@@ -349,6 +367,7 @@ Future<ResultKind> runTest(
         }
         prefix++;
       }
+      if (prefix > 0) prefix--;
       int suffix1 = lines1.length - 1;
       int suffix2 = lines2.length - 1;
       while (suffix1 >= 0 && suffix2 >= 0) {
@@ -358,6 +377,8 @@ Future<ResultKind> runTest(
         suffix1--;
         suffix2--;
       }
+      if (suffix1 + 1 < lines1.length) suffix1++;
+      if (suffix2 + 1 < lines2.length) suffix2++;
       print('--- from source, lines [${prefix}-${suffix1}] ------------------');
       lines1.sublist(prefix, suffix1 + 1).forEach(print);
       print('--- from dill, lines [${prefix}-${suffix2}] --------------------');

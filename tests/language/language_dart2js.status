@@ -713,6 +713,7 @@ function_subtype_typearg4_test: Crash # NoSuchMethodError: The method 'hasSubcla
 function_subtype_typearg5_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_syntax_test/none: RuntimeError
 function_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(FunctionTest.testThisBinding#)) for j:closure_call(FunctionTest_testThisBinding_closure.call).
+function_test: RuntimeError
 function_type_alias3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
 function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
@@ -720,10 +721,8 @@ implicit_this_test/01: Crash # Assertion failure: Missing scope info for j:gette
 implicit_this_test/04: Crash # Assertion failure: Missing scope info for j:getter(SubAbstract2.x).
 implicit_this_test/none: Crash # Assertion failure: Missing scope info for j:getter(SubAbstract2.x).
 import_collection_no_prefix_test: Crash # Assertion failure: Missing scope info for j:getter(_SplayTree._root).
-inference_mixin_field_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(Mixin.field)
 infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 308 pos 12: 'local != null': is not true.
 infinity_test: RuntimeError
-inline_super_field_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M1.bar)
 inlined_throw_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 instance_creation_in_function_annotation_test: Crash # Assertion failure: Missing scope info for j:getter(JsMirror._prettyName).
 instanceof4_test/01: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
@@ -749,7 +748,6 @@ issue15720_test: Crash # Assertion failure: Missing scope info for j:getter(SetM
 issue21079_test: Crash # Assertion failure: Missing scope info for j:getter(Iterator.current).
 issue23244_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 issue4295001_test: Crash # Assertion failure: Cannot find value parameter(Issue4295001Test.#s) in (parameter(Issue4295001Test.#s), Instance of 'ThisLocal') for j:constructor_body(Issue4295001Test.).
-issue9602_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M._field)
 issue9939_test: RuntimeError
 issue_1751477_test: CompileTimeError
 issue_23914_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
@@ -767,6 +765,7 @@ list_literal4_test: RuntimeError
 list_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 local_function3_test: RuntimeError
 local_function_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(LocalFunctionTest.testExecute#x), local(LocalFunctionTest.testExecute#)) for j:closure_call(LocalFunctionTest_testExecute_closure.call).
+local_function_test: RuntimeError
 logical_expression_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 main_not_a_function_test/01: CompileTimeError
 main_test/01: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
@@ -809,19 +808,10 @@ method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
 mixin_black_listed_test/02: Crash # Assertion failure: Super constructor for k:constructor(D1.) not found.
 mixin_bound_test: Crash # Assertion failure: Missing scope info for j:getter(SubtractionWithStringConversion.operand1).
-mixin_extends_field_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
-mixin_extends_is_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
-mixin_extends_method_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
-mixin_field_initializer_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.m1)
-mixin_field_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M1.bar)
-mixin_forwarding_constructor1_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
-mixin_forwarding_constructor2_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
-mixin_forwarding_constructor3_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
 mixin_generic_test: Crash # Assertion failure: Super constructor for k:constructor(C.) not found.
-mixin_getter_regression_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(C.x)
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/02: Crash # NoSuchMethodError: The getter 'function' was called on null.
 mixin_illegal_super_use_test/03: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
@@ -864,9 +854,6 @@ mixin_illegal_superclass_test/28: Crash # Assertion failure: Super constructor f
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: Crash # Assertion failure: Super constructor for k:constructor(D27.) not found.
 mixin_issue10216_2_test: RuntimeError
-mixin_issue10216_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
-mixin_lib_extends_field_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
-mixin_lib_extends_method_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
 mixin_mixin2_test: RuntimeError
 mixin_mixin3_test: RuntimeError
 mixin_mixin4_test: RuntimeError
@@ -877,7 +864,6 @@ mixin_mixin_bound2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was
 mixin_mixin_bound_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 mixin_mixin_test: RuntimeError
 mixin_mixin_type_arguments_test: Crash # Assertion failure: Super constructor for k:constructor(CA.) not found.
-mixin_naming_test: Crash # Assertion failure: Super constructor for k:constructor(D.) not found.
 mixin_of_mixin_test/01: CompileTimeError
 mixin_of_mixin_test/02: CompileTimeError
 mixin_of_mixin_test/03: CompileTimeError
@@ -903,15 +889,11 @@ mixin_of_mixin_test/22: CompileTimeError
 mixin_of_mixin_test/none: CompileTimeError
 mixin_only_for_rti_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 mixin_prefix_test: Crash # Assertion failure: Missing scope info for j:method(Converter.convert).
-mixin_proto_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(B.y)
-mixin_regress_11398_test: Crash # Assertion failure: Super constructor for k:constructor(HasValueB.) not found.
 mixin_super_2_test: CompileTimeError
 mixin_super_bound2_test/01: CompileTimeError
 mixin_super_bound2_test/none: CompileTimeError
-mixin_super_bound_test: Crash # Assertion failure: Super constructor for k:constructor(MNA.) not found.
 mixin_super_constructor2_test: Crash # Assertion failure: Missing scope info for j:getter(M.i).
 mixin_super_constructor_default_test: Crash # Assertion failure: Missing scope info for j:getter(M.i).
-mixin_super_constructor_multiple_test: Crash # Assertion failure: Super constructor for k:constructor(C.foo) not found.
 mixin_super_constructor_named_test/01: Crash # Assertion failure: Missing scope info for j:getter(M.i).
 mixin_super_constructor_named_test/none: Crash # Assertion failure: Missing scope info for j:getter(M.i).
 mixin_super_constructor_positionals_test/01: Crash # Assertion failure: Missing scope info for j:getter(M.i).
@@ -946,17 +928,7 @@ mixin_supertype_subclass_test/05: CompileTimeError
 mixin_supertype_subclass_test/none: CompileTimeError
 mixin_type_parameter3_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
 mixin_type_parameter4_test: Crash # 'package:js_ast/src/nodes.dart': Failed assertion: line 1316 pos 12: '_identifierRE.hasMatch(name)': is not true.
-mixin_type_parameter5_test: Crash # Assertion failure: Super constructor for k:constructor(C.) not found.
 mixin_type_parameter6_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-mixin_type_parameters_simple_test: Crash # Assertion failure: Super constructor for k:constructor(A.) not found.
-mixin_type_variable_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(A.field)
-mixin_type_variable_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(A.field)
-mixin_type_variable_test/04: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(A.field)
-mixin_type_variable_test/05: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(A.field)
-mixin_type_variable_test/06: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(A.field)
-mixin_type_variable_test/07: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(A.field)
-mixin_type_variable_test/08: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(A.field)
-mixin_typedef_constructor_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(Mixin.mixinField)
 modulo_test: RuntimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
@@ -1015,8 +987,6 @@ parameter_types_specialization_test: RuntimeError
 parse_closures_in_initializers_test: RuntimeError
 positional_parameters_type_test/01: MissingRuntimeError
 positional_parameters_type_test/02: MissingRuntimeError
-private_mixin2_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(C1._field)
-private_mixin_exception_throw_test: Crash # Assertion failure: Super constructor for k:constructor(_D.) not found.
 private_super_constructor_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 529 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 proxy4_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 proxy5_test: Crash # Assertion failure: Missing scope info for j:method(Mock.noSuchMethod).
@@ -1029,14 +999,12 @@ reg_exp_test: Crash # Assertion failure: Missing scope info for j:getter(Iterato
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
 regress_18535_test: Crash # Assertion failure: Missing scope info for j:getter(JsMirror._prettyName).
-regress_18713_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(S.sType)
 regress_20394_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 529 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 regress_21795_test: RuntimeError
 regress_22438_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 regress_22443_test: CompileTimeError
 regress_22445_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 regress_22579_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-regress_22666_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(LinkedListEntry._list)
 regress_22728_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 regress_22777_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 regress_22936_test/01: RuntimeError
@@ -1054,11 +1022,9 @@ regress_24283_test: RuntimeError
 regress_24567_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 regress_24935_test/01: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 regress_24935_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-regress_25246_1_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(MixIn.test3)
 regress_25550_test: Crash # Assertion failure: Missing scope info for j:method(MockAdder.call).
 regress_26133_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 regress_26175_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-regress_26230_test: Crash # Assertion failure: Super constructor for k:constructor(_RenderTabBar.) not found.
 regress_26668_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 regress_26948_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 regress_27572_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
@@ -1069,10 +1035,17 @@ regress_28217_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel
 regress_28255_test: Crash # Assertion failure: Missing scope info for j:getter(Iterator.current).
 regress_28278_test: CompileTimeError
 regress_29349_test: CompileTimeError
-regress_29949_test: Crash # Assertion failure: Super constructor for k:constructor(C.) not found.
+closure_in_field_test/01: RuntimeError
+closure_in_field_test/02: RuntimeError
+closure_in_field_test/none: RuntimeError
+mixin_black_listed_test/02: MissingCompileTimeError
+mixin_illegal_superclass_test/18: MissingCompileTimeError
+mixin_illegal_superclass_test/20: MissingCompileTimeError
+mixin_illegal_superclass_test/23: MissingCompileTimeError
+mixin_illegal_superclass_test/25: MissingCompileTimeError
+mixin_illegal_superclass_test/28: MissingCompileTimeError
+mixin_illegal_superclass_test/30: MissingCompileTimeError
 regress_30121_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-function_test: RuntimeError
-local_function_test: RuntimeError
 runtime_type_function_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 setter_declaration2_negative_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 setter_declaration_negative_test: Fail
@@ -1174,8 +1147,10 @@ type_variable_conflict2_test/01: Crash # Assertion failure: Missing scope info f
 type_variable_conflict2_test/05: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 type_variable_conflict2_test/07: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 type_variable_conflict2_test/09: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+type_variable_field_initializer2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:constructor(B.).
 type_variable_field_initializer_closure2_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
 type_variable_field_initializer_closure_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
+type_variable_field_initializer_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:constructor(B.).
 type_variable_function_type_test: RuntimeError
 wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
@@ -1437,6 +1412,7 @@ function_subtype_typearg4_test: Crash # NoSuchMethodError: The method 'hasSubcla
 function_subtype_typearg5_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_syntax_test/none: RuntimeError
 function_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(FunctionTest.testThisBinding#)) for j:closure_call(FunctionTest_testThisBinding_closure.call).
+function_test: RuntimeError
 function_type_alias3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
 function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
@@ -1444,10 +1420,8 @@ implicit_this_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was cal
 implicit_this_test/04: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 implicit_this_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 import_collection_no_prefix_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-inference_mixin_field_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
-inline_super_field_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 inlined_throw_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 instance_creation_in_function_annotation_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 instanceof4_test/01: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
@@ -1473,7 +1447,6 @@ issue15720_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on
 issue21079_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 issue23244_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 issue4295001_test: Crash # Assertion failure: Cannot find value parameter(Issue4295001Test.#s) in (parameter(Issue4295001Test.#s), Instance of 'ThisLocal') for j:constructor_body(Issue4295001Test.).
-issue9602_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 issue9939_test: RuntimeError
 issue_1751477_test: CompileTimeError
 issue_23914_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
@@ -1491,6 +1464,7 @@ list_literal4_test: RuntimeError
 list_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 local_function3_test: RuntimeError
 local_function_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(LocalFunctionTest.testExecute#x), local(LocalFunctionTest.testExecute#)) for j:closure_call(LocalFunctionTest_testExecute_closure.call).
+local_function_test: RuntimeError
 logical_expression_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 main_not_a_function_test/01: CompileTimeError
 main_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
@@ -1529,19 +1503,10 @@ method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
 mixin_black_listed_test/02: Crash # Assertion failure: Super constructor for k:constructor(D1.) not found.
 mixin_bound_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-mixin_extends_field_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
-mixin_extends_is_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
-mixin_extends_method_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
-mixin_field_initializer_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-mixin_field_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-mixin_forwarding_constructor1_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
-mixin_forwarding_constructor2_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
-mixin_forwarding_constructor3_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
 mixin_generic_test: Crash # Assertion failure: Super constructor for k:constructor(C.) not found.
-mixin_getter_regression_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/02: Crash # NoSuchMethodError: The getter 'function' was called on null.
 mixin_illegal_super_use_test/03: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
@@ -1584,9 +1549,6 @@ mixin_illegal_superclass_test/28: Crash # Assertion failure: Super constructor f
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: Crash # Assertion failure: Super constructor for k:constructor(D27.) not found.
 mixin_issue10216_2_test: RuntimeError
-mixin_issue10216_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
-mixin_lib_extends_field_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
-mixin_lib_extends_method_test: Crash # Assertion failure: Super constructor for k:constructor(E.) not found.
 mixin_mixin2_test: RuntimeError
 mixin_mixin3_test: RuntimeError
 mixin_mixin4_test: RuntimeError
@@ -1597,7 +1559,6 @@ mixin_mixin_bound2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was
 mixin_mixin_bound_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 mixin_mixin_test: RuntimeError
 mixin_mixin_type_arguments_test: Crash # Assertion failure: Super constructor for k:constructor(CA.) not found.
-mixin_naming_test: Crash # Assertion failure: Super constructor for k:constructor(D.) not found.
 mixin_of_mixin_test/01: CompileTimeError
 mixin_of_mixin_test/02: CompileTimeError
 mixin_of_mixin_test/03: CompileTimeError
@@ -1623,15 +1584,11 @@ mixin_of_mixin_test/22: CompileTimeError
 mixin_of_mixin_test/none: CompileTimeError
 mixin_only_for_rti_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 mixin_prefix_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-mixin_proto_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-mixin_regress_11398_test: Crash # Assertion failure: Super constructor for k:constructor(HasValueB.) not found.
 mixin_super_2_test: CompileTimeError
 mixin_super_bound2_test/01: CompileTimeError
 mixin_super_bound2_test/none: CompileTimeError
-mixin_super_bound_test: Crash # Assertion failure: Super constructor for k:constructor(MNA.) not found.
 mixin_super_constructor2_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 mixin_super_constructor_default_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-mixin_super_constructor_multiple_test: Crash # Assertion failure: Super constructor for k:constructor(C.foo) not found.
 mixin_super_constructor_named_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 mixin_super_constructor_named_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 mixin_super_constructor_positionals_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
@@ -1664,18 +1621,7 @@ mixin_supertype_subclass_test/03: CompileTimeError
 mixin_supertype_subclass_test/04: CompileTimeError
 mixin_supertype_subclass_test/05: CompileTimeError
 mixin_supertype_subclass_test/none: CompileTimeError
-mixin_type_parameter3_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
-mixin_type_parameter5_test: Crash # Assertion failure: Super constructor for k:constructor(C.) not found.
 mixin_type_parameter6_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-mixin_type_parameters_simple_test: Crash # Assertion failure: Super constructor for k:constructor(A.) not found.
-mixin_type_variable_test/02: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-mixin_type_variable_test/03: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-mixin_type_variable_test/04: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-mixin_type_variable_test/05: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-mixin_type_variable_test/06: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-mixin_type_variable_test/07: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-mixin_type_variable_test/08: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-mixin_typedef_constructor_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 modulo_test: RuntimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
@@ -1731,8 +1677,6 @@ parameter_types_specialization_test: RuntimeError
 parse_closures_in_initializers_test: RuntimeError
 positional_parameters_type_test/01: MissingRuntimeError
 positional_parameters_type_test/02: MissingRuntimeError
-private_mixin2_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-private_mixin_exception_throw_test: Crash # Assertion failure: Super constructor for k:constructor(_D.) not found.
 private_super_constructor_test/01: MissingCompileTimeError
 proxy4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 proxy5_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
@@ -1745,14 +1689,12 @@ reg_exp_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on nu
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
 regress_18535_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-regress_18713_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 regress_20394_test/01: MissingCompileTimeError
 regress_21795_test: RuntimeError
 regress_22438_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_22443_test: CompileTimeError
 regress_22445_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_22579_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-regress_22666_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 regress_22728_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_22777_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_22936_test/01: RuntimeError
@@ -1770,11 +1712,9 @@ regress_24283_test: RuntimeError
 regress_24567_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 regress_24935_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_24935_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-regress_25246_1_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 regress_25550_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_26133_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_26175_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-regress_26230_test: Crash # Assertion failure: Super constructor for k:constructor(_RenderTabBar.) not found.
 regress_26668_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_26948_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_27572_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
@@ -1785,10 +1725,18 @@ regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 regress_28278_test: CompileTimeError
 regress_29349_test: CompileTimeError
-regress_29949_test: Crash # Assertion failure: Super constructor for k:constructor(C.) not found.
+closure_in_field_test/01: RuntimeError
+closure_in_field_test/02: RuntimeError
+closure_in_field_test/none: RuntimeError
+mixin_black_listed_test/02: MissingCompileTimeError
+mixin_illegal_superclass_test/18: MissingCompileTimeError
+mixin_illegal_superclass_test/20: MissingCompileTimeError
+mixin_illegal_superclass_test/23: MissingCompileTimeError
+mixin_illegal_superclass_test/25: MissingCompileTimeError
+mixin_illegal_superclass_test/28: MissingCompileTimeError
+mixin_illegal_superclass_test/30: MissingCompileTimeError
+mixin_mixin_type_arguments_test: RuntimeError
 regress_30121_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-function_test: RuntimeError
-local_function_test: RuntimeError
 runtime_type_function_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 setter_declaration2_negative_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 setter_declaration_negative_test: Fail
@@ -1874,7 +1822,9 @@ type_variable_conflict2_test/01: Crash # NoSuchMethodError: The getter 'thisLoca
 type_variable_conflict2_test/05: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 type_variable_conflict2_test/07: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 type_variable_conflict2_test/09: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+type_variable_field_initializer2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:constructor(B.).
 type_variable_field_initializer_closure2_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
 type_variable_field_initializer_closure_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
+type_variable_field_initializer_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:constructor(B.).
 type_variable_function_type_test: RuntimeError
 yieldstar_pause_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.

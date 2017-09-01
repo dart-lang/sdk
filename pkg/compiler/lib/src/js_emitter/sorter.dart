@@ -32,7 +32,24 @@ class ElementSorter implements Sorter {
 
   @override
   List<ClassEntity> sortClasses(Iterable<ClassEntity> classes) {
-    return Elements.sortedByPosition(new List.from(classes, growable: false));
+    List<ClassElement> regularClasses = <ClassElement>[];
+    List<MixinApplicationElement> unnamedMixins = <MixinApplicationElement>[];
+    for (ClassElement cls in classes) {
+      if (cls.isUnnamedMixinApplication) {
+        unnamedMixins.add(cls);
+      } else {
+        regularClasses.add(cls);
+      }
+    }
+    List<ClassEntity> sorted = <ClassEntity>[];
+    sorted.addAll(Elements.sortedByPosition<ClassElement>(regularClasses));
+    unnamedMixins.sort((a, b) {
+      int result = a.name.compareTo(b.name);
+      if (result != 0) return result;
+      return Elements.compareByPosition(a.mixin, b.mixin);
+    });
+    sorted.addAll(unnamedMixins);
+    return sorted;
   }
 
   @override

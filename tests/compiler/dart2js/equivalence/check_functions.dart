@@ -1023,7 +1023,7 @@ void checkEmitterLibraries(
     Library library1, Library library2, TestStrategy strategy) {
   check(library1, library2, 'uri', library1.uri, library2.uri);
   checkLists(library1.classes, library2.classes, 'classes',
-      (a, b) => a.element.name == b.element.name,
+      (a, b) => a.name.key == b.name.key,
       onSameElement: (a, b) => checkEmitterClasses(a, b, strategy));
   checkLists(library1.statics, library2.statics, 'statics',
       (a, b) => a.name.key == b.name.key,

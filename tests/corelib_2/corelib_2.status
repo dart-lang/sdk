@@ -524,6 +524,7 @@ data_uri_test: Crash
 dynamic_nosuchmethod_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(NoSuchMethodError.toString#comma) is stored in a closure field.
 error_stack_trace1_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(unwrapException_closure.call))
 expando_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+expando_test: RuntimeError
 for_in_test: Crash
 growable_list_test: Crash
 hash_map2_test: Crash
@@ -578,6 +579,7 @@ iterable_to_set_test: Crash
 iterable_tostring_test: Crash
 json_map_test: Crash
 linked_hash_map_from_iterable_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
+linked_hash_map_from_iterables_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 linked_hash_map_test: Crash
 list_as_map_test: Crash
 list_concurrent_modify_test: Crash # Assertion failure: Missing scope info for j:method(Iterator.moveNext).
@@ -644,12 +646,12 @@ set_retainAll_test: Crash
 set_test: Crash
 set_to_string_test: Crash
 shuffle_test: Crash
-expando_test: RuntimeError
 splay_tree_from_iterable_test: Crash
 splay_tree_from_iterables_test: Crash
 splay_tree_test/01: Crash
 splay_tree_test/02: Crash
 splay_tree_test/none: Crash
+stacktrace_current_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 stacktrace_fromstring_test: Crash
 string_buffer_test: RuntimeError
 string_codeunits_test: Crash
@@ -821,6 +823,7 @@ iterable_to_list_test/none: Crash # NoSuchMethodError: The getter 'enclosingClas
 iterable_to_set_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 iterable_tostring_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 json_map_test: Crash # Assertion failure: Cannot find value local(listEach_closure.call#result) in (local(listEach_closure.call#key), local(listEach_closure.call#value), local(listEach#)) for j:closure_call(listEach_closure.call).
+linked_hash_map_from_iterable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 linked_hash_map_from_iterables_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 linked_hash_map_test: Crash # Assertion failure: Cannot find value local(LinkedHashMapTest_testMain_closure.call#keys) in (local(LinkedHashMapTest_testMain_closure.call#v), local(LinkedHashMapTest.testMain#testForEachKey)) for j:closure_call(LinkedHashMapTest_testMain_closure.call).
 list_as_map_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
@@ -862,6 +865,7 @@ reg_exp4_test: Crash
 reg_exp5_test: Crash
 reg_exp_all_matches_test: Crash
 reg_exp_start_end_test: Crash
+regexp/ascii-regexp-subject_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
 regexp/ascii-regexp-subject_test: Timeout
 regexp/capture_test: Crash
 regexp/ecma-regex-examples_test: Crash
@@ -889,12 +893,12 @@ set_retainAll_test: Crash
 set_test: Crash
 set_to_string_test: Crash
 shuffle_test: Crash
-regexp/ascii-regexp-subject_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
 splay_tree_from_iterable_test: Crash
 splay_tree_from_iterables_test: Crash
 splay_tree_test/01: Crash
 splay_tree_test/02: Crash
 splay_tree_test/none: Crash
+stacktrace_current_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 stacktrace_fromstring_test: Crash
 string_base_vm_static_test: Crash
 string_buffer_test: RuntimeError

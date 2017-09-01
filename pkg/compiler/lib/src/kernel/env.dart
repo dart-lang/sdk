@@ -258,7 +258,7 @@ class ClassEnvImpl implements ClassEnv {
         initializers: <ir.Initializer>[superInitializer]);
   }
 
-  void _ensureMaps() {
+  void _ensureMaps(KernelToElementMapBase elementMap) {
     if (_memberMap == null) {
       _memberMap = <String, ir.Member>{};
       _setterMap = <String, ir.Member>{};
@@ -302,6 +302,11 @@ class ClassEnvImpl implements ClassEnv {
       addMembers(cls, includeStatic: true);
 
       if (isUnnamedMixinApplication && _constructorMap.isEmpty) {
+        // Ensure that constructors are created for the superclass in case it
+        // is also an unnamed mixin application.
+        ClassEntity superclass = elementMap.getClass(cls.superclass);
+        elementMap.elementEnvironment.lookupConstructor(superclass, '');
+
         // Unnamed mixin applications have no constructors when read from .dill.
         // For each generative constructor in the superclass we make a
         // corresponding forwarding constructor in the subclass.
@@ -311,6 +316,7 @@ class ClassEnvImpl implements ClassEnv {
         var superclassSubstitution = getSubstitutionMap(cls.supertype);
         var superclassCloner =
             new CloneVisitor(typeSubstitution: superclassSubstitution);
+
         for (var superclassConstructor in cls.superclass.constructors) {
           var forwardingConstructor = _buildForwardingConstructor(
               superclassCloner, superclassConstructor);
@@ -327,7 +333,7 @@ class ClassEnvImpl implements ClassEnv {
   /// returned.
   MemberEntity lookupMember(KernelToElementMap elementMap, String name,
       {bool setter: false}) {
-    _ensureMaps();
+    _ensureMaps(elementMap);
     ir.Member member = setter ? _setterMap[name] : _memberMap[name];
     return member != null ? elementMap.getMember(member) : null;
   }
@@ -335,7 +341,7 @@ class ClassEnvImpl implements ClassEnv {
   /// Calls [f] for each member of [cls].
   void forEachMember(
       KernelToElementMap elementMap, void f(MemberEntity member)) {
-    _ensureMaps();
+    _ensureMaps(elementMap);
     _memberMap.values.forEach((ir.Member member) {
       f(elementMap.getMember(member));
     });
@@ -351,7 +357,7 @@ class ClassEnvImpl implements ClassEnv {
   /// Return the [ConstructorEntity] for the constructor [name] in [cls].
   ConstructorEntity lookupConstructor(
       KernelToElementMap elementMap, String name) {
-    _ensureMaps();
+    _ensureMaps(elementMap);
     ir.Member constructor = _constructorMap[name];
     return constructor != null ? elementMap.getConstructor(constructor) : null;
   }
@@ -359,7 +365,7 @@ class ClassEnvImpl implements ClassEnv {
   /// Calls [f] for each constructor of [cls].
   void forEachConstructor(
       KernelToElementMap elementMap, void f(ConstructorEntity constructor)) {
-    _ensureMaps();
+    _ensureMaps(elementMap);
     _constructorMap.values.forEach((ir.Member constructor) {
       f(elementMap.getConstructor(constructor));
     });

@@ -402,6 +402,7 @@ abstract_method_test: Crash # Assertion failure: Missing scope info for j:getter
 abstract_object_method_test: Crash # Assertion failure: Missing scope info for j:method(B.==).
 abstract_override_adds_optional_args_concrete_subclass_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
 abstract_override_adds_optional_args_concrete_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
+abstract_override_adds_optional_args_supercall_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
 abstract_override_adds_optional_args_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
 assert_message_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 assert_trailing_comma_test/none: CompileTimeError
@@ -493,6 +494,7 @@ async_star_regression_23116_test: Crash # Assertion failure: Missing scope info 
 async_star_regression_fisk_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_star_stream_take_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 async_star_take_reyield_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+bad_constructor_test/05: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: Crash # type 'ShadowField' is not a subtype of type 'Procedure' of 'value' where
 bad_override_test/05: MissingCompileTimeError
@@ -537,8 +539,6 @@ compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString
 generalized_void_syntax_test: CompileTimeError
 generic_async_star_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 generic_async_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-generic_field_mixin2_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field)
-generic_field_mixin3_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field)
 generic_field_mixin4_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field)
 generic_field_mixin5_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field)
 generic_field_mixin6_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field1)
@@ -569,8 +569,6 @@ getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 hash_map_null_key_foreach_test: RuntimeError
 identical_closure2_test: RuntimeError
-abstract_override_adds_optional_args_supercall_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
-bad_constructor_test/05: MissingCompileTimeError
 if_null_assignment_behavior_test/05: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
 if_null_assignment_behavior_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
 if_null_assignment_behavior_test/12: RuntimeError
@@ -595,6 +593,7 @@ abstract_method_test: Crash # NoSuchMethodError: The getter 'thisLocal' was call
 abstract_object_method_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 abstract_override_adds_optional_args_concrete_subclass_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 abstract_override_adds_optional_args_concrete_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+abstract_override_adds_optional_args_supercall_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 abstract_override_adds_optional_args_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 assert_message_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 assert_trailing_comma_test/none: CompileTimeError
@@ -686,6 +685,7 @@ async_star_regression_23116_test: Crash # NoSuchMethodError: The getter 'thisLoc
 async_star_regression_fisk_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_star_stream_take_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 async_star_take_reyield_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+bad_constructor_test/05: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
@@ -730,8 +730,6 @@ compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString
 generalized_void_syntax_test: CompileTimeError
 generic_async_star_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 generic_async_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-generic_field_mixin2_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-generic_field_mixin3_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 generic_field_mixin4_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 generic_field_mixin5_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 generic_field_mixin6_test/01: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
@@ -762,8 +760,6 @@ getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 hash_map_null_key_foreach_test: RuntimeError
 identical_closure2_test: RuntimeError
-abstract_override_adds_optional_args_supercall_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-bad_constructor_test/05: MissingCompileTimeError
 if_null_assignment_behavior_test/05: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
 if_null_assignment_behavior_test/06: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(D.derivedInstanceTest#)) for j:closure_call(D_derivedInstanceTest_closure.call).
 if_null_assignment_behavior_test/12: RuntimeError

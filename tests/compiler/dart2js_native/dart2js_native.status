@@ -151,7 +151,6 @@ native_library_same_name_used_frog_test: CompileTimeError
 native_method_inlining_test: Crash
 native_mirror_test: Crash
 native_mixin_field_test: RuntimeError
-native_mixin_multiple3_test: Crash
 native_mixin_with_plain_test: Crash
 native_named_constructors2_frog_test: CompileTimeError
 native_named_constructors3_frog_test: CompileTimeError
@@ -187,7 +186,6 @@ native_library_same_name_used_frog_test: CompileTimeError
 native_method_inlining_test: Crash # NoSuchMethodError: The method 'accept' was called on null.
 native_mirror_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 native_mixin_field_test: RuntimeError
-native_mixin_multiple3_test: Crash # Assertion failure: Super constructor for k:constructor(D.) not found.
 native_mixin_with_plain_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 native_named_constructors2_frog_test: CompileTimeError
 native_named_constructors3_frog_test: CompileTimeError

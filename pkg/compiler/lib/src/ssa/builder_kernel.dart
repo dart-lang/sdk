@@ -463,23 +463,28 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// Maps the instance fields of a class to their SSA values.
   Map<FieldEntity, HInstruction> _collectFieldValues(ir.Class clazz) {
     Map<FieldEntity, HInstruction> fieldValues = <FieldEntity, HInstruction>{};
-
-    for (ir.Field node in clazz.fields) {
-      if (node.isInstanceMember) {
-        FieldEntity field = _elementMap.getField(node);
-        if (node.initializer == null) {
-          fieldValues[field] = graph.addConstantNull(closedWorld);
-        } else {
-          // Gotta update the resolvedAst when we're looking at field values
-          // outside the constructor.
-          inlinedFrom(field, () {
-            node.initializer.accept(this);
-            fieldValues[field] = pop();
-          });
-        }
+    ClassEntity cls = _elementMap.getClass(clazz);
+    _worldBuilder.forEachInstanceField(cls, (_, FieldEntity field) {
+      MemberDefinition definition = _elementMap.getMemberDefinition(field);
+      ir.Field node;
+      switch (definition.kind) {
+        case MemberKind.regular:
+          node = definition.node;
+          break;
+        default:
+          failedAt(field, "Unexpected member definition $definition.");
       }
-    }
-
+      if (node.initializer == null) {
+        fieldValues[field] = graph.addConstantNull(closedWorld);
+      } else {
+        // Gotta update the current member when we're looking at field values
+        // outside the constructor.
+        inlinedFrom(field, () {
+          node.initializer.accept(this);
+          fieldValues[field] = pop();
+        });
+      }
+    });
     return fieldValues;
   }
 
@@ -631,12 +636,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (callerClass.mixedInType != null) {
       _bindSupertypeTypeParameters(callerClass.mixedInType);
     }
-
-    ir.Class cls = target.enclosingClass;
-
-    inlinedFrom(_elementMap.getConstructor(target), () {
-      fieldValues.addAll(_collectFieldValues(cls));
-    });
 
     _inlineSuperOrRedirectCommon(
         initializer, target, arguments, constructorChain, fieldValues, caller);

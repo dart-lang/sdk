@@ -168,8 +168,6 @@ js_dispatch_property_test: Crash # Issue 27394
 regress/4562_test/01: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-10216a_test: Crash
-10216b_test: Crash
 16400_test: Crash
 17856_test: Crash
 19191_test: Crash
@@ -244,7 +242,6 @@ lookup_map/reachable_data2_test: Crash
 lookup_map/reachable_data_test: Crash
 lookup_map/subclass_lookup_map_test: Crash
 many_constants_test: Crash
-many_fields_test: Crash
 mirror_invalid_field_access2_test: Crash
 mirror_invalid_field_access3_test: Crash
 mirror_invalid_field_access4_test: Crash
@@ -291,8 +288,6 @@ unconditional_dartio_import_test: CompileTimeError
 useful_error_message_1_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-10216a_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
-10216b_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
 16400_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 17856_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 19191_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
@@ -367,7 +362,6 @@ lookup_map/reachable_data2_test: Crash # NoSuchMethodError: Class 'KField' has n
 lookup_map/reachable_data_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
 lookup_map/subclass_lookup_map_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
 many_constants_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
-many_fields_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 mirror_invalid_field_access2_test: Crash # Assertion failure: Cannot find value local(main_closure.call#mirror) in (local(main#)) for j:closure_call(main_closure.call).
 mirror_invalid_field_access3_test: Crash # Assertion failure: Cannot find value local(main_closure.call#mirror) in (local(main#)) for j:closure_call(main_closure.call).
 mirror_invalid_field_access4_test: Crash # Assertion failure: Cannot find value local(main_closure.call#mirror) in (local(main#)) for j:closure_call(main_closure.call).
