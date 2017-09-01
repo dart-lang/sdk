@@ -113,7 +113,7 @@ const Map<String, LibraryInfo> libraries = const {
       implementation: true,
       documented: false,
       platforms: DART2JS_PLATFORM),
-  "svg": const LibraryInfo("svg/dart2js/svg_dart2js.dart.dart",
+  "svg": const LibraryInfo("svg/dart2js/svg_dart2js.dart",
       categories: "Client",
       maturity: Maturity.WEB_STABLE,
       platforms: DART2JS_PLATFORM),
