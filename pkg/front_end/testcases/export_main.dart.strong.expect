@@ -1,4 +1,4 @@
 library;
 import self as self;
-
-static const field dynamic _exports# = "[[\"hello.dart\",\"main\"]]" /* from null */;
+import "./hello.dart" as hel;
+additionalExports = (hel::main)

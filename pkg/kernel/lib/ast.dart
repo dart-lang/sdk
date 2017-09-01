@@ -269,6 +269,12 @@ class Library extends NamedNode implements Comparable<Library> {
   String name;
   final List<Expression> annotations;
   final List<LibraryDependency> dependencies;
+
+  /// References to nodes exported by `export` declarations that:
+  /// - aren't ambiguous, or
+  /// - aren't hidden by local declarations.
+  final List<Reference> additionalExports = <Reference>[];
+
   @informative
   final List<LibraryPart> parts;
   final List<Typedef> typedefs;

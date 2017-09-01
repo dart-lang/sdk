@@ -434,6 +434,13 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+    case kAdditionalExports: {
+      intptr_t name_count = builder_->ReadUInt();
+      for (intptr_t i = 0; i < name_count; ++i) {
+        builder_->SkipCanonicalNameReference();
+      }
+      if (++next_read_ == field) return;
+    }
     case kParts: {
       intptr_t part_count = builder_->ReadUInt();  // read list length.
       for (intptr_t i = 0; i < part_count; ++i) {

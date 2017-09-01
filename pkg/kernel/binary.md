@@ -182,6 +182,7 @@ type Library {
   UriReference fileUri;
   List<Expression> annotations;
   List<LibraryDependency> libraryDependencies;
+  List<CanonicalNameReference> additionalExports;
   List<LibraryPart> libraryParts;
   List<Typedef> typedefs;
   List<Class> classes;

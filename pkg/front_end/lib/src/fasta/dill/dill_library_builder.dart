@@ -13,13 +13,14 @@ import 'package:kernel/ast.dart'
         Library,
         ListLiteral,
         Member,
+        Procedure,
         StaticGet,
         StringLiteral,
         Typedef;
 
 import '../fasta_codes.dart' show templateUnspecified;
 
-import '../problems.dart' show unimplemented;
+import '../problems.dart' show unhandled, unimplemented;
 
 import '../kernel/kernel_builder.dart'
     show
@@ -47,18 +48,11 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
 
   Library library;
 
-  /// Exports in addition to the members declared in this library.
+  /// Exports that can't be serialized.
   ///
-  /// Each entry in the list is either two or three elements long.
-  ///
-  /// The first element is the library URI, if it is null, this is an ambiguous
-  /// export and the list has three elements. Otherwise the list has two
-  /// elements.
-  ///
-  /// The second element is the name of the exported element.
-  ///
-  /// The third element (if present) is an error message.
-  List<List<String>> additionalExports;
+  /// The elements of this map are documented in
+  /// [../kernel/kernel_library_builder.dart].
+  Map<String, String> unserializableExports;
 
   DillLibraryBuilder(this.uri, this.loader)
       : super(uri, new Scope.top(), new Scope.top());
@@ -91,7 +85,7 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
     if (name == "_exports#") {
       Field field = member;
       StringLiteral string = field.initializer;
-      additionalExports = JSON.decode(string.value);
+      unserializableExports = JSON.decode(string.value);
     } else {
       addBuilder(name, new DillMemberBuilder(member, this), member.fileOffset);
     }
@@ -145,21 +139,59 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   }
 
   void finalizeExports() {
-    if (additionalExports != null) {
-      for (List<String> additionalExport in additionalExports) {
-        String uriString = additionalExport[0];
-        String name = additionalExport[1];
-        Builder builder;
-        if (uriString == null) {
-          builder = new KernelInvalidTypeBuilder(name, -1, null,
-              templateUnspecified.withArguments(additionalExport[2]));
-        } else {
-          DillLibraryBuilder library = loader.read(uri.resolve(uriString), -1);
-          builder = library?.exportScopeBuilder[name] ??
-              new KernelInvalidTypeBuilder(name, -1, null);
-        }
+    unserializableExports?.forEach((String name, String message) {
+      Builder builder;
+      switch (name) {
+        case "dynamic":
+        case "void":
+          // TODO(ahe): It's likely that we shouldn't be exporting these types
+          // from dart:core, and this case can be removed.
+          builder = loader.coreLibrary.exportScopeBuilder[name];
+          break;
+
+        default:
+          builder = new KernelInvalidTypeBuilder(
+              name,
+              -1,
+              null,
+              message == null
+                  ? null
+                  : templateUnspecified.withArguments(message));
+      }
+      exportScopeBuilder.addMember(name, builder);
+    });
+
+    for (var reference in library.additionalExports) {
+      var node = reference.node;
+      Uri libraryUri;
+      String name;
+      bool isSetter = false;
+      if (node is Class) {
+        libraryUri = node.enclosingLibrary.importUri;
+        name = node.name;
+      } else if (node is Procedure) {
+        libraryUri = node.enclosingLibrary.importUri;
+        name = node.name.name;
+        isSetter = node.isSetter;
+      } else if (node is Member) {
+        libraryUri = node.enclosingLibrary.importUri;
+        name = node.name.name;
+      } else if (node is Typedef) {
+        libraryUri = node.enclosingLibrary.importUri;
+        name = node.name;
+      } else {
+        unhandled("${node.runtimeType}", "finalizeExports", -1, fileUri);
+      }
+      var library = loader.read(libraryUri, -1);
+      Builder builder;
+      if (isSetter) {
+        builder = library.exportScope.setters[name];
+        exportScopeBuilder.addSetter(name, builder);
+      } else {
+        builder = library.exportScope.local[name];
         exportScopeBuilder.addMember(name, builder);
       }
+      assert(node == builder.target);
     }
   }
 }
