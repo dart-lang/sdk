@@ -37,8 +37,8 @@ void die(String why) {
 ArgParser argParser = new ArgParser()
   ..addOption('stacks',
       abbr: 's',
-      defaultsTo: '30',
-      help: 'Number of highest ranking stacks to print.')
+      defaultsTo: '0',
+      help: 'Number of highest ranking stacks to print (0 for all).')
   ..addOption('length',
       abbr: 'l', defaultsTo: '12', help: 'Number of stack frames printed.');
 
@@ -74,7 +74,7 @@ main(args) {
     records.addAll(parse(text));
   }
 
-  var trie = new TrieNode(null);
+  var trie = new TrieNode(null, 0);
   for (var record in records) {
     enter(record, 0, trie);
   }
@@ -83,11 +83,11 @@ main(args) {
   leaves.sort(compareNodesByCountAndStack);
   for (var leaf in howManyStacks == 0 ? leaves : leaves.take(howManyStacks)) {
     print('');
-    var examples = leaf.members.map((r) => r.fullReason).toSet().toList();
+    var examples = leaf.members.map(fullReasonOf).toSet().toList();
     examples.sort();
     print('${leaf.length} of:');
     for (var example in examples) {
-      var count = leaf.members.where((r) => r.fullReason == example).length;
+      var count = leaf.members.where((r) => fullReasonOf(r) == example).length;
       var countAligned = '$count'.padLeft(6);
       if (examples.length == 1) countAligned = '     .';
       var indentedExample = '\t' + example.replaceAll('\n', '\n\t');
@@ -98,6 +98,11 @@ main(args) {
       print('  $line');
     }
   }
+}
+
+String fullReasonOf(Record r) {
+  // Some records have no matched reason, so default to test status.
+  return r.fullReason ?? r.actual;
 }
 
 int compareNodesByCountAndStack(TrieNode a, TrieNode b) {
@@ -122,14 +127,17 @@ class TrieNode {
 
   int get length => members.length;
 
-  TrieNode(this.key, [this.depth = 0]);
+  TrieNode(this.key, this.depth);
 
   String toString() => 'TrieNode(#$length)';
 }
 
 void enter(Record record, int depth, TrieNode root) {
-  root.members.add(record);
-  if (depth >= record.stack.length) return;
+  // Cluster on printed stack.
+  if (depth >= stackPrintLength || depth >= record.stack.length) {
+    root.members.add(record);
+    return;
+  }
   var key = record.stack[depth];
   var node = root.map[key] ??= new TrieNode(key, depth + 1);
   enter(record, depth + 1, node);
@@ -144,11 +152,10 @@ void printTrie(TrieNode node) {
 }
 
 trieLeaves(node) sync* {
-  if (node.map.isEmpty) {
+  if (node.members.isNotEmpty) {
     yield node;
-  } else {
-    for (var v in node.map.values) {
-      yield* trieLeaves(v);
-    }
+  }
+  for (var v in node.map.values) {
+    yield* trieLeaves(v);
   }
 }
