@@ -77,7 +77,8 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_assignableExpression_arguments_normal_chain_typeArgumentComments() {
-    // TODO(paulberry,ahe): Fasta doesn't support generic method comment syntax.
+    // TODO(brianwilkerson) Does not inject generic type arguments following a
+    // function-valued expression, returning "a<E>(b)(c).d<G>(e).f".
     super
         .test_assignableExpression_arguments_normal_chain_typeArgumentComments();
   }
@@ -85,22 +86,22 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_assignableExpression_arguments_normal_chain_typeArguments() {
-    // TODO(paulberry,ahe): AstBuilder doesn't implement
-    // endTypeArguments().
+    // TODO(brianwilkerson) Does not parse generic type arguments following a
+    // function-valued expression, returning the binary expression "a<E>(b) < F".
     super.test_assignableExpression_arguments_normal_chain_typeArguments();
   }
 
   @override
   @failingTest
   void test_equalityExpression_normal() {
-    // TODO(scheglov) error checking is not implemented
+    // TODO(brianwilkerson) Does not recover.
     super.test_equalityExpression_normal();
   }
 
   @override
   @failingTest
   void test_equalityExpression_super() {
-    // TODO(scheglov) error checking is not implemented
+    // TODO(brianwilkerson) Does not recover.
     super.test_equalityExpression_super();
   }
 }
@@ -114,270 +115,290 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_annotationOnEnumConstant_first() {
+    // TODO(brianwilkerson) Does not support annotations on enum constants.
     super.test_annotationOnEnumConstant_first();
   }
 
   @override
   @failingTest
   void test_annotationOnEnumConstant_middle() {
+    // TODO(brianwilkerson) Does not support annotations on enum constants.
     super.test_annotationOnEnumConstant_middle();
   }
 
   @override
   @failingTest
-  void test_breakOutsideOfLoop_breakInDoStatement() {
-    super.test_breakOutsideOfLoop_breakInDoStatement();
-  }
-
-  @override
-  @failingTest
-  void test_breakOutsideOfLoop_breakInForStatement() {
-    super.test_breakOutsideOfLoop_breakInForStatement();
-  }
-
-  @override
-  @failingTest
   void test_breakOutsideOfLoop_breakInIfStatement() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, found 0
     super.test_breakOutsideOfLoop_breakInIfStatement();
   }
 
   @override
   @failingTest
-  void test_breakOutsideOfLoop_breakInSwitchStatement() {
-    super.test_breakOutsideOfLoop_breakInSwitchStatement();
-  }
-
-  @override
-  @failingTest
-  void test_breakOutsideOfLoop_breakInWhileStatement() {
-    super.test_breakOutsideOfLoop_breakInWhileStatement();
-  }
-
-  @override
-  @failingTest
   void test_breakOutsideOfLoop_functionExpression_inALoop() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, found 0
     super.test_breakOutsideOfLoop_functionExpression_inALoop();
   }
 
   @override
   @failingTest
   void test_classInClass_abstract() {
+    // TODO(brianwilkerson) Does not recover.
     super.test_classInClass_abstract();
   }
 
   @override
   @failingTest
   void test_classInClass_nonAbstract() {
+    // TODO(brianwilkerson) Does not recover.
     super.test_classInClass_nonAbstract();
   }
 
   @override
   @failingTest
   void test_classTypeAlias_abstractAfterEq() {
+    // TODO(brianwilkerson) Does not recover.
     super.test_classTypeAlias_abstractAfterEq();
   }
 
   @override
   @failingTest
   void test_colonInPlaceOfIn() {
+    // TODO(brianwilkerson) Does not recover.
     super.test_colonInPlaceOfIn();
   }
 
   @override
   @failingTest
   void test_constAndCovariant() {
+    // TODO(brianwilkerson) Does not recover.
     super.test_constAndCovariant();
   }
 
   @override
   @failingTest
   void test_constAndFinal() {
+    // TODO(brianwilkerson) Does not recover.
     super.test_constAndFinal();
   }
 
   @override
   @failingTest
   void test_constAndVar() {
+    // TODO(brianwilkerson) Does not recover.
     super.test_constAndVar();
   }
 
   @override
   @failingTest
   void test_constClass() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.CONST_CLASS, found 0;
+    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 2 (1, 7)
     super.test_constClass();
   }
 
   @override
   @failingTest
   void test_constConstructorWithBody() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, found 0
     super.test_constConstructorWithBody();
   }
 
   @override
   @failingTest
   void test_constEnum() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.CONST_ENUM, found 0;
+    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 2 (1, 7)
     super.test_constEnum();
   }
 
   @override
   @failingTest
   void test_constFactory() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.CONST_FACTORY, found 0
     super.test_constFactory();
   }
 
   @override
   @failingTest
   void test_constMethod() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.CONST_METHOD, found 0
     super.test_constMethod();
   }
 
   @override
   @failingTest
   void test_constructorWithReturnType() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, found 0
     super.test_constructorWithReturnType();
   }
 
   @override
   @failingTest
   void test_constructorWithReturnType_var() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, found 0;
+    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (0)
     super.test_constructorWithReturnType_var();
   }
 
   @override
   @failingTest
   void test_constTypedef() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.CONST_TYPEDEF, found 0;
+    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 2 (1, 7)
     super.test_constTypedef();
   }
 
   @override
   @failingTest
-  void test_continueOutsideOfLoop_continueInDoStatement() {
-    super.test_continueOutsideOfLoop_continueInDoStatement();
-  }
-
-  @override
-  @failingTest
-  void test_continueOutsideOfLoop_continueInForStatement() {
-    super.test_continueOutsideOfLoop_continueInForStatement();
-  }
-
-  @override
-  @failingTest
   void test_continueOutsideOfLoop_continueInIfStatement() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, found 0
     super.test_continueOutsideOfLoop_continueInIfStatement();
   }
 
   @override
   @failingTest
-  void test_continueOutsideOfLoop_continueInSwitchStatement() {
-    super.test_continueOutsideOfLoop_continueInSwitchStatement();
-  }
-
-  @override
-  @failingTest
-  void test_continueOutsideOfLoop_continueInWhileStatement() {
-    super.test_continueOutsideOfLoop_continueInWhileStatement();
-  }
-
-  @override
-  @failingTest
   void test_continueOutsideOfLoop_functionExpression_inALoop() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, found 0
     super.test_continueOutsideOfLoop_functionExpression_inALoop();
   }
 
   @override
   @failingTest
   void test_continueWithoutLabelInCase_error() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, found 0
     super.test_continueWithoutLabelInCase_error();
   }
 
   @override
   @failingTest
-  void test_continueWithoutLabelInCase_noError() {
-    super.test_continueWithoutLabelInCase_noError();
-  }
-
-  @override
-  @failingTest
-  void test_continueWithoutLabelInCase_noError_switchInLoop() {
-    super.test_continueWithoutLabelInCase_noError_switchInLoop();
-  }
-
-  @override
-  @failingTest
   void test_covariantAfterVar() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.COVARIANT_AFTER_VAR, found 0;
+    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (4)
     super.test_covariantAfterVar();
   }
 
   @override
   @failingTest
   void test_covariantAndStatic() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.COVARIANT_AND_STATIC, found 0;
+    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (10)
     super.test_covariantAndStatic();
   }
 
   @override
   @failingTest
   void test_covariantConstructor() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.COVARIANT_CONSTRUCTOR, found 0;
+    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (10)
     super.test_covariantConstructor();
   }
 
   @override
   @failingTest
   void test_covariantMember_getter_noReturnType() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.COVARIANT_MEMBER, found 0;
+    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (7)
     super.test_covariantMember_getter_noReturnType();
   }
 
   @override
   @failingTest
   void test_covariantMember_getter_returnType() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.COVARIANT_MEMBER, found 0;
+    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (7)
     super.test_covariantMember_getter_returnType();
   }
 
   @override
   @failingTest
   void test_covariantMember_method() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.COVARIANT_MEMBER, found 0;
+    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (0)
     super.test_covariantMember_method();
   }
 
   @override
   @failingTest
   void test_covariantTopLevelDeclaration_class() {
+    // TODO(brianwilkerson) Does not recover.
+    //   type 'FunctionDeclarationImpl' is not a subtype of type 'ClassDeclaration' of 'member' where
+    //     FunctionDeclarationImpl is from package:analyzer/src/dart/ast/ast.dart
+    //     ClassDeclaration is from package:analyzer/dart/ast/ast.dart
+    //
+    //   test/generated/parser_test.dart 2418:31                            FastaParserTestCase&ErrorParserTestMixin.test_covariantTopLevelDeclaration_class
     super.test_covariantTopLevelDeclaration_class();
   }
 
   @override
   @failingTest
   void test_covariantTopLevelDeclaration_enum() {
+    // TODO(brianwilkerson) Does not recover.
+    //   type 'FunctionDeclarationImpl' is not a subtype of type 'EnumDeclaration' of 'member' where
+    //   FunctionDeclarationImpl is from package:analyzer/src/dart/ast/ast.dart
+    //   EnumDeclaration is from package:analyzer/dart/ast/ast.dart
+    //
+    //   test/generated/parser_test.dart 2426:30                            FastaParserTestCase&ErrorParserTestMixin.test_covariantTopLevelDeclaration_enum
     super.test_covariantTopLevelDeclaration_enum();
   }
 
   @override
   @failingTest
   void test_covariantTopLevelDeclaration_typedef() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION, found 0;
+    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 2 (1, 11)
     super.test_covariantTopLevelDeclaration_typedef();
   }
 
   @override
   @failingTest
   void test_defaultValueInFunctionType_named_colon() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, found 0
     super.test_defaultValueInFunctionType_named_colon();
   }
 
   @override
   @failingTest
   void test_defaultValueInFunctionType_named_equal() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, found 0
     super.test_defaultValueInFunctionType_named_equal();
   }
 
   @override
   @failingTest
   void test_defaultValueInFunctionType_positional() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, found 0
     super.test_defaultValueInFunctionType_positional();
   }
 
   @override
   @failingTest
   void test_directiveAfterDeclaration_classBeforeDirective() {
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, found 0
     super.test_directiveAfterDeclaration_classBeforeDirective();
   }
 
@@ -2521,7 +2542,7 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseNormalFormalParameter_field_const_noType() {
-    // TODO(brianwilkerson) Extra error:
+    // TODO(brianwilkerson) Wrong errors:
     // Expected 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (1)
     super.test_parseNormalFormalParameter_field_const_noType();
   }
@@ -2536,7 +2557,7 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseNormalFormalParameter_field_const_type() {
-    // TODO(brianwilkerson) Extra error:
+    // TODO(brianwilkerson) Wrong errors:
     // Expected 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (1)
     super.test_parseNormalFormalParameter_field_const_type();
   }
@@ -2551,7 +2572,7 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseNormalFormalParameter_simple_const_noType() {
-    // TODO(brianwilkerson) Extra error:
+    // TODO(brianwilkerson) Wrong errors:
     // Expected 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (1)
     super.test_parseNormalFormalParameter_simple_const_noType();
   }
@@ -2566,7 +2587,7 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseNormalFormalParameter_simple_const_type() {
-    // TODO(brianwilkerson) Extra error:
+    // TODO(brianwilkerson) Wrong errors:
     // Expected 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (1)
     super.test_parseNormalFormalParameter_simple_const_type();
   }
@@ -2715,6 +2736,15 @@ class ParserProxy implements analyzer.Parser {
   @override
   Configuration parseConfiguration() {
     return _run((parser) => parser.parseConditionalUri) as Configuration;
+  }
+
+  @override
+  FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
+    return _run((parser) => (token) => parser.parseFormalParameters(
+        token,
+        inFunctionType
+            ? fasta.MemberKind.GeneralizedFunctionType
+            : fasta.MemberKind.StaticMethod)) as FormalParameterList;
   }
 
   @override
@@ -3066,7 +3096,7 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_declarationBeforeDirective() {
-    // TODO(brianwilkerson) Missing error:
+    // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, found 0
     super.test_declarationBeforeDirective();
   }
@@ -3137,7 +3167,7 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_expressionList_multiple_start() {
-    // TODO(brianwilkerson) Missing error:
+    // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0
     super.test_expressionList_multiple_start();
   }
@@ -3212,7 +3242,7 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_incomplete_constructorInitializers_variable() {
-    // TODO(brianwilkerson) Missing error:
+    // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, found 0
     super.test_incomplete_constructorInitializers_variable();
   }
@@ -3484,7 +3514,7 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_missingSemicolon_varialeDeclarationList() {
-    // TODO(brianwilkerson) wrong errors:
+    // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, found 0;
     // 1 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0;
     // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (8)
@@ -4114,8 +4144,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseReturnType_void() {
-    // TODO(brianwilkerson) Test isn't passing in enough context.
-    // Type 'void' can't be used here because it isn't a return type.
     super.test_parseReturnType_void();
   }
 
@@ -4145,7 +4173,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseTypeParameterList_parameterizedWithTrailingEquals() {
-    // TODO(brianwilkerson) reportUnrecoverableError
     super.test_parseTypeParameterList_parameterizedWithTrailingEquals();
   }
 
@@ -4159,7 +4186,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseTypeParameterList_withTrailingEquals() {
-    // TODO(brianwilkerson) reportUnrecoverableError
     super.test_parseTypeParameterList_withTrailingEquals();
   }
 

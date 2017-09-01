@@ -2175,36 +2175,31 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_breakOutsideOfLoop_breakInDoStatement() {
-    createParser('do {break;} while (x);');
-    DoStatement statement = parser.parseDoStatement();
+    DoStatement statement = parseStatement('do {break;} while (x);');
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();
   }
 
   void test_breakOutsideOfLoop_breakInForStatement() {
-    createParser('for (; x;) {break;}');
-    Statement statement = parser.parseForStatement();
+    Statement statement = parseStatement('for (; x;) {break;}');
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();
   }
 
   void test_breakOutsideOfLoop_breakInIfStatement() {
-    createParser('if (x) {break;}');
-    IfStatement statement = parser.parseIfStatement();
+    IfStatement statement = parseStatement('if (x) {break;}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrorsWithCodes([ParserErrorCode.BREAK_OUTSIDE_OF_LOOP]);
   }
 
   void test_breakOutsideOfLoop_breakInSwitchStatement() {
-    createParser('switch (x) {case 1: break;}');
-    SwitchStatement statement = parser.parseSwitchStatement();
+    SwitchStatement statement = parseStatement('switch (x) {case 1: break;}');
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();
   }
 
   void test_breakOutsideOfLoop_breakInWhileStatement() {
-    createParser('while (x) {break;}');
-    WhileStatement statement = parser.parseWhileStatement();
+    WhileStatement statement = parseStatement('while (x) {break;}');
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();
   }
@@ -2315,36 +2310,32 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_continueOutsideOfLoop_continueInDoStatement() {
-    createParser('do {continue;} while (x);');
-    DoStatement statement = parser.parseDoStatement();
+    DoStatement statement = parseStatement('do {continue;} while (x);');
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();
   }
 
   void test_continueOutsideOfLoop_continueInForStatement() {
-    createParser('for (; x;) {continue;}');
-    Statement statement = parser.parseForStatement();
+    Statement statement = parseStatement('for (; x;) {continue;}');
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();
   }
 
   void test_continueOutsideOfLoop_continueInIfStatement() {
-    createParser('if (x) {continue;}');
-    IfStatement statement = parser.parseIfStatement();
+    IfStatement statement = parseStatement('if (x) {continue;}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrorsWithCodes([ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP]);
   }
 
   void test_continueOutsideOfLoop_continueInSwitchStatement() {
-    createParser('switch (x) {case 1: continue a;}');
-    SwitchStatement statement = parser.parseSwitchStatement();
+    SwitchStatement statement =
+        parseStatement('switch (x) {case 1: continue a;}');
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();
   }
 
   void test_continueOutsideOfLoop_continueInWhileStatement() {
-    createParser('while (x) {continue;}');
-    WhileStatement statement = parser.parseWhileStatement();
+    WhileStatement statement = parseStatement('while (x) {continue;}');
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();
   }
@@ -2359,23 +2350,23 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_continueWithoutLabelInCase_error() {
-    createParser('switch (x) {case 1: continue;}');
-    SwitchStatement statement = parser.parseSwitchStatement();
+    SwitchStatement statement =
+        parseStatement('switch (x) {case 1: continue;}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrorsWithCodes(
         [ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE]);
   }
 
   void test_continueWithoutLabelInCase_noError() {
-    createParser('switch (x) {case 1: continue a;}');
-    SwitchStatement statement = parser.parseSwitchStatement();
+    SwitchStatement statement =
+        parseStatement('switch (x) {case 1: continue a;}');
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();
   }
 
   void test_continueWithoutLabelInCase_noError_switchInLoop() {
-    createParser('while (a) { switch (b) {default: continue;}}');
-    WhileStatement statement = parser.parseWhileStatement();
+    WhileStatement statement =
+        parseStatement('while (a) { switch (b) {default: continue;}}');
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();
   }
@@ -2444,27 +2435,27 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_defaultValueInFunctionType_named_colon() {
-    createParser('int x : 0');
+    createParser('({int x : 0})');
     FormalParameter parameter =
-        parser.parseFormalParameter(ParameterKind.NAMED, inFunctionType: true);
+        parser.parseFormalParameterList(inFunctionType: true).parameters[0];
     expectNotNullIfNoErrors(parameter);
     listener.assertErrorsWithCodes(
         [ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE]);
   }
 
   void test_defaultValueInFunctionType_named_equal() {
-    createParser('int x = 0');
+    createParser('({int x = 0})');
     FormalParameter parameter =
-        parser.parseFormalParameter(ParameterKind.NAMED, inFunctionType: true);
+        parser.parseFormalParameterList(inFunctionType: true).parameters[0];
     expectNotNullIfNoErrors(parameter);
     listener.assertErrorsWithCodes(
         [ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE]);
   }
 
   void test_defaultValueInFunctionType_positional() {
-    createParser('int x = 0');
-    FormalParameter parameter = parser
-        .parseFormalParameter(ParameterKind.POSITIONAL, inFunctionType: true);
+    createParser('([int x = 0])');
+    FormalParameter parameter =
+        parser.parseFormalParameterList(inFunctionType: true).parameters[0];
     expectNotNullIfNoErrors(parameter);
     listener.assertErrorsWithCodes(
         [ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE]);

@@ -71,6 +71,12 @@ class AstBuilder extends ScopeListener {
   // * The current library has an import that uses the scheme "dart-ext".
   bool allowNativeClause = false;
 
+  /// A flag indicating whether an exception should be thrown when an error is
+  /// reported for which we have no mapping into an analyzer error.
+  //
+  // TODO(brianwilkerson) Remove this flag after failing tests have been triaged.
+  bool throwOnMissingErrorMapping = true;
+
   AstBuilder(this.errorReporter, this.library, this.member, Scope scope,
       this.isFullAst,
       [Uri uri])
@@ -1081,7 +1087,9 @@ class AstBuilder extends ScopeListener {
         return token;
       }
     }
-    return super.handleUnrecoverableError(token, message);
+    if (throwOnMissingErrorMapping) {
+      throw new UnimplementedError('Failed to map $message at $token');
+    }
   }
 
   void handleUnaryPrefixExpression(Token token) {
@@ -1956,7 +1964,9 @@ class AstBuilder extends ScopeListener {
       default:
       // fall through
     }
-    library.addCompileTimeError(message, charOffset, uri);
+    if (throwOnMissingErrorMapping) {
+      throw new UnimplementedError('Failed to map $message at $charOffset');
+    }
   }
 
   /// A marker method used to mark locations where a token is being located in
