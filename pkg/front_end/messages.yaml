@@ -201,6 +201,16 @@ ExtraneousModifier:
     - "static foo; main(){}"
     - "external foo; main(){}"
     - "class C {abstract C.c();}"
+    - "final class C {}"
+    - "abstract enum foo {bar}"
+    - "const enum foo {bar}"
+    - "final enum foo {bar}"
+    - "abstract void foo() {}"
+    - "static void foo() {}"
+    - "abstract typedef foo();"
+    - "const typedef foo();"
+    - "final typedef foo();"
+    - "static typedef foo();"
 
 InvalidAwaitFor:
   template: "'await' is only supported in methods with an 'async' or 'async*' body modifier."

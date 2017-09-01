@@ -197,6 +197,9 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.CONST_CLASS, found 0;
     // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 2 (1, 7)
+
+    // TODO(danrubel): Rather than reporting ParserErrorCode.EXTRANEOUS_MODIFIER
+    // report ParserErrorCode.CONST_CLASS to better help the user
     super.test_constClass();
   }
 
@@ -206,15 +209,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, found 0
     super.test_constConstructorWithBody();
-  }
-
-  @override
-  @failingTest
-  void test_constEnum() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.CONST_ENUM, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 2 (1, 7)
-    super.test_constEnum();
   }
 
   @override
@@ -248,15 +242,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // Expected 1 errors of type ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, found 0;
     // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (0)
     super.test_constructorWithReturnType_var();
-  }
-
-  @override
-  @failingTest
-  void test_constTypedef() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.CONST_TYPEDEF, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 2 (1, 7)
-    super.test_constTypedef();
   }
 
   @override
@@ -788,32 +773,14 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_finalClass() {
-    super.test_finalClass();
-  }
-
-  @override
-  @failingTest
   void test_finalConstructor() {
     super.test_finalConstructor();
   }
 
   @override
   @failingTest
-  void test_finalEnum() {
-    super.test_finalEnum();
-  }
-
-  @override
-  @failingTest
   void test_finalMethod() {
     super.test_finalMethod();
-  }
-
-  @override
-  @failingTest
-  void test_finalTypedef() {
-    super.test_finalTypedef();
   }
 
   @override
@@ -1677,36 +1644,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_staticTopLevelDeclaration_class() {
-    super.test_staticTopLevelDeclaration_class();
-  }
-
-  @override
-  @failingTest
-  void test_staticTopLevelDeclaration_enum() {
-    super.test_staticTopLevelDeclaration_enum();
-  }
-
-  @override
-  @failingTest
-  void test_staticTopLevelDeclaration_function() {
-    super.test_staticTopLevelDeclaration_function();
-  }
-
-  @override
-  @failingTest
-  void test_staticTopLevelDeclaration_typedef() {
-    super.test_staticTopLevelDeclaration_typedef();
-  }
-
-  @override
-  @failingTest
-  void test_staticTopLevelDeclaration_variable() {
-    super.test_staticTopLevelDeclaration_variable();
-  }
-
-  @override
-  @failingTest
   void test_string_unterminated_interpolation_block() {
     super.test_string_unterminated_interpolation_block();
   }
@@ -2523,7 +2460,13 @@ class FastaParserTestCase extends Object
             code == ParserErrorCode.ABSTRACT_ENUM ||
             code == ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION ||
             code == ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE ||
-            code == ParserErrorCode.ABSTRACT_TYPEDEF)
+            code == ParserErrorCode.ABSTRACT_TYPEDEF ||
+            code == ParserErrorCode.CONST_ENUM ||
+            code == ParserErrorCode.CONST_TYPEDEF ||
+            code == ParserErrorCode.FINAL_CLASS ||
+            code == ParserErrorCode.FINAL_ENUM ||
+            code == ParserErrorCode.FINAL_TYPEDEF ||
+            code == ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION)
           return ParserErrorCode.EXTRANEOUS_MODIFIER;
         return code;
       }).toList();
@@ -4329,19 +4272,36 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
-  @failingTest
-  void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
-    // TODO(danrubel): built-in "abstract" cannot be used as a type
-    super.test_parseCompilationUnit_abstractAsPrefix_parameterized();
+  void test_parseCompilationUnit_builtIn_asFunctionName() {
+    //super.test_parseCompilationUnit_builtIn_asFunctionName();
+
+    // This is a subset of
+    // super.test_parseCompilationUnit_builtIn_asFunctionName
+    // that passes. The remainder are in the
+    // test_parseCompilationUnit_builtIn_asFunctionName2 method below
+    parseCompilationUnit('abstract(x) => 0;');
+    parseCompilationUnit('as(x) => 0;');
+    parseCompilationUnit('dynamic(x) => 0;');
+    parseCompilationUnit('external(x) => 0;');
+    parseCompilationUnit('factory(x) => 0;');
+    parseCompilationUnit('get(x) => 0;');
+    parseCompilationUnit('implements(x) => 0;');
+    parseCompilationUnit('operator(x) => 0;');
+    parseCompilationUnit('set(x) => 0;');
+    parseCompilationUnit('static(x) => 0;');
+    parseCompilationUnit('static(abstract) => 0;');
+    parseCompilationUnit('typedef(x) => 0;');
   }
 
-  @override
   @failingTest
-  void test_parseCompilationUnit_builtIn_asFunctionName() {
+  void test_parseCompilationUnit_builtIn_asFunctionName2() {
     // TODO(paulberry,ahe): Fasta's parser is confused when one of the built-in
     // identifiers `export`, `import`, `library`, `part`, or `typedef` appears
     // as the name of a top level function with an implicit return type.
-    super.test_parseCompilationUnit_builtIn_asFunctionName();
+    parseCompilationUnit('export(x) => 0;');
+    parseCompilationUnit('import(x) => 0;');
+    parseCompilationUnit('library(x) => 0;');
+    parseCompilationUnit('part(x) => 0;');
   }
 
   @override

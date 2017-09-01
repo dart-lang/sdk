@@ -260,32 +260,71 @@ class Parser {
   }
 
   Token parseTopLevelDeclaration(Token token) {
-    token = _parseTopLevelDeclaration(token);
+    token = parseTopLevelDeclarationImpl(token);
     listener.endTopLevelDeclaration(token);
     return token;
   }
 
-  Token _parseTopLevelDeclaration(Token token) {
+  Token parseTopLevelDeclarationImpl(Token token) {
     if (identical(token.type, TokenType.SCRIPT_TAG)) {
       return parseScript(token);
     }
     token = parseMetadataStar(token);
-    String value = token.stringValue;
-    if (identical(value, 'abstract')) {
-      if (optional('class', token.next)) {
-        return parseClassOrNamedMixinApplication(token);
-      }
-      reportRecoverableErrorWithToken(token, fasta.templateExtraneousModifier);
-      token = token.next;
-      value = token.stringValue;
+    if (token.isTopLevelKeyword) {
+      return parseTopLevelKeywordDeclaration(null, token);
     }
+    Token start = token;
+    // Skip modifiers to find a top level keyword or identifier
+    while (token.isModifier) {
+      token = token.next;
+    }
+    if (token.isTopLevelKeyword) {
+      Token abstractToken;
+      Token modifierToken = start;
+      while (modifierToken != token) {
+        if (optional('abstract', modifierToken) &&
+            optional('class', token) &&
+            abstractToken == null) {
+          abstractToken = modifierToken;
+        } else {
+          // TODO(danrubel): Report more specific recoverable error message
+          // for `const class` to better help the user.
+          // See ParserErrorCode CONST_CLASS
+
+          // Report an error for each extraneous modifier
+          reportRecoverableErrorWithToken(
+              modifierToken, fasta.templateExtraneousModifier);
+        }
+        modifierToken = modifierToken.next;
+      }
+      return parseTopLevelKeywordDeclaration(abstractToken, token);
+    } else if (token.isIdentifier || token.keyword != null) {
+      // TODO(danrubel): improve parseTopLevelMember
+      // so that we don't parse modifiers twice.
+      return parseTopLevelMember(start);
+    } else if (start != token) {
+      // Handle the edge case where a modifier is being used as an identifier
+      return parseTopLevelMember(start);
+    }
+    // Ignore any preceding modifiers and just report the unexpected token
+    reportRecoverableErrorWithToken(token, fasta.templateExpectedDeclaration);
+    listener.handleInvalidTopLevelDeclaration(token);
+    return token.next;
+  }
+
+  Token parseTopLevelKeywordDeclaration(Token abstractToken, Token token) {
+    final String value = token.stringValue;
     if (identical(value, 'class')) {
-      return parseClassOrNamedMixinApplication(token);
+      return parseClassOrNamedMixinApplication(abstractToken, token);
     } else if (identical(value, 'enum')) {
       return parseEnum(token);
-    } else if (identical(value, 'typedef') &&
-        (token.next.isIdentifier || optional("void", token.next))) {
-      return parseTypedef(token);
+    } else if (identical(value, 'typedef')) {
+      Token next = token.next;
+      if (next.isIdentifier || optional("void", next)) {
+        return parseTypedef(token);
+      } else {
+        return parseTopLevelMember(token);
+      }
     } else if (identical(value, 'library')) {
       return parseLibraryName(token);
     } else if (identical(value, 'import')) {
@@ -294,13 +333,9 @@ class Parser {
       return parseExport(token);
     } else if (identical(value, 'part')) {
       return parsePartOrPartOf(token);
-    } else if (token.type == TokenType.IDENTIFIER || token.keyword != null) {
-      return parseTopLevelMember(token);
-    } else {
-      reportRecoverableErrorWithToken(token, fasta.templateExpectedDeclaration);
-      listener.handleInvalidTopLevelDeclaration(token);
-      return token.next;
     }
+
+    throw "Internal error: Unhandled top level keyword '$value'.";
   }
 
   /// library qualified ';'
@@ -827,11 +862,11 @@ class Parser {
     return token;
   }
 
-  Token parseClassOrNamedMixinApplication(Token token) {
+  Token parseClassOrNamedMixinApplication(Token abstractToken, Token token) {
     listener.beginClassOrNamedMixinApplication(token);
-    Token begin = token;
-    if (optional('abstract', token)) {
-      token = parseModifier(token);
+    Token begin = abstractToken ?? token;
+    if (abstractToken != null) {
+      token = parseModifier(abstractToken);
       listener.handleModifiers(1);
     } else {
       listener.handleModifiers(0);
