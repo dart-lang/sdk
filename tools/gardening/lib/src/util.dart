@@ -108,9 +108,7 @@ void processArgResults(ArgResults argResults) {
 
 /// Strips un-wanted characters from string [category] from CBE json.
 String sanitizeCategory(String category) {
-  // Category name starts with either two or three numbers and
-  // end with |all. Instead of doing any fancy regular-expr,
-  // we just test if third char is a number.
-  return category.substring(
-      category.codeUnitAt(2) <= 64 ? 3 : 2, category.length - 4);
+  var reg = new RegExp(r"^[0-9]+(.*)\|all$");
+  var match = reg.firstMatch(category);
+  return match != null ? match.group(1) : category;
 }
