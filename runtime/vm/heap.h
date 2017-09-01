@@ -360,6 +360,8 @@ class Heap {
   friend class IsolateReloadContext;  // VisitObjects
   friend class ClassFinalizer;        // VisitObjects
   friend class HeapIterationScope;    // VisitObjects
+  friend class ProgramVisitor;        // VisitObjectsImagePages
+  friend class Serializer;            // VisitObjectsImagePages
 
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };

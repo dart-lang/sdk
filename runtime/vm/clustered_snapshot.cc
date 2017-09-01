@@ -4786,17 +4786,28 @@ void Serializer::AddVMIsolateBaseObjects() {
 }
 
 intptr_t Serializer::WriteVMSnapshot(const Array& symbols,
-                                     const Array& scripts) {
+                                     ZoneGrowableArray<Object*>* seed_objects,
+                                     ZoneGrowableArray<Code*>* seed_code) {
   NoSafepointScope no_safepoint;
 
   AddVMIsolateBaseObjects();
 
   // Push roots.
   Push(symbols.raw());
-  Push(scripts.raw());
   if (Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
       Push(StubCode::EntryAt(i)->code());
+    }
+  }
+  if (seed_objects != NULL) {
+    for (intptr_t i = 0; i < seed_objects->length(); i++) {
+      Push((*seed_objects)[i]->raw());
+    }
+  }
+  if (seed_code != NULL) {
+    for (intptr_t i = 0; i < seed_code->length(); i++) {
+      Code* code = (*seed_code)[i];
+      GetTextOffset(code->instructions(), code->raw());
     }
   }
 
@@ -4804,7 +4815,6 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols,
 
   // Write roots.
   WriteRef(symbols.raw());
-  WriteRef(scripts.raw());
   if (Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
       WriteRef(StubCode::EntryAt(i)->code());
@@ -4823,15 +4833,42 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols,
   return next_ref_index_ - 1;
 }
 
+// Collects Instructions from the VM isolate and adds them to object id table
+// with offsets that will refer to the VM snapshot, causing them to be shared
+// across isolates.
+class SeedInstructionsVisitor : public ObjectVisitor {
+ public:
+  SeedInstructionsVisitor(uword text_base, Heap* heap)
+      : text_base_(text_base), heap_(heap) {}
+
+  void VisitObject(RawObject* obj) {
+    if (obj->IsInstructions()) {
+      uword addr = reinterpret_cast<uword>(obj) - kHeapObjectTag;
+      int32_t offset = addr - text_base_;
+      heap_->SetObjectId(obj, -offset);
+    }
+  }
+
+ private:
+  uword text_base_;
+  Heap* heap_;
+};
+
 void Serializer::WriteIsolateSnapshot(intptr_t num_base_objects,
                                       ObjectStore* object_store) {
   NoSafepointScope no_safepoint;
 
   if (num_base_objects == 0) {
-    // Units tests not writing a new vm isolate.
+    // Not writing a new vm isolate: use the one this VM was loaded from.
     const Array& base_objects = Object::vm_isolate_snapshot_object_table();
     for (intptr_t i = 1; i < base_objects.Length(); i++) {
       AddBaseObject(base_objects.At(i));
+    }
+    const uint8_t* text_base = Dart::vm_snapshot_instructions();
+    if (text_base != NULL) {
+      SeedInstructionsVisitor visitor(reinterpret_cast<uword>(text_base),
+                                      heap_);
+      Dart::vm_isolate()->heap()->VisitObjectsImagePages(&visitor);
     }
   } else {
     // Base objects carried over from WriteVMIsolateSnapshot.
@@ -5195,7 +5232,6 @@ void Deserializer::ReadVMSnapshot() {
     // Read roots.
     symbol_table ^= ReadRef();
     isolate()->object_store()->set_symbol_table(symbol_table);
-    ReadRef();  // Script list.
     if (Snapshot::IncludesCode(kind_)) {
       Code& code = Code::Handle(zone_);
       for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
@@ -5276,38 +5312,37 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
   Bootstrap::SetupNativeResolver();
 }
 
-// An object visitor which will iterate over all the token stream objects in the
-// heap and either count them or collect them into an array. This is used during
-// full snapshot generation of the VM isolate to write out all token streams so
-// they will be shared across all isolates.
-class SnapshotTokenStreamVisitor : public ObjectVisitor {
+// An object visitor which iterates the heap looking for objects to write into
+// the VM isolate's snapshot, causing them to be shared across isolates.
+class SeedVMIsolateVisitor : public ObjectVisitor {
  public:
-  explicit SnapshotTokenStreamVisitor(Thread* thread)
-      : objHandle_(Object::Handle(thread->zone())),
-        count_(0),
-        token_streams_(NULL) {}
-
-  SnapshotTokenStreamVisitor(Thread* thread, const Array* token_streams)
-      : objHandle_(Object::Handle(thread->zone())),
-        count_(0),
-        token_streams_(token_streams) {}
+  SeedVMIsolateVisitor(Zone* zone, bool include_code)
+      : zone_(zone),
+        include_code_(include_code),
+        objects_(new (zone) ZoneGrowableArray<Object*>(4 * KB)),
+        code_(new (zone) ZoneGrowableArray<Code*>(4 * KB)) {}
 
   void VisitObject(RawObject* obj) {
     if (obj->IsTokenStream()) {
-      if (token_streams_ != NULL) {
-        objHandle_ = obj;
-        token_streams_->SetAt(count_, objHandle_);
+      objects_->Add(&Object::Handle(zone_, obj));
+    } else if (include_code_) {
+      if (obj->IsStackMap() || obj->IsPcDescriptors() ||
+          obj->IsCodeSourceMap()) {
+        objects_->Add(&Object::Handle(zone_, obj));
+      } else if (obj->IsCode()) {
+        code_->Add(&Code::Handle(zone_, Code::RawCast(obj)));
       }
-      count_ += 1;
     }
   }
 
-  intptr_t count() const { return count_; }
+  ZoneGrowableArray<Object*>* objects() { return objects_; }
+  ZoneGrowableArray<Code*>* code() { return code_; }
 
  private:
-  Object& objHandle_;
-  intptr_t count_;
-  const Array* token_streams_;
+  Zone* zone_;
+  bool include_code_;
+  ZoneGrowableArray<Object*>* objects_;
+  ZoneGrowableArray<Code*>* code_;
 };
 
 FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
@@ -5325,7 +5360,8 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
       isolate_snapshot_size_(0),
       vm_image_writer_(vm_image_writer),
       isolate_image_writer_(isolate_image_writer),
-      token_streams_(Array::Handle(zone())),
+      seed_objects_(NULL),
+      seed_code_(NULL),
       saved_symbol_table_(Array::Handle(zone())),
       new_vm_symbol_table_(Array::Handle(zone())),
       clustered_vm_size_(0),
@@ -5356,22 +5392,13 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
     NOT_IN_PRODUCT(TimelineDurationScope tds(
         thread(), Timeline::GetIsolateStream(), "PrepareNewVMIsolate"));
 
-    // Collect all the token stream objects into an array so that we can write
-    // it out as part of the VM isolate snapshot. We first count the number of
-    // token streams, allocate an array and then fill it up with the token
-    // streams.
-    {
-      HeapIterationScope iteration(thread());
-      SnapshotTokenStreamVisitor token_streams_counter(thread());
-      iteration.IterateObjects(&token_streams_counter);
-      iteration.IterateVMIsolateObjects(&token_streams_counter);
-      intptr_t count = token_streams_counter.count();
-      token_streams_ = Array::New(count, Heap::kOld);
-      SnapshotTokenStreamVisitor script_visitor(thread(), &token_streams_);
-      iteration.IterateObjects(&script_visitor);
-      iteration.IterateVMIsolateObjects(&script_visitor);
-      ASSERT(script_visitor.count() == count);
-    }
+    HeapIterationScope iteration(thread());
+    SeedVMIsolateVisitor visitor(thread()->zone(),
+                                 Snapshot::IncludesCode(kind));
+    iteration.IterateObjects(&visitor);
+    iteration.IterateVMIsolateObjects(&visitor);
+    seed_objects_ = visitor.objects();
+    seed_code_ = visitor.code();
 
     // Tuck away the current symbol table.
     saved_symbol_table_ = object_store->symbol_table();
@@ -5397,7 +5424,6 @@ FullSnapshotWriter::~FullSnapshotWriter() {
     saved_symbol_table_ = Array::null();
   }
   new_vm_symbol_table_ = Array::null();
-  token_streams_ = Array::null();
 }
 
 intptr_t FullSnapshotWriter::WriteVMSnapshot() {
@@ -5414,8 +5440,8 @@ intptr_t FullSnapshotWriter::WriteVMSnapshot() {
   // - the symbol table
   // - all the token streams
   // - the stub code (precompiled snapshots only)
-  intptr_t num_objects =
-      serializer.WriteVMSnapshot(new_vm_symbol_table_, token_streams_);
+  intptr_t num_objects = serializer.WriteVMSnapshot(new_vm_symbol_table_,
+                                                    seed_objects_, seed_code_);
   serializer.FillHeader(serializer.kind());
   clustered_vm_size_ = serializer.bytes_written();
 
@@ -5520,6 +5546,7 @@ RawApiError* FullSnapshotReader::ReadVMSnapshot() {
     ASSERT(data_buffer_ != NULL);
     thread_->isolate()->SetupImagePage(data_buffer_,
                                        /* is_executable */ false);
+    Dart::set_vm_snapshot_instructions(instructions_buffer_);
   }
 
   deserializer.ReadVMSnapshot();

@@ -50,6 +50,7 @@ ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 ReadOnlyHandles* Dart::predefined_handles_ = NULL;
 Snapshot::Kind Dart::vm_snapshot_kind_ = Snapshot::kInvalid;
+const uint8_t* Dart::vm_snapshot_instructions_ = NULL;
 Dart_ThreadExitCallback Dart::thread_exit_callback_ = NULL;
 Dart_FileOpenCallback Dart::file_open_callback_ = NULL;
 Dart_FileReadCallback Dart::file_read_callback_ = NULL;

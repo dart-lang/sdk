@@ -76,6 +76,12 @@ class Dart : public AllStatic {
 
   static const char* FeaturesString(Isolate* isolate, Snapshot::Kind kind);
   static Snapshot::Kind vm_snapshot_kind() { return vm_snapshot_kind_; }
+  static const uint8_t* vm_snapshot_instructions() {
+    return vm_snapshot_instructions_;
+  }
+  static void set_vm_snapshot_instructions(const uint8_t* buffer) {
+    vm_snapshot_instructions_ = buffer;
+  }
 
   static Dart_ThreadExitCallback thread_exit_callback() {
     return thread_exit_callback_;
@@ -123,6 +129,7 @@ class Dart : public AllStatic {
   static DebugInfo* pprof_symbol_generator_;
   static ReadOnlyHandles* predefined_handles_;
   static Snapshot::Kind vm_snapshot_kind_;
+  static const uint8_t* vm_snapshot_instructions_;
   static Dart_ThreadExitCallback thread_exit_callback_;
   static Dart_FileOpenCallback file_open_callback_;
   static Dart_FileReadCallback file_read_callback_;
