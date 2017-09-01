@@ -1986,11 +1986,10 @@ class CodeGenerator extends Object
   /// Ensure `dartx.` symbols we will use are present.
   void _initExtensionSymbols(ClassElement classElem,
       List<MethodDeclaration> methods, List<FieldDeclaration> fields) {
-    if (_extensionTypes.hasNativeSubtype(classElem.type)) {
+    if (_extensionTypes.hasNativeSubtype(classElem.type) ||
+        classElem.type.isObject) {
       for (var m in methods) {
-        if (!m.isAbstract &&
-            !m.isStatic &&
-            resolutionMap.elementDeclaredByMethodDeclaration(m).isPublic) {
+        if (!m.isAbstract && !m.isStatic && m.element.isPublic) {
           _declareMemberName(m.element, useExtension: true);
         }
       }
