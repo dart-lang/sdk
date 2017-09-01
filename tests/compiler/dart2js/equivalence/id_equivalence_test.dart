@@ -26,11 +26,14 @@ const List<String> dataDirectories = const <String>[
   '../jumps/data',
 ];
 
-main() {
+main(List<String> args) {
   asyncTest(() async {
     for (String path in dataDirectories) {
       Directory dataDir = new Directory.fromUri(Platform.script.resolve(path));
       await for (FileSystemEntity entity in dataDir.list()) {
+        if (args.isNotEmpty && !args.contains(entity.uri.pathSegments.last)) {
+          continue;
+        }
         print('Checking ${entity.uri}');
         String annotatedCode =
             await new File.fromUri(entity.uri).readAsString();
@@ -41,8 +44,8 @@ main() {
             annotatedCode, computeIrMemberData, compileFromDill,
             options: [Flags.disableTypeInference]);
         data1.actualMap.forEach((Id id, ActualData actualData1) {
-          String value1 = actualData1.value;
-          String value2 = data2.actualMap[id]?.value;
+          IdValue value1 = actualData1.value;
+          IdValue value2 = data2.actualMap[id]?.value;
           if (value1 != value2) {
             reportHere(data1.compiler.reporter, actualData1.sourceSpan,
                 '$id: from source:${value1},from dill:${value2}');
@@ -53,8 +56,8 @@ main() {
           Expect.equals(value1, value2, 'Value mismatch for $id');
         });
         data2.actualMap.forEach((Id id, ActualData actualData2) {
-          String value2 = actualData2.value;
-          String value1 = data1.actualMap[id]?.value;
+          IdValue value2 = actualData2.value;
+          IdValue value1 = data1.actualMap[id]?.value;
           if (value1 != value2) {
             reportHere(data2.compiler.reporter, actualData2.sourceSpan,
                 '$id: from source:${value1},from dill:${value2}');
@@ -104,6 +107,10 @@ class ComputerMixin {
     return 'invoke:$propertyName';
   }
 
+  String computeSetName(String propertyName) {
+    return 'set:$propertyName';
+  }
+
   String get loopName => 'loop';
 
   String get gotoName => 'goto';
@@ -120,7 +127,7 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
       : super(reporter, actualMap, resolvedAst);
 
   @override
-  String computeNodeValue(ast.Node node, AstElement element) {
+  String computeNodeValue(Id id, ast.Node node, AstElement element) {
     if (element != null && element.isLocal) {
       return computeLocalName(element.name);
     }
@@ -171,6 +178,23 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
           String dynamicName = getDynamicName();
           if (dynamicName != null) return computeInvokeName(dynamicName);
           break;
+        case SendStructureKind.SET:
+          String dynamicName = getDynamicName();
+          if (dynamicName != null) return computeSetName(dynamicName);
+          break;
+        case SendStructureKind.POSTFIX:
+          String dynamicName = getDynamicName();
+          if (dynamicName != null) {
+            if (id.kind == IdKind.update) {
+              return computeSetName(dynamicName);
+            } else if (id.kind == IdKind.invoke) {
+              return computeInvokeName(
+                  sendStructure.operator.binaryOperator.name);
+            } else {
+              return computeGetName(dynamicName);
+            }
+          }
+          break;
         default:
       }
     }
@@ -181,7 +205,7 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
   }
 
   @override
-  String computeElementValue(AstElement element) {
+  String computeElementValue(Id id, AstElement element) {
     return computeMemberName(element.enclosingClass?.name, element.name);
   }
 }
@@ -199,15 +223,16 @@ void computeIrMemberData(
   MemberDefinition definition = elementMap.getMemberDefinition(member);
   assert(definition.kind == MemberKind.regular,
       failedAt(member, "Unexpected member definition $definition"));
-  new IrComputer(actualMap).run(definition.node);
+  new IrComputer(compiler.reporter, actualMap).run(definition.node);
 }
 
 /// IR visitor for computing a descriptive mapping of the [Id]s in a member.
 class IrComputer extends IrDataExtractor with ComputerMixin {
-  IrComputer(Map<Id, ActualData> actualMap) : super(actualMap);
+  IrComputer(DiagnosticReporter reporter, Map<Id, ActualData> actualMap)
+      : super(reporter, actualMap);
 
   @override
-  String computeNodeValue(ir.TreeNode node) {
+  String computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.VariableDeclaration) {
       return computeLocalName(node.name);
     } else if (node is ir.FunctionDeclaration) {
@@ -218,8 +243,12 @@ class IrComputer extends IrDataExtractor with ComputerMixin {
       return computeInvokeName(node.name.name);
     } else if (node is ir.PropertyGet) {
       return computeGetName(node.name.name);
+    } else if (node is ir.PropertySet) {
+      return computeSetName(node.name.name);
     } else if (node is ir.VariableGet) {
       return computeGetName(node.variable.name);
+    } else if (node is ir.VariableSet) {
+      return computeSetName(node.variable.name);
     } else if (node is ir.DoStatement) {
       return loopName;
     } else if (node is ir.ForStatement) {
@@ -241,7 +270,7 @@ class IrComputer extends IrDataExtractor with ComputerMixin {
   }
 
   @override
-  String computeMemberValue(ir.Member member) {
+  String computeMemberValue(Id id, ir.Member member) {
     return computeMemberName(member.enclosingClass?.name, member.name.name);
   }
 }

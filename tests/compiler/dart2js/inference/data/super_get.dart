@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Super {
-  /*Super.field:[exact=JSUInt31]*/
+  /*element: Super.field:[exact=JSUInt31]*/
   var field = 42;
 }
 
 class Sub extends Super {
-  /*Sub.method:[exact=JSUInt31]*/
+  /*element: Sub.method:[exact=JSUInt31]*/
   method() => super.field;
 }
 
-/*main:[null]*/
+/*element: main:[null]*/
 main() {
-  new Sub(). /*[exact=Sub]*/ method();
+  new Sub(). /*invoke: [exact=Sub]*/ method();
 }

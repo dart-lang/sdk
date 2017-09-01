@@ -49,7 +49,8 @@ void computeKernelJumpsData(
   KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
   GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
   MemberDefinition definition = elementMap.getMemberDefinition(member);
-  new JumpsIrChecker(actualMap, localsMap.getLocalsMap(member))
+  new JumpsIrChecker(
+          compiler.reporter, actualMap, localsMap.getLocalsMap(member))
       .run(definition.node);
 }
 
@@ -126,13 +127,13 @@ class JumpsAstComputer extends AstDataExtractor with JumpsMixin {
   }
 
   @override
-  String computeNodeValue(ast.Node node, [AstElement element]) {
+  String computeNodeValue(Id id, ast.Node node, [AstElement element]) {
     // Node values are computed post-visit in [processData].
     return null;
   }
 
   @override
-  String computeElementValue(AstElement element) {
+  String computeElementValue(Id id, AstElement element) {
     return null;
   }
 
@@ -140,7 +141,7 @@ class JumpsAstComputer extends AstDataExtractor with JumpsMixin {
   visitLoop(ast.Loop node) {
     JumpTarget target = elements.getTargetDefinition(node);
     if (target != null) {
-      NodeId id = computeLoopNodeId(node);
+      NodeId id = createLoopId(node);
       SourceSpan sourceSpan = computeSourceSpan(node);
       targets[target] = new TargetData(index++, id, sourceSpan, target);
     }
@@ -151,7 +152,7 @@ class JumpsAstComputer extends AstDataExtractor with JumpsMixin {
   visitGotoStatement(ast.GotoStatement node) {
     JumpTarget target = elements.getTargetOf(node);
     assert(target != null, 'No target for $node.');
-    NodeId id = computeGotoNodeId(node);
+    NodeId id = createGotoId(node);
     SourceSpan sourceSpan = computeSourceSpan(node);
     gotos.add(new GotoData(id, sourceSpan, target));
     super.visitGotoStatement(node);
@@ -161,7 +162,7 @@ class JumpsAstComputer extends AstDataExtractor with JumpsMixin {
   visitSwitchStatement(ast.SwitchStatement node) {
     JumpTarget target = elements.getTargetDefinition(node);
     if (target != null) {
-      NodeId id = computeLoopNodeId(node);
+      NodeId id = createLoopId(node);
       SourceSpan sourceSpan = computeSourceSpan(node);
       targets[target] = new TargetData(index++, id, sourceSpan, target);
     }
@@ -172,7 +173,7 @@ class JumpsAstComputer extends AstDataExtractor with JumpsMixin {
   visitSwitchCase(ast.SwitchCase node) {
     JumpTarget target = elements.getTargetDefinition(node);
     if (target != null) {
-      NodeId id = computeSwitchCaseNodeId(node);
+      NodeId id = createSwitchCaseId(node);
       SourceSpan sourceSpan = computeSourceSpan(node);
       targets[target] = new TargetData(index++, id, sourceSpan, target);
     }
@@ -184,8 +185,9 @@ class JumpsAstComputer extends AstDataExtractor with JumpsMixin {
 class JumpsIrChecker extends IrDataExtractor with JumpsMixin {
   final KernelToLocalsMap _localsMap;
 
-  JumpsIrChecker(Map<Id, ActualData> actualMap, this._localsMap)
-      : super(actualMap);
+  JumpsIrChecker(DiagnosticReporter reporter, Map<Id, ActualData> actualMap,
+      this._localsMap)
+      : super(reporter, actualMap);
 
   void run(ir.Node root) {
     super.run(root);
@@ -193,13 +195,13 @@ class JumpsIrChecker extends IrDataExtractor with JumpsMixin {
   }
 
   @override
-  String computeNodeValue(ir.Node node) {
+  String computeNodeValue(Id id, ir.Node node) {
     // Node values are computed post-visit in [processData].
     return null;
   }
 
   @override
-  String computeMemberValue(ir.Member member) {
+  String computeMemberValue(Id id, ir.Member member) {
     return null;
   }
 
@@ -212,32 +214,32 @@ class JumpsIrChecker extends IrDataExtractor with JumpsMixin {
 
   visitForStatement(ir.ForStatement node) {
     addTargetData(
-        node, computeLoopNodeId(node), _localsMap.getJumpTargetForFor(node));
+        node, createLoopId(node), _localsMap.getJumpTargetForFor(node));
     super.visitForStatement(node);
   }
 
   visitForInStatement(ir.ForInStatement node) {
     addTargetData(
-        node, computeLoopNodeId(node), _localsMap.getJumpTargetForForIn(node));
+        node, createLoopId(node), _localsMap.getJumpTargetForForIn(node));
     super.visitForInStatement(node);
   }
 
   visitWhileStatement(ir.WhileStatement node) {
     addTargetData(
-        node, computeLoopNodeId(node), _localsMap.getJumpTargetForWhile(node));
+        node, createLoopId(node), _localsMap.getJumpTargetForWhile(node));
     super.visitWhileStatement(node);
   }
 
   visitDoStatement(ir.DoStatement node) {
     addTargetData(
-        node, computeLoopNodeId(node), _localsMap.getJumpTargetForDo(node));
+        node, createLoopId(node), _localsMap.getJumpTargetForDo(node));
     super.visitDoStatement(node);
   }
 
   visitBreakStatement(ir.BreakStatement node) {
     JumpTarget target = _localsMap.getJumpTargetForBreak(node);
     assert(target != null, 'No target for $node.');
-    NodeId id = computeGotoNodeId(node);
+    NodeId id = createGotoId(node);
     SourceSpan sourceSpan = computeSourceSpan(node);
     gotos.add(new GotoData(id, sourceSpan, target));
     super.visitBreakStatement(node);
@@ -245,12 +247,12 @@ class JumpsIrChecker extends IrDataExtractor with JumpsMixin {
 
   visitSwitchStatement(ir.SwitchStatement node) {
     addTargetData(
-        node, computeLoopNodeId(node), _localsMap.getJumpTargetForSwitch(node));
+        node, createSwitchId(node), _localsMap.getJumpTargetForSwitch(node));
     super.visitSwitchStatement(node);
   }
 
   visitSwitchCase(ir.SwitchCase node) {
-    addTargetData(node, computeSwitchCaseNodeId(node),
+    addTargetData(node, createSwitchCaseId(node),
         _localsMap.getJumpTargetForSwitchCase(node));
     super.visitSwitchCase(node);
   }
@@ -258,7 +260,7 @@ class JumpsIrChecker extends IrDataExtractor with JumpsMixin {
   visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
     JumpTarget target = _localsMap.getJumpTargetForContinueSwitch(node);
     assert(target != null, 'No target for $node.');
-    NodeId id = computeGotoNodeId(node);
+    NodeId id = createGotoId(node);
     SourceSpan sourceSpan = computeSourceSpan(node);
     gotos.add(new GotoData(id, sourceSpan, target));
     super.visitContinueSwitchStatement(node);

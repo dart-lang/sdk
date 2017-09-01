@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Super {
-  /*Super.field:Union of [[exact=JSUInt31], [exact=Sub]]*/
+  /*element: Super.field:Union of [[exact=JSUInt31], [exact=Sub]]*/
   var field = 42;
 }
 
 class Sub extends Super {
-  /*Sub.method:[subclass=Closure]*/
+  /*element: Sub.method:[subclass=Closure]*/
   method() {
     // ignore: INVALID_ASSIGNMENT
     var a = super.field = new Sub();
@@ -16,7 +16,7 @@ class Sub extends Super {
   }
 }
 
-/*main:[null]*/
+/*element: main:[null]*/
 main() {
-  new Sub(). /*[exact=Sub]*/ method();
+  new Sub(). /*invoke: [exact=Sub]*/ method();
 }
