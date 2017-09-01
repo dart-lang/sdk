@@ -1878,7 +1878,3 @@ type_variable_field_initializer_closure2_test: Crash # NoSuchMethodError: Class 
 type_variable_field_initializer_closure_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
 type_variable_function_type_test: RuntimeError
 yieldstar_pause_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-
-[ $compiler == dart2js && $runtime == drt ]
-conditional_import_string_test: RuntimeError # Issue 30587
-conditional_import_test: RuntimeError # Issue 30587
