@@ -435,8 +435,8 @@ class NodeBox {
 }
 
 class JClosureClass extends JClass {
-  JClosureClass(JLibrary library, int classIndex, String name)
-      : super(library, classIndex, name, isAbstract: false);
+  JClosureClass(JLibrary library, String name)
+      : super(library, name, isAbstract: false);
 
   @override
   bool get isClosure => true;
@@ -445,10 +445,9 @@ class JClosureClass extends JClass {
 }
 
 class JClosureField extends JField {
-  JClosureField(String name, int memberIndex,
-      KernelClosureClass containingClass, bool isConst, bool isAssignable)
+  JClosureField(String name, KernelClosureClass containingClass, bool isConst,
+      bool isAssignable)
       : super(
-            memberIndex,
             containingClass.closureClassEntity.library,
             containingClass.closureClassEntity,
             new Name(name, containingClass.closureClassEntity.library),
@@ -461,17 +460,9 @@ class JClosureField extends JField {
 /// elsewhere.
 // TODO(efortuna, johnniwinther): Don't implement JClass. This isn't actually a
 // class.
-class JRecord implements JClass {
-  final JLibrary library;
-  final String name;
-
-  /// Index into the classData, classList and classEnvironment lists where this
-  /// entity is stored in [JsToFrontendMapImpl].
-  final int classIndex;
-
-  JRecord(this.library, this.classIndex, this.name);
-
-  bool get isAbstract => false;
+class JRecord extends JClass {
+  JRecord(LibraryEntity library, String name)
+      : super(library, name, isAbstract: false);
 
   bool get isClosure => false;
 
@@ -485,9 +476,8 @@ class JRecord implements JClass {
 /// algorithm to correspond to the actual name of the variable.
 class JRecordField extends JField {
   final BoxLocal box;
-  JRecordField(String name, int memberIndex, this.box, JClass containingClass,
-      bool isConst)
-      : super(memberIndex, containingClass.library, containingClass,
+  JRecordField(String name, this.box, JClass containingClass, bool isConst)
+      : super(containingClass.library, containingClass,
             new Name(name, containingClass.library),
             isStatic: false, isAssignable: true, isConst: isConst);
 }
