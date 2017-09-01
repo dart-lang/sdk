@@ -9,6 +9,7 @@ static method foo() → dynamic {
 static method main(dynamic arguments) → dynamic {
   final dynamic #context = MakeVector(3);
   #context[2] = arguments;
+  arguments = null;
   self::f = MakeClosure<(dynamic) → dynamic>(self::closure#main#function, #context);
   self::foo();
 }

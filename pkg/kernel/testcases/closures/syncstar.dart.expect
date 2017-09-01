@@ -5,6 +5,7 @@ import "dart:core" as core;
 static method range(core::int high) → dynamic {
   final dynamic #context = MakeVector(3);
   #context[2] = high;
+  high = null;
   final (core::int) → dynamic iter = MakeClosure<(core::int) → dynamic>(self::closure#range#iter, #context);
   return iter;
 }
@@ -20,6 +21,7 @@ static method closure#range#iter(dynamic #contextParameter, core::int low) → d
   final dynamic #context = MakeVector(3);
   #context[1] = #contextParameter;
   #context[2] = low;
+  low = null;
   dynamic :await_jump_var = 0;
   dynamic :await_ctx_var;
   dynamic :sync_op = (core::Iterator<dynamic> :iterator) → core::bool yielding {

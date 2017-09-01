@@ -18,7 +18,7 @@ class B extends core::Object {
     : final dynamic #context = MakeVector(3), this self::B::#redir(x, #context)
     ;
   constructor #redir(self::X x, final dynamic #context) → void
-    : dynamic #t1 = #context[2] = x, self::B::x = #context[2], super core::Object::•() {
+    : dynamic #t1 = #context[2] = x, dynamic #t2 = x = null, self::B::x = #context[2], super core::Object::•() {
     final () → dynamic fn = MakeClosure<() → dynamic>(self::closure#B#function#fn, #context);
     fn.call();
   }

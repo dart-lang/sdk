@@ -796,7 +796,6 @@ class StreamingFlowGraphBuilder {
   Fragment BuildFieldInitializer(NameIndex canonical_name);
   Fragment BuildInitializers(const Class& parent_class);
   FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
-  FlowGraph* BuildGraphOfConvertedClosureFunction(const Function& function);
   FlowGraph* BuildGraphOfFunction(bool constructor);
 
   Fragment BuildExpression(TokenPosition* position = NULL);

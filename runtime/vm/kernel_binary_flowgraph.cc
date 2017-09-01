@@ -3437,108 +3437,6 @@ LocalVariable* StreamingFlowGraphBuilder::LookupParameterDirect(
   if (var->is_captured()) parameter->set_is_captured_parameter(true);
   return parameter;
 }
-// This method follows the logic of
-// StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction.  For
-// additional details on converted closure functions, please, see the comment on
-// the method Function::ConvertedClosureFunction.
-FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfConvertedClosureFunction(
-    const Function& function) {
-  const Function& target = Function::ZoneHandle(Z, function.parent_function());
-
-  TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
-  flow_graph_builder_->graph_entry_ = new (Z) GraphEntryInstr(
-      *parsed_function(), normal_entry, Compiler::kNoOSRDeoptId);
-  SetupDefaultParameterValues();
-
-  Fragment body(normal_entry);
-  body += flow_graph_builder_->CheckStackOverflowInPrologue();
-  body += NullConstant();
-  LocalVariable* result = MakeTemporary();
-
-  // Load all the arguments.
-  ASSERT(target.is_static());
-
-  // TODO(30455): Kernel generic methods undone. Since the frontend can't yet
-  // emit generic methods into kernel, all type parameters to the target must
-  // come from the context. When generic methods are fully supported, we will
-  // need to get the type arguments provided by the caller and append them to
-  // the captured type arguments via 'prependTypeArguments'.
-
-  FunctionNodeHelper function_node_helper(this);
-  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
-  intptr_t type_param_count = PeekUInt();
-  function_node_helper.ReadUntilExcluding(
-      FunctionNodeHelper::kPositionalParameters);
-
-  // Positional.
-  const intptr_t positional_argument_count = ReadListLength();
-
-  // The first argument is the instance of the closure class.  For converted
-  // closures its context field contains the context vector that is used by the
-  // converted top-level function (target) explicitly and that should be passed
-  // to that function as the first parameter.
-  intptr_t parameter_index = parsed_function()->first_parameter_index();
-  LocalVariable* parameter = LookupParameterDirect(
-      ReaderOffset() + relative_kernel_offset_, parameter_index--);
-  body += LoadLocal(parameter);  // 0th variable offset.
-  body += flow_graph_builder_->LoadField(Closure::context_offset());
-  LocalVariable* context = MakeTemporary();
-
-  if (type_param_count > 0) {
-    body += LoadLocal(context);
-    body += flow_graph_builder_->LoadField(Context::variable_offset(0));
-    body += PushArgument();
-  }
-
-  body += LoadLocal(context);
-  body += PushArgument();
-  SkipVariableDeclaration();  // read 0th variable.
-
-  // The rest of the parameters are the same for the method of the Closure class
-  // being invoked and the top-level function (target).
-  for (intptr_t i = 1; i < positional_argument_count; i++) {
-    LocalVariable* parameter = LookupParameterDirect(
-        ReaderOffset() + relative_kernel_offset_, parameter_index--);
-    body += LoadLocal(parameter);  // ith variable offset.
-    body += PushArgument();
-    SkipVariableDeclaration();  // read ith variable.
-  }
-
-  // Named.
-  const intptr_t named_argument_count = ReadListLength();
-  Array& argument_names = Array::ZoneHandle(Z);
-  if (named_argument_count > 0) {
-    argument_names = Array::New(named_argument_count);
-    for (intptr_t i = 0; i < named_argument_count; i++) {
-      // ith variable offset.
-      body +=
-          LoadLocal(LookupVariable(ReaderOffset() + relative_kernel_offset_));
-      body += PushArgument();
-
-      // read ith variable.
-      VariableDeclarationHelper helper(this);
-      helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
-
-      argument_names.SetAt(i, H.DartSymbol(helper.name_index_));
-    }
-  }
-
-  // Forward them to the target.
-  intptr_t argument_count = positional_argument_count + named_argument_count;
-  if (type_param_count) ++argument_count;
-  body += StaticCall(TokenPosition::kNoSource, target, argument_count,
-                     argument_names, type_param_count);
-
-  // Return the result.
-  body += StoreLocal(TokenPosition::kNoSource, result);
-  body += Drop();
-  body += Drop();
-  body += Return(function_node_helper.end_position_);
-
-  return new (Z)
-      FlowGraph(*parsed_function(), flow_graph_builder_->graph_entry_,
-                flow_graph_builder_->next_block_id_ - 1);
-}
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
   const Function& dart_function = parsed_function()->function();
@@ -3549,6 +3447,31 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
   SetupDefaultParameterValues();
 
   Fragment body;
+
+  if (dart_function.IsConvertedClosureFunction()) {
+    LocalVariable* closure = new (Z) LocalVariable(
+        TokenPosition::kNoSource, TokenPosition::kNoSource,
+        Symbols::TempParam(), AbstractType::ZoneHandle(Z, Type::DynamicType()));
+    closure->set_index(parsed_function()->first_parameter_index());
+    closure->set_is_captured_parameter(true);
+    body += LoadLocal(closure);
+    body += LoadField(Closure::context_offset());
+    LocalVariable* context = closure;
+    body += StoreLocal(TokenPosition::kNoSource, context);
+
+    // TODO(30455): Kernel generic methods undone. When generic closures are
+    // supported, the type arguments passed by the caller will actually need to
+    // be used here.
+    if (dart_function.IsGeneric() && FLAG_reify_generic_functions) {
+      LocalVariable* type_args_slot =
+          parsed_function()->function_type_arguments();
+      ASSERT(type_args_slot != NULL);
+      body += LoadField(Context::variable_offset(0));
+      body += StoreLocal(TokenPosition::kNoSource, type_args_slot);
+    }
+    body += Drop();
+  }
+
   if (!dart_function.is_native())
     body += flow_graph_builder_->CheckStackOverflowInPrologue();
   intptr_t context_size =
@@ -3867,8 +3790,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
       ReadUntilFunctionNode();  // read until function node.
       if (function.IsImplicitClosureFunction()) {
         return BuildGraphOfImplicitClosureFunction(function);
-      } else if (function.IsConvertedClosureFunction()) {
-        return BuildGraphOfConvertedClosureFunction(function);
       }
       return BuildGraphOfFunction(false);
     }
