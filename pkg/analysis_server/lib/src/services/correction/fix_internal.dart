@@ -429,6 +429,12 @@ class FixProcessor {
       if (name == LintNames.await_only_futures) {
         await _addFix_removeAwait();
       }
+      if (name == LintNames.empty_catches) {
+        await _addFix_removeEmptyCatch();
+      }
+      if (name == LintNames.empty_constructor_bodies) {
+        await _addFix_removeEmptyConstructorBody();
+      }
       if (name == LintNames.empty_statements) {
         await _addFix_removeEmptyStatement();
       }
@@ -1938,6 +1944,24 @@ class FixProcessor {
     }
   }
 
+  Future<Null> _addFix_removeEmptyCatch() async {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addDeletion(utils.getLinesRange(range.node(node.parent)));
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_EMPTY_CATCH);
+  }
+
+  Future<Null> _addFix_removeEmptyConstructorBody() async {
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleReplacement(
+          utils.getLinesRange(range.node(node.parent)), ';');
+    });
+    _addFixFromBuilder(
+        changeBuilder, DartFixKind.REMOVE_EMPTY_CONSTRUCTOR_BODY);
+  }
+
   Future<Null> _addFix_removeEmptyElse() async {
     IfStatement ifStatement = node.parent;
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
@@ -3174,6 +3198,8 @@ class LintNames {
   static const String avoid_types_on_closure_parameters =
       'avoid_types_on_closure_parameters';
   static const String await_only_futures = 'await_only_futures';
+  static const String empty_catches = 'empty_catches';
+  static const String empty_constructor_bodies = 'empty_constructor_bodies';
   static const String empty_statements = 'empty_statements';
   static const String prefer_collection_literals = 'prefer_collection_literals';
   static const String prefer_conditional_assignment =

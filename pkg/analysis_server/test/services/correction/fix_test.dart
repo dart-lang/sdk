@@ -5810,6 +5810,60 @@ bad() async {
 ''');
   }
 
+  test_removeEmptyCatch_newLine() async {
+    String src = '''
+void foo() {
+  try {}
+  catch (e) {/*LINT*/}
+  finally {}
+}
+''';
+    await findLint(src, LintNames.empty_catches);
+
+    await applyFix(DartFixKind.REMOVE_EMPTY_CATCH);
+
+    verifyResult('''
+void foo() {
+  try {}
+  finally {}
+}
+''');
+  }
+
+  test_removeEmptyCatch_sameLine() async {
+    String src = '''
+void foo() {
+  try {} catch (e) {/*LINT*/} finally {}
+}
+''';
+    await findLint(src, LintNames.empty_catches);
+
+    await applyFix(DartFixKind.REMOVE_EMPTY_CATCH);
+
+    verifyResult('''
+void foo() {
+  try {} finally {}
+}
+''');
+  }
+
+  test_removeEmptyConstructorBody() async {
+    String src = '''
+class C {
+  C() {/*LINT*/}
+}
+''';
+    await findLint(src, LintNames.empty_constructor_bodies);
+
+    await applyFix(DartFixKind.REMOVE_EMPTY_CONSTRUCTOR_BODY);
+
+    verifyResult('''
+class C {
+  C();
+}
+''');
+  }
+
   test_removeEmptyElse_newLine() async {
     String src = '''
 void foo(bool cond) {
