@@ -213,6 +213,89 @@ const char* Platform::OperatingSystem() {
   return "windows";
 }
 
+// We pull the version number, and other version information out of the
+// registry because GetVersionEx() and friends lie about the OS version after
+// Windows 8.1. See:
+// https://msdn.microsoft.com/en-us/library/windows/desktop/ms724451(v=vs.85).aspx
+static const wchar_t* kCurrentVersion =
+    L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion";
+
+static bool GetCurrentVersionDWord(const wchar_t* field, DWORD* value) {
+  DWORD value_size = sizeof(*value);
+  LONG err = RegGetValue(HKEY_LOCAL_MACHINE, kCurrentVersion, field,
+                         RRF_RT_REG_DWORD, NULL, value, &value_size);
+  return err == ERROR_SUCCESS;
+}
+
+static bool GetCurrentVersionString(const wchar_t* field, const char** value) {
+  wchar_t wversion[256];
+  DWORD wversion_size = sizeof(wversion);
+  LONG err = RegGetValue(HKEY_LOCAL_MACHINE, kCurrentVersion, field,
+                         RRF_RT_REG_SZ, NULL, wversion, &wversion_size);
+  if (err != ERROR_SUCCESS) {
+    return false;
+  }
+  *value = StringUtilsWin::WideToUtf8(wversion);
+  return true;
+}
+
+static const char* VersionNumber() {
+  // Try to get CurrentMajorVersionNumber. If that fails, fall back on
+  // CurrentVersion. If it succeeds also get CurrentMinorVersionNumber.
+  DWORD major;
+  if (!GetCurrentVersionDWord(L"CurrentMajorVersionNumber", &major)) {
+    const char* version;
+    if (!GetCurrentVersionString(L"CurrentVersion", &version)) {
+      return NULL;
+    }
+    return version;
+  }
+
+  DWORD minor;
+  if (!GetCurrentVersionDWord(L"CurrentMinorVersionNumber", &minor)) {
+    return NULL;
+  }
+  const char* kFormat = "%d.%d";
+  int len = snprintf(NULL, 0, kFormat, major, minor);
+  if (len < 0) {
+    return NULL;
+  }
+  char* result = DartUtils::ScopedCString(len + 1);
+  ASSERT(result != NULL);
+  len = snprintf(result, len + 1, kFormat, major, minor);
+  if (len < 0) {
+    return NULL;
+  }
+  return result;
+}
+
+const char* Platform::OperatingSystemVersion() {
+  // Get the product name, e.g. "Windows 10 Home".
+  const char* name;
+  if (!GetCurrentVersionString(L"ProductName", &name)) {
+    return NULL;
+  }
+
+  // Get the version number, e.g. "10.0".
+  const char* version_number = VersionNumber();
+  if (version_number == NULL) {
+    return NULL;
+  }
+
+  // Get the build number.
+  const char* build;
+  if (!GetCurrentVersionString(L"CurrentBuild", &build)) {
+    return NULL;
+  }
+
+  // Put it all together.
+  const char* kFormat = "\"%s\" %s (Build %s)";
+  int len = snprintf(NULL, 0, kFormat, name, version_number, build);
+  char* result = DartUtils::ScopedCString(len + 1);
+  len = snprintf(result, len + 1, kFormat, name, version_number, build);
+  return result;
+}
+
 const char* Platform::LibraryPrefix() {
   return "";
 }

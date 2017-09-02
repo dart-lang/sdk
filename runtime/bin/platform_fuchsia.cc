@@ -11,6 +11,7 @@
 #include <magenta/status.h>
 #include <magenta/syscalls.h>
 #include <string.h>
+#include <sys/utsname.h>
 #include <unistd.h>
 
 #include "bin/dartutils.h"
@@ -35,6 +36,28 @@ int Platform::NumberOfProcessors() {
 
 const char* Platform::OperatingSystem() {
   return "fuchsia";
+}
+
+const char* Platform::OperatingSystemVersion() {
+  struct utsname info;
+  int ret = uname(&info);
+  if (ret != 0) {
+    return NULL;
+  }
+  const char* kFormat = "%s %s %s";
+  int len =
+      snprintf(NULL, 0, kFormat, info.sysname, info.release, info.version);
+  if (len <= 0) {
+    return NULL;
+  }
+  char* result = DartUtils::ScopedCString(len + 1);
+  ASSERT(result != NULL);
+  len = snprintf(result, len + 1, kFormat, info.sysname, info.release,
+                 info.version);
+  if (len <= 0) {
+    return NULL;
+  }
+  return result;
 }
 
 const char* Platform::LibraryPrefix() {

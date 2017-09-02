@@ -19,6 +19,15 @@ void FUNCTION_NAME(Platform_OperatingSystem)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, DartUtils::NewString(Platform::OperatingSystem()));
 }
 
+void FUNCTION_NAME(Platform_OperatingSystemVersion)(Dart_NativeArguments args) {
+  const char* version = Platform::OperatingSystemVersion();
+  if (version == NULL) {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewString(version));
+  }
+}
+
 void FUNCTION_NAME(Platform_PathSeparator)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, DartUtils::NewString(File::PathSeparator()));
 }

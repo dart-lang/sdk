@@ -234,6 +234,11 @@ class _Platform {
   }
 
   @patch
+  static _operatingSystemVersion() {
+    throw new UnsupportedError("Platform._operatingSystemVersion");
+  }
+
+  @patch
   static _localHostname() {
     throw new UnsupportedError("Platform._localHostname");
   }
