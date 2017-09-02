@@ -232,6 +232,8 @@ class DartFixKind {
       "Use effective integer division ~/");
   static const USE_EQ_EQ_NULL =
       const FixKind('USE_EQ_EQ_NULL', 50, "Use == null instead of 'is Null'");
+  static const USE_IS_NOT_EMPTY = const FixKind(
+      'USE_NOT_EMPTY', 50, "Use x.isNotEmpty instead of '!x.isEmpty'");
   static const USE_NOT_EQ_NULL =
       const FixKind('USE_NOT_EQ_NULL', 50, "Use != null instead of 'is! Null'");
 }

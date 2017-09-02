@@ -5576,6 +5576,23 @@ void function({@required String param}) {
 ''');
   }
 
+  test_isNotEmpty() async {
+    String src = '''
+f(c) {
+  if (/*LINT*/!c.isEmpty) {}
+}
+''';
+    await findLint(src, LintNames.prefer_is_not_empty);
+
+    await applyFix(DartFixKind.USE_IS_NOT_EMPTY);
+
+    verifyResult('''
+f(c) {
+  if (c.isNotEmpty) {}
+}
+''');
+  }
+
   test_lint_addMissingOverride_field() async {
     String src = '''
 class abstract Test {
@@ -6162,7 +6179,7 @@ class A {
 ''');
   }
 
-  test_removeTypeName_avoidAnnotatingWithDynamic_InsideFunctionTypedFormalParameter() async {
+  test_removeTypeAnnotation_avoidAnnotatingWithDynamic_InsideFunctionTypedFormalParameter() async {
     String src = '''
 bad(void foo(/*LINT*/dynamic x)) {
   return null;
@@ -6179,7 +6196,7 @@ bad(void foo(x)) {
 ''');
   }
 
-  test_removeTypeName_avoidAnnotatingWithDynamic_NamedParameter() async {
+  test_removeTypeAnnotation_avoidAnnotatingWithDynamic_NamedParameter() async {
     String src = '''
 bad({/*LINT*/dynamic defaultValue}) {
   return null;
@@ -6196,7 +6213,7 @@ bad({defaultValue}) {
 ''');
   }
 
-  test_removeTypeName_avoidAnnotatingWithDynamic_NormalParameter() async {
+  test_removeTypeAnnotation_avoidAnnotatingWithDynamic_NormalParameter() async {
     String src = '''
 bad(/*LINT*/dynamic defaultValue) {
   return null;
@@ -6213,7 +6230,7 @@ bad(defaultValue) {
 ''');
   }
 
-  test_removeTypeName_avoidAnnotatingWithDynamic_OptionalParameter() async {
+  test_removeTypeAnnotation_avoidAnnotatingWithDynamic_OptionalParameter() async {
     String src = '''
 bad([/*LINT*/dynamic defaultValue]) {
   return null;
@@ -6230,7 +6247,7 @@ bad([defaultValue]) {
 ''');
   }
 
-  test_removeTypeName_avoidReturnTypesOnSetters_void() async {
+  test_removeTypeAnnotation_avoidReturnTypesOnSetters_void() async {
     String src = '''
 /*LINT*/void set speed2(int ms) {}
 ''';
@@ -6243,7 +6260,7 @@ set speed2(int ms) {}
 ''');
   }
 
-  test_removeTypeName_avoidTypesOnClosureParameters_FunctionTypedFormalParameter() async {
+  test_removeTypeAnnotation_avoidTypesOnClosureParameters_FunctionTypedFormalParameter() async {
     String src = '''
 var functionWithFunction = (/*LINT*/int f(int x)) => f(0);
 ''';
@@ -6256,7 +6273,7 @@ var functionWithFunction = (f) => f(0);
 ''');
   }
 
-  test_removeTypeName_avoidTypesOnClosureParameters_NamedParameter() async {
+  test_removeTypeAnnotation_avoidTypesOnClosureParameters_NamedParameter() async {
     String src = '''
 var x = ({/*LINT*/Future<int> defaultValue}) {
   return null;
@@ -6273,7 +6290,7 @@ var x = ({defaultValue}) {
 ''');
   }
 
-  test_removeTypeName_avoidTypesOnClosureParameters_NormalParameter() async {
+  test_removeTypeAnnotation_avoidTypesOnClosureParameters_NormalParameter() async {
     String src = '''
 var x = (/*LINT*/Future<int> defaultValue) {
   return null;
@@ -6290,7 +6307,7 @@ var x = (defaultValue) {
 ''');
   }
 
-  test_removeTypeName_avoidTypesOnClosureParameters_OptionalParameter() async {
+  test_removeTypeAnnotation_avoidTypesOnClosureParameters_OptionalParameter() async {
     String src = '''
 var x = ([/*LINT*/Future<int> defaultValue]) {
   return null;
@@ -6304,6 +6321,25 @@ var x = ([/*LINT*/Future<int> defaultValue]) {
 var x = ([defaultValue]) {
   return null;
 };
+''');
+  }
+
+  test_removeTypeAnnotation_typeInitFormals_void() async {
+    String src = '''
+class C {
+  int f;
+  C(/*LINT*/int this.f);
+}
+''';
+    await findLint(src, LintNames.type_init_formals);
+
+    await applyFix(DartFixKind.REMOVE_TYPE_NAME);
+
+    verifyResult('''
+class C {
+  int f;
+  C(this.f);
+}
 ''');
   }
 
