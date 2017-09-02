@@ -286,12 +286,10 @@ class Parser {
             optional('class', token) &&
             abstractToken == null) {
           abstractToken = modifierToken;
+        } else if (optional('const', modifierToken) &&
+            optional('class', token)) {
+          reportRecoverableError(modifierToken, fasta.messageConstClass);
         } else {
-          // TODO(danrubel): Report more specific recoverable error message
-          // for `const class` to better help the user.
-          // See ParserErrorCode CONST_CLASS
-
-          // Report an error for each extraneous modifier
           reportRecoverableErrorWithToken(
               modifierToken, fasta.templateExtraneousModifier);
         }

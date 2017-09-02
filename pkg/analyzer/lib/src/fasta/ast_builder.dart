@@ -1926,13 +1926,9 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_TYPE_NAME, charOffset, 1);
         return;
-      case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
-        if (!allowNativeClause) {
-          errorReporter?.reportErrorForOffset(
-              ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
-              charOffset,
-              1);
-        }
+      case "CONST_CLASS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CONST_CLASS, charOffset, 1);
         return;
       case "EXPECTED_STRING_LITERAL":
         errorReporter?.reportErrorForOffset(
@@ -1942,6 +1938,14 @@ class AstBuilder extends ScopeListener {
         String text = stringOrTokenLexeme();
         errorReporter?.reportErrorForOffset(ParserErrorCode.EXTRANEOUS_MODIFIER,
             charOffset, text.length, [text]);
+        return;
+      case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
+        if (!allowNativeClause) {
+          errorReporter?.reportErrorForOffset(
+              ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
+              charOffset,
+              1);
+        }
         return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();
