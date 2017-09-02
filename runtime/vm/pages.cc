@@ -1203,7 +1203,9 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
       t += (gc_time_fraction - garbage_collection_time_ratio_) / 100.0;
     }
 
-    const intptr_t grow_ratio =
+    // Number of pages we can allocate and still be within the desired growth
+    // ratio.
+    const intptr_t grow_pages =
         (static_cast<intptr_t>(after.capacity_in_words / desired_utilization_) -
          after.capacity_in_words) /
         PageSpace::kPageSizeInWords;
@@ -1212,7 +1214,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
       // grow_heap_ size based on estimated garbage so we use growth ratio
       // heuristics instead.
       grow_heap_ =
-          Utils::Maximum(static_cast<intptr_t>(heap_growth_max_), grow_ratio);
+          Utils::Maximum(static_cast<intptr_t>(heap_growth_max_), grow_pages);
     } else {
       // Find minimum 'grow_heap_' such that after increasing capacity by
       // 'grow_heap_' pages and filling them, we expect a GC to be worthwhile.
@@ -1237,7 +1239,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
       // If we are going to grow by heap_grow_max_ then ensure that we
       // will be growing the heap at least by the growth ratio heuristics.
       if (grow_heap_ >= heap_growth_max_) {
-        grow_heap_ = Utils::Maximum(grow_ratio, grow_heap_);
+        grow_heap_ = Utils::Maximum(grow_pages, grow_heap_);
       }
     }
   } else {
