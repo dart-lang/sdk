@@ -2064,6 +2064,14 @@ void f() {
  */
 @reflectiveTest
 class ErrorParserTest extends ParserTestCase with ErrorParserTestMixin {
+  void test_missingIdentifier_number() {
+    createParser('1');
+    SimpleIdentifier expression = parser.parseSimpleIdentifier();
+    expectNotNullIfNoErrors(expression);
+    listener.assertErrorsWithCodes([ParserErrorCode.MISSING_IDENTIFIER]);
+    expect(expression.isSynthetic, isTrue);
+  }
+
   void test_nullableTypeInExtends() {
     enableNnbd = true;
     createParser('extends B?');
@@ -2517,8 +2525,8 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_duplicateLabelInSwitchStatement() {
-    createParser('switch (e) {l1: case 0: break; l1: case 1: break;}');
-    SwitchStatement statement = parser.parseSwitchStatement();
+    SwitchStatement statement =
+        parseStatement('switch (e) {l1: case 0: break; l1: case 1: break;}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrorsWithCodes(
         [ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT]);
@@ -2557,8 +2565,7 @@ class Foo {
   }
 
   void test_expectedCaseOrDefault() {
-    createParser('switch (e) {break;}');
-    SwitchStatement statement = parser.parseSwitchStatement();
+    SwitchStatement statement = parseStatement('switch (e) {break;}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrorsWithCodes([ParserErrorCode.EXPECTED_CASE_OR_DEFAULT]);
   }
@@ -2614,26 +2621,24 @@ class Foo {
   }
 
   void test_expectedInterpolationIdentifier() {
-    createParser("'\$x\$'");
-    StringLiteral literal = parser.parseStringLiteral();
-    expectNotNullIfNoErrors(literal);
-    listener.assertErrorsWithCodes([
+    StringLiteral literal = parseExpression("'\$x\$'", [
       fe.Scanner.useFasta
           ? ScannerErrorCode.MISSING_IDENTIFIER
           : ParserErrorCode.MISSING_IDENTIFIER
     ]);
+    expectNotNullIfNoErrors(literal);
   }
 
   void test_expectedInterpolationIdentifier_emptyString() {
     // The scanner inserts an empty string token between the two $'s; we need to
     // make sure that the MISSING_IDENTIFIER error that is generated has a
     // nonzero width so that it will show up in the editor UI.
-    createParser("'\$\$foo'");
-    StringLiteral literal = parser.parseStringLiteral();
+    StringLiteral literal = parseExpression(
+        "'\$\$foo'",
+        fe.Scanner.useFasta
+            ? [ScannerErrorCode.MISSING_IDENTIFIER]
+            : [ParserErrorCode.MISSING_IDENTIFIER]);
     expectNotNullIfNoErrors(literal);
-    listener.assertErrors(fe.Scanner.useFasta
-        ? [new AnalysisError(null, 2, 1, ScannerErrorCode.MISSING_IDENTIFIER)]
-        : [new AnalysisError(null, 2, 1, ParserErrorCode.MISSING_IDENTIFIER)]);
   }
 
   @failingTest
@@ -2652,8 +2657,7 @@ class Foo {
   }
 
   void test_expectedStringLiteral() {
-    createParser('1');
-    StringLiteral literal = parser.parseStringLiteral();
+    StringLiteral literal = parseStringLiteral('1');
     expectNotNullIfNoErrors(literal);
     listener.assertErrorsWithCodes([ParserErrorCode.EXPECTED_STRING_LITERAL]);
     expect(literal.isSynthetic, isTrue);
@@ -3103,25 +3107,22 @@ class Wrong<T> {
   }
 
   void test_initializedVariableInForEach() {
-    createParser('for (int a = 0 in foo) {}');
-    Statement statement = parser.parseForStatement();
+    Statement statement = parseStatement('for (int a = 0 in foo) {}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrorsWithCodes(
         [ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH]);
   }
 
   void test_invalidAwaitInFor() {
-    createParser('await for (; ;) {}');
-    Statement statement = parser.parseForStatement();
+    Statement statement = parseStatement('await for (; ;) {}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrorsWithCodes([ParserErrorCode.INVALID_AWAIT_IN_FOR]);
   }
 
   void test_invalidCodePoint() {
-    createParser("'\\u{110000}'");
-    StringLiteral literal = parser.parseStringLiteral();
+    StringLiteral literal =
+        parseExpression("'\\u{110000}'", [ParserErrorCode.INVALID_CODE_POINT]);
     expectNotNullIfNoErrors(literal);
-    listener.assertErrorsWithCodes([ParserErrorCode.INVALID_CODE_POINT]);
   }
 
   @failingTest
@@ -3166,28 +3167,24 @@ class Wrong<T> {
   }
 
   void test_invalidHexEscape_invalidDigit() {
-    createParser("'\\x0 a'");
-    StringLiteral literal = parser.parseStringLiteral();
+    StringLiteral literal =
+        parseExpression("'\\x0 a'", [ParserErrorCode.INVALID_HEX_ESCAPE]);
     expectNotNullIfNoErrors(literal);
-    listener.assertErrorsWithCodes([ParserErrorCode.INVALID_HEX_ESCAPE]);
   }
 
   void test_invalidHexEscape_tooFewDigits() {
-    createParser("'\\x0'");
-    StringLiteral literal = parser.parseStringLiteral();
+    StringLiteral literal =
+        parseExpression("'\\x0'", [ParserErrorCode.INVALID_HEX_ESCAPE]);
     expectNotNullIfNoErrors(literal);
-    listener.assertErrorsWithCodes([ParserErrorCode.INVALID_HEX_ESCAPE]);
   }
 
   void test_invalidInterpolationIdentifier_startWithDigit() {
-    createParser("'\$1'");
-    StringLiteral literal = parser.parseStringLiteral();
-    expectNotNullIfNoErrors(literal);
-    listener.assertErrorsWithCodes([
+    StringLiteral literal = parseExpression("'\$1'", [
       fe.Scanner.useFasta
           ? ScannerErrorCode.MISSING_IDENTIFIER
           : ParserErrorCode.MISSING_IDENTIFIER
     ]);
+    expectNotNullIfNoErrors(literal);
   }
 
   void test_invalidLiteralInConfiguration() {
@@ -3438,11 +3435,9 @@ class Wrong<T> {
   }
 
   void test_missingAssignableSelector_superPrimaryExpression() {
-    createParser('super');
-    Expression expression = parser.parsePrimaryExpression();
+    Expression expression =
+        parseExpression('super', [ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR]);
     expectNotNullIfNoErrors(expression);
-    listener
-        .assertErrorsWithCodes([ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR]);
     expect(expression, new isInstanceOf<SuperExpression>());
     SuperExpression superExpression = expression;
     expect(superExpression.superKeyword, isNotNull);
@@ -3453,8 +3448,7 @@ class Wrong<T> {
   }
 
   void test_missingCatchOrFinally() {
-    createParser('try {}');
-    TryStatement statement = parser.parseTryStatement();
+    TryStatement statement = parseStatement('try {}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrorsWithCodes([ParserErrorCode.MISSING_CATCH_OR_FINALLY]);
     expect(statement, isNotNull);
@@ -3500,17 +3494,9 @@ class Wrong<T> {
     listener.assertErrorsWithCodes([ParserErrorCode.MISSING_ENUM_BODY]);
   }
 
-  void test_missingExpressionInThrow_withCascade() {
-    createParser('throw;');
-    ThrowExpression expression = parser.parseThrowExpression();
-    expectNotNullIfNoErrors(expression);
-    listener
-        .assertErrorsWithCodes([ParserErrorCode.MISSING_EXPRESSION_IN_THROW]);
-  }
-
-  void test_missingExpressionInThrow_withoutCascade() {
-    createParser('throw;');
-    ThrowExpression expression = parser.parseThrowExpressionWithoutCascade();
+  void test_missingExpressionInThrow() {
+    ThrowExpression expression =
+        (parseStatement('throw;') as ExpressionStatement).expression;
     expectNotNullIfNoErrors(expression);
     listener
         .assertErrorsWithCodes([ParserErrorCode.MISSING_EXPRESSION_IN_THROW]);
@@ -3618,14 +3604,6 @@ class Wrong<T> {
     listener.assertErrorsWithCodes([ParserErrorCode.MISSING_IDENTIFIER]);
   }
 
-  void test_missingIdentifier_number() {
-    createParser('1');
-    SimpleIdentifier expression = parser.parseSimpleIdentifier();
-    expectNotNullIfNoErrors(expression);
-    listener.assertErrorsWithCodes([ParserErrorCode.MISSING_IDENTIFIER]);
-    expect(expression.isSynthetic, isTrue);
-  }
-
   void test_missingIdentifierForParameterGroup() {
     createParser('(,)');
     FormalParameterList list = parser.parseFormalParameterList();
@@ -3679,9 +3657,9 @@ class Wrong<T> {
   }
 
   void test_missingNameForNamedParameter_colon() {
-    createParser('int : 0');
+    createParser('({int : 0})');
     FormalParameter parameter =
-        parser.parseFormalParameter(ParameterKind.NAMED, inFunctionType: true);
+        parser.parseFormalParameterList(inFunctionType: true).parameters[0];
     expectNotNullIfNoErrors(parameter);
     listener.assertErrorsWithCodes([
       ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
@@ -3691,9 +3669,9 @@ class Wrong<T> {
   }
 
   void test_missingNameForNamedParameter_equals() {
-    createParser('int = 0');
+    createParser('({int = 0})');
     FormalParameter parameter =
-        parser.parseFormalParameter(ParameterKind.NAMED, inFunctionType: true);
+        parser.parseFormalParameterList(inFunctionType: true).parameters[0];
     expectNotNullIfNoErrors(parameter);
     listener.assertErrorsWithCodes([
       ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
@@ -3703,9 +3681,9 @@ class Wrong<T> {
   }
 
   void test_missingNameForNamedParameter_noDefault() {
-    createParser('int');
+    createParser('({int})');
     FormalParameter parameter =
-        parser.parseFormalParameter(ParameterKind.NAMED, inFunctionType: true);
+        parser.parseFormalParameterList(inFunctionType: true).parameters[0];
     expectNotNullIfNoErrors(parameter);
     listener.assertErrorsWithCodes(
         [ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER]);
@@ -3784,8 +3762,7 @@ class Wrong<T> {
   }
 
   void test_missingVariableInForEach() {
-    createParser('for (a < b in foo) {}');
-    Statement statement = parser.parseForStatement();
+    Statement statement = parseStatement('for (a < b in foo) {}');
     expectNotNullIfNoErrors(statement);
     listener
         .assertErrorsWithCodes([ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH]);
@@ -3846,8 +3823,7 @@ class Wrong<T> {
   }
 
   void test_multipleVariablesInForEach() {
-    createParser('for (int a, b in foo) {}');
-    Statement statement = parser.parseForStatement();
+    Statement statement = parseStatement('for (int a, b in foo) {}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrorsWithCodes(
         [ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH]);
@@ -4121,17 +4097,16 @@ m() {
   }
 
   void test_switchHasCaseAfterDefaultCase() {
-    createParser('switch (a) {default: return 0; case 1: return 1;}');
-    SwitchStatement statement = parser.parseSwitchStatement();
+    SwitchStatement statement =
+        parseStatement('switch (a) {default: return 0; case 1: return 1;}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrorsWithCodes(
         [ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE]);
   }
 
   void test_switchHasCaseAfterDefaultCase_repeated() {
-    createParser(
+    SwitchStatement statement = parseStatement(
         'switch (a) {default: return 0; case 1: return 1; case 2: return 2;}');
-    SwitchStatement statement = parser.parseSwitchStatement();
     expectNotNullIfNoErrors(statement);
     listener.assertErrorsWithCodes([
       ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE,
@@ -4140,17 +4115,16 @@ m() {
   }
 
   void test_switchHasMultipleDefaultCases() {
-    createParser('switch (a) {default: return 0; default: return 1;}');
-    SwitchStatement statement = parser.parseSwitchStatement();
+    SwitchStatement statement =
+        parseStatement('switch (a) {default: return 0; default: return 1;}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrorsWithCodes(
         [ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES]);
   }
 
   void test_switchHasMultipleDefaultCases_repeated() {
-    createParser(
+    SwitchStatement statement = parseStatement(
         'switch (a) {default: return 0; default: return 1; default: return 2;}');
-    SwitchStatement statement = parser.parseSwitchStatement();
     expectNotNullIfNoErrors(statement);
     listener.assertErrorsWithCodes([
       ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES,
@@ -4411,8 +4385,8 @@ void main() {
   }
 
   void test_voidParameter() {
-    createParser('void a)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
+    NormalFormalParameter parameter =
+        parseFormalParameterList('(void a)').parameters[0];
     expectNotNullIfNoErrors(parameter);
     listener.assertNoErrors();
   }
