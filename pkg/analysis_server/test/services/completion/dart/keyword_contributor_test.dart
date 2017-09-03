@@ -751,6 +751,26 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     assertSuggestKeywords([]);
   }
 
+  test_class_member_const_afterStatic() async {
+    addTestSource('''
+class C {
+  static c^
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.CONST, Keyword.FINAL]);
+  }
+
+  test_class_member_final_afterStatic() async {
+    addTestSource('''
+class C {
+  static f^
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.CONST, Keyword.FINAL]);
+  }
+
   test_class_name() async {
     addTestSource('class ^');
     await computeSuggestions();
