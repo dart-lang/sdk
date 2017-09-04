@@ -41,6 +41,10 @@ stacktrace_demangle_ctors_test: Fail # dart2js stack traces are not always compl
 
 syntax_test/none: CompileTimeError # Issue #30176.
 
+[ $compiler == dart2js && $csp && $browser ]
+conditional_import_string_test: Fail # Issue 30615
+conditional_import_test: Fail # Issue 30615
+
 [ $compiler == dart2js && $fast_startup && ! $dart2js_with_kernel ]
 const_evaluation_test/*: Fail # mirrors not supported
 deferred_constraints_constants_test/none: Fail # mirrors not supported
