@@ -308,7 +308,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
     // TODO(leafp): Allow JS objects to go through?
     if ($typeArgs != null) {
       // TODO(jmesserly): is there a sensible way to handle these?
-      $throwStrongModeError('call to JS object `' + $obj +
+      $throwTypeError('call to JS object `' + $obj +
           '` with type arguments <' + $typeArgs + '> is not supported.');
     }
     return $f.apply($obj, $args);
@@ -322,7 +322,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
       $typeArgs = $ftype.instantiateDefaultBounds();
     } else if ($typeArgs.length != formalCount) {
       // TODO(jmesserly): is this the right error?
-      $throwStrongModeError(
+      $throwTypeError(
           'incorrect number of arguments to generic function ' +
           $typeName($ftype) + ', got <' + $typeArgs + '> expected ' +
           formalCount + '.');
@@ -331,7 +331,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
     }
     $ftype = $ftype.instantiate($typeArgs);
   } else if ($typeArgs != null) {
-    $throwStrongModeError(
+    $throwTypeError(
         'got type arguments to non-generic function ' + $typeName($ftype) +
         ', got <' + $typeArgs + '> expected none.');
   }

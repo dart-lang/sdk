@@ -816,14 +816,20 @@ class CodeGenerator extends Object
   }
 
   @override
-  JS.Expression visitTypeName(TypeName node) {
-    if (node.type == null) {
+  JS.Expression visitTypeName(node) => _emitTypeAnnotation(node);
+
+  @override
+  JS.Expression visitGenericFunctionType(node) => _emitTypeAnnotation(node);
+
+  JS.Expression _emitTypeAnnotation(TypeAnnotation node) {
+    var type = node.type;
+    if (type == null) {
       // TODO(jmesserly): if the type fails to resolve, should we generate code
       // that throws instead?
       assert(options.unsafeForceCompile || options.replCompile);
-      return _callHelper('dynamic');
+      type = types.dynamicType;
     }
-    return _emitType(node.type);
+    return _emitType(type);
   }
 
   @override
@@ -1504,8 +1510,8 @@ class CodeGenerator extends Object
     for (var member in covariantParams.map((p) => p.enclosingElement).toSet()) {
       var name = _declareMemberName(member);
       if (member is PropertyAccessorElement) {
-        var param = member.parameters[0];
-        assert(covariantParams.contains(param));
+        var param =
+            covariantParams.lookup(member.parameters[0]) as ParameterElement;
         methods.add(new JS.Method(
             name,
             js.call('function(x) { return super.#(#._check(x)); }',
@@ -1518,45 +1524,43 @@ class CodeGenerator extends Object
         var type = member.type;
 
         var body = <JS.Statement>[];
-        var typeFormals = _emitTypeFormals(type.typeFormals);
-        if (type.typeFormals.any(covariantParams.contains)) {
-          body.add(js.statement(
-              '#.checkBounds([#]);', [_emitType(type), typeFormals]));
-        }
+        _emitCovarianceBoundsCheck(type.typeFormals, covariantParams, body);
 
         var jsParams = <JS.Parameter>[];
         bool foundNamedParams = false;
         for (var param in member.parameters) {
+          param = covariantParams.lookup(param) as ParameterElement;
+
+          if (param == null) continue;
           JS.Parameter jsParam;
           if (param.kind == ParameterKind.NAMED) {
             foundNamedParams = true;
-            if (covariantParams.contains(param)) {
-              var name = _propertyName(param.name);
-              body.add(js.statement('if (# in #) #._check(#.#);', [
-                name,
-                namedArgumentTemp,
-                _emitType(param.type),
-                namedArgumentTemp,
-                name
-              ]));
-            }
+
+            var name = _propertyName(param.name);
+            body.add(js.statement('if (# in #) #._check(#.#);', [
+              name,
+              namedArgumentTemp,
+              _emitType(param.type),
+              namedArgumentTemp,
+              name
+            ]));
           } else {
             jsParam = _emitParameter(param);
             jsParams.add(jsParam);
-            if (covariantParams.contains(param)) {
-              if (param.kind == ParameterKind.POSITIONAL) {
-                body.add(js.statement('if (# !== void 0) #._check(#);',
-                    [jsParam, _emitType(param.type), jsParam]));
-              } else {
-                body.add(js.statement(
-                    '#._check(#);', [_emitType(param.type), jsParam]));
-              }
+
+            if (param.kind == ParameterKind.POSITIONAL) {
+              body.add(js.statement('if (# !== void 0) #._check(#);',
+                  [jsParam, _emitType(param.type), jsParam]));
+            } else {
+              body.add(js
+                  .statement('#._check(#);', [_emitType(param.type), jsParam]));
             }
           }
         }
 
         if (foundNamedParams) jsParams.add(namedArgumentTemp);
 
+        var typeFormals = _emitTypeFormals(type.typeFormals);
         if (typeFormals.isEmpty) {
           body.add(js.statement('return super.#(#);', [name, jsParams]));
         } else {
@@ -1581,6 +1585,9 @@ class CodeGenerator extends Object
     var name = _constructorName(element);
     JS.Fun fun;
 
+    var savedFunction = _currentFunction;
+    _currentFunction = node.body;
+
     var redirect = node.redirectedConstructor;
     if (redirect != null) {
       // Wacky factory redirecting constructors: factory Foo.q(x, y) = Bar.baz;
@@ -1600,13 +1607,15 @@ class CodeGenerator extends Object
     } else {
       // Normal factory constructor
       var body = <JS.Statement>[];
-      var init = _emitArgumentInitializers(node, constructor: true);
+      var init = _emitArgumentInitializers(element, node.parameters);
       if (init != null) body.add(init);
       body.add(_visit(node.body));
 
       var params = _emitFormalParameterList(node.parameters);
       fun = new JS.Fun(params, new JS.Block(body), returnType: returnType);
     }
+
+    _currentFunction = savedFunction;
 
     return annotate(new JS.Method(name, fun, isStatic: true), node, element);
   }
@@ -2246,6 +2255,8 @@ class CodeGenerator extends Object
     var function = new FunctionElementImpl("", -1)
       ..isSynthetic = true
       ..returnType = element.returnType
+      // TODO(jmesserly): do covariant type parameter bounds also need to be
+      // reified as `Object`?
       ..shareTypeParameters(element.typeParameters)
       ..parameters = parameters;
     return function.type = new FunctionTypeImpl(function);
@@ -2270,7 +2281,7 @@ class CodeGenerator extends Object
     // nice to do them first.
     // Also for const constructors we need to ensure default values are
     // available for use by top-level constant initializers.
-    var init = _emitArgumentInitializers(node, constructor: true);
+    var init = _emitArgumentInitializers(node.element, node.parameters);
     if (init != null) body.add(init);
 
     // Redirecting constructors: these are not allowed to have initializers,
@@ -2438,15 +2449,14 @@ class CodeGenerator extends Object
 
   /// Emits argument initializers, which handles optional/named args, as well
   /// as generic type checks needed due to our covariance.
-  JS.Statement _emitArgumentInitializers(node, {bool constructor: false}) {
-    // Constructor argument initializers are emitted earlier in the code, rather
-    // than always when we visit the function body, so we control it explicitly.
-    if (node is ConstructorDeclaration != constructor) return null;
-
-    var parameters = _parametersOf(node);
+  JS.Statement _emitArgumentInitializers(
+      ExecutableElement element, FormalParameterList parameters) {
     if (parameters == null) return null;
 
     var body = <JS.Statement>[];
+
+    _emitCovarianceBoundsCheck(
+        element.typeParameters, _classProperties?.covariantParameters, body);
     for (var param in parameters.parameters) {
       var jsParam = _emitSimpleIdentifier(param.identifier);
 
@@ -2498,9 +2508,8 @@ class CodeGenerator extends Object
   }
 
   bool _isCovariant(ParameterElement p) {
-    if (p.isCovariant) return true;
-    var covariantParams = _classProperties?.covariantParameters;
-    return covariantParams != null && covariantParams.contains(p);
+    return p.isCovariant ||
+        (_classProperties?.covariantParameters?.contains(p) ?? false);
   }
 
   JS.Expression _defaultParamValue(FormalParameter param) {
@@ -2551,7 +2560,7 @@ class CodeGenerator extends Object
       }
       fn = _emitNativeFunctionBody(node);
     } else {
-      fn = _emitFunctionBody(node.element, node.parameters, node.body);
+      fn = _emitFunction(node.element, node.parameters, node.body);
     }
 
     return annotate(
@@ -2609,7 +2618,7 @@ class CodeGenerator extends Object
     }
 
     var body = <JS.Statement>[];
-    var fn = _emitFunction(node.functionExpression);
+    var fn = _emitFunctionExpression(node.functionExpression);
 
     if (currentLibrary.source.isInSystemLibrary &&
         _isInlineJSFunction(node.functionExpression)) {
@@ -2669,8 +2678,8 @@ class CodeGenerator extends Object
   JS.Method _emitTopLevelProperty(FunctionDeclaration node) {
     var name = node.name.name;
     return annotate(
-        new JS.Method(
-            _propertyName(name), _emitFunction(node.functionExpression),
+        new JS.Method(_propertyName(name),
+            _emitFunctionExpression(node.functionExpression),
             isGetter: node.isGetter, isSetter: node.isSetter),
         node,
         node.element);
@@ -2715,7 +2724,7 @@ class CodeGenerator extends Object
   /// appears and the function is actually in an Expression context. These
   /// correspond to arrow functions in Dart.
   ///
-  /// Contrast with [_emitFunction].
+  /// Contrast with [_emitFunctionExpression].
   @override
   JS.Expression visitFunctionExpression(FunctionExpression node) {
     assert(node.parent is! FunctionDeclaration &&
@@ -2725,7 +2734,7 @@ class CodeGenerator extends Object
   }
 
   JS.ArrowFun _emitArrowFunction(FunctionExpression node) {
-    JS.Fun fn = _emitFunctionBody(node.element, node.parameters, node.body);
+    JS.Fun fn = _emitFunction(node.element, node.parameters, node.body);
 
     return annotate(_toArrowFunction(fn), node);
   }
@@ -2767,40 +2776,27 @@ class CodeGenerator extends Object
   /// as methods, properties, and top-level functions.
   ///
   /// Contrast with [visitFunctionExpression].
-  JS.Fun _emitFunction(FunctionExpression node) {
+  JS.Fun _emitFunctionExpression(FunctionExpression node) {
     return annotate(
-        _emitFunctionBody(node.element, node.parameters, node.body), node);
+        _emitFunction(node.element, node.parameters, node.body), node);
   }
 
-  JS.Fun _emitFunctionBody(ExecutableElement element,
+  JS.Fun _emitFunction(ExecutableElement element,
       FormalParameterList parameters, FunctionBody body) {
     FunctionType type = element.type;
 
     // normal function (sync), vs (sync*, async, async*)
-    var stdFn = !(element.isAsynchronous || element.isGenerator);
-    var formals = _emitFormalParameterList(parameters, destructure: stdFn);
-    JS.Block code = stdFn
-        ? _visit(body)
+    var isSync = !(element.isAsynchronous || element.isGenerator);
+    var formals = _emitFormalParameterList(parameters, destructure: isSync);
+
+    JS.Block code = isSync
+        ? _emitFunctionBody(element, parameters, body)
         : new JS.Block(
-            [_emitGeneratorFunctionBody(element, parameters, body).toReturn()]);
+            [_emitGeneratorFunction(element, parameters, body).toReturn()]);
+
     var typeFormals = _emitTypeFormals(type.typeFormals);
 
     var returnType = emitTypeRef(type.returnType);
-    if (type.typeFormals.isNotEmpty) {
-      var block = <JS.Statement>[
-        new JS.Block(_typeTable.discharge(type.typeFormals))
-      ];
-
-      var covariantParams = _classProperties?.covariantParameters;
-      if (covariantParams != null &&
-          type.typeFormals.any(covariantParams.contains)) {
-        block.add(js.statement('#.checkBounds(#);',
-            [_emitType(type), new JS.ArrayInitializer(typeFormals)]));
-      }
-
-      code = new JS.Block(block..add(code));
-    }
-
     if (element.isOperator && element.name == '[]=' && formals.isNotEmpty) {
       // []= methods need to return the value. We could also address this at
       // call sites, but it's cleaner to instead transform the operator method.
@@ -2823,7 +2819,32 @@ class CodeGenerator extends Object
         typeParams: typeFormals, returnType: returnType));
   }
 
-  JS.Expression _emitGeneratorFunctionBody(ExecutableElement element,
+  JS.Block _emitFunctionBody(ExecutableElement element,
+      FormalParameterList parameters, FunctionBody body) {
+    var savedFunction = _currentFunction;
+    _currentFunction = body;
+
+    var initArgs = _emitArgumentInitializers(element, parameters);
+    var block = _visit(body);
+    if (initArgs != null) block = new JS.Block([initArgs, block]);
+    _currentFunction = savedFunction;
+
+    return block;
+  }
+
+  void _emitCovarianceBoundsCheck(List<TypeParameterElement> typeFormals,
+      Set<Element> covariantParams, List<JS.Statement> body) {
+    if (covariantParams == null) return;
+    for (var t in typeFormals) {
+      t = covariantParams.lookup(t) as TypeParameterElement;
+      if (t != null) {
+        body.add(_callHelperStatement('checkTypeBound(#, #, #)',
+            [_emitType(t.type), _emitType(t.bound), _propertyName(t.name)]));
+      }
+    }
+  }
+
+  JS.Expression _emitGeneratorFunction(ExecutableElement element,
       FormalParameterList parameters, FunctionBody body) {
     var kind = element.isSynchronous ? 'sync' : 'async';
     if (element.isGenerator) kind += 'Star';
@@ -2869,7 +2890,7 @@ class CodeGenerator extends Object
     var savedSuperAllowed = _superAllowed;
     _superAllowed = false;
     // Visit the body with our async* controller set.
-    var jsBody = _visit(body);
+    var jsBody = _emitFunctionBody(element, parameters, body);
     _superAllowed = savedSuperAllowed;
     _asyncStarController = savedController;
 
@@ -2895,7 +2916,7 @@ class CodeGenerator extends Object
       return js.comment('Unimplemented function get/set statement: $node');
     }
 
-    var fn = _emitFunction(func.functionExpression);
+    var fn = _emitFunctionExpression(func.functionExpression);
 
     var name = new JS.Identifier(func.name.name);
     JS.Statement declareFn;
@@ -3507,15 +3528,9 @@ class CodeGenerator extends Object
 
   @override
   JS.Block visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    var savedFunction = _currentFunction;
-    _currentFunction = node;
-    var initArgs = _emitArgumentInitializers(node.parent);
     var ret = annotate(
         _visit<JS.Expression>(node.expression).toReturn(), node.expression);
-    _currentFunction = savedFunction;
-    var _statements = initArgs != null ? [initArgs, ret] : [ret];
-    var block = annotate(new JS.Block(_statements), node);
-    return block;
+    return new JS.Block([ret]);
   }
 
   @override
@@ -3523,13 +3538,7 @@ class CodeGenerator extends Object
 
   @override
   JS.Block visitBlockFunctionBody(BlockFunctionBody node) {
-    var savedFunction = _currentFunction;
-    _currentFunction = node;
-    var initArgs = _emitArgumentInitializers(node.parent);
-    var stmts = _visitList<JS.Statement>(node.block.statements);
-    if (initArgs != null) stmts.insert(0, initArgs);
-    _currentFunction = savedFunction;
-    return new JS.Block(stmts);
+    return new JS.Block(_visitList(node.block.statements));
   }
 
   @override
@@ -3781,15 +3790,7 @@ class CodeGenerator extends Object
     } else if (typeArgs != null) {
       // Dynamic calls may have type arguments, even though the function types
       // are not known.
-      return typeArgs.arguments.map((argument) {
-        if (argument is TypeName) {
-          return visitTypeName(argument);
-        } else {
-          // TODO(brianwilkerson) Implement support for GenericFunctionType.
-          throw new StateError(
-              'Cannot compile type argument of kind ${argument.runtimeType}');
-        }
-      }).toList(growable: false);
+      return _visitList(typeArgs.arguments);
     }
     return null;
   }
@@ -5997,10 +5998,6 @@ class CodeGenerator extends Object
   /// Unused, see [_emitType].
   @override
   visitTypeParameter(node) => _unreachable(node);
-
-  /// Unused, see [_emitType].
-  @override
-  visitGenericFunctionType(node) => _unreachable(node);
 
   /// Unused, see [_emitType].
   @override

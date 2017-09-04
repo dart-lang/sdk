@@ -3680,6 +3680,18 @@ typedef void F<T extends C>();
     assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
   }
 
+  test_notInstantiatedBound_functionType() async {
+    await resolveTestUnit(r'''
+class A<T extends int> {}
+class C<T extends Function(A)> {}
+class D<T extends A Function()> {}
+''', noErrors: false);
+    assertErrors(testSource, [
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+      StrongModeCode.NOT_INSTANTIATED_BOUND
+    ]);
+  }
+
   test_notInstantiatedBound_indirect_class_class() async {
     String code = r'''
 class A<T> {}

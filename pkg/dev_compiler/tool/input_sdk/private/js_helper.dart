@@ -776,13 +776,6 @@ class CastErrorImplementation extends Error implements CastError {
   String toString() => message;
 }
 
-/// Used for Strong-mode errors other than type assertions and casts.
-// TODO(jmesserly): remove this: https://github.com/dart-lang/sdk/issues/30095
-class StrongModeErrorImplementation extends Error {
-  final String message;
-  StrongModeErrorImplementation(this.message);
-  String toString() => message;
-}
 
 class FallThroughErrorImplementation extends FallThroughError {
   FallThroughErrorImplementation();

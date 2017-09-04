@@ -8626,9 +8626,28 @@ class TypeParameterBoundsResolver {
       type.typeArguments?.arguments?.forEach(_resolveTypeName);
       typeNameResolver.resolveTypeName(type);
       // TODO(scheglov) report error when don't apply type bounds for type bounds
-    } else {
-      // TODO(brianwilkerson) Add resolution of GenericFunctionType
-      throw new ArgumentError('Cannot resolve a ${type.runtimeType}');
+    } else if (type is GenericFunctionType) {
+      void resolveTypeParameter(TypeParameter t) {
+        _resolveTypeName(t.bound);
+      }
+
+      void resolveParameter(FormalParameter p) {
+        if (p is SimpleFormalParameter) {
+          _resolveTypeName(p.type);
+        } else if (p is DefaultFormalParameter) {
+          resolveParameter(p.parameter);
+        } else if (p is FieldFormalParameter) {
+          _resolveTypeName(p.type);
+        } else if (p is FunctionTypedFormalParameter) {
+          _resolveTypeName(p.returnType);
+          p.typeParameters?.typeParameters?.forEach(resolveTypeParameter);
+          p.parameters?.parameters?.forEach(resolveParameter);
+        }
+      }
+
+      _resolveTypeName(type.returnType);
+      type.typeParameters?.typeParameters?.forEach(resolveTypeParameter);
+      type.parameters?.parameters?.forEach(resolveParameter);
     }
   }
 
@@ -8645,10 +8664,8 @@ class TypeParameterBoundsResolver {
                 library, LibraryResolutionCapability.resolvedTypeNames)) {
               if (bound is TypeName) {
                 bound.type = typeParameterElement.bound;
-              } else {
-                // TODO(brianwilkerson) Add resolution of GenericFunctionType
-                throw new ArgumentError(
-                    'Cannot resolve a ${bound.runtimeType}');
+              } else if (bound is GenericFunctionTypeImpl) {
+                bound.type = typeParameterElement.bound;
               }
             } else {
               libraryScope ??= new LibraryScope(library);

@@ -296,11 +296,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   final bool enableSuperMixins;
 
+  final _UninstantiatedBoundChecker _uninstantiatedBoundChecker;
+
   /**
    * Initialize a newly created error verifier.
    */
-  ErrorVerifier(this._errorReporter, this._currentLibrary, this._typeProvider,
-      this._inheritanceManager, this.enableSuperMixins) {
+  ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
+      this._typeProvider, this._inheritanceManager, this.enableSuperMixins)
+      : _errorReporter = errorReporter,
+        _uninstantiatedBoundChecker =
+            new _UninstantiatedBoundChecker(errorReporter) {
     this._isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
     this._hasExtUri = _currentLibrary.hasExtUri;
     _isEnclosingConstructorConst = false;
@@ -1189,7 +1194,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _checkForTypeParameterSupertypeOfItsBound(node);
     _checkForTypeAnnotationDeferredClass(node.bound);
     _checkForImplicitDynamicType(node.bound);
-    _checkForNotInstantiatedBound(node.bound);
+    if (_options.strongMode) node.bound?.accept(_uninstantiatedBoundChecker);
     return super.visitTypeParameter(node);
   }
 
@@ -5312,30 +5317,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
-  void _checkForNotInstantiatedBound(TypeAnnotation node) {
-    if (!_options.strongMode || node == null) {
-      return;
-    }
-
-    if (node is TypeName) {
-      if (node.typeArguments == null) {
-        DartType type = node.type;
-        if (type is ParameterizedType) {
-          Element element = type.element;
-          if (element is TypeParameterizedElement &&
-              element.typeParameters.any((p) => p.bound != null)) {
-            _errorReporter.reportErrorForNode(
-                StrongModeCode.NOT_INSTANTIATED_BOUND, node, [type]);
-          }
-        }
-      } else {
-        node.typeArguments.arguments.forEach(_checkForNotInstantiatedBound);
-      }
-    } else {
-      throw new UnimplementedError('${node.runtimeType}');
-    }
-  }
-
   /**
    * Verify the given operator-method [declaration], does not have an optional
    * parameter. This method assumes that the method declaration was tested to be
@@ -7150,5 +7131,29 @@ class _InvocationCollector extends RecursiveAstVisitor {
       superCalls.add(node.methodName.name);
     }
     super.visitMethodInvocation(node);
+  }
+}
+
+/**
+ * Recursively visits a type annotation, looking uninstantiated bounds.
+ */
+class _UninstantiatedBoundChecker extends RecursiveAstVisitor {
+  final ErrorReporter _errorReporter;
+  _UninstantiatedBoundChecker(this._errorReporter);
+
+  @override
+  visitTypeName(node) {
+    var typeArgs = node.typeArguments;
+    if (typeArgs != null) {
+      typeArgs.accept(this);
+      return;
+    }
+
+    var element = node.type.element;
+    if (element is TypeParameterizedElement &&
+        element.typeParameters.any((p) => p.bound != null)) {
+      _errorReporter.reportErrorForNode(
+          StrongModeCode.NOT_INSTANTIATED_BOUND, node, [node.type]);
+    }
   }
 }
