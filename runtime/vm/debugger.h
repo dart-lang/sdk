@@ -674,9 +674,11 @@ class Debugger {
       const Array& deopt_frame,
       intptr_t deopt_frame_offset,
       ActivationFrame::Kind kind = ActivationFrame::kRegular);
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static RawArray* DeoptimizeToArray(Thread* thread,
                                      StackFrame* frame,
                                      const Code& code);
+#endif
   // Appends at least one stack frame. Multiple frames will be appended
   // if |code| at the frame's pc contains inlined functions.
   static void AppendCodeFrames(Thread* thread,

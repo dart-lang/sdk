@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/il_printer.h"
 
 #include "vm/flow_graph_range_analysis.h"
@@ -1296,3 +1298,5 @@ bool FlowGraphPrinter::ShouldPrint(const Function& function) {
 #endif  // !PRODUCT
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
