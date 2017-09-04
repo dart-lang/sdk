@@ -1,5 +1,5 @@
 # This file is used by gcl to get repository specific information.
-GERRIT_HOST: False
-CODE_REVIEW_SERVER: http://codereview.chromium.org
-VIEW_VC: https://github.com/dart-lang/sdk/commit/
+GERRIT_HOST: True
+CODE_REVIEW_SERVER: https://dart-review.googlesource.com
+VIEW_VC: https://dart.googlesource.com/sdk/+
 CC_LIST: reviews@dartlang.org
