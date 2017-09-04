@@ -32,7 +32,7 @@ class FileTest extends _BaseTestNative {
   MemoryFileSystemEntity file;
 
   setUp() {
-    super.setUp();
+    _baseSetUp();
     path = join(tempPath, 'file.txt');
     file = entityForPath(path);
   }
@@ -161,11 +161,11 @@ class FileTest extends _BaseTestNative {
   }
 }
 
-abstract class MemoryFileSystemTestMixin extends _BaseTest {
+abstract class MemoryFileSystemTestMixin implements _BaseTest {
   Uri tempUri;
 
   setUp() {
-    super.setUp();
+    _baseSetUp();
     tempUri = context.toUri(tempPath);
   }
 
@@ -263,7 +263,7 @@ abstract class _BaseTest {
 
   String join(String path1, String path2, [String path3, String path4]);
 
-  void setUp();
+  void _baseSetUp();
 }
 
 class _BaseTestNative extends _BaseTest {
@@ -274,7 +274,7 @@ class _BaseTestNative extends _BaseTest {
   String join(String path1, String path2, [String path3, String path4]) =>
       pathos.join(path1, path2, path3, path4);
 
-  setUp() {
+  _baseSetUp() {
     tempPath = pathos.join(io.Directory.systemTemp.path, 'test_file_system');
     fileSystem = new MemoryFileSystem(pathos.toUri(io.Directory.current.path));
   }
@@ -288,7 +288,7 @@ class _BaseTestPosix extends _BaseTest {
   String join(String path1, String path2, [String path3, String path4]) =>
       pathos.posix.join(path1, path2, path3, path4);
 
-  void setUp() {
+  void _baseSetUp() {
     tempPath = '/test_file_system';
     fileSystem = new MemoryFileSystem(Uri.parse('file:///cwd'));
   }
@@ -302,7 +302,7 @@ class _BaseTestWindows extends _BaseTest {
   String join(String path1, String path2, [String path3, String path4]) =>
       pathos.windows.join(path1, path2, path3, path4);
 
-  void setUp() {
+  void _baseSetUp() {
     tempPath = r'c:\test_file_system';
     fileSystem = new MemoryFileSystem(Uri.parse('file:///c:/cwd'));
   }
