@@ -7,7 +7,7 @@
 #include "vm/deferred_objects.h"
 
 #include "vm/code_patcher.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/deopt_instructions.h"
 #include "vm/flags.h"
 #include "vm/object.h"

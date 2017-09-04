@@ -4,10 +4,10 @@
 
 #include "vm/runtime_entry.h"
 
-#include "vm/assembler.h"
 #include "vm/ast.h"
 #include "vm/code_patcher.h"
-#include "vm/compiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"

@@ -5,8 +5,8 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_X64)
 
-#include "vm/assembler.h"
 #include "vm/code_patcher.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/dart_entry.h"
 #include "vm/instructions.h"
 #include "vm/native_entry.h"

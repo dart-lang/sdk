@@ -6,9 +6,9 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "vm/assembler.h"
 #include "vm/clustered_snapshot.h"
-#include "vm/disassembler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/assembler/disassembler.h"
 #include "vm/flags.h"
 #include "vm/object_store.h"
 #include "vm/safepoint.h"

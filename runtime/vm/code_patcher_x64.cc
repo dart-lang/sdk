@@ -5,11 +5,11 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_X64.
 #if defined(TARGET_ARCH_X64)
 
-#include "vm/assembler.h"
 #include "vm/code_patcher.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
-#include "vm/flow_graph_compiler.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"

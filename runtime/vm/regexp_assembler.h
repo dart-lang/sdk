@@ -5,8 +5,8 @@
 #ifndef RUNTIME_VM_REGEXP_ASSEMBLER_H_
 #define RUNTIME_VM_REGEXP_ASSEMBLER_H_
 
-#include "vm/assembler.h"
-#include "vm/intermediate_language.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/il.h"
 #include "vm/object.h"
 
 namespace dart {

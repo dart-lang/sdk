@@ -5,7 +5,7 @@
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/ast.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/isolate.h"
 #include "vm/log.h"

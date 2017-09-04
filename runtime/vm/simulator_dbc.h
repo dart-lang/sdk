@@ -9,8 +9,8 @@
 #error Do not include simulator_dbc.h directly; use simulator.h.
 #endif
 
+#include "vm/compiler/method_recognizer.h"
 #include "vm/constants_dbc.h"
-#include "vm/method_recognizer.h"
 
 namespace dart {
 

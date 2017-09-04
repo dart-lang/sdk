@@ -8,7 +8,7 @@
 
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/kernel.h"

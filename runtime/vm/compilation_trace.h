@@ -6,7 +6,7 @@
 #define RUNTIME_VM_COMPILATION_TRACE_H_
 
 #include "platform/assert.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/object.h"
 #include "vm/program_visitor.h"
 #include "vm/zone_text_buffer.h"

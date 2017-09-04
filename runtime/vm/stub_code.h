@@ -6,7 +6,7 @@
 #define RUNTIME_VM_STUB_CODE_H_
 
 #include "vm/allocation.h"
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 
 namespace dart {
 

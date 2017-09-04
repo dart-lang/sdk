@@ -5,10 +5,10 @@
 #include "platform/assert.h"
 #include "vm/globals.h"
 
-#include "vm/assembler.h"
 #include "vm/ast.h"
 #include "vm/code_descriptors.h"
-#include "vm/compiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/native_entry.h"
 #include "vm/parser.h"

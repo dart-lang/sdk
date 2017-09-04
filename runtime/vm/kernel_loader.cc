@@ -6,9 +6,10 @@
 
 #include <string.h>
 
+#include "vm/compiler/frontend/kernel_binary_flowgraph.h"
+#include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/dart_api_impl.h"
 #include "vm/kernel_binary.h"
-#include "vm/kernel_to_il.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"

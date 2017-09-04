@@ -5,10 +5,10 @@
 
 #include "vm/kernel_binary.h"
 #include "platform/globals.h"
+#include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/kernel.h"
-#include "vm/kernel_to_il.h"
 #include "vm/os.h"
 
 namespace dart {

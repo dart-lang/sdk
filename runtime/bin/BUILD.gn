@@ -5,6 +5,7 @@
 import("../../build/compiled_action.gni")
 import("../../sdk/lib/io/io_sources.gni")
 import("../runtime_args.gni")
+import("../vm/compiler/compiler_sources.gni")
 import("../vm/vm_sources.gni")
 import("builtin_impl_sources.gni")
 import("builtin_sources.gni")
@@ -957,6 +958,7 @@ executable("run_vm_tests") {
   # The VM sources are already included in libdart, so we just want to add in
   # the tests here.
   vm_tests = rebase_path(vm_sources_tests, ".", "../vm")
+  compiler_tests = rebase_path(compiler_sources_tests, ".", "../vm/compiler")
 
   sources = [
               "error_exit.cc",
@@ -967,7 +969,7 @@ executable("run_vm_tests") {
               "run_vm_tests.cc",
               "dfe.cc",
               "dfe.h",
-            ] + builtin_impl_tests + vm_tests
+            ] + builtin_impl_tests + vm_tests + compiler_tests
 
   if (!is_win) {
     ldflags = [ "-rdynamic" ]

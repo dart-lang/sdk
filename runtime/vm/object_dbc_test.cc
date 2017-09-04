@@ -6,7 +6,7 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_DBC)
 
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/object.h"
 #include "vm/unit_test.h"
 

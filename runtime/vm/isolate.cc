@@ -11,7 +11,7 @@
 #include "vm/atomic.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"

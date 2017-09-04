@@ -9,10 +9,10 @@
 #include "platform/address_sanitizer.h"
 
 #include "vm/code_patcher.h"
-#include "vm/compiler.h"
+#include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
-#include "vm/disassembler.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/json_stream.h"

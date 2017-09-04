@@ -13,9 +13,9 @@
 
 #include "vm/simulator.h"
 
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/assembler/disassembler.h"
 #include "vm/constants_arm64.h"
-#include "vm/disassembler.h"
 #include "vm/native_arguments.h"
 #include "vm/os_thread.h"
 #include "vm/stack_frame.h"

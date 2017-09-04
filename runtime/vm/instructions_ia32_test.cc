@@ -5,7 +5,7 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_IA32)
 
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 #include "vm/stub_code.h"

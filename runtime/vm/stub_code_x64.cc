@@ -5,10 +5,10 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_X64) && !defined(DART_PRECOMPILED_RUNTIME)
 
-#include "vm/assembler.h"
-#include "vm/compiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
-#include "vm/flow_graph_compiler.h"
 #include "vm/heap.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"

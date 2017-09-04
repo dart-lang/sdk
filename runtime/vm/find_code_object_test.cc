@@ -4,7 +4,7 @@
 
 #include "platform/assert.h"
 #include "vm/class_finalizer.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/object.h"
 #include "vm/pages.h"
 #include "vm/stack_frame.h"

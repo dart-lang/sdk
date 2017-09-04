@@ -5,9 +5,9 @@
 #include "platform/globals.h"
 
 #include "platform/assert.h"
-#include "vm/assembler.h"
 #include "vm/class_finalizer.h"
-#include "vm/compiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/object.h"
 #include "vm/resolver.h"

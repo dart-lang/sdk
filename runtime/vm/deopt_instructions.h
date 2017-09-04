@@ -6,12 +6,12 @@
 #define RUNTIME_VM_DEOPT_INSTRUCTIONS_H_
 
 #include "vm/allocation.h"
-#include "vm/assembler.h"
 #include "vm/code_descriptors.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/deferred_objects.h"
-#include "vm/flow_graph_compiler.h"
 #include "vm/growable_array.h"
-#include "vm/locations.h"
 #include "vm/object.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"

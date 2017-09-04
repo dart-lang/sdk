@@ -8,9 +8,9 @@
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include <map>
 
+#include "vm/compiler/frontend/kernel_binary_flowgraph.h"
+#include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/kernel.h"
-#include "vm/kernel_binary_flowgraph.h"
-#include "vm/kernel_to_il.h"
 #include "vm/object.h"
 
 namespace dart {

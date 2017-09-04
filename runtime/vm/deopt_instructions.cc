@@ -6,12 +6,12 @@
 
 #include "vm/deopt_instructions.h"
 
-#include "vm/assembler.h"
 #include "vm/code_patcher.h"
-#include "vm/compiler.h"
-#include "vm/disassembler.h"
-#include "vm/intermediate_language.h"
-#include "vm/locations.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/backend/il.h"
+#include "vm/compiler/backend/locations.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/parser.h"
 #include "vm/stack_frame.h"
 #include "vm/thread.h"

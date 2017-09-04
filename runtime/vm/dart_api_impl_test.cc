@@ -12,7 +12,7 @@
 #include "platform/text_buffer.h"
 #include "platform/utils.h"
 #include "vm/class_finalizer.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_state.h"
 #include "vm/lockers.h"
 #include "vm/timeline.h"

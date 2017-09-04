@@ -4,7 +4,7 @@
 #ifndef PRODUCT
 #include "vm/source_report.h"
 
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"

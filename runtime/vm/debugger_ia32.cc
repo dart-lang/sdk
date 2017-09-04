@@ -8,8 +8,8 @@
 #include "vm/debugger.h"
 
 #include "vm/code_patcher.h"
+#include "vm/compiler/assembler/disassembler.h"
 #include "vm/cpu.h"
-#include "vm/disassembler.h"
 #include "vm/object.h"
 #include "vm/os.h"
 #include "vm/stack_frame.h"

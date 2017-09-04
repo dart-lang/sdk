@@ -4,7 +4,6 @@
 
 #include "platform/assert.h"
 
-#include "vm/assembler.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"

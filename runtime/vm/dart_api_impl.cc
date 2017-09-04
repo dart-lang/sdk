@@ -11,7 +11,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/clustered_snapshot.h"
 #include "vm/compilation_trace.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_message.h"
@@ -21,6 +21,7 @@
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/kernel_loader.h"
 #endif
+#include "vm/compiler/aot/precompiler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
@@ -35,7 +36,6 @@
 #include "vm/os.h"
 #include "vm/os_thread.h"
 #include "vm/port.h"
-#include "vm/precompiler.h"
 #include "vm/profiler.h"
 #include "vm/program_visitor.h"
 #include "vm/resolver.h"

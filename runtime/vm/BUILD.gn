@@ -31,6 +31,7 @@ import("../lib/profiler_sources.gni")
 import("../lib/typed_data_sources.gni")
 import("../lib/vmservice_sources.gni")
 import("../runtime_args.gni")
+import("compiler/compiler_sources.gni")
 import("vm_sources.gni")
 
 config("libdart_vm_config") {
@@ -71,7 +72,7 @@ template("build_libdart_vm") {
                                     "*_test.cc",
                                     "*_test.h",
                                   ])
-    sources = vm_sources
+    sources = vm_sources + rebase_path(compiler_sources, ".", "./compiler/")
     include_dirs = [ ".." ]
   }
 }
