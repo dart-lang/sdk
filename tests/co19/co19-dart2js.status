@@ -1784,6 +1784,7 @@ LayoutTests/fast/canvas/webgl/context-lost-restored_t01: RuntimeError # Please t
 LayoutTests/fast/text/zero-width-characters-complex-script_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && $system == linux]
+LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: Pass, RuntimeError # 30174
 LayoutTests/fast/multicol/newmulticol/balance_t04: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-inset-rounded-different-writing-modes-left_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t02: RuntimeError # Please triage this failure
