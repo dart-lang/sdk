@@ -2534,6 +2534,19 @@ void StreamingConstantEvaluator::EvaluateConstructorInvocationInternal() {
   const TypeArguments* type_arguments =
       TranslateTypeArguments(constructor, &klass);  // read argument types.
 
+  if (klass.NumTypeArguments() > 0 && !klass.IsGeneric()) {
+    Type& type = Type::ZoneHandle(Z, T.ReceiverType(klass).raw());
+    // TODO(27590): Can we move this code into [ReceiverType]?
+    type ^= ClassFinalizer::FinalizeType(*builder_->active_class()->klass, type,
+                                         ClassFinalizer::kFinalize);
+    ASSERT(!type.IsMalformedOrMalbounded());
+
+    TypeArguments& canonicalized_type_arguments =
+        TypeArguments::ZoneHandle(Z, type.arguments());
+    canonicalized_type_arguments = canonicalized_type_arguments.Canonicalize();
+    type_arguments = &canonicalized_type_arguments;
+  }
+
   // Prepare either the instance or the type argument vector for the constructor
   // call.
   Instance* receiver = NULL;
