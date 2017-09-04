@@ -52,6 +52,7 @@ class Configuration {
       this.useDart2JSWithKernelInSsa,
       this.writeDebugLog,
       this.writeTestOutcomeLog,
+      this.writeResultLog,
       this.drtPath,
       this.chromePath,
       this.safariPath,
@@ -74,6 +75,7 @@ class Configuration {
       this.packageRoot,
       this.suiteDirectory,
       this.builderTag,
+      this.outputDirectory,
       this.reproducingArguments})
       : _packages = packages,
         _timeout = timeout;
@@ -115,6 +117,7 @@ class Configuration {
   final bool useDart2JSWithKernelInSsa;
   final bool writeDebugLog;
   final bool writeTestOutcomeLog;
+  final bool writeResultLog;
 
   // Various file paths.
 
@@ -152,6 +155,7 @@ class Configuration {
     return _packages;
   }
 
+  final String outputDirectory;
   final String packageRoot;
   final String suiteDirectory;
   final String builderTag;
@@ -418,6 +422,35 @@ class Configuration {
     if (crossDir.existsSync()) return cross;
 
     return normal;
+  }
+
+  Map _summaryMap;
+
+  /// [toSummaryMap] returns a map of configurations important to the running
+  /// of a test. Flags and properties used for output are not included.
+  /// Boolean flags that are false are not included in the map. The summary map
+  /// can be used to serialize to json for test-output logging.
+  Map toSummaryMap() {
+    if (_summaryMap == null) {
+      _summaryMap = {
+        'mode': mode.name,
+        'arch': architecture.name,
+        'compiler': compiler.name,
+        'runtime': runtime.name,
+        'checked': isChecked,
+        'strong': isStrong,
+        'host_checked': isHostChecked,
+        'minified': isMinified,
+        'csp': isCsp,
+        'system': system.name,
+        'vm_options': vmOptions,
+        'use_sdk': useSdk,
+        'builder_tag': builderTag,
+        'fast_startup': useFastStartup,
+        'timeout': timeout
+      };
+    }
+    return _summaryMap;
   }
 }
 

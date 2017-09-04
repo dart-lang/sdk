@@ -231,6 +231,10 @@ Future testConfigurations(List<Configuration> configurations) async {
     eventListener.add(new TestOutcomeLogWriter());
   }
 
+  if (firstConf.writeResultLog) {
+    eventListener.add(new ResultLogWriter());
+  }
+
   if (firstConf.copyCoreDumps) {
     eventListener.add(new UnexpectedCrashLogger());
   }
