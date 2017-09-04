@@ -24,6 +24,7 @@
 % - Start running "async" functions synchronously.
 % - It is a static warning and dynamic error to assign to a final local.
 % - Specify what "is equivalent to" means.
+% - Remove @proxy.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -4136,9 +4137,7 @@ It is possible to bring about such a situation by overriding \code{noSuchMethod(
 \LMHash{}
 Let $T$ be the  static type of $o$. It is a static type warning if $T$ does not have an accessible  (\ref{privacy}) instance member named $m$ unless  either:
 \begin{itemize}
-\item
-$T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}.  Or
-\item  $T$ is \code{Type}, $e$ is a constant type literal and the class corresponding to $e$ has a static getter named $m$.
+\item  $T$ is \code{Type}, $e$ is a constant type literal and the class corresponding to $e$ has a static getter named $m$. Or
 \item $T$ is \code{Function} and $m$ is \CALL. \rationale {The type \code{Function} is treated as if it has a \code{call} method for any possible signature of \CALL. The expectation is that any concrete subclass of \code{Function} will implement \CALL. Note that a warning will be issued if this is not the case. Furthermore, any use of \CALL{} on a subclass of \code{Function} that fails to implement \CALL{} will also provoke a warning, as this exemption is limited to type \code{Function}, and does not apply to its subtypes.
 }
 \end{itemize}
@@ -4229,7 +4228,7 @@ and the result of this latter invocation is the result of evaluating $i$.
 It is a compile-time error if a super method invocation occurs in a top-level function or variable initializer, in an instance variable initializer or initializer list, in class \code{Object}, in a factory constructor or in a static method or variable initializer.
 
 \LMHash{}
-Let $S_{static}$ be the superclass of the immediately enclosing class. It is a static type warning if $S_{static}$ does not have an accessible (\ref{privacy}) instance member named $m$ unless $S_{static}$ or a superinterface of $S_{static}$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}. If $S_{static}.m$ exists, it  is a static type warning if the type $F$ of $S_{static}.m$ may not be assigned to a function type. If $S_{static}.m$ does not exist, or if $F$ is not a function type, the static type of $i$ is \DYNAMIC{}; otherwise the static type of $i$ is the declared return type of  $F$.
+Let $S_{static}$ be the superclass of the immediately enclosing class. It is a static type warning if $S_{static}$ does not have an accessible (\ref{privacy}) instance member named $m$. If $S_{static}.m$ exists, it  is a static type warning if the type $F$ of $S_{static}.m$ may not be assigned to a function type. If $S_{static}.m$ does not exist, or if $F$ is not a function type, the static type of $i$ is \DYNAMIC{}; otherwise the static type of $i$ is the declared return type of  $F$.
 % The following is not needed because it is specified in 'Binding Actuals to Formals"
 %Let $T_i$ be the static type of $a_i, i \in 1 .. n+k$. It is a static warning if $F$ is not a supertype of  $(T_1, \ldots, t_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \to \bot$.
 
@@ -4326,12 +4325,7 @@ This precludes \code{int.toString} but not \code{(int).toString} because in the 
 }
 
 \LMHash{}
-Let $T$ be the  static type of $e$. It is a static type warning if $T$ does not have a method or getter named $m$ unless either:
-\begin{itemize}
-\item
-$T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}.  Or
-\item  $T$ is \code{Type}, $e$ is a constant type literal and the class corresponding to $e$ has a static method or getter named $m$.
-\end{itemize}
+Let $T$ be the  static type of $e$. It is a static type warning if $T$ does not have a method or getter named $m$ unless $T$ is \code{Type}, $e$ is a constant type literal and the class corresponding to $e$ has a static method or getter named $m$.
 
 \LMHash{}
 The static type of $i$ is:
@@ -4557,12 +4551,7 @@ The value of the assignment expression is $o_2$ irrespective of whether setter l
 In checked mode, it is a dynamic type error if $o_2$ is not \NULL{} and the interface of the class of $o_2$ is not a subtype of the actual type of $e_1.v$.
 
 \LMHash{}
-Let $T$ be the static type of $e_1$. It is a static type warning if $T$ does not have an accessible instance setter named $v=$ unless either:
-\begin{itemize}
-\item $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}. Or
-\item $T$ is \code{Type}, $e_1$ is a constant type literal and the class corresponding to $e_1$ has a static setter named $v=$.
-\end{itemize}
-
+Let $T$ be the static type of $e_1$. It is a static type warning if $T$ does not have an accessible instance setter named $v=$ unless $T$ is \code{Type}, $e_1$ is a constant type literal and the class corresponding to $e_1$ has a static setter named $v=$.
 
 
 \LMHash{}
@@ -4601,7 +4590,7 @@ The value of the assignment expression is $o$ irrespective of whether setter loo
 In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interface of the class of $o$ is not a subtype of the actual type of $S.v$.
 
 \LMHash{}
-Let $S_{static}$ be the superclass of the immediately enclosing class. It is a static type warning if $S_{static}$ does not have an accessible instance setter named $v=$ unless $S_{static}$ or a superinterface of $S_{static}$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}.
+Let $S_{static}$ be the superclass of the immediately enclosing class. It is a static type warning if $S_{static}$ does not have an accessible instance setter named $v=$ unless $S_{static}$.
 
 \LMHash{}
 It is a static type warning if the static type of $e$ may not be assigned to the static type of the formal parameter of the setter $v=$.   The static type of the expression $\SUPER.v$ \code{=} $e$ is the static type of $e$.

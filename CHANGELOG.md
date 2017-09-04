@@ -32,6 +32,7 @@
 * `dart:core`
   * The `Uri` class now correctly handles paths while running on Node.js on
     Windows.
+  * Deprecated the `proxy` annotation.
 
 * `dart:developer`
   * `Timeline.startSync` and `Timeline.timeSync` now accept an optional
