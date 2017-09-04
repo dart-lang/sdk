@@ -232,6 +232,7 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
                    kVmNameSize);
   HeapPage* page = HeapPage::Allocate(kPageSizeInWords, type, vm_name);
   if (page == NULL) {
+    RELEASE_ASSERT(!FLAG_abort_on_oom);
     return NULL;
   }
 

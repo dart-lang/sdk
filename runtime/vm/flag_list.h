@@ -42,6 +42,8 @@
 //   D(name, type, default_value, comment)
 //   C(name, precompiled_value, product_value, type, default_value, comment)
 #define FLAG_LIST(P, R, D, C)                                                  \
+  P(abort_on_oom, bool, false,                                                 \
+    "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
   P(background_compilation, bool, USING_MULTICORE,                             \
     "Run optimizing compilation in background")                                \
   R(background_compilation_stop_alot, false, bool, false,                      \
