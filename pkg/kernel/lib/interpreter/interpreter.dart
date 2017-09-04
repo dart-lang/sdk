@@ -810,10 +810,12 @@ abstract class ApplicationContinuation extends Continuation {
           newEnv.extend(function.positionalParameters[i], positional[i].value);
     }
 
-    Map<String, Value> named = new Map.fromIterable(
-        args.where((InterpreterValue av) => av is NamedValue),
-        key: (NamedValue av) => av.name,
-        value: (NamedValue av) => av.value);
+    Map<String, Value> named = <String, Value>{};
+    for (InterpreterValue argValue in args) {
+      if (argValue is NamedValue) {
+        named[argValue.name] = argValue.value;
+      }
+    }
 
     // Add named parameters.
     for (VariableDeclaration v in function.namedParameters) {
@@ -2108,11 +2110,12 @@ List<InterpreterExpression> _getArgumentExpressions(
     args.add(new PositionalExpression(fun.positionalParameters[i].initializer));
   }
 
-  Map<String, NamedExpression> namedFormals = new Map.fromIterable(
-      fun.namedParameters,
-      key: (VariableDeclaration vd) => vd.name,
-      value: (VariableDeclaration vd) =>
-          new NamedExpression(vd.name, vd.initializer));
+  Map<String, NamedExpression> namedFormals = <String, NamedExpression>{};
+  for (VariableDeclaration vd in fun.namedParameters) {
+    if (vd is NamedValue) {
+      namedFormals[vd.name] = new NamedExpression(vd.name, vd.initializer);
+    }
+  }
 
   // Add named expressions.
   for (int i = 0; i < providedArgs.named.length; i++) {

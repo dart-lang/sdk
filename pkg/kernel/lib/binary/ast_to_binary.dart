@@ -111,7 +111,7 @@ class BinaryPrinter extends Visitor {
     writeUInt30(index);
   }
 
-  void writeList(List items, writeItem(x)) {
+  void writeList<T>(List<T> items, void writeItem(T x)) {
     writeUInt30(items.length);
     items.forEach(writeItem);
   }
