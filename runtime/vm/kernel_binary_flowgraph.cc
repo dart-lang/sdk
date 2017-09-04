@@ -4653,14 +4653,14 @@ TokenPosition StreamingFlowGraphBuilder::ReadPosition(bool record) {
 
 void StreamingFlowGraphBuilder::record_token_position(TokenPosition position) {
   if (record_for_script_id_ == current_script_id_ &&
-      record_token_positions_into_ != NULL) {
+      record_token_positions_into_ != NULL && position.IsReal()) {
     record_token_positions_into_->Add(position.value());
   }
 }
 
 void StreamingFlowGraphBuilder::record_yield_position(TokenPosition position) {
   if (record_for_script_id_ == current_script_id_ &&
-      record_yield_positions_into_ != NULL) {
+      record_yield_positions_into_ != NULL && position.IsReal()) {
     record_yield_positions_into_->Add(position.value());
   }
 }
