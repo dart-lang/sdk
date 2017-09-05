@@ -395,102 +395,95 @@ function_type/function_type96_test: RuntimeError # Issue 30476
 function_type/function_type9_test: RuntimeError # Issue 30476
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-abstract_exact_selector_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-abstract_exact_selector_test/none: Pass
-abstract_getter_test/01: Crash # Assertion failure: Missing scope info for j:getter(Foo.i).
-abstract_override_adds_optional_args_concrete_subclass_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
-abstract_override_adds_optional_args_concrete_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
-abstract_override_adds_optional_args_supercall_test: Crash # Assertion failure: Missing scope info for j:method(B.foo).
-assert_message_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+assert_message_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 assert_trailing_comma_test/none: CompileTimeError
 assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc02 (Constructor)
 assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C::bc02 (Constructor)
+assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib3::C::bc02 (Constructor)
 assertion_initializer_test: CompileTimeError
-assertion_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_and_or_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_catch_regression_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_foreign_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a01a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a02a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a03a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a03b: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+assertion_test: RuntimeError
+async_and_or_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_catch_regression_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_foreign_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/a01a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/a02a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/a03a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/a03b: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 async_await_syntax_test/a04a: RuntimeError
 async_await_syntax_test/a04c: RuntimeError
-async_await_syntax_test/a05a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a05b: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a06a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/a05a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/a05b: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/a06a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 async_await_syntax_test/a07a: RuntimeError
 async_await_syntax_test/a08a: RuntimeError
-async_await_syntax_test/a09a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a10a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/a09a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/a10a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 async_await_syntax_test/a11b: RuntimeError
-async_await_syntax_test/a11c: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a11d: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/a12g: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/b01a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/b02a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/b03a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/a11c: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/a11d: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/a12g: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/b01a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/b02a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/b03a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 async_await_syntax_test/b04a: RuntimeError
-async_await_syntax_test/b05a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/b06a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/b05a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/b06a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 async_await_syntax_test/b07a: RuntimeError
 async_await_syntax_test/b08a: RuntimeError
-async_await_syntax_test/b09a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/b10a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/b09a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/b10a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 async_await_syntax_test/b11b: RuntimeError
-async_await_syntax_test/b11c: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/b11d: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/b12g: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c01a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c02a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c03a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c04a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c05a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c06a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c07a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c08a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c09a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/c10a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d01a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d02a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d03a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d04a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d05a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d06a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d07a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d08a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d08b: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d09a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_await_syntax_test/d10a: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_break_in_finally_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_call_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_cascade_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_continue_label_test/await_in_body: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_continue_label_test/await_in_condition: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_continue_label_test/await_in_init: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_continue_label_test/await_in_update: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_continue_label_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_control_structures_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_finally_rethrow_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_regression_23058_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_rethrow_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_return_types_test/nestedFuture: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_return_types_test/none: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_return_types_test/tooManyTypeParameters: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_return_types_test/wrongReturnType: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_return_types_test/wrongTypeParameter: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_await_pauses_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_cancel_and_throw_in_finally_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_cancel_while_paused_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_no_cancel2_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_no_cancel_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_pause_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_regression_2238_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_regression_23116_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_regression_fisk_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_stream_take_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-async_star_take_reyield_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+async_await_syntax_test/b11c: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/b11d: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/b12g: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/c01a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/c02a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/c03a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/c04a: RuntimeError
+async_await_syntax_test/c05a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/c06a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/c07a: RuntimeError
+async_await_syntax_test/c08a: RuntimeError
+async_await_syntax_test/c09a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/c10a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/d01a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/d02a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/d03a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/d04a: RuntimeError
+async_await_syntax_test/d05a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/d06a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/d07a: RuntimeError
+async_await_syntax_test/d08a: RuntimeError
+async_await_syntax_test/d09a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/d10a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_break_in_finally_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_call_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_cascade_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_continue_label_test/await_in_body: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_continue_label_test/await_in_condition: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_continue_label_test/await_in_init: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_continue_label_test/await_in_update: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_continue_label_test/none: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_control_structures_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_finally_rethrow_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_regression_23058_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_rethrow_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_return_types_test/nestedFuture: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_return_types_test/none: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_return_types_test/tooManyTypeParameters: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_return_types_test/wrongReturnType: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_return_types_test/wrongTypeParameter: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_star_await_pauses_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_star_cancel_and_throw_in_finally_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_star_cancel_while_paused_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_star_no_cancel2_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_star_no_cancel_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_star_pause_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_star_regression_2238_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_star_regression_23116_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_star_regression_fisk_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_star_stream_take_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_star_take_reyield_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 bad_constructor_test/05: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: Crash # type 'ShadowField' is not a subtype of type 'Procedure' of 'value' where
@@ -498,16 +491,14 @@ bad_override_test/05: MissingCompileTimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 bool_test: RuntimeError
-bound_closure_equality_test: Crash # Assertion failure: Missing scope info for j:getter(SetMixin.length).
+bound_closure_equality_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 branch_canonicalization_test: RuntimeError
 break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 call_closurization_test: RuntimeError
-call_function_apply_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
+call_function_apply_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 call_operator_test: RuntimeError
 call_test: RuntimeError
-call_through_getter_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
-call_through_getter_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
-call_with_no_such_method_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
+call_with_no_such_method_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 canonical_const2_test: RuntimeError
 canonical_const_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
 cast_test/none: RuntimeError
@@ -516,8 +507,8 @@ cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-classes_static_method_clash_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
-closure_cycles_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+classes_static_method_clash_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+closure_cycles_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 closure_in_constructor_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
 closure_in_initializer2_test: RuntimeError
 closure_in_initializer_test: Crash # Assertion failure: Cannot find value parameter(A.#a) in (parameter(C.#a), BoxLocal(_box_0), parameter(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
@@ -533,13 +524,11 @@ compile_time_constant_a_test: Crash # RangeError (index): Invalid value: Only va
 compile_time_constant_b_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
 compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
 generalized_void_syntax_test: CompileTimeError
-generic_async_star_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-generic_async_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
-generic_field_mixin4_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field)
-generic_field_mixin5_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field)
-generic_field_mixin6_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field1)
-generic_field_mixin6_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field2)
-generic_field_mixin_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 342 pos 14: 'value != null': No value for field j:field(M.field)
+generic_async_star_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+generic_async_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+generic_field_mixin4_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+generic_field_mixin5_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in j:constructor(C3.).
 generic_function_typedef_test/01: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_function_typedef_test/none: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_instanceof_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
@@ -551,13 +540,6 @@ generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupporte
 generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-assertion_test: RuntimeError
-async_await_syntax_test/c04a: RuntimeError
-async_await_syntax_test/c07a: RuntimeError
-async_await_syntax_test/c08a: RuntimeError
-async_await_syntax_test/d04a: RuntimeError
-async_await_syntax_test/d07a: RuntimeError
-async_await_syntax_test/d08a: RuntimeError
 generic_methods_type_expression_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 generic_native_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_sync_star_test: RuntimeError
@@ -577,111 +559,106 @@ if_null_assignment_static_test/01: RuntimeError
 if_null_assignment_static_test/03: RuntimeError
 if_null_assignment_static_test/05: RuntimeError
 many_generic_instanceof_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-regress_30339_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+regress_30339_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 type_variable_nested_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-unused_overridden_async_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+unused_overridden_async_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 vm/allocation_sinking_vm_test: RuntimeError
-vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
+vm/async_await_catch_stacktrace_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 
 [ $compiler == dart2js && ! $dart2js_with_kernel && ! $minified ]
 vm/async_await_catch_stacktrace_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-abstract_getter_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-abstract_override_adds_optional_args_concrete_subclass_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-abstract_override_adds_optional_args_concrete_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-abstract_override_adds_optional_args_supercall_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-assert_message_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+assert_message_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 assert_trailing_comma_test/none: CompileTimeError
 assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc02 (Constructor)
 assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C::bc02 (Constructor)
+assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib2::C::bc02 (Constructor)
 assertion_initializer_test: CompileTimeError
-assertion_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_and_or_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_catch_regression_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_foreign_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a01a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a02a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a03a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a03b: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+assertion_test: RuntimeError
+async_and_or_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_catch_regression_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_foreign_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/a01a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/a02a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/a03a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/a03b: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 async_await_syntax_test/a04a: RuntimeError
 async_await_syntax_test/a04c: RuntimeError
-async_await_syntax_test/a05a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a05b: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a06a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_await_syntax_test/a05a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/a05b: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/a06a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 async_await_syntax_test/a07a: RuntimeError
 async_await_syntax_test/a08a: RuntimeError
-async_await_syntax_test/a09a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a10a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_await_syntax_test/a09a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/a10a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 async_await_syntax_test/a11b: RuntimeError
-async_await_syntax_test/a11c: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a11d: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/a12g: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/b01a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/b02a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/b03a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_await_syntax_test/a11c: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/a11d: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/a12g: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/b01a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/b02a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/b03a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 async_await_syntax_test/b04a: RuntimeError
-async_await_syntax_test/b05a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/b06a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_await_syntax_test/b05a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/b06a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 async_await_syntax_test/b07a: RuntimeError
 async_await_syntax_test/b08a: RuntimeError
-async_await_syntax_test/b09a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/b10a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_await_syntax_test/b09a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/b10a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 async_await_syntax_test/b11b: RuntimeError
-async_await_syntax_test/b11c: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/b11d: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/b12g: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c01a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c02a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c03a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c04a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c05a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c06a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c07a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c08a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c09a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/c10a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d01a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d02a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d03a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d04a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d05a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d06a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d07a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d08a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d08b: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d09a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_await_syntax_test/d10a: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_break_in_finally_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_call_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_cascade_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_continue_label_test/await_in_body: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_continue_label_test/await_in_condition: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_continue_label_test/await_in_init: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_continue_label_test/await_in_update: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_continue_label_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_control_structures_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_finally_rethrow_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_regression_23058_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_rethrow_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_return_types_test/nestedFuture: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_return_types_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_return_types_test/tooManyTypeParameters: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_return_types_test/wrongReturnType: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_return_types_test/wrongTypeParameter: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_await_pauses_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_cancel_and_throw_in_finally_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_cancel_while_paused_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_no_cancel2_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_no_cancel_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_pause_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_regression_2238_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_regression_23116_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_regression_fisk_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_stream_take_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-async_star_take_reyield_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+async_await_syntax_test/b11c: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/b11d: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/b12g: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/c01a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/c02a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/c03a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/c04a: RuntimeError
+async_await_syntax_test/c05a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/c06a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/c07a: RuntimeError
+async_await_syntax_test/c08a: RuntimeError
+async_await_syntax_test/c09a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/c10a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/d01a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/d02a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/d03a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/d04a: RuntimeError
+async_await_syntax_test/d05a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/d06a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/d07a: RuntimeError
+async_await_syntax_test/d08a: RuntimeError
+async_await_syntax_test/d09a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/d10a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_break_in_finally_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_call_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_cascade_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_continue_label_test/await_in_body: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_continue_label_test/await_in_condition: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_continue_label_test/await_in_init: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_continue_label_test/await_in_update: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_continue_label_test/none: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_control_structures_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_finally_rethrow_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_regression_23058_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_rethrow_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_return_types_test/nestedFuture: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_return_types_test/none: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_return_types_test/tooManyTypeParameters: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_return_types_test/wrongReturnType: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_return_types_test/wrongTypeParameter: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_star_await_pauses_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_star_cancel_and_throw_in_finally_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_star_cancel_while_paused_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_star_no_cancel2_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_star_no_cancel_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_star_pause_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_star_regression_2238_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_star_regression_23116_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_star_regression_fisk_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_star_stream_take_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_star_take_reyield_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 bad_constructor_test/05: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
@@ -689,16 +666,14 @@ bad_override_test/05: MissingCompileTimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 bool_test: RuntimeError
-bound_closure_equality_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+bound_closure_equality_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 branch_canonicalization_test: RuntimeError
 break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 call_closurization_test: RuntimeError
-call_function_apply_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
+call_function_apply_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 call_operator_test: RuntimeError
 call_test: RuntimeError
-call_through_getter_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
-call_through_getter_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(B.g3#x), parameter(B.g3#y), parameter(B.g3#z), local(B.g3#)) for j:closure_call(B_g3_closure.call).
-call_with_no_such_method_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
+call_with_no_such_method_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 canonical_const2_test: RuntimeError
 canonical_const_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
 cast_test/none: RuntimeError
@@ -707,8 +682,8 @@ cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-classes_static_method_clash_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(JsLinkedHashMap.addAll#key), parameter(JsLinkedHashMap.addAll#value), local(JsLinkedHashMap.addAll#)) for j:closure_call(JsLinkedHashMap_addAll_closure.call).
-closure_cycles_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+classes_static_method_clash_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+closure_cycles_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 closure_in_constructor_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
 closure_in_initializer2_test: RuntimeError
 closure_in_initializer_test: Crash # Assertion failure: Cannot find value parameter(A.#a) in (parameter(C.#a), BoxLocal(_box_0), parameter(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
@@ -724,13 +699,11 @@ compile_time_constant_a_test: Crash # RangeError (index): Invalid value: Only va
 compile_time_constant_b_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
 compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
 generalized_void_syntax_test: CompileTimeError
-generic_async_star_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-generic_async_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-generic_field_mixin4_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-generic_field_mixin5_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-generic_field_mixin6_test/01: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-generic_field_mixin6_test/none: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
-generic_field_mixin_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
+generic_async_star_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+generic_async_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+generic_field_mixin4_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+generic_field_mixin5_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in j:constructor(C3.).
 generic_function_typedef_test/01: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_function_typedef_test/none: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_instanceof_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
@@ -742,13 +715,6 @@ generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupporte
 generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-assertion_test: RuntimeError
-async_await_syntax_test/c04a: RuntimeError
-async_await_syntax_test/c07a: RuntimeError
-async_await_syntax_test/c08a: RuntimeError
-async_await_syntax_test/d04a: RuntimeError
-async_await_syntax_test/d07a: RuntimeError
-async_await_syntax_test/d08a: RuntimeError
 generic_methods_type_expression_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 generic_native_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_sync_star_test: RuntimeError
@@ -768,12 +734,12 @@ if_null_assignment_static_test/01: RuntimeError
 if_null_assignment_static_test/03: RuntimeError
 if_null_assignment_static_test/05: RuntimeError
 many_generic_instanceof_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-regress_30339_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+regress_30339_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 type_variable_nested_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-unused_overridden_async_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+unused_overridden_async_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 vm/allocation_sinking_vm_test: RuntimeError
-vm/async_await_catch_stacktrace_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+vm/async_await_catch_stacktrace_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 typedef_is_test: Crash
