@@ -7,7 +7,7 @@ abstract class C<E extends core::Object> extends core::Object {
     : super core::Object::•()
     ;
   method sort([(self::C::E, self::C::E) → core::int compare = null]) → void {
-    self::C::sort2<self::C::E>(this, let final (self::C::E, self::C::E) → core::int #t1 = compare in #t1.==(null) ?{(core::Null, core::Null) → core::int} self::C::_compareAny : #t1);
+    self::C::sort2<self::C::E>(this, let final (self::C::E, self::C::E) → core::int #t1 = compare in #t1.==(null) ?{(self::C::E, self::C::E) → core::int} self::C::_compareAny : #t1);
   }
   static method _compareAny(dynamic a, dynamic b) → core::int {
     throw "unimplemented";

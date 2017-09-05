@@ -32,6 +32,17 @@ import 'package:kernel/type_environment.dart';
 
 import '../problems.dart' show unhandled, unsupported;
 
+/// Indicates whether type inference involving conditional expressions should
+/// always use least upper bound.
+///
+/// A value of `true` matches the behavior of analyzer.  A value of `false`
+/// matches the informal specification in
+/// https://github.com/dart-lang/sdk/pull/29371.
+///
+/// TODO(paulberry): once compatibility with analyzer is no longer needed,
+/// change this to `false`.
+const bool _forceLub = true;
+
 /// Computes the return type of a (possibly factory) constructor.
 InterfaceType computeConstructorReturnType(Member constructor) {
   if (constructor is Constructor) {
@@ -460,10 +471,13 @@ class ShadowConditionalExpression extends ConditionalExpression
           condition, inferrer.coreTypes.boolClass.rawType, false);
     }
     DartType thenType = inferrer.inferExpression(then, typeContext, true);
+    bool useLub = _forceLub || typeContext == null;
     DartType otherwiseType =
-        inferrer.inferExpression(otherwise, typeContext, true);
-    DartType type = inferrer.typeSchemaEnvironment
-        .getLeastUpperBound(thenType, otherwiseType);
+        inferrer.inferExpression(otherwise, typeContext, useLub);
+    DartType type = useLub
+        ? inferrer.typeSchemaEnvironment
+            .getLeastUpperBound(thenType, otherwiseType)
+        : greatestClosure(inferrer.coreTypes, typeContext);
     if (inferrer.strongMode) {
       staticType = type;
     }
@@ -902,12 +916,12 @@ class ShadowIfNullExpression extends Let implements ShadowExpression {
     // - Let J = T0 if K is `_` else K.
     var rhsContext = typeContext ?? lhsType;
     // - Infer e1 in context J to get T1
-    var rhsType =
-        inferrer.inferExpression(_rhs, rhsContext, typeContext == null);
+    bool useLub = _forceLub || typeContext == null;
+    var rhsType = inferrer.inferExpression(_rhs, rhsContext, useLub);
     // - Let T = greatest closure of K with respect to `?` if K is not `_`, else
     //   UP(t0, t1)
     // - Then the inferred type is T.
-    var inferredType = typeContext == null
+    var inferredType = useLub
         ? inferrer.typeSchemaEnvironment.getLeastUpperBound(lhsType, rhsType)
         : greatestClosure(inferrer.coreTypes, typeContext);
     if (inferrer.strongMode) {

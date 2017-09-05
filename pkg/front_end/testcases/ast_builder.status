@@ -43,6 +43,7 @@ inference/block_bodied_lambdas_no_return: Crash
 inference/block_bodied_lambdas_returns: Crash
 inference/block_bodied_lambdas_void_context: Crash
 inference/bug30251: Crash
+inference/bug30624: Crash
 inference/call_corner_cases: Crash
 inference/conditional_lub: Crash
 inference/conditional_upwards_inference: Crash
@@ -118,6 +119,7 @@ inference/future_then_conditional_5: Crash
 inference/future_then_conditional_6: Crash
 inference/future_then_downwards_method_target: Crash
 inference/future_then_explicit_future: Crash
+inference/future_then_ifNull: Crash
 inference/future_then_upwards: Crash
 inference/future_then_upwards_2: Crash
 inference/future_then_upwards_3: Crash
