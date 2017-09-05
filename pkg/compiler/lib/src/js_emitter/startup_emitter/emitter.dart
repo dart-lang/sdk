@@ -35,7 +35,7 @@ class EmitterFactory implements emitterTask.EmitterFactory {
   Emitter createEmitter(CodeEmitterTask task, Namer namer,
       ClosedWorld closedWorld, Sorter sorter) {
     return new Emitter(task.compiler, namer, task.nativeEmitter, closedWorld,
-        task, generateSourceMap);
+        sorter, task, generateSourceMap);
   }
 }
 
@@ -47,10 +47,16 @@ class Emitter extends emitterTask.EmitterBase {
 
   JavaScriptBackend get _backend => _compiler.backend;
 
-  Emitter(this._compiler, this.namer, NativeEmitter nativeEmitter,
-      this._closedWorld, CodeEmitterTask task, bool shouldGenerateSourceMap)
+  Emitter(
+      this._compiler,
+      this.namer,
+      NativeEmitter nativeEmitter,
+      this._closedWorld,
+      Sorter sorter,
+      CodeEmitterTask task,
+      bool shouldGenerateSourceMap)
       : _emitter = new ModelEmitter(_compiler, namer, nativeEmitter,
-            _closedWorld, task, shouldGenerateSourceMap);
+            _closedWorld, sorter, task, shouldGenerateSourceMap);
 
   DiagnosticReporter get reporter => _compiler.reporter;
 

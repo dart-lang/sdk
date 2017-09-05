@@ -500,7 +500,6 @@ call_operator_test: RuntimeError
 call_test: RuntimeError
 call_with_no_such_method_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 canonical_const2_test: RuntimeError
-canonical_const_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
 cast_test/none: RuntimeError
 cha_deopt1_test: CompileTimeError
 cha_deopt2_test: CompileTimeError
@@ -675,7 +674,6 @@ call_operator_test: RuntimeError
 call_test: RuntimeError
 call_with_no_such_method_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 canonical_const2_test: RuntimeError
-canonical_const_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
 cast_test/none: RuntimeError
 cha_deopt1_test: CompileTimeError
 cha_deopt2_test: CompileTimeError

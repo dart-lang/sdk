@@ -525,24 +525,6 @@ const_syntax_test/05: MissingCompileTimeError
 const_syntax_test/08: Crash # Stack Overflow
 const_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_syntax_test/10: MissingCompileTimeError
-const_types_test/01: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-const_types_test/02: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-const_types_test/03: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-const_types_test/04: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-const_types_test/05: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-const_types_test/06: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-const_types_test/13: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-const_types_test/31: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-const_types_test/32: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-const_types_test/33: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-const_types_test/34: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-const_types_test/35: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-const_types_test/36: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-const_types_test/37: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-const_types_test/38: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-const_types_test/39: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-const_types_test/40: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-const_types_test/none: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
 constants_test/05: MissingCompileTimeError
 constructor12_test: RuntimeError
 constructor2_test: RuntimeError
@@ -642,7 +624,6 @@ expect_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
-factory2_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
 factory_redirection_test/07: MissingCompileTimeError
 factory_redirection_test/08: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 factory_redirection_test/09: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
@@ -735,7 +716,6 @@ left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
-list_literal3_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
 list_literal4_test: RuntimeError
 list_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 local_function3_test: RuntimeError
@@ -762,9 +742,8 @@ malformed_test/06: Crash # 'package:front_end/src/fasta/kernel/kernel_class_buil
 malformed_test/none: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 many_named_arguments_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 map_literal4_test: RuntimeError
-map_literal7_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-map_literal8_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
-map_literal_syntax_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+enum_duplicate_test/01: RuntimeError
+invocation_mirror_empty_arguments_test: RuntimeError
 method_name_test: CompileTimeError
 method_override4_test: RuntimeError
 method_override5_test: RuntimeError
@@ -944,7 +923,7 @@ private_super_constructor_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/buil
 redirecting_constructor_initializer_test: RuntimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
-redirecting_factory_long_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 reg_exp_test: RuntimeError
 regress_13494_test: RuntimeError
@@ -1146,24 +1125,6 @@ const_syntax_test/05: MissingCompileTimeError
 const_syntax_test/08: Crash # Stack Overflow
 const_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_syntax_test/10: MissingCompileTimeError
-const_types_test/01: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-const_types_test/02: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-const_types_test/03: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-const_types_test/04: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-const_types_test/05: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-const_types_test/06: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-const_types_test/13: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-const_types_test/31: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-const_types_test/32: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-const_types_test/33: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-const_types_test/34: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-const_types_test/35: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-const_types_test/36: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-const_types_test/37: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-const_types_test/38: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-const_types_test/39: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-const_types_test/40: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-const_types_test/none: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
 constants_test/05: MissingCompileTimeError
 constructor12_test: RuntimeError
 constructor2_test: RuntimeError
@@ -1269,7 +1230,6 @@ external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
 f_bounded_quantification4_test: RuntimeError
 f_bounded_quantification5_test: RuntimeError
-factory2_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
 factory_redirection_test/07: MissingCompileTimeError
 factory_redirection_test/08: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 factory_redirection_test/09: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
@@ -1361,7 +1321,6 @@ left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
-list_literal3_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
 list_literal4_test: RuntimeError
 list_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 local_function3_test: RuntimeError
@@ -1384,9 +1343,8 @@ malformed_test/06: CompileTimeError
 malformed_test/none: RuntimeError
 many_named_arguments_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 map_literal4_test: RuntimeError
-map_literal7_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-map_literal8_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
-map_literal_syntax_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+enum_duplicate_test/01: RuntimeError
+invocation_mirror_empty_arguments_test: RuntimeError
 method_name_test: CompileTimeError
 method_override4_test: RuntimeError
 method_override5_test: RuntimeError
@@ -1561,7 +1519,7 @@ private_super_constructor_test/01: MissingCompileTimeError
 redirecting_constructor_initializer_test: RuntimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
-redirecting_factory_long_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 reg_exp_test: RuntimeError
 regress_13494_test: RuntimeError

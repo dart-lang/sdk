@@ -222,28 +222,11 @@ class KernelSorter implements Sorter {
 
   @override
   Iterable<MemberEntity> sortMembers(Iterable<MemberEntity> members) {
-    return members.toList()
-      ..sort((MemberEntity member1, MemberEntity member2) {
-        int r = _compareLibraries(member1.library, member2.library);
-        if (r != 0) return r;
-        MemberDefinition definition1 = elementMap.getMemberDefinition(member1);
-        MemberDefinition definition2 = elementMap.getMemberDefinition(member2);
-        return _compareSourceSpans(
-            member1, definition1.location, member2, definition2.location);
-      });
+    return members.toList()..sort(compareMembersByLocation);
   }
 
   @override
   Iterable<ClassEntity> sortClasses(Iterable<ClassEntity> classes) {
-    int compareClasses(ClassEntity cls1, ClassEntity cls2) {
-      int r = _compareLibraries(cls1.library, cls2.library);
-      if (r != 0) return r;
-      ClassDefinition definition1 = elementMap.getClassDefinition(cls1);
-      ClassDefinition definition2 = elementMap.getClassDefinition(cls2);
-      return _compareSourceSpans(
-          cls1, definition1.location, cls2, definition2.location);
-    }
-
     List<ClassEntity> regularClasses = <ClassEntity>[];
     List<ClassEntity> unnamedMixins = <ClassEntity>[];
     for (ClassEntity cls in classes) {
@@ -254,7 +237,7 @@ class KernelSorter implements Sorter {
       }
     }
     List<ClassEntity> sorted = <ClassEntity>[];
-    regularClasses.sort(compareClasses);
+    regularClasses.sort(compareClassesByLocation);
     sorted.addAll(regularClasses);
     unnamedMixins.sort((a, b) {
       int result = _compareLibraries(a.library, b.library);
@@ -273,5 +256,37 @@ class KernelSorter implements Sorter {
     // TODO(redemption): Support this.
     assert(typedefs.isEmpty);
     return typedefs;
+  }
+
+  @override
+  int compareLibrariesByLocation(LibraryEntity a, LibraryEntity b) {
+    return _compareLibraries(a, b);
+  }
+
+  @override
+  int compareClassesByLocation(ClassEntity a, ClassEntity b) {
+    int r = _compareLibraries(a.library, b.library);
+    if (r != 0) return r;
+    ClassDefinition definition1 = elementMap.getClassDefinition(a);
+    ClassDefinition definition2 = elementMap.getClassDefinition(b);
+    return _compareSourceSpans(
+        a, definition1.location, b, definition2.location);
+  }
+
+  @override
+  int compareTypedefsByLocation(TypedefEntity a, TypedefEntity b) {
+    // TODO(redemption): Support this.
+    failedAt(a, 'KernelSorter.compareTypedefsByLocation unimplemented');
+    return 0;
+  }
+
+  @override
+  int compareMembersByLocation(MemberEntity a, MemberEntity b) {
+    int r = _compareLibraries(a.library, b.library);
+    if (r != 0) return r;
+    MemberDefinition definition1 = elementMap.getMemberDefinition(a);
+    MemberDefinition definition2 = elementMap.getMemberDefinition(b);
+    return _compareSourceSpans(
+        a, definition1.location, b, definition2.location);
   }
 }
