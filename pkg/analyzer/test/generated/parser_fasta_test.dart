@@ -3851,9 +3851,17 @@ class ParserProxy implements analyzer.Parser {
   @override
   FunctionBody parseFunctionBody(
       bool mayBeEmpty, ParserErrorCode emptyErrorCode, bool inExpression) {
-    return _run((parser) => (token) =>
-            parser.parseFunctionBody(token, inExpression, mayBeEmpty))
-        as FunctionBody;
+    return _run((parser) => (token) {
+          token = parser.parseAsyncModifier(token);
+          token = parser.parseFunctionBody(token, inExpression, mayBeEmpty);
+          if (!inExpression) {
+            if (![';', '}'].contains(token.lexeme)) {
+              fail('Expected ";" or "}", but found: ${token.lexeme}');
+            }
+            token = token.next;
+          }
+          return token;
+        }) as FunctionBody;
   }
 
   @override
@@ -3917,7 +3925,7 @@ class ParserProxy implements analyzer.Parser {
       // firstToken should be set by beginCompilationUnit event.
     }
     _currentFastaToken = parseFunction(_currentFastaToken);
-    expect(_currentFastaToken.isEof, isTrue);
+    expect(_currentFastaToken.isEof, isTrue, reason: _currentFastaToken.lexeme);
     if (nodeCount >= 0) {
       expect(_astBuilder.stack, hasLength(nodeCount));
     }
@@ -5054,80 +5062,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) exception:
     // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseFinalConstVarOrType'.
     super.test_parseFinalConstVarOrType_void_noIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_block() {
-    // TODO(brianwilkerson) exception:
-    //   'package:front_end/src/fasta/source/stack_listener.dart': Failed assertion: line 311 pos 12: 'arrayLength > 0': is not true.
-    //   dart:core                                                          _AssertionError._throwNew
-    //   package:front_end/src/fasta/source/stack_listener.dart 311:12      Stack.pop
-    //   package:front_end/src/fasta/source/stack_listener.dart 95:25       StackListener.pop
-    //   package:analyzer/src/fasta/ast_builder.dart 287:18                 AstBuilder.endBlockFunctionBody
-    //   test/generated/parser_fasta_listener.dart 592:14                   ForwardingTestListener.endBlockFunctionBody
-    //   package:front_end/src/fasta/parser/parser.dart 2648:14             Parser.parseFunctionBody
-    super.test_parseFunctionBody_block();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_block_async() {
-    // TODO(brianwilkerson) The method 'parseFunctionBody' does not handle
-    // preceding modifiers.
-    super.test_parseFunctionBody_block_async();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_block_asyncGenerator() {
-    // TODO(brianwilkerson) The method 'parseFunctionBody' does not handle
-    // preceding modifiers.
-    super.test_parseFunctionBody_block_asyncGenerator();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_block_syncGenerator() {
-    // TODO(brianwilkerson) The method 'parseFunctionBody' does not handle
-    // preceding modifiers.
-    super.test_parseFunctionBody_block_syncGenerator();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_empty() {
-    // TODO(brianwilkerson) exception:
-    //   'package:front_end/src/fasta/source/stack_listener.dart': Failed assertion: line 311 pos 12: 'arrayLength > 0': is not true.
-    //   dart:core                                                          _AssertionError._throwNew
-    //   package:front_end/src/fasta/source/stack_listener.dart 311:12      Stack.pop
-    //   package:front_end/src/fasta/source/stack_listener.dart 95:25       StackListener.pop
-    //   package:analyzer/src/fasta/ast_builder.dart 269:5                  AstBuilder.handleEmptyFunctionBody
-    //   test/generated/parser_fasta_listener.dart 1171:14                  ForwardingTestListener.handleEmptyFunctionBody
-    //   package:front_end/src/fasta/parser/parser.dart 2607:16             Parser.parseFunctionBody
-    super.test_parseFunctionBody_empty();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_expression() {
-    // TODO(brianwilkerson) exception:
-    //   'package:front_end/src/fasta/source/stack_listener.dart': Failed assertion: line 311 pos 12: 'arrayLength > 0': is not true.
-    //   dart:core                                                          _AssertionError._throwNew
-    //   package:front_end/src/fasta/source/stack_listener.dart 311:12      Stack.pop
-    //   package:front_end/src/fasta/source/stack_listener.dart 95:25       StackListener.pop
-    //   package:analyzer/src/fasta/ast_builder.dart 379:18                 AstBuilder.handleExpressionFunctionBody
-    //   test/generated/parser_fasta_listener.dart 1177:14                  ForwardingTestListener.handleExpressionFunctionBody
-    //   package:front_end/src/fasta/parser/parser.dart 2614:18             Parser.parseFunctionBody
-    super.test_parseFunctionBody_expression();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionBody_expression_async() {
-    // TODO(brianwilkerson) The method 'parseFunctionBody' does not handle
-    // preceding modifiers.
-    super.test_parseFunctionBody_expression_async();
   }
 
   @override
