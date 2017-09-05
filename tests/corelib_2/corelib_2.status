@@ -580,13 +580,14 @@ list_concurrent_modify_test: Crash # Assertion failure: Missing scope info for j
 list_contains_argument_order_test: Crash
 list_get_range_test: Crash
 list_insert_all_test: Crash
-list_insert_test: Crash
+iterable_generate_test/none: RuntimeError
+list_insert_all_test: RuntimeError
 list_map_test: Crash
 list_map_test: RuntimeError
-list_replace_range_test: Crash
+list_replace_range_test: RuntimeError
 list_reversed_test: Crash
 list_reversed_test: RuntimeError
-list_set_all_test: Crash
+list_set_all_test: RuntimeError
 list_set_range_test: Crash
 list_set_range_test: RuntimeError
 list_test/01: Crash
@@ -828,13 +829,14 @@ list_concurrent_modify_test: Crash # NoSuchMethodError: The getter 'thisLocal' w
 list_contains_argument_order_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 list_get_range_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 list_insert_all_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
-list_insert_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
+iterable_generate_test/none: RuntimeError
+list_insert_all_test: RuntimeError
 list_map_test: Crash
 list_map_test: RuntimeError
-list_replace_range_test: Crash
+list_replace_range_test: RuntimeError
 list_reversed_test: Crash
 list_reversed_test: RuntimeError
-list_set_all_test: Crash
+list_set_all_test: RuntimeError
 list_set_range_test: Crash
 list_set_range_test: RuntimeError
 list_test/01: Crash

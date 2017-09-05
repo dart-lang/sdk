@@ -708,8 +708,6 @@ infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_hand
 infinity_test: RuntimeError
 inlined_throw_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 instance_creation_in_function_annotation_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-instanceof4_test/01: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-instanceof4_test/none: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 integer_division_by_zero_test: RuntimeError
 interceptor3_test: RuntimeError
 internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
@@ -721,7 +719,6 @@ is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
 is_object_test: RuntimeError
-issue10747_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 issue13474_test: RuntimeError
 issue14014_3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 issue15720_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
@@ -738,7 +735,6 @@ left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
-list_is_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 list_literal3_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
 list_literal4_test: RuntimeError
 list_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
@@ -758,8 +754,6 @@ main_test/42: Crash # type 'JClass' is not a subtype of type 'ClassElement' of '
 main_test/43: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 main_test/44: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 main_test/45: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-malbounded_type_cast2_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-malbounded_type_test2_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 malformed_test/01: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 malformed_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 malformed_test/03: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
@@ -1075,7 +1069,6 @@ type_parameter_test/04: Crash # type 'JClosureClass' is not a subtype of type 'C
 type_parameter_test/05: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
 type_parameter_test/06: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
 type_parameter_test/none: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
-type_variable_bounds3_test/00: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 type_variable_bounds_test/10: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 type_variable_closure2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 type_variable_closure3_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
@@ -1341,8 +1334,6 @@ infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak
 infinity_test: RuntimeError
 inlined_throw_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 instance_creation_in_function_annotation_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-instanceof4_test/01: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-instanceof4_test/none: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 integer_division_by_zero_test: RuntimeError
 interceptor3_test: RuntimeError
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
@@ -1354,7 +1345,6 @@ is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/96: Crash # Internal Error: Non-empty instruction stack
 is_malformed_type_test/98: Crash # Internal Error: Non-empty instruction stack
 is_object_test: RuntimeError
-issue10747_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 issue13474_test: RuntimeError
 issue14014_3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 issue15720_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
@@ -1371,7 +1361,6 @@ left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
-list_is_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 list_literal3_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
 list_literal4_test: RuntimeError
 list_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
@@ -1391,8 +1380,6 @@ main_test/42: Crash # NoSuchMethodError: Class 'JClass' has no instance getter '
 main_test/43: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 main_test/44: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 main_test/45: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-malbounded_type_cast2_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-malbounded_type_test2_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 malformed_test/06: CompileTimeError
 malformed_test/none: RuntimeError
 many_named_arguments_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
@@ -1684,7 +1671,6 @@ type_parameter_test/04: Crash # NoSuchMethodError: Class 'JClosureClass' has no 
 type_parameter_test/05: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
 type_parameter_test/06: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
 type_parameter_test/none: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
-type_variable_bounds3_test/00: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 type_variable_closure2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 type_variable_closure3_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
 type_variable_closure4_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.

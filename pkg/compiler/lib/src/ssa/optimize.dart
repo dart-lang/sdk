@@ -9,7 +9,6 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements;
-import '../elements/elements.dart' show ClassElement;
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
@@ -1215,9 +1214,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
           if (nextSource is HThis) {
             if (source == null) {
               source = nextSource;
-              ClassElement contextClass =
+              ClassEntity contextClass =
                   nextSource.sourceElement.enclosingClass;
-              if (node.inputs.length != contextClass.typeVariables.length) {
+              if (node.inputs.length !=
+                  _closedWorld.elementEnvironment
+                      .getThisType(contextClass)
+                      .typeArguments
+                      .length) {
                 return null;
               }
               if (needsSubstitutionForTypeVariableAccess(contextClass)) {
