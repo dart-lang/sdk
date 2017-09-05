@@ -177,7 +177,10 @@ void _collectEntries(List<Fork> files, EntrySet entriesToMove, {bool isOne}) {
 
       // TODO(rnystrom): If all of the entries are deleted from a section, it
       // would be nice to delete the section header too.
-      editable.delete(deleteLines);
+      // We don't delete entries from the 1.0 status files so that we can keep
+      // testing 1.0, but we do from the "_strong" directories since those
+      // should get migrated fully into "_2".
+      if (!isOne) editable.delete(deleteLines);
     }
   }
 }
