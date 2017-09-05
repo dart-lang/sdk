@@ -2724,7 +2724,7 @@ void Precompiler::TryApplyFeedback(ParsedJSONArray* js_icdatas,
       // [cid [cid [cid]]] target count
       const Array& arguments_descriptor =
           Array::Handle(ic.arguments_descriptor());
-      ArgumentsDescriptor args_desc(arguments_descriptor);
+      const ArgumentsDescriptor args_desc(arguments_descriptor);
 
       intptr_t num_args_checked = ic.NumArgsTested();
       for (intptr_t k = 0; k < js_entries->Length();

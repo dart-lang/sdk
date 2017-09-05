@@ -3152,12 +3152,12 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (ic_data()->NumberOfUsedChecks() > 0) {
       const ICData& unary_ic_data =
           ICData::ZoneHandle(zone, ic_data()->AsUnaryClassChecks());
-      compiler->GenerateInstanceCall(deopt_id(), token_pos(), ArgumentCount(),
-                                     locs(), unary_ic_data);
+      compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
+                                     unary_ic_data);
     } else {
       // Call was not visited yet, use original ICData in order to populate it.
-      compiler->GenerateInstanceCall(deopt_id(), token_pos(), ArgumentCount(),
-                                     locs(), *call_ic_data);
+      compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
+                                     *call_ic_data);
     }
   } else {
     // Unoptimized code.
@@ -3173,11 +3173,11 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     if (is_smi_two_args_op) {
       ASSERT(ArgumentCount() == 2);
-      compiler->EmitInstanceCall(*stub_entry, *call_ic_data, ArgumentCount(),
-                                 deopt_id(), token_pos(), locs());
+      compiler->EmitInstanceCall(*stub_entry, *call_ic_data, deopt_id(),
+                                 token_pos(), locs());
     } else {
-      compiler->GenerateInstanceCall(deopt_id(), token_pos(), ArgumentCount(),
-                                     locs(), *call_ic_data);
+      compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
+                                     *call_ic_data);
     }
   }
 #else

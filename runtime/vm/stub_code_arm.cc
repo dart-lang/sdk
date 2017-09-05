@@ -2055,7 +2055,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ ldr(R2, FieldAddress(R9, MegamorphicCache::buckets_offset()));
   __ ldr(R1, FieldAddress(R9, MegamorphicCache::mask_offset()));
   // R2: cache buckets array.
-  // R1: mask.
+  // R1: mask as a smi.
 
   // Compute the table index.
   ASSERT(MegamorphicCache::kSpreadFactor == 7);

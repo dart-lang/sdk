@@ -377,7 +377,6 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateInstanceCall(intptr_t deopt_id,
                             TokenPosition token_pos,
-                            intptr_t argument_count,
                             LocationSummary* locs,
                             const ICData& ic_data);
 
@@ -399,14 +398,12 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitOptimizedInstanceCall(const StubEntry& stub_entry,
                                  const ICData& ic_data,
-                                 intptr_t argument_count,
                                  intptr_t deopt_id,
                                  TokenPosition token_pos,
                                  LocationSummary* locs);
 
   void EmitInstanceCall(const StubEntry& stub_entry,
                         const ICData& ic_data,
-                        intptr_t argument_count,
                         intptr_t deopt_id,
                         TokenPosition token_pos,
                         LocationSummary* locs);
@@ -424,7 +421,6 @@ class FlowGraphCompiler : public ValueObject {
   // Pass a value for try-index where block is not available (e.g. slow path).
   void EmitMegamorphicInstanceCall(const String& function_name,
                                    const Array& arguments_descriptor,
-                                   intptr_t argument_count,
                                    intptr_t deopt_id,
                                    TokenPosition token_pos,
                                    LocationSummary* locs,
@@ -432,7 +428,6 @@ class FlowGraphCompiler : public ValueObject {
                                    intptr_t slow_path_argument_count = 0);
 
   void EmitSwitchableInstanceCall(const ICData& ic_data,
-                                  intptr_t argument_count,
                                   intptr_t deopt_id,
                                   TokenPosition token_pos,
                                   LocationSummary* locs);
@@ -637,12 +632,12 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitOptimizedStaticCall(const Function& function,
                                const Array& arguments_descriptor,
-                               intptr_t argument_count,
+                               intptr_t count_with_type_args,
                                intptr_t deopt_id,
                                TokenPosition token_pos,
                                LocationSummary* locs);
 
-  void EmitUnoptimizedStaticCall(intptr_t argument_count,
+  void EmitUnoptimizedStaticCall(intptr_t count_with_type_args,
                                  intptr_t deopt_id,
                                  TokenPosition token_pos,
                                  LocationSummary* locs,

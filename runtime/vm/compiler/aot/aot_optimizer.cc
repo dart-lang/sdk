@@ -158,7 +158,7 @@ bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
     return false;
   }
   GrowableArray<intptr_t> class_ids(call->ic_data()->NumArgsTested());
-  const intptr_t receiver_idx = call->FirstParamIndex();
+  const intptr_t receiver_idx = call->FirstArgIndex();
   ASSERT(call->ic_data()->NumArgsTested() <=
          call->ArgumentCountWithoutTypeArgs());
   for (intptr_t i = 0; i < call->ic_data()->NumArgsTested(); i++) {
@@ -1670,7 +1670,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
-  const intptr_t receiver_idx = instr->FirstParamIndex();
+  const intptr_t receiver_idx = instr->FirstArgIndex();
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
   const intptr_t number_of_checks = unary_checks.NumberOfChecks();
@@ -1973,7 +1973,7 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
       // being either doubles or smis.
       if (CanUnboxDouble() && call->HasICData() &&
           call->ic_data()->NumberOfChecksIs(1) &&
-          (call->FirstParamIndex() == 0)) {
+          (call->FirstArgIndex() == 0)) {
         const ICData& ic_data = *call->ic_data();
         intptr_t result_cid = kIllegalCid;
         if (ICDataHasReceiverArgumentClassIds(ic_data, kDoubleCid,
@@ -1999,7 +1999,7 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
     }
     case MethodRecognizer::kDoubleFromInteger: {
       if (call->HasICData() && call->ic_data()->NumberOfChecksIs(1) &&
-          (call->FirstParamIndex() == 0)) {
+          (call->FirstArgIndex() == 0)) {
         const ICData& ic_data = *call->ic_data();
         if (CanUnboxDouble()) {
           if (ArgIsAlways(kSmiCid, ic_data, 1)) {
@@ -2068,7 +2068,7 @@ bool AotOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   }
 
   // Field guard was detached.
-  ASSERT(instr->FirstParamIndex() == 0);
+  ASSERT(instr->FirstArgIndex() == 0);
   StoreInstanceFieldInstr* store = new (Z)
       StoreInstanceFieldInstr(field, new (Z) Value(instr->ArgumentAt(0)),
                               new (Z) Value(instr->ArgumentAt(1)),

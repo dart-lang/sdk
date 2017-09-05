@@ -12834,15 +12834,25 @@ intptr_t ICData::NumArgsTested() const {
   return NumArgsTestedBits::decode(raw_ptr()->state_bits_);
 }
 
+void ICData::SetNumArgsTested(intptr_t value) const {
+  ASSERT(Utils::IsUint(2, value));
+  StoreNonPointer(&raw_ptr()->state_bits_,
+                  NumArgsTestedBits::update(value, raw_ptr()->state_bits_));
+}
+
 intptr_t ICData::TypeArgsLen() const {
   ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
   return args_desc.TypeArgsLen();
 }
 
-void ICData::SetNumArgsTested(intptr_t value) const {
-  ASSERT(Utils::IsUint(2, value));
-  StoreNonPointer(&raw_ptr()->state_bits_,
-                  NumArgsTestedBits::update(value, raw_ptr()->state_bits_));
+intptr_t ICData::CountWithTypeArgs() const {
+  ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
+  return args_desc.CountWithTypeArgs();
+}
+
+intptr_t ICData::CountWithoutTypeArgs() const {
+  ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
+  return args_desc.Count();
 }
 
 uint32_t ICData::DeoptReasons() const {

@@ -1206,7 +1206,6 @@ void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
 
 void FlowGraphCompiler::EmitOptimizedInstanceCall(const StubEntry& stub_entry,
                                                   const ICData& ic_data,
-                                                  intptr_t argument_count,
                                                   intptr_t deopt_id,
                                                   TokenPosition token_pos,
                                                   LocationSummary* locs) {
@@ -1222,12 +1221,11 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const StubEntry& stub_entry,
   __ LoadUniqueObject(R9, ic_data);
   GenerateDartCall(deopt_id, token_pos, stub_entry, RawPcDescriptors::kIcCall,
                    locs);
-  __ Drop(argument_count);
+  __ Drop(ic_data.CountWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitInstanceCall(const StubEntry& stub_entry,
                                          const ICData& ic_data,
-                                         intptr_t argument_count,
                                          intptr_t deopt_id,
                                          TokenPosition token_pos,
                                          LocationSummary* locs) {
@@ -1235,26 +1233,26 @@ void FlowGraphCompiler::EmitInstanceCall(const StubEntry& stub_entry,
   __ LoadUniqueObject(R9, ic_data);
   GenerateDartCall(deopt_id, token_pos, stub_entry, RawPcDescriptors::kIcCall,
                    locs);
-  __ Drop(argument_count);
+  __ Drop(ic_data.CountWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     const String& name,
     const Array& arguments_descriptor,
-    intptr_t argument_count,
     intptr_t deopt_id,
     TokenPosition token_pos,
     LocationSummary* locs,
     intptr_t try_index,
     intptr_t slow_path_argument_count) {
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
+  const ArgumentsDescriptor args_desc(arguments_descriptor);
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
       zone(),
       MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
 
   __ Comment("MegamorphicCall");
   // Load receiver into R0.
-  __ LoadFromOffset(kWord, R0, SP, (argument_count - 1) * kWordSize);
+  __ LoadFromOffset(kWord, R0, SP, (args_desc.Count() - 1) * kWordSize);
   __ LoadObject(R9, cache);
   __ ldr(LR, Address(THR, Thread::megamorphic_call_checked_entry_offset()));
   __ blx(LR);
@@ -1281,22 +1279,20 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
   EmitCatchEntryState(pending_deoptimization_env_, try_index);
-  __ Drop(argument_count);
+  __ Drop(args_desc.CountWithTypeArgs());
 }
 
 void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
-                                                   intptr_t argument_count,
                                                    intptr_t deopt_id,
                                                    TokenPosition token_pos,
                                                    LocationSummary* locs) {
   ASSERT(ic_data.NumArgsTested() == 1);
   const Code& initial_stub =
       Code::ZoneHandle(StubCode::ICCallThroughFunction_entry()->code());
-  const intptr_t receiver_idx = ic_data.TypeArgsLen() > 0 ? 1 : 0;
 
   __ Comment("SwitchableCall");
   __ LoadFromOffset(kWord, R0, SP,
-                    (argument_count - receiver_idx - 1) * kWordSize);
+                    (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
   __ LoadUniqueObject(CODE_REG, initial_stub);
   __ ldr(LR, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
   __ LoadUniqueObject(R9, ic_data);
@@ -1312,10 +1308,10 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
     // arguments are removed.
     AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
-  __ Drop(argument_count);
+  __ Drop(ic_data.CountWithTypeArgs());
 }
 
-void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t argument_count,
+void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t count_with_type_args,
                                                   intptr_t deopt_id,
                                                   TokenPosition token_pos,
                                                   LocationSummary* locs,
@@ -1325,13 +1321,13 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t argument_count,
   __ LoadObject(R9, ic_data);
   GenerateDartCall(deopt_id, token_pos, *stub_entry,
                    RawPcDescriptors::kUnoptStaticCall, locs);
-  __ Drop(argument_count);
+  __ Drop(count_with_type_args);
 }
 
 void FlowGraphCompiler::EmitOptimizedStaticCall(
     const Function& function,
     const Array& arguments_descriptor,
-    intptr_t argument_count,
+    intptr_t count_with_type_args,
     intptr_t deopt_id,
     TokenPosition token_pos,
     LocationSummary* locs) {
@@ -1347,7 +1343,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   GenerateStaticDartCall(deopt_id, token_pos,
                          *StubCode::CallStaticFunction_entry(),
                          RawPcDescriptors::kOther, locs, function);
-  __ Drop(argument_count);
+  __ Drop(count_with_type_args);
 }
 
 Condition FlowGraphCompiler::EmitEqualityRegConstCompare(

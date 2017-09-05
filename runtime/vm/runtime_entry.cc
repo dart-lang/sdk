@@ -1109,7 +1109,6 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
   // We lost the original ICData when we patched to the monomorphic case.
   const String& name = String::Handle(zone, old_target.name());
   ASSERT(!old_target.HasOptionalParameters());
-  ASSERT(!old_target.IsGeneric());
   const int kTypeArgsLen = 0;
   const Array& descriptor =
       Array::Handle(zone, ArgumentsDescriptor::New(
@@ -1208,8 +1207,7 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
     ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
   }
 
-  if (!target_function.IsNull() && !target_function.HasOptionalParameters() &&
-      !target_function.IsGeneric()) {
+  if (!target_function.IsNull() && !target_function.HasOptionalParameters()) {
     // Patch to monomorphic call.
     ASSERT(target_function.HasCode());
     const Code& target_code = Code::Handle(zone, target_function.CurrentCode());
@@ -1266,7 +1264,6 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
   // We lost the original ICData when we patched to the monomorphic case.
   const String& name = String::Handle(zone, old_target.name());
   ASSERT(!old_target.HasOptionalParameters());
-  ASSERT(!old_target.IsGeneric());
   const int kTypeArgsLen = 0;
   const Array& descriptor =
       Array::Handle(zone, ArgumentsDescriptor::New(
@@ -1357,21 +1354,21 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   }
   Class& cls = Class::Handle(zone, receiver.clazz());
   ASSERT(!cls.IsNull());
-  if (FLAG_trace_ic || FLAG_trace_ic_miss_in_optimized) {
-    OS::PrintErr("Megamorphic IC miss, class=%s, function=%s\n",
-                 cls.ToCString(), name.ToCString());
-  }
-
   ArgumentsDescriptor args_desc(descriptor);
+  if (FLAG_trace_ic || FLAG_trace_ic_miss_in_optimized) {
+    OS::PrintErr("Megamorphic IC miss (%s), class=%s, function<%" Pd ">=%s\n",
+                 ic_data_or_cache.IsICData() ? "icdata" : "cache",
+                 cls.ToCString(), args_desc.TypeArgsLen(), name.ToCString());
+  }
   Function& target_function = Function::Handle(
       zone, Resolver::ResolveDynamicForReceiverClass(cls, name, args_desc));
   if (target_function.IsNull()) {
     target_function = InlineCacheMissHelper(receiver, descriptor, name);
-  }
-  if (target_function.IsNull()) {
-    ASSERT(!FLAG_lazy_dispatchers);
-    arguments.SetReturn(target_function);
-    return;
+    if (target_function.IsNull()) {
+      ASSERT(!FLAG_lazy_dispatchers);
+      arguments.SetReturn(target_function);
+      return;
+    }
   }
 
   if (ic_data_or_cache.IsICData()) {
@@ -1379,7 +1376,6 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
     const intptr_t number_of_checks = ic_data.NumberOfChecks();
 
     if ((number_of_checks == 0) && !target_function.HasOptionalParameters() &&
-        !target_function.IsGeneric() &&
         !Isolate::Current()->compilation_allowed()) {
       // This call site is unlinked: transition to a monomorphic direct call.
       // Note we cannot do this if the target has optional parameters because

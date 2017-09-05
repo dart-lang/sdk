@@ -34,9 +34,11 @@ class ArgumentsDescriptor : public ValueObject {
   explicit ArgumentsDescriptor(const Array& array);
 
   // Accessors.
-  intptr_t TypeArgsLen() const;
-  intptr_t Count() const;
-  intptr_t PositionalCount() const;
+  intptr_t TypeArgsLen() const;  // 0 if no type argument vector is passed.
+  intptr_t FirstArgIndex() const { return TypeArgsLen() > 0 ? 1 : 0; }
+  intptr_t CountWithTypeArgs() const { return FirstArgIndex() + Count(); }
+  intptr_t Count() const;            // Excluding type arguments vector.
+  intptr_t PositionalCount() const;  // Excluding type arguments vector.
   intptr_t NamedCount() const { return Count() - PositionalCount(); }
   RawString* NameAt(intptr_t i) const;
   intptr_t PositionAt(intptr_t i) const;

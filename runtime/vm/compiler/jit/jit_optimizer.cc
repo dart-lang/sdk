@@ -92,7 +92,7 @@ bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
     return false;
   }
 
-  const intptr_t receiver_index = call->FirstParamIndex();
+  const intptr_t receiver_index = call->FirstArgIndex();
   GrowableArray<intptr_t> class_ids(call->ic_data()->NumArgsTested());
   ASSERT(call->ic_data()->NumArgsTested() <=
          call->ArgumentCountWithoutTypeArgs());

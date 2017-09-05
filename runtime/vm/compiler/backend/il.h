@@ -2707,20 +2707,22 @@ class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
 
 struct ArgumentsInfo {
   ArgumentsInfo(intptr_t type_args_len,
-                intptr_t pushed_argc,
+                intptr_t count_with_type_args,
                 const Array& argument_names)
       : type_args_len(type_args_len),
-        pushed_argc(pushed_argc),
+        count_with_type_args(count_with_type_args),
+        count_without_type_args(count_with_type_args -
+                                (type_args_len > 0 ? 1 : 0)),
         argument_names(argument_names) {}
 
   RawArray* ToArgumentsDescriptor() const {
-    return ArgumentsDescriptor::New(type_args_len,
-                                    pushed_argc - (type_args_len > 0 ? 1 : 0),
+    return ArgumentsDescriptor::New(type_args_len, count_without_type_args,
                                     argument_names);
   }
 
-  intptr_t type_args_len;
-  intptr_t pushed_argc;
+  const intptr_t type_args_len;
+  const intptr_t count_with_type_args;
+  const intptr_t count_without_type_args;
   const Array& argument_names;
 };
 
@@ -2740,11 +2742,12 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
     ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
   }
 
-  intptr_t FirstParamIndex() const { return type_args_len() > 0 ? 1 : 0; }
+  intptr_t FirstArgIndex() const { return type_args_len_ > 0 ? 1 : 0; }
   intptr_t ArgumentCountWithoutTypeArgs() const {
-    return arguments_->length() - FirstParamIndex();
+    return arguments_->length() - FirstArgIndex();
   }
   // ArgumentCount() includes the type argument vector if any.
+  // Caution: Must override Instruction::ArgumentCount().
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
