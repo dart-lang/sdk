@@ -59,14 +59,7 @@ class BuilderProxy implements Builder {
 
 @reflectiveTest
 class ClassMemberParserTest_Fasta extends FastaParserTestCase
-    with ClassMemberParserTestMixin {
-  @override
-  @failingTest
-  void test_parseConstructor_assert() {
-    // TODO(paulberry): Fasta doesn't support asserts in initializers
-    super.test_parseConstructor_assert();
-  }
-}
+    with ClassMemberParserTestMixin {}
 
 /**
  * Tests of the fasta parser based on [ComplexParserTestMixin].
@@ -3210,11 +3203,7 @@ class FastaParserTestCase extends Object
 
   @override
   set enableAssertInitializer(bool value) {
-    if (value == true) {
-      // TODO(paulberry,ahe): it looks like asserts in initializer lists are not
-      // supported by Fasta.
-      throw new UnimplementedError();
-    }
+    // Asserts in initializer lists are always anabled.
   }
 
   @override

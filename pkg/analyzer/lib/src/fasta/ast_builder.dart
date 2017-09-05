@@ -462,6 +462,8 @@ class AstBuilder extends ScopeListener {
             fieldName,
             initializerObject.operator,
             initializerObject.rightHandSide));
+      } else if (initializerObject is AssertInitializer) {
+        initializers.add(initializerObject);
       }
     }
 
@@ -674,8 +676,20 @@ class AstBuilder extends ScopeListener {
     debugEvent("Assert");
     Expression message = popIfNotNull(comma);
     Expression condition = pop();
-    push(ast.assertStatement(assertKeyword, leftParenthesis, condition, comma,
-        message, rightParenthesis, semicolon));
+    switch (kind) {
+      case Assert.Expression:
+        throw new UnimplementedError(
+            'assert expressions are not yet supported');
+        break;
+      case Assert.Initializer:
+        push(ast.assertInitializer(assertKeyword, leftParenthesis, condition,
+            comma, message, rightParenthesis));
+        break;
+      case Assert.Statement:
+        push(ast.assertStatement(assertKeyword, leftParenthesis, condition,
+            comma, message, rightParenthesis, semicolon));
+        break;
+    }
   }
 
   void handleAsOperator(Token operator, Token endToken) {
