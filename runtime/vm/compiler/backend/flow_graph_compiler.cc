@@ -106,6 +106,7 @@ FlowGraphCompiler::FlowGraphCompiler(
     FlowGraph* flow_graph,
     const ParsedFunction& parsed_function,
     bool is_optimizing,
+    bool use_speculative_inlining,
     const GrowableArray<const Function*>& inline_id_to_function,
     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
     const GrowableArray<intptr_t>& caller_inline_id)
@@ -125,6 +126,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       deopt_infos_(),
       static_calls_target_table_(),
       is_optimizing_(is_optimizing),
+      use_speculative_inlining_(use_speculative_inlining),
       may_reoptimize_(false),
       intrinsic_mode_(false),
       double_class_(
@@ -816,6 +818,7 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
           "Retrying compilation %s, suppressing inlining of deopt_id:%" Pd "\n",
           parsed_function_.function().ToFullyQualifiedCString(), deopt_id);
     }
+    ASSERT(use_speculative_inlining_);
     ASSERT(deopt_id != 0);  // longjmp must return non-zero value.
     Thread::Current()->long_jump_base()->Jump(
         deopt_id, Object::speculative_inlining_error());

@@ -4839,12 +4839,17 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual bool ComputeCanDeoptimize() const {
     const intptr_t value_cid = value()->Type()->ToCid();
+    const intptr_t box_cid = BoxCid();
 
-    if (CanConvertSmi() && (value()->Type()->ToCid() == kSmiCid)) {
+    if (value_cid == box_cid) {
       return false;
     }
 
-    return (value_cid != BoxCid());
+    if (CanConvertSmi() && (value_cid == kSmiCid)) {
+      return false;
+    }
+
+    return true;
   }
 
   virtual Representation representation() const { return representation_; }

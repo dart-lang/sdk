@@ -3288,6 +3288,7 @@ void UnboxInstr::EmitLoadFromBox(FlowGraphCompiler* compiler) {
   switch (representation()) {
     case kUnboxedInt64: {
       PairLocation* result = locs()->out(0).AsPairLocation();
+      ASSERT(result->At(0).reg() != box);
       __ movl(result->At(0).reg(), FieldAddress(box, ValueOffset()));
       __ movl(result->At(1).reg(),
               FieldAddress(box, ValueOffset() + kWordSize));

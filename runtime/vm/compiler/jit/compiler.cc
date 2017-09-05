@@ -1178,7 +1178,8 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       Assembler assembler(use_far_branches);
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
-          inline_id_to_function, inline_id_to_token_pos, caller_inline_id);
+          use_speculative_inlining, inline_id_to_function,
+          inline_id_to_token_pos, caller_inline_id);
       {
         CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);
         NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
