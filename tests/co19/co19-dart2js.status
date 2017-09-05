@@ -887,6 +887,7 @@ LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: Pass, RuntimeError # 
 LayoutTests/fast/canvas/webgl/program-test_t01: RuntimeError, Pass # Please triage this failure
 LayoutTests/fast/canvas/webgl/renderbuffer-initialization_t01: RuntimeError, Pass # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-canvas-rgba5551_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data-rgba4444_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba5551_t01: Pass, RuntimeError # Please triage this failure
