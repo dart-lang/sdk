@@ -545,6 +545,7 @@ crash_6725_test/01: Crash # NoSuchMethodError: The method 'startsWith' was calle
 custom_await_stack_trace_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 cyclic_constructor_test/01: Crash # Stack Overflow
 cyclic_default_values_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+cyclic_type2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 dangling_else_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: CompileTimeError
@@ -624,6 +625,14 @@ external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
 factory_redirection_test/07: MissingCompileTimeError
+factory_redirection_test/08: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/09: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/10: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/11: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/12: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/13: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/14: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
 field_initialization_order_test: RuntimeError
@@ -659,14 +668,20 @@ function_subtype_bound_closure6_test: Crash # NoSuchMethodError: The getter 'typ
 function_subtype_cast2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 function_subtype_cast3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_closure1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_subtype_inline0_test: RuntimeError
+function_subtype_inline1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_subtype_local3_test: RuntimeError
 function_subtype_local4_test: RuntimeError
 function_subtype_not3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+function_subtype_typearg1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_subtype_typearg2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_subtype_typearg3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_typearg4_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_typearg5_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_syntax_test/none: RuntimeError
 function_test: RuntimeError
+function_type_alias3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
 function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
 import_collection_no_prefix_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
@@ -790,14 +805,10 @@ mixin_mixin2_test: RuntimeError
 mixin_mixin3_test: RuntimeError
 mixin_mixin4_test: RuntimeError
 mixin_mixin5_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-mixin_mixin5_test: RuntimeError
 mixin_mixin6_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-mixin_mixin6_test: RuntimeError
 mixin_mixin7_test: RuntimeError
 mixin_mixin_bound2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-mixin_mixin_bound2_test: RuntimeError
 mixin_mixin_bound_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-mixin_mixin_bound_test: RuntimeError
 mixin_mixin_test: RuntimeError
 mixin_mixin_type_arguments_test: Crash # 'package:js_ast/src/nodes.dart': Failed assertion: line 1316 pos 12: '_identifierRE.hasMatch(name)': is not true.
 mixin_of_mixin_test/01: CompileTimeError
@@ -938,6 +949,7 @@ regress_23500_test/none: Crash # type 'JClass' is not a subtype of type 'ClassEl
 regress_23537_test: Crash # RangeError (index): Invalid value: Not in range 0..1, inclusive: 2
 regress_23996_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 regress_24283_test: RuntimeError
+regress_24567_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 regress_24935_test/01: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 regress_24935_test/none: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 regress_26133_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
@@ -957,6 +969,7 @@ setter_declaration2_negative_test: Crash # RangeError (index): Invalid value: Va
 setter_declaration_negative_test: Fail
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
+smaller_4_Interface_Types_A11_t02_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 stack_overflow_stacktrace_test: RuntimeError
 stack_trace_test: RuntimeError
 stacktrace_demangle_ctors_test: RuntimeError
@@ -1026,6 +1039,7 @@ top_level_getter_no_setter1_test/01: RuntimeError
 top_level_getter_no_setter2_test/01: RuntimeError
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
+type_argument_substitution_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 type_checks_in_factory_method_test: RuntimeError
 type_parameter_test/01: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
 type_parameter_test/02: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
@@ -1131,7 +1145,6 @@ custom_await_stack_trace_test: Crash # NoSuchMethodError: Class 'JClass' has no 
 cyclic_constructor_test/01: Crash # Stack Overflow
 cyclic_default_values_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 cyclic_type2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-cyclic_type2_test: RuntimeError
 cyclic_type_test/00: RuntimeError
 cyclic_type_test/01: RuntimeError
 cyclic_type_test/02: RuntimeError
@@ -1218,6 +1231,14 @@ external_test/20: MissingRuntimeError
 f_bounded_quantification4_test: RuntimeError
 f_bounded_quantification5_test: RuntimeError
 factory_redirection_test/07: MissingCompileTimeError
+factory_redirection_test/08: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/09: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/10: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/11: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/12: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/13: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/14: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+factory_redirection_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
 field_initialization_order_test: RuntimeError
@@ -1252,14 +1273,20 @@ function_subtype_bound_closure6_test: Crash # NoSuchMethodError: The getter 'typ
 function_subtype_cast2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 function_subtype_cast3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_closure1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_subtype_inline0_test: RuntimeError
+function_subtype_inline1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_subtype_local3_test: RuntimeError
 function_subtype_local4_test: RuntimeError
 function_subtype_not3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+function_subtype_typearg1_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_subtype_typearg2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_subtype_typearg3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_typearg4_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+function_subtype_typearg5_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_syntax_test/none: RuntimeError
 function_test: RuntimeError
+function_type_alias3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
 function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
 import_collection_no_prefix_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
@@ -1333,7 +1360,6 @@ mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
 mixin_generic_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-mixin_generic_test: RuntimeError
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/02: Crash # NoSuchMethodError: The getter 'function' was called on null.
 mixin_illegal_super_use_test/03: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
@@ -1380,14 +1406,10 @@ mixin_mixin2_test: RuntimeError
 mixin_mixin3_test: RuntimeError
 mixin_mixin4_test: RuntimeError
 mixin_mixin5_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-mixin_mixin5_test: RuntimeError
 mixin_mixin6_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-mixin_mixin6_test: RuntimeError
 mixin_mixin7_test: RuntimeError
 mixin_mixin_bound2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-mixin_mixin_bound2_test: RuntimeError
 mixin_mixin_bound_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-mixin_mixin_bound_test: RuntimeError
 mixin_mixin_test: RuntimeError
 mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/01: CompileTimeError
@@ -1523,6 +1545,7 @@ regress_23500_test/none: Crash # NoSuchMethodError: Class 'JClass' has no instan
 regress_23537_test: Crash # RangeError (index): Invalid value: Not in range 0..1, inclusive: 2
 regress_23996_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 regress_24283_test: RuntimeError
+regress_24567_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 regress_24935_test/01: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 regress_24935_test/none: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 regress_26133_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
@@ -1542,6 +1565,7 @@ setter_declaration2_negative_test: Crash # RangeError (index): Invalid value: Va
 setter_declaration_negative_test: Fail
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
+smaller_4_Interface_Types_A11_t02_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 stack_overflow_stacktrace_test: RuntimeError
 stack_trace_test: RuntimeError
 stacktrace_demangle_ctors_test: RuntimeError
@@ -1596,6 +1620,7 @@ top_level_getter_no_setter1_test/01: RuntimeError
 top_level_getter_no_setter2_test/01: RuntimeError
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
+type_argument_substitution_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 type_checks_in_factory_method_test: RuntimeError
 type_parameter_test/01: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
 type_parameter_test/02: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
