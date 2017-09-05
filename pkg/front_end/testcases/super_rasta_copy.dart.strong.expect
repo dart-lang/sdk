@@ -165,28 +165,28 @@ class C extends self::B {
     self::use(let final dynamic #t31 = 87 in let final dynamic #t32 = 42 in let final dynamic #t33 = super.{self::A::[]=}(#t31, #t32) in #t32);
     super.m = 42;
     self::use(super.m = 42);
-    super.{self::A::a}.==(null) ? super.{self::A::a} = 42 : null;
-    self::use(let final dynamic #t34 = super.{self::A::a} in #t34.==(null) ? super.{self::A::a} = 42 : #t34);
-    super.{self::B::b}.==(null) ? super.{self::A::b} = 42 : null;
-    self::use(let final dynamic #t35 = super.{self::B::b} in #t35.==(null) ? super.{self::A::b} = 42 : #t35);
-    super.{self::A::c}.==(null) ? super.{self::B::c} = 42 : null;
-    self::use(let final dynamic #t36 = super.{self::A::c} in #t36.==(null) ? super.{self::B::c} = 42 : #t36);
-    super.{self::B::d}.==(null) ? super.{self::A::d} = 42 : null;
-    self::use(let final dynamic #t37 = super.{self::B::d} in #t37.==(null) ? super.{self::A::d} = 42 : #t37);
-    super.{self::A::e}.==(null) ? super.e = 42 : null;
-    self::use(let final dynamic #t38 = super.{self::A::e} in #t38.==(null) ? super.e = 42 : #t38);
-    super.{self::A::f}.==(null) ? super.f = 42 : null;
-    self::use(let final dynamic #t39 = super.{self::A::f} in #t39.==(null) ? super.f = 42 : #t39);
-    super.g.==(null) ? super.{self::A::g} = 42 : null;
-    self::use(let final dynamic #t40 = super.g in #t40.==(null) ? super.{self::A::g} = 42 : #t40);
-    super.{self::A::h}.==(null) ? super.{self::A::h} = 42 : null;
-    self::use(let final dynamic #t41 = super.{self::A::h} in #t41.==(null) ? super.{self::A::h} = 42 : #t41);
-    super.{self::A::i}.==(null) ? super.{self::B::i} = 42 : null;
-    self::use(let final dynamic #t42 = super.{self::A::i} in #t42.==(null) ? super.{self::B::i} = 42 : #t42);
-    let final dynamic #t43 = 87 in super.{self::A::[]}(#t43).==(null) ? let final dynamic #t44 = 42 in let final dynamic #t45 = super.{self::A::[]=}(#t43, #t44) in #t44 : null;
-    self::use(let final dynamic #t46 = 87 in let final dynamic #t47 = super.{self::A::[]}(#t46) in #t47.==(null) ? let final dynamic #t48 = 42 in let final dynamic #t49 = super.{self::A::[]=}(#t46, #t48) in #t48 : #t47);
-    super.{self::A::m}.==(null) ? super.m = 42 : null;
-    self::use(let final dynamic #t50 = super.{self::A::m} in #t50.==(null) ? super.m = 42 : #t50);
+    super.{self::A::a}.{core::Object::==}(null) ? super.{self::A::a} = 42 : null;
+    self::use(let final dynamic #t34 = super.{self::A::a} in #t34.{core::Object::==}(null) ? super.{self::A::a} = 42 : #t34);
+    super.{self::B::b}.{core::Object::==}(null) ? super.{self::A::b} = 42 : null;
+    self::use(let final dynamic #t35 = super.{self::B::b} in #t35.{core::Object::==}(null) ? super.{self::A::b} = 42 : #t35);
+    super.{self::A::c}.{core::Object::==}(null) ? super.{self::B::c} = 42 : null;
+    self::use(let final dynamic #t36 = super.{self::A::c} in #t36.{core::Object::==}(null) ? super.{self::B::c} = 42 : #t36);
+    super.{self::B::d}.{core::Object::==}(null) ? super.{self::A::d} = 42 : null;
+    self::use(let final dynamic #t37 = super.{self::B::d} in #t37.{core::Object::==}(null) ? super.{self::A::d} = 42 : #t37);
+    super.{self::A::e}.{core::Object::==}(null) ? super.e = 42 : null;
+    self::use(let final dynamic #t38 = super.{self::A::e} in #t38.{core::Object::==}(null) ? super.e = 42 : #t38);
+    super.{self::A::f}.{core::Object::==}(null) ? super.f = 42 : null;
+    self::use(let final dynamic #t39 = super.{self::A::f} in #t39.{core::Object::==}(null) ? super.f = 42 : #t39);
+    super.g.{core::Object::==}(null) ? super.{self::A::g} = 42 : null;
+    self::use(let final dynamic #t40 = super.g in #t40.{core::Object::==}(null) ? super.{self::A::g} = 42 : #t40);
+    super.{self::A::h}.{core::Object::==}(null) ? super.{self::A::h} = 42 : null;
+    self::use(let final dynamic #t41 = super.{self::A::h} in #t41.{core::Object::==}(null) ? super.{self::A::h} = 42 : #t41);
+    super.{self::A::i}.{core::Object::==}(null) ? super.{self::B::i} = 42 : null;
+    self::use(let final dynamic #t42 = super.{self::A::i} in #t42.{core::Object::==}(null) ? super.{self::B::i} = 42 : #t42);
+    let final dynamic #t43 = 87 in super.{self::A::[]}(#t43).{core::Object::==}(null) ? let final dynamic #t44 = 42 in let final dynamic #t45 = super.{self::A::[]=}(#t43, #t44) in #t44 : null;
+    self::use(let final dynamic #t46 = 87 in let final dynamic #t47 = super.{self::A::[]}(#t46) in #t47.{core::Object::==}(null) ? let final dynamic #t48 = 42 in let final dynamic #t49 = super.{self::A::[]=}(#t46, #t48) in #t48 : #t47);
+    super.{self::A::m}.{core::Object::==}(null) ? super.m = 42 : null;
+    self::use(let final dynamic #t50 = super.{self::A::m} in #t50.{core::Object::==}(null) ? super.m = 42 : #t50);
     super.{self::A::a} = super.{self::A::a}.+(42);
     self::use(super.{self::A::a} = super.{self::A::a}.+(42));
     super.{self::A::b} = super.{self::B::b}.+(42);
@@ -234,7 +234,7 @@ class C extends self::B {
   }
 }
 static method use(dynamic x) → dynamic {
-  if(x.==(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}))
+  if(x.{core::Object::==}(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}))
     throw "Shouldn't happen";
 }
 static method main() → dynamic {

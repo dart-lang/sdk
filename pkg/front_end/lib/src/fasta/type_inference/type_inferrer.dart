@@ -341,16 +341,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
     receiverType = resolveTypeParameter(receiverType);
 
-    if (receiverType is InterfaceType) {
-      var interfaceMember = classHierarchy
-          .getInterfaceMember(receiverType.classNode, name, setter: setter);
-      if (!silent && interfaceMember != null) {
-        instrumentation?.record(Uri.parse(uri), fileOffset, 'target',
-            new InstrumentationValueForMember(interfaceMember));
-      }
-      return interfaceMember;
+    Class classNode = receiverType is InterfaceType
+        ? receiverType.classNode
+        : coreTypes.objectClass;
+
+    var interfaceMember =
+        classHierarchy.getInterfaceMember(classNode, name, setter: setter);
+    if (!silent && interfaceMember != null) {
+      instrumentation?.record(Uri.parse(uri), fileOffset, 'target',
+          new InstrumentationValueForMember(interfaceMember));
     }
-    return null;
+    return interfaceMember;
   }
 
   /// Finds a member of [receiverType] called [name], and if it is found,
