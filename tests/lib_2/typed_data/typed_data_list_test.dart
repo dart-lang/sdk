@@ -9,8 +9,7 @@ import 'package:expect/expect.dart';
 @NoInline()
 confuse(x) => x;
 
-void testListFunctions/*<T>*/(
-    list, first, last, /*=T*/ toElementType(dynamic x)) {
+void testListFunctions<T>(list, first, last, T toElementType(dynamic x)) {
   assert(list.length > 0);
 
   var reversed = list.reversed;
@@ -119,7 +118,7 @@ void testListFunctions/*<T>*/(
   Expect.throws(() => list.sublist(1, 0), (e) => e is RangeError);
 }
 
-void emptyChecks/*<T>*/(list, /*=T*/ toElementType(dynamic c)) {
+void emptyChecks<T>(list, T toElementType(dynamic c)) {
   assert(list.length == 0);
 
   Expect.isTrue(list.isEmpty);

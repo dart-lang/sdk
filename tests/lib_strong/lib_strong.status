@@ -298,7 +298,6 @@ mirrors/unnamed_library_test: RuntimeError # Issue 29922
 typed_data/int32x4_bigint_test: RuntimeError # Issue 29922
 typed_data/int64_list_load_store_test: RuntimeError # Issue 29922
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 29922
-typed_data/typed_data_list_test: RuntimeError # Issue 29922
 html/interactive_test: Skip # requests interactive permissions (camera, geolocation)
 
 async/stream_controller_async_test: RuntimeError # Issue 29922, strong mode cast failure
