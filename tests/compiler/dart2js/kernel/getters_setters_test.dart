@@ -118,10 +118,6 @@ class B extends A {
 main() {
   new B().bar();
 }''';
-    return check(code,
-        // TODO(johnniwinther): Remove this when
-        // `KernelClosureConversionTask.getClosureInfoForMember` doesn't fail
-        // on the closure in `Maps.mapToString`.
-        useKernelInSsa: true);
+    return check(code);
   });
 }
