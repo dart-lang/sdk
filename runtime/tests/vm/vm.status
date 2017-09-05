@@ -328,13 +328,13 @@ cc/IsolateReload_NotEnumToEnum: Skip
 cc/IsolateReload_NotTypedefToTypedef: Fail
 cc/IsolateReload_PendingSuperCall: Fail
 cc/IsolateReload_PrefixImportedLibModified: Crash
-cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Crash
-cc/IsolateReload_RunNewFieldInitializers: Crash
-cc/IsolateReload_RunNewFieldInitializersMutateStaticField: Crash
-cc/IsolateReload_RunNewFieldInitializersReferenceStaticField: Crash
+cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Crash, Timeout
+cc/IsolateReload_RunNewFieldInitializers: Crash, Timeout
+cc/IsolateReload_RunNewFieldInitializersMutateStaticField: Crash, Timeout
+cc/IsolateReload_RunNewFieldInitializersReferenceStaticField: Crash, Timeout
 cc/IsolateReload_RunNewFieldInitializersSyntaxError3: Fail
-cc/IsolateReload_RunNewFieldInitializersThrows: Crash
-cc/IsolateReload_ShapeChangeRetainsHash: Crash
+cc/IsolateReload_RunNewFieldInitializersThrows: Crash, Timeout
+cc/IsolateReload_ShapeChangeRetainsHash: Crash, Timeout
 cc/IsolateReload_SmiFastPathStubs: Fail
 cc/IsolateReload_TearOff_AddArguments2: Fail
 cc/IsolateReload_TearOff_AddArguments: Fail
