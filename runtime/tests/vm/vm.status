@@ -328,13 +328,13 @@ cc/IsolateReload_NotEnumToEnum: Skip
 cc/IsolateReload_NotTypedefToTypedef: Fail
 cc/IsolateReload_PendingSuperCall: Fail
 cc/IsolateReload_PrefixImportedLibModified: Crash
-cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Crash, Timeout
-cc/IsolateReload_RunNewFieldInitializers: Crash, Timeout
-cc/IsolateReload_RunNewFieldInitializersMutateStaticField: Crash, Timeout
-cc/IsolateReload_RunNewFieldInitializersReferenceStaticField: Crash, Timeout
+cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Skip
+cc/IsolateReload_RunNewFieldInitializers: Skip
+cc/IsolateReload_RunNewFieldInitializersMutateStaticField: Skip
+cc/IsolateReload_RunNewFieldInitializersReferenceStaticField: Skip
 cc/IsolateReload_RunNewFieldInitializersSyntaxError3: Fail
-cc/IsolateReload_RunNewFieldInitializersThrows: Crash, Timeout
-cc/IsolateReload_ShapeChangeRetainsHash: Crash, Timeout
+cc/IsolateReload_RunNewFieldInitializersThrows: Skip
+cc/IsolateReload_ShapeChangeRetainsHash: Skip
 cc/IsolateReload_SmiFastPathStubs: Fail
 cc/IsolateReload_TearOff_AddArguments2: Fail
 cc/IsolateReload_TearOff_AddArguments: Fail
@@ -420,8 +420,6 @@ cc/IsolateReload_DanglingSetter_Instance: Crash
 cc/IsolateReload_DanglingSetter_Library: Crash
 cc/IsolateReload_EnumDelete: Crash
 cc/IsolateReload_LibraryLookup: Crash
-cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Crash
-cc/IsolateReload_RunNewFieldInitializersThrows: Crash
 cc/IsolateReload_TearOff_AddArguments2: Crash
 cc/IsolateReload_TearOff_AddArguments: Crash
 cc/IsolateReload_TearOff_Class_Identity: Crash

@@ -241,6 +241,9 @@ io/regress_7191_test: Pass, Timeout # Issue 28374: timeout.
 [ $runtime == vm && $system == macos && $mode == release ]
 io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
 
+[ $system == macos && $builder_tag == swarming ]
+io/*: Skip # Issue 30618
+
 [ $runtime == vm && $system == linux && $mode == release && $arch == ia32 && $builder_tag == asan ]
 io/socket_close_test: Pass, Timeout # Issue 28502: timeout.
 
