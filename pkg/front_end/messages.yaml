@@ -172,6 +172,7 @@ ExpectedString:
 
 ExpectedType:
   template: "Expected a type, but got '#lexeme'."
+  analyzerCode: EXPECTED_TYPE_NAME
   dart2jsCode: "*fatal*"
 
 ConstClass:
