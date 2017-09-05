@@ -29,7 +29,7 @@ class BatchRunner {
     int totalTests = 0;
     ErrorSeverity batchResult = ErrorSeverity.NONE;
     // Read line from stdin.
-    Stream cmdLine =
+    Stream<String> cmdLine =
         stdin.transform(UTF8.decoder).transform(new LineSplitter());
     cmdLine.listen((String line) async {
       // Maybe finish.

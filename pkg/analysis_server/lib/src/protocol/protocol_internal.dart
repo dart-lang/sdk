@@ -89,7 +89,8 @@ SourceFileEdit getChangeFileEdit(SourceChange change, String file) {
  * Compare the lists [listA] and [listB], using [itemEqual] to compare
  * list elements.
  */
-bool listEqual(List listA, List listB, bool itemEqual(a, b)) {
+bool listEqual<T1, T2>(
+    List<T1> listA, List<T2> listB, bool itemEqual(T1 a, T2 b)) {
   if (listA == null) {
     return listB == null;
   }
@@ -111,7 +112,7 @@ bool listEqual(List listA, List listB, bool itemEqual(a, b)) {
  * Compare the maps [mapA] and [mapB], using [valueEqual] to compare map
  * values.
  */
-bool mapEqual(Map mapA, Map mapB, bool valueEqual(a, b)) {
+bool mapEqual<K, V>(Map<K, V> mapA, Map<K, V> mapB, bool valueEqual(V a, V b)) {
   if (mapA == null) {
     return mapB == null;
   }

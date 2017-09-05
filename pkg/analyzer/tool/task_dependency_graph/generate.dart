@@ -89,7 +89,7 @@ class Driver {
    * result descriptors.
    */
   void findExtensions(AstNode node, TopLevelVariableElement extensionIdVariable,
-      void callback(descriptorName)) {
+      void callback(String descriptorName)) {
     Set<PropertyAccessorElement> resultDescriptors =
         new Set<PropertyAccessorElement>();
     node.accept(new ExtensionFinder(

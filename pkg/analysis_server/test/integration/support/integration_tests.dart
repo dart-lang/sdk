@@ -916,7 +916,7 @@ abstract class _RecursiveMatcher extends Matcher {
    * substructure did not match.
    */
   checkSubstructure(item, Matcher matcher, List<MismatchDescriber> mismatches,
-      Description describeSubstructure(Description)) {
+      Description describeSubstructure(Description description)) {
     Map subState = {};
     if (!matcher.matches(item, subState)) {
       mismatches.add((Description mismatchDescription) {
