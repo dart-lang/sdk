@@ -29,8 +29,6 @@ async/stream_event_transformed_test: Skip
 async/stream_transformer_test: Skip
 async/zone_debug_test: Skip
 convert/chunked_conversion1_test: Skip
-convert/chunked_conversion_json_encode1_test: Skip
-convert/chunked_conversion_utf84_test: Skip
 convert/chunked_conversion_utf88_test: Skip
 convert/chunked_conversion_utf8_test: Skip
 convert/line_splitter_test: Skip

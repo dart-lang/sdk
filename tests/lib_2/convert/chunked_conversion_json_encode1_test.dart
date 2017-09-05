@@ -50,10 +50,9 @@ final TESTS = [
   ],
   // Note that -0.0 won't be treated the same in JS. The Json spec seems to
   // allow it, though.
-  // TODO(rnystrom): Changed to "0". See above comment.
   [
     {"hi there": 499, "'": -0.0},
-    '{"hi there":499,"\'":0}'
+    '{"hi there":499,"\'":-0.0}'
   ],
   [r'\foo', r'"\\foo"'],
 ];
@@ -77,7 +76,7 @@ class MyStringConversionSink extends StringConversionSinkBase {
 String encode(Object o) {
   var result;
   var encoder = new JsonEncoder();
-  ChunkedConversionSink stringSink =
+  ChunkedConversionSink<String> stringSink =
       new MyStringConversionSink((x) => result = x);
   var objectSink = new JsonEncoder().startChunkedConversion(stringSink);
   objectSink.add(o);
@@ -88,7 +87,7 @@ String encode(Object o) {
 String encode2(Object o) {
   var result;
   var encoder = new JsonEncoder();
-  ChunkedConversionSink stringSink =
+  ChunkedConversionSink<String> stringSink =
       new StringConversionSink.withCallback((x) => result = x);
   var objectSink = encoder.startChunkedConversion(stringSink);
   objectSink.add(o);

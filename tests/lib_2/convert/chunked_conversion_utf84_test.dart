@@ -10,12 +10,12 @@ String decode(List<int> bytes, int chunkSize) {
   StringBuffer buffer = new StringBuffer();
   // Use a non-chunked interface.
   String result;
-  ChunkedConversionSink chunkedSink =
+  var chunkedSink =
       new StringConversionSink.withCallback((decoded) => result = decoded);
   var byteSink = new Utf8Decoder().startChunkedConversion(chunkedSink);
   int i = 0;
   while (i < bytes.length) {
-    List nextChunk = [];
+    var nextChunk = <int>[];
     for (int j = 0; j < chunkSize; j++) {
       if (i < bytes.length) {
         nextChunk.add(bytes[i]);
