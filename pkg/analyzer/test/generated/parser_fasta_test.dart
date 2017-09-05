@@ -313,24 +313,18 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_covariantTopLevelDeclaration_class() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'FunctionDeclarationImpl' is not a subtype of type 'ClassDeclaration' of 'member' where
-    //     FunctionDeclarationImpl is from package:analyzer/src/dart/ast/ast.dart
-    //     ClassDeclaration is from package:analyzer/dart/ast/ast.dart
-    //
-    //   test/generated/parser_test.dart 2418:31                            FastaParserTestCase&ErrorParserTestMixin.test_covariantTopLevelDeclaration_class
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION, found 0;
+    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (0)
     super.test_covariantTopLevelDeclaration_class();
   }
 
   @override
   @failingTest
   void test_covariantTopLevelDeclaration_enum() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'FunctionDeclarationImpl' is not a subtype of type 'EnumDeclaration' of 'member' where
-    //   FunctionDeclarationImpl is from package:analyzer/src/dart/ast/ast.dart
-    //   EnumDeclaration is from package:analyzer/dart/ast/ast.dart
-    //
-    //   test/generated/parser_test.dart 2426:30                            FastaParserTestCase&ErrorParserTestMixin.test_covariantTopLevelDeclaration_enum
+    // TODO(brianwilkerson) Wrong errors:
+    // Expected 1 errors of type ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION, found 0;
+    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (0)
     super.test_covariantTopLevelDeclaration_enum();
   }
 
