@@ -12,7 +12,6 @@ import 'utils.dart';
 const _defaultTestSelectors = const [
   'samples',
   'standalone',
-  'corelib',
   'corelib_2',
   'co19',
   'language',
@@ -233,6 +232,9 @@ is tested.
     // TODO(rnystrom): This does not appear to be used. Remove?
     new _Option('build_directory',
         'The name of the build directory, where products are placed.'),
+    new _Option('output_directory',
+        'The name of the output directory for storing log files.',
+        defaultsTo: "logs"),
     new _Option.bool('noBatch', 'Do not run tests in batch mode.', 'n'),
     new _Option.bool('dart2js_batch', 'Run dart2js tests in batch mode.'),
     new _Option.bool(
@@ -241,6 +243,10 @@ is tested.
         'Don\'t write debug messages to stdout but rather to a logfile.'),
     new _Option.bool('write_test_outcome_log',
         'Write test outcomes to a "${TestUtils.testOutcomeFileName}" file.'),
+    new _Option.bool(
+        'write_result_log',
+        'Write test results to a "${TestUtils.resultLogFileName}" json file '
+        'located at the debug_output_directory.'),
     new _Option.bool('reset_browser_configuration',
         '''Browser specific reset of configuration.
 
@@ -290,6 +296,7 @@ compiler.''')
   static final _blacklistedOptions = [
     'append_logs',
     'build_directory',
+    'debug_output_directory',
     'chrome',
     'copy_coredumps',
     'dart',
@@ -309,6 +316,7 @@ compiler.''')
     'verbose',
     'write_debug_log',
     'write_test_outcome_log',
+    'write_result_json_log'
   ].toSet();
 
   /// Parses a list of strings as test options.
@@ -600,6 +608,7 @@ compiler.''')
                     data["dart2js_with_kernel_in_ssa"] as bool,
                 writeDebugLog: data["write_debug_log"] as bool,
                 writeTestOutcomeLog: data["write_test_outcome_log"] as bool,
+                writeResultLog: data["write_result_log"] as bool,
                 drtPath: data["drt"] as String,
                 chromePath: data["chrome"] as String,
                 safariPath: data["safari"] as String,
@@ -623,6 +632,7 @@ compiler.''')
                 packageRoot: data["package_root"] as String,
                 suiteDirectory: data["suite_dir"] as String,
                 builderTag: data["builder_tag"] as String,
+                outputDirectory: data["output_directory"] as String,
                 reproducingArguments: _reproducingCommand(data));
 
             if (configuration.validate()) {

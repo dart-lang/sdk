@@ -12,11 +12,11 @@
 
 #include "platform/globals.h"
 
-#include "vm/assembler.h"
 #include "vm/ast_printer.h"
-#include "vm/compiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
-#include "vm/disassembler.h"
 #include "vm/isolate_reload.h"
 #include "vm/parser.h"
 #include "vm/symbols.h"

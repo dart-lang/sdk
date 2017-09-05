@@ -7,6 +7,7 @@ library kernel.transformations.closure.context;
 import '../../ast.dart'
     show
         Expression,
+        FunctionNode,
         NullLiteral,
         StringLiteral,
         Throw,
@@ -137,6 +138,9 @@ class LocalContext extends Context {
     value.parent = initializer;
 
     converter.rewriter.insertExtendContext(initializer);
+    if (variable.parent is FunctionNode) {
+      converter.rewriter.insertZeroOutParameter(variable);
+    }
 
     ++vectorCreation.length;
     variables.add(variable);

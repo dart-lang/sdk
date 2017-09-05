@@ -22,19 +22,10 @@ import '../equivalence/id_equivalence_helper.dart';
 import 'package:kernel/ast.dart' as ir;
 
 main(List<String> args) {
-  bool verbose = args.contains('-v');
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, computeClosureData, computeKernelClosureData,
-        // TODO(johnnniwinther,efortuna): Enable these tests for .dill.
-        skipForKernel: [
-          'captured_variable.dart',
-          'mixed.dart',
-          'mutations.dart',
-          'nested_closures.dart'
-        ],
-        options: [Flags.disableTypeInference],
-        verbose: verbose);
+        skipForKernel: [], options: [Flags.disableTypeInference], args: args);
   });
 }
 
@@ -68,7 +59,7 @@ void computeKernelClosureData(
   MemberDefinition definition = elementMap.getMemberDefinition(member);
   assert(definition.kind == MemberKind.regular,
       failedAt(member, "Unexpected member definition $definition"));
-  new ClosureIrChecker(actualMap, elementMap, member,
+  new ClosureIrChecker(compiler.reporter, actualMap, elementMap, member,
           localsMap.getLocalsMap(member), closureDataLookup,
           verbose: verbose)
       .run(definition.node);
@@ -100,7 +91,7 @@ class ClosureAstComputer extends AstDataExtractor with ComputeValueMixin {
   }
 
   @override
-  String computeNodeValue(ast.Node node, [AstElement element]) {
+  String computeNodeValue(Id id, ast.Node node, [AstElement element]) {
     if (element != null && element.isLocal) {
       if (element.isFunction) {
         LocalFunctionElement localFunction = element;
@@ -115,7 +106,7 @@ class ClosureAstComputer extends AstDataExtractor with ComputeValueMixin {
   }
 
   @override
-  String computeElementValue(covariant MemberElement element) {
+  String computeElementValue(Id id, covariant MemberElement element) {
     // TODO(johnniwinther,efortuna): Collect data for the member
     // (has thisLocal, has box, etc.).
     return computeObjectValue(element);
@@ -130,13 +121,14 @@ class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin<ir.Node> {
   final bool verbose;
 
   ClosureIrChecker(
+      DiagnosticReporter reporter,
       Map<Id, ActualData> actualMap,
       KernelToElementMapForBuilding elementMap,
       this.member,
       this._localsMap,
       this.closureDataLookup,
       {this.verbose: false})
-      : super(actualMap) {
+      : super(reporter, actualMap) {
     pushMember(member);
   }
 
@@ -159,15 +151,13 @@ class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin<ir.Node> {
   }
 
   @override
-  String computeNodeValue(ir.Node node) {
+  String computeNodeValue(Id id, ir.Node node) {
     if (node is ir.VariableDeclaration) {
-      if (node.parent is ir.FunctionDeclaration) {
-        ClosureRepresentationInfo info =
-            closureDataLookup.getClosureInfo(node.parent);
-        return computeObjectValue(info.callMethod);
-      }
       Local local = _localsMap.getLocalVariable(node);
       return computeLocalValue(local);
+    } else if (node is ir.FunctionDeclaration) {
+      ClosureRepresentationInfo info = closureDataLookup.getClosureInfo(node);
+      return computeObjectValue(info.callMethod);
     } else if (node is ir.FunctionExpression) {
       ClosureRepresentationInfo info = closureDataLookup.getClosureInfo(node);
       return computeObjectValue(info.callMethod);
@@ -176,7 +166,7 @@ class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin<ir.Node> {
   }
 
   @override
-  String computeMemberValue(ir.Member node) {
+  String computeMemberValue(Id id, ir.Member node) {
     return computeObjectValue(member);
   }
 }

@@ -262,6 +262,28 @@ class _ExprBuilder {
       return AstTestFactory.binaryExpression(left, operator, right);
     }
 
+    if (expr is kernel.Let) {
+      var body = expr.body;
+      if (body is kernel.ConditionalExpression) {
+        var condition = body.condition;
+        var otherwiseExpr = body.otherwise;
+        if (condition is kernel.MethodInvocation) {
+          var equalsReceiver = condition.receiver;
+          if (equalsReceiver is kernel.VariableGet &&
+              condition.name.name == '==' &&
+              condition.arguments.positional.length == 1 &&
+              condition.arguments.positional[0] is kernel.NullLiteral &&
+              otherwiseExpr is kernel.VariableGet &&
+              otherwiseExpr.variable == equalsReceiver.variable) {
+            var left = build(expr.variable.initializer);
+            var right = build(body.then);
+            return AstTestFactory.binaryExpression(
+                left, TokenType.QUESTION_QUESTION, right);
+          }
+        }
+      }
+    }
+
     if (expr is kernel.MethodInvocation) {
       kernel.Member member = expr.interfaceTarget;
       if (member is kernel.Procedure) {
@@ -423,8 +445,8 @@ class _ExprBuilder {
       List<TypeAnnotation> arguments = _buildTypeArguments(type.typeArguments);
       return AstTestFactory.typeName3(name, arguments)..type = type;
     }
-    if (type is DynamicTypeImpl) {
-      var identifier = AstTestFactory.identifier3('dynamic')
+    if (type is DynamicTypeImpl || type is TypeParameterType) {
+      var identifier = AstTestFactory.identifier3(type.name)
         ..staticElement = type.element
         ..staticType = type;
       return AstTestFactory.typeName3(identifier)..type = type;
@@ -723,8 +745,24 @@ class _KernelUnitResynthesizerContextImpl
   @override
   InterfaceType getInterfaceType(
       ElementImpl context, kernel.Supertype kernelType) {
+    if (kernelType.classNode.isEnum) {
+      return null;
+    }
     return _getInterfaceType(
         context, kernelType.className.canonicalName, kernelType.typeArguments);
+  }
+
+  @override
+  List<InterfaceType> getInterfaceTypes(
+      ElementImpl context, List<kernel.Supertype> types) {
+    var interfaceTypes = <InterfaceType>[];
+    for (kernel.Supertype kernelType in types) {
+      InterfaceType interfaceType = getInterfaceType(context, kernelType);
+      if (interfaceType != null) {
+        interfaceTypes.add(interfaceType);
+      }
+    }
+    return interfaceTypes;
   }
 
   @override

@@ -90,6 +90,39 @@ getter_no_setter_test/01: MissingCompileTimeError
 getter_no_setter_test/03: MissingCompileTimeError
 getter_override_test/03: MissingCompileTimeError
 getters_setters2_test/02: MissingCompileTimeError
+identical_const_test/01: MissingCompileTimeError
+identical_const_test/02: MissingCompileTimeError
+identical_const_test/03: MissingCompileTimeError
+identical_const_test/04: MissingCompileTimeError
+if_null_assignment_behavior_test/03: MissingCompileTimeError
+if_null_assignment_behavior_test/13: MissingCompileTimeError
+if_null_assignment_behavior_test/15: MissingCompileTimeError
+if_null_assignment_static_test/02: MissingCompileTimeError
+if_null_assignment_static_test/04: MissingCompileTimeError
+if_null_assignment_static_test/06: MissingCompileTimeError
+if_null_assignment_static_test/07: MissingCompileTimeError
+if_null_assignment_static_test/09: MissingCompileTimeError
+if_null_assignment_static_test/11: MissingCompileTimeError
+if_null_assignment_static_test/13: MissingCompileTimeError
+if_null_assignment_static_test/14: MissingCompileTimeError
+if_null_assignment_static_test/16: MissingCompileTimeError
+if_null_assignment_static_test/18: MissingCompileTimeError
+if_null_assignment_static_test/20: MissingCompileTimeError
+if_null_assignment_static_test/21: MissingCompileTimeError
+if_null_assignment_static_test/23: MissingCompileTimeError
+if_null_assignment_static_test/25: MissingCompileTimeError
+if_null_assignment_static_test/27: MissingCompileTimeError
+if_null_assignment_static_test/28: MissingCompileTimeError
+if_null_assignment_static_test/30: MissingCompileTimeError
+if_null_assignment_static_test/32: MissingCompileTimeError
+if_null_assignment_static_test/34: MissingCompileTimeError
+if_null_assignment_static_test/35: MissingCompileTimeError
+if_null_assignment_static_test/37: MissingCompileTimeError
+if_null_assignment_static_test/39: MissingCompileTimeError
+if_null_assignment_static_test/41: MissingCompileTimeError
+if_null_assignment_static_test/42: MissingCompileTimeError
+if_null_precedence_test/06: MissingCompileTimeError
+if_null_precedence_test/07: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && ! $strong && $checked ]
 abstract_beats_arguments_test: MissingCompileTimeError
@@ -183,6 +216,7 @@ getters_setters2_test/02: MissingCompileTimeError
 [ $compiler == dart2analyzer ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
+abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
 async_return_types_test/nestedFuture: MissingCompileTimeError
 bad_initializer1_negative_test: CompileTimeError # Issue 14529
 bad_initializer2_negative_test: fail # Issue 14880
@@ -198,13 +232,14 @@ cascade_test/none: fail # Issue 11577
 closure_call_wrong_argument_count_negative_test: skip
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_local_functions_test: CompileTimeError # Issue 28515
-get_set_syntax_test/none: fail # Issue 11575
 generic_list_checked_test: StaticWarning
-generics_test: StaticWarning
 generic_test: StaticWarning
-getter_setter_in_lib_test: Fail # Issue 23286
+generics_test: StaticWarning
+get_set_syntax_test/none: fail # Issue 11575
 getter_setter_in_lib_test: Fail # Issue 23286
 getter_declaration_negative_test: CompileTimeError
+type_variable_scope_test/none: fail # Issue 11578
+type_variable_static_context_negative_test: fail # Issue 12161
 
 [ $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -288,6 +323,7 @@ accessor_conflict_import_prefixed_test: StaticWarning # Issue 25626
 accessor_conflict_import_test: StaticWarning # Issue 25626
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
+additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 additional_interface_adds_optional_args_test: StaticWarning
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
@@ -322,13 +358,62 @@ class_literal_test/22: MissingCompileTimeError
 class_literal_test/23: MissingCompileTimeError
 class_literal_test/24: MissingCompileTimeError
 class_literal_test/25: MissingCompileTimeError
+closure_type_test: Pass
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
+generic_field_mixin6_test/01: MissingCompileTimeError
+generic_function_typedef2_test/04: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30207
 generic_methods_type_expression_test: StaticWarning # Issue 30530
-closure_type_test: Pass
+identical_const_test/01: MissingCompileTimeError
+identical_const_test/02: MissingCompileTimeError
+identical_const_test/03: MissingCompileTimeError
+identical_const_test/04: MissingCompileTimeError
+if_null_assignment_behavior_test/03: MissingCompileTimeError
+if_null_assignment_behavior_test/13: MissingCompileTimeError
+if_null_assignment_behavior_test/15: MissingCompileTimeError
+if_null_assignment_static_test/02: MissingCompileTimeError
+if_null_assignment_static_test/04: MissingCompileTimeError
+if_null_assignment_static_test/06: MissingCompileTimeError
+if_null_assignment_static_test/07: MissingCompileTimeError
+if_null_assignment_static_test/09: MissingCompileTimeError
+if_null_assignment_static_test/11: MissingCompileTimeError
+if_null_assignment_static_test/13: MissingCompileTimeError
+if_null_assignment_static_test/14: MissingCompileTimeError
+if_null_assignment_static_test/16: MissingCompileTimeError
+if_null_assignment_static_test/18: MissingCompileTimeError
+if_null_assignment_static_test/20: MissingCompileTimeError
+if_null_assignment_static_test/21: MissingCompileTimeError
+if_null_assignment_static_test/23: MissingCompileTimeError
+if_null_assignment_static_test/25: MissingCompileTimeError
+if_null_assignment_static_test/27: MissingCompileTimeError
+if_null_assignment_static_test/28: MissingCompileTimeError
+if_null_assignment_static_test/30: MissingCompileTimeError
+if_null_assignment_static_test/32: MissingCompileTimeError
+if_null_assignment_static_test/34: MissingCompileTimeError
+if_null_assignment_static_test/35: MissingCompileTimeError
+if_null_assignment_static_test/37: MissingCompileTimeError
+if_null_assignment_static_test/39: MissingCompileTimeError
+if_null_assignment_static_test/41: MissingCompileTimeError
+if_null_assignment_static_test/42: MissingCompileTimeError
+if_null_precedence_test/06: MissingCompileTimeError
+if_null_precedence_test/07: MissingCompileTimeError
 multiple_interface_inheritance_test: StaticWarning # Issue 30552
+type_variable_scope_test/00: MissingCompileTimeError
+type_variable_scope_test/01: MissingCompileTimeError
+type_variable_scope_test/02: MissingCompileTimeError
+type_variable_scope_test/03: MissingCompileTimeError
+type_variable_scope_test/04: MissingCompileTimeError
+type_variable_scope_test/05: MissingCompileTimeError
+type_variable_scope2_test: MissingCompileTimeError
+type_variable_static_context_test: MissingCompileTimeError
+typed_selector2_test: MissingCompileTimeError
+unbound_getter_test: MissingCompileTimeError
+unresolved_default_constructor_test/01: MissingCompileTimeError
+unresolved_in_factory_test: MissingCompileTimeError
+unresolved_top_level_method_test: MissingCompileTimeError
+unresolved_top_level_var_test: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && $runtime == none ]
 assertion_initializer_const_error2_test/none: CompileTimeError

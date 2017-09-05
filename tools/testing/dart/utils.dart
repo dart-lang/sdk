@@ -444,6 +444,10 @@ class TestUtils {
   /// test outcomes to this file.
   static const testOutcomeFileName = ".test-outcome.log";
 
+  /// If test.py was invoked with '--write-result-log it will write
+  /// test outcomes to this file in the '--output-directory'.
+  static const resultLogFileName = "result.log";
+
   static void ensureExists(String filename, Configuration configuration) {
     if (!configuration.listTests && !existsCache.doesFileExist(filename)) {
       throw "'$filename' does not exist";

@@ -53,7 +53,7 @@ import 'kernel_builder.dart'
         TypeVariableBuilder,
         computeDefaultTypeArguments;
 
-import 'kernel_shadow_ast.dart' show KernelMember;
+import 'kernel_shadow_ast.dart' show ShadowMember;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
@@ -210,9 +210,9 @@ abstract class KernelClassBuilder
     // Also record any cases where a field or getter/setter overrides something
     // in a superclass, since this information will be needed for type
     // inference.
-    if (declaredMember is KernelMember &&
+    if (declaredMember is ShadowMember &&
         identical(declaredMember.enclosingClass, cls)) {
-      KernelMember.recordOverride(declaredMember, interfaceMember);
+      ShadowMember.recordOverride(declaredMember, interfaceMember);
     }
   }
 
@@ -221,9 +221,9 @@ abstract class KernelClassBuilder
     // Record any cases where a field or getter/setter has a corresponding (but
     // opposite) getter/setter in a superclass, since this information will be
     // needed for type inference.
-    if (declaredMember is KernelMember &&
+    if (declaredMember is ShadowMember &&
         identical(declaredMember.enclosingClass, cls)) {
-      KernelMember.recordCrossOverride(declaredMember, interfaceMember);
+      ShadowMember.recordCrossOverride(declaredMember, interfaceMember);
     }
   }
 

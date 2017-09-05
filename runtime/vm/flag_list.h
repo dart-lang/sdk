@@ -42,6 +42,8 @@
 //   D(name, type, default_value, comment)
 //   C(name, precompiled_value, product_value, type, default_value, comment)
 #define FLAG_LIST(P, R, D, C)                                                  \
+  P(abort_on_oom, bool, false,                                                 \
+    "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
   P(background_compilation, bool, USING_MULTICORE,                             \
     "Run optimizing compilation in background")                                \
   R(background_compilation_stop_alot, false, bool, false,                      \
@@ -126,7 +128,6 @@
   P(polymorphic_with_deopt, bool, true,                                        \
     "Polymorphic calls with deoptimization / megamorphic call")                \
   P(precompiled_mode, bool, false, "Precompilation compiler mode")             \
-  C(precompiled_runtime, true, false, bool, false, "Precompiled runtime mode") \
   P(print_snapshot_sizes, bool, false, "Print sizes of generated snapshots.")  \
   P(print_benchmarking_metrics, bool, false,                                   \
     "Print additional memory and latency metrics for benchmarking.")           \

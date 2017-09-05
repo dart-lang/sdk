@@ -33,7 +33,7 @@ const char* Benchmark::executable_ = NULL;
 //
 static char* ComputeDart2JSPath(const char* arg) {
   char buffer[2048];
-  char* dart2js_path = strdup(File::GetCanonicalPath(arg));
+  char* dart2js_path = strdup(File::GetCanonicalPath(NULL, arg));
   const char* compiler_path = "%s%spkg%scompiler%slib%scompiler.dart";
   const char* path_separator = File::PathSeparator();
   ASSERT(path_separator != NULL && strlen(path_separator) == 1);
@@ -42,7 +42,7 @@ static char* ComputeDart2JSPath(const char* arg) {
     *ptr = '\0';
     OS::SNPrint(buffer, 2048, compiler_path, dart2js_path, path_separator,
                 path_separator, path_separator, path_separator, path_separator);
-    if (File::Exists(buffer)) {
+    if (File::Exists(NULL, buffer)) {
       break;
     }
     ptr = strrchr(dart2js_path, *path_separator);
@@ -74,7 +74,7 @@ static void SetupDart2JSPackagePath() {
   // Setup package root.
   char buffer[2048];
   char* executable_path =
-      strdup(File::GetCanonicalPath(Benchmark::Executable()));
+      strdup(File::GetCanonicalPath(NULL, Benchmark::Executable()));
   const char* packages_path = "%s%s..%spackages";
   const char* path_separator = File::PathSeparator();
   OS::SNPrint(buffer, 2048, packages_path, executable_path, path_separator,

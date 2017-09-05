@@ -63,7 +63,7 @@ Future<IdData> computeData(
     bool verbose: false}) async {
   AnnotatedCode code =
       new AnnotatedCode.fromText(annotatedCode, commentStart, commentEnd);
-  Map<Id, String> expectedMap = computeExpectedMap(code);
+  Map<Id, IdValue> expectedMap = computeExpectedMap(code);
   Map<Id, ActualData> actualMap = <Id, ActualData>{};
   Uri mainUri = Uri.parse('memory:main.dart');
   Compiler compiler = await compileFunction(code, mainUri, options);
@@ -91,22 +91,24 @@ class IdData {
   final Compiler compiler;
   final ElementEnvironment elementEnvironment;
   final Uri mainUri;
-  final Map<Id, String> expectedMap;
+  final Map<Id, IdValue> expectedMap;
   final Map<Id, ActualData> actualMap;
 
   IdData(this.code, this.compiler, this.elementEnvironment, this.mainUri,
       this.expectedMap, this.actualMap);
 
-  String withAnnotations(Map<int, String> annotations) {
+  String withAnnotations(Map<int, List<String>> annotations) {
     StringBuffer sb = new StringBuffer();
     int end = 0;
     for (int offset in annotations.keys.toList()..sort()) {
       if (offset > end) {
         sb.write(code.sourceCode.substring(end, offset));
       }
-      sb.write('/* ');
-      sb.write(annotations[offset]);
-      sb.write(' */');
+      for (String annotation in annotations[offset]) {
+        sb.write('/* ');
+        sb.write(annotation);
+        sb.write(' */');
+      }
       end = offset;
     }
     if (end < code.sourceCode.length) {
@@ -116,40 +118,45 @@ class IdData {
   }
 
   String get actualCode {
-    Map<int, String> annotations = <int, String>{};
+    Map<int, List<String>> annotations = <int, List<String>>{};
     actualMap.forEach((Id id, ActualData data) {
-      annotations[data.sourceSpan.begin] = data.value;
+      annotations
+          .putIfAbsent(data.sourceSpan.begin, () => [])
+          .add('${data.value}');
     });
     return withAnnotations(annotations);
   }
 
   String get diffCode {
-    Map<int, String> annotations = <int, String>{};
+    Map<int, List<String>> annotations = <int, List<String>>{};
     actualMap.forEach((Id id, ActualData data) {
-      String expected = expectedMap[id] ?? '';
+      String expected = expectedMap[id]?.value ?? '';
       if (data.value != expected) {
-        annotations[data.sourceSpan.begin] = '${expected} | ${data.value}';
+        annotations
+            .putIfAbsent(data.sourceSpan.begin, () => [])
+            .add('${expected} | ${data.value}');
       }
     });
-    expectedMap.forEach((Id id, String expected) {
+    expectedMap.forEach((Id id, IdValue expected) {
       if (!actualMap.containsKey(id)) {
         int offset = compiler.reporter
             .spanFromSpannable(
                 computeSpannable(elementEnvironment, mainUri, id))
             .begin;
-        annotations[offset] = '${expected} | ---';
+        annotations.putIfAbsent(offset, () => []).add('${expected} | ---');
       }
     });
     return withAnnotations(annotations);
   }
 
   String computeDiffCodeFor(IdData other) {
-    Map<int, String> annotations = <int, String>{};
+    Map<int, List<String>> annotations = <int, List<String>>{};
     actualMap.forEach((Id id, ActualData data1) {
       ActualData data2 = other.actualMap[id];
       if (data1.value != data2?.value) {
-        annotations[data1.sourceSpan.begin] =
-            '${data1.value} | ${data2?.value ?? '---'}';
+        annotations
+            .putIfAbsent(data1.sourceSpan.begin, () => [])
+            .add('${data1.value} | ${data2?.value ?? '---'}');
       }
     });
     other.actualMap.forEach((Id id, ActualData data2) {
@@ -158,7 +165,7 @@ class IdData {
             .spanFromSpannable(
                 computeSpannable(elementEnvironment, mainUri, id))
             .begin;
-        annotations[offset] = '--- | ${data2.value}';
+        annotations.putIfAbsent(offset, () => []).add('--- | ${data2.value}');
       }
     });
     return withAnnotations(annotations);
@@ -172,8 +179,12 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     ComputeMemberDataFunction computeFromKernel,
     {List<String> skipForKernel: const <String>[],
     List<String> options: const <String>[],
-    bool verbose: false}) async {
+    List<String> args: const <String>[]}) async {
+  args = args.toList();
+  bool verbose = args.remove('-v');
   await for (FileSystemEntity entity in dataDir.list()) {
+    String name = entity.uri.pathSegments.last;
+    if (args.isNotEmpty && !args.contains(name)) continue;
     print('----------------------------------------------------------------');
     print('Checking ${entity.uri}');
     print('----------------------------------------------------------------');
@@ -181,7 +192,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     print('--from ast------------------------------------------------------');
     await checkCode(annotatedCode, computeFromAst, compileFromSource,
         options: options, verbose: verbose);
-    if (skipForKernel.contains(entity.uri.pathSegments.last)) {
+    if (skipForKernel.contains(name)) {
       print('--skipped for kernel------------------------------------------');
       continue;
     }
@@ -205,9 +216,9 @@ Future checkCode(
       options: options, verbose: verbose);
 
   data.actualMap.forEach((Id id, ActualData actualData) {
-    String actual = actualData.value;
+    IdValue actual = actualData.value;
     if (!data.expectedMap.containsKey(id)) {
-      if (actual != '') {
+      if (actual.value != '') {
         reportHere(
             data.compiler.reporter,
             actualData.sourceSpan,
@@ -218,9 +229,9 @@ Future checkCode(
         print(data.diffCode);
         print('--------------------------------------------------------------');
       }
-      Expect.equals('', actual);
+      Expect.equals('', actual.value);
     } else {
-      String expected = data.expectedMap[id];
+      IdValue expected = data.expectedMap[id];
       if (actual != expected) {
         reportHere(
             data.compiler.reporter,
@@ -236,7 +247,7 @@ Future checkCode(
   });
 
   Set<Id> missingIds = new Set<Id>();
-  data.expectedMap.forEach((Id id, String expected) {
+  data.expectedMap.forEach((Id id, IdValue expected) {
     if (!data.actualMap.containsKey(id)) {
       missingIds.add(id);
       reportHere(
@@ -267,21 +278,11 @@ Spannable computeSpannable(
 }
 
 /// Compute the expectancy map from [code].
-Map<Id, String> computeExpectedMap(AnnotatedCode code) {
-  Map<Id, String> map = <Id, String>{};
+Map<Id, IdValue> computeExpectedMap(AnnotatedCode code) {
+  Map<Id, IdValue> map = <Id, IdValue>{};
   for (Annotation annotation in code.annotations) {
-    String text = annotation.text;
-    int colonPos = text.indexOf(':');
-    Id id;
-    String expected;
-    if (colonPos == -1) {
-      id = new NodeId(annotation.offset);
-      expected = text;
-    } else {
-      id = new ElementId(text.substring(0, colonPos));
-      expected = text.substring(colonPos + 1);
-    }
-    map[id] = expected;
+    IdValue idValue = IdValue.decode(annotation.offset, annotation.text);
+    map[idValue.id] = idValue;
   }
   return map;
 }

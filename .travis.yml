@@ -71,22 +71,25 @@ before_script:
 script:
   # Run DDC tests
   - if [[ -z "$TEST" ]]; then ./tool/presubmit.sh ; fi
+  - if [[ "$TEST" == sdk ]]; then ./tool/build_sdk.sh && git diff --exit-code ; fi
   - if [[ "$TEST" == coverage ]]; then ./tool/build_sdk.sh && ./tool/coverage.sh ; fi
   - if [[ "$TEST" == node ]]; then ./tool/node_test.sh ; fi
   - if [[ "$TEST" == package ]]; then ./tool/build_sdk.sh && ./tool/build_pkgs.dart gen/codegen_output/pkg travis; fi
 env:
-  - ANALYZER=master
+  - ANALYZER=master DDC_BROWSERS=ChromeTravis
   - ANALYZER=master DDC_BROWSERS=Firefox
   - ANALYZER=master DDC_BROWSERS=ChromeCanaryTravis
   # TODO(vsm): We don't get much value from this for DDC & it eats up travis
   # cycles.  Consider adding back at some point to test the built dartdevc
   # snapshot.
   # - ANALYZER=master CXX=clang++
+  - TEST=sdk
   - TEST=coverage
   - TEST=package
 matrix:
   allow_failures:
     - env: ANALYZER=master CXX=clang++
+    - env: ANALYZER=master DDC_BROWSERS=ChromeTravis
     - env: ANALYZER=master DDC_BROWSERS=ChromeCanaryTravis
     - env: ANALYZER=master DDC_BROWSERS=Firefox
 notifications:

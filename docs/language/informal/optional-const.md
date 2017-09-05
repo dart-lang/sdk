@@ -2,9 +2,9 @@
 
 Author: eernst@.
 
-Version: 0.1 (2017-08-10)
+Version: 0.2 (2017-08-30)
 
-Status: Under discussion
+Status: Under implementation.
 
 **This document** is an informal specification of the *optional const* feature.
 **The feature** adds support for omitting the reserved word `const` in list and
@@ -26,8 +26,8 @@ literal provides no extra information: It is a compile-time error if that
 object expression is modified to use `new` rather than `const`. In that
 situation it carries no extra information whether `new` or `const` is used, and
 it is even possible to omit the reserved word entirely. It is also required for
-certain other expressions to be constant, e.g., default values on formal
-parameters and initializing expressions for constant variables.
+certain other expressions to be constant, e.g., initializing expressions for
+constant variables.
 
 In all these cases the presence of `const` is required, and hence such a
 `const` may be inferred by compilers and similar tools if it is omitted.
@@ -35,9 +35,9 @@ In all these cases the presence of `const` is required, and hence such a
 Developers reading the source code are likely to find it easy to understand
 that a required `const` was omitted and is implied, because the reason for
 the requirement is visible in the enclosing syntax: The expression where
-`const` is inferred is a subexpression of an expression with `const`, it is
-used to initialize a constant variable, or it is a default value for a formal
-parameter.
+`const` is inferred is a subexpression of an expression with `const` or it
+is used in another situation where a constant value is required, e.g., to
+initialize a constant variable.
 
 In summary, tools do not need the required occurrences of `const`, and they
 are also unimportant for developers. Conversely, omitting required occurrences
@@ -80,42 +80,21 @@ postfixExpression ::=
     primary selector*
 constructorInvocation ::=  // NEW
     typeName typeArguments '.' identifier arguments
-assignableExpression ::=
-    SUPER unconditionalAssignableSelector |
-    typeName typeArguments '.' identifier arguments
-        (arguments* assignableSelector)+ |  // NEW
-    identifier |
-    primary (arguments* assignableSelector)+
 ```
-
-*A complete grammar which includes these changes is available
-[here](https://gist.github.com/eernstg/024a997f4f8c7ef885d459c3703a35f6).*
-
-*Note that the alternative which is added in the rule for `assignableExpression`
-is required in order to allow expressions which are obtained by constructing a
-constant object expression in Dart without optional const and removing the
-`const`. That particular case will not match any of the cases where the `const`
-is required (because `assignableExpression` is only used in contexts which
-cannot be constant expressions). However, this approach yields syntactic support
-for omitting `const` in every `constantObjectExpression`, and it also allows for
-omitting `new` from every `newExpression`, which is useful for the
-associated
-[optional new feature](https://gist.github.com/eernstg/7e819b44acd8dd9d71f0cc510b618a3d).*
 
 *The grammar only needs to be adjusted for one case, namely invocations of named
 constructors for generic classes. In this case we can derive expressions like
 `const Foo<int>.bar()`, and the corresponding `Foo<int>.bar()` is not derivable
 in the same situations where the variant with `const` can be derived. In other
 words, we must add support for constructs like `Foo<int>.bar()` as part of a
-`postfixExpression` and as part of an `assignableExpression`. For all other
-situations, the variant with `const` becomes a construct which is already
-syntactically correct Dart when the `const` is removed. For instance `const
-C(42)` becomes `C(42)` which could already be a function invocation and is hence
-already allowed syntactically.*
+`postfixExpression`. For all other situations, the variant with `const` becomes
+a construct which is already syntactically correct Dart when the `const` is
+removed. For instance `const C(42)` becomes `C(42)` which is already allowed
+syntactically (syntactically, it could be a function invocation).*
 
 ## Static analysis
 
-We specify a type directed source code transformation which eliminates the 
+We specify a type directed source code transformation which eliminates the
 feature. The static analysis proceeds to work on the transformed program.
 
 *This means that the feature is "sugar", but because of the need to refer
@@ -123,44 +102,63 @@ to types it could be described as static semantic sugar rather than
 syntactic sugar. We do not specify the dynamic semantics for this feature,
 because the feature is eliminated in this transformation step.*
 
+We need to treat expressions differently in different locations, hence the
+following definition: An expression _e_ is said to *occur in a constant
+context*,
+
+- if _e_ is an immediate subexpression of a constant list literal or a
+  constant map literal.
+- if _e_ is an immediate subexpression of a constant object expression.
+- if _e_ is the initializing expression of a constant variable declaration.
+- if _e_ is an immediate subexpression of an expression which occurs in a
+  constant context.
+
+*Note that the default value of an optional formal parameter is not a
+constant context. This choice reserves some freedom to modify the
+semantics of default values.*
+
 An expression on one of the following forms must be modified to be or
 contain a `constantObjectExpression` as described:
 
-With a `postfixExpression` _e_,
+With a `postfixExpression` _e_ occurring in a constant context,
 
-- if _e_ is on the form `constructorInvocation`, i.e.,
-  `typeName typeArguments '.' identifier arguments` then replace _e_ by
-  `'const' typeName typeArguments '.' identifier arguments`.
+- if _e_ is on the form `constructorInvocation` then replace _e_ by
+  `const` _e_.
 - if _e_ is on the form
   `typeIdentifier arguments` where `typeIdentifier` denotes a class then
-  replace _e_ by
-  `'const' typeIdentifier arguments`.
+  replace _e_ by `const` _e_.
 - if _e_ is on the form
   `identifier1 '.' identifier2 arguments` where `identifier1` denotes
-  a class and `identifier2` is the name of a named constructor in that class,
-  or `identifier1` denotes a prefix for a library _L_ and `identifier2` denotes
-  a class exported by _L_, replace _e_ by
-  `'const' identifier1 '.' identifier2 arguments`.
+  a class and `identifier2` is the name of a named constructor in that
+  class, or `identifier1` denotes a prefix for a library _L_ and
+  `identifier2` denotes a class exported by _L_, replace _e_ by
+  `const` _e_.
 -  if _e_ is on the form
-  `identifier1 '.' typeIdentifier '.' identifier2 arguments` where 
-  `identifier1` denotes a library prefix for a library _L_, `typeIdentifier`
-  denotes a class _C_ exported by _L_, and `identifier2` is the name of a named
-  constructor in _C_, replace _e_ by
-  `'const' identifier1 '.' typeIdentifier '.' identifier2 arguments`.
+  `identifier1 '.' typeIdentifier '.' identifier2 arguments` where
+  `identifier1` denotes a library prefix for a library _L_,
+  `typeIdentifier` denotes a class _C_ exported by _L_, and `identifier2`
+  is the name of a named constructor in _C_, replace _e_ by
+  `const` _e_.
+
+For a list literal _e_ occurring in a constant context, replace _e_ by 
+`const` _e_. For a map literal _e_ occurring in a constant context,
+replace _e_ by `const` _e_.
 
 *In short, in these specific situations: "just add `const`". It is easy to
 verify that each of the replacements can be derived from
 `constObjectExpression`, which can be derived from `postfixExpression` via
-`primary selector*`; hence the transformation preserves syntactic correctness.*
+`primary selector*`. Hence, the transformation preserves syntactic
+correctness.*
 
 The remaining static analysis proceeds to work on the transformed program.
 
 *It is possible that this transformation will create
 `constObjectExpressions` which violate the constraints on constant object
-expressions. It is recommended that the error messages emitted by tools in
-response to such violations include information about the transformative
-step that added this `const` to the given construct and informs developers
-that they may add `new` explicitly if that matches the intention.*
+expressions, e.g., when `const [[new A()]]` is transformed to
+`const [const [new A()]]` where the inner list is an error that was created
+by the transformation (so the error was moved from the outer to the inner
+list). It is recommended that the error messages emitted by tools in response
+to such violations include information about the transformation.*
 
 ## Dynamic Semantics
 
@@ -170,7 +168,12 @@ eliminated by code transformation.
 
 ## Revisions
 
-- 0.1 (2017-08-10) Stand-alone proposal for optional const created, using
-  version 0.8 of the combined proposal
+- 0.2 (2017-08-30) Updated the document to specify the previously missing
+  transformations for composite literals (lists and maps), and to specify a
+  no-magic approach (where no `const` is introduced except when forced by
+  the syntactic context).
+
+- 0.1 (2017-08-10) Stand-alone informal specification for optional const
+  created, using version 0.8 of the combined proposal
   [optional-new-const.md](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/optional-new-const.md)
   as the starting point.

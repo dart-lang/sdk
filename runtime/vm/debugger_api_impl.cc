@@ -5,7 +5,7 @@
 #include "include/dart_tools_api.h"
 
 #include "vm/class_finalizer.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
 #include "vm/debugger.h"

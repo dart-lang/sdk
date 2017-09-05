@@ -8,7 +8,7 @@
 #include "platform/memory_sanitizer.h"
 
 #include "vm/allocation.h"
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/exceptions.h"
 #include "vm/log.h"
 #include "vm/native_arguments.h"

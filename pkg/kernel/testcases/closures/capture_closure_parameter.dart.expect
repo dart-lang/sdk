@@ -13,6 +13,7 @@ static method closure#main#foo(dynamic #contextParameter, dynamic x) → dynamic
   final dynamic #context = MakeVector(3);
   #context[1] = #contextParameter;
   #context[2] = x;
+  x = null;
   final () → dynamic bar = MakeClosure<() → dynamic>(self::closure#main#foo#bar, #context);
   return bar;
 }

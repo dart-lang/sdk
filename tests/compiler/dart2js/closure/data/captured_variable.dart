@@ -2,25 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*readParameterInAnonymousClosure:*/
+/*element: readParameterInAnonymousClosure:*/
 readParameterInAnonymousClosure(/**/ parameter) {
   return /*free=[parameter]*/ () => parameter;
 }
 
-/*readParameterInClosure:*/
+/*element: readParameterInClosure:*/
 readParameterInClosure(/**/ parameter) {
   /*free=[parameter]*/ func() => parameter;
   return func;
 }
 
-/*writeParameterInAnonymousClosure:box=(box0 which holds [parameter])*/
+/*element: writeParameterInAnonymousClosure:box=(box0 which holds [parameter])*/
 writeParameterInAnonymousClosure(/*boxed*/ parameter) {
   return /*free=[box0,parameter]*/ () {
     parameter = 42;
   };
 }
 
-/*writeParameterInClosure:box=(box0 which holds [parameter])*/
+/*element: writeParameterInClosure:box=(box0 which holds [parameter])*/
 writeParameterInClosure(/*boxed*/ parameter) {
   /*free=[box0,parameter]*/ func() {
     parameter = 43;
@@ -29,20 +29,20 @@ writeParameterInClosure(/*boxed*/ parameter) {
   return func;
 }
 
-/*readLocalInAnonymousClosure:*/
+/*element: readLocalInAnonymousClosure:*/
 readLocalInAnonymousClosure(/**/ parameter) {
   var /**/ local = parameter;
   return /*free=[local]*/ () => local;
 }
 
-/*readLocalInClosure:*/
+/*element: readLocalInClosure:*/
 readLocalInClosure(/**/ parameter) {
   var /**/ local = parameter;
   /*free=[local]*/ func() => local;
   return func;
 }
 
-/*writeLocalInAnonymousClosure:box=(box0 which holds [local])*/
+/*element: writeLocalInAnonymousClosure:box=(box0 which holds [local])*/
 writeLocalInAnonymousClosure(/**/ parameter) {
   // ignore: UNUSED_LOCAL_VARIABLE
   var /*boxed*/ local = parameter;
@@ -51,7 +51,7 @@ writeLocalInAnonymousClosure(/**/ parameter) {
   };
 }
 
-/*writeLocalInClosure:box=(box0 which holds [local])*/
+/*element: writeLocalInClosure:box=(box0 which holds [local])*/
 writeLocalInClosure(/**/ parameter) {
   // ignore: UNUSED_LOCAL_VARIABLE
   var /*boxed*/ local = parameter;
@@ -60,6 +60,15 @@ writeLocalInClosure(/**/ parameter) {
   }
 
   return func;
+}
+
+class Foo {
+  int /*element: Foo.bar:hasThis*/ bar = 4;
+
+  /*element: Foo.baz:hasThis*/ baz() {
+    /*free=[this],hasThis*/ func() => bar;
+    return func;
+  }
 }
 
 main() {
@@ -71,4 +80,5 @@ main() {
   readLocalInClosure(null);
   writeLocalInAnonymousClosure(null);
   writeLocalInClosure(null);
+  new Foo().baz();
 }

@@ -6,19 +6,19 @@
 library test;
 
 class C<T> {
-  void f(T /*@checkFormal=semiSafe*/ x) {}
+  void f(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x) {}
 }
 
 void g1(C<num> c) {
-  c.f /*@checkCall=interface(semiTyped:0)*/ (1.5);
+  c.f(1.5);
 }
 
 void g2(C<int> c) {
-  c.f /*@checkCall=interface(semiTyped:0)*/ (1);
+  c.f(1);
 }
 
 void g3(C<num> c) {
-  c.f /*@checkCall=interface(semiTyped:0)*/ (null);
+  c.f(null);
 }
 
 main() {}

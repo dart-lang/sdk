@@ -50,7 +50,7 @@ import '../fasta_codes.dart'
         templateInternalProblemUriMissingScheme,
         templateUnspecified;
 
-import '../kernel/kernel_shadow_ast.dart' show KernelTypeInferenceEngine;
+import '../kernel/kernel_shadow_ast.dart' show ShadowTypeInferenceEngine;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
 
@@ -231,9 +231,8 @@ class SourceLoader<L> extends Loader<L> {
       wasChanged = false;
       for (SourceLibraryBuilder exported in both) {
         for (Export export in exported.exporters) {
-          SourceLibraryBuilder exporter = export.exporter;
           exported.exportScope.forEach((String name, Builder member) {
-            if (exporter.addToExportScope(name, member)) {
+            if (export.addToExportScope(name, member)) {
               wasChanged = true;
             }
           });
@@ -477,7 +476,7 @@ class SourceLoader<L> extends Loader<L> {
 
   void createTypeInferenceEngine() {
     typeInferenceEngine =
-        new KernelTypeInferenceEngine(instrumentation, target.strongMode);
+        new ShadowTypeInferenceEngine(instrumentation, target.strongMode);
   }
 
   /// Performs the first phase of top level initializer inference, which

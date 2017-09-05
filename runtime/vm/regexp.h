@@ -5,9 +5,9 @@
 #ifndef RUNTIME_VM_REGEXP_H_
 #define RUNTIME_VM_REGEXP_H_
 
-#include "vm/assembler.h"
-#include "vm/flow_graph_compiler.h"
-#include "vm/intermediate_language.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
+#include "vm/compiler/backend/il.h"
 #include "vm/object.h"
 #include "vm/regexp_assembler.h"
 

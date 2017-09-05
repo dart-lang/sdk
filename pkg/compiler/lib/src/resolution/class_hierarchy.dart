@@ -447,7 +447,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
           if (index != -1) {
             name = name.substring(0, index);
           }
-          name = "$name&${mixin.name}$signature";
+          name = "_$name&${mixin.name}$signature";
           mixinElement = mixinApplicationClasses[name];
           if (mixinElement != null) return mixinElement.thisType;
 

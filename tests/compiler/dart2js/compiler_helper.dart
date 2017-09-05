@@ -131,7 +131,7 @@ Future<String> compile(String code,
     Compiler compiler = result.compiler;
     LibraryElement mainApp =
         compiler.frontendStrategy.elementEnvironment.mainLibrary;
-    Element element = mainApp.find(entry);
+    MemberElement element = mainApp.find(entry);
     js.JavaScriptBackend backend = compiler.backend;
     String generated = backend.getGeneratedCode(element);
     if (check != null) {

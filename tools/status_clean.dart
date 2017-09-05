@@ -19,7 +19,7 @@ import "testing/dart/utils.dart" show Path;
 
 // [STATUS_TUPLES] is a list of (suite-name, directory, status-file)-tuples.
 final STATUS_TUPLES = [
-  ["corelib", "tests/corelib", "tests/corelib/corelib.status"],
+  ["corelib_2", "tests/corelib_2", "tests/corelib_2/corelib_2.status"],
   ["html", "tests/html", "tests/html/html.status"],
   ["isolate", "tests/isolate", "tests/isolate/isolate.status"],
   ["language", "tests/language", "tests/language/language.status"],

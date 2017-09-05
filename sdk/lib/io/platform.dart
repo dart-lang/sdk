@@ -69,6 +69,7 @@ class Platform {
   static final _numberOfProcessors = _Platform.numberOfProcessors;
   static final _pathSeparator = _Platform.pathSeparator;
   static final _operatingSystem = _Platform.operatingSystem;
+  static final _operatingSystemVersion = _Platform.operatingSystemVersion;
   static final _localHostname = _Platform.localHostname;
   static final _version = _Platform.version;
   static final _localeName = _Platform.localeName;
@@ -93,6 +94,11 @@ class Platform {
    * A string representing the operating system or platform.
    */
   static String get operatingSystem => _operatingSystem;
+
+  /**
+   * A string representing the version of the operating system or platform.
+   */
+  static String get operatingSystemVersion => _operatingSystemVersion;
 
   /**
    * The local hostname for the system.

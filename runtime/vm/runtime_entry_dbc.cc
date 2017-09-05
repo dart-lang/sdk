@@ -7,7 +7,7 @@
 
 #include "vm/runtime_entry.h"
 
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/simulator.h"
 #include "vm/stub_code.h"
 

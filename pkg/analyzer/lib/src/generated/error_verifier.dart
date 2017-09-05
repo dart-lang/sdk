@@ -7149,5 +7149,6 @@ class _InvocationCollector extends RecursiveAstVisitor {
     if (node.target is SuperExpression) {
       superCalls.add(node.methodName.name);
     }
+    super.visitMethodInvocation(node);
   }
 }

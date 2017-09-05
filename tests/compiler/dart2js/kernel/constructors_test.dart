@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
-import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:test/test.dart';
 
 import 'helper.dart' show check;
@@ -70,8 +71,10 @@ main() => new Foo();
 }
 
 defaultConstructorFor(String className) => (Compiler compiler) {
-      LibraryElement mainApp =
-          compiler.frontendStrategy.elementEnvironment.mainLibrary;
-      ClassElement clazz = mainApp.find(className);
-      return clazz.lookupDefaultConstructor();
+      ElementEnvironment elementEnvironment =
+          compiler.backendClosedWorldForTesting.elementEnvironment;
+      LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
+      ClassEntity clazz =
+          elementEnvironment.lookupClass(mainLibrary, className);
+      return elementEnvironment.lookupConstructor(clazz, '');
     };

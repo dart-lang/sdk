@@ -18,6 +18,7 @@ import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js_backend/js_backend.dart';
 import '../js_backend/native_data.dart';
+import '../js_model/closure.dart' show KernelScopeInfo, JRecordField;
 import '../kernel/element_map.dart';
 import '../kernel/element_map_mixins.dart';
 import '../kernel/kernel.dart';
@@ -410,6 +411,12 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
     LocalFunctionElement localFunction = getElement(node);
     return closureLookup.getClosureInfo(localFunction.node);
   }
+
+  @override
+  Map<Local, JRecordField> makeRecordContainer(
+      KernelScopeInfo info, MemberEntity member, KernelToLocalsMap localsMap) {
+    throw new UnsupportedError('KernelAstAdapter.makeRecordContainer');
+  }
 }
 
 /// Visitor that converts kernel dart types into [ResolutionDartType].
@@ -614,10 +621,11 @@ class KernelSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
     for (ir.SwitchCase switchCase in switchStatement.cases) {
       JumpTarget continueTarget =
           localsMap.getJumpTargetForSwitchCase(switchCase);
-      assert(continueTarget is KernelJumpTarget);
-      targetIndexMap[continueTarget] = switchIndex;
-      assert(builder.jumpTargets[continueTarget] == null);
-      builder.jumpTargets[continueTarget] = this;
+      if (continueTarget != null) {
+        targetIndexMap[continueTarget] = switchIndex;
+        assert(builder.jumpTargets[continueTarget] == null);
+        builder.jumpTargets[continueTarget] = this;
+      }
       switchIndex++;
     }
   }

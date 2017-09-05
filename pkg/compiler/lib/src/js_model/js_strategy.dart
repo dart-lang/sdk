@@ -419,6 +419,7 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
       MemberEntity member,
       ir.FunctionNode originalClosureFunctionNode,
       JLibrary enclosingLibrary,
+      Map<Local, JRecordField> boxedVariables,
       KernelScopeInfo info,
       ir.Location location,
       KernelToLocalsMap localsMap) {
@@ -428,6 +429,7 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
         member,
         originalClosureFunctionNode,
         enclosingLibrary,
+        boxedVariables,
         info,
         location,
         localsMap,

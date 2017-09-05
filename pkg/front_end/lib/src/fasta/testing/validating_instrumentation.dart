@@ -30,8 +30,9 @@ class ValidatingInstrumentation implements Instrumentation {
       'target',
     ],
     'checks': const [
-      'checkCall',
+      'callKind',
       'checkFormal',
+      'checkInterface',
       'checkReturn',
       'checkTearOff',
       'forwardingStub',

@@ -7,3 +7,16 @@ async/future_or_only_in_async_test/00: MissingCompileTimeError
 
 [ !$strong && !$checked]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
+async/multiple_timer_test: Pass, Fail # Timing related
+
+[ $runtime == chrome && $system == macos ]
+async/slow_consumer_test: Pass, Timeout # Issue 22696
+
+[ $runtime == chrome || $runtime == ff ]
+async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
+
+[ $hot_reload || $hot_reload_rollback ]
+mirrors/closurization_equivalence_test: SkipByDesign # Method equality
+mirrors/deferred_mirrors_update_test: Crash # Deferred loading
+mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading
+mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading

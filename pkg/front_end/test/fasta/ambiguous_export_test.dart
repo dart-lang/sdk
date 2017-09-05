@@ -23,8 +23,7 @@ main() async {
   await asyncTest(() async {
     Library library = new Library(Uri.parse("org.dartlang.fasta:library"));
     Field field = new Field(new Name("_exports#", library),
-        initializer:
-            new StringLiteral("[[null,\"main\",\"Problem with main\"]]"));
+        initializer: new StringLiteral('{"main":"Problem with main"}'));
     library.addMember(field);
     Program program = new Program(libraries: <Library>[library]);
     await CompilerContext.runWithDefaultOptions((CompilerContext c) async {

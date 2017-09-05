@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/regexp_assembler_ir.h"
 
 #include "vm/bit_vector.h"
-#include "vm/compiler.h"
+#include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/frontend/flow_graph_builder.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
-#include "vm/flow_graph_builder.h"
-#include "vm/il_printer.h"
 #include "vm/object_store.h"
 #include "vm/regexp.h"
 #include "vm/resolver.h"
@@ -1732,3 +1734,5 @@ Value* IRRegExpMacroAssembler::LoadCodeUnitsAt(LocalVariable* index,
 #undef __
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

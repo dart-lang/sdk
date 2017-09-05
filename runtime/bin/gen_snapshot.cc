@@ -446,7 +446,7 @@ static int ParseArguments(int argc,
 static void WriteFile(const char* filename,
                       const uint8_t* buffer,
                       const intptr_t size) {
-  File* file = File::Open(filename, File::kWriteTruncate);
+  File* file = File::Open(NULL, filename, File::kWriteTruncate);
   if (file == NULL) {
     Log::PrintErr("Error: Unable to write snapshot file: %s\n\n", filename);
     Dart_ExitScope();
@@ -463,7 +463,7 @@ static void WriteFile(const char* filename,
 }
 
 static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
-  File* file = File::Open(filename, File::kRead);
+  File* file = File::Open(NULL, filename, File::kRead);
   if (file == NULL) {
     Log::PrintErr("Unable to open file %s\n", filename);
     Dart_ExitScope();
@@ -612,7 +612,7 @@ class DependenciesFileWriter : public ValueObject {
   void WriteDependencies(MallocGrowableArray<char*>* dependencies) {
     dependencies_ = dependencies;
 
-    file_ = File::Open(dependencies_filename, File::kWriteTruncate);
+    file_ = File::Open(NULL, dependencies_filename, File::kWriteTruncate);
     if (file_ == NULL) {
       Log::PrintErr("Error: Unable to open dependencies file: %s\n\n",
                     dependencies_filename);
@@ -1489,7 +1489,7 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
 static MappedMemory* MapFile(const char* filename,
                              File::MapType type,
                              const uint8_t** buffer) {
-  File* file = File::Open(filename, File::kRead);
+  File* file = File::Open(NULL, filename, File::kRead);
   if (file == NULL) {
     Log::PrintErr("Failed to open: %s\n", filename);
     exit(kErrorExitCode);

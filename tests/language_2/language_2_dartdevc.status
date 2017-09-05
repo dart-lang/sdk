@@ -7,6 +7,7 @@
 [ $compiler == dartdevc ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
+abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_test/01: CompileTimeError
@@ -38,6 +39,7 @@ generics_test: CompileTimeError
 get_set_syntax_test/none: CompileTimeError
 getter_setter_in_lib_test: CompileTimeError
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
+type_variable_scope_test/none: CompileTimeError
 
 [ $strong && $compiler == dartdevc ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -111,12 +113,14 @@ call_closurization_test: RuntimeError # Issue 29920
 call_test: RuntimeError
 canonical_const2_test: RuntimeError # Ints and doubles are unified.
 canonical_const_test: RuntimeError # Ints and doubles are unified.
+compile_time_constant_a_test: RuntimeError # Issue 30526
+compile_time_constant_b_test: RuntimeError # Issue 29920
+compile_time_constant_d_test: RuntimeError # Issue 29920
 compile_time_constant10_test/none: RuntimeError
 covariant_subtyping_with_substitution_test: RuntimeError # Issue 30461
 function_subtype_inline2_test: RuntimeError
 function_type/function_type50_test: RuntimeError # Issue 29920
 function_type/function_type58_test: RuntimeError # Issue 29920
-generic_instanceof2_test: RuntimeError # Issue 29920
 generic_instanceof2_test: RuntimeError # Issue 29920
 generic_is_check_test: RuntimeError # Issue 29920
 generic_method_types_test/01: RuntimeError
@@ -124,6 +128,4 @@ generic_method_types_test/02: RuntimeError
 generic_method_types_test/03: RuntimeError
 generic_methods_new_test: RuntimeError
 getter_closure_execution_order_test: RuntimeError # Issue 29920
-compile_time_constant_a_test: RuntimeError # Issue 30526
-compile_time_constant_b_test: RuntimeError # Issue 29920
-compile_time_constant_d_test: RuntimeError # Issue 29920
+identical_closure2_test: RuntimeError # Issue 29920

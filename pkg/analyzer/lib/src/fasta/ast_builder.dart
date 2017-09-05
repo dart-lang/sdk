@@ -394,7 +394,8 @@ class AstBuilder extends ScopeListener {
     Statement elsePart = popIfNotNull(elseToken);
     Statement thenPart = pop();
     Expression condition = pop();
-    analyzer.BeginToken leftParenthesis = ifToken.next;
+    analyzer.BeginToken leftParenthesis =
+        unsafeToken(ifToken.next, TokenType.OPEN_PAREN);
     push(ast.ifStatement(ifToken, ifToken.next, condition,
         leftParenthesis.endGroup, thenPart, elseToken, elsePart));
   }
@@ -556,7 +557,8 @@ class AstBuilder extends ScopeListener {
     exitLocalScope();
     exitContinueTarget();
     exitBreakTarget();
-    analyzer.BeginToken leftParenthesis = forKeyword.next;
+    analyzer.BeginToken leftParenthesis =
+        unsafeToken(forKeyword.next, TokenType.OPEN_PAREN);
 
     VariableDeclarationList variableList;
     Expression initializer;
@@ -584,7 +586,7 @@ class AstBuilder extends ScopeListener {
         condition,
         rightSeparator,
         updates,
-        leftParenthesis.endGroup,
+        leftParenthesis?.endGroup,
         body));
   }
 
@@ -846,7 +848,7 @@ class AstBuilder extends ScopeListener {
             covariantKeyword: covariantKeyword,
             type: typeOrFunctionTypedParameter.returnType,
             thisKeyword: thisKeyword,
-            period: thisKeyword.next,
+            period: unsafeToken(thisKeyword.next, TokenType.PERIOD),
             typeParameters: typeOrFunctionTypedParameter.typeParameters,
             parameters: typeOrFunctionTypedParameter.parameters);
       }
@@ -986,13 +988,14 @@ class AstBuilder extends ScopeListener {
         stackTrace = catchParameters[1].identifier;
       }
     }
+    // TODO(brianwilkerson) The parser needs to pass in the comma token.
     push(ast.catchClause(
         onKeyword,
         type,
         catchKeyword,
         catchParameterList?.leftParenthesis,
         exception,
-        null,
+        stackTrace == null ? null : stackTrace.token.previous,
         stackTrace,
         catchParameterList?.rightParenthesis,
         body));
@@ -1059,6 +1062,7 @@ class AstBuilder extends ScopeListener {
       if (identical('native', token.stringValue) && parser != null) {
         Token nativeKeyword = token;
         Token semicolon = parser.parseLiteralString(token.next);
+        // TODO(brianwilkerson) Should this be using ensureSemicolon?
         token = parser.expectSemicolon(semicolon);
         StringLiteral name = pop();
         pop(); // star
@@ -1166,8 +1170,7 @@ class AstBuilder extends ScopeListener {
       Token semicolon) {
     debugEvent("Import");
     List<Combinator> combinators = pop();
-    SimpleIdentifier prefix;
-    if (asKeyword != null) prefix = pop();
+    SimpleIdentifier prefix = popIfNotNull(asKeyword);
     List<Configuration> configurations = pop();
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
@@ -1226,19 +1229,17 @@ class AstBuilder extends ScopeListener {
   void endConditionalUri(Token ifKeyword, Token equalitySign) {
     debugEvent("ConditionalUri");
     StringLiteral libraryUri = pop();
-    // TODO(paulberry,ahe): the parser should report the right paren token to
-    // the listener.
-    Token rightParen = null;
-    StringLiteral value;
-    if (equalitySign != null) {
-      value = pop();
-    }
+    StringLiteral value = popIfNotNull(equalitySign);
     DottedName name = pop();
     // TODO(paulberry,ahe): what if there is no `(` token due to an error in the
     // file being parsed?  It seems like we need the parser to do adequate error
     // recovery and then report both the ifKeyword and leftParen tokens to the
     // listener.
-    Token leftParen = ifKeyword.next;
+    Token leftParen = unsafeToken(ifKeyword.next, TokenType.OPEN_PAREN);
+    // TODO(paulberry,ahe): the parser should report the right paren token to
+    // the listener.
+    Token lastToken = value?.endToken ?? equalitySign ?? name?.endToken;
+    Token rightParen = unsafeToken(lastToken.next, TokenType.CLOSE_PAREN);
     push(ast.configuration(ifKeyword, leftParen, name, equalitySign, value,
         rightParen, libraryUri));
   }
@@ -1451,7 +1452,7 @@ class AstBuilder extends ScopeListener {
     }
     // TODO(paulberry,ahe): seems hacky.  It would be nice if the parser passed
     // in a reference to the "of" keyword.
-    var ofKeyword = partKeyword.next;
+    var ofKeyword = unsafeToken(partKeyword.next, analyzer.Keyword.OF);
     List<Annotation> metadata = pop();
     Comment comment = pop();
     directives.add(ast.partOfDirective(
@@ -1718,10 +1719,12 @@ class AstBuilder extends ScopeListener {
     debugEvent("Enum");
     List<EnumConstantDeclaration> constants = popList(count);
     // TODO(paulberry,ahe): the parser should pass in the openBrace token.
-    var openBrace = enumKeyword.next.next as analyzer.BeginToken;
+    var openBrace =
+        unsafeToken(enumKeyword.next.next, TokenType.OPEN_CURLY_BRACKET)
+            as analyzer.BeginToken;
     // TODO(paulberry): what if the '}' is missing and the parser has performed
     // error recovery?
-    Token closeBrace = openBrace.endGroup;
+    Token closeBrace = openBrace?.endGroup;
     SimpleIdentifier name = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
@@ -1923,13 +1926,9 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_TYPE_NAME, charOffset, 1);
         return;
-      case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
-        if (!allowNativeClause) {
-          errorReporter?.reportErrorForOffset(
-              ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
-              charOffset,
-              1);
-        }
+      case "CONST_CLASS":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CONST_CLASS, charOffset, 1);
         return;
       case "EXPECTED_STRING_LITERAL":
         errorReporter?.reportErrorForOffset(
@@ -1939,6 +1938,14 @@ class AstBuilder extends ScopeListener {
         String text = stringOrTokenLexeme();
         errorReporter?.reportErrorForOffset(ParserErrorCode.EXTRANEOUS_MODIFIER,
             charOffset, text.length, [text]);
+        return;
+      case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
+        if (!allowNativeClause) {
+          errorReporter?.reportErrorForOffset(
+              ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
+              charOffset,
+              1);
+        }
         return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();
@@ -1953,7 +1960,14 @@ class AstBuilder extends ScopeListener {
       default:
       // fall through
     }
-    library.addCompileTimeError(message, charOffset, uri);
+  }
+
+  /// A marker method used to mark locations where a token is being located in
+  /// an unsafe way. In all such cases the parser needs to be fixed to pass in
+  /// the token.
+  Token unsafeToken(Token token, TokenType tokenType) {
+    // TODO(brianwilkerson) Eliminate the need for this method.
+    return token.type == tokenType ? token : null;
   }
 }
 

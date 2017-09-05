@@ -28,19 +28,19 @@ void main() {
     compiler.deferredLoadTask.onResolutionComplete(
         main, compiler.resolutionWorldBuilder.closedWorldForTesting);
 
-    var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
+    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
 
     dynamic lib1 = lookupLibrary("memory:lib1.dart");
     var foo1 = lib1.find("foo");
-    var ou_lib1 = outputUnitForElement(foo1);
+    var ou_lib1 = outputUnitForEntity(foo1);
 
     dynamic lib2 = lookupLibrary("memory:lib2.dart");
     var foo2 = lib2.find("foo");
-    var ou_lib2 = outputUnitForElement(foo2);
+    var ou_lib2 = outputUnitForEntity(foo2);
 
     dynamic mainApp = compiler.frontendStrategy.elementEnvironment.mainLibrary;
     var fooMain = mainApp.find("foo");
-    var ou_lib1_lib2 = outputUnitForElement(fooMain);
+    var ou_lib1_lib2 = outputUnitForEntity(fooMain);
 
     String mainOutput = collector.getOutput("", OutputType.js);
     String lib1Output =

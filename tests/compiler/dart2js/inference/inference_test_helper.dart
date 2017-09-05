@@ -65,7 +65,7 @@ class TypeMaskComputer extends AstDataExtractor
         super(reporter, actualMap, resolvedAst);
 
   @override
-  String computeElementValue(AstElement element) {
+  String computeElementValue(Id id, AstElement element) {
     if (element.isParameter) {
       ParameterElement parameter = element;
       return getParameterValue(parameter);
@@ -79,11 +79,11 @@ class TypeMaskComputer extends AstDataExtractor
   }
 
   @override
-  String computeNodeValue(ast.Node node, [AstElement element]) {
+  String computeNodeValue(Id id, ast.Node node, [AstElement element]) {
     if (node is ast.Send) {
       return getTypeMaskValue(result.typeOfSend(node));
     } else if (element != null && element.isLocal) {
-      return computeElementValue(element);
+      return computeElementValue(id, element);
     }
     return null;
   }
@@ -100,6 +100,7 @@ void computeMemberIrTypeMasks(
   GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
   MemberDefinition definition = elementMap.getMemberDefinition(member);
   new TypeMaskIrComputer(
+          compiler.reporter,
           actualMap,
           elementMap,
           member,
@@ -119,6 +120,7 @@ class TypeMaskIrComputer extends IrDataExtractor
   final ClosureDataLookup<ir.Node> _closureDataLookup;
 
   TypeMaskIrComputer(
+      DiagnosticReporter reporter,
       Map<Id, ActualData> actualMap,
       this._elementMap,
       MemberEntity member,
@@ -126,15 +128,15 @@ class TypeMaskIrComputer extends IrDataExtractor
       this.results,
       this._closureDataLookup)
       : result = results.resultOfMember(member),
-        super(actualMap);
+        super(reporter, actualMap);
 
   @override
-  String computeMemberValue(ir.Member node) {
+  String computeMemberValue(Id id, ir.Member node) {
     return getMemberValue(_elementMap.getMember(node));
   }
 
   @override
-  String computeNodeValue(ir.TreeNode node) {
+  String computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.VariableDeclaration && node.parent is ir.FunctionNode) {
       Local parameter = _localsMap.getLocalVariable(node);
       return getParameterValue(parameter);

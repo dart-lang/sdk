@@ -6,13 +6,17 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
-#include "vm/assembler.h"
 #include "vm/become.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
-#include "vm/compiler.h"
+#include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/frontend/kernel_to_il.h"
+#include "vm/compiler/intrinsifier.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/compiler_stats.h"
 #include "vm/cpu.h"
 #include "vm/dart.h"
@@ -21,19 +25,15 @@
 #include "vm/datastream.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
-#include "vm/disassembler.h"
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
 #include "vm/hash_table.h"
 #include "vm/heap.h"
-#include "vm/intrinsifier.h"
 #include "vm/isolate_reload.h"
-#include "vm/kernel_to_il.h"
 #include "vm/native_symbol.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
-#include "vm/precompiler.h"
 #include "vm/profiler.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
@@ -5486,7 +5486,8 @@ bool Function::HasGenericParent() const {
 }
 
 RawFunction* Function::implicit_closure_function() const {
-  if (IsClosureFunction() || IsSignatureFunction() || IsFactory()) {
+  if (IsClosureFunction() || IsConvertedClosureFunction() ||
+      IsSignatureFunction() || IsFactory()) {
     return Function::null();
   }
   const Object& obj = Object::Handle(raw_ptr()->data_);
@@ -5504,7 +5505,8 @@ RawFunction* Function::implicit_closure_function() const {
 }
 
 void Function::set_implicit_closure_function(const Function& value) const {
-  ASSERT(!IsClosureFunction() && !IsSignatureFunction());
+  ASSERT(!IsClosureFunction() && !IsSignatureFunction() &&
+         !IsConvertedClosureFunction());
   if (is_native()) {
     const Object& obj = Object::Handle(raw_ptr()->data_);
     ASSERT(obj.IsArray());
@@ -5624,6 +5626,9 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
       break;
     case RawFunction::kImplicitClosureFunction:
       return "ImplicitClosureFunction";
+      break;
+    case RawFunction::kConvertedClosureFunction:
+      return "ConvertedClosureFunction";
       break;
     case RawFunction::kSignatureFunction:
       return "SignatureFunction";
@@ -6352,7 +6357,7 @@ RawFunction* Function::InstantiateSignatureFrom(
   if (IsConvertedClosureFunction()) {
     sig = Function::NewConvertedClosureFunction(
         String::Handle(zone, name()), parent, TokenPosition::kNoSource);
-    // TODO(sjindel): Kernel generic methods undone. Handle type parameters
+    // TODO(30455): Kernel generic methods undone. Handle type parameters
     // correctly when generic closures are supported. Until then, all type
     // parameters to this target are used for captured type variables, so they
     // aren't relevant to the type of the function.
@@ -6987,11 +6992,6 @@ RawFunction* Function::ConvertedClosureFunction() const {
   // Set closure function's end token to this end token.
   closure_function.set_end_token_pos(end_token_pos());
 
-  // The closurized method stub just calls into the original method and should
-  // therefore be skipped by the debugger and in stack traces.
-  closure_function.set_is_debuggable(false);
-  closure_function.set_is_visible(false);
-
   // Set closure function's formal parameters to this formal parameters,
   // removing the first parameter over which the currying is done, and adding
   // the closure class instance as the first parameter.  So, the overall number
@@ -7117,6 +7117,7 @@ void Function::BuildSignatureParameters(
 }
 
 RawInstance* Function::ImplicitStaticClosure() const {
+  ASSERT(IsImplicitStaticClosureFunction());
   if (implicit_static_closure() == Instance::null()) {
     Zone* zone = Thread::Current()->zone();
     const Context& context = Object::empty_context();
@@ -7299,7 +7300,7 @@ RawScript* Function::script() const {
       return script.raw();
     }
   }
-  if (IsClosureFunction()) {
+  if (IsClosureFunction() || IsConvertedClosureFunction()) {
     return Function::Handle(parent_function()).script();
   }
   const Object& obj = Object::Handle(raw_ptr()->owner_);
@@ -13999,7 +14000,7 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
 }
 
 void Code::Disassemble(DisassemblyFormatter* formatter) const {
-#ifndef PRODUCT
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (!FLAG_support_disassembler) {
     return;
   }
@@ -14088,6 +14089,7 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
   return result.raw();
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 RawCode* Code::FinalizeCode(const char* name,
                             Assembler* assembler,
                             bool optimized) {
@@ -14188,6 +14190,7 @@ RawCode* Code::FinalizeCode(const Function& function,
 #endif  // !PRODUCT
   return FinalizeCode("", assembler, optimized);
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 bool Code::SlowFindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
   return RawCode::ContainsPC(raw_obj, pc_);

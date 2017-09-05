@@ -26,10 +26,13 @@
     will be thrown. Note: if the duration specified in 'timeout' is greater than
     the system level timeout duration, a timeout may occur sooner than specified
     in 'timeout'.
+  * Added `Platform.operatingSystemVersion` that gives a platform-specific
+    String describing the version of the operating system.
 
 * `dart:core`
   * The `Uri` class now correctly handles paths while running on Node.js on
     Windows.
+  * Deprecated the `proxy` annotation.
 
 * `dart:developer`
   * `Timeline.startSync` and `Timeline.timeSync` now accept an optional

@@ -48,6 +48,7 @@ RawFunction* MegamorphicCacheTable::miss_handler(Isolate* isolate) {
   return isolate->object_store()->megamorphic_miss_function();
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   // The miss handler for a class ID not found in the table is invoked as a
   // normal Dart function.
@@ -78,6 +79,7 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
          Function::null());
   isolate->object_store()->SetMegamorphicMissHandler(code, function);
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
   StackZone zone(Thread::Current());

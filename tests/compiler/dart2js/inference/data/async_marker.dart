@@ -2,18 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*main:[null]*/
+/*element: main:[null]*/
 main() {
   asyncMethod();
   asyncStarMethod();
   syncStarMethod();
 }
 
-/*asyncMethod:[exact=_Future]*/
+/*element: asyncMethod:[exact=_Future]*/
 asyncMethod() async {}
 
-/*asyncStarMethod:[exact=_ControllerStream]*/
+/*element: asyncStarMethod:[exact=_ControllerStream]*/
 asyncStarMethod() async* {}
 
-/*syncStarMethod:[exact=_SyncStarIterable]*/
+/*element: syncStarMethod:[exact=_SyncStarIterable]*/
 syncStarMethod() sync* {}

@@ -36,7 +36,7 @@ vars = {
 
   # Revisions of GN related dependencies. This should match the revision
   # pulled by Flutter.
-  "buildtools_revision": "@057ef89874e3c622248cf99259434fdc683c4e30",
+  "buildtools_revision": "@5b8eb38aaf523f0124756454276cd0a5b720c17e",
 
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "@c09c8deeac31f05bd801995c475e7c8070f9ecda",
@@ -77,7 +77,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "@1.0.7",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "@v0.13.0+1",
+  "dartdoc_tag" : "@v0.13.0+2",
   "fixnum_tag": "@0.10.5",
   "func_tag": "@1.0.0",
   "glob_tag": "@1.1.3",

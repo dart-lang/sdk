@@ -44,7 +44,7 @@ class Superclass<S> {
   factory Superclass.inheritedNormalFactory(y) =>
       new Superclass.inheritedRedirectingConstructor(y * 3);
   factory Superclass.inheritedRedirectingFactory(z) =
-      Superclass.inheritedNormalFactory;
+      Superclass<S>.inheritedNormalFactory;
 }
 
 abstract class Class<C> extends Superclass<C> implements Interface<C> {
@@ -66,7 +66,7 @@ abstract class Class<C> extends Superclass<C> implements Interface<C> {
       : super.inheritedGenerativeConstructor(0);
   Class.redirectingConstructor(x) : this.generativeConstructor(x * 2);
   factory Class.normalFactory(y) => new ConcreteClass(y * 3);
-  factory Class.redirectingFactory(z) = Class.normalFactory;
+  factory Class.redirectingFactory(z) = Class<C>.normalFactory;
 }
 
 // This is just here as a target of Class's factories to appease the analyzer.

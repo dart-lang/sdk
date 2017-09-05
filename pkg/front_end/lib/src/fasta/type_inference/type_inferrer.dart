@@ -520,7 +520,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Gets the initializer for the given [field], or `null` if there is no
   /// initializer.
-  Expression getFieldInitializer(KernelField field);
+  Expression getFieldInitializer(ShadowField field);
 
   DartType getSetterType(Member interfaceMember, DartType receiverType) {
     if (receiverType is InterfaceType) {
@@ -599,7 +599,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Derived classes should provide an implementation that calls
   /// [inferExpression] for the given [field]'s initializer expression.
   DartType inferFieldTopLevel(
-      KernelField field, DartType type, bool typeNeeded);
+      ShadowField field, DartType type, bool typeNeeded);
 
   @override
   void inferFunctionBody(
@@ -774,8 +774,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // Otherwise, if `Qi` is not `_`, let `Ri` be the greatest closure of
     // `Qi[T/S]` with respect to `?`.  Otherwise, let `Ri` be `dynamic`.
     for (int i = 0; i < formals.length; i++) {
-      KernelVariableDeclaration formal = formals[i];
-      if (KernelVariableDeclaration.isImplicitlyTyped(formal)) {
+      ShadowVariableDeclaration formal = formals[i];
+      if (ShadowVariableDeclaration.isImplicitlyTyped(formal)) {
         DartType inferredType;
         if (formalTypesFromContext[i] != null) {
           inferredType = greatestClosure(coreTypes,
@@ -876,46 +876,15 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           ? expression.fileOffset
           : arguments.fileOffset;
       if (receiver is ThisExpression) {
-        // Calls to `this` are always typed.
-      } else if (interfaceMember == null &&
-          !(receiverType is FunctionType && methodName.name == 'call')) {
-        // Dynamic invocation
-        instrumentation.record(Uri.parse(uri), offset, 'checkCall',
-            new InstrumentationValueLiteral('dynamic'));
-      } else {
-        var semiTypedArguments = <String>[];
-        var function = interfaceMember?.function;
-        int i = 0;
-        _forEachArgument(arguments, (name, expression) {
-          bool isSemiTyped;
-          if (function == null) {
-            // Invocation of a function-typed object; everything is semi-typed.
-            isSemiTyped = true;
-          } else {
-            var formal = name != null
-                ? _getNamedFormal(function, name)
-                : _getPositionalFormal(function, i);
-            if (formal != null) {
-              isSemiTyped = _isFormalSemiSafe(formal);
-            } else {
-              // No matching formal parameter.  An error should have already been
-              // reported, so the code won't compile.  Thus, it doesn't really
-              // matter how we annotate the parameter.
-              isSemiTyped = false;
-            }
-          }
-          if (isSemiTyped) {
-            semiTypedArguments.add(name ?? i.toString());
-          }
-          if (name == null) i++;
-        });
-        if (semiTypedArguments.isNotEmpty) {
-          instrumentation.record(
-              Uri.parse(uri),
-              offset,
-              'checkCall',
-              new InstrumentationValueLiteral(
-                  'interface(semiTyped:${semiTypedArguments.join(',')})'));
+        instrumentation.record(Uri.parse(uri), offset, 'callKind',
+            new InstrumentationValueLiteral('this'));
+      } else if (interfaceMember == null) {
+        if (receiverType is FunctionType && methodName.name == 'call') {
+          instrumentation.record(Uri.parse(uri), offset, 'callKind',
+              new InstrumentationValueLiteral('closure'));
+        } else {
+          instrumentation.record(Uri.parse(uri), offset, 'callKind',
+              new InstrumentationValueLiteral('dynamic'));
         }
       }
     }
@@ -974,8 +943,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
                 interfaceMember.kind == ProcedureKind.Getter) ||
             interfaceMember is Field)) {
       if (TypeInferenceEngineImpl.fullTopLevelInference) {
-        if (interfaceMember is KernelField) {
-          var accessorNode = KernelMember.getAccessorNode(interfaceMember);
+        if (interfaceMember is ShadowField) {
+          var accessorNode = ShadowMember.getAccessorNode(interfaceMember);
           if (accessorNode != null) {
             engine.inferAccessorFused(accessorNode, this.accessorNode);
           }
@@ -1107,33 +1076,5 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     for (var namedExpression in arguments.named) {
       callback(namedExpression.name, namedExpression.value);
     }
-  }
-
-  /// Given a [FunctionNode], gets the named parameter identified by [name], or
-  /// `null` if there is no parameter with the given name.
-  VariableDeclaration _getNamedFormal(FunctionNode function, String name) {
-    for (var formal in function.namedParameters) {
-      if (formal.name == name) return formal;
-    }
-    return null;
-  }
-
-  /// Given a [FunctionNode], gets the [i]th positional formal parameter, or
-  /// `null` if there is no parameter with that index.
-  VariableDeclaration _getPositionalFormal(FunctionNode function, int i) {
-    if (i < function.positionalParameters.length) {
-      return function.positionalParameters[i];
-    } else {
-      return null;
-    }
-  }
-
-  /// Determines if the given formal parameter is semi-safe.
-  ///
-  /// Eventually this information will be stored in the kernel representation,
-  /// so this method will no longer be needed.  TODO(paulberry): remove this
-  /// when it's appropriate to do so.
-  bool _isFormalSemiSafe(VariableDeclaration formal) {
-    return formal is KernelVariableDeclaration && formal.isSemiSafe;
   }
 }

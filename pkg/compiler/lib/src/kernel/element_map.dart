@@ -16,6 +16,7 @@ import '../js/js.dart' as js;
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_emitter/code_emitter_task.dart';
+import '../js_model/closure.dart' show JRecordField, KernelScopeInfo;
 import '../native/native.dart' as native;
 import '../types/types.dart';
 import '../universe/call_structure.dart';
@@ -75,6 +76,10 @@ abstract class KernelToElementMap {
   /// the enclosing class of [context].
   MemberEntity getSuperMember(ir.Member context, ir.Name name, ir.Member target,
       {bool setter: false});
+
+  /// Returns the `noSuchMethod` [FunctionEntity] call from a
+  /// `super.noSuchMethod` invocation within [cls].
+  FunctionEntity getSuperNoSuchMethod(ClassEntity cls);
 
   /// Returns the [Name] corresponding to [name].
   Name getName(ir.Name name);
@@ -188,10 +193,6 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
   /// the initializer is not a constant expression.
   ConstantValue getFieldConstantValue(FieldEntity field);
 
-  /// Returns the `noSuchMethod` [FunctionEntity] call from a
-  /// `super.noSuchMethod` invocation within [cls].
-  FunctionEntity getSuperNoSuchMethod(ClassEntity cls);
-
   /// Returns a [Spannable] for a message pointing to the IR [node] in the
   /// context of [member].
   Spannable getSpannable(MemberEntity member, ir.Node node);
@@ -203,6 +204,11 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
   // TODO(johnniwinther): Avoid this method by deriving the uri directly from
   // the node.
   String getDeferredUri(ir.LibraryDependency node);
+
+  /// Make a record to ensure variables that are are declared in one scope and
+  /// modified in another get their values updated correctly.
+  Map<Local, JRecordField> makeRecordContainer(
+      KernelScopeInfo info, MemberEntity member, KernelToLocalsMap localsMap);
 }
 
 // TODO(johnniwinther,efortuna): Add more when needed.

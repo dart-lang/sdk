@@ -637,8 +637,8 @@ class FragmentEmitter {
         var staticMethod = emitStaticMethod(method);
         if (compiler.options.dumpInfo) {
           for (var code in staticMethod.values) {
-            compiler.dumpInfoTask.registerElementAst(method.element, code);
-            compiler.dumpInfoTask.registerElementAst(library.element, code);
+            compiler.dumpInfoTask.registerEntityAst(method.element, code);
+            compiler.dumpInfoTask.registerEntityAst(library.element, code);
           }
         }
         holderCode[method.holder].addAll(staticMethod);
@@ -646,8 +646,8 @@ class FragmentEmitter {
       for (Class cls in library.classes) {
         assert(!cls.holder.isStaticStateHolder);
         var constructor = emitConstructor(cls);
-        compiler.dumpInfoTask.registerElementAst(cls.element, constructor);
-        compiler.dumpInfoTask.registerElementAst(library.element, constructor);
+        compiler.dumpInfoTask.registerEntityAst(cls.element, constructor);
+        compiler.dumpInfoTask.registerEntityAst(library.element, constructor);
         holderCode[cls.holder][cls.name] = constructor;
       }
     }
@@ -783,8 +783,8 @@ class FragmentEmitter {
       var proto = js.js.statement(
           '#.prototype = #;', [classReference(cls), emitPrototype(cls)]);
       ClassEntity element = cls.element;
-      compiler.dumpInfoTask.registerElementAst(element, proto);
-      compiler.dumpInfoTask.registerElementAst(element.library, proto);
+      compiler.dumpInfoTask.registerEntityAst(element, proto);
+      compiler.dumpInfoTask.registerEntityAst(element.library, proto);
       return proto;
     }).toList(growable: false);
 
@@ -828,7 +828,7 @@ class FragmentEmitter {
       emitInstanceMethod(method)
           .forEach((js.Expression name, js.Expression code) {
         var prop = new js.Property(name, code);
-        compiler.dumpInfoTask.registerElementAst(method.element, prop);
+        compiler.dumpInfoTask.registerEntityAst(method.element, prop);
         properties.add(prop);
       });
     });

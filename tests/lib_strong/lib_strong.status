@@ -12,9 +12,18 @@ async/async_await_sync_completer_test: Skip
 async/async_await_zones_test: Skip
 async/catch_errors2_test: Skip
 async/catch_errors3_test: Skip
+async/catch_errors_test: Skip
+async/future_microtask_test: Skip
+async/future_or_bad_type_test/00: Skip
+async/future_or_bad_type_test/01: Skip
+async/future_or_bad_type_test/implements: Skip
+async/future_or_only_in_async_test/00: Skip
+async/future_test/none: Skip
+async/future_test/01: Skip
+async/future_test/none: Skip
+async/future_value_chain4_test: Skip
 async/print_test/01: Skip
 async/print_test/none: Skip
-async/slow_consumer3_test: Skip
 async/stream_controller_test: Skip
 async/stream_event_transformed_test: Skip
 async/stream_transformer_test: Skip
@@ -42,21 +51,9 @@ html/resource_http_test: Skip
 html/transferables_test: Skip
 html/webgl_1_test: Skip
 html/wrapping_collections_test: Skip
-math/min_max_test: Skip
-mirrors/abstract_class_test: Skip
-mirrors/abstract_test: Skip
 mirrors/circular_factory_redirection_test: Skip
 mirrors/class_declarations_test: Skip
 mirrors/closures_test: Skip
-mirrors/constructors_test: Skip
-mirrors/dart2js_mirrors_test: Skip
-mirrors/deferred_type_test: Skip
-mirrors/delegate_call_through_getter_test: Skip
-mirrors/delegate_class_test: Skip
-mirrors/delegate_function_invocation_test: Skip
-mirrors/delegate_library_test: Skip
-mirrors/delegate_test: Skip
-mirrors/enum_test: Skip
 mirrors/fake_function_without_call_test: Skip
 mirrors/generic_bounded_by_type_parameter_test: Skip
 mirrors/generic_bounded_test: Skip
@@ -149,7 +146,6 @@ html/custom/element_upgrade_test: CompileTimeError # Issue 28969
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 28969
 
 [ $compiler == dart2analyzer && $strong ]
-mirrors/deferred_mirrors_metadata_test: StaticWarning # Issue 28969
 html/debugger_test: CompileTimeError # Issue 28969
 
 # TODO(29919): HTML tests are not supported on dartdevc in test.dart yet.
@@ -180,7 +176,6 @@ html/custom/regress_194523002_test: Crash # Issue 29922
 async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_or_non_strong_test: RuntimeError # Issue 29922
 async/futures_test: RuntimeError # Issue 29922
-async/slow_consumer_test: Pass, Timeout # Issue 29922
 async/timer_not_available_test: RuntimeError # Issue 29922
 async/zone_error_callback_test: RuntimeError # Issue 29922
 async/zone_run_unary_test: RuntimeError # Issue 29922
@@ -208,21 +203,11 @@ html/worker_api_test: RuntimeError # Issue 29922
 html/xhr_cross_origin_test/functional: RuntimeError # Issue 29922
 math/double_pow_test: RuntimeError # Issue 29922
 math/low_test: RuntimeError # Issue 29922
-math/random_big_test: RuntimeError # Issue 29922
-mirrors/accessor_cache_overflow_test: RuntimeError # Issue 29922
 mirrors/basic_types_in_dart_core_test: RuntimeError # Issue 29922
 mirrors/class_mirror_location_test: RuntimeError # Issue 29922
 mirrors/class_mirror_type_variables_test: RuntimeError # Issue 29922
 mirrors/closurization_equivalence_test: RuntimeError # Issue 29922
 mirrors/constructor_kinds_test/01: RuntimeError # Issue 29922
-mirrors/constructor_kinds_test/none: RuntimeError # Issue 29922
-mirrors/constructor_private_name_test: RuntimeError # Issue 29922
-mirrors/declarations_type_test: RuntimeError # Issue 29922
-mirrors/deferred_mirrors_metadata_test: RuntimeError # Issue 29922
-mirrors/deferred_mirrors_metatarget_test: RuntimeError # Issue 29922
-mirrors/deferred_mirrors_update_test: RuntimeError # Issue 29922
-mirrors/empty_test: RuntimeError # Issue 29922
-mirrors/equality_test: RuntimeError # Issue 29922
 mirrors/fake_function_with_call_test: RuntimeError # Issue 29922
 mirrors/field_metadata2_test: RuntimeError # Issue 29922
 mirrors/field_type_test: RuntimeError # Issue 29922
@@ -230,12 +215,6 @@ mirrors/function_type_mirror_test: RuntimeError # Issue 29922
 mirrors/generic_f_bounded_test/01: RuntimeError # Issue 29922
 mirrors/generic_f_bounded_test/none: RuntimeError # Issue 29922
 mirrors/generic_function_typedef_test: RuntimeError # Issue 29922
-mirrors/generic_local_function_test: RuntimeError # Issue 29922
-mirrors/generic_mixin_applications_test: RuntimeError # Issue 29922
-mirrors/generic_mixin_test: RuntimeError # Issue 29922
-mirrors/generic_superclass_test/01: RuntimeError # Issue 29922
-mirrors/generic_superclass_test/none: RuntimeError # Issue 29922
-mirrors/generic_type_mirror_test: RuntimeError # Issue 29922
 mirrors/generics_double_substitution_test/01: RuntimeError # Issue 29922
 mirrors/generics_double_substitution_test/none: RuntimeError # Issue 29922
 mirrors/generics_dynamic_test: RuntimeError # Issue 29922
@@ -319,7 +298,6 @@ mirrors/unnamed_library_test: RuntimeError # Issue 29922
 typed_data/int32x4_bigint_test: RuntimeError # Issue 29922
 typed_data/int64_list_load_store_test: RuntimeError # Issue 29922
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 29922
-typed_data/typed_data_list_test: RuntimeError # Issue 29922
 html/interactive_test: Skip # requests interactive permissions (camera, geolocation)
 
 async/stream_controller_async_test: RuntimeError # Issue 29922, strong mode cast failure

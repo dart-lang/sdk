@@ -4,7 +4,7 @@
 
 /// Test boxing/captures for nested closures.
 
-/*useOne:box=(box0 which holds [b1])*/ useOne(/*boxed*/ b1) {
+/*element: useOne:box=(box0 which holds [b1])*/ useOne(/*boxed*/ b1) {
   /*box=(box1 which holds [b2]),free=[b1,box0]*/ () {
     var /*boxed*/ b2 = (b1 = 1);
 
@@ -17,7 +17,7 @@
   return b1;
 }
 
-/*useBoth:box=(box0 which holds [b1])*/ useBoth(/*boxed*/ b1) {
+/*element: useBoth:box=(box0 which holds [b1])*/ useBoth(/*boxed*/ b1) {
   /*box=(box1 which holds [b2]),free=[b1,box0]*/ () {
     var /*boxed*/ b2 = (b1 = 1);
 
@@ -30,7 +30,8 @@
   return b1;
 }
 
-/*useMany:box=(box0 which holds [b1,b2,b3])*/ useMany(c1, /*boxed*/ b1) {
+/*element: useMany:box=(box0 which holds [b1,b2,b3])*/
+useMany(c1, /*boxed*/ b1) {
   var /*boxed*/ b2 = 2;
   var /*boxed*/ b3 = 3;
   var c2 = 2;

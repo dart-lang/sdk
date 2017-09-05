@@ -17,10 +17,12 @@
 #include <unistd.h>    // NOLINT
 
 #include "bin/dartutils.h"
+#include "bin/directory.h"
 #include "bin/fdutils.h"
 #include "bin/file.h"
 #include "bin/lockers.h"
 #include "bin/log.h"
+#include "bin/namespace.h"
 #include "bin/reference_counting.h"
 #include "bin/thread.h"
 
@@ -242,7 +244,8 @@ Monitor* ExitCodeHandler::monitor_ = new Monitor();
 
 class ProcessStarter {
  public:
-  ProcessStarter(const char* path,
+  ProcessStarter(Namespace* namespc,
+                 const char* path,
                  char* arguments[],
                  intptr_t arguments_length,
                  const char* working_directory,
@@ -255,7 +258,8 @@ class ProcessStarter {
                  intptr_t* id,
                  intptr_t* exit_event,
                  char** os_error_message)
-      : path_(path),
+      : namespc_(namespc),
+        path_(path),
         working_directory_(working_directory),
         mode_(mode),
         in_(in),
@@ -431,6 +435,11 @@ class ProcessStarter {
     }
   }
 
+  const char* ResolvePath() {
+    const char* resolved_path = File::GetCanonicalPath(namespc_, path_);
+    return resolved_path == NULL ? path_ : resolved_path;
+  }
+
   void ExecProcess() {
     if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
       ReportChildError();
@@ -445,7 +454,7 @@ class ProcessStarter {
     }
 
     if (working_directory_ != NULL &&
-        TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1) {
+        !Directory::SetCurrent(namespc_, working_directory_)) {
       ReportChildError();
     }
 
@@ -453,8 +462,9 @@ class ProcessStarter {
       environ = program_environment_;
     }
 
+    const char* resolved_path = ResolvePath();
     VOID_TEMP_FAILURE_RETRY(
-        execvp(path_, const_cast<char* const*>(program_arguments_)));
+        execvp(resolved_path, const_cast<char* const*>(program_arguments_)));
 
     ReportChildError();
   }
@@ -496,14 +506,15 @@ class ProcessStarter {
           }
 
           if ((working_directory_ != NULL) &&
-              (TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1)) {
+              !Directory::SetCurrent(namespc_, working_directory_)) {
             ReportChildError();
           }
 
           // Report the final PID and do the exec.
           ReportPid(getpid());  // getpid cannot fail.
-          VOID_TEMP_FAILURE_RETRY(
-              execvp(path_, const_cast<char* const*>(program_arguments_)));
+          const char* resolved_path = ResolvePath();
+          VOID_TEMP_FAILURE_RETRY(execvp(
+              resolved_path, const_cast<char* const*>(program_arguments_)));
           ReportChildError();
         } else {
           // Exit the intermediate process.
@@ -655,8 +666,8 @@ class ProcessStarter {
     // the OS error message to the exec control pipe and exit.
     int child_errno = errno;
     const int kBufferSize = 1024;
-    char os_error_message[kBufferSize];
-    Utils::StrError(errno, os_error_message, kBufferSize);
+    char error_buf[kBufferSize];
+    char* os_error_message = Utils::StrError(errno, error_buf, kBufferSize);
     int bytes_written = FDUtils::WriteToBlocking(exec_control_[1], &child_errno,
                                                  sizeof(child_errno));
     if (bytes_written == sizeof(child_errno)) {
@@ -716,6 +727,7 @@ class ProcessStarter {
   char** program_arguments_;
   char** program_environment_;
 
+  Namespace* namespc_;
   const char* path_;
   const char* working_directory_;
   ProcessStartMode mode_;
@@ -730,7 +742,8 @@ class ProcessStarter {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ProcessStarter);
 };
 
-int Process::Start(const char* path,
+int Process::Start(Namespace* namespc,
+                   const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
                    const char* working_directory,
@@ -743,9 +756,9 @@ int Process::Start(const char* path,
                    intptr_t* id,
                    intptr_t* exit_event,
                    char** os_error_message) {
-  ProcessStarter starter(path, arguments, arguments_length, working_directory,
-                         environment, environment_length, mode, in, out, err,
-                         id, exit_event, os_error_message);
+  ProcessStarter starter(namespc, path, arguments, arguments_length,
+                         working_directory, environment, environment_length,
+                         mode, in, out, err, id, exit_event, os_error_message);
   return starter.Start();
 }
 

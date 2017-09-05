@@ -48,7 +48,7 @@ type_variable_as_super: Fail
 typedef: Fail
 uninitialized_fields: Fail
 unused_methods: Fail
-void-methods: Fail
+void_methods: Fail
 
 inference/abstract_class_instantiation: Fail # Issue #30040
 inference/constructors_too_many_positional_arguments: Fail # Issue #30040
@@ -180,6 +180,7 @@ runtime_checks/covariant_setter: Fail
 runtime_checks/dynamic_invocation: Fail
 runtime_checks/dynamic_invocation_generic: Fail
 runtime_checks/dynamic_invocation_of_getter: Fail
+runtime_checks_new/derived_class_typed: Fail
 
 illegal_named_function_expression: RuntimeError
 local_generic_function: RuntimeError

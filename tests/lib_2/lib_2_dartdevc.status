@@ -2,8 +2,14 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dartdevc ]
+mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
+
 [ $compiler == dartdevc && $runtime != none ]
 async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_or_bad_type_test/implements: RuntimeError # Issue 29922
 async/future_test: RuntimeError # Issue 29922
 async/futures_test: RuntimeError # Issue 29922
+async/slow_consumer_test: Pass, Timeout # Issue 29922
+math/random_big_test: RuntimeError # Issue 29922
+typed_data/typed_data_list_test: RuntimeError # Issue 29922

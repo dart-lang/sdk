@@ -24,6 +24,11 @@ class Platform {
   // deallocated by the caller.
   static const char* OperatingSystem();
 
+  // Returns a string representing the version of the operating system. The
+  // format of the string is determined by the platform. The returned string
+  // should not be deallocated by the caller.
+  static const char* OperatingSystemVersion();
+
   // Returns the architecture name of the processor the VM is running on
   // (ia32, x64, arm, or arm64).
   static const char* HostArchitecture() {

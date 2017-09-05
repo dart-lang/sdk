@@ -9,8 +9,7 @@ import '../../common/names.dart' show Names;
 import '../../common_elements.dart';
 import '../../elements/resolution_types.dart' show ResolutionDartType;
 import '../../deferred_load.dart' show OutputUnit;
-import '../../elements/elements.dart'
-    show ClassElement, FieldElement, MemberElement;
+import '../../elements/elements.dart' show ClassElement, FieldElement;
 import '../../elements/entities.dart';
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
@@ -95,14 +94,14 @@ class ClassEmitter extends CodeEmitterHelper {
       fieldNames = cls.fields.map((Field field) => field.name).toList();
     }
 
-    ClassElement classElement = cls.element;
+    ClassEntity classElement = cls.element;
 
     jsAst.Expression constructorAst = _stubGenerator.generateClassConstructor(
         classElement, fieldNames, cls.hasRtiField);
 
     jsAst.Name constructorName = namer.className(classElement);
     OutputUnit outputUnit =
-        compiler.deferredLoadTask.outputUnitForElement(classElement);
+        compiler.deferredLoadTask.outputUnitForEntity(classElement);
     emitter.assemblePrecompiledConstructor(
         outputUnit, constructorName, constructorAst, fieldNames);
   }
@@ -206,7 +205,7 @@ class ClassEmitter extends CodeEmitterHelper {
         jsAst.Literal fieldNameAst = js.concatenateStrings(fieldNameParts);
         builder.addField(fieldNameAst);
         // Add 1 because adding a field to the class also requires a comma
-        compiler.dumpInfoTask.registerElementAst(fieldElement, fieldNameAst);
+        compiler.dumpInfoTask.registerEntityAst(fieldElement, fieldNameAst);
         fieldsAdded = true;
       }
     }
@@ -222,12 +221,12 @@ class ClassEmitter extends CodeEmitterHelper {
     if (cls.onlyForRti) return;
 
     for (StubMethod method in cls.checkedSetters) {
-      MemberElement member = method.element;
+      MemberEntity member = method.element;
       assert(member != null);
       jsAst.Expression code = method.code;
       jsAst.Name setterName = method.name;
       compiler.dumpInfoTask
-          .registerElementAst(member, builder.addProperty(setterName, code));
+          .registerEntityAst(member, builder.addProperty(setterName, code));
       generateReflectionDataForFieldGetterOrSetter(member, setterName, builder,
           isGetter: false);
     }
@@ -238,7 +237,7 @@ class ClassEmitter extends CodeEmitterHelper {
     if (!compiler.options.useContentSecurityPolicy || cls.onlyForRti) return;
 
     for (Field field in cls.fields) {
-      FieldElement member = field.element;
+      FieldEntity member = field.element;
       reporter.withCurrentElement(member, () {
         if (field.needsGetter) {
           emitGetterForCSP(member, field.name, field.accessorName, builder);
@@ -253,7 +252,7 @@ class ClassEmitter extends CodeEmitterHelper {
   void emitStubs(Iterable<StubMethod> stubs, ClassBuilder builder) {
     for (Method method in stubs) {
       jsAst.Property property = builder.addProperty(method.name, method.code);
-      compiler.dumpInfoTask.registerElementAst(method.element, property);
+      compiler.dumpInfoTask.registerEntityAst(method.element, property);
     }
   }
 
@@ -341,9 +340,9 @@ class ClassEmitter extends CodeEmitterHelper {
     if (emitFields(cls, staticsBuilder, emitStatics: true)) {
       jsAst.ObjectInitializer initializer =
           staticsBuilder.toObjectInitializer();
-      compiler.dumpInfoTask.registerElementAst(classEntity, initializer);
+      compiler.dumpInfoTask.registerEntityAst(classEntity, initializer);
       jsAst.Node property = initializer.properties.single;
-      compiler.dumpInfoTask.registerElementAst(classEntity, property);
+      compiler.dumpInfoTask.registerEntityAst(classEntity, property);
       statics.add(property);
     }
 
@@ -363,7 +362,7 @@ class ClassEmitter extends CodeEmitterHelper {
     // TODO(ahe): This method (generateClass) should return a jsAst.Expression.
     jsAst.ObjectInitializer propertyValue = classBuilder.toObjectInitializer();
     compiler.dumpInfoTask
-        .registerElementAst(classBuilder.element, propertyValue);
+        .registerEntityAst(classBuilder.element, propertyValue);
     enclosingBuilder.addProperty(className, propertyValue);
 
     String reflectionName =
@@ -405,16 +404,16 @@ class ClassEmitter extends CodeEmitterHelper {
         failedAt(member, '$previousName != ${memberName}'));
   }
 
-  void emitGetterForCSP(FieldElement member, jsAst.Name fieldName,
+  void emitGetterForCSP(FieldEntity member, jsAst.Name fieldName,
       jsAst.Name accessorName, ClassBuilder builder) {
     jsAst.Expression function =
         _stubGenerator.generateGetter(member, fieldName);
 
     jsAst.Name getterName = namer.deriveGetterName(accessorName);
-    ClassElement cls = member.enclosingClass;
+    ClassEntity cls = member.enclosingClass;
     jsAst.Name className = namer.className(cls);
     OutputUnit outputUnit =
-        compiler.deferredLoadTask.outputUnitForElement(member);
+        compiler.deferredLoadTask.outputUnitForEntity(member);
     emitter
         .cspPrecompiledFunctionFor(outputUnit)
         .add(js('#.prototype.# = #', [className, getterName, function]));
@@ -425,16 +424,16 @@ class ClassEmitter extends CodeEmitterHelper {
     }
   }
 
-  void emitSetterForCSP(FieldElement member, jsAst.Name fieldName,
+  void emitSetterForCSP(FieldEntity member, jsAst.Name fieldName,
       jsAst.Name accessorName, ClassBuilder builder) {
     jsAst.Expression function =
         _stubGenerator.generateSetter(member, fieldName);
 
     jsAst.Name setterName = namer.deriveSetterName(accessorName);
-    ClassElement cls = member.enclosingClass;
+    ClassEntity cls = member.enclosingClass;
     jsAst.Name className = namer.className(cls);
     OutputUnit outputUnit =
-        compiler.deferredLoadTask.outputUnitForElement(member);
+        compiler.deferredLoadTask.outputUnitForEntity(member);
     emitter
         .cspPrecompiledFunctionFor(outputUnit)
         .add(js('#.prototype.# = #', [className, setterName, function]));
@@ -446,7 +445,7 @@ class ClassEmitter extends CodeEmitterHelper {
   }
 
   void generateReflectionDataForFieldGetterOrSetter(
-      MemberElement member, jsAst.Name name, ClassBuilder builder,
+      MemberEntity member, jsAst.Name name, ClassBuilder builder,
       {bool isGetter}) {
     Selector selector = isGetter
         ? new Selector.getter(member.memberName.getter)

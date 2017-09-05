@@ -582,6 +582,21 @@ static bool ProcessRootCertsCacheOption(const char* arg,
   return true;
 }
 
+const char* commandline_namespace = NULL;
+static bool ProcessNamespaceOption(const char* arg,
+                                   CommandLineOptions* vm_options) {
+  ASSERT(arg != NULL);
+  if (*arg == '-') {
+    return false;
+  }
+  if (commandline_namespace != NULL) {
+    Log::PrintErr("Only one --namespace argument is allowed.");
+    return false;
+  }
+  commandline_namespace = arg;
+  return true;
+}
+
 static struct {
   const char* option_name;
   bool (*process)(const char* option, CommandLineOptions* vm_options);
@@ -623,6 +638,7 @@ static struct {
     {"--short_socket_write", ProcessShortSocketWriteOption},
     {"--root-certs-file=", ProcessRootCertsFileOption},
     {"--root-certs-cache=", ProcessRootCertsCacheOption},
+    {"--namespace=", ProcessNamespaceOption},
     {NULL, NULL}};
 
 static bool ProcessMainOptions(const char* option,
@@ -912,7 +928,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   CHECK_RESULT(result);
 
   if (isolate_run_app_snapshot) {
-    result = DartUtils::SetupIOLibrary(script_uri);
+    result = DartUtils::SetupIOLibrary(commandline_namespace, script_uri);
     CHECK_RESULT(result);
     Loader::InitForSnapshot(script_uri);
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -948,7 +964,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
                        Dart_GetMainPortId(), Dart_Timeline_Event_Async_End, 0,
                        NULL, NULL);
 
-    result = DartUtils::SetupIOLibrary(script_uri);
+    result = DartUtils::SetupIOLibrary(commandline_namespace, script_uri);
     CHECK_RESULT(result);
   }
 
@@ -1320,6 +1336,11 @@ static void PrintUsage() {
 "  The path to a cache directory containing the trusted root certificates to\n"
 "  use for secure socket connections.\n"
 #endif  // !defined(HOST_OS_MACOS)
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+"--namespace=<path>\n"
+"  The path to a directory that dart:io calls will treat as the root of the\n"
+"  filesystem.\n"
+#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
 "\n"
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");
@@ -1383,7 +1404,7 @@ static bool FileModifiedCallback(const char* url, int64_t since) {
     return true;
   }
   int64_t data[File::kStatSize];
-  File::Stat(url + 7, data);
+  File::Stat(NULL, url + 7, data);
   if (data[File::kType] == File::kDoesNotExist) {
     return true;
   }
@@ -1416,7 +1437,7 @@ static void GenerateAppAOTSnapshot() {
 static void WriteFile(const char* filename,
                       const uint8_t* buffer,
                       const intptr_t size) {
-  File* file = File::Open(filename, File::kWriteTruncate);
+  File* file = File::Open(NULL, filename, File::kWriteTruncate);
   if (file == NULL) {
     ErrorExit(kErrorExitCode, "Unable to open file %s\n", filename);
   }
@@ -1427,7 +1448,7 @@ static void WriteFile(const char* filename,
 }
 
 static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
-  File* file = File::Open(filename, File::kRead);
+  File* file = File::Open(NULL, filename, File::kRead);
   if (file == NULL) {
     ErrorExit(kErrorExitCode, "Unable to open file %s\n", filename);
   }
@@ -1467,6 +1488,7 @@ static Dart_QualifiedFunctionName standalone_entry_points[] = {
     {"dart:io", "_ExternalBuffer", "set:data"},
     {"dart:io", "_ExternalBuffer", "set:end"},
     {"dart:io", "_ExternalBuffer", "set:start"},
+    {"dart:io", "_Namespace", "_setupNamespace"},
     {"dart:io", "_Platform", "set:_nativeScript"},
     {"dart:io", "_ProcessStartStatus", "set:_errorCode"},
     {"dart:io", "_ProcessStartStatus", "set:_errorMessage"},
@@ -1586,7 +1608,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       uint8_t* feedback_buffer = NULL;
       intptr_t feedback_length = 0;
       if (load_feedback_filename != NULL) {
-        File* file = File::Open(load_feedback_filename, File::kRead);
+        File* file = File::Open(NULL, load_feedback_filename, File::kRead);
         if (file == NULL) {
           ErrorExit(kErrorExitCode, "Failed to read JIT feedback.\n");
         }
@@ -1695,7 +1717,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     ASSERT(isolate_data != NULL);
     MallocGrowableArray<char*>* dependencies = isolate_data->dependencies();
     ASSERT(dependencies != NULL);
-    File* file = File::Open(snapshot_deps_filename, File::kWriteTruncate);
+    File* file = File::Open(NULL, snapshot_deps_filename, File::kWriteTruncate);
     if (file == NULL) {
       ErrorExit(kErrorExitCode,
                 "Error: Unable to open snapshot depfile: %s\n\n",

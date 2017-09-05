@@ -518,21 +518,21 @@ collection_test: Crash
 collection_to_string_test: Crash
 compare_to2_test: Crash
 const_list_literal_test: Crash
-const_list_set_range_test: Crash
+const_list_literal_test: RuntimeError
 core_runtime_types_test: Crash
 data_uri_test: Crash
 dynamic_nosuchmethod_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(NoSuchMethodError.toString#comma) is stored in a closure field.
+dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(Iterable.iterator). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(unwrapException_closure.call))
+error_stack_trace1_test: RuntimeError
 expando_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
+expando_test: RuntimeError
 for_in_test: Crash
 growable_list_test: Crash
 hash_map2_test: Crash
-hash_map_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 hash_set_test/01: Crash
 hash_set_test/none: Crash
 hash_set_type_check_test: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:getter(SetMixin.length). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_LinkedCustomHashSet_closure.call), j:constructor(_LinkedCustomHashSet.))
-hidden_library2_test/01: Crash
-hidden_library2_test/none: Crash
 int_from_environment3_test/01: MissingCompileTimeError
 int_from_environment3_test/02: MissingCompileTimeError
 int_from_environment3_test/03: MissingCompileTimeError
@@ -547,10 +547,8 @@ integer_to_radix_string_test: Crash # Assertion failure: Cannot find value local
 integer_to_string_test/01: Crash
 is_operator_basic_types_test: Crash
 iterable_contains2_test: Crash
-iterable_contains_test: Crash
 iterable_element_at_test: Crash
 iterable_empty_test: Crash
-iterable_expand_test: Crash
 iterable_first_test: Crash
 iterable_first_where_test: Crash
 iterable_fold_test: Crash
@@ -559,7 +557,6 @@ iterable_generate_test/none: Crash
 iterable_join_test: Crash
 iterable_last_test: Crash
 iterable_last_where_test: Crash
-iterable_length_test: Crash
 iterable_mapping_test/01: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:method(Iterator.moveNext). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_LinkedCustomHashSet_closure.call), j:constructor(_LinkedCustomHashSet.))
 iterable_mapping_test/none: Crash # 'file:*/pkg/compiler/lib/src/js_model/closure.dart': Failed assertion: line 197 pos 9: 'closure != null': Corresponding closure class not found for j:method(Iterator.moveNext). Closures found for (j:closure_call(Closure_fromTearOff_closure.call), j:closure_call(Maps_mapToString_closure.call), j:closure_call(main_closure.call), ..., j:closure_call(_LinkedCustomHashSet_closure.call), j:constructor(_LinkedCustomHashSet.))
 iterable_reduce_test: Crash
@@ -572,74 +569,76 @@ iterable_skip_test: Crash
 iterable_skip_while_test: Crash
 iterable_take_test: Crash
 iterable_take_while_test: Crash
-iterable_test: Crash
 iterable_to_list_test/01: Crash
 iterable_to_list_test/none: Crash
 iterable_to_set_test: Crash
-iterable_tostring_test: Crash
 json_map_test: Crash
-linked_hash_map_from_iterables_test: Crash
+linked_hash_map_from_iterable_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
+linked_hash_map_from_iterables_test: Crash # Assertion failure: Missing scope info for j:getter(Iterable.iterator).
 linked_hash_map_test: Crash
-list_as_map_test: Crash
 list_concurrent_modify_test: Crash # Assertion failure: Missing scope info for j:method(Iterator.moveNext).
 list_contains_argument_order_test: Crash
 list_get_range_test: Crash
 list_insert_all_test: Crash
 list_insert_test: Crash
 list_map_test: Crash
+list_map_test: RuntimeError
 list_replace_range_test: Crash
 list_reversed_test: Crash
+list_reversed_test: RuntimeError
 list_set_all_test: Crash
 list_set_range_test: Crash
-list_sort_test: RuntimeError
+list_set_range_test: RuntimeError
 list_test/01: Crash
 list_test/none: Crash
 list_unmodifiable_test: Crash
 main_test: Crash
-map_contains_key_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-map_contains_value_test: Crash
 map_from_iterable_test: Crash
 map_from_iterables_test: Crash
 map_from_test: Crash
-map_index_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-map_keys2_test: Crash
-map_keys_test: Crash
-map_remove_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 map_test: Crash # Issue 27394
-map_to_string_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-map_values2_test: Crash
-map_values3_test: Crash
-map_values4_test: Crash
-map_values_test: Crash
-maps_test: Crash
 nan_infinity_test/01: RuntimeError
 null_nosuchmethod_test: Crash
-queue_first_test: Crash
-queue_iterator_test: Crash
-queue_last_test: Crash
-queue_single_test: Crash
 queue_test: Crash
 range_error_test: Crash
-reg_exp4_test: Crash
+range_error_test: RuntimeError
 reg_exp5_test: Crash
+reg_exp5_test: RuntimeError
 reg_exp_all_matches_test: Crash
+reg_exp_all_matches_test: RuntimeError
 reg_exp_start_end_test: Crash
+reg_exp_start_end_test: RuntimeError
 regexp/ascii-regexp-subject_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#i) is stored in a closure field.
 regexp/capture_test: Crash
+regexp/capture_test: RuntimeError
 regexp/ecma-regex-examples_test: Crash
+regexp/ecma-regex-examples_test: RuntimeError
 regexp/extended-characters-more_test: Crash
+regexp/extended-characters-more_test: RuntimeError
 regexp/global_test: Crash
+regexp/global_test: RuntimeError
 regexp/indexof_test: Crash
+regexp/indexof_test: RuntimeError
 regexp/issue_19193_test: Crash
+regexp/issue_19193_test: RuntimeError
 regexp/lastindex_test: Crash
+regexp/lastindex_test: RuntimeError
 regexp/no-extensions_test: Crash
+regexp/no-extensions_test: RuntimeError
 regexp/non-capturing-groups_test: Crash
+regexp/non-capturing-groups_test: RuntimeError
 regexp/parentheses_test: Crash
+regexp/parentheses_test: RuntimeError
 regexp/pcre-test-4_test: Crash
+regexp/pcre-test-4_test: RuntimeError
 regexp/regexp_kde_test: Crash
+regexp/regexp_kde_test: RuntimeError
 regexp/regexp_test: Crash
+regexp/regexp_test: RuntimeError
 regexp/regress-regexp-codeflush_test: Crash
+regexp/regress-regexp-codeflush_test: RuntimeError
 regexp/standalones_test: Crash
+regexp/standalones_test: RuntimeError
 set_containsAll_test: Crash
 set_contains_test: Crash
 set_intersection_test: Crash
@@ -650,12 +649,12 @@ set_retainAll_test: Crash
 set_test: Crash
 set_to_string_test: Crash
 shuffle_test: Crash
-sort_test: RuntimeError
 splay_tree_from_iterable_test: Crash
 splay_tree_from_iterables_test: Crash
 splay_tree_test/01: Crash
 splay_tree_test/02: Crash
 splay_tree_test/none: Crash
+stacktrace_current_test: RuntimeError
 stacktrace_fromstring_test: Crash
 string_buffer_test: RuntimeError
 string_codeunits_test: Crash
@@ -666,20 +665,20 @@ string_from_environment3_test/04: MissingCompileTimeError
 string_from_environment3_test/05: Crash
 string_from_list_test: Crash
 string_fromcharcodes_test: Crash
-string_operations_with_null_test: Crash
 string_pattern_test: Crash
-string_replace_all_test: Crash
+string_pattern_test: RuntimeError
 string_replace_dollar_test: Crash
+string_replace_dollar_test: RuntimeError
 string_replace_static_test: Crash
 string_replace_test: Crash
-string_runes_test: Crash
+string_replace_test: RuntimeError
 string_source_test: Crash
 string_split_test: Crash
 string_test: Crash
 string_to_lower_case_test: Crash
 string_trimlr_test/02: Crash
-symbol_operator_test/03: Crash
-symbol_operator_test/none: Crash
+symbol_operator_test/03: RuntimeError
+symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/05: MissingCompileTimeError
 symbol_reserved_word_test/06: RuntimeError
@@ -740,12 +739,14 @@ collection_test: Crash
 collection_to_string_test: Crash
 compare_to2_test: Crash
 const_list_literal_test: Crash
-const_list_set_range_test: Crash
+const_list_literal_test: RuntimeError
 core_runtime_types_static_test: Crash
 core_runtime_types_test: Crash
 data_uri_test: Crash
 dynamic_nosuchmethod_test: Crash
+dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: Crash
+error_stack_trace1_test: RuntimeError
 expando_test: RuntimeError
 for_in_test: Crash
 from_environment_const_type_test/02: Crash
@@ -777,8 +778,6 @@ hash_map2_test: Crash
 hash_set_test/01: Crash
 hash_set_test/none: Crash
 hash_set_type_check_test: Crash # NoSuchMethodError: The getter 'name' was called on null.
-hidden_library2_test/01: Crash
-hidden_library2_test/none: Crash
 int_from_environment3_test/01: MissingCompileTimeError
 int_from_environment3_test/02: MissingCompileTimeError
 int_from_environment3_test/03: MissingCompileTimeError
@@ -793,11 +792,9 @@ int_parse_radix_test/badTypes: Crash # NoSuchMethodError: The getter 'closureCla
 integer_to_radix_string_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
 is_operator_basic_types_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(CodeUnits.#E) in j:constructor(CodeUnits.).
 iterable_contains2_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-iterable_contains_test: Crash # Assertion failure: Cannot find value local(test_closure.call#notInList) in (local(test_closure.call#list), local(test#testList), local(test_closure.call#i)) for j:closure_call(test_closure.call).
 iterable_element_at_test/none: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
 iterable_element_at_test/static: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
 iterable_empty_test: Crash # Assertion failure: Cannot find value local(main#testEmpty) in () for j:method(main).
-iterable_expand_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 iterable_first_test: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
 iterable_first_where_test: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
 iterable_fold_test/01: Crash # Assertion failure: Super constructor for k:constructor(SplayTreeSet.) not found.
@@ -808,7 +805,6 @@ iterable_generate_test/none: Crash
 iterable_join_test: Crash
 iterable_last_test: Crash
 iterable_last_where_test: Crash
-iterable_length_test: Crash
 iterable_mapping_test/01: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 iterable_mapping_test/none: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 iterable_reduce_test: Crash
@@ -821,71 +817,77 @@ iterable_skip_test: Crash
 iterable_skip_while_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 iterable_take_test: Crash # Assertion failure: Cannot find value local(main_closure.call#set2) in (local(main#)) for j:closure_call(main_closure.call).
 iterable_take_while_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-iterable_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 iterable_to_list_test/01: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 iterable_to_list_test/none: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 iterable_to_set_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
-iterable_tostring_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 json_map_test: Crash # Assertion failure: Cannot find value local(listEach_closure.call#result) in (local(listEach_closure.call#key), local(listEach_closure.call#value), local(listEach#)) for j:closure_call(listEach_closure.call).
+linked_hash_map_from_iterable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 linked_hash_map_from_iterables_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 linked_hash_map_test: Crash # Assertion failure: Cannot find value local(LinkedHashMapTest_testMain_closure.call#keys) in (local(LinkedHashMapTest_testMain_closure.call#v), local(LinkedHashMapTest.testMain#testForEachKey)) for j:closure_call(LinkedHashMapTest_testMain_closure.call).
-list_as_map_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 list_concurrent_modify_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 list_contains_argument_order_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 list_get_range_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 list_insert_all_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 list_insert_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 list_map_test: Crash
+list_map_test: RuntimeError
 list_replace_range_test: Crash
 list_reversed_test: Crash
+list_reversed_test: RuntimeError
 list_set_all_test: Crash
 list_set_range_test: Crash
-list_sort_test: RuntimeError
+list_set_range_test: RuntimeError
 list_test/01: Crash
 list_test/none: Crash
 list_unmodifiable_test: Crash
 main_test: Crash
-map_contains_value_test: Crash
 map_from_iterable_test: Crash
 map_from_iterables_test: Crash
 map_from_test: Crash
-map_keys2_test: Crash
-map_keys_test: Crash
 map_test: Crash # Issue 27394
-map_to_string_test: RuntimeError
-map_values2_test: Crash
-map_values3_test: Crash
-map_values4_test: Crash
-map_values_test: Crash
-maps_test: Crash
 nan_infinity_test/01: RuntimeError
 null_nosuchmethod_test: Crash
-queue_first_test: Crash
-queue_iterator_test: Crash
-queue_last_test: Crash
-queue_single_test: Crash
 queue_test: Crash
 range_error_test: Crash
-reg_exp4_test: Crash
+range_error_test: RuntimeError
 reg_exp5_test: Crash
+reg_exp5_test: RuntimeError
 reg_exp_all_matches_test: Crash
+reg_exp_all_matches_test: RuntimeError
 reg_exp_start_end_test: Crash
+reg_exp_start_end_test: RuntimeError
+regexp/ascii-regexp-subject_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
 regexp/ascii-regexp-subject_test: Timeout
 regexp/capture_test: Crash
+regexp/capture_test: RuntimeError
 regexp/ecma-regex-examples_test: Crash
+regexp/ecma-regex-examples_test: RuntimeError
 regexp/extended-characters-more_test: Crash
+regexp/extended-characters-more_test: RuntimeError
 regexp/global_test: Crash
+regexp/global_test: RuntimeError
 regexp/indexof_test: Crash
+regexp/indexof_test: RuntimeError
 regexp/issue_19193_test: Crash
+regexp/issue_19193_test: RuntimeError
 regexp/lastindex_test: Crash
+regexp/lastindex_test: RuntimeError
 regexp/no-extensions_test: Crash
+regexp/no-extensions_test: RuntimeError
 regexp/non-capturing-groups_test: Crash
+regexp/non-capturing-groups_test: RuntimeError
 regexp/parentheses_test: Crash
+regexp/parentheses_test: RuntimeError
 regexp/pcre-test-4_test: Crash
+regexp/pcre-test-4_test: RuntimeError
 regexp/regexp_kde_test: Crash
+regexp/regexp_kde_test: RuntimeError
 regexp/regexp_test: Crash
+regexp/regexp_test: RuntimeError
 regexp/regress-regexp-codeflush_test: Crash
+regexp/regress-regexp-codeflush_test: RuntimeError
 regexp/standalones_test: Crash
+regexp/standalones_test: RuntimeError
 regress_r21715_test: Crash
 set_containsAll_test: Crash
 set_contains_test: Crash
@@ -897,12 +899,12 @@ set_retainAll_test: Crash
 set_test: Crash
 set_to_string_test: Crash
 shuffle_test: Crash
-sort_test: RuntimeError
 splay_tree_from_iterable_test: Crash
 splay_tree_from_iterables_test: Crash
 splay_tree_test/01: Crash
 splay_tree_test/02: Crash
 splay_tree_test/none: Crash
+stacktrace_current_test: RuntimeError
 stacktrace_fromstring_test: Crash
 string_base_vm_static_test: Crash
 string_buffer_test: RuntimeError
@@ -914,21 +916,21 @@ string_from_environment3_test/04: MissingCompileTimeError
 string_from_environment3_test/05: Crash
 string_from_list_test: Crash
 string_fromcharcodes_test: Crash
-string_operations_with_null_test: Crash
 string_pattern_test: Crash
-string_replace_all_test: Crash
+string_pattern_test: RuntimeError
 string_replace_dollar_test: Crash
+string_replace_dollar_test: RuntimeError
 string_replace_static_test: Crash
 string_replace_test: Crash
-string_runes_test: Crash
+string_replace_test: RuntimeError
 string_source_test: Crash
 string_split_test: Crash
 string_static_test: Crash
 string_test: Crash
 string_to_lower_case_test: Crash
 string_trimlr_test/02: Crash
-symbol_operator_test/03: Crash
-symbol_operator_test/none: Crash
+symbol_operator_test/03: RuntimeError
+symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/05: MissingCompileTimeError
 symbol_reserved_word_test/06: RuntimeError

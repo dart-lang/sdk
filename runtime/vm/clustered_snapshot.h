@@ -121,7 +121,9 @@ class Serializer : public StackResource {
              ImageWriter* image_writer_);
   ~Serializer();
 
-  intptr_t WriteVMSnapshot(const Array& symbols, const Array& scripts);
+  intptr_t WriteVMSnapshot(const Array& symbols,
+                           ZoneGrowableArray<Object*>* seed_objects,
+                           ZoneGrowableArray<Code*>* seed_code);
   void WriteIsolateSnapshot(intptr_t num_base_objects,
                             ObjectStore* object_store);
 
@@ -419,7 +421,8 @@ class FullSnapshotWriter {
   ForwardList* forward_list_;
   ImageWriter* vm_image_writer_;
   ImageWriter* isolate_image_writer_;
-  Array& token_streams_;
+  ZoneGrowableArray<Object*>* seed_objects_;
+  ZoneGrowableArray<Code*>* seed_code_;
   Array& saved_symbol_table_;
   Array& new_vm_symbol_table_;
 

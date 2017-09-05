@@ -5,15 +5,18 @@
 @patch
 class FileStat {
   @patch
-  static _statSync(String path) native "File_Stat";
+  static _statSync(_Namespace namespace, String path) native "File_Stat";
 }
 
 @patch
 class FileSystemEntity {
   @patch
-  static _getType(String path, bool followLinks) native "File_GetType";
+  static _getType(_Namespace namespace, String path, bool followLinks)
+      native "File_GetType";
   @patch
-  static _identical(String path1, String path2) native "File_AreIdentical";
+  static _identical(_Namespace namespace, String path1, String path2)
+      native "File_AreIdentical";
   @patch
-  static _resolveSymbolicLinks(String path) native "File_ResolveSymbolicLinks";
+  static _resolveSymbolicLinks(_Namespace namespace, String path)
+      native "File_ResolveSymbolicLinks";
 }

@@ -12,6 +12,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/namespace.h"
 
 namespace dart {
 namespace bin {
@@ -39,6 +40,7 @@ class FileSystemWatcher {
   static intptr_t Init();
   static void Close(intptr_t id);
   static intptr_t WatchPath(intptr_t id,
+                            Namespace* namespc,
                             const char* path,
                             int events,
                             bool recursive);

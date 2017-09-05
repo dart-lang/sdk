@@ -1661,7 +1661,7 @@ class LocalVariableElementX extends VariableElementX
 class FieldElementX extends VariableElementX
     with AnalyzableElementX
     implements FieldElement {
-  List<FunctionElement> nestedClosures = new List<FunctionElement>();
+  List<MethodElement> nestedClosures = new List<MethodElement>();
 
   FieldElementX(
       Identifier name, Element enclosingElement, VariableList variables)
@@ -2054,7 +2054,7 @@ abstract class BaseFunctionElementX extends ElementX
   ResolutionDartType typeCache;
   final Modifiers modifiers;
 
-  List<FunctionElement> nestedClosures = new List<FunctionElement>();
+  List<MethodElement> nestedClosures = new List<MethodElement>();
 
   FunctionSignature _functionSignatureCache;
 

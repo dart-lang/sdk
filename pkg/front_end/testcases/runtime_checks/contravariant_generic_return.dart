@@ -10,19 +10,19 @@ typedef void F<T>(T x);
 class C<T> {
   F<T> f1() {}
   List<F<T>> f2() {
-    return [this.f1()];
+    return [this.f1 /*@callKind=this*/ ()];
   }
 }
 
 void g1(C<num> c) {
   var x = c.f1 /*@checkReturn=(num) -> void*/ ();
   print('hello');
-  x /*@checkCall=interface(semiTyped:0)*/ (1.5);
+  x /*@callKind=closure*/ (1.5);
 }
 
 void g2(C<num> c) {
   F<int> x = c.f1 /*@checkReturn=(num) -> void*/ ();
-  x /*@checkCall=interface(semiTyped:0)*/ (1);
+  x /*@callKind=closure*/ (1);
 }
 
 void g3(C<num> c) {

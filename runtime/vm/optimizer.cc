@@ -4,7 +4,7 @@
 
 #include "vm/optimizer.h"
 
-#include "vm/intermediate_language.h"
+#include "vm/compiler/backend/il.h"
 #include "vm/object.h"
 
 namespace dart {

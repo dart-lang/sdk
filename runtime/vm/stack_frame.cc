@@ -5,7 +5,7 @@
 #include "vm/stack_frame.h"
 
 #include "platform/memory_sanitizer.h"
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/deopt_instructions.h"
 #include "vm/isolate.h"
 #include "vm/object.h"

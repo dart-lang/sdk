@@ -463,7 +463,7 @@ class ClosureFieldElement extends ElementX
       closureClass.methodElement.analyzableElement;
 
   @override
-  List<FunctionElement> get nestedClosures => const <FunctionElement>[];
+  List<MethodElement> get nestedClosures => const <MethodElement>[];
 
   @override
   bool get hasConstant => false;
@@ -541,13 +541,14 @@ class ClosureClassElement extends ClassElementX {
 /// fields.
 class BoxLocal extends Local {
   final String name;
-  final Entity executableContext;
   final MemberEntity memberContext;
 
   final int hashCode = _nextHashCode = (_nextHashCode + 10007).toUnsigned(30);
   static int _nextHashCode = 0;
 
-  BoxLocal(this.name, this.executableContext, this.memberContext);
+  BoxLocal(this.name, this.memberContext);
+
+  Entity get executableContext => memberContext;
 
   String toString() => 'BoxLocal($name)';
 }
@@ -592,7 +593,7 @@ class BoxFieldElement extends ElementX
   MemberElement get memberContext => box.memberContext;
 
   @override
-  List<FunctionElement> get nestedClosures => const <FunctionElement>[];
+  List<MethodElement> get nestedClosures => const <MethodElement>[];
 
   @override
   VariableDefinitions get node {
@@ -614,7 +615,6 @@ class BoxFieldElement extends ElementX
 /// A local variable used encode the direct (uncaptured) references to [this].
 class ThisLocal extends Local {
   final MemberEntity memberContext;
-  final hashCode = ElementX.newHashCode();
 
   ThisLocal(this.memberContext);
 
@@ -623,6 +623,15 @@ class ThisLocal extends Local {
   String get name => 'this';
 
   ClassEntity get enclosingClass => memberContext.enclosingClass;
+
+  bool operator ==(other) {
+    return other is ThisLocal &&
+        other.name == name &&
+        other.memberContext == memberContext &&
+        other.enclosingClass == enclosingClass;
+  }
+
+  int get hashCode => memberContext.hashCode + enclosingClass.hashCode;
 }
 
 /// Call method of a closure class.
@@ -1260,8 +1269,7 @@ class ClosureTranslator extends Visitor {
         if (box == null) {
           // TODO(floitsch): construct better box names.
           String boxName = getBoxFieldName(closureFieldCounter++);
-          box = new BoxLocal(
-              boxName, executableContext, executableContext.memberContext);
+          box = new BoxLocal(boxName, executableContext.memberContext);
         }
         String elementName = variable.name;
         String boxedName =

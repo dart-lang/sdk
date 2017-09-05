@@ -38987,8 +38987,7 @@ class _BeforeUnloadEventStreamProvider
   const _BeforeUnloadEventStreamProvider(this._eventType);
 
   Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
-    // Specify the generic type for EventStream only in dart2js to avoid
-    // checked mode errors in dartium.
+    // Specify the generic type for EventStream only in dart2js.
     var stream = new _EventStream<BeforeUnloadEvent>(e, _eventType, useCapture);
     var controller = new StreamController<BeforeUnloadEvent>(sync: true);
 
@@ -39006,16 +39005,14 @@ class _BeforeUnloadEventStreamProvider
 
   ElementStream<BeforeUnloadEvent> forElement(Element e,
       {bool useCapture: false}) {
-    // Specify the generic type for _ElementEventStreamImpl only in dart2js to
-    // avoid checked mode errors in dartium.
+    // Specify the generic type for _ElementEventStreamImpl only in dart2js.
     return new _ElementEventStreamImpl<BeforeUnloadEvent>(
         e, _eventType, useCapture);
   }
 
   ElementStream<BeforeUnloadEvent> _forElementList(ElementList e,
       {bool useCapture: false}) {
-    // Specify the generic type for _ElementEventStreamImpl only in dart2js to
-    // avoid checked mode errors in dartium.
+    // Specify the generic type for _ElementEventStreamImpl only in dart2js.
     return new _ElementListEventStreamImpl<BeforeUnloadEvent>(
         e, _eventType, useCapture);
   }

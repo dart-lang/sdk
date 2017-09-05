@@ -88,15 +88,15 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   @override
   JumpTarget getJumpTargetForContinueSwitch(ir.ContinueSwitchStatement node) {
     _ensureJumpMap(node.target);
-    throw new UnimplementedError(
-        'KernelToLocalsMapImpl.getJumpTargetForContinueSwitch');
+    JumpTarget target = _jumpTargetMap[node];
+    assert(target != null, failedAt(currentMember, 'No target for $node.'));
+    return target;
   }
 
   @override
   JumpTarget getJumpTargetForSwitchCase(ir.SwitchCase node) {
     _ensureJumpMap(node);
-    throw new UnimplementedError(
-        'KernelToLocalsMapImpl.getJumpTargetForSwitchCase');
+    return _jumpTargetMap[node];
   }
 
   @override
@@ -183,7 +183,9 @@ class JumpVisitor extends ir.Visitor {
 
   JJumpTarget _getJumpTarget(ir.TreeNode node) {
     return jumpTargetMap.putIfAbsent(node, () {
-      return new JJumpTarget(member, jumpIndex++);
+      return new JJumpTarget(member, jumpIndex++,
+          isSwitch: node is ir.SwitchStatement,
+          isSwitchCase: node is ir.SwitchCase);
     });
   }
 
@@ -274,6 +276,27 @@ class JumpVisitor extends ir.Visitor {
     }
     jumpTargetMap[node] = target;
     super.visitBreakStatement(node);
+  }
+
+  @override
+  visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
+    JJumpTarget target = _getJumpTarget(node.target);
+    target.isContinueTarget = true;
+    jumpTargetMap[node] = target;
+    JLabelDefinition label = _getOrCreateLabel(target, node.target);
+    label.isContinueTarget = true;
+    super.visitContinueSwitchStatement(node);
+  }
+
+  @override
+  visitSwitchStatement(ir.SwitchStatement node) {
+    node.expression.accept(this);
+    if (node.cases.isNotEmpty && !node.cases.last.isDefault) {
+      // Ensure that [node] has a corresponding target. We generate a break in
+      // case of a missing break on the last case if it isn't a default case.
+      _getJumpTarget(node);
+    }
+    super.visitSwitchStatement(node);
   }
 }
 

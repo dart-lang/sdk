@@ -9,6 +9,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/bitmap.h"
+#include "vm/compiler/method_recognizer.h"
 #include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
@@ -17,7 +18,6 @@
 #include "vm/heap.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
-#include "vm/method_recognizer.h"
 #include "vm/os.h"
 #include "vm/raw_object.h"
 #include "vm/report.h"
@@ -4753,12 +4753,14 @@ class Code : public Object {
     ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(sizeof(RawCode) + (len * kBytesPerElement));
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static RawCode* FinalizeCode(const Function& function,
                                Assembler* assembler,
                                bool optimized = false);
   static RawCode* FinalizeCode(const char* name,
                                Assembler* assembler,
                                bool optimized);
+#endif
   static RawCode* LookupCode(uword pc);
   static RawCode* LookupCodeInVmIsolate(uword pc);
   static RawCode* FindCode(uword pc, int64_t timestamp);

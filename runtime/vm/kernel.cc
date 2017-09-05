@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/kernel.h"
-#include "vm/kernel_binary_flowgraph.h"
+#include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 namespace dart {

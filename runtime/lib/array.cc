@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/assert.h"
-#include "vm/assembler.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"

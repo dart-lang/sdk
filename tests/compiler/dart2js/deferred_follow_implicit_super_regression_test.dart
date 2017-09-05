@@ -23,16 +23,16 @@ void main() {
     compiler.deferredLoadTask.onResolutionComplete(
         main, compiler.resolutionWorldBuilder.closedWorldForTesting);
 
-    var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
+    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
 
     dynamic lib = lookupLibrary("memory:lib.dart");
     var a = lib.find("a");
     var b = lib.find("b");
     var c = lib.find("c");
     var d = lib.find("d");
-    Expect.equals(outputUnitForElement(a), outputUnitForElement(b));
-    Expect.equals(outputUnitForElement(a), outputUnitForElement(c));
-    Expect.equals(outputUnitForElement(a), outputUnitForElement(d));
+    Expect.equals(outputUnitForEntity(a), outputUnitForEntity(b));
+    Expect.equals(outputUnitForEntity(a), outputUnitForEntity(c));
+    Expect.equals(outputUnitForEntity(a), outputUnitForEntity(d));
   });
 }
 

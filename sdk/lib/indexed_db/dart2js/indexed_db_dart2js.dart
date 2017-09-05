@@ -114,9 +114,8 @@ class _KeyRangeFactoryProvider {
     return _cachedClass = _uncachedClass();
   }
 
-  static _uncachedClass() => JS(
-      'var',
-      '''window.webkitIDBKeyRange || window.mozIDBKeyRange ||
+  static _uncachedClass() =>
+      JS('var', '''window.webkitIDBKeyRange || window.mozIDBKeyRange ||
           window.msIDBKeyRange || window.IDBKeyRange''');
 
   static _translateKey(idbkey) => idbkey; // TODO: fixme.

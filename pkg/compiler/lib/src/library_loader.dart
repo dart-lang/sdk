@@ -824,6 +824,7 @@ class ResolutionLibraryLoaderTask extends CompilerTask
 class KernelLibraryLoaderTask extends CompilerTask
     implements LibraryLoaderTask {
   final Uri sdkRoot;
+  final Uri _packageConfig;
 
   final DiagnosticReporter reporter;
 
@@ -835,8 +836,8 @@ class KernelLibraryLoaderTask extends CompilerTask
 
   List<LibraryEntity> _allLoadedLibraries;
 
-  KernelLibraryLoaderTask(this.sdkRoot, this._elementMap, this.compilerInput,
-      this.reporter, Measurer measurer)
+  KernelLibraryLoaderTask(this.sdkRoot, this._packageConfig, this._elementMap,
+      this.compilerInput, this.reporter, Measurer measurer)
       : _allLoadedLibraries = new List<LibraryEntity>(),
         super(measurer);
 
@@ -861,6 +862,7 @@ class KernelLibraryLoaderTask extends CompilerTask
           ..linkedDependencies = [
             sdkRoot.resolve('_internal/dart2js_platform.dill')
           ]
+          ..packagesFileUri = _packageConfig
           ..onError = (e) => reportFrontEndMessage(reporter, e);
 
         program = await fe.kernelForProgram(resolvedUri, options);

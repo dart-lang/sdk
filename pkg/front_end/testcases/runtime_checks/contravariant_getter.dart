@@ -9,14 +9,13 @@ typedef void F<T>(T x);
 
 class C<T> {
   F<T> y;
-  void f(T /*@checkFormal=semiSafe*/ value) {
-    this.y /*@checkCall=interface(semiTyped:0)*/ (value);
+  void f(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ value) {
+    this.y /*@callKind=closure*/ (value);
   }
 }
 
-void g(/*safe*/ C<num> c) {
-  c. /*@checkReturn=(num) -> void*/ y /*@checkCall=interface(semiTyped:0)*/ (
-      1.5);
+void g(C<num> c) {
+  c. /*@checkReturn=(num) -> void*/ y /*@callKind=closure*/ (1.5);
 }
 
 void main() {}

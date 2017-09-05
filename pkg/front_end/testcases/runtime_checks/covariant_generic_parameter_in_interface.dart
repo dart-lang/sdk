@@ -6,13 +6,14 @@
 library test;
 
 abstract class I<T> {
-  void f1(T x);
-  void f2(T x);
+  void f1(T /*@checkInterface=semiTyped*/ x);
+  void f2(T /*@checkInterface=semiTyped*/ x);
 }
 
 class C<U> implements I<int> {
   void f1(int /*@checkFormal=semiSafe*/ x) {}
-  void f2(int /*@checkFormal=semiSafe*/ x, [U /*@checkFormal=semiSafe*/ y]) {}
+  void f2(int /*@checkFormal=semiSafe*/ x,
+      [U /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ y]) {}
 }
 
 void g1(C<num> c) {
@@ -20,11 +21,11 @@ void g1(C<num> c) {
 }
 
 void g2(I<num> i) {
-  i.f1 /*@checkCall=interface(semiTyped:0)*/ (1.5);
+  i.f1(1.5);
 }
 
 void g3(C<num> c) {
-  c.f2 /*@checkCall=interface(semiTyped:1)*/ (1, 1.5);
+  c.f2(1, 1.5);
 }
 
 void test() {

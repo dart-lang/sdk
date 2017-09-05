@@ -8,7 +8,8 @@ abstract class _TypePrinterBase implements TypeRefVisitor {
   void out(String s);
   void visit(Node node);
 
-  void outSeparated(String separator, Iterable items, [action(dynamic item)]) {
+  void outSeparated<T extends Node>(String separator, Iterable<T> items,
+      [action(T item)]) {
     action ??= visit;
     var first = true;
     for (var item in items) {

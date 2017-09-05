@@ -618,6 +618,7 @@ class StandardTestSuite extends TestSuite {
     var status_paths = [
       '$directory/$name.status',
       '$directory/.status',
+      '$directory/${name}_app_jit.status',
       '$directory/${name}_analyzer.status',
       '$directory/${name}_analyzer2.status',
       '$directory/${name}_dart2js.status',

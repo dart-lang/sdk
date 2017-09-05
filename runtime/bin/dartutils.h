@@ -130,7 +130,8 @@ class DartUtils {
   static Dart_Handle SetupServiceLoadPort();
   static Dart_Handle SetupPackageRoot(const char* package_root,
                                       const char* packages_file);
-  static Dart_Handle SetupIOLibrary(const char* script_uri);
+  static Dart_Handle SetupIOLibrary(const char* namespc_path,
+                                    const char* script_uri);
 
   static bool PostNull(Dart_Port port_id);
   static bool PostInt32(Dart_Port port_id, int32_t value);

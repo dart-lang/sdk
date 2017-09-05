@@ -20,7 +20,10 @@ main(List<String> args) async {
     }
     await new SummaryWorker().run();
   } else {
-    await computeSummary(args);
+    var succeeded = await computeSummary(args);
+    if (!succeeded) {
+      exitCode = 15;
+    }
   }
 }
 
@@ -30,9 +33,13 @@ class SummaryWorker extends AsyncWorkerLoop {
     var outputBuffer = new StringBuffer();
     var response = new WorkResponse()..exitCode = 0;
     try {
-      await computeSummary(request.arguments,
+      var succeeded = await computeSummary(request.arguments,
           isWorker: true, outputBuffer: outputBuffer);
-    } catch (_, s) {
+      if (!succeeded) {
+        response.exitCode = 15;
+      }
+    } catch (e, s) {
+      outputBuffer.writeln(e);
       outputBuffer.writeln(s);
       response.exitCode = 15;
     }
@@ -79,8 +86,11 @@ final summaryArgsParser = new ArgParser()
 ///
 /// If [outputBuffer] is provided then messages will be written to that buffer
 /// instead of printed to the console.
-Future computeSummary(List<String> args,
+///
+/// Returns whether or not the summary was successfully output.
+Future<bool> computeSummary(List<String> args,
     {bool isWorker: false, StringBuffer outputBuffer}) async {
+  bool succeeded = true;
   var parsedArgs = summaryArgsParser.parse(args);
   var options = new CompilerOptions()
     ..packagesFileUri = Uri.parse(parsedArgs['packages-file'])
@@ -89,17 +99,27 @@ Future computeSummary(List<String> args,
     ..multiRoots = parsedArgs['multi-root'].map(Uri.parse).toList()
     ..target = new NoneTarget(new TargetFlags());
 
-  if (outputBuffer != null) {
-    options.onError = (CompilationMessage error) {
-      var severityString = severityName(error.severity, capitalized: true);
-      outputBuffer.writeln('$severityString: ${error.message}');
-      if (error.severity != Severity.nit) {
-        throw error;
-      }
-    };
-  } else {
-    options.throwOnWarningsForDebugging = true;
-  }
+  options.onError = (CompilationMessage error) {
+    var message = new StringBuffer()
+      ..write(severityName(error.severity, capitalized: true))
+      ..write(': ');
+    if (error.span != null) {
+      message.writeln(error.span.message(error.message));
+    } else {
+      message.writeln(error.message);
+    }
+    if (error.tip != null) {
+      message.writeln(error.tip);
+    }
+    if (outputBuffer != null) {
+      outputBuffer.writeln(message);
+    } else {
+      print(message);
+    }
+    if (error.severity != Severity.nit) {
+      succeeded = false;
+    }
+  };
 
   var sources = parsedArgs['source'].map(Uri.parse).toList();
   var program = await summaryFor(sources, options);
@@ -107,4 +127,6 @@ Future computeSummary(List<String> args,
   var outputFile = new File(parsedArgs['output']);
   outputFile.createSync(recursive: true);
   outputFile.writeAsBytesSync(program);
+
+  return succeeded;
 }

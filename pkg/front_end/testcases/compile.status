@@ -20,7 +20,7 @@ redirecting_factory: Fail # Missing types on constructor parameters.
 statements: Fail # Make async tranformer optional for golden file testing.
 type_variable_as_super: Fail
 uninitialized_fields: Fail # Fasta and dartk disagree on static initializers
-void-methods: Fail # Bad return from setters.
+void_methods: Fail # Bad return from setters.
 
 inference/constructors_too_many_positional_arguments: Fail
 inference/downwards_inference_annotations_locals: Fail # Issue #30031

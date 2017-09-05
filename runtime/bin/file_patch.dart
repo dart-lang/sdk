@@ -5,37 +5,46 @@
 @patch
 class _File {
   @patch
-  static _exists(String path) native "File_Exists";
+  static _exists(_Namespace namespace, String path) native "File_Exists";
   @patch
-  static _create(String path) native "File_Create";
+  static _create(_Namespace namespace, String path) native "File_Create";
   @patch
-  static _createLink(String path, String target) native "File_CreateLink";
+  static _createLink(_Namespace namespace, String path, String target)
+      native "File_CreateLink";
   @patch
-  static _linkTarget(String path) native "File_LinkTarget";
+  static _linkTarget(_Namespace namespace, String path)
+      native "File_LinkTarget";
   @patch
-  static _deleteNative(String path) native "File_Delete";
+  static _deleteNative(_Namespace namespace, String path) native "File_Delete";
   @patch
-  static _deleteLinkNative(String path) native "File_DeleteLink";
+  static _deleteLinkNative(_Namespace namespace, String path)
+      native "File_DeleteLink";
   @patch
-  static _rename(String oldPath, String newPath) native "File_Rename";
+  static _rename(_Namespace namespace, String oldPath, String newPath)
+      native "File_Rename";
   @patch
-  static _renameLink(String oldPath, String newPath) native "File_RenameLink";
+  static _renameLink(_Namespace namespace, String oldPath, String newPath)
+      native "File_RenameLink";
   @patch
-  static _copy(String oldPath, String newPath) native "File_Copy";
+  static _copy(_Namespace namespace, String oldPath, String newPath)
+      native "File_Copy";
   @patch
-  static _lengthFromPath(String path) native "File_LengthFromPath";
+  static _lengthFromPath(_Namespace namespace, String path)
+      native "File_LengthFromPath";
   @patch
-  static _lastModified(String path) native "File_LastModified";
+  static _lastModified(_Namespace namespace, String path)
+      native "File_LastModified";
   @patch
-  static _setLastModified(String path, int millis)
+  static _setLastModified(_Namespace namespace, String path, int millis)
       native "File_SetLastModified";
   @patch
-  static _lastAccessed(String path) native "File_LastAccessed";
+  static _lastAccessed(_Namespace namespace, String path)
+      native "File_LastAccessed";
   @patch
-  static _setLastAccessed(String path, int millis)
+  static _setLastAccessed(_Namespace namespace, String path, int millis)
       native "File_SetLastAccessed";
   @patch
-  static _open(String path, int mode) native "File_Open";
+  static _open(_Namespace namespace, String path, int mode) native "File_Open";
   @patch
   static int _openStdio(int fd) native "File_OpenStdio";
 }
@@ -134,7 +143,8 @@ class _FileSystemWatcher {
     }
     var pathId;
     try {
-      pathId = _watchPath(_id, _path, _events, _recursive);
+      pathId =
+          _watchPath(_id, _Namespace._namespace, _path, _events, _recursive);
     } catch (e) {
       _broadcastController
           .addError(new FileSystemException("Failed to watch path", _path, e));
@@ -290,8 +300,8 @@ class _FileSystemWatcher {
   static int _initWatcher() native "FileSystemWatcher_InitWatcher";
   static void _closeWatcher(int id) native "FileSystemWatcher_CloseWatcher";
 
-  static int _watchPath(int id, String path, int events, bool recursive)
-      native "FileSystemWatcher_WatchPath";
+  static int _watchPath(int id, _Namespace namespace, String path, int events,
+      bool recursive) native "FileSystemWatcher_WatchPath";
   static void _unwatchPath(int id, int path_id)
       native "FileSystemWatcher_UnwatchPath";
   static List _readEvents(int id, int path_id)

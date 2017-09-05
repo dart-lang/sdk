@@ -360,6 +360,14 @@ void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
 }
 #endif
 
+void Heap::NotifyIdle(int64_t deadline) {
+  if (new_space_.ShouldPerformIdleScavenge(deadline)) {
+    Thread* thread = Thread::Current();
+    TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
+    CollectNewSpaceGarbage(thread, kIdle);
+  }
+}
+
 void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
   ASSERT(reason == kFull);
   if (BeginNewSpaceGC(thread)) {
@@ -378,7 +386,7 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
 
 void Heap::CollectNewSpaceGarbage(Thread* thread,
                                   GCReason reason) {
-  ASSERT((reason == kNewSpace) || (reason == kFull));
+  ASSERT((reason == kNewSpace) || (reason == kFull) || (reason == kIdle));
   if (BeginNewSpaceGC(thread)) {
     RecordBeforeGC(kNew, reason);
     {
@@ -624,6 +632,8 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
       return "old space";
     case kFull:
       return "full";
+    case kIdle:
+      return "idle";
     case kGCAtAlloc:
       return "debugging";
     case kGCTestCase:

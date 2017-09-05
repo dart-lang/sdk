@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show JSON;
+import 'dart:convert';
 import 'dart:io';
 
 import "package:status_file/expectation.dart";
@@ -140,22 +140,6 @@ class TestOutcomeLogWriter extends EventListener {
 
   void done(TestCase test) {
     var name = test.displayName;
-    var configuration = {
-      'mode': test.configuration.mode.name,
-      'arch': test.configuration.architecture.name,
-      'compiler': test.configuration.compiler.name,
-      'runtime': test.configuration.runtime.name,
-      'checked': test.configuration.isChecked,
-      'strong': test.configuration.isStrong,
-      'host_checked': test.configuration.isHostChecked,
-      'minified': test.configuration.isMinified,
-      'csp': test.configuration.isCsp,
-      'system': test.configuration.system.name,
-      'vm_options': test.configuration.vmOptions,
-      'use_sdk': test.configuration.useSdk,
-      'builder_tag': test.configuration.builderTag
-    };
-
     var outcome = '${test.lastCommandOutput.result(test)}';
     var expectations =
         test.expectedOutcomes.map((expectation) => "$expectation").toList();
@@ -175,7 +159,7 @@ class TestOutcomeLogWriter extends EventListener {
     }
     _writeTestOutcomeRecord({
       'name': name,
-      'configuration': configuration,
+      'configuration': test.configuration.toSummaryMap(),
       'test_result': {
         'outcome': outcome,
         'expected_outcomes': expectations,
@@ -190,6 +174,9 @@ class TestOutcomeLogWriter extends EventListener {
   }
 
   void _writeTestOutcomeRecord(Map record) {
+    // TODO(mkroghj) change the location of this file
+    // to be in the debug_output_directory
+    // if the current location is not used.
     if (_sink == null) {
       _sink = new File(TestUtils.testOutcomeFileName)
           .openWrite(mode: FileMode.APPEND);
@@ -676,5 +663,50 @@ String _buildSummaryEnd(int failedTests) {
   } else {
     var pluralSuffix = failedTests != 1 ? 's' : '';
     return '\n===\n=== ${failedTests} test$pluralSuffix failed\n===\n';
+  }
+}
+
+class ResultLogWriter extends EventListener {
+  Map<String, Map> _configurations = {};
+  List<Map> _results = [];
+  String _outputDirectory;
+
+  void done(TestCase test) {
+    // We try to find an existing configuration, so as to not duplicate this
+    // for each test.
+    var thisConf = test.configuration.toSummaryMap();
+    String key = _configurations.keys.firstWhere(
+        (key) => identical(_configurations[key], thisConf), orElse: () {
+      var newKey = "conf${_configurations.length + 1}";
+      _configurations[newKey] = thisConf;
+      return newKey;
+    });
+    var commands = test.commands.map((command) {
+      var output = test.commandOutputs[command];
+      if (output == null) {
+        return {'name': command.displayName};
+      }
+      return {
+        'name': command.displayName,
+        'exitCode': output.exitCode,
+        'compilationSkipped': output.compilationSkipped,
+        'timeout': output.hasTimedOut,
+        'duration': output.time.inMilliseconds
+      };
+    }).toList();
+    _results.add(
+        {'configuration': key, 'name': test.displayName, 'commands': commands});
+    _outputDirectory ??= test.configuration.outputDirectory;
+  }
+
+  void allDone() {
+    if (_outputDirectory != null) {
+      var path = new Path(_outputDirectory);
+      var file =
+          new File(path.append(TestUtils.resultLogFileName).toNativePath());
+      file.createSync(recursive: true);
+      file.writeAsStringSync(JSON
+          .encode({'configurations': _configurations, 'results': _results}));
+    }
   }
 }

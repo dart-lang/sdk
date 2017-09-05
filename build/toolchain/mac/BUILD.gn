@@ -223,8 +223,7 @@ template("mac_toolchain") {
 mac_toolchain("clang_x64") {
   toolchain_cpu = "x64"
   toolchain_os = "mac"
-  prefix = rebase_path("//buildtools/toolchain/clang+llvm-x86_64-darwin/bin",
-                       root_build_dir)
+  prefix = rebase_path("//buildtools/mac-x64/clang/bin", root_build_dir)
   cc = "${goma_prefix}$prefix/clang"
   cxx = "${goma_prefix}$prefix/clang++"
   ar = "${prefix}/llvm-ar"
@@ -238,8 +237,7 @@ mac_toolchain("clang_x64") {
 mac_toolchain("clang_x86") {
   toolchain_cpu = "i386"
   toolchain_os = "mac"
-  prefix = rebase_path("//buildtools/toolchain/clang+llvm-x86_64-darwin/bin",
-                       root_build_dir)
+  prefix = rebase_path("//buildtools/mac-x64/clang/bin", root_build_dir)
   cc = "${goma_prefix}$prefix/clang"
   cxx = "${goma_prefix}$prefix/clang++"
   ar = "${prefix}/llvm-ar"

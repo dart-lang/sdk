@@ -4,10 +4,10 @@
 
 #include "vm/runtime_entry.h"
 
-#include "vm/assembler.h"
 #include "vm/ast.h"
 #include "vm/code_patcher.h"
-#include "vm/compiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
@@ -1718,10 +1718,11 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 #ifndef DART_PRECOMPILED_RUNTIME
       // Ensure that we have unoptimized code.
       frame->function().EnsureHasCompiledUnoptimizedCode();
-#endif
+      const int num_vars = frame->NumLocalVariables();
+#else
       // Variable locations and number are unknown when precompiling.
-      const int num_vars =
-          FLAG_precompiled_runtime ? 0 : frame->NumLocalVariables();
+      const int num_vars = 0;
+#endif
       TokenPosition unused = TokenPosition::kNoSource;
       for (intptr_t v = 0; v < num_vars; v++) {
         frame->VariableAt(v, &var_name, &unused, &unused, &unused, &var_value);
@@ -2304,6 +2305,12 @@ DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   const Field& field = Field::CheckedHandle(arguments.ArgAt(0));
   field.EvaluateInitializer();
 }
+
+// Print the stop message.
+DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {
+  OS::Print("Stop message: %s\n", message);
+}
+END_LEAF_RUNTIME_ENTRY
 
 // Use expected function signatures to help MSVC compiler resolve overloading.
 typedef double (*UnaryMathCFunction)(double x);

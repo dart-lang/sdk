@@ -4,9 +4,9 @@
 
 #include "platform/globals.h"
 
-#include "vm/assembler.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_descriptors.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"

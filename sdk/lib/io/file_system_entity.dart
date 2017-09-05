@@ -89,7 +89,7 @@ class FileStat {
         mode = 0,
         size = -1;
 
-  external static _statSync(String path);
+  external static _statSync(_Namespace namespace, String path);
 
   /**
    * Calls the operating system's stat() function on [path].
@@ -102,7 +102,7 @@ class FileStat {
     if (Platform.isWindows) {
       path = FileSystemEntity._trimTrailingPathSeparators(path);
     }
-    var data = _statSync(path);
+    var data = _statSync(_Namespace._namespace, path);
     if (data is OSError) return FileStat._notFound;
     return new FileStat._internal(
         new DateTime.fromMillisecondsSinceEpoch(data[_CHANGED_TIME]),
@@ -125,7 +125,8 @@ class FileStat {
     if (Platform.isWindows) {
       path = FileSystemEntity._trimTrailingPathSeparators(path);
     }
-    return _IOService._dispatch(_FILE_STAT, [path]).then((response) {
+    return _File
+        ._dispatchWithNamespace(_FILE_STAT, [null, path]).then((response) {
       if (_isErrorResponse(response)) {
         return FileStat._notFound;
       }
@@ -303,8 +304,8 @@ abstract class FileSystemEntity {
    * behavior.
    */
   Future<String> resolveSymbolicLinks() {
-    return _IOService
-        ._dispatch(_FILE_RESOLVE_SYMBOLIC_LINKS, [path]).then((response) {
+    return _File._dispatchWithNamespace(
+        _FILE_RESOLVE_SYMBOLIC_LINKS, [null, path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot resolve symbolic links", path);
@@ -341,7 +342,7 @@ abstract class FileSystemEntity {
    * behavior.
    */
   String resolveSymbolicLinksSync() {
-    var result = _resolveSymbolicLinks(path);
+    var result = _resolveSymbolicLinks(_Namespace._namespace, path);
     _throwIfError(result, "Cannot resolve symbolic links", path);
     return result;
   }
@@ -462,8 +463,8 @@ abstract class FileSystemEntity {
    * to an object that does not exist.
    */
   static Future<bool> identical(String path1, String path2) {
-    return _IOService
-        ._dispatch(_FILE_IDENTICAL, [path1, path2]).then((response) {
+    return _File._dispatchWithNamespace(
+        _FILE_IDENTICAL, [null, path1, path2]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
             "Error in FileSystemEntity.identical($path1, $path2)", "");
@@ -524,7 +525,7 @@ abstract class FileSystemEntity {
    * exist.
    */
   static bool identicalSync(String path1, String path2) {
-    var result = _identical(path1, path2);
+    var result = _identical(_Namespace._namespace, path1, path2);
     _throwIfError(result, 'Error in FileSystemEntity.identicalSync');
     return result;
   }
@@ -607,9 +608,9 @@ abstract class FileSystemEntity {
   static bool isDirectorySync(String path) =>
       (_getTypeSync(path, true) == FileSystemEntityType.DIRECTORY._type);
 
-  external static _getType(String path, bool followLinks);
-  external static _identical(String path1, String path2);
-  external static _resolveSymbolicLinks(String path);
+  external static _getType(_Namespace namespace, String path, bool followLinks);
+  external static _identical(_Namespace namespace, String path1, String path2);
+  external static _resolveSymbolicLinks(_Namespace namespace, String path);
 
   // Finds the next-to-last component when dividing at path separators.
   static final RegExp _parentRegExp = Platform.isWindows
@@ -653,14 +654,14 @@ abstract class FileSystemEntity {
   Directory get parent => new Directory(parentOf(path));
 
   static int _getTypeSync(String path, bool followLinks) {
-    var result = _getType(path, followLinks);
+    var result = _getType(_Namespace._namespace, path, followLinks);
     _throwIfError(result, 'Error getting type of FileSystemEntity');
     return result;
   }
 
   static Future<int> _getTypeAsync(String path, bool followLinks) {
-    return _IOService
-        ._dispatch(_FILE_TYPE, [path, followLinks]).then((response) {
+    return _File._dispatchWithNamespace(
+        _FILE_TYPE, [null, path, followLinks]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Error getting type", path);
       }

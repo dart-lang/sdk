@@ -8,7 +8,7 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/class_finalizer.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/kernel_loader.h"
 #endif
 #include "vm/object.h"

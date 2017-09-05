@@ -5,7 +5,7 @@
 analyzer:
   strong-mode: true
   language:
-    enableSuperMixins: true
+    enableSuperMixins: false
   exclude:
     - testcases/**
   errors:
@@ -15,6 +15,10 @@ analyzer:
 
     # Allow having TODOs in the code
     todo: ignore
+
+    # https://github.com/dart-lang/sdk/issues/30590
+    # TODO(leafp): remove once #30590 is resolved
+    uses_dynamic_as_bottom: ignore
 
     # Allow deprecated calls (although it would be nice to have a distinction
     # between internal and external deprecated calls).

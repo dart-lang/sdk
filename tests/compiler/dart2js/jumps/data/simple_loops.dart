@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 simpleForLoop(count) {
-  for (int i = 0; i < count; i = i + 1) {
+  for (int i = 0; i < count; i++) {
     print(i);
   }
 }

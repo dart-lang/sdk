@@ -59,13 +59,7 @@ multiline_strings_test: Fail # Issue 23020
 deferred_redirecting_factory_test: Fail, Crash # Issue 23408
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 
-[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
-# These generic functions tests pass for the wrong reason in checked mode,
-# because the parsed type parameters are mapped to dynamic type.
-generic_functions_test: Pass # Issue 25869
-
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) ]
-unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
@@ -79,7 +73,6 @@ dynamic_prefix_core_test/none: Fail # Issue 12478
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $arch == arm64 ]
 large_class_declaration_test: SkipSlow # Uses too much memory.
-closure_cycles_test: Pass, Slow
 
 [ $runtime == vm || $runtime == dart_precompiled ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
@@ -246,7 +239,6 @@ config_import_corelib_test: StaticWarning, OK
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && ($compiler == none || $compiler == app_jit || $compiler == precompiler) ]
 await_for_test: RuntimeError # issue 28974
-generalized_void_syntax_test: CompileTimeError # Issue #30176.
 syntax_test/none: CompileTimeError # Issue #30176.
 
 # flutter uses --error_on_bad_type, --error_on_bad_override
@@ -266,13 +258,6 @@ method_override2_test/01: CompileTimeError
 regress_22438_test: CompileTimeError
 regress_13462_1_test: CompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
-type_variable_scope_test/none: CompileTimeError
-type_variable_scope_test/00: CompileTimeError
-type_variable_scope_test/01: CompileTimeError
-type_variable_scope_test/03: CompileTimeError
-type_variable_scope_test/02: CompileTimeError
-type_variable_scope_test/04: CompileTimeError
-type_variable_scope_test/05: CompileTimeError
 invocation_mirror_invoke_on_test: CompileTimeError
 method_override3_test/00: CompileTimeError
 method_override3_test/01: CompileTimeError
@@ -386,7 +371,6 @@ check_method_override_test/02: CompileTimeError
 malformed_inheritance_test/02: CompileTimeError
 malformed_inheritance_test/04: CompileTimeError
 malformed_inheritance_test/06: CompileTimeError
-unicode_bom_test: CompileTimeError
 prefix16_test: CompileTimeError
 deferred_not_loaded_check_test: CompileTimeError
 regress_23408_test: CompileTimeError
@@ -414,7 +398,6 @@ deferred_static_seperate_test: CompileTimeError
 default_factory_test/01: CompileTimeError
 internal_library_test/01: CompileTimeError
 internal_library_test/02: CompileTimeError
-type_variable_scope2_test: CompileTimeError
 mixin_super_bound_test: CompileTimeError
 invocation_mirror2_test: CompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: CompileTimeError
@@ -432,7 +415,6 @@ list_literal_syntax_test/02: CompileTimeError
 vm/reflect_core_vm_test: CompileTimeError
 vm/debug_break_enabled_vm_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/none: CompileTimeError
-generic_function_typedef2_test/04: CompileTimeError
 const_types_test/01: CompileTimeError
 const_types_test/02: CompileTimeError
 const_types_test/03: CompileTimeError

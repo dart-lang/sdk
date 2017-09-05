@@ -8,7 +8,7 @@
 #include "vm/instructions.h"
 #include "vm/instructions_dbc.h"
 
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/constants_dbc.h"
 #include "vm/cpu.h"
 #include "vm/object.h"

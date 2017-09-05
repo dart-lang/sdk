@@ -14,28 +14,16 @@ async/schedule_microtask6_test: RuntimeError # global error handling is not supp
 
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
-math/random_big_test: RuntimeError  # Using bigint seeds for random.
 
 mirrors/invocation_fuzz_test: RuntimeError # Issue 29086
-mirrors/abstract_class_test: RuntimeError # Issue 12826
 mirrors/class_declarations_test/none: RuntimeError # Issue 13440
 mirrors/class_mirror_location_test: RuntimeError # Issue 6490
 mirrors/closurization_equivalence_test: RuntimeError # Issue 6490
-mirrors/constructor_kinds_test: RuntimeError # Issue 13799
-mirrors/constructor_private_name_test: CompileTimeError # Issue 13597
-mirrors/delegate_class_test: RuntimeError
-mirrors/delegate_library_test: RuntimeError
-mirrors/deferred_type_test: RuntimeError # Issue 6335
-mirrors/empty_test: RuntimeError # Issue 6490
-mirrors/enum_test: RuntimeError # Issue 6490
 mirrors/fake_function_with_call_test: RuntimeError # Issue 11612
 mirrors/fake_function_without_call_test: RuntimeError # Issue 11612
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError # Issue 12087
 mirrors/generic_function_typedef_test: RuntimeError # Issue 12333
 mirrors/generic_interface_test: RuntimeError # Issue 12087
-mirrors/generic_local_function_test: RuntimeError # Issue 12333
-mirrors/generic_mixin_test: RuntimeError # Issue 12333
-mirrors/generic_mixin_applications_test: RuntimeError # Issue 12333
 mirrors/get_field_static_test/00: RuntimeError # Issue 21323
 mirrors/hierarchy_invariants_test: RuntimeError # Issue 15262
 mirrors/hot_get_field_test: CompileTimeError # Issue 12164
@@ -122,7 +110,6 @@ mirrors/reflected_type_generics_test/02: Fail, Ok # Type check for a bounded typ
 
 [ $compiler == dart2js && $fast_startup ]
 mirrors/*: Fail # mirrors not supported
-mirrors/circular_factory_redirection_test/0*: Pass # expects failure, but it fails for the wrong reason
 mirrors/library_imports_bad_metadata_test/01: Pass # expects failure, but it fails for the wrong reason
 mirrors/library_metadata2_test/01: Pass # expects failure, but it fails for the wrong reason
 mirrors/metadata_allowed_values_test/0*: Pass # expects failure, but it fails for the wrong reason
@@ -161,12 +148,9 @@ math/math2_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == jsshell ]
 async/timer_regress22626_test: RuntimeError # Non-zero timers not supported; Issue 7728.
-async/slow_consumer2_test: RuntimeError # Timer interface not supported; Issue 7728.
-async/slow_consumer3_test: RuntimeError # Timer interface not supported; Issue 7728.
-async/slow_consumer_test: RuntimeError # Timer interface not supported; Issue 7728.
+async/future_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/stream_from_iterable_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/stream_state_nonzero_timer_test: RuntimeError # Timer interface not supported; Issue 7728.
-async/multiple_timer_test: RuntimeError,OK # Needs Timer to run.
 async/timer_cancel_test: RuntimeError,OK # Needs Timer to run.
 async/timer_cancel1_test: RuntimeError,OK # Needs Timer to run.
 async/timer_cancel2_test: RuntimeError,OK # Needs Timer to run.
@@ -179,7 +163,7 @@ async/stream_periodic3_test: RuntimeError # Timer interface not supported; Issue
 async/stream_periodic4_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/stream_periodic5_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/stream_periodic6_test: RuntimeError # Timer interface not supported; Issue 7728.
-async/run_zoned7_test: RuntimeError # Timer interface not supported: Issue 7728.
+async/catch_errors22_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/timer_isActive_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/zone_empty_description2_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/zone_create_timer2_test: RuntimeError # Timer interface not supported: Issue 7728.
@@ -189,7 +173,6 @@ async/catch_errors13_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors14_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors15_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors8_test: Fail # Timer interface not supported: Issue 7728.
-async/run_zoned8_test: Fail # Timer interface not supported: Issue 7728.
 async/zone_bind_test: Fail # Timer interface not supported: Issue 7728.
 async/stream_timeout_test: Fail # Timer interface not supported: Issue 7728.
 async/stream_asyncexpand_test: RuntimeError # Timer interface not supported: Issue 7728.
@@ -227,14 +210,10 @@ mirrors/*: Skip # Issue 27929: Triage
 mirrors/*: Skip # Flutter does not support mirrors.
 async/catch_errors11_test: Skip # Flutter Issue 9113
 async/intercept_schedule_microtask2_test: Skip # Flutter Issue 9113
-async/run_zoned6_test/01: Skip # Flutter Issue 9113
-async/schedule_microtask_test: Skip # Flutter Issue 9113
 async/intercept_schedule_microtask6_test: Skip # Flutter Issue 9113
 async/stream_empty_test: Skip # Flutter Issue 9113
-async/run_zoned9_test/01: Skip # Flutter Issue 9113
 async/intercept_schedule_microtask5_test: Skip # Flutter Issue 9113
 async/stream_event_transformed_test: Skip # Flutter Issue 9113
-math/random_secure_test: RuntimeError # Flutter Issue 9113
 
 [ $compiler == dart2js && $minified ]
 mirrors/mirrors_used_get_name_test: RuntimeError
@@ -247,7 +226,6 @@ mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
 
 [ $runtime == chrome && $system == macos ]
 async/timer_isActive_test: Fail, Pass, Timeout # Issue 22696
-async/slow_consumer_test: Pass, Timeout # Issue 22696
 async/catch_errors11_test: Pass, Timeout # Issue 22696
 
 [ $runtime == chrome && $system == linux ]
@@ -258,7 +236,6 @@ convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050
-async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 async/stream_timeout_test: SkipSlow # Times out. Issue 22050
 
 [ $compiler == dart2js ]
@@ -287,10 +264,9 @@ mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a
 
 [ $runtime == vm && $system == fuchsia ]
 # These use package:unittest
+async/first_regression_test: RuntimeError
+async/future_timeout_test: RuntimeError
 async/multiple_timer_test: RuntimeError
-async/schedule_microtask2_test: RuntimeError
-async/schedule_microtask3_test: RuntimeError
-async/schedule_microtask5_test: RuntimeError
 async/stream_controller_async_test: RuntimeError
 async/stream_first_where_test: RuntimeError
 async/stream_from_iterable_test: RuntimeError
@@ -319,8 +295,6 @@ async/timer_isActive_test: RuntimeError
 async/timer_repeat_test: RuntimeError
 async/timer_test: RuntimeError
 convert/json_lib_test: RuntimeError
-math/point_test: RuntimeError
-math/rectangle_test: RuntimeError
 mirrors/library_uri_io_test: RuntimeError
 mirrors/library_uri_package_test: RuntimeError
 # fstat bug, MG-479.
@@ -331,7 +305,6 @@ mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.
 mirrors/null_test: Fail # Issue 16831
 
 [ $compiler == dart2js && $runtime == jsshell ]
-async/schedule_microtask_test: Fail  # Preamble file does not correctly implement scheduleImmediate.
 
 [ $compiler == dart2analyzer ]
 mirrors/generic_f_bounded_mixin_application_test: StaticWarning # Test Issue
@@ -346,9 +319,7 @@ mirrors/mirrors_nsm_mismatch_test: StaticWarning, OK # Expect to trigger noSuchM
 
 mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional library name conflict.
 mirrors/removed_api_test: StaticWarning, OK # Deliberately refers to undeclared members.
-mirrors/deferred_type_test: StaticWarning, OK # Deliberately referes to a deferred type in a declaration.
 
-mirrors/deferred_mirrors_metadata_test: Fail # Issue 17522
 
 developer/metrics_test: Fail # Issue 20309
 developer/metrics_num_test: Fail # Issue 20309
@@ -423,18 +394,13 @@ convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
 
 [ $hot_reload || $hot_reload_rollback ]
-async/multiple_timer_test: Pass, Fail # Timing related
 async/stream_transformer_test: Pass, Fail # Closure identity
-mirrors/closurization_equivalence_test: SkipByDesign # Method equality
 mirrors/fake_function_with_call_test: SkipByDesign # Method equality
 
 mirrors/library_enumeration_deferred_loading_test: Crash # Deferred loading
 mirrors/library_imports_deferred_test: Crash # Deferred loading
 mirrors/library_import_deferred_loading_test: Crash # Deferred loading
 mirrors/typedef_deferred_library_test: Crash # Deferred loading
-mirrors/deferred_mirrors_update_test: Crash # Deferred loading
-mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading
-mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
 mirrors/load_library_test: Crash # Deferred loading
 
 [ $hot_reload ]
@@ -446,28 +412,16 @@ async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
 mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
 
 [ $compiler == dartk || $compiler == dartkp ]
-async/schedule_microtask2_test: RuntimeError
-mirrors/abstract_class_test/00: RuntimeError
-mirrors/abstract_class_test/none: RuntimeError
 mirrors/class_declarations_test/01: RuntimeError
 mirrors/class_declarations_test/none: RuntimeError
 mirrors/class_mirror_location_test: RuntimeError
 mirrors/constructor_kinds_test/01: RuntimeError
 mirrors/constructor_kinds_test/none: RuntimeError
-mirrors/constructor_optional_args_test: Crash # Issue 29201
-mirrors/constructor_private_name_test: RuntimeError
-mirrors/dart2js_mirrors_test: Crash
-mirrors/deferred_type_test: RuntimeError
-mirrors/empty_test: Crash
-mirrors/enum_test: RuntimeError
-mirrors/equality_test: RuntimeError
 mirrors/function_type_mirror_test: RuntimeError
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError
 mirrors/generic_interface_test/01: RuntimeError
 mirrors/generic_interface_test/none: RuntimeError
-mirrors/generic_mixin_applications_test: RuntimeError
-mirrors/generic_mixin_test: RuntimeError
 mirrors/hot_get_field_test: RuntimeError
 mirrors/hot_set_field_test: RuntimeError
 mirrors/intercepted_object_test: RuntimeError
@@ -572,9 +526,6 @@ mirrors/reflected_type_generics_test/02: Pass
 
 # Deferred loading kernel issue 28335.
 [ $compiler == dartk || $compiler == dartkp ]
-mirrors/deferred_mirrors_metadata_test: CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/deferred_mirrors_update_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/library_enumeration_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kernel issue 28335.

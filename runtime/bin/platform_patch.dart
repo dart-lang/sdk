@@ -11,6 +11,8 @@ class _Platform {
   @patch
   static String _operatingSystem() native "Platform_OperatingSystem";
   @patch
+  static _operatingSystemVersion() native "Platform_OperatingSystemVersion";
+  @patch
   static _localHostname() native "Platform_LocalHostname";
   @patch
   static _executable() native "Platform_ExecutableName";

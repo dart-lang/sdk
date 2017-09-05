@@ -5,7 +5,7 @@ import "dart:core" as core;
 class C extends core::Object {
   field dynamic t;
   constructor foo(dynamic f) → void
-    : final dynamic #context = MakeVector(3), dynamic #t1 = #context[2] = f, self::C::t = MakeClosure<() → dynamic>(self::closure#C#foo#function, #context), super core::Object::•() {
+    : final dynamic #context = MakeVector(3), dynamic #t1 = #context[2] = f, dynamic #t2 = f = null, self::C::t = MakeClosure<() → dynamic>(self::closure#C#foo#function, #context), super core::Object::•() {
     core::print(1);
   }
 }

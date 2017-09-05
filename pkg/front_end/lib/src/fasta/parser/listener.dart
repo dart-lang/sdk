@@ -86,6 +86,9 @@ class Listener {
   /// Called before parsing a class or named mixin application.
   void beginClassOrNamedMixinApplication(Token token) {}
 
+  /// Handle the beginning of a class declaration.
+  /// [beginToken] may be the same as [name], or may point to modifiers
+  /// (or extraneous modifiers in the case of recovery) preceding [name].
   void beginClassDeclaration(Token beginToken, Token name) {}
 
   /// Handle the end of a class declaration.  Substructures:
@@ -372,6 +375,9 @@ class Listener {
     logEvent("MixinApplication");
   }
 
+  /// Handle the beginning of a named mixin application.
+  /// [beginToken] may be the same as [name], or may point to modifiers
+  /// (or extraneous modifiers in the case of recovery) preceding [name].
   void beginNamedMixinApplication(Token beginToken, Token name) {}
 
   /// Handle the end of a named mixin declaration.  Substructures:

@@ -130,6 +130,7 @@ abstract class MirrorsData {
   bool isLibraryRequiredByMirrorSystem(LibraryEntity element);
   bool isClassRequiredByMirrorSystem(ClassEntity element);
   bool isMemberRequiredByMirrorSystem(MemberEntity element);
+  bool isClassResolved(ClassEntity element);
 }
 
 abstract class MirrorsDataBuilder {

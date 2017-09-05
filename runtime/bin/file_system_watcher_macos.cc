@@ -17,6 +17,7 @@
 #include "bin/eventhandler.h"
 #include "bin/fdutils.h"
 #include "bin/file.h"
+#include "bin/namespace.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "platform/signal_blocker.h"
@@ -273,7 +274,8 @@ class FSEventsWatcher {
     for (size_t i = 0; i < num_events; i++) {
       char* path = reinterpret_cast<char**>(event_paths)[i];
       FSEvent event;
-      event.data.exists = File::GetType(path, false) != File::kDoesNotExist;
+      event.data.exists =
+          File::GetType(NULL, path, false) != File::kDoesNotExist;
       path += node->base_path_length();
       // If path is longer the base, skip next character ('/').
       if (path[0] != '\0') {
@@ -309,6 +311,7 @@ void FileSystemWatcher::Close(intptr_t id) {
 }
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
+                                      Namespace* namespc,
                                       const char* path,
                                       int events,
                                       bool recursive) {
@@ -413,6 +416,7 @@ intptr_t FileSystemWatcher::Init() {
 void FileSystemWatcher::Close(intptr_t id) {}
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
+                                      Namespace* namespc,
                                       const char* path,
                                       int events,
                                       bool recursive) {

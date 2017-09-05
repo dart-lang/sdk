@@ -96,6 +96,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   final NativeEmitter nativeEmitter;
 
+  // [ir.Let] and [ir.LocalInitializer] bindings.
   final Map<ir.VariableDeclaration, HInstruction> letBindings =
       <ir.VariableDeclaration, HInstruction>{};
 
@@ -462,23 +463,28 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// Maps the instance fields of a class to their SSA values.
   Map<FieldEntity, HInstruction> _collectFieldValues(ir.Class clazz) {
     Map<FieldEntity, HInstruction> fieldValues = <FieldEntity, HInstruction>{};
-
-    for (ir.Field node in clazz.fields) {
-      if (node.isInstanceMember) {
-        FieldEntity field = _elementMap.getField(node);
-        if (node.initializer == null) {
-          fieldValues[field] = graph.addConstantNull(closedWorld);
-        } else {
-          // Gotta update the resolvedAst when we're looking at field values
-          // outside the constructor.
-          inlinedFrom(field, () {
-            node.initializer.accept(this);
-            fieldValues[field] = pop();
-          });
-        }
+    ClassEntity cls = _elementMap.getClass(clazz);
+    _worldBuilder.forEachInstanceField(cls, (_, FieldEntity field) {
+      MemberDefinition definition = _elementMap.getMemberDefinition(field);
+      ir.Field node;
+      switch (definition.kind) {
+        case MemberKind.regular:
+          node = definition.node;
+          break;
+        default:
+          failedAt(field, "Unexpected member definition $definition.");
       }
-    }
-
+      if (node.initializer == null) {
+        fieldValues[field] = graph.addConstantNull(closedWorld);
+      } else {
+        // Gotta update the current member when we're looking at field values
+        // outside the constructor.
+        inlinedFrom(field, () {
+          node.initializer.accept(this);
+          fieldValues[field] = pop();
+        });
+      }
+    });
     return fieldValues;
   }
 
@@ -494,7 +500,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
             'Expected ${localsMap.currentMember} '
             'but found ${_elementMap.getConstructor(constructor)}.'));
     constructorChain.add(constructor);
-
     var foundSuperOrRedirectCall = false;
     for (var initializer in constructor.initializers) {
       if (initializer is ir.FieldInitializer) {
@@ -511,7 +516,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _inlineRedirectingInitializer(
             initializer, constructorChain, fieldValues, constructor);
       } else if (initializer is ir.LocalInitializer) {
-        assert(false, 'ir.LocalInitializer not handled');
+        // LocalInitializer is like a let-expression that is in scope for the
+        // rest of the initializers.
+        ir.VariableDeclaration variable = initializer.variable;
+        assert(variable.isFinal);
+        variable.initializer.accept(this);
+        HInstruction value = pop();
+        // TODO(sra): Apply inferred type information.
+        letBindings[variable] = value;
       } else if (initializer is ir.InvalidInitializer) {
         assert(false, 'ir.InvalidInitializer not handled');
       }
@@ -624,12 +636,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (callerClass.mixedInType != null) {
       _bindSupertypeTypeParameters(callerClass.mixedInType);
     }
-
-    ir.Class cls = target.enclosingClass;
-
-    inlinedFrom(_elementMap.getConstructor(target), () {
-      fieldValues.addAll(_collectFieldValues(cls));
-    });
 
     _inlineSuperOrRedirectCommon(
         initializer, target, arguments, constructorChain, fieldValues, caller);
@@ -1926,6 +1932,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
       open(block);
       localsHandler = new LocalsHandler.from(savedLocals);
       buildSwitchCase(switchCase);
+      if (!isAborted() &&
+          switchCase == switchCases.last &&
+          !isDefaultCase(switchCase)) {
+        // If there is no default, we will add one later to avoid
+        // the critical edge. So we generate a break statement to make
+        // sure the last case does not fall through to the default case.
+        jumpHandler.generateBreak();
+      }
       statements.add(
           new HSubGraphBlockInformation(new SubGraph(block, lastOpenedBlock)));
     }

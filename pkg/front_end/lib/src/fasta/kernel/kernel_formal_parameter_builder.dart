@@ -5,7 +5,7 @@
 library fasta.kernel_formal_parameter_builder;
 
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelVariableDeclaration;
+    show ShadowVariableDeclaration;
 
 import '../modifier.dart' show finalMask;
 
@@ -21,7 +21,7 @@ import 'package:front_end/src/fasta/source/source_library_builder.dart'
 
 class KernelFormalParameterBuilder
     extends FormalParameterBuilder<KernelTypeBuilder> {
-  KernelVariableDeclaration declaration;
+  ShadowVariableDeclaration declaration;
   final int charOffset;
 
   KernelFormalParameterBuilder(
@@ -35,11 +35,11 @@ class KernelFormalParameterBuilder
       : super(metadata, modifiers, type, name, hasThis, compilationUnit,
             charOffset);
 
-  KernelVariableDeclaration get target => declaration;
+  ShadowVariableDeclaration get target => declaration;
 
-  KernelVariableDeclaration build(SourceLibraryBuilder library) {
+  ShadowVariableDeclaration build(SourceLibraryBuilder library) {
     if (declaration == null) {
-      declaration = new KernelVariableDeclaration(name, 0,
+      declaration = new ShadowVariableDeclaration(name, 0,
           type: type?.build(library),
           isFinal: isFinal,
           isConst: isConst,

@@ -8,7 +8,7 @@ class C extends core::Object {
     : final dynamic #context = MakeVector(4), this self::C::foo#redir(f, x, #context)
     ;
   constructor foo#redir(dynamic f, dynamic x, final dynamic #context) → void
-    : dynamic #t1 = #context[2] = f, dynamic #t2 = #context[3] = x, self::C::t = MakeClosure<() → dynamic>(self::closure#C#foo#function, #context), super core::Object::•() {
+    : dynamic #t1 = #context[2] = f, dynamic #t2 = f = null, dynamic #t3 = #context[3] = x, dynamic #t4 = x = null, self::C::t = MakeClosure<() → dynamic>(self::closure#C#foo#function, #context), super core::Object::•() {
     #context[3] = 1;
     core::print(#context[3]);
   }

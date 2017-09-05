@@ -12,9 +12,13 @@ class X extends core::Object {
 static method startIsolateMock(dynamic parentPort, dynamic entryPoint, dynamic args, dynamic message, dynamic isSpawnUri, dynamic controlPort, core::List<dynamic> capabilities) → void {
   final dynamic #context = MakeVector(7);
   #context[2] = entryPoint;
+  entryPoint = null;
   #context[3] = args;
+  args = null;
   #context[4] = message;
+  message = null;
   #context[5] = isSpawnUri;
+  isSpawnUri = null;
   if(!controlPort.==(null)) {
     controlPort.handler = MakeClosure<(dynamic) → dynamic>(self::closure#startIsolateMock#function, #context);
   }

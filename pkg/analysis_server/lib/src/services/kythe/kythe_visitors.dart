@@ -431,27 +431,9 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
 
   @override
   visitDeclaredIdentifier(DeclaredIdentifier node) {
-    // variable
-    var variableVName = addNodeAndFacts(schema.VARIABLE_KIND,
-        element: node.element,
+    _handleVariableDeclaration(node.element, node.identifier,
         subKind: schema.LOCAL_SUBKIND,
-        completeFact: schema.DEFINITION);
-
-    // anchor
-    addAnchorEdgesContainingEdge(
-        syntacticEntity: node.identifier,
-        edges: [
-          schema.DEFINES_BINDING_EDGE,
-        ],
-        target: variableVName,
-        enclosingTarget: _enclosingVName);
-
-    // type
-    addEdge(
-        variableVName,
-        schema.TYPED_EDGE,
-        _vNameFromType(
-            resolutionMap.elementDeclaredByDeclaredIdentifier(node).type));
+        type: resolutionMap.elementDeclaredByDeclaredIdentifier(node).type);
 
     // no children
   }
@@ -619,16 +601,8 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
 
     if (prefixIdentifier != null) {
       // variable
-      var variableVName = addNodeAndFacts(schema.VARIABLE_KIND,
-          element: prefixIdentifier.staticElement,
-          completeFact: schema.DEFINITION);
-
-      // anchor
-      addAnchorEdgesContainingEdge(
-          syntacticEntity: prefixIdentifier,
-          edges: [schema.DEFINES_BINDING_EDGE],
-          target: variableVName,
-          enclosingTarget: _enclosingVName);
+      _handleVariableDeclaration(
+          prefixIdentifier.staticElement, prefixIdentifier);
     }
 
     // visit children
@@ -865,31 +839,13 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
-    // level variable
     var isLocal = _enclosingVName != _enclosingClassVName &&
         _enclosingVName != _enclosingFileVName;
 
     // variable
-    var variableVName = addNodeAndFacts(schema.VARIABLE_KIND,
-        element: node.element,
+    _handleVariableDeclaration(node.element, node.name,
         subKind: isLocal ? schema.LOCAL_SUBKIND : schema.FIELD_SUBKIND,
-        completeFact: schema.DEFINITION);
-
-    // anchor
-    addAnchorEdgesContainingEdge(
-        syntacticEntity: node.name,
-        edges: [
-          schema.DEFINES_BINDING_EDGE,
-        ],
-        target: variableVName,
-        enclosingTarget: _enclosingVName);
-
-    // type
-    addEdge(
-        variableVName,
-        schema.TYPED_EDGE,
-        _vNameFromType(
-            resolutionMap.elementDeclaredByVariableDeclaration(node).type));
+        type: resolutionMap.elementDeclaredByVariableDeclaration(node).type);
 
     // visit children
     _safelyVisit(node.initializer);
@@ -1029,6 +985,28 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
     }
 
     // no children to visit
+  }
+
+  void _handleVariableDeclaration(
+      Element element, SyntacticEntity syntacticEntity,
+      {String subKind, DartType type}) {
+    // variable
+    var variableVName = addNodeAndFacts(schema.VARIABLE_KIND,
+        element: element, subKind: subKind, completeFact: schema.DEFINITION);
+
+    // anchor
+    addAnchorEdgesContainingEdge(
+        syntacticEntity: syntacticEntity,
+        edges: [
+          schema.DEFINES_BINDING_EDGE,
+        ],
+        target: variableVName,
+        enclosingTarget: _enclosingVName);
+
+    // type
+    if (type != null) {
+      addEdge(variableVName, schema.TYPED_EDGE, _vNameFromType(type));
+    }
   }
 
   /// Add a "ref/imports" edge from the passed [uriNode] location to the

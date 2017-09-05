@@ -39,6 +39,11 @@ main() {
 /// Tests marked with this annotation fail because of a Fasta problem.
 const fastaProblem = const Object();
 
+/// Tests marked with this annotation fail because they test features that
+/// were implemented in Analyzer, but are intentionally not included into
+/// the Dart 2.0 plan, so will not be implemented by Fasta.
+const notForDart2 = const Object();
+
 @reflectiveTest
 class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   static const DEBUG = false;
@@ -113,6 +118,7 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_class_constructor_field_formal_multiple_matching_fields() async {
     // Fasta does not generate the class.
     // main() with a fatal error is generated instead.
@@ -237,11 +243,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_topLevel_ifNull() async {
-    await super.test_const_topLevel_ifNull();
-  }
-
-  @failingTest
   @fastaProblem
   test_const_topLevel_super() async {
     // https://github.com/dart-lang/sdk/issues/30267
@@ -305,66 +306,31 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_defaultValue_refersToGenericClass_constructor() async {
-    await super.test_defaultValue_refersToGenericClass_constructor();
-  }
-
-  @failingTest
-  test_defaultValue_refersToGenericClass_constructor2() async {
-    await super.test_defaultValue_refersToGenericClass_constructor2();
-  }
-
-  @failingTest
-  test_defaultValue_refersToGenericClass_functionG() async {
-    await super.test_defaultValue_refersToGenericClass_functionG();
-  }
-
-  @failingTest
-  test_defaultValue_refersToGenericClass_methodG() async {
-    await super.test_defaultValue_refersToGenericClass_methodG();
-  }
-
-  @failingTest
-  test_defaultValue_refersToGenericClass_methodG_classG() async {
-    await super.test_defaultValue_refersToGenericClass_methodG_classG();
-  }
-
-  @failingTest
-  test_defaultValue_refersToGenericClass_methodNG() async {
-    await super.test_defaultValue_refersToGenericClass_methodNG();
-  }
-
-  @failingTest
-  test_error_extendsEnum() async {
-    await super.test_error_extendsEnum();
-  }
-
-  @failingTest
-  test_executable_parameter_type_typedef() async {
-    await super.test_executable_parameter_type_typedef();
-  }
-
-  @failingTest
+  @notForDart2
   test_export_configurations_useDefault() async {
     await super.test_export_configurations_useDefault();
   }
 
   @failingTest
+  @notForDart2
   test_export_configurations_useFirst() async {
     await super.test_export_configurations_useFirst();
   }
 
   @failingTest
+  @notForDart2
   test_export_configurations_useSecond() async {
     await super.test_export_configurations_useSecond();
   }
 
   @failingTest
+  @notForDart2
   test_exportImport_configurations_useDefault() async {
     await super.test_exportImport_configurations_useDefault();
   }
 
   @failingTest
+  @notForDart2
   test_exportImport_configurations_useFirst() async {
     await super.test_exportImport_configurations_useFirst();
   }
@@ -380,11 +346,13 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @notForDart2
   test_import_configurations_useDefault() async {
     await super.test_import_configurations_useDefault();
   }
 
   @failingTest
+  @notForDart2
   test_import_configurations_useFirst() async {
     await super.test_import_configurations_useFirst();
   }
@@ -397,11 +365,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_import_invalidUri_metadata() async {
     await super.test_import_invalidUri_metadata();
-  }
-
-  @failingTest
-  test_inferred_type_refers_to_function_typed_param_of_typedef() async {
-    await super.test_inferred_type_refers_to_function_typed_param_of_typedef();
   }
 
   @failingTest

@@ -10,7 +10,7 @@ class B {
 }
 
 abstract class I<T> {
-  void f(T x);
+  void f(T /*@checkInterface=semiTyped*/ x);
 }
 
 class /*@forwardingStub=void f(semiSafe int x)*/ C extends B implements I<int> {
@@ -21,7 +21,7 @@ void g1(C c) {
 }
 
 void g2(I<num> i) {
-  i.f /*@checkCall=interface(semiTyped:0)*/ (1.5);
+  i.f(1.5);
 }
 
 void test() {

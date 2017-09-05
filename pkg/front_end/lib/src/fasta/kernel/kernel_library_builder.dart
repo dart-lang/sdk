@@ -93,6 +93,17 @@ class KernelLibraryBuilder
   final List<KernelTypeVariableBuilder> boundlessTypeVariables =
       <KernelTypeVariableBuilder>[];
 
+  /// Exports that can't be serialized.
+  ///
+  /// The key is the name of the exported member.
+  ///
+  /// If the name is `dynamic` or `void`, this library reexports the
+  /// corresponding type from `dart:core`, and the value is null.
+  ///
+  /// Otherwise, this represents an error (an ambiguous export). In this case,
+  /// the error message is the corresponding value in the map.
+  Map<String, String> unserializableExports;
+
   KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.isPatch)
       : library = new Library(uri, fileUri: relativizeUri(fileUri)),
         super(loader, fileUri);
@@ -784,9 +795,9 @@ class KernelLibraryBuilder
     library.name = name;
     library.procedures.sort(compareProcedures);
 
-    if (additionalExports != null) {
+    if (unserializableExports != null) {
       library.addMember(new Field(new Name("_exports#", library),
-          initializer: new StringLiteral(JSON.encode(additionalExports)),
+          initializer: new StringLiteral(JSON.encode(unserializableExports)),
           isStatic: true,
           isConst: true));
     }
@@ -960,5 +971,29 @@ class KernelLibraryBuilder
     super.includePart(part);
     nativeMethods.addAll(part.nativeMethods);
     boundlessTypeVariables.addAll(part.boundlessTypeVariables);
+  }
+
+  @override
+  void addImportsToScope() {
+    super.addImportsToScope();
+    exportScope.forEach((String name, Builder member) {
+      if (member.parent != this) {
+        switch (name) {
+          case "dynamic":
+          case "void":
+            unserializableExports ??= <String, String>{};
+            unserializableExports[name] = null;
+            break;
+
+          default:
+            if (member is InvalidTypeBuilder) {
+              unserializableExports ??= <String, String>{};
+              unserializableExports[name] = member.message.message;
+            } else {
+              library.additionalExports.add(member.target.reference);
+            }
+        }
+      }
+    });
   }
 }

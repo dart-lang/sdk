@@ -184,8 +184,6 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
       // [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
 
       assert(label != null);
-      // TODO(het): change the graph 'addConstantXXX' to take a ConstantSystem
-      // instead of a Compiler.
       HInstruction value = builder.graph
           .addConstantInt(targetIndexMap[label.target], builder.closedWorld);
       builder.localsHandler.updateLocal(target, value);

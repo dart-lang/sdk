@@ -8,6 +8,7 @@ class _Platform {
   external static int _numberOfProcessors();
   external static String _pathSeparator();
   external static String _operatingSystem();
+  external static _operatingSystemVersion();
   external static _localHostname();
   external static _executable();
   external static _resolvedExecutable();
@@ -61,13 +62,24 @@ class _Platform {
   static String get operatingSystem => _operatingSystem();
   static Uri get script => _script();
 
+  static String _cachedOSVersion;
+  static String get operatingSystemVersion {
+    if (_cachedOSVersion == null) {
+      var result = _operatingSystemVersion();
+      if (result is OSError) {
+        throw result;
+      }
+      _cachedOSVersion = result;
+    }
+    return _cachedOSVersion;
+  }
+
   static String get localHostname {
     var result = _localHostname();
     if (result is OSError) {
       throw result;
-    } else {
-      return result;
     }
+    return result;
   }
 
   static List<String> get executableArguments => _executableArguments();

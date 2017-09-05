@@ -12,7 +12,9 @@
 #include "vm/ast_transformer.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
-#include "vm/compiler.h"
+#include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/frontend/kernel_binary_flowgraph.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
@@ -21,14 +23,12 @@
 #include "vm/hash_table.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
-#include "vm/kernel_binary_flowgraph.h"
 #include "vm/longjump.h"
 #include "vm/native_arguments.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
-#include "vm/precompiler.h"
 #include "vm/regexp_assembler.h"
 #include "vm/resolver.h"
 #include "vm/safepoint.h"
@@ -3736,6 +3736,12 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
          func.end_token_pos() == end_token_pos);
   func.set_end_token_pos(end_token_pos);
   SequenceNode* body = CloseBlock();
+  if (FLAG_reify_generic_functions && func.IsGeneric() &&
+      !generated_body_closure.IsNull()) {
+    LocalVariable* existing_var = body->scope()->LookupVariable(
+        Symbols::FunctionTypeArgumentsVar(), false);
+    ASSERT((existing_var != NULL) && existing_var->is_captured());
+  }
   if (func.IsAsyncFunction()) {
     body = CloseAsyncFunction(generated_body_closure, body);
     generated_body_closure.set_end_token_pos(end_token_pos);

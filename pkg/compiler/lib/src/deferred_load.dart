@@ -133,7 +133,7 @@ class DeferredLoadTask extends CompilerTask {
   final Map<ImportElement, String> _importDeferName = <ImportElement, String>{};
 
   /// A mapping from elements and constants to their output unit. Query this via
-  /// [outputUnitForElement]
+  /// [outputUnitForEntity]
   final Map<Entity, ImportSet> _elementToSet = new Map<Entity, ImportSet>();
 
   /// A mapping from constants to their output unit. Query this via
@@ -165,7 +165,7 @@ class DeferredLoadTask extends CompilerTask {
   DiagnosticReporter get reporter => compiler.reporter;
 
   /// Returns the [OutputUnit] where [element] belongs.
-  OutputUnit outputUnitForElement(Entity entity) {
+  OutputUnit outputUnitForEntity(Entity entity) {
     // TODO(johnniwinther): Support use of entities by splitting maps by
     // entity kind.
     if (!isProgramSplit) return mainOutputUnit;
@@ -188,12 +188,12 @@ class DeferredLoadTask extends CompilerTask {
 
   /// Returns the [OutputUnit] where [element] belongs.
   OutputUnit outputUnitForClass(ClassEntity element) {
-    return outputUnitForElement(element);
+    return outputUnitForEntity(element);
   }
 
   /// Returns the [OutputUnit] where [element] belongs.
   OutputUnit outputUnitForMember(MemberEntity element) {
-    return outputUnitForElement(element);
+    return outputUnitForEntity(element);
   }
 
   /// Direct access to the output-unit to element relation used for testing.
@@ -211,11 +211,11 @@ class DeferredLoadTask extends CompilerTask {
   Iterable<ConstantValue> get constantsForTesting => _constantToSet.keys;
 
   bool isDeferred(Entity element) {
-    return outputUnitForElement(element) != mainOutputUnit;
+    return outputUnitForEntity(element) != mainOutputUnit;
   }
 
   bool isDeferredClass(ClassEntity element) {
-    return outputUnitForElement(element) != mainOutputUnit;
+    return outputUnitForEntity(element) != mainOutputUnit;
   }
 
   /// Returns the unique name for the deferred import of [prefix].
@@ -239,8 +239,8 @@ class DeferredLoadTask extends CompilerTask {
   /// import a library `C`, then even though elements from `A` and `C` end up in
   /// different output units, there is a non-deferred path between `A` and `C`.
   bool hasOnlyNonDeferredImportPaths(Entity from, Entity to) {
-    OutputUnit outputUnitFrom = outputUnitForElement(from);
-    OutputUnit outputUnitTo = outputUnitForElement(to);
+    OutputUnit outputUnitFrom = outputUnitForEntity(from);
+    OutputUnit outputUnitTo = outputUnitForEntity(to);
     if (outputUnitTo == mainOutputUnit) return true;
     if (outputUnitFrom == mainOutputUnit) return false;
     return outputUnitTo._imports.containsAll(outputUnitFrom._imports);

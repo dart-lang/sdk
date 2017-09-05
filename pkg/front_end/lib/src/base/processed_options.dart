@@ -613,9 +613,14 @@ class _CompilationMessage implements CompilationMessage {
 
   String get dart2jsCode => _original.code.dart2jsCode;
 
-  SourceSpan get span =>
-      new SourceLocation(_original.charOffset, sourceUrl: _original.uri)
-          .pointSpan();
+  SourceSpan get span {
+    if (_original.charOffset == -1) {
+      if (_original.uri == null) return null;
+      return new SourceLocation(0, sourceUrl: _original.uri).pointSpan();
+    }
+    return new SourceLocation(_original.charOffset, sourceUrl: _original.uri)
+        .pointSpan();
+  }
 
   _CompilationMessage(this._original, this.severity);
 

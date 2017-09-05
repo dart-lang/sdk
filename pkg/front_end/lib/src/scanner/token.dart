@@ -138,7 +138,7 @@ class DocumentationCommentToken extends CommentToken {
  */
 class Keyword extends TokenType {
   static const Keyword ABSTRACT =
-      const Keyword("abstract", "ABSTRACT", isBuiltIn: true);
+      const Keyword("abstract", "ABSTRACT", isBuiltIn: true, isModifier: true);
 
   static const Keyword AS = const Keyword("as", "AS",
       precedence: RELATIONAL_PRECEDENCE, isBuiltIn: true);
@@ -155,9 +155,11 @@ class Keyword extends TokenType {
 
   static const Keyword CATCH = const Keyword("catch", "CATCH");
 
-  static const Keyword CLASS = const Keyword("class", "CLASS");
+  static const Keyword CLASS =
+      const Keyword("class", "CLASS", isTopLevelKeyword: true);
 
-  static const Keyword CONST = const Keyword("const", "CONST");
+  static const Keyword CONST =
+      const Keyword("const", "CONST", isModifier: true);
 
   static const Keyword CONTINUE = const Keyword("continue", "CONTINUE");
 
@@ -176,10 +178,11 @@ class Keyword extends TokenType {
 
   static const Keyword ELSE = const Keyword("else", "ELSE");
 
-  static const Keyword ENUM = const Keyword("enum", "ENUM");
+  static const Keyword ENUM =
+      const Keyword("enum", "ENUM", isTopLevelKeyword: true);
 
-  static const Keyword EXPORT =
-      const Keyword("export", "EXPORT", isBuiltIn: true);
+  static const Keyword EXPORT = const Keyword("export", "EXPORT",
+      isBuiltIn: true, isTopLevelKeyword: true);
 
   static const Keyword EXTENDS = const Keyword("extends", "EXTENDS");
 
@@ -191,7 +194,8 @@ class Keyword extends TokenType {
 
   static const Keyword FALSE = const Keyword("false", "FALSE");
 
-  static const Keyword FINAL = const Keyword("final", "FINAL");
+  static const Keyword FINAL =
+      const Keyword("final", "FINAL", isModifier: true);
 
   static const Keyword FINALLY = const Keyword("finally", "FINALLY");
 
@@ -209,16 +213,16 @@ class Keyword extends TokenType {
   static const Keyword IMPLEMENTS =
       const Keyword("implements", "IMPLEMENTS", isBuiltIn: true);
 
-  static const Keyword IMPORT =
-      const Keyword("import", "IMPORT", isBuiltIn: true);
+  static const Keyword IMPORT = const Keyword("import", "IMPORT",
+      isBuiltIn: true, isTopLevelKeyword: true);
 
   static const Keyword IN = const Keyword("in", "IN");
 
   static const Keyword IS =
       const Keyword("is", "IS", precedence: RELATIONAL_PRECEDENCE);
 
-  static const Keyword LIBRARY =
-      const Keyword("library", "LIBRARY", isBuiltIn: true);
+  static const Keyword LIBRARY = const Keyword("library", "LIBRARY",
+      isBuiltIn: true, isTopLevelKeyword: true);
 
   static const Keyword NATIVE =
       const Keyword("native", "NATIVE", isPseudo: true);
@@ -234,7 +238,8 @@ class Keyword extends TokenType {
   static const Keyword OPERATOR =
       const Keyword("operator", "OPERATOR", isBuiltIn: true);
 
-  static const Keyword PART = const Keyword("part", "PART", isBuiltIn: true);
+  static const Keyword PART =
+      const Keyword("part", "PART", isBuiltIn: true, isTopLevelKeyword: true);
 
   static const Keyword PATCH = const Keyword("patch", "PATCH", isPseudo: true);
 
@@ -250,7 +255,7 @@ class Keyword extends TokenType {
       const Keyword("source", "SOURCE", isPseudo: true);
 
   static const Keyword STATIC =
-      const Keyword("static", "STATIC", isBuiltIn: true);
+      const Keyword("static", "STATIC", isBuiltIn: true, isModifier: true);
 
   static const Keyword SUPER = const Keyword("super", "SUPER");
 
@@ -266,8 +271,8 @@ class Keyword extends TokenType {
 
   static const Keyword TRY = const Keyword("try", "TRY");
 
-  static const Keyword TYPEDEF =
-      const Keyword("typedef", "TYPEDEF", isBuiltIn: true);
+  static const Keyword TYPEDEF = const Keyword("typedef", "TYPEDEF",
+      isBuiltIn: true, isTopLevelKeyword: true);
 
   static const Keyword VAR = const Keyword("var", "VAR");
 
@@ -363,9 +368,12 @@ class Keyword extends TokenType {
    */
   const Keyword(String lexeme, String name,
       {this.isBuiltIn: false,
+      bool isModifier: false,
       this.isPseudo: false,
+      bool isTopLevelKeyword: false,
       int precedence: NO_PRECEDENCE})
-      : super(lexeme, name, precedence, KEYWORD_TOKEN);
+      : super(lexeme, name, precedence, KEYWORD_TOKEN,
+            isModifier: isModifier, isTopLevelKeyword: isTopLevelKeyword);
 
   bool get isBuiltInOrPseudo => isBuiltIn || isPseudo;
 
@@ -490,10 +498,16 @@ class SimpleToken implements Token {
   bool get isIdentifier => false;
 
   @override
+  bool get isModifier => type.isModifier;
+
+  @override
   bool get isOperator => type.isOperator;
 
   @override
   bool get isSynthetic => length == 0;
+
+  @override
+  bool get isTopLevelKeyword => type.isTopLevelKeyword;
 
   @override
   bool get isUserDefinableOperator => type.isUserDefinableOperator;
@@ -722,6 +736,11 @@ abstract class Token implements SyntacticEntity {
   bool get isIdentifier;
 
   /**
+   * Return `true` if this token is a modifier such as `abstract` or `const`.
+   */
+  bool get isModifier;
+
+  /**
    * Return `true` if this token represents an operator.
    */
   bool get isOperator;
@@ -732,6 +751,12 @@ abstract class Token implements SyntacticEntity {
    * in the code.
    */
   bool get isSynthetic;
+
+  /**
+   * Return `true` if this token is a keyword starting a top level declaration
+   * such as `class`, `enum`, `import`, etc.
+   */
+  bool get isTopLevelKeyword;
 
   /**
    * Return `true` if this token represents an operator that can be defined by
@@ -1444,9 +1469,21 @@ class TokenType {
   final int kind;
 
   /**
+   * `true` if this token type represents a modifier
+   * such as `abstract` or `const`.
+   */
+  final bool isModifier;
+
+  /**
    * `true` if this token type represents an operator.
    */
   final bool isOperator;
+
+  /**
+   * `true` if this token type represents a keyword starting a top level
+   * declaration such as `class`, `enum`, `import`, etc.
+   */
+  final bool isTopLevelKeyword;
 
   /**
    * `true` if this token type represents an operator
@@ -1477,7 +1514,9 @@ class TokenType {
   final String stringValue;
 
   const TokenType(this.lexeme, this.name, this.precedence, this.kind,
-      {this.isOperator: false,
+      {this.isModifier: false,
+      this.isOperator: false,
+      this.isTopLevelKeyword: false,
       this.isUserDefinableOperator: false,
       String stringValue: 'unspecified'})
       : this.stringValue = stringValue == 'unspecified' ? lexeme : stringValue;

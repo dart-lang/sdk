@@ -36,9 +36,7 @@ final TEST_SUITE_DIRECTORIES = [
   new Path('tests/compiler/dart2js'),
   new Path('tests/compiler/dart2js_extra'),
   new Path('tests/compiler/dart2js_native'),
-  new Path('tests/corelib'),
   new Path('tests/corelib_2'),
-  new Path('tests/corelib_strong'),
   new Path('tests/html'),
   new Path('tests/isolate'),
   new Path('tests/kernel'),
@@ -231,6 +229,10 @@ Future testConfigurations(List<Configuration> configurations) async {
 
   if (firstConf.writeTestOutcomeLog) {
     eventListener.add(new TestOutcomeLogWriter());
+  }
+
+  if (firstConf.writeResultLog) {
+    eventListener.add(new ResultLogWriter());
   }
 
   if (firstConf.copyCoreDumps) {

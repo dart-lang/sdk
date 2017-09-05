@@ -5,6 +5,7 @@ import "dart:core" as core;
 static method doit(core::int x) → void {
   final dynamic #context = MakeVector(3);
   #context[2] = x;
+  x = null;
   final core::int max = 10;
   final core::double expectedSum = max.-(1).*(max)./(2);
   core::int counter = 0;

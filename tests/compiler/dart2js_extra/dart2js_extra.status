@@ -168,10 +168,7 @@ js_dispatch_property_test: Crash # Issue 27394
 regress/4562_test/01: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-10216a_test: Crash
-10216b_test: Crash
 16400_test: Crash
-17856_test: Crash
 19191_test: Crash
 21666_test: Crash
 22868_test: Crash
@@ -179,19 +176,14 @@ regress/4562_test/01: Crash # Issue 27394
 23404_test: RuntimeError
 23432_test: Crash
 23432b_test: Crash # type 'KMethod' is not a subtype of type 'MemberElement' of 'member' where
-23828_test: Crash
-assert_with_message_test: Crash
 async_stacktrace_test: Crash
-big_allocation_expression_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 bound_closure_interceptor_methods_test: Crash
 bound_closure_interceptor_type_test: Crash
 break_test: Crash
+closure4_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
 closure4_test: RuntimeError
 closure_capture2_test: RuntimeError
-closure_capture3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Closure.nestedClosure#)) for j:closure_call(Closure_nestedClosure_closure.call).
 closure_capture4_test: RuntimeError
-closure_capture5_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(closure4#g) is stored in a closure field.
-closure_capture_test: RuntimeError
 closure_type_reflection2_test: Crash
 closure_type_reflection_test: Crash
 code_motion_exception_test: Crash
@@ -222,13 +214,9 @@ deferred_fail_and_retry_worker_test: CompileTimeError
 deferred_inheritance_test: CompileTimeError
 deferred_split_test: CompileTimeError
 dummy_compiler_test: CompileTimeError
-first_class_types_hashcode_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 for_in_test: Crash
 hash_code_test: Crash
-if_null2_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-if_null3_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
 if_null_test: Crash
-inference_nsm_mirrors_test: Crash
 inference_super_set_call_test: RuntimeError
 interceptor_named_arguments_test: Crash
 invalid_annotation2_test/none: Crash
@@ -250,7 +238,6 @@ lookup_map/reachable_data2_test: Crash
 lookup_map/reachable_data_test: Crash
 lookup_map/subclass_lookup_map_test: Crash
 many_constants_test: Crash
-many_fields_test: Crash
 mirror_invalid_field_access2_test: Crash
 mirror_invalid_field_access3_test: Crash
 mirror_invalid_field_access4_test: Crash
@@ -273,7 +260,6 @@ mirrors_used_warning_test/minif: Crash
 mirrors_used_warning_test/none: Crash
 no_such_method_mirrors_test: Crash
 no_such_method_test: Crash
-optional_parameter_test: Crash
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
 private_symbol_literal_test/03: MissingCompileTimeError
@@ -286,22 +272,22 @@ regress/4562_test/none: CompileTimeError
 regress/4639_test: Crash
 string_interpolation_dynamic_test: RuntimeError
 string_interpolation_test: RuntimeError
-super_constructor1_test: Crash
 switch_test/none: Crash
 timer_test: Crash
 truncation_errors_test: Crash
 type_argument_factory_crash_test: Crash
 type_argument_factory_nocrash_test: Crash
 type_constant_switch_test/01: MissingCompileTimeError
-type_error_message_test: Crash
+23432_test: RuntimeError
+code_motion_exception_test: RuntimeError
+no_such_method_mirrors_test: RuntimeError
+regress/4639_test: RuntimeError
+truncation_errors_test: RuntimeError
 unconditional_dartio_import_test: CompileTimeError
-useful_error_message_1_test: Crash
+useful_error_message_1_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-10216a_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
-10216b_test: Crash # Assertion failure: Super constructor for k:constructor(B.) not found.
 16400_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-17856_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 19191_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
 21666_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 22868_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
@@ -309,18 +295,13 @@ useful_error_message_1_test: Crash
 23404_test: RuntimeError
 23432_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
 23432b_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
-23828_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
-assert_with_message_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 async_stacktrace_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 bound_closure_interceptor_methods_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 bound_closure_interceptor_type_test: Crash # NoSuchMethodError: The getter 'classIndex' was called on null.
 break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+closure4_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
 closure4_test: RuntimeError
-closure_capture2_test: RuntimeError
-closure_capture3_test: Crash # Assertion failure: Cannot find value local(Closure_nestedClosure_closure.call#f) in (local(Closure.nestedClosure#)) for j:closure_call(Closure_nestedClosure_closure.call).
 closure_capture4_test: RuntimeError
-closure_capture5_test: RuntimeError
-closure_capture_test: RuntimeError
 closure_type_reflection2_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 closure_type_reflection_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 code_motion_exception_test: Crash
@@ -355,7 +336,6 @@ dummy_compiler_test: CompileTimeError
 for_in_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 hash_code_test: Crash # UnimplementedError: Unexpected constant expression new #lib1::Hasher::•().hash (KernelPropertyGet)
 if_null_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-inference_nsm_mirrors_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
 inference_super_set_call_test: RuntimeError
 interceptor_named_arguments_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 invalid_annotation2_test/none: Crash # NoSuchMethodError: Class 'DynamicType' has no instance getter 'element'.
@@ -377,7 +357,6 @@ lookup_map/reachable_data2_test: Crash # NoSuchMethodError: Class 'KField' has n
 lookup_map/reachable_data_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
 lookup_map/subclass_lookup_map_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
 many_constants_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
-many_fields_test: Crash # NoSuchMethodError: The getter 'usedBy' was called on null.
 mirror_invalid_field_access2_test: Crash # Assertion failure: Cannot find value local(main_closure.call#mirror) in (local(main#)) for j:closure_call(main_closure.call).
 mirror_invalid_field_access3_test: Crash # Assertion failure: Cannot find value local(main_closure.call#mirror) in (local(main#)) for j:closure_call(main_closure.call).
 mirror_invalid_field_access4_test: Crash # Assertion failure: Cannot find value local(main_closure.call#mirror) in (local(main#)) for j:closure_call(main_closure.call).
@@ -400,7 +379,6 @@ mirrors_used_warning_test/minif: Crash # NoSuchMethodError: The getter 'memberIn
 mirrors_used_warning_test/none: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 no_such_method_mirrors_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
 no_such_method_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
-optional_parameter_test: Crash # NoSuchMethodError: Class 'KMethod' has no instance getter 'memberContext'.
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
 private_symbol_literal_test/03: MissingCompileTimeError
@@ -414,7 +392,6 @@ regress/4639_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was ca
 runtime_type_test: Crash
 string_interpolation_dynamic_test: RuntimeError
 string_interpolation_test: RuntimeError
-super_constructor1_test: Crash # Assertion failure: Cannot find value local(C.#null) in (local(C.#i)) for j:constructor(C.).
 switch_test/none: Crash # UnimplementedError: KernelToLocalsMapImpl.getJumpTargetForSwitchCase
 timer_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 to_string_test: Crash
@@ -422,7 +399,10 @@ truncation_errors_test: Crash # Assertion failure: Cannot find value local(main_
 type_argument_factory_crash_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 type_argument_factory_nocrash_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 type_constant_switch_test/01: MissingCompileTimeError
-type_error_message_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+23432_test: RuntimeError
+no_such_method_mirrors_test: RuntimeError
+regress/4639_test: RuntimeError
+truncation_errors_test: RuntimeError
 unconditional_dartio_import_test: CompileTimeError
-useful_error_message_1_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
+useful_error_message_1_test: RuntimeError
 

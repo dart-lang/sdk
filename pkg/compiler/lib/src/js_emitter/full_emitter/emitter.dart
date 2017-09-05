@@ -1074,8 +1074,8 @@ class Emitter extends js_emitter.EmitterBase {
       initializer = descriptor.toObjectInitializer();
     }
 
-    compiler.dumpInfoTask.registerElementAst(library, metadata);
-    compiler.dumpInfoTask.registerElementAst(library, initializer);
+    compiler.dumpInfoTask.registerEntityAst(library, metadata);
+    compiler.dumpInfoTask.registerEntityAst(library, initializer);
 
     List<jsAst.Expression> parts = <jsAst.Expression>[];
     parts
