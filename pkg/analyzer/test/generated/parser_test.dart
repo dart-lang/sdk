@@ -6368,7 +6368,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parsePrimaryExpression_super() {
-    Expression expression = parsePrimaryExpression('super.x');
+    Expression expression = parseExpression('super.x');
     expect(expression, isNotNull);
     assertNoErrors();
     var propertyAccess = expression as PropertyAccess;

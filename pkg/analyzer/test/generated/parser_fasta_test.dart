@@ -3100,6 +3100,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void
       test_parseAssignableExpression_expression_args_dot_typeArgumentComments() {
+    // TODO(brianwilkerson) Does not inject generic type arguments following a
+    // function-valued expression.
     super
         .test_parseAssignableExpression_expression_args_dot_typeArgumentComments();
   }
@@ -3107,78 +3109,82 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseAssignableExpression_expression_args_dot_typeArguments() {
+    // TODO(brianwilkerson) Does not parse generic type arguments following a
+    // function-valued expression.
     super.test_parseAssignableExpression_expression_args_dot_typeArguments();
   }
 
   @override
   @failingTest
   void test_parseCascadeSection_ia_typeArgumentComments() {
+    // TODO(brianwilkerson) Does not inject generic type arguments following an
+    // index expression.
     super.test_parseCascadeSection_ia_typeArgumentComments();
   }
 
   @override
   @failingTest
   void test_parseCascadeSection_ia_typeArguments() {
+    // TODO(brianwilkerson) Does not parse generic type arguments following an
+    // index expression.
     super.test_parseCascadeSection_ia_typeArguments();
   }
 
   @override
   @failingTest
   void test_parseCascadeSection_paa_typeArgumentComments() {
+    // TODO(brianwilkerson) Does not inject generic type arguments following a
+    // function-valued expression.
     super.test_parseCascadeSection_paa_typeArgumentComments();
   }
 
   @override
   @failingTest
   void test_parseCascadeSection_paa_typeArguments() {
+    // TODO(brianwilkerson) Does not parse generic type arguments following a
+    // function-valued expression.
     super.test_parseCascadeSection_paa_typeArguments();
   }
 
   @override
   @failingTest
   void test_parseCascadeSection_paapaa_typeArgumentComments() {
+    // TODO(brianwilkerson) Does not inject generic type arguments following a
+    // function-valued expression.
     super.test_parseCascadeSection_paapaa_typeArgumentComments();
   }
 
   @override
   @failingTest
   void test_parseCascadeSection_paapaa_typeArguments() {
+    // TODO(brianwilkerson) Does not parse generic type arguments following a
+    // function-valued expression.
     super.test_parseCascadeSection_paapaa_typeArguments();
   }
 
   @override
   @failingTest
-  void test_parseExpression_assign_compound() {
-    super.test_parseExpression_assign_compound();
-  }
-
-  @override
-  @failingTest
   void test_parseInstanceCreationExpression_type_named_typeArgumentComments() {
+    // TODO(brianwilkerson) Does not inject generic type arguments.
     super
         .test_parseInstanceCreationExpression_type_named_typeArgumentComments();
   }
 
   @override
-  void test_parseListLiteral_empty_oneToken_withComment() {
-    super.test_parseListLiteral_empty_oneToken_withComment();
-  }
-
-  @override
-  @failingTest
-  void test_parsePrimaryExpression_super() {
-    super.test_parsePrimaryExpression_super();
-  }
-
-  @override
   @failingTest
   void test_parseUnaryExpression_decrement_super() {
+    // TODO(brianwilkerson) Does not recover.
+    // Expected: TokenType:<MINUS>
+    //   Actual: TokenType:<MINUS_MINUS>
     super.test_parseUnaryExpression_decrement_super();
   }
 
   @override
   @failingTest
   void test_parseUnaryExpression_decrement_super_withComment() {
+    // TODO(brianwilkerson) Does not recover.
+    // Expected: TokenType:<MINUS>
+    //   Actual: TokenType:<MINUS_MINUS>
     super.test_parseUnaryExpression_decrement_super_withComment();
   }
 }
@@ -3208,10 +3214,7 @@ class FastaParserTestCase extends Object
 
   @override
   set enableLazyAssignmentOperators(bool value) {
-    // TODO: implement enableLazyAssignmentOperators
-    if (value == true) {
-      throw new UnimplementedError();
-    }
+    // Lazy assignment operators are always enabled
   }
 
   @override
