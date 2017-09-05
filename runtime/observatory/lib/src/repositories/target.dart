@@ -117,7 +117,7 @@ class TargetRepository implements M.TargetRepository {
     final Uri wsAddress = new Uri(
       scheme: 'ws',
       host: host ?? serverAddress.host,
-      port: int.parse(port ?? '', onError: (_) => null),
+      port: int.parse(port ?? '', onError: (_) => serverAddress.port),
       path: '/ws',
     );
     return wsAddress.toString();
