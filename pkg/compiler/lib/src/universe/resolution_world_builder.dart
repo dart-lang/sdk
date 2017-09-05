@@ -319,6 +319,8 @@ abstract class ResolutionWorldBuilderBase
   final Set<FieldEntity> fieldSetters = new Set<FieldEntity>();
   final Set<DartType> isChecks = new Set<DartType>();
 
+  _ClassEnsurer _classEnsurer;
+
   /// Set of all closures in the program. Used by the mirror tracking system
   /// to find all live closure instances.
   final Set<Local> localFunctions = new Set<Local>();
@@ -392,7 +394,9 @@ abstract class ResolutionWorldBuilderBase
       this._backendUsageBuilder,
       this._rtiNeedBuilder,
       this._nativeResolutionEnqueuer,
-      this.selectorConstraintsStrategy);
+      this.selectorConstraintsStrategy) {
+    _classEnsurer = new _ClassEnsurer(this);
+  }
 
   Iterable<ClassEntity> get processedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls].isInstantiated);
@@ -944,6 +948,22 @@ abstract class ResolutionWorldBuilderBase
     // variables to the super constructor.
     forEachInstantiatedClass(addSubtypes);
 
+    instantiatedTypes.forEach((type) {
+      var callType = _dartTypes.getCallType(type);
+      if (callType != null) {
+        _classEnsurer.ensureClassesInType(callType);
+      }
+    });
+    localFunctions.forEach((function) {
+      _classEnsurer.ensureClassesInType(
+          _elementEnvironment.getLocalFunctionType(function));
+    });
+    isChecks.forEach(_classEnsurer.ensureClassesInType);
+    closurizedMembers.forEach((function) {
+      _classEnsurer
+          .ensureClassesInType(_elementEnvironment.getFunctionType(function));
+    });
+
     _classHierarchyNodes.keys.toList().forEach(_ensureClassSet);
 
     return typesImplementedBySubclasses;
@@ -1028,5 +1048,56 @@ abstract class KernelResolutionWorldBuilderBase
   @override
   void registerClass(ClassEntity cls) {
     throw new UnimplementedError('KernelResolutionWorldBuilder.registerClass');
+  }
+}
+
+// TODO(het): Make this have a type of BaseResolutionDartTypeVisitor<void, Null>
+// TODO(het): This is a BaseResolutionDartTypeVisitor because in the element
+//     model, it may pass a ResolutionTypedefType instead of a TypedefType,
+//     which will crash because ResolutionTypedefType.accept expects a
+//     ResolutionDartTypeVisitor. Switch to normal DartTypeVisitor when we
+//     switch fully to the entity model.
+class _ClassEnsurer extends BaseResolutionDartTypeVisitor<dynamic, Null> {
+  final ResolutionWorldBuilderBase worldBuilder;
+
+  _ClassEnsurer(this.worldBuilder);
+
+  void ensureClassesInType(DartType type) {
+    type.accept(this, null);
+  }
+
+  @override
+  visitType(DartType type, _) {}
+
+  @override
+  visitFunctionType(FunctionType type, _) {
+    type.returnType.accept(this, null);
+    type.parameterTypes.forEach((t) {
+      t.accept(this, null);
+    });
+    type.optionalParameterTypes.forEach((t) {
+      t.accept(this, null);
+    });
+    type.namedParameterTypes.forEach((t) {
+      t.accept(this, null);
+    });
+  }
+
+  @override
+  visitInterfaceType(InterfaceType type, _) {
+    worldBuilder._ensureClassSet(type.element);
+    type.typeArguments.forEach((t) {
+      t.accept(this, null);
+    });
+  }
+
+  @override
+  visitTypedefType(TypedefType type, _) {
+    type.typeArguments.forEach((t) {
+      t.accept(this, null);
+    });
+    var functionType =
+        worldBuilder._elementEnvironment.getFunctionTypeOfTypedef(type.element);
+    functionType.accept(this, null);
   }
 }
