@@ -16,7 +16,6 @@
 #include <sys/time.h>        // NOLINT
 #include <unistd.h>          // NOLINT
 #if HOST_OS_IOS
-#include <sys/sysctl.h>  // NOLINT
 #include <syslog.h>      // NOLINT
 #endif
 
@@ -82,26 +81,9 @@ int64_t OS::GetCurrentTimeMicros() {
   return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
 }
 
-#if !HOST_OS_IOS
 static mach_timebase_info_data_t timebase_info;
-#endif
 
 int64_t OS::GetCurrentMonotonicTicks() {
-#if HOST_OS_IOS
-  // On iOS mach_absolute_time stops while the device is sleeping. Instead use
-  // now - KERN_BOOTTIME to get a time difference that is not impacted by clock
-  // changes. KERN_BOOTTIME will be updated by the system whenever the system
-  // clock change.
-  struct timeval boottime;
-  int mib[2] = {CTL_KERN, KERN_BOOTTIME};
-  size_t size = sizeof(boottime);
-  int kr = sysctl(mib, sizeof(mib) / sizeof(mib[0]), &boottime, &size, NULL, 0);
-  ASSERT(KERN_SUCCESS == kr);
-  int64_t now = GetCurrentTimeMicros();
-  int64_t origin = boottime.tv_sec * kMicrosecondsPerSecond;
-  origin += boottime.tv_usec;
-  return now - origin;
-#else
   if (timebase_info.denom == 0) {
     kern_return_t kr = mach_timebase_info(&timebase_info);
     ASSERT(KERN_SUCCESS == kr);
@@ -112,25 +94,15 @@ int64_t OS::GetCurrentMonotonicTicks() {
   result *= timebase_info.numer;
   result /= timebase_info.denom;
   return result;
-#endif  // HOST_OS_IOS
 }
 
 int64_t OS::GetCurrentMonotonicFrequency() {
-#if HOST_OS_IOS
-  return kMicrosecondsPerSecond;
-#else
   return kNanosecondsPerSecond;
-#endif  // HOST_OS_IOS
 }
 
 int64_t OS::GetCurrentMonotonicMicros() {
-#if HOST_OS_IOS
-  ASSERT(GetCurrentMonotonicFrequency() == kMicrosecondsPerSecond);
-  return GetCurrentMonotonicTicks();
-#else
   ASSERT(GetCurrentMonotonicFrequency() == kNanosecondsPerSecond);
   return GetCurrentMonotonicTicks() / kNanosecondsPerMicrosecond;
-#endif  // HOST_OS_IOS
 }
 
 int64_t OS::GetCurrentThreadCPUMicros() {

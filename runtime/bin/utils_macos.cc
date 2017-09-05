@@ -10,9 +10,6 @@
 #include <mach/mach.h>       // NOLINT
 #include <mach/mach_time.h>  // NOLINT
 #include <netdb.h>           // NOLINT
-#if HOST_OS_IOS
-#include <sys/sysctl.h>  // NOLINT
-#endif
 #include <sys/time.h>  // NOLINT
 #include <time.h>      // NOLINT
 
@@ -113,34 +110,7 @@ int64_t TimerUtils::GetCurrentMonotonicMillis() {
   return GetCurrentMonotonicMicros() / 1000;
 }
 
-#if HOST_OS_IOS
-static int64_t GetCurrentTimeMicros() {
-  // gettimeofday has microsecond resolution.
-  struct timeval tv;
-  if (gettimeofday(&tv, NULL) < 0) {
-    UNREACHABLE();
-    return 0;
-  }
-  return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
-}
-#endif  // HOST_OS_IOS
-
 int64_t TimerUtils::GetCurrentMonotonicMicros() {
-#if HOST_OS_IOS
-  // On iOS mach_absolute_time stops while the device is sleeping. Instead use
-  // now - KERN_BOOTTIME to get a time difference that is not impacted by clock
-  // changes. KERN_BOOTTIME will be updated by the system whenever the system
-  // clock change.
-  struct timeval boottime;
-  int mib[2] = {CTL_KERN, KERN_BOOTTIME};
-  size_t size = sizeof(boottime);
-  int kr = sysctl(mib, sizeof(mib) / sizeof(mib[0]), &boottime, &size, NULL, 0);
-  ASSERT(KERN_SUCCESS == kr);
-  int64_t now = GetCurrentTimeMicros();
-  int64_t origin = boottime.tv_sec * kMicrosecondsPerSecond;
-  origin += boottime.tv_usec;
-  return now - origin;
-#else
   ASSERT(timebase_info.denom != 0);
   // timebase_info converts absolute time tick units into nanoseconds.  Convert
   // to microseconds.
@@ -148,7 +118,6 @@ int64_t TimerUtils::GetCurrentMonotonicMicros() {
   result *= timebase_info.numer;
   result /= timebase_info.denom;
   return result;
-#endif  // HOST_OS_IOS
 }
 
 void TimerUtils::Sleep(int64_t millis) {
