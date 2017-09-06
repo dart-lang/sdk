@@ -55,7 +55,7 @@ void testMultiController() {
       ..add(42)
       ..error("error")
       ..add(37);
-    var actualEvents =
+    dynamic actualEvents =
         new Events.capture(c.stream.asBroadcastStream(), cancelOnError: false);
     expectedEvents.replay(c);
     actualEvents.subscription.cancel();
@@ -271,7 +271,7 @@ testSingleController() {
       ..add(42)
       ..error("error")
       ..add(37);
-    var actualEvents = new Events.capture(c.stream, cancelOnError: false);
+    dynamic actualEvents = new Events.capture(c.stream, cancelOnError: false);
     expectedEvents.replay(c);
     actualEvents.subscription.cancel();
     c.add("Are you there"); // Not sent to actualEvents.

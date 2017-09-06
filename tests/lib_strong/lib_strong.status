@@ -30,7 +30,6 @@ async/future_test/none: Skip
 async/future_value_chain4_test: Skip
 async/print_test/01: Skip
 async/print_test/none: Skip
-async/stream_controller_test: Skip
 async/stream_event_transformed_test: Skip
 async/stream_transformer_test: Skip
 async/zone_debug_test: Skip
