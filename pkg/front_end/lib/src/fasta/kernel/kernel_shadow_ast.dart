@@ -398,8 +398,7 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
               .getTypeOfOverloadedArithmetic(inferredType, rhsType);
         } else {
           return inferrer
-              .getCalleeFunctionType(
-                  combinerMember, writeContext, combiner.name, false)
+              .getCalleeFunctionType(combinerMember, writeContext, false)
               .returnType;
         }
       }
@@ -986,8 +985,7 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
     // To replicate analyzer behavior, we base type inference on the write
     // member.  TODO(paulberry): would it be better to use the read member
     // when doing compound assignment?
-    var calleeType =
-        inferrer.getCalleeType(writeMember, receiverType, indexSetName);
+    var calleeType = inferrer.getCalleeType(writeMember, receiverType);
     DartType indexContext;
     DartType writeContext;
     if (calleeType is FunctionType &&
