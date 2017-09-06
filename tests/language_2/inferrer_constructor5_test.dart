@@ -2,19 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Regression test for dart2js's type inferrer, that used to not
-// correctly infer optional named parameters.
-
 import "package:expect/expect.dart";
-import "compiler_annotations.dart";
 
-@DontInline()
-foo({path}) {
-  () => 42;
-  return path;
+class A {
+  A() {
+    print(field + 42); //# 01: compile-time error
+  }
+}
+
+class B extends A {
+  var field;
+  B() {
+    field = 42;
+  }
 }
 
 main() {
-  foo(path: '42');
-  Expect.isFalse(foo() is String);
+  Expect.throwsNoSuchMethodError(() => new B()); //# 01: continued
 }

@@ -4,9 +4,13 @@
 
 import "package:expect/expect.dart";
 
+escape(object) {
+  print(object.field + 42);
+}
+
 class A {
   A() {
-    print(field + 42); //# 01: static type warning
+    escape(this);
   }
 }
 
@@ -18,5 +22,5 @@ class B extends A {
 }
 
 main() {
-  Expect.throws(() => new B(), (e) => e is NoSuchMethodError); //# 01: continued
+  Expect.throwsNoSuchMethodError(() => new B());
 }

@@ -238,6 +238,7 @@ generics_test: StaticWarning
 get_set_syntax_test/none: fail # Issue 11575
 getter_setter_in_lib_test: Fail # Issue 23286
 getter_declaration_negative_test: CompileTimeError
+import_core_prefix_test: StaticWarning
 type_variable_scope_test/none: fail # Issue 11578
 type_variable_static_context_negative_test: fail # Issue 12161
 
@@ -261,6 +262,7 @@ generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
 generic_test: CompileTimeError
 generics_test: CompileTimeError
+import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 regress_30339_test: CompileTimeError
 void_type_function_types_test/none: Crash # Issue 30177
@@ -399,6 +401,11 @@ if_null_assignment_static_test/41: MissingCompileTimeError
 if_null_assignment_static_test/42: MissingCompileTimeError
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
+implicit_this_test/01: MissingCompileTimeError
+implicit_this_test/02: MissingCompileTimeError
+implicit_this_test/04: MissingCompileTimeError
+import_self_test/01: MissingCompileTimeError
+inferrer_constructor5_test/01: MissingCompileTimeError
 multiple_interface_inheritance_test: StaticWarning # Issue 30552
 type_variable_scope_test/00: MissingCompileTimeError
 type_variable_scope_test/01: MissingCompileTimeError

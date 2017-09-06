@@ -38,6 +38,8 @@ generic_test: CompileTimeError
 generics_test: CompileTimeError
 get_set_syntax_test/none: CompileTimeError
 getter_setter_in_lib_test: CompileTimeError
+import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
+import_private_test/01: MissingCompileTimeError # Issue 29920
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 type_variable_scope_test/none: CompileTimeError
 

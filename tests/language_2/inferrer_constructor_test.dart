@@ -20,5 +20,5 @@ class A {
 
 main() {
   var a = new A(true);
-  Expect.throws(() => a.field + 42, (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => a.field + 42);
 }

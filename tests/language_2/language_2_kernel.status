@@ -275,3 +275,6 @@ async_star_cancel_while_paused_test: RuntimeError
 
 [ $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
 generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
+
+[ $compiler == dartkp ]
+implicit_closure1_test: Crash

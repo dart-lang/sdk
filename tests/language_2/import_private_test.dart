@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that private dart:_ libraries cannot be imported.
 
-import "dart:_internal"; // //# 01: compile-time error
+import "dart:_internal"; //# 01: compile-time error
 
 main() {
   print("Done.");

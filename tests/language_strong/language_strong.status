@@ -204,15 +204,6 @@ getter_parameters_test: Skip
 getter_setter_in_lib_test: Skip
 getters_setters2_test: Skip
 getters_setters_test: Skip
-implicit_this_test: Skip
-implied_interface_test: Skip
-import_combinators_negative_test: Skip
-import_combinators_test: Skip
-import_core_prefix_test: Skip
-import_self_test: Skip
-inference_captured_variable2_test: Skip
-inference_captured_variable_test: Skip
-inferrer_constructor5_test: Skip
 inferrer_this_access_test: Skip
 initializing_formal_type_test: Skip
 inline_effect_context_test: Skip
@@ -617,7 +608,6 @@ regress_23089_test: CompileTimeError # Issue 29920
 constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
 export_private_test/01: MissingCompileTimeError # Issue 29920
-import_private_test/01: MissingCompileTimeError # Issue 29920
 internal_library_test/01: MissingCompileTimeError # Issue 29920
 
 [ $compiler == dartdevc && $runtime != none ]

@@ -47,7 +47,7 @@ bar() {
   // body by two allocations.
   new B();
   // Currently defeat inlining by using a closure.
-  Expect.throws(() => new A.inline().foo + 42, (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => new A.inline().foo + 42);
   codegenLast();
   new B();
 }

@@ -7,14 +7,18 @@
 
 import "package:expect/expect.dart";
 
-var list = [new Object(), 31];
+var list = <dynamic>[new Object(), 31];
 
 main() {
-  Expect.throws(() => foo()() + 42, (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => foo()() + 42);
 }
 
 foo() {
   var a = list[0];
-  var closure = (() => a - 42);
-  return () => a + 54;
+  var closure = (() => a + 42);
+  if (list[1] == 0) {
+    a.toInt();
+    return closure;
+  }
+  return closure;
 }
