@@ -3180,28 +3180,26 @@ A v = new A();
 
   test_visitFieldFormalParameter_functionType() async {
     InterfaceType intType = _typeProvider.intType;
-    TypeName intTypeName = AstTestFactory.typeName4('int');
-
-    String aName = 'a';
-    SimpleFormalParameterImpl aNode =
-        AstTestFactory.simpleFormalParameter3(aName);
-    aNode.element = aNode.identifier.staticElement =
-        ElementFactory.requiredParameter(aName);
-
-    String pName = 'p';
-    FormalParameter pNode = AstTestFactory.fieldFormalParameter(
-        null, intTypeName, pName, AstTestFactory.formalParameterList([aNode]));
-    var pElement = ElementFactory.requiredParameter(pName);
-    pNode.identifier.staticElement = pElement;
-
-    FunctionType pType = new FunctionTypeImpl(
-        new GenericFunctionTypeElementImpl.forOffset(-1)
-          ..parameters = [aNode.element]);
-    pElement.type = pType;
-
-    _resolveFormalParameter(pNode, [intType.element]);
-    expect(pType.returnType, same(intType));
-    expect(pType.parameters, hasLength(1));
+    TypeName intTypeName = AstTestFactory.typeName4("int");
+    String innerParameterName = "a";
+    SimpleFormalParameterImpl parameter =
+        AstTestFactory.simpleFormalParameter3(innerParameterName);
+    parameter.element = parameter.identifier.staticElement =
+        ElementFactory.requiredParameter(innerParameterName);
+    String outerParameterName = "p";
+    FormalParameter node = AstTestFactory.fieldFormalParameter(
+        null,
+        intTypeName,
+        outerParameterName,
+        AstTestFactory.formalParameterList([parameter]));
+    node.identifier.staticElement =
+        ElementFactory.requiredParameter(outerParameterName);
+    DartType parameterType = _resolveFormalParameter(node, [intType.element]);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is FunctionType, FunctionType, parameterType);
+    FunctionType functionType = parameterType as FunctionType;
+    expect(functionType.returnType, same(intType));
+    expect(functionType.parameters, hasLength(1));
     _listener.assertNoErrors();
   }
 
@@ -3283,38 +3281,28 @@ A v = new A();
     // class P {}
     ClassElement elementR = ElementFactory.classElement2('R');
     ClassElement elementP = ElementFactory.classElement2('P');
-
-    SimpleFormalParameter pNode = AstTestFactory.simpleFormalParameter4(
-        AstTestFactory.typeName4('P'), 'p');
-    ParameterElementImpl pElement = ElementFactory.requiredParameter('p');
-    pNode.identifier.staticElement = pElement;
-
-    FunctionTypedFormalParameter gNode = AstTestFactory
-        .functionTypedFormalParameter(
-            AstTestFactory.typeName4('R'), 'g', [pNode]);
-    ParameterElementImpl gElement = ElementFactory.requiredParameter('g');
-    gNode.identifier.staticElement = gElement;
-
-    FunctionTypeImpl gType = new FunctionTypeImpl(
-        new GenericFunctionTypeElementImpl.forOffset(-1)
-          ..parameters = [pElement]);
-    gElement.type = gType;
-
-    FunctionDeclaration fNode = AstTestFactory.functionDeclaration(
+    FunctionElement elementF = ElementFactory.functionElement('f');
+    ParameterElementImpl requiredParameter =
+        ElementFactory.requiredParameter('p');
+    FunctionTypedFormalParameter parameterDeclaration = AstTestFactory
+        .functionTypedFormalParameter(AstTestFactory.typeName4('R'), 'g', [
+      AstTestFactory.simpleFormalParameter4(AstTestFactory.typeName4('P'), 'p')
+    ]);
+    parameterDeclaration.identifier.staticElement = requiredParameter;
+    FunctionDeclaration declaration = AstTestFactory.functionDeclaration(
         AstTestFactory.typeName4('R'),
         null,
         'f',
         AstTestFactory.functionExpression2(
-            AstTestFactory.formalParameterList([gNode]), null));
-    fNode.name.staticElement = ElementFactory.functionElement('f');
-
-    _resolveNode(fNode, [elementR, elementP]);
-
-    expect(fNode.returnType.type, elementR.type);
-    expect(gType.returnType, elementR.type);
-    expect(gNode.returnType.type, elementR.type);
-    expect(pNode.type.type, elementP.type);
-
+            AstTestFactory.formalParameterList([parameterDeclaration]), null));
+    declaration.name.staticElement = elementF;
+    _resolveNode(declaration, [elementR, elementP]);
+    expect(declaration.returnType.type, elementR.type);
+    FunctionTypedFormalParameter parameter =
+        declaration.functionExpression.parameters.parameters[0];
+    expect(parameter.returnType.type, elementR.type);
+    SimpleFormalParameter innerParameter = parameter.parameters.parameters[0];
+    expect(innerParameter.type.type, elementP.type);
     _listener.assertNoErrors();
   }
 
@@ -3323,38 +3311,29 @@ A v = new A();
     // class R {}
     ClassElement elementR = ElementFactory.classElement2('R');
     TypeParameterElement elementE = ElementFactory.typeParameterElement('E');
-
-    SimpleFormalParameterImpl eNode = AstTestFactory.simpleFormalParameter4(
-        AstTestFactory.typeName4('E'), 'e');
-    eNode.element = ElementFactory.requiredParameter('e');
-
-    FunctionTypedFormalParameter gNode = AstTestFactory
-        .functionTypedFormalParameter(
-            AstTestFactory.typeName4('R'), 'g', [eNode]);
-    ParameterElementImpl gElement = ElementFactory.requiredParameter('g');
-    gNode.identifier.staticElement = gElement;
-
-    FunctionTypeImpl gType =
-        new FunctionTypeImpl(new GenericFunctionTypeElementImpl.forOffset(-1)
-          ..typeParameters = [elementE]
-          ..parameters = [eNode.element]);
-    gElement.type = gType;
-
-    FunctionDeclaration fNode = AstTestFactory.functionDeclaration(
+    FunctionElement elementF = ElementFactory.functionElement('f');
+    ParameterElementImpl requiredParameter =
+        ElementFactory.requiredParameter('g');
+    requiredParameter.typeParameters = <TypeParameterElement>[elementE];
+    FunctionTypedFormalParameter parameterDeclaration = AstTestFactory
+        .functionTypedFormalParameter(AstTestFactory.typeName4('R'), 'g', [
+      AstTestFactory.simpleFormalParameter4(AstTestFactory.typeName4('E'), 'e')
+    ]);
+    parameterDeclaration.identifier.staticElement = requiredParameter;
+    FunctionDeclaration declaration = AstTestFactory.functionDeclaration(
         AstTestFactory.typeName4('R'),
         null,
         'f',
         AstTestFactory.functionExpression2(
-            AstTestFactory.formalParameterList([gNode]), null));
-    fNode.name.staticElement = ElementFactory.functionElement('f');
-
-    _resolveNode(fNode, [elementR]);
-
-    expect(fNode.returnType.type, elementR.type);
-    expect(gType.returnType, elementR.type);
-    expect(gNode.returnType.type, elementR.type);
-    expect(eNode.type.type, elementE.type);
-
+            AstTestFactory.formalParameterList([parameterDeclaration]), null));
+    declaration.name.staticElement = elementF;
+    _resolveNode(declaration, [elementR]);
+    expect(declaration.returnType.type, elementR.type);
+    FunctionTypedFormalParameter parameter =
+        declaration.functionExpression.parameters.parameters[0];
+    expect(parameter.returnType.type, elementR.type);
+    SimpleFormalParameter innerParameter = parameter.parameters.parameters[0];
+    expect(innerParameter.type.type, elementE.type);
     _listener.assertNoErrors();
   }
 

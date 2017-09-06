@@ -131,7 +131,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       normalParameter.element = element;
       _setGenericFunctionType(normalParameter.type, element.type);
     }
-
     Expression defaultValue = node.defaultValue;
     if (defaultValue != null) {
       _walk(
@@ -140,14 +139,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         defaultValue.accept(this);
       });
     }
-
-    bool isFunctionTyped = normalParameter is FunctionTypedFormalParameter ||
-        normalParameter is FieldFormalParameter &&
-            normalParameter.parameters != null;
-    _walk(new ElementWalker.forParameter(element, isFunctionTyped), () {
+    _walk(new ElementWalker.forParameter(element), () {
       normalParameter.accept(this);
     });
-
     _resolveMetadata(node, node.metadata, element);
     return null;
   }
@@ -205,8 +199,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     if (node.parent is! DefaultFormalParameter) {
       ParameterElement element =
           _match(node.identifier, _walker.getParameter());
-      bool isFunctionTyped = node.parameters != null;
-      _walk(new ElementWalker.forParameter(element, isFunctionTyped), () {
+      _walk(new ElementWalker.forParameter(element), () {
         super.visitFieldFormalParameter(node);
       });
       _resolveMetadata(node, node.metadata, element);
@@ -275,7 +268,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     if (node.parent is! DefaultFormalParameter) {
       ParameterElement element =
           _match(node.identifier, _walker.getParameter());
-      _walk(new ElementWalker.forParameter(element, true), () {
+      _walk(new ElementWalker.forParameter(element), () {
         super.visitFunctionTypedFormalParameter(node);
       });
       _resolveMetadata(node, node.metadata, element);
@@ -414,7 +407,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
           _match(node.identifier, _walker.getParameter());
       (node as SimpleFormalParameterImpl).element = element;
       _setGenericFunctionType(node.type, element.type);
-      _walk(new ElementWalker.forParameter(element, false), () {
+      _walk(new ElementWalker.forParameter(element), () {
         super.visitSimpleFormalParameter(node);
       });
       _resolveMetadata(node, node.metadata, element);
@@ -516,7 +509,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   }
 
   void _matchOffset(Element element, int offset) {
-    if (element.nameOffset > 0 && element.nameOffset != offset) {
+    if (element.nameOffset != 0 && element.nameOffset != offset) {
       throw new StateError('Element offset mismatch');
     } else {
       (element as ElementImpl).nameOffset = offset;
@@ -702,18 +695,10 @@ class ElementWalker {
    * Creates an [ElementWalker] which walks the child elements of a parameter
    * element.
    */
-  ElementWalker.forParameter(ParameterElement element, bool functionTyped)
+  ElementWalker.forParameter(ParameterElement element)
       : element = element,
         _parameters = element.parameters,
-        _typeParameters = element.typeParameters {
-    // If the parameter node is function typed, extract type parameters and
-    // formal parameters from its generic function type element.
-    if (functionTyped) {
-      GenericFunctionTypeElement typeElement = element.type.element;
-      _typeParameters = typeElement.typeParameters;
-      _parameters = typeElement.parameters;
-    }
-  }
+        _typeParameters = element.typeParameters;
 
   /**
    * Creates an [ElementWalker] which walks the child elements of a typedef

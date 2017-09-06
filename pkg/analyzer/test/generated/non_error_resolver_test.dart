@@ -1900,19 +1900,6 @@ f(A a) {
     verify([source]);
   }
 
-  test_fieldFormalParameter_functionTyped_named() async {
-    Source source = addSource(r'''
-class C {
-  final Function field;
-
-  C({String this.field(int value)});
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_fieldInitializedByMultipleInitializers() async {
     Source source = addSource(r'''
 class A {

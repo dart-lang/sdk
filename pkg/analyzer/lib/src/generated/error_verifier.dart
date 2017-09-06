@@ -6509,9 +6509,40 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * itself from anywhere except a class element or type parameter bounds.
    */
   bool _hasTypedefSelfReference(Element element) {
-    var visitor = new _HasTypedefSelfReferenceVisitor(element);
-    element.accept(visitor);
-    return visitor.hasSelfReference;
+    Set<Element> checked = new HashSet<Element>();
+    List<Element> toCheck = new List<Element>();
+    GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference
+        elementVisitor =
+        new GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference(
+            toCheck);
+    toCheck.add(element);
+    bool firstIteration = true;
+    while (true) {
+      Element current;
+      // get next element
+      while (true) {
+        // may be no more elements to check
+        if (toCheck.isEmpty) {
+          return false;
+        }
+        // try to get next element
+        current = toCheck.removeAt(toCheck.length - 1);
+        if (element == current) {
+          if (firstIteration) {
+            firstIteration = false;
+            break;
+          } else {
+            return true;
+          }
+        }
+        if (current != null && !checked.contains(current)) {
+          break;
+        }
+      }
+      // check current element
+      current.accept(elementVisitor);
+      checked.add(current);
+    }
   }
 
   bool _isFunctionType(DartType type) {
@@ -6869,6 +6900,58 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 }
 
+class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference
+    extends GeneralizingElementVisitor<Object> {
+  List<Element> toCheck;
+
+  GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference(this.toCheck)
+      : super();
+
+  @override
+  Object visitClassElement(ClassElement element) {
+    // Typedefs are allowed to reference themselves via classes.
+    return null;
+  }
+
+  @override
+  Object visitFunctionElement(FunctionElement element) {
+    _addTypeToCheck(element.returnType);
+    return super.visitFunctionElement(element);
+  }
+
+  @override
+  Object visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
+    _addTypeToCheck(element.returnType);
+    return super.visitFunctionTypeAliasElement(element);
+  }
+
+  @override
+  Object visitParameterElement(ParameterElement element) {
+    _addTypeToCheck(element.type);
+    return super.visitParameterElement(element);
+  }
+
+  @override
+  Object visitTypeParameterElement(TypeParameterElement element) {
+    _addTypeToCheck(element.bound);
+    return super.visitTypeParameterElement(element);
+  }
+
+  void _addTypeToCheck(DartType type) {
+    if (type == null) {
+      return;
+    }
+    // schedule for checking
+    toCheck.add(type.element);
+    // type arguments
+    if (type is InterfaceType) {
+      for (DartType typeArgument in type.typeArguments) {
+        _addTypeToCheck(typeArgument);
+      }
+    }
+  }
+}
+
 /**
  * A record of the elements that will be declared in some scope (block), but are
  * not yet declared.
@@ -7034,69 +7117,6 @@ class RequiredConstantsComputer extends RecursiveAstVisitor {
   ElementAnnotationImpl _getRequiredAnnotation(ParameterElement param) => param
       .metadata
       .firstWhere((ElementAnnotation e) => e.isRequired, orElse: () => null);
-}
-
-class _HasTypedefSelfReferenceVisitor
-    extends GeneralizingElementVisitor<Object> {
-  final FunctionTypeAliasElement element;
-  bool hasSelfReference = false;
-
-  _HasTypedefSelfReferenceVisitor(this.element);
-
-  @override
-  Object visitClassElement(ClassElement element) {
-    // Typedefs are allowed to reference themselves via classes.
-    return null;
-  }
-
-  @override
-  Object visitFunctionElement(FunctionElement element) {
-    _addTypeToCheck(element.returnType);
-    return super.visitFunctionElement(element);
-  }
-
-  @override
-  Object visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    _addTypeToCheck(element.returnType);
-    return super.visitFunctionTypeAliasElement(element);
-  }
-
-  @override
-  Object visitParameterElement(ParameterElement element) {
-    _addTypeToCheck(element.type);
-    return super.visitParameterElement(element);
-  }
-
-  @override
-  Object visitTypeParameterElement(TypeParameterElement element) {
-    _addTypeToCheck(element.bound);
-    return super.visitTypeParameterElement(element);
-  }
-
-  void _addTypeToCheck(DartType type) {
-    if (hasSelfReference) {
-      return;
-    }
-    if (type == null) {
-      return;
-    }
-    if (type.element == element) {
-      hasSelfReference = true;
-      return;
-    }
-    if (type is FunctionType) {
-      _addTypeToCheck(type.returnType);
-      for (ParameterElement parameter in type.parameters) {
-        _addTypeToCheck(parameter.type);
-      }
-    }
-    // type arguments
-    if (type is InterfaceType) {
-      for (DartType typeArgument in type.typeArguments) {
-        _addTypeToCheck(typeArgument);
-      }
-    }
-  }
 }
 
 /**

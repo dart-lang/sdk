@@ -145,9 +145,8 @@ void topLevelFunction(int a, int b(double b2), {c: () {int c2; c3() {} }}) {
       ParameterElement b = parameters[1];
       expect(b.displayName, 'b');
       expect(b.initializer, isNull);
-      var bTypeElement = b.type.element as GenericFunctionTypeElementImpl;
-      expect(bTypeElement.parameters, hasLength(1));
-      expect(bTypeElement.parameters[0].displayName, 'b2');
+      expect(b.parameters, hasLength(1));
+      expect(b.parameters[0].displayName, 'b2');
     }
     {
       var c = parameters[2] as DefaultParameterElementImpl;
@@ -500,9 +499,7 @@ class C {
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
     expect(parameters, hasLength(1));
-
     ParameterElement parameter = parameters[0];
-    var typeElement = parameter.type.element as GenericFunctionTypeElementImpl;
     expect(parameter, isNotNull);
     expect(parameter.name, parameterName);
     expect(parameter.initializer, isNull);
@@ -510,7 +507,7 @@ class C {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.parameterKind, ParameterKind.REQUIRED);
-    expect(typeElement.typeParameters, hasLength(1));
+    expect(parameter.typeParameters, hasLength(1));
     _assertVisibleRange(parameter, 100, 110);
   }
 
@@ -1855,9 +1852,7 @@ class C {
     ElementHolder holder = buildElementsForAst(formalParameter);
     List<ParameterElement> parameters = holder.parameters;
     expect(parameters, hasLength(1));
-
     ParameterElement parameter = parameters[0];
-    var typeElement = parameter.type.element as GenericFunctionTypeElementImpl;
     expect(parameter, isNotNull);
     expect(parameter.name, parameterName);
     expect(parameter.initializer, isNull);
@@ -1865,7 +1860,7 @@ class C {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.parameterKind, ParameterKind.REQUIRED);
-    expect(typeElement.parameters, hasLength(1));
+    expect(parameter.parameters, hasLength(1));
   }
 
   void test_visitFormalParameterList() {

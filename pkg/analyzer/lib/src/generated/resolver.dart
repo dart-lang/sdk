@@ -7395,8 +7395,8 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
             new CaughtException(new AnalysisException(), null));
       } else {
         nameScope = new EnclosedScope(nameScope);
-        GenericFunctionTypeElement typeElement = parameterElement.type.element;
-        List<TypeParameterElement> typeParameters = typeElement.typeParameters;
+        List<TypeParameterElement> typeParameters =
+            parameterElement.typeParameters;
         int length = typeParameters.length;
         for (int i = 0; i < length; i++) {
           nameScope.define(typeParameters[i]);
@@ -9962,6 +9962,26 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
+   * Return an array containing all of the elements associated with the parameters in the given
+   * list.
+   *
+   * @param parameterList the list of parameters whose elements are to be returned
+   * @return the elements associated with the parameters
+   */
+  List<ParameterElement> _getElements(FormalParameterList parameterList) {
+    List<ParameterElement> elements = new List<ParameterElement>();
+    for (FormalParameter parameter in parameterList.parameters) {
+      ParameterElement element =
+          parameter.identifier.staticElement as ParameterElement;
+      // TODO(brianwilkerson) Understand why the element would be null.
+      if (element != null) {
+        elements.add(element);
+      }
+    }
+    return elements;
+  }
+
+  /**
    * In strong mode we infer "void" as the setter return type (as void is the
    * only legal return type for a setter). This allows us to give better
    * errors later if an invalid type is returned.
@@ -10101,15 +10121,21 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Given a function typed [parameter] with [FunctionType] based on a
-   * [GenericFunctionTypeElementImpl], compute and set the return type for the
-   * function element.
+   * Given a parameter [element], create a function type based on the given
+   * [returnType] and [parameterList] and associate the created type with the
+   * element.
    */
-  void _setFunctionTypedParameterType(ParameterElementImpl parameter,
+  void _setFunctionTypedParameterType(ParameterElementImpl element,
       TypeAnnotation returnType, FormalParameterList parameterList) {
-    DartType type = parameter.type;
-    GenericFunctionTypeElementImpl typeElement = type.element;
-    typeElement.returnType = _computeReturnType(returnType);
+    List<ParameterElement> parameters = _getElements(parameterList);
+    FunctionElementImpl functionElement = new FunctionElementImpl.forNode(null);
+    functionElement.isSynthetic = true;
+    functionElement.shareParameters(parameters);
+    functionElement.declaredReturnType = _computeReturnType(returnType);
+    functionElement.enclosingElement = element;
+    functionElement.shareTypeParameters(element.typeParameters);
+    element.type = new FunctionTypeImpl(functionElement);
+    functionElement.type = element.type;
   }
 }
 
