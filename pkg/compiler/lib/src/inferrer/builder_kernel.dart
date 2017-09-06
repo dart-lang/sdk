@@ -149,9 +149,18 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
-  TypeInformation defaultExpression(ir.Expression expression) {
-    // TODO(efortuna): Remove when more is implemented.
+  TypeInformation defaultExpression(ir.Expression node) {
+    // TODO(johnniwinther): Make this throw to assert that all expressions are
+    // handled.
     return _types.dynamicType;
+  }
+
+  @override
+  TypeInformation defaultStatement(ir.Statement node) {
+    // TODO(johnniwinther): Make this throw to assert that all statements are
+    // handled.
+    node.visitChildren(this);
+    return null;
   }
 
   @override
@@ -235,5 +244,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   TypeInformation visitVariableGet(ir.VariableGet node) {
     return _locals.use(_localsMap.getLocalVariable(node.variable));
+  }
+
+  @override
+  TypeInformation visitVariableSet(ir.VariableSet node) {
+    Local local = _localsMap.getLocalVariable(node.variable);
+    DartType type = _localsMap.getLocalType(_elementMap, local);
+    TypeInformation rhsType = visit(node.value);
+    _locals.update(local, rhsType, node, type);
+    return rhsType;
   }
 }

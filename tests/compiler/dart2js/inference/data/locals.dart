@@ -6,6 +6,7 @@
 main() {
   uninitializedLocal();
   initializedLocal();
+  updatedLocal();
 }
 
 /*element: uninitializedLocal:[null]*/
@@ -18,4 +19,11 @@ uninitializedLocal() {
 initializedLocal() {
   var local = 0;
   return local;
+}
+
+/*element: updatedLocal:[exact=JSUInt31]*/
+updatedLocal() {
+  var local2;
+  local2 = 0;
+  return local2;
 }
