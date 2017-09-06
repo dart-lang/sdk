@@ -23,6 +23,7 @@ async/schedule_microtask3_test: RuntimeError
 async/future_or_strong_test: RuntimeError
 math/random_big_test: RuntimeError  # Using bigint seeds for random.
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
+convert/chunked_conversion_utf88_test: Slow, Pass
 
 [ $compiler == dart2js ]
 async/future_or_strong_test: RuntimeError

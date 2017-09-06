@@ -20,3 +20,6 @@ mirrors/closurization_equivalence_test: SkipByDesign # Method equality
 mirrors/deferred_mirrors_update_test: Crash # Deferred loading
 mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading
 mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
+
+[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ]
+convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.

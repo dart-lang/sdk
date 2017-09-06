@@ -7,3 +7,4 @@ async/future_or_strong_test: RuntimeError
 
 [ $compiler == precompiler ]
 mirrors/*: SkipByDesign # Mirrors not supported on AOT.
+convert/chunked_conversion_utf88_test: Pass, Timeout

@@ -8,12 +8,11 @@ import 'unicode_tests.dart';
 
 String decode(List<int> bytes, int chunkSize) {
   StringBuffer buffer = new StringBuffer();
-  ChunkedConversionSink stringSink =
-      new StringConversionSink.fromStringSink(buffer);
+  var stringSink = new StringConversionSink.fromStringSink(buffer);
   var byteSink = new Utf8Decoder().startChunkedConversion(stringSink);
   int i = 0;
   while (i < bytes.length) {
-    List nextChunk = [];
+    var nextChunk = <int>[];
     for (int j = 0; j < chunkSize; j++) {
       if (i < bytes.length) {
         nextChunk.add(bytes[i]);
