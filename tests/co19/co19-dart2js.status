@@ -840,7 +840,7 @@ LayoutTests/fast/backgrounds/background-position-parsing-2_t01: RuntimeError # P
 LayoutTests/fast/backgrounds/background-shorthand-with-backgroundSize-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/backgrounds/repeat/parsing-background-repeat_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/2d.fillText.gradient_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/2d.text.draw.fill.maxWidth.gradient_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/2d.text.draw.fill.maxWidth.gradient_t01: Skip # Please triage this failure
 LayoutTests/fast/canvas/2d.text.draw.fill.maxWidth.negative_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/2d.text.draw.fill.maxWidth.veryLarge_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/2d.text.draw.fill.maxWidth.verySmall_t01: RuntimeError # Please triage this failure
@@ -870,6 +870,7 @@ LayoutTests/fast/canvas/rgba-parsing_t01: RuntimeError # Please triage this fail
 LayoutTests/fast/canvas/setWidthResetAfterForcedRender_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/webgl/bad-arguments-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/buffer-data-array-buffer_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/canvas-test_t01: Skip # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-attributes-alpha-depth-stencil-antialias-t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-lost-restored_t01: Skip # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-lost_t01: RuntimeError # Please triage this failure
@@ -889,12 +890,11 @@ LayoutTests/fast/canvas/webgl/program-test_t01: RuntimeError, Pass # Please tria
 LayoutTests/fast/canvas/webgl/renderbuffer-initialization_t01: RuntimeError, Pass # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-canvas-rgba5551_t01: Skip # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data-rgba4444_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: Skip # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba5551_t01: Skip # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: RuntimeError, Pass # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgb565_t01: RuntimeError, Pass # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01: Skip # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: Skip # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please triage this failure
@@ -1049,6 +1049,7 @@ LayoutTests/fast/dom/HTMLImageElement/parse-src_t01: RuntimeError # Please triag
 LayoutTests/fast/dom/HTMLInputElement/input-image-alt-text_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLLabelElement/click-label_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLLabelElement/form/test1_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLLinkElement/prefetch-beforeload_t01: Pass, RuntimeError # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/link-beforeload-recursive_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/resolve-url-on-insertion_t01: RuntimeError # Issue 18010
 LayoutTests/fast/dom/HTMLObjectElement/beforeload-set-text-crash_t01: Skip # Times out. Please triage this failure
@@ -1110,7 +1111,7 @@ LayoutTests/fast/dom/fragment-activation-focuses-target_t01: Pass, RuntimeError 
 LayoutTests/fast/dom/getElementsByClassName/010_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getElementsByClassName/011_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getElementsByClassName/dumpNodeList_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/icon-size-property_t01: RuntimeError # https://github.com/dart-lang/sdk/issues/26422
