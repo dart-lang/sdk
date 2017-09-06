@@ -526,7 +526,6 @@ const_syntax_test/08: Crash # Stack Overflow
 const_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_syntax_test/10: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
-constructor12_test: RuntimeError
 constructor2_test: RuntimeError
 constructor3_test: RuntimeError
 constructor5_test: RuntimeError
@@ -705,8 +704,6 @@ issue14014_3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was cal
 issue15720_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 issue21079_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(ListBase.E) in j:constructor(UnmodifiableListView.).
 issue23244_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-issue4295001_test: Crash # Assertion failure: Cannot find value parameter(Issue4295001Test.#s) in (parameter(Issue4295001Test.#s), Instance of 'ThisLocal') for j:constructor_body(Issue4295001Test.).
-issue9939_test: RuntimeError
 issue_1751477_test: CompileTimeError
 issue_25671a_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
 issue_25671b_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
@@ -893,7 +890,6 @@ named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError
 named_parameters_with_conversions_test: RuntimeError
 named_parameters_with_dollars_test: RuntimeError
-naming_test: Crash # Assertion failure: Cannot find value parameter(Hoisting.negate#x) in (parameter(Hoisting.negate#x), Instance of 'ThisLocal') for j:constructor_body(Hoisting.negate).
 nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 308 pos 12: 'local != null': is not true.
 no_main_test/01: CompileTimeError
@@ -1126,7 +1122,6 @@ const_syntax_test/08: Crash # Stack Overflow
 const_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_syntax_test/10: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
-constructor12_test: RuntimeError
 constructor2_test: RuntimeError
 constructor3_test: RuntimeError
 constructor5_test: RuntimeError
@@ -1310,8 +1305,6 @@ issue14014_3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was cal
 issue15720_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 issue21079_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(ListBase.E) in j:constructor(UnmodifiableListView.).
 issue23244_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-issue4295001_test: Crash # Assertion failure: Cannot find value parameter(Issue4295001Test.#s) in (parameter(Issue4295001Test.#s), Instance of 'ThisLocal') for j:constructor_body(Issue4295001Test.).
-issue9939_test: RuntimeError
 issue_1751477_test: CompileTimeError
 issue_25671a_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
 issue_25671b_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
@@ -1492,7 +1485,6 @@ named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError
 named_parameters_with_conversions_test: RuntimeError
 named_parameters_with_dollars_test: RuntimeError
-naming_test: Crash # Assertion failure: Cannot find value parameter(Hoisting.negate#x) in (parameter(Hoisting.negate#x), Instance of 'ThisLocal') for j:constructor_body(Hoisting.negate).
 nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError

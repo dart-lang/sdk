@@ -509,7 +509,6 @@ class_cycle_test/03: MissingCompileTimeError
 classes_static_method_clash_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 closure_cycles_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 closure_in_constructor_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
-closure_in_initializer2_test: RuntimeError
 closure_in_initializer_test: Crash # Assertion failure: Cannot find value parameter(A.#a) in (parameter(C.#a), BoxLocal(_box_0), parameter(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 closure_parameter_types_test: RuntimeError
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
@@ -683,7 +682,6 @@ class_cycle_test/03: MissingCompileTimeError
 classes_static_method_clash_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 closure_cycles_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 closure_in_constructor_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
-closure_in_initializer2_test: RuntimeError
 closure_in_initializer_test: Crash # Assertion failure: Cannot find value parameter(A.#a) in (parameter(C.#a), BoxLocal(_box_0), parameter(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 closure_parameter_types_test: RuntimeError
 closure_self_reference_test: RuntimeError

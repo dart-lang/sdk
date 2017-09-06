@@ -886,16 +886,16 @@ LayoutTests/fast/canvas/webgl/object-deletion-behaviour_t01: RuntimeError # Plea
 LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/program-test_t01: RuntimeError, Pass # Please triage this failure
 LayoutTests/fast/canvas/webgl/renderbuffer-initialization_t01: RuntimeError, Pass # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-canvas-rgba5551_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-canvas-rgba5551_t01: Skip # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data-rgba4444_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba5551_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba5551_t01: Skip # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: RuntimeError, Pass # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgb565_t01: RuntimeError, Pass # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01: RuntimeError, Pass # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01: Skip # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: Skip # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-sub-image-2d-bad-args_t01: RuntimeError, Pass # Please triage this failure
 LayoutTests/fast/canvas/webgl/texImageTest_t01: RuntimeError, Pass # Please triage this failure
@@ -961,7 +961,7 @@ LayoutTests/fast/css/focus-display-block-inline_t01: Pass, RuntimeError # Please
 LayoutTests/fast/css/font-face-cache-bug_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-insert-link_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-face-unicode-range-load_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/css/font-face-unicode-range-load_t01: Skip # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-monospace_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Please triage this failure
@@ -1091,7 +1091,6 @@ LayoutTests/fast/dom/Window/getMatchedCSSRules-with-pseudo-elements-complex_t01:
 LayoutTests/fast/dom/Window/window-resize-contents_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/window-resize_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/window-scroll-arguments_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/anchor-without-content_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/attribute-namespaces-get-set_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/blur-contenteditable_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # Please triage this failure
@@ -1141,6 +1140,7 @@ LayoutTests/fast/dom/shadow/shadowhost-keyframes_t01: Pass, RuntimeError # Pleas
 LayoutTests/fast/dom/shadow/shadowroot-clonenode_t01: RuntimeError # Issue 26729
 LayoutTests/fast/dom/shadow/shadowroot-host_t01: RuntimeError # Issue 26729
 LayoutTests/fast/dom/shadow/shadowroot-keyframes_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/dom/vertical-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError
 LayoutTests/fast/dynamic/checkbox-selection-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dynamic/crash-generated-counter_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dynamic/crash-generated-image_t01: RuntimeError # Please triage this failure
@@ -1158,6 +1158,7 @@ LayoutTests/fast/events/document-elementFromPoint_t01: RuntimeError # Please tri
 LayoutTests/fast/events/event-attributes-after-exception_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-creation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-listener-html-non-html-confusion_t01: RuntimeError # Please triage this failure
+nkElement/prefetch-beforeload_t01.dartLayoutTests/fast/events/event-listener-html-non-html-confusion_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-trace_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/fire-scroll-event-element_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/events/fire-scroll-event_t01: Skip # Times out. Please triage this failure
@@ -1244,7 +1245,6 @@ LayoutTests/fast/forms/textfield-focus-out_t01: Skip # Times out. Please triage 
 LayoutTests/fast/forms/validationMessage_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/validity-property_t01: RuntimeError # Issue 25155
 LayoutTests/fast/forms/willvalidate_t01: RuntimeError # Issue 25155
-LayoutTests/fast/html/empty-fragment-id-goto-top_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/hidden-attr_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/imports/import-element-removed-flag_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/imports/import-events_t01: RuntimeError # Please triage this failure
@@ -1329,6 +1329,7 @@ LayoutTests/fast/table/hittest-tablecell-bottom-edge_t01: RuntimeError # Please 
 LayoutTests/fast/table/hittest-tablecell-right-edge_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/hittest-tablecell-with-borders-bottom-edge_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/hittest-tablecell-with-borders-right-edge_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/table/incorrect-colgroup-span-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/large-shrink-wrapped-width_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/margins-perpendicular-containing-block_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/min-width-css-block-table_t01: Pass, RuntimeError # Please triage this failure
@@ -1362,6 +1363,7 @@ LayoutTests/fast/text/sub-pixel/text-scaling-rtl_t01: Pass, RuntimeError # Pleas
 LayoutTests/fast/text/sub-pixel/text-scaling-vertical_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/text/sub-pixel/text-scaling-webfont_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/text/text-combine-shrink-to-fit_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/text/window-find_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/zero-width-characters_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/transforms/bounding-rect-zoom_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/transforms/hit-test-large-scale_t01: RuntimeError # Please triage this failure
@@ -1440,15 +1442,16 @@ LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Issue 25155
 LibTest/html/Element/marginEdge_A01_t01: RuntimeError # Issue 16574
 LibTest/html/Element/mouseWheelEvent_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/onMouseWheel_A01_t01: Skip # Times out. Please triage this failure
-LibTest/html/Element/onTransitionEnd_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/onTransitionEnd_A01_t01: Skip # Please triage this failure
 LibTest/html/Element/paddingEdge_A01_t01: RuntimeError # Issue 16574
 LibTest/html/Element/querySelectorAll_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/Element/replaceWith_A01_t02: RuntimeError # Please triage this failure
-LibTest/html/Element/transitionEndEvent_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/transitionEndEvent_A01_t01: Skip # Please triage this failure
 LibTest/html/HttpRequest/getAllResponseHeaders_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/getResponseHeader_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/getString_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/onError_A01_t02: Skip # Times out. Please triage this failure
+LibTest/html/HttpRequest/overrideMimeType_A01_t01: RuntimeError # Times out. Please triage this failure
 LibTest/html/HttpRequest/request_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/responseText_A01_t02: Skip # Times out. Please triage this failure
 LibTest/html/HttpRequest/responseType_A01_t01: RuntimeError # Please triage this failure
@@ -1477,7 +1480,7 @@ LibTest/html/IFrameElement/leftView_A01_t01: Skip # Times out. Please triage thi
 LibTest/html/IFrameElement/marginEdge_A01_t01: RuntimeError # Issue 16574
 LibTest/html/IFrameElement/offsetTo_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/onMouseWheel_A01_t01: Skip # Times out. Please triage this failure
-LibTest/html/IFrameElement/onTransitionEnd_A01_t01: RuntimeError # Please triage this failure
+LibTest/html/IFrameElement/onTransitionEnd_A01_t01: Skip # Please triage this failure
 LibTest/html/IFrameElement/outerHtml_setter_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/IFrameElement/paddingEdge_A01_t01: RuntimeError # Issue 16574
 LibTest/html/IFrameElement/querySelector_A01_t01: RuntimeError # Please triage this failure
