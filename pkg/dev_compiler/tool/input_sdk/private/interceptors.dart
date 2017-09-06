@@ -7,7 +7,7 @@ library dart._interceptors;
 import 'dart:collection';
 import 'dart:_internal' hide Symbol;
 import 'dart:_js_helper';
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JSExportName;
 import 'dart:math' show Random;
 import 'dart:_runtime' as dart;
 
@@ -107,6 +107,52 @@ class NullError extends Interceptor implements NoSuchMethodError {
     return "NullError: ${JS('String', '#.message', this)}";
   }
 }
+
+@JsPeerInterface(name: 'Function')
+class JSFunction extends Interceptor {
+  toString() {
+    // If the function is a Type object, we should just display the type name.
+    // Regular Dart code should typically get wrapped type objects instead of
+    // raw type (aka JS constructor) objects however raw type objects can be
+    // exposed to Dart code via JS interop or debugging tools.
+    if (dart.isType(this)) return dart.typeName(this);
+
+    return JS('String', r'"Closure: " + # + " from: " + #',
+        dart.typeName(dart.getReifiedType(this)), this);
+  }
+
+  // TODO(jmesserly): remove these once we canonicalize tearoffs.
+  operator ==(other) {
+    var boundObj = JS('Object|Null', '#._boundObject', this);
+    if (boundObj == null) return JS('bool', '# === #', this, other);
+    return JS(
+        'bool',
+        '# === #._boundObject && #._boundMethod === #._boundMethod',
+        boundObj,
+        other,
+        this,
+        other);
+  }
+
+  get hashCode {
+    var boundObj = JS('Object|Null', '#._boundObject', this);
+    if (boundObj == null) return identityHashCode(this);
+
+    var boundMethod = JS('Object', '#._boundMethod', this);
+    int hash = (17 * 31 + boundObj.hashCode) & 0x1fffffff;
+    return (hash * 31 + identityHashCode(boundMethod)) & 0x1fffffff;
+  }
+
+  get runtimeType => dart.wrapType(dart.getReifiedType(this));
+}
+
+/// A class used for implementing `null` tear-offs.
+class JSNull {
+  toString() => 'null';
+  noSuchMethod(Invocation i) => dart.defaultNoSuchMethod(null, i);
+}
+
+final Object jsNull = new JSNull();
 
 // Note that this needs to be in interceptors.dart in order for
 // it to be picked up as an extension type.

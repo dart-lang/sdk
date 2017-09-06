@@ -546,7 +546,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
 
   Iterator<E> get iterator => new ArrayIterator<E>(this);
 
-  int get hashCode => Primitives.objectHashCode(this);
+  int get hashCode => identityHashCode(this);
 
   @notNull
   bool operator ==(other) => identical(this, other);

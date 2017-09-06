@@ -1268,7 +1268,7 @@ class CodeGenerator extends Object
           js.number(i), js.string('${type.name}.${fields[i].name}'));
     }
     var nameMap = new JS.ObjectInitializer(nameProperties, multiline: true);
-    var toStringF = new JS.Method(js.string('toString'),
+    var toStringF = new JS.Method(_propertyName('toString'),
         js.call('function() { return #[this.index]; }', nameMap) as JS.Fun);
 
     // Create enum class
@@ -1291,7 +1291,8 @@ class CodeGenerator extends Object
       js.statement(
           '(#.new = function(x) { this.index = x; }).prototype = #.prototype;',
           [id, id]),
-      _callHelperStatement('setSignature(#, #);', [id, sig])
+      _callHelperStatement('setSignature(#, #);', [id, sig]),
+      _callHelperStatement('defineExtensionMembers(#, ["toString"])', id)
     ];
 
     // defineEnumValues internally depends on dart.constList which uses
@@ -1796,6 +1797,11 @@ class CodeGenerator extends Object
     var parentType = findSupertype(t, _implementsIterable);
     if (parentType != null) return null;
 
+    if (t.element.source.isInSystemLibrary &&
+        t.methods.any((m) => getJSExportName(m) == 'Symbol.iterator')) {
+      return null;
+    }
+
     // Otherwise, emit the adapter method, which wraps the Dart iterator in
     // an ES6 iterator.
     return new JS.Method(
@@ -1824,23 +1830,24 @@ class CodeGenerator extends Object
         (a) =>
             isJsPeerInterface(a) ||
             isNativeAnnotation(a) && _extensionTypes.isNativeClass(classElem));
-    if (jsPeerNames != null) {
-      // Omit the special name "!nonleaf" and any future hacks starting with "!"
-      return jsPeerNames
-          .split(',')
-          .where((peer) => !peer.startsWith("!"))
-          .toList();
-    } else {
-      return [];
-    }
+    if (classElem.type.isObject) return ['Object'];
+    if (jsPeerNames == null) return [];
+
+    // Omit the special name "!nonleaf" and any future hacks starting with "!"
+    var result =
+        jsPeerNames.split(',').where((peer) => !peer.startsWith("!")).toList();
+    return result;
   }
 
   void _registerExtensionType(
       ClassElement classElem, String jsPeerName, List<JS.Statement> body) {
-    if (jsPeerName != null) {
-      body.add(_callHelperStatement('registerExtension(#, #);',
-          [js.string(jsPeerName), _emitTopLevelName(classElem)]));
+    var className = _emitTopLevelName(classElem);
+    if (isPrimitiveType(classElem.type)) {
+      body.add(_callHelperStatement(
+          'definePrimitiveHashCode(#.prototype)', className));
     }
+    body.add(_callHelperStatement(
+        'registerExtension(#, #);', [js.string(jsPeerName), className]));
   }
 
   JS.Statement _setBaseClass(ClassElement classElem, JS.Expression className,
@@ -2793,14 +2800,24 @@ class CodeGenerator extends Object
         ? _emitFunctionBody(element, parameters, body)
         : new JS.Block(
             [_emitGeneratorFunction(element, parameters, body).toReturn()]);
-
-    var typeFormals = _emitTypeFormals(type.typeFormals);
-
-    var returnType = emitTypeRef(type.returnType);
-    if (element.isOperator && element.name == '[]=' && formals.isNotEmpty) {
-      // []= methods need to return the value. We could also address this at
-      // call sites, but it's cleaner to instead transform the operator method.
-      code = _alwaysReturnLastParameter(code, formals.last);
+    if (element.isOperator && formals.isNotEmpty) {
+      if (element.name == '[]=') {
+        // []= methods need to return the value. We could also address this at
+        // call sites, but it's cleaner to instead transform the operator method.
+        code = _alwaysReturnLastParameter(code, formals.last);
+      } else if (element.name == '==' && !element.library.isInSdk) {
+        // In Dart `operator ==` methods are not called with a null argument.
+        // This is handled before calling them. For performance reasons, we push
+        // this check inside the method, to simplify our `equals` helper.
+        //
+        // TODO(jmesserly): in most cases this check is not necessary, because
+        // the Dart code already handles it (typically by an `is` check).
+        // Eliminate it when possible.
+        code = new JS.Block([
+          js.statement('if (# == null) return false;', [formals.first]),
+          code
+        ]);
+      }
     }
 
     if (body is BlockFunctionBody) {
@@ -2816,7 +2833,8 @@ class CodeGenerator extends Object
     }
 
     return _makeGenericFunction(new JS.Fun(formals, code,
-        typeParams: typeFormals, returnType: returnType));
+        typeParams: _emitTypeFormals(type.typeFormals),
+        returnType: emitTypeRef(type.returnType)));
   }
 
   JS.Block _emitFunctionBody(ExecutableElement element,
@@ -3556,8 +3574,19 @@ class CodeGenerator extends Object
       return _emitNullSafe(node);
     }
 
-    var result = _emitForeignJS(node);
+    var e = node.methodName.staticElement;
+    var result = _emitForeignJS(node, e);
     if (result != null) return result;
+
+    if (e?.name == 'extensionSymbol' &&
+        e.library.isInSdk &&
+        e.library.source.uri.toString() == 'dart:_runtime') {
+      var args = node.argumentList.arguments;
+      var firstArg = args.length == 1 ? args[0] : null;
+      if (firstArg is StringLiteral) {
+        return _getExtensionSymbolInternal(firstArg.stringValue);
+      }
+    }
 
     var target = _getTarget(node);
     if (target == null || isLibraryPrefix(target)) {
@@ -3823,8 +3852,7 @@ class CodeGenerator extends Object
   }
 
   /// Emits code for the `JS(...)` macro.
-  _emitForeignJS(MethodInvocation node) {
-    var e = node.methodName.staticElement;
+  _emitForeignJS(MethodInvocation node, Element e) {
     if (isInlineJS(e)) {
       var args = node.argumentList.arguments;
       // arg[0] is static return type, used in `RestrictedStaticTypeAnalyzer`
@@ -5012,18 +5040,7 @@ class CodeGenerator extends Object
   /// For example `null.toString()` is legal in Dart, so we need to generate
   /// that as `dart.toString(obj)`.
   bool _isObjectMemberCall(Expression target, String memberName) {
-    if (!isObjectMember(memberName)) {
-      return false;
-    }
-
-    // Check if the target could be `null`, is dynamic, or may be an extension
-    // native type. In all of those cases we need defensive code generation.
-    var type = getStaticType(target);
-
-    return isNullable(target) ||
-        type is FunctionType ||
-        type.isDynamic ||
-        (_extensionTypes.hasNativeSubtype(type) && target is! SuperExpression);
+    return isObjectMember(memberName) && isNullable(target);
   }
 
   List<JS.Expression> _getTypeArgs(Element member, DartType instantiated) {
@@ -5669,7 +5686,16 @@ class CodeGenerator extends Object
     // including overrides in subclasses.
     if (element != null) {
       var runtimeName = getJSExportName(element);
-      if (runtimeName != null) return _propertyName(runtimeName);
+      if (runtimeName != null) {
+        var parts = runtimeName.split('.');
+        if (parts.length < 2) return _propertyName(runtimeName);
+
+        JS.Expression result = new JS.Identifier(parts[0]);
+        for (int i = 1; i < parts.length; i++) {
+          result = new JS.PropertyAccess(result, _propertyName(parts[i]));
+        }
+        return result;
+      }
     }
 
     if (name.startsWith('_')) {
@@ -5688,6 +5714,9 @@ class CodeGenerator extends Object
       case 'unary-':
         name = '_negate';
         break;
+      case '==':
+        name = '_equals';
+        break;
       case 'constructor':
       case 'prototype':
         name = '_$name';
@@ -5695,10 +5724,20 @@ class CodeGenerator extends Object
     }
 
     if (useExtension ?? _isSymbolizedMember(type, name)) {
-      return _extensionSymbols.putIfAbsent(name,
-          () => new JS.TemporaryId('\$${_friendlyOperatorName[name] ?? name}'));
+      return _getExtensionSymbolInternal(name);
     }
     return _propertyName(name);
+  }
+
+  /// This is an internal method used by [_emitMemberName] and the
+  /// optimized `dart:_runtime extensionSymbol` builtin to get the symbol
+  /// for `dartx.<name>`.
+  ///
+  /// Do not call this directly; you want [_emitMemberName], which knows how to
+  /// handle the many details involved in naming.
+  JS.TemporaryId _getExtensionSymbolInternal(String name) {
+    return _extensionSymbols.putIfAbsent(name,
+        () => new JS.TemporaryId('\$${_friendlyOperatorName[name] ?? name}'));
   }
 
   var _forwardingCache = new HashMap<Element, Map<String, ExecutableElement>>();
@@ -5732,15 +5771,12 @@ class CodeGenerator extends Object
   /// subtypes this one, it also forwards this member to its underlying native
   /// one without renaming.
   bool _isSymbolizedMember(DartType type, String name) {
-    // Object members are handled separately.
-    if (isObjectMember(name)) {
-      return false;
-    }
-
     while (type is TypeParameterType) {
       type = (type as TypeParameterType).bound;
     }
-    if (type is InterfaceType) {
+    if (type == null || type.isDynamic) {
+      return isObjectMember(name);
+    } else if (type is InterfaceType) {
       var element = type.element;
       if (_extensionTypes.isNativeClass(element)) {
         var member = _lookupForwardedMember(element, name);
@@ -5761,6 +5797,8 @@ class CodeGenerator extends Object
       // know whether it'll be implemented via forwarding.
       // TODO(vsm): Consider CHA here to be less conservative.
       return _extensionTypes.isNativeInterface(element);
+    } else if (type is FunctionType) {
+      return true;
     }
     return false;
   }

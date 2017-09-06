@@ -415,10 +415,17 @@ void _installPropertiesForObject(jsProto) {
   var coreObjProto = JS('', '#.prototype', Object);
   var names = getOwnPropertyNames(coreObjProto);
   for (int i = 0; i < JS('int', '#.length', names); ++i) {
-    var name = JS('', '#[#]', names, i);
+    var name = JS('String', '#[#]', names, i);
+    if (name == 'constructor') continue;
     var desc = getOwnPropertyDescriptor(coreObjProto, name);
     defineProperty(jsProto, JS('', '#.#', dartx, name), desc);
   }
+}
+
+void _installPropertiesForGlobalObject(jsProto) {
+  _installPropertiesForObject(jsProto);
+  // Use JS toString for JS objects, rather than the Dart one.
+  JS('', '#[dartx.toString] = function() { return this.toString(); }', jsProto);
 }
 
 final _extensionMap = JS('', 'new Map()');
@@ -432,11 +439,17 @@ _applyExtension(jsType, dartExtType) => JS('', '''(() => {
   // TODO(vsm): This sometimes doesn't exist on FF.  These types will be
   // broken.
   if (!jsProto) return;
+  if ($dartExtType === $Object) {
+    $_installPropertiesForGlobalObject(jsProto);
+    return;
+  }
 
   $_installProperties(jsProto, $dartExtType, jsProto[$_extensionType]);
-
+  
   // Mark the JS type's instances so we can easily check for extensions.
-  jsProto[$_extensionType] = $dartExtType;
+  if ($dartExtType !== $JSFunction) {
+    jsProto[$_extensionType] = $dartExtType;
+  }
 
   function updateSig(sigF) {
     let originalDesc = $getOwnPropertyDescriptor($dartExtType, sigF);
@@ -497,6 +510,9 @@ defineExtensionMembers(type, methodNames) => JS('', '''(() => {
   // annotations) any time we copy a method as part of our metaprogramming.
   // It might be more friendly to JS metaprogramming if we include this info
   // on the function.
+  // Alternatively we can pick a canonical name, and make sure our dynamic
+  // operations always use that. For example, if we have all possible extension
+  // member names be symbolized, we'll never need to worry about it.
 
   function upgradeSig(sigF) {
     let originalSigDesc = $getOwnPropertyDescriptor($type, sigF);
@@ -518,6 +534,11 @@ defineExtensionMembers(type, methodNames) => JS('', '''(() => {
   upgradeSig($_getterSig);
   upgradeSig($_setterSig);
 })()''');
+
+definePrimitiveHashCode(proto) {
+  defineProperty(proto, identityHashCode_,
+      getOwnPropertyDescriptor(proto, extensionSymbol('hashCode')));
+}
 
 /// Link the extension to the type it's extending as a base class.
 setBaseClass(derived, base) {

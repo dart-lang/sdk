@@ -47,7 +47,7 @@ class PrivateSymbol implements core.Symbol {
       _name == other._name &&
       identical(_nativeSymbol, other._nativeSymbol);
 
-  get hashCode => _nativeSymbol.hashCode;
+  get hashCode => _name.hashCode;
 
   // TODO(jmesserly): is this equivalent to _nativeSymbol toString?
   toString() => 'Symbol("$_name")';

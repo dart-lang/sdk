@@ -9,7 +9,7 @@ import 'dart:collection';
 
 import 'dart:_debugger' show stackTraceMapper;
 import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
-import 'dart:_interceptors' show JSArray;
+import 'dart:_interceptors' show JSArray, jsNull, JSFunction;
 import 'dart:_js_helper'
     show
         AssertionErrorImpl,
@@ -42,7 +42,7 @@ bool polyfill(window) => JS(
     '',
     '''(() => {
   if ($window[$_polyfilled]) return false;
-  $window[$_polyfilled] = true;  
+  $window[$_polyfilled] = true;
 
   if (typeof $window.NodeList !== "undefined") {
     // TODO(vsm): Do we still need these?
