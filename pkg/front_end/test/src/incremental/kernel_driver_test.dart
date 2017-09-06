@@ -293,6 +293,42 @@ static field (core::String) → core::int f;
 ''');
   }
 
+  test_compile_typedef_storeReference() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    writeFile(aPath, 'typedef int F();');
+    writeFile(bPath, r'''
+import 'a.dart';
+F f;
+''');
+    Uri cUri = writeFile(cPath, r'''
+import 'b.dart';
+var fc = f;
+''');
+
+    // Compile first time, b.dart should store F typedef reference.
+    {
+      KernelResult result = await driver.getKernel(cUri);
+      Library library = _getLibrary(result, cUri);
+      expect((library.fields[0].type as FunctionType).typedef.name, 'F');
+    }
+
+    // Update c.dart and recompile using the serialized b.dart kernel.
+    // We should be able to read the F typedef reference.
+    {
+      writeFile(cPath, r'''
+import 'b.dart';
+var fc2 = f;
+''');
+      driver.invalidate(cUri);
+      KernelResult result = await driver.getKernel(cUri);
+      Library library = _getLibrary(result, cUri);
+      expect((library.fields[0].type as FunctionType).typedef.name, 'F');
+    }
+  }
+
   test_compile_typeEnvironment() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
