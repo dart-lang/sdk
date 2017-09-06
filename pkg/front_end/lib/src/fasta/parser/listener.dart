@@ -871,6 +871,10 @@ class Listener {
     logEvent("BinaryExpression");
   }
 
+  /// Called when the parser encounters a binary operator, in between the LHS
+  /// and RHS subexpressions.
+  void handleBinaryOperator(Token token) {}
+
   void handleConditionalExpression(Token question, Token colon) {
     logEvent("ConditionalExpression");
   }

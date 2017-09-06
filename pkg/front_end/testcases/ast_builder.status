@@ -43,6 +43,7 @@ inference/block_bodied_lambdas_no_return: Crash
 inference/block_bodied_lambdas_returns: Crash
 inference/block_bodied_lambdas_void_context: Crash
 inference/bug30251: Crash
+inference/bug30620: Crash
 inference/bug30624: Crash
 inference/call_corner_cases: Crash
 inference/conditional_lub: Crash

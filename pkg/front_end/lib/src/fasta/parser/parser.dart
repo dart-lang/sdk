@@ -3042,6 +3042,7 @@ class Parser {
         } else if (identical(type, TokenType.QUESTION)) {
           token = parseConditionalExpressionRest(token);
         } else {
+          listener.handleBinaryOperator(token);
           // Left associative, so we recurse at the next higher
           // precedence level.
           token =

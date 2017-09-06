@@ -855,6 +855,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(buildBinaryOperator(toValue(receiver), token, argument, isSuper));
   }
 
+  @override
+  void handleBinaryOperator(Token token) {
+    if (optional("&&", token) || optional("||", token)) {
+      Expression lhs = popForValue();
+      typePromoter.enterLogicalExpression(lhs, token.stringValue);
+      push(lhs);
+    }
+  }
+
   Expression buildBinaryOperator(
       Expression a, Token token, Expression b, bool isSuper) {
     bool negate = false;
@@ -877,6 +886,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   void doLogicalExpression(Token token) {
+    typePromoter.exitLogicalExpression();
     Expression argument = popForValue();
     Expression receiver = popForValue();
     push(new ShadowLogicalExpression(receiver, token.stringValue, argument));
