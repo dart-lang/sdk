@@ -526,6 +526,7 @@ const_syntax_test/08: Crash # Stack Overflow
 const_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_syntax_test/10: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
+constructor12_test: RuntimeError
 constructor2_test: RuntimeError
 constructor3_test: RuntimeError
 constructor5_test: RuntimeError
@@ -608,7 +609,7 @@ duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
 efficient_length_warning_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-enum_duplicate_test/01: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+enum_duplicate_test/01: RuntimeError
 enum_duplicate_test/02: RuntimeError
 enum_duplicate_test/none: RuntimeError
 enum_mirror_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
@@ -692,7 +693,7 @@ integer_division_by_zero_test: RuntimeError
 interceptor3_test: RuntimeError
 internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
 invocation_mirror2_test: RuntimeError
-invocation_mirror_empty_arguments_test: Crash # type 'InterfaceType' is not a subtype of type 'ResolutionInterfaceType' of 'type1' where
+invocation_mirror_empty_arguments_test: RuntimeError
 invocation_mirror_invoke_on2_test: RuntimeError
 invocation_mirror_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
 is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
@@ -704,6 +705,8 @@ issue14014_3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was cal
 issue15720_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 issue21079_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(ListBase.E) in j:constructor(UnmodifiableListView.).
 issue23244_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+issue4295001_test: Crash # Assertion failure: Cannot find value local(Issue4295001Test.#s) in (local(Issue4295001Test.#s), Instance of 'ThisLocal') for j:constructor_body(Issue4295001Test.).
+issue9939_test: RuntimeError
 issue_1751477_test: CompileTimeError
 issue_25671a_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
 issue_25671b_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
@@ -739,8 +742,6 @@ malformed_test/06: Crash # 'package:front_end/src/fasta/kernel/kernel_class_buil
 malformed_test/none: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 many_named_arguments_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 map_literal4_test: RuntimeError
-enum_duplicate_test/01: RuntimeError
-invocation_mirror_empty_arguments_test: RuntimeError
 method_name_test: CompileTimeError
 method_override4_test: RuntimeError
 method_override5_test: RuntimeError
@@ -890,6 +891,7 @@ named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError
 named_parameters_with_conversions_test: RuntimeError
 named_parameters_with_dollars_test: RuntimeError
+naming_test: Crash # Assertion failure: Cannot find value local(Hoisting.negate#x) in (local(Hoisting.negate#x), Instance of 'ThisLocal') for j:constructor_body(Hoisting.negate).
 nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 308 pos 12: 'local != null': is not true.
 no_main_test/01: CompileTimeError
@@ -1122,6 +1124,7 @@ const_syntax_test/08: Crash # Stack Overflow
 const_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_syntax_test/10: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
+constructor12_test: RuntimeError
 constructor2_test: RuntimeError
 constructor3_test: RuntimeError
 constructor5_test: RuntimeError
@@ -1208,7 +1211,7 @@ duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 dynamic_prefix_core_test/none: RuntimeError
 efficient_length_warning_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-enum_duplicate_test/01: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+enum_duplicate_test/01: RuntimeError
 enum_duplicate_test/02: RuntimeError
 enum_duplicate_test/none: RuntimeError
 enum_mirror_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
@@ -1293,7 +1296,7 @@ integer_division_by_zero_test: RuntimeError
 interceptor3_test: RuntimeError
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
 invocation_mirror2_test: RuntimeError
-invocation_mirror_empty_arguments_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'kind'.
+invocation_mirror_empty_arguments_test: RuntimeError
 invocation_mirror_invoke_on2_test: RuntimeError
 invocation_mirror_test: Crash # NoSuchMethodError: The getter 'function' was called on null.
 is_malformed_type_test/94: Crash # Internal Error: Non-empty instruction stack
@@ -1305,6 +1308,8 @@ issue14014_3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was cal
 issue15720_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 issue21079_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(ListBase.E) in j:constructor(UnmodifiableListView.).
 issue23244_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+issue4295001_test: Crash # Assertion failure: Cannot find value local(Issue4295001Test.#s) in (local(Issue4295001Test.#s), Instance of 'ThisLocal') for j:constructor_body(Issue4295001Test.).
+issue9939_test: RuntimeError
 issue_1751477_test: CompileTimeError
 issue_25671a_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
 issue_25671b_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
@@ -1336,8 +1341,6 @@ malformed_test/06: CompileTimeError
 malformed_test/none: RuntimeError
 many_named_arguments_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 map_literal4_test: RuntimeError
-enum_duplicate_test/01: RuntimeError
-invocation_mirror_empty_arguments_test: RuntimeError
 method_name_test: CompileTimeError
 method_override4_test: RuntimeError
 method_override5_test: RuntimeError
@@ -1485,6 +1488,7 @@ named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError
 named_parameters_with_conversions_test: RuntimeError
 named_parameters_with_dollars_test: RuntimeError
+naming_test: Crash # Assertion failure: Cannot find value local(Hoisting.negate#x) in (local(Hoisting.negate#x), Instance of 'ThisLocal') for j:constructor_body(Hoisting.negate).
 nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
