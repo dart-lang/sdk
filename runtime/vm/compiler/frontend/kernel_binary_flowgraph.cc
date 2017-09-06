@@ -7672,18 +7672,22 @@ void StreamingFlowGraphBuilder::CollectTokenPositionsFor(
 
 intptr_t StreamingFlowGraphBuilder::SourceTableSize() {
   AlternativeReadingScope alt(reader_);
-  SetOffset(reader_->size() - 4);
+  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd));
   intptr_t library_count = reader_->ReadUInt32();
-  SetOffset(reader_->size() - 4 - 4 * library_count - 3 * 4);
+  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd) -
+            (4 * library_count) -
+            (4 * SourceTableFieldCountFromFirstLibraryOffset));
   SetOffset(reader_->ReadUInt32());  // read source table offset.
   return ReadUInt();                 // read source table size.
 }
 
 String& StreamingFlowGraphBuilder::SourceTableUriFor(intptr_t index) {
   AlternativeReadingScope alt(reader_);
-  SetOffset(reader_->size() - 4);
+  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd));
   intptr_t library_count = reader_->ReadUInt32();
-  SetOffset(reader_->size() - 4 - 4 * library_count - 3 * 4);
+  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd) -
+            (4 * library_count) -
+            (4 * SourceTableFieldCountFromFirstLibraryOffset));
   SetOffset(reader_->ReadUInt32());  // read source table offset.
   intptr_t size = ReadUInt();        // read source table size.
   intptr_t start = 0;
@@ -7704,9 +7708,11 @@ String& StreamingFlowGraphBuilder::SourceTableUriFor(intptr_t index) {
 
 String& StreamingFlowGraphBuilder::GetSourceFor(intptr_t index) {
   AlternativeReadingScope alt(reader_);
-  SetOffset(reader_->size() - 4);
+  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd));
   intptr_t library_count = reader_->ReadUInt32();
-  SetOffset(reader_->size() - 4 - 4 * library_count - 3 * 4);
+  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd) -
+            (4 * library_count) -
+            (4 * SourceTableFieldCountFromFirstLibraryOffset));
   SetOffset(reader_->ReadUInt32());  // read source table offset.
   intptr_t size = ReadUInt();        // read source table size.
   intptr_t uris_size = 0;
@@ -7734,9 +7740,11 @@ String& StreamingFlowGraphBuilder::GetSourceFor(intptr_t index) {
 
 Array& StreamingFlowGraphBuilder::GetLineStartsFor(intptr_t index) {
   AlternativeReadingScope alt(reader_);
-  SetOffset(reader_->size() - 4);
+  SetOffset(reader_->size() - (4 * 2));
   intptr_t library_count = reader_->ReadUInt32();
-  SetOffset(reader_->size() - 4 - 4 * library_count - 3 * 4);
+  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd) -
+            (4 * library_count) -
+            (4 * SourceTableFieldCountFromFirstLibraryOffset));
   SetOffset(reader_->ReadUInt32());  // read source table offset.
   intptr_t size = ReadUInt();        // read source table size.
   intptr_t uris_size = 0;

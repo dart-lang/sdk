@@ -116,11 +116,10 @@ type CanonicalName {
 
 type ProgramFile {
   UInt32 magic = 0x90ABCDEF;
-  StringTable strings;
   UriSource sourceMap;
-  List<CanonicalName> canonicalNames;
   List<Library> libraries;
-  ProcedureReference mainMethod;
+  List<CanonicalName> canonicalNames;
+  StringTable strings;
   ProgramIndex programIndex;
 }
 
@@ -132,9 +131,11 @@ type ProgramFile {
 type ProgramIndex {
   UInt32 binaryOffsetForSourceTable;
   UInt32 binaryOffsetForCanonicalNames;
+  UInt32 binaryOffsetForStringTable;
   UInt32 mainMethodReference; // This is a ProcedureReference with a fixed-size integer.
   UInt32[libraryCount] libraryOffsets;
   UInt32 libraryCount;
+  UInt32 programFileSizeInBytes;
 }
 
 type LibraryReference {

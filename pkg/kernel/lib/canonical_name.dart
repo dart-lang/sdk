@@ -63,6 +63,7 @@ class CanonicalName {
 
   @coq
   final String name;
+  CanonicalName _nonRootTop;
 
   Map<String, CanonicalName> _children;
 
@@ -74,13 +75,17 @@ class CanonicalName {
 
   CanonicalName._(this.parent, this.name) {
     assert(name != null);
+    assert(parent != null);
+    _nonRootTop = parent.isRoot ? this : parent._nonRootTop;
   }
 
   CanonicalName.root()
       : parent = null,
+        _nonRootTop = null,
         name = '';
 
   bool get isRoot => parent == null;
+  CanonicalName get nonRootTop => _nonRootTop;
 
   Iterable<CanonicalName> get children =>
       _children?.values ?? const <CanonicalName>[];

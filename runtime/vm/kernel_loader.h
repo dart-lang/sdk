@@ -81,16 +81,16 @@ class KernelLoader {
   intptr_t library_offset(intptr_t index) {
     kernel::Reader reader(program_->kernel_data(),
                           program_->kernel_data_size());
-    reader.set_offset(reader.size() - 4 -
-                      (program_->library_count() - index) * 4);
+    reader.set_offset(reader.size() - (4 * LibraryCountFieldCountFromEnd) -
+                      (4 * (program_->library_count() - index)));
     return reader.ReadUInt32();
   }
 
   NameIndex library_canonical_name(intptr_t index) {
     kernel::Reader reader(program_->kernel_data(),
                           program_->kernel_data_size());
-    reader.set_offset(reader.size() - 4 -
-                      (program_->library_count() - index) * 4);
+    reader.set_offset(reader.size() - (4 * LibraryCountFieldCountFromEnd) -
+                      (4 * (program_->library_count() - index)));
     reader.set_offset(reader.ReadUInt32());
 
     // Start reading library.

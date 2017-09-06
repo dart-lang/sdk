@@ -71,11 +71,14 @@ class Program {
   NameIndex main_method_reference_;  // Procedure.
   intptr_t library_count_;
 
-  // The offset from the start of the binary to the start of the string table.
-  intptr_t string_table_offset_;
+  // The offset from the start of the binary to the start of the source table.
+  intptr_t source_table_offset_;
 
   // The offset from the start of the binary to the canonical name table.
   intptr_t name_table_offset_;
+
+  // The offset from the start of the binary to the start of the string table.
+  intptr_t string_table_offset_;
 
   const uint8_t* kernel_data_;
   intptr_t kernel_data_size_;
