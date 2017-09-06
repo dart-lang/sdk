@@ -1418,11 +1418,11 @@ void FlowGraphCompiler::ClobberDeadTempRegisters(LocationSummary* locs) {
 #endif
 
 void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
-    intptr_t argument_count,
+    intptr_t count_without_type_args,
     const Array& arguments_descriptor) {
   __ Comment("EmitTestAndCall");
   // Load receiver into EAX.
-  __ movl(EAX, Address(ESP, (argument_count - 1) * kWordSize));
+  __ movl(EAX, Address(ESP, (count_without_type_args - 1) * kWordSize));
   __ LoadObject(EDX, arguments_descriptor);
 }
 

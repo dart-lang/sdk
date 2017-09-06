@@ -1109,6 +1109,7 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
   // We lost the original ICData when we patched to the monomorphic case.
   const String& name = String::Handle(zone, old_target.name());
   ASSERT(!old_target.HasOptionalParameters());
+  ASSERT(!old_target.IsGeneric());
   const int kTypeArgsLen = 0;
   const Array& descriptor =
       Array::Handle(zone, ArgumentsDescriptor::New(
@@ -1207,7 +1208,8 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
     ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
   }
 
-  if (!target_function.IsNull() && !target_function.HasOptionalParameters()) {
+  if (!target_function.IsNull() && !target_function.HasOptionalParameters() &&
+      !target_function.IsGeneric()) {
     // Patch to monomorphic call.
     ASSERT(target_function.HasCode());
     const Code& target_code = Code::Handle(zone, target_function.CurrentCode());
@@ -1376,12 +1378,13 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
     const intptr_t number_of_checks = ic_data.NumberOfChecks();
 
     if ((number_of_checks == 0) && !target_function.HasOptionalParameters() &&
+        !target_function.IsGeneric() &&
         !Isolate::Current()->compilation_allowed()) {
       // This call site is unlinked: transition to a monomorphic direct call.
       // Note we cannot do this if the target has optional parameters because
       // the monomorphic direct call does not load the arguments descriptor.
       // We cannot do this if we are still in the middle of precompiling because
-      // the monomorphic case hides an live instance selector from the
+      // the monomorphic case hides a live instance selector from the
       // treeshaker.
 
       const Code& target_code =

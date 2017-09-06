@@ -649,7 +649,7 @@ class FlowGraphCompiler : public ValueObject {
                                            intptr_t max_immediate);
 
   // More helpers for EmitTestAndCall.
-  void EmitTestAndCallLoadReceiver(intptr_t argument_count,
+  void EmitTestAndCallLoadReceiver(intptr_t count_without_type_args,
                                    const Array& arguments_descriptor);
 
   void EmitTestAndCallSmiBranch(Label* label, bool jump_if_smi);

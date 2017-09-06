@@ -3062,7 +3062,8 @@ void Assembler::LeaveStubFrame() {
   LeaveDartFrame();
 }
 
-// R0 receiver, R9 guarded cid as Smi
+// R0 receiver, R9 guarded cid as Smi.
+// Preserve R4 (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntry() {
   ASSERT(has_single_entry_point_);
   has_single_entry_point_ = false;
@@ -3078,9 +3079,9 @@ void Assembler::MonomorphicCheckedEntry() {
 
   Comment("MonomorphicCheckedEntry");
   ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
-  LoadClassIdMayBeSmi(R4, R0);
+  LoadClassIdMayBeSmi(IP, R0);
   SmiUntag(R9);
-  cmp(R4, Operand(R9));
+  cmp(IP, Operand(R9));
   b(&miss, NE);
 
   // Fall through to unchecked entry.

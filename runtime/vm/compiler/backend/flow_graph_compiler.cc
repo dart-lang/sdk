@@ -1750,7 +1750,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
 
   const Array& arguments_descriptor =
       Array::ZoneHandle(zone(), args_info.ToArgumentsDescriptor());
-  EmitTestAndCallLoadReceiver(args_info.count_with_type_args,
+  EmitTestAndCallLoadReceiver(args_info.count_without_type_args,
                               arguments_descriptor);
 
   static const int kNoCase = -1;

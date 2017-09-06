@@ -1446,11 +1446,11 @@ void FlowGraphCompiler::ClobberDeadTempRegisters(LocationSummary* locs) {
 #endif
 
 void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
-    intptr_t argument_count,
+    intptr_t count_without_type_args,
     const Array& arguments_descriptor) {
   __ Comment("EmitTestAndCall");
   // Load receiver into R0.
-  __ LoadFromOffset(R0, SP, (argument_count - 1) * kWordSize);
+  __ LoadFromOffset(R0, SP, (count_without_type_args - 1) * kWordSize);
   __ LoadObject(R4, arguments_descriptor);
 }
 

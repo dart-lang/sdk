@@ -1158,7 +1158,8 @@ void Assembler::LeaveStubFrame() {
   LeaveDartFrame();
 }
 
-// R0 receiver, R5 guarded cid as Smi
+// R0 receiver, R5 guarded cid as Smi.
+// Preserve R4 (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntry() {
   ASSERT(has_single_entry_point_);
   has_single_entry_point_ = false;
@@ -1171,7 +1172,7 @@ void Assembler::MonomorphicCheckedEntry() {
   br(IP0);
 
   Bind(&immediate);
-  movz(R4, Immediate(kSmiCid), 0);
+  movz(IP0, Immediate(kSmiCid), 0);
   b(&have_cid);
 
   Comment("MonomorphicCheckedEntry");
@@ -1180,10 +1181,10 @@ void Assembler::MonomorphicCheckedEntry() {
   SmiUntag(R5);
   b(&immediate, EQ);
 
-  LoadClassId(R4, R0);
+  LoadClassId(IP0, R0);
 
   Bind(&have_cid);
-  cmp(R4, Operand(R5));
+  cmp(IP0, Operand(R5));
   b(&miss, NE);
 
   // Fall through to unchecked entry.

@@ -1424,11 +1424,11 @@ void FlowGraphCompiler::ClobberDeadTempRegisters(LocationSummary* locs) {
 #endif
 
 void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
-    intptr_t argument_count,
+    intptr_t count_without_type_args,
     const Array& arguments_descriptor) {
   __ Comment("EmitTestAndCall");
   // Load receiver into RAX.
-  __ movq(RAX, Address(RSP, (argument_count - 1) * kWordSize));
+  __ movq(RAX, Address(RSP, (count_without_type_args - 1) * kWordSize));
   __ LoadObject(R10, arguments_descriptor);
 }
 
