@@ -689,7 +689,6 @@ class ResultLogWriter extends EventListener {
       return {
         'name': command.displayName,
         'exitCode': output.exitCode,
-        'compilationSkipped': output.compilationSkipped,
         'timeout': output.hasTimedOut,
         'duration': output.time.inMilliseconds
       };
