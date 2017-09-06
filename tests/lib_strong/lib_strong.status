@@ -34,7 +34,6 @@ async/stream_controller_test: Skip
 async/stream_event_transformed_test: Skip
 async/stream_transformer_test: Skip
 async/zone_debug_test: Skip
-convert/chunked_conversion1_test: Skip
 convert/line_splitter_test: Skip
 html/cross_frame_test: Skip
 html/element_dimensions_test: Skip

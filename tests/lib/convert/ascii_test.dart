@@ -160,7 +160,7 @@ void testChunkedConversions() {
       }
       for (var nonAsciiString in nonAsciiStrings) {
         Expect.throws(() {
-          encode(nonAsciiStrings, chunkSize, converter);
+          encode(nonAsciiString, chunkSize, converter);
         });
       }
     }

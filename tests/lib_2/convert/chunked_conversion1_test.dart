@@ -21,7 +21,7 @@ abstract class MyChunkedIntSink extends ChunkedConversionSink<int> {
   close();
 
   // The special method.
-  specialI(i);
+  void specialI(int i);
 }
 
 class IntAdapterSink extends MyChunkedIntSink {
@@ -29,7 +29,7 @@ class IntAdapterSink extends MyChunkedIntSink {
   IntAdapterSink(this._sink);
   add(o) => _sink.add(o);
   close() => _sink.close();
-  specialI(o) => add(o);
+  void specialI(int o) => add(o);
 }
 
 abstract class MyChunkedBoolSink extends ChunkedConversionSink<bool> {
@@ -54,8 +54,8 @@ class BoolAdapterSink extends MyChunkedBoolSink {
   specialB(o) => add(o);
 }
 
-class IntBoolConverter1 extends Converter<List<int>, List<bool>> {
-  List<bool> convert(List<int> input) => input.map((x) => x > 0).toList();
+class IntBoolConverter1 extends Converter<int, bool> {
+  bool convert(int input) => input > 0;
 
   startChunkedConversion(sink) {
     if (sink is! MyChunkedBoolSink) sink = new MyChunkedBoolSink.from(sink);
@@ -63,8 +63,8 @@ class IntBoolConverter1 extends Converter<List<int>, List<bool>> {
   }
 }
 
-class BoolIntConverter1 extends Converter<List<bool>, List<int>> {
-  List<int> convert(List<bool> input) => input.map((x) => x ? 1 : 0).toList();
+class BoolIntConverter1 extends Converter<bool, int> {
+  int convert(bool input) => input ? 1 : 0;
 
   startChunkedConversion(sink) {
     if (sink is! MyChunkedIntSink) sink = new MyChunkedIntSink.from(sink);
@@ -83,7 +83,7 @@ class IntBoolConverter1Sink extends MyChunkedIntSink {
     outSink.specialB(i > 0);
   }
 
-  specialI(int i) {
+  void specialI(int i) {
     specialICounter++;
     add(i);
   }
@@ -107,34 +107,34 @@ class BoolIntConverter1Sink extends MyChunkedBoolSink {
   close() => outSink.close();
 }
 
-class IdentityConverter extends Converter {
-  convert(x) => x;
+class IdentityConverter<T> extends Converter<T, T> {
+  T convert(T x) => x;
 
   startChunkedConversion(sink) {
-    return new IdentitySink(sink);
+    return new IdentitySink<T>(sink);
   }
 }
 
-class IdentitySink extends ChunkedConversionSink {
+class IdentitySink<T> extends ChunkedConversionSink<T> {
   final _sink;
   IdentitySink(this._sink);
-  add(o) => _sink.add(o);
+  void add(T o) => _sink.add(o);
   close() => _sink.close();
 }
 
 main() {
-  var converter1, converter2, intSink, intSink2, hasExecuted, boolSink, fused;
-  var converter3, fused2, sink, sink2;
+  var intSink, boolSink, sink, sink2;
 
   // Test int->bool converter individually.
-  converter1 = new IntBoolConverter1();
-  Expect.listEquals([true, false, true], converter1.convert([2, -2, 2]));
-  hasExecuted = false;
+  Converter<int, bool> int2boolConverter = new IntBoolConverter1();
+  Expect.listEquals(
+      [true, false, true], [2, -2, 2].map(int2boolConverter.convert).toList());
+  var hasExecuted = false;
   boolSink = new MyChunkedBoolSink.withCallback((value) {
     hasExecuted = true;
     Expect.listEquals([true, false, true], value);
   });
-  intSink = converter1.startChunkedConversion(boolSink);
+  intSink = int2boolConverter.startChunkedConversion(boolSink);
   intSink.add(3);
   intSink.specialI(-3);
   intSink.add(3);
@@ -145,14 +145,15 @@ main() {
   hasExecuted = false;
 
   // Test bool->int converter individually.
-  converter2 = new BoolIntConverter1();
-  Expect.listEquals([1, 0, 1], converter2.convert([true, false, true]));
+  Converter<bool, int> bool2intConverter = new BoolIntConverter1();
+  Expect.listEquals(
+      [1, 0, 1], [true, false, true].map(bool2intConverter.convert).toList());
   hasExecuted = false;
   intSink = new MyChunkedIntSink.withCallback((value) {
     hasExecuted = true;
     Expect.listEquals([1, 0, 1], value);
   });
-  boolSink = converter2.startChunkedConversion(intSink);
+  boolSink = bool2intConverter.startChunkedConversion(intSink);
   boolSink.specialB(true);
   boolSink.add(false);
   boolSink.add(true);
@@ -163,23 +164,23 @@ main() {
   hasExecuted = false;
 
   // Test identity converter indidivually.
-  converter3 = new IdentityConverter();
+  var identityConverter = new IdentityConverter();
   hasExecuted = false;
   sink = new ChunkedConversionSink.withCallback((value) {
     hasExecuted = true;
     Expect.listEquals([1, 2, 3], value);
   });
-  sink2 = converter3.startChunkedConversion(sink);
+  sink2 = identityConverter.startChunkedConversion(sink);
   [1, 2, 3].forEach(sink2.add);
   sink2.close();
   Expect.isTrue(hasExecuted);
   hasExecuted = false;
 
   // Test fused converters.
-  fused = converter1.fuse(converter2);
-  Expect.listEquals([1, 0, 1], fused.convert([2, -2, 2]));
+  Converter<int, int> fused = int2boolConverter.fuse(bool2intConverter);
+  Expect.listEquals([1, 0, 1], [2, -2, 2].map(fused.convert).toList());
   hasExecuted = false;
-  intSink2 = new MyChunkedIntSink.withCallback((value) {
+  Sink<int> intSink2 = new MyChunkedIntSink.withCallback((value) {
     hasExecuted = true;
     Expect.listEquals([1, 0, 1], value);
   });
@@ -196,7 +197,7 @@ main() {
   hasExecuted = false;
 
   // With identity in front.
-  fused2 = converter3.fuse(fused);
+  Converter<int, int> fused2 = new IdentityConverter<int>().fuse(fused);
   hasExecuted = false;
   intSink2 = new MyChunkedIntSink.withCallback((value) {
     hasExecuted = true;
@@ -216,9 +217,9 @@ main() {
   hasExecuted = false;
 
   // With identity at the end.
-  fused2 = fused.fuse(converter3);
+  fused2 = fused.fuse(new IdentityConverter());
   hasExecuted = false;
-  sink = new ChunkedConversionSink.withCallback((value) {
+  sink = new ChunkedConversionSink<int>.withCallback((value) {
     hasExecuted = true;
     Expect.listEquals([1, 0, 1], value);
   });
@@ -236,8 +237,9 @@ main() {
   hasExecuted = false;
 
   // With identity between the two converters.
-  fused = converter1.fuse(converter3).fuse(converter2);
-  Expect.listEquals([1, 0, 1], fused.convert([2, -2, 2]));
+  fused =
+      int2boolConverter.fuse(new IdentityConverter()).fuse(bool2intConverter);
+  Expect.listEquals([1, 0, 1], [2, -2, 2].map(fused.convert).toList());
   hasExecuted = false;
   intSink2 = new MyChunkedIntSink.withCallback((value) {
     hasExecuted = true;

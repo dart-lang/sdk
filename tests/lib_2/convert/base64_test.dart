@@ -278,14 +278,12 @@ void testErrors() {
   badEncode(0x100);
   badEncode(0x1000);
   badEncode(0x10000);
-  // TODO(rnystrom): These aren't throwing in dev_compiler. Figure out why.
-  // badEncode(0x100000000); //         //# 01: ok
-  // badEncode(0x10000000000000000); // //# 01: continued
+  badEncode(0x100000000); //         //# 01: ok
+  badEncode(0x10000000000000000); // //# 01: continued
 }
 
 void testIssue25577() {
-  // Regression test for http://dartbug.com/25577
-  // Should not fail in checked mode.
+  // Regression test for http://dartbug.com/25577.
   StringConversionSink decodeSink =
       BASE64.decoder.startChunkedConversion(new TestSink<List<int>>());
   ByteConversionSink encodeSink =
