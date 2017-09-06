@@ -403,8 +403,8 @@ abstract class KernelToLocalsMap {
   /// Returns the [ir.FunctionNode] that declared [parameter].
   ir.FunctionNode getFunctionNodeForParameter(Local parameter);
 
-  /// Returns the [ir.DartType] of [parameter].
-  ir.DartType getParameterType(Local parameter);
+  /// Returns the [DartType] of [local].
+  DartType getLocalType(KernelToElementMap elementMap, Local local);
 
   /// Returns the [JumpTarget] for the break statement [node].
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node);

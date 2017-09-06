@@ -130,8 +130,9 @@ class IdData {
   String get diffCode {
     Map<int, List<String>> annotations = <int, List<String>>{};
     actualMap.forEach((Id id, ActualData data) {
-      String expected = expectedMap[id]?.value ?? '';
-      if (data.value != expected) {
+      IdValue value = expectedMap[id];
+      if (data.value != value || value == null && data.value.value != '') {
+        String expected = value?.toString() ?? '';
         annotations
             .putIfAbsent(data.sourceSpan.begin, () => [])
             .add('${expected} | ${data.value}');
@@ -256,6 +257,11 @@ Future checkCode(
           'Expected $expected for id $id missing in ${data.actualMap.keys}');
     }
   });
+  if (missingIds.isNotEmpty) {
+    print('--annotations diff--------------------------------------------');
+    print(data.diffCode);
+    print('--------------------------------------------------------------');
+  }
   Expect.isTrue(missingIds.isEmpty, "Ids not found: ${missingIds}.");
 }
 

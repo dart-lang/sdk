@@ -69,7 +69,7 @@ class TypeMaskComputer extends AstDataExtractor
     if (element.isParameter) {
       ParameterElement parameter = element;
       return getParameterValue(parameter);
-    } else if (element.isLocal) {
+    } else if (element.isLocal && element.isFunction) {
       LocalFunctionElement localFunction = element;
       return getMemberValue(localFunction.callMethod);
     } else {
@@ -80,10 +80,18 @@ class TypeMaskComputer extends AstDataExtractor
 
   @override
   String computeNodeValue(Id id, ast.Node node, [AstElement element]) {
-    if (node is ast.Send) {
-      return getTypeMaskValue(result.typeOfSend(node));
-    } else if (element != null && element.isLocal) {
+    if (element != null && element.isLocal && element.isFunction) {
       return computeElementValue(id, element);
+    } else if (node is ast.SendSet) {
+      if (id.kind == IdKind.invoke) {
+        return getTypeMaskValue(result.typeOfOperator(node));
+      } else if (id.kind == IdKind.update) {
+        return getTypeMaskValue(result.typeOfSend(node));
+      } else if (id.kind == IdKind.node) {
+        return getTypeMaskValue(result.typeOfGetter(node));
+      }
+    } else if (node is ast.Send) {
+      return getTypeMaskValue(result.typeOfSend(node));
     }
     return null;
   }

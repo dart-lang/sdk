@@ -8,6 +8,8 @@ import '../closure.dart';
 import '../common.dart';
 import '../constants/constant_system.dart';
 import '../elements/entities.dart';
+import '../elements/types.dart';
+import '../kernel/element_map.dart';
 import '../options.dart';
 import '../types/constants.dart';
 import '../world.dart';
@@ -30,6 +32,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final TypeSystem<ir.Node> _types;
   final MemberEntity _analyzedMember;
   final ir.Node _analyzedNode;
+  final KernelToElementMapForBuilding _elementMap;
+  final KernelToLocalsMap _localsMap;
   LocalsHandler _locals;
 
   TypeInformation _returnType;
@@ -41,6 +45,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       this._inferrer,
       this._analyzedMember,
       this._analyzedNode,
+      this._elementMap,
+      this._localsMap,
       [this._locals])
       : this._types = _inferrer.types {
     if (_locals != null) return;
@@ -95,11 +101,17 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return node == null ? null : node.accept(this);
   }
 
+  void visitList(List<ir.Node> nodes) {
+    if (nodes == null) return;
+    nodes.forEach(visit);
+  }
+
   @override
   TypeInformation visitFunctionNode(ir.FunctionNode node) {
     // TODO(redemption): Handle constructors.
     // TODO(redemption): Handle native methods.
-    // TODO(redemption): Set up parameters.
+    visitList(node.positionalParameters);
+    visitList(node.namedParameters);
     visit(node.body);
     switch (node.asyncMarker) {
       case ir.AsyncMarker.Sync:
@@ -206,5 +218,22 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // runtime.
     return _types.getConcreteTypeFor(
         computeTypeMask(_closedWorld, constantSystem.createDouble(node.value)));
+  }
+
+  @override
+  TypeInformation visitVariableDeclaration(ir.VariableDeclaration node) {
+    Local local = _localsMap.getLocalVariable(node);
+    DartType type = _localsMap.getLocalType(_elementMap, local);
+    if (node.initializer == null) {
+      _locals.update(local, _types.nullType, node, type);
+    } else {
+      _locals.update(local, visit(node.initializer), node, type);
+    }
+    return null;
+  }
+
+  @override
+  TypeInformation visitVariableGet(ir.VariableGet node) {
+    return _locals.use(_localsMap.getLocalVariable(node.variable));
   }
 }

@@ -144,7 +144,14 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
   TypeInformation computeMemberTypeInformation(
       MemberEntity member, ir.Node body) {
     KernelTypeGraphBuilder visitor = new KernelTypeGraphBuilder(
-        options, closedWorld, _closureDataLookup, this, member, body);
+        options,
+        closedWorld,
+        _closureDataLookup,
+        this,
+        member,
+        body,
+        _elementMap,
+        _globalLocalsMap.getLocalsMap(member));
     return visitor.run();
   }
 
@@ -282,8 +289,7 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy<ir.Node> {
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(context);
     ir.FunctionNode functionNode =
         localsMap.getFunctionNodeForParameter(parameter);
-    DartType type =
-        _elementMap.getDartType(localsMap.getParameterType(parameter));
+    DartType type = localsMap.getLocalType(_elementMap, parameter);
     MemberEntity member;
     bool isClosure = false;
     if (functionNode.parent is ir.Member) {

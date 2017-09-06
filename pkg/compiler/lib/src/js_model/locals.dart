@@ -10,7 +10,9 @@ import '../closure.dart';
 import '../common.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
+import '../elements/types.dart';
 import '../kernel/element_map.dart';
+import '../kernel/indexed.dart';
 
 class GlobalLocalsMap {
   Map<MemberEntity, KernelToLocalsMap> _localsMaps =
@@ -34,10 +36,11 @@ class GlobalLocalsMap {
 
 class KernelToLocalsMapImpl implements KernelToLocalsMap {
   final List<MemberEntity> _members = <MemberEntity>[];
+  final EntityDataMap<JLocal, LocalData> _locals =
+      new EntityDataMap<JLocal, LocalData>();
   Map<ir.VariableDeclaration, JLocal> _map = <ir.VariableDeclaration, JLocal>{};
   Map<ir.TreeNode, JJumpTarget> _jumpTargetMap;
   Set<ir.BreakStatement> _breaksAsContinue;
-  List<ir.VariableDeclaration> _parameterList = <ir.VariableDeclaration>[];
 
   MemberEntity get currentMember => _members.last;
 
@@ -138,24 +141,21 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   @override
   Local getLocalVariable(ir.VariableDeclaration node) {
     return _map.putIfAbsent(node, () {
-      Local local;
-      if (node.parent is ir.FunctionNode) {
-        local = new JParameter(_parameterList.length, node.name, currentMember);
-        _parameterList.add(node);
-      } else {
-        local = new JLocal(node.name, currentMember);
-      }
+      JLocal local = new JLocal(node.name, currentMember,
+          isRegularParameter: node.parent is ir.FunctionNode);
+      _locals.register<JLocal, LocalData>(local, new LocalData(node));
       return local;
     });
   }
 
   @override
-  ir.FunctionNode getFunctionNodeForParameter(covariant JParameter parameter) {
-    return _parameterList[parameter.parameterIndex].parent;
+  ir.FunctionNode getFunctionNodeForParameter(covariant JLocal parameter) {
+    return _locals.getData(parameter).functionNode;
   }
 
-  ir.DartType getParameterType(covariant JParameter parameter) {
-    return _parameterList[parameter.parameterIndex].type;
+  @override
+  DartType getLocalType(KernelToElementMap elementMap, covariant JLocal local) {
+    return _locals.getData(local).getDartType(elementMap);
   }
 
   @override
@@ -382,14 +382,14 @@ class JLabelDefinition extends LabelDefinition<ir.Node> {
   }
 }
 
-class JLocal implements Local {
+class JLocal extends IndexedLocal {
   final String name;
   final MemberEntity memberContext;
 
-  JLocal(this.name, this.memberContext);
-
   /// True if this local represents a local parameter.
-  bool get isRegularParameter => false;
+  final bool isRegularParameter;
+
+  JLocal(this.name, this.memberContext, {this.isRegularParameter: false});
 
   @override
   Entity get executableContext => memberContext;
@@ -411,13 +411,16 @@ class JLocal implements Local {
   }
 }
 
-class JParameter extends JLocal {
-  final int parameterIndex;
+class LocalData {
+  final ir.VariableDeclaration node;
 
-  JParameter(this.parameterIndex, String name, MemberEntity memberContext)
-      : super(name, memberContext);
+  DartType _type;
 
-  bool get isRegularParameter => true;
+  LocalData(this.node);
 
-  String get _kind => 'parameter';
+  DartType getDartType(KernelToElementMap elementMap) {
+    return _type ??= elementMap.getDartType(node.type);
+  }
+
+  ir.FunctionNode get functionNode => node.parent;
 }

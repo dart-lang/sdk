@@ -44,6 +44,10 @@ abstract class IndexedTypedef extends _Indexed implements TypedefEntity {
   int get typedefIndex => _index;
 }
 
+abstract class IndexedLocal extends _Indexed implements Local {
+  int get localIndex => _index;
+}
+
 /// Base implementation for an index based map of entities of type [E].
 abstract class EntityMapBase<E extends _Indexed> {
   List<E> _list = <E>[];

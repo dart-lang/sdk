@@ -276,8 +276,8 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   }
 
   @override
-  ir.DartType getParameterType(Local parameter) {
-    throw new UnsupportedError('KernelAstAdapter.getParameterType');
+  DartType getLocalType(KernelToElementMap elementMap, Local local) {
+    throw new UnsupportedError('KernelAstAdapter.getLocalType');
   }
 
   @override
