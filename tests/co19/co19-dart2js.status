@@ -874,6 +874,7 @@ LayoutTests/fast/canvas/webgl/context-attributes-alpha-depth-stencil-antialias-t
 LayoutTests/fast/canvas/webgl/context-lost-restored_t01: Skip # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-lost_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/draw-arrays-out-of-bounds_t01: RuntimeError, Pass # Please triage this failure
+LayoutTests/fast/canvas/webgl/draw-webgl-to-canvas-2d_t01: RuntimeError, Pass # Please triage this failure
 LayoutTests/fast/canvas/webgl/error-reporting_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/get-active-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-get-calls_t01: RuntimeError, Pass # Please triage this failure
@@ -1363,7 +1364,7 @@ LayoutTests/fast/text/sub-pixel/text-scaling-rtl_t01: Pass, RuntimeError # Pleas
 LayoutTests/fast/text/sub-pixel/text-scaling-vertical_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/text/sub-pixel/text-scaling-webfont_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/text/text-combine-shrink-to-fit_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/text/window-find_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/text/window-find_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/text/zero-width-characters_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/transforms/bounding-rect-zoom_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/transforms/hit-test-large-scale_t01: RuntimeError # Please triage this failure
@@ -1384,6 +1385,7 @@ LayoutTests/fast/url/relative_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/url/segments-from-data-url_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/url/segments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/url/standard-url_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow-scroll_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/writing-mode/positionForPoint_t01: RuntimeError # Please triage this failure
