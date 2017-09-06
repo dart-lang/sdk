@@ -27,14 +27,6 @@ class LimitedBinaryPrinter extends BinaryPrinter {
       : super(sink);
 
   @override
-  void buildStringIndex(Program program) {
-    program.libraries.where(predicate).forEach((library) {
-      stringIndexer.scanLibrary(library);
-    });
-    stringIndexer.finish();
-  }
-
-  @override
   void computeCanonicalNames(Program program) {
     for (var library in program.libraries) {
       if (predicate(library)) {
@@ -70,12 +62,11 @@ class LimitedBinaryPrinter extends BinaryPrinter {
   }
 
   @override
-  void writeUriToSource(Map<String, Source> uriToSource) {
+  void indexUris(Program program) {
     if (!excludeUriToSource) {
-      super.writeUriToSource(uriToSource);
+      super.indexUris(program);
     } else {
-      // Emit a practically empty uriToSource table.
-      super.writeUriToSource({});
+      // We pretend not to know any uris, thereby excluding all sources.
     }
   }
 }

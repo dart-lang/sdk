@@ -116,8 +116,8 @@ type CanonicalName {
 
 type ProgramFile {
   UInt32 magic = 0x90ABCDEF;
-  UriSource sourceMap;
   List<Library> libraries;
+  UriSource sourceMap;
   List<CanonicalName> canonicalNames;
   StringTable strings;
   ProgramIndex programIndex;
