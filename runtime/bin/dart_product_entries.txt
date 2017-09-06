@@ -1,7 +1,0 @@
-dart:_builtin,::,_getMainClosure
-dart:_builtin,::,_getPrintClosure
-dart:_builtin,::,_getUriBaseClosure
-dart:_builtin,::,_setWorkingDirectory
-dart:_builtin,::,_setPackageRoot
-dart:_builtin,::,_setPackagesMap
-dart:_builtin,::,_loadPackagesMap

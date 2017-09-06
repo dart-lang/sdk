@@ -1171,6 +1171,11 @@ int64_t ParseEntryPointsManifestLines(FILE* file,
       break;
     }
 
+    if ((read_line[0] == '\n') || (read_line[0] == '#')) {
+      // Blank or comment line.
+      continue;
+    }
+
     Dart_QualifiedFunctionName* entry =
         collection != NULL ? collection + entries : NULL;
 
