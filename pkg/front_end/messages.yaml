@@ -759,7 +759,10 @@ EnumDeclartionEmpty:
   template: "An enum declaration can't be empty."
 
 ExternalMethodWithBody:
-  template: "An external method can't have a body."
+  template: "An external or native method can't have a body."
+  analyzerCode: EXTERNAL_METHOD_WITH_BODY
+  dart2jsCode: EXTERNAL_WITH_BODY
+  script: "class C {external foo() native 'bar' {}}"
 
 OperatorWithOptionalFormals:
   template: "An operator can't have optional parameters."

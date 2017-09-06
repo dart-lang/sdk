@@ -2450,17 +2450,24 @@ class Parser {
             ? MemberKind.StaticMethod
             : MemberKind.NonStaticMethod);
     token = parseInitializersOpt(token);
+
+    bool allowAbstract = staticModifier == null;
     AsyncModifier savedAsyncModifier = asyncState;
     Token asyncToken = token;
     token = parseAsyncModifier(token);
     if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
       reportRecoverableError(asyncToken, fasta.messageSetterNotSync);
     }
+    if (externalModifier != null) {
+      if (!optional(';', token)) {
+        reportRecoverableError(token, fasta.messageExternalMethodWithBody);
+      }
+      allowAbstract = true;
+    }
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
     } else {
-      token = parseFunctionBody(
-          token, false, staticModifier == null || externalModifier != null);
+      token = parseFunctionBody(token, false, allowAbstract);
     }
     asyncState = savedAsyncModifier;
     listener.endMethod(getOrSet, start, token);

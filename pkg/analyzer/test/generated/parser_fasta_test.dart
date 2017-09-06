@@ -869,14 +869,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_externalMethodWithBody() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, found 0
-    super.test_externalMethodWithBody();
-  }
-
-  @override
-  @failingTest
   void test_externalOperatorWithBody() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY, found 0

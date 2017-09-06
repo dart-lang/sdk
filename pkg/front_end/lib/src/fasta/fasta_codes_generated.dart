@@ -1023,7 +1023,9 @@ const Code<Null> codeExternalMethodWithBody = messageExternalMethodWithBody;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalMethodWithBody = const MessageCode(
     "ExternalMethodWithBody",
-    message: r"""An external method can't have a body.""");
+    analyzerCode: "EXTERNAL_METHOD_WITH_BODY",
+    dart2jsCode: "EXTERNAL_WITH_BODY",
+    message: r"""An external or native method can't have a body.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExtraneousModifier =

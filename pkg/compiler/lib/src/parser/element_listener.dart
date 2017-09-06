@@ -609,6 +609,10 @@ class ElementListener extends Listener {
         }
         return null;
 
+      case "EXTERNAL_WITH_BODY":
+        reportErrorFromToken(token, MessageKind.EXTERNAL_WITH_BODY);
+        return token;
+
       case "UNMATCHED_TOKEN":
         reportErrorFromToken(token, MessageKind.UNMATCHED_TOKEN,
             {"end": arguments["string"], "begin": arguments["token"]});

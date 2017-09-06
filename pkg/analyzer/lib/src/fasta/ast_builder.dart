@@ -1948,6 +1948,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_STRING_LITERAL, charOffset, 1);
         return;
+      case "EXTERNAL_METHOD_WITH_BODY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, charOffset, 1);
+        return;
       case "EXTRANEOUS_MODIFIER":
         String text = stringOrTokenLexeme();
         errorReporter?.reportErrorForOffset(ParserErrorCode.EXTRANEOUS_MODIFIER,
