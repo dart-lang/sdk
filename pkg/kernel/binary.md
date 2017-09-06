@@ -73,16 +73,19 @@ type StringReference {
   UInt index; // Index into the Program's strings.
 }
 
-type Source {
-  List<Byte> utf8Bytes;
+type SourceInfo {
+  List<Byte> uriUtf8Bytes;
+  List<Byte> sourceUtf8Bytes;
   // Line starts are delta-encoded (they are encoded as line lengths).  The list
   // [0, 10, 25, 32, 42] is encoded as [0, 10, 15, 7, 10].
   List<UInt> lineStarts;
 }
 
 type UriSource {
-  StringTable uris;
-  Source[uris.endOffsets.length] source;
+  UInt32 length;
+  SourceInfo[length] source;
+  // The ith entry is byte-offset to the ith Source.
+  UInt32[length] sourceIndex;
 }
 
 type UriReference {

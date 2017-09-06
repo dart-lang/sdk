@@ -230,10 +230,20 @@ class BinaryPrinter extends Visitor {
 
   void writeUriToSource(Map<String, Source> uriToSource) {
     _binaryOffsetForSourceTable = _sink.flushedLength + _sink.length;
-    writeStringTable(_sourceUriIndexer, false);
-    for (int i = 0; i < _sourceUriIndexer.entries.length; i++) {
-      String uri = _sourceUriIndexer.entries[i].value;
-      Source source = uriToSource[uri] ?? new Source(<int>[], const <int>[]);
+
+    int length = _sourceUriIndexer.numberOfStrings;
+    writeUInt32(length);
+    List<int> index = new List<int>(_sourceUriIndexer.entries.length);
+
+    // Write data.
+    for (int i = 0; i < length; ++i) {
+      index[i] = _sink.flushedLength + _sink.length;
+
+      StringTableEntry uri = _sourceUriIndexer.entries[i];
+      Source source =
+          uriToSource[uri.value] ?? new Source(<int>[], const <int>[]);
+
+      writeUtf8Bytes(uri.utf8Bytes);
       writeUtf8Bytes(source.source);
       List<int> lineStarts = source.lineStarts;
       writeUInt30(lineStarts.length);
@@ -242,6 +252,11 @@ class BinaryPrinter extends Visitor {
         writeUInt30(lineStart - previousLineStart);
         previousLineStart = lineStart;
       });
+    }
+
+    // Write index for random access.
+    for (int i = 0; i < index.length; ++i) {
+      writeUInt32(index[i]);
     }
   }
 

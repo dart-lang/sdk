@@ -799,6 +799,8 @@ class StreamingFlowGraphBuilder {
   FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
   FlowGraph* BuildGraphOfFunction(bool constructor);
 
+  intptr_t GetOffsetForSourceInfo(intptr_t index);
+
   Fragment BuildExpression(TokenPosition* position = NULL);
   Fragment BuildStatement();
 

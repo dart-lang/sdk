@@ -361,11 +361,15 @@ class BinaryBuilder {
   }
 
   Map<String, Source> readUriToSource() {
-    readStringTable(_sourceUriTable);
-    int length = _sourceUriTable.length;
+    int length = readUint32();
+
+    // Read data.
+    _sourceUriTable.length = length;
     Map<String, Source> uriToSource = <String, Source>{};
     for (int i = 0; i < length; ++i) {
-      String uri = _sourceUriTable[i];
+      List<int> uriBytes = readUtf8Bytes();
+      String uri = const Utf8Decoder().convert(uriBytes);
+      _sourceUriTable[i] = uri;
       List<int> sourceCode = readUtf8Bytes();
       int lineCount = readUInt();
       List<int> lineStarts = new List<int>(lineCount);
@@ -376,6 +380,11 @@ class BinaryBuilder {
         previousLineStart = lineStart;
       }
       uriToSource[uri] = new Source(lineStarts, sourceCode);
+    }
+
+    // Read index.
+    for (int i = 0; i < length; ++i) {
+      readUint32();
     }
     return uriToSource;
   }

@@ -7678,106 +7678,59 @@ intptr_t StreamingFlowGraphBuilder::SourceTableSize() {
             (4 * library_count) -
             (4 * SourceTableFieldCountFromFirstLibraryOffset));
   SetOffset(reader_->ReadUInt32());  // read source table offset.
-  return ReadUInt();                 // read source table size.
+  return reader_->ReadUInt32();      // read source table size.
+}
+
+intptr_t StreamingFlowGraphBuilder::GetOffsetForSourceInfo(intptr_t index) {
+  AlternativeReadingScope alt(reader_);
+  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd));
+  intptr_t library_count = reader_->ReadUInt32();
+  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd) -
+            (4 * library_count) -
+            (4 * SourceTableFieldCountFromFirstLibraryOffset));
+  intptr_t source_table_offest =
+      reader_->ReadUInt32();  // read source table offset.
+  intptr_t next_field_offset = reader_->ReadUInt32();
+  SetOffset(source_table_offest);
+  intptr_t size = reader_->ReadUInt32();  // read source table size.
+  SetOffset(next_field_offset - (4 * (size - index)));
+  return reader_->ReadUInt32();
 }
 
 String& StreamingFlowGraphBuilder::SourceTableUriFor(intptr_t index) {
   AlternativeReadingScope alt(reader_);
-  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd));
-  intptr_t library_count = reader_->ReadUInt32();
-  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd) -
-            (4 * library_count) -
-            (4 * SourceTableFieldCountFromFirstLibraryOffset));
-  SetOffset(reader_->ReadUInt32());  // read source table offset.
-  intptr_t size = ReadUInt();        // read source table size.
-  intptr_t start = 0;
-  intptr_t end = -1;
-  for (intptr_t i = 0; i < size; ++i) {
-    intptr_t offset = ReadUInt();
-    if (i == index - 1) {
-      start = offset;
-    } else if (i == index) {
-      end = offset;
-    }
-  }
-  intptr_t end_offset = ReaderOffset();
-  return H.DartString(
-      reader_->CopyDataIntoZone(Z, end_offset + start, end - start),
-      end - start, Heap::kOld);
+  SetOffset(GetOffsetForSourceInfo(index));
+  intptr_t size = ReadUInt();  // read uri List<byte> size.
+  return H.DartString(reader_->CopyDataIntoZone(Z, ReaderOffset(), size), size,
+                      Heap::kOld);
 }
 
 String& StreamingFlowGraphBuilder::GetSourceFor(intptr_t index) {
   AlternativeReadingScope alt(reader_);
-  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd));
-  intptr_t library_count = reader_->ReadUInt32();
-  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd) -
-            (4 * library_count) -
-            (4 * SourceTableFieldCountFromFirstLibraryOffset));
-  SetOffset(reader_->ReadUInt32());  // read source table offset.
-  intptr_t size = ReadUInt();        // read source table size.
-  intptr_t uris_size = 0;
-  for (intptr_t i = 0; i < size; ++i) {
-    uris_size = ReadUInt();
-  }
-  SkipBytes(uris_size);
-
-  // Read the source code strings and line starts.
-  for (intptr_t i = 0; i < size; ++i) {
-    intptr_t length = ReadUInt();
-    if (index == i) {
-      return H.DartString(reader_->CopyDataIntoZone(Z, ReaderOffset(), length),
-                          length, Heap::kOld);
-    }
-    SkipBytes(length);
-    intptr_t line_count = ReadUInt();
-    for (intptr_t j = 0; j < line_count; ++j) {
-      ReadUInt();
-    }
-  }
-
-  return String::Handle(String::null());
+  SetOffset(GetOffsetForSourceInfo(index));
+  SkipBytes(ReadUInt());       // skip uri.
+  intptr_t size = ReadUInt();  // read source List<byte> size.
+  return H.DartString(reader_->CopyDataIntoZone(Z, ReaderOffset(), size), size,
+                      Heap::kOld);
 }
 
 Array& StreamingFlowGraphBuilder::GetLineStartsFor(intptr_t index) {
   AlternativeReadingScope alt(reader_);
-  SetOffset(reader_->size() - (4 * 2));
-  intptr_t library_count = reader_->ReadUInt32();
-  SetOffset(reader_->size() - (4 * LibraryCountFieldCountFromEnd) -
-            (4 * library_count) -
-            (4 * SourceTableFieldCountFromFirstLibraryOffset));
-  SetOffset(reader_->ReadUInt32());  // read source table offset.
-  intptr_t size = ReadUInt();        // read source table size.
-  intptr_t uris_size = 0;
-  for (intptr_t i = 0; i < size; ++i) {
-    uris_size = ReadUInt();
-  }
-  SkipBytes(uris_size);
+  SetOffset(GetOffsetForSourceInfo(index));
+  SkipBytes(ReadUInt());       // skip uri.
+  SkipBytes(ReadUInt());       // skip source.
+  intptr_t size = ReadUInt();  // read line starts length.
 
-  // Read the source code strings and line starts.
-  for (intptr_t i = 0; i < size; ++i) {
-    intptr_t length = ReadUInt();
-    SkipBytes(length);
-    intptr_t line_count = ReadUInt();
-    if (i == index) {
-      Array& array_object =
-          Array::Handle(Z, Array::New(line_count, Heap::kOld));
-      Smi& value = Smi::Handle(Z);
-      intptr_t previous_line_start = 0;
-      for (intptr_t j = 0; j < line_count; ++j) {
-        intptr_t line_start = ReadUInt() + previous_line_start;
-        value = Smi::New(line_start);
-        array_object.SetAt(j, value);
-        previous_line_start = line_start;
-      }
-      return array_object;
-    } else {
-      for (intptr_t j = 0; j < line_count; ++j) {
-        ReadUInt();
-      }
-    }
+  Array& array_object = Array::Handle(Z, Array::New(size, Heap::kOld));
+  Smi& value = Smi::Handle(Z);
+  intptr_t previous_line_start = 0;
+  for (intptr_t j = 0; j < size; ++j) {
+    intptr_t line_start = ReadUInt() + previous_line_start;
+    value = Smi::New(line_start);
+    array_object.SetAt(j, value);
+    previous_line_start = line_start;
   }
-
-  return Array::Handle(Array::null());
+  return array_object;
 }
 
 }  // namespace kernel
