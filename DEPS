@@ -94,7 +94,7 @@ vars = {
   "linter_tag": "@0.1.35",
   "logging_tag": "@0.11.3+1",
   "markdown_tag": "@0.11.3",
-  "matcher_tag": "@0.12.0+2",
+  "matcher_tag": "@0.12.1+3",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "mockito_tag": "@2.0.2",
   "mustache4dart_tag" : "@v1.1.0",
