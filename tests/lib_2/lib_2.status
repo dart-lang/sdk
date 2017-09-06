@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ !$strong ]
+typed_data/float32x4_static_test: MissingCompileTimeError
+
 [ !$strong && $compiler != dartdevc && $checked ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 
@@ -23,3 +26,6 @@ mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
 
 [ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ]
 convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.
+
+[ $runtime == safari || $runtime == safarimobilesim ]
+typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).

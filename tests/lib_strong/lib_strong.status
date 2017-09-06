@@ -132,8 +132,6 @@ mirrors/typearguments_mirror_test: Skip
 mirrors/typedef_in_signature_test: Skip
 mirrors/typedef_reflected_type_test: Skip
 mirrors/variable_is_const_test: Skip
-typed_data/float32x4_test: Skip
-typed_data/float64x2_functional_test: Skip
 typed_data/int32x4_test: Skip
 html/custom/created_callback_test: CompileTimeError # Issue 28969
 html/custom/document_register_basic_test: CompileTimeError # Issue 28969

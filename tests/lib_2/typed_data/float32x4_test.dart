@@ -1,7 +1,8 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--deoptimization_counter_threshold=1000 --optimization-counter-threshold=10
+// VMOptions=--max_deoptimization_counter_threshold=1000 --optimization-counter-threshold=10 --no-background-compilation
+// VMOptions=--no-intrinsify
 
 // Library tag to be able to run in html test framework.
 library float32x4_test;
@@ -403,8 +404,8 @@ void testBadArguments() {
       () => new Float32x4(1.0, 2.0, null, 4.0), (e) => e is ArgumentError);
   Expect.throws(
       () => new Float32x4(1.0, 2.0, 3.0, null), (e) => e is ArgumentError);
-  // Use local variable typed as "var" to avoid static warnings.
-  var str = "foo";
+  // Use local variable typed as "dynamic" to avoid static warnings.
+  dynamic str = "foo";
   Expect.throws(() => new Float32x4(str, 2.0, 3.0, 4.0),
       (e) => e is ArgumentError || e is TypeError);
   Expect.throws(() => new Float32x4(1.0, str, 3.0, 4.0),
