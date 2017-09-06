@@ -322,5 +322,4 @@ math/math_test: RuntimeError # Issue 29922
 math/math2_test: RuntimeError # Issue 29922
 
 [ $compiler == dartdevc && $system == windows ]
-convert/json_pretty_test: RuntimeError # Issue 30336
 html/xhr_test/xhr: Skip # Times out. Issue 21527

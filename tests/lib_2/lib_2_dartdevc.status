@@ -13,3 +13,6 @@ async/futures_test: RuntimeError # Issue 29922
 async/slow_consumer_test: Pass, Timeout # Issue 29922
 math/random_big_test: RuntimeError # Issue 29922
 typed_data/typed_data_list_test: RuntimeError # Issue 29922
+
+[ $compiler == dartdevc && $system == windows ]
+convert/json_pretty_test: RuntimeError # Issue 30336

@@ -29,3 +29,4 @@ convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
+convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920

@@ -24,12 +24,10 @@ void main() {
 
   _expect(null, 'null');
 
-  _expect(
-      [
-        [],
-        [[]]
-      ],
-      '''
+  _expect([
+    [],
+    [[]]
+  ], '''
 [
   [],
   [
@@ -37,9 +35,7 @@ void main() {
   ]
 ]''');
 
-  _expect(
-      [1, 2, 3, 4],
-      '''
+  _expect([1, 2, 3, 4], '''
 [
   1,
   2,
@@ -47,9 +43,7 @@ void main() {
   4
 ]''');
 
-  _expect(
-      [true, null, 'hello', 42.42],
-      '''
+  _expect([true, null, 'hello', 42.42], '''
 [
   true,
   null,
@@ -57,34 +51,30 @@ void main() {
   42.42
 ]''');
 
-  _expect(
-      {"hello": [], "goodbye": {}},
-      '''{
+  _expect({"hello": [], "goodbye": {}}, '''{
   "hello": [],
   "goodbye": {}
 }''');
 
-  _expect(
-      [
-        "test",
-        1,
-        2,
-        33234.324,
-        true,
-        false,
-        null,
-        {
-          "test1": "test2",
-          "test3": "test4",
-          "grace": 5,
-          "shanna": [0, 1, 2]
-        },
-        {
-          "lib": "app.dart",
-          "src": ["foo.dart", "bar.dart"]
-        }
-      ],
-      '''[
+  _expect([
+    "test",
+    1,
+    2,
+    33234.324,
+    true,
+    false,
+    null,
+    {
+      "test1": "test2",
+      "test3": "test4",
+      "grace": 5,
+      "shanna": [0, 1, 2]
+    },
+    {
+      "lib": "app.dart",
+      "src": ["foo.dart", "bar.dart"]
+    }
+  ], '''[
   "test",
   1,
   2,

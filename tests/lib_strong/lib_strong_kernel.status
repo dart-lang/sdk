@@ -5,8 +5,6 @@
 [ $compiler == dartk && $runtime == vm ]
 convert/ascii_test: DartkCompileTimeError
 convert/chunked_conversion_json_decode1_test: DartkCompileTimeError
-convert/json_toEncodable_reviver_test: Crash # Type error in constant
-convert/json_utf8_chunk_test: DartkCompileTimeError
 convert/latin1_test: DartkCompileTimeError
 convert/streamed_conversion_json_encode1_test: RuntimeError
 convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
