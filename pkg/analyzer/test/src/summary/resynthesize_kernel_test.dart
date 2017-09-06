@@ -341,11 +341,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_genericFunction_asParameterType() async {
-    await super.test_genericFunction_asParameterType();
-  }
-
-  @failingTest
   @notForDart2
   test_import_configurations_useDefault() async {
     await super.test_import_configurations_useDefault();
@@ -365,24 +360,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_import_invalidUri_metadata() async {
     await super.test_import_invalidUri_metadata();
-  }
-
-  @failingTest
-  test_inferred_type_refers_to_function_typed_parameter_type_generic_class() async {
-    await super
-        .test_inferred_type_refers_to_function_typed_parameter_type_generic_class();
-  }
-
-  @failingTest
-  test_inferred_type_refers_to_method_function_typed_parameter_type() async {
-    await super
-        .test_inferred_type_refers_to_method_function_typed_parameter_type();
-  }
-
-  @failingTest
-  test_inferred_type_refers_to_setter_function_typed_parameter_type() async {
-    await super
-        .test_inferred_type_refers_to_setter_function_typed_parameter_type();
   }
 
   @failingTest
