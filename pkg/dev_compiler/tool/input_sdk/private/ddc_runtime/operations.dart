@@ -60,7 +60,8 @@ bind(obj, name, method) {
 /// We need to apply the type arguments both to the function, as well as its
 /// associated function type.
 gbind(f, @rest typeArgs) {
-  var result = JS('', '#.apply(null, #)', f, typeArgs);
+  var result =
+      JS('', '(...args) => #.apply(null, #.concat(args))', f, typeArgs);
   var sig = JS('', '#.instantiate(#)', _getRuntimeType(f), typeArgs);
   tag(result, sig);
   return result;
@@ -304,7 +305,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
 
   if ($_checkApply($ftype, $args)) {
     if ($typeArgs != null) {
-      return $f.apply($obj, $typeArgs).apply($obj, $args);
+      return $f.apply($obj, $typeArgs.concat($args));
     }
     return $f.apply($obj, $args);
   }

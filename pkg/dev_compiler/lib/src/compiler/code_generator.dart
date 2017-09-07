@@ -153,7 +153,6 @@ class CodeGenerator extends Object
   final ClassElement stringClass;
   final ClassElement functionClass;
   final ClassElement privateSymbolClass;
-  final PropertyAccessorElement _undefinedConstant;
 
   ConstFieldVisitor _constants;
 
@@ -1527,7 +1526,8 @@ class CodeGenerator extends Object
         var body = <JS.Statement>[];
         _emitCovarianceBoundsCheck(type.typeFormals, covariantParams, body);
 
-        var jsParams = <JS.Parameter>[];
+        var typeFormals = _emitTypeFormals(type.typeFormals);
+        var jsParams = new List<JS.Parameter>.from(typeFormals);
         bool foundNamedParams = false;
         for (var param in member.parameters) {
           param = covariantParams.lookup(param) as ParameterElement;
@@ -1561,7 +1561,6 @@ class CodeGenerator extends Object
 
         if (foundNamedParams) jsParams.add(namedArgumentTemp);
 
-        var typeFormals = _emitTypeFormals(type.typeFormals);
         if (typeFormals.isEmpty) {
           body.add(js.statement('return super.#(#);', [name, jsParams]));
         } else {
@@ -1570,7 +1569,7 @@ class CodeGenerator extends Object
         }
         var fn = new JS.Fun(jsParams, new JS.Block(body),
             typeParams: typeFormals, returnType: emitTypeRef(type.returnType));
-        methods.add(new JS.Method(name, _makeGenericFunction(fn)));
+        methods.add(new JS.Method(name, fn));
       } else {
         throw new StateError(
             'unable to generate a covariant check for element: `$member` '
@@ -1647,7 +1646,8 @@ class CodeGenerator extends Object
     }
 
     var args = new JS.TemporaryId('args');
-    var fnArgs = <JS.Parameter>[];
+    var typeParams = _emitTypeFormals(method.type.typeFormals);
+    var fnArgs = new List<JS.Parameter>.from(typeParams);
     JS.Expression positionalArgs;
 
     if (method.type.namedParameterTypes.isNotEmpty) {
@@ -1673,7 +1673,6 @@ class CodeGenerator extends Object
       }
     }
 
-    var typeParams = _emitTypeFormals(method.type.typeFormals);
     if (typeParams.isNotEmpty) {
       addProperty('typeArguments', new JS.ArrayInitializer(typeParams));
     }
@@ -1690,9 +1689,8 @@ class CodeGenerator extends Object
       fnBody = js.call('#._check(#)', [_emitType(method.returnType), fnBody]);
     }
 
-    var fn = _makeGenericFunction(new JS.Fun(
-        fnArgs, js.statement('{ return #; }', [fnBody]),
-        typeParams: typeParams));
+    var fn = new JS.Fun(fnArgs, js.statement('{ return #; }', [fnBody]),
+        typeParams: typeParams);
 
     return new JS.Method(
         _declareMemberName(method,
@@ -2746,17 +2744,6 @@ class CodeGenerator extends Object
     return annotate(_toArrowFunction(fn), node);
   }
 
-  JS.Fun _makeGenericFunction(JS.Fun fn) {
-    if (fn.typeParams == null || fn.typeParams.isEmpty) return fn;
-
-    return new JS.Fun(
-        fn.typeParams,
-        new JS.Block([
-          // Convert the function to an => function, to ensure `this` binding.
-          _toArrowFunction(fn).toReturn()
-        ]));
-  }
-
   JS.ArrowFun _toArrowFunction(JS.Fun f) {
     JS.Node body = f.body;
 
@@ -2795,6 +2782,8 @@ class CodeGenerator extends Object
     // normal function (sync), vs (sync*, async, async*)
     var isSync = !(element.isAsynchronous || element.isGenerator);
     var formals = _emitFormalParameterList(parameters, destructure: isSync);
+    var typeFormals = _emitTypeFormals(type.typeFormals);
+    formals.insertAll(0, typeFormals);
 
     JS.Block code = isSync
         ? _emitFunctionBody(element, parameters, body)
@@ -2832,9 +2821,8 @@ class CodeGenerator extends Object
       }
     }
 
-    return _makeGenericFunction(new JS.Fun(formals, code,
-        typeParams: _emitTypeFormals(type.typeFormals),
-        returnType: emitTypeRef(type.returnType)));
+    return new JS.Fun(formals, code,
+        typeParams: typeFormals, returnType: emitTypeRef(type.returnType));
   }
 
   JS.Block _emitFunctionBody(ExecutableElement element,
@@ -3652,21 +3640,16 @@ class CodeGenerator extends Object
       } else {
         var method = member as MethodElement;
         var name = method.name;
-        // For generic methods, we can simply pass along the type arguments,
-        // and let the resulting closure accept the actual arguments.
-        List<JS.Identifier> params;
-        if (method.typeParameters.isNotEmpty) {
-          params = _emitTypeFormals(method.typeParameters);
-        } else {
-          params = [];
-          for (var param in method.parameters) {
-            if (param.parameterKind == ParameterKind.NAMED) {
-              params.add(namedArgumentTemp);
-              break;
-            }
-            params.add(new JS.Identifier(param.name));
+        var params = new List<JS.Identifier>.from(
+            _emitTypeFormals(method.typeParameters));
+        for (var param in method.parameters) {
+          if (param.parameterKind == ParameterKind.NAMED) {
+            params.add(namedArgumentTemp);
+            break;
           }
+          params.add(new JS.Identifier(param.name));
         }
+
         var fn = js.call(
             'function(#) { return super[#](#); }', [params, jsName, params]);
         return new JS.Method(new JS.TemporaryId(name), fn);
@@ -3710,7 +3693,7 @@ class CodeGenerator extends Object
     if (castTo != null) {
       jsTarget = js.call('#._check(#)', [_emitType(castTo), jsTarget]);
     }
-    if (typeArgs != null) jsTarget = new JS.Call(jsTarget, typeArgs);
+    if (typeArgs != null) args.insertAll(0, typeArgs);
     return new JS.Call(jsTarget, args);
   }
 
@@ -3792,14 +3775,9 @@ class CodeGenerator extends Object
     if (isDynamicInvoke(function)) {
       return _emitDynamicInvoke(node, fn, args);
     }
-    return new JS.Call(_applyInvokeTypeArguments(fn, node), args);
-  }
-
-  JS.Expression _applyInvokeTypeArguments(
-      JS.Expression target, InvocationExpression node) {
     var typeArgs = _emitInvokeTypeArguments(node);
-    if (typeArgs == null) return target;
-    return new JS.Call(target, typeArgs);
+    if (typeArgs != null) args.insertAll(0, typeArgs);
+    return new JS.Call(fn, args);
   }
 
   List<JS.Expression> _emitInvokeTypeArguments(InvocationExpression node) {
