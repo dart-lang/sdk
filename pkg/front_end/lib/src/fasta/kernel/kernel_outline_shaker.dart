@@ -278,6 +278,23 @@ class RootsMarker extends RecursiveVisitor {
   }
 
   @override
+  visitLibrary(Library node) {
+    for (var reference in node.additionalExports) {
+      var node = reference.node;
+      if (node is Class) {
+        data.markClass(node);
+      } else if (node is Member) {
+        data.markMember(node);
+      } else if (node is Typedef) {
+        data.markTypedef(node);
+      } else {
+        unimplemented('export ${node.runtimeType}', -1, null);
+      }
+    }
+    node.visitChildren(this);
+  }
+
+  @override
   visitRedirectingInitializer(RedirectingInitializer node) {
     data.markMember(node.target);
     node.visitChildren(this);
