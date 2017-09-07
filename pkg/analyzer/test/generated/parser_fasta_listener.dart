@@ -1123,15 +1123,15 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void handleBinaryExpression(Token token) {
-    listener.handleBinaryExpression(token);
-    // TODO(danrubel): implement handleBinaryExpression
+  void beginBinaryExpression(Token token) {
+    listener.beginBinaryExpression(token);
+    // TODO(danrubel): implement beginBinaryExpression
   }
 
   @override
-  void handleBinaryOperator(Token token) {
-    listener.handleBinaryOperator(token);
-    // TODO(danrubel): implement handleBinaryOperator
+  void endBinaryExpression(Token token) {
+    listener.endBinaryExpression(token);
+    // TODO(danrubel): implement endBinaryExpression
   }
 
   @override

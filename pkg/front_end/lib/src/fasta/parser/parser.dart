@@ -3037,7 +3037,7 @@ class Parser {
             // [parsePrimary] instead.
             token = parsePrimary(
                 token.next, IdentifierContext.expressionContinuation);
-            listener.handleBinaryExpression(operator);
+            listener.endBinaryExpression(operator);
           } else if ((identical(type, TokenType.OPEN_PAREN)) ||
               (identical(type, TokenType.OPEN_SQUARE_BRACKET))) {
             token = parseArgumentOrIndexStar(token);
@@ -3055,12 +3055,12 @@ class Parser {
         } else if (identical(type, TokenType.QUESTION)) {
           token = parseConditionalExpressionRest(token);
         } else {
-          listener.handleBinaryOperator(token);
+          listener.beginBinaryExpression(token);
           // Left associative, so we recurse at the next higher
           // precedence level.
           token =
               parsePrecedenceExpression(token.next, level + 1, allowCascades);
-          listener.handleBinaryExpression(operator);
+          listener.endBinaryExpression(operator);
         }
         type = token.type;
         tokenLevel = type.precedence;
@@ -3084,7 +3084,7 @@ class Parser {
       token = parseArgumentOrIndexStar(token);
     } else if (token.isIdentifier) {
       token = parseSend(token, IdentifierContext.expressionContinuation);
-      listener.handleBinaryExpression(cascadeOperator);
+      listener.endBinaryExpression(cascadeOperator);
     } else {
       return reportUnexpectedToken(token).next;
     }
@@ -3094,7 +3094,7 @@ class Parser {
       if (optional('.', token)) {
         Token period = token;
         token = parseSend(token.next, IdentifierContext.expressionContinuation);
-        listener.handleBinaryExpression(period);
+        listener.endBinaryExpression(period);
       }
       token = parseArgumentOrIndexStar(token);
     } while (!identical(mark, token));

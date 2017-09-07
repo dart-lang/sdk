@@ -384,7 +384,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleBinaryExpression(Token token) {
+  void endBinaryExpression(Token token) {
     debugEvent("BinaryExpression");
     pop(); // RHS
     pop(); // LHS

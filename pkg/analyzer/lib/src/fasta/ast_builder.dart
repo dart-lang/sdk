@@ -334,7 +334,8 @@ class AstBuilder extends ScopeListener {
     push(token);
   }
 
-  void handleBinaryExpression(Token token) {
+  @override
+  void endBinaryExpression(Token token) {
     debugEvent("BinaryExpression");
     if (identical(".", token.stringValue) ||
         identical("?.", token.stringValue) ||

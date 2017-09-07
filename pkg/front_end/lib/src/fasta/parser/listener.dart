@@ -867,13 +867,15 @@ class Listener {
     logEvent("AssignmentExpression");
   }
 
-  void handleBinaryExpression(Token token) {
-    logEvent("BinaryExpression");
-  }
-
   /// Called when the parser encounters a binary operator, in between the LHS
   /// and RHS subexpressions.
-  void handleBinaryOperator(Token token) {}
+  ///
+  /// Not called when the binary operator is `.`, `?.`, or `..`.
+  void beginBinaryExpression(Token token) {}
+
+  void endBinaryExpression(Token token) {
+    logEvent("BinaryExpression");
+  }
 
   void handleConditionalExpression(Token question, Token colon) {
     logEvent("ConditionalExpression");

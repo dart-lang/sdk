@@ -833,7 +833,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleBinaryExpression(Token token) {
+  void beginBinaryExpression(Token token) {
+    if (optional("&&", token) || optional("||", token)) {
+      Expression lhs = popForValue();
+      typePromoter.enterLogicalExpression(lhs, token.stringValue);
+      push(lhs);
+    }
+  }
+
+  @override
+  void endBinaryExpression(Token token) {
     debugEvent("BinaryExpression");
     if (optional(".", token) || optional("..", token)) {
       return doDotOrCascadeExpression(token);
@@ -853,15 +862,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         ..fileOffset = offsetForToken(thisAccessorReceiver.token);
     }
     push(buildBinaryOperator(toValue(receiver), token, argument, isSuper));
-  }
-
-  @override
-  void handleBinaryOperator(Token token) {
-    if (optional("&&", token) || optional("||", token)) {
-      Expression lhs = popForValue();
-      typePromoter.enterLogicalExpression(lhs, token.stringValue);
-      push(lhs);
-    }
   }
 
   Expression buildBinaryOperator(
