@@ -123,6 +123,7 @@ class JSFunction extends Interceptor {
 
   // TODO(jmesserly): remove these once we canonicalize tearoffs.
   operator ==(other) {
+    if (other == null) return false;
     var boundObj = JS('Object|Null', '#._boundObject', this);
     if (boundObj == null) return JS('bool', '# === #', this, other);
     return JS(
