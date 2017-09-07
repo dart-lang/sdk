@@ -40,6 +40,7 @@ async_return_types_test/nestedFuture: MissingCompileTimeError
 async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
 async_return_types_test/wrongReturnType: MissingCompileTimeError
 async_return_types_test/wrongTypeParameter: MissingCompileTimeError
+bad_constructor_test/05: CompileTimeError
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
 bad_named_parameters_test/02: MissingCompileTimeError

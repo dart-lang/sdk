@@ -11,7 +11,6 @@ generic_no_such_method_dispatcher_test: CompileTimeError
 hello_dart_test: Crash # error: expected: cls.is_type_finalized()
 
 [ $compiler == dartk && $runtime == vm ]
-bad_constructor_test/05: MissingCompileTimeError # Dart 2.0 semantics, unresolved constructor isn't a warning.
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
