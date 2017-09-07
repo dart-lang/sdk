@@ -3601,8 +3601,7 @@ class FastaParserTestCase extends Object
   List<ErrorCode> _toFastaGeneratedAnalyzerErrorCodes(
           List<ErrorCode> expectedErrorCodes) =>
       expectedErrorCodes.map((code) {
-        if (code == ParserErrorCode.ABSTRACT_CLASS_MEMBER ||
-            code == ParserErrorCode.ABSTRACT_ENUM ||
+        if (code == ParserErrorCode.ABSTRACT_ENUM ||
             code == ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION ||
             code == ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE ||
             code == ParserErrorCode.ABSTRACT_TYPEDEF ||

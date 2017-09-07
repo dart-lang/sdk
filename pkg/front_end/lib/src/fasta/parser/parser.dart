@@ -2189,9 +2189,16 @@ class Parser {
           token = token.next;
         }
       } else if (order == 3) {
-        assert(optional('abstract', token));
-        reportRecoverableErrorWithToken(
-            token, fasta.templateExtraneousModifier);
+        if (memberKind == MemberKind.NonStaticField ||
+            memberKind == MemberKind.NonStaticMethod ||
+            memberKind == MemberKind.StaticField ||
+            memberKind == MemberKind.StaticMethod) {
+          assert(optional('abstract', token));
+          reportRecoverableError(token, fasta.messageAbstractClassMember);
+        } else {
+          reportRecoverableErrorWithToken(
+              token, fasta.templateExtraneousModifier);
+        }
         token = token.next;
       } else {
         break;
@@ -2370,13 +2377,8 @@ class Parser {
       int currentOrder = -1;
       for (; !tokens.isEmpty; tokens = tokens.tail) {
         Token token = tokens.head;
-        if (optional("abstract", token)) {
-          reportRecoverableErrorWithToken(
-              token, fasta.templateExtraneousModifier);
-          continue;
-        }
         int order = modifierOrder(token);
-        if (order < 127) {
+        if (order < 3) {
           if (order > currentOrder) {
             currentOrder = order;
             if (optional("var", token)) {
@@ -2406,6 +2408,10 @@ class Parser {
                 token, fasta.templateExtraneousModifier);
             continue;
           }
+        } else if (order == 3) {
+          assert(optional('abstract', token));
+          reportRecoverableError(token, fasta.messageAbstractClassMember);
+          continue;
         } else {
           reportUnexpectedToken(token);
           break; // Skip the remaining modifiers.

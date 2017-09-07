@@ -32,6 +32,18 @@ Message _withArgumentsAbstractClassInstantiation(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractClassMember = messageAbstractClassMember;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractClassMember = const MessageCode(
+    "AbstractClassMember",
+    analyzerCode: "ABSTRACT_CLASS_MEMBER",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message: r"""Members of classes can't be declared to be 'abstract'.""",
+    tip:
+        r"""Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAbstractNotSync = messageAbstractNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

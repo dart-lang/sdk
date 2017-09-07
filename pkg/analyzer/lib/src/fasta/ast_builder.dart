@@ -1936,9 +1936,9 @@ class AstBuilder extends ScopeListener {
     }
 
     switch (code.analyzerCode) {
-      case "EXPECTED_TYPE_NAME":
+      case "ABSTRACT_CLASS_MEMBER":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_TYPE_NAME, charOffset, 1);
+            ParserErrorCode.ABSTRACT_CLASS_MEMBER, charOffset, 1);
         return;
       case "CONST_CLASS":
         errorReporter?.reportErrorForOffset(
@@ -1947,6 +1947,10 @@ class AstBuilder extends ScopeListener {
       case "EXPECTED_STRING_LITERAL":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_STRING_LITERAL, charOffset, 1);
+        return;
+      case "EXPECTED_TYPE_NAME":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXPECTED_TYPE_NAME, charOffset, 1);
         return;
       case "EXTERNAL_METHOD_WITH_BODY":
         errorReporter?.reportErrorForOffset(
