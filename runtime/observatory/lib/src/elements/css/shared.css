@@ -2497,6 +2497,49 @@ script-inset .hotProfile {
   background-color: #faa;
 }
 
+/* search-bar */
+
+search-bar {
+  background: white;
+  padding: 5px;
+}
+search-bar > input {
+  width: 300px;
+  line-height: 20px;
+  border-color: #DDDDDD;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+search-bar button:enabled,
+search-bar button:enabled:hover,
+search-bar button:disabled,
+search-bar button:disabled:hover,
+search-bar button:active {
+  border: none;
+  background: none;
+  background-color: transparent;
+  line-height: 20px;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+  outline: none;
+}
+
+search-bar button:disabled,
+search-bar button:disabled:hover {
+  color: #DDDDDD;
+}
+
+search-bar button:enabled,
+search-bar button:enabled:active {
+  color: #BBBBBB;
+}
+
+search-bar button:enabled:hover {
+  color: #AAAAAA;
+  text-shadow: 1px 1px 2px #dddddd;
+}
+
 /* stack-trace-tree-config */
 
 stack-trace-tree-config {
@@ -2620,6 +2663,18 @@ virtual-collection .header {
   z-index: +1;
 }
 
+virtual-collection search-bar {
+  position: relative;
+  display: block;
+  z-index: +1;
+  float: right;
+  top: 2px;
+  right: 25px;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  box-shadow: 0px 1px 2px #AAAAAA;
+}
+
 virtual-collection .spacer {
   overflow: hidden;
   background: transparent;
@@ -2647,6 +2702,11 @@ virtual-collection .buffer > div {
 virtual-collection .buffer > div {
   min-width: 100%;
   white-space: nowrap;
+}
+
+virtual-collection .marked,
+virtual-collection .marked * {
+  background: yellow !important;
 }
 
 /* virtual-tree */

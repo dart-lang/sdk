@@ -109,6 +109,7 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
         new VirtualCollectionElement(
             _createCollectionLine, _updateCollectionLine,
             createHeader: _createCollectionHeader,
+            search: _search,
             items: _profile.members
                 .where((member) =>
                     member.newSpace.accumulated.instances != 0 ||
@@ -254,6 +255,11 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
         _editor.openClass(isolate, item.clazz);
       }
     });
+  }
+
+  bool _search(Pattern pattern, M.ClassHeapStats item) {
+    final String value = item.clazz?.name ?? item.displayName;
+    return value.contains(pattern);
   }
 
   Future _refresh({bool gc: false, bool reset: false}) async {

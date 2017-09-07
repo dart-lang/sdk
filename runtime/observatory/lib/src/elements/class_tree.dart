@@ -107,7 +107,7 @@ class ClassTreeElement extends HtmlElement implements Renderable {
 
   Element _createTree() {
     _tree = new VirtualTreeElement(_create, _update, _children,
-        items: [_object], queue: _r.queue);
+        items: [_object], search: _search, queue: _r.queue);
     _tree.expand(_object, autoExpandSingleChildNodes: true);
     return _tree;
   }
@@ -168,6 +168,10 @@ class ClassTreeElement extends HtmlElement implements Renderable {
     if (_mixins[cls.id] != null) {
       el.children[2].children.addAll(_createMixins(_mixins[cls.id]));
     }
+  }
+
+  bool _search(Pattern pattern, M.Class cls) {
+    return cls.name.contains(pattern);
   }
 
   List<Element> _createMixins(List<M.Instance> types) {

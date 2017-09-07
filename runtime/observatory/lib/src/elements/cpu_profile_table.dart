@@ -146,16 +146,22 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
   List<Element> _createTables() {
     _functions = _functions ??
         new VirtualCollectionElement(_createFunction, _updateFunction,
-            createHeader: _createFunctionHeader, queue: _r.queue);
+            createHeader: _createFunctionHeader,
+            search: _searchFunction,
+            queue: _r.queue);
     _functions.items = _progress.profile.functions.toList()
       ..sort(_createSorter(_Table.functions));
     _functions.takeIntoView(_selected);
     _callers = _callers ??
         new VirtualCollectionElement(_createCaller, _updateCaller,
-            createHeader: _createCallerHeader, queue: _r.queue);
+            createHeader: _createCallerHeader,
+            search: _searchFunction,
+            queue: _r.queue);
     _callees = _callees ??
         new VirtualCollectionElement(_createCallee, _updateCallee,
-            createHeader: _createCalleeHeader, queue: _r.queue);
+            createHeader: _createCalleeHeader,
+            search: _searchFunction,
+            queue: _r.queue);
     if (_selected != null) {
       _callers.items = _selected.callers.keys.toList()
         ..sort(_createSorter(_Table.caller));
@@ -249,6 +255,10 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
                 _SortingField.method, _SortingDirection.ascending),
           ]
       ];
+
+  bool _searchFunction(Pattern pattern, M.ProfileFunction item) {
+    return M.getFunctionFullName(item.function).contains(pattern);
+  }
 
   void _setSorting(
       _Table table, _SortingField field, _SortingDirection defaultDirection) {

@@ -112,11 +112,11 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
   /// Renders the element (if the scheduler is enabled).
   /// It will clear the dirty flag.
   void render() {
+    _renderingScheduled = false;
     if (!_enabled) return;
     _dirty = false;
     _wait.clear();
     element.render();
-    _renderingScheduled = false;
     scheduleNotification();
     if (_dirty) scheduleRendering();
   }

@@ -40,6 +40,7 @@ observatory_sources = [
   "lib/src/elements/class_view.dart",
   "lib/src/elements/code_ref.dart",
   "lib/src/elements/code_view.dart",
+  "lib/src/elements/containers/search_bar.dart",
   "lib/src/elements/containers/virtual_collection.dart",
   "lib/src/elements/containers/virtual_tree.dart",
   "lib/src/elements/context_ref.dart",

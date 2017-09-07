@@ -254,6 +254,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
             new VirtualCollectionElement(
                 _createCollectionLine, _updateCollectionLine,
                 createHeader: _createCollectionHeader,
+                search: _search,
                 items: _profile.members.toList()..sort(_createSorter()),
                 queue: _r.queue)
           ]
@@ -469,6 +470,10 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
     e.children[11].text = '${_getOldCurrentInstances(item)}';
     e.children[12] = new ClassRefElement(_isolate, item.clazz, queue: _r.queue)
       ..classes = ['name'];
+  }
+
+  bool _search(Pattern pattern, M.ClassHeapStats item) {
+    return item.clazz.name.contains(pattern);
   }
 
   static String _usedCaption(M.HeapSpace space) =>
