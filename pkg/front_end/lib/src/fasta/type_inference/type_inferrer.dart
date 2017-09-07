@@ -156,19 +156,7 @@ class ClosureContext {
       inferredReturnType = greatestClosure(inferrer.coreTypes, returnContext);
     }
 
-    if (isGenerator) {
-      if (isAsync) {
-        inferredReturnType = inferrer.wrapType(
-            inferredReturnType, inferrer.coreTypes.streamClass);
-      } else {
-        inferredReturnType = inferrer.wrapType(
-            inferredReturnType, inferrer.coreTypes.iterableClass);
-      }
-    } else if (isAsync) {
-      inferredReturnType = inferrer.wrapFutureType(inferredReturnType);
-    }
-
-    return inferredReturnType;
+    return _wrapAsyncOrGenerator(inferrer, inferredReturnType);
   }
 
   void _updateInferredReturnType(TypeInferrerImpl inferrer, DartType type) {
@@ -177,6 +165,20 @@ class ClosureContext {
     } else {
       _inferredReturnType = inferrer.typeSchemaEnvironment
           .getLeastUpperBound(_inferredReturnType, type);
+    }
+  }
+
+  DartType _wrapAsyncOrGenerator(TypeInferrerImpl inferrer, DartType type) {
+    if (isGenerator) {
+      if (isAsync) {
+        return inferrer.wrapType(type, inferrer.coreTypes.streamClass);
+      } else {
+        return inferrer.wrapType(type, inferrer.coreTypes.iterableClass);
+      }
+    } else if (isAsync) {
+      return inferrer.wrapFutureType(type);
+    } else {
+      return type;
     }
   }
 
@@ -829,6 +831,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       instrumentation?.record(Uri.parse(uri), fileOffset, 'returnType',
           new InstrumentationValueForType(inferredReturnType));
       function.returnType = inferredReturnType;
+    } else if (!strongMode && hasImplicitReturnType) {
+      function.returnType =
+          closureContext._wrapAsyncOrGenerator(this, const DynamicType());
     }
     this.closureContext = oldClosureContext;
     return typeNeeded ? function.functionType : null;

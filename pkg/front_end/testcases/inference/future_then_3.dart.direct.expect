@@ -14,20 +14,20 @@ class MyFuture<T extends core::Object> extends core::Object implements asy::Futu
 }
 static method test() → void {
   self::MyFuture<dynamic> f;
-  self::MyFuture<core::int> t1 = f.then((dynamic _) → dynamic async => await asy::Future::value<core::int>(3));
-  self::MyFuture<core::int> t2 = f.then((dynamic _) → dynamic async {
+  self::MyFuture<core::int> t1 = f.then((dynamic _) → asy::Future<dynamic> async => await asy::Future::value<core::int>(3));
+  self::MyFuture<core::int> t2 = f.then((dynamic _) → asy::Future<dynamic> async {
     return await asy::Future::value<core::int>(3);
   });
-  self::MyFuture<core::int> t3 = f.then((dynamic _) → dynamic async => 3);
-  self::MyFuture<core::int> t4 = f.then((dynamic _) → dynamic async {
+  self::MyFuture<core::int> t3 = f.then((dynamic _) → asy::Future<dynamic> async => 3);
+  self::MyFuture<core::int> t4 = f.then((dynamic _) → asy::Future<dynamic> async {
     return 3;
   });
   self::MyFuture<core::int> t5 = f.then((dynamic _) → dynamic => asy::Future::value<core::int>(3));
   self::MyFuture<core::int> t6 = f.then((dynamic _) → dynamic {
     return asy::Future::value<core::int>(3);
   });
-  self::MyFuture<core::int> t7 = f.then((dynamic _) → dynamic async => asy::Future::value<core::int>(3));
-  self::MyFuture<core::int> t8 = f.then((dynamic _) → dynamic async {
+  self::MyFuture<core::int> t7 = f.then((dynamic _) → asy::Future<dynamic> async => asy::Future::value<core::int>(3));
+  self::MyFuture<core::int> t8 = f.then((dynamic _) → asy::Future<dynamic> async {
     return asy::Future::value<core::int>(3);
   });
 }
