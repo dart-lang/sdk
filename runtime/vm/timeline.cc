@@ -374,7 +374,7 @@ void TimelineEventArguments::StealArguments(TimelineEventArguments* arguments) {
 }
 
 void TimelineEventArguments::Free() {
-  if (buffer_ != NULL) {
+  if (buffer_ == NULL) {
     return;
   }
   for (intptr_t i = 0; i < length_; i++) {
