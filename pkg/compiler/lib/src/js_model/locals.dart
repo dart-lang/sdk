@@ -20,6 +20,13 @@ class GlobalLocalsMap {
 
   /// Returns the [KernelToLocalsMap] for [member].
   KernelToLocalsMap getLocalsMap(MemberEntity member) {
+    // If element is a ConstructorBodyEntity, its localsMap is the same as for
+    // ConstructorEntity, because both of these entities came from the same
+    // constructor node. The entities are two separate parts because JS does not
+    // have the concept of an initializer list, so the constructor (initializer
+    // list) and the constructor body are implemented as two separate
+    // constructor steps.
+    if (member is ConstructorBodyEntity) member = member.constructor;
     return _localsMaps.putIfAbsent(
         member, () => new KernelToLocalsMapImpl(member));
   }

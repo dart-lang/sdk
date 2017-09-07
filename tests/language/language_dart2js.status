@@ -467,34 +467,34 @@ named_parameters_test/07: Crash # Issue 27394
 named_parameters_test/09: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-async_await_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_star_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_switch_test/none: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_switch_test/withDefault: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_test/none: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_test/type-mismatch1: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_test/type-mismatch2: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_test/type-mismatch3: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_test/type-mismatch4: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_this_bound_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_throw_in_catch_test/forceAwait: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_throw_in_catch_test/none: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-asyncstar_concat_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-asyncstar_throw_in_catch_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-asyncstar_yield_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-asyncstar_yieldstar_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-await_backwards_compatibility_test/none: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-await_exceptions_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-await_for_cancel_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-await_for_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-await_for_use_local_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-await_future_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-await_nonfuture_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-await_not_started_immediately_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-await_null_aware_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-await_postfix_expr_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-await_regression_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-await_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_star_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_switch_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_switch_test/withDefault: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_test/type-mismatch1: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_test/type-mismatch2: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_test/type-mismatch3: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_test/type-mismatch4: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_this_bound_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_throw_in_catch_test/forceAwait: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_throw_in_catch_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+asyncstar_concat_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+asyncstar_throw_in_catch_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+asyncstar_yield_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+asyncstar_yieldstar_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_backwards_compatibility_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_exceptions_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_for_cancel_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_for_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_for_use_local_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_future_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_nonfuture_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_not_started_immediately_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_null_aware_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_postfix_expr_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_regression_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 check_member_static_test/02: MissingCompileTimeError
 closure_in_field_test/01: RuntimeError
 closure_in_field_test/02: RuntimeError
@@ -526,11 +526,10 @@ const_syntax_test/08: Crash # Stack Overflow
 const_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_syntax_test/10: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
-constructor12_test: RuntimeError
 constructor2_test: RuntimeError
 constructor3_test: RuntimeError
 constructor5_test: RuntimeError
-constructor6_test: Crash # Assertion failure: Cannot find value parameter(A.#arg) in (parameter(C.#x), parameter(C.#y), parameter(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
+constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
 constructor8_test: RuntimeError
 constructor_duplicate_final_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 constructor_duplicate_final_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
@@ -540,9 +539,9 @@ constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Stack Overflow
 constructor_redirect2_test/01: MissingCompileTimeError
-constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(A.named2#x), parameter(A.named2#y), parameter(A.named2#z)) for j:constructor(A.named2).
+constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 crash_6725_test/01: Crash # NoSuchMethodError: The method 'startsWith' was called on null.
-custom_await_stack_trace_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+custom_await_stack_trace_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 cyclic_constructor_test/01: Crash # Stack Overflow
 cyclic_default_values_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 cyclic_type2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
@@ -591,11 +590,11 @@ deferred_optimized_test: CompileTimeError
 deferred_redirecting_factory_test: CompileTimeError
 deferred_regression_22995_test: CompileTimeError
 deferred_regression_28678_test: CompileTimeError
-deferred_shadow_load_library_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+deferred_shadow_load_library_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 deferred_shared_and_unshared_classes_test: CompileTimeError
 deferred_static_seperate_test: CompileTimeError
 deferred_super_dependency_test/01: CompileTimeError
-deferred_super_dependency_test/none: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+deferred_super_dependency_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 deferred_type_dependency_test/as: CompileTimeError
 deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
@@ -645,19 +644,19 @@ final_attempt_reinitialization_test/01: Crash # Internal problem: No constructor
 final_attempt_reinitialization_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 final_field_initialization_order_test: RuntimeError
 final_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-flatten_test/01: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-flatten_test/02: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-flatten_test/03: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-flatten_test/04: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-flatten_test/05: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-flatten_test/06: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-flatten_test/07: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-flatten_test/08: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-flatten_test/09: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-flatten_test/10: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-flatten_test/11: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-flatten_test/12: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-flatten_test/none: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+flatten_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/02: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/03: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/04: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/05: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/06: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/07: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/08: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/09: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/10: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/11: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/12: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 for_in2_test: Crash # NoSuchMethodError: The method 'startsWith' was called on null.
 for_variable_capture_test: RuntimeError
 full_stacktrace1_test: RuntimeError
@@ -684,11 +683,10 @@ function_test: RuntimeError
 function_type_alias3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
 function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
-import_collection_no_prefix_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 308 pos 12: 'local != null': is not true.
 infinity_test: RuntimeError
 inlined_throw_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-instance_creation_in_function_annotation_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+instance_creation_in_function_annotation_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(ListBase.E) in j:constructor(UnmodifiableListView.).
 integer_division_by_zero_test: RuntimeError
 interceptor3_test: RuntimeError
 internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
@@ -704,9 +702,7 @@ issue13474_test: RuntimeError
 issue14014_3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 issue15720_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 issue21079_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(ListBase.E) in j:constructor(UnmodifiableListView.).
-issue23244_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-issue4295001_test: Crash # Assertion failure: Cannot find value local(Issue4295001Test.#s) in (local(Issue4295001Test.#s), Instance of 'ThisLocal') for j:constructor_body(Issue4295001Test.).
-issue9939_test: RuntimeError
+issue23244_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 issue_1751477_test: CompileTimeError
 issue_25671a_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
 issue_25671b_test/01: Crash # Assertion failure: Missing scope info for j:method(createInvocationMirror).
@@ -721,19 +717,19 @@ list_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on n
 local_function3_test: RuntimeError
 local_function_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
-main_test/01: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-main_test/02: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-main_test/03: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-main_test/04: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-main_test/05: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-main_test/20: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-main_test/21: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-main_test/22: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-main_test/41: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-main_test/42: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-main_test/43: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-main_test/44: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-main_test/45: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+main_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/02: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/03: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/04: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/05: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/20: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/21: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/22: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/41: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/42: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/43: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/44: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/45: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 malformed_test/01: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 malformed_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 malformed_test/03: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
@@ -891,7 +887,6 @@ named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError
 named_parameters_with_conversions_test: RuntimeError
 named_parameters_with_dollars_test: RuntimeError
-naming_test: Crash # Assertion failure: Cannot find value local(Hoisting.negate#x) in (local(Hoisting.negate#x), Instance of 'ThisLocal') for j:constructor_body(Hoisting.negate).
 nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 308 pos 12: 'local != null': is not true.
 no_main_test/01: CompileTimeError
@@ -929,34 +924,34 @@ regress_17382_test: RuntimeError
 regress_18535_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 regress_20394_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 534 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 regress_21795_test: RuntimeError
-regress_22438_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+regress_22438_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_22443_test: CompileTimeError
-regress_22445_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-regress_22579_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-regress_22728_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-regress_22777_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+regress_22445_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_22579_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_22728_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_22777_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_22936_test/01: RuntimeError
 regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError
 regress_22976_test/none: CompileTimeError
 regress_23408_test: CompileTimeError
-regress_23498_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-regress_23500_test/01: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-regress_23500_test/02: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-regress_23500_test/none: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+regress_23498_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_23500_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_23500_test/02: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_23500_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_23537_test: Crash # RangeError (index): Invalid value: Not in range 0..1, inclusive: 2
-regress_23996_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+regress_23996_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_24283_test: RuntimeError
 regress_24567_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-regress_24935_test/01: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-regress_24935_test/none: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-regress_26133_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-regress_26175_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-regress_26668_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-regress_26948_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+regress_24935_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_24935_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_26133_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_26175_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_26668_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_26948_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_27572_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
-regress_27659_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+regress_27659_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_28217_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 534 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 regress_28217_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 534 pos 11: '_elementMap.getClass(constructor.enclosingClass) ==
 regress_28255_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
@@ -1009,13 +1004,13 @@ switch_case_test/02: MissingCompileTimeError
 symbol_conflict_test: RuntimeError
 sync_generator1_test/01: RuntimeError
 sync_generator1_test/none: RuntimeError
-sync_generator2_test/none: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+sync_generator2_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 sync_generator3_test/test1: RuntimeError
 sync_generator3_test/test2: RuntimeError
 syncstar_less_than_test: RuntimeError
 syncstar_yield_test/copyParameters: RuntimeError
 syncstar_yield_test/none: RuntimeError
-syncstar_yieldstar_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+syncstar_yieldstar_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 syntax_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/03: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 syntax_test/27: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
@@ -1062,37 +1057,37 @@ type_variable_field_initializer_test: Crash # Assertion failure: Runtime type in
 type_variable_function_type_test: RuntimeError
 wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-yieldstar_pause_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+yieldstar_pause_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-async_await_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_star_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_switch_test/none: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_switch_test/withDefault: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_test/none: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_test/type-mismatch1: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_test/type-mismatch2: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_test/type-mismatch3: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_test/type-mismatch4: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_this_bound_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_throw_in_catch_test/forceAwait: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_throw_in_catch_test/none: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-asyncstar_concat_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-asyncstar_throw_in_catch_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-asyncstar_yield_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-asyncstar_yieldstar_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-await_backwards_compatibility_test/none: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-await_exceptions_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-await_for_cancel_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-await_for_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-await_for_use_local_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-await_future_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-await_nonfuture_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-await_not_started_immediately_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-await_null_aware_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-await_postfix_expr_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-await_regression_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-await_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_star_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_switch_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_switch_test/withDefault: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_test/type-mismatch1: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_test/type-mismatch2: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_test/type-mismatch3: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_test/type-mismatch4: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_this_bound_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_throw_in_catch_test/forceAwait: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+async_throw_in_catch_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+asyncstar_concat_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+asyncstar_throw_in_catch_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+asyncstar_yield_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+asyncstar_yieldstar_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_backwards_compatibility_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_exceptions_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_for_cancel_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_for_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_for_use_local_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_future_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_nonfuture_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_not_started_immediately_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_null_aware_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_postfix_expr_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_regression_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 check_member_static_test/02: MissingCompileTimeError
 closure_in_field_test/01: RuntimeError
 closure_in_field_test/02: RuntimeError
@@ -1104,7 +1099,7 @@ conditional_import_test: CompileTimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
 const_conditional_test/08: MissingCompileTimeError
-const_constructor_nonconst_field_test/01: Crash # UnimplementedError: Unimplemented constant expression #lib1::f() (ShadowStaticInvocation)
+const_constructor_nonconst_field_test/01: Crash # UnimplementedError: Unimplemented constant expression #lib2::f() (ShadowStaticInvocation)
 const_constructor_syntax_test/05: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_error_multiply_initialized_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_error_multiply_initialized_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
@@ -1124,11 +1119,10 @@ const_syntax_test/08: Crash # Stack Overflow
 const_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 const_syntax_test/10: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
-constructor12_test: RuntimeError
 constructor2_test: RuntimeError
 constructor3_test: RuntimeError
 constructor5_test: RuntimeError
-constructor6_test: Crash # Assertion failure: Cannot find value parameter(A.#arg) in (parameter(C.#x), parameter(C.#y), parameter(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
+constructor6_test: Crash # Assertion failure: Cannot find value local(A.#arg) in (local(C.#x), local(C.#y), local(B.#arg), BoxLocal(_box_0)) for j:constructor(C.).
 constructor8_test: RuntimeError
 constructor_duplicate_final_test/01: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 constructor_duplicate_final_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
@@ -1137,9 +1131,9 @@ constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Stack Overflow
 constructor_redirect2_test/01: MissingCompileTimeError
-constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(A.named2#x), parameter(A.named2#y), parameter(A.named2#z)) for j:constructor(A.named2).
+constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 crash_6725_test/01: Crash # NoSuchMethodError: The method 'startsWith' was called on null.
-custom_await_stack_trace_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+custom_await_stack_trace_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 cyclic_constructor_test/01: Crash # Stack Overflow
 cyclic_default_values_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 cyclic_type2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
@@ -1193,11 +1187,11 @@ deferred_optimized_test: CompileTimeError
 deferred_redirecting_factory_test: CompileTimeError
 deferred_regression_22995_test: CompileTimeError
 deferred_regression_28678_test: CompileTimeError
-deferred_shadow_load_library_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+deferred_shadow_load_library_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 deferred_shared_and_unshared_classes_test: CompileTimeError
 deferred_static_seperate_test: CompileTimeError
 deferred_super_dependency_test/01: CompileTimeError
-deferred_super_dependency_test/none: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+deferred_super_dependency_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 deferred_type_dependency_test/as: CompileTimeError
 deferred_type_dependency_test/is: CompileTimeError
 deferred_type_dependency_test/none: CompileTimeError
@@ -1249,19 +1243,19 @@ final_attempt_reinitialization_test/01: Crash # Internal problem: No constructor
 final_attempt_reinitialization_test/02: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
 final_field_initialization_order_test: RuntimeError
 final_syntax_test/09: Crash # Internal problem: No constructor named '_DuplicatedFieldInitializerError::' in 'dart:core'.
-flatten_test/01: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-flatten_test/02: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-flatten_test/03: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-flatten_test/04: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-flatten_test/05: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-flatten_test/06: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-flatten_test/07: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-flatten_test/08: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-flatten_test/09: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-flatten_test/10: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-flatten_test/11: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-flatten_test/12: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-flatten_test/none: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+flatten_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/02: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/03: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/04: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/05: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/06: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/07: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/08: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/09: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/10: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/11: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/12: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+flatten_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 for_in2_test: Crash # NoSuchMethodError: The method 'startsWith' was called on null.
 for_variable_capture_test: RuntimeError
 full_stacktrace1_test: RuntimeError
@@ -1287,11 +1281,10 @@ function_test: RuntimeError
 function_type_alias3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
 function_type_parameter_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
-import_collection_no_prefix_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
 inlined_throw_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-instance_creation_in_function_annotation_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+instance_creation_in_function_annotation_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(ListBase.E) in j:constructor(UnmodifiableListView.).
 integer_division_by_zero_test: RuntimeError
 interceptor3_test: RuntimeError
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
@@ -1307,9 +1300,7 @@ issue13474_test: RuntimeError
 issue14014_3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 issue15720_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 issue21079_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(ListBase.E) in j:constructor(UnmodifiableListView.).
-issue23244_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-issue4295001_test: Crash # Assertion failure: Cannot find value local(Issue4295001Test.#s) in (local(Issue4295001Test.#s), Instance of 'ThisLocal') for j:constructor_body(Issue4295001Test.).
-issue9939_test: RuntimeError
+issue23244_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 issue_1751477_test: CompileTimeError
 issue_25671a_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
 issue_25671b_test/01: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
@@ -1324,19 +1315,19 @@ list_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on n
 local_function3_test: RuntimeError
 local_function_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
-main_test/01: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-main_test/02: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-main_test/03: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-main_test/04: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-main_test/05: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-main_test/20: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-main_test/21: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-main_test/22: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-main_test/41: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-main_test/42: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-main_test/43: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-main_test/44: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-main_test/45: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+main_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/02: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/03: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/04: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/05: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/20: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/21: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/22: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/41: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/42: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/43: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/44: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+main_test/45: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 malformed_test/06: CompileTimeError
 malformed_test/none: RuntimeError
 many_named_arguments_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
@@ -1488,7 +1479,6 @@ named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError
 named_parameters_with_conversions_test: RuntimeError
 named_parameters_with_dollars_test: RuntimeError
-naming_test: Crash # Assertion failure: Cannot find value local(Hoisting.negate#x) in (local(Hoisting.negate#x), Instance of 'ThisLocal') for j:constructor_body(Hoisting.negate).
 nan_identical_test: RuntimeError
 nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
@@ -1523,34 +1513,34 @@ regress_17382_test: RuntimeError
 regress_18535_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 regress_20394_test/01: MissingCompileTimeError
 regress_21795_test: RuntimeError
-regress_22438_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+regress_22438_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_22443_test: CompileTimeError
-regress_22445_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-regress_22579_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-regress_22728_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-regress_22777_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+regress_22445_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_22579_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_22728_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_22777_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_22936_test/01: RuntimeError
 regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError
 regress_22976_test/none: CompileTimeError
 regress_23408_test: CompileTimeError
-regress_23498_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-regress_23500_test/01: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-regress_23500_test/02: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-regress_23500_test/none: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+regress_23498_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_23500_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_23500_test/02: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_23500_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_23537_test: Crash # RangeError (index): Invalid value: Not in range 0..1, inclusive: 2
-regress_23996_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+regress_23996_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_24283_test: RuntimeError
 regress_24567_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-regress_24935_test/01: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-regress_24935_test/none: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-regress_26133_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-regress_26175_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-regress_26668_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-regress_26948_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+regress_24935_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_24935_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_26133_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_26175_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_26668_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+regress_26948_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_27572_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
-regress_27659_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+regress_27659_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
@@ -1603,13 +1593,13 @@ switch_case_test/02: MissingCompileTimeError
 symbol_conflict_test: RuntimeError
 sync_generator1_test/01: RuntimeError
 sync_generator1_test/none: RuntimeError
-sync_generator2_test/none: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+sync_generator2_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 sync_generator3_test/test1: RuntimeError
 sync_generator3_test/test2: RuntimeError
 syncstar_less_than_test: RuntimeError
 syncstar_yield_test/copyParameters: RuntimeError
 syncstar_yield_test/none: RuntimeError
-syncstar_yieldstar_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+syncstar_yieldstar_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 syntax_test/none: CompileTimeError
 temp_mangling_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 top_level_getter_no_setter1_test/01: RuntimeError
@@ -1638,5 +1628,5 @@ type_variable_field_initializer_closure2_test: Crash # NoSuchMethodError: Class 
 type_variable_field_initializer_closure_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
 type_variable_field_initializer_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in j:constructor(B.).
 type_variable_function_type_test: RuntimeError
-yieldstar_pause_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+yieldstar_pause_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 
