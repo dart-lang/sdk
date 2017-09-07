@@ -761,8 +761,11 @@ EnumDeclartionEmpty:
 ExternalMethodWithBody:
   template: "An external or native method can't have a body."
   analyzerCode: EXTERNAL_METHOD_WITH_BODY
-  dart2jsCode: EXTERNAL_WITH_BODY
-  script: "class C {external foo() native 'bar' {}}"
+  dart2jsCode: "*ignored*"
+  script:
+    - "class C {external foo() {}}"
+    - "class C {foo() native {}}"
+    - "class C {foo() native 'bar' {}}"
 
 OperatorWithOptionalFormals:
   template: "An operator can't have optional parameters."
