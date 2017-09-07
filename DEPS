@@ -36,7 +36,7 @@ vars = {
 
   # Revisions of GN related dependencies. This should match the revision
   # pulled by Flutter.
-  "buildtools_revision": "@5b8eb38aaf523f0124756454276cd0a5b720c17e",
+  "buildtools_revision": "@057ef89874e3c622248cf99259434fdc683c4e30",
 
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "@c09c8deeac31f05bd801995c475e7c8070f9ecda",
