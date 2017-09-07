@@ -34,15 +34,16 @@ class MyNoSuchMethodList<E> extends Object
     if (invocation.memberName == #length && invocation.isGetter) {
       return _list.length;
     }
-    if (invocation.memberName == new Symbol("length=") && invocation.isSetter) {
+    if (invocation.memberName == const Symbol("length=") &&
+        invocation.isSetter) {
       _list.length = invocation.positionalArguments.first;
       return null;
     }
-    if (invocation.memberName == new Symbol("[]") &&
+    if (invocation.memberName == const Symbol("[]") &&
         invocation.positionalArguments.length == 1) {
       return _list[invocation.positionalArguments.first];
     }
-    if (invocation.memberName == new Symbol("[]=") &&
+    if (invocation.memberName == const Symbol("[]=") &&
         invocation.positionalArguments.length == 2) {
       _list[invocation.positionalArguments.first] =
           invocation.positionalArguments[1];
@@ -62,19 +63,20 @@ class MyIndexableNoSuchMethod<E> {
     if (invocation.memberName == #length && invocation.isGetter) {
       return _list.length;
     }
-    if (invocation.memberName == new Symbol("length=") && invocation.isSetter) {
+    if (invocation.memberName == const Symbol("length=") &&
+        invocation.isSetter) {
       _list.length = invocation.positionalArguments.first;
       return null;
     }
-    if (invocation.memberName == new Symbol("prototype")) {
+    if (invocation.memberName == const Symbol("prototype")) {
       return 42;
     }
 
-    if (invocation.memberName == new Symbol("[]") &&
+    if (invocation.memberName == const Symbol("[]") &&
         invocation.positionalArguments.length == 1) {
       return _list[invocation.positionalArguments.first];
     }
-    if (invocation.memberName == new Symbol("[]=") &&
+    if (invocation.memberName == const Symbol("[]=") &&
         invocation.positionalArguments.length == 2) {
       _list[invocation.positionalArguments.first] =
           invocation.positionalArguments[1];
