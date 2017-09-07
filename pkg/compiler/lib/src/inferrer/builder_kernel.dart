@@ -322,4 +322,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         receiverType, _analyzedMember, arguments, _sideEffects,
         inLoop: inLoop, isConditional: false);
   }
+
+  @override
+  TypeInformation visitLet(ir.Let node) {
+    visit(node.variable);
+    return visit(node.body);
+  }
 }

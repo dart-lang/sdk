@@ -292,6 +292,8 @@ Map<Id, IdValue> computeExpectedMap(AnnotatedCode code) {
   Map<Id, IdValue> map = <Id, IdValue>{};
   for (Annotation annotation in code.annotations) {
     IdValue idValue = IdValue.decode(annotation.offset, annotation.text);
+    Expect.isFalse(map.containsKey(idValue.id),
+        "Duplicate annotations for ${idValue.id}.");
     map[idValue.id] = idValue;
   }
   return map;

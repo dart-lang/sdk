@@ -345,7 +345,9 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
             computeForNode(node, createUpdateId(position));
           }
           break;
+        case SendStructureKind.PREFIX:
         case SendStructureKind.POSTFIX:
+        case SendStructureKind.COMPOUND:
           computeForNode(node, createAccessId(node.selector));
           computeForNode(node, createInvokeId(node.assignmentOperator));
           computeForNode(node, createUpdateId(node.selector));
@@ -425,17 +427,20 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
   }
 
   NodeId computeDefaultNodeId(ir.TreeNode node) {
-    assert(node.fileOffset != ir.TreeNode.noOffset);
+    assert(node.fileOffset != ir.TreeNode.noOffset,
+        "No fileOffset on $node (${node.runtimeType})");
     return new NodeId(node.fileOffset, IdKind.node);
   }
 
   NodeId createInvokeId(ir.TreeNode node) {
-    assert(node.fileOffset != ir.TreeNode.noOffset);
+    assert(node.fileOffset != ir.TreeNode.noOffset,
+        "No fileOffset on ${node} (${node.runtimeType})");
     return new NodeId(node.fileOffset, IdKind.invoke);
   }
 
   NodeId createUpdateId(ir.TreeNode node) {
-    assert(node.fileOffset != ir.TreeNode.noOffset);
+    assert(node.fileOffset != ir.TreeNode.noOffset,
+        "No fileOffset on ${node} (${node.runtimeType})");
     return new NodeId(node.fileOffset, IdKind.update);
   }
 
@@ -469,7 +474,8 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
   }
 
   visitVariableDeclaration(ir.VariableDeclaration node) {
-    if (node.parent is! ir.FunctionDeclaration) {
+    if (node.name != null && node.parent is! ir.FunctionDeclaration) {
+      // Skip synthetic variables and function declaration variables.
       computeForNode(node, computeDefaultNodeId(node));
     }
     super.visitVariableDeclaration(node);
@@ -486,7 +492,10 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
   }
 
   visitVariableGet(ir.VariableGet node) {
-    computeForNode(node, computeDefaultNodeId(node));
+    if (node.variable.name != null) {
+      // Skip use of synthetic variables.
+      computeForNode(node, computeDefaultNodeId(node));
+    }
     super.visitVariableGet(node);
   }
 
@@ -496,7 +505,10 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
   }
 
   visitVariableSet(ir.VariableSet node) {
-    computeForNode(node, createUpdateId(node));
+    if (node.variable.name != null) {
+      // Skip use of synthetic variables.
+      computeForNode(node, createUpdateId(node));
+    }
     super.visitVariableSet(node);
   }
 

@@ -9,6 +9,10 @@ main() {
   updatedLocal();
   invokeLocal();
   postfixLocal();
+  postfixLocalUsed();
+  prefixLocal();
+  prefixLocalUsed();
+  complexAssignmentLocal();
 }
 
 /*element: uninitializedLocal:[null]*/
@@ -43,4 +47,30 @@ postfixLocal() {
   var local2 = 0;
   local2 /*invoke: [exact=JSUInt31]*/ ++;
   return null;
+}
+
+/*element: postfixLocalUsed:[exact=JSUInt31]*/
+postfixLocalUsed() {
+  var local2 = 0;
+  return local2 /*invoke: [exact=JSUInt31]*/ ++;
+}
+
+/*element: prefixLocal:[null]*/
+prefixLocal() {
+  // ignore: UNUSED_LOCAL_VARIABLE
+  var local2 = 0;
+  /*invoke: [exact=JSUInt31]*/ ++local2;
+  return null;
+}
+
+/*element: prefixLocalUsed:[subclass=JSUInt32]*/
+prefixLocalUsed() {
+  var local2 = 0;
+  return /*invoke: [exact=JSUInt31]*/ ++local2;
+}
+
+/*element: complexAssignmentLocal:[subclass=JSUInt32]*/
+complexAssignmentLocal() {
+  var local2 = 0;
+  return local2 /*invoke: [exact=JSUInt31]*/ += 42;
 }
