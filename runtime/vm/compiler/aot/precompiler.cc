@@ -7,7 +7,7 @@
 #include "vm/ast_printer.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
-#include "vm/compiler/aot/aot_optimizer.h"
+#include "vm/compiler/aot/aot_call_specializer.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
@@ -2966,16 +2966,17 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         caller_inline_id.Add(-1);
         CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
 
-        AotOptimizer optimizer(precompiler_, flow_graph,
-                               use_speculative_inlining, &inlining_black_list);
+        AotCallSpecializer call_specializer(precompiler_, flow_graph,
+                                            use_speculative_inlining,
+                                            &inlining_black_list);
 
-        optimizer.ApplyClassIds();
+        call_specializer.ApplyClassIds();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         FlowGraphTypePropagator::Propagate(flow_graph);
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-        optimizer.ApplyICData();
+        call_specializer.ApplyICData();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Optimize (a << b) & c patterns, merge operations.
@@ -2996,7 +2997,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
           // Use propagated class-ids to create more inlining opportunities.
-          optimizer.ApplyClassIds();
+          call_specializer.ApplyClassIds();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
           FlowGraphInliner inliner(flow_graph, &inline_id_to_function,
@@ -3018,7 +3019,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                      "ApplyClassIds");
 #endif  // !PRODUCT
           // Use propagated class-ids to optimize further.
-          optimizer.ApplyClassIds();
+          call_specializer.ApplyClassIds();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
 
@@ -3257,7 +3258,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         }
 
         // Replace bounds check instruction with a generic one.
-        optimizer.ReplaceArrayBoundChecks();
+        call_specializer.ReplaceArrayBoundChecks();
 
         // Compute and store graph informations (call & instruction counts)
         // to be later used by the inliner.

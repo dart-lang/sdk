@@ -5,8 +5,8 @@
 # This file contains all sources (vm and tests) for the compiler pipeline.
 # Unit test files need to have a "_test" suffix appended to the name.
 compiler_sources = [
-  "aot/aot_optimizer.cc",
-  "aot/aot_optimizer.h",
+  "aot/aot_call_specializer.cc",
+  "aot/aot_call_specializer.h",
   "aot/precompiler.cc",
   "aot/precompiler.h",
   "assembler/assembler.cc",
@@ -64,6 +64,8 @@ compiler_sources = [
   "backend/redundancy_elimination.h",
   "backend/type_propagator.cc",
   "backend/type_propagator.h",
+  "call_specializer.cc",
+  "call_specializer.h",
   "cha.cc",
   "cha.h",
   "frontend/flow_graph_builder.cc",
@@ -81,8 +83,8 @@ compiler_sources = [
   "intrinsifier_x64.cc",
   "jit/compiler.cc",
   "jit/compiler.h",
-  "jit/jit_optimizer.cc",
-  "jit/jit_optimizer.h",
+  "jit/jit_call_specializer.cc",
+  "jit/jit_call_specializer.h",
   "method_recognizer.cc",
   "method_recognizer.h",
 ]

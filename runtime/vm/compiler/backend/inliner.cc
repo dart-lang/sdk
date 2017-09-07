@@ -6,7 +6,7 @@
 
 #include "vm/compiler/backend/inliner.h"
 
-#include "vm/compiler/aot/aot_optimizer.h"
+#include "vm/compiler/aot/aot_call_specializer.h"
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
@@ -16,7 +16,7 @@
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/compiler.h"
-#include "vm/compiler/jit/jit_optimizer.h"
+#include "vm/compiler/jit/jit_call_specializer.h"
 #include "vm/flags.h"
 #include "vm/kernel.h"
 #include "vm/longjump.h"
@@ -984,17 +984,18 @@ class CallSiteInliner : public ValueObject {
           // Deopt-ids overlap between caller and callee.
           if (FLAG_precompiled_mode) {
 #ifdef DART_PRECOMPILER
-            AotOptimizer optimizer(inliner_->precompiler_, callee_graph,
-                                   inliner_->use_speculative_inlining_,
-                                   inliner_->inlining_black_list_);
+            AotCallSpecializer call_specializer(
+                inliner_->precompiler_, callee_graph,
+                inliner_->use_speculative_inlining_,
+                inliner_->inlining_black_list_);
 
-            optimizer.ApplyClassIds();
+            call_specializer.ApplyClassIds();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
 
             FlowGraphTypePropagator::Propagate(callee_graph);
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
 
-            optimizer.ApplyICData();
+            call_specializer.ApplyICData();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
 
             // Optimize (a << b) & c patterns, merge instructions. Must occur
@@ -1005,15 +1006,15 @@ class CallSiteInliner : public ValueObject {
             UNREACHABLE();
 #endif  // DART_PRECOMPILER
           } else {
-            JitOptimizer optimizer(callee_graph);
+            JitCallSpecializer call_specializer(callee_graph);
 
-            optimizer.ApplyClassIds();
+            call_specializer.ApplyClassIds();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
 
             FlowGraphTypePropagator::Propagate(callee_graph);
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
 
-            optimizer.ApplyICData();
+            call_specializer.ApplyICData();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
 
             // Optimize (a << b) & c patterns, merge instructions. Must occur

@@ -3226,11 +3226,13 @@ bool InstanceCallInstr::MatchesCoreName(const String& name) {
   return function_name().raw() == Library::PrivateCoreLibName(name).raw();
 }
 
-RawFunction* InstanceCallInstr::ResolveForReceiverClass(const Class& cls) {
+RawFunction* InstanceCallInstr::ResolveForReceiverClass(
+    const Class& cls,
+    bool allow_add /* = true */) {
   const Array& args_desc_array = Array::Handle(GetArgumentsDescriptor());
   ArgumentsDescriptor args_desc(args_desc_array);
   return Resolver::ResolveDynamicForReceiverClass(cls, function_name(),
-                                                  args_desc);
+                                                  args_desc, allow_add);
 }
 
 bool CallTargets::HasSingleRecognizedTarget() const {

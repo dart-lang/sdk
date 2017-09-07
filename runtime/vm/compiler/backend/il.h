@@ -2890,10 +2890,10 @@ class InstanceCallInstr : public TemplateDartCall<0> {
 
   bool MatchesCoreName(const String& name);
 
-  RawFunction* ResolveForReceiverClass(const Class& cls);
+  RawFunction* ResolveForReceiverClass(const Class& cls, bool allow_add = true);
 
  protected:
-  friend class JitOptimizer;
+  friend class CallSpecializer;
   void set_ic_data(ICData* value) { ic_data_ = value; }
 
  private:
@@ -3641,7 +3641,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  friend class JitOptimizer;  // For ASSERT(initialization_).
+  friend class JitCallSpecializer;  // For ASSERT(initialization_).
 
   bool CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();

@@ -24,7 +24,7 @@
 #include "vm/compiler/cha.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
-#include "vm/compiler/jit/jit_optimizer.h"
+#include "vm/compiler/jit/jit_call_specializer.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
@@ -882,12 +882,12 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         caller_inline_id.Add(-1);
         CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
 
-        JitOptimizer optimizer(flow_graph);
+        JitCallSpecializer call_specializer(flow_graph);
 
         {
           NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
                                                    "ApplyICData"));
-          optimizer.ApplyICData();
+          call_specializer.ApplyICData();
           thread()->CheckForSafepoint();
         }
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -909,7 +909,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
           // Use propagated class-ids to create more inlining opportunities.
-          optimizer.ApplyClassIds();
+          call_specializer.ApplyClassIds();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
           FlowGraphInliner inliner(flow_graph, &inline_id_to_function,
@@ -931,7 +931,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
                                                     "ApplyClassIds"));
           // Use propagated class-ids to optimize further.
-          optimizer.ApplyClassIds();
+          call_specializer.ApplyClassIds();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
 

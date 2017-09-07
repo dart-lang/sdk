@@ -833,7 +833,8 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
       field.SetStaticValue(Object::sentinel(), true);
     } else if (has_simple_initializer) {
       // Note: optimizer relies on DoubleInitialized bit in its field-unboxing
-      // heuristics. See JitOptimizer::VisitStoreInstanceField for more details.
+      // heuristics. See JitCallSpecializer::VisitStoreInstanceField for more
+      // details.
       field.RecordStore(converter.SimpleValue());
       if (!converter.SimpleValue().IsNull() &&
           converter.SimpleValue().IsDouble()) {
