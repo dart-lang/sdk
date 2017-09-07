@@ -59,9 +59,9 @@ class InstanceofTest {
       var a = new List(5);
       Expect.equals(true, a is List);
       Expect.equals(true, a is List<Object>);
-      Expect.equals(true, a is List<int>);
-      Expect.equals(true, a is List<num>);
-      Expect.equals(true, a is List<String>);
+      Expect.equals(false, a is List<int>);
+      Expect.equals(false, a is List<num>);
+      Expect.equals(false, a is List<String>);
     }
     {
       var a = new List<Object>(5);

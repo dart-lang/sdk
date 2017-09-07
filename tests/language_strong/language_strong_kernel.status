@@ -108,9 +108,6 @@ function_type_alias3_test: RuntimeError
 function_type_alias4_test: RuntimeError
 inferrer_closure_test: RuntimeError
 initializing_formal_final_test: RuntimeError
-instance_creation_in_function_annotation_test: RuntimeError
-instanceof4_test/01: RuntimeError
-instanceof4_test/none: RuntimeError
 issue_1751477_test: RuntimeError
 lazy_static7_test: DartkCompileTimeError
 main_not_a_function_test/01: DartkCrash

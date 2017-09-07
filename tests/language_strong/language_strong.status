@@ -204,14 +204,6 @@ getter_parameters_test: Skip
 getter_setter_in_lib_test: Skip
 getters_setters2_test: Skip
 getters_setters_test: Skip
-inline_test_context_test: Skip
-inline_value_context_test: Skip
-inlined_throw_test: Skip
-inst_field_initializer1_negative_test: Skip
-instance_call_wrong_argument_count_negative_test: Skip
-instance_method2_negative_test: Skip
-instance_method_negative_test: Skip
-instanceof3_test: Skip
 instantiate_type_variable_test: Skip
 interceptor2_test: Skip
 interceptor3_test: Skip

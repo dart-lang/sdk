@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing the instanceof operation.
 // Regression test for issue 5216.
-// VMOptions=--optimization-counter-threshold=10 --no-use-osr
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
 import "package:expect/expect.dart";
 
@@ -20,8 +20,8 @@ testFooString() {
   var o = new Foo<String>();
   Expect.isTrue(o.isT());
   Expect.isTrue(!o.isNotT());
-  Expect.isTrue(o.isListT());
-  Expect.isTrue(!o.isNotListT());
+  Expect.isTrue(!o.isListT());
+  Expect.isTrue(o.isNotListT());
   Expect.isTrue(!o.isAlsoListT()); // //# 01: ok
   Expect.isTrue(o.isNeitherListT()); // //# 01: ok
   for (var i = 0; i < 20; i++) {
@@ -35,8 +35,8 @@ testFooString() {
   }
   Expect.isTrue(o.isT(), "1");
   Expect.isTrue(!o.isNotT(), "2");
-  Expect.isTrue(o.isListT(), "3");
-  Expect.isTrue(!o.isNotListT(), "4");
+  Expect.isTrue(!o.isListT(), "3");
+  Expect.isTrue(o.isNotListT(), "4");
   Expect.isTrue(!o.isAlsoListT(), "5"); // //# 01: ok
   Expect.isTrue(o.isNeitherListT(), "6"); // //# 01: ok
 }

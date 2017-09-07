@@ -182,6 +182,9 @@ inferrer_constructor5_test/01: MissingCompileTimeError
 inferrer_synthesized_constructor_test: RuntimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
+instanceof2_test: RuntimeError
+instanceof4_test/01: RuntimeError
+instanceof4_test/none: RuntimeError
 many_generic_instanceof_test: RuntimeError
 type_variable_nested_test/01: RuntimeError
 type_variable_promotion_test: RuntimeError
@@ -199,6 +202,7 @@ unresolved_default_constructor_test/01: MissingCompileTimeError
 unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
+instance_creation_in_function_annotation_test: SkipByDesign
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError

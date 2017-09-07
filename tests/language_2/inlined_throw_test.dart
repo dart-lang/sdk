@@ -7,7 +7,7 @@
 
 import 'package:expect/expect.dart';
 
-var x = false;
+dynamic x = false;
 
 bool called;
 
@@ -83,7 +83,7 @@ bin() {
 }
 
 binCallThrow() {
-  return callMe() * kast("binct");
+  return (callMe() as dynamic) * kast("binct");
 }
 
 hoo() {
