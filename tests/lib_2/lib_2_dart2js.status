@@ -25,9 +25,16 @@ math/random_big_test: RuntimeError  # Using bigint seeds for random.
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by dart2js.
 convert/chunked_conversion_utf88_test: Slow, Pass
+typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
+typed_data/int32x4_bigint_test: RuntimeError # Issue 1533
+typed_data/int64_list_load_store_test: RuntimeError # Issue 10275
 
 [ $compiler == dart2js ]
 async/future_or_strong_test: RuntimeError
 
 [ $compiler != dart2js ]
 async/dart2js_uncaught_error_test: Skip  # JS-integration only test
+
+[ $compiler == dart2js && $runtime == chromeOnAndroid ]
+typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
+typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
