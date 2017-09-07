@@ -866,6 +866,9 @@ class Driver implements CommandLineStarter {
     if (options.enableAssertInitializer != null) {
       contextOptions.enableAssertInitializer = options.enableAssertInitializer;
     }
+    if (options.previewDart2) {
+      contextOptions.useFastaParser = true;
+    }
 
     _directoryToAnalysisOptions[contextRootDirectory] = contextOptions;
     return contextOptions;

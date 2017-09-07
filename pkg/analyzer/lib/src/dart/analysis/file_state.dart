@@ -14,8 +14,6 @@ import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/fasta/ast_builder.dart' as fasta;
-import 'package:analyzer/src/fasta/mock_element.dart' as fasta;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -31,9 +29,6 @@ import 'package:crypto/crypto.dart';
 import 'package:front_end/byte_store.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/fasta/builder/builder.dart' as fasta;
-import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
-import 'package:front_end/src/fasta/scanner.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:meta/meta.dart';
 
@@ -80,8 +75,6 @@ class FileContentOverlay {
  * should be called.
  */
 class FileState {
-  static const bool USE_FASTA_PARSER = false;
-
   final FileSystemState _fsState;
 
   /**
@@ -108,7 +101,6 @@ class FileState {
   final bool isInExternalSummaries;
 
   bool _exists;
-  List<int> _contentBytes;
   String _content;
   String _contentHash;
   LineInfo _lineInfo;
@@ -413,13 +405,6 @@ class FileState {
       _exists = false;
     }
 
-    if (USE_FASTA_PARSER) {
-      var bytes = UTF8.encode(_content);
-      _contentBytes = new Uint8List(bytes.length + 1);
-      _contentBytes.setRange(0, bytes.length, bytes);
-      _contentBytes[_contentBytes.length - 1] = 0;
-    }
-
     // Compute the content hash.
     List<int> contentBytes = UTF8.encode(_content);
     {
@@ -571,61 +556,26 @@ class FileState {
 
   CompilationUnit _parse(AnalysisErrorListener errorListener) {
     AnalysisOptions analysisOptions = _fsState._analysisOptions;
+    CharSequenceReader reader = new CharSequenceReader(content);
+    Scanner scanner = new Scanner(source, reader, errorListener);
+    scanner.scanGenericMethodComments = analysisOptions.strongMode;
+    Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
+      return scanner.tokenize();
+    });
+    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
-    if (USE_FASTA_PARSER) {
-      try {
-        fasta.ScannerResult scanResult =
-            PerformanceStatistics.scan.makeCurrentWhile(() {
-          return fasta.scan(
-            _contentBytes,
-            includeComments: true,
-            scanGenericMethodComments: analysisOptions.strongMode,
-          );
-        });
+    bool useFasta = analysisOptions.useFastaParser;
+    Parser parser = new Parser(source, errorListener, useFasta: useFasta);
+    parser.enableAssertInitializer = analysisOptions.enableAssertInitializer;
+    parser.parseGenericMethodComments = analysisOptions.strongMode;
+    CompilationUnit unit = parser.parseCompilationUnit(token);
+    unit.lineInfo = lineInfo;
 
-        var astBuilder = new fasta.AstBuilder(
-            new ErrorReporter(errorListener, source),
-            null,
-            null,
-            new fasta.Scope.top(isModifiable: true),
-            true,
-            uri);
-        astBuilder.parseGenericMethodComments = analysisOptions.strongMode;
+    // StringToken uses a static instance of StringCanonicalizer, so we need
+    // to clear it explicitly once we are done using it for this file.
+    StringToken.canonicalizer.clear();
 
-        var parser = new fasta.Parser(astBuilder);
-        astBuilder.parser = parser;
-        parser.parseUnit(scanResult.tokens);
-        var unit = astBuilder.pop() as CompilationUnit;
-
-        LineInfo lineInfo = new LineInfo(scanResult.lineStarts);
-        unit.lineInfo = lineInfo;
-        return unit;
-      } catch (e, st) {
-        print(e);
-        print(st);
-        rethrow;
-      }
-    } else {
-      CharSequenceReader reader = new CharSequenceReader(content);
-      Scanner scanner = new Scanner(source, reader, errorListener);
-      scanner.scanGenericMethodComments = analysisOptions.strongMode;
-      Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
-        return scanner.tokenize();
-      });
-      LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-
-      Parser parser = new Parser(source, errorListener);
-      parser.enableAssertInitializer = analysisOptions.enableAssertInitializer;
-      parser.parseGenericMethodComments = analysisOptions.strongMode;
-      CompilationUnit unit = parser.parseCompilationUnit(token);
-      unit.lineInfo = lineInfo;
-
-      // StringToken uses a static instance of StringCanonicalizer, so we need
-      // to clear it explicitly once we are done using it for this file.
-      StringToken.canonicalizer.clear();
-
-      return unit;
-    }
+    return unit;
   }
 
   /**

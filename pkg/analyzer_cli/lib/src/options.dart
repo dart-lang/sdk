@@ -114,6 +114,9 @@ class CommandLineOptions {
   /// (Or null if not enabled.)
   final String perfReport;
 
+  /// Whether to enable the Dart 2.0 Front End.
+  final bool previewDart2;
+
   /// Batch mode (for unit testing)
   final bool batchMode;
 
@@ -186,6 +189,7 @@ class CommandLineOptions {
         log = args['log'],
         machineFormat = args['format'] == 'machine',
         perfReport = args['x-perf-report'],
+        previewDart2 = args['preview-dart-2'],
         batchMode = args['batch'],
         showPackageWarnings = args['show-package-warnings'] ||
             args['package-warnings'] ||
@@ -506,6 +510,11 @@ class CommandLineOptions {
               'of "libraryUri".',
           allowMultiple: true,
           splitCommas: false,
+          hide: hide)
+      ..addFlag('preview-dart-2',
+          help: 'Enable the Dart 2.0 Front End implementation.',
+          defaultsTo: false,
+          negatable: false,
           hide: hide);
 
     try {

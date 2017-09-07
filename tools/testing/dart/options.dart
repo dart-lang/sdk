@@ -178,6 +178,9 @@ simdbc, simdbc64''',
     new _Option.bool('enable_asserts',
         'Pass the --enable-asserts flag to dart2js or to the vm.'),
     new _Option.bool(
+        'preview_dart_2', 'Pass the --preview-dart-2 flag to analyzer.'),
+    // TODO(sigmund): replace dart2js_with_kernel with preview-dart-2.
+    new _Option.bool(
         'dart2js_with_kernel', 'Pass the --use-kernel flag to dart2js.'),
     new _Option.bool('dart2js_with_kernel_in_ssa',
         'Pass the --use-kernel-in-ssa flag to dart2js.'),
@@ -594,6 +597,7 @@ compiler.''')
                 isMinified: data["minified"] as bool,
                 isVerbose: data["verbose"] as bool,
                 listTests: data["list"] as bool,
+                previewDart2: data["preview_dart_2"] as bool,
                 printTiming: data["time"] as bool,
                 printReport: data["report"] as bool,
                 reportInJson: data["report_in_json"] as bool,

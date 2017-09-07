@@ -39,6 +39,7 @@ class Configuration {
       this.isMinified,
       this.isVerbose,
       this.listTests,
+      this.previewDart2,
       this.printTiming,
       this.printReport,
       this.reportInJson,
@@ -104,6 +105,7 @@ class Configuration {
   final bool isMinified;
   final bool isVerbose;
   final bool listTests;
+  final bool previewDart2;
   final bool printTiming;
   final bool printReport;
   final bool reportInJson;
@@ -447,7 +449,8 @@ class Configuration {
         'use_sdk': useSdk,
         'builder_tag': builderTag,
         'fast_startup': useFastStartup,
-        'timeout': timeout
+        'timeout': timeout,
+        'preview_dart_2': previewDart2
       };
     }
     return _summaryMap;
