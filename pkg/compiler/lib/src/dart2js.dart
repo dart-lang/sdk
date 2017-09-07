@@ -202,8 +202,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
     passThrough(argument);
   }
 
-  String getDepsOutput(Map<Uri, api.Input> sourceFiles) {
-    var filenames = sourceFiles.keys.map((uri) => '$uri').toList();
+  String getDepsOutput(Iterable<Uri> sourceFiles) {
+    var filenames = sourceFiles.map((uri) => '$uri').toList();
     filenames.sort();
     return filenames.join("\n");
   }
@@ -547,7 +547,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
       fail('Compilation failed.');
     }
     writeString(
-        Uri.parse('$out.deps'), getDepsOutput(inputProvider.sourceFiles));
+        Uri.parse('$out.deps'), getDepsOutput(inputProvider.getSourceUris()));
     int dartCharactersRead = inputProvider.dartCharactersRead;
     int jsCharactersWritten = outputProvider.totalCharactersWrittenJavaScript;
     int jsCharactersPrimary = outputProvider.totalCharactersWrittenPrimary;

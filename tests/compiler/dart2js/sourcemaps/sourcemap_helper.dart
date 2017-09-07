@@ -94,7 +94,7 @@ class ProviderSourceFileManager implements SourceFileManager {
 
   @override
   SourceFile getSourceFile(uri) {
-    SourceFile sourceFile = sourceFileProvider.getSourceFile(uri);
+    SourceFile sourceFile = sourceFileProvider.getUtf8SourceFile(uri);
     if (sourceFile == null) {
       sourceFile = outputProvider.getSourceFile(uri);
     }

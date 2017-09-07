@@ -245,7 +245,7 @@ usedByTests() {
   ClosedWorldImpl closedWorld = null;
   type_graph_inferrer.TypeGraphInferrer typeGraphInferrer = null;
   source_file_provider.SourceFileProvider sourceFileProvider = null;
-  sourceFileProvider.getSourceFile(null);
+  sourceFileProvider.getUtf8SourceFile(null);
   closedWorld.hasAnyUserDefinedGetter(null, null);
   closedWorld.subclassesOf(null);
   closedWorld.getClassHierarchyNode(null);

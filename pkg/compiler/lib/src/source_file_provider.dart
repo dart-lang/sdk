@@ -21,10 +21,22 @@ import 'util/uri_extras.dart';
 abstract class SourceFileProvider implements CompilerInput {
   bool isWindows = (Platform.operatingSystem == 'windows');
   Uri cwd = currentDirectory;
-  Map<Uri, api.Input> sourceFiles = <Uri, api.Input>{};
+  Map<Uri, api.Input> utf8SourceFiles = <Uri, api.Input>{};
+  Map<Uri, api.Input> binarySourceFiles = <Uri, api.Input>{};
   int dartCharactersRead = 0;
 
   Future<api.Input> readBytesFromUri(Uri resourceUri, api.InputKind inputKind) {
+    api.Input input;
+    switch (inputKind) {
+      case api.InputKind.utf8:
+        input = utf8SourceFiles[resourceUri];
+        break;
+      case api.InputKind.binary:
+        input = binarySourceFiles[resourceUri];
+        break;
+    }
+    if (input != null) return new Future.value(input);
+
     if (resourceUri.scheme == 'file') {
       return _readFromFile(resourceUri, inputKind);
     } else if (resourceUri.scheme == 'http' || resourceUri.scheme == 'https') {
@@ -49,14 +61,14 @@ abstract class SourceFileProvider implements CompilerInput {
     api.Input input;
     switch (inputKind) {
       case api.InputKind.utf8:
-        input = new CachingUtf8BytesSourceFile(
+        input = utf8SourceFiles[resourceUri] = new CachingUtf8BytesSourceFile(
             resourceUri, relativizeUri(resourceUri), source);
         break;
       case api.InputKind.binary:
-        input = new Binary(resourceUri, source);
+        input =
+            binarySourceFiles[resourceUri] = new Binary(resourceUri, source);
         break;
     }
-    sourceFiles[resourceUri] = input;
     return input;
   }
 
@@ -109,14 +121,14 @@ abstract class SourceFileProvider implements CompilerInput {
       api.Input input;
       switch (inputKind) {
         case api.InputKind.utf8:
-          input = new CachingUtf8BytesSourceFile(
+          input = utf8SourceFiles[resourceUri] = new CachingUtf8BytesSourceFile(
               resourceUri, resourceUri.toString(), result);
           break;
         case api.InputKind.binary:
-          input = new Binary(resourceUri, result);
+          input =
+              binarySourceFiles[resourceUri] = new Binary(resourceUri, result);
           break;
       }
-      sourceFiles[resourceUri] = input;
       return input;
     });
   }
@@ -129,8 +141,15 @@ abstract class SourceFileProvider implements CompilerInput {
 
   relativizeUri(Uri uri) => relativize(cwd, uri, isWindows);
 
-  SourceFile getSourceFile(Uri resourceUri) {
-    return sourceFiles[resourceUri];
+  SourceFile getUtf8SourceFile(Uri resourceUri) {
+    return utf8SourceFiles[resourceUri];
+  }
+
+  Iterable<Uri> getSourceUris() {
+    Set<Uri> uris = new Set<Uri>();
+    uris.addAll(utf8SourceFiles.keys);
+    uris.addAll(binarySourceFiles.keys);
+    return uris;
   }
 }
 
@@ -253,7 +272,7 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
     if (uri == null) {
       print('${color(message)}');
     } else {
-      api.Input file = provider.sourceFiles[uri];
+      api.Input file = provider.getUtf8SourceFile(uri);
       if (file == null &&
           autoReadFileUri &&
           uri.scheme == 'file' &&
@@ -476,7 +495,14 @@ class BazelInputProvider extends SourceFileProvider {
       }
     }
     api.Input result = await readBytesFromUri(resolvedUri, inputKind);
-    sourceFiles[uri] = sourceFiles[resolvedUri];
+    switch (inputKind) {
+      case InputKind.utf8:
+        utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri];
+        break;
+      case InputKind.binary:
+        binarySourceFiles[uri] = binarySourceFiles[resolvedUri];
+        break;
+    }
     return result;
   }
 }
