@@ -125,8 +125,8 @@ import 'util.dart' show closeBraceTokenFor, optional;
 /// attempts to follow the specification (unless when it interferes with error
 /// recovery).
 ///
-/// We achieve flexibily, extensible, and specification compliance by following
-/// a few rules-of-thumb:
+/// We achieve flexibility, extensible, and specification compliance by
+/// following a few rules-of-thumb:
 ///
 /// 1. All methods in the parser should be public.
 ///
@@ -1135,7 +1135,7 @@ class Parser {
               typeVariableStarters.prepend(typeVariableStart);
           token = close.next;
         } else {
-          break; // Not a funtion type.
+          break; // Not a function type.
         }
       }
     }
@@ -1476,7 +1476,7 @@ class Parser {
           token = nameToken.next;
         }
         if (isNamedParameter && nameToken.lexeme.startsWith("_")) {
-          // TODO(ahe): Move this to after commiting the type.
+          // TODO(ahe): Move this to after committing the type.
           reportRecoverableError(nameToken, fasta.messagePrivateNamedParameter);
         }
 
@@ -2533,7 +2533,7 @@ class Parser {
   ///
   /// If [isFunctionExpression] is true, this method parses the rest of named
   /// function expression which isn't legal syntax in Dart.  Useful for
-  /// recovering from Javascript code being pasted into a Dart proram, as it
+  /// recovering from Javascript code being pasted into a Dart program, as it
   /// will interpret `function foo() {}` as a named function expression with
   /// return type `function` and name `foo`.
   ///
@@ -2973,7 +2973,7 @@ class Parser {
   Token parseExpression(Token token) {
     if (expressionDepth++ > 500) {
       // This happens in degenerate programs, for example, with a lot of nested
-      // list literals. This is provoked by, for examaple, the language test
+      // list literals. This is provoked by, for example, the language test
       // deep_nesting1_negative_test.
       return reportUnrecoverableError(token, fasta.messageStackOverflow).next;
     }
