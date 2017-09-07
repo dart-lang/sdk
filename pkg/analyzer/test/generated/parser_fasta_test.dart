@@ -3547,7 +3547,8 @@ class FastaParserTestCase extends Object
   @override
   Statement parseStatement(String source,
       [bool enableLazyAssignmentOperators]) {
-    return _runParser(source, (parser) => parser.parseStatement) as Statement;
+    return _runParser(source, (parser) => parser.parseStatement, null)
+        as Statement;
   }
 
   @override
@@ -3591,7 +3592,9 @@ class FastaParserTestCase extends Object
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
     createParser(source);
     Object result = _parserProxy._run(getParseFunction);
-    assertErrorsWithCodes(errorCodes);
+    if (errorCodes != null) {
+      assertErrorsWithCodes(errorCodes);
+    }
     return result;
   }
 
