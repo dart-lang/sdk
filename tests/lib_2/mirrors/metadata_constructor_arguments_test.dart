@@ -7,6 +7,7 @@
 
 library test.metadata_constructor_arguments;
 
+@MirrorsUsed(targets: "test.metadata_constructor_arguments")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

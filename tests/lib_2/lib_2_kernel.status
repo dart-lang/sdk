@@ -27,6 +27,17 @@ mirrors/deferred_mirrors_update_test: CompileTimeError # Deferred loading kernel
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
 mirrors/mirrors_test: Crash
+mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
+mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
+mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
+mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
+mirrors/metadata_allowed_values_test/27: Crash
+mirrors/metadata_constructed_constant_test: Crash
+mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError
+mirrors/metadata_scope_test/none: RuntimeError
+mirrors/method_mirror_location_test: RuntimeError
+mirrors/method_mirror_source_line_ending_test: Crash
+mirrors/method_mirror_source_test: Crash
 
 [ $compiler == dartk && $runtime == vm ]
 mirrors/class_mirror_location_test: RuntimeError
@@ -42,3 +53,7 @@ mirrors/empty_test: RuntimeError
 mirrors/equality_test: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
+mirrors/metadata_constructed_constant_test: RuntimeError
+mirrors/method_mirror_location_test: RuntimeError
+mirrors/method_mirror_source_line_ending_test: Crash
+mirrors/method_mirror_source_test: Crash

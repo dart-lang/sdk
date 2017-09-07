@@ -42,8 +42,12 @@ tests/lib_2/mirrors/method_mirror_source_line_ending_lf.dart -text
 tests/lib_2/mirrors/method_mirror_source_test.dart -text
 tests/lib_2/mirrors/method_mirror_source_other.dart -text
 tests/language_strong/multiline_newline_crlf.dart -text
-tests/lib_strong/mirrors/method_mirror_source_line_ending_cr.dart -text
-tests/lib_strong/mirrors/method_mirror_source_line_ending_crlf.dart -text
+tests/lib_2/mirrors/method_mirror_source_line_ending_test.dart -text
+tests/lib_2/mirrors/method_mirror_source_line_ending_cr.dart -text
+tests/lib_2/mirrors/method_mirror_source_line_ending_crlf.dart -text
+tests/lib_2/mirrors/method_mirror_source_line_ending_lf.dart -text
+tests/lib_2/mirrors/method_mirror_source_test.dart -text
+tests/lib_2/mirrors/method_mirror_source_other.dart -text
 
 # Files to leave alone and not diff.
 *.png binary

@@ -24,9 +24,30 @@ async/future_or_strong_test: RuntimeError
 math/random_big_test: RuntimeError  # Using bigint seeds for random.
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
 convert/chunked_conversion_utf88_test: Slow, Pass
+mirrors/metadata_scope_test/none: RuntimeError # Issue 10905
+mirrors/method_mirror_name_test: RuntimeError # Issue 6335
+mirrors/method_mirror_properties_test: RuntimeError # Issue 11861
+mirrors/method_mirror_source_test : RuntimeError # Issue 6490
+mirrors/method_mirror_source_line_ending_test : RuntimeError # Issue 6490
+mirrors/method_mirror_location_test: RuntimeError # Issue 6490
 
 [ $compiler == dart2js ]
 async/future_or_strong_test: RuntimeError
 
 [ $compiler != dart2js ]
 async/dart2js_uncaught_error_test: Skip  # JS-integration only test
+
+[ $compiler == dart2js && $fast_startup ]
+mirrors/metadata_allowed_values_test/0*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_allowed_values_test/1*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_allowed_values_test/2*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_allowed_values_test/3*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_constructor_arguments_test/0*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_nested_constructor_call_test/0*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_scope_test/01: Pass # expects failure, but it fails for the wrong reason
+
+[ $compiler == dart2js && $host_checked ]
+mirrors/metadata_allowed_values_test/28: Crash # Issue 25911
+mirrors/metadata_allowed_values_test/29: Crash # Issue 25911
+mirrors/metadata_allowed_values_test/30: Crash # Issue 25911
+mirrors/metadata_allowed_values_test/31: Crash # Issue 25911

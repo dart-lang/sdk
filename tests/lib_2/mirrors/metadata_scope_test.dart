@@ -4,6 +4,7 @@
 
 library test.metadata_scope;
 
+@MirrorsUsed(targets: "test.metadata_scope")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

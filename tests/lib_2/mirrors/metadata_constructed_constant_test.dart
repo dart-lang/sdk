@@ -5,6 +5,7 @@
 
 library test.metadata_constructed_constant_test;
 
+@MirrorsUsed(targets: "test.metadata_constructed_constant_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
