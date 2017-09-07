@@ -2861,7 +2861,7 @@ class CodeGenerator extends Object
     // `sync*` wraps a generator in a Dart Iterable<T>:
     //
     // function name(<args>) {
-    //   return dart.syncStar(function*(<args>) {
+    //   return dart.syncStar(function* name(<args>) {
     //     <body>
     //   }, T, <args>).bind(this);
     // }
@@ -2903,6 +2903,14 @@ class CodeGenerator extends Object
     DartType returnType = _getExpectedReturnType(element);
     JS.Expression gen = new JS.Fun(jsParams, jsBody,
         isGenerator: true, returnType: emitTypeRef(returnType));
+
+    // Name the function if possible, to get better stack traces.
+    var name = element.name;
+    name = _friendlyOperatorName[name] ?? name;
+    if (name.isNotEmpty) {
+      gen = new JS.NamedFunction(new JS.Identifier(name), gen);
+    }
+
     if (JS.This.foundIn(gen)) {
       gen = js.call('#.bind(this)', gen);
     }
@@ -6128,7 +6136,6 @@ final _friendlyOperatorName = {
   '>': 'greaterThan',
   '<=': 'lessOrEquals',
   '>=': 'greaterOrEquals',
-  '==': 'equals',
   '-': 'minus',
   '+': 'plus',
   '/': 'divide',
@@ -6140,5 +6147,11 @@ final _friendlyOperatorName = {
   '&': 'bitAnd',
   '<<': 'leftShift',
   '>>': 'rightShift',
-  '~': 'bitNot'
+  '~': 'bitNot',
+  // These ones are always renamed, hence the choice of `_` to avoid conflict
+  // with Dart names. See _emitMemberName.
+  '==': '_equals',
+  '[]': '_get',
+  '[]=': '_set',
+  'unary-': '_negate',
 };
