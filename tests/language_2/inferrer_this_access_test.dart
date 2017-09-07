@@ -14,12 +14,13 @@ class A {
   }
 }
 
-class B {
+abstract class B {
   var a;
   B() {
     hest = 54;
     a = 42;
   }
+  set hest(value);
 }
 
 class C extends B {
@@ -29,6 +30,6 @@ class C extends B {
 }
 
 main() {
-  Expect.throws(() => new A(), (e) => e is NoSuchMethodError);
-  Expect.throws(() => new C(), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => new A());
+  Expect.throwsNoSuchMethodError(() => new C());
 }

@@ -186,6 +186,8 @@ implicit_this_test/02: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
 import_self_test/01: MissingCompileTimeError
 inferrer_constructor5_test/01: MissingCompileTimeError
+initializing_formal_final_test: MissingCompileTimeError
+initializing_formal_type_test: MissingCompileTimeError
 type_variable_nested_test/01: RuntimeError
 type_variable_promotion_test: RuntimeError
 type_variable_scope_test/00: MissingCompileTimeError
@@ -220,6 +222,7 @@ generic_list_checked_test: RuntimeError
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
 if_null_precedence_test/none: RuntimeError
+inferrer_synthesized_constructor_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel ]
@@ -261,6 +264,7 @@ generic_function_typedef2_test/06: Crash # Issue 28214
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
+infinity_test: RuntimeError # Issue 4984
 
 [ $compiler == dart2js && $runtime != none && ! $dart2js_with_kernel ]
 accessor_conflict_import2_test: RuntimeError # Issue 25626
@@ -316,6 +320,8 @@ illegal_initializer_test/02: Crash # Issue 27394
 illegal_initializer_test/03: Crash # Issue 27394
 illegal_initializer_test/04: Crash # Issue 27394
 inference_mixin_field_test: Crash # Issue 27394
+initializing_formal_final_test: RuntimeError # Issue 27394
+inline_super_field_test: Crash # Issue 27394
 
 [ $compiler == dart2js && !$checked ]
 function_subtype_inline2_test: RuntimeError
@@ -746,6 +752,9 @@ vm/async_await_catch_stacktrace_test: Crash # RangeError (index): Invalid value:
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 typedef_is_test: Crash
+infinite_switch_label_test: Crash
+infinity_test: RuntimeError
+inline_super_field_test: Crash
 
 [ $compiler == dart2js && ! $dart2js_with_kernel && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853

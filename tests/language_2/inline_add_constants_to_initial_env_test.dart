@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that SSA values are correctly numbered after inlining that adds
 // constants to original environment.
-// VMOptions=--optimization-counter-threshold=10
+// VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
 h(x, y) => x == y;
 

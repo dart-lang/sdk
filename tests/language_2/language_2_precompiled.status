@@ -179,9 +179,12 @@ implicit_this_test/02: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
 import_self_test/01: MissingCompileTimeError
 inferrer_constructor5_test/01: MissingCompileTimeError
+inferrer_synthesized_constructor_test: RuntimeError
+initializing_formal_final_test: MissingCompileTimeError
+initializing_formal_type_test: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
-type_variable_promotion_test: RuntimeError
 type_variable_nested_test/01: RuntimeError
+type_variable_promotion_test: RuntimeError
 type_variable_scope_test/00: MissingCompileTimeError
 type_variable_scope_test/01: MissingCompileTimeError
 type_variable_scope_test/02: MissingCompileTimeError

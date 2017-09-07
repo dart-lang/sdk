@@ -40,6 +40,7 @@ get_set_syntax_test/none: CompileTimeError
 getter_setter_in_lib_test: CompileTimeError
 import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 import_private_test/01: MissingCompileTimeError # Issue 29920
+initializing_formal_final_test: MissingCompileTimeError
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 type_variable_scope_test/none: CompileTimeError
 
@@ -130,3 +131,5 @@ generic_method_types_test/03: RuntimeError
 generic_methods_new_test: RuntimeError
 getter_closure_execution_order_test: RuntimeError # Issue 29920
 identical_closure2_test: RuntimeError # Issue 29920
+infinite_switch_label_test: RuntimeError # Issue 29920
+infinity_test: RuntimeError # Issue 29920

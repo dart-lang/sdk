@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-var a = 42;
+dynamic a = 42;
 
 inlineMe() {
   // Add control flow to confuse the compiler.

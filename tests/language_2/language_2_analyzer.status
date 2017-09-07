@@ -239,6 +239,7 @@ get_set_syntax_test/none: fail # Issue 11575
 getter_setter_in_lib_test: Fail # Issue 23286
 getter_declaration_negative_test: CompileTimeError
 import_core_prefix_test: StaticWarning
+initializing_formal_final_test: MissingCompileTimeError
 type_variable_scope_test/none: fail # Issue 11578
 type_variable_static_context_negative_test: fail # Issue 12161
 
@@ -406,6 +407,7 @@ implicit_this_test/02: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
 import_self_test/01: MissingCompileTimeError
 inferrer_constructor5_test/01: MissingCompileTimeError
+initializing_formal_type_test: MissingCompileTimeError
 multiple_interface_inheritance_test: StaticWarning # Issue 30552
 type_variable_scope_test/00: MissingCompileTimeError
 type_variable_scope_test/01: MissingCompileTimeError

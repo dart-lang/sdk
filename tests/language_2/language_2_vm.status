@@ -179,6 +179,8 @@ implicit_this_test/02: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
 import_self_test/01: MissingCompileTimeError
 inferrer_constructor5_test/01: MissingCompileTimeError
+initializing_formal_final_test: MissingCompileTimeError
+initializing_formal_type_test: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
 type_variable_nested_test/01: RuntimeError
 type_variable_promotion_test: RuntimeError
@@ -356,6 +358,7 @@ generic_list_checked_test: RuntimeError
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
 if_null_precedence_test/none: RuntimeError
+inferrer_synthesized_constructor_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 
 # The VM doesn't enforce that potentially const expressions are actually

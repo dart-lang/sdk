@@ -204,10 +204,6 @@ getter_parameters_test: Skip
 getter_setter_in_lib_test: Skip
 getters_setters2_test: Skip
 getters_setters_test: Skip
-inferrer_this_access_test: Skip
-initializing_formal_type_test: Skip
-inline_effect_context_test: Skip
-inline_in_for_initializer_and_bailout_test: Skip
 inline_test_context_test: Skip
 inline_value_context_test: Skip
 inlined_throw_test: Skip
@@ -662,9 +658,6 @@ function_subtype_optional1_test: RuntimeError # Issue 29920
 function_subtype_optional2_test: RuntimeError # Issue 29920
 function_subtype_typearg2_test: RuntimeError # Issue 29920
 function_subtype_typearg4_test: RuntimeError # Issue 29920
-infinite_switch_label_test: RuntimeError # Issue 29920
-infinity_test: RuntimeError # Issue 29920
-initializing_formal_final_test: RuntimeError # Issue 29920
 instance_creation_in_function_annotation_test: RuntimeError # Issue 29920
 instanceof2_test: RuntimeError # Issue 29920
 instanceof4_test/01: RuntimeError # Issue 29920

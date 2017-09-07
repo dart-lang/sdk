@@ -22,9 +22,5 @@ main() {
   // used to only see this call and consider the [A.x] field to always
   // be int.
   Expect.equals(84, new A(42).x + 42);
-  // TODO(jmesserly): DDC throws an nSM if the argument types mismatch,
-  // instead of a TypeError.
-  // https://github.com/dart-lang/dev_compiler/issues/534
-  Expect.throws(() => new B().x + 42,
-      (e) => e is ArgumentError || e is TypeError || e is NoSuchMethodError);
+  Expect.throwsTypeError(() => new B().x + 42);
 }
