@@ -60,9 +60,9 @@ class B extends self::A {}
         name: 'C',
         supertype: b.asThisSupertype,
         implementedTypes: [a.asThisSupertype]));
-    var d = addClass(new Class(
+    addClass(new Class(
         name: 'D', supertype: b.asThisSupertype, procedures: [methodInD]));
-    var e = addClass(new Class(
+    addClass(new Class(
         name: 'E',
         isAbstract: true,
         supertype: objectSuper,
