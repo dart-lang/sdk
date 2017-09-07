@@ -46,6 +46,7 @@ inference/bug30251: Crash
 inference/bug30620: Crash
 inference/bug30624: Crash
 inference/call_corner_cases: Crash
+inference/complex_predecrement: Crash
 inference/conditional_lub: Crash
 inference/conditional_upwards_inference: Crash
 inference/conflicts_can_happen2: Crash

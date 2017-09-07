@@ -11,8 +11,8 @@ static method getDouble() → core::double
 static method test1(core::int t) → void {
   core::int v1 = t = self::getInt();
   core::num v2 = t = self::getNum();
-  core::int v4 = let final dynamic #t1 = t in #t1.{core::num::==}(null) ? t = self::getInt() : #t1;
-  core::num v5 = let final dynamic #t2 = t in #t2.{core::num::==}(null) ? t = self::getNum() : #t2;
+  core::int v4 = let final dynamic #t1 = t in #t1.{core::num::==}(null) ?{core::int} t = self::getInt() : #t1;
+  core::num v5 = let final dynamic #t2 = t in #t2.{core::num::==}(null) ?{core::num} t = self::getNum() : #t2;
   core::int v7 = t = t.{core::num::+}(self::getInt());
   core::num v8 = t = t.{core::num::+}(self::getNum());
   core::int v10 = t = t.{core::num::+}(1);
@@ -22,9 +22,9 @@ static method test2(core::num t) → void {
   core::int v1 = t = self::getInt();
   core::num v2 = t = self::getNum();
   core::double v3 = t = self::getDouble();
-  core::num v4 = let final dynamic #t5 = t in #t5.{core::num::==}(null) ? t = self::getInt() : #t5;
-  core::num v5 = let final dynamic #t6 = t in #t6.{core::num::==}(null) ? t = self::getNum() : #t6;
-  core::num v6 = let final dynamic #t7 = t in #t7.{core::num::==}(null) ? t = self::getDouble() : #t7;
+  core::num v4 = let final dynamic #t5 = t in #t5.{core::num::==}(null) ?{core::num} t = self::getInt() : #t5;
+  core::num v5 = let final dynamic #t6 = t in #t6.{core::num::==}(null) ?{core::num} t = self::getNum() : #t6;
+  core::num v6 = let final dynamic #t7 = t in #t7.{core::num::==}(null) ?{core::num} t = self::getDouble() : #t7;
   core::num v7 = t = t.{core::num::+}(self::getInt());
   core::num v8 = t = t.{core::num::+}(self::getNum());
   core::num v9 = t = t.{core::num::+}(self::getDouble());
@@ -34,8 +34,8 @@ static method test2(core::num t) → void {
 static method test3(core::double t) → void {
   core::num v2 = t = self::getNum();
   core::double v3 = t = self::getDouble();
-  core::num v5 = let final dynamic #t10 = t in #t10.{core::num::==}(null) ? t = self::getNum() : #t10;
-  core::double v6 = let final dynamic #t11 = t in #t11.{core::num::==}(null) ? t = self::getDouble() : #t11;
+  core::num v5 = let final dynamic #t10 = t in #t10.{core::num::==}(null) ?{core::num} t = self::getNum() : #t10;
+  core::double v6 = let final dynamic #t11 = t in #t11.{core::num::==}(null) ?{core::double} t = self::getDouble() : #t11;
   core::double v7 = t = t.{core::double::+}(self::getInt());
   core::double v8 = t = t.{core::double::+}(self::getNum());
   core::double v9 = t = t.{core::double::+}(self::getDouble());
