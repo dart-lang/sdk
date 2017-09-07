@@ -48,6 +48,12 @@ main() {
       expect(bar.dartMethod(4), equals(8));
     });
 
+    test('instance checks and casts', () {
+      var bar = new DartJsDate();
+      expect(bar is JSDate, isTrue);
+      expect(bar as JSDate, equals(bar));
+    });
+
     test('dart subclass members', () {
       var bar = new DartJsDate();
       expect(bar.dartField, equals(100));
