@@ -13,10 +13,3 @@ async/futures_test: RuntimeError # Issue 29922
 async/slow_consumer_test: Pass, Timeout # Issue 29922
 math/random_big_test: RuntimeError # Issue 29922
 typed_data/typed_data_list_test: RuntimeError # Issue 29922
-mirrors/local_isolate_test: RuntimeError # Issue 29922
-mirrors/metadata_constructed_constant_test: RuntimeError # Issue 29922
-mirrors/metadata_test: RuntimeError # Issue 29922
-mirrors/method_mirror_location_test: RuntimeError # Issue 29922
-mirrors/method_mirror_returntype_test: RuntimeError # Issue 29922
-mirrors/method_mirror_source_line_ending_test: RuntimeError # Issue 29922
-mirrors/method_mirror_source_test: RuntimeError # Issue 29922

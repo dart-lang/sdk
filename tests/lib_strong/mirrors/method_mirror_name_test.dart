@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library lib;
-
-@MirrorsUsed(targets: "lib")
 import "dart:mirrors";
 
 import "package:expect/expect.dart";
@@ -14,7 +11,7 @@ doNothing42() {}
 
 main() {
   // Regression test for http://www.dartbug.com/6335
-  var closureMirror = reflect(doNothing42) as ClosureMirror;
+  var closureMirror = reflect(doNothing42);
   Expect.equals(
       stringifySymbol(closureMirror.function.simpleName), "s(doNothing42)");
 }

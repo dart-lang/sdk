@@ -27,15 +27,14 @@ expectLocation(Mirror mirror, String uriSuffix, int line, int column) {
 }
 
 class ClassInMainFile {
-
   ClassInMainFile();
 
   method() {}
 }
 
 void topLevelInMainFile() {}
-  spaceIdentedInMainFile() {}
-	tabIdentedInMainFile() {}
+spaceIdentedInMainFile() {}
+tabIdentedInMainFile() {}
 
 class HasImplicitConstructor {}
 
@@ -61,12 +60,12 @@ main() {
 
   // Another part.
   expectLocation(reflectClass(ClassInOtherFile).declarations[#ClassInOtherFile],
-      otherSuffix, 8, 3);
+      otherSuffix, 9, 3);
   expectLocation(
-      reflectClass(ClassInOtherFile).declarations[#method], otherSuffix, 10, 3);
-  expectLocation(reflect(topLevelInOtherFile), otherSuffix, 13, 1);
-  expectLocation(reflect(spaceIdentedInOtherFile), otherSuffix, 15, 3);
-  expectLocation(reflect(tabIdentedInOtherFile), otherSuffix, 17, 2);
+      reflectClass(ClassInOtherFile).declarations[#method], otherSuffix, 11, 3);
+  expectLocation(reflect(topLevelInOtherFile), otherSuffix, 14, 1);
+  expectLocation(reflect(spaceIdentedInOtherFile), otherSuffix, 16, 3);
+  expectLocation(reflect(tabIdentedInOtherFile), otherSuffix, 18, 2);
 
   // Synthetic methods.
   Expect.isNull(reflectClass(HasImplicitConstructor)
