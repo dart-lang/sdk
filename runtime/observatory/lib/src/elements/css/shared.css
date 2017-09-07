@@ -1617,16 +1617,19 @@ megamorphic-ref .emphasize {
   font-style: italic;
 }
 
-/* memory-dashboard */
+/* dashboards common */
 
-memory-dashboard {
+memory-dashboard,
+timeline-dashboard {
   display: block;
   height: 100%;
   margin-top: -30px;
 }
 
 memory-dashboard button:disabled,
-memory-dashboard button:disabled:hover {
+timeline-dashboard button:disabled,
+memory-dashboard button:disabled:hover,
+timeline-dashboard button:disabled:hover {
   text-decoration: none;
   background-color: #eee;
   background-image: linear-gradient(#eee, #eee);
@@ -1637,7 +1640,9 @@ memory-dashboard button:disabled:hover {
 
 
 memory-dashboard button,
-memory-dashboard button:active {
+timeline-dashboard button,
+memory-dashboard button:active,
+timeline-dashboard button:active {
   text-decoration: none;
   background-color: #ddd;
   background-image: linear-gradient(#eee, #ddd);
@@ -1646,12 +1651,26 @@ memory-dashboard button:active {
   cursor: pointer;
 }
 
-memory-dashboard button:hover {
+memory-dashboard button:hover,
+timeline-dashboard button:hover {
   text-decoration: none;
   background-color: #ccc;
   background-image: linear-gradient(#ddd, #ccc);
   border-color: #c7c7c7;
 }
+
+memory-profile .header_button,
+timeline-dashboard .header_button {
+  padding: 3px 5px;
+  margin: 0px 1px;
+}
+
+memory-profile .header_button:first-child,
+timeline-dashboard .header_button:first-child {
+  margin-left: 5px;
+}
+
+/* memory-dashboard */
 
 memory-dashboard memory-graph {
   height: 350px;
@@ -1806,15 +1825,6 @@ memory-allocations .collection-item .group button:hover {
 memory-profile > div > h1 {
   overflow: hidden;
   border-bottom: 1px solid #d5d5d5;
-}
-
-memory-profile .header_button {
-  padding: 3px 5px;
-  margin: 0px 1px;
-}
-
-memory-profile .header_button:first-child {
-  margin-left: 5px;
 }
 
 memory-profile .tab_buttons {
@@ -2491,6 +2501,19 @@ script-inset .hotProfile {
 
 stack-trace-tree-config {
   white-space: nowrap;
+}
+
+/* timeline-dashboard */
+
+timeline-dashboard .iframe {
+  height: 100%;
+  width: 100%;
+  padding-top: 25px;
+}
+timeline-dashboard .iframe iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 
 /* timeline-page */

@@ -132,8 +132,7 @@ static Message* SerializeMessage(Dart_Port dest_port, const Instance& obj) {
 }
 
 bool IsolateVisitor::IsVMInternalIsolate(Isolate* isolate) const {
-  return ((isolate == Dart::vm_isolate()) ||
-          ServiceIsolate::IsServiceIsolateDescendant(isolate));
+  return Isolate::IsVMInternalIsolate(isolate);
 }
 
 NoOOBMessageScope::NoOOBMessageScope(Thread* thread) : StackResource(thread) {
@@ -554,6 +553,17 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
       }
     }
   } else {
+#ifndef PRODUCT
+    if (!Isolate::IsVMInternalIsolate(I)) {
+      // Mark all the user isolates as white-listed for the simplified timeline
+      // page of Observatory. The internal isolates will be filtered out from
+      // the Timeline due to absence of this argument. We still send them in
+      // order to maintain the original behavior of the full timeline and allow
+      // the developer to download complete dump files.
+      tds.SetNumArguments(2);
+      tds.CopyArgument(1, "mode", "basic");
+    }
+#endif
     const Object& result =
         Object::Handle(zone, DartLibraryCalls::HandleMessage(msg_handler, msg));
     if (result.IsError()) {
@@ -2498,6 +2508,11 @@ void Isolate::EnableIsolateCreation() {
 bool Isolate::IsolateCreationEnabled() {
   MonitorLocker ml(isolates_list_monitor_);
   return creation_enabled_;
+}
+
+bool Isolate::IsVMInternalIsolate(Isolate* isolate) {
+  return ((isolate == Dart::vm_isolate()) ||
+          ServiceIsolate::IsServiceIsolateDescendant(isolate));
 }
 
 void Isolate::KillLocked(LibMsgId msg_id) {

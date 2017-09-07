@@ -730,6 +730,7 @@ class Isolate : public BaseIsolate {
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
   static bool IsolateCreationEnabled();
+  static bool IsVMInternalIsolate(Isolate* isolate);
 
   void StopBackgroundCompiler();
 

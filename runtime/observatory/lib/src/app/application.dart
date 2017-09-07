@@ -174,6 +174,7 @@ class ObservatoryApplication {
     _pageRegistry.add(new LoggingPage(this));
     _pageRegistry.add(new TimelinePage(this));
     _pageRegistry.add(new MemoryDashboardPage(this));
+    _pageRegistry.add(new TimelineDashboardPage(this));
     // Note that ErrorPage must be the last entry in the list as it is
     // the catch all.
     _pageRegistry.add(new ErrorPage(this));
