@@ -117,6 +117,26 @@ class RetainedDataBuilder extends RetainedData {
     }
   }
 
+  /// Mark the given class as exported, so mark all its public members.
+  void markClassForExport(Class node) {
+    markClass(node);
+    for (var field in node.fields) {
+      if (!field.name.isPrivate) {
+        markMember(field);
+      }
+    }
+    for (var constructor in node.constructors) {
+      if (!constructor.name.isPrivate) {
+        markMember(constructor);
+      }
+    }
+    for (var method in node.procedures) {
+      if (!method.name.isPrivate) {
+        markMember(method);
+      }
+    }
+  }
+
   /// Mark the typedef.
   void markTypedef(Typedef node) {
     if (node == null || !typedefs.add(node)) return;
@@ -282,7 +302,7 @@ class RootsMarker extends RecursiveVisitor {
     for (var reference in node.additionalExports) {
       var node = reference.node;
       if (node is Class) {
-        data.markClass(node);
+        data.markClassForExport(node);
       } else if (node is Member) {
         data.markMember(node);
       } else if (node is Typedef) {

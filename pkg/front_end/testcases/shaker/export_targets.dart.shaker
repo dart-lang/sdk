@@ -6,3 +6,4 @@ library pkg/front_end/testcases/shaker/lib/targets_top.dart:
   - member myTopLevelFunction
   - typedef MyFunctionTypeAlias
   - class MyClass
+    - (default constructor)
