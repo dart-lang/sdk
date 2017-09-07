@@ -205,7 +205,7 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
 
   @override
   GlobalTypeInferenceElementData<ir.Node> createElementData() {
-    throw new UnimplementedError('KernelInferrerEngine.createElementData');
+    return new KernelGlobalTypeInferenceElementData();
   }
 }
 
@@ -341,5 +341,83 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy<ir.Node> {
         return new GenerativeConstructorTypeInformation(constructor);
       }
     }
+  }
+}
+
+class KernelGlobalTypeInferenceElementData
+    extends GlobalTypeInferenceElementData<ir.Node> {
+  // TODO(johnniwinther): Rename this together with [typeOfSend].
+  Map<ir.Node, TypeMask> _sendMap;
+
+  @override
+  TypeMask typeOfSend(ir.Node node) {
+    if (_sendMap == null) return null;
+    return _sendMap[node];
+  }
+
+  @override
+  void setCurrentTypeMask(ir.Node node, TypeMask mask) {
+    throw new UnsupportedError(
+        'KernelGlobalTypeInferenceElementData.setCurrentTypeMask');
+  }
+
+  @override
+  void setMoveNextTypeMask(ir.Node node, TypeMask mask) {
+    throw new UnsupportedError(
+        'KernelGlobalTypeInferenceElementData.setMoveNextTypeMask');
+  }
+
+  @override
+  void setIteratorTypeMask(ir.Node node, TypeMask mask) {
+    throw new UnsupportedError(
+        'KernelGlobalTypeInferenceElementData.setIteratorTypeMask');
+  }
+
+  @override
+  TypeMask typeOfIteratorCurrent(ir.Node node) {
+    throw new UnsupportedError(
+        'KernelGlobalTypeInferenceElementData.typeOfIteratorCurrent');
+  }
+
+  @override
+  TypeMask typeOfIteratorMoveNext(ir.Node node) {
+    throw new UnsupportedError(
+        'KernelGlobalTypeInferenceElementData.typeOfIteratorMoveNext');
+  }
+
+  @override
+  TypeMask typeOfIterator(ir.Node node) {
+    throw new UnsupportedError(
+        'KernelGlobalTypeInferenceElementData.typeOfIterator');
+  }
+
+  @override
+  void setOperatorTypeMaskInComplexSendSet(ir.Node node, TypeMask mask) {
+    throw new UnsupportedError(
+        'KernelGlobalTypeInferenceElementData.setOperatorTypeMaskInComplexSendSet');
+  }
+
+  @override
+  void setGetterTypeMaskInComplexSendSet(ir.Node node, TypeMask mask) {
+    throw new UnsupportedError(
+        'KernelGlobalTypeInferenceElementData.setGetterTypeMaskInComplexSendSet');
+  }
+
+  @override
+  void setTypeMask(ir.Node node, TypeMask mask) {
+    _sendMap ??= <ir.Node, TypeMask>{};
+    _sendMap[node] = mask;
+  }
+
+  @override
+  TypeMask typeOfOperator(ir.Node node) {
+    throw new UnsupportedError(
+        'KernelGlobalTypeInferenceElementData.typeOfOperator');
+  }
+
+  @override
+  TypeMask typeOfGetter(ir.Node node) {
+    throw new UnsupportedError(
+        'KernelGlobalTypeInferenceElementData.typeOfGetter');
   }
 }

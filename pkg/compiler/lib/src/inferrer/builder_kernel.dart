@@ -12,6 +12,9 @@ import '../elements/types.dart';
 import '../kernel/element_map.dart';
 import '../options.dart';
 import '../types/constants.dart';
+import '../types/types.dart';
+import '../universe/selector.dart';
+import '../universe/side_effects.dart';
 import '../world.dart';
 import 'inferrer_engine.dart';
 import 'locals_handler.dart';
@@ -35,6 +38,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final KernelToElementMapForBuilding _elementMap;
   final KernelToLocalsMap _localsMap;
   LocalsHandler _locals;
+  final GlobalTypeInferenceElementData<ir.Node> _memberData;
+  SideEffects _sideEffects = new SideEffects.empty();
 
   TypeInformation _returnType;
 
@@ -48,7 +53,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       this._elementMap,
       this._localsMap,
       [this._locals])
-      : this._types = _inferrer.types {
+      : this._types = _inferrer.types,
+        this._memberData = _inferrer.dataOfMember(_analyzedMember) {
     if (_locals != null) return;
 
     FieldInitializationScope<ir.Node> fieldScope =
@@ -58,6 +64,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _locals = new LocalsHandler(
         _inferrer, _types, _options, _analyzedNode, fieldScope);
   }
+
+  int _loopLevel = 0;
+
+  bool get inLoop => _loopLevel > 0;
 
   TypeInformation run() {
     if (_analyzedMember.isField) {
@@ -253,5 +263,63 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     TypeInformation rhsType = visit(node.value);
     _locals.update(local, rhsType, node, type);
     return rhsType;
+  }
+
+  ArgumentsTypes analyzeArguments(ir.Arguments arguments) {
+    List<TypeInformation> positional = <TypeInformation>[];
+    Map<String, TypeInformation> named;
+    for (ir.Expression argument in arguments.positional) {
+      positional.add(argument.accept(this));
+    }
+    for (ir.NamedExpression argument in arguments.named) {
+      named ??= <String, TypeInformation>{};
+      named[argument.name] = argument.value.accept(this);
+    }
+
+    /// TODO(johnniwinther): Track `isThisExposed`.
+    return new ArgumentsTypes(positional, named);
+  }
+
+  @override
+  TypeInformation visitMethodInvocation(ir.MethodInvocation node) {
+    TypeInformation receiverType = visit(node.receiver);
+    Selector selector = _elementMap.getSelector(node);
+    TypeMask mask = _memberData.typeOfSend(node);
+
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    if (selector.name == '==' || selector.name == '!=') {
+      if (_types.isNull(receiverType)) {
+        // TODO(johnniwinther): Add null check.
+        return _types.boolType;
+      } else if (_types.isNull(arguments.positional[0])) {
+        // TODO(johnniwinther): Add null check.
+        return _types.boolType;
+      }
+    }
+    return handleDynamicInvoke(
+        CallType.access, node, selector, mask, receiverType, arguments);
+  }
+
+  TypeInformation handleDynamicInvoke(
+      CallType callType,
+      ir.Node node,
+      Selector selector,
+      TypeMask mask,
+      TypeInformation receiverType,
+      ArgumentsTypes arguments) {
+    assert(receiverType != null);
+    if (_types.selectorNeedsUpdate(receiverType, mask)) {
+      mask = receiverType == _types.dynamicType
+          ? null
+          : _types.newTypedSelector(receiverType, mask);
+      _inferrer.updateSelectorInMember(
+          _analyzedMember, callType, node, selector, mask);
+    }
+
+    // TODO(johnniwinther): Refine receiver on non-captured locals.
+
+    return _inferrer.registerCalledSelector(callType, node, selector, mask,
+        receiverType, _analyzedMember, arguments, _sideEffects,
+        inLoop: inLoop, isConditional: false);
   }
 }

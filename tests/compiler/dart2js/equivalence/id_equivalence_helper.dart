@@ -133,17 +133,15 @@ class IdData {
       IdValue value = expectedMap[id];
       if (data.value != value || value == null && data.value.value != '') {
         String expected = value?.toString() ?? '';
+        int offset = getOffsetFromId(id);
         annotations
-            .putIfAbsent(data.sourceSpan.begin, () => [])
+            .putIfAbsent(offset, () => [])
             .add('${expected} | ${data.value}');
       }
     });
     expectedMap.forEach((Id id, IdValue expected) {
       if (!actualMap.containsKey(id)) {
-        int offset = compiler.reporter
-            .spanFromSpannable(
-                computeSpannable(elementEnvironment, mainUri, id))
-            .begin;
+        int offset = getOffsetFromId(id);
         annotations.putIfAbsent(offset, () => []).add('${expected} | ---');
       }
     });
@@ -170,6 +168,12 @@ class IdData {
       }
     });
     return withAnnotations(annotations);
+  }
+
+  int getOffsetFromId(Id id) {
+    return compiler.reporter
+        .spanFromSpannable(computeSpannable(elementEnvironment, mainUri, id))
+        .begin;
   }
 }
 
