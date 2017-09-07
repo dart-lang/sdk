@@ -1751,12 +1751,15 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.staticAssignEnter(desugared, typeContext) ||
         typeNeeded;
-    // TODO(paulberry): record the appropriate types on let variables and
-    // conditional expressions.
+    var read = this.read;
+    if (read is StaticGet) {
+      _storeLetType(inferrer, read, read.target.getterType);
+    }
     DartType writeContext;
     var write = this.write;
     if (write is StaticSet) {
       writeContext = write.target.setterType;
+      _storeLetType(inferrer, write, writeContext);
       var target = write.target;
       if (target is ShadowField && target._accessorNode != null) {
         if (inferrer.isDryRun) {
@@ -2408,12 +2411,14 @@ class ShadowVariableAssignment extends ShadowComplexAssignment {
     typeNeeded =
         inferrer.listener.variableAssignEnter(desugared, typeContext) ||
             typeNeeded;
-    // TODO(paulberry): record the appropriate types on let variables and
-    // conditional expressions.
     DartType writeContext;
     var write = this.write;
     if (write is VariableSet) {
       writeContext = write.variable.type;
+      if (read != null) {
+        _storeLetType(inferrer, read, writeContext);
+      }
+      _storeLetType(inferrer, write, writeContext);
     }
     var inferredType = _inferRhs(inferrer, writeContext);
     inferrer.listener.variableAssignExit(desugared, inferredType);
