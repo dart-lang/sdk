@@ -26,7 +26,8 @@ class GlobalLocalsMap {
     // have the concept of an initializer list, so the constructor (initializer
     // list) and the constructor body are implemented as two separate
     // constructor steps.
-    if (member is ConstructorBodyEntity) member = member.constructor;
+    MemberEntity entity = member;
+    if (entity is ConstructorBodyEntity) member = entity.constructor;
     return _localsMaps.putIfAbsent(
         member, () => new KernelToLocalsMapImpl(member));
   }
