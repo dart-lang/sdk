@@ -409,96 +409,99 @@ function_type/function_type90_test: RuntimeError # Issue 30476
 function_type/function_type96_test: RuntimeError # Issue 30476
 function_type/function_type9_test: RuntimeError # Issue 30476
 
+[ $compiler == dart2js && ! $dart2js_with_kernel && ! $minified ]
+vm/async_await_catch_stacktrace_test: RuntimeError
+
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-assert_message_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+assert_message_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 assert_trailing_comma_test/none: CompileTimeError
 assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc02 (Constructor)
 assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib3::C::bc02 (Constructor)
+assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C::bc02 (Constructor)
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_and_or_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_catch_regression_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_foreign_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/a01a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/a02a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/a03a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/a03b: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_and_or_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_catch_regression_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_foreign_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a01a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a02a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a03a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a03b: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/a04a: RuntimeError
 async_await_syntax_test/a04c: RuntimeError
-async_await_syntax_test/a05a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/a05b: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/a06a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/a05a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a05b: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a06a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/a07a: RuntimeError
 async_await_syntax_test/a08a: RuntimeError
-async_await_syntax_test/a09a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/a10a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/a09a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a10a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/a11b: RuntimeError
-async_await_syntax_test/a11c: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/a11d: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/a12g: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/b01a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/b02a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/b03a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/a11c: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a11d: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a12g: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/b01a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/b02a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/b03a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/b04a: RuntimeError
-async_await_syntax_test/b05a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/b06a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/b05a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/b06a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/b07a: RuntimeError
 async_await_syntax_test/b08a: RuntimeError
-async_await_syntax_test/b09a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/b10a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/b09a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/b10a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/b11b: RuntimeError
-async_await_syntax_test/b11c: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/b11d: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/b12g: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/c01a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/c02a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/c03a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/b11c: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/b11d: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/b12g: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/c01a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/c02a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/c03a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/c04a: RuntimeError
-async_await_syntax_test/c05a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/c06a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/c05a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/c06a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/c07a: RuntimeError
 async_await_syntax_test/c08a: RuntimeError
-async_await_syntax_test/c09a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/c10a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/d01a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/d02a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/d03a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/c09a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/c10a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/d01a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/d02a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/d03a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/d04a: RuntimeError
-async_await_syntax_test/d05a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/d06a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/d05a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/d06a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/d07a: RuntimeError
 async_await_syntax_test/d08a: RuntimeError
-async_await_syntax_test/d09a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_await_syntax_test/d10a: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_break_in_finally_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_call_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_cascade_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_continue_label_test/await_in_body: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_continue_label_test/await_in_condition: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_continue_label_test/await_in_init: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_continue_label_test/await_in_update: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_continue_label_test/none: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_control_structures_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_finally_rethrow_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_regression_23058_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_rethrow_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_return_types_test/nestedFuture: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_return_types_test/none: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_return_types_test/tooManyTypeParameters: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_return_types_test/wrongReturnType: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_return_types_test/wrongTypeParameter: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_star_await_pauses_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_star_cancel_and_throw_in_finally_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_star_cancel_while_paused_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_star_no_cancel2_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_star_no_cancel_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_star_pause_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_star_regression_2238_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_star_regression_23116_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_star_regression_fisk_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_star_stream_take_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-async_star_take_reyield_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+async_await_syntax_test/d09a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/d10a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_break_in_finally_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_call_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_cascade_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_continue_label_test/await_in_body: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_continue_label_test/await_in_condition: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_continue_label_test/await_in_init: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_continue_label_test/await_in_update: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_continue_label_test/none: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_control_structures_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_finally_rethrow_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_regression_23058_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_rethrow_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_return_types_test/nestedFuture: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_return_types_test/none: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_return_types_test/tooManyTypeParameters: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_return_types_test/wrongReturnType: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_return_types_test/wrongTypeParameter: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_await_pauses_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_cancel_and_throw_in_finally_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_cancel_while_paused_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_no_cancel2_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_no_cancel_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_pause_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_regression_2238_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_regression_23116_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_regression_fisk_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_stream_take_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_take_reyield_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 bad_constructor_test/05: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: Crash # type 'ShadowField' is not a subtype of type 'Procedure' of 'value' where
@@ -522,30 +525,29 @@ cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 classes_static_method_clash_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-closure_cycles_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+closure_cycles_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 closure_in_constructor_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
 closure_in_initializer2_test: RuntimeError
-closure_in_initializer_test: Crash # Assertion failure: Cannot find value parameter(A.#a) in (parameter(C.#a), BoxLocal(_box_0), parameter(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
+closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 closure_parameter_types_test: RuntimeError
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
 closure_type_variable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 closure_type_variables_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
 closure_with_super_field_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.returnSuperInClosure#)) for j:closure_call(B_returnSuperInClosure_closure.call).
-closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(Sub.test#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
+closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.test#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
 closures_initializer2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 closures_initializer_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 compile_time_constant_a_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
 compile_time_constant_b_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
 compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
 generalized_void_syntax_test: CompileTimeError
-generic_async_star_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-generic_async_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+generic_async_star_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+generic_async_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 generic_field_mixin4_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 generic_field_mixin5_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in j:constructor(C3.).
 generic_function_typedef_test/01: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_function_typedef_test/none: Crash # Unsupported operation: Unsupported type parameter type node S.
-generic_instanceof_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_methods_generic_class_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
@@ -554,7 +556,6 @@ generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupporte
 generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_type_expression_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
 generic_native_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_sync_star_test: RuntimeError
 generic_syntax_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
@@ -572,118 +573,104 @@ if_null_assignment_behavior_test/12: RuntimeError
 if_null_assignment_static_test/01: RuntimeError
 if_null_assignment_static_test/03: RuntimeError
 if_null_assignment_static_test/05: RuntimeError
-if_null_assignment_static_test/05: RuntimeError
-if_null_assignment_static_test/06: Crash
-implicit_closure2_test: Crash
-implicit_closure_test: Crash
-implicit_this_test/01: Crash
-implicit_this_test/04: Crash
-implicit_this_test/none: Crash
-import_collection_no_prefix_test: Crash
-import_core_prefix_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(Maps.mapToString#first) is stored in a closure field.
-import_self_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#t) is stored in a closure field.
-inference_mixin_field_test: Crash
-many_generic_instanceof_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-regress_30339_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+import_collection_no_prefix_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+regress_30339_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 type_variable_nested_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-unused_overridden_async_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
+unused_overridden_async_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 vm/allocation_sinking_vm_test: RuntimeError
-vm/async_await_catch_stacktrace_test: Crash # type 'JClass' is not a subtype of type 'ClassElement' of 'contextClass' where
-
-[ $compiler == dart2js && ! $dart2js_with_kernel && ! $minified ]
-vm/async_await_catch_stacktrace_test: RuntimeError
+vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-assert_message_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+assert_message_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 assert_trailing_comma_test/none: CompileTimeError
 assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc02 (Constructor)
 assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib2::C::bc02 (Constructor)
+assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C::bc02 (Constructor)
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_and_or_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_catch_regression_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_foreign_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/a01a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/a02a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/a03a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/a03b: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_and_or_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_catch_regression_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_foreign_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a01a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a02a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a03a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a03b: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/a04a: RuntimeError
 async_await_syntax_test/a04c: RuntimeError
-async_await_syntax_test/a05a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/a05b: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/a06a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/a05a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a05b: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a06a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/a07a: RuntimeError
 async_await_syntax_test/a08a: RuntimeError
-async_await_syntax_test/a09a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/a10a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/a09a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a10a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/a11b: RuntimeError
-async_await_syntax_test/a11c: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/a11d: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/a12g: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/b01a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/b02a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/b03a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/a11c: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a11d: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/a12g: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/b01a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/b02a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/b03a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/b04a: RuntimeError
-async_await_syntax_test/b05a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/b06a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/b05a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/b06a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/b07a: RuntimeError
 async_await_syntax_test/b08a: RuntimeError
-async_await_syntax_test/b09a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/b10a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/b09a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/b10a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/b11b: RuntimeError
-async_await_syntax_test/b11c: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/b11d: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/b12g: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/c01a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/c02a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/c03a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/b11c: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/b11d: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/b12g: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/c01a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/c02a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/c03a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/c04a: RuntimeError
-async_await_syntax_test/c05a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/c06a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/c05a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/c06a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/c07a: RuntimeError
 async_await_syntax_test/c08a: RuntimeError
-async_await_syntax_test/c09a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/c10a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/d01a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/d02a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/d03a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/c09a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/c10a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/d01a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/d02a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/d03a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/d04a: RuntimeError
-async_await_syntax_test/d05a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/d06a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/d05a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/d06a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 async_await_syntax_test/d07a: RuntimeError
 async_await_syntax_test/d08a: RuntimeError
-async_await_syntax_test/d09a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_await_syntax_test/d10a: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_break_in_finally_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_call_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_cascade_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_continue_label_test/await_in_body: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_continue_label_test/await_in_condition: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_continue_label_test/await_in_init: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_continue_label_test/await_in_update: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_continue_label_test/none: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_control_structures_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_finally_rethrow_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_regression_23058_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_rethrow_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_return_types_test/nestedFuture: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_return_types_test/none: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_return_types_test/tooManyTypeParameters: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_return_types_test/wrongReturnType: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_return_types_test/wrongTypeParameter: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_star_await_pauses_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_star_cancel_and_throw_in_finally_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_star_cancel_while_paused_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_star_no_cancel2_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_star_no_cancel_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_star_pause_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_star_regression_2238_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_star_regression_23116_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_star_regression_fisk_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_star_stream_take_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-async_star_take_reyield_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+async_await_syntax_test/d09a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_await_syntax_test/d10a: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_break_in_finally_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_call_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_cascade_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_continue_label_test/await_in_body: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_continue_label_test/await_in_condition: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_continue_label_test/await_in_init: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_continue_label_test/await_in_update: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_continue_label_test/none: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_control_structures_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_finally_rethrow_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_regression_23058_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_rethrow_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_return_types_test/nestedFuture: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_return_types_test/none: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_return_types_test/tooManyTypeParameters: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_return_types_test/wrongReturnType: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_return_types_test/wrongTypeParameter: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_await_pauses_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_cancel_and_throw_in_finally_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_cancel_while_paused_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_no_cancel2_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_no_cancel_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_pause_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_regression_2238_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_regression_23116_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_regression_fisk_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_stream_take_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+async_star_take_reyield_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 bad_constructor_test/05: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
@@ -707,30 +694,29 @@ cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 classes_static_method_clash_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-closure_cycles_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+closure_cycles_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 closure_in_constructor_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
 closure_in_initializer2_test: RuntimeError
-closure_in_initializer_test: Crash # Assertion failure: Cannot find value parameter(A.#a) in (parameter(C.#a), BoxLocal(_box_0), parameter(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
+closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
 closure_parameter_types_test: RuntimeError
 closure_self_reference_test: RuntimeError
 closure_type_variable_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 closure_type_variables_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
 closure_with_super_field_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(B.returnSuperInClosure#)) for j:closure_call(B_returnSuperInClosure_closure.call).
-closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (parameter(Sub.test#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
+closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.test#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
 closures_initializer2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 closures_initializer_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 compile_time_constant_a_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
 compile_time_constant_b_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
 compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
 generalized_void_syntax_test: CompileTimeError
-generic_async_star_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-generic_async_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+generic_async_star_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
+generic_async_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 generic_field_mixin4_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 generic_field_mixin5_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in j:constructor(C3.).
 generic_function_typedef_test/01: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_function_typedef_test/none: Crash # Unsupported operation: Unsupported type parameter type node S.
-generic_instanceof_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_methods_generic_class_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
@@ -739,7 +725,6 @@ generic_methods_named_parameters_test: Crash # Unsupported operation: Unsupporte
 generic_methods_optional_parameters_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_methods_type_expression_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 generic_native_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_sync_star_test: RuntimeError
 generic_syntax_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
@@ -757,29 +742,13 @@ if_null_assignment_behavior_test/12: RuntimeError
 if_null_assignment_static_test/01: RuntimeError
 if_null_assignment_static_test/03: RuntimeError
 if_null_assignment_static_test/05: RuntimeError
-if_null_assignment_static_test/06: Crash
-if_null_assignment_behavior_test/12: RuntimeError
-if_null_assignment_behavior_test/14: RuntimeError
-if_null_assignment_static_test/01: RuntimeError
-if_null_assignment_static_test/03: RuntimeError
-if_null_assignment_static_test/04: RuntimeError
-if_null_assignment_static_test/05: RuntimeError
-implicit_closure2_test: Crash
-implicit_closure_test: Crash
-implicit_this_test/01: Crash
-implicit_this_test/04: Crash
-implicit_this_test/none: Crash
-import_collection_no_prefix_test: Crash
-many_generic_instanceof_test: Crash
-many_generic_instanceof_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-regress_30339_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
-regress_30339_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+import_collection_no_prefix_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+regress_30339_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 type_variable_nested_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-typevariable_substitution2_test/02: RuntimeError
-unused_overridden_async_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+unused_overridden_async_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 vm/allocation_sinking_vm_test: RuntimeError
-vm/async_await_catch_stacktrace_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
+vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Cannot find value local(TimerImpl.#callback) in (local(TimerImpl.#milliseconds), local(TimerImpl.#callback), Instance of 'ThisLocal') for j:constructor_body(TimerImpl.).
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 typedef_is_test: Crash
