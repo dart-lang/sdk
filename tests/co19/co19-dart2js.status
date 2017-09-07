@@ -1147,7 +1147,7 @@ LayoutTests/fast/dom/shadow/shadowhost-keyframes_t01: Pass, RuntimeError # Pleas
 LayoutTests/fast/dom/shadow/shadowroot-clonenode_t01: RuntimeError # Issue 26729
 LayoutTests/fast/dom/shadow/shadowroot-host_t01: RuntimeError # Issue 26729
 LayoutTests/fast/dom/shadow/shadowroot-keyframes_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/dom/vertical-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError
+LayoutTests/fast/dom/vertical-scrollbar-in-rtl-doesnt-fire-onscroll_t01: Pass, RuntimeError
 LayoutTests/fast/dynamic/checkbox-selection-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dynamic/crash-generated-counter_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dynamic/crash-generated-image_t01: RuntimeError # Please triage this failure
