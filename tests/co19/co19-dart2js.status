@@ -7524,7 +7524,7 @@ LayoutTests/fast/forms/ValidityState-valueMissing-004_t01: RuntimeError # Please
 LayoutTests/fast/forms/autocomplete_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/autofocus-focus-only-once_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/forms/autofocus-opera-007_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/autofocus-readonly-attribute_t01: Pass, RuntimeError # Times out. Please triage this failure
+LayoutTests/fast/forms/autofocus-readonly-attribute_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/button-baseline-and-collapsing_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/button/button-disabled-blur_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/checkValidity-001_t01: RuntimeError # Please triage this failure
