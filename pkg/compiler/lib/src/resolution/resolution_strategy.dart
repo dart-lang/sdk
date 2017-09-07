@@ -747,7 +747,9 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   @override
   ResolutionFunctionType getFunctionTypeOfTypedef(
       covariant TypedefElement typedef) {
-    return typedef.alias;
+    var result = typedef.alias;
+    if (result.isMalformed) return null;
+    return result;
   }
 }
 

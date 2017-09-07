@@ -1439,7 +1439,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   @override
   FunctionType getFunctionTypeOfTypedef(TypedefEntity typedef) {
     // TODO(redemption): Support this.
-    throw new UnsupportedError('ElementEnvironment.getTypedefAlias');
+    throw new UnsupportedError('ElementEnvironment.getFunctionTypeOfTypedef');
   }
 }
 

@@ -557,7 +557,6 @@ generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type 
 generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_native_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_sync_star_test: RuntimeError
-generic_syntax_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_test: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 getter_override2_test/02: MissingCompileTimeError
@@ -575,7 +574,6 @@ if_null_assignment_static_test/05: RuntimeError
 import_collection_no_prefix_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 regress_30339_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-type_variable_nested_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 unused_overridden_async_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 vm/allocation_sinking_vm_test: RuntimeError
 vm/async_await_catch_stacktrace_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
@@ -725,7 +723,6 @@ generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type 
 generic_methods_tearoff_specialization_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_native_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_sync_star_test: RuntimeError
-generic_syntax_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 generic_test: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 getter_override2_test/02: MissingCompileTimeError
@@ -743,7 +740,6 @@ if_null_assignment_static_test/05: RuntimeError
 import_collection_no_prefix_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 regress_30339_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-type_variable_nested_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 unused_overridden_async_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 vm/allocation_sinking_vm_test: RuntimeError
 vm/async_await_catch_stacktrace_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
