@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:front_end/compilation_message.dart';
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/performace_logger.dart';
@@ -14,7 +15,6 @@ import 'package:front_end/src/fasta/severity.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/kernel.dart'
     show Program, loadProgramFromBytes, CanonicalName;

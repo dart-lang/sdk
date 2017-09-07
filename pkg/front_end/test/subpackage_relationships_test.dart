@@ -56,7 +56,6 @@ final subpackageRules = {
   'lib/src/base': new SubpackageRules(allowedDependencies: [
     'lib',
     'lib/src',
-    'lib/src/byte_store',
     'lib/src/fasta',
     'lib/src/fasta/util',
   ]),
@@ -141,7 +140,6 @@ final subpackageRules = {
     'lib',
     'lib/src',
     'lib/src/base',
-    'lib/src/byte_store',
     'lib/src/fasta',
     'lib/src/fasta/dill',
     'lib/src/fasta/kernel',

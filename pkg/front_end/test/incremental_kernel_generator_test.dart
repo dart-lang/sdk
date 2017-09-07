@@ -4,10 +4,10 @@
 
 import 'dart:async';
 
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/incremental_kernel_generator_impl.dart';
 import 'package:front_end/summary_generator.dart';
