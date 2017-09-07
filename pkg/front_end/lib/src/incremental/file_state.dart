@@ -43,6 +43,7 @@ class FileState {
   bool _exists;
   List<int> _content;
   List<int> _contentHash;
+  List<int> _lineStarts;
   bool _hasMixinApplication;
   List<int> _apiSignature;
 
@@ -95,6 +96,9 @@ class FileState {
   /// The list of the libraries imported by this library.
   List<FileState> get importedLibraries => _importedLibraries;
 
+  /// Return the line starts in the [content].
+  List<int> get lineStarts => _lineStarts;
+
   /// The list of files this library file references as parts.
   List<FileState> get partFiles => _partFiles;
 
@@ -122,6 +126,9 @@ class FileState {
     return _transitiveFiles;
   }
 
+  /// Return the [uri] string.
+  String get uriStr => uri.toString();
+
   @override
   bool operator ==(Object other) {
     return other is FileState && other.uri == uri;
@@ -142,6 +149,14 @@ class FileState {
 
     // Compute the content hash.
     _contentHash = md5.convert(_content).bytes;
+
+    // Compute the line starts.
+    _lineStarts = <int>[0];
+    for (int i = 0; i < _content.length; i++) {
+      if (_content[i] == 0x0A) {
+        _lineStarts.add(i + 1);
+      }
+    }
 
     // Prepare bytes of the unlinked unit - existing or new.
     List<int> unlinkedBytes;

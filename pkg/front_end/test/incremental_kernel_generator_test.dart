@@ -141,6 +141,25 @@ static method main() → void {}
     }
   }
 
+  test_compile_parts() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    Uri aUri = writeFile(aPath, r'''
+library lib;
+part 'b.dart';
+''');
+    Uri bUri = writeFile(bPath, r'''
+part of lib;
+''');
+
+    Program program = await getInitialState(aUri);
+
+    // Sources for library and its part must be present.
+    expect(program.uriToSource.keys, contains(aUri.toString()));
+    expect(program.uriToSource.keys, contains(bUri.toString()));
+  }
+
   test_compile_includePathToMain() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
@@ -502,10 +521,14 @@ import 'a.dart';
     List<Uri> libraryUris =
         program.libraries.map((library) => library.importUri).toList();
     for (var shouldInclude in includes) {
+      var shouldIncludeStr = shouldInclude.toString();
       expect(libraryUris, contains(shouldInclude));
+      expect(program.uriToSource.keys, contains(shouldIncludeStr));
     }
     for (var shouldExclude in excludes) {
+      var shouldExcludeStr = shouldExclude.toString();
       expect(libraryUris, isNot(contains(shouldExclude)));
+      expect(program.uriToSource.keys, isNot(contains(shouldExcludeStr)));
     }
   }
 

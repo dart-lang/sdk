@@ -314,6 +314,12 @@ class C {}
     expect(lib.hasMixinApplicationLibrary, isTrue);
   }
 
+  test_lineStarts() async {
+    var uri = writeFile('/a.dart', '000\n1111\r\n22\n');
+    FileState file = await fsState.getFile(uri);
+    expect(file.lineStarts, [0, 4, 10, 13]);
+  }
+
   test_newFileListener() async {
     var a = writeFile('/a.dart', '');
     var b = writeFile('/b.dart', '');
