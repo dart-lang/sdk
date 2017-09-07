@@ -770,7 +770,6 @@ implicit_this_test/01: Crash
 implicit_this_test/04: Crash
 implicit_this_test/none: Crash
 import_collection_no_prefix_test: Crash
-inference_mixin_field_test: Crash
 many_generic_instanceof_test: Crash
 many_generic_instanceof_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
 regress_30339_test: Crash # NoSuchMethodError: Class 'JClass' has no instance getter 'typeVariables'.
