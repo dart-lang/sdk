@@ -167,15 +167,20 @@ class RetainedDataBuilder extends RetainedData {
       node.type.accept(typeMarker);
     } else if (node is Constructor) {
       var function = node.function;
-      function.positionalParameters.forEach((p) => p.type.accept(typeMarker));
-      function.namedParameters.forEach((p) => p.type.accept(typeMarker));
+      function.positionalParameters.forEach(markParameter);
+      function.namedParameters.forEach(markParameter);
     } else if (node is Procedure) {
       var function = node.function;
       function.typeParameters.forEach((p) => p.bound.accept(typeMarker));
-      function.positionalParameters.forEach((p) => p.type.accept(typeMarker));
-      function.namedParameters.forEach((p) => p.type.accept(typeMarker));
+      function.positionalParameters.forEach(markParameter);
+      function.namedParameters.forEach(markParameter);
       function.returnType.accept(typeMarker);
     }
+  }
+
+  void markParameter(VariableDeclaration parameter) {
+    parameter.initializer = null;
+    return parameter.type.accept(typeMarker);
   }
 }
 
