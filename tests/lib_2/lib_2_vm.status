@@ -14,11 +14,14 @@ math/rectangle_test: RuntimeError
 mirrors/invocation_fuzz_test: Crash
 mirrors/library_uri_io_test: RuntimeError
 mirrors/library_uri_package_test: RuntimeError
+async/stream_transform_test: RuntimeError
+async/stream_transformation_broadcast_test: RuntimeError
 
 [ $strong && $runtime == vm ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 
 [ $runtime == vm ]
+async/stream_timeout_test: RuntimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 mirrors/deferred_type_test: CompileTimeError
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.

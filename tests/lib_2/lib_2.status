@@ -19,6 +19,10 @@ async/multiple_timer_test: Pass, Fail # Timing related
 async/slow_consumer_test: Pass, Timeout # Issue 22696
 convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
 
+[ $runtime == chrome || $runtime == ff ]
+async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
+async/stream_timeout_test: SkipSlow # Times out. Issue 22050
+
 [ $hot_reload || $hot_reload_rollback ]
 mirrors/closurization_equivalence_test: SkipByDesign # Method equality
 mirrors/deferred_mirrors_update_test: Crash # Deferred loading
