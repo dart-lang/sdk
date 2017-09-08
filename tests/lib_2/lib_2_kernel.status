@@ -45,6 +45,7 @@ mirrors/mirrors_test: Crash
 mirrors/mirrors_used_inheritance_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm ]
+convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
 mirrors/class_mirror_location_test: RuntimeError
 mirrors/constructor_kinds_test/01: RuntimeError
 mirrors/constructor_kinds_test/none: RuntimeError

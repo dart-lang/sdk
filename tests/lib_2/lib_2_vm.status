@@ -16,5 +16,15 @@ convert/json_lib_test: RuntimeError
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 
 [ $runtime == vm ]
+convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 mirrors/deferred_type_test: CompileTimeError
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
+
+[ $runtime == vm && $mode == debug && $arch == ia32 && $system == windows ]
+convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification OOM.
+
+[ $runtime == vm && $mode == debug && $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv6 && $arch != simarmv5te ]
+convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet implemented.
+
+[ $runtime == vm && $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ]
+convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.

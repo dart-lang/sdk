@@ -22,7 +22,7 @@ Stream<List<int>> encode(Object o) {
 void testUnpaused(List<int> expected, Stream stream) {
   asyncStart();
   stream.toList().then((list) {
-    var combined = [];
+    var combined = <int>[];
     list.forEach(combined.addAll);
     Expect.listEquals(expected, combined);
     asyncEnd();
@@ -31,7 +31,7 @@ void testUnpaused(List<int> expected, Stream stream) {
 
 void testWithPauses(List<int> expected, Stream stream) {
   asyncStart();
-  var accumulated = [];
+  var accumulated = <int>[];
   var sub;
   sub = stream.listen((x) {
     accumulated.addAll(x);

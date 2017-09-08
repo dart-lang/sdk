@@ -29,7 +29,7 @@ _expandUnicodeTests() {
 
     // Put the string into quotes.
     // For example: 'abcd' -> '"abcd"'.
-    var inQuotesBytes = [];
+    var inQuotesBytes = <int>[];
     inQuotesBytes.add(_QUOTE);
     inQuotesBytes.addAll(bytes);
     inQuotesBytes.add(_QUOTE);
@@ -42,7 +42,7 @@ _expandUnicodeTests() {
         [string]
       ]
     ];
-    var inListBytes = [];
+    var inListBytes = <int>[];
     inListBytes.addAll([_BRACKET_OPEN, _BRACKET_OPEN, _BRACKET_OPEN]);
     inListBytes.addAll(inQuotesBytes);
     inListBytes.addAll([_BRACKET_CLOSE, _BRACKET_CLOSE, _BRACKET_CLOSE]);
@@ -52,7 +52,7 @@ _expandUnicodeTests() {
     // list three times.
     // For example: 'abcd' -> '[[[["abcd"]]],[[["abcd"]]],[[["abcd"]]]]'.
     var listLongerExpected = [listExpected, listExpected, listExpected];
-    var listLongerBytes = [];
+    var listLongerBytes = <int>[];
     listLongerBytes.add(_BRACKET_OPEN);
     listLongerBytes.addAll(inListBytes);
     listLongerBytes.add(_COMMA);
@@ -65,9 +65,9 @@ _expandUnicodeTests() {
     // Put the previous strings/lists into a map.
     // For example:
     //    'abcd' -> '{"abcd":[[[["abcd"]]],[[["abcd"]]],[[["abcd"]]]]}'.
-    var mapExpected = new Map();
+    var mapExpected = <String, List>{};
     mapExpected[string] = listLongerExpected;
-    var mapBytes = [];
+    var mapBytes = <int>[];
     mapBytes.add(_BRACE_OPEN);
     mapBytes.addAll(inQuotesBytes);
     mapBytes.add(_COLON);

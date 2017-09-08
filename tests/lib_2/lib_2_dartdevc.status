@@ -16,3 +16,5 @@ convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid va
 typed_data/int32x4_bigint_test: RuntimeError # Issue 29922
 typed_data/int64_list_load_store_test: RuntimeError # Issue 29922
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 29922
+convert/streamed_conversion_json_utf8_encode_test: Pass, Timeout # Issue 29922
+convert/streamed_conversion_utf8_decode_test: Pass, Timeout # Issue 29922

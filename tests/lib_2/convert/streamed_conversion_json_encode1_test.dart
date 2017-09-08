@@ -52,10 +52,9 @@ final TESTS = [
   ],
   // Note that -0.0 won't be treated the same in JS. The Json spec seems to
   // allow it, though.
-  // TODO(rnystrom): Changed to "0". See above comment.
   [
     {"hi there": 499, "'": -0.0},
-    '{"hi there":499,"\'":0}'
+    '{"hi there":499,"\'":-0.0}'
   ],
   [r'\foo', r'"\\foo"'],
 ];

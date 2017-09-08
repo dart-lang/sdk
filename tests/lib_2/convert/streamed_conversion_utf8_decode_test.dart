@@ -10,10 +10,10 @@ import "package:async_helper/async_helper.dart";
 
 Stream<String> decode(List<int> bytes, int chunkSize) {
   var controller;
-  controller = new StreamController(onListen: () {
+  controller = new StreamController<List<int>>(onListen: () {
     int i = 0;
     while (i < bytes.length) {
-      List nextChunk = [];
+      List nextChunk = <int>[];
       for (int j = 0; j < chunkSize; j++) {
         if (i < bytes.length) {
           nextChunk.add(bytes[i]);

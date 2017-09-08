@@ -52,6 +52,12 @@ async/dart2js_uncaught_error_test: Skip  # JS-integration only test
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 
+[ $compiler == dart2js && ( $runtime == chrome || $runtime == ff ) ]
+async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
+convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
+convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
+convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050
+
 [ $compiler == dart2js && $fast_startup ]
 mirrors/metadata_allowed_values_test/0*: Pass # expects failure, but it fails for the wrong reason
 mirrors/metadata_allowed_values_test/1*: Pass # expects failure, but it fails for the wrong reason
