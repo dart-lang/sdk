@@ -54,16 +54,7 @@ accessor_conflict_import_test: CompileTimeError # Issue 25626
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
 void_type_callbacks_test/00: MissingCompileTimeError # Issue 30514
 void_type_callbacks_test/01: MissingCompileTimeError # Issue 30514
-void_type_function_types_test/00: Crash # Issue 30514
-void_type_function_types_test/01: Crash # Issue 30514
-void_type_function_types_test/03: Crash # Issue 30514
-void_type_function_types_test/04: Crash # Issue 30514
-void_type_function_types_test/05: Crash # Issue 30514
-void_type_function_types_test/06: Crash # Issue 30514
-void_type_function_types_test/07: Crash # Issue 30514
-void_type_function_types_test/08: Crash # Issue 30514
-void_type_function_types_test/09: Crash # Issue 30514
-void_type_function_types_test/none: Crash # Issue 30514
+void_type_function_types_test/none: CompileTimeError # Issue 30514
 void_type_override_test/none: CompileTimeError # Issue 30514
 void_type_usage_test/call_as: CompileTimeError # Issue 30514
 void_type_usage_test/call_for: CompileTimeError # Issue 30514
