@@ -1585,7 +1585,7 @@ class ShadowProcedure extends Procedure implements ShadowMember {
 class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
   /// If this assignment uses null-aware access (`?.`), the conditional
   /// expression that guards the access; otherwise `null`.
-  Expression nullAwareGuard;
+  ConditionalExpression nullAwareGuard;
 
   ShadowPropertyAssign(Expression receiver, Expression rhs,
       {bool isSuper: false})
@@ -1604,11 +1604,12 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     typeNeeded =
         inferrer.listener.propertyAssignEnter(desugared, typeContext) ||
             typeNeeded;
-    // TODO(paulberry): record the appropriate types on let variables and
-    // conditional expressions.
     var receiverType = _inferReceiver(inferrer);
     if (read != null) {
-      inferrer.findPropertyGetMember(receiverType, read, silent: true);
+      var readMember =
+          inferrer.findPropertyGetMember(receiverType, read, silent: true);
+      var readType = inferrer.getCalleeType(readMember, receiverType);
+      _storeLetType(inferrer, read, readType);
     }
     Member writeMember;
     if (write != null) {
@@ -1633,7 +1634,9 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     // member.  TODO(paulberry): would it be better to use the read member when
     // doing compound assignment?
     var writeContext = inferrer.getSetterType(writeMember, receiverType);
+    _storeLetType(inferrer, write, writeContext);
     var inferredType = _inferRhs(inferrer, writeContext);
+    if (inferrer.strongMode) nullAwareGuard?.staticType = inferredType;
     inferrer.listener.propertyAssignExit(desugared, inferredType);
     return inferredType;
   }
@@ -2072,11 +2075,15 @@ class ShadowSyntheticExpression extends Expression implements ShadowExpression {
         }
         desugared = desugaredLet.body;
       } else if (desugared is ConditionalExpression) {
-        // When a null-aware assignment is desugared, the "then" branch of the
-        // conditional expression often contains "let" nodes that need to be
-        // updated.
+        // When a null-aware assignment is desugared, often the "then" or "else"
+        // branch of the conditional expression often contains "let" nodes that
+        // need to be updated.
         ConditionalExpression desugaredConditionalExpression = desugared;
-        desugared = desugaredConditionalExpression.then;
+        if (desugaredConditionalExpression.then is Let) {
+          desugared = desugaredConditionalExpression.then;
+        } else {
+          desugared = desugaredConditionalExpression.otherwise;
+        }
       } else {
         break;
       }

@@ -14,6 +14,6 @@ static field core::int v_minus = let final self::A #t2 = new self::A::•() in #
 static field core::int v_multiply = let final self::A #t3 = new self::A::•() in #t3.{self::A::f} = #t3.{self::A::f}.{core::num::*}(1);
 static field core::int v_prefix_pp = let final self::A #t4 = new self::A::•() in #t4.{self::A::f} = #t4.{self::A::f}.{core::num::+}(1);
 static field core::int v_prefix_mm = let final self::A #t5 = new self::A::•() in #t5.{self::A::f} = #t5.{self::A::f}.{core::num::-}(1);
-static field core::int v_postfix_pp = let final self::A #t6 = new self::A::•() in let final dynamic #t7 = #t6.{self::A::f} in let final dynamic #t8 = #t6.{self::A::f} = #t7.{core::num::+}(1) in #t7;
-static field core::int v_postfix_mm = let final self::A #t9 = new self::A::•() in let final dynamic #t10 = #t9.{self::A::f} in let final dynamic #t11 = #t9.{self::A::f} = #t10.{core::num::-}(1) in #t10;
+static field core::int v_postfix_pp = let final self::A #t6 = new self::A::•() in let final core::int #t7 = #t6.{self::A::f} in let final core::int #t8 = #t6.{self::A::f} = #t7.{core::num::+}(1) in #t7;
+static field core::int v_postfix_mm = let final self::A #t9 = new self::A::•() in let final core::int #t10 = #t9.{self::A::f} in let final core::int #t11 = #t9.{self::A::f} = #t10.{core::num::-}(1) in #t10;
 static method main() → dynamic {}
