@@ -1376,11 +1376,7 @@ class BinaryBuilder {
     int fileEqualsOffset = readOffset();
     int flags = readByte();
     return new VariableDeclaration(readStringOrNullIfEmpty(),
-        type: readDartType(),
-        initializer: readExpressionOption(),
-        isFinal: flags & 0x1 != 0,
-        isConst: flags & 0x2 != 0,
-        isFieldFormal: flags & 04 != 0)
+        type: readDartType(), initializer: readExpressionOption(), flags: flags)
       ..fileOffset = offset
       ..fileEqualsOffset = fileEqualsOffset;
   }

@@ -4108,16 +4108,21 @@ class VariableDeclaration extends Statement {
   VariableDeclaration(this.name,
       {this.initializer,
       this.type: const DynamicType(),
+      int flags: -1,
       bool isFinal: false,
       bool isConst: false,
       bool isFieldFormal: false,
       bool isCovariant: false}) {
     assert(type != null);
     initializer?.parent = this;
-    this.isFinal = isFinal;
-    this.isConst = isConst;
-    this.isFieldFormal = isFieldFormal;
-    this.isCovariant = isCovariant;
+    if (flags != -1) {
+      this.flags = flags;
+    } else {
+      this.isFinal = isFinal;
+      this.isConst = isConst;
+      this.isFieldFormal = isFieldFormal;
+      this.isCovariant = isCovariant;
+    }
   }
 
   /// Creates a synthetic variable with the given expression as initializer.
