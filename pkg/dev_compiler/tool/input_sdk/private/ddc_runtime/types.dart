@@ -124,19 +124,20 @@ class AnonymousJSType extends TypeRep {
   toString() => _dartName;
 
   @JSExportName('is')
-  bool is_T(obj) => JS('bool', '# === #', getReifiedType(obj), jsobject);
+  bool is_T(obj) => JS('bool', '# === # || #', getReifiedType(obj), jsobject,
+      instanceOf(obj, this));
 
   @JSExportName('as')
   as_T(obj) =>
       JS('bool', '# == null || # === #', obj, getReifiedType(obj), jsobject)
           ? obj
-          : castError(obj, this, false);
+          : cast(obj, this, false);
 
   @JSExportName('_check')
   check_T(obj) =>
       JS('bool', '# == null || # === #', obj, getReifiedType(obj), jsobject)
           ? obj
-          : castError(obj, this, true);
+          : cast(obj, this, true);
 }
 
 void _warn(arg) {
