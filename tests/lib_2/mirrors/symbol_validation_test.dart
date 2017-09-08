@@ -4,6 +4,7 @@
 
 library symbol_validation_test;
 
+@MirrorsUsed(targets: "symbol_validation_test")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

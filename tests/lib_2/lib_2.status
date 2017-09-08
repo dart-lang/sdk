@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ !$strong ]
+mirrors/top_level_accessors_test/01: MissingCompileTimeError
 typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
@@ -22,6 +23,7 @@ mirrors/closurization_equivalence_test: SkipByDesign # Method equality
 mirrors/deferred_mirrors_update_test: Crash # Deferred loading
 mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading
 mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
+mirrors/typedef_deferred_library_test: Crash # Deferred loading
 
 [ $runtime == ff ]
 convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029

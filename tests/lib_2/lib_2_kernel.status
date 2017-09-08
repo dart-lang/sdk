@@ -43,6 +43,19 @@ mirrors/mirrors_nsm_mismatch_test: RuntimeError
 mirrors/mirrors_reader_test: Crash
 mirrors/mirrors_test: Crash
 mirrors/mirrors_used_inheritance_test: RuntimeError
+mirrors/regress_26187_test: RuntimeError
+mirrors/relation_assignable_test: RuntimeError
+mirrors/relation_subclass_test: RuntimeError
+mirrors/relation_subtype_test: RuntimeError
+mirrors/repeated_private_anon_mixin_app_test: RuntimeError
+mirrors/static_members_easier_test: RuntimeError
+mirrors/static_members_test: RuntimeError
+mirrors/symbol_validation_test/01: RuntimeError
+mirrors/symbol_validation_test/none: RuntimeError
+mirrors/type_variable_is_static_test: RuntimeError
+mirrors/type_variable_owner_test/01: RuntimeError
+mirrors/typedef_in_signature_test: RuntimeError
+mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kernel issue 28335.
 
 [ $compiler == dartk && $runtime == vm ]
 convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
@@ -63,3 +76,11 @@ mirrors/metadata_constructed_constant_test: RuntimeError
 mirrors/method_mirror_location_test: RuntimeError
 mirrors/method_mirror_source_line_ending_test: Crash
 mirrors/method_mirror_source_test: Crash
+mirrors/regress_26187_test: RuntimeError
+mirrors/relation_assignable_test: RuntimeError
+mirrors/relation_subtype_test: RuntimeError
+mirrors/symbol_validation_test/01: RuntimeError
+mirrors/symbol_validation_test/none: RuntimeError
+mirrors/type_variable_is_static_test: RuntimeError
+mirrors/type_variable_owner_test/01: RuntimeError
+mirrors/typedef_deferred_library_test: RuntimeError

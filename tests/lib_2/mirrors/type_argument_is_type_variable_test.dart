@@ -4,6 +4,7 @@
 
 library test.type_argument_is_type_variable;
 
+@MirrorsUsed(targets: "test.type_argument_is_type_variable")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

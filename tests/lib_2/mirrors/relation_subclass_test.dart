@@ -30,11 +30,13 @@ test(MirrorSystem mirrors) {
   ClassMirror Sub1 = thisLibrary.declarations[#Subclass1];
   ClassMirror Sub2 = thisLibrary.declarations[#Subclass2];
   ClassMirror Obj = coreLibrary.declarations[#Object];
+  ClassMirror Nul = coreLibrary.declarations[#Null];
 
   Expect.isTrue(Obj.isSubclassOf(Obj));
   Expect.isTrue(Super.isSubclassOf(Super));
   Expect.isTrue(Sub1.isSubclassOf(Sub1));
   Expect.isTrue(Sub2.isSubclassOf(Sub2));
+  Expect.isTrue(Nul.isSubclassOf(Nul));
 
   Expect.isTrue(Sub1.isSubclassOf(Super));
   Expect.isFalse(Super.isSubclassOf(Sub1));
@@ -54,7 +56,12 @@ test(MirrorSystem mirrors) {
   Expect.isTrue(Super.isSubclassOf(Obj));
   Expect.isFalse(Obj.isSubclassOf(Super));
 
-  var Func = coreLibrary.declarations[#Function];
+  Expect.isTrue(Nul.isSubclassOf(Obj));
+  Expect.isFalse(Obj.isSubclassOf(Nul));
+  Expect.isFalse(Nul.isSubclassOf(Super));
+  Expect.isFalse(Super.isSubclassOf(Nul));
+
+  ClassMirror Func = coreLibrary.declarations[#Function];
   Expect.isTrue(Func.isSubclassOf(Obj));
   Expect.isFalse(Obj.isSubclassOf(Func));
 

@@ -4,11 +4,12 @@
 
 library test.static_members;
 
+@MirrorsUsed(targets: "test.static_members")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 import 'stringify.dart';
-import 'declarations_model_easier.dart' as declarations_model;
+import 'declarations_model.dart' as declarations_model;
 
 selectKeys(map, predicate) {
   return map.keys.where((key) => predicate(map[key]));
@@ -24,8 +25,17 @@ main() {
     #staticGetter,
     const Symbol('staticSetter='),
     #staticMethod,
+    MirrorSystem.getSymbol('_staticVariable', lm),
+    MirrorSystem.getSymbol('_staticVariable=', lm),
+    MirrorSystem.getSymbol('_staticGetter', lm),
+    MirrorSystem.getSymbol('_staticSetter=', lm),
+    MirrorSystem.getSymbol('_staticMethod', lm),
   ], selectKeys(cm.staticMembers, (dm) => true));
 
-  Expect.setEquals([#staticVariable, const Symbol('staticVariable=')],
-      selectKeys(cm.staticMembers, (dm) => dm.isSynthetic));
+  Expect.setEquals([
+    #staticVariable,
+    const Symbol('staticVariable='),
+    MirrorSystem.getSymbol('_staticVariable', lm),
+    MirrorSystem.getSymbol('_staticVariable=', lm)
+  ], selectKeys(cm.staticMembers, (dm) => dm.isSynthetic));
 }

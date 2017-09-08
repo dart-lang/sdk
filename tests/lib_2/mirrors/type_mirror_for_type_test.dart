@@ -25,8 +25,8 @@ main() {
       : new C<int>();
   print(a is C<Type>);
 
-  var typeMirror = reflectType(X);
-  var declarationMirror = typeMirror.declarations[#foo];
+  var typeMirror = reflectType(X) as ClassMirror;
+  var declarationMirror = typeMirror.declarations[#foo] as MethodMirror;
   // Test that the runtime type implementation does not confuse the runtime type
   // representation of [Type] with an actual value of type [Type] when analyzing
   // the return type of [foo].

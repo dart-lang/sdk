@@ -108,20 +108,6 @@ mirrors/reflected_type_classes_test: Skip
 mirrors/reflected_type_test: Skip
 mirrors/regress_16321_test: Skip
 mirrors/regress_19731_test: Skip
-mirrors/relation_subclass_test: Skip
-mirrors/removed_api_test: Skip
-mirrors/repeated_private_anon_mixin_app_test: Skip
-mirrors/return_type_test: Skip
-mirrors/set_field_with_final_inheritance_test: Skip
-mirrors/static_members_easier_test: Skip
-mirrors/static_members_test: Skip
-mirrors/static_test: Skip
-mirrors/syntax_error_test: Skip
-mirrors/synthetic_accessor_properties_test: Skip
-mirrors/top_level_accessors_test: Skip
-mirrors/type_mirror_for_type_test: Skip
-mirrors/typearguments_mirror_test: Skip
-mirrors/typedef_in_signature_test: Skip
 mirrors/typedef_reflected_type_test: Skip
 mirrors/variable_is_const_test: Skip
 html/custom/created_callback_test: CompileTimeError # Issue 28969
@@ -252,19 +238,6 @@ mirrors/reflected_type_special_types_test: RuntimeError # Issue 29922
 mirrors/reflected_type_typedefs_test: RuntimeError # Issue 29922
 mirrors/reflected_type_typevars_test: RuntimeError # Issue 29922
 mirrors/regress_14304_test: RuntimeError # Issue 29922
-mirrors/regress_26187_test: RuntimeError # Issue 29922
-mirrors/relation_assignable_test: RuntimeError # Issue 29922
-mirrors/relation_subtype_test: RuntimeError # Issue 29922
-mirrors/set_field_with_final_test: RuntimeError # Issue 29922
-mirrors/spawn_function_root_library_test: RuntimeError # Issue 29922
-mirrors/symbol_validation_test/01: RuntimeError # Issue 29922
-mirrors/symbol_validation_test/none: RuntimeError # Issue 29922
-mirrors/to_string_test: RuntimeError # Issue 29922
-mirrors/type_argument_is_type_variable_test: RuntimeError # Issue 29922
-mirrors/type_variable_is_static_test: RuntimeError # Issue 29922
-mirrors/type_variable_owner_test/01: RuntimeError # Issue 29922
-mirrors/type_variable_owner_test/none: RuntimeError # Issue 29922
-mirrors/typedef_deferred_library_test: RuntimeError # Issue 29922
 mirrors/typedef_library_test: RuntimeError # Issue 29922
 mirrors/typedef_metadata_test: RuntimeError # Issue 29922
 mirrors/typedef_test: RuntimeError # Issue 29922

@@ -8,6 +8,7 @@ mirrors/deferred_mirrors_metadata_test: Fail # Issue 17522
 mirrors/mirrors_nsm_mismatch_test: StaticWarning, OK
 mirrors/mirrors_nsm_test/dart2js: StaticWarning, OK
 mirrors/mirrors_nsm_test: StaticWarning, OK
+mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional library name conflict.
 
 [ $compiler == dart2analyzer && $strong ]
 mirrors/deferred_type_test: CompileTimeError, OK # Deliberately refers to a deferred type in a declaration.
@@ -15,3 +16,5 @@ mirrors/deferred_mirrors_metadata_test: StaticWarning # Issue 28969
 mirrors/mirrors_nsm_mismatch_test: CompileTimeError, OK
 mirrors/mirrors_nsm_test/dart2js: CompileTimeError, OK
 mirrors/mirrors_nsm_test: CompileTimeError, OK
+mirrors/relation_subclass_test: CompileTimeError, OK
+mirrors/repeated_private_anon_mixin_app_test: CompileTimeError, OK # Intentional library name conflict.

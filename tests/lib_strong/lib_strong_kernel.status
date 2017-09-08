@@ -213,15 +213,6 @@ mirrors/reflected_type_function_type_test: RuntimeError
 mirrors/reflected_type_special_types_test: RuntimeError
 mirrors/reflected_type_typedefs_test: RuntimeError
 mirrors/reflected_type_typevars_test: RuntimeError
-mirrors/regress_26187_test: RuntimeError
-mirrors/relation_assignable_test: RuntimeError
-mirrors/relation_subtype_test: RuntimeError
-mirrors/symbol_validation_test/01: RuntimeError
-mirrors/symbol_validation_test/none: RuntimeError
-mirrors/to_string_test: RuntimeError
-mirrors/type_variable_is_static_test: RuntimeError
-mirrors/type_variable_owner_test/01: RuntimeError
-mirrors/typedef_deferred_library_test: RuntimeError
 mirrors/typedef_library_test: RuntimeError
 mirrors/typedef_metadata_test: RuntimeError
 mirrors/typedef_test: RuntimeError

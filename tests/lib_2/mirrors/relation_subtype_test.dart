@@ -4,6 +4,7 @@
 
 library test.relation_subtype;
 
+@MirrorsUsed(targets: "test.relation_subtype")
 import "dart:mirrors";
 
 import "package:expect/expect.dart";
@@ -37,11 +38,13 @@ test(MirrorSystem mirrors) {
   TypeMirror Sub1 = thisLibrary.declarations[#Subclass1];
   TypeMirror Sub2 = thisLibrary.declarations[#Subclass2];
   TypeMirror Obj = coreLibrary.declarations[#Object];
+  TypeMirror Nul = coreLibrary.declarations[#Null];
 
   Expect.isTrue(Obj.isSubtypeOf(Obj));
   Expect.isTrue(Super.isSubtypeOf(Super));
   Expect.isTrue(Sub1.isSubtypeOf(Sub1));
   Expect.isTrue(Sub2.isSubtypeOf(Sub2));
+  Expect.isTrue(Nul.isSubtypeOf(Nul));
 
   Expect.isTrue(Sub1.isSubtypeOf(Super));
   Expect.isFalse(Super.isSubtypeOf(Sub1));
@@ -60,6 +63,11 @@ test(MirrorSystem mirrors) {
 
   Expect.isTrue(Super.isSubtypeOf(Obj));
   Expect.isFalse(Obj.isSubtypeOf(Super));
+
+  Expect.isTrue(Nul.isSubtypeOf(Obj));
+  Expect.isFalse(Obj.isSubtypeOf(Nul));
+  Expect.isTrue(Nul.isSubtypeOf(Super)); // Null type is bottom type.
+  Expect.isFalse(Super.isSubtypeOf(Nul));
 
   // Function typedef - argument type.
   TypeMirror Func = coreLibrary.declarations[#Function];
