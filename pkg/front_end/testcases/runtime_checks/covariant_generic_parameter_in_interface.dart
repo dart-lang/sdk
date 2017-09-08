@@ -16,6 +16,12 @@ class C<U> implements I<int> {
       [U /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ y]) {}
 }
 
+class D<U> extends C<U> {
+  void f1(int /*@checkFormal=semiSafe*/ x) {}
+  void f2(int /*@checkFormal=semiSafe*/ x,
+      [U /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ y]) {}
+}
+
 void g1(C<num> c) {
   c.f1(1);
 }
@@ -26,6 +32,14 @@ void g2(I<num> i) {
 
 void g3(C<num> c) {
   c.f2(1, 1.5);
+}
+
+void g4(D<num> d) {
+  d.f1(1);
+}
+
+void g5(D<num> d) {
+  d.f2(1, 1.5);
 }
 
 void test() {

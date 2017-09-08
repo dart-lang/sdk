@@ -11,13 +11,13 @@ import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
     show
-        BottomType,
         Class,
         DartType,
         DynamicType,
         Field,
         FormalSafety,
         FunctionType,
+        InterfaceSafety,
         InterfaceType,
         Location,
         Member,
@@ -284,6 +284,9 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     // class A<T> {
     //   foo(List<T> argument) {}
     // }
+    // class B extends A<num> {
+    //   foo(List<num> argument) {}
+    // }
     // void bar(A<num> a, List<num> l) {
     //   a.foo(l);
     // }
@@ -296,35 +299,116 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     // checked at runtime (unless the back end can prove the check is
     // unnecessary, e.g. through whole program analysis).
     //
-    // To determine whether the check is necessary, we compute a worst case
-    // "pessimistic type" for the formal parameter by substituting Bottom
-    // for all of the class's type parameters--in the example above that
-    // results in `List<Bottom>`.  This represents the type that the formal
-    // would have if the reified type of the receiver were the narrowest
-    // possible.  If the declared type of the formal is not a subtype of the
-    // pessimistic type, that means that the type guarantee made by the
-    // caller may not be sufficient to ensure soundness in the callee, so
-    // a runtime type check is needed.  We mark this by annotating the
-    // parameter as "semi-safe".
-    if (cls.typeParameters.isEmpty) return;
-    var pessimization = Substitution.fromPairs(cls.typeParameters,
-        new List.filled(cls.typeParameters.length, const BottomType()));
-    for (var procedure in cls.procedures) {
-      if (procedure.isStatic) continue;
-      void compute(VariableDeclaration formal) {
-        var pessimisticType = pessimization.substituteType(formal.type);
-        if (!typeSchemaEnvironment.isSubtypeOf(formal.type, pessimisticType)) {
-          formal.formalSafety = FormalSafety.semiSafe;
-          instrumentation?.record(Uri.parse(cls.fileUri), formal.fileOffset,
-              'checkFormal', new InstrumentationValueLiteral('semiSafe'));
-          instrumentation?.record(Uri.parse(cls.fileUri), formal.fileOffset,
-              'checkInterface', new InstrumentationValueLiteral('semiTyped'));
+    // To determine whether the check is necessary, we determine, for each
+    // formal parameter of each interface, the worst case set of types that
+    // might be passed to that interface at runtime.  So in the example above,
+    // since T has no bound, at worst case the type `List<Object>` might be
+    // passed to A.foo.  Since `List<T>` is not a supertype of `List<Object>`,
+    // we mark the formal parameter as semi-safe and semi-typed.
+    //
+    // For the semi-safe annotation, we also have to check all of thes that
+    // might come in through interfaces that the concrete method implements. So
+    // in the example above, `B.foo` needs a semi-typed annotation, since it may
+    // be passed a `List<Object>` via the interface `A.foo`, and `List<num>` is
+    // not a supertype of `List<Object>`.
+    if (cls.typeParameters.isNotEmpty) {
+      // Compute a substitution that illustrates the set of types the class
+      // might have at runtime.  We call this the "pessimization" because it
+      // substitutes the top of the class hierarchy for each type parameter, as
+      // a worst case scenario.
+      // TODO(paulberry): consider whether we could do better by substituting
+      // type parameter bounds (this would require being careful with F-bounded
+      // type parameters, so it might not be worth it)
+      var pessimization = Substitution.fromPairs(cls.typeParameters,
+          new List.filled(cls.typeParameters.length, const DynamicType()));
+      // TODO(paulberry): also handle fields
+      for (ShadowProcedure procedure in cls.procedures) {
+        if (procedure.isStatic) continue;
+        void computeIncomingTypes(VariableDeclaration formal) {
+          ShadowVariableDeclaration shadowVariableDeclaration = formal;
+          var pessimisticType = pessimization.substituteType(formal.type);
+          if (!typeSchemaEnvironment.isSubtypeOf(
+              pessimisticType, formal.type)) {
+            shadowVariableDeclaration.additionalIncomingTypes = [
+              pessimisticType
+            ];
+            formal.interfaceSafety = InterfaceSafety.semiTyped;
+            instrumentation?.record(Uri.parse(cls.fileUri), formal.fileOffset,
+                'checkInterface', new InstrumentationValueLiteral('semiTyped'));
+            if (!procedure.isAbstract) {
+              formal.formalSafety = FormalSafety.semiSafe;
+              instrumentation?.record(Uri.parse(cls.fileUri), formal.fileOffset,
+                  'checkFormal', new InstrumentationValueLiteral('semiSafe'));
+            }
+          }
+        }
+
+        procedure.function.positionalParameters.forEach(computeIncomingTypes);
+        procedure.function.namedParameters.forEach(computeIncomingTypes);
+      }
+    }
+
+    // Now, propagate additional incoming types from overrides to determine
+    // whether there are additional methods requiring a semi-safe annotation.
+    void checkSafety(ShadowVariableDeclaration declaredFormal,
+        VariableDeclaration interfaceFormal) {
+      // TODO(paulberry): once additionalIncomingTypes is available from
+      // VariableDeclaration, remove this "is" check.
+      if (interfaceFormal is ShadowVariableDeclaration) {
+        // TODO(paulberry): once we support covariant we'll have to account for
+        // pessimize(interfaceFormal.type) as well.
+        // TODO(paulberry): add support for generic methods (need to match up
+        // method type parameters between the two methods)
+        var additionalIncomingTypes = interfaceFormal.additionalIncomingTypes;
+        if (additionalIncomingTypes == null) return;
+        for (var incomingType in additionalIncomingTypes) {
+          if (typeSchemaEnvironment.isSubtypeOf(
+              incomingType, declaredFormal.type)) {
+            continue;
+          }
+          if (declaredFormal.additionalIncomingTypes != null &&
+              declaredFormal.additionalIncomingTypes.any(
+                  (t) => typeSchemaEnvironment.isSubtypeOf(incomingType, t))) {
+            continue;
+          }
+          (declaredFormal.additionalIncomingTypes ??= <DartType>[])
+              .add(incomingType);
+          if (declaredFormal.formalSafety != FormalSafety.semiSafe) {
+            declaredFormal.formalSafety = FormalSafety.semiSafe;
+            instrumentation?.record(
+                Uri.parse(cls.fileUri),
+                declaredFormal.fileOffset,
+                'checkFormal',
+                new InstrumentationValueLiteral('semiSafe'));
+          }
         }
       }
-
-      procedure.function.positionalParameters.forEach(compute);
-      procedure.function.namedParameters.forEach(compute);
     }
+
+    classHierarchy.forEachOverridePair(cls,
+        (Member declaredMember, Member interfaceMember, bool isSetter) {
+      if (declaredMember.isAbstract) return;
+      if (!identical(declaredMember.enclosingClass, cls)) return;
+      if (declaredMember.function == null || interfaceMember.function == null) {
+        // TODO(paulberry): handle the case where declaredMember or
+        // interfaceMember is a field.
+        return;
+      }
+      for (int i = 0;
+          i < declaredMember.function.positionalParameters.length &&
+              i < interfaceMember.function.positionalParameters.length;
+          i++) {
+        checkSafety(declaredMember.function.positionalParameters[i],
+            interfaceMember.function.positionalParameters[i]);
+      }
+      for (var namedParameter in declaredMember.function.namedParameters) {
+        var overriddenParameter =
+            getNamedFormal(interfaceMember.function, namedParameter.name);
+        if (overriddenParameter != null) {
+          checkSafety(namedParameter, overriddenParameter);
+        }
+      }
+    });
   }
 
   /// Creates an [AccessorNode] to track dependencies of the given [member].

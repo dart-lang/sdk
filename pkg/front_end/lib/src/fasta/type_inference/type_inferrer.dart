@@ -48,6 +48,25 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 
+/// Given a [FunctionNode], gets the named parameter identified by [name], or
+/// `null` if there is no parameter with the given name.
+VariableDeclaration getNamedFormal(FunctionNode function, String name) {
+  for (var formal in function.namedParameters) {
+    if (formal.name == name) return formal;
+  }
+  return null;
+}
+
+/// Given a [FunctionNode], gets the [i]th positional formal parameter, or
+/// `null` if there is no parameter with that index.
+VariableDeclaration getPositionalFormal(FunctionNode function, int i) {
+  if (i < function.positionalParameters.length) {
+    return function.positionalParameters[i];
+  } else {
+    return null;
+  }
+}
+
 bool isOverloadableArithmeticOperator(String name) {
   return identical(name, '+') ||
       identical(name, '-') ||

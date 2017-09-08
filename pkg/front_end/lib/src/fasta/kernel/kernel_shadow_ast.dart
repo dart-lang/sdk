@@ -2446,6 +2446,17 @@ class ShadowVariableDeclaration extends VariableDeclaration
 
   final bool _isLocalFunction;
 
+  /// If this variable declaration represents a formal parameter, and the set of
+  /// types that might be passed into this interface at runtime is larger than
+  /// what is implied by the parameter type (due to parameter covariance), a
+  /// list of additional types that might be passed into this interface at
+  /// runtime.  This is used by the front end to compute when a parameter needs
+  /// to be annotated as "semi-safe" or "unsafe".
+  ///
+  /// TODO(paulberry): remove this once the data is stored in the kernel
+  /// representation.
+  List<DartType> additionalIncomingTypes = null;
+
   ShadowVariableDeclaration(String name, this._functionNestingLevel,
       {Expression initializer,
       DartType type,
