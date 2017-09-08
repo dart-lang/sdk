@@ -10,10 +10,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/base/instrumentation.dart' as fasta;
@@ -213,6 +214,58 @@ class InstrumentationValueForTypeArgs extends fasta.InstrumentationValue {
       .join(', ');
 }
 
+abstract class RunFrontEndTest {
+  String get testSubdir;
+
+  test_run() async {
+    String pkgPath = _findPkgRoot();
+    String fePath = pathos.join(pkgPath, 'front_end', 'testcases', testSubdir);
+    List<File> dartFiles = new Directory(fePath)
+        .listSync()
+        .where((entry) => entry is File && entry.path.endsWith('.dart'))
+        .map((entry) => entry as File)
+        .toList();
+
+    var allProblems = new StringBuffer();
+    for (File file in dartFiles) {
+      var test = new _FrontEndInferenceTest(this);
+      await test.setUp();
+      try {
+        String code = file.readAsStringSync();
+        String problems = await test.runTest(file.path, code);
+        if (problems != null) {
+          allProblems.writeln(problems);
+        }
+      } finally {
+        await test.tearDown();
+      }
+    }
+    if (allProblems.isNotEmpty) {
+      fail(allProblems.toString());
+    }
+  }
+
+  void visitUnit(TypeProvider typeProvider, CompilationUnit unit,
+      fasta.ValidatingInstrumentation validation, Uri uri);
+
+  /**
+   * Expects that the [Platform.script] is a test inside of `pkg/analyzer/test`
+   * folder, and return the absolute path of the `pkg` folder.
+   */
+  String _findPkgRoot() {
+    String scriptPath = pathos.fromUri(Platform.script);
+    List<String> parts = pathos.split(scriptPath);
+    for (int i = 0; i < parts.length - 2; i++) {
+      if (parts[i] == 'pkg' &&
+          parts[i + 1] == 'analyzer' &&
+          parts[i + 2] == 'test') {
+        return pathos.joinAll(parts.sublist(0, i + 1));
+      }
+    }
+    throw new StateError('Unable to find sdk/pkg/ in $scriptPath');
+  }
+}
+
 class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
   final RunFrontEndTest _frontEndTestRunner;
 
@@ -284,56 +337,4 @@ class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
       }
     }
   }
-}
-
-abstract class RunFrontEndTest {
-  String get testSubdir;
-
-  test_run() async {
-    String pkgPath = _findPkgRoot();
-    String fePath = pathos.join(pkgPath, 'front_end', 'testcases', testSubdir);
-    List<File> dartFiles = new Directory(fePath)
-        .listSync()
-        .where((entry) => entry is File && entry.path.endsWith('.dart'))
-        .map((entry) => entry as File)
-        .toList();
-
-    var allProblems = new StringBuffer();
-    for (File file in dartFiles) {
-      var test = new _FrontEndInferenceTest(this);
-      await test.setUp();
-      try {
-        String code = file.readAsStringSync();
-        String problems = await test.runTest(file.path, code);
-        if (problems != null) {
-          allProblems.writeln(problems);
-        }
-      } finally {
-        await test.tearDown();
-      }
-    }
-    if (allProblems.isNotEmpty) {
-      fail(allProblems.toString());
-    }
-  }
-
-  /**
-   * Expects that the [Platform.script] is a test inside of `pkg/analyzer/test`
-   * folder, and return the absolute path of the `pkg` folder.
-   */
-  String _findPkgRoot() {
-    String scriptPath = pathos.fromUri(Platform.script);
-    List<String> parts = pathos.split(scriptPath);
-    for (int i = 0; i < parts.length - 2; i++) {
-      if (parts[i] == 'pkg' &&
-          parts[i + 1] == 'analyzer' &&
-          parts[i + 2] == 'test') {
-        return pathos.joinAll(parts.sublist(0, i + 1));
-      }
-    }
-    throw new StateError('Unable to find sdk/pkg/ in $scriptPath');
-  }
-
-  void visitUnit(TypeProvider typeProvider, CompilationUnit unit,
-      fasta.ValidatingInstrumentation validation, Uri uri);
 }
