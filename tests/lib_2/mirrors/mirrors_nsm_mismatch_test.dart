@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.mirrors_nsm_mistatch;
+library test.mirrors_nsm_mismatch;
 
+@MirrorsUsed(targets: "test.mirrors_nsm_mismatch")
 import 'dart:mirrors';
 import 'mirrors_nsm_test.dart';
 
@@ -18,7 +19,7 @@ class C {
 
 main() {
   var mirrors = currentMirrorSystem();
-  var libMirror = mirrors.findLibrary(#test.mirrors_nsm_mistatch);
+  var libMirror = mirrors.findLibrary(#test.mirrors_nsm_mismatch);
   expectMatchingErrors(() => libMirror.invoke(#topLevelMethod, [], {#extra: 1}),
       () => topLevelMethod(extra: 1));
   expectMatchingErrors(() => libMirror.invoke(#topLevelMethod, ['positional']),

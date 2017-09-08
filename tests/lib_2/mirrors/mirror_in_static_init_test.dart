@@ -8,18 +8,20 @@
 
 library mirror_in_static_init_test;
 
+@MirrorsUsed(targets: "mirror_in_static_init_test")
 import 'dart:mirrors';
 
 // This class is only loaded during initialization of `staticField`.
 abstract class C {
   int _a;
-// This is a syntax error on purpose.
+  // This is a syntax error on purpose.
   C([this._a: 0]); //# 01: compile-time error
 }
 
 final int staticField = () {
   var lib = currentMirrorSystem().findLibrary(#mirror_in_static_init_test);
-  var lst = new List.from(lib.declarations[#C].declarations.values);
+  var c = lib.declarations[#C] as ClassMirror;
+  var lst = new List.from(c.declarations.values);
   return 42;
 }();
 

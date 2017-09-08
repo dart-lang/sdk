@@ -4,11 +4,11 @@
 
 library MirrorsTest;
 
+@MirrorsUsed(targets: "MirrorsTest")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 bool isNSMContainingFieldName(e, String fieldName, bool isSetter) {
-  print(e);
   if (e is! NoSuchMethodError) return false;
   String needle = fieldName;
   if (isSetter) needle += "=";

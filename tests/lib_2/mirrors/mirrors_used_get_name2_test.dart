@@ -27,7 +27,7 @@ class Meta {
 }
 
 void main() {
-  var a = new A();
+  dynamic a = new A();
   if (new DateTime.now().year == 1984) {
     a = A;
   }

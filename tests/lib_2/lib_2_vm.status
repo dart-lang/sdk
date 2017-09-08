@@ -17,3 +17,4 @@ async/future_or_only_in_async_test/00: MissingCompileTimeError
 
 [ $runtime == vm ]
 mirrors/deferred_type_test: CompileTimeError
+mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.

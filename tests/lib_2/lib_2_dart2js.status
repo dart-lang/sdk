@@ -18,6 +18,8 @@ async/run_zoned7_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/run_zoned8_test: Fail # Timer interface not supported: Issue 7728.
 async/schedule_microtask_test: Fail  # Preamble file does not correctly implement scheduleImmediate.
 async/schedule_microtask3_test: RuntimeError
+mirrors/mirrors_reader_test: Skip # Running in v8 suffices. Issue 16589 - RuntimeError.  Issue 22130 - Crash (out of memory).
+mirrors/mirrors_reader_test: Skip # Running in v8 suffices. Issue 16589 - RuntimeError.  Issue 22130 - Crash (out of memory).
 
 [ $compiler == dart2js ]
 async/future_or_strong_test: RuntimeError
@@ -31,6 +33,11 @@ mirrors/method_mirror_properties_test: RuntimeError # Issue 11861
 mirrors/method_mirror_source_test : RuntimeError # Issue 6490
 mirrors/method_mirror_source_line_ending_test : RuntimeError # Issue 6490
 mirrors/method_mirror_location_test: RuntimeError # Issue 6490
+mirrors/mirrors_test: RuntimeError # TODO(ahe): I'm working on fixing this. When removing this line please change the "endsWith" to "/mirrors_test.dart".
+mirrors/mirrors_nsm_test/dart2js: RuntimeError # Issue 19353
+mirrors/mirrors_nsm_mismatch_test: RuntimeError # Issue 19353
+mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
+mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
 typed_data/int32x4_bigint_test: RuntimeError # Issue 1533
 typed_data/int64_list_load_store_test: RuntimeError # Issue 10275
@@ -53,9 +60,18 @@ mirrors/metadata_allowed_values_test/3*: Pass # expects failure, but it fails fo
 mirrors/metadata_constructor_arguments_test/0*: Pass # expects failure, but it fails for the wrong reason
 mirrors/metadata_nested_constructor_call_test/0*: Pass # expects failure, but it fails for the wrong reason
 mirrors/metadata_scope_test/01: Pass # expects failure, but it fails for the wrong reason
+mirrors/mirror_in_static_init_test/01: SkipByDesign
 
 [ $compiler == dart2js && $host_checked ]
 mirrors/metadata_allowed_values_test/28: Crash # Issue 25911
 mirrors/metadata_allowed_values_test/29: Crash # Issue 25911
 mirrors/metadata_allowed_values_test/30: Crash # Issue 25911
 mirrors/metadata_allowed_values_test/31: Crash # Issue 25911
+
+[ $compiler == dart2js && $minified ]
+mirrors/mirrors_used_get_name_test: RuntimeError
+mirrors/mirrors_used_get_name2_test: RuntimeError
+
+[ $compiler == dart2js && $runtime == safarimobilesim ]
+mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.
+mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.

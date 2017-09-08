@@ -38,3 +38,11 @@ typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies 
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
+
+[ $runtime == ff ]
+mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
+mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
+
+[ $arch == simarmv5te ]
+mirrors/mirrors_reader_test: Pass, Slow
+mirrors/mirrors_reader_test: Pass, Slow

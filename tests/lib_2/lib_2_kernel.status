@@ -38,6 +38,11 @@ mirrors/metadata_scope_test/none: RuntimeError
 mirrors/method_mirror_location_test: RuntimeError
 mirrors/method_mirror_source_line_ending_test: Crash
 mirrors/method_mirror_source_test: Crash
+mirrors/mirrors_nsm_test/dart2js: RuntimeError
+mirrors/mirrors_nsm_mismatch_test: RuntimeError
+mirrors/mirrors_reader_test: Crash
+mirrors/mirrors_test: Crash
+mirrors/mirrors_used_inheritance_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm ]
 mirrors/class_mirror_location_test: RuntimeError

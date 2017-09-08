@@ -200,7 +200,6 @@ mirrors/library_uri_package_test: DartkCompileTimeError
 mirrors/list_constructor_test/01: RuntimeError
 mirrors/list_constructor_test/none: RuntimeError
 mirrors/metadata_test: RuntimeError
-mirrors/mirrors_reader_test: Crash
 mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
 mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
 mirrors/mixin_simple_test: RuntimeError

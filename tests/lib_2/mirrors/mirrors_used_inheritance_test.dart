@@ -55,8 +55,9 @@ main() {
   var objects = [new Reflected(), new Subclass()];
 
   // Make sure the subclass methods are alive.
-  objects[1].subclassField = 9;
-  print(objects[1].subclassMethod(9));
+  Subclass sub = objects[1];
+  sub.subclassField = 9;
+  print(sub.subclassMethod(9));
 
   var index = 1;
   if (new DateTime.now().year == 1984) {
