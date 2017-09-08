@@ -5,7 +5,7 @@
 #ifndef RUNTIME_VM_COMPILER_AOT_AOT_CALL_SPECIALIZER_H_
 #define RUNTIME_VM_COMPILER_AOT_AOT_CALL_SPECIALIZER_H_
 
-#include "runtime/vm/compiler/call_specializer.h"
+#include "vm/compiler/call_specializer.h"
 
 namespace dart {
 
