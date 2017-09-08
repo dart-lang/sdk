@@ -283,7 +283,6 @@ uint64_t HostToLittleEndian64(uint64_t value) {
 void OS::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  VFPrint(stdout, format, args);
   // Forward to the Android log for remote access.
   __android_log_vprint(ANDROID_LOG_INFO, "DartVM", format, args);
   va_end(args);
@@ -369,7 +368,6 @@ void OS::RegisterCodeObservers() {
 void OS::PrintErr(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  VFPrint(stderr, format, args);
   // Forward to the Android log for remote access.
   __android_log_vprint(ANDROID_LOG_ERROR, "DartVM", format, args);
   va_end(args);
