@@ -9,7 +9,8 @@ import 'package:expect/expect.dart';
 @NoInline()
 confuse(x) => x;
 
-void testListFunctions<T>(list, first, last, T toElementType(dynamic x)) {
+void testListFunctions<T extends num>(
+    List<T> list, first, last, T toElementType(dynamic x)) {
   assert(list.length > 0);
 
   var reversed = list.reversed;
@@ -60,7 +61,11 @@ void testListFunctions<T>(list, first, last, T toElementType(dynamic x)) {
 
   Expect.equals(0, list.lastIndexOf(first));
   Expect.equals(list.length - 1, list.lastIndexOf(last));
-  Expect.equals(-1, list.lastIndexOf(-1));
+  if (list is List<int>) {
+    Expect.equals(-1, list.lastIndexOf(-1 as T));
+  } else {
+    Expect.equals(-1, list.lastIndexOf(-1.0 as T));
+  }
 
   var copy = list.toList();
   list.fillRange(1, list.length - 1, toElementType(0));
@@ -118,7 +123,7 @@ void testListFunctions<T>(list, first, last, T toElementType(dynamic x)) {
   Expect.throws(() => list.sublist(1, 0), (e) => e is RangeError);
 }
 
-void emptyChecks<T>(list, T toElementType(dynamic c)) {
+void emptyChecks<T>(List<T> list, T toElementType(dynamic c)) {
   assert(list.length == 0);
 
   Expect.isTrue(list.isEmpty);
@@ -156,14 +161,21 @@ void emptyChecks<T>(list, T toElementType(dynamic c)) {
   }
 
   Expect.listEquals(list, list.getRange(0, list.length).toList());
-  Expect.equals(-1, list.lastIndexOf(-1));
 
   var copy = list.toList();
   // Make sure we are allowed to call range-functions if they are 0..0.
   list.fillRange(0, 0);
   Expect.listEquals([], list.getRange(0, 0).toList());
 
-  list.setRange(0, 0, [1, 2]);
+  if (list is List<int>) {
+    var intList = list as List<int>;
+    Expect.equals(-1, intList.lastIndexOf(-1));
+    intList.setRange(0, 0, [1, 2]);
+  } else {
+    var doubleList = list as List<double>;
+    Expect.equals(-1, doubleList.lastIndexOf(-1.0));
+    doubleList.setRange(0, 0, [1.0, 2.0]);
+  }
 
   list.sort();
 
