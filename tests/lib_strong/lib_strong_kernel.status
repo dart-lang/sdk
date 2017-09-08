@@ -174,11 +174,6 @@ mirrors/globalized_closures_test/none: RuntimeError
 mirrors/hot_get_field_test: RuntimeError
 mirrors/hot_set_field_test: RuntimeError
 mirrors/inherited_metadata_test: RuntimeError
-mirrors/invocation_fuzz_test/emptyarray: Crash
-mirrors/invocation_fuzz_test/false: Crash
-mirrors/invocation_fuzz_test/none: Crash
-mirrors/invocation_fuzz_test/smi: Crash
-mirrors/invocation_fuzz_test/string: Crash
 mirrors/invoke_import_test: RuntimeError
 mirrors/invoke_private_test: RuntimeError
 mirrors/invoke_private_wrong_library_test: RuntimeError

@@ -29,7 +29,7 @@ class C {
 }
 
 testInstanceBase() {
-  var c = new C();
+  dynamic c = new C();
 
   Expect.equals('1 5 6', c.fakeFunctionCall(5, 6));
   Expect.equals('7, 8', c.fakeFunctionNSM(7, 8));

@@ -26,6 +26,12 @@ mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading ke
 mirrors/deferred_mirrors_update_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
+mirrors/intercepted_object_test: RuntimeError
+mirrors/invocation_fuzz_test/emptyarray: Crash
+mirrors/invocation_fuzz_test/false: Crash
+mirrors/invocation_fuzz_test/none: Crash
+mirrors/invocation_fuzz_test/smi: RuntimeError
+mirrors/invocation_fuzz_test/string: Crash
 mirrors/mirrors_test: Crash
 mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
@@ -72,6 +78,11 @@ mirrors/empty_test: RuntimeError
 mirrors/equality_test: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
+mirrors/invocation_fuzz_test/emptyarray: Crash
+mirrors/invocation_fuzz_test/false: Crash
+mirrors/invocation_fuzz_test/none: Crash
+mirrors/invocation_fuzz_test/smi: Crash
+mirrors/invocation_fuzz_test/string: Crash
 mirrors/metadata_constructed_constant_test: RuntimeError
 mirrors/method_mirror_location_test: RuntimeError
 mirrors/method_mirror_source_line_ending_test: Crash
@@ -84,3 +95,9 @@ mirrors/symbol_validation_test/none: RuntimeError
 mirrors/type_variable_is_static_test: RuntimeError
 mirrors/type_variable_owner_test/01: RuntimeError
 mirrors/typedef_deferred_library_test: RuntimeError
+
+[ $checked && ($compiler == dartk || $compiler == dartkp) ]
+mirrors/invocation_fuzz_test/smi: Crash
+
+[ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
+mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.

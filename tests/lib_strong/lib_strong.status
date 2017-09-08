@@ -69,12 +69,6 @@ mirrors/initializing_formals_test: Skip
 mirrors/instance_members_easier_test: Skip
 mirrors/instance_members_test: Skip
 mirrors/instance_members_with_override_test: Skip
-mirrors/intercepted_class_test: Skip
-mirrors/intercepted_object_test: Skip
-mirrors/invoke_call_through_getter_previously_accessed_test: Skip
-mirrors/invoke_call_through_getter_test: Skip
-mirrors/invoke_call_through_implicit_getter_previously_accessed_test: Skip
-mirrors/invoke_call_through_implicit_getter_test: Skip
 mirrors/lazy_static_test: Skip
 mirrors/library_declarations_test: Skip
 mirrors/library_exports_hidden_test: Skip
@@ -195,13 +189,6 @@ mirrors/hot_get_field_test: RuntimeError # Issue 29922
 mirrors/hot_set_field_test: RuntimeError # Issue 29922
 mirrors/inherited_metadata_test: RuntimeError # Issue 29922
 mirrors/instance_members_unimplemented_interface_test: RuntimeError # Issue 29922
-mirrors/instantiate_abstract_class_test: RuntimeError # Issue 29922
-mirrors/invocation_fuzz_test/emptyarray: RuntimeError # Issue 29922
-mirrors/invocation_fuzz_test/false: RuntimeError # Issue 29922
-mirrors/invocation_fuzz_test/none: RuntimeError # Issue 29922
-mirrors/invocation_fuzz_test/smi: RuntimeError # Issue 29922
-mirrors/invocation_fuzz_test/string: RuntimeError # Issue 29922
-mirrors/invoke_call_on_closure_test: RuntimeError # Issue 29922
 mirrors/invoke_closurization2_test: RuntimeError # Issue 29922
 mirrors/invoke_closurization_test: RuntimeError # Issue 29922
 mirrors/invoke_import_test: RuntimeError # Issue 29922
