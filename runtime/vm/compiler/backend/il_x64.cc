@@ -3540,6 +3540,21 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitLoadFromBox(compiler);
   } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
     EmitSmiConversion(compiler);
+  } else if (FLAG_experimental_strong_mode &&
+             (representation() == kUnboxedDouble) &&
+             value()->Type()->IsNullableDouble()) {
+    EmitLoadFromBox(compiler);
+  } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
+             (representation() == kUnboxedInt64) &&
+             value()->Type()->IsNullableInt()) {
+    const Register value = locs()->in(0).reg();
+    const Register result = locs()->out(0).reg();
+    ASSERT(value == result);
+    Label done;
+    __ SmiUntag(value);
+    __ j(NOT_CARRY, &done, Assembler::kNearJump);
+    __ movq(value, Address(value, TIMES_2, Mint::value_offset()));
+    __ Bind(&done);
   } else {
     const Register box = locs()->in(0).reg();
     Label* deopt =

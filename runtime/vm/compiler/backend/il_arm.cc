@@ -3895,6 +3895,22 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitLoadFromBox(compiler);
   } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
     EmitSmiConversion(compiler);
+  } else if (FLAG_experimental_strong_mode &&
+             (representation() == kUnboxedDouble) &&
+             value()->Type()->IsNullableDouble()) {
+    EmitLoadFromBox(compiler);
+  } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
+             (representation() == kUnboxedInt64) &&
+             value()->Type()->IsNullableInt()) {
+    const Register box = locs()->in(0).reg();
+    PairLocation* result = locs()->out(0).AsPairLocation();
+    ASSERT(result->At(0).reg() != box);
+    ASSERT(result->At(1).reg() != box);
+    Label done;
+    __ SignFill(result->At(1).reg(), box);
+    __ SmiUntag(result->At(0).reg(), box, &done);
+    EmitLoadFromBox(compiler);
+    __ Bind(&done);
   } else {
     const Register box = locs()->in(0).reg();
     const Register temp = locs()->temp(0).reg();

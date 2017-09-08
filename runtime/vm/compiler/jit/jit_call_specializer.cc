@@ -43,6 +43,11 @@ bool JitCallSpecializer::IsAllowedForInlining(intptr_t deopt_id) const {
   return true;
 }
 
+bool JitCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
+    StaticCallInstr* call) {
+  return false;
+}
+
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 // TODO(dartbug.com/30635) Evaluate how much this can be shared with

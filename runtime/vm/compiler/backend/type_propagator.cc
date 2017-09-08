@@ -1035,7 +1035,7 @@ CompileType InstanceCallInstr::ComputeType() const {
   if (FLAG_experimental_strong_mode) {
     const Function& target = interface_target();
     if (!target.IsNull()) {
-      // TODO(alexmarkov): instantiate generic result_type
+      // TODO(dartbug.com/30480): instantiate generic result_type
       const AbstractType& result_type =
           AbstractType::ZoneHandle(target.result_type());
       TraceStrongModeType(this, result_type);
@@ -1243,9 +1243,17 @@ CompileType UnaryInt64OpInstr::ComputeType() const {
 
 CompileType CheckedSmiOpInstr::ComputeType() const {
   if (FLAG_experimental_strong_mode) {
-    CompileType* type = call()->Type();
-    TraceStrongModeType(this, type);
-    return *type;
+    if (left()->Type()->IsNullableInt() && right()->Type()->IsNullableInt()) {
+      const AbstractType& abstract_type =
+          AbstractType::ZoneHandle(Type::IntType());
+      TraceStrongModeType(this, abstract_type);
+      return CompileType::FromAbstractType(abstract_type,
+                                           CompileType::kNonNullable);
+    } else {
+      CompileType* type = call()->Type();
+      TraceStrongModeType(this, type);
+      return *type;
+    }
   }
   return CompileType::Dynamic();
 }

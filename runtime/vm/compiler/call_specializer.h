@@ -99,6 +99,8 @@ class CallSpecializer : public FlowGraphVisitor {
 
   virtual bool IsAllowedForInlining(intptr_t deopt_id) const = 0;
 
+  virtual bool TryOptimizeStaticCallUsingStaticTypes(StaticCallInstr* call) = 0;
+
  private:
   bool TypeCheckAsClassEquality(const AbstractType& type);
 
@@ -133,6 +135,9 @@ class CallSpecializer : public FlowGraphVisitor {
   RawBool* InstanceOfAsBool(const ICData& ic_data,
                             const AbstractType& type,
                             ZoneGrowableArray<intptr_t>* results) const;
+
+  bool TryOptimizeInstanceOfUsingStaticTypes(InstanceCallInstr* call,
+                                             const AbstractType& type);
 
   void ReplaceWithMathCFunction(InstanceCallInstr* call,
                                 MethodRecognizer::Kind recognized_kind);

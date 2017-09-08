@@ -26,6 +26,8 @@ class JitCallSpecializer : public CallSpecializer {
  private:
   virtual bool IsAllowedForInlining(intptr_t deopt_id) const;
 
+  virtual bool TryOptimizeStaticCallUsingStaticTypes(StaticCallInstr* call);
+
   DISALLOW_COPY_AND_ASSIGN(JitCallSpecializer);
 };
 

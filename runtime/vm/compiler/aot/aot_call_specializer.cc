@@ -261,6 +261,185 @@ bool AotCallSpecializer::TryInlineFieldAccess(InstanceCallInstr* call) {
   return false;
 }
 
+bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
+    InstanceCallInstr* instr) {
+  ASSERT(FLAG_experimental_strong_mode);
+
+  const intptr_t receiver_index = instr->FirstArgIndex();
+  const Token::Kind op_kind = instr->token_kind();
+  Definition* replacement = NULL;
+
+  switch (op_kind) {
+    case Token::kEQ:
+    case Token::kNE:
+    case Token::kLT:
+    case Token::kLTE:
+    case Token::kGT:
+    case Token::kGTE: {
+      Value* left_value = instr->PushArgumentAt(receiver_index)->value();
+      Value* right_value = instr->PushArgumentAt(receiver_index + 1)->value();
+      CompileType* left_type = left_value->Type();
+      CompileType* right_type = right_value->Type();
+      if (left_type->IsNullableInt() && right_type->IsNullableInt()) {
+        if (FLAG_limit_ints_to_64_bits &&
+            FlowGraphCompiler::SupportsUnboxedMints()) {
+          if (Token::IsRelationalOperator(op_kind)) {
+            replacement = new (Z) RelationalOpInstr(
+                instr->token_pos(), op_kind, left_value->CopyWithType(Z),
+                right_value->CopyWithType(Z), kMintCid, Thread::kNoDeoptId);
+
+          } else {
+            replacement = new (Z) EqualityCompareInstr(
+                instr->token_pos(), op_kind, left_value->CopyWithType(Z),
+                right_value->CopyWithType(Z), kMintCid, Thread::kNoDeoptId);
+          }
+          // TODO(dartbug.com/30480): Enable comparisons with Smi.
+        } else if (false &&
+                   ((op_kind == Token::kEQ) || (op_kind == Token::kNE)) &&
+                   ((left_type->ToCid() == kSmiCid) ||
+                    (right_type->ToCid() == kSmiCid))) {
+          replacement = new (Z) StrictCompareInstr(
+              instr->token_pos(),
+              (op_kind == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
+              left_value->CopyWithType(Z), right_value->CopyWithType(Z),
+              /* number_check = */ false, Thread::kNoDeoptId);
+        } else {
+          replacement = new (Z) CheckedSmiComparisonInstr(
+              instr->token_kind(), left_value->CopyWithType(Z),
+              right_value->CopyWithType(Z), instr);
+        }
+      }
+      break;
+    }
+    case Token::kSHL:
+    case Token::kSHR:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+    case Token::kBIT_AND:
+    case Token::kADD:
+    case Token::kSUB:
+    case Token::kMUL: {
+      Value* left_value = instr->PushArgumentAt(receiver_index)->value();
+      Value* right_value = instr->PushArgumentAt(receiver_index + 1)->value();
+      CompileType* left_type = left_value->Type();
+      CompileType* right_type = right_value->Type();
+      if (left_type->IsNullableInt() && right_type->IsNullableInt()) {
+        if (FLAG_limit_ints_to_64_bits &&
+            FlowGraphCompiler::SupportsUnboxedMints()) {
+          if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
+            // TODO(dartbug.com/30480): Enable 64-bit integer shifts.
+            // replacement = new ShiftInt64OpInstr(
+            //     op_kind, left_value->CopyWithType(Z),
+            //     right_value->CopyWithType(Z), Thread::kNoDeoptId);
+            replacement =
+                new (Z) CheckedSmiOpInstr(op_kind, left_value->CopyWithType(Z),
+                                          right_value->CopyWithType(Z), instr);
+          } else {
+            replacement = new BinaryInt64OpInstr(
+                op_kind, left_value->CopyWithType(Z),
+                right_value->CopyWithType(Z), Thread::kNoDeoptId);
+          }
+        } else {
+          replacement =
+              new (Z) CheckedSmiOpInstr(op_kind, left_value->CopyWithType(Z),
+                                        right_value->CopyWithType(Z), instr);
+        }
+      } else if (FlowGraphCompiler::SupportsUnboxedDoubles() &&
+                 (left_type->IsNullableDouble() ||
+                  (left_type->ToCid() == kSmiCid)) &&
+                 (right_type->IsNullableDouble() ||
+                  (right_type->ToCid() == kSmiCid))) {
+        // TODO(dartbug.com/30480): Extend double/int mixed cases from Smi to
+        // AbstractInt (it requires corresponding conversions).
+        ASSERT(left_type->IsNullableDouble() || right_type->IsNullableDouble());
+        if ((op_kind == Token::kADD) || (op_kind == Token::kSUB) ||
+            (op_kind == Token::kMUL)) {
+          if (left_type->ToCid() == kSmiCid) {
+            Definition* smi_to_double = new (Z) SmiToDoubleInstr(
+                left_value->CopyWithType(Z), instr->token_pos());
+            InsertBefore(instr, smi_to_double, NULL, FlowGraph::kValue);
+            left_value = new (Z) Value(smi_to_double);
+          } else {
+            left_value = left_value->CopyWithType(Z);
+          }
+          if (right_type->ToCid() == kSmiCid) {
+            Definition* smi_to_double = new (Z) SmiToDoubleInstr(
+                right_value->CopyWithType(Z), instr->token_pos());
+            InsertBefore(instr, smi_to_double, NULL, FlowGraph::kValue);
+            right_value = new (Z) Value(smi_to_double);
+          } else {
+            right_value = right_value->CopyWithType(Z);
+          }
+          replacement = new (Z)
+              BinaryDoubleOpInstr(op_kind, left_value, right_value,
+                                  Thread::kNoDeoptId, instr->token_pos());
+        }
+      }
+      break;
+    }
+
+    default:
+      break;
+  }
+
+  if (replacement != NULL) {
+    if (FLAG_trace_experimental_strong_mode) {
+      THR_Print("[Strong mode] Optimization: replacing %s with %s\n",
+                instr->ToCString(), replacement->ToCString());
+    }
+    ReplaceCall(instr, replacement);
+    return true;
+  }
+
+  return false;
+}
+
+bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
+    StaticCallInstr* call) {
+  ASSERT(FLAG_experimental_strong_mode);
+  Definition* replacement = NULL;
+
+  if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
+    const Class& owner = Class::Handle(Z, call->function().Owner());
+    // Recognize double operators here as devirtualization can convert
+    // instance calls of double operators into static calls.
+    if (owner.id() == kDoubleCid) {
+      RawString* name = call->function().name();
+      Token::Kind op_kind = Token::kILLEGAL;
+      if (name == Symbols::Plus().raw()) {
+        op_kind = Token::kADD;
+      } else if (name == Symbols::Minus().raw()) {
+        op_kind = Token::kSUB;
+      } else if (name == Symbols::Star().raw()) {
+        op_kind = Token::kMUL;
+      }
+      // TODO(dartbug.com/30480): Handle more double operations.
+      if (op_kind != Token::kILLEGAL) {
+        ASSERT(call->FirstArgIndex() == 0);
+        Value* left_value = call->PushArgumentAt(0)->value();
+        Value* right_value = call->PushArgumentAt(1)->value();
+        if (right_value->Type()->IsNullableDouble()) {
+          replacement = new (Z)
+              BinaryDoubleOpInstr(op_kind, left_value->CopyWithType(Z),
+                                  right_value->CopyWithType(Z),
+                                  Thread::kNoDeoptId, call->token_pos());
+        }
+      }
+    }
+  }
+
+  if (replacement != NULL) {
+    if (FLAG_trace_experimental_strong_mode) {
+      THR_Print("[Strong mode] Optimization: replacing %s with %s\n",
+                call->ToCString(), replacement->ToCString());
+    }
+    ReplaceCall(call, replacement);
+    return true;
+  }
+
+  return false;
+}
+
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 // TODO(dartbug.com/30635) Evaluate how much this can be shared with
@@ -327,6 +506,11 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     }
   }
 
+  if (FLAG_experimental_strong_mode &&
+      TryOptimizeInstanceCallUsingStaticTypes(instr)) {
+    return;
+  }
+
   bool has_one_target = number_of_checks > 0 && unary_checks.HasOneTarget();
   if (has_one_target) {
     // Check if the single target is a polymorphic target, if it is,
@@ -348,6 +532,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
       return;
     }
   }
+
   switch (instr->token_kind()) {
     case Token::kEQ:
     case Token::kNE:

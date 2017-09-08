@@ -171,6 +171,29 @@ class CompileType : public ZoneAllocated {
              (type_->Equals(Type::Handle(Type::Int64Type())))));
   }
 
+  /// Returns true if value of this type is either int or null.
+  bool IsNullableInt() {
+    if ((cid_ == kSmiCid) || (cid_ == kMintCid) || (cid_ == kBigintCid)) {
+      return true;
+    }
+    if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
+      return (type_ != NULL) && ((type_->IsIntType() || type_->IsInt64Type() ||
+                                  type_->IsSmiType()));
+    }
+    return false;
+  }
+
+  /// Returns true if value of this type is either double or null.
+  bool IsNullableDouble() {
+    if (cid_ == kDoubleCid) {
+      return true;
+    }
+    if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
+      return (type_ != NULL) && type_->IsDoubleType();
+    }
+    return false;
+  }
+
   void PrintTo(BufferFormatter* f) const;
   const char* ToCString() const;
 
@@ -4850,6 +4873,18 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
     if (CanConvertSmi() && (value_cid == kSmiCid)) {
       return false;
+    }
+
+    if (FLAG_experimental_strong_mode) {
+      if ((representation() == kUnboxedDouble) &&
+          value()->Type()->IsNullableDouble()) {
+        return false;
+      }
+
+      if (FLAG_limit_ints_to_64_bits && (representation() == kUnboxedInt64) &&
+          value()->Type()->IsNullableInt()) {
+        return false;
+      }
     }
 
     return true;

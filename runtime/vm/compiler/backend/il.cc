@@ -1235,6 +1235,9 @@ bool UnboxInt32Instr::ComputeCanDeoptimize() const {
     // Note: we don't support truncation of Bigint values.
     return !RangeUtils::Fits(value()->definition()->range(),
                              RangeBoundary::kRangeBoundaryInt32);
+  } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
+             value()->Type()->IsNullableInt()) {
+    return false;
   } else {
     return true;
   }
@@ -1243,7 +1246,9 @@ bool UnboxInt32Instr::ComputeCanDeoptimize() const {
 bool UnboxUint32Instr::ComputeCanDeoptimize() const {
   ASSERT(is_truncating());
   if ((value()->Type()->ToCid() == kSmiCid) ||
-      (value()->Type()->ToCid() == kMintCid)) {
+      (value()->Type()->ToCid() == kMintCid) ||
+      (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
+       value()->Type()->IsNullableInt())) {
     return false;
   }
   // Check input value's range.

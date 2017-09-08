@@ -1264,6 +1264,33 @@ bool CallSpecializer::TryReplaceInstanceOfWithRangeCheck(
   return false;
 }
 
+bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
+    InstanceCallInstr* call,
+    const AbstractType& type) {
+  ASSERT(FLAG_experimental_strong_mode);
+  ASSERT(Token::IsTypeTestOperator(call->token_kind()));
+
+  const intptr_t receiver_index = call->FirstArgIndex();
+  Value* left_value = call->PushArgumentAt(receiver_index)->value();
+
+  if (left_value->Type()->IsMoreSpecificThan(type)) {
+    Definition* replacement = new (Z) StrictCompareInstr(
+        call->token_pos(), Token::kNE_STRICT, left_value->CopyWithType(Z),
+        new (Z) Value(flow_graph()->constant_null()),
+        /* number_check = */ false, Thread::kNoDeoptId);
+    if (FLAG_trace_experimental_strong_mode) {
+      THR_Print("[Strong mode] replacing %s with %s (%s < %s)\n",
+                call->ToCString(), replacement->ToCString(),
+                left_value->Type()->ToAbstractType()->ToCString(),
+                type.ToCString());
+    }
+    ReplaceCall(call, replacement);
+    return true;
+  }
+
+  return false;
+}
+
 void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
   Definition* left = call->ArgumentAt(0);
@@ -1280,6 +1307,11 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     instantiator_type_args = call->ArgumentAt(1);
     function_type_args = call->ArgumentAt(2);
     type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).raw();
+  }
+
+  if (FLAG_experimental_strong_mode &&
+      TryOptimizeInstanceOfUsingStaticTypes(call, type)) {
+    return;
   }
 
   if (TypeCheckAsClassEquality(type)) {
@@ -1455,6 +1487,11 @@ void CallSpecializer::ReplaceWithTypeCast(InstanceCallInstr* call) {
 }
 
 void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
+  if (FLAG_experimental_strong_mode &&
+      TryOptimizeStaticCallUsingStaticTypes(call)) {
+    return;
+  }
+
   if (!IsAllowedForInlining(call->deopt_id())) {
     // Inlining disabled after a speculative inlining attempt.
     return;
