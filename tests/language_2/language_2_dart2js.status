@@ -763,9 +763,11 @@ vm/async_await_catch_stacktrace_test: Crash # RangeError (index): Invalid value:
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 typedef_is_test: Crash
+inline_super_field_test: Crash
+
+[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 infinite_switch_label_test: Crash
 infinity_test: RuntimeError
-inline_super_field_test: Crash
 
 [ $compiler == dart2js && ! $dart2js_with_kernel && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
