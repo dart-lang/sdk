@@ -4824,10 +4824,6 @@ LocalVariable* StreamingFlowGraphBuilder::MakeTemporary() {
   return flow_graph_builder_->MakeTemporary();
 }
 
-Token::Kind StreamingFlowGraphBuilder::MethodKind(const String& name) {
-  return flow_graph_builder_->MethodKind(name);
-}
-
 RawFunction* StreamingFlowGraphBuilder::LookupMethodByMember(
     NameIndex target,
     const String& method_name) {
@@ -5471,7 +5467,8 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     SkipExpression();  // read receiver (it's just a number literal).
 
     const String& name = ReadNameAsMethodName();  // read name.
-    const Token::Kind token_kind = MethodKind(name);
+    const Token::Kind token_kind =
+        MethodTokenRecognizer::RecognizeTokenKind(name);
     intptr_t argument_count = PeekArgumentsCount() + 1;
 
     if ((argument_count == 1) && (token_kind == Token::kNEGATE)) {
@@ -5498,7 +5495,8 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   Fragment instructions = BuildExpression();  // read receiver.
 
   const String& name = ReadNameAsMethodName();  // read name.
-  const Token::Kind token_kind = MethodKind(name);
+  const Token::Kind token_kind =
+      MethodTokenRecognizer::RecognizeTokenKind(name);
 
   // Detect comparison with null.
   if ((token_kind == Token::kEQ || token_kind == Token::kNE) &&
@@ -5569,7 +5567,8 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
   NameIndex kernel_name =
       ReadCanonicalNameReference();  // read target_reference.
   const String& method_name = H.DartProcedureName(kernel_name);
-  const Token::Kind token_kind = MethodKind(method_name);
+  const Token::Kind token_kind =
+      MethodTokenRecognizer::RecognizeTokenKind(method_name);
 
   // Detect comparison with null.
   if ((token_kind == Token::kEQ || token_kind == Token::kNE) &&

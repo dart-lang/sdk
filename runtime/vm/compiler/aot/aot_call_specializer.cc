@@ -404,17 +404,11 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
     // Recognize double operators here as devirtualization can convert
     // instance calls of double operators into static calls.
     if (owner.id() == kDoubleCid) {
-      RawString* name = call->function().name();
-      Token::Kind op_kind = Token::kILLEGAL;
-      if (name == Symbols::Plus().raw()) {
-        op_kind = Token::kADD;
-      } else if (name == Symbols::Minus().raw()) {
-        op_kind = Token::kSUB;
-      } else if (name == Symbols::Star().raw()) {
-        op_kind = Token::kMUL;
-      }
+      const String& name = String::Handle(Z, call->function().name());
+      Token::Kind op_kind = MethodTokenRecognizer::RecognizeTokenKind(name);
       // TODO(dartbug.com/30480): Handle more double operations.
-      if (op_kind != Token::kILLEGAL) {
+      if ((op_kind == Token::kADD) || (op_kind == Token::kSUB) ||
+          (op_kind == Token::kMUL)) {
         ASSERT(call->FirstArgIndex() == 0);
         Value* left_value = call->PushArgumentAt(0)->value();
         Value* right_value = call->PushArgumentAt(1)->value();

@@ -3097,42 +3097,53 @@ static const StubEntry* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
 #else
 static void TryFastPathSmiOp(FlowGraphCompiler* compiler,
                              ICData* call_ic_data,
-                             const String& name) {
+                             Token::Kind op_kind) {
   if (!FLAG_two_args_smi_icd) {
     return;
   }
-  if (name.raw() == Symbols::Plus().raw()) {
-    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-      __ AddTOS();
-    }
-  } else if (name.raw() == Symbols::Minus().raw()) {
-    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-      __ SubTOS();
-    }
-  } else if (name.raw() == Symbols::EqualOperator().raw()) {
-    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-      __ EqualTOS();
-    }
-  } else if (name.raw() == Symbols::LAngleBracket().raw()) {
-    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-      __ LessThanTOS();
-    }
-  } else if (name.raw() == Symbols::RAngleBracket().raw()) {
-    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-      __ GreaterThanTOS();
-    }
-  } else if (name.raw() == Symbols::BitAnd().raw()) {
-    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-      __ BitAndTOS();
-    }
-  } else if (name.raw() == Symbols::BitOr().raw()) {
-    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-      __ BitOrTOS();
-    }
-  } else if (name.raw() == Symbols::Star().raw()) {
-    if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-      __ MulTOS();
-    }
+  switch (op_kind) {
+    case Token::kADD:
+      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+        __ AddTOS();
+      }
+      break;
+    case Token::kSUB:
+      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+        __ SubTOS();
+      }
+      break;
+    case Token::kEQ:
+      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+        __ EqualTOS();
+      }
+      break;
+    case Token::kLT:
+      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+        __ LessThanTOS();
+      }
+      break;
+    case Token::kGT:
+      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+        __ GreaterThanTOS();
+      }
+      break;
+    case Token::kBIT_AND:
+      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+        __ BitAndTOS();
+      }
+      break;
+    case Token::kBIT_OR:
+      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+        __ BitOrTOS();
+      }
+      break;
+    case Token::kMUL:
+      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
+        __ MulTOS();
+      }
+      break;
+    default:
+      break;
   }
 }
 #endif
@@ -3192,7 +3203,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // instruction otherwise it falls through. Only attempt in unoptimized code
   // because TryFastPathSmiOp will update original_ic_data.
   if (!compiler->is_optimizing()) {
-    TryFastPathSmiOp(compiler, original_ic_data, function_name());
+    TryFastPathSmiOp(compiler, original_ic_data, token_kind());
   }
 
   const intptr_t call_ic_data_kidx = __ AddConstant(*original_ic_data);

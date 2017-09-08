@@ -884,7 +884,6 @@ class StreamingFlowGraphBuilder {
                                        intptr_t parameter_index);
   LocalVariable* LookupVariable(intptr_t kernel_offset);
   LocalVariable* MakeTemporary();
-  Token::Kind MethodKind(const String& name);
   RawFunction* LookupMethodByMember(NameIndex target,
                                     const String& method_name);
 

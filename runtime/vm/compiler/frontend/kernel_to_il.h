@@ -622,8 +622,6 @@ class FlowGraphBuilder {
 
   bool IsInlining() { return exit_collector_ != NULL; }
 
-  Token::Kind MethodKind(const String& name);
-
   void InlineBailout(const char* reason);
 
   TranslationHelper translation_helper_;

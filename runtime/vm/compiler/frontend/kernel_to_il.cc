@@ -1586,56 +1586,6 @@ Fragment FlowGraphBuilder::Drop() {
   return instructions;
 }
 
-// TODO(27590): This method should be shared with
-// runtime/vm/object.cc:RecognizeArithmeticOp.
-Token::Kind FlowGraphBuilder::MethodKind(const String& name) {
-  ASSERT(name.IsSymbol());
-  if (name.raw() == Symbols::Plus().raw()) {
-    return Token::kADD;
-  } else if (name.raw() == Symbols::Minus().raw()) {
-    return Token::kSUB;
-  } else if (name.raw() == Symbols::Star().raw()) {
-    return Token::kMUL;
-  } else if (name.raw() == Symbols::Slash().raw()) {
-    return Token::kDIV;
-  } else if (name.raw() == Symbols::TruncDivOperator().raw()) {
-    return Token::kTRUNCDIV;
-  } else if (name.raw() == Symbols::Percent().raw()) {
-    return Token::kMOD;
-  } else if (name.raw() == Symbols::BitOr().raw()) {
-    return Token::kBIT_OR;
-  } else if (name.raw() == Symbols::Ampersand().raw()) {
-    return Token::kBIT_AND;
-  } else if (name.raw() == Symbols::Caret().raw()) {
-    return Token::kBIT_XOR;
-  } else if (name.raw() == Symbols::LeftShiftOperator().raw()) {
-    return Token::kSHL;
-  } else if (name.raw() == Symbols::RightShiftOperator().raw()) {
-    return Token::kSHR;
-  } else if (name.raw() == Symbols::Tilde().raw()) {
-    return Token::kBIT_NOT;
-  } else if (name.raw() == Symbols::UnaryMinus().raw()) {
-    return Token::kNEGATE;
-  } else if (name.raw() == Symbols::EqualOperator().raw()) {
-    return Token::kEQ;
-  } else if (name.raw() == Symbols::Token(Token::kNE).raw()) {
-    return Token::kNE;
-  } else if (name.raw() == Symbols::LAngleBracket().raw()) {
-    return Token::kLT;
-  } else if (name.raw() == Symbols::RAngleBracket().raw()) {
-    return Token::kGT;
-  } else if (name.raw() == Symbols::LessEqualOperator().raw()) {
-    return Token::kLTE;
-  } else if (name.raw() == Symbols::GreaterEqualOperator().raw()) {
-    return Token::kGTE;
-  } else if (Field::IsGetterName(name)) {
-    return Token::kGET;
-  } else if (Field::IsSetterName(name)) {
-    return Token::kSET;
-  }
-  return Token::kILLEGAL;
-}
-
 void FlowGraphBuilder::InlineBailout(const char* reason) {
   bool is_inlining = exit_collector_ != NULL;
   if (is_inlining) {
