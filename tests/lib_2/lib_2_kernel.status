@@ -32,6 +32,9 @@ mirrors/invocation_fuzz_test/false: Crash
 mirrors/invocation_fuzz_test/none: Crash
 mirrors/invocation_fuzz_test/smi: RuntimeError
 mirrors/invocation_fuzz_test/string: Crash
+mirrors/invoke_private_test: RuntimeError
+mirrors/invoke_private_wrong_library_test: RuntimeError
+mirrors/invoke_throws_test: Crash
 mirrors/library_declarations_test/none: RuntimeError
 mirrors/library_exports_hidden_test: RuntimeError
 mirrors/library_exports_hidden_test: RuntimeError
@@ -109,6 +112,9 @@ mirrors/invocation_fuzz_test/false: Crash
 mirrors/invocation_fuzz_test/none: Crash
 mirrors/invocation_fuzz_test/smi: Crash
 mirrors/invocation_fuzz_test/string: Crash
+mirrors/invoke_private_test: RuntimeError
+mirrors/invoke_private_wrong_library_test: RuntimeError
+mirrors/invoke_throws_test: RuntimeError
 mirrors/library_enumeration_deferred_loading_test: RuntimeError
 mirrors/library_metadata_test: RuntimeError
 mirrors/list_constructor_test/01: RuntimeError

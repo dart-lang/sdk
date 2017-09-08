@@ -11,7 +11,7 @@ import 'package:expect/expect.dart';
 import 'stringify.dart';
 
 class Foo {
-  static var hello = {
+  static dynamic hello = {
     'a': 'b',
     'c': 'd',
   };
