@@ -199,12 +199,7 @@ mirrors/library_uri_io_test: DartkCompileTimeError
 mirrors/library_uri_package_test: DartkCompileTimeError
 mirrors/list_constructor_test/01: RuntimeError
 mirrors/list_constructor_test/none: RuntimeError
-mirrors/metadata_constructed_constant_test: RuntimeError
 mirrors/metadata_test: RuntimeError
-mirrors/method_mirror_location_test: RuntimeError
-mirrors/method_mirror_returntype_test: RuntimeError
-mirrors/method_mirror_source_line_ending_test: Crash
-mirrors/method_mirror_source_test: Crash
 mirrors/mirrors_reader_test: Crash
 mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
 mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
