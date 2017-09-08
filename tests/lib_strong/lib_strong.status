@@ -150,7 +150,6 @@ async/futures_test: RuntimeError # Issue 29922
 async/timer_not_available_test: RuntimeError # Issue 29922
 async/zone_error_callback_test: RuntimeError # Issue 29922
 async/zone_run_unary_test: RuntimeError # Issue 29922
-convert/streamed_conversion_utf8_encode_test: Pass, Timeout # Issue 29922
 html/async_spawnuri_test: RuntimeError # Issue 29922
 html/async_test: RuntimeError # Issue 29922
 html/custom_element_method_clash_test: Skip # Issue 29922
@@ -251,7 +250,6 @@ async/stream_subscription_as_future_test: RuntimeError # Issue 29922, strong mod
 async/stream_transformer_from_handlers_test: RuntimeError # Issue 29922, strong mode cast failure
 async/zone_bind_callback_test: RuntimeError # Issue 29922, strong mode cast failure
 async/zone_register_callback_test: RuntimeError # Issue 29922, strong mode cast failure
-convert/streamed_conversion_utf8_encode_test: RuntimeError # Issue 29922, strong mode cast failure
 html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure
 html/indexeddb_2_test: RuntimeError, Timeout # Issue 29922, strong mode cast failure
 html/xhr_test/xhr: RuntimeError # Issue 29922, strong mode cast failure

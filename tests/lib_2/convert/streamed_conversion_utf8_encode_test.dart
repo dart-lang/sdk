@@ -10,7 +10,7 @@ import "package:async_helper/async_helper.dart";
 
 Stream<List<int>> encode(String string, int chunkSize) {
   var controller;
-  controller = new StreamController(onListen: () {
+  controller = new StreamController<String>(onListen: () {
     int i = 0;
     while (i < string.length) {
       if (i + chunkSize <= string.length) {
@@ -38,7 +38,7 @@ void testUnpaused(List<int> expected, Stream stream) {
 
 void testWithPauses(List<int> expected, Stream stream) {
   asyncStart();
-  var combined = [];
+  var combined = <int>[];
   var sub;
   sub = stream.listen((x) {
     combined.addAll(x);

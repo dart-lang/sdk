@@ -11,10 +11,11 @@ async/future_or_bad_type_test/implements: RuntimeError # Issue 29922
 async/future_test: RuntimeError # Issue 29922
 async/futures_test: RuntimeError # Issue 29922
 async/slow_consumer_test: Pass, Timeout # Issue 29922
-math/random_big_test: RuntimeError # Issue 29922
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by DDC/dart2js.
+convert/streamed_conversion_json_utf8_encode_test: Pass, Timeout # Issue 29922
+convert/streamed_conversion_utf8_encode_test: Pass, Timeout # Issue 29922
+convert/streamed_conversion_utf8_decode_test: Pass, Timeout # Issue 29922
+math/random_big_test: RuntimeError # Issue 29922
 typed_data/int32x4_bigint_test: RuntimeError # Issue 29922
 typed_data/int64_list_load_store_test: RuntimeError # Issue 29922
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 29922
-convert/streamed_conversion_json_utf8_encode_test: Pass, Timeout # Issue 29922
-convert/streamed_conversion_utf8_decode_test: Pass, Timeout # Issue 29922
