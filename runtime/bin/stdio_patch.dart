@@ -74,6 +74,10 @@ class Stdin {
 
   @patch
   void set echoMode(bool enabled) {
+    if (!_EmbedderConfig._maySetEchoMode) {
+      throw new UnsupportedError(
+          "This embedder disallows setting Stdin.echoMode");
+    }
     var result = _setEchoMode(enabled);
     if (result is OSError) {
       throw new StdinException("Error setting terminal echo mode", result);
@@ -91,6 +95,10 @@ class Stdin {
 
   @patch
   void set lineMode(bool enabled) {
+    if (!_EmbedderConfig._maySetLineMode) {
+      throw new UnsupportedError(
+          "This embedder disallows setting Stdin.lineMode");
+    }
     var result = _setLineMode(enabled);
     if (result is OSError) {
       throw new StdinException("Error setting terminal line mode", result);

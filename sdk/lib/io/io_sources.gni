@@ -12,6 +12,7 @@ io_sdk_sources = [
   "data_transformer.dart",
   "directory.dart",
   "directory_impl.dart",
+  "embedder_config.dart",
   "eventhandler.dart",
   "file.dart",
   "file_impl.dart",

@@ -210,6 +210,7 @@ part 'crypto.dart';
 part 'data_transformer.dart';
 part 'directory.dart';
 part 'directory_impl.dart';
+part 'embedder_config.dart';
 part 'eventhandler.dart';
 part 'file.dart';
 part 'file_impl.dart';

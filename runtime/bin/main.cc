@@ -597,6 +597,13 @@ static bool ProcessNamespaceOption(const char* arg,
   return true;
 }
 
+static bool commandline_exit_disabled = false;
+static bool ProcessExitDisabledOption(const char* arg,
+                                      CommandLineOptions* vm_options) {
+  commandline_exit_disabled = true;
+  return true;
+}
+
 static struct {
   const char* option_name;
   bool (*process)(const char* option, CommandLineOptions* vm_options);
@@ -639,6 +646,7 @@ static struct {
     {"--root-certs-file=", ProcessRootCertsFileOption},
     {"--root-certs-cache=", ProcessRootCertsCacheOption},
     {"--namespace=", ProcessNamespaceOption},
+    {"--disable-exit", ProcessExitDisabledOption},
     {NULL, NULL}};
 
 static bool ProcessMainOptions(const char* option,
@@ -928,7 +936,8 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   CHECK_RESULT(result);
 
   if (isolate_run_app_snapshot) {
-    result = DartUtils::SetupIOLibrary(commandline_namespace, script_uri);
+    result = DartUtils::SetupIOLibrary(commandline_namespace, script_uri,
+                                       commandline_exit_disabled);
     CHECK_RESULT(result);
     Loader::InitForSnapshot(script_uri);
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -964,7 +973,8 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
                        Dart_GetMainPortId(), Dart_Timeline_Event_Async_End, 0,
                        NULL, NULL);
 
-    result = DartUtils::SetupIOLibrary(commandline_namespace, script_uri);
+    result = DartUtils::SetupIOLibrary(commandline_namespace, script_uri,
+                                       commandline_exit_disabled);
     CHECK_RESULT(result);
   }
 
@@ -1483,6 +1493,7 @@ static Dart_QualifiedFunctionName standalone_entry_points[] = {
     {"dart:io", "OSError", "OSError."},
     {"dart:io", "TlsException", "TlsException."},
     {"dart:io", "X509Certificate", "X509Certificate._"},
+    {"dart:io", "_EmbedderConfig", "_mayExit"},
     {"dart:io", "_ExternalBuffer", "get:end"},
     {"dart:io", "_ExternalBuffer", "get:start"},
     {"dart:io", "_ExternalBuffer", "set:data"},

@@ -531,7 +531,8 @@ Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,
 }
 
 Dart_Handle DartUtils::SetupIOLibrary(const char* namespc_path,
-                                      const char* script_uri) {
+                                      const char* script_uri,
+                                      bool disable_exit) {
   Dart_Handle io_lib_url = NewString(kIOLibURL);
   RETURN_IF_ERROR(io_lib_url);
   Dart_Handle io_lib = Dart_LookupLibrary(io_lib_url);
@@ -545,6 +546,15 @@ Dart_Handle DartUtils::SetupIOLibrary(const char* namespc_path,
     RETURN_IF_ERROR(args[0]);
     Dart_Handle result =
         Dart_Invoke(namespc_type, NewString("_setupNamespace"), 1, args);
+    RETURN_IF_ERROR(result);
+  }
+
+  if (disable_exit) {
+    Dart_Handle embedder_config_type =
+        GetDartType(DartUtils::kIOLibURL, "_EmbedderConfig");
+    RETURN_IF_ERROR(embedder_config_type);
+    Dart_Handle result = Dart_SetField(embedder_config_type,
+                                       NewString("_mayExit"), Dart_False());
     RETURN_IF_ERROR(result);
   }
 
