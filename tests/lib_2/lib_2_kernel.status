@@ -32,6 +32,32 @@ mirrors/invocation_fuzz_test/false: Crash
 mirrors/invocation_fuzz_test/none: Crash
 mirrors/invocation_fuzz_test/smi: RuntimeError
 mirrors/invocation_fuzz_test/string: Crash
+mirrors/library_declarations_test/none: RuntimeError
+mirrors/library_exports_hidden_test: RuntimeError
+mirrors/library_exports_hidden_test: RuntimeError
+mirrors/library_exports_shown_test: RuntimeError
+mirrors/library_exports_shown_test: RuntimeError
+mirrors/library_imports_bad_metadata_test/01: MissingCompileTimeError
+mirrors/library_imports_bad_metadata_test/01: MissingCompileTimeError
+mirrors/library_imports_deferred_test: RuntimeError
+mirrors/library_imports_hidden_test: RuntimeError
+mirrors/library_imports_hidden_test: RuntimeError
+mirrors/library_imports_metadata_test: RuntimeError
+mirrors/library_imports_metadata_test: RuntimeError
+mirrors/library_imports_prefixed_show_hide_test: RuntimeError
+mirrors/library_imports_prefixed_show_hide_test: RuntimeError
+mirrors/library_imports_prefixed_show_hide_test: RuntimeError
+mirrors/library_imports_prefixed_test: RuntimeError
+mirrors/library_imports_prefixed_test: RuntimeError
+mirrors/library_imports_shown_test: RuntimeError
+mirrors/library_imports_shown_test: RuntimeError
+mirrors/library_metadata2_test/01: MissingCompileTimeError
+mirrors/library_metadata_test: RuntimeError
+mirrors/list_constructor_test/01: Crash
+mirrors/list_constructor_test/none: Crash
+mirrors/load_library_test: RuntimeError
+mirrors/library_enumeration_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/mirrors_test: Crash
 mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
@@ -83,6 +109,10 @@ mirrors/invocation_fuzz_test/false: Crash
 mirrors/invocation_fuzz_test/none: Crash
 mirrors/invocation_fuzz_test/smi: Crash
 mirrors/invocation_fuzz_test/string: Crash
+mirrors/library_enumeration_deferred_loading_test: RuntimeError
+mirrors/library_metadata_test: RuntimeError
+mirrors/list_constructor_test/01: RuntimeError
+mirrors/list_constructor_test/none: RuntimeError
 mirrors/metadata_constructed_constant_test: RuntimeError
 mirrors/method_mirror_location_test: RuntimeError
 mirrors/method_mirror_source_line_ending_test: Crash

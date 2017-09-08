@@ -179,13 +179,6 @@ mirrors/invoke_private_test: RuntimeError
 mirrors/invoke_private_wrong_library_test: RuntimeError
 mirrors/invoke_test: RuntimeError
 mirrors/invoke_throws_test: RuntimeError
-mirrors/libraries_test: RuntimeError
-mirrors/library_enumeration_deferred_loading_test: RuntimeError
-mirrors/library_metadata_test: RuntimeError
-mirrors/library_uri_io_test: DartkCompileTimeError
-mirrors/library_uri_package_test: DartkCompileTimeError
-mirrors/list_constructor_test/01: RuntimeError
-mirrors/list_constructor_test/none: RuntimeError
 mirrors/metadata_test: RuntimeError
 mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
 mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError

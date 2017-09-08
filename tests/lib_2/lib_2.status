@@ -24,6 +24,10 @@ mirrors/closurization_equivalence_test: SkipByDesign # Method equality
 mirrors/deferred_mirrors_update_test: Crash # Deferred loading
 mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading
 mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
+mirrors/library_enumeration_deferred_loading_test: Crash # Deferred loading
+mirrors/library_imports_deferred_test: Crash # Deferred loading
+mirrors/library_import_deferred_loading_test: Crash # Deferred loading
+mirrors/load_library_test: Crash # Deferred loading
 mirrors/typedef_deferred_library_test: Crash # Deferred loading
 
 [ $runtime == ff ]
@@ -46,3 +50,8 @@ mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
 [ $arch == simarmv5te ]
 mirrors/mirrors_reader_test: Pass, Slow
 mirrors/mirrors_reader_test: Pass, Slow
+
+[ $compiler == none && $mode == product ]
+mirrors/load_library_test: RuntimeError,OK # Deferred loaded eagerly
+mirrors/library_import_deferred_loading_test: RuntimeError,OK # Deferred loaded eagerly
+mirrors/library_enumeration_deferred_loading_test: RuntimeError,OK # Deferred loaded eagerly

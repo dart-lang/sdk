@@ -4,7 +4,6 @@
 
 library test.metadata_test;
 
-@MirrorsUsed(targets: "test.metadata_test")
 import 'dart:mirrors';
 
 const string = 'a metadata string';
