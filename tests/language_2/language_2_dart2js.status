@@ -582,15 +582,17 @@ if_null_assignment_static_test/01: RuntimeError
 if_null_assignment_static_test/03: RuntimeError
 if_null_assignment_static_test/05: RuntimeError
 import_collection_no_prefix_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
+infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 308 pos 12: 'local != null': is not true.
+infinity_test: RuntimeError
+inlined_throw_test: Crash
+instance_creation_in_function_annotation_test: Crash
+instanceof4_test/01: Crash
+instanceof4_test/none: Crash
 regress_30339_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 unused_overridden_async_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 vm/allocation_sinking_vm_test: RuntimeError
 vm/async_await_catch_stacktrace_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-inlined_throw_test: Crash
-instance_creation_in_function_annotation_test: Crash
-instanceof4_test/01: Crash
-instanceof4_test/none: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assert_message_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3

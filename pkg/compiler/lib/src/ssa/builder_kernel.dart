@@ -632,7 +632,18 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _normalizeAndBuildArguments(target.function, initializer.arguments);
 
     ir.Class callerClass = caller.enclosingClass;
-    _bindSupertypeTypeParameters(callerClass.supertype);
+    ir.Supertype supertype = callerClass.supertype;
+
+    // The class of the super-constructor may not be the supertype class. In
+    // this case, we must go up the class hierarchy until we reach the class
+    // containing the super-constructor.
+    while (supertype.classNode != target.enclosingClass) {
+      _bindSupertypeTypeParameters(supertype);
+      supertype = supertype.classNode.supertype;
+    }
+    _bindSupertypeTypeParameters(supertype);
+    supertype = supertype.classNode.supertype;
+
     if (callerClass.mixedInType != null) {
       _bindSupertypeTypeParameters(callerClass.mixedInType);
     }
