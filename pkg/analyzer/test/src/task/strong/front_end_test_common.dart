@@ -253,6 +253,13 @@ abstract class RunFrontEndTest {
    * folder, and return the absolute path of the `pkg` folder.
    */
   String _findPkgRoot() {
+    // If the package root directory is specified on the command line using
+    // -DpkgRoot=..., use it.
+    var pkgRootVar = const String.fromEnvironment('pkgRoot');
+    if (pkgRootVar != null) {
+      return pathos.join(Directory.current.path, pkgRootVar);
+    }
+    // Otherwise try to guess based on the script path.
     String scriptPath = pathos.fromUri(Platform.script);
     List<String> parts = pathos.split(scriptPath);
     for (int i = 0; i < parts.length - 2; i++) {
