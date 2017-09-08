@@ -16,6 +16,7 @@ void main() {
   }
 
   testDecodeSlice();
+  testErrorOffset();
 }
 
 void testDecodeSlice() {
@@ -42,4 +43,40 @@ void testDecodeSlice() {
   Expect.throws(() => decoder.convert(utf8, 1));
   Expect.throws(() => decoder.convert(utf8, 0, 1));
   Expect.throws(() => decoder.convert(utf8, 2, 5));
+}
+
+void testErrorOffset() {
+  // Test that failed convert calls have an offset in the exception.
+  testExn(input, offset) {
+    Expect.throws(() {
+      UTF8.decoder.convert(input);
+    }, (e) => e is FormatException && input == e.source && offset == e.offset);
+  }
+
+  // Bad encoding, points to first bad byte.
+  testExn([0x80, 0x00], 0);
+  testExn([0xC0, 0x00], 1);
+  testExn([0xE0, 0x00], 1);
+  testExn([0xE0, 0x80, 0x00], 2);
+  testExn([0xF0, 0x00], 1);
+  testExn([0xF0, 0x80, 0x00], 2);
+  testExn([0xF0, 0x80, 0x80, 0x00], 3);
+  testExn([0xF8, 0x00], 0);
+  // Short encoding, points to end.
+  testExn([0xC0], 1);
+  testExn([0xE0], 1);
+  testExn([0xE0, 0x80], 2);
+  testExn([0xF0], 1);
+  testExn([0xF0, 0x80], 2);
+  testExn([0xF0, 0x80, 0x80], 3);
+  // Overlong encoding, points to start of encoding.
+  testExn([0xC0, 0x80], 0);
+  testExn([0xC1, 0xBF], 0);
+  testExn([0xE0, 0x80, 0x80], 0);
+  testExn([0xE0, 0x9F, 0xBF], 0);
+  testExn([0xF0, 0x80, 0x80, 0x80], 0);
+  testExn([0xF0, 0x8F, 0xBF, 0xBF], 0);
+  // Invalid character (value too large, over 0x10FFFF).
+  testExn([0xF4, 0x90, 0x80, 0x80], 0);
+  testExn([0xF7, 0xBF, 0xBF, 0xBF], 0);
 }

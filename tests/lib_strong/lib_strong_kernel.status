@@ -3,8 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk && $runtime == vm ]
-convert/utf8_encode_test: DartkCompileTimeError
-convert/utf8_test: DartkCompileTimeError
 html/async_spawnuri_test: DartkCompileTimeError
 html/async_test: DartkCompileTimeError
 html/audiobuffersourcenode_test: DartkCompileTimeError

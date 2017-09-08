@@ -28,3 +28,9 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet 
 
 [ $runtime == vm && $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ]
 convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.
+
+[ $runtime == vm && ( $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ) ]
+convert/utf85_test: Skip  # Pass, Slow Issue 12644.
+
+[ $runtime == vm && $arch == simarm64 ]
+convert/utf85_test: Skip # Pass, Slow Issue 20111.
