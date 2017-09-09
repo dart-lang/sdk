@@ -154,7 +154,6 @@ crypto/test/base64_test: Slow, Pass
 
 [ $runtime == jsshell ]
 async/test/stream_zip_test: RuntimeError, OK # Issue 26103. Timers are not supported.
-lookup_map/test/lookup_map_test: RuntimeError, OK # Issue 26103. Timers are not supported.
 front_end/test/*: RuntimeError, OK, Pass # Issue 26103. Timers are not supported.
 kernel/test/*: RuntimeError, OK # Issue 26103. Timers are not supported.
 
