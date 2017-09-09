@@ -214,7 +214,6 @@ mirrors/typevariable_mirror_metadata_test: RuntimeError # Issue 29922
 mirrors/unnamed_library_test: RuntimeError # Issue 29922
 html/interactive_test: Skip # requests interactive permissions (camera, geolocation)
 
-async/stream_controller_async_test: RuntimeError # Issue 29922, strong mode cast failure
 async/stream_join_test: RuntimeError # Issue 29922, strong mode cast failure
 async/stream_subscription_as_future_test: RuntimeError # Issue 29922, strong mode cast failure
 async/stream_transformer_from_handlers_test: RuntimeError # Issue 29922, strong mode cast failure

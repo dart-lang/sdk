@@ -7,7 +7,7 @@ library stream_controller_async_test;
 
 import 'dart:async';
 import "package:expect/expect.dart";
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'event_helper.dart';
 import 'stream_state_helper.dart';
 
