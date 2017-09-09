@@ -9,6 +9,9 @@ async/schedule_microtask2_test: RuntimeError
 async/schedule_microtask3_test: RuntimeError
 async/schedule_microtask5_test: RuntimeError
 async/stream_controller_async_test: RuntimeError
+async/stream_state_test: RuntimeError
+async/stream_subscription_as_future_test: RuntimeError
+async/stream_subscription_cancel_test: RuntimeError
 convert/json_lib_test: RuntimeError
 math/point_test: RuntimeError
 math/rectangle_test: RuntimeError
