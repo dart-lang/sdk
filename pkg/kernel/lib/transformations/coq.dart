@@ -304,8 +304,7 @@ String abbrev(String S, {bool capitalize: false}) {
 
 void outputCoqImports() {
   print("""
-Require Import String List Coq.FSets.FMapList Coq.Structures.OrderedTypeEx.
-Module Import F := FMapList.Make(Nat_as_OT).
+Require Import Common.
 """);
 }
 
@@ -390,7 +389,7 @@ void outputCoqStore(info) {
   print("Record ast_store : Type := Ast_Store {");
   for (var classInfo in info.classes.values) {
     if (classInfo.refStyle != RefStyle.identified) continue;
-    print("  ${classInfo.abbrevName}_refs : F.t ${classInfo.coqType};");
+    print("  ${classInfo.abbrevName}_refs : NatMap.t ${classInfo.coqType};");
   }
   print("}.\n");
 }
@@ -402,7 +401,7 @@ void outputCoqSyntaxValidity(CoqLibInfo info) {
   validityPredicate(CoqClassInfo CI) {
     if (CI.refStyle == RefStyle.identified) {
       var mapName = "${CI.abbrevName}_refs";
-      return (X) => "F.In $X ($mapName ast)";
+      return (X) => "NatMap.In $X ($mapName ast)";
     } else {
       return (X) => "${CI.coqType}_validity ast $X";
     }
@@ -504,7 +503,7 @@ void outputCoqStoreValidity(CoqLibInfo info) {
     if (CI.refStyle != RefStyle.identified) continue;
     var mapName = "${CI.abbrevName}_refs";
     clauses.add(
-        "  forall (n : nat), forall (X : ${CI.coqType}), F.MapsTo n X ($mapName ast) -> ${CI.coqType}_validity ast X");
+        "  forall (n : nat), forall (X : ${CI.coqType}), NatMap.MapsTo n X ($mapName ast) -> ${CI.coqType}_validity ast X");
   }
   var clause = clauses.join(" /\\\n");
   print(
@@ -523,8 +522,10 @@ Program transformProgram(CoreTypes coreTypes, Program program) {
     outputCoqImports();
     outputCoqSyntax(info);
     outputCoqStore(info);
+    print("Module SyntacticValidity.");
     outputCoqSyntaxValidity(info);
     outputCoqStoreValidity(info);
+    print("End SyntacticValidity.");
   }
   return program;
 }

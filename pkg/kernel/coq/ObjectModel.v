@@ -1,35 +1,10 @@
-(* Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+(* Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
  * for details. All rights reserved. Use of this source code is governed by a
  * BSD-style license that can be found in the LICENSE file. *)
 
-Require Import List.
-Require Import Coq.FSets.FMapWeakList.
-Require Import Coq.Structures.DecidableTypeEx.
-Require Import Coq.Structures.Equalities.
-Require Import Coq.Strings.String.
-
-
-(** * Auxiliary definitions. *)
-
-(** Strings are used as keys in maps of getters, setters, and methods of
-  interface types.  For maps we use the list-based unordered representation,
-  because it only requires decidability on the domain of keys.  [String_as_MDT]
-  and [String_as_UDT] below are auxiliary modules to define [StringMap]. *)
-
-Module String_as_MDT.
-  Definition t := string.
-  Definition eq_dec := string_dec.
-End String_as_MDT.
-
-Module String_as_UDT := Equalities.Make_UDT(String_as_MDT).
-
-(** [NatMap] is used to map type variables to type locations and to map type
-  locations to type values. *)
-Module NatMap := FMapWeakList.Make(Nat_as_DT).
-
-(** [StringMap] is used to map identifiers to getters, setters, and methods. *)
-Module StringMap := FMapWeakList.Make(String_as_UDT).
-
+Require Import Common.
+Import Common.ComputationMonad.
+Module L := Common.ListExtensions.
 
 (** * Type Store. *)
 

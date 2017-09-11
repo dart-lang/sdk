@@ -1,5 +1,4 @@
-Require Import String List Coq.FSets.FMapList Coq.Structures.OrderedTypeEx.
-Module Import F := FMapList.Make(Nat_as_OT).
+Require Import Common.
 
 Inductive named_node_data : Set :=
   | Named_Node : 
@@ -682,12 +681,13 @@ with supertype_option : Set :=
 .
 
 Record ast_store : Type := Ast_Store {
-  r_refs : F.t reference;
-  ls_refs : F.t labeled_statement;
-  vd_refs : F.t variable_declaration;
-  tp_refs : F.t type_parameter;
+  r_refs : NatMap.t reference;
+  ls_refs : NatMap.t labeled_statement;
+  vd_refs : NatMap.t variable_declaration;
+  tp_refs : NatMap.t type_parameter;
 }.
 
+Module SyntacticValidity.
 Fixpoint named_node_validity (ast : ast_store) (T : named_node) {struct T} : Prop :=
   match T with
     | NN_Library ST => library_validity ast ST
@@ -697,7 +697,7 @@ end
 with named_node_data_validity (ast : ast_store) (T : named_node_data) {struct T}: Prop :=
   match T with
     | Named_Node f0 =>
-        F.In f0 (r_refs ast)
+        NatMap.In f0 (r_refs ast)
   end
 with reference_validity (ast : ast_store) (T : reference) {struct T} : Prop :=
   match T with
@@ -717,7 +717,7 @@ with library_validity (ast : ast_store) (T : library) {struct T} : Prop :=
 with library_dependency_validity (ast : ast_store) (T : library_dependency) {struct T} : Prop :=
   match T with
     | Library_Dependency f0 _ f1 =>
-        F.In f0 (r_refs ast) /\
+        NatMap.In f0 (r_refs ast) /\
         combinator_list_validity ast f1
   end
 with combinator_validity (ast : ast_store) (T : combinator) {struct T} : Prop :=
@@ -787,25 +787,25 @@ end
 with field_initializer_validity (ast : ast_store) (T : field_initializer) {struct T} : Prop :=
   match T with
     | Field_Initializer f0 f1 =>
-        F.In f0 (r_refs ast) /\
+        NatMap.In f0 (r_refs ast) /\
         expression_validity ast f1
   end
 with super_initializer_validity (ast : ast_store) (T : super_initializer) {struct T} : Prop :=
   match T with
     | Super_Initializer f0 f1 =>
-        F.In f0 (r_refs ast) /\
+        NatMap.In f0 (r_refs ast) /\
         arguments_validity ast f1
   end
 with redirecting_initializer_validity (ast : ast_store) (T : redirecting_initializer) {struct T} : Prop :=
   match T with
     | Redirecting_Initializer f0 f1 =>
-        F.In f0 (r_refs ast) /\
+        NatMap.In f0 (r_refs ast) /\
         arguments_validity ast f1
   end
 with local_initializer_validity (ast : ast_store) (T : local_initializer) {struct T} : Prop :=
   match T with
     | Local_Initializer f0 =>
-        F.In f0 (vd_refs ast)
+        NatMap.In f0 (vd_refs ast)
   end
 with function_node_validity (ast : ast_store) (T : function_node) {struct T} : Prop :=
   match T with
@@ -852,13 +852,13 @@ end
 with variable_get_validity (ast : ast_store) (T : variable_get) {struct T} : Prop :=
   match T with
     | Variable_Get f0 f1 =>
-        F.In f0 (vd_refs ast) /\
+        NatMap.In f0 (vd_refs ast) /\
         dart_type_option_validity ast f1
   end
 with variable_set_validity (ast : ast_store) (T : variable_set) {struct T} : Prop :=
   match T with
     | Variable_Set f0 f1 =>
-        F.In f0 (vd_refs ast) /\
+        NatMap.In f0 (vd_refs ast) /\
         expression_validity ast f1
   end
 with property_get_validity (ast : ast_store) (T : property_get) {struct T} : Prop :=
@@ -878,20 +878,20 @@ with direct_property_get_validity (ast : ast_store) (T : direct_property_get) {s
   match T with
     | Direct_Property_Get f0 f1 =>
         expression_validity ast f0 /\
-        F.In f1 (r_refs ast)
+        NatMap.In f1 (r_refs ast)
   end
 with direct_property_set_validity (ast : ast_store) (T : direct_property_set) {struct T} : Prop :=
   match T with
     | Direct_Property_Set f0 f1 f2 =>
         expression_validity ast f0 /\
-        F.In f1 (r_refs ast) /\
+        NatMap.In f1 (r_refs ast) /\
         expression_validity ast f2
   end
 with direct_method_invocation_validity (ast : ast_store) (T : direct_method_invocation) {struct T} : Prop :=
   match T with
     | Direct_Method_Invocation f0 f1 f2 =>
         expression_validity ast f0 /\
-        F.In f1 (r_refs ast) /\
+        NatMap.In f1 (r_refs ast) /\
         arguments_validity ast f2
   end
 with super_property_get_validity (ast : ast_store) (T : super_property_get) {struct T} : Prop :=
@@ -908,12 +908,12 @@ with super_property_set_validity (ast : ast_store) (T : super_property_set) {str
 with static_get_validity (ast : ast_store) (T : static_get) {struct T} : Prop :=
   match T with
     | Static_Get f0 =>
-        F.In f0 (r_refs ast)
+        NatMap.In f0 (r_refs ast)
   end
 with static_set_validity (ast : ast_store) (T : static_set) {struct T} : Prop :=
   match T with
     | Static_Set f0 f1 =>
-        F.In f0 (r_refs ast) /\
+        NatMap.In f0 (r_refs ast) /\
         expression_validity ast f1
   end
 with arguments_validity (ast : ast_store) (T : arguments) {struct T} : Prop :=
@@ -952,13 +952,13 @@ with super_method_invocation_validity (ast : ast_store) (T : super_method_invoca
 with static_invocation_validity (ast : ast_store) (T : static_invocation) {struct T} : Prop :=
   match T with
     | Static_Invocation f0 f1 _ =>
-        F.In f0 (r_refs ast) /\
+        NatMap.In f0 (r_refs ast) /\
         arguments_validity ast f1
   end
 with constructor_invocation_validity (ast : ast_store) (T : constructor_invocation) {struct T} : Prop :=
   match T with
     | Constructor_Invocation f0 f1 _ =>
-        F.In f0 (r_refs ast) /\
+        NatMap.In f0 (r_refs ast) /\
         arguments_validity ast f1
   end
 with not_validity (ast : ast_store) (T : not) {struct T} : Prop :=
@@ -1035,7 +1035,7 @@ with function_expression_validity (ast : ast_store) (T : function_expression) {s
 with dart_let_validity (ast : ast_store) (T : dart_let) {struct T} : Prop :=
   match T with
     | Let f0 f1 =>
-        F.In f0 (vd_refs ast) /\
+        NatMap.In f0 (vd_refs ast) /\
         expression_validity ast f1
   end
 with vector_creation_validity (ast : ast_store) (T : vector_creation) {struct T} : Prop :=
@@ -1062,7 +1062,7 @@ with vector_copy_validity (ast : ast_store) (T : vector_copy) {struct T} : Prop 
 with closure_creation_validity (ast : ast_store) (T : closure_creation) {struct T} : Prop :=
   match T with
     | Closure_Creation f0 f1 f2 f3 =>
-        F.In f0 (r_refs ast) /\
+        NatMap.In f0 (r_refs ast) /\
         expression_validity ast f1 /\
         function_type_validity ast f2 /\
         dart_type_list_validity ast f3
@@ -1107,7 +1107,7 @@ with labeled_statement_validity (ast : ast_store) (T : labeled_statement) {struc
 with break_statement_validity (ast : ast_store) (T : break_statement) {struct T} : Prop :=
   match T with
     | Break_Statement f0 =>
-        F.In f0 (ls_refs ast)
+        NatMap.In f0 (ls_refs ast)
   end
 with while_statement_validity (ast : ast_store) (T : while_statement) {struct T} : Prop :=
   match T with
@@ -1151,7 +1151,7 @@ with catch_validity (ast : ast_store) (T : catch) {struct T} : Prop :=
   match T with
     | Catch f0 f1 f2 =>
         dart_type_validity ast f0 /\
-        F.In f1 (vd_refs ast) /\
+        NatMap.In f1 (vd_refs ast) /\
         statement_validity ast f2
   end
 with try_finally_validity (ast : ast_store) (T : try_finally) {struct T} : Prop :=
@@ -1169,7 +1169,7 @@ with variable_declaration_validity (ast : ast_store) (T : variable_declaration) 
 with function_declaration_validity (ast : ast_store) (T : function_declaration) {struct T} : Prop :=
   match T with
     | Function_Declaration f0 f1 =>
-        F.In f0 (vd_refs ast) /\
+        NatMap.In f0 (vd_refs ast) /\
         function_node_validity ast f1
   end
 with name_validity (ast : ast_store) (T : name) {struct T} : Prop :=
@@ -1186,7 +1186,7 @@ with _private_name_validity (ast : ast_store) (T : _private_name) {struct T} : P
   match T with
     | _Private_Name f0 f1 =>
         name_data_validity ast f0 /\
-        F.In f1 (r_refs ast)
+        NatMap.In f1 (r_refs ast)
   end
 with _public_name_validity (ast : ast_store) (T : _public_name) {struct T} : Prop :=
   match T with
@@ -1221,7 +1221,7 @@ with bottom_type_validity (ast : ast_store) (T : bottom_type) {struct T} : Prop 
 with interface_type_validity (ast : ast_store) (T : interface_type) {struct T} : Prop :=
   match T with
     | Interface_Type f0 f1 =>
-        F.In f0 (r_refs ast) /\
+        NatMap.In f0 (r_refs ast) /\
         dart_type_list_validity ast f1
   end
 with vector_type_validity (ast : ast_store) (T : vector_type) {struct T} : Prop :=
@@ -1245,7 +1245,7 @@ with named_type_validity (ast : ast_store) (T : named_type) {struct T} : Prop :=
 with type_parameter_type_validity (ast : ast_store) (T : type_parameter_type) {struct T} : Prop :=
   match T with
     | Type_Parameter_Type f0 f1 =>
-        F.In f0 (tp_refs ast) /\
+        NatMap.In f0 (tp_refs ast) /\
         dart_type_option_validity ast f1
   end
 with type_parameter_validity (ast : ast_store) (T : type_parameter) {struct T} : Prop :=
@@ -1256,19 +1256,19 @@ with type_parameter_validity (ast : ast_store) (T : type_parameter) {struct T} :
 with supertype_validity (ast : ast_store) (T : supertype) {struct T} : Prop :=
   match T with
     | Supertype f0 f1 =>
-        F.In f0 (r_refs ast) /\
+        NatMap.In f0 (r_refs ast) /\
         dart_type_list_validity ast f1
   end
 with program_validity (ast : ast_store) (T : program) {struct T} : Prop :=
   match T with
     | Program f0 f1 =>
         library_list_validity ast f0 /\
-        F.In f1 (r_refs ast)
+        NatMap.In f1 (r_refs ast)
   end
 with reference_list_validity (ast : ast_store) (L : reference_list) {struct L} : Prop :=
   match L with
     | reference_nil => True
-    | reference_cons X XS => F.In X (r_refs ast) /\ reference_list_validity ast XS
+    | reference_cons X XS => NatMap.In X (r_refs ast) /\ reference_list_validity ast XS
   end
 with library_list_validity (ast : ast_store) (L : library_list) {struct L} : Prop :=
   match L with
@@ -1348,7 +1348,7 @@ with catch_list_validity (ast : ast_store) (L : catch_list) {struct L} : Prop :=
 with variable_declaration_list_validity (ast : ast_store) (L : variable_declaration_list) {struct L} : Prop :=
   match L with
     | variable_declaration_nil => True
-    | variable_declaration_cons X XS => F.In X (vd_refs ast) /\ variable_declaration_list_validity ast XS
+    | variable_declaration_cons X XS => NatMap.In X (vd_refs ast) /\ variable_declaration_list_validity ast XS
   end
 with dart_type_list_validity (ast : ast_store) (L : dart_type_list) {struct L} : Prop :=
   match L with
@@ -1368,7 +1368,7 @@ with named_type_list_validity (ast : ast_store) (L : named_type_list) {struct L}
 with type_parameter_list_validity (ast : ast_store) (L : type_parameter_list) {struct L} : Prop :=
   match L with
     | type_parameter_nil => True
-    | type_parameter_cons X XS => F.In X (tp_refs ast) /\ type_parameter_list_validity ast XS
+    | type_parameter_cons X XS => NatMap.In X (tp_refs ast) /\ type_parameter_list_validity ast XS
   end
 with supertype_list_validity (ast : ast_store) (L : supertype_list) {struct L} : Prop :=
   match L with
@@ -1383,8 +1383,9 @@ with supertype_option_validity (ast : ast_store) (O : supertype_option) {struct 
 .
 
 Definition ast_store_validity (ast : ast_store) : Prop := 
-  forall (n : nat), forall (X : reference), F.MapsTo n X (r_refs ast) -> reference_validity ast X /\
-  forall (n : nat), forall (X : labeled_statement), F.MapsTo n X (ls_refs ast) -> labeled_statement_validity ast X /\
-  forall (n : nat), forall (X : variable_declaration), F.MapsTo n X (vd_refs ast) -> variable_declaration_validity ast X /\
-  forall (n : nat), forall (X : type_parameter), F.MapsTo n X (tp_refs ast) -> type_parameter_validity ast X
+  forall (n : nat), forall (X : reference), NatMap.MapsTo n X (r_refs ast) -> reference_validity ast X /\
+  forall (n : nat), forall (X : labeled_statement), NatMap.MapsTo n X (ls_refs ast) -> labeled_statement_validity ast X /\
+  forall (n : nat), forall (X : variable_declaration), NatMap.MapsTo n X (vd_refs ast) -> variable_declaration_validity ast X /\
+  forall (n : nat), forall (X : type_parameter), NatMap.MapsTo n X (tp_refs ast) -> type_parameter_validity ast X
 .
+End SyntacticValidity.
