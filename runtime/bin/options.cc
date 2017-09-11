@@ -74,22 +74,25 @@ bool OptionProcessor::ProcessEnvironmentOption(const char* arg,
     // No equal sign (name without value) currently not supported.
     Log::PrintErr("No value given to -D option\n");
     return false;
-  } else {
-    int name_len = equals_pos - arg;
-    if (name_len == 0) {
-      Log::PrintErr("No name given to -D option\n");
-      return false;
-    }
-    // Split name=value into name and value.
-    name = reinterpret_cast<char*>(malloc(name_len + 1));
-    strncpy(name, arg, name_len);
-    name[name_len] = '\0';
-    value = strdup(equals_pos + 1);
   }
+  int name_len = equals_pos - arg;
+  if (name_len == 0) {
+    Log::PrintErr("No name given to -D option\n");
+    return false;
+  }
+  // Split name=value into name and value.
+  name = reinterpret_cast<char*>(malloc(name_len + 1));
+  strncpy(name, arg, name_len);
+  name[name_len] = '\0';
+  value = strdup(equals_pos + 1);
   HashMap::Entry* entry = (*environment)
                               ->Lookup(GetHashmapKeyFromString(name),
                                        HashMap::StringHash(name), true);
   ASSERT(entry != NULL);  // Lookup adds an entry if key not found.
+  if (entry->value != NULL) {
+    free(name);
+    free(entry->value);
+  }
   entry->value = value;
   return true;
 }
