@@ -17,6 +17,9 @@ async/stream_single_test: RuntimeError
 async/stream_single_to_multi_subscriber_test: RuntimeError
 async/stream_subscription_as_future_test: RuntimeError
 async/stream_subscription_cancel_test: RuntimeError
+async/stream_transform_test: RuntimeError
+async/stream_transformation_broadcast_test: RuntimeError
+async/timer_test: RuntimeError
 convert/json_lib_test: RuntimeError
 math/point_test: RuntimeError
 math/rectangle_test: RuntimeError

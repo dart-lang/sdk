@@ -6,8 +6,6 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'dart:async';
 
-import 'dart:collection';
-
 /**
  * We represent the current stack trace by an integer. From time to time we
  * increment the variable. This corresponds to a new stack trace.
@@ -17,7 +15,8 @@ List restoredStackTrace = [];
 
 List events = [];
 
-debugZoneRegisterCallback(Zone self, ZoneDelegate parent, Zone origin, f()) {
+dynamic Function() debugZoneRegisterCallback(
+    Zone self, ZoneDelegate parent, Zone origin, f()) {
   List savedTrace = [stackTrace]..addAll(restoredStackTrace);
   return parent.registerCallback(origin, () {
     restoredStackTrace = savedTrace;
@@ -25,7 +24,7 @@ debugZoneRegisterCallback(Zone self, ZoneDelegate parent, Zone origin, f()) {
   });
 }
 
-debugZoneRegisterUnaryCallback(
+dynamic Function(dynamic) debugZoneRegisterUnaryCallback(
     Zone self, ZoneDelegate parent, Zone origin, f(arg)) {
   List savedTrace = [stackTrace]..addAll(restoredStackTrace);
   return parent.registerUnaryCallback(origin, (arg) {
@@ -101,10 +100,10 @@ main() {
   int fork3Trace;
   var f2;
   var globalTrace = stackTrace;
-  var f = forked3.bindCallback(() {
+  var f = forked3.bindCallback<dynamic>(() {
     Expect.identical(forked3, Zone.current);
     fork2Trace = stackTrace;
-    f2 = forked2.bindCallback(() {
+    f2 = forked2.bindCallback<dynamic>(() {
       Expect.identical(forked2, Zone.current);
       Expect.listEquals([fork2Trace, globalTrace], restoredStackTrace);
       fork3Trace = stackTrace;

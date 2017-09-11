@@ -32,7 +32,6 @@ async/print_test/01: Skip
 async/print_test/none: Skip
 async/stream_event_transformed_test: Skip
 async/stream_transformer_test: Skip
-async/zone_debug_test: Skip
 html/cross_frame_test: Skip
 html/element_dimensions_test: Skip
 html/element_test: Skip
@@ -126,7 +125,6 @@ async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_or_non_strong_test: RuntimeError # Issue 29922
 async/futures_test: RuntimeError # Issue 29922
 async/timer_not_available_test: RuntimeError # Issue 29922
-async/zone_error_callback_test: RuntimeError # Issue 29922
 async/zone_run_unary_test: RuntimeError # Issue 29922
 html/async_spawnuri_test: RuntimeError # Issue 29922
 html/async_test: RuntimeError # Issue 29922
@@ -209,7 +207,6 @@ html/interactive_test: Skip # requests interactive permissions (camera, geolocat
 
 async/stream_join_test: RuntimeError # Issue 29922, strong mode cast failure
 async/stream_transformer_from_handlers_test: RuntimeError # Issue 29922, strong mode cast failure
-async/zone_bind_callback_test: RuntimeError # Issue 29922, strong mode cast failure
 async/zone_register_callback_test: RuntimeError # Issue 29922, strong mode cast failure
 html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure
 html/indexeddb_2_test: RuntimeError, Timeout # Issue 29922, strong mode cast failure
