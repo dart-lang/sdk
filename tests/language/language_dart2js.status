@@ -543,7 +543,7 @@ constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Insta
 crash_6725_test/01: Crash # NoSuchMethodError: The method 'startsWith' was called on null.
 custom_await_stack_trace_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 cyclic_constructor_test/01: Crash # Stack Overflow
-cyclic_default_values_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+cyclic_default_values_test: RuntimeError
 dangling_else_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: CompileTimeError
@@ -721,7 +721,7 @@ malformed_test/03: Crash # 'package:front_end/src/fasta/kernel/kernel_class_buil
 malformed_test/04: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 malformed_test/06: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 malformed_test/none: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-many_named_arguments_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+many_named_arguments_test: RuntimeError
 map_literal4_test: RuntimeError
 method_name_test: CompileTimeError
 method_override4_test: RuntimeError
@@ -783,11 +783,11 @@ mixin_issue10216_2_test: RuntimeError
 mixin_mixin2_test: RuntimeError
 mixin_mixin3_test: RuntimeError
 mixin_mixin4_test: RuntimeError
-mixin_mixin5_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-mixin_mixin6_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+mixin_mixin5_test: RuntimeError
+mixin_mixin6_test: RuntimeError
 mixin_mixin7_test: RuntimeError
-mixin_mixin_bound2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-mixin_mixin_bound_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+mixin_mixin_bound2_test: RuntimeError
+mixin_mixin_bound_test: RuntimeError
 mixin_mixin_test: RuntimeError
 mixin_mixin_type_arguments_test: Crash # 'package:js_ast/src/nodes.dart': Failed assertion: line 1316 pos 12: '_identifierRE.hasMatch(name)': is not true.
 mixin_of_mixin_test/01: CompileTimeError
@@ -814,7 +814,6 @@ mixin_of_mixin_test/21: CompileTimeError
 mixin_of_mixin_test/22: CompileTimeError
 mixin_of_mixin_test/none: CompileTimeError
 mixin_only_for_rti_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-mixin_prefix_test: Crash # RangeError (index): Invalid value: Not in range 0..1, inclusive: 2
 mixin_super_2_test: CompileTimeError
 mixin_super_bound2_test/01: CompileTimeError
 mixin_super_bound2_test/none: CompileTimeError
@@ -924,7 +923,6 @@ regress_23498_test: Crash # RangeError (index): Invalid value: Not in range 0..2
 regress_23500_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_23500_test/02: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_23500_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_23537_test: Crash # RangeError (index): Invalid value: Not in range 0..1, inclusive: 2
 regress_23996_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_24283_test: RuntimeError
 regress_24935_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
@@ -1015,10 +1013,6 @@ top_level_getter_no_setter1_test/01: RuntimeError
 top_level_getter_no_setter2_test/01: RuntimeError
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
-mixin_mixin5_test: RuntimeError
-mixin_mixin6_test: RuntimeError
-mixin_mixin_bound2_test: RuntimeError
-mixin_mixin_bound_test: RuntimeError
 type_checks_in_factory_method_test: RuntimeError
 type_parameter_test/01: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
 type_parameter_test/02: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
@@ -1121,8 +1115,8 @@ constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Insta
 crash_6725_test/01: Crash # NoSuchMethodError: The method 'startsWith' was called on null.
 custom_await_stack_trace_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 cyclic_constructor_test/01: Crash # Stack Overflow
-cyclic_default_values_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-cyclic_type2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+cyclic_default_values_test: RuntimeError
+cyclic_type2_test: RuntimeError
 cyclic_type_test/00: RuntimeError
 cyclic_type_test/01: RuntimeError
 cyclic_type_test/02: RuntimeError
@@ -1302,7 +1296,7 @@ main_test/44: Crash # RangeError (index): Invalid value: Not in range 0..2, incl
 main_test/45: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 malformed_test/06: CompileTimeError
 malformed_test/none: RuntimeError
-many_named_arguments_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+many_named_arguments_test: RuntimeError
 map_literal4_test: RuntimeError
 method_name_test: CompileTimeError
 method_override4_test: RuntimeError
@@ -1318,7 +1312,7 @@ mixin_bound_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
-mixin_generic_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+mixin_generic_test: RuntimeError
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/02: Crash # NoSuchMethodError: The getter 'function' was called on null.
 mixin_illegal_super_use_test/03: Crash # NoSuchMethodError: The method 'localIsUsedInTryOrSync' was called on null.
@@ -1364,11 +1358,11 @@ mixin_issue10216_2_test: RuntimeError
 mixin_mixin2_test: RuntimeError
 mixin_mixin3_test: RuntimeError
 mixin_mixin4_test: RuntimeError
-mixin_mixin5_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-mixin_mixin6_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+mixin_mixin5_test: RuntimeError
+mixin_mixin6_test: RuntimeError
 mixin_mixin7_test: RuntimeError
-mixin_mixin_bound2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-mixin_mixin_bound_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+mixin_mixin_bound2_test: RuntimeError
+mixin_mixin_bound_test: RuntimeError
 mixin_mixin_test: RuntimeError
 mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/01: CompileTimeError
@@ -1395,7 +1389,6 @@ mixin_of_mixin_test/21: CompileTimeError
 mixin_of_mixin_test/22: CompileTimeError
 mixin_of_mixin_test/none: CompileTimeError
 mixin_only_for_rti_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-mixin_prefix_test: Crash # RangeError (index): Invalid value: Not in range 0..1, inclusive: 2
 mixin_super_2_test: CompileTimeError
 mixin_super_bound2_test/01: CompileTimeError
 mixin_super_bound2_test/none: CompileTimeError
@@ -1500,7 +1493,6 @@ regress_23498_test: Crash # RangeError (index): Invalid value: Not in range 0..2
 regress_23500_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_23500_test/02: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_23500_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-regress_23537_test: Crash # RangeError (index): Invalid value: Not in range 0..1, inclusive: 2
 regress_23996_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 regress_24283_test: RuntimeError
 regress_24935_test/01: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
@@ -1576,12 +1568,6 @@ top_level_getter_no_setter1_test/01: RuntimeError
 top_level_getter_no_setter2_test/01: RuntimeError
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
-cyclic_type2_test: RuntimeError
-mixin_generic_test: RuntimeError
-mixin_mixin5_test: RuntimeError
-mixin_mixin6_test: RuntimeError
-mixin_mixin_bound2_test: RuntimeError
-mixin_mixin_bound_test: RuntimeError
 type_checks_in_factory_method_test: RuntimeError
 type_parameter_test/01: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
 type_parameter_test/02: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.

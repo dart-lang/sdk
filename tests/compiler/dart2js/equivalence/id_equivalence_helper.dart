@@ -28,12 +28,14 @@ typedef void ComputeMemberDataFunction(
     Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
     {bool verbose});
 
+const String stopAfterTypeInference = 'stopAfterTypeInference';
+
 /// Compile [code] from .dart sources.
 Future<Compiler> compileFromSource(
     AnnotatedCode code, Uri mainUri, List<String> options) async {
   Compiler compiler = compilerFor(
       memorySourceFiles: {'main.dart': code.sourceCode}, options: options);
-  compiler.stopAfterTypeInference = true;
+  compiler.stopAfterTypeInference = options.contains(stopAfterTypeInference);
   await compiler.run(mainUri);
   return compiler;
 }
@@ -46,7 +48,8 @@ Future<Compiler> compileFromDill(
       memorySourceFiles: {'main.dart': code.sourceCode},
       options: options,
       beforeRun: (Compiler compiler) {
-        compiler.stopAfterTypeInference = true;
+        compiler.stopAfterTypeInference =
+            options.contains(stopAfterTypeInference);
       });
   return compiler;
 }

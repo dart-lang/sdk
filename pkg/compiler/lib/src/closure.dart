@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/scanner.dart' show Token;
+
 import 'common/names.dart' show Identifiers;
 import 'common/resolution.dart' show ParsingContext, Resolution;
 import 'common/tasks.dart' show CompilerTask, Measurer;
@@ -19,7 +21,6 @@ import 'elements/visitor.dart' show ElementVisitor;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'js_backend/runtime_types.dart';
 import 'resolution/tree_elements.dart' show TreeElements;
-import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'tree/tree.dart';
 import 'util/util.dart';
 import 'world.dart' show ClosedWorldRefiner;
@@ -211,10 +212,19 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// the closure class.
   FunctionEntity get callMethod => null;
 
+  /// List of locals that this closure class has created corresponding field
+  /// entities for.
+  @deprecated
+  List<Local> get createdFieldEntities => const <Local>[];
+
   /// As shown in the example in the comments at the top of this class, we
   /// create fields in the closure class for each captured variable. This is an
-  /// accessor to that set of fields.
-  List<Local> get createdFieldEntities => const <Local>[];
+  /// accessor the [local] for which [field] was created.
+  /// Returns the [local] for which [field] was created.
+  Local getLocalForField(FieldEntity field) {
+    failedAt(field, "No local for $field.");
+    return null;
+  }
 
   /// Convenience pointer to the field entity representation in the closure
   /// class of the element representing `this`.
@@ -797,6 +807,9 @@ class ClosureClassMap implements ClosureRepresentationInfo {
     });
     return fields;
   }
+
+  @override
+  Local getLocalForField(covariant ClosureFieldElement field) => field.local;
 
   void addFreeVariable(Local element) {
     assert(freeVariableMap[element] == null);

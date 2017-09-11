@@ -5,10 +5,10 @@
 /// Test boxing/captures for nested closures.
 
 /*element: useOne:box=(box0 which holds [b1])*/ useOne(/*boxed*/ b1) {
-  /*box=(box1 which holds [b2]),free=[b1,box0]*/ () {
+  /*box=(box1 which holds [b2]),fields=[box0],free=[b1,box0]*/ () {
     var /*boxed*/ b2 = (b1 = 1);
 
-    /*free=[b2,box1]*/ () {
+    /*fields=[box1],free=[b2,box1]*/ () {
       return (b2 = 2);
     };
 
@@ -18,10 +18,10 @@
 }
 
 /*element: useBoth:box=(box0 which holds [b1])*/ useBoth(/*boxed*/ b1) {
-  /*box=(box1 which holds [b2]),free=[b1,box0]*/ () {
+  /*box=(box1 which holds [b2]),fields=[box0],free=[b1,box0]*/ () {
     var /*boxed*/ b2 = (b1 = 1);
 
-    /*free=[b1,b2,box0,box1]*/ () {
+    /*fields=[box0,box1],free=[b1,b2,box0,box1]*/ () {
       return b1 + (b2 = 2);
     };
 
@@ -36,11 +36,11 @@ useMany(c1, /*boxed*/ b1) {
   var /*boxed*/ b3 = 3;
   var c2 = 2;
   var c3 = 3;
-  /*box=(box1 which holds [b4]),free=[b1,b2,b3,box0,c1,c2,c3]*/ () {
+  /*box=(box1 which holds [b4]),fields=[box0,c1,c2,c3],free=[b1,b2,b3,box0,c1,c2,c3]*/ () {
     var c4 = c1 + c2 + c3;
     var /*boxed*/ b4 = (b1 = 1) + (b2 = 2) + (b3 = 3);
 
-    /*free=[b1,b2,b4,box0,box1,c4]*/ () {
+    /*fields=[box0,box1,c4],free=[b1,b2,b4,box0,box1,c4]*/ () {
       return c4 + (b1 = 1) + (b2 = 2) + (b4 = 4);
     };
 

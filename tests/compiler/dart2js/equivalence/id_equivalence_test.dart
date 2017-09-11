@@ -39,10 +39,10 @@ main(List<String> args) {
             await new File.fromUri(entity.uri).readAsString();
         IdData data1 = await computeData(
             annotatedCode, computeAstMemberData, compileFromSource,
-            options: [Flags.disableTypeInference]);
+            options: [Flags.disableTypeInference, stopAfterTypeInference]);
         IdData data2 = await computeData(
             annotatedCode, computeIrMemberData, compileFromDill,
-            options: [Flags.disableTypeInference]);
+            options: [Flags.disableTypeInference, stopAfterTypeInference]);
         data1.actualMap.forEach((Id id, ActualData actualData1) {
           IdValue value1 = actualData1.value;
           IdValue value2 = data2.actualMap[id]?.value;

@@ -3151,9 +3151,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
     ClassEntity closureClassEntity = closureInfo.closureClassEntity;
 
     List<HInstruction> capturedVariables = <HInstruction>[];
-    closureInfo.createdFieldEntities.forEach((Local capturedLocal) {
-      assert(capturedLocal != null);
-      capturedVariables.add(localsHandler.readLocal(capturedLocal));
+    _worldBuilder.forEachInstanceField(closureClassEntity,
+        (_, FieldEntity field) {
+      capturedVariables
+          .add(localsHandler.readLocal(closureInfo.getLocalForField(field)));
     });
 
     TypeMask type = new TypeMask.nonNullExact(closureClassEntity, closedWorld);

@@ -400,6 +400,17 @@ class KernelClosureClass extends JsScopeInfo
 
   List<Local> get createdFieldEntities => localToFieldMap.keys.toList();
 
+  @override
+  Local getLocalForField(FieldEntity field) {
+    for (Local local in localToFieldMap.keys) {
+      if (localToFieldMap[local] == field) {
+        return local;
+      }
+    }
+    failedAt(field, "No local for $field.");
+    return null;
+  }
+
   FieldEntity get thisFieldEntity => localToFieldMap[thisLocal];
 
   void forEachCapturedVariable(f(Local from, JField to)) {
@@ -420,7 +431,7 @@ class KernelClosureClass extends JsScopeInfo
   }
 
   bool isVariableBoxed(Local variable) =>
-      localToFieldMap.keys.contains(variable);
+      boxedVariables.keys.contains(variable);
 
   bool get isClosure => true;
 }

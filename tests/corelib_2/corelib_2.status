@@ -505,11 +505,11 @@ string_split_test: RuntimeError # does not return List<String>
 list_test/*: RuntimeError # VM doesn't implement strong mode covariance checks
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-apply2_test: Crash
-apply3_test: Crash
-apply4_test: Crash
-apply5_test: Crash
-apply_test: Crash
+apply2_test: RuntimeError
+apply3_test: RuntimeError
+apply4_test: RuntimeError
+apply5_test: RuntimeError
+apply_test: RuntimeError
 big_integer_arith_vm_test/modInv: Crash
 big_integer_arith_vm_test/shift: Crash
 bit_twiddling_bigint_test: Crash
@@ -526,7 +526,7 @@ collection_to_string_test: Crash
 compare_to2_test: Crash
 const_list_literal_test: Crash
 const_list_literal_test: RuntimeError
-core_runtime_types_test: Crash
+core_runtime_types_test: RuntimeError
 data_uri_test: Crash
 dynamic_nosuchmethod_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(NoSuchMethodError.toString#comma) is stored in a closure field.
 dynamic_nosuchmethod_test: RuntimeError
@@ -559,7 +559,6 @@ iterable_first_test: Crash
 iterable_first_where_test: Crash
 iterable_fold_test: Crash
 iterable_generate_test/01: Crash
-iterable_generate_test/none: Crash
 iterable_generate_test/none: RuntimeError
 iterable_join_test: Crash
 iterable_last_test: Crash
@@ -613,7 +612,6 @@ reg_exp_all_matches_test: Crash
 reg_exp_all_matches_test: RuntimeError
 reg_exp_start_end_test: Crash
 reg_exp_start_end_test: RuntimeError
-regexp/ascii-regexp-subject_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 425 pos 12: '!isStoredInClosureField(local)': Local local(main#i) is stored in a closure field.
 regexp/capture_test: Crash
 regexp/capture_test: RuntimeError
 regexp/ecma-regex-examples_test: Crash
@@ -662,14 +660,14 @@ splay_tree_test/none: Crash
 stacktrace_current_test: RuntimeError
 stacktrace_fromstring_test: Crash
 string_buffer_test: RuntimeError
-string_codeunits_test: Crash
+string_codeunits_test: RuntimeError
 string_from_environment3_test/01: MissingCompileTimeError
 string_from_environment3_test/02: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
 string_from_environment3_test/04: MissingCompileTimeError
 string_from_environment3_test/05: Crash
-string_from_list_test: Crash
-string_fromcharcodes_test: Crash
+string_from_list_test: RuntimeError
+string_fromcharcodes_test: RuntimeError
 string_pattern_test: Crash
 string_pattern_test: RuntimeError
 string_replace_dollar_test: Crash
@@ -678,7 +676,7 @@ string_replace_static_test: Crash
 string_replace_test: Crash
 string_replace_test: RuntimeError
 string_split_test: Crash
-string_test: Crash
+string_test: RuntimeError
 string_trimlr_test/02: Crash
 symbol_operator_test/03: RuntimeError
 symbol_operator_test/none: RuntimeError
@@ -693,10 +691,6 @@ symbol_test/01: Crash
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
-string_codeunits_test: RuntimeError
-string_from_list_test: RuntimeError
-string_fromcharcodes_test: RuntimeError
-string_test: RuntimeError
 uri_base_test: Crash
 uri_file_test: Crash
 uri_http_test: Crash
@@ -711,11 +705,11 @@ uri_scheme_test: Crash
 uri_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-apply2_test: Crash
-apply3_test: Crash
-apply4_test: Crash
-apply5_test: Crash
-apply_test: Crash
+apply2_test: RuntimeError
+apply3_test: RuntimeError
+apply4_test: RuntimeError
+apply5_test: RuntimeError
+apply_test: RuntimeError
 big_integer_arith_vm_test/add: Crash
 big_integer_arith_vm_test/div: Crash
 big_integer_arith_vm_test/gcd: Crash
@@ -747,7 +741,7 @@ compare_to2_test: Crash
 const_list_literal_test: Crash
 const_list_literal_test: RuntimeError
 core_runtime_types_static_test: Crash
-core_runtime_types_test: Crash
+core_runtime_types_test: RuntimeError
 data_uri_test: Crash
 dynamic_nosuchmethod_test: Crash
 dynamic_nosuchmethod_test: RuntimeError
@@ -806,7 +800,6 @@ iterable_fold_test/01: Crash # Assertion failure: Super constructor for k:constr
 iterable_fold_test/02: Crash # Assertion failure: Super constructor for k:constructor(SplayTreeSet.) not found.
 iterable_fold_test/none: Crash # Assertion failure: Super constructor for k:constructor(SplayTreeSet.) not found.
 iterable_generate_test/01: Crash
-iterable_generate_test/none: Crash
 iterable_generate_test/none: RuntimeError
 iterable_join_test: Crash
 iterable_last_test: Crash
@@ -860,8 +853,6 @@ reg_exp_all_matches_test: Crash
 reg_exp_all_matches_test: RuntimeError
 reg_exp_start_end_test: Crash
 reg_exp_start_end_test: RuntimeError
-regexp/ascii-regexp-subject_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
-regexp/ascii-regexp-subject_test: Timeout
 regexp/capture_test: Crash
 regexp/capture_test: RuntimeError
 regexp/ecma-regex-examples_test: Crash
@@ -912,14 +903,14 @@ stacktrace_current_test: RuntimeError
 stacktrace_fromstring_test: Crash
 string_base_vm_static_test: Crash
 string_buffer_test: RuntimeError
-string_codeunits_test: Crash
+string_codeunits_test: RuntimeError
 string_from_environment3_test/01: MissingCompileTimeError
 string_from_environment3_test/02: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
 string_from_environment3_test/04: MissingCompileTimeError
 string_from_environment3_test/05: Crash
-string_from_list_test: Crash
-string_fromcharcodes_test: Crash
+string_from_list_test: RuntimeError
+string_fromcharcodes_test: RuntimeError
 string_pattern_test: Crash
 string_pattern_test: RuntimeError
 string_replace_dollar_test: Crash
@@ -929,7 +920,7 @@ string_replace_test: Crash
 string_replace_test: RuntimeError
 string_split_test: Crash
 string_static_test: Crash
-string_test: Crash
+string_test: RuntimeError
 string_trimlr_test/02: Crash
 symbol_operator_test/03: RuntimeError
 symbol_operator_test/none: RuntimeError
@@ -944,10 +935,6 @@ symbol_test/01: Crash
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
-string_codeunits_test: RuntimeError
-string_from_list_test: RuntimeError
-string_fromcharcodes_test: RuntimeError
-string_test: RuntimeError
 uri_base_test: Crash
 uri_file_test: Crash
 uri_http_test: Crash

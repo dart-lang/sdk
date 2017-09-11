@@ -8,7 +8,7 @@
 /*element: mutateInClosure:box=(box0 which holds [localVar])*/
 mutateInClosure() {
   var /*boxed*/ localVar;
-  /*free=[box0,localVar]*/ () {
+  /*fields=[box0],free=[box0,localVar]*/ () {
     localVar = 42;
   };
   /**/ () {
@@ -20,7 +20,7 @@ mutateInClosure() {
 /*element: mutateOutsideClosure:box=(box0 which holds [localVar])*/
 mutateOutsideClosure() {
   var /*boxed*/ localVar;
-  /*free=[box0,localVar]*/ () {
+  /*fields=[box0],free=[box0,localVar]*/ () {
     print(localVar);
   };
   /**/ () {
@@ -33,10 +33,10 @@ mutateOutsideClosure() {
 /*element: mutateInOtherClosure:box=(box0 which holds [localVar])*/
 mutateInOtherClosure() {
   var /*boxed*/ localVar;
-  /*free=[box0,localVar]*/ () {
+  /*fields=[box0],free=[box0,localVar]*/ () {
     print(localVar);
   };
-  /*free=[box0,localVar]*/ () {
+  /*fields=[box0],free=[box0,localVar]*/ () {
     localVar = 44;
   };
   /**/ () {
@@ -48,9 +48,9 @@ mutateInOtherClosure() {
 /*element: mutateInNestedClosure:box=(box0 which holds [localVar])*/
 mutateInNestedClosure() {
   var /*boxed*/ localVar;
-  /*free=[box0,localVar]*/ () {
+  /*fields=[box0],free=[box0,localVar]*/ () {
     print(localVar);
-    /*free=[box0,localVar]*/ () {
+    /*fields=[box0],free=[box0,localVar]*/ () {
       localVar = 45;
     };
     /**/ () {

@@ -23,7 +23,8 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, computeJumpsData, computeKernelJumpsData,
-        options: [Flags.disableTypeInference], args: args);
+        options: [Flags.disableTypeInference, stopAfterTypeInference],
+        args: args);
   });
 }
 

@@ -192,6 +192,7 @@ void checkElements(
         closureData1.callMethod, closureData2.callMethod);
     check(closureData1, closureData2, '$element1.thisLocal',
         closureData1.thisLocal, closureData2.thisLocal, areLocalsEquivalent);
+
     checkElementListIdentities(
         closureData1,
         closureData2,

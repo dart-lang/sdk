@@ -523,10 +523,9 @@ bound_closure_equality_test: Crash # NoSuchMethodError: The getter 'typeArgument
 branch_canonicalization_test: RuntimeError
 break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 call_closurization_test: RuntimeError
-call_function_apply_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+call_function_apply_test: RuntimeError
 call_operator_test: RuntimeError
 call_test: RuntimeError
-call_with_no_such_method_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 canonical_const2_test: RuntimeError
 cast_test/none: RuntimeError
 cha_deopt1_test: CompileTimeError
@@ -534,7 +533,7 @@ cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-classes_static_method_clash_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+classes_static_method_clash_test: RuntimeError
 closure_cycles_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 closure_in_constructor_test: Crash # type 'JClosureClass' is not a subtype of type 'ClosureClassElement' of 'closureClass' where
 closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
@@ -546,8 +545,6 @@ closure_with_super_field_test: Crash # Assertion failure: Cannot find value Inst
 closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.test#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
 closures_initializer2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 closures_initializer_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-compile_time_constant_a_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
-compile_time_constant_b_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
 compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
 generalized_void_syntax_test: CompileTimeError
 generic_async_star_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
@@ -694,10 +691,9 @@ bound_closure_equality_test: Crash # NoSuchMethodError: The getter 'typeArgument
 branch_canonicalization_test: RuntimeError
 break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 call_closurization_test: RuntimeError
-call_function_apply_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+call_function_apply_test: RuntimeError 
 call_operator_test: RuntimeError
 call_test: RuntimeError
-call_with_no_such_method_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 canonical_const2_test: RuntimeError
 cast_test/none: RuntimeError
 cha_deopt1_test: CompileTimeError
@@ -705,7 +701,7 @@ cha_deopt2_test: CompileTimeError
 cha_deopt3_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-classes_static_method_clash_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+classes_static_method_clash_test: RuntimeError
 closure_cycles_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 closure_in_constructor_test: Crash # NoSuchMethodError: Class 'JClosureClass' has no instance getter 'methodElement'.
 closure_in_initializer_test: Crash # Assertion failure: Cannot find value local(A.#a) in (local(C.#a), BoxLocal(_box_0), local(C.#a), BoxLocal(_box_0)) for j:constructor(C.).
@@ -717,8 +713,6 @@ closure_with_super_field_test: Crash # Assertion failure: Cannot find value Inst
 closure_with_super_send_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Sub.test#e), local(Sub.test#)) for j:closure_call(Sub_test_closure.call).
 closures_initializer2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 closures_initializer_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
-compile_time_constant_a_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
-compile_time_constant_b_test: Crash # RangeError (index): Invalid value: Only valid value is 0: 1
 compile_time_constant_c_test/02: Crash # NoSuchMethodError: The getter 'isString' was called on null.
 generalized_void_syntax_test: CompileTimeError
 generic_async_star_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3

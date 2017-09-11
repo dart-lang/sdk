@@ -17,6 +17,8 @@ main(List<String> args) {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(
         dataDir, computeMemberAstTypeMasks, computeMemberIrTypeMasks,
-        args: args, skipForKernel: skipforKernel);
+        args: args,
+        skipForKernel: skipforKernel,
+        options: [stopAfterTypeInference]);
   });
 }
