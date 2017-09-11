@@ -13,6 +13,55 @@ class MyEntry extends LinkedListEntry<MyEntry> {
   String toString() => value.toString();
 }
 
+testPreviousNext() {
+  var list = new LinkedList<MyEntry>();
+  Expect.throws(() => list.first);
+  Expect.throws(() => list.last);
+  Expect.equals(0, list.length);
+
+  for (int i = 0; i < 3; i++) {
+    list.add(new MyEntry(i));
+  }
+  Expect.equals(3, list.length);
+
+  var entry = list.first;
+  Expect.isNull(entry.previous);
+  Expect.equals(0, entry.value);
+  entry = entry.next;
+  Expect.equals(1, entry.value);
+  entry = entry.next;
+  Expect.equals(2, entry.value);
+  Expect.isNull(entry.next);
+  entry = entry.previous;
+  Expect.equals(1, entry.value);
+  entry = entry.previous;
+  Expect.equals(0, entry.value);
+  Expect.isNull(entry.previous);
+}
+
+testUnlinked() {
+  var unlinked = new MyEntry(0);
+  Expect.isNull(unlinked.previous);
+  Expect.isNull(unlinked.next);
+  var list = new LinkedList<MyEntry>();
+  list.add(unlinked);
+  Expect.isNull(unlinked.previous);
+  Expect.isNull(unlinked.next);
+  list.remove(unlinked);
+  Expect.isNull(unlinked.previous);
+  Expect.isNull(unlinked.next);
+  list.add(unlinked);
+  list.add(new MyEntry(1));
+  Expect.isNull(unlinked.previous);
+  Expect.equals(1, unlinked.next.value);
+  list.remove(unlinked);
+  Expect.isNull(unlinked.previous);
+  Expect.isNull(unlinked.next);
+  list.add(unlinked);
+  Expect.isNull(unlinked.next);
+  Expect.equals(1, unlinked.previous.value);
+}
+
 testInsert() {
   // Insert last.
   var list = new LinkedList<MyEntry>();
@@ -221,6 +270,8 @@ testConcurrentModificationError() {
 }
 
 main() {
+  testPreviousNext();
+  testUnlinked();
   testInsert();
   testRemove();
   testBadAdd();

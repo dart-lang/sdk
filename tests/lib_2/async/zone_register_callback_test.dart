@@ -28,7 +28,7 @@ main() {
 
   valueToCapture = 499;
   var fun = () => 99;
-  var registered = forked.registerCallback(fun);
+  var registered = forked.registerCallback<dynamic>(fun);
   Expect.isFalse(identical(fun, registered));
 
   // It is legal to invoke the callback in a different zone. This is, of course,

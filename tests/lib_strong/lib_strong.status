@@ -125,7 +125,6 @@ async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_or_non_strong_test: RuntimeError # Issue 29922
 async/futures_test: RuntimeError # Issue 29922
 async/timer_not_available_test: RuntimeError # Issue 29922
-async/zone_run_unary_test: RuntimeError # Issue 29922
 html/async_spawnuri_test: RuntimeError # Issue 29922
 html/async_test: RuntimeError # Issue 29922
 html/custom_element_method_clash_test: Skip # Issue 29922
@@ -207,11 +206,9 @@ html/interactive_test: Skip # requests interactive permissions (camera, geolocat
 
 async/stream_join_test: RuntimeError # Issue 29922, strong mode cast failure
 async/stream_transformer_from_handlers_test: RuntimeError # Issue 29922, strong mode cast failure
-async/zone_register_callback_test: RuntimeError # Issue 29922, strong mode cast failure
 html/indexeddb_1_test/functional: RuntimeError # Issue 29922, strong mode cast failure
 html/indexeddb_2_test: RuntimeError, Timeout # Issue 29922, strong mode cast failure
 html/xhr_test/xhr: RuntimeError # Issue 29922, strong mode cast failure
-
 html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
 
 [ $compiler == dartdevc && $runtime == chrome ]
