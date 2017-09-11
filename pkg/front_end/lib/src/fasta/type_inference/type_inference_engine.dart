@@ -284,8 +284,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
       void setSafety(VariableDeclaration formal) {
         if (formal.isCovariant) {
           formal.formalSafety = FormalSafety.unsafe;
-          instrumentation?.record(Uri.parse(cls.fileUri), formal.fileOffset,
-              'checkFormal', new InstrumentationValueLiteral('unsafe'));
         }
       }
 
@@ -353,12 +351,8 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
               pessimisticType, declaredType)) {
             setAdditionalIncomingTypes([pessimisticType]);
             setInterfaceSafety(InterfaceSafety.semiTyped);
-            instrumentation?.record(Uri.parse(cls.fileUri), fileOffset,
-                'checkInterface', new InstrumentationValueLiteral('semiTyped'));
             if (!procedure.isAbstract && formalSafety == FormalSafety.safe) {
-              formalSafety = FormalSafety.semiSafe;
-              instrumentation?.record(Uri.parse(cls.fileUri), fileOffset,
-                  'checkFormal', new InstrumentationValueLiteral('semiSafe'));
+              setFormalSafety(FormalSafety.semiSafe);
             }
           }
         }
@@ -421,8 +415,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         addDeclaredAdditionalIncomingType(incomingType);
         if (formalSafety == FormalSafety.safe) {
           setFormalSafety(FormalSafety.semiSafe);
-          instrumentation?.record(Uri.parse(cls.fileUri), fileOffset,
-              'checkFormal', new InstrumentationValueLiteral('semiSafe'));
         }
       }
     }
@@ -433,11 +425,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         declaredFormal.isCovariant = true;
         if (declaredFormal.formalSafety != FormalSafety.unsafe) {
           declaredFormal.formalSafety = FormalSafety.unsafe;
-          instrumentation?.record(
-              Uri.parse(cls.fileUri),
-              declaredFormal.fileOffset,
-              'checkFormal',
-              new InstrumentationValueLiteral('unsafe'));
         }
       }
       if (declaredIsAbstract) return;
@@ -511,6 +498,57 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         }
       }
     });
+
+    if (instrumentation != null) {
+      // TODO(paulberry): also handle fields
+      for (ShadowProcedure procedure in cls.procedures) {
+        if (procedure.isStatic) continue;
+        void recordFormalAnnotations(VariableDeclaration formal) {
+          if (formal.interfaceSafety != InterfaceSafety.typed) {
+            instrumentation.record(Uri.parse(cls.fileUri), formal.fileOffset,
+                'checkInterface', new InstrumentationValueLiteral('semiTyped'));
+          }
+          if (!procedure.isAbstract &&
+              formal.formalSafety != FormalSafety.safe) {
+            instrumentation.record(
+                Uri.parse(cls.fileUri),
+                formal.fileOffset,
+                'checkFormal',
+                new InstrumentationValueLiteral(
+                    formal.formalSafety == FormalSafety.unsafe
+                        ? 'unsafe'
+                        : 'semiSafe'));
+          }
+        }
+
+        void recordTypeParameterAnnotations(TypeParameter typeParameter) {
+          if (typeParameter.interfaceSafety != InterfaceSafety.typed) {
+            instrumentation.record(
+                Uri.parse(cls.fileUri),
+                typeParameter.fileOffset,
+                'checkInterface',
+                new InstrumentationValueLiteral('semiTyped'));
+          }
+          if (!procedure.isAbstract &&
+              typeParameter.formalSafety != FormalSafety.safe) {
+            instrumentation.record(
+                Uri.parse(cls.fileUri),
+                typeParameter.fileOffset,
+                'checkFormal',
+                new InstrumentationValueLiteral(
+                    typeParameter.formalSafety == FormalSafety.unsafe
+                        ? 'unsafe'
+                        : 'semiSafe'));
+          }
+        }
+
+        procedure.function.positionalParameters
+            .forEach(recordFormalAnnotations);
+        procedure.function.namedParameters.forEach(recordFormalAnnotations);
+        procedure.function.typeParameters
+            .forEach(recordTypeParameterAnnotations);
+      }
+    }
   }
 
   /// Creates an [AccessorNode] to track dependencies of the given [member].
