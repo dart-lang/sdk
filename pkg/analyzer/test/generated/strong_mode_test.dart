@@ -2789,7 +2789,7 @@ void g(T f<T>(T x)) {}
 ''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
         );
     expectFunctionType('f', '<T>(T) → T',
-        elementTypeParams: '[T]', typeFormals: '[T]');
+        elementTypeParams: '[]', typeFormals: '[T]');
     SimpleIdentifier f = findIdentifier('f');
     ParameterElementImpl e = f.staticElement;
     FunctionType type = e.type;
