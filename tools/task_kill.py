@@ -33,7 +33,8 @@ EXECUTABLE_NAMES = {
     'gen_snapshot': 'gen_snapshot.exe',
     'git': 'git.exe',
     'iexplore': 'iexplore.exe',
-    'svn': 'svn.exe',
+    'VCTIP': 'VCTIP.EXE',
+    'mspdbsrv': 'mspdbsrv.exe',
   },
   'linux': {
     'chrome': 'chrome',
@@ -44,7 +45,6 @@ EXECUTABLE_NAMES = {
     'firefox': 'firefox',
     'gen_snapshot': 'gen_snapshot',
     'git': 'git',
-    'svn': 'svn',
   },
   'macos': {
     'chrome': 'Chrome',
@@ -57,7 +57,6 @@ EXECUTABLE_NAMES = {
     'gen_snapshot': 'gen_snapshot',
     'git': 'git',
     'safari': 'Safari',
-    'svn': 'svn',
   }
 }
 
@@ -74,13 +73,20 @@ STACK_INFO_COMMAND = {
 }
 
 def GetOptions():
-  parser = optparse.OptionParser("usage: %prog [options]")
-  parser.add_option("--kill_dart", default=True,
+  parser = optparse.OptionParser('usage: %prog [options]')
+  true_or_false = ['True', 'False']
+  parser.add_option("--kill_dart", default='True', type='choice',
+                    choices=true_or_false,
                     help="Kill all dart processes")
-  parser.add_option("--kill_vc", default=True,
-                    help="Kill all git and svn processes")
-  parser.add_option("--kill_browsers", default=False,
-                     help="Kill all browser processes")
+  parser.add_option("--kill_vc", default='True', type='choice',
+                    choices=true_or_false,
+                    help="Kill all git processes")
+  parser.add_option("--kill_vsbuild", default='False', type='choice',
+                    choices=true_or_false,
+                    help="Kill all visual studio build related processes")
+  parser.add_option("--kill_browsers", default='False', type='choice',
+                    choices=true_or_false,
+                    help="Kill all browser processes")
   (options, args) = parser.parse_args()
   return options
 
@@ -225,7 +231,11 @@ def KillBrowsers():
 
 def KillVCSystems():
   status = Kill('git')
-  status += Kill('svn')
+  return status
+
+def KillVSBuild():
+  status = Kill('VCTIP')
+  status += Kill('mspdbsrv')
   return status
 
 def KillDart():
@@ -238,15 +248,17 @@ def KillDart():
 def Main():
   options = GetOptions()
   status = 0
-  if options.kill_dart:
+  if options.kill_dart == 'True':
     if os_name == "win32":
       # TODO(24086): Add result of KillDart into status once pub hang is fixed.
       KillDart()
     else:
       status += KillDart()
-  if options.kill_vc:
+  if options.kill_vc == 'True':
     status += KillVCSystems()
-  if options.kill_browsers:
+  if options.kill_vsbuild == 'True' and os_name == 'win32':
+    status += KillVSBuild()
+  if options.kill_browsers == 'True':
     status += KillBrowsers()
   return status
 
