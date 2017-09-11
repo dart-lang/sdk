@@ -6,6 +6,7 @@
 @symbol
 library test.typedef_metadata_test;
 
+@MirrorsUsed(targets: "test.typedef_metadata_test")
 import 'dart:mirrors';
 
 import 'metadata_test.dart';

@@ -5,7 +5,6 @@
 library test;
 
 import 'package:expect/expect.dart';
-import 'stringify.dart';
 
 @MirrorsUsed(targets: "test")
 import 'dart:mirrors';
@@ -18,7 +17,7 @@ class C {
 }
 
 main() {
-  var m = reflectClass(C).declarations[#fun];
+  var m = reflectClass(C).declarations[#fun] as MethodMirror;
 
   Expect.equals(Bar, m.returnType.reflectedType);
   Expect.equals("Foo<int>", m.parameters[0].type.reflectedType.toString()); //  //# 01: ok
@@ -26,5 +25,5 @@ main() {
   Expect.isFalse(m.parameters[0].type.isOriginalDeclaration); //                //# 01: continued
 
   var lib = currentMirrorSystem().findLibrary(#test);
-  Expect.isTrue(lib.declarations[#Foo].isOriginalDeclaration);
+  Expect.isTrue((lib.declarations[#Foo] as TypeMirror).isOriginalDeclaration);
 }

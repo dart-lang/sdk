@@ -320,12 +320,8 @@ mirrors/mirrors_nsm_mismatch_test: StaticWarning, OK # Expect to trigger noSuchM
 mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional library name conflict.
 mirrors/removed_api_test: StaticWarning, OK # Deliberately refers to undeclared members.
 
-
-developer/metrics_test: Fail # Issue 20309
-developer/metrics_num_test: Fail # Issue 20309
 profiler/metrics_test: Fail # Issue 20309
 profiler/metrics_num_test: Fail # Issue 20309
-
 
 [ $compiler == dart2analyzer && $checked ]
 mirrors/regress_16321_test/01: MissingCompileTimeError # Issue 16391
@@ -351,8 +347,8 @@ convert/utf85_test: Skip  # Pass, Slow Issue 12644.
 mirrors/mirrors_reader_test: Pass, Slow
 
 [ $compiler == dart2js ]
-developer/metrics_num_test: Skip # Because of a int / double type test.
 developer/timeline_test: Skip # Not supported
+profiler/metrics_num_test: Skip # Because of a int / double type test.
 
 [ $mode == product ]
 developer/timeline_test: Skip # Not supported

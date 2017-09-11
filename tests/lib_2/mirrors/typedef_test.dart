@@ -52,35 +52,28 @@ void main() {
   String y = 'y';
   String z = 'z';
 
-  Expect.stringEquals(
-      """
+  Expect.stringEquals("""
 TypedefMirror on 'Func'
 FunctionTypeMirror on '${ft('()', 'dynamic')}'
 TypeMirror on 'dynamic'
 []
-""",
-      check(reflectType(Func)));
-  Expect.stringEquals(
-      """
+""", check(reflectType(Func)));
+  Expect.stringEquals("""
 TypedefMirror on 'Void'
 FunctionTypeMirror on '${ft('()', 'void')}'
 TypeMirror on 'void'
 []
-""",
-      check(reflectType(Void)));
-  Expect.stringEquals(
-      """
+""", check(reflectType(Void)));
+  Expect.stringEquals("""
 TypedefMirror on 'Foo'
 FunctionTypeMirror on '${ft('(dart.core.int)', 'dart.core.String')}'
 ClassMirror on 'String'
 [ParameterMirror on '$x']
 Symbol(\"$x\")
 ClassMirror on 'int'
-""",
-      check(reflectType(Foo)));
+""", check(reflectType(Foo)));
   String type = ft('(dart.core.int, dart.core.num)', 'dart.core.String');
-  Expect.stringEquals(
-      """
+  Expect.stringEquals("""
 TypedefMirror on 'Foo2'
 FunctionTypeMirror on '$type'
 ClassMirror on 'String'
@@ -89,11 +82,9 @@ Symbol(\"$x\")
 ClassMirror on 'int'
 Symbol(\"$y\")
 ClassMirror on 'num'
-""",
-      check(reflectType(Foo2)));
+""", check(reflectType(Foo2)));
   type = ft('(dart.core.int, [dart.core.num])', 'dart.core.String');
-  Expect.stringEquals(
-      """
+  Expect.stringEquals("""
 TypedefMirror on 'Bar'
 FunctionTypeMirror on '$type'
 ClassMirror on 'String'
@@ -102,12 +93,10 @@ Symbol(\"$x\")
 ClassMirror on 'int'
 Symbol(\"$y\")
 ClassMirror on 'num'
-""",
-      check(reflectType(Bar)));
+""", check(reflectType(Bar)));
   type =
       ft('(dart.core.int, [dart.core.num, dart.core.num])', 'dart.core.String');
-  Expect.stringEquals(
-      """
+  Expect.stringEquals("""
 TypedefMirror on 'Bar2'
 FunctionTypeMirror on '$type'
 ClassMirror on 'String'
@@ -118,11 +107,9 @@ Symbol(\"$y\")
 ClassMirror on 'num'
 Symbol(\"$z\")
 ClassMirror on 'num'
-""",
-      check(reflectType(Bar2)));
+""", check(reflectType(Bar2)));
   type = ft('(dart.core.int, {y: dart.core.num})', 'dart.core.String');
-  Expect.stringEquals(
-      """
+  Expect.stringEquals("""
 TypedefMirror on 'Baz'
 FunctionTypeMirror on '$type'
 ClassMirror on 'String'
@@ -131,12 +118,10 @@ Symbol(\"$x\")
 ClassMirror on 'int'
 Symbol(\"y\")
 ClassMirror on 'num'
-""",
-      check(reflectType(Baz)));
+""", check(reflectType(Baz)));
   type = ft('(dart.core.int, {y: dart.core.num, z: dart.core.num})',
       'dart.core.String');
-  Expect.stringEquals(
-      """
+  Expect.stringEquals("""
 TypedefMirror on 'Baz2'
 FunctionTypeMirror on '$type'
 ClassMirror on 'String'
@@ -147,6 +132,5 @@ Symbol(\"y\")
 ClassMirror on 'num'
 Symbol(\"z\")
 ClassMirror on 'num'
-""",
-      check(reflectType(Baz2)));
+""", check(reflectType(Baz2)));
 }

@@ -91,6 +91,13 @@ mirrors/type_variable_is_static_test: RuntimeError
 mirrors/type_variable_owner_test/01: RuntimeError
 mirrors/typedef_in_signature_test: RuntimeError
 mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/typedef_library_test: RuntimeError
+mirrors/typedef_metadata_test: RuntimeError
+mirrors/typedef_reflected_type_test/01: RuntimeError
+mirrors/typedef_reflected_type_test/none: RuntimeError
+mirrors/typedef_test: RuntimeError
+mirrors/typevariable_mirror_metadata_test: RuntimeError
+mirrors/variable_is_const_test/01: MissingCompileTimeError
 
 [ $compiler == dartk && $runtime == vm ]
 convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
@@ -131,6 +138,16 @@ mirrors/symbol_validation_test/none: RuntimeError
 mirrors/type_variable_is_static_test: RuntimeError
 mirrors/type_variable_owner_test/01: RuntimeError
 mirrors/typedef_deferred_library_test: RuntimeError
+mirrors/typedef_library_test: RuntimeError
+mirrors/typedef_metadata_test: RuntimeError
+mirrors/typedef_test: RuntimeError
+mirrors/typevariable_mirror_metadata_test: RuntimeError
+
+[ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
+mirrors/variable_is_const_test/01: Crash
+
+[ $compiler == dartkp && $mode == debug ]
+mirrors/variable_is_const_test/01: Crash
 
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 mirrors/invocation_fuzz_test/smi: Crash

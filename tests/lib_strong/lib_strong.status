@@ -88,8 +88,6 @@ mirrors/reflected_type_classes_test: Skip
 mirrors/reflected_type_test: Skip
 mirrors/regress_16321_test: Skip
 mirrors/regress_19731_test: Skip
-mirrors/typedef_reflected_type_test: Skip
-mirrors/variable_is_const_test: Skip
 html/custom/created_callback_test: CompileTimeError # Issue 28969
 html/custom/document_register_basic_test: CompileTimeError # Issue 28969
 html/custom/document_register_type_extensions_test: CompileTimeError # Issue 28969
@@ -207,11 +205,6 @@ mirrors/reflected_type_special_types_test: RuntimeError # Issue 29922
 mirrors/reflected_type_typedefs_test: RuntimeError # Issue 29922
 mirrors/reflected_type_typevars_test: RuntimeError # Issue 29922
 mirrors/regress_14304_test: RuntimeError # Issue 29922
-mirrors/typedef_library_test: RuntimeError # Issue 29922
-mirrors/typedef_metadata_test: RuntimeError # Issue 29922
-mirrors/typedef_test: RuntimeError # Issue 29922
-mirrors/typevariable_mirror_metadata_test: RuntimeError # Issue 29922
-mirrors/unnamed_library_test: RuntimeError # Issue 29922
 html/interactive_test: Skip # requests interactive permissions (camera, geolocation)
 
 async/stream_join_test: RuntimeError # Issue 29922, strong mode cast failure

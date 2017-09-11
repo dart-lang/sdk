@@ -205,7 +205,3 @@ mirrors/reflected_type_function_type_test: RuntimeError
 mirrors/reflected_type_special_types_test: RuntimeError
 mirrors/reflected_type_typedefs_test: RuntimeError
 mirrors/reflected_type_typevars_test: RuntimeError
-mirrors/typedef_library_test: RuntimeError
-mirrors/typedef_metadata_test: RuntimeError
-mirrors/typedef_test: RuntimeError
-mirrors/typevariable_mirror_metadata_test: RuntimeError
