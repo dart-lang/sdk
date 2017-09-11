@@ -1287,6 +1287,7 @@ class CodeGenerator extends Object
           [id, id]),
       _callHelperStatement('setSignature(#, #);', [id, sig])
     ];
+    _emitClassTypeTests(element, id, result);
 
     // defineEnumValues internally depends on dart.constList which uses
     // _interceptors.JSArray.

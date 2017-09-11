@@ -13,7 +13,24 @@ enum Enum4 {
 }
 enum Enum5 { F, G, H }
 
+enum _IsNot { IsNot }
+
+void expectIs<T>(T t, bool Function(Object) test) {
+  Object obj = t;
+  Expect.isTrue(test(obj), '$obj is ${obj.runtimeType}');
+  Expect.isFalse(obj is _IsNot, '$obj is _IsNot');
+  // test cast
+  t = obj as T;
+  Expect.throws(() => obj as _IsNot, (e) => e is CastError, '$obj as _IsNot');
+}
+
 main() {
+  expectIs(Enum1._, (e) => e is Enum1);
+  expectIs(Enum2.A, (e) => e is Enum2);
+  expectIs(Enum3.B, (e) => e is Enum3);
+  expectIs(Enum4.E, (e) => e is Enum4);
+  expectIs(Enum5.G, (e) => e is Enum5);
+
   Expect.equals('Enum1._', Enum1._.toString());
   Expect.equals(0, Enum1._.index);
   Expect.listEquals([Enum1._], Enum1.values);
