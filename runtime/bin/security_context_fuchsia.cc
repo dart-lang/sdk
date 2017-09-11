@@ -29,18 +29,14 @@ namespace bin {
 const intptr_t SSLCertContext::kApproximateSize =
     sizeof(SSLCertContext) + root_certificates_pem_length;
 
-const char* commandline_root_certs_file = NULL;
-const char* commandline_root_certs_cache = NULL;
-
 void SSLCertContext::TrustBuiltinRoots() {
   // First, try to use locations specified on the command line.
-  if (commandline_root_certs_file != NULL) {
-    LoadRootCertFile(commandline_root_certs_file);
+  if (root_certs_file() != NULL) {
+    LoadRootCertFile(root_certs_file());
     return;
   }
-
-  if (commandline_root_certs_cache != NULL) {
-    LoadRootCertCache(commandline_root_certs_cache);
+  if (root_certs_cache() != NULL) {
+    LoadRootCertCache(root_certs_cache());
     return;
   }
 

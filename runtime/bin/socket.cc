@@ -24,9 +24,8 @@ static const int kSocketIdNativeField = 0;
 
 ListeningSocketRegistry* globalTcpListeningSocketRegistry = NULL;
 
-bool short_socket_read = false;
-
-bool short_socket_write = false;
+bool Socket::short_socket_read_ = false;
+bool Socket::short_socket_write_ = false;
 
 void ListeningSocketRegistry::Initialize() {
   ASSERT(globalTcpListeningSocketRegistry == NULL);
@@ -325,7 +324,7 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
   int64_t length = 0;
   if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length)) {
-    if (short_socket_read) {
+    if (Socket::short_socket_read()) {
       length = (length + 1) / 2;
     }
     uint8_t* buffer = NULL;
@@ -439,7 +438,7 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   intptr_t offset = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
   intptr_t length = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
   bool short_write = false;
-  if (short_socket_write) {
+  if (Socket::short_socket_write()) {
     if (length > 1) {
       short_write = true;
     }

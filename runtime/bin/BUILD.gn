@@ -307,6 +307,8 @@ template("build_gen_snapshot") {
       "dfe.cc",
       "dfe.h",
       "gen_snapshot.cc",
+      "options.cc",
+      "options.h",
       "vmservice_impl.cc",
       "vmservice_impl.h",
     ]
@@ -678,6 +680,7 @@ template("dart_executable") {
     deps = [
              ":standalone_dart_io",
              ":libdart_builtin",
+             "//third_party/boringssl",
              "$dart_zlib_path",
            ] + extra_deps
 
@@ -695,6 +698,10 @@ template("dart_executable") {
                 "error_exit.cc",
                 "error_exit.h",
                 "main.cc",
+                "main_options.cc",
+                "main_options.h",
+                "options.cc",
+                "options.h",
                 "snapshot_utils.cc",
                 "snapshot_utils.h",
                 "vmservice_impl.cc",
@@ -961,14 +968,14 @@ executable("run_vm_tests") {
   compiler_tests = rebase_path(compiler_sources_tests, ".", "../vm/compiler")
 
   sources = [
-              "error_exit.cc",
-              "error_exit.h",
-              "snapshot_utils.cc",
-              "snapshot_utils.h",
               "builtin_nolib.cc",
-              "run_vm_tests.cc",
               "dfe.cc",
               "dfe.h",
+              "error_exit.cc",
+              "error_exit.h",
+              "run_vm_tests.cc",
+              "snapshot_utils.cc",
+              "snapshot_utils.h",
             ] + builtin_impl_tests + vm_tests + compiler_tests
 
   if (!is_win) {

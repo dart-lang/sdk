@@ -47,6 +47,15 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
                                   SSLCertContext* context,
                                   bool is_server);
 
+  static const char* root_certs_file() { return root_certs_file_; }
+  static void set_root_certs_file(const char* root_certs_file) {
+    root_certs_file_ = root_certs_file;
+  }
+  static const char* root_certs_cache() { return root_certs_cache_; }
+  static void set_root_certs_cache(const char* root_certs_cache) {
+    root_certs_cache_ = root_certs_cache;
+  }
+
   void SetTrustedCertificatesBytes(Dart_Handle cert_bytes,
                                    const char* password);
 
@@ -79,6 +88,9 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
   void AddCompiledInCerts();
   void LoadRootCertFile(const char* file);
   void LoadRootCertCache(const char* cache);
+
+  static const char* root_certs_file_;
+  static const char* root_certs_cache_;
 
   SSL_CTX* context_;
   uint8_t* alpn_protocol_string_;

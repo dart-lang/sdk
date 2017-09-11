@@ -32,6 +32,9 @@
 namespace dart {
 namespace bin {
 
+const char* SSLCertContext::root_certs_file_ = NULL;
+const char* SSLCertContext::root_certs_cache_ = NULL;
+
 int SSLCertContext::CertificateCallback(int preverify_ok,
                                         X509_STORE_CTX* store_ctx) {
   if (preverify_ok == 1) {
