@@ -44,6 +44,7 @@ front_end/test/fasta/ast_builder_test: Pass, Slow
 
 # These are not tests but input for tests.
 kernel/testcases/*: Skip
+front_end/testcases/*: Skip
 
 front_end/test/fasta/analyze_test: Pass, Slow
 
@@ -99,6 +100,7 @@ front_end/tool/perf_test: Skip # Issue 28698
 front_end/tool/fasta_perf_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
 front_end/test/kernel_generator_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
 front_end/test/summary_generator_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
+front_end/test/mixin_export_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
 
 [ $runtime == vm && $system == windows]
 analysis_server/*: Skip # Issue 27557
@@ -136,6 +138,9 @@ front_end/test/src/base/libraries_reader_test: SkipByDesign # Uses dart:io
 front_end/test/src/base/processed_options_test: SkipByDesign # Uses dart:io
 front_end/test/subpackage_relationships_test: SkipByDesign # Uses dart:io
 
+[ $compiler == dart2js && $runtime != d8 ]
+front_end/test/mixin_export_test: RuntimeError # Issue 30576
+
 [ $compiler == dart2js && $fast_startup ]
 front_end/test/*: SkipByDesign # Tests written with dart:mirrors.
 
@@ -149,7 +154,6 @@ crypto/test/base64_test: Slow, Pass
 
 [ $runtime == jsshell ]
 async/test/stream_zip_test: RuntimeError, OK # Issue 26103. Timers are not supported.
-lookup_map/test/lookup_map_test: RuntimeError, OK # Issue 26103. Timers are not supported.
 front_end/test/*: RuntimeError, OK, Pass # Issue 26103. Timers are not supported.
 kernel/test/*: RuntimeError, OK # Issue 26103. Timers are not supported.
 

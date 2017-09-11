@@ -8,9 +8,10 @@ import 'dart:io';
 
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
+import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:test/test.dart';
-import 'package:usage/usage.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:usage/usage.dart';
 
 main() {
   group('CommandLineOptions', () {
@@ -75,6 +76,7 @@ main() {
         expect(options.warningsAreFatal, isFalse);
         expect(options.strongMode, isFalse);
         expect(options.lintsAreFatal, isFalse);
+        expect(options.previewDart2, isFalse);
       });
 
       test('batch', () {
@@ -234,22 +236,32 @@ main() {
         expect(failureMessage, equals('Invalid Dart SDK path: &&&&&'));
       });
 
-      test('--analytics', () {
-        AnalyticsMock mock = new AnalyticsMock()..enabled = false;
-        setAnalytics(mock);
-        CommandLineOptions.parse(['--analytics']);
-        expect(mock.enabled, true);
-        expect(lastExitHandlerCode, 0);
-        expect(outStringBuffer.toString(), contains('Analytics are currently'));
-      });
+      if (telemetry.SHOW_ANALYTICS_UI) {
+        test('--analytics', () {
+          AnalyticsMock mock = new AnalyticsMock()..enabled = false;
+          setAnalytics(mock);
+          CommandLineOptions.parse(['--analytics']);
+          expect(mock.enabled, true);
+          expect(lastExitHandlerCode, 0);
+          expect(
+              outStringBuffer.toString(), contains('Analytics are currently'));
+        });
 
-      test('--no-analytics', () {
-        AnalyticsMock mock = new AnalyticsMock()..enabled = false;
-        setAnalytics(mock);
-        CommandLineOptions.parse(['--no-analytics']);
-        expect(mock.enabled, false);
-        expect(lastExitHandlerCode, 0);
-        expect(outStringBuffer.toString(), contains('Analytics are currently'));
+        test('--no-analytics', () {
+          AnalyticsMock mock = new AnalyticsMock()..enabled = false;
+          setAnalytics(mock);
+          CommandLineOptions.parse(['--no-analytics']);
+          expect(mock.enabled, false);
+          expect(lastExitHandlerCode, 0);
+          expect(
+              outStringBuffer.toString(), contains('Analytics are currently'));
+        });
+      }
+
+      test('preview FE', () {
+        CommandLineOptions options =
+            CommandLineOptions.parse(['--preview-dart-2', 'foo.dart']);
+        expect(options.previewDart2, isTrue);
       });
     });
   });

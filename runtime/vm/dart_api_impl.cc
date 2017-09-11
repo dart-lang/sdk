@@ -11,7 +11,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/clustered_snapshot.h"
 #include "vm/compilation_trace.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_message.h"
@@ -19,8 +19,9 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #if !defined(DART_PRECOMPILED_RUNTIME)
-#include "vm/kernel_reader.h"
+#include "vm/kernel_loader.h"
 #endif
+#include "vm/compiler/aot/precompiler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
@@ -35,7 +36,6 @@
 #include "vm/os.h"
 #include "vm/os_thread.h"
 #include "vm/port.h"
-#include "vm/precompiler.h"
 #include "vm/profiler.h"
 #include "vm/program_visitor.h"
 #include "vm/resolver.h"
@@ -90,17 +90,28 @@ const char* CanonicalFunction(const char* func) {
 #define API_TIMELINE_DURATION                                                  \
   TimelineDurationScope tds(Thread::Current(), Timeline::GetAPIStream(),       \
                             CURRENT_FUNC)
+#define API_TIMELINE_DURATION_BASIC                                            \
+  API_TIMELINE_DURATION;                                                       \
+  tds.SetNumArguments(1);                                                      \
+  tds.CopyArgument(0, "mode", "basic");
 
 #define API_TIMELINE_BEGIN_END                                                 \
   TimelineBeginEndScope tbes(Thread::Current(), Timeline::GetAPIStream(),      \
                              CURRENT_FUNC)
+
+#define API_TIMELINE_BEGIN_END_BASIC                                           \
+  API_TIMELINE_BEGIN_END;                                                      \
+  tbes.SetNumArguments(1);                                                     \
+  tbes.CopyArgument(0, "mode", "basic");
 #else
 #define API_TIMELINE_DURATION                                                  \
   do {                                                                         \
   } while (false)
+#define API_TIMELINE_DURATION_BASIC API_TIMELINE_DURATION
 #define API_TIMELINE_BEGIN_END                                                 \
   do {                                                                         \
   } while (false)
+#define API_TIMELINE_BEGIN_END_BASIC API_TIMELINE_BEGIN_END
 #endif  // !PRODUCT
 
 #if defined(DEBUG)
@@ -1022,48 +1033,6 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
   state->weak_persistent_handles().FreeHandle(weak_ref);
 }
 
-// --- Garbage Collection Callbacks --
-
-DART_EXPORT Dart_Handle
-Dart_SetGcCallbacks(Dart_GcPrologueCallback prologue_callback,
-                    Dart_GcEpilogueCallback epilogue_callback) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  CHECK_ISOLATE(isolate);
-  DARTSCOPE(thread);
-  if (prologue_callback != NULL) {
-    if (isolate->gc_prologue_callback() != NULL) {
-      return Api::NewError(
-          "%s permits only one gc prologue callback to be registered, please "
-          "remove the existing callback and then add this callback",
-          CURRENT_FUNC);
-    }
-  } else {
-    if (isolate->gc_prologue_callback() == NULL) {
-      return Api::NewError(
-          "%s expects 'prologue_callback' to be present in the callback set.",
-          CURRENT_FUNC);
-    }
-  }
-  if (epilogue_callback != NULL) {
-    if (isolate->gc_epilogue_callback() != NULL) {
-      return Api::NewError(
-          "%s permits only one gc epilogue callback to be registered, please "
-          "remove the existing callback and then add this callback",
-          CURRENT_FUNC);
-    }
-  } else {
-    if (isolate->gc_epilogue_callback() == NULL) {
-      return Api::NewError(
-          "%s expects 'epilogue_callback' to be present in the callback set.",
-          CURRENT_FUNC);
-    }
-  }
-  isolate->set_gc_prologue_callback(prologue_callback);
-  isolate->set_gc_epilogue_callback(epilogue_callback);
-  return Api::Success();
-}
-
 // --- Initialization and Globals ---
 
 DART_EXPORT const char* Dart_VersionString() {
@@ -1138,9 +1107,9 @@ static char* BuildIsolateName(const char* script_uri, const char* main) {
   }
 
   char* chars = NULL;
-  intptr_t len = OS::SNPrint(NULL, 0, "%s$%s", script_uri, main) + 1;
+  intptr_t len = OS::SNPrint(NULL, 0, "%s:%s()", script_uri, main) + 1;
   chars = reinterpret_cast<char*>(malloc(len));
-  OS::SNPrint(chars, len, "%s$%s", script_uri, main);
+  OS::SNPrint(chars, len, "%s:%s()", script_uri, main);
   return chars;
 }
 
@@ -1202,6 +1171,10 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
   }
   Dart::ShutdownIsolate();
   return reinterpret_cast<Dart_Isolate>(NULL);
+}
+
+DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags) {
+  Isolate::FlagsInitialize(flags);
 }
 
 DART_EXPORT Dart_Isolate
@@ -1277,7 +1250,9 @@ DART_EXPORT void* Dart_IsolateData(Dart_Isolate isolate) {
 DART_EXPORT Dart_Handle Dart_DebugName() {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
-  return Api::NewHandle(T, String::New(I->name()));
+  return Api::NewHandle(
+      T, String::NewFormatted("(%" Pd64 ") '%s'",
+                              static_cast<int64_t>(I->main_port()), I->name()));
 }
 
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
@@ -1459,6 +1434,8 @@ DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
   Thread* T = Thread::Current();
   CHECK_ISOLATE(T->isolate());
   API_TIMELINE_BEGIN_END;
+  TransitionNativeToVM transition(T);
+  T->isolate()->heap()->NotifyIdle(deadline);
 }
 
 DART_EXPORT void Dart_ExitIsolate() {
@@ -1656,7 +1633,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   Isolate* I = T->isolate();
   CHECK_API_SCOPE(T);
   CHECK_CALLBACK_STATE(T);
-  API_TIMELINE_BEGIN_END;
+  API_TIMELINE_BEGIN_END_BASIC;
   TransitionNativeToVM transition(T);
   if (I->message_handler()->HandleNextMessage() != MessageHandler::kOK) {
     Dart_Handle error = Api::NewHandle(T, T->sticky_error());
@@ -1671,7 +1648,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessages() {
   Isolate* I = T->isolate();
   CHECK_API_SCOPE(T);
   CHECK_CALLBACK_STATE(T);
-  API_TIMELINE_BEGIN_END;
+  API_TIMELINE_BEGIN_END_BASIC;
   TransitionNativeToVM transition(T);
   if (I->message_handler()->HandleAllMessages() != MessageHandler::kOK) {
     Dart_Handle error = Api::NewHandle(T, T->sticky_error());
@@ -5013,14 +4990,10 @@ static Dart_Handle LoadKernelProgram(Thread* T,
   // NOTE: Now the VM owns the [kernel_program] memory!
   // We will promptly delete it when done.
   kernel::Program* program = reinterpret_cast<kernel::Program*>(kernel);
-  kernel::KernelReader reader(program);
-  const Object& tmp = reader.ReadProgram();
+  kernel::KernelLoader loader(program);
+  const Object& tmp = loader.LoadProgram();
   delete program;
-
-  if (tmp.IsError()) {
-    return Api::NewHandle(T, tmp.raw());
-  }
-  return Dart_Null();
+  return Api::NewHandle(T, tmp.raw());
 }
 #endif
 
@@ -5072,6 +5045,11 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
       return result;
     }
     library ^= Library::LookupLibrary(T, resolved_url_str);
+    if (library.IsNull()) {
+      // If the URL string does not match, use the library object
+      // returned by the kernel loader.
+      library ^= Api::UnwrapHandle(result);
+    }
     if (library.IsNull()) {
       return Api::NewError("%s: Unable to load script '%s' correctly.",
                            CURRENT_FUNC, resolved_url_str.ToCString());
@@ -5197,8 +5175,8 @@ DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program) {
   // NOTE: Now the VM owns the [kernel_program] memory!
   // We will promptly delete it when done.
   kernel::Program* program = reinterpret_cast<kernel::Program*>(kernel_program);
-  kernel::KernelReader reader(program);
-  const Object& tmp = reader.ReadProgram();
+  kernel::KernelLoader loader(program);
+  const Object& tmp = loader.LoadProgram();
   delete program;
 
   if (tmp.IsError()) {
@@ -5788,7 +5766,7 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
 // --- Dart Front-End (Kernel) support ---
 
 DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate) {
-#ifdef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
   return false;
 #else
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
@@ -5797,7 +5775,7 @@ DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate) {
 }
 
 DART_EXPORT bool Dart_KernelIsolateIsRunning() {
-#ifdef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
   return false;
 #else
   return KernelIsolate::IsRunning();
@@ -5805,7 +5783,7 @@ DART_EXPORT bool Dart_KernelIsolateIsRunning() {
 }
 
 DART_EXPORT Dart_Port Dart_KernelPort() {
-#ifdef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
   return false;
 #else
   return KernelIsolate::KernelPort();
@@ -5814,7 +5792,7 @@ DART_EXPORT Dart_Port Dart_KernelPort() {
 
 DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileToKernel(const char* script_uri, const char* platform_kernel) {
-#ifdef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
   Dart_KernelCompilationResult result;
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileToKernel is unsupported.");
@@ -5830,7 +5808,7 @@ Dart_CompileSourcesToKernel(const char* script_uri,
                             int source_files_count,
                             Dart_SourceFile sources[],
                             bool incremental_compile) {
-#ifdef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
   Dart_KernelCompilationResult result;
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
@@ -6015,6 +5993,7 @@ Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback) {
   if (!FLAG_support_service) {
     return Api::Success();
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (file_modified_callback != NULL) {
     if (IsolateReloadContext::file_modified_callback() != NULL) {
       return Api::NewError(
@@ -6030,6 +6009,7 @@ Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback) {
     }
   }
   IsolateReloadContext::SetFileModifiedCallback(file_modified_callback);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return Api::Success();
 }
 
@@ -6729,6 +6709,47 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   *isolate_snapshot_instructions_size =
       isolate_image_writer.InstructionsBlobSize();
 
+  return Api::Success();
+#endif
+}
+
+DART_EXPORT Dart_Handle Dart_GetObfuscationMap(uint8_t** buffer,
+                                               intptr_t* buffer_length) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("No obfuscation map to save on an AOT runtime.");
+#elif !defined(DART_PRECOMPILER)
+  return Api::NewError("Obfuscation is only supported for AOT compiler.");
+#else
+  Thread* thread = Thread::Current();
+  DARTSCOPE(thread);
+  Isolate* isolate = thread->isolate();
+
+  if (buffer == NULL) {
+    RETURN_NULL_ERROR(buffer);
+  }
+  if (buffer_length == NULL) {
+    RETURN_NULL_ERROR(buffer_length);
+  }
+
+  // Note: can't use JSONStream in PRODUCT builds.
+  const intptr_t kInitialBufferSize = 1 * MB;
+  TextBuffer text_buffer(kInitialBufferSize);
+
+  text_buffer.AddChar('[');
+  if (isolate->obfuscation_map() != NULL) {
+    for (intptr_t i = 0; isolate->obfuscation_map()[i] != NULL; i++) {
+      if (i > 0) {
+        text_buffer.AddChar(',');
+      }
+      text_buffer.AddChar('"');
+      text_buffer.AddEscapedString(isolate->obfuscation_map()[i]);
+      text_buffer.AddChar('"');
+    }
+  }
+  text_buffer.AddChar(']');
+
+  *buffer_length = text_buffer.length();
+  *reinterpret_cast<char**>(buffer) = text_buffer.Steal();
   return Api::Success();
 #endif
 }

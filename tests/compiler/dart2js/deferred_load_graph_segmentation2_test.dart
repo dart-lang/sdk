@@ -16,14 +16,14 @@ void main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
-    var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
+    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
     var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
     dynamic lib =
         compiler.libraryLoader.lookupLibrary(Uri.parse("memory:lib.dart"));
     var f1 = lib.find("f1");
     var f2 = lib.find("f2");
-    Expect.notEquals(mainOutputUnit, outputUnitForElement(f1));
-    Expect.equals(mainOutputUnit, outputUnitForElement(f2));
+    Expect.notEquals(mainOutputUnit, outputUnitForEntity(f1));
+    Expect.equals(mainOutputUnit, outputUnitForEntity(f2));
   });
 }
 

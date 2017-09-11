@@ -8,6 +8,7 @@ enum FunctionKind {
   regular,
   closure,
   implicitClosure,
+  convertedClosure,
   getter,
   setter,
   constructor,

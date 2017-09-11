@@ -5,13 +5,11 @@
 import 'dart:async';
 import 'dart:core';
 
-import 'package:analysis_server/plugin/analysis/analysis_domain.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/computer/imported_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
-import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/request_converter.dart';
@@ -20,16 +18,15 @@ import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' as engine;
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/task/model.dart' show ResultDescriptor;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 
 /**
  * Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]
@@ -39,9 +36,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   /**
    * Initialize a newly created handler to handle requests for the given [server].
    */
-  AnalysisDomainHandler(AnalysisServer server) : super(server) {
-    _callAnalysisDomainReceivers();
-  }
+  AnalysisDomainHandler(AnalysisServer server) : super(server);
 
   /**
    * Implement the `analysis.getErrors` request.
@@ -433,42 +428,5 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     }
     server.updateOptions(updaters);
     return new AnalysisUpdateOptionsResult().toResponse(request.id);
-  }
-
-  /**
-   * Call all the registered [SetAnalysisDomain] functions.
-   */
-  void _callAnalysisDomainReceivers() {
-    AnalysisDomain analysisDomain = new AnalysisDomainImpl(server);
-    for (SetAnalysisDomain function
-        in server.serverPlugin.setAnalysisDomainFunctions) {
-      try {
-        function(analysisDomain);
-      } catch (exception, stackTrace) {
-        engine.AnalysisEngine.instance.logger.logError(
-            'Exception from analysis domain receiver: ${function.runtimeType}',
-            new CaughtException(exception, stackTrace));
-      }
-    }
-  }
-}
-
-/**
- * An implementation of [AnalysisDomain] for [AnalysisServer].
- */
-class AnalysisDomainImpl implements AnalysisDomain {
-  final AnalysisServer server;
-
-  final Map<ResultDescriptor, StreamController<engine.ResultChangedEvent>>
-      controllers =
-      <ResultDescriptor, StreamController<engine.ResultChangedEvent>>{};
-
-  AnalysisDomainImpl(this.server) {
-    // TODO(brianwilkerson) The onContextsChanged stream is no longer written to.
-    // Figure out whether this code still needs to be here and convert it to use
-    // the analysis driver if it does.
-//    server.onContextsChanged.listen((ContextsChangedEvent event) {
-//      event.added.forEach(_subscribeForContext);
-//    });
   }
 }

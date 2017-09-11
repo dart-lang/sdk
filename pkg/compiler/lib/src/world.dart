@@ -64,6 +64,8 @@ abstract class ClosedWorld implements World {
 
   Iterable<ClassEntity> get liveNativeClasses;
 
+  Iterable<MemberEntity> get processedMembers;
+
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
   bool isInstantiated(ClassEntity cls);
 
@@ -461,6 +463,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   final Iterable<ClassEntity> liveNativeClasses;
 
+  final Iterable<MemberEntity> processedMembers;
+
   ClosedWorldBase(
       this.elementEnvironment,
       this.dartTypes,
@@ -473,6 +477,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       this.liveNativeClasses,
       this.liveInstanceMembers,
       this.assignedInstanceMembers,
+      this.processedMembers,
       Set<TypedefEntity> allTypedefs,
       this.mixinUses,
       this.typesImplementedBySubclasses,
@@ -1206,6 +1211,7 @@ class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
       Iterable<ClassEntity> liveNativeClasses,
       Iterable<MemberEntity> liveInstanceMembers,
       Iterable<MemberEntity> assignedInstanceMembers,
+      Iterable<MemberEntity> processedMembers,
       Set<TypedefEntity> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
@@ -1223,6 +1229,7 @@ class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
             liveNativeClasses,
             liveInstanceMembers,
             assignedInstanceMembers,
+            processedMembers,
             allTypedefs,
             mixinUses,
             typesImplementedBySubclasses,

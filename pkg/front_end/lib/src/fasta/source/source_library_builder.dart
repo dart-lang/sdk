@@ -111,6 +111,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   bool get isPart => partOfName != null || partOfUri != null;
 
+  @override
   bool get isPatch;
 
   List<T> get types => libraryDeclaration.types;
@@ -582,10 +583,13 @@ class DeclarationBuilder<T extends TypeBuilder> {
   final Map<ProcedureBuilder, DeclarationBuilder<T>> factoryDeclarations;
 
   DeclarationBuilder(this.members, this.setters, this.constructors,
-      this.factoryDeclarations, this.name, this.parent);
+      this.factoryDeclarations, this.name, this.parent) {
+    assert(name != null);
+  }
 
   DeclarationBuilder.library()
-      : this(<String, Builder>{}, <String, Builder>{}, null, null, null, null);
+      : this(<String, Builder>{}, <String, Builder>{}, null, null, "library",
+            null);
 
   DeclarationBuilder createNested(String name, bool hasMembers) {
     return new DeclarationBuilder<T>(
@@ -661,6 +665,6 @@ class DeclarationBuilder<T extends TypeBuilder> {
   }
 
   Scope toScope(Scope parent) {
-    return new Scope(members, setters, parent, isModifiable: false);
+    return new Scope(members, setters, parent, name, isModifiable: false);
   }
 }

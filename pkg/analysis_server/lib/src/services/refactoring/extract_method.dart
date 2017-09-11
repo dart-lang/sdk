@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -24,10 +25,11 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart' show ExitDetector;
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 const String _TOKEN_SEPARATOR = '\uFFFF';
@@ -76,7 +78,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   final CompilationUnit unit;
   final int selectionOffset;
   final int selectionLength;
-  AnalysisContext context;
+  AnalysisSession session;
   CompilationUnitElement unitElement;
   LibraryElement libraryElement;
   SourceRange selectionRange;
@@ -123,7 +125,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       this.selectionOffset, this.selectionLength) {
     unitElement = unit.element;
     libraryElement = unitElement.library;
-    context = libraryElement.context;
+    session = astProvider.driver.currentSession;
     selectionRange = new SourceRange(selectionOffset, selectionLength);
     utils = new CorrectionUtils(unit);
   }
@@ -195,17 +197,18 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   @override
-  Future<RefactoringStatus> checkInitialConditions() {
+  Future<RefactoringStatus> checkInitialConditions() async {
     RefactoringStatus result = new RefactoringStatus();
     // selection
     result.addStatus(_checkSelection());
     if (result.hasFatalError) {
-      return new Future.value(result);
+      return result;
     }
     // prepare parts
-    result.addStatus(_initializeParameters());
+    RefactoringStatus status = await _initializeParameters();
+    result.addStatus(status);
     _initializeHasAwait();
-    _initializeReturnType();
+    await _initializeReturnType();
     // occurrences
     _initializeOccurrences();
     _prepareOffsetsLengths();
@@ -221,10 +224,9 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       String message = format(
           'Cannot extract closure as method, it references {0} external variable(s).',
           _parameters.length);
-      RefactoringStatus result = new RefactoringStatus.fatal(message);
-      return new Future.value(result);
+      return new RefactoringStatus.fatal(message);
     }
-    return new Future.value(result);
+    return result;
   }
 
   @override
@@ -667,7 +669,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
    * Prepares information about used variables, which should be turned into
    * parameters.
    */
-  RefactoringStatus _initializeParameters() {
+  Future<RefactoringStatus> _initializeParameters() async {
     _parameters.clear();
     _parametersMap.clear();
     _parameterReferencesMap.clear();
@@ -687,7 +689,9 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
     // maybe ends with "return" statement
     if (_selectionStatements != null) {
-      _ReturnTypeComputer returnTypeComputer = new _ReturnTypeComputer(context);
+      TypeSystem typeSystem = await session.typeSystem;
+      _ReturnTypeComputer returnTypeComputer =
+          new _ReturnTypeComputer(typeSystem);
       _selectionStatements.forEach((statement) {
         statement.accept(returnTypeComputer);
       });
@@ -723,8 +727,9 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     return result;
   }
 
-  void _initializeReturnType() {
-    InterfaceType futureType = context.typeProvider.futureType;
+  Future<Null> _initializeReturnType() async {
+    TypeProvider typeProvider = await session.typeProvider;
+    InterfaceType futureType = typeProvider.futureType;
     if (_selectionFunctionExpression != null) {
       variableType = '';
       returnType = '';
@@ -1262,11 +1267,11 @@ class _Occurrence {
 }
 
 class _ReturnTypeComputer extends RecursiveAstVisitor {
-  final AnalysisContext context;
+  final TypeSystem typeSystem;
 
   DartType returnType;
 
-  _ReturnTypeComputer(this.context);
+  _ReturnTypeComputer(this.typeSystem);
 
   @override
   visitBlockFunctionBody(BlockFunctionBody node) {}
@@ -1290,7 +1295,7 @@ class _ReturnTypeComputer extends RecursiveAstVisitor {
       if (returnType is InterfaceType && type is InterfaceType) {
         returnType = InterfaceType.getSmartLeastUpperBound(returnType, type);
       } else {
-        returnType = context.typeSystem.getLeastUpperBound(returnType, type);
+        returnType = typeSystem.getLeastUpperBound(returnType, type);
       }
     }
   }

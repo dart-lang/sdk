@@ -40,7 +40,6 @@ else
   update_suite dart2js_extra
   update_suite language
   update_suite language_2
-  update_suite corelib
   update_suite corelib_2
 fi
 

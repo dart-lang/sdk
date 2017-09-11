@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Note: This test relies on LF line endings in the source file.
+// It requires an entry in the .gitattributes file.
 
 import "package:expect/expect.dart";
 

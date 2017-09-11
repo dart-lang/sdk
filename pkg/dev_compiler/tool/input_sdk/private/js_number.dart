@@ -12,7 +12,8 @@ part of dart._interceptors;
 class JSNumber extends Interceptor implements int, double {
   const JSNumber();
 
-  int compareTo(num b) {
+  @notNull
+  int compareTo(@nullCheck num b) {
     if (this < b) {
       return -1;
     } else if (this > b) {
@@ -35,28 +36,37 @@ class JSNumber extends Interceptor implements int, double {
     }
   }
 
+  @notNull
   bool get isNegative => (this == 0) ? (1 / this) < 0 : this < 0;
 
+  @notNull
   bool get isNaN => JS('bool', r'isNaN(#)', this);
 
+  @notNull
   bool get isInfinite {
     return JS('bool', r'# == (1/0)', this) || JS('bool', r'# == (-1/0)', this);
   }
 
+  @notNull
   bool get isFinite => JS('bool', r'isFinite(#)', this);
 
-  JSNumber remainder(num b) {
-    if (b is! num) throw argumentErrorValue(b);
+  @notNull
+  JSNumber remainder(@nullCheck num b) {
     return JS('num', r'# % #', this, b);
   }
 
+  @notNull
   JSNumber abs() => JS('num', r'Math.abs(#)', this);
 
+  @notNull
   JSNumber get sign => this > 0 ? 1 : this < 0 ? -1 : this;
 
+  @notNull
   static const int _MIN_INT32 = -0x80000000;
+  @notNull
   static const int _MAX_INT32 = 0x7FFFFFFF;
 
+  @notNull
   int toInt() {
     if (this >= _MIN_INT32 && this <= _MAX_INT32) {
       return JS('int', '# | 0', this);
@@ -68,12 +78,16 @@ class JSNumber extends Interceptor implements int, double {
     throw new UnsupportedError(JS("String", '"" + #', this));
   }
 
+  @notNull
   int truncate() => toInt();
 
+  @notNull
   int ceil() => ceilToDouble().toInt();
 
+  @notNull
   int floor() => floorToDouble().toInt();
 
+  @notNull
   int round() {
     if (this > 0) {
       // This path excludes the special cases -0.0, NaN and -Infinity, leaving
@@ -93,10 +107,13 @@ class JSNumber extends Interceptor implements int, double {
     throw new UnsupportedError(JS("String", '"" + #', this));
   }
 
+  @notNull
   double ceilToDouble() => JS('num', r'Math.ceil(#)', this);
 
+  @notNull
   double floorToDouble() => JS('num', r'Math.floor(#)', this);
 
+  @notNull
   double roundToDouble() {
     if (this < 0) {
       return JS('num', r'-Math.round(-#)', this);
@@ -105,9 +122,11 @@ class JSNumber extends Interceptor implements int, double {
     }
   }
 
+  @notNull
   double truncateToDouble() => this < 0 ? ceilToDouble() : floorToDouble();
 
-  num clamp(num lowerLimit, num upperLimit) {
+  @notNull
+  num clamp(@nullCheck num lowerLimit, @nullCheck num upperLimit) {
     if (lowerLimit.compareTo(upperLimit) > 0) {
       throw argumentErrorValue(lowerLimit);
     }
@@ -116,10 +135,11 @@ class JSNumber extends Interceptor implements int, double {
     return this;
   }
 
+  @notNull
   double toDouble() => this;
 
-  String toStringAsFixed(int fractionDigits) {
-    checkInt(fractionDigits);
+  @notNull
+  String toStringAsFixed(@notNull int fractionDigits) {
     if (fractionDigits < 0 || fractionDigits > 20) {
       throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
     }
@@ -128,14 +148,16 @@ class JSNumber extends Interceptor implements int, double {
     return result;
   }
 
+  @notNull
   String toStringAsExponential([int fractionDigits]) {
     String result;
     if (fractionDigits != null) {
-      checkInt(fractionDigits);
-      if (fractionDigits < 0 || fractionDigits > 20) {
-        throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
+      @notNull
+      var _fractionDigits = fractionDigits;
+      if (_fractionDigits < 0 || _fractionDigits > 20) {
+        throw new RangeError.range(_fractionDigits, 0, 20, "fractionDigits");
       }
-      result = JS('String', r'#.toExponential(#)', this, fractionDigits);
+      result = JS('String', r'#.toExponential(#)', this, _fractionDigits);
     } else {
       result = JS('String', r'#.toExponential()', this);
     }
@@ -143,8 +165,8 @@ class JSNumber extends Interceptor implements int, double {
     return result;
   }
 
-  String toStringAsPrecision(int precision) {
-    checkInt(precision);
+  @notNull
+  String toStringAsPrecision(@nullCheck int precision) {
     if (precision < 1 || precision > 21) {
       throw new RangeError.range(precision, 1, 21, "precision");
     }
@@ -153,8 +175,8 @@ class JSNumber extends Interceptor implements int, double {
     return result;
   }
 
-  String toRadixString(int radix) {
-    checkInt(radix);
+  @notNull
+  String toRadixString(@nullCheck int radix) {
     if (radix < 2 || radix > 36) {
       throw new RangeError.range(radix, 2, 36, "radix");
     }
@@ -166,6 +188,7 @@ class JSNumber extends Interceptor implements int, double {
     return _handleIEtoString(result);
   }
 
+  @notNull
   static String _handleIEtoString(String result) {
     // Result is probably IE's untraditional format for large numbers,
     // e.g., "8.0000000000008(e+15)" for 0x8000000000000800.toString(16).
@@ -185,6 +208,7 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   // Note: if you change this, also change the function [S].
+  @notNull
   String toString() {
     if (this == 0 && JS('bool', '(1 / #) < 0', this)) {
       return '-0.0';
@@ -193,32 +217,34 @@ class JSNumber extends Interceptor implements int, double {
     }
   }
 
+  @notNull
   int get hashCode => JS('int', '# & 0x1FFFFFFF', this);
 
+  @notNull
   JSNumber operator -() => JS('num', r'-#', this);
 
-  JSNumber operator +(num other) {
-    if (other is! num) throw argumentErrorValue(other);
+  @notNull
+  JSNumber operator +(@nullCheck num other) {
     return JS('num', '# + #', this, other);
   }
 
-  JSNumber operator -(num other) {
-    if (other is! num) throw argumentErrorValue(other);
+  @notNull
+  JSNumber operator -(@nullCheck num other) {
     return JS('num', '# - #', this, other);
   }
 
-  double operator /(num other) {
-    if (other is! num) throw argumentErrorValue(other);
+  @notNull
+  double operator /(@nullCheck num other) {
     return JS('num', '# / #', this, other);
   }
 
-  JSNumber operator *(num other) {
-    if (other is! num) throw argumentErrorValue(other);
+  @notNull
+  JSNumber operator *(@nullCheck num other) {
     return JS('num', '# * #', this, other);
   }
 
-  JSNumber operator %(num other) {
-    if (other is! num) throw argumentErrorValue(other);
+  @notNull
+  JSNumber operator %(@nullCheck num other) {
     // Euclidean Modulo.
     num result = JS('num', r'# % #', this, other);
     if (result == 0) return (0 as JSNumber); // Make sure we don't return -0.0.
@@ -230,9 +256,12 @@ class JSNumber extends Interceptor implements int, double {
     }
   }
 
-  bool _isInt32(value) => JS('bool', '(# | 0) === #', value, value);
+  @notNull
+  bool _isInt32(@notNull num value) =>
+      JS('bool', '(# | 0) === #', value, value);
 
-  int operator ~/(num other) {
+  @notNull
+  int operator ~/(@nullCheck num other) {
     if (_isInt32(this) && _isInt32(other) && 0 != other && -1 != other) {
       return JS('int', r'(# / #) | 0', this, other);
     } else {
@@ -240,8 +269,8 @@ class JSNumber extends Interceptor implements int, double {
     }
   }
 
+  @notNull
   int _tdivSlow(num other) {
-    if (other is! num) throw argumentErrorValue(other);
     return (JS('num', r'# / #', this, other)).toInt();
   }
 
@@ -250,13 +279,14 @@ class JSNumber extends Interceptor implements int, double {
   // we define these methods on number for now but we need to decide
   // the grain at which we do the type checks.
 
-  int operator <<(num other) {
-    if (other is! num) throw argumentErrorValue(other);
-    if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
+  @notNull
+  int operator <<(@nullCheck num other) {
+    if (other < 0) throwArgumentErrorValue(other);
     return _shlPositive(other);
   }
 
-  int _shlPositive(num other) {
+  @notNull
+  int _shlPositive(@notNull num other) {
     // JavaScript only looks at the last 5 bits of the shift-amount. Shifting
     // by 33 is hence equivalent to a shift by 1.
     return JS('bool', r'# > 31', other)
@@ -264,13 +294,14 @@ class JSNumber extends Interceptor implements int, double {
         : JS('int', r'(# << #) >>> 0', this, other);
   }
 
-  int operator >>(num other) {
-    if (other is! num) throw argumentErrorValue(other);
-    if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
+  @notNull
+  int operator >>(@nullCheck num other) {
+    if (JS('num', '#', other) < 0) throwArgumentErrorValue(other);
     return _shrOtherPositive(other);
   }
 
-  int _shrOtherPositive(num other) {
+  @notNull
+  int _shrOtherPositive(@notNull num other) {
     return JS('num', '#', this) > 0
         ? _shrBothPositive(other)
         // For negative numbers we just clamp the shift-by amount.
@@ -280,7 +311,8 @@ class JSNumber extends Interceptor implements int, double {
         : JS('int', r'(# >> #) >>> 0', this, other > 31 ? 31 : other);
   }
 
-  int _shrBothPositive(num other) {
+  @notNull
+  int _shrBothPositive(@notNull num other) {
     return JS('bool', r'# > 31', other)
         // JavaScript only looks at the last 5 bits of the shift-amount. In JS
         // shifting by 33 is hence equivalent to a shift by 1. Shortcut the
@@ -292,38 +324,38 @@ class JSNumber extends Interceptor implements int, double {
         : JS('int', r'# >>> #', this, other);
   }
 
-  int operator &(num other) {
-    if (other is! num) throw argumentErrorValue(other);
+  @notNull
+  int operator &(@nullCheck num other) {
     return JS('int', r'(# & #) >>> 0', this, other);
   }
 
-  int operator |(num other) {
-    if (other is! num) throw argumentErrorValue(other);
+  @notNull
+  int operator |(@nullCheck num other) {
     return JS('int', r'(# | #) >>> 0', this, other);
   }
 
-  int operator ^(num other) {
-    if (other is! num) throw argumentErrorValue(other);
+  @notNull
+  int operator ^(@nullCheck num other) {
     return JS('int', r'(# ^ #) >>> 0', this, other);
   }
 
-  bool operator <(num other) {
-    if (other is! num) throw argumentErrorValue(other);
+  @notNull
+  bool operator <(@nullCheck num other) {
     return JS('bool', '# < #', this, other);
   }
 
-  bool operator >(num other) {
-    if (other is! num) throw argumentErrorValue(other);
+  @notNull
+  bool operator >(@nullCheck num other) {
     return JS('bool', '# > #', this, other);
   }
 
-  bool operator <=(num other) {
-    if (other is! num) throw argumentErrorValue(other);
+  @notNull
+  bool operator <=(@nullCheck num other) {
     return JS('bool', '# <= #', this, other);
   }
 
-  bool operator >=(num other) {
-    if (other is! num) throw argumentErrorValue(other);
+  @notNull
+  bool operator >=(@nullCheck num other) {
     return JS('bool', '# >= #', this, other);
   }
 
@@ -332,19 +364,24 @@ class JSNumber extends Interceptor implements int, double {
   // We can fix by checking it at dispatch time but we'd need to structure them
   // differently.
 
+  @notNull
   bool get isEven => (this & 1) == 0;
 
+  @notNull
   bool get isOdd => (this & 1) == 1;
 
-  int toUnsigned(int width) {
+  @notNull
+  int toUnsigned(@nullCheck int width) {
     return this & ((1 << width) - 1);
   }
 
-  int toSigned(int width) {
+  @notNull
+  int toSigned(@nullCheck int width) {
     int signMask = 1 << (width - 1);
     return (this & (signMask - 1)) - (this & signMask);
   }
 
+  @notNull
   int get bitLength {
     int nonneg = this < 0 ? -this - 1 : this;
     if (nonneg >= 0x100000000) {
@@ -355,13 +392,8 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   // Returns pow(this, e) % m.
-  int modPow(int e, int m) {
-    if (e is! int) {
-      throw new ArgumentError.value(e, "exponent", "not an integer");
-    }
-    if (m is! int) {
-      throw new ArgumentError.value(m, "modulus", "not an integer");
-    }
+  @notNull
+  int modPow(@nullCheck int e, @nullCheck int m) {
     if (e < 0) throw new RangeError.range(e, 0, null, "exponent");
     if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (e == 0) return 1;
@@ -383,7 +415,8 @@ class JSNumber extends Interceptor implements int, double {
   // If inv is false, returns gcd(x, y).
   // If inv is true and gcd(x, y) = 1, returns d, so that c*x + d*y = 1.
   // If inv is true and gcd(x, y) != 1, throws Exception("Not coprime").
-  static int _binaryGcd(int x, int y, bool inv) {
+  @notNull
+  static int _binaryGcd(@notNull int x, @notNull int y, @notNull bool inv) {
     int s = 1;
     if (!inv) {
       while (x.isEven && y.isEven) {
@@ -451,10 +484,8 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   // Returns 1/this % m, with m > 0.
-  int modInverse(int m) {
-    if (m is! int) {
-      throw new ArgumentError.value(m, "modulus", "not an integer");
-    }
+  @notNull
+  int modInverse(@nullCheck int m) {
     if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (m == 1) return 0;
     int t = this;
@@ -467,10 +498,8 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   // Returns gcd of abs(this) and abs(other).
-  int gcd(int other) {
-    if (other is! int) {
-      throw new ArgumentError.value(other, "other", "not an integer");
-    }
+  @notNull
+  int gcd(@nullCheck int other) {
     int x = this.abs();
     int y = other.abs();
     if (x == 0) return y;
@@ -480,7 +509,8 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   // Assumes i is <= 32-bit and unsigned.
-  static int _bitCount(int i) {
+  @notNull
+  static int _bitCount(@notNull int i) {
     // See "Hacker's Delight", section 5-1, "Counting 1-Bits".
 
     // The basic strategy is to use "divide and conquer" to
@@ -506,12 +536,16 @@ class JSNumber extends Interceptor implements int, double {
     return (i & 0x0000003F);
   }
 
+  @notNull
   static int _shru(int value, int shift) => JS('int', '# >>> #', value, shift);
+  @notNull
   static int _shrs(int value, int shift) => JS('int', '# >> #', value, shift);
+  @notNull
   static int _ors(int a, int b) => JS('int', '# | #', a, b);
 
   // Assumes i is <= 32-bit
-  static int _spread(int i) {
+  @notNull
+  static int _spread(@notNull int i) {
     i = _ors(i, _shrs(i, 1));
     i = _ors(i, _shrs(i, 2));
     i = _ors(i, _shrs(i, 4));

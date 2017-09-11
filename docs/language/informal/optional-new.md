@@ -2,20 +2,21 @@
 
 Author: eernst@.
 
-Version: 0.1 (2017-08-15)
+Version: 0.2 (2017-08-30)
 
-Status: Under discussion
+Status: Under implementation.
 
 **This document** is an informal specification of the *optional new* feature.
 **The feature** adds support for omitting the reserved word `new` in instance
 creation expressions.
 
-This feature relies on
-[optional const](https://gist.github.com/eernstg/4f498836e73d5f003928e8bbe1683d68),
-and it is assumed that the reader knows the optional const feature. Otherwise,
-this informal specification is derived from a
+This feature extends and includes the
+[optional const feature](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/optional-const.md),
+and it is assumed that the reader knows about optional const. Beyond
+that, this informal specification is derived from a
 [combined proposal](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/optional-new-const.md)
-which presents optional new and several other features.
+which presents optional new together with several other features.
+
 
 ## Motivation
 
@@ -23,18 +24,16 @@ In Dart without optional new, the reserved word `new` is present in every
 expression whose evaluation invokes a constructor (except constant
 expressions). These expressions are known as *instance creation expressions*. If
 `new` is removed from such an instance creation expression, the remaining phrase
-is still syntactically correct in almost all cases, and the required grammar
-update that makes them all syntactically correct is exactly the one that is
-specified for
-[optional const](https://gist.github.com/eernstg/4f498836e73d5f003928e8bbe1683d68).
+is still syntactically correct in almost all cases. The required grammar
+update that makes them all syntactically correct is a superset of the one that
+is specified for
+[optional const](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/optional-const.md).
 
-Assuming the grammar update in
-[optional const](https://gist.github.com/eernstg/4f498836e73d5f003928e8bbe1683d68),
-all instance creation expressions can technically omit the `new` because tools
-(compilers, analyzers) are able to parse these expressions, and they are able
-to recognize that they denote instance creations (rather than, say, static
-function invocations), because the part before the left parenthesis is
-statically known to denote a constructor.
+With that grammar update, all instance creation expressions can technically
+omit the `new` because tools (compilers, analyzers) are able to parse these
+expressions, and they are able to recognize that they denote instance creations
+(rather than, say, static function invocations), because the part before the
+left parenthesis is statically known to denote a constructor.
 
 For instance, `p.C.foo` may resolve statically to a constructor named `foo` in
 a class `C` imported with prefix `p`. Similarly, `D` may resolve to a class, in
@@ -48,8 +47,8 @@ For human readers, it may be helpful to document that a particular expression
 is guaranteed to yield a fresh instance, and this is the most common argument
 why `new` should *not* be omitted. However, Dart already allows instance
 creation expressions to invoke a factory constructor, so Dart developers never
-had any local guarantees that any particular expression would yield a fresh
-object.
+had any firm local guarantees that any particular expression would yield a
+fresh object.
 
 Developers may thus prefer to omit `new` in order to obtain more concise code,
 and possibly also in order to achieve greater uniformity among invocations of
@@ -59,6 +58,7 @@ With that in mind, this proposal allows instance creation expressions to omit
 the `new` in all cases, but also preserves the permission to include `new` in
 all cases. It is a matter of style to use `new` in a manner that developers
 find helpful.
+
 
 ## Syntax
 
@@ -73,41 +73,50 @@ constructorInvocation ::=  // NEW
     typeName typeArguments '.' identifier arguments
 assignableExpression ::=
     SUPER unconditionalAssignableSelector |
-    typeName typeArguments '.' identifier arguments
-        (arguments* assignableSelector)+ |  // NEW
+    constructorInvocation (arguments* assignableSelector)+ |  // NEW
     identifier |
     primary (arguments* assignableSelector)+
 ```
 
-This grammar update is identical to the grammar update for optional const.
-For more information including a complete grammar, please consult 
-[that specification](https://gist.github.com/eernstg/4f498836e73d5f003928e8bbe1683d68).
+*As mentioned, this grammar update is a superset of the grammar updates for
+[optional const](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/optional-const.md).*
+
 
 ## Static analysis
 
-We specify a type directed source code transformation which eliminates the 
-feature. The static analysis proceeds to work on the transformed program.
+We specify a type directed source code transformation which eliminates the
+feature by expressing the same semantics with different syntax. The static
+analysis proceeds to work on the transformed program.
 
 *Similarly to optional const, this means that the feature is "static semantic
 sugar". We do not specify the dynamic semantics for this feature, because the
 feature is eliminated in this transformation step.*
 
 We need to treat expressions differently in different locations, hence the
-following definition: An expression _e_ is said to *occur in a constant
-context*,
+following definition, which is identical to the one in
+[optional const](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/optional-const.md):
+An expression _e_ is said to *occur in a constant context*,
 
-- if _e_ is an immediate subexpression of a constant list literal or a constant
-  map literal.
+- if _e_ is an immediate subexpression of a constant list literal or a
+  constant map literal.
 - if _e_ is an immediate subexpression of a constant object expression.
 - if _e_ is the initializing expression of a constant variable declaration.
-- if _e_ is the default value of a formal parameter. **[This case is under discussion and may be removed]**
 - if _e_ is an immediate subexpression of an expression which occurs in a
   constant context.
 
 We define *new/const insertion* as the following transformation:
 
-- if _e_ occurs in a constant context, replace `e` by `const e`.
-- otherwise, replace `e` by `new e`
+- if the expression _e_ occurs in a constant context, replace _e_ by
+  `const` _e_,
+- otherwise replace _e_ by `new` _e_.
+
+For the purposes of describing the main transformation we need the following
+syntactic entity:
+
+```
+assignableExpressionTail ::=
+    arguments assignableSelector (arguments* assignableSelector)*
+```
 
 An expression on one of the following forms must be modified to be or
 contain a `constantObjectExpression` or `newExpression` as described:
@@ -125,29 +134,63 @@ With a `postfixExpression` _e_,
   a class and `identifier2` is the name of a named constructor in that class,
   or `identifier1` denotes a prefix for a library _L_ and `identifier2` denotes
   a class exported by _L_, perform new/const insertion on _e_.
--  if _e_ is on the form
-  `identifier1 '.' typeIdentifier '.' identifier2 arguments` where 
+- if _e_ is on the form
+  `identifier1 '.' typeIdentifier '.' identifier2 arguments` where
   `identifier1` denotes a library prefix for a library _L_, `typeIdentifier`
   denotes a class _C_ exported by _L_, and `identifier2` is the name of a named
   constructor in _C_, perform new/const insertion on _e_.
+
+With an `assignableExpression` _e_,
+
+- if _e_ is on the form
+  `constructorInvocation (arguments* assignableSelector)+`
+  then replace _e_ by `new` _e_.
+- if _e_ is on the form
+  `typeIdentifier assignableExpressionTail`
+  where `typeIdentifier` denotes a class then replace _e_ by `new` _e_.
+- if _e_ is on the form
+  `identifier1 '.' identifier2 assignableExpressionTail`
+  where `identifier1` denotes a class and `identifier2` is the name of
+  a named constructor in that class, or `identifier1` denotes a prefix
+  for a library _L_ and `identifier2` denotes a class exported by _L_
+  then replace _e_ by `new` _e_.
+- if _e_ is on the form
+  `identifier1 '.' typeIdentifier '.' identifier2 assignableExpressionTail`
+  where `identifier1` denotes a library prefix for a library _L_,
+  `typeIdentifier` denotes a class _C_ exported by _L_, and `identifier2`
+  is the name of a named constructor in _C_ then replace _e_ by `new` _e_.
+
+*In short, add `const` in const contexts and otherwise add `new`. With
+`assignableExpression` we always add `new`, because such an expression
+can never be a subexpression of a correct constant expression. It is easy
+to verify that each of the replacements can be derived from
+`postfixExpression` via `primary selector*` and similarly for
+`assignableExpression`. Hence, the transformation preserves syntactic
+correctness.*
+
 
 ## Dynamic Semantics
 
 There is no dynamic semantics to specify for this feature because it is
 eliminated by code transformation.
 
+
 ## Interplay with optional const
 
-The optional new and optional const feature can easily be introduced at the same
-time: Just update the grammar as specified for optional const (and mentioned
-again here) and use the program transformation specified in this document. The
-program transformation in this document subsumes the program transformation
-specified for optional const, and hence this will provide support for both
-features.
+This informal specification includes optional const as well as optional new,
+that is, if this specification is implemented then
+[optional const](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/optional-const.md)
+may be considered as background material.
+
 
 ## Revisions
 
-- 0.1 (2017-08-15) Stand-alone proposal for optional new created, using version
-  0.8 of the combined proposal
+- 0.2 (2017-07-30) Updated the document to specify the previously missing
+  transformations for `assignableExpression`, and to specify a no-magic
+  approach (where no `const` is introduced except when forced by the
+  syntactic context).
+
+- 0.1 (2017-08-15) Stand-alone informal specification for optional new created,
+  using version 0.8 of the combined proposal
   [optional-new-const.md](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/optional-new-const.md)
   as the starting point.

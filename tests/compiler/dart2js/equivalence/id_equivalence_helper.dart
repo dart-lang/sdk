@@ -3,16 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:compiler/src/commandline_options.dart';
+import 'dart:io';
+
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/resolution/tree_elements.dart';
-import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:expect/expect.dart';
-import 'package:kernel/ast.dart' as ir;
 
 import '../annotated_code_helper.dart';
 import '../memory_compiler.dart';
@@ -31,12 +28,14 @@ typedef void ComputeMemberDataFunction(
     Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
     {bool verbose});
 
+const String stopAfterTypeInference = 'stopAfterTypeInference';
+
 /// Compile [code] from .dart sources.
 Future<Compiler> compileFromSource(
     AnnotatedCode code, Uri mainUri, List<String> options) async {
   Compiler compiler = compilerFor(
       memorySourceFiles: {'main.dart': code.sourceCode}, options: options);
-  compiler.stopAfterTypeInference = true;
+  compiler.stopAfterTypeInference = options.contains(stopAfterTypeInference);
   await compiler.run(mainUri);
   return compiler;
 }
@@ -47,9 +46,10 @@ Future<Compiler> compileFromDill(
   Compiler compiler = await compileWithDill(
       entryPoint: mainUri,
       memorySourceFiles: {'main.dart': code.sourceCode},
-      options: [Flags.disableTypeInference]..addAll(options),
+      options: options,
       beforeRun: (Compiler compiler) {
-        compiler.stopAfterTypeInference = true;
+        compiler.stopAfterTypeInference =
+            options.contains(stopAfterTypeInference);
       });
   return compiler;
 }
@@ -66,7 +66,7 @@ Future<IdData> computeData(
     bool verbose: false}) async {
   AnnotatedCode code =
       new AnnotatedCode.fromText(annotatedCode, commentStart, commentEnd);
-  Map<Id, String> expectedMap = computeExpectedMap(code);
+  Map<Id, IdValue> expectedMap = computeExpectedMap(code);
   Map<Id, ActualData> actualMap = <Id, ActualData>{};
   Uri mainUri = Uri.parse('memory:main.dart');
   Compiler compiler = await compileFunction(code, mainUri, options);
@@ -88,37 +88,30 @@ Future<IdData> computeData(
       code, compiler, elementEnvironment, mainUri, expectedMap, actualMap);
 }
 
-class ActualData {
-  final Id id;
-  final String value;
-  final SourceSpan sourceSpan;
-  final Object object;
-
-  ActualData(this.id, this.value, this.sourceSpan, this.object);
-}
-
 /// Data collected by [computeData].
 class IdData {
   final AnnotatedCode code;
   final Compiler compiler;
   final ElementEnvironment elementEnvironment;
   final Uri mainUri;
-  final Map<Id, String> expectedMap;
+  final Map<Id, IdValue> expectedMap;
   final Map<Id, ActualData> actualMap;
 
   IdData(this.code, this.compiler, this.elementEnvironment, this.mainUri,
       this.expectedMap, this.actualMap);
 
-  String withAnnotations(Map<int, String> annotations) {
+  String withAnnotations(Map<int, List<String>> annotations) {
     StringBuffer sb = new StringBuffer();
     int end = 0;
     for (int offset in annotations.keys.toList()..sort()) {
       if (offset > end) {
         sb.write(code.sourceCode.substring(end, offset));
       }
-      sb.write('/* ');
-      sb.write(annotations[offset]);
-      sb.write(' */');
+      for (String annotation in annotations[offset]) {
+        sb.write('/* ');
+        sb.write(annotation);
+        sb.write(' */');
+      }
       end = offset;
     }
     if (end < code.sourceCode.length) {
@@ -128,32 +121,92 @@ class IdData {
   }
 
   String get actualCode {
-    Map<int, String> annotations = <int, String>{};
+    Map<int, List<String>> annotations = <int, List<String>>{};
     actualMap.forEach((Id id, ActualData data) {
-      annotations[data.sourceSpan.begin] = data.value;
+      annotations
+          .putIfAbsent(data.sourceSpan.begin, () => [])
+          .add('${data.value}');
     });
     return withAnnotations(annotations);
   }
 
   String get diffCode {
-    Map<int, String> annotations = <int, String>{};
+    Map<int, List<String>> annotations = <int, List<String>>{};
     actualMap.forEach((Id id, ActualData data) {
-      String expected = expectedMap[id];
-      if (data.value != expected) {
-        expected ??= '---';
-        annotations[data.sourceSpan.begin] = '${expected} | ${data.value}';
+      IdValue value = expectedMap[id];
+      if (data.value != value || value == null && data.value.value != '') {
+        String expected = value?.toString() ?? '';
+        int offset = getOffsetFromId(id);
+        annotations
+            .putIfAbsent(offset, () => [])
+            .add('${expected} | ${data.value}');
       }
     });
-    expectedMap.forEach((Id id, String expected) {
+    expectedMap.forEach((Id id, IdValue expected) {
+      if (!actualMap.containsKey(id)) {
+        int offset = getOffsetFromId(id);
+        annotations.putIfAbsent(offset, () => []).add('${expected} | ---');
+      }
+    });
+    return withAnnotations(annotations);
+  }
+
+  String computeDiffCodeFor(IdData other) {
+    Map<int, List<String>> annotations = <int, List<String>>{};
+    actualMap.forEach((Id id, ActualData data1) {
+      ActualData data2 = other.actualMap[id];
+      if (data1.value != data2?.value) {
+        annotations
+            .putIfAbsent(data1.sourceSpan.begin, () => [])
+            .add('${data1.value} | ${data2?.value ?? '---'}');
+      }
+    });
+    other.actualMap.forEach((Id id, ActualData data2) {
       if (!actualMap.containsKey(id)) {
         int offset = compiler.reporter
             .spanFromSpannable(
                 computeSpannable(elementEnvironment, mainUri, id))
             .begin;
-        annotations[offset] = '${expected} | ---';
+        annotations.putIfAbsent(offset, () => []).add('--- | ${data2.value}');
       }
     });
     return withAnnotations(annotations);
+  }
+
+  int getOffsetFromId(Id id) {
+    return compiler.reporter
+        .spanFromSpannable(computeSpannable(elementEnvironment, mainUri, id))
+        .begin;
+  }
+}
+
+/// Check code for all test files int [data] using [computeFromAst] and
+/// [computeFromKernel] from the respective front ends. If [skipForKernel]
+/// contains the name of the test file it isn't tested for kernel.
+Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
+    ComputeMemberDataFunction computeFromKernel,
+    {List<String> skipForKernel: const <String>[],
+    List<String> options: const <String>[],
+    List<String> args: const <String>[]}) async {
+  args = args.toList();
+  bool verbose = args.remove('-v');
+  await for (FileSystemEntity entity in dataDir.list()) {
+    String name = entity.uri.pathSegments.last;
+    if (args.isNotEmpty && !args.contains(name)) continue;
+    print('----------------------------------------------------------------');
+    print('Checking ${entity.uri}');
+    print('----------------------------------------------------------------');
+    String annotatedCode = await new File.fromUri(entity.uri).readAsString();
+    print('--from ast------------------------------------------------------');
+    await checkCode(annotatedCode, computeFromAst, compileFromSource,
+        options: options, verbose: verbose);
+    if (skipForKernel.contains(name)) {
+      print('--skipped for kernel------------------------------------------');
+      continue;
+    }
+    print('--from kernel---------------------------------------------------');
+    await checkCode(annotatedCode, computeFromKernel, compileFromDill,
+        options: options, verbose: verbose);
   }
 }
 
@@ -171,22 +224,22 @@ Future checkCode(
       options: options, verbose: verbose);
 
   data.actualMap.forEach((Id id, ActualData actualData) {
-    String actual = actualData.value;
+    IdValue actual = actualData.value;
     if (!data.expectedMap.containsKey(id)) {
-      if (actual != '') {
+      if (actual.value != '') {
         reportHere(
             data.compiler.reporter,
             actualData.sourceSpan,
-            'Id $id for ${actualData.object} '
+            'Id $id = ${actual} for ${actualData.object} '
             '(${actualData.object.runtimeType}) '
             'not expected in ${data.expectedMap.keys}');
         print('--annotations diff--------------------------------------------');
         print(data.diffCode);
         print('--------------------------------------------------------------');
       }
-      Expect.equals('', actual);
+      Expect.equals('', actual.value);
     } else {
-      String expected = data.expectedMap.remove(id);
+      IdValue expected = data.expectedMap[id];
       if (actual != expected) {
         reportHere(
             data.compiler.reporter,
@@ -201,14 +254,22 @@ Future checkCode(
     }
   });
 
-  data.expectedMap.forEach((Id id, String expected) {
-    reportHere(
-        data.compiler.reporter,
-        computeSpannable(data.elementEnvironment, data.mainUri, id),
-        'Expected $expected for id $id missing in ${data.actualMap.keys}');
+  Set<Id> missingIds = new Set<Id>();
+  data.expectedMap.forEach((Id id, IdValue expected) {
+    if (!data.actualMap.containsKey(id)) {
+      missingIds.add(id);
+      reportHere(
+          data.compiler.reporter,
+          computeSpannable(data.elementEnvironment, data.mainUri, id),
+          'Expected $expected for id $id missing in ${data.actualMap.keys}');
+    }
   });
-  Expect.isTrue(
-      data.expectedMap.isEmpty, "Ids not found: ${data.expectedMap}.");
+  if (missingIds.isNotEmpty) {
+    print('--annotations diff--------------------------------------------');
+    print(data.diffCode);
+    print('--------------------------------------------------------------');
+  }
+  Expect.isTrue(missingIds.isEmpty, "Ids not found: ${missingIds}.");
 }
 
 /// Compute a [Spannable] from an [id] in the library [mainUri].
@@ -230,176 +291,13 @@ Spannable computeSpannable(
 }
 
 /// Compute the expectancy map from [code].
-Map<Id, String> computeExpectedMap(AnnotatedCode code) {
-  Map<Id, String> map = <Id, String>{};
+Map<Id, IdValue> computeExpectedMap(AnnotatedCode code) {
+  Map<Id, IdValue> map = <Id, IdValue>{};
   for (Annotation annotation in code.annotations) {
-    String text = annotation.text;
-    int colonPos = text.indexOf(':');
-    Id id;
-    String expected;
-    if (colonPos == -1) {
-      id = new NodeId(annotation.offset);
-      expected = text;
-    } else {
-      id = new ElementId(text.substring(0, colonPos));
-      expected = text.substring(colonPos + 1);
-    }
-    map[id] = expected;
+    IdValue idValue = IdValue.decode(annotation.offset, annotation.text);
+    Expect.isFalse(map.containsKey(idValue.id),
+        "Duplicate annotations for ${idValue.id}.");
+    map[idValue.id] = idValue;
   }
   return map;
-}
-
-/// Mixin used for computing [Id] data.
-abstract class ComputerMixin {
-  Map<Id, ActualData> get actualMap;
-
-  void registerValue(
-      SourceSpan sourceSpan, Id id, String value, Object object) {
-    if (id != null && value != null) {
-      actualMap[id] = new ActualData(id, value, sourceSpan, object);
-    }
-  }
-}
-
-/// Abstract AST visitor for computing [Id] data.
-abstract class AbstractResolvedAstComputer extends ast.Visitor
-    with AstEnumeratorMixin, ComputerMixin {
-  final DiagnosticReporter reporter;
-  final Map<Id, ActualData> actualMap;
-  final ResolvedAst resolvedAst;
-
-  AbstractResolvedAstComputer(this.reporter, this.actualMap, this.resolvedAst);
-
-  TreeElements get elements => resolvedAst.elements;
-
-  void computeForElement(AstElement element) {
-    ElementId id = computeElementId(element);
-    if (id == null) return;
-    String value = computeElementValue(element);
-    registerValue(element.sourcePosition, id, value, element);
-  }
-
-  void computeForNode(ast.Node node, AstElement element) {
-    NodeId id = computeNodeId(node, element);
-    if (id == null) return;
-    String value = computeNodeValue(node, element);
-    SourceSpan sourceSpan = new SourceSpan(resolvedAst.sourceUri,
-        node.getBeginToken().charOffset, node.getEndToken().charEnd);
-    registerValue(sourceSpan, id, value, element ?? node);
-  }
-
-  String computeElementValue(AstElement element);
-
-  String computeNodeValue(ast.Node node, AstElement element);
-
-  void run() {
-    resolvedAst.node.accept(this);
-  }
-
-  visitNode(ast.Node node) {
-    node.visitChildren(this);
-  }
-
-  visitVariableDefinitions(ast.VariableDefinitions node) {
-    for (ast.Node child in node.definitions) {
-      AstElement element = elements[child];
-      if (element == null) {
-        reportHere(reporter, child, 'No element for variable.');
-      } else if (!element.isLocal) {
-        computeForElement(element);
-      } else {
-        computeForNode(child, element);
-      }
-    }
-    visitNode(node);
-  }
-
-  visitFunctionExpression(ast.FunctionExpression node) {
-    AstElement element = elements.getFunctionDefinition(node);
-    if (!element.isLocal) {
-      computeForElement(element);
-    } else {
-      computeForNode(node, element);
-    }
-    visitNode(node);
-  }
-
-  visitSend(ast.Send node) {
-    computeForNode(node, null);
-    visitNode(node);
-  }
-
-  visitSendSet(ast.SendSet node) {
-    computeForNode(node, null);
-    visitNode(node);
-  }
-}
-
-/// Abstract IR visitor for computing [Id] data.
-abstract class AbstractIrComputer extends ir.Visitor
-    with IrEnumeratorMixin, ComputerMixin {
-  final Map<Id, ActualData> actualMap;
-
-  AbstractIrComputer(this.actualMap);
-
-  void computeForMember(ir.Member member) {
-    ElementId id = computeElementId(member);
-    if (id == null) return;
-    String value = computeMemberValue(member);
-    registerValue(computeSpannable(member), id, value, member);
-  }
-
-  void computeForNode(ir.TreeNode node) {
-    NodeId id = computeNodeId(node);
-    if (id == null) return;
-    String value = computeNodeValue(node);
-    registerValue(computeSpannable(node), id, value, node);
-  }
-
-  Spannable computeSpannable(ir.TreeNode node) {
-    return new SourceSpan(
-        Uri.parse(node.location.file), node.fileOffset, node.fileOffset + 1);
-  }
-
-  String computeMemberValue(ir.Member member);
-
-  String computeNodeValue(ir.TreeNode node);
-
-  void run(ir.Node root) {
-    root.accept(this);
-  }
-
-  defaultNode(ir.Node node) {
-    node.visitChildren(this);
-  }
-
-  defaultMember(ir.Member node) {
-    computeForMember(node);
-    super.defaultMember(node);
-  }
-
-  visitMethodInvocation(ir.MethodInvocation node) {
-    computeForNode(node);
-    super.visitMethodInvocation(node);
-  }
-
-  visitPropertyGet(ir.PropertyGet node) {
-    computeForNode(node);
-    super.visitPropertyGet(node);
-  }
-
-  visitVariableDeclaration(ir.VariableDeclaration node) {
-    computeForNode(node);
-    super.visitVariableDeclaration(node);
-  }
-
-  visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    computeForNode(node);
-    super.visitFunctionDeclaration(node);
-  }
-
-  visitFunctionExpression(ir.FunctionExpression node) {
-    computeForNode(node);
-    super.visitFunctionExpression(node);
-  }
 }

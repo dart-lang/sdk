@@ -43,7 +43,7 @@ main() {
     document.body.append(e);
     await e.onRendered.first;
     expect(invoked, isFalse);
-    expect(e.children.length, isNonZero, reason: 'has elements');
+    expect(e.children, isNotEmpty, reason: 'has elements');
     expect(e.querySelectorAll(iTag).length, isZero);
     (e.querySelector(cTag) as CurlyBlockElement).toggle();
     await e.onRendered.first;
@@ -52,6 +52,6 @@ main() {
     expect(e.querySelectorAll(rTag).length, equals(1));
     e.remove();
     await e.onRendered.first;
-    expect(e.children.length, isZero, reason: 'is empty');
+    expect(e.children, isEmpty, reason: 'is empty');
   });
 }

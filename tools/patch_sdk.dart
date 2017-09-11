@@ -17,11 +17,12 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:front_end/front_end.dart';
+
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 
-import 'package:front_end/src/fasta/fasta.dart' as fasta show getDependencies;
+import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
 import 'package:front_end/src/fasta/kernel/utils.dart' show writeProgramToFile;
 
 import 'package:kernel/target/targets.dart';
@@ -42,7 +43,8 @@ final deps = new Set<Uri>();
 File getInputFile(String path, {canBeMissing: false}) {
   final file = new File(path);
   if (!file.existsSync()) {
-    if (!canBeMissing) throw "patch_sdk.dart expects all inputs to exist";
+    if (!canBeMissing)
+      throw "patch_sdk.dart expects all inputs to exist, missing: $path";
     return null;
   }
   deps.add(Uri.base.resolveUri(file.uri));
@@ -170,10 +172,6 @@ Future _main(List<String> argv) async {
           ..librariesSpecificationUri = vmserviceJsonUri
           ..packagesFileUri = packages);
     Uri vmserviceUri = outDirUri.resolve('$vmserviceName.dill');
-    // TODO(sigmund): remove. This is a workaround because in the VM
-    // doesn't support loading vmservice if it contains external libraries
-    // (there is an assertion that only fails in debug builds). Issue #30111
-    program.libraries.forEach((l) => l.isExternal = false);
     await writeProgramToFile(program, vmserviceUri);
   }
 
@@ -206,7 +204,7 @@ Future _main(List<String> argv) async {
     platformForDeps = outDirUri.resolve('../patched_sdk/platform.dill');
     sdkDir = outDirUri.resolve('../patched_sdk/');
   }
-  deps.addAll(await fasta.getDependencies(Platform.script,
+  deps.addAll(await getDependencies(Platform.script,
       sdk: sdkDir, packages: packages, platform: platformForDeps));
   await writeDepsFile(platformFinalLocation,
       Uri.base.resolveUri(new Uri.file("$outDir.d")), deps);

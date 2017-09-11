@@ -94,7 +94,9 @@ def main(argv):
     result = UpdateGNOnWindows()
     if result != 0:
       return result
-    return UpdateClangFormatOnWindows()
+    # TODO(zra): Re-enable clang-format download when gs is fixed for the bots.
+    # return UpdateClangFormatOnWindows()
+    return 0
   if Update() != 0:
     return 1
   return CopyClangFormat()

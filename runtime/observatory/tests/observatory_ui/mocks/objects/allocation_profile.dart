@@ -21,6 +21,7 @@ class AllocationProfileMock implements M.AllocationProfile {
 
 class ClassHeapStatsMock implements M.ClassHeapStats {
   final M.ClassRef clazz;
+  final String displayName;
   final M.Allocations newSpace;
   final M.Allocations oldSpace;
   final int promotedInstances;
@@ -28,6 +29,7 @@ class ClassHeapStatsMock implements M.ClassHeapStats {
 
   const ClassHeapStatsMock(
       {this.clazz: const ClassRefMock(),
+      this.displayName: null,
       this.newSpace: const AllocationsMock(),
       this.oldSpace: const AllocationsMock(),
       this.promotedInstances: 0,

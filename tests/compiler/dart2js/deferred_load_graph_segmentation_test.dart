@@ -25,7 +25,7 @@ void main() {
     var main = compiler.frontendStrategy.elementEnvironment.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
 
-    var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
+    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
 
     var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
     var backend = compiler.backend;
@@ -41,21 +41,21 @@ void main() {
     var bar1 = lib4.find("bar1");
     var bar2 = lib4.find("bar2");
 
-    OutputUnit ou_lib1 = outputUnitForElement(foo1);
-    OutputUnit ou_lib2 = outputUnitForElement(foo2);
-    OutputUnit ou_lib1_lib2 = outputUnitForElement(foo3);
-    OutputUnit ou_lib4_1 = outputUnitForElement(bar1);
-    OutputUnit ou_lib4_2 = outputUnitForElement(bar2);
+    OutputUnit ou_lib1 = outputUnitForEntity(foo1);
+    OutputUnit ou_lib2 = outputUnitForEntity(foo2);
+    OutputUnit ou_lib1_lib2 = outputUnitForEntity(foo3);
+    OutputUnit ou_lib4_1 = outputUnitForEntity(bar1);
+    OutputUnit ou_lib4_2 = outputUnitForEntity(bar2);
 
-    Expect.equals(mainOutputUnit, outputUnitForElement(main));
-    Expect.notEquals(mainOutputUnit, outputUnitForElement(foo1));
+    Expect.equals(mainOutputUnit, outputUnitForEntity(main));
+    Expect.notEquals(mainOutputUnit, outputUnitForEntity(foo1));
     Expect.notEquals(ou_lib1, ou_lib1_lib2);
     Expect.notEquals(ou_lib2, ou_lib1_lib2);
     Expect.notEquals(ou_lib1, ou_lib2);
     Expect.notEquals(ou_lib4_1, ou_lib4_2);
     Expect.notEquals(ou_lib1, ou_lib4_2);
     // InputElement is native, so it should be in the mainOutputUnit.
-    Expect.equals(mainOutputUnit, outputUnitForElement(inputElement));
+    Expect.equals(mainOutputUnit, outputUnitForEntity(inputElement));
 
     var hunksToLoad = compiler.deferredLoadTask.hunksToLoad;
 

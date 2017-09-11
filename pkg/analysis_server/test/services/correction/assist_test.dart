@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -22,7 +21,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -40,7 +38,6 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   int offset;
   int length;
 
-  ServerPlugin plugin;
   Assist assist;
   SourceChange change;
   String resultCode;
@@ -111,14 +108,8 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   }
 
   void processRequiredPlugins() {
-    plugin = new ServerPlugin();
-
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(plugin);
-
     ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
+    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
   }
 
   void setUp() {

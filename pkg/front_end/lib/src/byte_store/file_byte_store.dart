@@ -142,9 +142,14 @@ class EvictingFileByteStore implements ByteStore {
  */
 class FileByteStore implements ByteStore {
   final String _cachePath;
-  final String _tempName = 'temp_$pid';
+  final String _tempName;
 
-  FileByteStore(this._cachePath);
+  /**
+   * If the same cache path is used from more than one isolate of the same
+   * process, then a unique [tempNameSuffix] must be provided for each isolate.
+   */
+  FileByteStore(this._cachePath, {String tempNameSuffix: ''})
+      : _tempName = 'temp_${pid}_${tempNameSuffix}';
 
   @override
   List<int> get(String key) {

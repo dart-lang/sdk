@@ -9,7 +9,7 @@ import 'dart:collection';
 
 import 'dart:_debugger' show stackTraceMapper;
 import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
-import 'dart:_interceptors' show JSArray;
+import 'dart:_interceptors' show JSArray, jsNull, JSFunction;
 import 'dart:_js_helper'
     show
         AssertionErrorImpl,
@@ -42,7 +42,7 @@ bool polyfill(window) => JS(
     '',
     '''(() => {
   if ($window[$_polyfilled]) return false;
-  $window[$_polyfilled] = true;  
+  $window[$_polyfilled] = true;
 
   if (typeof $window.NodeList !== "undefined") {
     // TODO(vsm): Do we still need these?
@@ -112,6 +112,12 @@ final global_ = JS(
       : (typeof self != "undefined") ? self : {};
 
     $polyfill(globalState);
+
+    // By default, stack traces cutoff at 10.  Set the limit to Infinity for
+    // better debugging.
+    if (globalState.Error) {
+      globalState.Error.stackTraceLimit = Infinity;
+    }
 
     // These settings must be configured before the application starts so that
     // user code runs with the correct configuration.

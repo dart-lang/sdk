@@ -75,7 +75,8 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
         local[formal.name] = formal;
       }
     }
-    return new Scope(local, null, parent, isModifiable: false);
+    return new Scope(local, null, parent, "formal parameter",
+        isModifiable: false);
   }
 
   Scope computeFormalParameterInitializerScope(Scope parent) {
@@ -99,7 +100,8 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
     for (FormalParameterBuilder formal in formals) {
       local[formal.name] = formal.forFormalParameterInitializerScope();
     }
-    return new Scope(local, null, parent, isModifiable: false);
+    return new Scope(local, null, parent, "formal parameter initializer",
+        isModifiable: false);
   }
 
   /// This scope doesn't correspond to any scope specified in the Dart
@@ -111,7 +113,8 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
     for (TypeVariableBuilder variable in typeVariables) {
       local[variable.name] = variable;
     }
-    return new Scope(local, null, parent, isModifiable: false);
+    return new Scope(local, null, parent, "type parameter",
+        isModifiable: false);
   }
 
   FormalParameterBuilder getFormal(String name) {

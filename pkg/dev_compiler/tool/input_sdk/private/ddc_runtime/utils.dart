@@ -7,6 +7,11 @@ part of dart._runtime;
 /// by the Dart runtime.
 // TODO(ochafik): Rewrite some of these in Dart when possible.
 
+/// The JavaScript undefined constant.
+/// 
+/// This is initialized by DDC to JS void 0.
+const undefined = null;
+
 defineProperty(obj, name, desc) =>
     JS('', 'Object.defineProperty(#, #, #)', obj, name, desc);
 
@@ -41,9 +46,9 @@ final hasOwnProperty = JS('', 'Object.prototype.hasOwnProperty');
 
 /// This error indicates a strong mode specific failure, other than a type
 /// assertion failure (TypeError) or CastError.
-void throwStrongModeError(String message) {
+void throwTypeError(String message) {
   if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
-  throw new StrongModeErrorImplementation(message);
+  throw new TypeErrorImplementation.fromMessage(message);
 }
 
 /// This error indicates a bug in the runtime or the compiler.

@@ -4,6 +4,7 @@
 
 [ $mode == product ]
 assertion_test: SkipByDesign # Requires checked mode.
+generic_test: SkipByDesign # Requires checked mode.
 
 [ $compiler == none && $runtime == drt && !$checked ]
 assertion_initializer_const_error2_test/cc02: Fail
@@ -28,3 +29,25 @@ class_override_test: MissingCompileTimeError # Requires strong mode
 closure_internals_test/01: MissingCompileTimeError # Requires strong mode
 closure_internals_test/02: MissingCompileTimeError # Requires strong mode
 closure_internals_test/03: MissingCompileTimeError # Requires strong mode
+compile_time_constant_k_test/01: MissingCompileTimeError # Requires strong mode
+compile_time_constant_k_test/02: MissingCompileTimeError # Requires strong mode
+compile_time_constant_k_test/03: MissingCompileTimeError # Requires strong mode
+void_type_callbacks_test: Skip # Requires strong mode
+void_type_function_types_test: Skip # Requires strong mode
+void_type_override_test: Skip # Requires strong mode
+void_type_usage_test: Skip # Requires strong mode
+compile_time_constant_static_test: Skip # Requires strong mode
+compile_time_constant_static2_test: Skip # Requires strong mode
+compile_time_constant_static3_test: Skip # Requires strong mode
+compile_time_constant_static4_test: Skip # Requires strong mode
+compile_time_constant_static5_test: Skip # Requires strong mode
+
+[ $strong ]
+compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
+compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
+compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
+compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
+
+[ $compiler == dartdevc ]
+compile_time_constant_e_test: RuntimeError # Issue 30466
+compile_time_constant_k_test/none: RuntimeError # Issue 30466

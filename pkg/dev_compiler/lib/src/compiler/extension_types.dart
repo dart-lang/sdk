@@ -46,6 +46,7 @@ class ExtensionTypeSet {
     // TODO(vsm): If we're analyzing against the main SDK, those
     // types are not explicitly annotated.
     var types = _context.typeProvider;
+    _extensibleTypes.add(types.objectType.element);
     _addExtensionType(types.intType, true);
     _addExtensionType(types.doubleType, true);
     _addExtensionType(types.boolType, true);
@@ -160,7 +161,10 @@ class ExtensionTypeSet {
   }
 
   void _collectNativeInterfaces(InterfaceType type, Set<ClassElement> types) {
-    if (type.isObject) return;
+    if (type.isObject) {
+      types.add(type.element);
+      return;
+    }
     var element = type.element;
     if (hasNativeSubtype(type)) types.add(element);
     for (var m in element.mixins.reversed) {

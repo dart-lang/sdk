@@ -1,0 +1,30 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object> = (T) → void;
+typedef G<T extends core::Object, U extends core::Object> = (T) → U;
+class C<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method f1(self::C::T x) → void {}
+  method f2(core::List<self::C::T> x) → self::C::T
+    return x.{core::Iterable::first};
+}
+static method g1(self::C<core::num> c) → (core::num) → void {
+  return c.{self::C::f1};
+}
+static method g2(self::C<core::int> c, core::Object x) → void {
+  (core::Object) → void f = self::g1(c) as (core::Object) → void;
+  f.call(x);
+}
+static method g3(self::C<core::num> c) → (core::List<core::num>) → core::num {
+  return c.{self::C::f2};
+}
+static method test() → void {
+  (core::num) → void x = self::g1(new self::C::•<core::int>());
+  x.call(1.5);
+  self::g3(new self::C::•<core::int>());
+}
+static method main() → dynamic {}

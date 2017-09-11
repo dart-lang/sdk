@@ -25,7 +25,12 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/utils.dart';
 
-enum HeapSnapshotTreeMode { dominatorTree, mergedDominatorTree, groupByClass }
+enum HeapSnapshotTreeMode {
+  dominatorTree,
+  mergedDominatorTree,
+  ownershipTable,
+  groupByClass
+}
 
 class HeapSnapshotElement extends HtmlElement implements Renderable {
   static const tag =
@@ -294,6 +299,15 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
           _tree
         ]);
         break;
+      case HeapSnapshotTreeMode.ownershipTable:
+        final items = _snapshot.ownershipClasses.toList();
+        items.sort((a, b) => b.size - a.size);
+        _tree = new VirtualTreeElement(_createOwnershipClass,
+            _updateOwnershipClass, _getChildrenOwnershipClass,
+            items: items, queue: _r.queue);
+        _tree.expand(_snapshot.dominatorTree);
+        report.add(_tree);
+        break;
       case HeapSnapshotTreeMode.groupByClass:
         final items = _snapshot.classReferences.toList();
         items.sort((a, b) => b.shallowSize - a.shallowSize);
@@ -363,6 +377,17 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
       ];
   }
 
+  static Element _createOwnershipClass(toggle) {
+    return new DivElement()
+      ..classes = ['tree-item']
+      ..children = [
+        new SpanElement()
+          ..classes = ['size']
+          ..title = 'size',
+        new SpanElement()..classes = ['name']
+      ];
+  }
+
   static const int kMaxChildren = 100;
   static const int kMinRetainedSize = 4096;
 
@@ -390,6 +415,10 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
     } else if (item is Iterable) {
       return item.toList()..sort((a, b) => b.shallowSize - a.shallowSize);
     }
+    return const [];
+  }
+
+  static _getChildrenOwnershipClass(item) {
     return const [];
   }
 
@@ -510,6 +539,14 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
     }
   }
 
+  void _updateOwnershipClass(HtmlElement element, item, int depth) {
+    _updateLines(element.children[1].children, depth);
+    element.children[0].text = Utils.formatSize(item.size);
+    element.children[1] =
+        new ClassRefElement(_isolate, item.clazz, queue: _r.queue)
+          ..classes = ['name'];
+  }
+
   static _updateLines(List<Element> lines, int n) {
     n = Math.max(0, n);
     while (lines.length > n) {
@@ -554,6 +591,8 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
         return 'Dominator tree';
       case HeapSnapshotTreeMode.mergedDominatorTree:
         return 'Dominator tree (merged siblings by class)';
+      case HeapSnapshotTreeMode.ownershipTable:
+        return 'Ownership table';
       case HeapSnapshotTreeMode.groupByClass:
         return 'Group by class';
     }

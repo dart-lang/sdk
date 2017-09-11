@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  dynamic closures = <dynamic>[MakeClosure<(dynamic, dynamic, [dynamic]) → dynamic>(self::closure#main#function, null), MakeClosure<(dynamic, dynamic, dynamic) → dynamic>(self::closure#main#function#1, null), MakeClosure<(dynamic, dynamic, {z: dynamic}) → dynamic>(self::closure#main#function#2, null), MakeClosure<(dynamic, dynamic, dynamic, dynamic, dynamic) → dynamic>(self::closure#main#function#3, null)];
+  for (dynamic c in closures) {
+    core::bool ok = false;
+    try {
+      c.call(1, 2, 3, 4);
+    }
+    on core::NoSuchMethodError catch(final core::NoSuchMethodError _) {
+      ok = true;
+    }
+    if(!ok) {
+      throw core::Exception::•("Expected an error!");
+    }
+  }
+  (MakeClosure<(dynamic, dynamic, [dynamic]) → dynamic>(self::closure#main#function#4, null)).call(1, 2);
+  (MakeClosure<(dynamic, dynamic, [dynamic]) → dynamic>(self::closure#main#function#5, null)).call(1, 2, 3);
+}
+static method closure#main#function(dynamic #contextParameter, dynamic x, dynamic y, [dynamic z]) → dynamic {}
+static method closure#main#function#1(dynamic #contextParameter, dynamic x, dynamic y, dynamic z) → dynamic {}
+static method closure#main#function#2(dynamic #contextParameter, dynamic x, dynamic y, {dynamic z}) → dynamic {}
+static method closure#main#function#3(dynamic #contextParameter, dynamic x, dynamic y, dynamic z, dynamic w, dynamic v) → dynamic {}
+static method closure#main#function#4(dynamic #contextParameter, dynamic x, dynamic y, [dynamic z]) → dynamic {}
+static method closure#main#function#5(dynamic #contextParameter, dynamic x, dynamic y, [dynamic z]) → dynamic {}

@@ -9,6 +9,31 @@ class ForceInline {
   const ForceInline();
 }
 
+/// Marks a variable or API to be non-nullable.
+/// ****CAUTION******
+/// This is currently unchecked, and hence should never be used
+/// on any public interface where user code could subclass, implement,
+/// or otherwise cause the contract to be violated.
+/// TODO(leafp): Consider adding static checking and exposing
+/// this to user code.
+class NotNull {
+  const NotNull();
+}
+
+const notNull = const NotNull();
+
+/// Tells the development compiler to check a variable for null at its
+/// declaration point, and then to assume that the variable is non-null
+/// from that point forward.
+/// ****CAUTION******
+/// This is currently unchecked, and hence will not catch re-assignments
+/// of a variable with null
+class NullCheck {
+  const NullCheck();
+}
+
+const nullCheck = const NullCheck();
+
 /// Tells the optimizing compiler that the annotated method cannot throw.
 /// Requires @NoInline() to function correctly.
 class NoThrows {

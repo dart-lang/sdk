@@ -4,13 +4,12 @@
 
 import 'dart:async';
 
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
-import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
@@ -105,8 +104,8 @@ class KernelDriver {
       return new Future.value();
     }
 
-    _fsState = new FileSystemState(
-        _byteStore, _fileSystem, _uriTranslator, _salt, onFileAdded);
+    _fsState = new FileSystemState(_byteStore, _fileSystem, _options.target,
+        _uriTranslator, _salt, onFileAdded);
   }
 
   /// Return the [FileSystemState] that contains the current file state.
@@ -226,14 +225,8 @@ class KernelDriver {
       }
 
       Future<Null> appendNewDillLibraries(Program program) async {
-        List<DillLibraryBuilder> libraryBuilders = dillTarget.loader
-            .appendLibraries(program, (uri) => libraryUris.contains(uri));
-
-        // Compute local scopes.
+        dillTarget.loader.appendLibraries(program, libraryUris.contains);
         await dillTarget.buildOutlines();
-
-        // Compute export scopes.
-        _computeExportScopes(dillTarget, libraryUriToFile, libraryBuilders);
       }
 
       // Check if there is already a bundle with these libraries.
@@ -282,34 +275,6 @@ class KernelDriver {
 
       return new LibraryCycleResult(cycle, signature, kernelLibraries);
     });
-  }
-
-  /// Compute exports scopes for a new strongly connected cycle of [libraries].
-  /// The [dillTarget] can be used to access libraries from previous cycles.
-  /// TODO(scheglov) Remove/replace this when Kernel has export scopes.
-  void _computeExportScopes(DillTarget dillTarget,
-      Map<Uri, FileState> uriToFile, List<DillLibraryBuilder> libraries) {
-    bool wasChanged = false;
-    do {
-      wasChanged = false;
-      for (DillLibraryBuilder library in libraries) {
-        FileState file = uriToFile[library.uri];
-        for (NamespaceExport export in file.exports) {
-          DillLibraryBuilder exportedLibrary =
-              dillTarget.loader.read(export.library.uri, -1, accessor: library);
-          if (exportedLibrary != null) {
-            exportedLibrary.exportScope.forEach((name, member) {
-              if (export.isExposed(name) &&
-                  library.addToExportScope(name, member)) {
-                wasChanged = true;
-              }
-            });
-          } else {
-            // TODO(scheglov) How to handle this?
-          }
-        }
-      }
-    } while (wasChanged);
   }
 
   /// Compute salt and put into [_salt].

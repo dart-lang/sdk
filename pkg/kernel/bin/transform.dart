@@ -17,7 +17,8 @@ import 'package:kernel/transformations/empty.dart' as empty;
 import 'package:kernel/transformations/method_call.dart' as method_call;
 import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
 import 'package:kernel/transformations/treeshaker.dart' as treeshaker;
-import 'package:kernel/verifier.dart';
+// import 'package:kernel/verifier.dart';
+import 'package:kernel/transformations/coq.dart' as coq;
 
 import 'batch_util.dart';
 import 'util.dart';
@@ -90,6 +91,9 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
     case 'closures':
       program = closures.transformProgram(coreTypes, program);
       break;
+    case 'coq':
+      program = coq.transformProgram(coreTypes, program);
+      break;
     case 'treeshake':
       program = treeshaker.transformProgram(coreTypes, hierarchy, program,
           programRoots: programRoots);
@@ -104,7 +108,10 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       throw 'Unknown transformation';
   }
 
-  verifyProgram(program);
+  // TODO(30631): Fix the verifier so we can check that the transform produced
+  // valid output.
+  //
+  // verifyProgram(program);
 
   if (format == 'text') {
     writeProgramToText(program, path: output);

@@ -30,11 +30,12 @@ import '../../js_backend/js_backend.dart'
     show JavaScriptBackend, Namer, ConstantEmitter;
 import '../../js_backend/interceptor_data.dart';
 import '../../world.dart';
-import '../constant_ordering.dart' show deepCompareConstants;
+import '../constant_ordering.dart' show ConstantOrdering;
 import '../code_emitter_task.dart';
 import '../js_emitter.dart' show NativeEmitter;
 import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
 import '../model.dart';
+import '../sorter.dart' show Sorter;
 
 class ModelEmitter {
   final Compiler compiler;
@@ -42,6 +43,7 @@ class ModelEmitter {
   ConstantEmitter constantEmitter;
   final NativeEmitter nativeEmitter;
   final ClosedWorld _closedWorld;
+  final ConstantOrdering _constantOrdering;
 
   JavaScriptBackend get backend => compiler.backend;
 
@@ -54,7 +56,8 @@ class ModelEmitter {
   static const String typeNameProperty = r"builtin$cls";
 
   ModelEmitter(this.compiler, this.namer, this.nativeEmitter, this._closedWorld,
-      CodeEmitterTask task) {
+      Sorter sorter, CodeEmitterTask task)
+      : _constantOrdering = new ConstantOrdering(sorter) {
     this.constantEmitter = new ConstantEmitter(
         compiler.options,
         _closedWorld.commonElements,
@@ -114,7 +117,7 @@ class ModelEmitter {
     if (r != 0) return r;
 
     // Resolve collisions in the long name by using a structural order.
-    return deepCompareConstants(a, b);
+    return _constantOrdering.compare(a, b);
   }
 
   js.Expression generateStaticClosureAccess(MethodElement element) {
@@ -170,7 +173,7 @@ class ModelEmitter {
               backend.sourceInformationStrategy)
           .getText();
       totalSize += code.length;
-      compiler.outputProvider(
+      compiler.outputProvider.createOutputSink(
           fragments[i + 1].outputFileName, deferredExtension, OutputType.jsPart)
         ..add(code)
         ..close();
@@ -180,10 +183,11 @@ class ModelEmitter {
         .createCodeBuffer(
             mainAst, compiler.options, backend.sourceInformationStrategy)
         .getText();
-    compiler.outputProvider(mainFragment.outputFileName, 'js', OutputType.js)
-      ..add(buildGeneratedBy(compiler))
-      ..add(mainCode)
-      ..close();
+    compiler.outputProvider
+        .createOutputSink(mainFragment.outputFileName, 'js', OutputType.js)
+          ..add(buildGeneratedBy(compiler))
+          ..add(mainCode)
+          ..close();
     totalSize += mainCode.length;
 
     return totalSize;

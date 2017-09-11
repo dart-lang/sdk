@@ -1,0 +1,26 @@
+{
+  'variables': {
+    'files': ['out/ReleaseIA32/dart-sdk/',
+              'out/ReleaseX64/dart-sdk/',
+              'xcodebuild/ReleaseIA32/dart-sdk/',
+              'xcodebuild/ReleaseX64/dart-sdk/',
+              'samples/',
+              'samples-dev/',
+              'tools/',
+              'third_party/pkg/',
+              'third_party/pkg_tested/',
+              'third_party/d8/',
+              'third_party/firefox_jsshell/',
+              'third_party/observatory_pub_packages/packages/web_components/',
+              'tests/',
+              'pkg/async_helper/',
+              'pkg/browser/',
+              'pkg/expect/',
+              'pkg/js/',
+              'pkg/meta/',
+              'pkg/pkg.status',
+              'pkg/status_file/',
+              'runtime/tests/',
+              '.packages']
+  }
+}

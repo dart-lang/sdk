@@ -24,8 +24,6 @@ part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'js_rti.dart';
 
-final _identityHashCode = JS('', 'Symbol("_identityHashCode")');
-
 class _Patch {
   const _Patch();
 }
@@ -57,15 +55,6 @@ class Primitives {
     mirrorInvokeCacheName += '_$id';
   }
 
-  static int objectHashCode(object) {
-    int hash = JS('int|Null', r'#[#]', object, _identityHashCode);
-    if (hash == null) {
-      hash = JS('int', '(Math.random() * 0x3fffffff) | 0');
-      JS('void', r'#[#] = #', object, _identityHashCode, hash);
-    }
-    return JS('int', '#', hash);
-  }
-
   @NoInline()
   static int _parseIntError(String source, int handleError(String source)) {
     if (handleError == null) throw new FormatException(source);
@@ -73,8 +62,7 @@ class Primitives {
   }
 
   static int parseInt(
-      String source, int radix, int handleError(String source)) {
-    checkString(source);
+      @nullCheck String source, int _radix, int handleError(String source)) {
     var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
     var/*=JSArray<String>*/ match =
         JS('JSExtendableArray|Null', '#.exec(#)', re, source);
@@ -89,7 +77,7 @@ class Primitives {
       return _parseIntError(source, handleError);
     }
     String decimalMatch = match[decimalIndex];
-    if (radix == null) {
+    if (_radix == null) {
       if (decimalMatch != null) {
         // Cannot fail because we know that the digits are all decimal.
         return JS('int', r'parseInt(#, 10)', source);
@@ -100,10 +88,7 @@ class Primitives {
       }
       return _parseIntError(source, handleError);
     }
-
-    if (radix is! int) {
-      throw new ArgumentError.value(radix, 'radix', 'is not an integer');
-    }
+    @notNull var radix = _radix;
     if (radix < 2 || radix > 36) {
       throw new RangeError.range(radix, 2, 36, 'radix');
     }
@@ -155,8 +140,7 @@ class Primitives {
     return handleError(source);
   }
 
-  static double parseDouble(String source, double handleError(String source)) {
-    checkString(source);
+  static double parseDouble(@nullCheck String source, double handleError(String source)) {
     // Notice that JS parseFloat accepts garbage at the end of the string.
     // Accept only:
     // - [+/-]NaN
@@ -183,11 +167,6 @@ class Primitives {
 
   /** [: r"$".codeUnitAt(0) :] */
   static const int DOLLAR_CHAR_VALUE = 36;
-
-  static String objectToString(Object object) {
-    String name = dart.typeName(dart.getReifiedType(object));
-    return "Instance of '$name'";
-  }
 
   static int dateNow() => JS('int', r'Date.now()');
 
@@ -232,9 +211,9 @@ class Primitives {
 
   // This is to avoid stack overflows due to very large argument arrays in
   // apply().  It fixes http://dartbug.com/6919
-  static String _fromCharCodeApply(List<int> array) {
+  @notNull static String _fromCharCodeApply(List<int> array) {
     const kMaxApply = 500;
-    int end = array.length;
+    @nullCheck int end = array.length;
     if (end <= kMaxApply) {
       return JS('String', r'String.fromCharCode.apply(null, #)', array);
     }
@@ -252,10 +231,9 @@ class Primitives {
     return result;
   }
 
-  static String stringFromCodePoints(/*=JSArray<int>*/ codePoints) {
+  @notNull static String stringFromCodePoints(JSArray<int> codePoints) {
     List<int> a = <int>[];
-    for (var i in codePoints) {
-      if (i is! int) throw argumentErrorValue(i);
+    for (@nullCheck var i in codePoints) {
       if (i <= 0xffff) {
         a.add(i);
       } else if (i <= 0x10ffff) {
@@ -268,9 +246,8 @@ class Primitives {
     return _fromCharCodeApply(a);
   }
 
-  static String stringFromCharCodes(/*=JSArray<int>*/ charCodes) {
-    for (var i in charCodes) {
-      if (i is! int) throw argumentErrorValue(i);
+  @notNull static String stringFromCharCodes(JSArray<int> charCodes) {
+    for (@nullCheck var i in charCodes) {
       if (i < 0) throw argumentErrorValue(i);
       if (i > 0xffff) return stringFromCodePoints(charCodes);
     }
@@ -278,8 +255,8 @@ class Primitives {
   }
 
   // [start] and [end] are validated.
-  static String stringFromNativeUint8List(
-      NativeUint8List charCodes, int start, int end) {
+  @notNull static String stringFromNativeUint8List(
+      NativeUint8List charCodes, @nullCheck int start, @nullCheck int end) {
     const kMaxApply = 500;
     if (end <= kMaxApply && start == 0 && end == charCodes.length) {
       return JS('String', r'String.fromCharCode.apply(null, #)', charCodes);
@@ -298,7 +275,7 @@ class Primitives {
     return result;
   }
 
-  static String stringFromCharCode(int charCode) {
+  @notNull static String stringFromCharCode(@nullCheck int charCode) {
     if (0 <= charCode) {
       if (charCode <= 0xffff) {
         return JS('String', 'String.fromCharCode(#)', charCode);
@@ -361,17 +338,11 @@ class Primitives {
     return -JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
   }
 
-  static num valueFromDecomposedDate(int years, int month, int day, int hours,
-      int minutes, int seconds, int milliseconds, bool isUtc) {
+  static num valueFromDecomposedDate(@nullCheck int years, @nullCheck int month,
+                                     @nullCheck int day, @nullCheck int hours,
+      @nullCheck int minutes, @nullCheck int seconds, @nullCheck int milliseconds,
+                                     @nullCheck bool isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
-    checkInt(years);
-    checkInt(month);
-    checkInt(day);
-    checkInt(hours);
-    checkInt(minutes);
-    checkInt(seconds);
-    checkInt(milliseconds);
-    checkBool(isUtc);
     var jsMonth = month - 1;
     num value;
     if (isUtc) {
@@ -493,8 +464,7 @@ class Primitives {
  * describes the problem.
  */
 @NoInline()
-Error diagnoseIndexError(indexable, index) {
-  if (index is! int) return new ArgumentError.value(index, 'index');
+Error diagnoseIndexError(indexable, int index) {
   int length = indexable.length;
   // The following returns the same error that would be thrown by calling
   // [RangeError.checkValidIndex] with no optional parameters provided.
@@ -510,17 +480,14 @@ Error diagnoseIndexError(indexable, index) {
  * describes the problem.
  */
 @NoInline()
-Error diagnoseRangeError(start, end, length) {
-  if (start is! int) {
+Error diagnoseRangeError(int start, int end, int length) {
+  if (start == null) {
     return new ArgumentError.value(start, 'start');
   }
   if (start < 0 || start > length) {
     return new RangeError.range(start, 0, length, 'start');
   }
   if (end != null) {
-    if (end is! int) {
-      return new ArgumentError.value(end, 'end');
-    }
     if (end < start || end > length) {
       return new RangeError.range(end, start, length, 'end');
     }
@@ -529,7 +496,7 @@ Error diagnoseRangeError(start, end, length) {
   return new ArgumentError.value(end, "end");
 }
 
-stringLastIndexOfUnchecked(receiver, element, start) =>
+@notNull int stringLastIndexOfUnchecked(receiver, element, start) =>
     JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
 
 /// 'factory' for constructing ArgumentError.value to keep the call sites small.
@@ -538,28 +505,12 @@ ArgumentError argumentErrorValue(object) {
   return new ArgumentError.value(object);
 }
 
-checkNull(object) {
-  if (object == null) throw argumentErrorValue(object);
-  return object;
-}
-
-checkNum(value) {
-  if (value is! num) throw argumentErrorValue(value);
-  return value;
+void throwArgumentErrorValue(value) {
+  throw argumentErrorValue(value);
 }
 
 checkInt(value) {
   if (value is! int) throw argumentErrorValue(value);
-  return value;
-}
-
-checkBool(value) {
-  if (value is! bool) throw argumentErrorValue(value);
-  return value;
-}
-
-checkString(value) {
-  if (value is! String) throw argumentErrorValue(value);
   return value;
 }
 
@@ -636,14 +587,6 @@ class _StackTrace implements StackTrace {
       }
     }
     return _trace = (trace == null) ? '' : trace;
-  }
-}
-
-int objectHashCode(var object) {
-  if (object == null || JS('bool', "typeof # != 'object'", object)) {
-    return object.hashCode;
-  } else {
-    return Primitives.objectHashCode(object);
   }
 }
 
@@ -780,9 +723,11 @@ class TypeErrorImplementation extends Error implements TypeError {
    * Normal type error caused by a failed subtype test.
    */
   // TODO(sra): Include [value] in message.
-  TypeErrorImplementation(Object value, Object actualType, Object expectedType)
+  TypeErrorImplementation(Object value, Object actualType, Object expectedType,
+      bool strongModeError)
       : message = "Type '${actualType}' is not a subtype "
-            "of type '${expectedType}'";
+            "of type '${expectedType}'" +
+            (strongModeError ? "" : " in strong mode");
 
   TypeErrorImplementation.fromMessage(String this.message);
 
@@ -798,41 +743,15 @@ class CastErrorImplementation extends Error implements CastError {
    * Normal cast error caused by a failed type cast.
    */
   // TODO(sra): Include [value] in message.
-  CastErrorImplementation(Object value, Object actualType, Object expectedType)
+  CastErrorImplementation(Object value, Object actualType, Object expectedType,
+      bool strongModeError)
       : message = "CastError: Casting value of type '$actualType' to"
-            " incompatible type '$expectedType'";
+            " type '$expectedType' which is incompatible" +
+            (strongModeError ? "" : " in strong mode");
 
   String toString() => message;
 }
 
-/// Thrown by type assertions that fail in strong mode that would have passed in
-/// standard Dart.
-class StrongModeTypeError extends Error implements TypeError, StrongModeError {
-  final String message;
-  // TODO(sra): Include [value] in message.
-  StrongModeTypeError(Object value, Object actualType, Object expectedType)
-      : message = "Type '${actualType}' is not a subtype "
-            "of type '${expectedType}' in strong mode";
-  String toString() => message;
-}
-
-/// Thrown by casts that fail in strong mode that would have passed in standard
-/// Dart.
-class StrongModeCastError extends Error implements CastError, StrongModeError {
-  final String message;
-  // TODO(sra): Include [value] in message.
-  StrongModeCastError(Object value, Object actualType, Object expectedType)
-      : message = "CastError: Casting value of type '$actualType' to"
-            " type '$expectedType' which is incompatible in strong mode";
-  String toString() => message;
-}
-
-/// Used for Strong-mode errors other than type assertions and casts.
-class StrongModeErrorImplementation extends Error implements StrongModeError {
-  final String message;
-  StrongModeErrorImplementation(this.message);
-  String toString() => message;
-}
 
 class FallThroughErrorImplementation extends FallThroughError {
   FallThroughErrorImplementation();
@@ -866,10 +785,6 @@ int random64() {
   int int32a = JS("int", "(Math.random() * 0x100000000) >>> 0");
   int int32b = JS("int", "(Math.random() * 0x100000000) >>> 0");
   return int32a + int32b * 0x100000000;
-}
-
-String jsonEncodeNative(String string) {
-  return JS("String", "JSON.stringify(#)", string);
 }
 
 // TODO(jmesserly): this adapter is to work around

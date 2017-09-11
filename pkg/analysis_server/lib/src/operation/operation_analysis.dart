@@ -15,25 +15,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-
-/**
- * Run the given function [f] with the given [context] made active.
- * Return the result of [f] invocation.
- */
-runWithActiveContext(AnalysisContext context, f()) {
-  if (context is InternalAnalysisContext && !context.isActive) {
-    context.isActive = true;
-    try {
-      return f();
-    } finally {
-      context.isActive = false;
-    }
-  } else {
-    return f();
-  }
-}
 
 Future<Null> scheduleImplementedNotification(
     AnalysisServer server, Iterable<String> files) async {

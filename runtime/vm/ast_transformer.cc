@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/ast_transformer.h"
 
 #include "vm/object_store.h"
@@ -316,7 +318,8 @@ void AwaitTransformer::VisitConditionalExprNode(ConditionalExprNode* node) {
 }
 
 void AwaitTransformer::VisitArgumentListNode(ArgumentListNode* node) {
-  ArgumentListNode* new_args = new (Z) ArgumentListNode(node->token_pos());
+  ArgumentListNode* new_args =
+      new (Z) ArgumentListNode(node->token_pos(), node->type_arguments());
   for (intptr_t i = 0; i < node->length(); i++) {
     new_args->Add(Transform(node->NodeAt(i)));
   }
@@ -495,3 +498,5 @@ void AwaitTransformer::VisitThrowNode(ThrowNode* node) {
 }
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

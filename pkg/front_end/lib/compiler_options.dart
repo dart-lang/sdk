@@ -4,8 +4,8 @@
 
 library front_end.compiler_options;
 
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:kernel/target/targets.dart' show Target;
 
 import 'compilation_message.dart';
@@ -217,18 +217,19 @@ class CompilerOptions {
 
   /// Whether the compiler should throw as soon as it encounters a
   /// compilation error.
-  // TODO(sigmund): change the default (issue #30194).
-  bool throwOnErrors = true;
+  ///
+  /// Typically used by developers to debug internals of the compiler.
+  bool throwOnErrorsForDebugging = false;
 
   /// Whether the compiler should throw as soon as it encounters a
   /// compilation warning.
   ///
   /// Typically used by developers to debug internals of the compiler.
-  bool throwOnWarnings = false;
+  bool throwOnWarningsForDebugging = false;
 
   /// Whether the compiler should throw as soon as it encounters a
   /// compilation nit.
   ///
   /// Typically used by developers to debug internals of the compiler.
-  bool throwOnNits = false;
+  bool throwOnNitsForDebugging = false;
 }

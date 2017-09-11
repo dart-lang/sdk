@@ -11,26 +11,10 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as pathos;
-
-/**
- * Checks if [element] is defined in the library containing [source].
- */
-bool isDefinedInLibrary(
-    Element element, AnalysisContext context, Source source) {
-  // should be the same AnalysisContext
-  if (!isInContext(element, context)) {
-    return false;
-  }
-  // private elements are visible only in their library
-  List<Source> librarySourcesOfSource = context.getLibrariesContaining(source);
-  Source librarySourceOfElement = element.library.source;
-  return librarySourcesOfSource.contains(librarySourceOfElement);
-}
 
 bool isElementInPubCache(Element element) {
   Source source = element.source;
@@ -42,13 +26,6 @@ bool isElementInSdkOrPubCache(Element element) {
   Source source = element.source;
   String path = source.fullName;
   return source.isInSystemLibrary || isPathInPubCache(path);
-}
-
-/**
- * Checks if the given [Element] is in the given [AnalysisContext].
- */
-bool isInContext(Element element, AnalysisContext context) {
-  return element.context == context;
 }
 
 bool isPathInPubCache(String path) {
@@ -69,46 +46,12 @@ bool isPathInPubCache(String path) {
 }
 
 /**
- * Checks if the given unqualified [SearchMatch] intersects with visibility
- * range of [localElement].
- */
-bool isReferenceInLocalRange(LocalElement localElement, SearchMatch reference) {
-  if (reference.isQualified) {
-    return false;
-  }
-  Source localSource = localElement.source;
-  Source referenceSource = reference.unitSource;
-  SourceRange localRange = localElement.visibleRange;
-  SourceRange referenceRange = reference.sourceRange;
-  return referenceSource == localSource &&
-      referenceRange.intersects(localRange);
-}
-
-/**
- * Checks if [element] is visible in the library containing [source].
- */
-bool isVisibleInLibrary(
-    Element element, AnalysisContext context, Source source) {
-  // should be the same AnalysisContext
-  if (!isInContext(element, context)) {
-    return false;
-  }
-  // public elements are always visible
-  if (element.isPublic) {
-    return true;
-  }
-  // private elements are visible only in their library
-  return isDefinedInLibrary(element, context, source);
-}
-
-/**
  * An abstract implementation of [RenameRefactoring].
  */
 abstract class RenameRefactoringImpl extends RefactoringImpl
     implements RenameRefactoring {
   final SearchEngine searchEngine;
   final Element _element;
-  final AnalysisContext context;
   final String elementKindName;
   final String oldName;
   SourceChange change;
@@ -118,7 +61,6 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   RenameRefactoringImpl(SearchEngine searchEngine, Element element)
       : searchEngine = searchEngine,
         _element = element,
-        context = element.context,
         elementKindName = element.kind.displayName,
         oldName = _getDisplayName(element);
 

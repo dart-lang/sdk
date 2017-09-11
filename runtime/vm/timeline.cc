@@ -306,6 +306,85 @@ void Timeline::Clear() {
   recorder->Clear();
 }
 
+void TimelineEventArguments::SetNumArguments(intptr_t length) {
+  if (length == length_) {
+    return;
+  }
+  if (length == 0) {
+    Free();
+    return;
+  }
+  if (buffer_ == NULL) {
+    // calloc already nullifies
+    buffer_ = reinterpret_cast<TimelineEventArgument*>(
+        calloc(sizeof(TimelineEventArgument), length));
+  } else {
+    for (intptr_t i = length; i < length_; ++i) {
+      free(buffer_[i].value);
+    }
+    buffer_ = reinterpret_cast<TimelineEventArgument*>(
+        realloc(buffer_, sizeof(TimelineEventArgument) * length));
+    if (length > length_) {
+      memset(buffer_ + length_, 0,
+             sizeof(TimelineEventArgument) * (length - length_));
+    }
+  }
+  length_ = length;
+}
+
+void TimelineEventArguments::SetArgument(intptr_t i,
+                                         const char* name,
+                                         char* argument) {
+  ASSERT(i >= 0);
+  ASSERT(i < length_);
+  buffer_[i].name = name;
+  buffer_[i].value = argument;
+}
+
+void TimelineEventArguments::CopyArgument(intptr_t i,
+                                          const char* name,
+                                          const char* argument) {
+  SetArgument(i, name, strdup(argument));
+}
+
+void TimelineEventArguments::FormatArgument(intptr_t i,
+                                            const char* name,
+                                            const char* fmt,
+                                            va_list args) {
+  ASSERT(i >= 0);
+  ASSERT(i < length_);
+  va_list args2;
+  va_copy(args2, args);
+  intptr_t len = OS::VSNPrint(NULL, 0, fmt, args);
+  va_end(args);
+
+  char* buffer = reinterpret_cast<char*>(malloc(len + 1));
+  OS::VSNPrint(buffer, (len + 1), fmt, args2);
+  va_end(args2);
+
+  SetArgument(i, name, buffer);
+}
+
+void TimelineEventArguments::StealArguments(TimelineEventArguments* arguments) {
+  Free();
+  length_ = arguments->length_;
+  buffer_ = arguments->buffer_;
+  arguments->length_ = 0;
+  arguments->buffer_ = NULL;
+}
+
+void TimelineEventArguments::Free() {
+  if (buffer_ == NULL) {
+    return;
+  }
+  for (intptr_t i = 0; i < length_; i++) {
+    free(buffer_[i].value);
+  }
+  free(buffer_);
+  buffer_ = NULL;
+  length_ = 0;
+}
+
 TimelineEventRecorder* Timeline::recorder_ = NULL;
 MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
 Dart_EmbedderTimelineStartRecording Timeline::start_recording_cb_ = NULL;
@@ -321,8 +400,6 @@ TimelineEvent::TimelineEvent()
       timestamp1_(0),
       thread_timestamp0_(-1),
       thread_timestamp1_(-1),
-      arguments_(NULL),
-      arguments_length_(0),
       state_(0),
       label_(NULL),
       category_(""),
@@ -342,7 +419,7 @@ void TimelineEvent::Reset() {
   isolate_id_ = ILLEGAL_PORT;
   category_ = "";
   label_ = NULL;
-  FreeArguments();
+  arguments_.Free();
   set_pre_serialized_json(false);
   set_event_type(kNone);
   set_owns_label(false);
@@ -466,55 +543,13 @@ void TimelineEvent::CompleteWithPreSerializedJSON(const char* json) {
   Complete();
 }
 
-void TimelineEvent::SetNumArguments(intptr_t length) {
-  // Cannot call this twice.
-  ASSERT(arguments_ == NULL);
-  ASSERT(arguments_length_ == 0);
-  if (length == 0) {
-    return;
-  }
-  arguments_length_ = length;
-  arguments_ = reinterpret_cast<TimelineEventArgument*>(
-      calloc(sizeof(TimelineEventArgument), length));
-}
-
-void TimelineEvent::SetArgument(intptr_t i, const char* name, char* argument) {
-  ASSERT(i >= 0);
-  ASSERT(i < arguments_length_);
-  arguments_[i].name = name;
-  arguments_[i].value = argument;
-}
-
 void TimelineEvent::FormatArgument(intptr_t i,
                                    const char* name,
                                    const char* fmt,
                                    ...) {
-  ASSERT(i >= 0);
-  ASSERT(i < arguments_length_);
   va_list args;
   va_start(args, fmt);
-  intptr_t len = OS::VSNPrint(NULL, 0, fmt, args);
-  va_end(args);
-
-  char* buffer = reinterpret_cast<char*>(malloc(len + 1));
-  va_list args2;
-  va_start(args2, fmt);
-  OS::VSNPrint(buffer, (len + 1), fmt, args2);
-  va_end(args2);
-
-  SetArgument(i, name, buffer);
-}
-
-void TimelineEvent::CopyArgument(intptr_t i,
-                                 const char* name,
-                                 const char* argument) {
-  SetArgument(i, name, strdup(argument));
-}
-
-void TimelineEvent::StealArguments(intptr_t arguments_length,
-                                   TimelineEventArgument* arguments) {
-  arguments_length_ = arguments_length;
-  arguments_ = arguments;
+  arguments_.FormatArgument(i, name, fmt, args);
 }
 
 void TimelineEvent::Complete() {
@@ -522,18 +557,6 @@ void TimelineEvent::Complete() {
   if (recorder != NULL) {
     recorder->CompleteEvent(this);
   }
-}
-
-void TimelineEvent::FreeArguments() {
-  if (arguments_ == NULL) {
-    return;
-  }
-  for (intptr_t i = 0; i < arguments_length_; i++) {
-    free(arguments_[i].value);
-  }
-  free(arguments_);
-  arguments_ = NULL;
-  arguments_length_ = 0;
 }
 
 void TimelineEvent::StreamInit(TimelineStream* stream) {
@@ -561,7 +584,7 @@ void TimelineEvent::Init(EventType event_type, const char* label) {
     isolate_id_ = ILLEGAL_PORT;
   }
   label_ = label;
-  FreeArguments();
+  arguments_.Free();
   set_pre_serialized_json(false);
   set_event_type(event_type);
   set_owns_label(false);
@@ -590,8 +613,7 @@ bool TimelineEvent::Within(int64_t time_origin_micros,
 
 const char* TimelineEvent::GetSerializedJSON() const {
   ASSERT(pre_serialized_json());
-  ASSERT(arguments_length_ == 1);
-  ASSERT(arguments_ != NULL);
+  ASSERT(arguments_.length() == 1);
   return arguments_[0].value;
 }
 
@@ -670,7 +692,7 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
   }
   {
     JSONObject args(&obj, "args");
-    for (intptr_t i = 0; i < arguments_length_; i++) {
+    for (intptr_t i = 0; i < arguments_.length(); i++) {
       const TimelineEventArgument& arg = arguments_[i];
       args.AddProperty(arg.name, arg.value);
     }
@@ -753,8 +775,6 @@ TimelineEventScope::TimelineEventScope(TimelineStream* stream,
     : StackResource(reinterpret_cast<Thread*>(NULL)),
       stream_(stream),
       label_(label),
-      arguments_(NULL),
-      arguments_length_(0),
       enabled_(false) {
   Init();
 }
@@ -765,15 +785,11 @@ TimelineEventScope::TimelineEventScope(Thread* thread,
     : StackResource(thread),
       stream_(stream),
       label_(label),
-      arguments_(NULL),
-      arguments_length_(0),
       enabled_(false) {
   Init();
 }
 
-TimelineEventScope::~TimelineEventScope() {
-  FreeArguments();
-}
+TimelineEventScope::~TimelineEventScope() {}
 
 void TimelineEventScope::Init() {
   ASSERT(enabled_ == false);
@@ -790,14 +806,7 @@ void TimelineEventScope::SetNumArguments(intptr_t length) {
   if (!enabled()) {
     return;
   }
-  ASSERT(arguments_ == NULL);
-  ASSERT(arguments_length_ == 0);
-  arguments_length_ = length;
-  if (arguments_length_ == 0) {
-    return;
-  }
-  arguments_ = reinterpret_cast<TimelineEventArgument*>(
-      calloc(sizeof(TimelineEventArgument), length));
+  arguments_.SetNumArguments(length);
 }
 
 // |name| must be a compile time constant. Takes ownership of |argumentp|.
@@ -807,10 +816,7 @@ void TimelineEventScope::SetArgument(intptr_t i,
   if (!enabled()) {
     return;
   }
-  ASSERT(i >= 0);
-  ASSERT(i < arguments_length_);
-  arguments_[i].name = name;
-  arguments_[i].value = argument;
+  arguments_.SetArgument(i, name, argument);
 }
 
 // |name| must be a compile time constant. Copies |argument|.
@@ -820,7 +826,7 @@ void TimelineEventScope::CopyArgument(intptr_t i,
   if (!enabled()) {
     return;
   }
-  SetArgument(i, name, strdup(argument));
+  arguments_.CopyArgument(i, name, argument);
 }
 
 void TimelineEventScope::FormatArgument(intptr_t i,
@@ -832,37 +838,14 @@ void TimelineEventScope::FormatArgument(intptr_t i,
   }
   va_list args;
   va_start(args, fmt);
-  intptr_t len = OS::VSNPrint(NULL, 0, fmt, args);
-  va_end(args);
-
-  char* buffer = reinterpret_cast<char*>(malloc(len + 1));
-  va_list args2;
-  va_start(args2, fmt);
-  OS::VSNPrint(buffer, (len + 1), fmt, args2);
-  va_end(args2);
-
-  SetArgument(i, name, buffer);
-}
-
-void TimelineEventScope::FreeArguments() {
-  if (arguments_ == NULL) {
-    return;
-  }
-  for (intptr_t i = 0; i < arguments_length_; i++) {
-    free(arguments_[i].value);
-  }
-  free(arguments_);
-  arguments_ = NULL;
-  arguments_length_ = 0;
+  arguments_.FormatArgument(i, name, fmt, args);
 }
 
 void TimelineEventScope::StealArguments(TimelineEvent* event) {
   if (event == NULL) {
     return;
   }
-  event->StealArguments(arguments_length_, arguments_);
-  arguments_length_ = 0;
-  arguments_ = NULL;
+  event->StealArguments(&arguments_);
 }
 
 TimelineDurationScope::TimelineDurationScope(TimelineStream* stream,
@@ -1013,6 +996,7 @@ void TimelineEventRecorder::PrintJSONMeta(JSONArray* events) const {
     {
       JSONObject args(&obj, "args");
       args.AddPropertyF("name", "%s (%" Pd64 ")", thread_name, tid);
+      args.AddProperty("mode", "basic");
     }
   }
 }

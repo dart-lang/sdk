@@ -77,7 +77,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "@1.0.7",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "@v0.13.0+1",
+  "dartdoc_tag" : "@v0.13.0+3",
   "fixnum_tag": "@0.10.5",
   "func_tag": "@1.0.0",
   "glob_tag": "@1.1.3",
@@ -94,7 +94,7 @@ vars = {
   "linter_tag": "@0.1.35",
   "logging_tag": "@0.11.3+1",
   "markdown_tag": "@0.11.3",
-  "matcher_tag": "@0.12.0+2",
+  "matcher_tag": "@0.12.1+3",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "mockito_tag": "@2.0.2",
   "mustache4dart_tag" : "@v1.1.0",
@@ -125,8 +125,9 @@ vars = {
   "stream_channel_tag": "@1.6.1",
   "string_scanner_tag": "@1.0.1",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
+  "term_glyph_tag": "@1.0.0",
   "test_reflective_loader_tag": "@0.1.0",
-  "test_tag": "@0.12.18+1",
+  "test_tag": "@0.12.24+2",
   "tuple_tag": "@v1.0.1",
   "typed_data_tag": "@1.1.3",
   "usage_tag": "@3.3.0",
@@ -176,7 +177,7 @@ deps = {
       Var("idl_parser_rev"),
 
   Var("dart_root") + "/third_party/WebCore":
-      "https://github.com/dart-lang/webcore.git" + Var("WebCore_rev"),
+      Var("github_mirror") + "webcore.git" + Var("WebCore_rev"),
 
   Var("dart_root") + "/third_party/tcmalloc/gperftools":
       Var('chromium_git') + '/external/github.com/gperftools/gperftools.git' +
@@ -246,7 +247,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/mime":
       Var("github_mirror") + "mime.git" + Var("mime_rev"),
   Var("dart_root") + "/third_party/pkg/mockito":
-      "https://github.com/dart-lang/mockito.git" + Var("mockito_tag"),
+      Var("github_mirror") + "mockito.git" + Var("mockito_tag"),
   Var("dart_root") + "/third_party/pkg/mustache4dart":
       Var("chromium_git")
       + "/external/github.com/valotas/mustache4dart.git"
@@ -260,7 +261,8 @@ deps = {
       Var("github_mirror") + "package_config.git" +
       Var("package_config_tag"),
   Var("dart_root") + "/third_party/pkg_tested/package_resolver":
-      Var("github_mirror") + "package_resolver.git" + Var("package_resolver_tag"),
+      Var("github_mirror") + "package_resolver.git"
+      + Var("package_resolver_tag"),
   Var("dart_root") + "/third_party/pkg/path":
       Var("github_mirror") + "path.git" + Var("path_tag"),
   Var("dart_root") + "/third_party/pkg/plugin":
@@ -309,6 +311,8 @@ deps = {
   Var("dart_root") + "/third_party/sunflower":
       Var("github_mirror") + "sample-sunflower.git" +
       Var("sunflower_rev"),
+  Var("dart_root") + "/third_party/pkg/term_glyph":
+      Var("github_mirror") + "term_glyph.git" + Var("term_glyph_tag"),
   Var("dart_root") + "/third_party/pkg/test":
       Var("github_mirror") + "test.git" + Var("test_tag"),
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":

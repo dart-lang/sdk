@@ -6,15 +6,16 @@
 #if defined(HOST_OS_WINDOWS)
 
 #include "bin/directory.h"
-#include "bin/file.h"
-#include "bin/utils.h"
-#include "bin/utils_win.h"
 
 #include <errno.h>     // NOLINT
 #include <sys/stat.h>  // NOLINT
 
 #include "bin/dartutils.h"
+#include "bin/file.h"
 #include "bin/log.h"
+#include "bin/namespace.h"
+#include "bin/utils.h"
+#include "bin/utils_win.h"
 
 #undef DeleteFile
 
@@ -344,7 +345,8 @@ static Directory::ExistsResult ExistsHelper(const wchar_t* dir_name) {
   return exists ? Directory::EXISTS : Directory::DOES_NOT_EXIST;
 }
 
-Directory::ExistsResult Directory::Exists(const char* dir_name) {
+Directory::ExistsResult Directory::Exists(Namespace* namespc,
+                                          const char* dir_name) {
   Utf8ToWideScope system_name(dir_name);
   return ExistsHelper(system_name.wide());
 }
@@ -364,25 +366,7 @@ char* Directory::CurrentNoScope() {
   return result;
 }
 
-const char* Directory::Current() {
-  int length = GetCurrentDirectoryW(0, NULL);
-  if (length == 0) {
-    return NULL;
-  }
-  wchar_t* current;
-  current = reinterpret_cast<wchar_t*>(
-      Dart_ScopeAllocate((length + 1) * sizeof(*current)));
-  GetCurrentDirectoryW(length + 1, current);
-  return StringUtilsWin::WideToUtf8(current);
-}
-
-bool Directory::SetCurrent(const char* path) {
-  Utf8ToWideScope system_path(path);
-  bool result = SetCurrentDirectoryW(system_path.wide()) != 0;
-  return result;
-}
-
-bool Directory::Create(const char* dir_name) {
+bool Directory::Create(Namespace* namespc, const char* dir_name) {
   Utf8ToWideScope system_name(dir_name);
   int create_status = CreateDirectoryW(system_name.wide(), NULL);
   // If the directory already existed, treat it as a success.
@@ -393,14 +377,14 @@ bool Directory::Create(const char* dir_name) {
   return (create_status != 0);
 }
 
-const char* Directory::SystemTemp() {
+const char* Directory::SystemTemp(Namespace* namespc) {
   PathBuffer path;
   // Remove \ at end.
   path.Reset(GetTempPathW(MAX_LONG_PATH, path.AsStringW()) - 1);
   return path.AsScopedString();
 }
 
-const char* Directory::CreateTemp(const char* prefix) {
+const char* Directory::CreateTemp(Namespace* namespc, const char* prefix) {
   // Returns a new, unused directory name, adding characters to the
   // end of prefix.
   // Creates this directory, with a default security
@@ -439,11 +423,13 @@ const char* Directory::CreateTemp(const char* prefix) {
   return path.AsScopedString();
 }
 
-bool Directory::Delete(const char* dir_name, bool recursive) {
+bool Directory::Delete(Namespace* namespc,
+                       const char* dir_name,
+                       bool recursive) {
   bool result = false;
   Utf8ToWideScope system_dir_name(dir_name);
   if (!recursive) {
-    if (File::GetType(dir_name, true) == File::kIsDirectory) {
+    if (File::GetType(namespc, dir_name, true) == File::kIsDirectory) {
       result = (RemoveDirectoryW(system_dir_name.wide()) != 0);
     } else {
       SetLastError(ERROR_FILE_NOT_FOUND);
@@ -457,7 +443,9 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
   return result;
 }
 
-bool Directory::Rename(const char* path, const char* new_path) {
+bool Directory::Rename(Namespace* namespc,
+                       const char* path,
+                       const char* new_path) {
   Utf8ToWideScope system_path(path);
   Utf8ToWideScope system_new_path(new_path);
   ExistsResult exists = ExistsHelper(system_path.wide());
@@ -469,7 +457,7 @@ bool Directory::Rename(const char* path, const char* new_path) {
   // if the new_path is currently a directory we need to delete it
   // first.
   if (new_exists == EXISTS) {
-    bool success = Delete(new_path, true);
+    bool success = Delete(namespc, new_path, true);
     if (!success) {
       return false;
     }

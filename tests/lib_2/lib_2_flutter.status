@@ -1,0 +1,12 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $runtime == flutter ]
+async/intercept_schedule_microtask2_test: Skip # Flutter Issue 9113
+async/intercept_schedule_microtask6_test: Skip # Flutter Issue 9113
+async/intercept_schedule_microtask5_test: Skip # Flutter Issue 9113
+async/run_zoned6_test/01: Skip # Flutter Issue 9113
+async/schedule_microtask_test: Skip # Flutter Issue 9113
+async/run_zoned9_test/01: Skip # Flutter Issue 9113
+math/random_secure_test: RuntimeError # Flutter Issue 9113

@@ -35,6 +35,11 @@ class ApiElementBuilder extends _BaseElementBuilder {
   HashMap<String, FieldElement> _fieldMap;
 
   /**
+   * Whether the class being built has a constant constructor.
+   */
+  bool _enclosingClassHasConstConstructor = false;
+
+  /**
    * Initialize a newly created element builder to build the elements for a
    * compilation unit. The [initialHolder] is the element holder to which the
    * children of the visited compilation unit node will be added.
@@ -68,6 +73,15 @@ class ApiElementBuilder extends _BaseElementBuilder {
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
+    _enclosingClassHasConstConstructor = false;
+    for (var constructor in node.members) {
+      if (constructor is ConstructorDeclaration &&
+          constructor.constKeyword != null) {
+        _enclosingClassHasConstConstructor = true;
+        break;
+      }
+    }
+
     ElementHolder holder = new ElementHolder();
     //
     // Process field declarations before constructors and methods so that field
@@ -606,7 +620,11 @@ class ApiElementBuilder extends _BaseElementBuilder {
     if (fieldNode != null) {
       SimpleIdentifier fieldName = node.name;
       FieldElementImpl field;
-      if ((isConst || isFinal && !fieldNode.isStatic) && hasInitializer) {
+      if ((isConst ||
+              isFinal &&
+                  !fieldNode.isStatic &&
+                  _enclosingClassHasConstConstructor) &&
+          hasInitializer) {
         field = new ConstFieldElementImpl.forNode(fieldName);
       } else {
         field = new FieldElementImpl.forNode(fieldName);
@@ -1429,8 +1447,9 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     _visitChildren(holder, node);
     ParameterElementImpl element = node.element;
     element.metadata = _createElementAnnotations(node.metadata);
-    element.parameters = holder.parameters;
-    element.typeParameters = holder.typeParameters;
+    if (node.parameters != null) {
+      _createGenericFunctionType(element, holder);
+    }
     holder.validate();
     return null;
   }
@@ -1458,8 +1477,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     _visitChildren(holder, node);
     ParameterElementImpl element = node.element;
     element.metadata = _createElementAnnotations(node.metadata);
-    element.parameters = holder.parameters;
-    element.typeParameters = holder.typeParameters;
+    _createGenericFunctionType(element, holder);
     holder.validate();
     return null;
   }
@@ -1535,6 +1553,22 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       a.elementAnnotation = elementAnnotation;
       return elementAnnotation;
     }).toList();
+  }
+
+  /**
+   * If the [holder] has type parameters or formal parameters for the
+   * given [parameter], wrap them into a new [GenericFunctionTypeElementImpl]
+   * and set [FunctionTypeImpl] for the [parameter].
+   */
+  void _createGenericFunctionType(
+      ParameterElementImpl parameter, ElementHolder holder) {
+    var typeElement = new GenericFunctionTypeElementImpl.forOffset(-1);
+    typeElement.enclosingElement = parameter;
+    typeElement.typeParameters = holder.typeParameters;
+    typeElement.parameters = holder.parameters;
+    var type = new FunctionTypeImpl(typeElement);
+    typeElement.type = type;
+    parameter.type = type;
   }
 
   /**

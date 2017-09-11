@@ -19,10 +19,6 @@
 namespace dart {
 
 DEFINE_FLAG(int,
-            heap_growth_rate,
-            0,
-            "The max number of pages the heap can grow at a time");
-DEFINE_FLAG(int,
             old_gen_growth_space_ratio,
             20,
             "The desired maximum percentage of free space after old gen GC");
@@ -232,6 +228,7 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
                    kVmNameSize);
   HeapPage* page = HeapPage::Allocate(kPageSizeInWords, type, vm_name);
   if (page == NULL) {
+    RELEASE_ASSERT(!FLAG_abort_on_oom);
     return NULL;
   }
 
@@ -819,7 +816,7 @@ void PageSpace::WriteProtectCode(bool read_only) {
   }
 }
 
-void PageSpace::MarkSweep(bool invoke_api_callbacks) {
+void PageSpace::MarkSweep() {
   Thread* thread = Thread::Current();
   Isolate* isolate = heap_->isolate();
   ASSERT(isolate == Isolate::Current());
@@ -878,7 +875,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
                         !isolate->HasAttemptedReload();
 #endif  // !defined(PRODUCT)
     GCMarker marker(heap_);
-    marker.MarkObjects(isolate, this, invoke_api_callbacks, collect_code);
+    marker.MarkObjects(isolate, this, collect_code);
     usage_.used_in_words = marker.marked_words();
 
     int64_t mid1 = OS::GetCurrentMonotonicMicros();
@@ -1203,7 +1200,9 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
       t += (gc_time_fraction - garbage_collection_time_ratio_) / 100.0;
     }
 
-    const intptr_t grow_ratio =
+    // Number of pages we can allocate and still be within the desired growth
+    // ratio.
+    const intptr_t grow_pages =
         (static_cast<intptr_t>(after.capacity_in_words / desired_utilization_) -
          after.capacity_in_words) /
         PageSpace::kPageSizeInWords;
@@ -1212,7 +1211,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
       // grow_heap_ size based on estimated garbage so we use growth ratio
       // heuristics instead.
       grow_heap_ =
-          Utils::Maximum(static_cast<intptr_t>(heap_growth_max_), grow_ratio);
+          Utils::Maximum(static_cast<intptr_t>(heap_growth_max_), grow_pages);
     } else {
       // Find minimum 'grow_heap_' such that after increasing capacity by
       // 'grow_heap_' pages and filling them, we expect a GC to be worthwhile.
@@ -1237,7 +1236,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
       // If we are going to grow by heap_grow_max_ then ensure that we
       // will be growing the heap at least by the growth ratio heuristics.
       if (grow_heap_ >= heap_growth_max_) {
-        grow_heap_ = Utils::Maximum(grow_ratio, grow_heap_);
+        grow_heap_ = Utils::Maximum(grow_pages, grow_heap_);
       }
     }
   } else {

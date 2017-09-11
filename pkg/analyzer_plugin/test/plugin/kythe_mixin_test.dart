@@ -83,11 +83,11 @@ class _TestServerPlugin extends MockServerPlugin with EntryMixin {
     KytheVName vName = new KytheVName('', '', '', '', '');
     return <EntryContributor>[
       new _TestEntryContributor(<KytheEntry>[
-        new KytheEntry(vName, '', vName, '', <int>[]),
-        new KytheEntry(vName, '', vName, '', <int>[])
+        new KytheEntry(vName, '', target: vName),
+        new KytheEntry(vName, '', target: vName)
       ]),
       new _TestEntryContributor(
-          <KytheEntry>[new KytheEntry(vName, '', vName, '', <int>[])])
+          <KytheEntry>[new KytheEntry(vName, '', target: vName)])
     ];
   }
 

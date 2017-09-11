@@ -703,26 +703,29 @@ define(['dart_sdk'], function(dart_sdk) {
 
       // Tear off of a method with a symbol name
       let listB = new (c.ListBase$(core.int).new)();
+      // List.add is reified as taking Object
       checkType(dart.bind(listB, dartx.add),
                 dart.fnTypeFuzzy(dart.void, [core.int]));
       checkType(dart.bind(listB, dartx.add),
-                dart.fnTypeFuzzy(dart.void, [core.String]), false, true);
+                dart.fnTypeFuzzy(dart.void, [core.String]), true);
+      checkType(dart.bind(listB, dartx.removeAt),
+                dart.fnTypeFuzzy(dart.void, [core.String]), false);
 
       // Tear off of a static method
       checkType(c.ListBase.listToString,
                 dart.fnTypeFuzzy(core.String, [core.List]));
       checkType(c.ListBase.listToString,
-                dart.fnTypeFuzzy(core.String, [core.String]), false, true);
+                dart.fnTypeFuzzy(core.String, [core.String]), false);
 
       // Tear-off of extension methods on primitives
       checkType(dart.bind(3.0, dartx.floor),
                 dart.fnTypeFuzzy(core.int, []));
       checkType(dart.bind(3.0, dartx.floor),
-                dart.fnTypeFuzzy(core.String, []), false, true);
+                dart.fnTypeFuzzy(core.String, []), false);
       checkType(dart.bind("", dartx.endsWith),
                 dart.fnTypeFuzzy(core.bool, [core.String]));
       checkType(dart.bind("", dartx.endsWith),
-                dart.fnTypeFuzzy(core.bool, [core.int]), false, true);
+                dart.fnTypeFuzzy(core.bool, [core.int]), false);
 
       // Tear off a mixin method
       class Base {

@@ -34,6 +34,8 @@ import '../compiler_context.dart' show CompilerContext;
 
 import '../deprecated_problems.dart' show deprecated_inputError;
 
+import '../problems.dart' show internalProblem;
+
 import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
@@ -45,9 +47,10 @@ import '../fasta_codes.dart'
         templateIllegalMixin,
         templateIllegalMixinDueToConstructors,
         templateIllegalMixinDueToConstructorsCause,
+        templateInternalProblemUriMissingScheme,
         templateUnspecified;
 
-import '../kernel/kernel_shadow_ast.dart' show KernelTypeInferenceEngine;
+import '../kernel/kernel_shadow_ast.dart' show ShadowTypeInferenceEngine;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
 
@@ -96,11 +99,14 @@ class SourceLoader<L> extends Loader<L> {
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
     Uri uri = library.fileUri;
-    // TODO(sigmund): source-loader shouldn't check schemes, but defer to the
-    // underlying file system to decide whether it is supported.
-    if (uri == null || uri.scheme != "file" && uri.scheme != "multi-root") {
+    if (uri == null) {
       return deprecated_inputError(
           library.uri, -1, "Not found: ${library.uri}.");
+    } else if (!uri.hasScheme) {
+      return internalProblem(
+          templateInternalProblemUriMissingScheme.withArguments(uri),
+          -1,
+          library.uri);
     }
 
     // Get the library text from the cache, or read from the file system.
@@ -225,9 +231,8 @@ class SourceLoader<L> extends Loader<L> {
       wasChanged = false;
       for (SourceLibraryBuilder exported in both) {
         for (Export export in exported.exporters) {
-          SourceLibraryBuilder exporter = export.exporter;
           exported.exportScope.forEach((String name, Builder member) {
-            if (exporter.addToExportScope(name, member)) {
+            if (export.addToExportScope(name, member)) {
               wasChanged = true;
             }
           });
@@ -471,7 +476,7 @@ class SourceLoader<L> extends Loader<L> {
 
   void createTypeInferenceEngine() {
     typeInferenceEngine =
-        new KernelTypeInferenceEngine(instrumentation, target.strongMode);
+        new ShadowTypeInferenceEngine(instrumentation, target.strongMode);
   }
 
   /// Performs the first phase of top level initializer inference, which
@@ -494,6 +499,19 @@ class SourceLoader<L> extends Loader<L> {
   void performInitializerInference() {
     typeInferenceEngine.finishTopLevel();
     ticker.logMs("Performed initializer inference");
+  }
+
+  /// Annotates method formals that require runtime checks to restore soundness
+  /// as a result of the fact that Dart 2.0 treats all class type parameters as
+  /// covariant.
+  void computeFormalSafety(List<SourceClassBuilder> sourceClasses) {
+    if (target.strongMode) {
+      for (var cls in hierarchy
+          .getOrderedClasses(sourceClasses.map((builder) => builder.target))) {
+        typeInferenceEngine.computeFormalSafety(cls);
+      }
+      ticker.logMs("Computed formal checks");
+    }
   }
 
   List<Uri> getDependencies() => sourceBytes.keys.toList();

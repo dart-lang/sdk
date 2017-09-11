@@ -39,6 +39,7 @@ import 'package:kernel/ast.dart'
         SuperMethodInvocation,
         SuperPropertyGet,
         SuperPropertySet,
+        ThisExpression,
         TypeParameter,
         TypeParameterType,
         VariableDeclaration,
@@ -46,6 +47,25 @@ import 'package:kernel/ast.dart'
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
+
+/// Given a [FunctionNode], gets the named parameter identified by [name], or
+/// `null` if there is no parameter with the given name.
+VariableDeclaration getNamedFormal(FunctionNode function, String name) {
+  for (var formal in function.namedParameters) {
+    if (formal.name == name) return formal;
+  }
+  return null;
+}
+
+/// Given a [FunctionNode], gets the [i]th positional formal parameter, or
+/// `null` if there is no parameter with that index.
+VariableDeclaration getPositionalFormal(FunctionNode function, int i) {
+  if (i < function.positionalParameters.length) {
+    return function.positionalParameters[i];
+  } else {
+    return null;
+  }
+}
 
 bool isOverloadableArithmeticOperator(String name) {
   return identical(name, '+') ||
@@ -155,19 +175,7 @@ class ClosureContext {
       inferredReturnType = greatestClosure(inferrer.coreTypes, returnContext);
     }
 
-    if (isGenerator) {
-      if (isAsync) {
-        inferredReturnType = inferrer.wrapType(
-            inferredReturnType, inferrer.coreTypes.streamClass);
-      } else {
-        inferredReturnType = inferrer.wrapType(
-            inferredReturnType, inferrer.coreTypes.iterableClass);
-      }
-    } else if (isAsync) {
-      inferredReturnType = inferrer.wrapFutureType(inferredReturnType);
-    }
-
-    return inferredReturnType;
+    return _wrapAsyncOrGenerator(inferrer, inferredReturnType);
   }
 
   void _updateInferredReturnType(TypeInferrerImpl inferrer, DartType type) {
@@ -176,6 +184,20 @@ class ClosureContext {
     } else {
       _inferredReturnType = inferrer.typeSchemaEnvironment
           .getLeastUpperBound(_inferredReturnType, type);
+    }
+  }
+
+  DartType _wrapAsyncOrGenerator(TypeInferrerImpl inferrer, DartType type) {
+    if (isGenerator) {
+      if (isAsync) {
+        return inferrer.wrapType(type, inferrer.coreTypes.streamClass);
+      } else {
+        return inferrer.wrapType(type, inferrer.coreTypes.iterableClass);
+      }
+    } else if (isAsync) {
+      return inferrer.wrapFutureType(type);
+    } else {
+      return type;
     }
   }
 
@@ -331,7 +353,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Finds a member of [receiverType] called [name], and if it is found,
   /// reports it through instrumentation using [fileOffset].
-  Member findInterfaceMember(DartType receiverType, Name name, int fileOffset,
+  ///
+  /// For the special case where [receiverType] is a [FunctionType], and the
+  /// method name is `call`, the string `call` is returned as a sentinel object.
+  Object findInterfaceMember(DartType receiverType, Name name, int fileOffset,
       {bool setter: false, bool silent: false}) {
     // Our non-strong golden files currently don't include interface
     // targets, so we can't store the interface target without causing tests
@@ -340,21 +365,26 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
     receiverType = resolveTypeParameter(receiverType);
 
-    if (receiverType is InterfaceType) {
-      var interfaceMember = classHierarchy
-          .getInterfaceMember(receiverType.classNode, name, setter: setter);
-      if (!silent && interfaceMember != null) {
-        instrumentation?.record(Uri.parse(uri), fileOffset, 'target',
-            new InstrumentationValueForMember(interfaceMember));
-      }
-      return interfaceMember;
+    if (receiverType is FunctionType && name.name == 'call') {
+      return 'call';
     }
-    return null;
+
+    Class classNode = receiverType is InterfaceType
+        ? receiverType.classNode
+        : coreTypes.objectClass;
+
+    var interfaceMember =
+        classHierarchy.getInterfaceMember(classNode, name, setter: setter);
+    if (!silent && interfaceMember != null) {
+      instrumentation?.record(Uri.parse(uri), fileOffset, 'target',
+          new InstrumentationValueForMember(interfaceMember));
+    }
+    return interfaceMember;
   }
 
   /// Finds a member of [receiverType] called [name], and if it is found,
   /// reports it through instrumentation and records it in [methodInvocation].
-  Member findMethodInvocationMember(
+  Object findMethodInvocationMember(
       DartType receiverType, InvocationExpression methodInvocation,
       {bool silent: false}) {
     // TODO(paulberry): could we add getters to InvocationExpression to make
@@ -363,7 +393,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var interfaceMember = findInterfaceMember(
           receiverType, methodInvocation.name, methodInvocation.fileOffset,
           silent: silent);
-      if (strongMode) {
+      if (strongMode && interfaceMember is Member) {
         methodInvocation.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
@@ -371,7 +401,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var interfaceMember = findInterfaceMember(
           receiverType, methodInvocation.name, methodInvocation.fileOffset,
           silent: silent);
-      if (strongMode) {
+      if (strongMode && interfaceMember is Member) {
         methodInvocation.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
@@ -386,7 +416,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Finds a member of [receiverType] called [name], and if it is found,
   /// reports it through instrumentation and records it in [propertyGet].
-  Member findPropertyGetMember(DartType receiverType, Expression propertyGet,
+  Object findPropertyGetMember(DartType receiverType, Expression propertyGet,
       {bool silent: false}) {
     // TODO(paulberry): could we add a common base class to PropertyGet and
     // SuperPropertyGet to make these is-checks unnecessary?
@@ -394,7 +424,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var interfaceMember = findInterfaceMember(
           receiverType, propertyGet.name, propertyGet.fileOffset,
           silent: silent);
-      if (strongMode) {
+      if (strongMode && interfaceMember is Member) {
         propertyGet.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
@@ -402,7 +432,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var interfaceMember = findInterfaceMember(
           receiverType, propertyGet.name, propertyGet.fileOffset,
           silent: silent);
-      if (strongMode) {
+      if (strongMode && interfaceMember is Member) {
         propertyGet.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
@@ -414,13 +444,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Finds a member of [receiverType] called [name], and if it is found,
   /// reports it through instrumentation and records it in [propertySet].
-  Member findPropertySetMember(DartType receiverType, Expression propertySet,
+  Object findPropertySetMember(DartType receiverType, Expression propertySet,
       {bool silent: false}) {
     if (propertySet is PropertySet) {
       var interfaceMember = findInterfaceMember(
           receiverType, propertySet.name, propertySet.fileOffset,
           setter: true, silent: silent);
-      if (strongMode) {
+      if (strongMode && interfaceMember is Member) {
         propertySet.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
@@ -428,7 +458,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var interfaceMember = findInterfaceMember(
           receiverType, propertySet.name, propertySet.fileOffset,
           setter: true, silent: silent);
-      if (strongMode) {
+      if (strongMode && interfaceMember is Member) {
         propertySet.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
@@ -446,9 +476,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return dryRunDependencies;
   }
 
-  FunctionType getCalleeFunctionType(Member interfaceMember,
-      DartType receiverType, Name methodName, bool followCall) {
-    var type = getCalleeType(interfaceMember, receiverType, methodName);
+  FunctionType getCalleeFunctionType(
+      Object interfaceMember, DartType receiverType, bool followCall) {
+    var type = getCalleeType(interfaceMember, receiverType);
     if (type is FunctionType) {
       return type;
     } else if (followCall && type is InterfaceType) {
@@ -461,10 +491,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return _functionReturningDynamic;
   }
 
-  DartType getCalleeType(
-      Member interfaceMember, DartType receiverType, Name methodName) {
-    if (receiverType is InterfaceType) {
-      if (interfaceMember == null) return const DynamicType();
+  DartType getCalleeType(Object interfaceMember, DartType receiverType) {
+    if (identical(interfaceMember, 'call')) {
+      return receiverType;
+    } else if (interfaceMember == null) {
+      return const DynamicType();
+    } else if (interfaceMember is Member) {
       var memberClass = interfaceMember.enclosingClass;
       DartType calleeType;
       if (interfaceMember is Procedure) {
@@ -476,33 +508,23 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       } else if (interfaceMember is Field) {
         calleeType = interfaceMember.type;
       } else {
-        calleeType = const DynamicType();
+        throw unhandled(interfaceMember.runtimeType.toString(), 'getCalleeType',
+            null, null);
       }
       if (memberClass.typeParameters.isNotEmpty) {
-        var castedType =
-            classHierarchy.getTypeAsInstanceOf(receiverType, memberClass);
-        calleeType = Substitution
-            .fromInterfaceType(castedType)
-            .substituteType(calleeType);
+        receiverType = resolveTypeParameter(receiverType);
+        if (receiverType is InterfaceType) {
+          var castedType =
+              classHierarchy.getTypeAsInstanceOf(receiverType, memberClass);
+          calleeType = Substitution
+              .fromInterfaceType(castedType)
+              .substituteType(calleeType);
+        }
       }
       return calleeType;
-    } else if (receiverType is DynamicType) {
-      return const DynamicType();
-    } else if (receiverType is FunctionType) {
-      if (methodName.name == 'call') {
-        return receiverType;
-      } else {
-        // TODO(paulberry): handle the case of invoking .toString() on a
-        // function type.
-        return const DynamicType();
-      }
-    } else if (receiverType is TypeParameterType) {
-      // TODO(paulberry): use the bound
-      return const DynamicType();
     } else {
-      // TODO(paulberry): handle the case of invoking .toString() on a type
-      // that's none of the above (e.g. `dynamic` or `bottom`)
-      return const DynamicType();
+      throw unhandled(
+          interfaceMember.runtimeType.toString(), 'getCalleeType', null, null);
     }
   }
 
@@ -519,11 +541,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Gets the initializer for the given [field], or `null` if there is no
   /// initializer.
-  Expression getFieldInitializer(KernelField field);
+  Expression getFieldInitializer(ShadowField field);
 
-  DartType getSetterType(Member interfaceMember, DartType receiverType) {
-    if (receiverType is InterfaceType) {
-      if (interfaceMember == null) return const DynamicType();
+  DartType getSetterType(Object interfaceMember, DartType receiverType) {
+    if (interfaceMember is FunctionType) {
+      return interfaceMember;
+    } else if (interfaceMember == null) {
+      return const DynamicType();
+    } else if (interfaceMember is Member) {
       var memberClass = interfaceMember.enclosingClass;
       DartType setterType;
       if (interfaceMember is Procedure) {
@@ -535,21 +560,23 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       } else if (interfaceMember is Field) {
         setterType = interfaceMember.type;
       } else {
-        setterType = const DynamicType();
+        throw unhandled(interfaceMember.runtimeType.toString(), 'getSetterType',
+            null, null);
       }
       if (memberClass.typeParameters.isNotEmpty) {
-        var castedType =
-            classHierarchy.getTypeAsInstanceOf(receiverType, memberClass);
-        setterType = Substitution
-            .fromInterfaceType(castedType)
-            .substituteType(setterType);
+        receiverType = resolveTypeParameter(receiverType);
+        if (receiverType is InterfaceType) {
+          var castedType =
+              classHierarchy.getTypeAsInstanceOf(receiverType, memberClass);
+          setterType = Substitution
+              .fromInterfaceType(castedType)
+              .substituteType(setterType);
+        }
       }
       return setterType;
-    } else if (receiverType is TypeParameterType) {
-      // TODO(paulberry): use the bound
-      return const DynamicType();
     } else {
-      return const DynamicType();
+      throw unhandled(
+          interfaceMember.runtimeType.toString(), 'getSetterType', null, null);
     }
   }
 
@@ -598,7 +625,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Derived classes should provide an implementation that calls
   /// [inferExpression] for the given [field]'s initializer expression.
   DartType inferFieldTopLevel(
-      KernelField field, DartType type, bool typeNeeded);
+      ShadowField field, DartType type, bool typeNeeded);
 
   @override
   void inferFunctionBody(
@@ -773,8 +800,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // Otherwise, if `Qi` is not `_`, let `Ri` be the greatest closure of
     // `Qi[T/S]` with respect to `?`.  Otherwise, let `Ri` be `dynamic`.
     for (int i = 0; i < formals.length; i++) {
-      KernelVariableDeclaration formal = formals[i];
-      if (KernelVariableDeclaration.isImplicitlyTyped(formal)) {
+      ShadowVariableDeclaration formal = formals[i];
+      if (ShadowVariableDeclaration.isImplicitlyTyped(formal)) {
         DartType inferredType;
         if (formalTypesFromContext[i] != null) {
           inferredType = greatestClosure(coreTypes,
@@ -823,6 +850,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       instrumentation?.record(Uri.parse(uri), fileOffset, 'returnType',
           new InstrumentationValueForType(inferredReturnType));
       function.returnType = inferredReturnType;
+    } else if (!strongMode && hasImplicitReturnType) {
+      function.returnType =
+          closureContext._wrapAsyncOrGenerator(this, const DynamicType());
     }
     this.closureContext = oldClosureContext;
     return typeNeeded ? function.functionType : null;
@@ -848,7 +878,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       bool typeNeeded,
       {VariableDeclaration receiverVariable,
       MethodInvocation desugaredInvocation,
-      Member interfaceMember,
+      Object interfaceMember,
       Name methodName,
       Arguments arguments}) {
     typeNeeded =
@@ -870,8 +900,23 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       isOverloadedArithmeticOperator = typeSchemaEnvironment
           .isOverloadedArithmeticOperatorAndType(interfaceMember, receiverType);
     }
-    var calleeType = getCalleeFunctionType(
-        interfaceMember, receiverType, methodName, !isImplicitCall);
+    if (instrumentation != null) {
+      int offset = arguments.fileOffset == -1
+          ? expression.fileOffset
+          : arguments.fileOffset;
+      if (receiver is ThisExpression) {
+        instrumentation.record(Uri.parse(uri), offset, 'callKind',
+            new InstrumentationValueLiteral('this'));
+      } else if (identical(interfaceMember, 'call')) {
+        instrumentation.record(Uri.parse(uri), offset, 'callKind',
+            new InstrumentationValueLiteral('closure'));
+      } else if (interfaceMember == null) {
+        instrumentation.record(Uri.parse(uri), offset, 'callKind',
+            new InstrumentationValueLiteral('dynamic'));
+      }
+    }
+    var calleeType =
+        getCalleeFunctionType(interfaceMember, receiverType, !isImplicitCall);
     bool forceArgumentInference = false;
     if (isDryRun) {
       if (_isUserDefinableOperator(methodName.name)) {
@@ -918,15 +963,15 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       receiverVariable?.type = receiverType;
     }
     propertyName ??= desugaredGet.name;
-    Member interfaceMember =
+    var interfaceMember =
         findInterfaceMember(receiverType, propertyName, fileOffset);
     if (isTopLevel &&
         ((interfaceMember is Procedure &&
                 interfaceMember.kind == ProcedureKind.Getter) ||
             interfaceMember is Field)) {
       if (TypeInferenceEngineImpl.fullTopLevelInference) {
-        if (interfaceMember is KernelField) {
-          var accessorNode = KernelMember.getAccessorNode(interfaceMember);
+        if (interfaceMember is ShadowField) {
+          var accessorNode = ShadowMember.getAccessorNode(interfaceMember);
           if (accessorNode != null) {
             engine.inferAccessorFused(accessorNode, this.accessorNode);
           }
@@ -937,9 +982,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         recordNotImmediatelyEvident(fileOffset);
       }
     }
-    desugaredGet?.interfaceTarget = interfaceMember;
-    var inferredType =
-        getCalleeType(interfaceMember, receiverType, propertyName);
+    if (interfaceMember is Member) {
+      desugaredGet?.interfaceTarget = interfaceMember;
+    }
+    var inferredType = getCalleeType(interfaceMember, receiverType);
     // TODO(paulberry): Infer tear-off type arguments if appropriate.
     listener.propertyGetExit(expression, inferredType);
     return typeNeeded ? inferredType : null;

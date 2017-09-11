@@ -24,7 +24,7 @@ library stack_trace_mapper;
 
 import 'package:js/js.dart';
 import 'package:path/path.dart' as path;
-import 'package:source_map_stack_trace/source_map_stack_trace.dart';
+import 'source_map_stack_trace.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -34,6 +34,9 @@ typedef void ReadyCallback();
 /// Global object DDC uses to see if a stack trace utility has been registered.
 @JS(r'$dartStackTraceUtility')
 external set dartStackTraceUtility(DartStackTraceUtility value);
+
+@JS(r'$dartLoader.rootDirectories')
+external List get rootDirectories;
 
 typedef String StackTraceMapper(String stackTrace);
 typedef dynamic SourceMapProvider(String modulePath);
@@ -95,13 +98,16 @@ class LazyMapping extends Mapping {
 
 LazyMapping _mapping;
 
+List<String> roots = rootDirectories.map((s) => '$s').toList();
+
 String mapper(String rawStackTrace) {
   if (_mapping == null) {
     // This should not happen if the user has waited for the ReadyCallback
     // to start the application.
     throw new StateError('Source maps are not done loading.');
   }
-  return mapStackTrace(_mapping, new Trace.parse(rawStackTrace)).toString();
+  var trace = new Trace.parse(rawStackTrace);
+  return mapStackTrace(_mapping, trace, roots: roots).toString();
 }
 
 void setSourceMapProvider(SourceMapProvider provider) {

@@ -92,7 +92,7 @@ class CircularFunctionTypeImpl extends DynamicTypeImpl
       TypeParameterElement.EMPTY_LIST;
 
   @override
-  FunctionTypedElement get element => super.element;
+  FunctionTypedElement get element => null;
 
   @override
   bool get isInstantiated => false;
@@ -1132,7 +1132,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * parameter from [tParams] and `s` is a parameter from [sParams], and both
    * `t` and `s` are at the same position (for positional parameters)
    * or have the same name (for named parameters).
-   * 
+   *
    * Used for the various relations on function types which have the same
    * structural rules for handling optional parameters and arity, but use their
    * own relation for comparing the parameters.

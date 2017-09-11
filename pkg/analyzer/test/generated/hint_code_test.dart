@@ -2148,6 +2148,53 @@ class C extends A {
     verify([source]);
   }
 
+  test_mustCallSuper_overridden_w_future() async {
+    //https://github.com/flutter/flutter/issues/11646
+    Source source = addSource(r'''
+import 'dart:async';
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  Future<Null> bar() => new Future<Null>.value();
+}
+class C extends A {
+  @override
+  Future<Null> bar() {
+    final value = super.bar();
+    return value.then((Null _) {
+      return null;
+    });
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  test_mustCallSuper_overridden_w_future2() async {
+    //https://github.com/flutter/flutter/issues/11646
+    Source source = addSource(r'''
+import 'dart:async';
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  Future<Null> bar() => new Future<Null>.value();
+}
+class C extends A {
+  @override
+  Future<Null> bar() {
+    return super.bar().then((Null _) {
+      return null;
+    });
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
   test_nullAwareInCondition_assert() async {
     Source source = addSource(r'''
 m(x) {

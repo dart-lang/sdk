@@ -16,8 +16,7 @@ import 'string_canonicalizer.dart';
  * number literals, comments, and error tokens, using the corresponding
  * precedence info.
  */
-class StringToken extends analyzer.TokenWithComment
-    implements analyzer.StringTokenWithComment {
+class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
   /**
    * The length threshold above which substring tokens are computed lazily.
    *
@@ -143,7 +142,7 @@ class SyntheticStringToken extends StringToken
 
 class CommentToken extends StringToken implements analyzer.CommentToken {
   @override
-  analyzer.TokenWithComment parent;
+  analyzer.SimpleToken parent;
 
   /**
    * Creates a lazy comment token. If [canonicalize] is true, the string

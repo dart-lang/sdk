@@ -67,13 +67,13 @@ main() {
   });
   test('elements created', () async {
     final e = new CurlyBlockElement();
-    expect(e.children.length, isZero, reason: 'is empty');
+    expect(e.children, isEmpty, reason: 'is empty');
     document.body.append(e);
     await e.onRendered.first;
-    expect(e.children.length, isNonZero, reason: 'has elements');
+    expect(e.children, isNotEmpty, reason: 'has elements');
     e.remove();
     await e.onRendered.first;
-    expect(e.children.length, isZero, reason: 'is empty');
+    expect(e.children, isEmpty, reason: 'is empty');
   });
   group('content', () {
     CurlyBlockElement e;

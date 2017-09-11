@@ -418,6 +418,11 @@ class ClassElementImpl extends AbstractClassElementImpl
   final kernel.Class _kernel;
 
   /**
+   * If this class is resynthesized, whether it has a constant constructor.
+   */
+  bool _hasConstConstructorCached;
+
+  /**
    * The actual supertype extracted from desugared [_kernel].
    */
   kernel.Supertype _kernelSupertype;
@@ -767,9 +772,8 @@ class ClassElementImpl extends AbstractClassElementImpl
   List<InterfaceType> get interfaces {
     if (_interfaces == null) {
       if (_kernel != null) {
-        _interfaces = _kernel.implementedTypes
-            .map((k) => enclosingUnit._kernelContext.getInterfaceType(this, k))
-            .toList(growable: false);
+        var context = enclosingUnit._kernelContext;
+        _interfaces = context.getInterfaceTypes(this, _kernel.implementedTypes);
       }
       if (_unlinkedClass != null) {
         ResynthesizerContext context = enclosingUnit.resynthesizerContext;
@@ -904,9 +908,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       if (_kernel != null) {
         _initializeKernelMixins();
         var context = enclosingUnit._kernelContext;
-        _mixins = _kernelMixins.map((k) {
-          return context.getInterfaceType(this, k);
-        }).toList(growable: false);
+        _mixins = context.getInterfaceTypes(this, _kernelMixins);
       }
       if (_unlinkedClass != null) {
         ResynthesizerContext context = enclosingUnit.resynthesizerContext;
@@ -1018,8 +1020,22 @@ class ClassElementImpl extends AbstractClassElementImpl
     return null;
   }
 
-  bool get _hasConstConstructorKernel =>
-      _kernel != null && _kernel.constructors.any((c) => c.isConst);
+  /**
+   * Return whether the class is resynthesized and has a constant constructor.
+   */
+  bool get _hasConstConstructor {
+    if (_hasConstConstructorCached == null) {
+      _hasConstConstructorCached = false;
+      if (_kernel != null) {
+        _hasConstConstructorCached = _kernel.constructors.any((c) => c.isConst);
+      }
+      if (_unlinkedClass != null) {
+        _hasConstConstructorCached = _unlinkedClass.executables.any(
+            (c) => c.kind == UnlinkedExecutableKind.constructor && c.isConst);
+      }
+    }
+    return _hasConstConstructorCached;
+  }
 
   @override
   void appendTo(StringBuffer buffer) {
@@ -4552,7 +4568,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
   factory FieldElementImpl.forKernelFactory(
       ClassElementImpl enclosingClass, kernel.Field kernel) {
     if (kernel.isConst ||
-        kernel.isFinal && enclosingClass._hasConstConstructorKernel) {
+        kernel.isFinal &&
+            !kernel.isStatic &&
+            enclosingClass._hasConstConstructor) {
       return new ConstFieldElementImpl.forKernel(enclosingClass, kernel);
     } else {
       return new FieldElementImpl.forKernel(enclosingClass, kernel);
@@ -4578,7 +4596,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
       UnlinkedVariable unlinkedVariable, ClassElementImpl enclosingClass) {
     if (unlinkedVariable.initializer?.bodyExpr != null &&
         (unlinkedVariable.isConst ||
-            unlinkedVariable.isFinal && !unlinkedVariable.isStatic)) {
+            unlinkedVariable.isFinal &&
+                !unlinkedVariable.isStatic &&
+                enclosingClass._hasConstConstructor)) {
       return new ConstFieldElementImpl.forSerialized(
           unlinkedVariable, enclosingClass);
     } else {
@@ -4594,6 +4614,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
    * Return `true` if this field was explicitly marked as being covariant.
    */
   bool get isCovariant {
+    if (_kernel != null) {
+      return _kernel.isCovariant;
+    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.isCovariant;
     }
@@ -4715,7 +4738,9 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 
   @override
   DartType get type {
-    if (_unlinkedParam != null && _unlinkedParam.type == null) {
+    if (_unlinkedParam != null &&
+        _unlinkedParam.type == null &&
+        field != null) {
       _type ??= field?.type ?? DynamicTypeImpl.instance;
     }
     return super.type;
@@ -5783,6 +5808,11 @@ class ImportElementImpl extends UriReferencedElementImpl
   final kernel.LibraryDependency _kernel;
 
   /**
+   * Whether this import is synthetic.
+   */
+  final bool _kernelSynthetic;
+
+  /**
    * The offset of the prefix of this import in the file that contains the this
    * import directive, or `-1` if this import is synthetic.
    */
@@ -5818,14 +5848,17 @@ class ImportElementImpl extends UriReferencedElementImpl
       : _unlinkedImport = null,
         _linkedDependency = null,
         _kernel = null,
+        _kernelSynthetic = false,
         super(null, offset);
 
   /**
    * Initialize using the given kernel.
    */
-  ImportElementImpl.forKernel(LibraryElementImpl enclosingLibrary, this._kernel)
+  ImportElementImpl.forKernel(LibraryElementImpl enclosingLibrary, this._kernel,
+      {bool isSynthetic: false})
       : _unlinkedImport = null,
         _linkedDependency = null,
+        _kernelSynthetic = isSynthetic,
         super.forSerialized(enclosingLibrary);
 
   /**
@@ -5834,6 +5867,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   ImportElementImpl.forSerialized(this._unlinkedImport, this._linkedDependency,
       LibraryElementImpl enclosingLibrary)
       : _kernel = null,
+        _kernelSynthetic = false,
         super.forSerialized(enclosingLibrary);
 
   @override
@@ -5904,6 +5938,9 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   bool get isSynthetic {
+    if (_kernel != null) {
+      return _kernelSynthetic;
+    }
     if (_unlinkedImport != null) {
       return _unlinkedImport.isImplicit;
     }
@@ -6080,6 +6117,14 @@ class ImportElementImpl extends UriReferencedElementImpl
  * The kernel context in which a library is resynthesized.
  */
 abstract class KernelLibraryResynthesizerContext {
+  /**
+   * The Kernel library for `dart:core`.
+   */
+  kernel.Library get coreLibrary;
+
+  /**
+   * The Kernel library being resynthesized.
+   */
   kernel.Library get library;
 
   /**
@@ -6149,6 +6194,13 @@ abstract class KernelUnitResynthesizerContext {
    * [type] does not correspond to an [InterfaceType].
    */
   InterfaceType getInterfaceType(ElementImpl context, kernel.Supertype type);
+
+  /**
+   * Return the [InterfaceType]s for the given Kernel [types], skipping
+   * the elements that don't correspond to an [InterfaceType].
+   */
+  List<InterfaceType> getInterfaceTypes(
+      ElementImpl context, List<kernel.Supertype> types);
 
   /**
    * Return the [ConstructorElementImpl] to which the given [kernelConstructor]
@@ -6231,6 +6283,8 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
  * A concrete implementation of a [LibraryElement].
  */
 class LibraryElementImpl extends ElementImpl implements LibraryElement {
+  static final Uri _dartCore = Uri.parse('dart:core');
+
   /**
    * The analysis context in which this library is defined.
    */
@@ -6544,10 +6598,36 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   List<ImportElement> get imports {
     if (_imports == null) {
       if (_kernelContext != null) {
-        _imports = _kernelContext.library.dependencies
-            .where((k) => k.isImport)
-            .map((k) => new ImportElementImpl.forKernel(this, k))
-            .toList(growable: false);
+        var dependencies = _kernelContext.library.dependencies;
+        int numOfDependencies = dependencies.length;
+        // Compute the number of import dependencies.
+        bool hasCore = false;
+        int numOfImports = 0;
+        for (int i = 0; i < numOfDependencies; i++) {
+          kernel.LibraryDependency dependency = dependencies[i];
+          if (dependency.isImport) {
+            numOfImports++;
+            if (dependency.targetLibrary.importUri == _dartCore) {
+              hasCore = true;
+            }
+          }
+        }
+        // Create import elements.
+        var imports = new List<ImportElement>(numOfImports + (hasCore ? 0 : 1));
+        for (int i = 0; i < numOfDependencies; i++) {
+          kernel.LibraryDependency dependency = dependencies[i];
+          if (dependency.isImport) {
+            imports[i] = new ImportElementImpl.forKernel(this, dependency);
+          }
+        }
+        // If dart:core is not imported explicitly, import it implicitly.
+        if (!hasCore) {
+          imports[numOfImports] = new ImportElementImpl.forKernel(this,
+              new kernel.LibraryDependency.import(_kernelContext.coreLibrary),
+              isSynthetic: true);
+        }
+        // Set imports into the field.
+        _imports = imports;
       }
       if (_unlinkedDefiningUnit != null) {
         List<UnlinkedImport> unlinkedImports = _unlinkedDefiningUnit.imports;
@@ -7222,12 +7302,14 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   MethodDeclaration computeNode() =>
       getNodeMatching((node) => node is MethodDeclaration);
 
-  // TODO(jmesserly): this implementation is completely wrong:
-  // It does not handle covariant parameters from a generic class.
-  // It drops type parameters from generic methods.
-  // Since this method was for DDC, it should be removed.
+  @deprecated
   @override
   FunctionType getReifiedType(DartType objectType) {
+    // TODO(jmesserly): this implementation is completely wrong:
+    // It does not handle covariant parameters from a generic class.
+    // It drops type parameters from generic methods.
+    // Since this method was for DDC, it should be removed.
+    //
     // Check whether we have any covariant parameters.
     // Usually we don't, so we can use the same type.
     bool hasCovariant = false;
@@ -7930,20 +8012,6 @@ class ParameterElementImpl extends VariableElementImpl
   final kernel.VariableDeclaration _kernel;
 
   /**
-   * A list containing all of the parameters defined by this parameter element.
-   * There will only be parameters if this parameter is a function typed
-   * parameter.
-   */
-  List<ParameterElement> _parameters = ParameterElement.EMPTY_LIST;
-
-  /**
-   * A list containing all of the type parameters defined for this parameter
-   * element. There will only be parameters if this parameter is a function
-   * typed parameter.
-   */
-  List<TypeParameterElement> _typeParameters = TypeParameterElement.EMPTY_LIST;
-
-  /**
    * The kind of this parameter.
    */
   ParameterKind _parameterKind;
@@ -8168,6 +8236,9 @@ class ParameterElementImpl extends VariableElementImpl
    * Return true if this parameter is explicitly marked as being covariant.
    */
   bool get isExplicitlyCovariant {
+    if (_kernel != null) {
+      return _kernel.isCovariant;
+    }
     if (_unlinkedParam != null) {
       return _unlinkedParam.isExplicitlyCovariant;
     }
@@ -8271,19 +8342,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   List<ParameterElement> get parameters {
-    _resynthesizeTypeAndParameters();
-    return _parameters;
-  }
-
-  /**
-   * Set the parameters defined by this executable element to the given
-   * [parameters].
-   */
-  void set parameters(List<ParameterElement> parameters) {
-    for (ParameterElement parameter in parameters) {
-      (parameter as ParameterElementImpl).enclosingElement = this;
-    }
-    this._parameters = parameters;
+    return const <ParameterElement>[];
   }
 
   @override
@@ -8303,17 +8362,8 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
-  List<TypeParameterElement> get typeParameters => _typeParameters;
-
-  /**
-   * Set the type parameters defined by this parameter element to the given
-   * [typeParameters].
-   */
-  void set typeParameters(List<TypeParameterElement> typeParameters) {
-    for (TypeParameterElement parameter in typeParameters) {
-      (parameter as TypeParameterElementImpl).enclosingElement = this;
-    }
-    this._typeParameters = typeParameters;
+  List<TypeParameterElement> get typeParameters {
+    return const <TypeParameterElement>[];
   }
 
   @override
@@ -8367,17 +8417,6 @@ class ParameterElementImpl extends VariableElementImpl
   FormalParameter computeNode() =>
       getNodeMatching((node) => node is FormalParameter);
 
-  @override
-  ElementImpl getChild(String identifier) {
-    for (ParameterElement parameter in _parameters) {
-      ParameterElementImpl parameterImpl = parameter;
-      if (parameterImpl.identifier == identifier) {
-        return parameterImpl;
-      }
-    }
-    return null;
-  }
-
   /**
    * Set the visible range for this element to the range starting at the given
    * [offset] with the given [length].
@@ -8399,61 +8438,27 @@ class ParameterElementImpl extends VariableElementImpl
    * been build yet, build them and remember in the corresponding fields.
    */
   void _resynthesizeTypeAndParameters() {
+    // TODO(scheglov) Don't resynthesize parameters.
     if (_kernel != null && _type == null) {
       kernel.DartType type = _kernel.type;
       _type = enclosingUnit._kernelContext.getType(this, type);
-      if (type is kernel.FunctionType) {
-        _parameters = new List<ParameterElement>(
-            type.positionalParameters.length + type.namedParameters.length);
-        int index = 0;
-        for (int i = 0; i < type.positionalParameters.length; i++) {
-          String name = i < type.positionalParameterNames.length
-              ? type.positionalParameterNames[i]
-              : null;
-          _parameters[index++] = new ParameterElementImpl.forKernel(
-              enclosingElement,
-              new kernel.VariableDeclaration(name,
-                  type: type.positionalParameters[i]),
-              i < type.requiredParameterCount
-                  ? ParameterKind.REQUIRED
-                  : ParameterKind.POSITIONAL);
-        }
-        for (int i = 0; i < type.namedParameters.length; i++) {
-          _parameters[index++] = new ParameterElementImpl.forKernel(
-              enclosingElement,
-              new kernel.VariableDeclaration(type.namedParameters[i].name,
-                  type: type.namedParameters[i].type),
-              ParameterKind.NAMED);
-        }
-      } else {
-        _parameters = const <ParameterElement>[];
-      }
     }
     if (_unlinkedParam != null && _declaredType == null && _type == null) {
       if (_unlinkedParam.isFunctionTyped) {
         CompilationUnitElementImpl enclosingUnit = this.enclosingUnit;
-        FunctionElementImpl parameterTypeElement =
-            new FunctionElementImpl_forFunctionTypedParameter(
-                enclosingUnit, this);
-        if (!isSynthetic) {
-          parameterTypeElement.enclosingElement = this;
-        }
-        List<ParameterElement> subParameters = ParameterElementImpl
-            .resynthesizeList(_unlinkedParam.parameters, this,
-                synthetic: isSynthetic);
-        if (isSynthetic) {
-          parameterTypeElement.parameters = subParameters;
-        } else {
-          _parameters = subParameters;
-          parameterTypeElement.shareParameters(subParameters);
-        }
-        parameterTypeElement.returnType = enclosingUnit.resynthesizerContext
+
+        var typeElement = new GenericFunctionTypeElementImpl.forOffset(-1);
+        typeElement.enclosingElement = this;
+
+        typeElement.parameters = ParameterElementImpl.resynthesizeList(
+            _unlinkedParam.parameters, typeElement,
+            synthetic: isSynthetic);
+
+        typeElement.returnType = enclosingUnit.resynthesizerContext
             .resolveTypeRef(this, _unlinkedParam.type);
-        FunctionTypeImpl parameterType =
-            new FunctionTypeImpl.elementWithNameAndArgs(parameterTypeElement,
-                null, typeParameterContext.allTypeParameterTypes, false);
-        parameterTypeElement.type = parameterType;
-        _type = parameterType;
+
+        _type = new FunctionTypeImpl(typeElement);
+        typeElement.type = _type;
       } else {
         _type = enclosingUnit.resynthesizerContext
             .resolveLinkedType(this, _unlinkedParam.inferredTypeSlot);
@@ -9583,7 +9588,7 @@ abstract class TypeParameterizedElementMixin
    * Find out how many type parameters are in scope in this context.
    */
   int get typeParameterNestingLevel =>
-      _nestingLevel ??= unlinkedTypeParams.length +
+      _nestingLevel ??= (unlinkedTypeParams?.length ?? 0) +
           (enclosingTypeParameterContext?.typeParameterNestingLevel ?? 0);
 
   @override

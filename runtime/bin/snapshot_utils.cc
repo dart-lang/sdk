@@ -72,7 +72,7 @@ class MappedAppSnapshot : public AppSnapshot {
 };
 
 static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name) {
-  File* file = File::Open(script_name, File::kRead);
+  File* file = File::Open(NULL, script_name, File::kRead);
   if (file == NULL) {
     return NULL;
   }
@@ -226,7 +226,7 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name) {
-  if (File::GetType(script_name, true) != File::kIsFile) {
+  if (File::GetType(NULL, script_name, true) != File::kIsFile) {
     // If 'script_name' refers to a pipe, don't read to check for an app
     // snapshot since we cannot rewind if it isn't (and couldn't mmap it in
     // anyway if it was).
@@ -251,7 +251,7 @@ static void WriteSnapshotFile(const char* filename,
                               bool write_magic_number,
                               const uint8_t* buffer,
                               const intptr_t size) {
-  File* file = File::Open(filename, File::kWriteTruncate);
+  File* file = File::Open(NULL, filename, File::kWriteTruncate);
   if (file == NULL) {
     ErrorExit(kErrorExitCode, "Unable to open file %s for writing snapshot\n",
               filename);
@@ -282,7 +282,7 @@ static void WriteAppSnapshot(const char* filename,
                              intptr_t isolate_data_size,
                              uint8_t* isolate_instructions_buffer,
                              intptr_t isolate_instructions_size) {
-  File* file = File::Open(filename, File::kWriteTruncate);
+  File* file = File::Open(NULL, filename, File::kWriteTruncate);
   if (file == NULL) {
     ErrorExit(kErrorExitCode, "Unable to write snapshot file '%s'\n", filename);
   }

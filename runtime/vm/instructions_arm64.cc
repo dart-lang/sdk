@@ -8,7 +8,7 @@
 #include "vm/instructions.h"
 #include "vm/instructions_arm64.h"
 
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/constants_arm64.h"
 #include "vm/cpu.h"
 #include "vm/object.h"

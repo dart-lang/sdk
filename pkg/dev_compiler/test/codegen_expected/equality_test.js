@@ -5,6 +5,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
   const dartx = dart_sdk.dartx;
   const minitest = expect.minitest;
   const equality_test = Object.create(null);
+  const $_get = dartx._get;
+  const $_equals = dartx._equals;
   let TToT = () => (TToT = dart.constFn(dart.gFnType(T => [T, [T]])))();
   let VoidToT = () => (VoidToT = dart.constFn(dart.gFnType(T => [T, []])))();
   let VoidToNull = () => (VoidToNull = dart.constFn(dart.fnType(core.Null, [])))();
@@ -23,6 +25,7 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
   dart.setSignature(equality_test.Music, {
     fields: () => ({index: dart.finalFieldType(core.int)})
   });
+  dart.defineExtensionMembers(equality_test.Music, ["toString"]);
   dart.defineEnumValues(equality_test.Music, [
     'country',
     'western'
@@ -30,32 +33,34 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
   equality_test.BluesBrother = class BluesBrother extends core.Object {};
   (equality_test.BluesBrother.new = function() {
   }).prototype = equality_test.BluesBrother.prototype;
+  dart.addTypeTests(equality_test.BluesBrother);
   equality_test._Jake = class _Jake extends equality_test.BluesBrother {};
   (equality_test._Jake.new = function() {
   }).prototype = equality_test._Jake.prototype;
+  dart.addTypeTests(equality_test._Jake);
   equality_test._Elwood = class _Elwood extends equality_test.BluesBrother {
-    ['=='](other) {
+    _equals(other) {
+      if (other == null) return false;
       return equality_test._Elwood.is(other);
     }
   };
   (equality_test._Elwood.new = function() {
   }).prototype = equality_test._Elwood.prototype;
+  dart.addTypeTests(equality_test._Elwood);
   dart.setSignature(equality_test._Elwood, {
-    methods: () => ({'==': dart.fnType(core.bool, [core.Object])})
+    methods: () => ({_equals: dart.fnType(core.bool, [core.Object])})
   });
+  dart.defineExtensionMembers(equality_test._Elwood, ['_equals']);
   equality_test._Norman = class _Norman extends equality_test.BluesBrother {};
   (equality_test._Norman.new = function() {
   }).prototype = equality_test._Norman.prototype;
+  dart.addTypeTests(equality_test._Norman);
   equality_test.hideNull = function(T) {
-    return x => {
-      return x;
-    };
+    return x => x;
   };
   dart.fn(equality_test.hideNull, TToT());
   equality_test.getUndefined = function(T) {
-    return () => {
-      return T._check(core.List.new(1)[dartx._get](0));
-    };
+    return () => T._check(core.List.new(1)[$_get](0));
   };
   dart.fn(equality_test.getUndefined, VoidToT());
   equality_test.main = function() {
@@ -153,8 +158,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(s2 === e1, false);
         minitest.expect(i1 === e1, false);
         minitest.expect(i2 === e1, false);
-        minitest.expect(l1[dartx['==']](e1), false);
-        minitest.expect(b1['=='](e1), false);
+        minitest.expect(l1[$_equals](e1), false);
+        minitest.expect(b1._equals(e1), false);
       }, VoidToNull()));
       minitest.test('Equal enum/other (dynamic, nullable)', dart.fn(() => {
         let e1 = equality_test.hideNull(equality_test.Music)(equality_test.Music.country);
@@ -209,8 +214,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(s2 === e1, false);
         minitest.expect(i1 === e1, false);
         minitest.expect(i2 === e1, false);
-        minitest.expect(l1[dartx['==']](e1), false);
-        minitest.expect(b1['=='](e1), false);
+        minitest.expect(l1[$_equals](e1), false);
+        minitest.expect(b1._equals(e1), false);
         minitest.expect(dart.equals(d1, s1), false);
         minitest.expect(dart.equals(d1, s2), false);
         minitest.expect(dart.equals(d1, i1), false);
@@ -221,8 +226,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(s2 === d1, false);
         minitest.expect(i1 === d1, false);
         minitest.expect(i2 === d1, false);
-        minitest.expect(l1[dartx['==']](d1), false);
-        minitest.expect(b1['=='](d1), false);
+        minitest.expect(l1[$_equals](d1), false);
+        minitest.expect(b1._equals(d1), false);
       }, VoidToNull()));
     }, VoidToNull()));
     minitest.group('String equality', dart.fn(() => {
@@ -319,8 +324,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(s2 === e1, false);
         minitest.expect(i1 === e1, false);
         minitest.expect(i2 === e1, false);
-        minitest.expect(l1[dartx['==']](e1), false);
-        minitest.expect(b1['=='](e1), false);
+        minitest.expect(l1[$_equals](e1), false);
+        minitest.expect(b1._equals(e1), false);
       }, VoidToNull()));
       minitest.test('Equal string/other (dynamic, nullable)', dart.fn(() => {
         let e1 = equality_test.hideNull(core.String)("The");
@@ -375,8 +380,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(s2 === e1, false);
         minitest.expect(i1 === e1, false);
         minitest.expect(i2 === e1, false);
-        minitest.expect(l1[dartx['==']](e1), false);
-        minitest.expect(b1['=='](e1), false);
+        minitest.expect(l1[$_equals](e1), false);
+        minitest.expect(b1._equals(e1), false);
         minitest.expect(dart.equals(d1, s1), false);
         minitest.expect(dart.equals(d1, s2), false);
         minitest.expect(dart.equals(d1, i1), false);
@@ -387,8 +392,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(s2 === d1, false);
         minitest.expect(i1 === d1, false);
         minitest.expect(i2 === d1, false);
-        minitest.expect(l1[dartx['==']](d1), false);
-        minitest.expect(b1['=='](d1), false);
+        minitest.expect(l1[$_equals](d1), false);
+        minitest.expect(b1._equals(d1), false);
       }, VoidToNull()));
     }, VoidToNull()));
     minitest.group('Boolean equality', dart.fn(() => {
@@ -485,8 +490,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(s2 === e1, false);
         minitest.expect(i1 === e1, false);
         minitest.expect(i2 === e1, false);
-        minitest.expect(l1[dartx['==']](e1), false);
-        minitest.expect(b1['=='](e1), false);
+        minitest.expect(l1[$_equals](e1), false);
+        minitest.expect(b1._equals(e1), false);
       }, VoidToNull()));
       minitest.test('Equal bool/other (dynamic, nullable)', dart.fn(() => {
         let e1 = equality_test.hideNull(core.bool)(true);
@@ -541,8 +546,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(s2 === e1, false);
         minitest.expect(i1 === e1, false);
         minitest.expect(i2 === e1, false);
-        minitest.expect(l1[dartx['==']](e1), false);
-        minitest.expect(b1['=='](e1), false);
+        minitest.expect(l1[$_equals](e1), false);
+        minitest.expect(b1._equals(e1), false);
         minitest.expect(dart.equals(d1, s1), false);
         minitest.expect(dart.equals(d1, s2), false);
         minitest.expect(dart.equals(d1, i1), false);
@@ -553,8 +558,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(s2 === d1, false);
         minitest.expect(i1 === d1, false);
         minitest.expect(i2 === d1, false);
-        minitest.expect(l1[dartx['==']](d1), false);
-        minitest.expect(b1['=='](d1), false);
+        minitest.expect(l1[$_equals](d1), false);
+        minitest.expect(b1._equals(d1), false);
       }, VoidToNull()));
     }, VoidToNull()));
     minitest.group('String equality', dart.fn(() => {
@@ -651,8 +656,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(s2 === e1, false);
         minitest.expect(i1 === e1, false);
         minitest.expect(i2 === e1, false);
-        minitest.expect(l1[dartx['==']](e1), false);
-        minitest.expect(b1['=='](e1), false);
+        minitest.expect(l1[$_equals](e1), false);
+        minitest.expect(b1._equals(e1), false);
       }, VoidToNull()));
       minitest.test('Equal string/other (dynamic, nullable)', dart.fn(() => {
         let e1 = equality_test.hideNull(core.String)("The");
@@ -707,8 +712,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(s2 === e1, false);
         minitest.expect(i1 === e1, false);
         minitest.expect(i2 === e1, false);
-        minitest.expect(l1[dartx['==']](e1), false);
-        minitest.expect(b1['=='](e1), false);
+        minitest.expect(l1[$_equals](e1), false);
+        minitest.expect(b1._equals(e1), false);
         minitest.expect(dart.equals(d1, s1), false);
         minitest.expect(dart.equals(d1, s2), false);
         minitest.expect(dart.equals(d1, i1), false);
@@ -719,8 +724,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(s2 === d1, false);
         minitest.expect(i1 === d1, false);
         minitest.expect(i2 === d1, false);
-        minitest.expect(l1[dartx['==']](d1), false);
-        minitest.expect(b1['=='](d1), false);
+        minitest.expect(l1[$_equals](d1), false);
+        minitest.expect(b1._equals(d1), false);
       }, VoidToNull()));
     }, VoidToNull()));
     minitest.group('Number equality', dart.fn(() => {
@@ -817,8 +822,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(s2 === e1, false);
         minitest.expect(i1 === e1, false);
         minitest.expect(i2 === e1, false);
-        minitest.expect(l1[dartx['==']](e1), false);
-        minitest.expect(b1['=='](e1), false);
+        minitest.expect(l1[$_equals](e1), false);
+        minitest.expect(b1._equals(e1), false);
       }, VoidToNull()));
       minitest.test('Equal int/other (dynamic, nullable)', dart.fn(() => {
         let e1 = equality_test.hideNull(core.int)(11);
@@ -873,8 +878,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(s2 === e1, false);
         minitest.expect(i1 === e1, false);
         minitest.expect(i2 === e1, false);
-        minitest.expect(l1[dartx['==']](e1), false);
-        minitest.expect(b1['=='](e1), false);
+        minitest.expect(l1[$_equals](e1), false);
+        minitest.expect(b1._equals(e1), false);
         minitest.expect(dart.equals(d1, s1), false);
         minitest.expect(dart.equals(d1, s2), false);
         minitest.expect(dart.equals(d1, i1), false);
@@ -885,8 +890,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(s2 === d1, false);
         minitest.expect(i1 === d1, false);
         minitest.expect(i2 === d1, false);
-        minitest.expect(l1[dartx['==']](d1), false);
-        minitest.expect(b1['=='](d1), false);
+        minitest.expect(l1[$_equals](d1), false);
+        minitest.expect(b1._equals(d1), false);
       }, VoidToNull()));
     }, VoidToNull()));
     minitest.group('Object equality', dart.fn(() => {
@@ -924,13 +929,13 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         let d2 = new equality_test._Elwood.new();
         let o1 = e1;
         let o2 = new equality_test._Elwood.new();
-        minitest.expect(e1['=='](e1), true);
-        minitest.expect(e1['=='](d1), true);
-        minitest.expect(e1['=='](o1), true);
-        minitest.expect(e1['=='](e2), false);
-        minitest.expect(e1['=='](o2), false);
-        minitest.expect(e1['=='](d2), false);
-        minitest.expect(e1['=='](e2), false);
+        minitest.expect(e1._equals(e1), true);
+        minitest.expect(e1._equals(d1), true);
+        minitest.expect(e1._equals(o1), true);
+        minitest.expect(e1._equals(e2), false);
+        minitest.expect(e1._equals(o2), false);
+        minitest.expect(e1._equals(d2), false);
+        minitest.expect(e1._equals(e2), false);
         minitest.expect(dart.equals(d1, e1), true);
         minitest.expect(dart.equals(d1, d1), true);
         minitest.expect(dart.equals(d1, o1), true);
@@ -973,18 +978,18 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         let i2 = 0;
         let l1 = core.List.new(3);
         let b1 = new equality_test._Norman.new();
-        minitest.expect(e1['=='](s1), false);
-        minitest.expect(e1['=='](s2), false);
-        minitest.expect(e1['=='](i1), false);
-        minitest.expect(e1['=='](i2), false);
-        minitest.expect(e1['=='](l1), false);
-        minitest.expect(e1['=='](b1), false);
+        minitest.expect(e1._equals(s1), false);
+        minitest.expect(e1._equals(s2), false);
+        minitest.expect(e1._equals(i1), false);
+        minitest.expect(e1._equals(i2), false);
+        minitest.expect(e1._equals(l1), false);
+        minitest.expect(e1._equals(b1), false);
         minitest.expect(s1 === e1, false);
         minitest.expect(s2 === e1, false);
         minitest.expect(i1 === e1, false);
         minitest.expect(i2 === e1, false);
-        minitest.expect(l1[dartx['==']](e1), false);
-        minitest.expect(b1['=='](e1), false);
+        minitest.expect(l1[$_equals](e1), false);
+        minitest.expect(b1._equals(e1), false);
       }, VoidToNull()));
       minitest.test('Equal object/other (dynamic, nullable)', dart.fn(() => {
         let e1 = equality_test.hideNull(equality_test._Jake)(new equality_test._Jake.new());
@@ -1029,18 +1034,18 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         let i2 = 0;
         let l1 = core.List.new(3);
         let b1 = new equality_test._Norman.new();
-        minitest.expect(e1['=='](s1), false);
-        minitest.expect(e1['=='](s2), false);
-        minitest.expect(e1['=='](i1), false);
-        minitest.expect(e1['=='](i2), false);
-        minitest.expect(e1['=='](l1), false);
-        minitest.expect(e1['=='](b1), false);
+        minitest.expect(e1._equals(s1), false);
+        minitest.expect(e1._equals(s2), false);
+        minitest.expect(e1._equals(i1), false);
+        minitest.expect(e1._equals(i2), false);
+        minitest.expect(e1._equals(l1), false);
+        minitest.expect(e1._equals(b1), false);
         minitest.expect(s1 === e1, false);
         minitest.expect(s2 === e1, false);
         minitest.expect(i1 === e1, false);
         minitest.expect(i2 === e1, false);
-        minitest.expect(l1[dartx['==']](e1), false);
-        minitest.expect(b1['=='](e1), false);
+        minitest.expect(l1[$_equals](e1), false);
+        minitest.expect(b1._equals(e1), false);
         minitest.expect(dart.equals(d1, s1), false);
         minitest.expect(dart.equals(d1, s2), false);
         minitest.expect(dart.equals(d1, i1), false);
@@ -1051,8 +1056,8 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(s2 === d1, false);
         minitest.expect(i1 === d1, false);
         minitest.expect(i2 === d1, false);
-        minitest.expect(l1[dartx['==']](d1), false);
-        minitest.expect(b1['=='](d1), false);
+        minitest.expect(l1[$_equals](d1), false);
+        minitest.expect(b1._equals(d1), false);
       }, VoidToNull()));
     }, VoidToNull()));
     minitest.group('Null/undefined equality', dart.fn(() => {

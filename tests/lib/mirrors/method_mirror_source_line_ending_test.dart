@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Note: These tests rely on specific line endings in the source files.
+// Note: These test relies on specific line endings in the source files.
+// They requirs entries in the .gitattributes file.
 
 import "dart:mirrors";
 import "package:expect/expect.dart";

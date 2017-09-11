@@ -14,6 +14,19 @@ final String sdkRoot =
 
 final String testRoot = p.join(sdkRoot, "tests");
 
+/// Copies the file from [from] to [to], which are both assumed to be relative
+/// paths inside "tests".
+void copyFile(String from, String to) {
+  if (dryRun) {
+    print("  Dry run: move $from to $to");
+    return;
+  }
+
+  // Create the directory if needed.
+  new Directory(p.dirname(p.join(testRoot, to))).createSync(recursive: true);
+  new File(p.join(testRoot, from)).copySync(p.join(testRoot, to));
+}
+
 /// Moves the file from [from] to [to], which are both assumed to be relative
 /// paths inside "tests".
 void moveFile(String from, String to) {
@@ -24,7 +37,6 @@ void moveFile(String from, String to) {
 
   // Create the directory if needed.
   new Directory(p.dirname(p.join(testRoot, to))).createSync(recursive: true);
-
   new File(p.join(testRoot, from)).renameSync(p.join(testRoot, to));
 }
 
@@ -48,11 +60,14 @@ void deleteFile(String path) {
 /// assumed to be relative to the SDK's "tests" directory and having file
 /// [extension].
 Iterable<String> listFiles(String dir, {String extension = ".dart"}) {
-  return new Directory(p.join(testRoot, dir))
-      .listSync(recursive: true)
-      .map((entry) {
-    if (!entry.path.endsWith(extension)) return null;
-
-    return entry.path;
-  }).where((path) => path != null);
+  try {
+    return new Directory(p.join(testRoot, dir))
+        .listSync(recursive: true)
+        .map((entry) {
+      if (!entry.path.endsWith(extension)) return null;
+      return entry.path;
+    }).where((path) => path != null);
+  } catch (FileSystemException) {
+    return [];
+  }
 }

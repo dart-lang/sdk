@@ -6,9 +6,10 @@ library compiler.src.inferrer.type_graph_nodes;
 
 import 'dart:collection' show IterableBase;
 
+import 'package:kernel/ast.dart' as ir;
+
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
-import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../elements/elements.dart'
     show ConstructorElement, LocalElement, MemberElement;
@@ -383,12 +384,13 @@ abstract class MemberTypeInformation extends ElementTypeInformation
    * to enable counting the global number of call sites of [element].
    *
    * A call site is either an AST [ast.Node], an [Element] (see uses of
-   * [synthesizeForwardingCall] in [SimpleTypeInferrerVisitor]).
+   * [synthesizeForwardingCall] in [SimpleTypeInferrerVisitor]) or an IR
+   * [ir.Node].
    *
    * The global information is summarized in [cleanup], after which [_callers]
    * is set to `null`.
    */
-  Map<MemberEntity, Setlet<Spannable>> _callers;
+  Map<MemberEntity, Setlet<Object>> _callers;
 
   MemberTypeInformation._internal(this._member) : super._internal(null) {
     assert(_checkMember(_member));
@@ -402,12 +404,12 @@ abstract class MemberTypeInformation extends ElementTypeInformation
 
   String get debugName => '$member';
 
-  void addCall(MemberEntity caller, Spannable node) {
-    _callers ??= <MemberEntity, Setlet<Spannable>>{};
+  void addCall(MemberEntity caller, Object node) {
+    _callers ??= <MemberEntity, Setlet<Object>>{};
     _callers.putIfAbsent(caller, () => new Setlet()).add(node);
   }
 
-  void removeCall(MemberEntity caller, node) {
+  void removeCall(MemberEntity caller, Object node) {
     if (_callers == null) return;
     Setlet calls = _callers[caller];
     if (calls == null) return;
@@ -472,9 +474,8 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   }
 
   TypeMask potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
-    Compiler compiler = inferrer.compiler;
-    if (!compiler.options.trustTypeAnnotations &&
-        !compiler.options.enableTypeAssertions &&
+    if (!inferrer.options.trustTypeAnnotations &&
+        !inferrer.options.enableTypeAssertions &&
         !inferrer.optimizerHints.trustTypeAnnotations(_member)) {
       return mask;
     }
@@ -522,8 +523,7 @@ class FieldTypeInformation extends MemberTypeInformation {
       : super._internal(element);
 
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
-    if (!inferrer.backend.canFieldBeUsedForGlobalOptimizations(
-            _field, inferrer.closedWorld) ||
+    if (!inferrer.canFieldBeUsedForGlobalOptimizations(_field) ||
         inferrer.optimizerHints.assumeDynamic(_field)) {
       // Do not infer types for fields that have a corresponding annotation or
       // are assigned by synthesized calls
@@ -732,8 +732,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   // TODO(herhut): Cleanup into one conditional.
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
-    if (!inferrer.backend.canFunctionParametersBeUsedForGlobalOptimizations(
-            _method, inferrer.closedWorld) ||
+    if (!inferrer.canFunctionParametersBeUsedForGlobalOptimizations(_method) ||
         inferrer.optimizerHints.assumeDynamic(_method)) {
       // Do not infer types for parameters that have a corresponding annotation
       // or that are assigned by synthesized calls.
@@ -781,15 +780,14 @@ class ParameterTypeInformation extends ElementTypeInformation {
   }
 
   TypeMask potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
-    Compiler compiler = inferrer.compiler;
-    if (!compiler.options.trustTypeAnnotations &&
+    if (!inferrer.options.trustTypeAnnotations &&
         !inferrer.optimizerHints.trustTypeAnnotations(_method)) {
       return mask;
     }
     // When type assertions are enabled (aka checked mode), we have to always
     // ignore type annotations to ensure that the checks are actually inserted
     // into the function body and retained until runtime.
-    assert(!compiler.options.enableTypeAssertions);
+    assert(!inferrer.options.enableTypeAssertions);
     return _narrowType(inferrer.closedWorld, mask, _type);
   }
 
@@ -836,7 +834,7 @@ bool validCallType(CallType callType, Object call) {
     case CallType.complex:
       return call is ast.SendSet;
     case CallType.access:
-      return call is ast.Send;
+      return call is ast.Send || call is ir.Node;
     case CallType.forIn:
       return call is ast.ForIn;
   }
@@ -868,7 +866,8 @@ abstract class CallSiteTypeInformation extends TypeInformation
     assert(_checkCaller(caller));
     // [_call] is either an AST node or a constructor element in case of a
     // a forwarding constructor _call.
-    assert(_call is ast.Node || _call is ConstructorElement);
+    assert(
+        _call is ast.Node || _call is ConstructorElement || _call is ir.Node);
   }
 
   bool _checkCaller(MemberEntity caller) {
@@ -1027,7 +1026,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
       return e.isFunction &&
           e.isInstanceMember &&
           e.name == Identifiers.noSuchMethod_ &&
-          inferrer.backend.noSuchMethodRegistry.isComplex(e);
+          inferrer.noSuchMethodRegistry.isComplex(e);
     });
   }
 

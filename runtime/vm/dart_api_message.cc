@@ -751,6 +751,13 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       // length followed by its backing store. The backing store is an
       // array with a length which might be longer than the length of
       // the GrowableObjectArray.
+      Dart_CObject* value = GetBackRef(object_id);
+      ASSERT(value == NULL);
+      // Allocate an empty array for the GrowableObjectArray which
+      // will be updated to point to the content when the backing
+      // store has been deserialized.
+      value = AllocateDartCObjectArray(0);
+      AddBackRef(object_id, value, kIsDeserialized);
 
       // Read and skip the type arguments field.
       // TODO(sjesse): Remove this when message serialization format is
@@ -764,13 +771,6 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       // Read the length field.
       intptr_t len = ReadSmiValue();
 
-      Dart_CObject* value = GetBackRef(object_id);
-      ASSERT(value == NULL);
-      // Allocate an empty array for the GrowableObjectArray which
-      // will be updated to point to the content when the backing
-      // store has been deserialized.
-      value = AllocateDartCObjectArray(0);
-      AddBackRef(object_id, value, kIsDeserialized);
       // Read the content of the GrowableObjectArray.
       Dart_CObject* content = ReadObjectRef();
       ASSERT(content->type == Dart_CObject_kArray);
@@ -790,7 +790,7 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
 Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
   if (object_id == kDynamicType || object_id == kDoubleType ||
       object_id == kIntType || object_id == kBoolType ||
-      object_id == kStringType) {
+      object_id == kStringType || object_id == kObjectType) {
     // Always return dynamic type (this is only a marker).
     return &dynamic_type_marker;
   }

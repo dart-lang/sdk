@@ -29,8 +29,11 @@ import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/error_severity.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:bazel_worker/bazel_worker.dart';
+import 'package:collection/collection.dart';
+import 'package:convert/convert.dart';
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
+import 'package:front_end/src/byte_store/cache.dart';
 
 /**
  * Persistent Bazel worker.
@@ -39,13 +42,17 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
   final ResourceProvider resourceProvider;
   final PerformanceLog logger = new PerformanceLog(null);
   final String dartSdkPath;
+  WorkerPackageBundleCache packageBundleCache;
 
   final StringBuffer errorBuffer = new StringBuffer();
   final StringBuffer outBuffer = new StringBuffer();
 
   AnalyzerWorkerLoop(this.resourceProvider, AsyncWorkerConnection connection,
       {this.dartSdkPath})
-      : super(connection: connection);
+      : super(connection: connection) {
+    packageBundleCache = new WorkerPackageBundleCache(
+        resourceProvider, logger, 256 * 1024 * 1024);
+  }
 
   factory AnalyzerWorkerLoop.std(ResourceProvider resourceProvider,
       {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
@@ -58,10 +65,13 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
   /**
    * Performs analysis with given [options].
    */
-  Future<Null> analyze(CommandLineOptions options) async {
+  Future<Null> analyze(
+      CommandLineOptions options, Map<String, WorkerInput> inputs) async {
+    var packageBundleProvider =
+        new WorkerPackageBundleProvider(packageBundleCache, inputs);
     var buildMode = new BuildMode(
         resourceProvider, options, new AnalysisStats(),
-        logger: logger);
+        logger: logger, packageBundleProvider: packageBundleProvider);
     await buildMode.analyze();
     AnalysisEngine.instance.clearCaches();
   }
@@ -71,10 +81,16 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
    */
   @override
   Future<WorkResponse> performRequest(WorkRequest request) async {
-    return logger.run('Perform request', () async {
+    return logger.runAsync('Perform request', () async {
       errorBuffer.clear();
       outBuffer.clear();
       try {
+        // Prepare inputs with their digests.
+        Map<String, WorkerInput> inputs = {};
+        for (var input in request.inputs) {
+          inputs[input.path] = new WorkerInput(input.path, input.digest);
+        }
+
         // Add in the dart-sdk argument if `dartSdkPath` is not null,
         // otherwise it will try to find the currently installed sdk.
         var arguments = request.arguments.toList();
@@ -82,13 +98,15 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
             !arguments.any((arg) => arg.startsWith('--dart-sdk'))) {
           arguments.add('--dart-sdk=$dartSdkPath');
         }
+
         // Prepare options.
         CommandLineOptions options =
             CommandLineOptions.parse(arguments, printAndFail: (String msg) {
           throw new ArgumentError(msg);
         });
+
         // Analyze and respond.
-        await analyze(options);
+        await analyze(options, inputs);
         String msg = _getErrorOutputBuffersText();
         return new WorkResponse()
           ..exitCode = EXIT_CODE_OK
@@ -136,6 +154,7 @@ class BuildMode {
   final CommandLineOptions options;
   final AnalysisStats stats;
   final PerformanceLog logger;
+  final PackageBundleProvider packageBundleProvider;
 
   SummaryDataStore summaryDataStore;
   AnalysisOptions analysisOptions;
@@ -150,8 +169,10 @@ class BuildMode {
   final Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
 
   BuildMode(this.resourceProvider, this.options, this.stats,
-      {PerformanceLog logger})
-      : logger = logger ?? new PerformanceLog(null);
+      {PerformanceLog logger, PackageBundleProvider packageBundleProvider})
+      : logger = logger ?? new PerformanceLog(null),
+        packageBundleProvider = packageBundleProvider ??
+            new DirectPackageBundleProvider(resourceProvider);
 
   bool get _shouldOutputSummary =>
       options.buildSummaryOutput != null ||
@@ -303,8 +324,7 @@ class BuildMode {
 
     // Adds a bundle at `path` to `summaryDataStore`.
     PackageBundle addBundle(String path) {
-      var bundle =
-          new PackageBundle.fromBuffer(new io.File(path).readAsBytesSync());
+      PackageBundle bundle = packageBundleProvider.get(path);
       summaryDataStore.addBundle(path, bundle);
       return bundle;
     }
@@ -468,6 +488,21 @@ class BuildMode {
 }
 
 /**
+ * [PackageBundleProvider] that always reads from the [ResourceProvider].
+ */
+class DirectPackageBundleProvider implements PackageBundleProvider {
+  final ResourceProvider resourceProvider;
+
+  DirectPackageBundleProvider(this.resourceProvider);
+
+  @override
+  PackageBundle get(String path) {
+    var bytes = new io.File(path).readAsBytesSync();
+    return new PackageBundle.fromBuffer(bytes);
+  }
+}
+
+/**
  * Instances of the class [ExplicitSourceResolver] map URIs to files on disk
  * using a fixed mapping provided at construction time.
  */
@@ -508,5 +543,111 @@ class ExplicitSourceResolver extends UriResolver {
       pathToUriMap[file.path] = uri;
     });
     return pathToUriMap;
+  }
+}
+
+/**
+ * Provider for [PackageBundle]s by file paths.
+ */
+abstract class PackageBundleProvider {
+  /**
+   * Return the [PackageBundle] for the file with the given [path].
+   */
+  PackageBundle get(String path);
+}
+
+/**
+ * Worker input.
+ *
+ * Bazel does not specify the format of the digest, so we cannot assume that
+ * the digest itself is enough to uniquely identify inputs. So, we use a pair
+ * of path + digest.
+ */
+class WorkerInput {
+  static const _digestEquality = const ListEquality<int>();
+
+  final String path;
+  final List<int> digest;
+
+  WorkerInput(this.path, this.digest);
+
+  @override
+  int get hashCode => _digestEquality.hash(digest);
+
+  @override
+  bool operator ==(Object other) {
+    return other is WorkerInput &&
+        other.path == path &&
+        _digestEquality.equals(other.digest, digest);
+  }
+
+  @override
+  String toString() => '$path @ ${hex.encode(digest)}';
+}
+
+/**
+ * Value object for [WorkerPackageBundleCache].
+ */
+class WorkerPackageBundle {
+  final List<int> bytes;
+  final PackageBundle bundle;
+
+  WorkerPackageBundle(this.bytes, this.bundle);
+
+  /**
+   * Approximation of a bundle size in memory.
+   */
+  int get size => bytes.length * 3;
+}
+
+/**
+ * Cache of [PackageBundle]s.
+ */
+class WorkerPackageBundleCache {
+  final ResourceProvider resourceProvider;
+  final PerformanceLog logger;
+  final Cache<WorkerInput, WorkerPackageBundle> _cache;
+
+  WorkerPackageBundleCache(this.resourceProvider, this.logger, int maxSizeBytes)
+      : _cache = new Cache<WorkerInput, WorkerPackageBundle>(
+            maxSizeBytes, (value) => value.size);
+
+  /**
+   * Get the [PackageBundle] from the file with the given [path] in the context
+   * of the given worker [inputs].
+   */
+  PackageBundle get(Map<String, WorkerInput> inputs, String path) {
+    WorkerInput input = inputs[path];
+
+    // The input must be not null, otherwise we're not expected to read
+    // this file, but we check anyway to be safe.
+    if (input == null) {
+      logger.writeln('Read $path outside of the inputs.');
+      var bytes = resourceProvider.getFile(path).readAsBytesSync();
+      return new PackageBundle.fromBuffer(bytes);
+    }
+
+    return _cache.get(input, () {
+      logger.writeln('Read $input.');
+      var bytes = resourceProvider.getFile(path).readAsBytesSync();
+      var bundle = new PackageBundle.fromBuffer(bytes);
+      return new WorkerPackageBundle(bytes, bundle);
+    }).bundle;
+  }
+}
+
+/**
+ * [PackageBundleProvider] that reads from [WorkerPackageBundleCache] using
+ * the request specific [inputs].
+ */
+class WorkerPackageBundleProvider implements PackageBundleProvider {
+  final WorkerPackageBundleCache cache;
+  final Map<String, WorkerInput> inputs;
+
+  WorkerPackageBundleProvider(this.cache, this.inputs);
+
+  @override
+  PackageBundle get(String path) {
+    return cache.get(inputs, path);
   }
 }

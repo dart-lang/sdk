@@ -27,8 +27,19 @@ abstract class TypeLike implements Printable {
   /// Prints `this` as valid Dart code for a Type.
   void writeType(StringBuffer buffer);
 
-  /// Whether this instance uses T in some way.
+  /// Whether this type uses T in some way.
   bool get usesT;
+
+  /// Whether this type uses T in a return (covariant) position.
+  ///
+  /// For example: `T`, `List<T>`, `T Function()`, or `Function(Function(T))`.
+  bool get returnsT;
+
+  /// Whether this type uses T in a parameter (contravariant) position.
+  ///
+  /// For example, `Function(T)`, `Function(List<T>)`, or
+  /// `Function(T Function())`.
+  bool get takesT;
 }
 
 /// Provides a unique integer for every parameter in a function.
@@ -37,7 +48,7 @@ int parameterNameCounter = 0;
 /// Whether `T` should be replaced with `int`.
 bool shouldReplaceTWithInt = false;
 
-class Parameter implements Printable {
+class Parameter implements TypeLike {
   final TypeLike type;
   final String name;
 
@@ -91,7 +102,9 @@ class Parameter implements Printable {
     return ((name.hashCode * 37) ^ type.hashCode) & 0xFFFFFFFF;
   }
 
-  bool get usesT => type?.usesT == true;
+  bool get usesT => type?.usesT ?? false;
+  bool get takesT => type?.takesT ?? false;
+  bool get returnsT => type?.returnsT ?? false;
 }
 
 class GenericParameter implements TypeLike {
@@ -131,9 +144,9 @@ class GenericParameter implements TypeLike {
     return ((name.hashCode * 23) ^ bound.hashCode) & 0xFFFFFFFF;
   }
 
-  bool get usesT {
-    return bound?.usesT == true;
-  }
+  bool get usesT => bound?.usesT ?? false;
+  bool get takesT => bound?.takesT ?? false;
+  bool get returnsT => bound?.returnsT ?? false;
 }
 
 void _describeList(StringBuffer buffer, List<Printable> list) {
@@ -293,8 +306,24 @@ class FunctionType implements TypeLike {
   }
 
   bool get usesT {
-    return returnType?.usesT == true ||
+    return (returnType?.usesT ?? false) ||
         [generic, required, optional, named].any(_listUsesT);
+  }
+
+  bool get returnsT {
+    return (returnType?.returnsT ?? false) ||
+        [generic, required, optional, named]
+            .any((l) => l?.any((p) => p.takesT) ?? false);
+  }
+
+  bool get takesT {
+    return (returnType?.takesT ?? false) ||
+        [generic, required, optional, named]
+            .any((l) => l?.any((p) => p.returnsT) ?? false);
+  }
+
+  bool get reifiedTypeUsesT {
+    return returnType?.usesT ?? returnsT;
   }
 }
 
@@ -336,6 +365,10 @@ class NominalType implements TypeLike {
   }
 
   bool get usesT => name == "T" || _listUsesT(generic);
+
+  bool get returnsT => name == "T" || generic?.any((t) => t.returnsT) ?? false;
+
+  bool get takesT => generic?.any((t) => t.takesT) ?? false;
 }
 
 List<FunctionType> buildFunctionTypes() {
@@ -643,11 +676,12 @@ final TYPEDEF_T_TESTS_TEMPLATE = """
       Expect.throws(() { #localName = confuse(#staticFunName); });
     }
     if (tIsInt || tIsBool) {
-      Expect.equals(tIsInt, #methodFunName is #typeName<int>);
-      Expect.equals(tIsBool, #methodFunName is #typeName<bool>);
-      Expect.equals(tIsInt, confuse(#methodFunName) is #typeName<int>);
-      Expect.equals(tIsBool, confuse(#methodFunName) is #typeName<bool>);
-    }""";
+      Expect.equals(#isIntValue, #methodFunName is #typeName<int>);
+      Expect.equals(#isBoolValue, #methodFunName is #typeName<bool>);
+      Expect.equals(#isIntValue, confuse(#methodFunName) is #typeName<int>);
+      Expect.equals(#isBoolValue, confuse(#methodFunName) is #typeName<bool>);
+    }
+""";
 
 final TEST_METHOD_FOOTER = "  }";
 
@@ -677,6 +711,9 @@ String createMethodFunCode(FunctionType type, int id) {
 }
 
 String createTestMethodFunCode(FunctionType type, String typeCode, int id) {
+  var tIsInt = type.reifiedTypeUsesT ? 'tIsInt' : 'true';
+  var tIsBool = type.reifiedTypeUsesT ? 'tIsBool' : 'true';
+
   String fillTemplate(String template, int id) {
     var result = template
         .replaceAll("#typeName", createTypeName(id))
@@ -685,7 +722,9 @@ String createTestMethodFunCode(FunctionType type, String typeCode, int id) {
         .replaceAll("#fieldName", createFieldName(id))
         .replaceAll("#localName", createLocalName(id))
         .replaceAll("#testName", createTestName(id))
-        .replaceAll("#typeCode", typeCode);
+        .replaceAll("#typeCode", typeCode)
+        .replaceAll("#isIntValue", tIsInt)
+        .replaceAll("#isBoolValue", tIsBool);
     assert(!result.contains("#"));
     return result;
   }

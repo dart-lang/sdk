@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "platform/globals.h"
 #if defined(HOST_OS_LINUX)
 
@@ -20,6 +18,7 @@
 #include <unistd.h>        // NOLINT
 
 #include "bin/dartutils.h"
+#include "bin/directory.h"
 #include "bin/fdutils.h"
 #include "bin/file.h"
 #include "bin/lockers.h"
@@ -245,7 +244,8 @@ Monitor* ExitCodeHandler::monitor_ = new Monitor();
 
 class ProcessStarter {
  public:
-  ProcessStarter(const char* path,
+  ProcessStarter(Namespace* namespc,
+                 const char* path,
                  char* arguments[],
                  intptr_t arguments_length,
                  const char* working_directory,
@@ -258,7 +258,8 @@ class ProcessStarter {
                  intptr_t* id,
                  intptr_t* exit_event,
                  char** os_error_message)
-      : path_(path),
+      : namespc_(namespc),
+        path_(path),
         working_directory_(working_directory),
         mode_(mode),
         in_(in),
@@ -434,6 +435,25 @@ class ProcessStarter {
     }
   }
 
+  // If fexecve() should be used to launch the program, returns the fd to use
+  // in fd and returns true. If execvp should be used, returns false. If there
+  // was an error that should be reported to the caller, sets fd to -1 and
+  // returns true.
+  bool ShouldUseFexecve(int* pathfd) {
+    ASSERT(pathfd != NULL);
+    NamespaceScope ns(namespc_, path_);
+    const intptr_t fd =
+        TEMP_FAILURE_RETRY(openat64(ns.fd(), ns.path(), O_RDONLY));
+    if ((fd == -1) && (errno == ENOENT)) {
+      if (strchr(path_, '/') == NULL) {
+        // There wasn't in the namespace and contained no '/'. Punt to execvp.
+        return false;
+      }
+    }
+    *pathfd = fd;
+    return true;
+  }
+
   void ExecProcess() {
     if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
       ReportChildError();
@@ -448,7 +468,7 @@ class ProcessStarter {
     }
 
     if (working_directory_ != NULL &&
-        TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1) {
+        !Directory::SetCurrent(namespc_, working_directory_)) {
       ReportChildError();
     }
 
@@ -456,8 +476,17 @@ class ProcessStarter {
       environ = program_environment_;
     }
 
-    VOID_TEMP_FAILURE_RETRY(
-        execvp(path_, const_cast<char* const*>(program_arguments_)));
+    int pathfd;
+    if (ShouldUseFexecve(&pathfd)) {
+      if (pathfd == -1) {
+        ReportChildError();
+      }
+      VOID_TEMP_FAILURE_RETRY(fexecve(
+          pathfd, const_cast<char* const*>(program_arguments_), environ));
+    } else {
+      VOID_TEMP_FAILURE_RETRY(
+          execvp(path_, const_cast<char* const*>(program_arguments_)));
+    }
 
     ReportChildError();
   }
@@ -499,22 +528,31 @@ class ProcessStarter {
           }
 
           if ((working_directory_ != NULL) &&
-              (TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1)) {
+              !Directory::SetCurrent(namespc_, working_directory_)) {
             ReportChildError();
           }
 
           // Report the final PID and do the exec.
           ReportPid(getpid());  // getpid cannot fail.
-          VOID_TEMP_FAILURE_RETRY(
-              execvp(path_, const_cast<char* const*>(program_arguments_)));
+          int pathfd;
+          if (ShouldUseFexecve(&pathfd)) {
+            if (pathfd == -1) {
+              ReportChildError();
+            }
+            VOID_TEMP_FAILURE_RETRY(fexecve(
+                pathfd, const_cast<char* const*>(program_arguments_), environ));
+          } else {
+            VOID_TEMP_FAILURE_RETRY(
+                execvp(path_, const_cast<char* const*>(program_arguments_)));
+          }
           ReportChildError();
         } else {
-          // Exit the intermeiate process.
+          // Exit the intermediate process.
           exit(0);
         }
       }
     } else {
-      // Exit the intermeiate process.
+      // Exit the intermediate process.
       exit(0);
     }
   }
@@ -719,6 +757,7 @@ class ProcessStarter {
   char** program_arguments_;
   char** program_environment_;
 
+  Namespace* namespc_;
   const char* path_;
   const char* working_directory_;
   ProcessStartMode mode_;
@@ -733,7 +772,8 @@ class ProcessStarter {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ProcessStarter);
 };
 
-int Process::Start(const char* path,
+int Process::Start(Namespace* namespc,
+                   const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
                    const char* working_directory,
@@ -746,9 +786,9 @@ int Process::Start(const char* path,
                    intptr_t* id,
                    intptr_t* exit_event,
                    char** os_error_message) {
-  ProcessStarter starter(path, arguments, arguments_length, working_directory,
-                         environment, environment_length, mode, in, out, err,
-                         id, exit_event, os_error_message);
+  ProcessStarter starter(namespc, path, arguments, arguments_length,
+                         working_directory, environment, environment_length,
+                         mode, in, out, err, id, exit_event, os_error_message);
   return starter.Start();
 }
 
@@ -1004,5 +1044,3 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
 }  // namespace dart
 
 #endif  // defined(HOST_OS_LINUX)
-
-#endif  // !defined(DART_IO_DISABLED)

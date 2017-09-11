@@ -32,7 +32,6 @@ main() {
       break;
     default:
       print('ladybug');
-
   }
 }''';
     return check(code);
@@ -93,90 +92,6 @@ main() {
       print('beetle');
       break;
     case 6:
-  }
-}''';
-    return check(code);
-  });
-
-  test('switch with labeled continue', () {
-    String code = '''
-main() {
-    int x = 1;
-  switch(x) {
-    case 1:
-      print('spider');
-      continue world;
-    case 5:
-      print('beetle');
-      break;
-    world:
-    case 6:
-      print('cricket');
-      break;
-    default:
-      print('bat');
-  }
-}''';
-    return check(code);
-  });
-
-  test('switch with continue to fall through', () {
-    String code = '''
-main() {
-    int x = 1;
-  switch(x) {
-    case 1:
-      print('spider');
-      continue world;
-    world:
-    case 5:
-      print('beetle');
-      break;
-    case 6:
-      print('cricket');
-      break;
-    default:
-      print('bat');
-  }
-}''';
-    return check(code);
-  });
-
-  test('switch with continue without default case', () {
-    String code = '''
-main() {
-    int x = 1;
-  switch(x) {
-    case 1:
-      print('spider');
-      continue world;
-    world:
-    case 5:
-      print('beetle');
-      break;
-    case 6:
-      print('cricket');
-      break;
-  }
-}''';
-    return check(code);
-  });
-
-  test('switch with continue without default case', () {
-    String code = '''
-main() {
-    int x = 8;
-  switch(x) {
-    case 1:
-      print('spider');
-      continue world;
-    world:
-    case 5:
-      print('beetle');
-      break;
-    case 6:
-      print('cricket');
-      break;
   }
 }''';
     return check(code);

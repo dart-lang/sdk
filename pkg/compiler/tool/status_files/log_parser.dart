@@ -7,6 +7,8 @@ library status_files.log_parser;
 import 'record.dart';
 
 final RegExp _stackRE = new RegExp('#[0-9]* ');
+final RegExp _assertionFileRE = new RegExp(r"'file:[^']*/sdk/pkg/");
+final String _assertionFileReplacement = r"'file:*/pkg/";
 
 /// Extracts test records from a test.py [log].
 List<Record> parse(String log) {
@@ -44,6 +46,7 @@ List<Record> parse(String log) {
     }
     if (line.startsWith("The compiler crashed:")) {
       reason = line.substring("The compiler crashed:".length).trim();
+      reason = reason.replaceFirst(_assertionFileRE, _assertionFileReplacement);
       paragraph.clear();
     }
 

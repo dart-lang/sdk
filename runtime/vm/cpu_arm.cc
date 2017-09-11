@@ -8,7 +8,7 @@
 #include "vm/cpu.h"
 #include "vm/cpu_arm.h"
 
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/cpuinfo.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"

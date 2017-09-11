@@ -4,8 +4,8 @@
 
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/dependency_walker.dart' as dependencyWalker;
-import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
+import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
@@ -13,21 +13,25 @@ import 'package:kernel/ast.dart'
     show
         Class,
         DartType,
+        DartTypeVisitor,
         DynamicType,
         Field,
+        FormalSafety,
         FunctionType,
+        InterfaceSafety,
         InterfaceType,
         Location,
         Member,
         Procedure,
         TypeParameter,
-        TypeParameterType;
+        TypeParameterType,
+        TypedefType,
+        VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../deprecated_problems.dart' show Crash;
-
 import '../messages.dart' show getLocationFromNode;
 
 /// Data structure for tracking dependencies among fields, getters, and setters
@@ -39,7 +43,7 @@ import '../messages.dart' show getLocationFromNode;
 class AccessorNode extends dependencyWalker.Node<AccessorNode> {
   final TypeInferenceEngineImpl _typeInferenceEngine;
 
-  final KernelMember member;
+  final ShadowMember member;
 
   bool isImmediatelyEvident = false;
 
@@ -75,12 +79,12 @@ class AccessorNode extends dependencyWalker.Node<AccessorNode> {
   /// have to infer is its return type.
   bool get isTrivialSetter {
     var member = this.member;
-    if (member is KernelProcedure &&
+    if (member is ShadowProcedure &&
         member.isSetter &&
         member.function != null) {
       var parameters = member.function.positionalParameters;
       return parameters.length > 0 &&
-          !KernelVariableDeclaration.isImplicitlyTyped(parameters[0]);
+          !ShadowVariableDeclaration.isImplicitlyTyped(parameters[0]);
     }
     return false;
   }
@@ -92,6 +96,55 @@ class AccessorNode extends dependencyWalker.Node<AccessorNode> {
 
   @override
   String toString() => member.toString();
+}
+
+/// Visitor to check whether a given type mentions any of a class's type
+/// parameters in a covariant fashion.
+class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
+  bool _inCovariantContext = true;
+
+  final List<TypeParameter> _typeParametersToSearchFor;
+
+  IncludesTypeParametersCovariantly(this._typeParametersToSearchFor);
+
+  @override
+  bool defaultDartType(DartType node) => false;
+
+  @override
+  bool visitFunctionType(FunctionType node) {
+    if (node.returnType.accept(this)) return true;
+    try {
+      _inCovariantContext = !_inCovariantContext;
+      for (var parameter in node.positionalParameters) {
+        if (parameter.accept(this)) return true;
+      }
+      for (var parameter in node.namedParameters) {
+        if (parameter.type.accept(this)) return true;
+      }
+      return false;
+    } finally {
+      _inCovariantContext = !_inCovariantContext;
+    }
+  }
+
+  @override
+  bool visitInterfaceType(InterfaceType node) {
+    for (var argument in node.typeArguments) {
+      if (argument.accept(this)) return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitTypedefType(TypedefType node) {
+    return node.unalias.accept(this);
+  }
+
+  @override
+  bool visitTypeParameterType(TypeParameterType node) {
+    return _inCovariantContext &&
+        _typeParametersToSearchFor.contains(node.parameter);
+  }
 }
 
 /// Enum tracking the type inference state of an accessor or method.
@@ -112,7 +165,7 @@ enum InferenceState {
 /// Data structure for tracking dependencies among methods that require type
 /// inference.
 class MethodNode {
-  final KernelProcedure procedure;
+  final ShadowProcedure procedure;
 
   InferenceState state = InferenceState.NotInferredYet;
 
@@ -135,19 +188,23 @@ abstract class TypeInferenceEngine {
 
   CoreTypes get coreTypes;
 
-  /// Creates a type inferrer for use inside of a method body declared in a file
-  /// with the given [uri].
-  TypeInferrer createLocalTypeInferrer(
-      Uri uri, TypeInferenceListener listener, InterfaceType thisType);
+  /// Annotates the formal parameters of any methods in [cls] to indicate the
+  /// circumstances in which they require runtime type checks.
+  void computeFormalSafety(Class cls);
 
   /// Creates a disabled type inferrer (intended for debugging and profiling
   /// only).
   TypeInferrer createDisabledTypeInferrer();
 
+  /// Creates a type inferrer for use inside of a method body declared in a file
+  /// with the given [uri].
+  TypeInferrer createLocalTypeInferrer(
+      Uri uri, TypeInferenceListener listener, InterfaceType thisType);
+
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
   TypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,
-      InterfaceType thisType, KernelMember member);
+      InterfaceType thisType, ShadowMember member);
 
   /// Performs the second phase of top level initializer inference, which is to
   /// visit all accessors and top level variables that were passed to
@@ -160,10 +217,10 @@ abstract class TypeInferenceEngine {
 
   /// Records that the given initializing [formal] will need top level type
   /// inference.
-  void recordInitializingFormal(KernelVariableDeclaration formal);
+  void recordInitializingFormal(ShadowVariableDeclaration formal);
 
   /// Records that the given [member] will need top level type inference.
-  void recordMember(KernelMember member);
+  void recordMember(ShadowMember member);
 }
 
 /// Derived class containing generic implementations of
@@ -204,7 +261,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   final methodNodes = <MethodNode>[];
 
-  final initializingFormals = <KernelVariableDeclaration>[];
+  final initializingFormals = <ShadowVariableDeclaration>[];
 
   @override
   CoreTypes coreTypes;
@@ -224,7 +281,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     if (candidateOverrides.isNotEmpty) {
       var dependencies = <AccessorNode>[];
       for (var override in candidateOverrides) {
-        var dep = KernelMember.getAccessorNode(override);
+        var dep = ShadowMember.getAccessorNode(override);
         if (dep != null) dependencies.add(dep);
       }
       accessorNode.isImmediatelyEvident = true;
@@ -233,7 +290,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
     // Otherwise its dependencies are based on the initializer expression.
     var member = accessorNode.member;
-    if (member is KernelField) {
+    if (member is ShadowField) {
       if (expandedTopLevelInference) {
         // In expanded top level inference, we determine the dependencies by
         // doing a "dry run" of top level inference and recording which static
@@ -256,7 +313,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         // expressions that are not "immediately evident".
         // TODO(paulberry): get rid of this mode once we are sure we no longer
         // need it.
-        var collector = new KernelDependencyCollector();
+        var collector = new ShadowDependencyCollector();
         collector.collectDependencies(member.initializer);
         accessorNode.isImmediatelyEvident = collector.isImmediatelyEvident;
         return collector.dependencies;
@@ -268,11 +325,212 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
   }
 
+  @override
+  void computeFormalSafety(Class cls) {
+    // First mark all covariant formals as unsafe.
+    // TODO(paulberry): also handle fields
+    for (ShadowProcedure procedure in cls.procedures) {
+      if (procedure.isStatic) continue;
+      void setSafety(VariableDeclaration formal) {
+        if (formal.isCovariant) {
+          formal.formalSafety = FormalSafety.unsafe;
+        }
+      }
+
+      procedure.function.positionalParameters.forEach(setSafety);
+      procedure.function.namedParameters.forEach(setSafety);
+    }
+
+    // If any method in the class has a formal parameter whose type depends on
+    // one of the class's type parameters, then there may be a mismatch between
+    // the type guarantee made by the caller and the type guarantee expected by
+    // the callee.  For instance, consider the code:
+    //
+    // class A<T> {
+    //   foo(List<T> argument) {}
+    // }
+    // class B extends A<num> {
+    //   foo(List<num> argument) {}
+    // }
+    // class C extends B {
+    //   foo(List<Object> argument) {}
+    // }
+    // void bar(A<Object> a) {
+    //   a.foo(<Object>[1, 2.0, 'hi']);
+    // }
+    // void baz(B b) {
+    //   b.foo(<Object>[1, 2.0, 'hi']); // Compile-time error
+    // }
+    //
+    //
+    // At the call site in `bar`, we know that the value passed to `foo` is an
+    // instance of `List<Object>`.  But `bar` might have been called as
+    // `bar(new A<num>())`, in which case passing `List<Object>` to `a.foo` would
+    // violate soundness.  Therefore `A.foo` will have to check the type of its
+    // argument at runtime (unless the back end can prove the check is
+    // unnecessary, e.g. through whole program analysis).
+    //
+    // The same check needs to be compiled into `B.foo`, since it's possible
+    // that `bar` might have been called as `bar(new B())`.
+    //
+    // However, if the call to `foo` occurs via the interface target `B.foo`,
+    // no check is needed, since the class B is not generic, so the front end is
+    // able to check the types completely at compile time and issue an error if
+    // they don't match, as illustrated in `baz`.
+    //
+    // We represent this by marking A.foo's argument as both "semi-typed" and
+    // "semi-safe", whereas B.foo's argument is simply "semi-safe".  The rule is
+    // that a check only needs to be performed if the interface target's
+    // parameter is marked as "semi-typed" AND the actual target's parameter is
+    // marked as "semi-safe".
+    //
+    // A parameter is marked as "semi-typed" if it refers to one of the class's
+    // generic parameters in a covariant position; a parameter is marked as
+    // "semi-safe" if it is semi-typed or it overrides a parameter that is
+    // semi-safe.  (In other words, the "semi-safe" annotation is inherited).
+    //
+    // Note that this a slightly conservative analysis; it mark C.foo's argument
+    // as "semi-safe" even though technically it's not necessary to do so (since
+    // every possible call to C.foo is guaranteed to pass in a subtype of
+    // List<Object>).  In principle we could improve on this, but it would
+    // require a lot of bookkeeping, and it doesn't seem worth it.
+    if (cls.typeParameters.isNotEmpty) {
+      var needsCheckVisitor =
+          new IncludesTypeParametersCovariantly(cls.typeParameters);
+      // TODO(paulberry): also handle fields
+      for (ShadowProcedure procedure in cls.procedures) {
+        if (procedure.isStatic) continue;
+
+        void handleParameter(VariableDeclaration formal) {
+          if (formal.type.accept(needsCheckVisitor)) {
+            if (formal.formalSafety == FormalSafety.safe) {
+              formal.formalSafety = FormalSafety.semiSafe;
+            }
+            formal.interfaceSafety = InterfaceSafety.semiTyped;
+          }
+        }
+
+        void handleTypeParameter(TypeParameter typeParameter) {
+          if (typeParameter.bound.accept(needsCheckVisitor)) {
+            typeParameter.formalSafety = FormalSafety.semiSafe;
+            typeParameter.interfaceSafety = InterfaceSafety.semiTyped;
+          }
+        }
+
+        procedure.function.positionalParameters.forEach(handleParameter);
+        procedure.function.namedParameters.forEach(handleParameter);
+        procedure.function.typeParameters.forEach(handleTypeParameter);
+      }
+    }
+
+    // Now, propagate formal safety from overrides.
+    void propagateParameterSafety(VariableDeclaration declaredFormal,
+        VariableDeclaration interfaceFormal) {
+      if (interfaceFormal.formalSafety.index >
+          declaredFormal.formalSafety.index) {
+        declaredFormal.formalSafety = interfaceFormal.formalSafety;
+      }
+      if (interfaceFormal.isCovariant) {
+        declaredFormal.isCovariant = true;
+      }
+    }
+
+    void propagateTypeParameterSafety(TypeParameter declaredTypeParameter,
+        TypeParameter interfaceTypeParameter) {
+      if (interfaceTypeParameter.formalSafety.index >
+          declaredTypeParameter.formalSafety.index) {
+        declaredTypeParameter.formalSafety =
+            interfaceTypeParameter.formalSafety;
+      }
+    }
+
+    classHierarchy.forEachOverridePair(cls,
+        (Member declaredMember, Member interfaceMember, bool isSetter) {
+      if (!identical(declaredMember.enclosingClass, cls)) return;
+      if (declaredMember.function == null || interfaceMember.function == null) {
+        // TODO(paulberry): handle the case where declaredMember or
+        // interfaceMember is a field.
+        return;
+      }
+      for (int i = 0;
+          i < declaredMember.function.positionalParameters.length &&
+              i < interfaceMember.function.positionalParameters.length;
+          i++) {
+        propagateParameterSafety(
+            declaredMember.function.positionalParameters[i],
+            interfaceMember.function.positionalParameters[i]);
+      }
+      for (var namedParameter in declaredMember.function.namedParameters) {
+        var overriddenParameter =
+            getNamedFormal(interfaceMember.function, namedParameter.name);
+        if (overriddenParameter != null) {
+          propagateParameterSafety(namedParameter, overriddenParameter);
+        }
+      }
+      for (int i = 0;
+          i < declaredMember.function.typeParameters.length &&
+              i < interfaceMember.function.typeParameters.length;
+          i++) {
+        propagateTypeParameterSafety(declaredMember.function.typeParameters[i],
+            interfaceMember.function.typeParameters[i]);
+      }
+    });
+
+    if (instrumentation != null) {
+      // TODO(paulberry): also handle fields
+      for (ShadowProcedure procedure in cls.procedures) {
+        if (procedure.isStatic) continue;
+        void recordFormalAnnotations(VariableDeclaration formal) {
+          if (formal.interfaceSafety != InterfaceSafety.typed) {
+            instrumentation.record(Uri.parse(cls.fileUri), formal.fileOffset,
+                'checkInterface', new InstrumentationValueLiteral('semiTyped'));
+          }
+          if (formal.formalSafety != FormalSafety.safe) {
+            instrumentation.record(
+                Uri.parse(cls.fileUri),
+                formal.fileOffset,
+                'checkFormal',
+                new InstrumentationValueLiteral(
+                    formal.formalSafety == FormalSafety.unsafe
+                        ? 'unsafe'
+                        : 'semiSafe'));
+          }
+        }
+
+        void recordTypeParameterAnnotations(TypeParameter typeParameter) {
+          if (typeParameter.interfaceSafety != InterfaceSafety.typed) {
+            instrumentation.record(
+                Uri.parse(cls.fileUri),
+                typeParameter.fileOffset,
+                'checkInterface',
+                new InstrumentationValueLiteral('semiTyped'));
+          }
+          if (typeParameter.formalSafety != FormalSafety.safe) {
+            instrumentation.record(
+                Uri.parse(cls.fileUri),
+                typeParameter.fileOffset,
+                'checkFormal',
+                new InstrumentationValueLiteral(
+                    typeParameter.formalSafety == FormalSafety.unsafe
+                        ? 'unsafe'
+                        : 'semiSafe'));
+          }
+        }
+
+        procedure.function.positionalParameters
+            .forEach(recordFormalAnnotations);
+        procedure.function.namedParameters.forEach(recordFormalAnnotations);
+        procedure.function.typeParameters
+            .forEach(recordTypeParameterAnnotations);
+      }
+    }
+  }
+
   /// Creates an [AccessorNode] to track dependencies of the given [member].
-  AccessorNode createAccessorNode(KernelMember member);
+  AccessorNode createAccessorNode(ShadowMember member);
 
   /// Creates a [MethodNode] to track dependencies of the given [procedure].
-  MethodNode createMethodNode(KernelProcedure procedure);
+  MethodNode createMethodNode(ShadowProcedure procedure);
 
   @override
   void finishTopLevel() {
@@ -288,7 +546,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         new _AccessorWalker().walk(accessorNode);
       }
     }
-    for (KernelVariableDeclaration formal in initializingFormals) {
+    for (ShadowVariableDeclaration formal in initializingFormals) {
       try {
         formal.type = _inferInitializingFormalType(formal);
       } catch (e, s) {
@@ -304,7 +562,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   /// Retrieve the [TypeInferrer] for the given [member], which was created by
   /// a previous call to [createTopLevelTypeInferrer].
-  TypeInferrerImpl getMemberTypeInferrer(KernelMember member);
+  TypeInferrerImpl getMemberTypeInferrer(ShadowMember member);
 
   /// Performs type inference on the given [accessorNode].
   void inferAccessor(AccessorNode accessorNode) {
@@ -313,13 +571,13 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     var member = accessorNode.member;
     if (strongMode) {
       var typeInferrer = getMemberTypeInferrer(member);
-      if (member is KernelProcedure && member.isSetter) {
-        KernelProcedure.inferSetterReturnType(member, this, typeInferrer.uri);
+      if (member is ShadowProcedure && member.isSetter) {
+        ShadowProcedure.inferSetterReturnType(member, this, typeInferrer.uri);
       }
       if (!accessorNode.isTrivialSetter) {
         var inferredType = tryInferAccessorByInheritance(accessorNode);
         if (inferredType == null) {
-          if (member is KernelField) {
+          if (member is ShadowField) {
             typeInferrer.isImmediatelyEvident = true;
             inferredType = accessorNode.isImmediatelyEvident
                 ? typeInferrer.inferDeclarationType(
@@ -346,7 +604,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     // TODO(paulberry): the following is a hack so that outlines don't contain
     // initializers.  But it means that we rebuild the initializers when doing
     // a full compile.  There should be a better way.
-    if (member is KernelField) {
+    if (member is ShadowField) {
       member.initializer = null;
     }
   }
@@ -362,7 +620,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     // TODO(paulberry): the following is a hack so that outlines don't contain
     // initializers.  But it means that we rebuild the initializers when doing
     // a full compile.  There should be a better way.
-    if (member is KernelField) {
+    if (member is ShadowField) {
       member.initializer = null;
     }
   }
@@ -428,13 +686,13 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   }
 
   @override
-  void recordInitializingFormal(KernelVariableDeclaration formal) {
+  void recordInitializingFormal(ShadowVariableDeclaration formal) {
     initializingFormals.add(formal);
   }
 
   @override
-  void recordMember(KernelMember member) {
-    if (member is KernelProcedure && !member.isGetter && !member.isSetter) {
+  void recordMember(ShadowMember member) {
+    if (member is ShadowProcedure && !member.isGetter && !member.isSetter) {
       methodNodes.add(createMethodNode(member));
     } else {
       accessorNodes.add(createAccessorNode(member));
@@ -460,7 +718,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   List<FunctionType> _computeMethodOverriddenTypes(MethodNode methodNode) {
     var overriddenTypes = <FunctionType>[];
     for (var override in methodNode.overrides) {
-      MethodNode overrideNode = KernelProcedure.getMethodNode(override);
+      MethodNode overrideNode = ShadowProcedure.getMethodNode(override);
       if (overrideNode != null) {
         inferMethodIfNeeded(overrideNode);
       }
@@ -501,7 +759,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   DartType _computeOverriddenAccessorType(
       Member override, AccessorNode accessorNode) {
     if (fusedTopLevelInference) {
-      AccessorNode dependency = KernelMember.getAccessorNode(override);
+      AccessorNode dependency = ShadowMember.getAccessorNode(override);
       if (dependency != null) {
         inferAccessorFused(dependency, accessorNode);
       }
@@ -536,8 +794,8 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         .substituteType(overriddenType);
   }
 
-  DartType _inferInitializingFormalType(KernelVariableDeclaration formal) {
-    assert(KernelVariableDeclaration.isImplicitlyTyped(formal));
+  DartType _inferInitializingFormalType(ShadowVariableDeclaration formal) {
+    assert(ShadowVariableDeclaration.isImplicitlyTyped(formal));
     var enclosingClass = formal.parent?.parent?.parent;
     if (enclosingClass is Class) {
       for (var field in enclosingClass.fields) {
@@ -576,7 +834,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
       return inferredType;
     }
 
-    if (KernelProcedure.hasImplicitReturnType(methodNode.procedure)) {
+    if (ShadowProcedure.hasImplicitReturnType(methodNode.procedure)) {
       var inferredType =
           matchTypes(overriddenTypes.map((type) => type.returnType));
       instrumentation?.record(
@@ -589,7 +847,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     var positionalParameters =
         methodNode.procedure.function.positionalParameters;
     for (int i = 0; i < positionalParameters.length; i++) {
-      if (KernelVariableDeclaration
+      if (ShadowVariableDeclaration
           .isImplicitlyTyped(positionalParameters[i])) {
         // Note that if the parameter is not present in the overridden method,
         // getPositionalParameterType treats it as dynamic.  This is consistent
@@ -618,7 +876,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
     var namedParameters = methodNode.procedure.function.namedParameters;
     for (int i = 0; i < namedParameters.length; i++) {
-      if (KernelVariableDeclaration.isImplicitlyTyped(namedParameters[i])) {
+      if (ShadowVariableDeclaration.isImplicitlyTyped(namedParameters[i])) {
         var name = namedParameters[i].name;
         var inferredType = matchTypes(
             overriddenTypes.map((type) => getNamedParameterType(type, name)));

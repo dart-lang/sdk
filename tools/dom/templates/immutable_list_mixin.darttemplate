@@ -15,11 +15,6 @@ $endif
   $E get first {
     if (this.length > 0) {
       return JS('$EJS', '#[0]', this);
-$if USE_NATIVE_INDEXED_GETTER
-      return $GETTER(0);
-$else
-      return this[0];
-$endif
     }
     throw new StateError("No elements");
   }
@@ -28,11 +23,6 @@ $endif
     int len = this.length;
     if (len > 0) {
       return JS('$EJS', '#[#]', this, len - 1);
-$if USE_NATIVE_INDEXED_GETTER
-      return $GETTER(len - 1);
-$else
-      return this[len - 1];
-$endif
     }
     throw new StateError("No elements");
   }
@@ -41,11 +31,6 @@ $endif
     int len = this.length;
     if (len == 1) {
       return JS('$EJS', '#[0]', this);
-$if USE_NATIVE_INDEXED_GETTER
-      return $GETTER(0);
-$else
-      return this[0];
-$endif
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");

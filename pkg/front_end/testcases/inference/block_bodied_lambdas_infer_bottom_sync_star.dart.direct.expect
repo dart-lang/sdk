@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  dynamic f = () → dynamic sync* {
+  dynamic f = () → core::Iterable<dynamic> sync* {
     yield null;
   };
   core::Iterable<dynamic> y = f.call();

@@ -11,6 +11,7 @@ part of dart._js_helper;
 //const _USE_ES6_MAPS = const bool.fromEnvironment("dart2js.use.es6.maps");
 
 class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap<K, V> {
+  @notNull
   int _length = 0;
 
   // The hash map contents are divided into three parts: one part for
@@ -27,8 +28,8 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap<K, V> {
 
   // The keys and values are stored in cells that are linked together
   // to form a double linked list.
-  LinkedHashMapCell/*<K, V>*/ _first;
-  LinkedHashMapCell/*<K, V>*/ _last;
+  LinkedHashMapCell<K, V> _first;
+  LinkedHashMapCell<K, V> _last;
 
   // We track the number of modifications done to the key set of the
   // hash map to be able to throw when the map is modified while being
@@ -51,8 +52,11 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap<K, V> {
     return new JsLinkedHashMap<K, V>();
   }
 
+  @notNull
   int get length => _length;
+  @notNull
   bool get isEmpty => _length == 0;
+  @notNull
   bool get isNotEmpty => !isEmpty;
 
   Iterable<K> get keys {
@@ -63,6 +67,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap<K, V> {
     return new MappedIterable<K, V>(keys, (each) => this[each]);
   }
 
+  @notNull
   bool containsKey(Object key) {
     if (_isStringKey(key)) {
       var strings = _strings;
@@ -77,6 +82,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap<K, V> {
     }
   }
 
+  @notNull
   bool internalContainsKey(Object key) {
     var rest = _rest;
     if (rest == null) return false;
@@ -269,10 +275,12 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap<K, V> {
     _modified();
   }
 
+  @notNull
   static bool _isStringKey(var key) {
     return key is String;
   }
 
+  @notNull
   static bool _isNumericKey(var key) {
     // Only treat unsigned 30-bit integers as numeric keys. This way,
     // we avoid converting them to strings when we use them as keys in
@@ -292,6 +300,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap<K, V> {
     return _getTableBucket(table, hash);
   }
 
+  @notNull
   int internalFindBucketIndex(var bucket, var key) {
     if (bucket == null) return -1;
     int length = JS('int', '#.length', bucket);
@@ -321,6 +330,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap<K, V> {
     JS('void', 'delete #[#]', table, key);
   }
 
+  @notNull
   bool _containsTableEntry(var table, var key) {
     LinkedHashMapCell/*<K, V>*/ cell = _getTableCell(table, key);
     return cell != null;

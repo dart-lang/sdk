@@ -8,7 +8,7 @@ static method main() → dynamic {
     throw "Fisk";
   }
   on core::String catch(dynamic #t1, dynamic #t2) {
-    final Vector #context = MakeVector(4);
+    final dynamic #context = MakeVector(4);
     #context[2] = #t1;
     #context[3] = #t2;
     c = MakeClosure<() → dynamic>(self::closure#main#function, #context);
@@ -16,7 +16,7 @@ static method main() → dynamic {
   c.call();
   core::print("TEST PASSED");
 }
-static method closure#main#function(Vector #contextParameter) → dynamic {
+static method closure#main#function(dynamic #contextParameter) → dynamic {
   core::print(#contextParameter[2]);
   if(!(#contextParameter[3]).==(null))
     core::print(#contextParameter[3]);

@@ -4,10 +4,11 @@
 
 import 'dart:async';
 
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/incremental/file_state.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:package_config/packages.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -34,8 +35,8 @@ class FileSystemStateTest {
         new UriTranslatorImpl(createSdkFiles(fileSystem), Packages.noPackages);
     _coreUri = Uri.parse('dart:core');
     expect(_coreUri, isNotNull);
-    fsState = new FileSystemState(byteStore, fileSystem, uriTranslator, <int>[],
-        (uri) {
+    fsState = new FileSystemState(byteStore, fileSystem,
+        new NoneTarget(new TargetFlags()), uriTranslator, <int>[], (uri) {
       _newFileUris.add(uri);
       return new Future.value();
     });
@@ -223,62 +224,6 @@ part "c.dart";
     expect(bFile.partFiles, isEmpty);
   }
 
-  test_getFile_exports() async {
-    var a = writeFile('/a.dart', '');
-    var b = writeFile('/b.dart', '');
-    var c = writeFile('/c.dart', '');
-    var d = writeFile('/d.dart', r'''
-export "a.dart" show A, B;
-export "b.dart" hide C, D;
-export "c.dart" show A, B, C, D hide C show A, D;
-''');
-
-    FileState aFile = await fsState.getFile(a);
-    FileState bFile = await fsState.getFile(b);
-    FileState cFile = await fsState.getFile(c);
-    FileState dFile = await fsState.getFile(d);
-
-    expect(dFile.exports, hasLength(3));
-    {
-      NamespaceExport export_ = dFile.exports[0];
-      expect(export_.library, aFile);
-      expect(export_.combinators, hasLength(1));
-      expect(export_.combinators[0].isShow, isTrue);
-      expect(export_.combinators[0].names, unorderedEquals(['A', 'B']));
-      expect(export_.isExposed('A'), isTrue);
-      expect(export_.isExposed('B'), isTrue);
-      expect(export_.isExposed('C'), isFalse);
-      expect(export_.isExposed('D'), isFalse);
-    }
-    {
-      NamespaceExport export_ = dFile.exports[1];
-      expect(export_.library, bFile);
-      expect(export_.combinators, hasLength(1));
-      expect(export_.combinators[0].isShow, isFalse);
-      expect(export_.combinators[0].names, unorderedEquals(['C', 'D']));
-      expect(export_.isExposed('A'), isTrue);
-      expect(export_.isExposed('B'), isTrue);
-      expect(export_.isExposed('C'), isFalse);
-      expect(export_.isExposed('D'), isFalse);
-    }
-    {
-      NamespaceExport export_ = dFile.exports[2];
-      expect(export_.library, cFile);
-      expect(export_.combinators, hasLength(3));
-      expect(export_.combinators[0].isShow, isTrue);
-      expect(
-          export_.combinators[0].names, unorderedEquals(['A', 'B', 'C', 'D']));
-      expect(export_.combinators[1].isShow, isFalse);
-      expect(export_.combinators[1].names, unorderedEquals(['C']));
-      expect(export_.combinators[2].isShow, isTrue);
-      expect(export_.combinators[2].names, unorderedEquals(['A', 'D']));
-      expect(export_.isExposed('A'), isTrue);
-      expect(export_.isExposed('B'), isFalse);
-      expect(export_.isExposed('C'), isFalse);
-      expect(export_.isExposed('D'), isTrue);
-    }
-  }
-
   test_hasMixinApplication_false() async {
     writeFile('/a.dart', r'''
 class A {}
@@ -369,6 +314,12 @@ class C {}
     expect(lib.hasMixinApplicationLibrary, isTrue);
   }
 
+  test_lineStarts() async {
+    var uri = writeFile('/a.dart', '000\n1111\r\n22\n');
+    FileState file = await fsState.getFile(uri);
+    expect(file.lineStarts, [0, 4, 10, 13]);
+  }
+
   test_newFileListener() async {
     var a = writeFile('/a.dart', '');
     var b = writeFile('/b.dart', '');
@@ -414,6 +365,12 @@ import 'b.dart';
     expect(cycles[1].libraries, unorderedEquals([a]));
     expect(cycles[2].libraries, unorderedEquals([b, c]));
     expect(cycles[3].libraries, unorderedEquals([d]));
+
+    expect(cycles[0].directDependencies, isEmpty);
+    expect(cycles[1].directDependencies, unorderedEquals([cycles[0]]));
+    expect(cycles[2].directDependencies, unorderedEquals([cycles[0]]));
+    expect(cycles[3].directDependencies,
+        unorderedEquals([cycles[0], cycles[1], cycles[2]]));
 
     expect(cycles[0].directUsers,
         unorderedEquals([cycles[1], cycles[2], cycles[3]]));

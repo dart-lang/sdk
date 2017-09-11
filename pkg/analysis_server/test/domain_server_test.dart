@@ -8,11 +8,9 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 
 import 'mocks.dart';
@@ -25,14 +23,10 @@ main() {
   setUp(() {
     serverChannel = new MockServerChannel();
     var resourceProvider = new MemoryResourceProvider();
-    ExtensionManager manager = new ExtensionManager();
-    ServerPlugin serverPlugin = new ServerPlugin();
-    manager.processPlugins([serverPlugin]);
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
         new MockPackageMapProvider(),
-        serverPlugin,
         new AnalysisServerOptions(),
         new DartSdkManager('', false),
         InstrumentationService.NULL_SERVICE);

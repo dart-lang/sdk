@@ -9199,7 +9199,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
     } else if (_type != null) {
       return _type.beginToken;
     }
-    return identifier.beginToken;
+    return identifier?.beginToken;
   }
 
   @override

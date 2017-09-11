@@ -716,20 +716,21 @@ final Matcher isImportedElements = new LazyMatcher(() => new MatchesJsonObject(
  *
  * {
  *   "source": KytheVName
- *   "kind": String
- *   "target": KytheVName
+ *   "kind": optional String
+ *   "target": optional KytheVName
  *   "fact": String
- *   "value": List<int>
+ *   "value": optional List<int>
  * }
  */
-final Matcher isKytheEntry =
-    new LazyMatcher(() => new MatchesJsonObject("KytheEntry", {
-          "source": isKytheVName,
-          "kind": isString,
-          "target": isKytheVName,
-          "fact": isString,
-          "value": isListOf(isInt)
-        }));
+final Matcher isKytheEntry = new LazyMatcher(() => new MatchesJsonObject(
+        "KytheEntry", {
+      "source": isKytheVName,
+      "fact": isString
+    }, optionalFields: {
+      "kind": isString,
+      "target": isKytheVName,
+      "value": isListOf(isInt)
+    }));
 
 /**
  * KytheVName

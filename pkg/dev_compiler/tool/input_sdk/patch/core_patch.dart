@@ -11,13 +11,14 @@ import 'dart:_js_helper'
         checkInt,
         getRuntimeType,
         getTraceFromException,
-        jsonEncodeNative,
         JsLinkedHashMap,
         JSSyntaxRegExp,
         NoInline,
-        objectHashCode,
-        Primitives,
-        stringJoinUnchecked;
+        notNull,
+        nullCheck,
+        Primitives;
+
+import 'dart:_runtime' as dart;
 
 import 'dart:_foreign_helper' show JS;
 
@@ -26,7 +27,17 @@ import 'dart:_native_typed_data' show NativeUint8List;
 String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
 
 @patch
-int identityHashCode(Object object) => objectHashCode(object);
+int identityHashCode(Object object) {
+  if (object == null) return 0;
+  // Note: this works for primitives because we define the `identityHashCode`
+  // for them to be equivalent to their computed hashCode function.
+  int hash = JS('int|Null', r'#[#]', object, dart.identityHashCode_);
+  if (hash == null) {
+    hash = JS('int', '(Math.random() * 0x3fffffff) | 0');
+    JS('void', r'#[#] = #', object, dart.identityHashCode_, hash);
+  }
+  return JS('int', '#', hash);
+}
 
 // Patch for Object implementation.
 @patch
@@ -35,20 +46,19 @@ class Object {
   bool operator ==(other) => identical(this, other);
 
   @patch
-  int get hashCode => Primitives.objectHashCode(this);
+  int get hashCode => identityHashCode(this);
 
   @patch
-  String toString() => Primitives.objectToString(this);
+  String toString() =>
+      "Instance of '${dart.wrapType(dart.getReifiedType(this))}'";
 
   @patch
-  dynamic noSuchMethod(Invocation invocation) {
-    throw new NoSuchMethodError(this, invocation.memberName,
-        invocation.positionalArguments, invocation.namedArguments);
+  noSuchMethod(Invocation invocation) {
+    return dart.defaultNoSuchMethod(this, invocation);
   }
 
   @patch
-  Type get runtimeType =>
-      JS('Type', 'dart.wrapType(dart.getReifiedType(#))', this);
+  Type get runtimeType => dart.wrapType(dart.getReifiedType(this));
 }
 
 @patch
@@ -150,12 +160,12 @@ class double {
 class Error {
   @patch
   static String _objectToString(Object object) {
-    return Primitives.objectToString(object);
+    return "Instance of '${dart.wrapType(dart.getReifiedType(object))}'";
   }
 
   @patch
   static String _stringToSafeString(String string) {
-    return jsonEncodeNative(string);
+    return JS("String", "JSON.stringify(#)", string);
   }
 
   @patch
@@ -176,9 +186,6 @@ class AbstractClassInstantiationError {
   @patch
   String toString() => "Cannot instantiate abstract class: '$_className'";
 }
-
-/// An interface type for all Strong-mode errors.
-class StrongModeError extends Error {}
 
 // Patch for DateTime implementation.
 @patch
@@ -319,48 +326,59 @@ class Stopwatch {
 @patch
 class List<E> {
   @patch
-  factory List([int length]) {
+  factory List([int _length = dart.undefined]) {
     dynamic list;
-    if (length == null) {
+    if (JS('bool', '# === void 0', _length)) {
       list = JS('', '[]');
     } else {
-      // Explicit type test is necessary to guard against JavaScript conversions
-      // in unchecked mode.
-      if ((length is! int) || (length < 0)) {
+      var length = JS('int', '#', _length);
+      if (_length == null || length < 0) {
         throw new ArgumentError(
-            "Length must be a non-negative integer: $length");
+            "Length must be a non-negative integer: $_length");
       }
-      list = JSArray.markFixedList(JS('', 'new Array(#)', length));
+      list = JS('', 'new Array(#)', length);
+      JSArray.markFixedList(list);
     }
     return new JSArray<E>.of(list);
   }
 
   @patch
-  factory List.filled(int length, E fill, {bool growable: true}) {
-    List<E> result = new List<E>(length);
+  factory List.filled(@nullCheck int length, E fill, {bool growable: false}) {
+    var list = new JSArray<E>.of(JS('', 'new Array(#)', length));
     if (length != 0 && fill != null) {
-      for (int i = 0; i < result.length; i++) {
-        result[i] = fill;
+      @notNull
+      var length = list.length;
+      for (int i = 0; i < length; i++) {
+        list[i] = fill;
       }
     }
-    if (growable) return result;
-    return makeListFixedLength/*<E>*/(result);
+    if (!growable) JSArray.markFixedList(list);
+    return list;
   }
 
   @patch
   factory List.from(Iterable elements, {bool growable: true}) {
-    List<E> list = new List<E>();
-    for (var e in elements) {
-      list.add(e);
+    var list = new JSArray<E>.of(JS('', '[]'));
+    // Specialize the copy loop for the case that doesn't need a
+    // runtime check.
+    if (elements is Iterable<E>) {
+      for (var e in elements) {
+        list.add(e);
+      }
+    } else {
+      for (var e in elements) {
+        list.add(e as E);
+      }
     }
-    if (growable) return list;
-    return makeListFixedLength/*<E>*/(list);
+    if (!growable) JSArray.markFixedList(list);
+    return list;
   }
 
   @patch
   factory List.unmodifiable(Iterable elements) {
-    var result = new List<E>.from(elements, growable: false);
-    return makeFixedListUnmodifiable/*<E>*/(result);
+    var list = new List<E>.from(elements);
+    JSArray.markUnmodifiableList(list);
+    return list;
   }
 }
 

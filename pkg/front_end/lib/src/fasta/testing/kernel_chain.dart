@@ -70,8 +70,7 @@ class Verify extends Step<Program, Program, ChainContext> {
   String get name => "verify";
 
   Future<Result<Program>> run(Program program, ChainContext context) async {
-    var options =
-        new ProcessedOptions(new CompilerOptions()..throwOnErrors = false);
+    var options = new ProcessedOptions(new CompilerOptions());
     return await CompilerContext.runWithOptions(options, (_) async {
       var errors = verifyProgram(program, isOutline: !fullCompile);
       if (errors.isEmpty) {

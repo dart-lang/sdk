@@ -4414,7 +4414,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult visitLabeledStatement(LabeledStatement node) {
     Statement body = node.statement;
     JumpTarget targetElement = getOrDefineTarget(body);
-    Map<String, LabelDefinition> labelElements = <String, LabelDefinition>{};
+    Map<String, LabelDefinitionX> labelElements = <String, LabelDefinitionX>{};
     for (Label label in node.labels) {
       String labelName = label.labelName;
       if (labelElements.containsKey(labelName)) continue;
@@ -4424,7 +4424,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     statementScope.enterLabelScope(labelElements);
     visit(node.statement);
     statementScope.exitLabelScope();
-    labelElements.forEach((String labelName, LabelDefinition element) {
+    labelElements.forEach((String labelName, LabelDefinitionX element) {
       if (element.isTarget) {
         registry.defineLabel(element.label, element);
       } else {
@@ -4616,7 +4616,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     node.expression.accept(this);
 
     JumpTarget breakElement = getOrDefineTarget(node);
-    Map<String, LabelDefinition> continueLabels = <String, LabelDefinition>{};
+    Map<String, LabelDefinitionX> continueLabels = <String, LabelDefinitionX>{};
     Set<SwitchCase> switchCasesWithContinues = new Set<SwitchCase>();
     Link<Node> cases = node.cases.nodes;
     while (!cases.isEmpty) {
@@ -4630,7 +4630,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         Label label = labelOrCase;
         String labelName = label.labelName;
 
-        LabelDefinition existingElement = continueLabels[labelName];
+        LabelDefinitionX existingElement = continueLabels[labelName];
         if (existingElement != null) {
           // It's an error if the same label occurs twice in the same switch.
           reporter.reportError(
@@ -4694,7 +4694,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     });
 
     // Clean-up unused labels.
-    continueLabels.forEach((String key, LabelDefinition label) {
+    continueLabels.forEach((String key, LabelDefinitionX label) {
       if (!label.isContinueTarget) {
         JumpTarget targetElement = label.target;
         SwitchCase switchCase = targetElement.statement;

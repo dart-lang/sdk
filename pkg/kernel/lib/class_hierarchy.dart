@@ -88,6 +88,16 @@ abstract class ClassHierarchy {
   /// member from the first declared supertype is returned.
   Member getInterfaceMember(Class class_, Name name, {bool setter: false});
 
+  /// Returns the list of members denoting the interface for [class_], which
+  /// may include abstract members.
+  ///
+  /// The list may contain multiple members with a given name.  This happens
+  /// when members are inherited through different supertypes and not overridden
+  /// in the class.
+  ///
+  /// Also see [getInterfaceMember].
+  List<Member> getInterfaceMembers(Class class_, {bool setters: false});
+
   /// Invokes [callback] for every member declared in or inherited by [class_]
   /// that overrides or implements a member in a supertype of [class_]
   /// (or in rare cases, overrides a member declared in [class_]).
@@ -379,20 +389,37 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     return setters ? info.implementedSetters : info.implementedGettersAndCalls;
   }
 
+  /// Returns the single concrete target for invocation of the given interface
+  /// target, or `null` if it could not be resolved or there are multiple
+  /// possible targets.
+  Member getSingleTargetForInterfaceInvocation(Member interfaceTarget,
+      {bool setter: false}) {
+    Name name = interfaceTarget.name;
+    Member target = null;
+    ClassSet subtypes = getSubtypesOf(interfaceTarget.enclosingClass);
+    // TODO(alexmarkov): Implement more efficient way to iterate subtypes.
+    for (Class c in classes) {
+      if (subtypes.contains(c) && !c.isAbstract) {
+        Member candidate = getDispatchTarget(c, name, setter: setter);
+        if ((candidate != null) && !candidate.isAbstract) {
+          if (target == null) {
+            target = candidate;
+          } else if (target != candidate) {
+            return null;
+          }
+        }
+      }
+    }
+    return target;
+  }
+
   @override
   Member getInterfaceMember(Class class_, Name name, {bool setter: false}) {
     List<Member> list = getInterfaceMembers(class_, setters: setter);
     return _findMemberByName(list, name);
   }
 
-  /// Returns the list of members denoting the interface for [class_], which
-  /// may include abstract members.
-  ///
-  /// The list may contain multiple members with a given name.  This happens
-  /// when members are inherited through different supertypes and not overridden
-  /// in the class.
-  ///
-  /// Also see [getInterfaceMember].
+  @override
   List<Member> getInterfaceMembers(Class class_, {bool setters: false}) {
     return _buildInterfaceMembers(class_, _infoFor[class_], setters: setters);
   }

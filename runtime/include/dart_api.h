@@ -518,49 +518,6 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
     Dart_WeakPersistentHandle object);
 
 /*
- * ============================
- * Garbage Collection Callbacks
- * ============================
- */
-
-/**
- * Callbacks signal the beginning and end of a garbage collection.
- *
- * These signals are intended to be used by the embedder to manage the
- * lifetime of native objects with a managed object peer.
- */
-
-/**
- * A callback invoked at the beginning of a garbage collection.
- */
-typedef void (*Dart_GcPrologueCallback)();
-
-/**
- * A callback invoked at the end of a garbage collection.
- */
-typedef void (*Dart_GcEpilogueCallback)();
-
-/**
- * Adds garbage collection callbacks (prologue and epilogue).
- *
- * \param prologue_callback A function pointer to a prologue callback function.
- *   A prologue callback function should not be already set when this function
- *   is called. A NULL value removes the existing prologue callback function
- *   if any.
- *
- * \param epilogue_callback A function pointer to an epilogue callback function.
- *   An epilogue callback function should not be already set when this function
- *   is called. A NULL value removes the existing epilogue callback function
- *   if any.
- *
- * \return Success if the callbacks were added.  Otherwise, returns an
- *   error handle.
- */
-DART_EXPORT Dart_Handle
-Dart_SetGcCallbacks(Dart_GcPrologueCallback prologue_callback,
-                    Dart_GcEpilogueCallback epilogue_callback);
-
-/*
  * ==========================
  * Initialization and Globals
  * ==========================
@@ -575,6 +532,12 @@ Dart_SetGcCallbacks(Dart_GcPrologueCallback prologue_callback,
  */
 DART_EXPORT const char* Dart_VersionString();
 
+typedef struct {
+  const char* library_uri;
+  const char* class_name;
+  const char* function_name;
+} Dart_QualifiedFunctionName;
+
 /**
  * Isolate specific flags are set when creating a new isolate using the
  * Dart_IsolateFlags structure.
@@ -583,7 +546,7 @@ DART_EXPORT const char* Dart_VersionString();
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x00000003)
+#define DART_FLAGS_CURRENT_VERSION (0x00000004)
 
 typedef struct {
   int32_t version;
@@ -594,7 +557,14 @@ typedef struct {
   bool use_field_guards;
   bool use_osr;
   bool use_dart_frontend;
+  bool obfuscate;
+  Dart_QualifiedFunctionName* entry_points;
 } Dart_IsolateFlags;
+
+/**
+ * Initialize Dart_IsolateFlags with correct version and default values.
+ */
+DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags);
 
 /**
  * An isolate creation and initialization callback function.
@@ -3192,12 +3162,6 @@ DART_EXPORT Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer,
 DART_EXPORT Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer,
                                              intptr_t* buffer_length);
 
-typedef struct {
-  const char* library_uri;
-  const char* class_name;
-  const char* function_name;
-} Dart_QualifiedFunctionName;
-
 /**
  * Compiles all functions reachable from the provided entry points and marks
  * the isolate to disallow future compilation.
@@ -3322,6 +3286,18 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
     intptr_t* isolate_snapshot_data_size,
     uint8_t** isolate_snapshot_instructions_buffer,
     intptr_t* isolate_snapshot_instructions_size);
+
+/**
+ * Get obfuscation map for precompiled code.
+ *
+ * Obfuscation map is encoded as a JSON array of pairs (original name,
+ * obfuscated name).
+ *
+ * \return Returns an error handler if the VM was built in a mode that does not
+ * support obfuscation.
+ */
+DART_EXPORT Dart_Handle Dart_GetObfuscationMap(uint8_t** buffer,
+                                               intptr_t* buffer_length);
 
 /**
  *  Returns whether the VM only supports running from precompiled snapshots and

@@ -226,6 +226,25 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitFieldDeclaration(FieldDeclaration node) {
+    VariableDeclarationList fields = node.fields;
+    NodeList<VariableDeclaration> variables = fields.variables;
+    if (variables.length != 1 ||
+        !variables[0].name.isSynthetic ||
+        fields.type == null) {
+      return;
+    }
+    if (entity != fields) {
+      return;
+    }
+    List<Keyword> keywords = <Keyword>[Keyword.CONST, Keyword.FINAL];
+    if (!node.isStatic) {
+      keywords.add(Keyword.STATIC);
+    }
+    _addSuggestions(keywords);
+  }
+
+  @override
   visitForEachStatement(ForEachStatement node) {
     if (entity == node.inKeyword) {
       Token previous = node.inKeyword.previous;

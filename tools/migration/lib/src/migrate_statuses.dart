@@ -107,6 +107,12 @@ class EntrySet {
       return false;
     }
 
+    // The main "_strong.status" files skip lots of tests that are or were not
+    // strong mode clean. We don't want to skip those tests in 2.0 -- we want
+    // to fix them. If we're in that header, do remove the entry from the old
+    // file, but don't add it to the new one.
+    if (header == "[ \$strong ]") return true;
+
     // If the condition places it directly into one file, put it there.
     if (possibleFiles.length == 1) {
       destination = "${toDir}_${possibleFiles.single}.status";
@@ -171,7 +177,10 @@ void _collectEntries(List<Fork> files, EntrySet entriesToMove, {bool isOne}) {
 
       // TODO(rnystrom): If all of the entries are deleted from a section, it
       // would be nice to delete the section header too.
-      editable.delete(deleteLines);
+      // We don't delete entries from the 1.0 status files so that we can keep
+      // testing 1.0, but we do from the "_strong" directories since those
+      // should get migrated fully into "_2".
+      if (!isOne) editable.delete(deleteLines);
     }
   }
 }

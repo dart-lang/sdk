@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(TARGET_ARCH_IA32)
+#if defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
 
-#include "vm/assembler.h"
-#include "vm/compiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
-#include "vm/flow_graph_compiler.h"
 #include "vm/heap.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
@@ -91,12 +91,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ LeaveFrame();
   __ ret();
 }
-
-// Print the stop message.
-DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {
-  OS::Print("Stop message: %s\n", message);
-}
-END_LEAF_RUNTIME_ENTRY
 
 // Input parameters:
 //   ESP : points to return address.
@@ -1998,7 +1992,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ movl(EBX, FieldAddress(ECX, MegamorphicCache::mask_offset()));
   __ movl(EDI, FieldAddress(ECX, MegamorphicCache::buckets_offset()));
   // EDI: cache buckets array.
-  // EBX: mask.
+  // EBX: mask as a smi.
 
   // Tag cid as a smi.
   __ addl(EAX, EAX);
@@ -2033,7 +2027,8 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 
   __ Bind(&probe_failed);
   // Probe failed, check if it is a miss.
-  __ cmpl(FieldAddress(EDI, EDX, TIMES_4, base), Immediate(kIllegalCid));
+  __ cmpl(FieldAddress(EDI, EDX, TIMES_4, base),
+          Immediate(Smi::RawValue(kIllegalCid)));
   __ j(ZERO, &load_target, Assembler::kNearJump);
 
   // Try next entry in the table.
@@ -2081,4 +2076,4 @@ void StubCode::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
 
 }  // namespace dart
 
-#endif  // defined TARGET_ARCH_IA32
+#endif  // defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)

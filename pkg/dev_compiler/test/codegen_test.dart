@@ -87,7 +87,7 @@ main(List<String> arguments) {
   var sharedCompiler = new ModuleCompiler(new AnalyzerOptions.basic(
       dartSdkSummaryPath: sdkSummaryFile, summaryPaths: summaryPaths));
 
-  var testDirs = ['language', 'corelib', 'lib'];
+  var testDirs = ['language', 'corelib_2', 'lib'];
 
   // Copy all of the test files and expanded multitest files to
   // gen/codegen_tests. We'll compile from there.

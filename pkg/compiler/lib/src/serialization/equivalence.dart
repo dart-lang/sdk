@@ -13,6 +13,7 @@ import '../constants/values.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/modelx.dart';
 import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
@@ -1243,7 +1244,7 @@ class TreeElementsEquivalenceVisitor extends Visitor {
   }
 
   bool testLabelDefinitions(Node node1, Node node2, String property,
-      LabelDefinition a, LabelDefinition b) {
+      LabelDefinitionX a, LabelDefinitionX b) {
     if (identical(a, b)) return true;
     if (a == null || b == null) return false;
     return strategy.test(a, b, 'label', indices1.nodeIndices[a.label],

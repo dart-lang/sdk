@@ -7,11 +7,11 @@
 #include "lib/invocation_mirror.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
-#include "vm/compiler.h"
+#include "vm/compiler/frontend/kernel_to_il.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
-#include "vm/kernel_to_il.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
@@ -349,7 +349,7 @@ static RawInstance* CreateLibraryMirror(Thread* thread, const Library& lib) {
   args.SetAt(1, str);
   str = lib.url();
   const char* censored_libraries[] = {
-      "dart:_builtin", "dart:_blink", "dart:_vmservice", NULL,
+      "dart:_builtin", "dart:_vmservice", NULL,
   };
   for (intptr_t i = 0; censored_libraries[i] != NULL; i++) {
     if (str.Equals(censored_libraries[i])) {

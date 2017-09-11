@@ -30,6 +30,8 @@ abstract class CompletionMixin implements ServerPlugin {
   /**
    * Return the completion request that should be passes to the contributors
    * returned from [getCompletionContributors].
+   *
+   * Throw a [RequestFailure] if the request could not be created.
    */
   Future<CompletionRequest> getCompletionRequest(
       CompletionGetSuggestionsParams parameters);
@@ -62,14 +64,7 @@ abstract class DartCompletionMixin implements CompletionMixin {
   @override
   Future<CompletionRequest> getCompletionRequest(
       CompletionGetSuggestionsParams parameters) async {
-    String path = parameters.file;
-    AnalysisDriver driver = driverForPath(path);
-    if (driver == null) {
-      // Return an error from the request.
-      throw new RequestFailure(
-          RequestErrorFactory.pluginError('Failed to analyze $path', null));
-    }
-    ResolveResult result = await driver.getResult(parameters.file);
+    ResolveResult result = await getResolveResult(parameters.file);
     return new DartCompletionRequestImpl(
         resourceProvider, parameters.offset, result);
   }

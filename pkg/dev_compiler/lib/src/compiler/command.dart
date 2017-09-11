@@ -4,10 +4,7 @@
 
 import 'dart:io';
 import 'package:analyzer/src/command_line/arguments.dart'
-    show
-        defineAnalysisArguments,
-        filterUnknownArguments,
-        ignoreUnrecognizedFlagsFlag;
+    show defineAnalysisArguments, ignoreUnrecognizedFlagsFlag;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show ConflictingSummaryException, InSummarySource;

@@ -1120,6 +1120,35 @@ const C = a.m;''');
     verify([source]);
   }
 
+  test_constEvalThrowsException_assertInitializer_false() async {
+    resetWith(
+        options: new AnalysisOptionsImpl()..enableAssertInitializer = true);
+    Source source = addSource(r'''
+class A {
+  const A(int p) : assert(p != 0);
+}
+const a = const A(0);
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_ASSERT_FALSE]);
+    verify([source]);
+  }
+
+  test_constEvalThrowsException_assertInitializer_notBool() async {
+    resetWith(
+        options: new AnalysisOptionsImpl()..enableAssertInitializer = true);
+    Source source = addSource(r'''
+class A<T> {
+  const A(T p) : assert(p);
+}
+const a = const A(0);
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.CONST_EVAL_THROWS_ASSERT_NOT_BOOL]);
+    verify([source]);
+  }
+
   test_constEvalThrowsException_binaryMinus_null() async {
     await _check_constEvalThrowsException_binary_null("null - 5", false);
     await _check_constEvalThrowsException_binary_null("5 - null", true);
@@ -6113,6 +6142,18 @@ var s5 = const Symbol('x', foo: 'x');''');
     verify([source]);
   }
 
+  test_test_fieldInitializerOutsideConstructor_topLevelFunction() async {
+    Source source = addSource(r'''
+f(this.x(y)) {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+      CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+    ]);
+    verify([source]);
+  }
+
   test_typeAliasCannotReferenceItself_11987() async {
     Source source = addSource(r'''
 typedef void F(List<G> l);
@@ -6141,6 +6182,14 @@ typedef D F();
 ''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_typeAliasCannotReferenceItself_functionTypedParameter_returnType() async {
+    Source source = addSource("typedef A(A b());");
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
     verify([source]);
   }
 

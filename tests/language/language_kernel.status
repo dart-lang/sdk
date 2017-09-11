@@ -76,7 +76,6 @@ config_import_test: RuntimeError # KernelVM bug: Configurable imports.
 library_env_test/has_html_support: RuntimeError # KernelVM bug: Configurable imports.
 library_env_test/has_no_io_support: RuntimeError # KernelVM bug: Configurable imports.
 
-compile_time_constant_c_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_map2_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_map3_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
@@ -92,9 +91,6 @@ switch_case_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation
 switch_case_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 
-compile_time_constant_k_test/01: RuntimeError # KernelVM bug: Constant map duplicated key.
-compile_time_constant_k_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
-compile_time_constant_k_test/03: RuntimeError # KernelVM bug: Constant map duplicated key.
 compile_time_constant_o_test/01: RuntimeError # KernelVM bug: Constant map duplicated key.
 compile_time_constant_o_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
 const_dynamic_type_literal_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
@@ -153,8 +149,8 @@ constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer r
 
 malformed_test/none: RuntimeError # Fasta bug: Leads to assertion error in Fasta.
 
-export_double_same_main_test: CompileTimeError # Issue 29989
-export_main_test: CompileTimeError # Issue 29989
+export_double_same_main_test: RuntimeError # Issue 29989
+export_main_test: RuntimeError # Issue 29989
 
 const_constructor_nonconst_field_test/01: MissingCompileTimeError # Fasta bug: Non-const expression in field initializer.
 
@@ -168,7 +164,6 @@ const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
 
 constants_test/05: Crash # Fasta bug: getter call in compile-time constant.
 
-generalized_void_syntax_test: CompileTimeError # Issue #30176.
 
 syntax_test/none: CompileTimeError # Issue #30176.
 
@@ -193,40 +188,55 @@ const_locals_test: RuntimeError
 const_string_test: RuntimeError
 const_syntax_test/08: MissingCompileTimeError
 ct_const2_test: Pass, Crash # Flaky
-hello_dart_test: Crash
 library_env_test/has_no_mirror_support: RuntimeError
 redirecting_factory_reflection_test: Crash
 redirecting_factory_reflection_test: RuntimeError
 setter_declaration2_negative_test: DartkCrash
 setter_declaration_negative_test: Fail
-vm/lazy_deopt_vm_test: Pass, Slow, Timeout
-vm/optimized_stacktrace_test: Skip # Issue 28788
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $mode == debug ]
 deopt_inlined_function_lazy_test: Skip
-hello_dart_test: Crash  # error: expected: cls.is_type_finalized()
-vm/lazy_deopt_vm_test: Crash
 
 # dartk: precompilation failures
 [ $compiler == dartkp ]
+const_conditional_test/08: Crash
 const_syntax_test/08: Crash
-final_syntax_test/09: MissingCompileTimeError
-ref_before_declaration_test/none: Crash
+const_syntax_test/09: Crash
+const_syntax_test/10: Crash
+factory3_test: Crash
+final_syntax_test/09: Crash
+implicit_closure1_test: Crash
+named_parameters_type_test/01: Crash
+named_parameters_type_test/02: Crash
+named_parameters_type_test/03: Crash
+named_parameters_type_test/none: Crash
+positional_parameters_type_test/01: Crash
+positional_parameters_type_test/02: Crash
+positional_parameters_type_test/none: Crash
+ref_before_declaration_test/none: Pass
 setter_declaration2_negative_test: Crash
 setter_declaration_negative_test: Crash
+stacktrace_demangle_ctors_test: RuntimeError
+type_checks_in_factory_method_test: Crash
+vm/integer_type_propagation_test: Crash
+vm/optimized_stacktrace_test: Crash
+vm/regress_27671_test: Crash
+vm/type_vm_test: Crash
+
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $mode == debug ]
 external_test/13: Crash
 final_syntax_test/09: Crash
-regress_22445_test: Crash
-regress_23498_test: Crash
+malbounded_type_cast_test: Crash
+regress_29025_test: Crash
+vm/async_await_catch_stacktrace_test: Crash
+
 
 # dartk: checked mode failures
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 async_await_test: RuntimeError
-compile_time_constant_checked_test/02: MissingCompileTimeError
 const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError
 const_constructor2_test/24: MissingCompileTimeError

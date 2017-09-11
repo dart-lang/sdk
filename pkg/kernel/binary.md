@@ -73,16 +73,19 @@ type StringReference {
   UInt index; // Index into the Program's strings.
 }
 
-type Source {
-  List<Byte> utf8Bytes;
+type SourceInfo {
+  List<Byte> uriUtf8Bytes;
+  List<Byte> sourceUtf8Bytes;
   // Line starts are delta-encoded (they are encoded as line lengths).  The list
   // [0, 10, 25, 32, 42] is encoded as [0, 10, 15, 7, 10].
   List<UInt> lineStarts;
 }
 
 type UriSource {
-  StringTable uris;
-  Source[uris.endOffsets.length] source;
+  UInt32 length;
+  SourceInfo[length] source;
+  // The ith entry is byte-offset to the ith Source.
+  UInt32[length] sourceIndex;
 }
 
 type UriReference {
@@ -116,11 +119,10 @@ type CanonicalName {
 
 type ProgramFile {
   UInt32 magic = 0x90ABCDEF;
-  StringTable strings;
+  List<Library> libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
-  List<Library> libraries;
-  ProcedureReference mainMethod;
+  StringTable strings;
   ProgramIndex programIndex;
 }
 
@@ -132,9 +134,11 @@ type ProgramFile {
 type ProgramIndex {
   UInt32 binaryOffsetForSourceTable;
   UInt32 binaryOffsetForCanonicalNames;
+  UInt32 binaryOffsetForStringTable;
   UInt32 mainMethodReference; // This is a ProcedureReference with a fixed-size integer.
   UInt32[libraryCount] libraryOffsets;
   UInt32 libraryCount;
+  UInt32 programFileSizeInBytes;
 }
 
 type LibraryReference {
@@ -182,6 +186,7 @@ type Library {
   UriReference fileUri;
   List<Expression> annotations;
   List<LibraryDependency> libraryDependencies;
+  List<CanonicalNameReference> additionalExports;
   List<LibraryPart> libraryParts;
   List<Typedef> typedefs;
   List<Class> classes;
@@ -262,7 +267,7 @@ type Field extends Member {
   CanonicalNameReference canonicalName;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
-  Byte flags (isFinal, isConst, isStatic);
+  Byte flags (isFinal, isConst, isStatic, isCovariant);
   Name name;
   // An absolute path URI to the .dart file from which the field was created.
   UriReference fileUri;
@@ -851,6 +856,7 @@ type AsyncForInStatement extends Statement {
 
 type SwitchStatement extends Statement {
   Byte tag = 71;
+  FileOffset fileOffset;
   Expression expression;
   List<SwitchCase> cases;
 }
@@ -864,6 +870,7 @@ type SwitchCase {
 
 type ContinueSwitchStatement extends Statement {
   Byte tag = 72;
+  FileOffset fileOffset;
 
   // Reference to the Nth SwitchCase in scope.
   //
@@ -932,7 +939,7 @@ type VariableDeclaration {
   // If it does not contain one this should be -1.
   FileOffset fileEqualsOffset;
 
-  Byte flags (isFinal, isConst);
+  Byte flags (isFinal, isConst, isCovariant);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.

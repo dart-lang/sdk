@@ -819,35 +819,33 @@
       <field name="source">
         <ref>KytheVName</ref>
         <p>
-          The ticket of the source node (must not be empty).
+          The ticket of the source node.
         </p>
       </field>
-      <field name="kind">
+      <field name="kind" optional="true">
         <ref>String</ref>
         <p>
-          An edge label (may be empty). The schema defines which labels are
-          meaningful.
+          An edge label. The schema defines which labels are meaningful.
         </p>
       </field>
-      <field name="target">
+      <field name="target" optional="true">
         <ref>KytheVName</ref>
         <p>
-          The ticket of the target node (may be empty).
+          The ticket of the target node.
         </p>
       </field>
       <field name="fact">
         <ref>String</ref>
         <p>
-          A fact label (must not be empty). The schema defines which fact labels
-          are meaningful.
+          A fact label. The schema defines which fact labels are meaningful.
         </p>
       </field>
-      <field name="value">
+      <field name="value" optional="true">
         <list>
           <ref>int</ref>
         </list>
         <p>
-          The <tt>String</tt> value of the fact (may be empty).
+          The <tt>String</tt> value of the fact.
         </p>
       </field>
     </object>

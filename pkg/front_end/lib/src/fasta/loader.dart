@@ -102,6 +102,7 @@ abstract class Loader<L> {
       return library;
     });
     if (accessor != null &&
+        !accessor.isPatch &&
         !target.backendTarget
             .allowPlatformPrivateLibraryAccess(accessor.uri, uri)) {
       accessor.addCompileTimeError(

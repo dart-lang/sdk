@@ -330,6 +330,11 @@ class ParserErrorCode extends ErrorCode {
       "Typedefs can't be declared to be 'external'.",
       "Try removing the keyword 'external'.");
 
+  static const ParserErrorCode EXTRANEOUS_MODIFIER = const ParserErrorCode(
+      'EXTRANEOUS_MODIFIER',
+      "Can't have modifier '{0}' here.",
+      "Try removing '{0}'.");
+
   static const ParserErrorCode FACTORY_TOP_LEVEL_DECLARATION =
       const ParserErrorCode(
           'FACTORY_TOP_LEVEL_DECLARATION',
@@ -743,6 +748,13 @@ class ParserErrorCode extends ErrorCode {
           "Native functions can only be declared in the SDK and code that is "
           "loaded through native extensions.",
           "Try removing the word 'native'.");
+
+  static const ParserErrorCode NATIVE_CLAUSE_SHOULD_BE_ANNOTATION =
+      const ParserErrorCode(
+          'NATIVE_CLAUSE_SHOULD_BE_ANNOTATION',
+          "Native clause in this form is deprecated.",
+          "Try removing this native clause and adding @native()"
+          " or @native('native-name') before the declaration.");
 
   static const ParserErrorCode NON_CONSTRUCTOR_FACTORY = const ParserErrorCode(
       'NON_CONSTRUCTOR_FACTORY',

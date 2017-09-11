@@ -8,14 +8,14 @@ import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/resolve_relative_uri.dart';
 import 'package:front_end/src/dependency_walker.dart' as graph;
 import 'package:front_end/src/fasta/uri_translator.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/incremental/format.dart';
 import 'package:front_end/src/incremental/unlinked_unit.dart';
-import 'package:kernel/target/vm.dart';
+import 'package:kernel/target/targets.dart';
 
 /// This function is called for each newly discovered file, and the returned
 /// [Future] is awaited before reading the file content.
@@ -43,10 +43,10 @@ class FileState {
   bool _exists;
   List<int> _content;
   List<int> _contentHash;
+  List<int> _lineStarts;
   bool _hasMixinApplication;
   List<int> _apiSignature;
 
-  List<NamespaceExport> _exports;
   List<FileState> _importedLibraries;
   List<FileState> _exportedLibraries;
   List<FileState> _partFiles;
@@ -81,9 +81,6 @@ class FileState {
   /// The list of the libraries exported by this library.
   List<FileState> get exportedLibraries => _exportedLibraries;
 
-  /// The list of the exported files with combinators.
-  List<NamespaceExport> get exports => _exports;
-
   @override
   int get hashCode => uri.hashCode;
 
@@ -98,6 +95,9 @@ class FileState {
 
   /// The list of the libraries imported by this library.
   List<FileState> get importedLibraries => _importedLibraries;
+
+  /// Return the line starts in the [content].
+  List<int> get lineStarts => _lineStarts;
 
   /// The list of files this library file references as parts.
   List<FileState> get partFiles => _partFiles;
@@ -126,6 +126,9 @@ class FileState {
     return _transitiveFiles;
   }
 
+  /// Return the [uri] string.
+  String get uriStr => uri.toString();
+
   @override
   bool operator ==(Object other) {
     return other is FileState && other.uri == uri;
@@ -146,6 +149,14 @@ class FileState {
 
     // Compute the content hash.
     _contentHash = md5.convert(_content).bytes;
+
+    // Compute the line starts.
+    _lineStarts = <int>[0];
+    for (int i = 0; i < _content.length; i++) {
+      if (_content[i] == 0x0A) {
+        _lineStarts.add(i + 1);
+      }
+    }
 
     // Prepare bytes of the unlinked unit - existing or new.
     List<int> unlinkedBytes;
@@ -168,7 +179,6 @@ class FileState {
     _importedLibraries = <FileState>[];
     _exportedLibraries = <FileState>[];
     _partFiles = <FileState>[];
-    _exports = <NamespaceExport>[];
     {
       FileState coreFile = await _getFileForRelativeUri('dart:core');
       // TODO(scheglov) add error handling
@@ -182,12 +192,11 @@ class FileState {
         _importedLibraries.add(file);
       }
     }
-    await _addVmTargetImportsForCore();
+    await _addTargetExtraRequiredLibraries();
     for (var export_ in unlinkedUnit.exports) {
       FileState file = await _getFileForRelativeUri(export_.uri);
       if (file != null) {
         _exportedLibraries.add(file);
-        _exports.add(new NamespaceExport(file, export_.combinators));
       }
     }
     for (var part_ in unlinkedUnit.parts) {
@@ -228,13 +237,14 @@ class FileState {
     return uri.toString();
   }
 
-  /// Fasta unconditionally loads all VM libraries.  In order to be able to
-  /// serve them using the file system view, pretend that all of them were
-  /// imported into `dart:core`.
-  /// TODO(scheglov) Ask VM people whether all these libraries are required.
-  Future<Null> _addVmTargetImportsForCore() async {
+  /// Fasta unconditionally loads extra libraries based on the target.  In order
+  /// to be able to serve them using the file system view, pretend that all of
+  /// them were imported into `dart:core`.
+  /// TODO(scheglov,sigmund): remove this implicit import, instead make fasta
+  /// and IKG aware of extra code that needs to be loaded.
+  Future<Null> _addTargetExtraRequiredLibraries() async {
     if (uri.toString() != 'dart:core') return;
-    for (String uri in new VmTarget(null).extraRequiredLibraries) {
+    for (String uri in _fsState.target.extraRequiredLibraries) {
       FileState file = await _getFileForRelativeUri(uri);
       // TODO(scheglov) add error handling
       if (file != null) {
@@ -267,6 +277,7 @@ class FileState {
 class FileSystemState {
   final ByteStore _byteStore;
   final FileSystem fileSystem;
+  final Target target;
   final UriTranslator uriTranslator;
   final List<int> _salt;
   final NewFileFn _newFileFn;
@@ -285,8 +296,8 @@ class FileSystemState {
   /// We do this when we use SDK outline instead of compiling SDK sources.
   final Set<Uri> skipSdkLibraries = new Set<Uri>();
 
-  FileSystemState(this._byteStore, this.fileSystem, this.uriTranslator,
-      this._salt, this._newFileFn);
+  FileSystemState(this._byteStore, this.fileSystem, this.target,
+      this.uriTranslator, this._salt, this._newFileFn);
 
   /// Return the [FileSystem] that is backed by this [FileSystemState].  The
   /// files in this [FileSystem] always have the same content as the
@@ -377,8 +388,10 @@ class FileSystemState {
 class LibraryCycle {
   final List<FileState> libraries = <FileState>[];
 
-  /// [LibraryCycle]s that contain libraries directly import or export
-  /// this [LibraryCycle].
+  /// The cycles this cycle directly depends on.
+  final Set<LibraryCycle> directDependencies = new Set<LibraryCycle>();
+
+  /// The cycles that directly import or export this cycle.
   final List<LibraryCycle> directUsers = <LibraryCycle>[];
 
   bool get _isForVm {
@@ -391,30 +404,6 @@ class LibraryCycle {
       return '[core + vm]';
     }
     return '[' + libraries.join(', ') + ']';
-  }
-}
-
-/// Information about a single `export` directive.
-class NamespaceExport {
-  final FileState library;
-  final List<UnlinkedCombinator> combinators;
-
-  NamespaceExport(this.library, this.combinators);
-
-  /// Return `true` if the [name] satisfies the sequence of the [combinators].
-  bool isExposed(String name) {
-    for (var combinator in combinators) {
-      if (combinator.isShow) {
-        if (!combinator.names.contains(name)) {
-          return false;
-        }
-      } else {
-        if (combinator.names.contains(name)) {
-          return false;
-        }
-      }
-    }
-    return true;
   }
 }
 
@@ -484,8 +473,8 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 /// sorted [LibraryCycle]s.
 class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   final nodesOfFiles = <FileState, _LibraryNode>{};
-  final topologicallySortedCycles = <LibraryCycle>[];
   final fileToCycleMap = <FileState, LibraryCycle>{};
+  final topologicallySortedCycles = <LibraryCycle>[];
 
   @override
   void evaluate(_LibraryNode v) {
@@ -496,30 +485,35 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   void evaluateScc(List<_LibraryNode> scc) {
     var cycle = new LibraryCycle();
 
-    // Build the set of cycles this cycle directly depends on.
-    var directDependencies = new Set<LibraryCycle>();
+    // Compute direct dependencies.
     for (var node in scc) {
       var file = node.file;
       for (var importedLibrary in file.importedLibraries) {
         var importedCycle = fileToCycleMap[importedLibrary];
-        if (importedCycle != null) directDependencies.add(importedCycle);
+        if (importedCycle != null) {
+          cycle.directDependencies.add(importedCycle);
+        }
       }
       for (var exportedLibrary in file.exportedLibraries) {
         var exportedCycle = fileToCycleMap[exportedLibrary];
-        if (exportedCycle != null) directDependencies.add(exportedCycle);
+        if (exportedCycle != null) {
+          cycle.directDependencies.add(exportedCycle);
+        }
       }
     }
 
     // Register this cycle as a direct user of the direct dependencies.
-    for (var directDependency in directDependencies) {
+    for (var directDependency in cycle.directDependencies) {
       directDependency.directUsers.add(cycle);
     }
 
+    // Fill the cycle with libraries.
     for (var node in scc) {
       node.isEvaluated = true;
       cycle.libraries.add(node.file);
       fileToCycleMap[node.file] = cycle;
     }
+
     topologicallySortedCycles.add(cycle);
   }
 

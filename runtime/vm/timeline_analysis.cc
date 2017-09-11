@@ -506,7 +506,8 @@ void TimelinePauseTrace::Print() {
   TimelinePauses pauses(zone, isolate, recorder);
   pauses.Setup();
 
-  THR_Print("Timing for isolate %s (from %" Pd " threads)\n", isolate->name(),
+  THR_Print("Timing for isolate (%" Pd64 ") '%s' (from %" Pd " threads)\n",
+            static_cast<int64_t>(isolate->main_port()), isolate->name(),
             pauses.NumThreads());
   THR_Print("\n");
   for (intptr_t t_idx = 0; t_idx < pauses.NumThreads(); t_idx++) {

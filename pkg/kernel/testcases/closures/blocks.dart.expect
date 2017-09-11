@@ -1,0 +1,56 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef fn = (dynamic) → dynamic;
+typedef fn2 = (dynamic, dynamic) → dynamic;
+class X extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method startIsolateMock(dynamic parentPort, dynamic entryPoint, dynamic args, dynamic message, dynamic isSpawnUri, dynamic controlPort, core::List<dynamic> capabilities) → void {
+  final dynamic #context = MakeVector(7);
+  #context[2] = entryPoint;
+  entryPoint = null;
+  #context[3] = args;
+  args = null;
+  #context[4] = message;
+  message = null;
+  #context[5] = isSpawnUri;
+  isSpawnUri = null;
+  if(!controlPort.==(null)) {
+    controlPort.handler = MakeClosure<(dynamic) → dynamic>(self::closure#startIsolateMock#function, #context);
+  }
+  if(!parentPort.==(null)) {
+    dynamic readyMessage = core::List::_internal<dynamic>(2);
+    readyMessage.[]=(0, controlPort.sendPort);
+    readyMessage.[]=(1, capabilities);
+    capabilities = null;
+    parentPort.send(readyMessage);
+  }
+  assert(capabilities.==(null));
+  #context[6] = "abc";
+  (#context[6]).handler = MakeClosure<(dynamic) → dynamic>(self::closure#startIsolateMock#function#1, #context);
+  (#context[6]).sendPort.send(null);
+}
+static method main() → dynamic {}
+static method closure#startIsolateMock#function(dynamic #contextParameter, dynamic _) → dynamic {}
+static method closure#startIsolateMock#function#1(dynamic #contextParameter, dynamic _) → dynamic {
+  (#contextParameter[6]).close();
+  if(#contextParameter[5]) {
+    if((#contextParameter[2]) is (dynamic, dynamic) → dynamic) {
+      (#contextParameter[2]).call(#contextParameter[3], #contextParameter[4]);
+    }
+    else
+      if((#contextParameter[2]) is (dynamic) → dynamic) {
+        (#contextParameter[2]).call(#contextParameter[3]);
+      }
+      else {
+        (#contextParameter[2]).call();
+      }
+  }
+  else {
+    (#contextParameter[2]).call(#contextParameter[4]);
+  }
+}

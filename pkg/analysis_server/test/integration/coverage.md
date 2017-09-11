@@ -80,4 +80,4 @@ server calls. This file is validated by `coverage_test.dart`.
 - [x] analytics.sendTiming
 
 ## kythe domain
-- [] kythe.getKytheEntries
+- [x] kythe.getKytheEntries

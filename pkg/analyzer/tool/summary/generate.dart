@@ -30,10 +30,10 @@ import 'package:path/path.dart';
 import 'idl_model.dart' as idlModel;
 import 'mini_ast.dart';
 
-main() {
+main() async {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
   String pkgPath = normalize(join(dirname(script), '..', '..'));
-  GeneratedContent.generateAll(pkgPath, allTargets);
+  await GeneratedContent.generateAll(pkgPath, allTargets);
 }
 
 final List<GeneratedContent> allTargets = <GeneratedContent>[
@@ -42,14 +42,14 @@ final List<GeneratedContent> allTargets = <GeneratedContent>[
 ];
 
 final GeneratedFile formatTarget =
-    new GeneratedFile('lib/src/summary/format.dart', (String pkgPath) {
+    new GeneratedFile('lib/src/summary/format.dart', (String pkgPath) async {
   _CodeGenerator codeGenerator = new _CodeGenerator(pkgPath);
   codeGenerator.generateFormatCode();
   return codeGenerator._outBuffer.toString();
 });
 
 final GeneratedFile schemaTarget =
-    new GeneratedFile('lib/src/summary/format.fbs', (String pkgPath) {
+    new GeneratedFile('lib/src/summary/format.fbs', (String pkgPath) async {
   _CodeGenerator codeGenerator = new _CodeGenerator(pkgPath);
   codeGenerator.generateFlatBufferSchema();
   return codeGenerator._outBuffer.toString();

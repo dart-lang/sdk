@@ -16,15 +16,15 @@ void main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
-    var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
+    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
     var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
     dynamic lib =
         compiler.libraryLoader.lookupLibrary(Uri.parse("memory:lib.dart"));
     var customType = lib.find("CustomType");
     var foo = lib.find("foo");
-    Expect.notEquals(mainOutputUnit, outputUnitForElement(foo));
+    Expect.notEquals(mainOutputUnit, outputUnitForEntity(foo));
     // Native elements are not deferred
-    Expect.equals(mainOutputUnit, outputUnitForElement(customType));
+    Expect.equals(mainOutputUnit, outputUnitForEntity(customType));
   });
 }
 

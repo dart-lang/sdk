@@ -21,6 +21,16 @@ class ParseError {
   String toString() => '$filename:$byteIndex: $message at $path';
 }
 
+class _ProgramIndex {
+  int binaryOffsetForSourceTable;
+  int binaryOffsetForStringTable;
+  int binaryOffsetForCanonicalNames;
+  int mainMethodReference;
+  List<int> libraryOffsets;
+  int libraryCount;
+  int programFileSizeInBytes;
+}
+
 class BinaryBuilder {
   final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   final List<LabeledStatement> labelStack = <LabeledStatement>[];
@@ -224,6 +234,21 @@ class BinaryBuilder {
     }
   }
 
+  List<int> _indexPrograms() {
+    int savedByteIndex = _byteIndex;
+    _byteIndex = _bytes.length - 4;
+    List<int> index = <int>[];
+    while (_byteIndex > 0) {
+      int size = readUint32();
+      int start = _byteIndex - size;
+      if (start < 0) throw "Invalid program file: Indicated size is invalid.";
+      index.add(size);
+      _byteIndex = start - 4;
+    }
+    _byteIndex = savedByteIndex;
+    return new List.from(index.reversed);
+  }
+
   /// Deserializes a kernel program and stores it in [program].
   ///
   /// When linking with a non-empty program, canonical names must have been
@@ -231,8 +256,11 @@ class BinaryBuilder {
   ///
   /// The input bytes may contain multiple files concatenated.
   void readProgram(Program program) {
+    List<int> programFileSizes = _indexPrograms();
+    int programFileIndex = 0;
     while (_byteIndex < _bytes.length) {
-      _readOneProgram(program);
+      _readOneProgram(program, programFileSizes[programFileIndex]);
+      ++programFileIndex;
     }
   }
 
@@ -245,7 +273,9 @@ class BinaryBuilder {
   /// This should *only* be used when there is a reason to not allow
   /// concatenated files.
   void readSingleFileProgram(Program program) {
-    _readOneProgram(program);
+    List<int> programFileSizes = _indexPrograms();
+    if (programFileSizes.isEmpty) throw "Invalid program data.";
+    _readOneProgram(program, programFileSizes[0]);
     if (_byteIndex < _bytes.length) {
       if (_byteIndex + 3 < _bytes.length) {
         int magic = readUint32();
@@ -258,45 +288,88 @@ class BinaryBuilder {
     }
   }
 
-  void _readOneProgram(Program program) {
+  _ProgramIndex _readProgramIndex(
+      int startIndex, Program program, int programFileSize) {
+    int savedByteIndex = _byteIndex;
+
+    _ProgramIndex result = new _ProgramIndex();
+
+    // To read number of libraries and file size.
+    _byteIndex = startIndex + programFileSize - 2 * 4;
+    result.libraryCount = readUint32();
+    result.libraryOffsets = new List<int>(result.libraryCount);
+    result.programFileSizeInBytes = readUint32();
+    if (result.programFileSizeInBytes != programFileSize) {
+      throw 'Malformed binary: This program files program index indicates that'
+          ' the filesize should be $programFileSize but other program indexes'
+          ' has indicated that the size should be '
+          '${result.programFileSizeInBytes}.';
+    }
+
+    // Skip to the start of the index.
+    _byteIndex -= 4 * (result.libraryCount + 6);
+
+    // Now read the program index.
+    result.binaryOffsetForSourceTable = startIndex + readUint32();
+    result.binaryOffsetForCanonicalNames = startIndex + readUint32();
+    result.binaryOffsetForStringTable = startIndex + readUint32();
+    result.mainMethodReference = readUint32();
+    for (int i = 0; i < result.libraryCount; ++i) {
+      result.libraryOffsets[i] = startIndex + readUint32();
+    }
+
+    _byteIndex = savedByteIndex;
+
+    return result;
+  }
+
+  void _readOneProgram(Program program, int programFileSize) {
+    int startIndex = _byteIndex;
+
     int magic = readUint32();
     if (magic != Tag.ProgramFile) {
       throw fail('This is not a binary dart file. '
           'Magic number was: ${magic.toRadixString(16)}');
     }
+
+    // Read program index from the end of this ProgramFiles serialized data.
+    _ProgramIndex index =
+        _readProgramIndex(startIndex, program, programFileSize);
+
+    _byteIndex = index.binaryOffsetForStringTable;
     readStringTable(_stringTable);
+
+    _byteIndex = index.binaryOffsetForCanonicalNames;
+    readLinkTable(program.root);
+
+    _byteIndex = index.binaryOffsetForSourceTable;
     Map<String, Source> uriToSource = readUriToSource();
     program.uriToSource.addAll(uriToSource);
-    readLinkTable(program.root);
-    int numberOfLibraries = readUInt();
+
+    int numberOfLibraries = index.libraryCount;
     List<Library> libraries = new List<Library>(numberOfLibraries);
     for (int i = 0; i < numberOfLibraries; ++i) {
+      _byteIndex = index.libraryOffsets[i];
       libraries[i] = readLibrary(program);
     }
-    var mainMethod = readMemberReference(allowNull: true);
+
+    var mainMethod =
+        getMemberReferenceFromInt(index.mainMethodReference, allowNull: true);
     program.mainMethodName ??= mainMethod;
 
-    // Read the program index.
-    readUint32(); // binary offset for source table.
-    readUint32(); // binary offset for link table.
-    readUint32(); // main
-    for (int i = 0; i < numberOfLibraries; i++) {
-      readUint32(); // binary offset for library #i.
-    }
-    int numberOfLibrariesCheck = readUint32();
-    if (numberOfLibraries != numberOfLibrariesCheck) {
-      throw 'Malformed binary: the program index indicates there are '
-          '$numberOfLibrariesCheck libraries but the binary contains '
-          '$numberOfLibraries.';
-    }
+    _byteIndex = startIndex + programFileSize;
   }
 
   Map<String, Source> readUriToSource() {
-    readStringTable(_sourceUriTable);
-    int length = _sourceUriTable.length;
+    int length = readUint32();
+
+    // Read data.
+    _sourceUriTable.length = length;
     Map<String, Source> uriToSource = <String, Source>{};
     for (int i = 0; i < length; ++i) {
-      String uri = _sourceUriTable[i];
+      List<int> uriBytes = readUtf8Bytes();
+      String uri = const Utf8Decoder().convert(uriBytes);
+      _sourceUriTable[i] = uri;
       List<int> sourceCode = readUtf8Bytes();
       int lineCount = readUInt();
       List<int> lineStarts = new List<int>(lineCount);
@@ -308,11 +381,21 @@ class BinaryBuilder {
       }
       uriToSource[uri] = new Source(lineStarts, sourceCode);
     }
+
+    // Read index.
+    for (int i = 0; i < length; ++i) {
+      readUint32();
+    }
     return uriToSource;
   }
 
   CanonicalName readCanonicalNameReference() {
     var index = readUInt();
+    if (index == 0) return null;
+    return _linkTable[index - 1];
+  }
+
+  CanonicalName getCanonicalNameReferenceFromInt(int index) {
     if (index == 0) return null;
     return _linkTable[index - 1];
   }
@@ -336,6 +419,14 @@ class BinaryBuilder {
 
   Reference readMemberReference({bool allowNull: false}) {
     var name = readCanonicalNameReference();
+    if (name == null && !allowNull) {
+      throw 'Expected a member reference to be valid but was `null`.';
+    }
+    return name?.getReference();
+  }
+
+  Reference getMemberReferenceFromInt(int index, {bool allowNull: false}) {
+    var name = getCanonicalNameReferenceFromInt(index);
     if (name == null && !allowNull) {
       throw 'Expected a member reference to be valid but was `null`.';
     }
@@ -387,6 +478,7 @@ class BinaryBuilder {
       _skipNodeList(readExpression);
     }
     _readLibraryDependencies(library);
+    _readAdditionalExports(library);
     _readLibraryParts(library);
     _mergeNamedNodeList(library.typedefs, readTypedef, library);
     _mergeNamedNodeList(library.classes, readClass, library);
@@ -414,6 +506,17 @@ class BinaryBuilder {
       library.dependencies[i] = new LibraryDependency.byReference(
           flags, annotations, targetLibrary, prefixName, names)
         ..parent = library;
+    }
+  }
+
+  void _readAdditionalExports(Library library) {
+    int numExportedReference = readUInt();
+    if (numExportedReference != 0) {
+      for (int i = 0; i < numExportedReference; i++) {
+        CanonicalName exportedName = readCanonicalNameReference();
+        Reference reference = exportedName.getReference();
+        library.additionalExports.add(reference);
+      }
     }
   }
 
@@ -1046,6 +1149,7 @@ class BinaryBuilder {
           ..fileOffset = offset
           ..bodyOffset = bodyOffset;
       case Tag.SwitchStatement:
+        var offset = readOffset();
         var expression = readExpression();
         int count = readUInt();
         List<SwitchCase> cases =
@@ -1064,10 +1168,12 @@ class BinaryBuilder {
           caseNode.body = readStatement()..parent = caseNode;
         }
         switchCaseStack.length -= count;
-        return new SwitchStatement(expression, cases);
+        return new SwitchStatement(expression, cases)..fileOffset = offset;
       case Tag.ContinueSwitchStatement:
+        int offset = readOffset();
         int index = readUInt();
-        return new ContinueSwitchStatement(switchCaseStack[index]);
+        return new ContinueSwitchStatement(switchCaseStack[index])
+          ..fileOffset = offset;
       case Tag.IfStatement:
         return new IfStatement(
             readExpression(), readStatement(), readStatementOrNullIfEmpty());
@@ -1270,10 +1376,7 @@ class BinaryBuilder {
     int fileEqualsOffset = readOffset();
     int flags = readByte();
     return new VariableDeclaration(readStringOrNullIfEmpty(),
-        type: readDartType(),
-        initializer: readExpressionOption(),
-        isFinal: flags & 0x1 != 0,
-        isConst: flags & 0x2 != 0)
+        type: readDartType(), initializer: readExpressionOption(), flags: flags)
       ..fileOffset = offset
       ..fileEqualsOffset = fileEqualsOffset;
   }

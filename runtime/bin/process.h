@@ -10,6 +10,7 @@
 #include "bin/builtin.h"
 #include "bin/io_buffer.h"
 #include "bin/lockers.h"
+#include "bin/namespace.h"
 #include "bin/thread.h"
 #include "platform/globals.h"
 #if !defined(HOST_OS_WINDOWS)
@@ -87,7 +88,8 @@ class Process {
  public:
   // Start a new process providing access to stdin, stdout, stderr and
   // process exit streams.
-  static int Start(const char* path,
+  static int Start(Namespace* namespc,
+                   const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
                    const char* working_directory,

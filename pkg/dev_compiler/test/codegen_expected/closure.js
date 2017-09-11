@@ -1,5 +1,7 @@
 export const closure = Object.create(null);
 import { core, js, dart, dartx } from 'dart_sdk';
+const $toList = dartx.toList;
+const $map = dartx.map;
 let dynamic__Toint = () => (dynamic__Toint = dart.constFn(dart.fnTypeFuzzy(core.int, [dart.dynamic], [dart.dynamic])))();
 let dynamic__Todynamic = () => (dynamic__Todynamic = dart.constFn(dart.fnTypeFuzzy(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic})))();
 let StringToList = () => (StringToList = dart.constFn(dart.fnTypeFuzzy(core.List, [core.String])))();
@@ -12,13 +14,14 @@ let ListOfTAndTToListOfT = () => (ListOfTAndTToListOfT = dart.constFn(dart.gFnTy
 let dynamicTovoid = () => (dynamicTovoid = dart.constFn(dart.fnType(dart.void, [dart.dynamic])))();
 let VoidToNull = () => (VoidToNull = dart.constFn(dart.fnType(core.Null, [])))();
 closure.generic_function = function(T) {
-  return (items: core.List<T>, seed: T): core.List<T> => {
-    let strings = items[dartx.map](core.String)(dart.fn((i: T): string => dart.str`${i}`, dart.fnType(core.String, [T])))[dartx.toList]();
+  return (items: core.List<T> = null, seed: T = null): core.List<T> => {
+    let strings = items[$map](core.String)(dart.fn((i: T = null): string => dart.str`${i}`, dart.fnType(core.String, [T])))[$toList]();
     return items;
   };
 };
 dart.fn(closure.generic_function, ListOfTAndTToListOfT());
 closure.Callback = dart.typedef('Callback', () => dart.fnTypeFuzzy(dart.void, [], {i: core.int}));
+const _is_Foo_default = Symbol('_is_Foo_default');
 closure.Foo$ = dart.generic(T => {
   let FooOfT = () => (FooOfT = dart.constFn(closure.Foo$(T)))();
   class Foo<T> extends core.Object {
@@ -56,37 +59,38 @@ closure.Foo$ = dart.generic(T => {
     static build() {
       return new (FooOfT()).new(1, null);
     }
-    untyped_method(a, b) {}
-    pass(t: T) {
+    untyped_method(a = null, b = null) {}
+    pass(t: T = null) {
       T._check(t);
       return t;
     }
-    typed_method(foo: closure.Foo<any>, list: core.List<any>, i: number, n: number, d: number, b: boolean, s: string, a: any[], o: Object, f: Function) {
+    typed_method(foo: closure.Foo<any> = null, list: core.List<any> = null, i: number = null, n: number = null, d: number = null, b: boolean = null, s: string = null, a: any[] = null, o: Object = null, f: Function = null) {
       return '';
     }
-    optional_params(a, b = null, c: number = null) {}
-    static named_params(a, {b = null, c = null}: {b?: any, c?: number} = {}) {}
+    optional_params(a = null, b = null, c: number = null) {}
+    static named_params(a = null, {b = null, c = null}: {b?: any, c?: number} = {}) {}
     nullary_method() {}
-    function_params(f: (x: any, y?: any) => number, g: (x: any, opts?: {y?: string, z?: any}) => any, cb: closure.Callback) {
+    function_params(f: (x: any, y?: any) => number = null, g: (x: any, opts?: {y?: string, z?: any}) => any = null, cb: closure.Callback = null) {
       cb({i: this.i});
     }
-    run(a: core.List<any>, b: string, c: (d: string) => core.List<any>, e: (f: (g: any) => any) => core.List<number>, {h = null}: {h?: core.Map<core.Map<any, any>, core.Map<any, any>>} = {}) {}
+    run(a: core.List<any> = null, b: string = null, c: (d: string) => core.List<any> = null, e: (f: (g: any) => any) => core.List<number> = null, {h = null}: {h?: core.Map<core.Map<any, any>, core.Map<any, any>>} = {}) {}
     get prop() {
       return null;
     }
-    set prop(value: string) {}
+    set prop(value: string = null) {}
     static get staticProp() {
       return null;
     }
-    static set staticProp(value: string) {}
+    static set staticProp(value: string = null) {}
   }
-  (Foo.new = function(i: number, v: T) {
+  (Foo.new = function(i: number = null, v: T = null) {
     this[i$] = i;
     this[v$] = v;
     this[b] = null;
     this[s] = null;
   }).prototype = Foo.prototype;
   dart.addTypeTests(Foo);
+  Foo.prototype[_is_Foo_default] = true;
   const i$ = Symbol("Foo.i");
   const b = Symbol("Foo.b");
   const s = Symbol("Foo.s");
@@ -127,15 +131,17 @@ dart.defineLazy(closure.Foo, {
   },
   set some_static_var(_) {}
 });
+dart.addTypeTests(closure.Foo, _is_Foo_default);
 closure.Bar = class Bar extends core.Object {};
 (closure.Bar.new = function() {
 }).prototype = closure.Bar.prototype;
+dart.addTypeTests(closure.Bar);
 closure.Baz = class Baz extends dart.mixin(closure.Foo$(core.int), closure.Bar) {};
-(closure.Baz.new = function(i: number) {
+(closure.Baz.new = function(i: number = null) {
   closure.Baz.__proto__.new.call(this, i, 123);
 }).prototype = closure.Baz.prototype;
-dart.addSimpleTypeTests(closure.Baz);
-closure.main = function(args): void {
+dart.addTypeTests(closure.Baz);
+closure.main = function(args = null): void {
 };
 dart.fn(closure.main, dynamicTovoid());
 dart.defineLazy(closure, {

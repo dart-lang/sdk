@@ -27,9 +27,25 @@ How to provide quick fixes associated with errors.
 [Providing Code Completions][completion] -
 How to provide code completion suggestions.
 
+[Providing Navigation Information][navigation] -
+How to provide navigation support.
+
+[Providing Occurrences Information][occurrences] -
+How to provide information for marking occurrences.
+
+[Providing Outline Information][outline] -
+How to provide the information to build outline structures.
+
+[Providing Folding Information][folding] -
+How to provide support for code folding.
+
 [assists]: assists.md
 [completion]: completion.md
 [creatingEdits]: creating_edits.md
 [fixes]: fixes.md
+[folding]: folding.md
 [gettingStarted]: getting_started.md
 [introduction]: introduction.md
+[navigation]: navigation.md
+[occurrences]: occurrences.md
+[outline]: outline.md

@@ -107,12 +107,20 @@ class TargetRepository implements M.TargetRepository {
   }
 
   static String _networkAddressOfDefaultTarget() {
-    if (!identical(1, 1.0)) {
-      // Dartium, assume we are developing.
-      return 'ws://127.0.0.1:8181/ws';
-    }
-    Uri serverAddress = Uri.parse(window.location.toString());
-    return 'ws://${serverAddress.authority}${serverAddress.path}ws';
+    // It is possible to override the default port and host by adding extra
+    // query parameters:
+    // http://localhost:8080?override-port=8181
+    // http://localhost:8080?override-port=8181&override-host=10.0.0.2
+    final Uri serverAddress = Uri.parse(window.location.toString());
+    final String port = serverAddress.queryParameters['override-port'];
+    final String host = serverAddress.queryParameters['override-host'];
+    final Uri wsAddress = new Uri(
+      scheme: 'ws',
+      host: host ?? serverAddress.host,
+      port: int.parse(port ?? '', onError: (_) => serverAddress.port),
+      path: '/ws',
+    );
+    return wsAddress.toString();
   }
 
   bool isConnectedVMTarget(M.Target target) => _isConnectedVMTarget(target);

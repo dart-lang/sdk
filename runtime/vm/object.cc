@@ -6,13 +6,17 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
-#include "vm/assembler.h"
 #include "vm/become.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
-#include "vm/compiler.h"
+#include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/frontend/kernel_to_il.h"
+#include "vm/compiler/intrinsifier.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/compiler_stats.h"
 #include "vm/cpu.h"
 #include "vm/dart.h"
@@ -21,19 +25,15 @@
 #include "vm/datastream.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
-#include "vm/disassembler.h"
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
 #include "vm/hash_table.h"
 #include "vm/heap.h"
-#include "vm/intrinsifier.h"
 #include "vm/isolate_reload.h"
-#include "vm/kernel_to_il.h"
 #include "vm/native_symbol.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
-#include "vm/precompiler.h"
 #include "vm/profiler.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
@@ -912,6 +912,15 @@ void Object::InitOnce(Isolate* isolate) {
 
   cls = vector_class_;
   *vector_type_ = Type::NewNonParameterizedType(cls);
+
+  // Since TypeArguments objects are passed as function arguments, make them
+  // behave as Dart instances, although they are just VM objects.
+  // Note that we cannot set the super type to ObjectType, which does not live
+  // in the vm isolate. See special handling in Class::SuperClass().
+  cls = type_arguments_class_;
+  cls.set_interfaces(Object::empty_array());
+  cls.SetFields(Object::empty_array());
+  cls.SetFunctions(Object::empty_array());
 
   // Allocate and initialize singleton true and false boolean objects.
   cls = Class::New<Bool>();
@@ -2082,7 +2091,8 @@ RawClass* Class::New() {
   COMPILE_ASSERT((FakeObject::kClassId != kInstanceCid));
   result.set_id(FakeObject::kClassId);
   result.set_state_bits(0);
-  if (FakeObject::kClassId < kInstanceCid) {
+  if ((FakeObject::kClassId < kInstanceCid) ||
+      (FakeObject::kClassId == kTypeArgumentsCid)) {
     // VM internal classes are done. There is no finalization needed or
     // possible in this case.
     result.set_is_finalized();
@@ -2514,6 +2524,10 @@ RawClass* Class::SuperClass(bool original_classes) const {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   if (super_type() == AbstractType::null()) {
+    if (id() == kTypeArgumentsCid) {
+      // Pretend TypeArguments objects are Dart instances.
+      return isolate->class_table()->At(kInstanceCid);
+    }
     return Class::null();
   }
   const AbstractType& sup_type = AbstractType::Handle(zone, super_type());
@@ -5472,7 +5486,8 @@ bool Function::HasGenericParent() const {
 }
 
 RawFunction* Function::implicit_closure_function() const {
-  if (IsClosureFunction() || IsSignatureFunction() || IsFactory()) {
+  if (IsClosureFunction() || IsConvertedClosureFunction() ||
+      IsSignatureFunction() || IsFactory()) {
     return Function::null();
   }
   const Object& obj = Object::Handle(raw_ptr()->data_);
@@ -5490,7 +5505,8 @@ RawFunction* Function::implicit_closure_function() const {
 }
 
 void Function::set_implicit_closure_function(const Function& value) const {
-  ASSERT(!IsClosureFunction() && !IsSignatureFunction());
+  ASSERT(!IsClosureFunction() && !IsSignatureFunction() &&
+         !IsConvertedClosureFunction());
   if (is_native()) {
     const Object& obj = Object::Handle(raw_ptr()->data_);
     ASSERT(obj.IsArray());
@@ -5610,6 +5626,9 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
       break;
     case RawFunction::kImplicitClosureFunction:
       return "ImplicitClosureFunction";
+      break;
+    case RawFunction::kConvertedClosureFunction:
+      return "ConvertedClosureFunction";
       break;
     case RawFunction::kSignatureFunction:
       return "SignatureFunction";
@@ -6008,7 +6027,8 @@ intptr_t Function::NumImplicitParameters() const {
   }
   if ((k == RawFunction::kClosureFunction) ||
       (k == RawFunction::kImplicitClosureFunction) ||
-      (k == RawFunction::kSignatureFunction)) {
+      (k == RawFunction::kSignatureFunction) ||
+      (k == RawFunction::kConvertedClosureFunction)) {
     return 1;  // Closure object.
   }
   if (!is_static()) {
@@ -6332,10 +6352,22 @@ RawFunction* Function::InstantiateSignatureFrom(
   // the original uninstantiated parent signatures. That is not a problem.
   const Function& parent = Function::Handle(zone, parent_function());
   ASSERT(!HasInstantiatedSignature());
-  Function& sig = Function::Handle(
-      zone, Function::NewSignatureFunction(owner, parent,
-                                           TokenPosition::kNoSource, space));
-  sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
+
+  Function& sig = Function::Handle(zone, Function::null());
+  if (IsConvertedClosureFunction()) {
+    sig = Function::NewConvertedClosureFunction(
+        String::Handle(zone, name()), parent, TokenPosition::kNoSource);
+    // TODO(30455): Kernel generic methods undone. Handle type parameters
+    // correctly when generic closures are supported. Until then, all type
+    // parameters to this target are used for captured type variables, so they
+    // aren't relevant to the type of the function.
+    sig.set_type_parameters(TypeArguments::Handle(zone, TypeArguments::null()));
+  } else {
+    sig = Function::NewSignatureFunction(owner, parent,
+                                         TokenPosition::kNoSource, space);
+    sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
+  }
+
   AbstractType& type = AbstractType::Handle(zone, result_type());
   if (!type.IsInstantiated()) {
     type =
@@ -6406,6 +6438,7 @@ bool Function::TestParameterType(TypeTestKind test_kind,
 bool Function::HasSameTypeParametersAndBounds(const Function& other) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+
   const intptr_t num_type_params = NumTypeParameters(thread);
   if (num_type_params != other.NumTypeParameters(thread)) {
     return false;
@@ -6959,11 +6992,6 @@ RawFunction* Function::ConvertedClosureFunction() const {
   // Set closure function's end token to this end token.
   closure_function.set_end_token_pos(end_token_pos());
 
-  // The closurized method stub just calls into the original method and should
-  // therefore be skipped by the debugger and in stack traces.
-  closure_function.set_is_debuggable(false);
-  closure_function.set_is_visible(false);
-
   // Set closure function's formal parameters to this formal parameters,
   // removing the first parameter over which the currying is done, and adding
   // the closure class instance as the first parameter.  So, the overall number
@@ -7089,6 +7117,7 @@ void Function::BuildSignatureParameters(
 }
 
 RawInstance* Function::ImplicitStaticClosure() const {
+  ASSERT(IsImplicitStaticClosureFunction());
   if (implicit_static_closure() == Instance::null()) {
     Zone* zone = Thread::Current()->zone();
     const Context& context = Object::empty_context();
@@ -7174,6 +7203,34 @@ RawString* Function::BuildSignature(NameVisibility name_visibility) const {
 bool Function::HasInstantiatedSignature(Genericity genericity,
                                         intptr_t num_free_fun_type_params,
                                         TrailPtr trail) const {
+  // This function works differently for converted closures.
+  //
+  // Unlike regular closures, it's not possible to know which type parameters
+  // are supposed to come from parent functions or classes and which are
+  // actually parameters to the closure it represents. For example, consider:
+  //
+  //     class C<T> {
+  //       getf() => (T x) { return x; }
+  //     }
+  //
+  //     class D {
+  //       getf() {
+  //         dynamic fn<T>(T x) { return x; }
+  //         return fn;
+  //       }
+  //     }
+  //
+  // The signature of `fn` as a converted closure will in both cases look like
+  // `<T>(T) => dynamic`, because the signaute of the converted closure function
+  // is the same as it's top-level target function. However, in the first case
+  // the closure's type is instantiated, and in the second case it's not.
+  //
+  // Since we can never assume a converted closure is instantiated if it has any
+  // type parameters, we always return true in these cases.
+  if (IsConvertedClosureFunction()) {
+    return genericity == kCurrentClass || NumTypeParameters() == 0;
+  }
+
   if (genericity != kCurrentClass) {
     // A generic typedef may declare a non-generic function type and get
     // instantiated with unrelated function type parameters. In that case, its
@@ -7243,7 +7300,7 @@ RawScript* Function::script() const {
       return script.raw();
     }
   }
-  if (IsClosureFunction()) {
+  if (IsClosureFunction() || IsConvertedClosureFunction()) {
     return Function::Handle(parent_function()).script();
   }
   const Object& obj = Object::Handle(raw_ptr()->owner_);
@@ -7453,7 +7510,8 @@ void Function::SetDeoptReasonForAll(intptr_t deopt_id,
 }
 
 bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
-  if ((kernel_offset() <= 0) && (SourceFingerprint() != fp)) {
+  if (!Isolate::Current()->obfuscate() && (kernel_offset() <= 0) &&
+      (SourceFingerprint() != fp)) {
     const bool recalculatingFingerprints = false;
     if (recalculatingFingerprints) {
       // This output can be copied into a file, then used with sed
@@ -8656,19 +8714,29 @@ class CompressedTokenStreamData : public Scanner::TokenCollector {
   static const bool kPrintTokenObjects = false;
 
   CompressedTokenStreamData(const GrowableObjectArray& ta,
-                            CompressedTokenMap* map)
+                            CompressedTokenMap* map,
+                            Obfuscator* obfuscator)
       : buffer_(NULL),
         stream_(&buffer_, Reallocate, kInitialBufferSize),
         token_objects_(ta),
         tokens_(map),
+        str_(String::Handle()),
         value_(Object::Handle()),
         fresh_index_smi_(Smi::Handle()),
-        num_tokens_collected_(0) {}
+        num_tokens_collected_(0),
+        obfuscator_(obfuscator) {}
   virtual ~CompressedTokenStreamData() {}
 
   virtual void AddToken(const Scanner::TokenDescriptor& token) {
     if (token.kind == Token::kIDENT) {  // Identifier token.
       AddIdentToken(*token.literal);
+    } else if (token.kind == Token::kINTERPOL_VAR) {
+      str_ = token.literal->raw();
+      str_ = obfuscator_->Rename(str_);
+
+      Scanner::TokenDescriptor token_copy = token;
+      token_copy.literal = &str_;
+      AddLiteralToken(token_copy);
     } else if (Token::NeedsLiteralToken(token.kind)) {  // Literal token.
       AddLiteralToken(token);
     } else {  // Keyword, pseudo keyword etc.
@@ -8691,15 +8759,17 @@ class CompressedTokenStreamData : public Scanner::TokenCollector {
   void AddIdentToken(const String& ident) {
     ASSERT(ident.IsSymbol());
     const intptr_t fresh_index = token_objects_.Length();
+    str_ = ident.raw();
+    str_ = obfuscator_->Rename(str_);
     fresh_index_smi_ = Smi::New(fresh_index);
     intptr_t index = Smi::Value(
         Smi::RawCast(tokens_->InsertOrGetValue(ident, fresh_index_smi_)));
     if (index == fresh_index) {
-      token_objects_.Add(ident);
+      token_objects_.Add(str_);
       if (kPrintTokenObjects) {
         int iid = Isolate::Current()->main_port() % 1024;
-        OS::Print("ident  %03x  %p <%s>\n", iid, ident.raw(),
-                  ident.ToCString());
+        OS::Print("%03x ident <%s -> %s>\n", iid, ident.ToCString(),
+                  str_.ToCString());
       }
     }
     WriteIndex(index);
@@ -8762,9 +8832,11 @@ class CompressedTokenStreamData : public Scanner::TokenCollector {
   WriteStream stream_;
   const GrowableObjectArray& token_objects_;
   CompressedTokenMap* tokens_;
+  String& str_;
   Object& value_;
   Smi& fresh_index_smi_;
   intptr_t num_tokens_collected_;
+  Obfuscator* obfuscator_;
 
   DISALLOW_COPY_AND_ASSIGN(CompressedTokenStreamData);
 };
@@ -8794,8 +8866,9 @@ RawTokenStream* TokenStream::New(const String& source,
     token_objects_map = HashTables::New<CompressedTokenMap>(
         kInitialPrivateCapacity, Heap::kOld);
   }
+  Obfuscator obfuscator(thread, private_key);
   CompressedTokenMap map(token_objects_map.raw());
-  CompressedTokenStreamData data(token_objects, &map);
+  CompressedTokenStreamData data(token_objects, &map, &obfuscator);
   Scanner scanner(source, private_key);
   scanner.ScanAll(&data);
   INC_STAT(thread, num_tokens_scanned, data.NumTokens());
@@ -9236,6 +9309,7 @@ void Script::Tokenize(const String& private_key, bool use_shared_tokens) const {
     // Already tokenized.
     return;
   }
+
   // Get the source, scan and allocate the token stream.
   VMTagScope tagScope(thread, VMTag::kCompileScannerTagId);
   CSTAT_TIMER_SCOPE(thread, scanner_timer);
@@ -9766,11 +9840,19 @@ void Library::set_num_imports(intptr_t value) const {
   StoreNonPointer(&raw_ptr()->num_imports_, value);
 }
 
+void Library::set_name(const String& name) const {
+  ASSERT(name.IsSymbol());
+  StorePointer(&raw_ptr()->name_, name.raw());
+}
+
+void Library::set_url(const String& name) const {
+  StorePointer(&raw_ptr()->url_, name.raw());
+}
+
 void Library::SetName(const String& name) const {
   // Only set name once.
   ASSERT(!Loaded());
-  ASSERT(name.IsSymbol());
-  StorePointer(&raw_ptr()->name_, name.raw());
+  set_name(name);
 }
 
 void Library::SetLoadInProgress() const {
@@ -10705,6 +10787,10 @@ void Library::set_toplevel_class(const Class& value) const {
   StorePointer(&raw_ptr()->toplevel_class_, value.raw());
 }
 
+void Library::set_metadata(const GrowableObjectArray& value) const {
+  StorePointer(&raw_ptr()->metadata_, value.raw());
+}
+
 RawLibrary* Library::ImportLibraryAt(intptr_t index) const {
   Namespace& import = Namespace::Handle(ImportAt(index));
   if (import.IsNull()) {
@@ -10950,7 +11036,7 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel) {
   }
   // NOTE: If we bootstrap from a Kernel IR file we want to generate the
   // synthetic constructors for the native wrapper classes.  We leave this up to
-  // the [KernelReader] who will take care of it later.
+  // the [KernelLoader] who will take care of it later.
   if (!is_kernel) {
     native_flds_lib.SetLoaded();
   }
@@ -11024,7 +11110,7 @@ void Library::AllocatePrivateKey() const {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_support_reload && isolate->IsReloading()) {
     // When reloading, we need to make sure we use the original private key
     // if this library previously existed.
@@ -11036,7 +11122,7 @@ void Library::AllocatePrivateKey() const {
       return;
     }
   }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   // Format of the private key is: "@<sequence number><6 digits of hash>
   const intptr_t hash_mask = 0x7FFFF;
@@ -12748,15 +12834,25 @@ intptr_t ICData::NumArgsTested() const {
   return NumArgsTestedBits::decode(raw_ptr()->state_bits_);
 }
 
+void ICData::SetNumArgsTested(intptr_t value) const {
+  ASSERT(Utils::IsUint(2, value));
+  StoreNonPointer(&raw_ptr()->state_bits_,
+                  NumArgsTestedBits::update(value, raw_ptr()->state_bits_));
+}
+
 intptr_t ICData::TypeArgsLen() const {
   ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
   return args_desc.TypeArgsLen();
 }
 
-void ICData::SetNumArgsTested(intptr_t value) const {
-  ASSERT(Utils::IsUint(2, value));
-  StoreNonPointer(&raw_ptr()->state_bits_,
-                  NumArgsTestedBits::update(value, raw_ptr()->state_bits_));
+intptr_t ICData::CountWithTypeArgs() const {
+  ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
+  return args_desc.CountWithTypeArgs();
+}
+
+intptr_t ICData::CountWithoutTypeArgs() const {
+  ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
+  return args_desc.Count();
 }
 
 uint32_t ICData::DeoptReasons() const {
@@ -13914,7 +14010,7 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
 }
 
 void Code::Disassemble(DisassemblyFormatter* formatter) const {
-#ifndef PRODUCT
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (!FLAG_support_disassembler) {
     return;
   }
@@ -14003,6 +14099,7 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
   return result.raw();
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 RawCode* Code::FinalizeCode(const char* name,
                             Assembler* assembler,
                             bool optimized) {
@@ -14103,6 +14200,7 @@ RawCode* Code::FinalizeCode(const Function& function,
 #endif  // !PRODUCT
   return FinalizeCode("", assembler, optimized);
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 bool Code::SlowFindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
   return RawCode::ContainsPC(raw_obj, pc_);
@@ -15332,46 +15430,6 @@ bool Instance::IsInstanceOf(
     Function& other_signature =
         Function::Handle(zone, Type::Cast(instantiated_other).signature());
     Function& sig_fun = Function::Handle(zone, Closure::Cast(*this).function());
-    if (sig_fun.IsConvertedClosureFunction()) {
-      const String& closure_name = String::Handle(zone, sig_fun.name());
-      const Function& new_sig_fun = Function::Handle(
-          zone,
-          Function::NewConvertedClosureFunction(
-              closure_name, Function::Handle(zone, sig_fun.parent_function()),
-              TokenPosition::kNoSource));
-
-      new_sig_fun.set_type_parameters(
-          TypeArguments::Handle(zone, sig_fun.type_parameters()));
-      new_sig_fun.set_result_type(
-          AbstractType::Handle(zone, sig_fun.result_type()));
-      new_sig_fun.set_end_token_pos(TokenPosition::kNoSource);
-
-      new_sig_fun.set_is_debuggable(false);
-      new_sig_fun.set_is_visible(false);
-
-      // The converted closed top-level function type should have its first
-      // required optional parameter, i.e. context, removed.
-      const int num_fixed_params = sig_fun.num_fixed_parameters() - 1;
-      const int num_opt_params = sig_fun.NumOptionalParameters();
-      const bool has_opt_pos_params = sig_fun.HasOptionalPositionalParameters();
-      const int num_params = num_fixed_params + num_opt_params;
-      new_sig_fun.set_num_fixed_parameters(num_fixed_params);
-      new_sig_fun.SetNumOptionalParameters(num_opt_params, has_opt_pos_params);
-      new_sig_fun.set_parameter_types(
-          Array::Handle(zone, Array::New(num_params, Heap::kOld)));
-      new_sig_fun.set_parameter_names(
-          Array::Handle(zone, Array::New(num_params, Heap::kOld)));
-      AbstractType& param_type = AbstractType::Handle(zone);
-      String& param_name = String::Handle(zone);
-      for (int i = 0; i < num_params; i++) {
-        param_type = sig_fun.ParameterTypeAt(i + 1);
-        new_sig_fun.SetParameterTypeAt(i, param_type);
-        param_name = sig_fun.ParameterNameAt(i + 1);
-        new_sig_fun.SetParameterNameAt(i, param_name);
-      }
-
-      sig_fun = new_sig_fun.raw();
-    }
     if (!sig_fun.HasInstantiatedSignature()) {
       const TypeArguments& instantiator_type_arguments = TypeArguments::Handle(
           zone, Closure::Cast(*this).instantiator_type_arguments());

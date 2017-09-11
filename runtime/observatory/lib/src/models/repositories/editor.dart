@@ -5,8 +5,11 @@
 part of models;
 
 abstract class EditorRepository {
-  bool get canOpenClass;
+  bool get isAvailable;
 
   Future openClass(IsolateRef isolate, ClassRef clazz);
+  Future openField(IsolateRef isolate, FieldRef clazz);
+  Future openFunction(IsolateRef isolate, FunctionRef clazz);
+  Future openObject(IsolateRef isolate, ObjectRef clazz);
   Future openSourceLocation(IsolateRef isolate, SourceLocation location);
 }

@@ -42,6 +42,58 @@ class B extends self::A {}
     expect(newHierarchy, isNot(same(hierarchy)));
     expect(newHierarchy, new isInstanceOf<ClosedWorldClassHierarchy>());
   }
+
+  void test_getSingleTargetForInterfaceInvocation() {
+    var methodInA = newEmptyMethod('foo', isAbstract: true);
+    var methodInB = newEmptyMethod('foo');
+    var methodInD = newEmptyMethod('foo');
+    var methodInE = newEmptyMethod('foo');
+
+    var a = addClass(
+        new Class(name: 'A', supertype: objectSuper, procedures: [methodInA]));
+    var b = addClass(new Class(
+        name: 'B',
+        isAbstract: true,
+        supertype: objectSuper,
+        procedures: [methodInB]));
+    var c = addClass(new Class(
+        name: 'C',
+        supertype: b.asThisSupertype,
+        implementedTypes: [a.asThisSupertype]));
+    addClass(new Class(
+        name: 'D', supertype: b.asThisSupertype, procedures: [methodInD]));
+    addClass(new Class(
+        name: 'E',
+        isAbstract: true,
+        supertype: objectSuper,
+        implementedTypes: [c.asThisSupertype],
+        procedures: [methodInE]));
+
+    _assertTestLibraryText('''
+class A {
+  abstract method foo() → void;
+}
+abstract class B {
+  method foo() → void {}
+}
+class C extends self::B implements self::A {}
+class D extends self::B {
+  method foo() → void {}
+}
+abstract class E implements self::C {
+  method foo() → void {}
+}
+''');
+
+    ClosedWorldClassHierarchy cwch = hierarchy as ClosedWorldClassHierarchy;
+
+    expect(cwch.getSingleTargetForInterfaceInvocation(methodInA), methodInB);
+    expect(cwch.getSingleTargetForInterfaceInvocation(methodInB),
+        null); // B::foo and D::foo
+    expect(cwch.getSingleTargetForInterfaceInvocation(methodInD), methodInD);
+    expect(cwch.getSingleTargetForInterfaceInvocation(methodInE),
+        null); // no concrete subtypes
+  }
 }
 
 @reflectiveTest
@@ -130,8 +182,9 @@ abstract class _ClassHierarchyTest {
   ClassHierarchy createClassHierarchy(Program program);
 
   Procedure newEmptyGetter(String name,
-      {DartType returnType: const DynamicType()}) {
-    var body = new Block([new ReturnStatement(new NullLiteral())]);
+      {DartType returnType: const DynamicType(), bool isAbstract: false}) {
+    var body =
+        isAbstract ? null : new Block([new ReturnStatement(new NullLiteral())]);
     return new Procedure(new Name(name), ProcedureKind.Getter,
         new FunctionNode(body, returnType: returnType));
   }
@@ -144,8 +197,8 @@ abstract class _ClassHierarchyTest {
   }
 
   Procedure newEmptySetter(String name,
-      {bool abstract: false, DartType type: const DynamicType()}) {
-    var body = abstract ? null : new Block([]);
+      {bool isAbstract: false, DartType type: const DynamicType()}) {
+    var body = isAbstract ? null : new Block([]);
     return new Procedure(
         new Name(name),
         ProcedureKind.Setter,
@@ -285,6 +338,48 @@ class E = self::D with self::A implements self::B {}
 
     _assertOverridePairs(c, ['test::A::foo overrides test::B::foo']);
     _assertOverridePairs(e, ['test::A::foo overrides test::B::foo']);
+  }
+
+  /// An abstract member declared in the class is overridden by a member in
+  /// one of the interfaces.
+  void test_forEachOverridePair_supertypeOverridesThis() {
+    var a = addClass(new Class(
+        name: 'A',
+        supertype: objectSuper,
+        procedures: [newEmptyMethod('foo')]));
+    var b = addClass(new Class(
+        name: 'B',
+        supertype: a.asThisSupertype,
+        procedures: [newEmptyMethod('foo', isAbstract: true)]));
+    var c = addClass(new Class(
+        name: 'C',
+        supertype: a.asThisSupertype,
+        procedures: [newEmptyMethod('foo', isAbstract: true)],
+        isAbstract: true));
+    var d = addClass(new Class(name: 'D', supertype: b.asThisSupertype));
+    var e = addClass(new Class(name: 'E', supertype: c.asThisSupertype));
+
+    _assertTestLibraryText('''
+class A {
+  method foo() → void {}
+}
+class B extends self::A {
+  abstract method foo() → void;
+}
+abstract class C extends self::A {
+  abstract method foo() → void;
+}
+class D extends self::B {}
+class E extends self::C {}
+''');
+
+    _assertOverridePairs(b, [
+      'test::A::foo overrides test::B::foo',
+      'test::B::foo overrides test::A::foo'
+    ]);
+    _assertOverridePairs(c, ['test::C::foo overrides test::A::foo']);
+    _assertOverridePairs(d, ['test::A::foo overrides test::B::foo']);
+    _assertOverridePairs(e, ['test::A::foo overrides test::C::foo']);
   }
 
   /// 3. A non-abstract member is inherited from a superclass, and it overrides
@@ -920,6 +1015,263 @@ class C implements self::B {}
     expect(hierarchy.getInterfaceMember(c, bMethodName), bMethod);
     expect(hierarchy.getInterfaceMember(c, aSetterName, setter: true), aSetter);
     expect(hierarchy.getInterfaceMember(c, bSetterName, setter: true), bSetter);
+  }
+
+  void test_getInterfaceMembers_in_class() {
+    var method = newEmptyMethod('method');
+    var getter = newEmptyGetter('getter');
+    var setter = newEmptySetter('setter');
+    var abstractMethod = newEmptyMethod('abstractMethod', isAbstract: true);
+    var abstractGetter = newEmptyGetter('abstractGetter', isAbstract: true);
+    var abstractSetter = newEmptySetter('abstractSetter', isAbstract: true);
+    var nonFinalField = new Field(new Name('nonFinalField'));
+    var finalField = new Field(new Name('finalField'), isFinal: true);
+    var a = addClass(new Class(
+        isAbstract: true,
+        name: 'A',
+        supertype: objectSuper,
+        fields: [
+          nonFinalField,
+          finalField
+        ],
+        procedures: [
+          method,
+          getter,
+          setter,
+          abstractMethod,
+          abstractGetter,
+          abstractSetter
+        ]));
+
+    _assertTestLibraryText('''
+abstract class A {
+  field dynamic nonFinalField;
+  final field dynamic finalField;
+  method method() → void {}
+  get getter() → dynamic {
+    return null;
+  }
+  set setter(dynamic _) → void {}
+  abstract method abstractMethod() → void;
+  get abstractGetter() → dynamic;
+  set abstractSetter(dynamic _) → void;
+}
+''');
+
+    expect(
+        hierarchy.getInterfaceMembers(a),
+        unorderedEquals([
+          method,
+          getter,
+          abstractMethod,
+          abstractGetter,
+          nonFinalField,
+          finalField
+        ]));
+    expect(hierarchy.getInterfaceMembers(a, setters: true),
+        unorderedEquals([setter, abstractSetter, nonFinalField]));
+  }
+
+  void test_getInterfaceMembers_inherited_or_mixed_in() {
+    var method = newEmptyMethod('method');
+    var getter = newEmptyGetter('getter');
+    var setter = newEmptySetter('setter');
+    var abstractMethod = newEmptyMethod('abstractMethod', isAbstract: true);
+    var abstractGetter = newEmptyGetter('abstractGetter', isAbstract: true);
+    var abstractSetter = newEmptySetter('abstractSetter', isAbstract: true);
+    var nonFinalField = new Field(new Name('nonFinalField'));
+    var finalField = new Field(new Name('finalField'), isFinal: true);
+
+    var a = addClass(new Class(name: 'A', supertype: objectSuper, fields: [
+      nonFinalField,
+      finalField
+    ], procedures: [
+      method,
+      getter,
+      setter,
+      abstractMethod,
+      abstractGetter,
+      abstractSetter
+    ]));
+    var b = addClass(new Class(name: 'B', supertype: a.asThisSupertype));
+    var c = addClass(new Class(
+        isAbstract: true,
+        name: 'C',
+        supertype: objectSuper,
+        implementedTypes: [a.asThisSupertype]));
+    var d = addClass(new Class(
+        name: 'D', supertype: objectSuper, mixedInType: a.asThisSupertype));
+
+    _assertTestLibraryText('''
+class A {
+  field dynamic nonFinalField;
+  final field dynamic finalField;
+  method method() → void {}
+  get getter() → dynamic {
+    return null;
+  }
+  set setter(dynamic _) → void {}
+  abstract method abstractMethod() → void;
+  get abstractGetter() → dynamic;
+  set abstractSetter(dynamic _) → void;
+}
+class B extends self::A {}
+abstract class C implements self::A {}
+class D = core::Object with self::A {}
+''');
+
+    var expectedGetters = [
+      method,
+      getter,
+      abstractMethod,
+      abstractGetter,
+      nonFinalField,
+      finalField
+    ];
+    expect(hierarchy.getInterfaceMembers(b), unorderedEquals(expectedGetters));
+    var expectedSetters = [setter, abstractSetter, nonFinalField];
+    expect(hierarchy.getInterfaceMembers(b, setters: true),
+        unorderedEquals(expectedSetters));
+    expect(hierarchy.getInterfaceMembers(c), unorderedEquals(expectedGetters));
+    expect(hierarchy.getInterfaceMembers(c, setters: true),
+        unorderedEquals(expectedSetters));
+    expect(hierarchy.getInterfaceMembers(d), unorderedEquals(expectedGetters));
+    expect(hierarchy.getInterfaceMembers(d, setters: true),
+        unorderedEquals(expectedSetters));
+  }
+
+  void test_getInterfaceMembers_multiple() {
+    var method_a = newEmptyMethod('method');
+    var getter_a = newEmptyGetter('getter');
+    var setter_a = newEmptySetter('setter');
+    var nonFinalField_a = new Field(new Name('nonFinalField'));
+    var finalField_a = new Field(new Name('finalField'), isFinal: true);
+    var method_b = newEmptyMethod('method');
+    var getter_b = newEmptyGetter('getter');
+    var setter_b = newEmptySetter('setter');
+    var nonFinalField_b = new Field(new Name('nonFinalField'));
+    var finalField_b = new Field(new Name('finalField'), isFinal: true);
+
+    var a = addClass(new Class(
+        name: 'A',
+        supertype: objectSuper,
+        fields: [nonFinalField_a, finalField_a],
+        procedures: [method_a, getter_a, setter_a]));
+    var b = addClass(new Class(
+        name: 'B',
+        supertype: objectSuper,
+        fields: [nonFinalField_b, finalField_b],
+        procedures: [method_b, getter_b, setter_b]));
+    var c = addClass(new Class(
+        isAbstract: true,
+        name: 'C',
+        supertype: objectSuper,
+        implementedTypes: [a.asThisSupertype, b.asThisSupertype]));
+
+    _assertTestLibraryText('''
+class A {
+  field dynamic nonFinalField;
+  final field dynamic finalField;
+  method method() → void {}
+  get getter() → dynamic {
+    return null;
+  }
+  set setter(dynamic _) → void {}
+}
+class B {
+  field dynamic nonFinalField;
+  final field dynamic finalField;
+  method method() → void {}
+  get getter() → dynamic {
+    return null;
+  }
+  set setter(dynamic _) → void {}
+}
+abstract class C implements self::A, self::B {}
+''');
+
+    expect(
+        hierarchy.getInterfaceMembers(c),
+        unorderedEquals([
+          method_a,
+          getter_a,
+          nonFinalField_a,
+          finalField_a,
+          method_b,
+          getter_b,
+          nonFinalField_b,
+          finalField_b
+        ]));
+    expect(
+        hierarchy.getInterfaceMembers(c, setters: true),
+        unorderedEquals(
+            [setter_a, nonFinalField_a, setter_b, nonFinalField_b]));
+  }
+
+  void test_getInterfaceMembers_shadowed() {
+    var method_a = newEmptyMethod('method');
+    var nonShadowedMethod_a = newEmptyMethod('nonShadowedMethod');
+    var getter_a = newEmptyGetter('getter');
+    var setter_a = newEmptySetter('setter');
+    var nonShadowedSetter_a = newEmptySetter('nonShadowedSetter');
+    var nonFinalField_a = new Field(new Name('nonFinalField'));
+    var finalField_a = new Field(new Name('finalField'), isFinal: true);
+    var method_b = newEmptyMethod('method');
+    var getter_b = newEmptyGetter('getter');
+    var setter_b = newEmptySetter('setter');
+    var nonFinalField_b = new Field(new Name('nonFinalField'));
+    var finalField_b = new Field(new Name('finalField'), isFinal: true);
+
+    var a = addClass(new Class(name: 'A', supertype: objectSuper, fields: [
+      nonFinalField_a,
+      finalField_a
+    ], procedures: [
+      method_a,
+      nonShadowedMethod_a,
+      getter_a,
+      setter_a,
+      nonShadowedSetter_a
+    ]));
+    var b = addClass(new Class(
+        name: 'B',
+        supertype: a.asThisSupertype,
+        fields: [nonFinalField_b, finalField_b],
+        procedures: [method_b, getter_b, setter_b]));
+
+    _assertTestLibraryText('''
+class A {
+  field dynamic nonFinalField;
+  final field dynamic finalField;
+  method method() → void {}
+  method nonShadowedMethod() → void {}
+  get getter() → dynamic {
+    return null;
+  }
+  set setter(dynamic _) → void {}
+  set nonShadowedSetter(dynamic _) → void {}
+}
+class B extends self::A {
+  field dynamic nonFinalField;
+  final field dynamic finalField;
+  method method() → void {}
+  get getter() → dynamic {
+    return null;
+  }
+  set setter(dynamic _) → void {}
+}
+''');
+
+    expect(
+        hierarchy.getInterfaceMembers(b),
+        unorderedEquals([
+          nonShadowedMethod_a,
+          method_b,
+          getter_b,
+          nonFinalField_b,
+          finalField_b
+        ]));
+    expect(hierarchy.getInterfaceMembers(b, setters: true),
+        unorderedEquals([nonShadowedSetter_a, setter_b, nonFinalField_b]));
   }
 
   void test_getOrderedClasses() {

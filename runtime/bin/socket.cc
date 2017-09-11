@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "bin/socket.h"
 
 #include "bin/dartutils.h"
@@ -26,9 +24,8 @@ static const int kSocketIdNativeField = 0;
 
 ListeningSocketRegistry* globalTcpListeningSocketRegistry = NULL;
 
-bool short_socket_read = false;
-
-bool short_socket_write = false;
+bool Socket::short_socket_read_ = false;
+bool Socket::short_socket_write_ = false;
 
 void ListeningSocketRegistry::Initialize() {
   ASSERT(globalTcpListeningSocketRegistry == NULL);
@@ -327,7 +324,7 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
   int64_t length = 0;
   if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length)) {
-    if (short_socket_read) {
+    if (Socket::short_socket_read()) {
       length = (length + 1) / 2;
     }
     uint8_t* buffer = NULL;
@@ -441,7 +438,7 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   intptr_t offset = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
   intptr_t length = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
   bool short_write = false;
-  if (short_socket_write) {
+  if (Socket::short_socket_write()) {
     if (length > 1) {
       short_write = true;
     }
@@ -967,5 +964,3 @@ Socket* Socket::GetSocketIdNativeField(Dart_Handle socket_obj) {
 
 }  // namespace bin
 }  // namespace dart
-
-#endif  // !defined(DART_IO_DISABLED)

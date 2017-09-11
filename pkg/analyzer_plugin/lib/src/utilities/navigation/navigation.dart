@@ -59,6 +59,12 @@ class NavigationCollectorImpl implements NavigationCollector {
   final Map<String, int> fileMap = <String, int>{};
 
   @override
+  void addRange(
+      SourceRange range, ElementKind targetKind, Location targetLocation) {
+    addRegion(range.offset, range.length, targetKind, targetLocation);
+  }
+
+  @override
   void addRegion(
       int offset, int length, ElementKind targetKind, Location targetLocation) {
     SourceRange range = new SourceRange(offset, length);

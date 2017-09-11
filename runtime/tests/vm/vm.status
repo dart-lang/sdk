@@ -220,9 +220,6 @@ cc/GuardFieldSimpleTest: Skip
 # This test is meaningless for DBC as allocation stubs are not used.
 cc/RegenerateAllocStubs: Skip
 
-[ $arch == simdbc64 && $mode == release ]
-cc/UseDartApi: Skip # Issue 28499
-
 [ $hot_reload || $hot_reload_rollback ]
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
@@ -231,21 +228,13 @@ dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloa
 dart/redirection_type_shuffling_test/00: RuntimeError # Issue 29201
 
 [ ($compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
-dart/byte_array_optimized_test: RuntimeError
-dart/byte_array_test: RuntimeError
 dart/data_uri_import_test/base64: CompileTimeError
 dart/data_uri_import_test/nocharset: CompileTimeError
 dart/data_uri_import_test/nomime: CompileTimeError
 dart/data_uri_import_test/percentencoded: CompileTimeError
 dart/data_uri_import_test/wrongmime: CompileTimeError
 dart/data_uri_spawn_test: RuntimeError
-dart/double_materialize_test: RuntimeError
-dart/double_to_smi_test: RuntimeError
-dart/error_stacktrace_test: RuntimeError
-dart/inline_stack_frame_test: RuntimeError
-dart/optimized_stacktrace_line_test: RuntimeError
-dart/redirection_type_shuffling_test/none: RuntimeError # Issue 29201
-dart/regress29620_test: RuntimeError
+dart/redirection_type_shuffling_test: Crash
 dart/spawn_shutdown_test: SkipSlow
 
 [ ($compiler != dartk) ]
@@ -292,7 +281,9 @@ cc/DartAPI_NegativeNativeFieldInIsolateMessage: Crash
 cc/DartAPI_New: Crash
 cc/DartAPI_ParsePatchLibrary: Crash
 cc/DartAPI_PropagateError: Fail
-cc/DartAPI_StackOverflowStackTraceInfo: Skip
+cc/DartAPI_StackOverflowStackTraceInfoBraceFunction1: Fail
+cc/DartAPI_StackOverflowStackTraceInfoBraceFunction2: Fail
+cc/DartAPI_StackOverflowStackTraceInfoArrowFunction: Fail
 cc/DartAPI_TestNativeFieldsAccess: Crash
 cc/DartAPI_TypeGetParameterizedTypes: Crash
 cc/DebuggerAPI_BreakpointStubPatching: Fail
@@ -337,13 +328,13 @@ cc/IsolateReload_NotEnumToEnum: Skip
 cc/IsolateReload_NotTypedefToTypedef: Fail
 cc/IsolateReload_PendingSuperCall: Fail
 cc/IsolateReload_PrefixImportedLibModified: Crash
-cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Crash
-cc/IsolateReload_RunNewFieldInitializers: Crash
-cc/IsolateReload_RunNewFieldInitializersMutateStaticField: Crash
-cc/IsolateReload_RunNewFieldInitializersReferenceStaticField: Crash
+cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Skip
+cc/IsolateReload_RunNewFieldInitializers: Skip
+cc/IsolateReload_RunNewFieldInitializersMutateStaticField: Skip
+cc/IsolateReload_RunNewFieldInitializersReferenceStaticField: Skip
 cc/IsolateReload_RunNewFieldInitializersSyntaxError3: Fail
-cc/IsolateReload_RunNewFieldInitializersThrows: Crash
-cc/IsolateReload_ShapeChangeRetainsHash: Crash
+cc/IsolateReload_RunNewFieldInitializersThrows: Skip
+cc/IsolateReload_ShapeChangeRetainsHash: Skip
 cc/IsolateReload_SmiFastPathStubs: Fail
 cc/IsolateReload_TearOff_AddArguments2: Fail
 cc/IsolateReload_TearOff_AddArguments: Fail
@@ -419,7 +410,6 @@ cc/Service_TokenStream: Fail
 cc/InjectNativeFields1: Crash
 cc/InjectNativeFields3: Crash
 cc/Service_TokenStream: Crash
-cc/IsolateReload_KernelIncrementalCompileAppAndLib: Crash # Issue 30420
 
 [ ($compiler == dartk) && ($runtime == vm) && ($system == macos) ]
 cc/IsolateReload_DanglingGetter_Class: Crash
@@ -430,8 +420,6 @@ cc/IsolateReload_DanglingSetter_Instance: Crash
 cc/IsolateReload_DanglingSetter_Library: Crash
 cc/IsolateReload_EnumDelete: Crash
 cc/IsolateReload_LibraryLookup: Crash
-cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Crash
-cc/IsolateReload_RunNewFieldInitializersThrows: Crash
 cc/IsolateReload_TearOff_AddArguments2: Crash
 cc/IsolateReload_TearOff_AddArguments: Crash
 cc/IsolateReload_TearOff_Class_Identity: Crash
@@ -446,3 +434,8 @@ cc/Parser_AllocateVariables_Issue7681: Crash
 cc/Parser_AllocateVariables_MiddleChain: Crash
 cc/Parser_AllocateVariables_NestedCapturedVar: Crash
 cc/Parser_AllocateVariables_TwoChains: Crash
+
+[ $runtime == dart_precompiled && $minified ]
+dart/inline_stack_frame_test: Skip
+dart/optimized_stacktrace_line_test: Skip
+

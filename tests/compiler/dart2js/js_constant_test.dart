@@ -20,7 +20,7 @@ main() {
     Uri uri = new Uri(scheme: 'dart', path: 'test');
     var compiler = compilerFor(test, uri, expectedErrors: 0);
     return compiler.run(uri).then((_) {
-      var element = findElement(compiler, 'main');
+      MemberElement element = findElement(compiler, 'main');
       var backend = compiler.backend;
       String generated = backend.getGeneratedCode(element);
       checkerForAbsentPresent(test)(generated);

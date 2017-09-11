@@ -323,9 +323,10 @@ Scavenger::Scavenger(Heap* heap,
       delayed_weak_properties_(NULL),
       gc_time_micros_(0),
       collections_(0),
+      scavenge_words_per_micro_(400),
+      idle_scavenge_threshold_in_words_(0),
       external_size_(0),
-      failed_to_promote_(false),
-      space_lock_(new Mutex()) {
+      failed_to_promote_(false) {
   // Verify assumptions about the first word in objects which the scavenger is
   // going to use for forwarding pointers.
   ASSERT(Object::tags_offset() == 0);
@@ -348,6 +349,7 @@ Scavenger::Scavenger(Heap* heap,
   end_ = to_->end();
 
   survivor_end_ = FirstObjectStart();
+  idle_scavenge_threshold_in_words_ = initial_semi_capacity_in_words;
 
   UpdateMaxHeapCapacity();
   UpdateMaxHeapUsage();
@@ -356,14 +358,13 @@ Scavenger::Scavenger(Heap* heap,
 Scavenger::~Scavenger() {
   ASSERT(!scavenging_);
   to_->Delete();
-  delete space_lock_;
 }
 
 intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
   if (stats_history_.Size() == 0) {
     return old_size_in_words;
   }
-  double garbage = stats_history_.Get(0).GarbageFraction();
+  double garbage = stats_history_.Get(0).ExpectedGarbageFraction();
   if (garbage < (FLAG_new_gen_garbage_threshold / 100.0)) {
     return Utils::Minimum(max_semi_capacity_in_words_,
                           old_size_in_words * FLAG_new_gen_growth_factor);
@@ -372,10 +373,7 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
   }
 }
 
-SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
-  if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
-    (isolate->gc_prologue_callback())();
-  }
+SemiSpace* Scavenger::Prologue(Isolate* isolate) {
   isolate->PrepareForGC();
 
   // Flip the two semi-spaces so that to_ is always the space for allocating
@@ -396,19 +394,27 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   resolved_top_ = top_;
   end_ = to_->end();
 
+  // Throw out the old information about the from space
+  if (isolate->IsMutatorThreadScheduled()) {
+    Thread* mutator_thread = isolate->mutator_thread();
+    mutator_thread->set_top(top_);
+    mutator_thread->set_end(end_);
+  }
+
   return from;
 }
 
-void Scavenger::Epilogue(Isolate* isolate,
-                         SemiSpace* from,
-                         bool invoke_api_callbacks) {
+void Scavenger::Epilogue(Isolate* isolate, SemiSpace* from) {
   // All objects in the to space have been copied from the from space at this
   // moment.
 
-  // Ensure the mutator thread will fail the next allocation. This will force
-  // mutator to allocate a new TLAB
-  Thread* mutator_thread = isolate->mutator_thread();
-  ASSERT((mutator_thread == NULL) || (!mutator_thread->HasActiveTLAB()));
+  // Ensure the mutator thread now has the up-to-date top_ and end_ of the
+  // semispace
+  if (isolate->IsMutatorThreadScheduled()) {
+    Thread* thread = isolate->mutator_thread();
+    thread->set_top(top_);
+    thread->set_end(end_);
+  }
 
   double avg_frac = stats_history_.Get(0).PromoCandidatesSuccessFraction();
   if (stats_history_.Size() >= 2) {
@@ -424,6 +430,45 @@ void Scavenger::Epilogue(Isolate* isolate,
     // objects candidates for promotion next time.
     survivor_end_ = end_;
   }
+
+  // Update estimate of scavenger speed. This statistic assumes survivorship
+  // rates don't change much.
+  intptr_t history_used = 0;
+  intptr_t history_micros = 0;
+  ASSERT(stats_history_.Size() > 0);
+  for (intptr_t i = 0; i < stats_history_.Size(); i++) {
+    history_used += stats_history_.Get(i).UsedBeforeInWords();
+    history_micros += stats_history_.Get(i).DurationMicros();
+  }
+  if (history_micros == 0) {
+    history_micros = 1;
+  }
+  scavenge_words_per_micro_ = history_used / history_micros;
+  if (scavenge_words_per_micro_ == 0) {
+    scavenge_words_per_micro_ = 1;
+  }
+
+  // Update amount of new-space we must allocate before performing an idle
+  // scavenge. This is based on the amount of work we expect to be able to
+  // complete in a typical idle period.
+  intptr_t average_idle_task_micros = 4000;
+  idle_scavenge_threshold_in_words_ =
+      scavenge_words_per_micro_ * average_idle_task_micros;
+  // Even if the scavenge speed is slow, make sure we don't scavenge too
+  // frequently, which just wastes power and falsely increases the promotion
+  // rate.
+  intptr_t lower_bound = 512 * KBInWords;
+  if (idle_scavenge_threshold_in_words_ < lower_bound) {
+    idle_scavenge_threshold_in_words_ = lower_bound;
+  }
+  // Even if the scavenge speed is very high, make sure we start considering
+  // idle scavenges before new space is full to avoid requiring a scavenge in
+  // the middle of a frame.
+  intptr_t upper_bound = 8 * CapacityInWords() / 10;
+  if (idle_scavenge_threshold_in_words_ > upper_bound) {
+    idle_scavenge_threshold_in_words_ = upper_bound;
+  }
+
 #if defined(DEBUG)
   // We can only safely verify the store buffers from old space if there is no
   // concurrent old space task. At the same time we prevent new tasks from
@@ -442,9 +487,18 @@ void Scavenger::Epilogue(Isolate* isolate,
   if (heap_ != NULL) {
     heap_->UpdateGlobalMaxUsed();
   }
-  if (invoke_api_callbacks && (isolate->gc_epilogue_callback() != NULL)) {
-    (isolate->gc_epilogue_callback())();
+}
+
+bool Scavenger::ShouldPerformIdleScavenge(int64_t deadline) {
+  // TODO(rmacnak): Investigate collecting a history of idle period durations.
+  intptr_t used_in_words = UsedInWords();
+  if (used_in_words < idle_scavenge_threshold_in_words_) {
+    return false;
   }
+  int64_t estimated_scavenge_completion =
+      OS::GetCurrentMonotonicMicros() +
+      used_in_words / scavenge_words_per_micro_;
+  return estimated_scavenge_completion <= deadline;
 }
 
 void Scavenger::IterateStoreBuffers(Isolate* isolate,
@@ -714,45 +768,18 @@ void Scavenger::ProcessWeakReferences() {
   }
 }
 
-void Scavenger::MakeAllTLABsIterable(Isolate* isolate) const {
-  MonitorLocker ml(isolate->threads_lock(), false);
-  Thread* current = heap_->isolate()->thread_registry()->active_list();
-  while (current != NULL) {
-    if (current->HasActiveTLAB()) {
-      heap_->MakeTLABIterable(current);
-    }
-    current = current->next();
-  }
-  Thread* mutator_thread = isolate->mutator_thread();
-  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
-    heap_->MakeTLABIterable(mutator_thread);
-  }
-}
-
-void Scavenger::MakeNewSpaceIterable() const {
+void Scavenger::FlushTLS() const {
   ASSERT(heap_ != NULL);
-  if (!scavenging_) {
-    MakeAllTLABsIterable(heap_->isolate());
-  }
-}
-
-void Scavenger::AbandonAllTLABs(Isolate* isolate) {
-  MonitorLocker ml(isolate->threads_lock(), false);
-  Thread* current = isolate->thread_registry()->active_list();
-  while (current != NULL) {
-    heap_->AbandonRemainingTLAB(current);
-    current = current->next();
-  }
-  Thread* mutator_thread = isolate->mutator_thread();
-  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
-    heap_->AbandonRemainingTLAB(mutator_thread);
+  if (heap_->isolate()->IsMutatorThreadScheduled()) {
+    Thread* mutator_thread = heap_->isolate()->mutator_thread();
+    mutator_thread->heap()->new_space()->set_top(mutator_thread->top());
   }
 }
 
 void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   ASSERT(Thread::Current()->IsAtSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask));
-  MakeNewSpaceIterable();
+  FlushTLS();
   uword cur = FirstObjectStart();
   while (cur < top_) {
     RawObject* raw_obj = RawObject::FromAddr(cur);
@@ -763,7 +790,7 @@ void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
   ASSERT(Thread::Current()->IsAtSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask));
-  MakeNewSpaceIterable();
+  FlushTLS();
   uword cur = FirstObjectStart();
   while (cur < top_) {
     RawObject* raw_obj = RawObject::FromAddr(cur);
@@ -778,7 +805,7 @@ void Scavenger::AddRegionsToObjectSet(ObjectSet* set) const {
 
 RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
   ASSERT(!scavenging_);
-  MakeNewSpaceIterable();
+  FlushTLS();
   uword cur = FirstObjectStart();
   if (visitor->VisitRange(cur, top_)) {
     while (cur < top_) {
@@ -795,12 +822,6 @@ RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
 }
 
 void Scavenger::Scavenge() {
-  // TODO(cshapiro): Add a decision procedure for determining when the
-  // the API callbacks should be invoked.
-  Scavenge(false);
-}
-
-void Scavenger::Scavenge(bool invoke_api_callbacks) {
   Isolate* isolate = heap_->isolate();
   // Ensure that all threads for this isolate are at a safepoint (either stopped
   // or in native code). If two threads are racing at this point, the loser
@@ -808,7 +829,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // TODO(koda): Consider moving SafepointThreads into allocation failure/retry
   // logic to avoid needless collections.
 
-  int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
+  int64_t start = OS::GetCurrentMonotonicMicros();
 
   Thread* thread = Thread::Current();
   SafepointOperationScope safepoint_scope(thread);
@@ -822,10 +843,8 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   PageSpace* page_space = heap_->old_space();
   NoSafepointScope no_safepoints;
 
-  int64_t post_safe_point = OS::GetCurrentMonotonicMicros();
-  heap_->RecordTime(kSafePoint, post_safe_point - pre_safe_point);
-
-  AbandonAllTLABs(isolate);
+  int64_t safe_point = OS::GetCurrentMonotonicMicros();
+  heap_->RecordTime(kSafePoint, safe_point - start);
 
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_before_gc && !FLAG_concurrent_sweep) {
@@ -838,7 +857,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words =
       (survivor_end_ - FirstObjectStart()) / kWordSize;
-  SemiSpace* from = Prologue(isolate, invoke_api_callbacks);
+  SemiSpace* from = Prologue(isolate);
   // The API prologue/epilogue may create/destroy zones, so we must not
   // depend on zone allocations surviving beyond the epilogue callback.
   {
@@ -847,9 +866,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     ScavengerVisitor visitor(isolate, this, from);
     page_space->AcquireDataLock();
     IterateRoots(isolate, &visitor);
-    int64_t start = OS::GetCurrentMonotonicMicros();
+    int64_t iterate_roots = OS::GetCurrentMonotonicMicros();
     ProcessToSpace(&visitor);
-    int64_t middle = OS::GetCurrentMonotonicMicros();
+    int64_t process_to_space = OS::GetCurrentMonotonicMicros();
     {
       TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
       ScavengerWeakVisitor weak_visitor(thread, this);
@@ -860,13 +879,13 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
 
     // Scavenge finished. Run accounting.
     int64_t end = OS::GetCurrentMonotonicMicros();
-    heap_->RecordTime(kProcessToSpace, middle - start);
-    heap_->RecordTime(kIterateWeaks, end - middle);
+    heap_->RecordTime(kProcessToSpace, process_to_space - iterate_roots);
+    heap_->RecordTime(kIterateWeaks, end - process_to_space);
     stats_history_.Add(ScavengeStats(
         start, end, usage_before, GetCurrentUsage(), promo_candidate_words,
         visitor.bytes_promoted() >> kWordSizeLog2));
   }
-  Epilogue(isolate, from, invoke_api_callbacks);
+  Epilogue(isolate, from);
 
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_after_gc && !FLAG_concurrent_sweep) {
@@ -938,35 +957,16 @@ void Scavenger::Evacuate() {
   // Forces the next scavenge to promote all the objects in the new space.
   survivor_end_ = top_;
 
+  if (heap_->isolate()->IsMutatorThreadScheduled()) {
+    Thread* mutator_thread = heap_->isolate()->mutator_thread();
+    survivor_end_ = mutator_thread->top();
+  }
+
   Scavenge();
 
   // It is possible for objects to stay in the new space
   // if the VM cannot create more pages for these objects.
   ASSERT((UsedInWords() == 0) || failed_to_promote_);
-}
-
-int64_t Scavenger::FreeSpaceInWords(Isolate* isolate) const {
-  MonitorLocker ml(isolate->threads_lock(), false);
-  Thread* current = isolate->thread_registry()->active_list();
-  int64_t free_space = 0;
-  while (current != NULL) {
-    if (current->HasActiveTLAB()) {
-      free_space += current->end() - current->top();
-    }
-    current = current->next();
-  }
-
-  Thread* mutator_thread = isolate->mutator_thread();
-  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
-    free_space += mutator_thread->end() - mutator_thread->top();
-  }
-  return free_space >> kWordSizeLog2;
-}
-
-int64_t Scavenger::UsedInWords() const {
-  int64_t free_space_in_tlab = FreeSpaceInWords(heap_->isolate());
-  int64_t max_space_used = (top_ - FirstObjectStart()) >> kWordSizeLog2;
-  return max_space_used - free_space_in_tlab;
 }
 
 }  // namespace dart

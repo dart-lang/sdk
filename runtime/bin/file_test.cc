@@ -13,7 +13,7 @@ namespace bin {
 // Helper method to be able to run the test from the runtime
 // directory, or the top directory.
 static const char* GetFileName(const char* name) {
-  if (File::Exists(name)) {
+  if (File::Exists(NULL, name)) {
     return name;
   } else {
     static const int kRuntimeLength = strlen("runtime/");
@@ -23,7 +23,7 @@ static const char* GetFileName(const char* name) {
 
 TEST_CASE(Read) {
   const char* kFilename = GetFileName("runtime/bin/file_test.cc");
-  File* file = File::Open(kFilename, File::kRead);
+  File* file = File::Open(NULL, kFilename, File::kRead);
   EXPECT(file != NULL);
   char buffer[16];
   buffer[0] = '\0';
@@ -37,7 +37,7 @@ TEST_CASE(Read) {
 TEST_CASE(FileLength) {
   const char* kFilename =
       GetFileName("runtime/tests/vm/data/fixed_length_file");
-  File* file = File::Open(kFilename, File::kRead);
+  File* file = File::Open(NULL, kFilename, File::kRead);
   EXPECT(file != NULL);
   EXPECT_EQ(42, file->Length());
   file->Release();
@@ -47,7 +47,7 @@ TEST_CASE(FilePosition) {
   char buf[42];
   const char* kFilename =
       GetFileName("runtime/tests/vm/data/fixed_length_file");
-  File* file = File::Open(kFilename, File::kRead);
+  File* file = File::Open(NULL, kFilename, File::kRead);
   EXPECT(file != NULL);
   EXPECT(file->ReadFully(buf, 12));
   EXPECT_EQ(12, file->Position());

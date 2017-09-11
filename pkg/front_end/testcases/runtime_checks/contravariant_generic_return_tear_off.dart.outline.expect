@@ -1,0 +1,21 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object> = (T) → void;
+typedef G<T extends core::Object> = () → (T) → void;
+class C<T extends core::Object> extends core::Object {
+  field (self::C::T) → void _x;
+  constructor •((self::C::T) → void _x) → void
+    ;
+  method f() → (self::C::T) → void
+    ;
+}
+static method g(self::C<core::num> c) → () → (core::num) → void
+  ;
+static method h(core::int i) → void
+  ;
+static method test() → void
+  ;
+static method main() → void
+  ;

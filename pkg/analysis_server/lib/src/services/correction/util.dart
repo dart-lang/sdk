@@ -126,19 +126,6 @@ void addLibraryImports(
 }
 
 /**
- * @return <code>true</code> if given [List]s are identical at given position.
- */
-bool allListsIdentical(List<List> lists, int position) {
-  Object element = lists[0][position];
-  for (List list in lists) {
-    if (list[position] != element) {
-      return false;
-    }
-  }
-  return true;
-}
-
-/**
  * Climbs up [PrefixedIdentifier] and [PropertyAccess] nodes that include [node].
  */
 Expression climbPropertyAccess(AstNode node) {
@@ -154,16 +141,6 @@ Expression climbPropertyAccess(AstNode node) {
     }
     return node;
   }
-}
-
-/**
- * Returns the EOL to use for the given [code].
- */
-String getCodeEndOfLine(String code) {
-  if (code.contains('\r\n')) {
-    return '\r\n';
-  }
-  return '\n';
 }
 
 /**
@@ -279,7 +256,7 @@ AstNode getEnclosingClassOrUnitMember(AstNode node) {
 }
 
 /**
- * @return the [ExecutableElement] of the enclosing executable [AstNode].
+ * Return the [ExecutableElement] of the enclosing executable [AstNode].
  */
 ExecutableElement getEnclosingExecutableElement(AstNode node) {
   while (node != null) {
@@ -298,7 +275,7 @@ ExecutableElement getEnclosingExecutableElement(AstNode node) {
 }
 
 /**
- * @return the enclosing executable [AstNode].
+ * Return the enclosing executable [AstNode].
  */
 AstNode getEnclosingExecutableNode(AstNode node) {
   while (node != null) {
@@ -317,8 +294,8 @@ AstNode getEnclosingExecutableNode(AstNode node) {
 }
 
 /**
- * Returns [getExpressionPrecedence] for the parent of [node],
- * or `0` if the parent node is [ParenthesizedExpression].
+ * Returns [getExpressionPrecedence] for the parent of [node], or `0` if the
+ * parent node is a [ParenthesizedExpression].
  *
  * The reason is that `(expr)` is always executed after `expr`.
  */
@@ -394,24 +371,8 @@ String getLinePrefix(String line) {
 }
 
 /**
- * @return the [LocalVariableElement] or [ParameterElement] if given
- *         [SimpleIdentifier] is the reference to local variable or parameter, or
- *         <code>null</code> in the other case.
- */
-VariableElement getLocalOrParameterVariableElement(SimpleIdentifier node) {
-  Element element = node.staticElement;
-  if (element is LocalVariableElement) {
-    return element;
-  }
-  if (element is ParameterElement) {
-    return element;
-  }
-  return null;
-}
-
-/**
- * @return the [LocalVariableElement] if given [SimpleIdentifier] is the reference to
- *         local variable, or <code>null</code> in the other case.
+ * Return the [LocalVariableElement] if given [node] is a reference to a local
+ * variable, or `null` in the other case.
  */
 LocalVariableElement getLocalVariableElement(SimpleIdentifier node) {
   Element element = node.staticElement;
@@ -422,7 +383,7 @@ LocalVariableElement getLocalVariableElement(SimpleIdentifier node) {
 }
 
 /**
- * @return the nearest common ancestor [AstNode] of the given [AstNode]s.
+ * Return the nearest common ancestor of the given [nodes].
  */
 AstNode getNearestCommonAncestor(List<AstNode> nodes) {
   // may be no nodes
@@ -442,7 +403,7 @@ AstNode getNearestCommonAncestor(List<AstNode> nodes) {
   // find deepest parent
   int i = 0;
   for (; i < minLength; i++) {
-    if (!allListsIdentical(parents, i)) {
+    if (!_allListsIdentical(parents, i)) {
       break;
     }
   }
@@ -450,7 +411,7 @@ AstNode getNearestCommonAncestor(List<AstNode> nodes) {
 }
 
 /**
- * Returns the [Expression] qualifier if given node is the name part of a
+ * Returns the [Expression] qualifier if given [node] is the name part of a
  * [PropertyAccess] or a [PrefixedIdentifier]. Maybe `null`.
  */
 Expression getNodeQualifier(SimpleIdentifier node) {
@@ -468,8 +429,8 @@ Expression getNodeQualifier(SimpleIdentifier node) {
 }
 
 /**
- * Returns the [ParameterElement] if the given [SimpleIdentifier] is a reference
- * to a parameter, or `null` in the other case.
+ * Returns the [ParameterElement] if the given [node] is a reference to a
+ * parameter, or `null` in the other case.
  */
 ParameterElement getParameterElement(SimpleIdentifier node) {
   Element element = node.staticElement;
@@ -480,7 +441,8 @@ ParameterElement getParameterElement(SimpleIdentifier node) {
 }
 
 /**
- * @return parent [AstNode]s from [CompilationUnit] (at index "0") to the given one.
+ * Return parent [AstNode]s from compilation unit (at index "0") to the given
+ * [node].
  */
 List<AstNode> getParents(AstNode node) {
   // prepare number of parents
@@ -538,20 +500,8 @@ CompilationUnit getParsedUnit(CompilationUnitElement unitElement) {
 }
 
 /**
- * Returns a [PropertyAccessorElement] if the given [SimpleIdentifier] is a
- * reference to a property, or `null` in the other case.
- */
-PropertyAccessorElement getPropertyAccessorElement(SimpleIdentifier node) {
-  Element element = node.staticElement;
-  if (element is PropertyAccessorElement) {
-    return element;
-  }
-  return null;
-}
-
-/**
- * If given [AstNode] is name of qualified property extraction, returns target from which
- * this property is extracted. Otherwise `null`.
+ * If given [node] is name of qualified property extraction, returns target from
+ * which this property is extracted, otherwise `null`.
  */
 Expression getQualifiedPropertyTarget(AstNode node) {
   AstNode parent = node.parent;
@@ -571,8 +521,8 @@ Expression getQualifiedPropertyTarget(AstNode node) {
 }
 
 /**
- * Returns the given [Statement] if not a [Block], or the first child
- * [Statement] if a [Block], or `null` if more than one child.
+ * Returns the given [statement] if not a block, or the first child statement if
+ * a block, or `null` if more than one child.
  */
 Statement getSingleStatement(Statement statement) {
   if (statement is Block) {
@@ -586,15 +536,8 @@ Statement getSingleStatement(Statement statement) {
 }
 
 /**
- * Returns the [String] content of the given [Source].
- */
-String getSourceContent(AnalysisContext context, Source source) {
-  return context.getContents(source).data;
-}
-
-/**
- * Returns the given [Statement] if not a [Block], or all the children
- * [Statement]s if a [Block].
+ * Returns the given [statement] if not a block, or all the children statements
+ * if a block.
  */
 List<Statement> getStatements(Statement statement) {
   if (statement is Block) {
@@ -604,21 +547,13 @@ List<Statement> getStatements(Statement statement) {
 }
 
 /**
- * Checks if the given [Element]'s display name equals to the given name.
+ * Checks if the given [element]'s display name equals to the given [name].
  */
 bool hasDisplayName(Element element, String name) {
   if (element == null) {
     return false;
   }
   return element.displayName == name;
-}
-
-/**
- * Checks if the given [PropertyAccessorElement] is an accessor of a
- * [FieldElement].
- */
-bool isFieldAccessorElement(PropertyAccessorElement accessor) {
-  return accessor != null && accessor.variable is FieldElement;
 }
 
 /**
@@ -634,8 +569,7 @@ bool isLeftHandOfAssignment(SimpleIdentifier node) {
 }
 
 /**
- * @return `true` if the given [SimpleIdentifier] is the name of the
- *         [NamedExpression].
+ * Return `true` if the given [node] is the name of a [NamedExpression].
  */
 bool isNamedExpressionName(SimpleIdentifier node) {
   AstNode parent = node.parent;
@@ -653,7 +587,7 @@ bool isNamedExpressionName(SimpleIdentifier node) {
 
 /**
  * If the given [expression] is the `expression` property of a [NamedExpression]
- * then returns this [NamedExpression]. Otherwise returns [expression].
+ * then returns this [NamedExpression], otherwise returns [expression].
  */
 Expression stepUpNamedExpression(Expression expression) {
   if (expression != null) {
@@ -663,6 +597,19 @@ Expression stepUpNamedExpression(Expression expression) {
     }
   }
   return expression;
+}
+
+/**
+ * Return `true` if the given [lists] are identical at the given [position].
+ */
+bool _allListsIdentical(List<List> lists, int position) {
+  Object element = lists[0][position];
+  for (List list in lists) {
+    if (list[position] != element) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**
@@ -919,7 +866,15 @@ class CorrectionUtils {
     }
     // end
     int endOffset = sourceRange.end;
-    int afterEndLineOffset = getLineContentEnd(endOffset);
+    int afterEndLineOffset = endOffset;
+    int lineStart = unit.lineInfo.getOffsetOfLine(
+        unit.lineInfo.getLocation(startLineOffset).lineNumber - 1);
+    if (lineStart == startLineOffset) {
+      // Only consume line ends after the end of the range if there is nothing
+      // else on the line containing the beginning of the range. Otherwise this
+      // will end up incorrectly merging two line.
+      afterEndLineOffset = getLineContentEnd(endOffset);
+    }
     // range
     return range.startOffsetEndOffset(startLineOffset, afterEndLineOffset);
   }

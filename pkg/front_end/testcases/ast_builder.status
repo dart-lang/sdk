@@ -43,7 +43,10 @@ inference/block_bodied_lambdas_no_return: Crash
 inference/block_bodied_lambdas_returns: Crash
 inference/block_bodied_lambdas_void_context: Crash
 inference/bug30251: Crash
+inference/bug30620: Crash
+inference/bug30624: Crash
 inference/call_corner_cases: Crash
+inference/complex_predecrement: Crash
 inference/conditional_lub: Crash
 inference/conditional_upwards_inference: Crash
 inference/conflicts_can_happen2: Crash
@@ -118,6 +121,7 @@ inference/future_then_conditional_5: Crash
 inference/future_then_conditional_6: Crash
 inference/future_then_downwards_method_target: Crash
 inference/future_then_explicit_future: Crash
+inference/future_then_ifNull: Crash
 inference/future_then_upwards: Crash
 inference/future_then_upwards_2: Crash
 inference/future_then_upwards_3: Crash
@@ -348,6 +352,7 @@ inference_new/infer_instance_field_ref: Crash
 inference_new/infer_instance_field_ref_circular: Crash
 inference_new/infer_logical: Crash
 inference_new/infer_use_of_void: Fail
+inference_new/multiple_interface_inheritance: Fail # Issue #30547
 inference_new/property_get_toplevel: Crash
 inference_new/strongly_connected_component: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Crash
@@ -431,6 +436,21 @@ regress/issue_29984: Crash
 regress/issue_29985: Crash
 regress/issue_29987: Crash
 reorder_super: Crash
+runtime_checks/call_through_this: Crash
+runtime_checks/contravariant_generic_method_type_parameter: Crash
+runtime_checks/contravariant_generic_return: Crash
+runtime_checks/contravariant_generic_return_tear_off: Crash
+runtime_checks/contravariant_getter: Crash
+runtime_checks/covariant_generic_method_type_parameter: Crash
+runtime_checks/covariant_generic_parameter_in_interface: Crash
+runtime_checks/covariant_generic_parameter_in_interface_mixin: Fail
+runtime_checks/covariant_generic_parameter_in_interface_super: Fail
+runtime_checks/covariant_generic_parameter_in_interface_super_mixin: Fail
+runtime_checks/covariant_generic_parameter_tear_off: Crash
+runtime_checks/covariant_keyword: Crash
+runtime_checks/covariant_setter: Crash
+runtime_checks/dynamic_invocation_of_getter: Crash
+runtime_checks_new/derived_class_typed: Fail
 static_setter: Crash
 store_load: Crash
 stringliteral: Crash
@@ -440,4 +460,4 @@ type_variable_as_super: Crash
 typedef: Crash
 uninitialized_fields: Crash
 unused_methods: Crash
-void-methods: Crash
+void_methods: Crash

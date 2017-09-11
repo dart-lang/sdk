@@ -1311,6 +1311,11 @@ abstract class AnalysisOptions {
   bool get trackCacheDependencies;
 
   /**
+   * Return `true` if analyzer should use the Dart 2.0 Front End parser.
+   */
+  bool get useFastaParser;
+
+  /**
    * Reset the state of this set of analysis options to its original state.
    */
   void resetToDefaults();
@@ -1455,6 +1460,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool trackCacheDependencies = true;
 
   @override
+  bool useFastaParser = false;
+
+  @override
   bool disableCacheFlushing = false;
 
   /**
@@ -1511,6 +1519,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     lintRules = options.lintRules;
     preserveComments = options.preserveComments;
     strongMode = options.strongMode;
+    useFastaParser = options.useFastaParser;
     if (options is AnalysisOptionsImpl) {
       declarationCasts = options.declarationCasts;
       strongModeHints = options.strongModeHints;
@@ -1692,6 +1701,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     strongMode = false;
     strongModeHints = false;
     trackCacheDependencies = true;
+    useFastaParser = false;
   }
 
   @override

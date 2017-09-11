@@ -223,8 +223,8 @@ class DirectoryBasedDartSdkTest {
   void test_fromFile_library_firstExact() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
     JavaFile dirHtml = new JavaFile.relative(sdk.libraryDirectory, "html");
-    JavaFile dirDartium = new JavaFile.relative(dirHtml, "dartium");
-    JavaFile file = new JavaFile.relative(dirDartium, "html_dartium.dart");
+    JavaFile dirDart2js = new JavaFile.relative(dirHtml, "dart2js");
+    JavaFile file = new JavaFile.relative(dirDart2js, "html_dart2js.dart");
     expect(file.isFile(), isTrue);
     Source source = sdk.fromFileUri(file.toURI());
     expect(source, isNotNull);

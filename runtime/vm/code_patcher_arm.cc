@@ -7,7 +7,7 @@
 
 #include "vm/code_patcher.h"
 
-#include "vm/flow_graph_compiler.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 

@@ -22,6 +22,7 @@ import '../constants/values.dart';
 import '../elements/types.dart';
 import '../elements/elements.dart' show Element;
 import '../elements/entities.dart';
+import '../js_model/closure.dart';
 import '../util/util.dart' show Hashing;
 import '../world.dart' show World;
 import 'call_structure.dart' show CallStructure;
@@ -86,7 +87,7 @@ enum StaticUseKind {
   INLINING,
 }
 
-/// Statically known use of an [Element].
+/// Statically known use of an [Entity].
 // TODO(johnniwinther): Create backend-specific implementations with better
 // invariants.
 class StaticUse {
@@ -358,7 +359,9 @@ class StaticUse {
   /// Read access of an instance field or boxed field [element].
   factory StaticUse.fieldGet(FieldEntity element) {
     assert(
-        element.isInstanceMember || element is BoxFieldElement,
+        element.isInstanceMember ||
+            element is BoxFieldElement ||
+            element is JRecordField,
         failedAt(element,
             "Field init element $element must be an instance or boxed field."));
     return new StaticUse.internal(element, StaticUseKind.FIELD_GET);
@@ -367,7 +370,9 @@ class StaticUse {
   /// Write access of an instance field or boxed field [element].
   factory StaticUse.fieldSet(FieldEntity element) {
     assert(
-        element.isInstanceMember || element is BoxFieldElement,
+        element.isInstanceMember ||
+            element is BoxFieldElement ||
+            element is JRecordField,
         failedAt(element,
             "Field init element $element must be an instance or boxed field."));
     return new StaticUse.internal(element, StaticUseKind.FIELD_SET);

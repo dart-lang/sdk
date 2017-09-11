@@ -2,11 +2,11 @@ library;
 import self as self;
 import "dart:core" as core;
 
-abstract class Object&M1 = core::Object with self::M1 {
+abstract class _Object&M1 = core::Object with self::M1 {
 }
-abstract class Object&M1&M2 = self::Object&M1 with self::M2 {
+abstract class __Object&M1&M2 = self::_Object&M1 with self::M2 {
 }
-class B extends self::Object&M1&M2 {
+class B extends self::__Object&M1&M2 {
   constructor •(dynamic value) → void
     ;
 }
@@ -22,7 +22,7 @@ abstract class M2 extends core::Object {
   method m() → dynamic
     ;
 }
-class C extends self::Object&M1&M2 {
+class C extends self::__Object&M1&M2 {
   constructor •(dynamic value) → void
     ;
 }
@@ -32,9 +32,9 @@ abstract class G1<T extends core::Object> extends core::Object {
   method m() → dynamic
     ;
 }
-abstract class Object&G1^^#T0<#T0 extends core::Object> = core::Object with self::G1<self::Object&G1^^#T0::#T0> {
+abstract class _Object&G1^^#T0<#T0 extends core::Object> = core::Object with self::G1<self::_Object&G1^^#T0::#T0> {
 }
-class D<S extends core::Object> extends self::Object&G1^^#T0<self::D::S> {
+class D<S extends core::Object> extends self::_Object&G1^^#T0<self::D::S> {
   default constructor •() → void
     ;
 }

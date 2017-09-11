@@ -6,25 +6,37 @@ library dart2js.js_emitter.constant_ordering;
 
 import '../constants/values.dart';
 import '../elements/elements.dart' show Elements;
-import '../elements/entities.dart' show Entity, FieldEntity;
-import '../elements/resolution_types.dart';
+import '../elements/entities.dart'
+    show Entity, ClassEntity, FieldEntity, MemberEntity, TypedefEntity;
+import '../elements/resolution_types.dart'
+    show GenericType, ResolutionDartType, ResolutionTypeKind;
+import '../elements/types.dart';
 import '../js_backend/js_backend.dart' show SyntheticConstantKind;
+import 'sorter.dart' show Sorter;
 
 /// A canonical but arbitrary ordering of constants. The ordering is 'stable'
 /// under perturbation of the source.
-int deepCompareConstants(ConstantValue a, ConstantValue b) {
-  return _CompareVisitor.compareValues(a, b);
+abstract class ConstantOrdering {
+  factory ConstantOrdering(Sorter sorter) = _ConstantOrdering;
+
+  int compare(ConstantValue a, ConstantValue b);
 }
 
-class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
-  const _CompareVisitor();
+class _ConstantOrdering
+    implements ConstantOrdering, ConstantValueVisitor<int, ConstantValue> {
+  final Sorter _sorter;
+  _DartTypeOrdering _dartTypeOrdering;
+  _ConstantOrdering(this._sorter) {
+    _dartTypeOrdering = new _DartTypeOrdering(this);
+  }
 
-  static int compareValues(ConstantValue a, ConstantValue b) {
+  int compare(ConstantValue a, ConstantValue b) => compareValues(a, b);
+
+  int compareValues(ConstantValue a, ConstantValue b) {
     if (identical(a, b)) return 0;
     int r = _KindVisitor.kind(a).compareTo(_KindVisitor.kind(b));
     if (r != 0) return r;
-    r = a.accept(const _CompareVisitor(), b);
-    return r;
+    return a.accept(this, b);
   }
 
   static int compareNullable(int compare(a, b), a, b) {
@@ -50,7 +62,26 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
     return Elements.compareByPosition(a, b);
   }
 
-  static int compareDartTypes(ResolutionDartType a, ResolutionDartType b) {
+  int compareClasses(ClassEntity a, ClassEntity b) {
+    int r = a.name.compareTo(b.name);
+    if (r != 0) return r;
+    return _sorter.compareClassesByLocation(a, b);
+  }
+
+  int compareMembers(MemberEntity a, MemberEntity b) {
+    int r = a.name.compareTo(b.name);
+    if (r != 0) return r;
+    return _sorter.compareMembersByLocation(a, b);
+  }
+
+  int compareTypedefs(TypedefEntity a, TypedefEntity b) {
+    int r = a.name.compareTo(b.name);
+    if (r != 0) return r;
+    return _sorter.compareTypedefsByLocation(a, b);
+  }
+
+  static int _compareResolutionDartTypes(
+      ResolutionDartType a, ResolutionDartType b) {
     if (a == b) return 0;
     int r = a.kind.index.compareTo(b.kind.index);
     if (r != 0) return r;
@@ -60,15 +91,23 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
     if (a is GenericType) {
       GenericType aGeneric = a;
       GenericType bGeneric = b;
-      r = compareLists(
-          compareDartTypes, aGeneric.typeArguments, bGeneric.typeArguments);
+      r = compareLists(_compareResolutionDartTypes, aGeneric.typeArguments,
+          bGeneric.typeArguments);
       if (r != 0) return r;
     }
     throw 'unexpected compareDartTypes  $a  $b';
   }
 
+  int compareDartTypes(DartType a, DartType b) {
+    if (a is ResolutionDartType && b is ResolutionDartType) {
+      // TODO(redemption): Remove this path.
+      return _compareResolutionDartTypes(a, b);
+    }
+    return _dartTypeOrdering.compare(a, b);
+  }
+
   int visitFunction(FunctionConstantValue a, FunctionConstantValue b) {
-    return compareElements(a.element, b.element);
+    return compareMembers(a.element, b.element);
   }
 
   int visitNull(NullConstantValue a, NullConstantValue b) {
@@ -102,9 +141,7 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
   int visitList(ListConstantValue a, ListConstantValue b) {
     int r = compareLists(compareValues, a.entries, b.entries);
     if (r != 0) return r;
-    ResolutionInterfaceType type1 = a.type;
-    ResolutionInterfaceType type2 = b.type;
-    return compareDartTypes(type1, type2);
+    return compareDartTypes(a.type, b.type);
   }
 
   int visitMap(MapConstantValue a, MapConstantValue b) {
@@ -112,21 +149,18 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
     if (r != 0) return r;
     r = compareLists(compareValues, a.values, b.values);
     if (r != 0) return r;
-    ResolutionInterfaceType type1 = a.type;
-    ResolutionInterfaceType type2 = b.type;
-    return compareDartTypes(type1, type2);
+    return compareDartTypes(a.type, b.type);
   }
 
   int visitConstructed(ConstructedConstantValue a, ConstructedConstantValue b) {
-    ResolutionInterfaceType type1 = a.type;
-    ResolutionInterfaceType type2 = b.type;
-    int r = compareDartTypes(type1, type2);
+    int r = compareDartTypes(a.type, b.type);
     if (r != 0) return r;
 
-    List<FieldEntity> aFields = a.fields.keys.toList()..sort(compareElements);
-    List<FieldEntity> bFields = b.fields.keys.toList()..sort(compareElements);
+    // TODO(sra): Avoid all these tear-offs.
+    List<FieldEntity> aFields = a.fields.keys.toList()..sort(compareMembers);
+    List<FieldEntity> bFields = b.fields.keys.toList()..sort(compareMembers);
 
-    r = compareLists(compareElements, aFields, bFields);
+    r = compareLists(compareMembers, aFields, bFields);
     if (r != 0) return r;
 
     return compareLists(
@@ -138,13 +172,11 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
   int visitType(TypeConstantValue a, TypeConstantValue b) {
     int r = compareDartTypes(a.representedType, b.representedType);
     if (r != 0) return r;
-    ResolutionInterfaceType type1 = a.type;
-    ResolutionInterfaceType type2 = b.type;
-    return compareDartTypes(type1, type2);
+    return compareDartTypes(a.type, b.type);
   }
 
   int visitInterceptor(InterceptorConstantValue a, InterceptorConstantValue b) {
-    return compareElements(a.cls, b.cls);
+    return compareClasses(a.cls, b.cls);
   }
 
   int visitSynthetic(SyntheticConstantValue a, SyntheticConstantValue b) {
@@ -178,6 +210,8 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
   int visitDeferred(DeferredConstantValue a, DeferredConstantValue b) {
     int r = compareValues(a.referenced, b.referenced);
     if (r != 0) return r;
+    // TODO(sra): Implement deferred imports for Kernel.
+    // TODO(sra): What kind of Entity is `prefix`?
     return compareElements(a.prefix, b.prefix);
   }
 }
@@ -217,4 +251,95 @@ class _KindVisitor implements ConstantValueVisitor<int, Null> {
   int visitInterceptor(InterceptorConstantValue a, _) => INTERCEPTOR;
   int visitSynthetic(SyntheticConstantValue a, _) => SYNTHETIC;
   int visitDeferred(DeferredConstantValue a, _) => DEFERRED;
+}
+
+/// Visitor for distinguishing types by kind.
+class _DartTypeKindVisitor extends DartTypeVisitor<int, Null> {
+  const _DartTypeKindVisitor();
+
+  static int kind(DartType type) {
+    assert(_usesLegacyOrder);
+    return type.accept(const _DartTypeKindVisitor(), null);
+  }
+
+  int visitVoidType(covariant VoidType type, _) => 6;
+  int visitTypeVariableType(covariant TypeVariableType type, _) => 3;
+  int visitFunctionType(covariant FunctionType type, _) => 0;
+  int visitInterfaceType(covariant InterfaceType type, _) => 1;
+  int visitTypedefType(covariant TypedefType type, _) => 2;
+  int visitDynamicType(covariant DynamicType type, _) => 5;
+
+  // Check that the ordering of different kinds of type is consistent with
+  // ResolutionDartTypes.
+  // TODO(redemption): Remove this check.
+  static bool _usesLegacyOrder = () {
+    var v = const _DartTypeKindVisitor();
+    assert(
+        v.visitFunctionType(null, null) == ResolutionTypeKind.FUNCTION.index);
+    assert(
+        v.visitInterfaceType(null, null) == ResolutionTypeKind.INTERFACE.index);
+    assert(v.visitTypedefType(null, null) == ResolutionTypeKind.TYPEDEF.index);
+    assert(v.visitTypeVariableType(null, null) ==
+        ResolutionTypeKind.TYPE_VARIABLE.index);
+    // There is no analogue of ResolutionTypeKind.MALFORMED_TYPE.
+    assert(v.visitDynamicType(null, null) == ResolutionTypeKind.DYNAMIC.index);
+    assert(v.visitVoidType(null, null) == ResolutionTypeKind.VOID.index);
+    return true;
+  }();
+}
+
+class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
+  final _ConstantOrdering _constantOrdering;
+  DartType _root;
+  _DartTypeOrdering(this._constantOrdering);
+
+  int compare(DartType a, DartType b) {
+    if (a == b) return 0;
+    int r =
+        _DartTypeKindVisitor.kind(a).compareTo(_DartTypeKindVisitor.kind(b));
+    if (r != 0) return r;
+    _root = a;
+    r = a.accept(this, b);
+    _root = null;
+    return r;
+  }
+
+  int visitVoidType(covariant VoidType type, covariant VoidType other) {
+    throw new UnsupportedError('Unreachable');
+  }
+
+  int visitTypeVariableType(
+      covariant TypeVariableType type, covariant TypeVariableType other) {
+    throw new UnsupportedError(
+        "Type variables are not expected in constants: '$type' in '$_root'");
+  }
+
+  int visitFunctionType(covariant FunctionType type, DartType _other) {
+    throw new UnimplementedError(
+        "Unimplemented FuntionType '$type' in '$_root'");
+  }
+
+  int visitInterfaceType(
+      covariant InterfaceType type, covariant InterfaceType other) {
+    int r = _constantOrdering.compareClasses(type.element, other.element);
+    if (r != 0) return r;
+    return _compareTypeArguments(type.typeArguments, other.typeArguments);
+  }
+
+  int visitTypedefType(
+      covariant TypedefType type, covariant TypedefType other) {
+    int r = _constantOrdering.compareTypedefs(type.element, other.element);
+    if (r != 0) return r;
+    return _compareTypeArguments(type.typeArguments, other.typeArguments);
+  }
+
+  int visitDynamicType(
+      covariant DynamicType type, covariant DynamicType other) {
+    throw new UnsupportedError('Unreachable');
+  }
+
+  int _compareTypeArguments(
+      List<DartType> aArguments, List<DartType> bArguments) {
+    return _ConstantOrdering.compareLists(compare, aArguments, bArguments);
+  }
 }

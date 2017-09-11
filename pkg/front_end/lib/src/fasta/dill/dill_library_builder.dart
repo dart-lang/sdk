@@ -4,10 +4,23 @@
 
 library fasta.dill_library_builder;
 
-import 'package:kernel/ast.dart'
-    show Class, Field, Library, ListLiteral, Member, StaticGet, Typedef;
+import 'dart:convert' show JSON;
 
-import '../problems.dart' show unimplemented;
+import 'package:kernel/ast.dart'
+    show
+        Class,
+        Field,
+        Library,
+        ListLiteral,
+        Member,
+        Procedure,
+        StaticGet,
+        StringLiteral,
+        Typedef;
+
+import '../fasta_codes.dart' show templateUnspecified;
+
+import '../problems.dart' show unhandled, unimplemented;
 
 import '../kernel/kernel_builder.dart'
     show
@@ -34,6 +47,12 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   final DillLoader loader;
 
   Library library;
+
+  /// Exports that can't be serialized.
+  ///
+  /// The elements of this map are documented in
+  /// [../kernel/kernel_library_builder.dart].
+  Map<String, String> unserializableExports;
 
   DillLibraryBuilder(this.uri, this.loader)
       : super(uri, new Scope.top(), new Scope.top());
@@ -64,9 +83,9 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   void addMember(Member member) {
     String name = member.name.name;
     if (name == "_exports#") {
-      // TODO(ahe): Add this to exportScope.
-      // This is a hack / work around for storing exports in dill files. See
-      // [compile_platform_dartk.dart](../analyzer/compile_platform_dartk.dart).
+      Field field = member;
+      StringLiteral string = field.initializer;
+      unserializableExports = JSON.decode(string.value);
     } else {
       addBuilder(name, new DillMemberBuilder(member, this), member.fileOffset);
     }
@@ -117,5 +136,62 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   @override
   String get fullNameForErrors {
     return library.name ?? "<library '${library.fileUri}'>";
+  }
+
+  void finalizeExports() {
+    unserializableExports?.forEach((String name, String message) {
+      Builder builder;
+      switch (name) {
+        case "dynamic":
+        case "void":
+          // TODO(ahe): It's likely that we shouldn't be exporting these types
+          // from dart:core, and this case can be removed.
+          builder = loader.coreLibrary.exportScopeBuilder[name];
+          break;
+
+        default:
+          builder = new KernelInvalidTypeBuilder(
+              name,
+              -1,
+              null,
+              message == null
+                  ? null
+                  : templateUnspecified.withArguments(message));
+      }
+      exportScopeBuilder.addMember(name, builder);
+    });
+
+    for (var reference in library.additionalExports) {
+      var node = reference.node;
+      Uri libraryUri;
+      String name;
+      bool isSetter = false;
+      if (node is Class) {
+        libraryUri = node.enclosingLibrary.importUri;
+        name = node.name;
+      } else if (node is Procedure) {
+        libraryUri = node.enclosingLibrary.importUri;
+        name = node.name.name;
+        isSetter = node.isSetter;
+      } else if (node is Member) {
+        libraryUri = node.enclosingLibrary.importUri;
+        name = node.name.name;
+      } else if (node is Typedef) {
+        libraryUri = node.enclosingLibrary.importUri;
+        name = node.name;
+      } else {
+        unhandled("${node.runtimeType}", "finalizeExports", -1, fileUri);
+      }
+      var library = loader.read(libraryUri, -1);
+      Builder builder;
+      if (isSetter) {
+        builder = library.exportScope.setters[name];
+        exportScopeBuilder.addSetter(name, builder);
+      } else {
+        builder = library.exportScope.local[name];
+        exportScopeBuilder.addMember(name, builder);
+      }
+      assert(node == builder.target);
+    }
   }
 }

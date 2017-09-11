@@ -111,6 +111,7 @@ void startRootIsolate(entry, args) {
   if (_globalState.isWorker) return;
   final rootContext = new _IsolateContext();
   _globalState.rootContext = rootContext;
+  _globalState.isolates[rootContext.id] = rootContext;
 
   // BUG(5151491): Setting currentContext should not be necessary, but
   // because closures passed to the DOM as event handlers do not bind their

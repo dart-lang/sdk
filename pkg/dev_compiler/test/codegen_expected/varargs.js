@@ -20,6 +20,7 @@ define(['dart_sdk'], function(dart_sdk) {
   src__varargs._Rest = class _Rest extends core.Object {};
   (src__varargs._Rest.new = function() {
   }).prototype = src__varargs._Rest.prototype;
+  dart.addTypeTests(src__varargs._Rest);
   dart.defineLazy(src__varargs, {
     get rest() {
       return dart.const(new src__varargs._Rest.new());

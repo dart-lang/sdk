@@ -772,6 +772,8 @@ class CodeChecker extends RecursiveAstVisitor {
       {DartType from, bool opAssign: false, bool isDeclarationCast: false}) {
     from ??= _getDefiniteType(expr);
 
+    _hintOnFuzzyArrows(expr, to, from);
+
     if (_needsImplicitCast(expr, to,
             from: from, isDeclarationCast: isDeclarationCast) ==
         true) {
@@ -1075,6 +1077,19 @@ class CodeChecker extends RecursiveAstVisitor {
     return rules.anyParameterType(ft, (pt) => pt.isDynamic);
   }
 
+  void _hintOnFuzzyArrows(Expression expr, DartType to, DartType from) {
+    // If it is a subtype with fuzzy arrows on,
+    // check to see if it still is with them off.
+    if (rules.isSubtypeOf(from, to)) {
+      // Remove fuzzy arrows
+      var cFrom = rules.typeToConcreteType(from);
+      var cTo = rules.typeToConcreteType(to);
+      // If still true, no warning needed
+      if (rules.isSubtypeOf(cFrom, cTo)) return;
+      _recordMessage(expr, HintCode.USES_DYNAMIC_AS_BOTTOM, [from, to]);
+    }
+  }
+
   /// Returns true if we need an implicit cast of [expr] from [from] type to
   /// [to] type, returns false if no cast is needed, and returns null if the
   /// types are statically incompatible.
@@ -1224,7 +1239,9 @@ class CodeChecker extends RecursiveAstVisitor {
         errorCode.name.startsWith('STRONG_MODE_TOP_LEVEL_')) {
       severity = ErrorSeverity.ERROR;
     }
-    if (severity != ErrorSeverity.INFO || _options.strongModeHints) {
+    if (severity != ErrorSeverity.INFO ||
+        _options.strongModeHints ||
+        errorCode == HintCode.USES_DYNAMIC_AS_BOTTOM) {
       int begin = node is AnnotatedNode
           ? node.firstTokenAfterCommentAndMetadata.offset
           : node.offset;
@@ -1438,8 +1455,8 @@ class _OverrideChecker {
   Set<Element> _findSuperclassCovariantChecks(ClassElement element,
       Set<ClassElement> allCovariant, HashSet<String> seenConcreteMembers) {
     var visited = new HashSet<ClassElement>()..add(element);
-    var superChecks = new Set<Element>();
-    var existingChecks = new HashSet<Element>();
+    var superChecks = _createCovariantCheckSet();
+    var existingChecks = _createCovariantCheckSet();
 
     void visitImmediateSuper(InterfaceType type) {
       // For members of mixins/supertypes, check them against new interfaces,
@@ -1504,7 +1521,7 @@ class _OverrideChecker {
   Set<Element> _findCovariantChecks(Iterable<ExecutableElement> members,
       Iterable<ClassElement> covariantInterfaces,
       [Set<Element> covariantChecks]) {
-    covariantChecks ??= new Set();
+    covariantChecks ??= _createCovariantCheckSet();
     if (members.isEmpty) return covariantChecks;
 
     for (var iface in covariantInterfaces) {
@@ -1578,12 +1595,8 @@ class _OverrideChecker {
     //
     // The static type system allows this subtyping, but it is not sound without
     // these runtime checks.
-    void addCheck(Element e) {
-      covariantChecks.add(e is Member ? e.baseElement : e);
-    }
-
     var fresh = FunctionTypeImpl.relateTypeFormals(f1, f2, (b2, b1, p2, p1) {
-      if (!rules.isSubtypeOf(b2, b1)) addCheck(p1);
+      if (!rules.isSubtypeOf(b2, b1)) covariantChecks.add(p1);
       return true;
     });
     if (fresh != null) {
@@ -1591,9 +1604,29 @@ class _OverrideChecker {
       f2 = f2.instantiate(fresh);
     }
     FunctionTypeImpl.relateParameters(f1.parameters, f2.parameters, (p1, p2) {
-      if (!rules.isOverrideSubtypeOfParameter(p1, p2)) addCheck(p1);
+      if (!rules.isOverrideSubtypeOfParameter(p1, p2)) covariantChecks.add(p1);
       return true;
     });
+  }
+
+  static Set<Element> _createCovariantCheckSet() {
+    return new LinkedHashSet(
+        equals: _equalMemberElements, hashCode: _hashCodeMemberElements);
+  }
+
+  /// When finding superclass covariance checks, we need to track the
+  /// substituted member/parameter type, but we don't want this type to break
+  /// equality, because [Member] does not implement equality/hashCode, so
+  /// instead we jump to the declaring element.
+  static bool _equalMemberElements(Element x, Element y) {
+    x = x is Member ? x.baseElement : x;
+    y = y is Member ? y.baseElement : y;
+    return x == y;
+  }
+
+  static int _hashCodeMemberElements(Element x) {
+    x = x is Member ? x.baseElement : x;
+    return x.hashCode;
   }
 
   /// Find all generic interfaces that are implemented by [type], including

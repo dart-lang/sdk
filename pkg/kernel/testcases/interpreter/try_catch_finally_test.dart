@@ -9,11 +9,13 @@ main() {
     print('hello2');
   }
   print('hello3');
-  print(foo());
-  print(bar());
+  print(fReturns());
+  print(fFinalizes());
+  print(fThrows());
 }
 
-int foo() {
+/// Tests that the return in finally is executed.
+int fReturns() {
   try {
     print('foo 1');
     return 1;
@@ -23,7 +25,8 @@ int foo() {
   }
 }
 
-int bar() {
+/// Tests that finally is executed before returning.
+int fFinalizes() {
   try {
     print('bar 1');
     return 1;
@@ -31,4 +34,17 @@ int bar() {
     print('bar 2');
   }
   return 0;
+}
+
+/// Tests that the exception is caught.
+int fThrows() {
+  try {
+    print(37);
+    throw 'Error';
+  } catch (e, _) {
+    print('Caught $e');
+  } finally {
+    print("Finalizer");
+  }
+  return 34;
 }

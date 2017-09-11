@@ -5964,9 +5964,9 @@ class Parser {
       }
       return new Token(type, token.offset);
     } else if (isBegin) {
-      return new BeginTokenWithComment(type, token.offset, comments);
+      return new BeginToken(type, token.offset, comments);
     }
-    return new TokenWithComment(type, token.offset, comments);
+    return new Token(type, token.offset, comments);
   }
 
   /**

@@ -58,71 +58,23 @@ Heap::~Heap() {
   }
 }
 
-void Heap::MakeTLABIterable(Thread* thread) {
-  uword start = thread->top();
-  uword end = thread->end();
-  ASSERT(end >= start);
-  intptr_t size = end - start;
-  ASSERT(Utils::IsAligned(size, kObjectAlignment));
-  if (size >= kObjectAlignment) {
-    FreeListElement::AsElement(start, size);
-    ASSERT(RawObject::FromAddr(start)->Size() == size);
-  }
-}
-
-void Heap::AbandonRemainingTLAB(Thread* thread) {
-  MakeTLABIterable(thread);
-  thread->set_top(0);
-  thread->set_end(0);
-}
-
-intptr_t Heap::CalculateTLABSize() {
-  intptr_t size = new_space_.end() - new_space_.top();
-  return Utils::RoundDown(size, kObjectAlignment);
-}
-
 uword Heap::AllocateNew(intptr_t size) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   // Currently, only the Dart thread may allocate in new space.
   isolate()->AssertCurrentThreadIsMutator();
   Thread* thread = Thread::Current();
   uword addr = new_space_.TryAllocateInTLAB(thread, size);
-  if (addr != 0) {
-    return addr;
-  }
-
-  intptr_t tlab_size = CalculateTLABSize();
-  if ((tlab_size > 0) && (size > tlab_size)) {
-    return AllocateOld(size, HeapPage::kData);
-  }
-
-  AbandonRemainingTLAB(thread);
-  if (tlab_size > 0) {
-    uword tlab_top = new_space_.TryAllocateNewTLAB(thread, tlab_size);
-    if (tlab_top != 0) {
-      addr = new_space_.TryAllocateInTLAB(thread, size);
-      ASSERT(addr != 0);
-      return addr;
-    }
-  }
-
-  ASSERT(!thread->HasActiveTLAB());
-
-  // This call to CollectGarbage might end up "reusing" a collection spawned
-  // from a different thread and will be racing to allocate the requested
-  // memory with other threads being released after the collection.
-  CollectGarbage(kNew);
-  tlab_size = CalculateTLABSize();
-  uword tlab_top = new_space_.TryAllocateNewTLAB(thread, tlab_size);
-  if (tlab_top != 0) {
+  if (addr == 0) {
+    // This call to CollectGarbage might end up "reusing" a collection spawned
+    // from a different thread and will be racing to allocate the requested
+    // memory with other threads being released after the collection.
+    CollectGarbage(kNew);
     addr = new_space_.TryAllocateInTLAB(thread, size);
-    // It is possible a GC doesn't clear enough space.
-    // In that case, we must fall through and allocate into old space.
-    if (addr != 0) {
-      return addr;
+    if (addr == 0) {
+      return AllocateOld(size, HeapPage::kData);
     }
   }
-  return AllocateOld(size, HeapPage::kData);
+  return addr;
 }
 
 uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
@@ -408,6 +360,14 @@ void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
 }
 #endif
 
+void Heap::NotifyIdle(int64_t deadline) {
+  if (new_space_.ShouldPerformIdleScavenge(deadline)) {
+    Thread* thread = Thread::Current();
+    TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
+    CollectNewSpaceGarbage(thread, kIdle);
+  }
+}
+
 void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
   ASSERT(reason == kFull);
   if (BeginNewSpaceGC(thread)) {
@@ -425,39 +385,37 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
 }
 
 void Heap::CollectNewSpaceGarbage(Thread* thread,
-                                  ApiCallbacks api_callbacks,
                                   GCReason reason) {
-  ASSERT((reason == kNewSpace) || (reason == kFull));
+  ASSERT((reason == kNewSpace) || (reason == kFull) || (reason == kIdle));
   if (BeginNewSpaceGC(thread)) {
-    bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kNew, reason);
-    VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
-    TIMELINE_FUNCTION_GC_DURATION(thread, "CollectNewGeneration");
-    NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kNew));
-    new_space_.Scavenge(invoke_api_callbacks);
-    NOT_IN_PRODUCT(isolate()->class_table()->UpdatePromoted());
-    RecordAfterGC(kNew);
-    PrintStats();
-    NOT_IN_PRODUCT(PrintStatsToTimeline(&tds));
-    EndNewSpaceGC();
+    {
+      VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
+      TIMELINE_FUNCTION_GC_DURATION(thread, "CollectNewGeneration");
+      NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kNew));
+      new_space_.Scavenge();
+      NOT_IN_PRODUCT(isolate()->class_table()->UpdatePromoted());
+      RecordAfterGC(kNew);
+      PrintStats();
+      NOT_IN_PRODUCT(PrintStatsToTimeline(&tds));
+      EndNewSpaceGC();
+    }
     if ((reason == kNewSpace) && old_space_.NeedsGarbageCollection()) {
       // Old collections should call the API callbacks.
-      CollectOldSpaceGarbage(thread, kInvokeApiCallbacks, kPromotion);
+      CollectOldSpaceGarbage(thread, kPromotion);
     }
   }
 }
 
 void Heap::CollectOldSpaceGarbage(Thread* thread,
-                                  ApiCallbacks api_callbacks,
                                   GCReason reason) {
   ASSERT((reason != kNewSpace));
   if (BeginOldSpaceGC(thread)) {
-    bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kOld, reason);
     VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
     TIMELINE_FUNCTION_GC_DURATION(thread, "CollectOldGeneration");
     NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kOld));
-    old_space_.MarkSweep(invoke_api_callbacks);
+    old_space_.MarkSweep();
     RecordAfterGC(kOld);
     PrintStats();
     NOT_IN_PRODUCT(PrintStatsToTimeline(&tds));
@@ -469,17 +427,16 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
 }
 
 void Heap::CollectGarbage(Space space,
-                          ApiCallbacks api_callbacks,
                           GCReason reason) {
   Thread* thread = Thread::Current();
   switch (space) {
     case kNew: {
-      CollectNewSpaceGarbage(thread, api_callbacks, reason);
+      CollectNewSpaceGarbage(thread, reason);
       break;
     }
     case kOld:
     case kCode: {
-      CollectOldSpaceGarbage(thread, api_callbacks, reason);
+      CollectOldSpaceGarbage(thread, reason);
       break;
     }
     default:
@@ -490,10 +447,10 @@ void Heap::CollectGarbage(Space space,
 void Heap::CollectGarbage(Space space) {
   Thread* thread = Thread::Current();
   if (space == kOld) {
-    CollectOldSpaceGarbage(thread, kInvokeApiCallbacks, kOldSpace);
+    CollectOldSpaceGarbage(thread, kOldSpace);
   } else {
     ASSERT(space == kNew);
-    CollectNewSpaceGarbage(thread, kInvokeApiCallbacks, kNewSpace);
+    CollectNewSpaceGarbage(thread, kNewSpace);
   }
 }
 
@@ -503,7 +460,7 @@ void Heap::CollectAllGarbage() {
   // New space is evacuated so this GC will collect all dead objects
   // kept alive by a cross-generational pointer.
   EvacuateNewSpace(thread, kFull);
-  CollectOldSpaceGarbage(thread, kInvokeApiCallbacks, kFull);
+  CollectOldSpaceGarbage(thread, kFull);
 }
 
 void Heap::WaitForSweeperTasks(Thread* thread) {
@@ -553,17 +510,10 @@ void Heap::Init(Isolate* isolate,
 }
 
 void Heap::RegionName(Heap* heap, Space space, char* name, intptr_t name_size) {
-#if defined(PRODUCT)
   const bool no_isolate_name = (heap == NULL) || (heap->isolate() == NULL) ||
                                (heap->isolate()->name() == NULL);
   const char* isolate_name =
       no_isolate_name ? "<unknown>" : heap->isolate()->name();
-#else
-  const bool no_isolate_name = (heap == NULL) || (heap->isolate() == NULL) ||
-                               (heap->isolate()->debugger_name() == NULL);
-  const char* isolate_name =
-      no_isolate_name ? "<unknown>" : heap->isolate()->debugger_name();
-#endif  // !defined(PRODUCT)
   const char* space_name = NULL;
   switch (space) {
     case kNew:
@@ -624,12 +574,11 @@ bool Heap::VerifyGC(MarkExpectation mark_expectation) const {
   StackZone stack_zone(Thread::Current());
 
   // Change the new space's top_ with the more up-to-date thread's view of top_
-  new_space_.MakeNewSpaceIterable();
+  new_space_.FlushTLS();
 
   ObjectSet* allocated_set =
       CreateAllocatedObjectSet(stack_zone.GetZone(), mark_expectation);
   VerifyPointersVisitor visitor(isolate(), allocated_set);
-
   VisitObjectPointers(&visitor);
 
   // Only returning a value so that Heap::Validate can be called from an ASSERT.
@@ -683,6 +632,8 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
       return "old space";
     case kFull:
       return "full";
+    case kIdle:
+      return "idle";
     case kGCAtAlloc:
       return "debugging";
     case kGCTestCase:

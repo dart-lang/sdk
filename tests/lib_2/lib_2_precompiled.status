@@ -1,0 +1,13 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
+async/future_or_strong_test: RuntimeError
+mirrors/symbol_validation_test: RuntimeError # Issue 13596
+
+[ $compiler == precompiler ]
+async/stream_timeout_test: RuntimeError
+mirrors/*: SkipByDesign # Mirrors not supported on AOT.
+convert/chunked_conversion_utf88_test: Pass, Timeout
+convert/utf85_test: Pass, Timeout

@@ -85,7 +85,6 @@ class CommandOutput extends UniqueObject {
     return !hasTimedOut && exitCode == 0;
   }
 
-  // TODO(bob): Remove.
   // Reverse result of a negative test.
   bool hasFailed(TestCase testCase) {
     return testCase.isNegative ? !_didFail(testCase) : _didFail(testCase);
@@ -723,9 +722,9 @@ class DevCompilerCommandOutput extends CommandOutput {
           : Expectation.pass;
     }
 
-    // TODO(jmesserly): should we handle `testCase.isNegative`? Analyzer does
-    // not, so this behavior is chosen to match.
-    return exitCode == 0 ? Expectation.pass : Expectation.compileTimeError;
+    var outcome =
+        exitCode == 0 ? Expectation.pass : Expectation.compileTimeError;
+    return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
   }
 }
 

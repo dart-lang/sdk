@@ -18,8 +18,12 @@ class NotImplemented {
 }
 
 class Interpreter {
-  Program program;
-  StatementExecuter visitor = new StatementExecuter();
+  // The execution of the program starts with empty main environment.
+  static MainEnvironment mainEnvironment =
+      new MainEnvironment(<Member, Location>{});
+
+  final Program program;
+  final StatementExecuter visitor = new StatementExecuter();
 
   Interpreter(this.program);
 
@@ -48,6 +52,32 @@ class Binding {
   final Location location;
 
   Binding(this.variable, this.location);
+}
+
+/// Represents the top level environment that binds previously accessed or set
+/// static fields to the location that stores their value.
+class MainEnvironment {
+  final Map<Member, Location> _staticFields;
+
+  MainEnvironment(this._staticFields);
+
+  bool contains(Member member) => _staticFields[member] != null;
+
+  Value lookup(Member member) {
+    assert(contains(member));
+    return _staticFields[member].value;
+  }
+
+  void updateStore(Member member, Value value) {
+    assert(contains(member));
+    _staticFields[member].value = value;
+  }
+
+  MainEnvironment extend(Member member, Value value) {
+    var newMap = new Map<Member, Location>.from(_staticFields);
+    newMap[member] = new Location(value);
+    return new MainEnvironment(newMap);
+  }
 }
 
 class Environment {
@@ -97,7 +127,7 @@ class Environment {
     return lookupBinding(variable).location.value;
   }
 
-  void assign(VariableDeclaration variable, Value value) {
+  void updateStore(VariableDeclaration variable, Value value) {
     assert(contains(variable));
     lookupBinding(variable).location.value = value;
   }
@@ -155,7 +185,8 @@ class Evaluator extends ExpressionVisitor1<Configuration, EvalConfiguration> {
   }
 
   Configuration visitPropertyGet(PropertyGet node, EvalConfiguration config) {
-    var cont = new PropertyGetEK(node.name, config.continuation);
+    var cont = new PropertyGetEK(
+        node.name, config.exceptionComponents, config.continuation);
     return new EvalConfiguration(
         node.receiver, config.environment, config.exceptionComponents, cont);
   }
@@ -167,10 +198,64 @@ class Evaluator extends ExpressionVisitor1<Configuration, EvalConfiguration> {
         node.receiver, config.environment, config.exceptionComponents, cont);
   }
 
-  Configuration visitStaticGet(StaticGet node, EvalConfiguration config) =>
-      defaultExpression(node, config);
-  Configuration visitStaticSet(StaticSet node, EvalConfiguration config) =>
-      defaultExpression(node, config);
+  Configuration visitStaticGet(StaticGet node, EvalConfiguration config) {
+    Member member = node.target;
+
+    if (member is Procedure && !member.isAccessor) {
+      // Create a closure for the method tear off.
+      var v = new FunctionValue(member.function, new Environment.empty());
+      return new ValuePassingConfiguration(config.continuation, v);
+    }
+
+    if (member is Procedure && member.isGetter) {
+      // Execute the body of the getter.
+      var state = new State.initial()
+          .withReturnContinuation(config.continuation)
+          .withContinuation(new ExitSK(config.continuation, Value.nullInstance))
+          .withException(config.exceptionComponents);
+      return new ExecConfiguration(
+          member.function.body, new Environment.empty(), state);
+    }
+
+    assert(member is Field);
+    if (Interpreter.mainEnvironment.contains(member)) {
+      // Read the value for the member in the main environment.
+      return new ValuePassingConfiguration(
+          config.continuation, Interpreter.mainEnvironment.lookup(member));
+    }
+
+    // Otherwise, the static field is accessed for the first time.
+    // We extend the main environment with a new binding.
+    Interpreter.mainEnvironment =
+        Interpreter.mainEnvironment.extend(member, Value.nullInstance);
+
+    if ((member as Field).initializer == null) {
+      return new ValuePassingConfiguration(
+          config.continuation, Value.nullInstance);
+    }
+
+    // The initializer expression is evaluated otherwise.
+    var cont = new StaticSetEK(member, config.continuation);
+    return new EvalConfiguration((member as Field).initializer,
+        new Environment.empty(), config.exceptionComponents, cont);
+  }
+
+  Configuration visitStaticSet(StaticSet node, EvalConfiguration config) {
+    Member member = node.target;
+    ExpressionContinuation cont;
+
+    if (member is Procedure) {
+      assert(member.isSetter);
+      cont = new StaticSetterEK(
+          member.function, config.exceptionComponents, config.continuation);
+    } else {
+      assert(member is Field);
+      cont = new StaticSetEK(member, config.continuation);
+    }
+
+    return new EvalConfiguration(
+        node.value, config.environment, config.exceptionComponents, cont);
+  }
 
   Configuration visitStaticInvocation(
       StaticInvocation node, EvalConfiguration config) {
@@ -261,6 +346,12 @@ class Evaluator extends ExpressionVisitor1<Configuration, EvalConfiguration> {
 
     return new EvalConfiguration(
         node.expression, config.environment, config.exceptionComponents, cont);
+  }
+
+  Configuration visitFunctionExpression(
+      FunctionExpression node, EvalConfiguration config) {
+    var val = new FunctionValue(node.function, config.environment);
+    return new ValuePassingConfiguration(config.continuation, val);
   }
 
   // Evaluation of BasicLiterals.
@@ -415,8 +506,9 @@ class ExecConfiguration extends Configuration {
 
   ExecConfiguration(this.currentStatement, this.environment, this.state);
 
-  Configuration step(StatementExecuter executer) =>
-      executer.exec(currentStatement, this);
+  Configuration step(StatementExecuter executer) {
+    return executer.exec(currentStatement, this);
+  }
 }
 
 /// Configuration for applying a [StatementContinuation] to an [Environment].
@@ -718,10 +810,12 @@ abstract class ApplicationContinuation extends Continuation {
           newEnv.extend(function.positionalParameters[i], positional[i].value);
     }
 
-    Map<String, Value> named = new Map.fromIterable(
-        args.where((InterpreterValue av) => av is NamedValue),
-        key: (NamedValue av) => av.name,
-        value: (NamedValue av) => av.value);
+    Map<String, Value> named = <String, Value>{};
+    for (InterpreterValue argValue in args) {
+      if (argValue is NamedValue) {
+        named[argValue.name] = argValue.value;
+      }
+    }
 
     // Add named parameters.
     for (VariableDeclaration v in function.namedParameters) {
@@ -892,6 +986,24 @@ class InstanceFieldsA extends ApplicationContinuation {
     return new EvalConfiguration(expr, environment, exceptionComponents, cont);
   }
 }
+
+class FunctionValueA extends ApplicationContinuation {
+  final FunctionValue receiver;
+  final ExceptionComponents exceptionComponents;
+  final ExpressionContinuation returnContinuation;
+
+  FunctionValueA(
+      this.receiver, this.exceptionComponents, this.returnContinuation);
+
+  Configuration call(List<InterpreterValue> vs) {
+    Environment env = ApplicationContinuation.createEnvironment(
+        receiver.function, vs, receiver.environment);
+    var scont = new ExitSK(returnContinuation, Value.nullInstance);
+    var state = new State(null, exceptionComponents, returnContinuation, scont);
+    return new ExecConfiguration(receiver.function.body, env, state);
+  }
+}
+
 // ------------------------------------------------------------------------
 //                           Expression Continuations
 // ------------------------------------------------------------------------
@@ -931,11 +1043,30 @@ class PrintEK extends ExpressionContinuation {
 
 class PropertyGetEK extends ExpressionContinuation {
   final Name name;
+  final ExceptionComponents exceptionComponents;
   final ExpressionContinuation continuation;
 
-  PropertyGetEK(this.name, this.continuation);
+  PropertyGetEK(this.name, this.exceptionComponents, this.continuation);
 
   Configuration call(Value receiver) {
+    if (receiver.class_.isMethod(name)) {
+      var method = receiver.class_.lookup(name);
+      // Return the function value with this bound to receiver.
+      var env = new Environment.empty().extendWithThis(receiver);
+      return new ValuePassingConfiguration(
+          continuation, new FunctionValue(method, env));
+    }
+
+    if (receiver.class_.isGetter(name)) {
+      var getter = receiver.class_.lookup(name);
+      var state = new State.initial()
+          .withReturnContinuation(continuation)
+          .withContinuation(new ExitSK(continuation, Value.nullInstance))
+          .withException(exceptionComponents);
+      return new ExecConfiguration(
+          getter.body, new Environment.empty().extendWithThis(receiver), state);
+    }
+
     Value propertyValue = receiver.class_.lookupImplicitGetter(name)(receiver);
     return new ValuePassingConfiguration(continuation, propertyValue);
   }
@@ -952,7 +1083,8 @@ class PropertySetEK extends ExpressionContinuation {
       this.exceptionComponents, this.continuation);
 
   Configuration call(Value receiver) {
-    var cont = new SetterEK(receiver, setterName, continuation);
+    var cont =
+        new SetterEK(receiver, setterName, exceptionComponents, continuation);
     return new EvalConfiguration(value, environment, exceptionComponents, cont);
   }
 }
@@ -960,14 +1092,66 @@ class PropertySetEK extends ExpressionContinuation {
 class SetterEK extends ExpressionContinuation {
   final Value receiver;
   final Name name;
+  final ExceptionComponents exceptionComponents;
   final ExpressionContinuation continuation;
 
-  SetterEK(this.receiver, this.name, this.continuation);
+  SetterEK(
+      this.receiver, this.name, this.exceptionComponents, this.continuation);
 
   Configuration call(Value v) {
+    if (receiver.class_.isSetter(name)) {
+      var setter = receiver.class_.lookup(name);
+      var env = new Environment.empty()
+          .extendWithThis(receiver)
+          .extend(setter.positionalParameters.first, v);
+      var state = new State.initial()
+          .withReturnContinuation(continuation)
+          .withContinuation(new ExitSK(continuation, Value.nullInstance))
+          .withException(exceptionComponents);
+      return new ExecConfiguration(setter.body, env, state);
+    }
+
     Setter setter = receiver.class_.lookupImplicitSetter(name);
     setter(receiver, v);
     return new ValuePassingConfiguration(continuation, v);
+  }
+}
+
+class StaticSetEK extends ExpressionContinuation {
+  final Member member;
+  final ExpressionContinuation continuation;
+
+  StaticSetEK(this.member, this.continuation);
+
+  Configuration call(Value v) {
+    if (Interpreter.mainEnvironment.contains(member)) {
+      Interpreter.mainEnvironment.updateStore(member, v);
+    } else {
+      Interpreter.mainEnvironment =
+          Interpreter.mainEnvironment.extend(member, v);
+    }
+    return new ValuePassingConfiguration(continuation, v);
+  }
+}
+
+class StaticSetterEK extends ExpressionContinuation {
+  final FunctionNode setter;
+  final ExceptionComponents exceptionComponents;
+  final ExpressionContinuation expressionContinuation;
+
+  StaticSetterEK(
+      this.setter, this.exceptionComponents, this.expressionContinuation);
+
+  Configuration call(Value v) {
+    VariableDeclaration arg = setter.positionalParameters.first;
+    var env = new Environment.empty().extend(arg, v);
+    var state = new State.initial()
+        .withException(exceptionComponents)
+        .withReturnContinuation(expressionContinuation)
+        .withContinuation(
+            new ExitSK(expressionContinuation, Value.nullInstance));
+
+    return new ExecConfiguration(setter.body, env, state);
   }
 }
 
@@ -1002,15 +1186,34 @@ class MethodInvocationEK extends ExpressionContinuation {
       this.exceptionComponents, this.continuation);
 
   Configuration call(Value receiver) {
-    if (arguments.positional.isEmpty) {
-      Value returnValue = receiver.invokeMethod(methodName);
-      return new ValuePassingConfiguration(continuation, returnValue);
-    }
-    var cont = new ArgumentsEK(
-        receiver, methodName, arguments, environment, continuation);
+    if (receiver is LiteralValue) {
+      // TODO(zhivkag): CPS method invocation for literals
+      if (arguments.positional.isEmpty) {
+        Value returnValue = receiver.invokeMethod(methodName);
+        return new ValuePassingConfiguration(continuation, returnValue);
+      }
+      var cont = new ArgumentsEK(
+          receiver, methodName, arguments, environment, continuation);
 
-    return new EvalConfiguration(
-        arguments.positional.first, environment, exceptionComponents, cont);
+      return new EvalConfiguration(
+          arguments.positional.first, environment, exceptionComponents, cont);
+    }
+
+    FunctionValue fun;
+    if (receiver is FunctionValue) {
+      // TODO(zhivkag): Throw an exception when method is not call.
+      assert(methodName.toString() == "call");
+      fun = receiver;
+    } else {
+      assert(receiver.class_.isMethod(methodName));
+      fun = new FunctionValue(receiver.class_.lookup(methodName),
+          new Environment.empty().extendWithThis(receiver));
+    }
+
+    var args = _getArgumentExpressions(arguments, fun.function);
+    var acont = new FunctionValueA(receiver, exceptionComponents, continuation);
+    return new EvalListConfiguration(
+        args, environment, exceptionComponents, acont);
   }
 }
 
@@ -1040,7 +1243,7 @@ class VariableSetEK extends ExpressionContinuation {
   VariableSetEK(this.variable, this.environment, this.continuation);
 
   Configuration call(Value value) {
-    environment.assign(variable, value);
+    environment.updateStore(variable, value);
     return new ValuePassingConfiguration(continuation, value);
   }
 }
@@ -1122,8 +1325,7 @@ class LetEK extends ExpressionContinuation {
       this.continuation);
 
   Configuration call(Value value) {
-    var letEnv = new Environment(environment);
-    letEnv.extend(variable, value);
+    var letEnv = environment.extend(variable, value);
     return new EvalConfiguration(
         letBody, letEnv, exceptionComponents, continuation);
   }
@@ -1377,9 +1579,36 @@ class CatchHandler extends ExceptionHandler {
   CatchHandler(this.catches, this.environment, this.state);
 
   Configuration call(Value exception, StackTrace stackTrace) {
+    if (catches.isEmpty) {
+      return new ThrowConfiguration(
+          state.exceptionComponents.handler, exception, stackTrace);
+    }
+
     // TODO(zhivkag): Check if there is a matching catch clause instead.
-    return new ThrowConfiguration(
-        state.exceptionComponents.handler, exception, stackTrace);
+    var currentCatch = catches.first;
+    if (currentCatch.guard is DynamicType) {
+      // Exception is caught, execute the body.
+
+      var env = environment;
+      if (currentCatch.exception != null) {
+        env = env.extend(currentCatch.exception, exception);
+      }
+      if (currentCatch.stackTrace != null) {
+        env = env.extend(
+            currentCatch.stackTrace, new StringValue(stackTrace.toString()));
+      }
+      var ecs = new ExceptionComponents(state.exceptionComponents.handler,
+          state.exceptionComponents.stackTrace, stackTrace, exception);
+      var newState = new State.initial()
+          .withContinuation(state.continuation)
+          .withReturnContinuation(state.returnContinuation)
+          .withException(ecs);
+      return new ExecConfiguration(currentCatch.body, env, newState);
+    }
+
+    var catchHandler =
+        new CatchHandler(catches.skip(1).toList(), environment, state);
+    return new ThrowConfiguration(catchHandler, exception, stackTrace);
   }
 }
 
@@ -1461,7 +1690,7 @@ class StackTrace {
 /// - It throws, in which case the handler is returned and applied accordingly.
 class StatementExecuter
     extends StatementVisitor1<Configuration, ExecConfiguration> {
-  Evaluator evaluator = new Evaluator();
+  final Evaluator evaluator = new Evaluator();
 
   void trampolinedExecution(Configuration configuration) {
     while (configuration != null) {
@@ -1500,10 +1729,9 @@ class StatementExecuter
           conf.state.continuation, conf.environment);
     }
 
-    var env = new Environment(conf.environment);
     var cont = new BlockSK.fromConfig(node.statements.skip(1).toList(), conf);
-    return new ExecConfiguration(
-        node.statements.first, env, conf.state.withContinuation(cont));
+    return new ExecConfiguration(node.statements.first, conf.environment,
+        conf.state.withContinuation(cont));
   }
 
   Configuration visitEmptyStatement(
@@ -1599,6 +1827,14 @@ class StatementExecuter
     return new ForwardConfiguration(conf.state.continuation,
         conf.environment.extend(node, Value.nullInstance));
   }
+
+  Configuration visitFunctionDeclaration(
+      FunctionDeclaration node, ExecConfiguration conf) {
+    var newEnv = conf.environment.extend(node.variable, Value.nullInstance);
+    var fun = new FunctionValue(node.function, newEnv);
+    newEnv.updateStore(node.variable, fun);
+    return new ForwardConfiguration(conf.state.continuation, newEnv);
+  }
 }
 
 // ------------------------------------------------------------------------
@@ -1653,8 +1889,15 @@ class Class {
     Setter setter = implicitSetters[name];
     if (setter != null) return setter;
     if (superclass != null) return superclass.lookupImplicitSetter(name);
+    // TODO(zhivkag): Throw NoSuchInstance error instead.
     return (Value receiver, Value value) => notImplemented(obj: name);
   }
+
+  FunctionNode lookup(Name name) => methods[name]?.function;
+
+  bool isGetter(Name name) => methods[name]?.isGetter ?? false;
+  bool isSetter(Name name) => methods[name]?.isSetter ?? false;
+  bool isMethod(Name name) => !(methods[name]?.isAccessor ?? true);
 
   /// Populates implicit getters and setters for the current class and its
   /// superclass recursively.
@@ -1732,6 +1975,18 @@ class ObjectValue extends Value {
       fields[i] = new Location.empty();
     }
   }
+}
+
+class FunctionValue extends Value {
+  Class get class_ => throw 'Class for FunctionValue is not defined';
+  List<Location> get fields => throw 'FunctionValue has no fields.';
+
+  FunctionValue get value => this;
+
+  final FunctionNode function;
+  final Environment environment;
+
+  FunctionValue(this.function, this.environment);
 }
 
 abstract class LiteralValue extends Value {
@@ -1855,11 +2110,12 @@ List<InterpreterExpression> _getArgumentExpressions(
     args.add(new PositionalExpression(fun.positionalParameters[i].initializer));
   }
 
-  Map<String, NamedExpression> namedFormals = new Map.fromIterable(
-      fun.namedParameters,
-      key: (VariableDeclaration vd) => vd.name,
-      value: (VariableDeclaration vd) =>
-          new NamedExpression(vd.name, vd.initializer));
+  Map<String, NamedExpression> namedFormals = <String, NamedExpression>{};
+  for (VariableDeclaration vd in fun.namedParameters) {
+    if (vd is NamedValue) {
+      namedFormals[vd.name] = new NamedExpression(vd.name, vd.initializer);
+    }
+  }
 
   // Add named expressions.
   for (int i = 0; i < providedArgs.named.length; i++) {
@@ -1882,7 +2138,7 @@ List<InterpreterExpression> _getFieldInitializers(ast.Class class_) {
   var fieldInitializers = new List<InterpreterExpression>();
 
   for (Field f in class_.fields) {
-    if (f.initializer != null) {
+    if (!f.isStatic && f.initializer != null) {
       fieldInitializers.add(new FieldInitializerExpression(f, f.initializer));
     }
   }

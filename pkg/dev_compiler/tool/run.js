@@ -10,9 +10,9 @@
 /// > npm install -g devtool
 ///
 /// Run via:
-/// > devtool tool/run.js -- corelib/apply2_test
+/// > devtool tool/run.js -- corelib_2/apply2_test
 /// or
-/// > node tool/run.js corelib/apply2_test
+/// > node tool/run.js corelib_2/apply2_test
 ///
 /// See TODO below on async / unittest support. 
 

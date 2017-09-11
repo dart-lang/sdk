@@ -30,11 +30,8 @@ class ClosureTracerVisitor extends TracerVisitor {
     analyze();
     if (!continueAnalyzing) return;
     _callsToAnalyze.forEach(_analyzeCall);
-    for (MethodElement element in tracedElements) {
-      MethodElement implementation = element.implementation;
-      implementation.functionSignature
-          .forEachParameter((FormalElement _parameter) {
-        ParameterElement parameter = _parameter;
+    for (FunctionEntity element in tracedElements) {
+      inferrer.types.strategy.forEachParameter(element, (Local parameter) {
         ElementTypeInformation info =
             inferrer.types.getInferredTypeOfParameter(parameter);
         info.disableInferenceForClosures = false;

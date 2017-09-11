@@ -34,6 +34,7 @@ static const int kNumInitialReferences = 32;
 static bool IsSingletonClassId(intptr_t class_id) {
   // Check if this is a singleton object class which is shared by all isolates.
   return ((class_id >= kClassCid && class_id <= kUnwindErrorCid) ||
+          (class_id == kTypeArgumentsCid) ||
           (class_id >= kNullCid && class_id <= kVoidCid));
 }
 
@@ -681,6 +682,7 @@ int32_t ImageWriter::GetDataOffsetFor(RawObject* raw_object) {
 void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  Heap* heap = thread->isolate()->heap();
   NOT_IN_PRODUCT(TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
                                            "WriteInstructions"));
 
@@ -691,6 +693,11 @@ void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
     data.insns_ = &Instructions::Handle(zone, data.raw_insns_);
     ASSERT(data.raw_code_ != NULL);
     data.code_ = &Code::Handle(zone, data.raw_code_);
+
+    // Update object id table with offsets that will refer to the VM snapshot,
+    // causing a subsequently written isolate snapshot to share instructions
+    // with the VM snapshot.
+    heap->SetObjectId(data.insns_->raw(), -data.offset_);
   }
   for (intptr_t i = 0; i < objects_.length(); i++) {
     ObjectData& data = objects_[i];
@@ -1017,11 +1024,29 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   }
 }
 
+ImageReader::ImageReader(const uint8_t* instructions_buffer,
+                         const uint8_t* data_buffer)
+    : instructions_buffer_(instructions_buffer), data_buffer_(data_buffer) {
+  ASSERT(instructions_buffer != NULL);
+  ASSERT(data_buffer != NULL);
+  ASSERT(Utils::IsAligned(reinterpret_cast<uword>(instructions_buffer),
+                          OS::PreferredCodeAlignment()));
+  vm_instructions_buffer_ = Dart::vm_snapshot_instructions();
+}
+
 RawInstructions* ImageReader::GetInstructionsAt(int32_t offset) {
   ASSERT(Utils::IsAligned(offset, OS::PreferredCodeAlignment()));
 
-  RawInstructions* result = reinterpret_cast<RawInstructions*>(
-      reinterpret_cast<uword>(instructions_buffer_) + offset + kHeapObjectTag);
+  RawInstructions* result;
+  if (offset < 0) {
+    result = reinterpret_cast<RawInstructions*>(
+        reinterpret_cast<uword>(vm_instructions_buffer_) - offset +
+        kHeapObjectTag);
+  } else {
+    result = reinterpret_cast<RawInstructions*>(
+        reinterpret_cast<uword>(instructions_buffer_) + offset +
+        kHeapObjectTag);
+  }
   ASSERT(result->IsInstructions());
   ASSERT(result->IsMarked());
 

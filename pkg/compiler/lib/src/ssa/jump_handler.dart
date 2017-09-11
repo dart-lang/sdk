@@ -99,7 +99,7 @@ class TargetJumpHandler implements JumpHandler {
       continueInstruction = new HContinue.toLabel(label);
       // Switch case continue statements must be handled by the
       // [SwitchCaseJumpHandler].
-      assert(label.target.statement is! ast.SwitchCase);
+      assert(!label.target.isSwitchCase);
     }
     LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
     builder.close(continueInstruction);
@@ -184,8 +184,6 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
       // [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
 
       assert(label != null);
-      // TODO(het): change the graph 'addConstantXXX' to take a ConstantSystem
-      // instead of a Compiler.
       HInstruction value = builder.graph
           .addConstantInt(targetIndexMap[label.target], builder.closedWorld);
       builder.localsHandler.updateLocal(target, value);

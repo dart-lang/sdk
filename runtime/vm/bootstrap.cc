@@ -8,11 +8,11 @@
 
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/kernel.h"
-#include "vm/kernel_reader.h"
+#include "vm/kernel_loader.h"
 #endif
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -303,7 +303,7 @@ static RawError* BootstrapFromSource(Thread* thread) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   Zone* zone = thread->zone();
-  kernel::KernelReader reader(program);
+  kernel::KernelLoader loader(program);
 
   Isolate* isolate = thread->isolate();
   // Mark the already-pending classes.  This mark bit will be used to avoid
@@ -324,9 +324,9 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
     library = isolate->object_store()->bootstrap_library(id);
     dart_name = library.url();
     for (intptr_t j = 0; j < program->library_count(); ++j) {
-      const String& kernel_name = reader.LibraryUri(j);
+      const String& kernel_name = loader.LibraryUri(j);
       if (kernel_name.Equals(dart_name)) {
-        reader.ReadLibrary(reader.library_offset(j));
+        loader.LoadLibrary(loader.library_offset(j));
         library.SetLoaded();
         break;
       }
@@ -338,7 +338,7 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
 
   // The platform binary may contain other libraries (e.g., dart:_builtin or
   // dart:io) that will not be bundled with application.  Load them now.
-  reader.ReadProgram();
+  loader.LoadProgram();
 
   // The builtin library should be registered with the VM.
   dart_name = String::New("dart:_builtin");

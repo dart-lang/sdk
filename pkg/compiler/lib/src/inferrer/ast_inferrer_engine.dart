@@ -14,15 +14,26 @@ import '../tree/nodes.dart' as ast;
 import '../types/types.dart';
 import '../world.dart';
 import 'builder.dart';
-import 'builder_kernel.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
 
 class AstInferrerEngine extends InferrerEngineImpl<ast.Node> {
-  AstInferrerEngine(Compiler compiler, ClosedWorld closedWorld,
+  final Compiler compiler;
+
+  AstInferrerEngine(this.compiler, ClosedWorld closedWorld,
       ClosedWorldRefiner closedWorldRefiner, FunctionEntity mainElement)
-      : super(compiler, closedWorld, closedWorldRefiner, mainElement,
+      : super(
+            compiler.options,
+            compiler.progress,
+            compiler.reporter,
+            compiler.outputProvider,
+            compiler.backend.optimizerHints,
+            closedWorld,
+            closedWorldRefiner,
+            compiler.backend.mirrorsData,
+            compiler.backend.noSuchMethodRegistry,
+            mainElement,
             const TypeSystemStrategyImpl());
 
   GlobalTypeInferenceElementData<ast.Node> createElementData() =>
@@ -39,16 +50,6 @@ class AstInferrerEngine extends InferrerEngineImpl<ast.Node> {
     return body;
   }
 
-  void forEachParameter(
-      covariant MethodElement method, void f(Local parameter)) {
-    MethodElement implementation = method.implementation;
-    implementation.functionSignature
-        .forEachParameter((FormalElement _parameter) {
-      ParameterElement parameter = _parameter;
-      f(parameter);
-    });
-  }
-
   FunctionEntity lookupCallMethod(covariant ClassElement cls) {
     MethodElement callMethod = cls.lookupMember(Identifiers.call);
     if (callMethod == null) {
@@ -59,10 +60,8 @@ class AstInferrerEngine extends InferrerEngineImpl<ast.Node> {
 
   TypeInformation computeMemberTypeInformation(
       MemberEntity member, ast.Node body) {
-    dynamic visitor = compiler.options.kernelGlobalInference
-        ? new KernelTypeGraphBuilder(member, compiler, this)
-        : new ElementGraphBuilder(member, compiler, this);
-    // ignore: UNDEFINED_METHOD
+    ElementGraphBuilder visitor =
+        new ElementGraphBuilder(member, compiler, this);
     return visitor.run();
   }
 

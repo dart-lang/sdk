@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(TARGET_ARCH_ARM64)
+#if defined(TARGET_ARCH_ARM64) && !defined(DART_PRECOMPILED_RUNTIME)
 
-#include "vm/assembler.h"
-#include "vm/compiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
-#include "vm/flow_graph_compiler.h"
 #include "vm/heap.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
@@ -122,12 +122,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ LeaveStubFrame();
   __ ret();
 }
-
-// Print the stop message.
-DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {
-  OS::Print("Stop message: %s\n", message);
-}
-END_LEAF_RUNTIME_ENTRY
 
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
   __ Stop("GeneratePrintStopMessageStub");
@@ -615,9 +609,9 @@ static void GenerateDispatcherCode(Assembler* assembler,
 
   // Adjust arguments count.
   __ LoadFieldFromOffset(R3, R4, ArgumentsDescriptor::type_args_len_offset());
-  __ AddImmediate(TMP, R2, Smi::RawValue(1));  // Include the type arguments.
+  __ AddImmediate(TMP, R2, 1);  // Include the type arguments.
   __ cmp(R3, Operand(0));
-  __ csinc(R2, R2, TMP, EQ);  // R2 <- (R3 == 0) ? R2 : TMP.
+  __ csinc(R2, R2, TMP, EQ);  // R2 <- (R3 == 0) ? R2 : TMP + 1 (R2 : R2 + 2).
 
   // R2: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
@@ -1269,9 +1263,9 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
 
   // Adjust arguments count.
   __ LoadFieldFromOffset(R3, R4, ArgumentsDescriptor::type_args_len_offset());
-  __ AddImmediate(TMP, R2, Smi::RawValue(1));  // Include the type arguments.
+  __ AddImmediate(TMP, R2, 1);  // Include the type arguments.
   __ cmp(R3, Operand(0));
-  __ csinc(R2, R2, TMP, EQ);  // R2 <- (R3 == 0) ? R2 : TMP.
+  __ csinc(R2, R2, TMP, EQ);  // R2 <- (R3 == 0) ? R2 : TMP + 1 (R2 : R2 + 2).
 
   // R2: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
@@ -2103,7 +2097,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ ldr(R2, FieldAddress(R5, MegamorphicCache::buckets_offset()));
   __ ldr(R1, FieldAddress(R5, MegamorphicCache::mask_offset()));
   // R2: cache buckets array.
-  // R1: mask.
+  // R1: mask as a smi.
 
   // Make the cid into a smi.
   __ SmiTag(R0);
@@ -2322,4 +2316,4 @@ void StubCode::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
 
 }  // namespace dart
 
-#endif  // defined TARGET_ARCH_ARM64
+#endif  // defined(TARGET_ARCH_ARM64) && !defined(DART_PRECOMPILED_RUNTIME)

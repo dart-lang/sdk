@@ -165,20 +165,4 @@ void testConcurrentModification() {
     l.addAll(ci);
     Expect.listEquals(new List.generate(500, (x) => x), l, "cm6");
   }
-
-  {
-    // Adding to yourself.
-    var l = [1];
-    Expect.throws(() {
-      l.addAll(l);
-    }, (e) => e is ConcurrentModificationError, "cm7");
-  }
-
-  {
-    // Adding to yourself.
-    var l = [1, 2, 3];
-    Expect.throws(() {
-      l.addAll(l);
-    }, (e) => e is ConcurrentModificationError, "cm8");
-  }
 }

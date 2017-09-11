@@ -6,9 +6,9 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "vm/assembler.h"
 #include "vm/clustered_snapshot.h"
-#include "vm/disassembler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/assembler/disassembler.h"
 #include "vm/flags.h"
 #include "vm/object_store.h"
 #include "vm/safepoint.h"
@@ -39,22 +39,45 @@ void StubEntry::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
 }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+void StubCode::InitOnce() {
+  // Stubs will be loaded from the snapshot.
+  UNREACHABLE();
+}
+#else
+
 #define STUB_CODE_GENERATE(name)                                               \
   code ^= Generate("_stub_" #name, StubCode::Generate##name##Stub);            \
   entries_[k##name##Index] = new StubEntry(code);
 
 void StubCode::InitOnce() {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  // Stubs will be loaded from the snapshot.
-  UNREACHABLE();
-#else
   // Generate all the stubs.
   Code& code = Code::Handle();
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE);
-#endif  // DART_PRECOMPILED_RUNTIME
 }
 
 #undef STUB_CODE_GENERATE
+
+RawCode* StubCode::Generate(const char* name,
+                            void (*GenerateStub)(Assembler* assembler)) {
+  Assembler assembler;
+  GenerateStub(&assembler);
+  const Code& code =
+      Code::Handle(Code::FinalizeCode(name, &assembler, false /* optimized */));
+#ifndef PRODUCT
+  if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
+    LogBlock lb;
+    THR_Print("Code for stub '%s': {\n", name);
+    DisassembleToStdout formatter;
+    code.Disassemble(&formatter);
+    THR_Print("}\n");
+    const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
+    object_pool.DebugPrint();
+  }
+#endif  // !PRODUCT
+  return code.raw();
+}
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 void StubCode::Init(Isolate* isolate) {}
 
@@ -107,6 +130,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     return AllocateArray_entry()->code();
   }
   Code& stub = Code::Handle(zone, cls.allocation_stub());
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (stub.IsNull()) {
     Assembler assembler;
     const char* name = cls.ToCString();
@@ -158,6 +182,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     }
 #endif  // !PRODUCT
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return stub.raw();
 #endif  // !DBC
   UNIMPLEMENTED();
@@ -182,26 +207,6 @@ const StubEntry* StubCode::UnoptimizedStaticCallEntry(
 #else
   return NULL;
 #endif
-}
-
-RawCode* StubCode::Generate(const char* name,
-                            void (*GenerateStub)(Assembler* assembler)) {
-  Assembler assembler;
-  GenerateStub(&assembler);
-  const Code& code =
-      Code::Handle(Code::FinalizeCode(name, &assembler, false /* optimized */));
-#ifndef PRODUCT
-  if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
-    LogBlock lb;
-    THR_Print("Code for stub '%s': {\n", name);
-    DisassembleToStdout formatter;
-    code.Disassemble(&formatter);
-    THR_Print("}\n");
-    const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
-    object_pool.DebugPrint();
-  }
-#endif  // !PRODUCT
-  return code.raw();
 }
 
 const char* StubCode::NameOfStub(uword entry_point) {

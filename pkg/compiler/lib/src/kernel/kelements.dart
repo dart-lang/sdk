@@ -7,31 +7,26 @@
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import 'elements.dart';
+import 'indexed.dart';
 
 const String kElementPrefix = 'k:';
 
-class KLibrary implements IndexedLibrary {
-  /// Library index used for fast lookup in [KernelWorldBuilder].
-  final int libraryIndex;
+class KLibrary extends IndexedLibrary {
   final String name;
   final Uri canonicalUri;
 
-  KLibrary(this.libraryIndex, this.name, this.canonicalUri);
+  KLibrary(this.name, this.canonicalUri);
 
   String toString() => '${kElementPrefix}library($name)';
 }
 
-class KClass implements IndexedClass {
+class KClass extends IndexedClass {
   final KLibrary library;
-
-  /// Class index used for fast lookup in [KernelWorldBuilder].
-  final int classIndex;
 
   final String name;
   final bool isAbstract;
 
-  KClass(this.library, this.classIndex, this.name, {this.isAbstract});
+  KClass(this.library, this.name, {this.isAbstract});
 
   @override
   bool get isClosure => false;
@@ -39,16 +34,13 @@ class KClass implements IndexedClass {
   String toString() => '${kElementPrefix}class($name)';
 }
 
-abstract class KMember implements IndexedMember {
-  /// Member index used for fast lookup in [KernelWorldBuilder].
-  final int memberIndex;
+abstract class KMember extends IndexedMember {
   final KLibrary library;
   final KClass enclosingClass;
   final Name _name;
   final bool _isStatic;
 
-  KMember(this.memberIndex, this.library, this.enclosingClass, this._name,
-      {bool isStatic: false})
+  KMember(this.library, this.enclosingClass, this._name, {bool isStatic: false})
       : _isStatic = isStatic;
 
   String get name => _name.text;
@@ -100,20 +92,21 @@ abstract class KFunction extends KMember
   final bool isExternal;
   final AsyncMarker asyncMarker;
 
-  KFunction(int memberIndex, KLibrary library, KClass enclosingClass, Name name,
+  KFunction(KLibrary library, KClass enclosingClass, Name name,
       this.parameterStructure, this.asyncMarker,
       {bool isStatic: false, this.isExternal: false})
-      : super(memberIndex, library, enclosingClass, name, isStatic: isStatic);
+      : super(library, enclosingClass, name, isStatic: isStatic);
 }
 
 abstract class KConstructor extends KFunction
     implements ConstructorEntity, IndexedConstructor {
   final bool isConst;
 
-  KConstructor(int memberIndex, KClass enclosingClass, Name name,
-      ParameterStructure parameterStructure, {bool isExternal, this.isConst})
-      : super(memberIndex, enclosingClass.library, enclosingClass, name,
-            parameterStructure, AsyncMarker.SYNC,
+  KConstructor(
+      KClass enclosingClass, Name name, ParameterStructure parameterStructure,
+      {bool isExternal, this.isConst})
+      : super(enclosingClass.library, enclosingClass, name, parameterStructure,
+            AsyncMarker.SYNC,
             isExternal: isExternal);
 
   @override
@@ -135,9 +128,10 @@ abstract class KConstructor extends KFunction
 }
 
 class KGenerativeConstructor extends KConstructor {
-  KGenerativeConstructor(int constructorIndex, KClass enclosingClass, Name name,
-      ParameterStructure parameterStructure, {bool isExternal, bool isConst})
-      : super(constructorIndex, enclosingClass, name, parameterStructure,
+  KGenerativeConstructor(
+      KClass enclosingClass, Name name, ParameterStructure parameterStructure,
+      {bool isExternal, bool isConst})
+      : super(enclosingClass, name, parameterStructure,
             isExternal: isExternal, isConst: isConst);
 
   @override
@@ -151,10 +145,10 @@ class KFactoryConstructor extends KConstructor {
   @override
   final bool isFromEnvironmentConstructor;
 
-  KFactoryConstructor(int memberIndex, KClass enclosingClass, Name name,
-      ParameterStructure parameterStructure,
+  KFactoryConstructor(
+      KClass enclosingClass, Name name, ParameterStructure parameterStructure,
       {bool isExternal, bool isConst, this.isFromEnvironmentConstructor})
-      : super(memberIndex, enclosingClass, name, parameterStructure,
+      : super(enclosingClass, name, parameterStructure,
             isExternal: isExternal, isConst: isConst);
 
   @override
@@ -167,9 +161,8 @@ class KFactoryConstructor extends KConstructor {
 class KConstructorBody extends KFunction implements ConstructorBodyEntity {
   final ConstructorEntity constructor;
 
-  KConstructorBody(int memberIndex, this.constructor)
+  KConstructorBody(this.constructor)
       : super(
-            memberIndex,
             constructor.library,
             constructor.enclosingClass,
             constructor.memberName,
@@ -187,11 +180,10 @@ class KConstructorBody extends KFunction implements ConstructorBodyEntity {
 class KMethod extends KFunction {
   final bool isAbstract;
 
-  KMethod(int memberIndex, KLibrary library, KClass enclosingClass, Name name,
+  KMethod(KLibrary library, KClass enclosingClass, Name name,
       ParameterStructure parameterStructure, AsyncMarker asyncMarker,
       {bool isStatic, bool isExternal, this.isAbstract})
-      : super(memberIndex, library, enclosingClass, name, parameterStructure,
-            asyncMarker,
+      : super(library, enclosingClass, name, parameterStructure, asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
 
   @override
@@ -203,11 +195,11 @@ class KMethod extends KFunction {
 class KGetter extends KFunction {
   final bool isAbstract;
 
-  KGetter(int memberIndex, KLibrary library, KClass enclosingClass, Name name,
+  KGetter(KLibrary library, KClass enclosingClass, Name name,
       AsyncMarker asyncMarker,
       {bool isStatic, bool isExternal, this.isAbstract})
-      : super(memberIndex, library, enclosingClass, name,
-            const ParameterStructure.getter(), asyncMarker,
+      : super(library, enclosingClass, name, const ParameterStructure.getter(),
+            asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
 
   @override
@@ -219,10 +211,10 @@ class KGetter extends KFunction {
 class KSetter extends KFunction {
   final bool isAbstract;
 
-  KSetter(int memberIndex, KLibrary library, KClass enclosingClass, Name name,
+  KSetter(KLibrary library, KClass enclosingClass, Name name,
       {bool isStatic, bool isExternal, this.isAbstract})
-      : super(memberIndex, library, enclosingClass, name,
-            const ParameterStructure.setter(), AsyncMarker.SYNC,
+      : super(library, enclosingClass, name, const ParameterStructure.setter(),
+            AsyncMarker.SYNC,
             isStatic: isStatic, isExternal: isExternal);
 
   @override
@@ -238,9 +230,9 @@ class KField extends KMember implements FieldEntity, IndexedField {
   final bool isAssignable;
   final bool isConst;
 
-  KField(int memberIndex, KLibrary library, KClass enclosingClass, Name name,
+  KField(KLibrary library, KClass enclosingClass, Name name,
       {bool isStatic, this.isAssignable, this.isConst})
-      : super(memberIndex, library, enclosingClass, name, isStatic: isStatic);
+      : super(library, enclosingClass, name, isStatic: isStatic);
 
   @override
   bool get isField => true;
@@ -248,14 +240,12 @@ class KField extends KMember implements FieldEntity, IndexedField {
   String get _kind => 'field';
 }
 
-class KTypeVariable implements TypeVariableEntity, IndexedTypeVariable {
-  final int typeVariableIndex;
+class KTypeVariable extends IndexedTypeVariable {
   final Entity typeDeclaration;
   final String name;
   final int index;
 
-  KTypeVariable(
-      this.typeVariableIndex, this.typeDeclaration, this.name, this.index);
+  KTypeVariable(this.typeDeclaration, this.name, this.index);
 
   String toString() =>
       '${kElementPrefix}type_variable(${typeDeclaration.name}.$name)';

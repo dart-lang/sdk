@@ -28,3 +28,8 @@ sample_extension/test/*: Skip # These tests attempt to spawn another script usin
 
 [ $compiler == none && $runtime == vm && $system == windows && $mode == debug ]
 sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # Issue 28842
+
+[ $compiler == dartkp ]
+sample_extension/test/sample_extension_app_snapshot_test: RuntimeError
+sample_extension/test/sample_extension_script_snapshot_test: RuntimeError
+sample_extension/test/sample_extension_test: RuntimeError

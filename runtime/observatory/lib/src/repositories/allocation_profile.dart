@@ -6,9 +6,10 @@ part of repositories;
 
 class AllocationProfileRepository implements M.AllocationProfileRepository {
   static const _api = '_getAllocationProfile';
+  static const _defaultsApi = '_getDefaultClassesAliases';
 
   Future<M.AllocationProfile> get(M.IsolateRef i,
-      {bool gc: false, bool reset: false}) async {
+      {bool gc: false, bool reset: false, bool combine: false}) async {
     assert(gc != null);
     assert(reset != null);
     S.Isolate isolate = i as S.Isolate;
@@ -21,6 +22,11 @@ class AllocationProfileRepository implements M.AllocationProfileRepository {
       params['reset'] = true;
     }
     final response = await isolate.invokeRpc(_api, params);
+    Map defaults;
+    if (combine) {
+      defaults = await isolate.vm.invokeRpcNoUpgrade(_defaultsApi, {});
+      defaults = defaults['map'];
+    }
     isolate.updateHeapsFromMap(response['heaps']);
     for (S.ServiceMap clsAllocations in response['members']) {
       S.Class cls = clsAllocations['class'];
@@ -30,6 +36,6 @@ class AllocationProfileRepository implements M.AllocationProfileRepository {
       cls.newSpace.update(clsAllocations['new']);
       cls.oldSpace.update(clsAllocations['old']);
     }
-    return new AllocationProfile(response);
+    return new AllocationProfile(response, defaults: defaults);
   }
 }

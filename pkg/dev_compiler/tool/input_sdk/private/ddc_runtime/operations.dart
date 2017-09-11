@@ -43,58 +43,25 @@ class InvocationImpl extends Invocation {
 /// This supports cases like `super.foo` where we need to tear off the method
 /// from the superclass, not from the `obj` directly.
 // TODO(leafp): Consider caching the tearoff on the object?
-bind(obj, name, f) {
-  // Handle Object members.
-  var method;
-  if (JS('bool', '# === "toString"', name)) {
-    method = _toString;
-    f = JS('', '() => #(#)', _toString, obj);
-  } else if (JS('bool', '# === "noSuchMethod"', name)) {
-    method = noSuchMethod;
-    f = JS('', '(i) => #(#, i)', noSuchMethod, obj);
-  } else {
-    // All other members
-    if (f == null) f = JS('', '#[#]', obj, name);
-    method = f;
-    f = JS('', '#.bind(#)', f, obj);
-  }
-  // TODO(jmesserly): should we canonicalize tearoffs so we don't need to
-  // define ==/hashCode? Then we'd only need the signature.
-  // Another idea here is to have a type that maps to Function.prototype,
-  // similar to all other JS types. That would give us a place to put function
-  // equality, hashCode, runtimeType, noSuchMethod, and toString, rather than
-  // it being a special case in every Object member helper.
-  JS(
-      '',
-      '#[dartx["=="]] = '
-      '(f) => { let eq = f[#]; return eq != null && eq(#, #); }',
-      f,
-      _tearoffEquals,
-      obj,
-      method);
-  JS('', '#[#] = (o, m) => o === # && m === #', f, _tearoffEquals, obj, method);
-  JS(
-      '',
-      '#[#] = function() {'
-      'let hash = (17 * 31 + #) & 0x1fffffff;'
-      'return (hash * 31 + #) & 0x1fffffff; }',
-      f,
-      _tearoffHashcode,
-      hashCode(obj),
-      hashCode(method));
-  tagLazy(f, JS('', '() => #', getMethodType(getType(obj), name)));
+bind(obj, name, method) {
+  if (obj == null) obj = jsNull;
+
+  if (method == null) method = JS('', '#[#]', obj, name);
+  var f = JS('', '#.bind(#)', method, obj);
+  // TODO(jmesserly): canonicalize tearoffs.
+  JS('', '#._boundObject = #', f, obj);
+  JS('', '#._boundMethod = #', f, method);
+  JS('', '#[#] = #', f, _runtimeType, getMethodType(getType(obj), name));
   return f;
 }
-
-final _tearoffEquals = JS('', 'Symbol("_tearoffEquals")');
-final _tearoffHashcode = JS('', 'Symbol("_tearoffHashcode")');
 
 /// Instantiate a generic method.
 ///
 /// We need to apply the type arguments both to the function, as well as its
 /// associated function type.
 gbind(f, @rest typeArgs) {
-  var result = JS('', '#.apply(null, #)', f, typeArgs);
+  var result =
+      JS('', '(...args) => #.apply(null, #.concat(args))', f, typeArgs);
   var sig = JS('', '#.instantiate(#)', _getRuntimeType(f), typeArgs);
   tag(result, sig);
   return result;
@@ -154,7 +121,7 @@ dputMirror(obj, field, value) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
       setterType = _stripGenericArguments(setterType);
-      return JS('', '#[#] = #', obj, f, check(value, setterType));
+      return JS('', '#[#] = #._check(#)', obj, f, setterType, value);
     }
   }
   return noSuchMethod(
@@ -167,7 +134,7 @@ dput(obj, field, value) {
   if (f != null) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
-      return JS('', '#[#] = #', obj, f, check(value, setterType));
+      return JS('', '#[#] = #._check(#)', obj, f, setterType, value);
     }
     // Always allow for JS interop objects.
     if (isJsInterop(obj)) {
@@ -189,7 +156,7 @@ _checkApply(type, actuals) => JS('', '''(() => {
   if ($actuals.length < $type.args.length) return false;
   let index = 0;
   for(let i = 0; i < $type.args.length; ++i) {
-    $check($actuals[i], $type.args[i]);
+    $type.args[i]._check($actuals[i]);
     ++index;
   }
   if ($actuals.length == $type.args.length) return true;
@@ -197,7 +164,7 @@ _checkApply(type, actuals) => JS('', '''(() => {
   if ($type.optionals.length > 0) {
     if (extras > $type.optionals.length) return false;
     for(let i = 0, j=index; i < extras; ++i, ++j) {
-      $check($actuals[j], $type.optionals[i]);
+      $type.optionals[i]._check($actuals[j]);
     }
     return true;
   }
@@ -215,7 +182,7 @@ _checkApply(type, actuals) => JS('', '''(() => {
     if (!($hasOwnProperty.call($type.named, name))) {
       return false;
     }
-    $check(opts[name], $type.named[name]);
+    $type.named[name]._check(opts[name]);
   }
   return true;
 })()''');
@@ -308,7 +275,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
     // TODO(leafp): Allow JS objects to go through?
     if ($typeArgs != null) {
       // TODO(jmesserly): is there a sensible way to handle these?
-      $throwStrongModeError('call to JS object `' + $obj +
+      $throwTypeError('call to JS object `' + $obj +
           '` with type arguments <' + $typeArgs + '> is not supported.');
     }
     return $f.apply($obj, $args);
@@ -322,7 +289,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
       $typeArgs = $ftype.instantiateDefaultBounds();
     } else if ($typeArgs.length != formalCount) {
       // TODO(jmesserly): is this the right error?
-      $throwStrongModeError(
+      $throwTypeError(
           'incorrect number of arguments to generic function ' +
           $typeName($ftype) + ', got <' + $typeArgs + '> expected ' +
           formalCount + '.');
@@ -331,14 +298,14 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
     }
     $ftype = $ftype.instantiate($typeArgs);
   } else if ($typeArgs != null) {
-    $throwStrongModeError(
+    $throwTypeError(
         'got type arguments to non-generic function ' + $typeName($ftype) +
         ', got <' + $typeArgs + '> expected none.');
   }
 
   if ($_checkApply($ftype, $args)) {
     if ($typeArgs != null) {
-      return $f.apply($obj, $typeArgs).apply($obj, $args);
+      return $f.apply($obj, $typeArgs.concat($args));
     }
     return $f.apply($obj, $args);
   }
@@ -482,68 +449,30 @@ final _ignoreTypeFailure = JS('', '''(() => {
   });
 })()''');
 
-/// Returns true if [obj] is an instance of [type] in strong mode, otherwise
-/// false.
-///
-/// This also allows arbitrary JS function objects to be subtypes of every Dart
-/// function types.
-bool strongInstanceOf(obj, type, ignoreFromWhiteList) => JS('', '''(() => {
-  let actual = $getReifiedType($obj);
-  let result = $isSubtype(actual, $type);
-  if (result ||
-      (actual == $int && $isSubtype($double, $type)) ||
-      (actual == $jsobject && $_isFunctionType(type) &&
-          typeof(obj) === 'function')) {
-    return true;
-  }
-  if (result === null &&
-      dart.__ignoreWhitelistedErrors &&
-      $ignoreFromWhiteList &&
-      $_ignoreTypeFailure(actual, $type)) {
-    return true;
-  }
-  return false;
-})()''');
-
-/// Returns true if [obj] is null or an instance of [type]
-/// Returns false if [obj] is non-null and not an instance of [type]
-/// in strong mode
-bool instanceOfOrNull(obj, type) {
-  // If strongInstanceOf returns null, convert to false here.
-  return obj == null || JS('bool', '#', strongInstanceOf(obj, type, true));
-}
-
 @JSExportName('is')
 bool instanceOf(obj, type) {
   if (obj == null) {
     return JS('bool', '# == # || #', type, Null, _isTop(type));
   }
-  return strongInstanceOf(obj, type, false);
+  return JS('#', '!!#', isSubtype(getReifiedType(obj), type));
 }
 
 @JSExportName('as')
-cast(obj, type) {
-  if (JS('bool', '# == #', type, dynamic) || obj == null) return obj;
-  bool result = strongInstanceOf(obj, type, true);
-  if (JS('bool', '#', result)) return obj;
-  if (JS('bool', '!dart.__ignoreAllErrors')) {
-    _throwCastError(obj, type, result);
+cast(obj, type, bool typeError) {
+  if (obj == null) return obj;
+  var actual = getReifiedType(obj);
+  var result = isSubtype(actual, type);
+  if (JS(
+      'bool',
+      '# === true || # === null && dart.__ignoreWhitelistedErrors && #(#, #)',
+      result,
+      result,
+      _ignoreTypeFailure,
+      actual,
+      type)) {
+    return obj;
   }
-  JS('', 'console.error(#)',
-      'Actual: ${typeName(getReifiedType(obj))} Expected: ${typeName(type)}');
-  return obj;
-}
-
-check(obj, type) {
-  if (JS('bool', '# == #', type, dynamic) || obj == null) return obj;
-  bool result = strongInstanceOf(obj, type, true);
-  if (JS('bool', '#', result)) return obj;
-  if (JS('bool', '!dart.__ignoreAllErrors')) {
-    _throwTypeError(obj, type, result);
-  }
-  JS('', 'console.error(#)',
-      'Actual: ${typeName(getReifiedType(obj))} Expected: ${typeName(type)}');
-  return obj;
+  return castError(obj, type, typeError);
 }
 
 bool test(bool obj) {
@@ -570,73 +499,36 @@ void booleanConversionFailed(obj) {
       "type '${typeName(expected)}' in boolean expression");
 }
 
-void _throwCastError(obj, type, bool result) {
-  var actual = getReifiedType(obj);
-  if (result == false) throwCastError(obj, actual, type);
+castError(obj, type, bool typeError) {
+  var objType = getReifiedType(obj);
+  if (JS('bool', '!dart.__ignoreAllErrors')) {
+    var errorInStrongMode = isSubtype(objType, type) == null;
 
-  throwStrongModeCastError(obj, actual, type);
-}
+    var actual = typeName(objType);
+    var expected = typeName(type);
+    if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
 
-void _throwTypeError(obj, type, bool result) {
-  var actual = getReifiedType(obj);
-  if (result == false) throwTypeError(obj, actual, type);
-
-  throwStrongModeTypeError(obj, actual, type);
+    var error = JS('bool', '#', typeError)
+        ? new TypeErrorImplementation(obj, actual, expected, errorInStrongMode)
+        : new CastErrorImplementation(obj, actual, expected, errorInStrongMode);
+    throw error;
+  }
+  JS('', 'console.error(#)',
+      'Actual: ${typeName(objType)} Expected: ${typeName(type)}');
+  return obj;
 }
 
 asInt(obj) {
   if (obj == null) return null;
 
   if (JS('bool', 'Math.floor(#) != #', obj, obj)) {
-    throwCastError(obj, getReifiedType(obj), JS('', '#', int));
+    castError(obj, JS('', '#', int), false);
   }
   return obj;
 }
 
-/// Adds type type test predicates to a constructor for a non-parameterized
-/// type. Non-parameterized types can use `instanceof` for subclass checks and
-/// fall through to a helper for subtype tests.
-addSimpleTypeTests(ctor) => JS('', '''(() => {
-  $ctor.is = function is_C(object) {
-    // This is incorrect for classes [Null] and [Object], so we do not use
-    // [addSimpleTypeTests] for these classes.
-    if (object instanceof this) return true;
-    return dart.is(object, this);
-  };
-  $ctor.as = function as_C(object) {
-    if (object instanceof this) return object;
-    return dart.as(object, this);
-  };
-  $ctor._check = function check_C(object) {
-    if (object instanceof this) return object;
-    return dart.check(object, this);
-  };
-})()''');
-
-/// Adds type type test predicates to a constructor. Used for parmeterized
-/// types. We avoid `instanceof` for, e.g. `x is ListQueue` since there is
-/// no common class for `ListQueue<int>` and `ListQueue<String>`.
-addTypeTests(ctor) => JS('', '''(() => {
-  $ctor.as = function as_G(object) {
-    return dart.as(object, this);
-  };
-  $ctor.is = function is_G(object) {
-    return dart.is(object, this);
-  };
-  $ctor._check = function check_G(object) {
-    return dart.check(object, this);
-  };
-})()''');
-
-// TODO(vsm): Consider optimizing this.  We may be able to statically
-// determine which == operation to invoke given the static types.
-equals(x, y) => JS('', '''(() => {
-  if ($x == null || $y == null) return $x == $y;
-  let eq = $x[dartx['==']] || $x['=='];
-  return eq ? eq.call($x, $y) : $x === $y;
-})()''');
-
-/// Checks that `x` is not null or undefined. */
+/// Checks that `x` is not null or undefined.
+// TODO(jmesserly): should we inline this?
 notNull(x) {
   if (x == null) throwNullValueError();
   return x;
@@ -858,96 +750,53 @@ constList(elements, elementType) => JS('', '''(() => {
   let value = map.get($elementType);
   if (value) return value;
 
-  value = $setType($elements, ${getGenericClass(JSArray)}($elementType));
-  map.set($elementType, value);
-  return value;
+  ${getGenericClass(JSArray)}($elementType).unmodifiable($elements);
+  map.set($elementType, elements);
+  return elements;
 })()''');
 
+constFn(x) => JS('', '() => x');
+
+/// Gets the extension symbol given a member [name].
+///
+/// This is inlined by the compiler when used with a literal string.
+extensionSymbol(String name) => JS('', 'dartx[#]', name);
+
 // The following are helpers for Object methods when the receiver
-// may be null or primitive.  These should only be generated by
-// the compiler.
-hashCode(obj) {
-  if (obj == null) return 0;
+// may be null. These should only be generated by the compiler.
+bool equals(x, y) {
+  // We handle `y == null` inside our generated operator methods, to keep this
+  // function minimal.
+  // This pattern resulted from performance testing; it found that dispatching
+  // was the fastest solution, even for primitive types.
+  return JS('bool', '# == null ? # == null : #[#](#)', x, y, x,
+      extensionSymbol('_equals'), y);
+}
 
-  switch (JS('String', 'typeof #', obj)) {
-    case "number":
-      return JS('', '# & 0x1FFFFFFF', obj);
-    case "boolean":
-      // From JSBool.hashCode, see comment there.
-      return JS('', '# ? (2 * 3 * 23 * 3761) : (269 * 811)', obj);
-    case "function":
-      if (JS('bool', '# instanceof Function', obj)) {
-        var hashFn = JS('', '#[#]', obj, _tearoffHashcode);
-        if (hashFn != null) return JS('int', '#()', hashFn);
-        return Primitives.objectHashCode(obj);
-      }
-  }
-
-  var extension = getExtensionType(obj);
-  if (extension != null) {
-    return JS('', '#[dartx.hashCode]', obj);
-  }
-  return JS('', '#.hashCode', obj);
+int hashCode(obj) {
+  return obj == null ? 0 : JS('int', '#[#]', obj, extensionSymbol('hashCode'));
 }
 
 @JSExportName('toString')
 String _toString(obj) {
   if (obj == null) return "null";
-
-  var extension = getExtensionType(obj);
-  if (extension != null) {
-    return JS('String', '#[dartx.toString]()', obj);
-  }
-  if (JS('bool', 'typeof # == "function" && # instanceof Function', obj, obj)) {
-    // If the function is a Type object, we should just display the type name.
-    // Regular Dart code should typically get wrapped type objects instead of
-    // raw type (aka JS constructor) objects however raw type objects can be
-    // exposed to Dart code via JS interop or debugging tools.
-    if (isType(obj)) return typeName(obj);
-
-    return JS(
-        'String', r'"Closure: " + # + " from: " + #', getReifiedType(obj), obj);
-  }
-  // TODO(jmesserly): restore this faster path once ES Symbol is treated as
-  // an extension type (and thus hits the above code path).
-  // See https://github.com/dart-lang/sdk/issues/28323
-  // return JS('', '"" + #', obj);
-  return JS('String', '#.toString()', obj);
+  return JS('String', '#[#]()', obj, extensionSymbol('toString'));
 }
 
 // TODO(jmesserly): is the argument type verified statically?
 noSuchMethod(obj, Invocation invocation) {
-  if (obj == null ||
-      JS('bool', 'typeof # == "function" && # instanceof Function', obj, obj)) {
-    throwNoSuchMethodError(obj, invocation.memberName,
-        invocation.positionalArguments, invocation.namedArguments);
-  }
-  // Delegate to the (possibly user-defined) method on the object.
-  var extension = getExtensionType(obj);
-  if (extension != null) {
-    return JS('', '#[dartx.noSuchMethod](#)', obj, invocation);
-  }
-  return JS('', '#.noSuchMethod(#)', obj, invocation);
+  if (obj == null) defaultNoSuchMethod(obj, invocation);
+  return JS('', '#[#](#)', obj, extensionSymbol('noSuchMethod'), invocation);
 }
 
-constFn(x) => JS('', '() => x');
+/// The default implementation of `noSuchMethod` to match `Object.noSuchMethod`.
+defaultNoSuchMethod(obj, Invocation i) {
+  throwNoSuchMethodError(
+      obj, i.memberName, i.positionalArguments, i.namedArguments);
+}
 
 runtimeType(obj) {
-  // Handle primitives where the method isn't on the object.
-  var result = _checkPrimitiveType(obj);
-  if (result != null) return wrapType(result);
-
-  // Delegate to the (possibly user-defined) method on the object.
-  var extension = getExtensionType(obj);
-  if (extension != null) {
-    result = JS('', '#[dartx.runtimeType]', obj);
-    // If extension doesn't override runtimeType, return the extension type.
-    return result ?? wrapType(extension);
-  }
-  if (JS('bool', 'typeof # == "function" && # instanceof Function', obj, obj)) {
-    return wrapType(getReifiedType(obj));
-  }
-  return JS('', '#.runtimeType', obj);
+  return obj == null ? Null : JS('', '#[dartx.runtimeType]', obj);
 }
 
 /// Implements Dart's interpolated strings as ES2015 tagged template literals.
@@ -961,6 +810,11 @@ String str(strings, @rest values) => JS('', '''(() => {
   return s;
 })()''');
 
+final identityHashCode_ = JS('', 'Symbol("_identityHashCode")');
+
+// TODO(jmesserly): instead of an adaptor, we could compile Dart iterators
+// natively implementing the JS iterator protocol. This would allow us to
+// optimize them a bit.
 final JsIterator = JS('', '''
   class JsIterator {
     constructor(dartIterator) {

@@ -202,8 +202,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
     passThrough(argument);
   }
 
-  String getDepsOutput(Map<Uri, api.Input> sourceFiles) {
-    var filenames = sourceFiles.keys.map((uri) => '$uri').toList();
+  String getDepsOutput(Iterable<Uri> sourceFiles) {
+    var filenames = sourceFiles.map((uri) => '$uri').toList();
     filenames.sort();
     return filenames.join("\n");
   }
@@ -278,8 +278,12 @@ Future<api.CompilationResult> compile(List<String> argv) {
     passThrough('--categories=${categories.join(",")}');
   }
 
-  void setPreviewDart2(String argument) {
+  void setUseKernel(String argument) {
     useKernel = true;
+    // TODO(sigmund): remove once we support inlining and type-inference
+    // with `useKernel`.
+    options.add(Flags.disableInlining);
+    options.add(Flags.disableTypeInference);
     passThrough(argument);
   }
 
@@ -331,11 +335,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(
         '--output-type=dart|--output-type=dart-multi|--output-type=js',
         setOutputType),
-    // TODO(efortuna): Remove this once kernel global inference is fully
-    // implemented.
-    new OptionHandler(Flags.kernelGlobalInference, passThrough),
     new OptionHandler(Flags.useKernelInSsa, passThrough),
-    new OptionHandler(Flags.useKernel, setPreviewDart2),
+    new OptionHandler(Flags.useKernel, setUseKernel),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
     new OptionHandler(Flags.version, (_) => wantVersion = true),
@@ -546,7 +547,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
       fail('Compilation failed.');
     }
     writeString(
-        Uri.parse('$out.deps'), getDepsOutput(inputProvider.sourceFiles));
+        Uri.parse('$out.deps'), getDepsOutput(inputProvider.getSourceUris()));
     int dartCharactersRead = inputProvider.dartCharactersRead;
     int jsCharactersWritten = outputProvider.totalCharactersWrittenJavaScript;
     int jsCharactersPrimary = outputProvider.totalCharactersWrittenPrimary;

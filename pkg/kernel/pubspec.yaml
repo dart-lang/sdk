@@ -1,5 +1,5 @@
 name: kernel
-version: 0.3.0-alpha.2
+version: 0.3.0-alpha.3
 author: Dart Team <misc@dartlang.org>
 description: Dart IR (Intermediate Representation)
 homepage: https://github.com/dart-lang/kernel
@@ -12,7 +12,7 @@ dependencies:
   package_config: ^1.0.0
 dev_dependencies:
   analyzer: '>=0.30.0 <0.32.0'
-  front_end: 0.1.0-alpha.5
+  front_end: 0.1.0-alpha.6
   test: ^0.12.15+6
   stack_trace: ^1.6.6
   ansicolor: ^0.0.9

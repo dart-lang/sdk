@@ -238,6 +238,7 @@ class ObjectVertex {
   ObjectVertex get dominator => new ObjectVertex._(_graph._doms[_id], _graph);
 
   int get shallowSize => _graph._shallowSizes[_id];
+  int get externalSize => _graph._externalSizes[_id];
   int get vmCid => _graph._cids[_id];
 
   get successors => new _SuccessorsIterable(_graph, _id);
@@ -316,6 +317,17 @@ class MergedObjectVertex {
     var sibling = _id;
     while (sibling != SENTINEL && cids[sibling] == cids[_id]) {
       size += _graph._shallowSizes[sibling];
+      sibling = _graph._mergedDomNext[sibling];
+    }
+    return size;
+  }
+
+  int get externalSize {
+    var cids = _graph._cids;
+    var size = 0;
+    var sibling = _id;
+    while (sibling != SENTINEL && cids[sibling] == cids[_id]) {
+      size += _graph._externalSizes[sibling];
       sibling = _graph._mergedDomNext[sibling];
     }
     return size;
@@ -423,13 +435,17 @@ class ObjectGraph {
       : this._chunks = chunks,
         this._N = nodeCount;
 
-  int get size => _size;
+  int get internalSize => _internalSize;
+  int get externalSize => _externalSize;
   int get vertexCount => _N;
   int get edgeCount => _E;
 
   ObjectVertex get root => new ObjectVertex._(ROOT, this);
   MergedObjectVertex get mergedRoot => new MergedObjectVertex._(ROOT, this);
   Iterable<ObjectVertex> get vertices => new _VerticesIterable(this);
+
+  int get numCids => _numCids;
+  int getOwnedByCid(int cid) => _ownedSizesByCid[cid];
 
   Iterable<ObjectVertex> getMostRetained({int classId, int limit}) {
     List<ObjectVertex> _mostRetained =
@@ -455,26 +471,29 @@ class ObjectGraph {
       controller.add(["Remapping $_N objects...", 0.0]);
       await new Future(() => _remapNodes());
 
-      controller.add(["Remapping $_E references...", 15.0]);
+      controller.add(["Remapping $_E references...", 10.0]);
       await new Future(() => _remapEdges());
 
       _addrToId = null;
       _chunks = null;
 
-      controller.add(["Finding depth-first order...", 30.0]);
+      controller.add(["Finding depth-first order...", 20.0]);
       await new Future(() => _dfs());
 
-      controller.add(["Finding predecessors...", 40.0]);
+      controller.add(["Finding predecessors...", 30.0]);
       await new Future(() => _buildPredecessors());
 
-      controller.add(["Finding dominators...", 50.0]);
+      controller.add(["Finding dominators...", 40.0]);
       await new Future(() => _buildDominators());
-
-      _firstPreds = null;
-      _preds = null;
 
       _semi = null;
       _parent = null;
+
+      controller.add(["Finding in-degree(1) groups...", 50.0]);
+      await new Future(() => _buildOwnedSizes());
+
+      _firstPreds = null;
+      _preds = null;
 
       controller.add(["Finding retained sizes...", 60.0]);
       await new Future(() => _calculateRetainedSizes());
@@ -500,15 +519,19 @@ class ObjectGraph {
 
   int _kObjectAlignment;
   int _kStackCid;
+  int _kFieldCid;
+  int _numCids;
   int _N; // Objects in the snapshot.
   int _Nconnected; // Objects reachable from root.
   int _E; // References in the snapshot.
-  int _size;
+  int _internalSize;
+  int _externalSize;
 
   // Indexed by node id, with id 0 representing invalid/uninitialized.
   // From snapshot.
   Uint16List _cids;
   Uint32List _shallowSizes;
+  Uint32List _externalSizes;
   Uint32List _firstSuccs;
   Uint32List _succs;
   Uint32List _addressesLow; // No Uint64List in Javascript.
@@ -527,6 +550,7 @@ class ObjectGraph {
   Uint32List _retainedSizes;
   Uint32List _mergedDomHead;
   Uint32List _mergedDomNext;
+  Uint32List _ownedSizesByCid;
 
   void _remapNodes() {
     var N = _N;
@@ -536,6 +560,7 @@ class ObjectGraph {
     var addressesHigh = new Uint32List(N + 1);
     var addressesLow = new Uint32List(N + 1);
     var shallowSizes = new Uint32List(N + 1);
+    var externalSizes = new Uint32List(N + 1);
     var cids = new Uint16List(N + 1);
 
     var stream = new ReadStream(_chunks);
@@ -543,9 +568,13 @@ class ObjectGraph {
     _kObjectAlignment = stream.clampedUint32;
     stream.readUnsigned();
     _kStackCid = stream.clampedUint32;
+    stream.readUnsigned();
+    _kFieldCid = stream.clampedUint32;
+    stream.readUnsigned();
+    _numCids = stream.clampedUint32;
 
     var id = ROOT;
-    while (stream.pendingBytes > 0) {
+    while (id <= N) {
       stream.readUnsigned(); // addr
       addrToId.put(stream.high, stream.mid, stream.low, id);
       addressesHigh[id] = stream.highUint32;
@@ -562,15 +591,27 @@ class ObjectGraph {
       }
       id++;
     }
-    assert(id == (N + 1));
 
     assert(ROOT == addrToId.get(0, 0, 0));
+
+    stream.readUnsigned();
+    assert(stream.isZero);
+
+    stream.readUnsigned(); // addr
+    while (!stream.isZero) {
+      var nodeId = addrToId.get(stream.high, stream.mid, stream.low);
+      stream.readUnsigned(); // externalSize
+      externalSizes[nodeId] += stream.clampedUint32;
+
+      stream.readUnsigned(); // addr
+    }
 
     _E = E;
     _addrToId = addrToId;
     _addressesLow = addressesLow;
     _addressesHigh = addressesHigh;
     _shallowSizes = shallowSizes;
+    _externalSizes = externalSizes;
     _cids = cids;
   }
 
@@ -585,9 +626,11 @@ class ObjectGraph {
     var stream = new ReadStream(_chunks);
     stream.skipUnsigned(); // kObjectAlignment
     stream.skipUnsigned(); // kStackCid
+    stream.skipUnsigned(); // kFieldCid
+    stream.skipUnsigned(); // numCids
 
     var id = 1, edge = 0;
-    while (stream.pendingBytes > 0) {
+    while (id <= N) {
       stream.skipUnsigned(); // addr
       stream.skipUnsigned(); // shallowSize
       stream.skipUnsigned(); // cid
@@ -763,6 +806,75 @@ class ObjectGraph {
     _preds = preds;
   }
 
+  // Fold the size of any object with in-degree(1) into its parent.
+  // Requires the DFS numbering and predecessor lists.
+  void _buildOwnedSizes() {
+    var N = _N;
+    var Nconnected = _Nconnected;
+    var kStackCid = _kStackCid;
+    var kFieldCid = _kFieldCid;
+
+    var cids = _cids;
+    var shallowSizes = _shallowSizes;
+    var externalSizes = _externalSizes;
+    var vertex = _vertex;
+    var firstPreds = _firstPreds;
+    var preds = _preds;
+
+    var ownedSizes = new Uint32List(N + 1);
+    for (var i = 1; i <= Nconnected; i++) {
+      var v = vertex[i];
+      ownedSizes[v] = shallowSizes[v] + externalSizes[v];
+      assert((ownedSizes[v] != 0) || cids[v] == kStackCid || v == ROOT);
+    }
+
+    for (var i = Nconnected; i > 1; i--) {
+      var w = vertex[i];
+      assert(w != ROOT);
+
+      var onlyPred = SENTINEL;
+
+      var startPred = firstPreds[w];
+      var limitPred = firstPreds[w + 1];
+      for (var predIndex = startPred; predIndex < limitPred; predIndex++) {
+        var v = preds[predIndex];
+        if (v == w) {
+          // Ignore self-predecessor.
+        } else if (onlyPred == SENTINEL) {
+          onlyPred = v;
+        } else if (onlyPred == v) {
+          // Repeated predecessor.
+        } else {
+          // Multiple-predecessors.
+          onlyPred = SENTINEL;
+          break;
+        }
+      }
+
+      // If this object has a single precessor which is not a Field, Stack or
+      // the root, blame its size against the precessor.
+      if ((onlyPred != SENTINEL) &&
+          (onlyPred != ROOT) &&
+          (cids[onlyPred] != kStackCid) &&
+          (cids[onlyPred] != kFieldCid)) {
+        assert(ownedSizes[w] != 0);
+        ownedSizes[onlyPred] += ownedSizes[w];
+        ownedSizes[w] = 0;
+      }
+    }
+
+    // TODO(rmacnak): Maybe keep the per-objects sizes to be able to provide
+    // examples of large owners for each class.
+    var ownedSizesByCid = new Uint32List(_numCids);
+    for (var i = 1; i <= Nconnected; i++) {
+      var v = vertex[i];
+      var cid = cids[v];
+      ownedSizesByCid[cid] += ownedSizes[v];
+    }
+
+    _ownedSizesByCid = ownedSizesByCid;
+  }
+
   static int _eval(int v, Uint32List ancestor, Uint32List semi,
       Uint32List label, Uint32List stackNode, Uint8List stackState) {
     if (ancestor[v] == SENTINEL) {
@@ -915,21 +1027,28 @@ class ObjectGraph {
   }
 
   void _calculateRetainedSizes() {
+    var N = _N;
     var Nconnected = _Nconnected;
 
-    var size = 0;
+    var internalSize = 0;
+    var externalSize = 0;
     var shallowSizes = _shallowSizes;
+    var externalSizes = _externalSizes;
     var vertex = _vertex;
     var doms = _doms;
 
-    // Sum shallow sizes.
+    // Sum internal and external sizes.
     for (var i = 1; i <= Nconnected; i++) {
       var v = vertex[i];
-      size += shallowSizes[v];
+      internalSize += shallowSizes[v];
+      externalSize += externalSizes[v];
     }
 
-    // Start with retained size as shallow size.
-    var retainedSizes = new Uint32List.fromList(shallowSizes);
+    // Start with retained size as shallow size + external size.
+    var retainedSizes = new Uint32List(N + 1);
+    for (var i = 0; i < N + 1; i++) {
+      retainedSizes[i] = shallowSizes[i] + externalSizes[i];
+    }
 
     // In post order (bottom up), add retained size to dominator's retained
     // size, skipping root.
@@ -939,10 +1058,12 @@ class ObjectGraph {
       retainedSizes[doms[v]] += retainedSizes[v];
     }
 
-    assert(retainedSizes[ROOT] == size); // Root retains everything.
+    // Root retains everything.
+    assert(retainedSizes[ROOT] == (internalSize + externalSize));
 
     _retainedSizes = retainedSizes;
-    _size = size;
+    _internalSize = internalSize;
+    _externalSize = externalSize;
   }
 
   // Build linked lists of the children for each node in the dominator tree.

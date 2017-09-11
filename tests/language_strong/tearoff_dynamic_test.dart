@@ -44,6 +44,8 @@ testDynamic() {
   tearoffNotEquals(f1, (new C() as dynamic).f);
   tearoffNotEquals(f1, c.g);
   tearoffNotEquals(f1, (c as dynamic).g);
+  tearoffNotEquals(null, f1);
+  tearoffNotEquals(f1, null);
 }
 
 testSuper() {

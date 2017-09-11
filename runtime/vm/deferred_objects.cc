@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/deferred_objects.h"
 
 #include "vm/code_patcher.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/deopt_instructions.h"
 #include "vm/flags.h"
 #include "vm/object.h"
@@ -316,3 +318,5 @@ void DeferredObject::Fill() {
 }
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

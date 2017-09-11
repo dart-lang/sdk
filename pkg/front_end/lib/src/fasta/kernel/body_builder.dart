@@ -274,7 +274,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         copy.add(statement);
       }
     }
-    return new KernelBlock(copy ?? statements)
+    return new ShadowBlock(copy ?? statements)
       ..fileOffset = offsetForToken(beginToken);
   }
 
@@ -611,7 +611,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         assert(hasMore);
         VariableDeclaration realParameter = formalBuilders.current.target;
         Expression initializer =
-            parameter.initializer ?? new KernelNullLiteral();
+            parameter.initializer ?? new ShadowNullLiteral();
         _typeInferrer.inferParameterInitializer(
             initializer, realParameter.type);
         realParameter.initializer = initializer..parent = realParameter;
@@ -685,7 +685,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endExpressionStatement(Token token) {
     debugEvent("ExpressionStatement");
-    push(new KernelExpressionStatement(popForEffect()));
+    push(new ShadowExpressionStatement(popForEffect()));
   }
 
   @override
@@ -741,10 +741,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           named = new List<NamedExpression>.from(seenNames.values);
         }
       }
-      push(new KernelArguments(positional, named: named)
+      push(new ShadowArguments(positional, named: named)
         ..fileOffset = beginToken.charOffset);
     } else {
-      push(new KernelArguments(arguments)..fileOffset = beginToken.charOffset);
+      push(new ShadowArguments(arguments)..fileOffset = beginToken.charOffset);
     }
   }
 
@@ -763,7 +763,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Object receiver = pop();
     if (arguments != null && typeArguments != null) {
       assert(arguments.types.isEmpty);
-      KernelArguments.setExplicitArgumentTypes(arguments, typeArguments);
+      ShadowArguments.setExplicitArgumentTypes(arguments, typeArguments);
     } else {
       assert(typeArguments == null);
     }
@@ -796,14 +796,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void beginCascade(Token token) {
     debugEvent("beginCascade");
     Expression expression = popForValue();
-    if (expression is KernelCascadeExpression) {
+    if (expression is ShadowCascadeExpression) {
       push(expression);
       push(new VariableAccessor(this, token, expression.variable));
       expression.extend();
     } else {
-      VariableDeclaration variable = new KernelVariableDeclaration.forValue(
+      VariableDeclaration variable = new ShadowVariableDeclaration.forValue(
           expression, functionNestingLevel);
-      push(new KernelCascadeExpression(variable));
+      push(new ShadowCascadeExpression(variable));
       push(new VariableAccessor(this, token, variable));
     }
   }
@@ -812,7 +812,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endCascade() {
     debugEvent("endCascade");
     Expression expression = popForEffect();
-    KernelCascadeExpression cascadeReceiver = pop();
+    ShadowCascadeExpression cascadeReceiver = pop();
     cascadeReceiver.finalize(expression);
     push(cascadeReceiver);
   }
@@ -833,7 +833,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleBinaryExpression(Token token) {
+  void beginBinaryExpression(Token token) {
+    if (optional("&&", token) || optional("||", token)) {
+      Expression lhs = popForValue();
+      typePromoter.enterLogicalExpression(lhs, token.stringValue);
+      push(lhs);
+    }
+  }
+
+  @override
+  void endBinaryExpression(Token token) {
     debugEvent("BinaryExpression");
     if (optional(".", token) || optional("..", token)) {
       return doDotOrCascadeExpression(token);
@@ -849,7 +858,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (receiver is ThisAccessor && receiver.isSuper) {
       ThisAccessor thisAccessorReceiver = receiver;
       isSuper = true;
-      receiver = new KernelThisExpression()
+      receiver = new ShadowThisExpression()
         ..fileOffset = offsetForToken(thisAccessorReceiver.token);
     }
     push(buildBinaryOperator(toValue(receiver), token, argument, isSuper));
@@ -872,14 +881,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (isSuper) {
         result = toSuperMethodInvocation(result);
       }
-      return negate ? new KernelNot(result) : result;
+      return negate ? new ShadowNot(result) : result;
     }
   }
 
   void doLogicalExpression(Token token) {
+    typePromoter.exitLogicalExpression();
     Expression argument = popForValue();
     Expression receiver = popForValue();
-    push(new KernelLogicalExpression(receiver, token.stringValue, argument));
+    push(new ShadowLogicalExpression(receiver, token.stringValue, argument));
   }
 
   /// Handle `a ?? b`.
@@ -887,7 +897,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression b = popForValue();
     Expression a = popForValue();
     VariableDeclaration variable = new VariableDeclaration.forValue(a);
-    push(new KernelIfNullExpression(
+    push(new ShadowIfNullExpression(
         variable,
         new ConditionalExpression(
             buildIsNull(new VariableGet(variable), offsetForToken(token)),
@@ -924,24 +934,24 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       Expression result;
       if (target != null) {
-        result = new KernelDirectMethodInvocation(
-            new KernelThisExpression()..fileOffset = node.fileOffset,
+        result = new ShadowDirectMethodInvocation(
+            new ShadowThisExpression()..fileOffset = node.fileOffset,
             target,
             node.arguments);
       }
       // TODO(ahe): Use [DirectMethodInvocation] when possible, that is,
       // make the next line conditional:
       result =
-          new KernelSuperMethodInvocation(node.name, node.arguments, target);
+          new ShadowSuperMethodInvocation(node.name, node.arguments, target);
       return result..fileOffset = node.fileOffset;
     }
 
-    Expression receiver = new KernelDirectPropertyGet(
-        new KernelThisExpression()..fileOffset = node.fileOffset, target)
+    Expression receiver = new ShadowDirectPropertyGet(
+        new ShadowThisExpression()..fileOffset = node.fileOffset, target)
       ..fileOffset = node.fileOffset;
     // TODO(ahe): Use [DirectPropertyGet] when possible, that is, make the next
     // line conditional:
-    receiver = new KernelSuperPropertyGet(node.name, target)
+    receiver = new ShadowSuperPropertyGet(node.name, target)
       ..fileOffset = node.fileOffset;
     return buildMethodInvocation(
         receiver, callName, node.arguments, node.arguments.fileOffset,
@@ -983,7 +993,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           isStatic: isStatic,
           isTopLevel: !isStatic && !isSuper);
       warning(message, charOffset);
-      return new KernelSyntheticExpression(new Throw(error));
+      return new ShadowSyntheticExpression(new Throw(error));
     }
   }
 
@@ -1093,7 +1103,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       } else if (ignoreMainInGetMainClosure &&
           name == "main" &&
           member?.name == "_getMainClosure") {
-        return new KernelNullLiteral()..fileOffset = offsetForToken(token);
+        return new ShadowNullLiteral()..fileOffset = offsetForToken(token);
       } else {
         return new UnresolvedAccessor(this, n, token);
       }
@@ -1122,7 +1132,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         var scope = typePromoter.currentScope;
         return new ReadOnlyAccessor(
             this,
-            new KernelVariableGet(builder.target, fact, scope)
+            new ShadowVariableGet(builder.target, fact, scope)
               ..fileOffset = offsetForToken(token),
             name,
             token);
@@ -1207,7 +1217,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (interpolationCount == 0) {
       Token token = pop();
       String value = unescapeString(token.lexeme);
-      push(new KernelStringLiteral(value)..fileOffset = offsetForToken(token));
+      push(new ShadowStringLiteral(value)..fileOffset = offsetForToken(token));
     } else {
       List parts = popList(1 + interpolationCount * 2);
       Token first = parts.first;
@@ -1218,14 +1228,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (first.lexeme.length > 1) {
         String value = unescapeFirstStringPart(first.lexeme, quote);
         expressions.add(
-            new KernelStringLiteral(value)..fileOffset = offsetForToken(first));
+            new ShadowStringLiteral(value)..fileOffset = offsetForToken(first));
       }
       for (int i = 1; i < parts.length - 1; i++) {
         var part = parts[i];
         if (part is Token) {
           if (part.lexeme.length != 0) {
             String value = unescape(part.lexeme, quote);
-            expressions.add(new KernelStringLiteral(value)
+            expressions.add(new ShadowStringLiteral(value)
               ..fileOffset = offsetForToken(part));
           }
         } else {
@@ -1236,9 +1246,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (last.lexeme.length > 1) {
         String value = unescapeLastStringPart(last.lexeme, quote);
         expressions.add(
-            new KernelStringLiteral(value)..fileOffset = offsetForToken(last));
+            new ShadowStringLiteral(value)..fileOffset = offsetForToken(last));
       }
-      push(new KernelStringConcatenation(expressions)
+      push(new ShadowStringConcatenation(expressions)
         ..fileOffset = offsetForToken(endToken));
     }
   }
@@ -1267,7 +1277,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         }
       }
     }
-    push(new KernelStringConcatenation(expressions ?? parts));
+    push(new ShadowStringConcatenation(expressions ?? parts));
   }
 
   @override
@@ -1279,7 +1289,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           fasta.templateIntegerLiteralIsOutOfRange.withArguments(token),
           token.charOffset));
     } else {
-      push(new KernelIntLiteral(value)..fileOffset = offsetForToken(token));
+      push(new ShadowIntLiteral(value)..fileOffset = offsetForToken(token));
     }
   }
 
@@ -1304,7 +1314,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(deprecated_buildCompileTimeErrorStatement(
           "Can't return from a constructor.", beginToken.charOffset));
     } else {
-      push(new KernelReturnStatement(expression)
+      push(new ShadowReturnStatement(expression)
         ..fileOffset = beginToken.charOffset);
     }
   }
@@ -1329,7 +1339,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Statement thenPart = popStatement();
     Expression condition = popForValue();
     typePromoter.exitConditional();
-    push(new KernelIfStatement(condition, thenPart, elsePart));
+    push(new ShadowIfStatement(condition, thenPart, elsePart));
   }
 
   @override
@@ -1366,7 +1376,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     bool isConst = (currentLocalVariableModifiers & constMask) != 0;
     bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
     assert(isConst == constantExpressionRequired);
-    push(new KernelVariableDeclaration(identifier.name, functionNestingLevel,
+    push(new ShadowVariableDeclaration(identifier.name, functionNestingLevel,
         initializer: initializer,
         type: currentLocalVariableType,
         isFinal: isFinal,
@@ -1387,7 +1397,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("NoFieldInitializer");
     if (constantExpressionRequired) {
       // Creating a null value to prevent the Dart VM from crashing.
-      push(new KernelNullLiteral()..fileOffset = offsetForToken(token));
+      push(new ShadowNullLiteral()..fileOffset = offsetForToken(token));
     } else {
       push(NullValue.FieldInitializer);
     }
@@ -1501,7 +1511,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (variableOrExpression == null) {
       // Do nothing.
     } else if (variableOrExpression is Expression) {
-      begin = new KernelExpressionStatement(variableOrExpression);
+      begin = new ShadowExpressionStatement(variableOrExpression);
     } else {
       return unhandled("${variableOrExpression.runtimeType}", "endForStatement",
           forKeyword.charOffset, uri);
@@ -1510,17 +1520,17 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
-      body = new KernelLabeledStatement(body);
+      body = new ShadowLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
     Statement result =
-        new KernelForStatement(variables, condition, updates, body)
+        new ShadowForStatement(variables, condition, updates, body)
           ..fileOffset = forKeyword.charOffset;
     if (begin != null) {
-      result = new KernelBlock(<Statement>[begin, result]);
+      result = new ShadowBlock(<Statement>[begin, result]);
     }
     if (breakTarget.hasUsers) {
-      result = new KernelLabeledStatement(result);
+      result = new ShadowLabeledStatement(result);
       breakTarget.resolveBreaks(result);
     }
     exitLoopOrSwitch(result);
@@ -1529,7 +1539,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endAwaitExpression(Token keyword, Token endToken) {
     debugEvent("AwaitExpression");
-    push(new KernelAwaitExpression(popForValue())
+    push(new ShadowAwaitExpression(popForValue())
       ..fileOffset = offsetForToken(keyword));
   }
 
@@ -1554,7 +1564,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             beginToken.charOffset);
       }
     }
-    push(new KernelListLiteral(expressions,
+    push(new ShadowListLiteral(expressions,
         typeArgument: typeArgument, isConst: constKeyword != null)
       ..fileOffset = offsetForToken(constKeyword ?? beginToken));
   }
@@ -1564,20 +1574,20 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("LiteralBool");
     bool value = optional("true", token);
     assert(value || optional("false", token));
-    push(new KernelBoolLiteral(value)..fileOffset = offsetForToken(token));
+    push(new ShadowBoolLiteral(value)..fileOffset = offsetForToken(token));
   }
 
   @override
   void handleLiteralDouble(Token token) {
     debugEvent("LiteralDouble");
-    push(new KernelDoubleLiteral(double.parse(token.lexeme))
+    push(new ShadowDoubleLiteral(double.parse(token.lexeme))
       ..fileOffset = offsetForToken(token));
   }
 
   @override
   void handleLiteralNull(Token token) {
     debugEvent("LiteralNull");
-    push(new KernelNullLiteral()..fileOffset = offsetForToken(token));
+    push(new ShadowNullLiteral()..fileOffset = offsetForToken(token));
   }
 
   @override
@@ -1599,7 +1609,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         valueType = typeArguments[1];
       }
     }
-    push(new KernelMapLiteral(entries,
+    push(new ShadowMapLiteral(entries,
         keyType: keyType, valueType: valueType, isConst: constKeyword != null)
       ..fileOffset = constKeyword?.charOffset ?? offsetForToken(beginToken));
   }
@@ -1636,7 +1646,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
     }
     push(
-        new KernelSymbolLiteral(value)..fileOffset = offsetForToken(hashToken));
+        new ShadowSymbolLiteral(value)..fileOffset = offsetForToken(hashToken));
   }
 
   DartType kernelTypeFromString(
@@ -1730,8 +1740,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   void enterFunctionTypeScope() {
+    debugEvent("enterFunctionTypeScope");
     List typeVariables = pop();
-    enterLocalScope(scope.createNestedScope(isModifiable: false));
+    enterLocalScope(null,
+        scope.createNestedScope("function-type scope", isModifiable: false));
     push(typeVariables ?? NullValue.TypeVariables);
     if (typeVariables != null) {
       ScopeBuilder scopeBuilder = new ScopeBuilder(scope);
@@ -1776,7 +1788,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(deprecated_buildCompileTimeError(
           "Not a constant expression.", operator.charOffset));
     } else {
-      push(new KernelAsExpression(expression, type)
+      push(new ShadowAsExpression(expression, type)
         ..fileOffset = offsetForToken(operator));
     }
   }
@@ -1789,8 +1801,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     bool isInverted = not != null;
     var offset = offsetForToken(operator);
     Expression isExpression = isInverted
-        ? new KernelIsNotExpression(operand, type, offset)
-        : new KernelIsExpression(operand, type)
+        ? new ShadowIsNotExpression(operand, type, offset)
+        : new ShadowIsExpression(operand, type)
       ..fileOffset = offset;
     if (operand is VariableGet) {
       typePromoter.handleIsCheck(isExpression, isInverted, operand.variable,
@@ -1810,7 +1822,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression elseExpression = popForValue();
     Expression thenExpression = popForValue();
     Expression condition = popForValue();
-    push(new KernelConditionalExpression(
+    push(new ShadowConditionalExpression(
         condition, thenExpression, elseExpression));
   }
 
@@ -1823,7 +1835,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           "Not a constant expression.", throwToken.charOffset));
     } else {
       push(
-          new KernelThrow(expression)..fileOffset = offsetForToken(throwToken));
+          new ShadowThrow(expression)..fileOffset = offsetForToken(throwToken));
     }
   }
 
@@ -1864,7 +1876,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         variable.initializer = name.initializer;
       }
     } else {
-      variable = new KernelVariableDeclaration(name?.name, functionNestingLevel,
+      variable = new ShadowVariableDeclaration(name?.name, functionNestingLevel,
           type: type,
           initializer: name?.initializer,
           isFinal: isFinal,
@@ -1945,8 +1957,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(formals);
     if ((inCatchClause || functionNestingLevel != 0) &&
         kind != MemberKind.GeneralizedFunctionType) {
-      enterLocalScope(formals.computeFormalParameterScope(
-          scope, member ?? classBuilder ?? library, this));
+      enterLocalScope(
+          null,
+          formals.computeFormalParameterScope(
+              scope, member ?? classBuilder ?? library, this));
     }
   }
 
@@ -2003,10 +2017,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Statement tryBlock = popStatement();
     if (compileTimeErrorInTry == null) {
       if (catches != null) {
-        tryBlock = new KernelTryCatch(tryBlock, catches);
+        tryBlock = new ShadowTryCatch(tryBlock, catches);
       }
       if (finallyBlock != null) {
-        tryBlock = new KernelTryFinally(tryBlock, finallyBlock);
+        tryBlock = new ShadowTryFinally(tryBlock, finallyBlock);
       }
       push(tryBlock);
     } else {
@@ -2042,7 +2056,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     var receiver = pop();
     if (optional("!", token)) {
       push(
-          new KernelNot(toValue(receiver))..fileOffset = offsetForToken(token));
+          new ShadowNot(toValue(receiver))..fileOffset = offsetForToken(token));
     } else {
       String operator = token.stringValue;
       if (optional("-", token)) {
@@ -2050,7 +2064,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       if (receiver is ThisAccessor && receiver.isSuper) {
         push(toSuperMethodInvocation(buildMethodInvocation(
-            new KernelThisExpression()
+            new ShadowThisExpression()
               ..fileOffset = offsetForToken(receiver.token),
             new Name(operator),
             new Arguments.empty(),
@@ -2186,7 +2200,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         return deprecated_buildCompileTimeError(
             "Not a const constructor.", charOffset);
       }
-      return new KernelConstructorInvocation(target, initialTarget, arguments,
+      return new ShadowConstructorInvocation(target, initialTarget, arguments,
           isConst: isConst)
         ..fileOffset = charOffset;
     } else {
@@ -2195,12 +2209,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         return deprecated_buildCompileTimeError(
             "Not a const factory.", charOffset);
       } else if (procedure.isFactory) {
-        return new KernelFactoryConstructorInvocation(
+        return new ShadowFactoryConstructorInvocation(
             target, initialTarget, arguments,
             isConst: isConst)
           ..fileOffset = charOffset;
       } else {
-        return new KernelStaticInvocation(target, arguments, isConst: isConst)
+        return new ShadowStaticInvocation(target, arguments, isConst: isConst)
           ..fileOffset = charOffset;
       }
     }
@@ -2276,7 +2290,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endNewExpression(Token token) {
     debugEvent("NewExpression");
     Token nameToken = token.next;
-    KernelArguments arguments = pop();
+    ShadowArguments arguments = pop();
     String name = pop();
     List<DartType> typeArguments = pop();
     var type = pop();
@@ -2294,7 +2308,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
       if (typeArguments != null) {
         assert(arguments.types.isEmpty);
-        KernelArguments.setExplicitArgumentTypes(arguments, typeArguments);
+        ShadowArguments.setExplicitArgumentTypes(arguments, typeArguments);
       }
 
       String errorName;
@@ -2313,7 +2327,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         } else if (b.isConstructor) {
           initialTarget = b.target;
           if (type.isAbstract) {
-            push(new KernelSyntheticExpression(evaluateArgumentsBefore(
+            push(new ShadowSyntheticExpression(evaluateArgumentsBefore(
                 arguments,
                 buildAbstractClassInstantiationError(
                     type.name, nameToken.charOffset))));
@@ -2410,7 +2424,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endFunctionName(Token beginToken, Token token) {
     debugEvent("FunctionName");
     Identifier name = pop();
-    VariableDeclaration variable = new KernelVariableDeclaration(
+    VariableDeclaration variable = new ShadowVariableDeclaration(
         name.name, functionNestingLevel,
         isFinal: true, isLocalFunction: true)
       ..fileOffset = offsetForToken(name.token);
@@ -2418,7 +2432,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       deprecated_addCompileTimeError(offsetForToken(name.token),
           "'${variable.name}' already declared in this scope.");
     }
-    push(new KernelFunctionDeclaration(
+    push(new ShadowFunctionDeclaration(
         variable,
         // The function node is created later.
         null)
@@ -2458,7 +2472,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     List typeVariables = pop();
     // Create an additional scope in which the named function expression is
     // declared.
-    enterLocalScope();
+    enterLocalScope("named function");
     push(typeVariables ?? NullValue.TypeVariables);
     enterFunction();
   }
@@ -2490,16 +2504,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
     if (declaration is FunctionDeclaration) {
       VariableDeclaration variable = declaration.variable;
-      KernelFunctionDeclaration.setHasImplicitReturnType(
+      ShadowFunctionDeclaration.setHasImplicitReturnType(
           declaration, hasImplicitReturnType);
 
       variable.type = function.functionType;
       if (isFunctionExpression) {
-        variable.initializer = new KernelFunctionExpression(function)
+        variable.initializer = new ShadowFunctionExpression(function)
           ..parent = variable
           ..fileOffset = formals.charOffset;
         exitLocalScope();
-        push(new KernelNamedFunctionExpression(variable));
+        push(new ShadowNamedFunctionExpression(variable));
       } else {
         declaration.function = function;
         function.parent = declaration;
@@ -2552,7 +2566,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(deprecated_buildCompileTimeError(
           "Not a constant expression.", formals.charOffset));
     } else {
-      push(new KernelFunctionExpression(function)
+      push(new ShadowFunctionExpression(function)
         ..fileOffset = offsetForToken(beginToken));
     }
   }
@@ -2566,13 +2580,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
-      body = new KernelLabeledStatement(body);
+      body = new ShadowLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
-    Statement result = new KernelDoStatement(body, condition)
+    Statement result = new ShadowDoStatement(body, condition)
       ..fileOffset = doKeyword.charOffset;
     if (breakTarget.hasUsers) {
-      result = new KernelLabeledStatement(result);
+      result = new ShadowLabeledStatement(result);
       breakTarget.resolveBreaks(result);
     }
     exitLoopOrSwitch(result);
@@ -2580,7 +2594,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void beginForInExpression(Token token) {
-    enterLocalScope(scope.parent);
+    enterLocalScope(null, scope.parent);
   }
 
   @override
@@ -2602,7 +2616,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
-      body = new KernelLabeledStatement(body);
+      body = new ShadowLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
     VariableDeclaration variable;
@@ -2627,7 +2641,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       ///     }
       variable = new VariableDeclaration.forValue(null);
       body = combineStatements(
-          new KernelSyntheticStatement(new ExpressionStatement(lvalue
+          new ShadowSyntheticStatement(new ExpressionStatement(lvalue
               .buildAssignment(new VariableGet(variable), voidContext: true))),
           body);
     } else {
@@ -2635,13 +2649,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           deprecated_buildCompileTimeError("Expected lvalue, but got ${lvalue}",
               forToken.next.next.charOffset));
     }
-    Statement result = new KernelForInStatement(
+    Statement result = new ShadowForInStatement(
         variable, expression, body, declaresVariable,
         isAsync: awaitToken != null)
       ..fileOffset = forToken.charOffset
       ..bodyOffset = body.fileOffset;
     if (breakTarget.hasUsers) {
-      result = new KernelLabeledStatement(result);
+      result = new ShadowLabeledStatement(result);
       breakTarget.resolveBreaks(result);
     }
     exitLoopOrSwitch(result);
@@ -2658,7 +2672,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void beginLabeledStatement(Token token, int labelCount) {
     debugEvent("beginLabeledStatement");
     List<Label> labels = popList(labelCount);
-    enterLocalScope(scope.createNestedLabelScope());
+    enterLocalScope(null, scope.createNestedLabelScope());
     LabelTarget target =
         new LabelTarget(member, functionNestingLevel, token.charOffset);
     for (Label label in labels) {
@@ -2675,13 +2689,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitLocalScope();
     if (target.breakTarget.hasUsers) {
       if (statement is! LabeledStatement) {
-        statement = new KernelLabeledStatement(statement);
+        statement = new ShadowLabeledStatement(statement);
       }
       target.breakTarget.resolveBreaks(statement);
     }
     if (target.continueTarget.hasUsers) {
       if (statement is! LabeledStatement) {
-        statement = new KernelLabeledStatement(statement);
+        statement = new ShadowLabeledStatement(statement);
       }
       target.continueTarget.resolveContinues(statement);
     }
@@ -2692,8 +2706,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endRethrowStatement(Token rethrowToken, Token endToken) {
     debugEvent("RethrowStatement");
     if (inCatchBlock) {
-      push(new KernelExpressionStatement(
-          new KernelRethrow()..fileOffset = offsetForToken(rethrowToken)));
+      push(new ShadowExpressionStatement(
+          new ShadowRethrow()..fileOffset = offsetForToken(rethrowToken)));
     } else {
       push(deprecated_buildCompileTimeErrorStatement(
           "'rethrow' can only be used in catch clauses.",
@@ -2715,13 +2729,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
-      body = new KernelLabeledStatement(body);
+      body = new ShadowLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
-    Statement result = new KernelWhileStatement(condition, body)
+    Statement result = new ShadowWhileStatement(condition, body)
       ..fileOffset = whileKeyword.charOffset;
     if (breakTarget.hasUsers) {
-      result = new KernelLabeledStatement(result);
+      result = new ShadowLabeledStatement(result);
       breakTarget.resolveBreaks(result);
     }
     exitLoopOrSwitch(result);
@@ -2748,7 +2762,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("Assert");
     Expression message = popForValueIfNotNull(commaToken);
     Expression condition = popForValue();
-    AssertStatement statement = new KernelAssertStatement(condition,
+    AssertStatement statement = new ShadowAssertStatement(condition,
         conditionStartOffset: leftParenthesis.offset + 1,
         conditionEndOffset: rightParenthesis.offset,
         message: message);
@@ -2779,7 +2793,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     // So we produce an initializer like this:
     //
     //    var #t0 = (() { statement; }) ()
-    return new KernelAssertInitializer(
+    return new ShadowAssertInitializer(
         new VariableDeclaration.forValue(buildMethodInvocation(
             new FunctionExpression(new FunctionNode(statement)),
             callName,
@@ -2793,14 +2807,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {
     debugEvent("YieldStatement");
-    push(new KernelYieldStatement(popForValue(), isYieldStar: starToken != null)
+    push(new ShadowYieldStatement(popForValue(), isYieldStar: starToken != null)
       ..fileOffset = yieldToken.charOffset);
   }
 
   @override
   void beginSwitchBlock(Token token) {
     debugEvent("beginSwitchBlock");
-    enterLocalScope();
+    enterLocalScope("switch block");
     enterSwitchScope();
     enterBreakTarget(token.charOffset);
   }
@@ -2831,7 +2845,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     push(expressions);
     push(labels);
-    enterLocalScope();
+    enterLocalScope("switch case");
   }
 
   @override
@@ -2858,7 +2872,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endSwitchStatement(Token switchKeyword, Token endToken) {
     debugEvent("SwitchStatement");
-    // Do nothing. Handled by [endSwitchBlock].
+
+    List<SwitchCase> cases = pop();
+    JumpTarget target = exitBreakTarget();
+    exitSwitchScope();
+    exitLocalScope();
+    Expression expression = popForValue();
+    Statement result = new ShadowSwitchStatement(expression, cases)
+      ..fileOffset = switchKeyword.charOffset;
+    if (target.hasUsers) {
+      result = new ShadowLabeledStatement(result);
+      target.resolveBreaks(result);
+    }
+    exitLoopOrSwitch(result);
   }
 
   @override
@@ -2909,16 +2935,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             new ExpressionStatement(buildFallThroughError(current.fileOffset)));
       }
     }
-    JumpTarget target = exitBreakTarget();
-    exitSwitchScope();
-    exitLocalScope();
-    Expression expression = popForValue();
-    Statement result = new KernelSwitchStatement(expression, cases);
-    if (target.hasUsers) {
-      result = new KernelLabeledStatement(result);
-      target.resolveBreaks(result);
-    }
-    exitLoopOrSwitch(result);
+
+    push(cases);
   }
 
   @override
@@ -2954,7 +2972,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               "Can't break to '$name' in a different function.",
               breakKeyword.next.charOffset));
     } else {
-      BreakStatement statement = new KernelBreakStatement(null)
+      BreakStatement statement = new ShadowBreakStatement(null)
         ..fileOffset = breakKeyword.charOffset;
       target.addBreak(statement);
       push(statement);
@@ -2990,7 +3008,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (target.isGotoTarget &&
           target.functionNestingLevel == functionNestingLevel) {
         ContinueSwitchStatement statement =
-            new KernelContinueSwitchStatement(null);
+            new ShadowContinueSwitchStatement(null)
+              ..fileOffset = continueKeyword.charOffset;
         target.addGoto(statement);
         push(statement);
         return;
@@ -3010,7 +3029,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               "Can't continue at '$name' in a different function.",
               continueKeyword.next.charOffset));
     } else {
-      BreakStatement statement = new KernelBreakStatement(null)
+      BreakStatement statement = new ShadowBreakStatement(null)
         ..fileOffset = continueKeyword.charOffset;
       target.addContinue(statement);
       push(statement);
@@ -3107,7 +3126,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     // extracted. Similar for statements and initializers. See also [issue
     // 29717](https://github.com/dart-lang/sdk/issues/29717)
     library.addCompileTimeError(message, charOffset, uri, wasHandled: true);
-    return new KernelSyntheticExpression(library.loader
+    return new ShadowSyntheticExpression(library.loader
         .throwCompileConstantError(
             library.loader.buildCompileTimeError(message, charOffset, uri)));
   }
@@ -3140,12 +3159,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         charOffset);
     Builder constructor = library.loader.getAbstractClassInstantiationError();
     return new Throw(buildStaticInvocation(constructor.target,
-        new KernelArguments(<Expression>[new StringLiteral(className)])));
+        new ShadowArguments(<Expression>[new StringLiteral(className)])));
   }
 
   Statement deprecated_buildCompileTimeErrorStatement(error,
       [int charOffset = -1]) {
-    return new KernelExpressionStatement(
+    return new ShadowExpressionStatement(
         deprecated_buildCompileTimeError(error, charOffset));
   }
 
@@ -3153,7 +3172,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   Initializer buildInvalidInitializer(Expression expression,
       [int charOffset = -1]) {
     needsImplicitSuperInitializer = false;
-    return new KernelInvalidInitializer(
+    return new ShadowInvalidInitializer(
         new VariableDeclaration.forValue(expression))
       ..fileOffset = charOffset;
   }
@@ -3199,7 +3218,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
                 charOffset: offset)),
             offset);
       } else {
-        return new KernelFieldInitializer(builder.field, expression)
+        return new ShadowFieldInitializer(builder.field, expression)
           ..fileOffset = offset
           ..isSynthetic = isSynthetic;
       }
@@ -3222,7 +3241,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           charOffset);
     }
     needsImplicitSuperInitializer = false;
-    return new KernelSuperInitializer(constructor, arguments)
+    return new ShadowSuperInitializer(constructor, arguments)
       ..fileOffset = charOffset
       ..isSynthetic = isSynthetic;
   }
@@ -3232,7 +3251,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       Constructor constructor, Arguments arguments,
       [int charOffset = -1]) {
     needsImplicitSuperInitializer = false;
-    return new KernelRedirectingInitializer(constructor, arguments)
+    return new ShadowRedirectingInitializer(constructor, arguments)
       ..fileOffset = charOffset;
   }
 
@@ -3330,7 +3349,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     if (isNullAware) {
       VariableDeclaration variable = new VariableDeclaration.forValue(receiver);
-      return new KernelNullAwareMethodInvocation(
+      return new ShadowNullAwareMethodInvocation(
           variable,
           new ConditionalExpression(
               buildIsNull(new VariableGet(variable), offset),
@@ -3341,7 +3360,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             ..fileOffset = offset)
         ..fileOffset = offset;
     } else {
-      return new KernelMethodInvocation(receiver, name, arguments,
+      return new ShadowMethodInvocation(receiver, name, arguments,
           isImplicitCall: isImplicitCall)
         ..fileOffset = offset;
     }
@@ -3354,12 +3373,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void debugEvent(String name) {
-    // printEvent(name);
+    // printEvent('BodyBuilder: $name');
   }
 
   @override
   StaticGet makeStaticGet(Member readTarget, Token token) {
-    return new KernelStaticGet(readTarget)..fileOffset = offsetForToken(token);
+    return new ShadowStaticGet(readTarget)..fileOffset = offsetForToken(token);
   }
 }
 
@@ -3764,7 +3783,7 @@ class FormalParameters {
             new KernelVariableBuilder(parameter, builder, builder.fileUri);
       }
     }
-    return new Scope(local, null, parent, isModifiable: false);
+    return new Scope(local, null, parent, "formals", isModifiable: false);
   }
 }
 

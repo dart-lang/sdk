@@ -57,7 +57,7 @@ async_(gen, T, @rest args) => JS(
       future = $Future.value(future);
     }
     // Chain the Future so `await` receives the Future's value.
-    return future.then($dynamic)(onValue, {onError: onError});
+    return future.then($dynamic, onValue, {onError: onError});
   }
   let result = FutureT.microtask(function() {
     iter = $gen.apply(null, $args)[Symbol.iterator]();
@@ -65,7 +65,7 @@ async_(gen, T, @rest args) => JS(
     if ($isSubtype($getReifiedType(result), FutureT) == null) {
       // Chain the Future<dynamic> to a Future<T> to produce the correct
       // final type.
-      return result.then($T)((x) => x, {onError: onError});
+      return result.then($T, (x) => x, {onError: onError});
     } else {
       return result;
     }
@@ -185,10 +185,12 @@ final _AsyncStarStreamController = JS(
       // that we should schedule `await` in `async*` the same as in `async`.
       this.isWaiting = true;
       let future = iter.value;
-      if (!$instanceOf(future, ${getGenericClass(Future)})) {
+      // TODO(jmesserly): `async` uses a different check that looks for the
+      // (private) implementation type of `Future`, rather than the public type.
+      if (!$Future.is(future)) {
         future = $Future.value(future);
       }
-      return future.then($dynamic)((x) => this.runBody(x),
+      return future.then($dynamic, (x) => this.runBody(x),
           { onError: (e, s) => this.throwError(e, s) });
     }
 
@@ -213,7 +215,7 @@ final _AsyncStarStreamController = JS(
       if (!this.controller.hasListener) return true;
 
       this.isAdding = true;
-      this.controller.addStream(stream, {cancelOnError: false}).then($dynamic)(
+      this.controller.addStream(stream, {cancelOnError: false}).then($dynamic,
           () => {
         this.isAdding = false;
         this.scheduleGenerator();

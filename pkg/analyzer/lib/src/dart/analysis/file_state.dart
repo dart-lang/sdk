@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -15,8 +14,6 @@ import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/fasta/ast_builder.dart' as fasta;
-import 'package:analyzer/src/fasta/mock_element.dart' as fasta;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -29,12 +26,10 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
-import 'package:front_end/src/fasta/builder/builder.dart' as fasta;
-import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
-import 'package:front_end/src/fasta/scanner.dart' as fasta;
+import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:meta/meta.dart';
 
 /**
@@ -80,8 +75,6 @@ class FileContentOverlay {
  * should be called.
  */
 class FileState {
-  static const bool USE_FASTA_PARSER = false;
-
   final FileSystemState _fsState;
 
   /**
@@ -108,7 +101,6 @@ class FileState {
   final bool isInExternalSummaries;
 
   bool _exists;
-  List<int> _contentBytes;
   String _content;
   String _contentHash;
   LineInfo _lineInfo;
@@ -413,13 +405,6 @@ class FileState {
       _exists = false;
     }
 
-    if (USE_FASTA_PARSER) {
-      var bytes = UTF8.encode(_content);
-      _contentBytes = new Uint8List(bytes.length + 1);
-      _contentBytes.setRange(0, bytes.length, bytes);
-      _contentBytes[_contentBytes.length - 1] = 0;
-    }
-
     // Compute the content hash.
     List<int> contentBytes = UTF8.encode(_content);
     {
@@ -571,56 +556,26 @@ class FileState {
 
   CompilationUnit _parse(AnalysisErrorListener errorListener) {
     AnalysisOptions analysisOptions = _fsState._analysisOptions;
+    CharSequenceReader reader = new CharSequenceReader(content);
+    Scanner scanner = new Scanner(source, reader, errorListener);
+    scanner.scanGenericMethodComments = analysisOptions.strongMode;
+    Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
+      return scanner.tokenize();
+    });
+    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
-    if (USE_FASTA_PARSER) {
-      try {
-        fasta.ScannerResult scanResult =
-            PerformanceStatistics.scan.makeCurrentWhile(() {
-          return fasta.scan(
-            _contentBytes,
-            includeComments: true,
-            scanGenericMethodComments: analysisOptions.strongMode,
-          );
-        });
+    bool useFasta = analysisOptions.useFastaParser;
+    Parser parser = new Parser(source, errorListener, useFasta: useFasta);
+    parser.enableAssertInitializer = analysisOptions.enableAssertInitializer;
+    parser.parseGenericMethodComments = analysisOptions.strongMode;
+    CompilationUnit unit = parser.parseCompilationUnit(token);
+    unit.lineInfo = lineInfo;
 
-        var astBuilder = new fasta.AstBuilder(
-            new ErrorReporter(errorListener, source),
-            null,
-            null,
-            new fasta.Scope.top(isModifiable: true),
-            true,
-            uri);
-        astBuilder.parseGenericMethodComments = analysisOptions.strongMode;
+    // StringToken uses a static instance of StringCanonicalizer, so we need
+    // to clear it explicitly once we are done using it for this file.
+    StringToken.canonicalizer.clear();
 
-        var parser = new fasta.Parser(astBuilder);
-        astBuilder.parser = parser;
-        parser.parseUnit(scanResult.tokens);
-        var unit = astBuilder.pop() as CompilationUnit;
-
-        LineInfo lineInfo = new LineInfo(scanResult.lineStarts);
-        unit.lineInfo = lineInfo;
-        return unit;
-      } catch (e, st) {
-        print(e);
-        print(st);
-        rethrow;
-      }
-    } else {
-      CharSequenceReader reader = new CharSequenceReader(content);
-      Scanner scanner = new Scanner(source, reader, errorListener);
-      scanner.scanGenericMethodComments = analysisOptions.strongMode;
-      Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
-        return scanner.tokenize();
-      });
-      LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-
-      Parser parser = new Parser(source, errorListener);
-      parser.enableAssertInitializer = analysisOptions.enableAssertInitializer;
-      parser.parseGenericMethodComments = analysisOptions.strongMode;
-      CompilationUnit unit = parser.parseCompilationUnit(token);
-      unit.lineInfo = lineInfo;
-      return unit;
-    }
+    return unit;
   }
 
   /**
@@ -687,35 +642,6 @@ class FileSystemState {
   final Set<String> knownFilePaths = new Set<String>();
 
   /**
-   * The paths of files that were added to the set of known files since the
-   * last [knownFilesSetChanges] notification.
-   */
-  final Set<String> _addedKnownFiles = new Set<String>();
-
-  /**
-   * If not `null`, this delay will be awaited instead of the default one.
-   */
-  Duration _knownFilesSetChangesDelay;
-
-  /**
-   * The instance of timer that is scheduled to send a new update to the
-   * [knownFilesSetChanges] stream, or `null` if there are no changes to the
-   * set of known files to notify the stream about.
-   */
-  Timer _knownFilesSetChangesTimer;
-
-  /**
-   * Whether the [knownFilesSetChanges] stream is requested.
-   */
-  bool _knownFilesSetChangesRequested = false;
-
-  /**
-   * The controller for the [knownFilesSetChanges] stream.
-   */
-  final StreamController<KnownFilesSetChange> _knownFilesSetChangesController =
-      new StreamController<KnownFilesSetChange>();
-
-  /**
    * Mapping from a path to the flag whether there is a URI for the path.
    */
   final Map<String, bool> _hasUriForPath = {};
@@ -759,20 +685,6 @@ class FileSystemState {
    */
   List<FileState> get knownFiles =>
       _pathToFiles.values.map((files) => files.first).toList();
-
-  /**
-   * Return the [Stream] that is periodically notified about changes to the
-   * known files set.
-   */
-  Stream<KnownFilesSetChange> get knownFilesSetChanges {
-    // If this is the first (and actually the only) time when the stream is
-    // requested, schedule the timer to send updates.
-    if (!_knownFilesSetChangesRequested) {
-      _knownFilesSetChangesRequested = true;
-      _scheduleKnownFilesSetChange();
-    }
-    return _knownFilesSetChangesController.stream;
-  }
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
@@ -910,28 +822,8 @@ class FileSystemState {
       knownFilePaths.add(path);
       files = <FileState>[];
       _pathToFiles[path] = files;
-      // Schedule the stream update.
-      _addedKnownFiles.add(path);
-      _scheduleKnownFilesSetChange();
     }
     files.add(file);
-  }
-
-  void _scheduleKnownFilesSetChange() {
-    // Schedule the timer only if there is a client who listens the stream.
-    if (!_knownFilesSetChangesRequested) {
-      return;
-    }
-
-    Duration delay = _knownFilesSetChangesDelay ?? new Duration(seconds: 1);
-    _knownFilesSetChangesTimer ??= new Timer(delay, () {
-      Set<String> addedFiles = _addedKnownFiles.toSet();
-      Set<String> removedFiles = new Set<String>();
-      _knownFilesSetChangesController
-          .add(new KnownFilesSetChange(addedFiles, removedFiles));
-      _addedKnownFiles.clear();
-      _knownFilesSetChangesTimer = null;
-    });
   }
 }
 
@@ -952,18 +844,4 @@ class FileSystemStateTestView {
         .where((f) => f._transitiveSignature == null)
         .toSet();
   }
-
-  void set knownFilesDelay(Duration value) {
-    state._knownFilesSetChangesDelay = value;
-  }
-}
-
-/**
- * Information about changes to the known file set.
- */
-class KnownFilesSetChange {
-  final Set<String> added;
-  final Set<String> removed;
-
-  KnownFilesSetChange(this.added, this.removed);
 }

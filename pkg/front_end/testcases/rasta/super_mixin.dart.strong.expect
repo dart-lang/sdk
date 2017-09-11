@@ -12,16 +12,16 @@ class Super<S extends core::Object> extends core::Object {
   method f() → dynamic
     return 3;
 }
-abstract class Super&Mixin^#T0^#T0<#T0 extends core::Object> = self::Super<self::Super&Mixin^#T0^#T0::#T0> with mix::Mixin<self::Super&Mixin^#T0^#T0::#T0> {
+abstract class _Super&Mixin^#T0^#T0<#T0 extends core::Object> = self::Super<self::_Super&Mixin^#T0^#T0::#T0> with mix::Mixin<self::_Super&Mixin^#T0^#T0::#T0> {
 }
-class C<V extends core::Object> extends self::Super&Mixin^#T0^#T0<self::C::V> {
+class C<V extends core::Object> extends self::_Super&Mixin^#T0^#T0<self::C::V> {
   default constructor •() → void
     : super self::Super::•()
     ;
 }
-abstract class Super&Mixin = self::Super<dynamic> with mix::Mixin<dynamic> {
+abstract class _Super&Mixin = self::Super<dynamic> with mix::Mixin<dynamic> {
 }
-class D extends self::Super&Mixin {
+class D extends self::_Super&Mixin {
   default constructor •() → void
     : super self::Super::•()
     ;

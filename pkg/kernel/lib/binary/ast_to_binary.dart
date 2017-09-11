@@ -4,7 +4,6 @@
 library kernel.ast_to_binary;
 
 import '../ast.dart';
-import '../import_table.dart';
 import 'tag.dart';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -21,13 +20,19 @@ class BinaryPrinter extends Visitor {
   final TypeParameterIndexer _typeParameterIndexer = new TypeParameterIndexer();
   final StringIndexer stringIndexer;
   final StringIndexer _sourceUriIndexer = new StringIndexer();
+  final Set<String> _knownSourceUri = new Set<String>();
   Map<LibraryDependency, int> _libraryDependencyIndex =
       <LibraryDependency, int>{};
 
   final BufferedSink _sink;
 
   int _binaryOffsetForSourceTable = -1;
+  int _binaryOffsetForStringTable = -1;
   int _binaryOffsetForLinkTable = -1;
+
+  List<CanonicalName> _canonicalNameList;
+  Set<CanonicalName> _knownCanonicalNameNonRootTops = new Set<CanonicalName>();
+  Set<CanonicalName> _reindexedCanonicalNames = new Set<CanonicalName>();
 
   /// Create a printer that writes to the given [sink].
   ///
@@ -80,7 +85,11 @@ class BinaryPrinter extends Visitor {
     writeBytes(utf8Bytes);
   }
 
-  void writeStringTable(StringIndexer indexer) {
+  void writeStringTable(StringIndexer indexer, bool updateBinaryOffset) {
+    if (updateBinaryOffset) {
+      _binaryOffsetForStringTable = _sink.flushedLength + _sink.length;
+    }
+
     // Write the end offsets.
     writeUInt30(indexer.numberOfStrings);
     int endOffset = 0;
@@ -95,7 +104,7 @@ class BinaryPrinter extends Visitor {
   }
 
   void writeStringReference(String string) {
-    writeUInt30(stringIndexer[string]);
+    writeUInt30(stringIndexer.put(string));
   }
 
   void writeStringReferenceList(List<String> strings) {
@@ -103,15 +112,14 @@ class BinaryPrinter extends Visitor {
   }
 
   void writeUriReference(String string) {
-    int index = _sourceUriIndexer[string];
-    if (index == null) {
-      // Assume file was loaded without linking. Bail out to empty string.
-      index = _sourceUriIndexer[""];
+    int index = 0; // equivalent to index = _sourceUriIndexer[""];
+    if (_knownSourceUri.contains(string)) {
+      index = _sourceUriIndexer.put(string);
     }
     writeUInt30(index);
   }
 
-  void writeList(List items, writeItem(x)) {
+  void writeList<T>(List<T> items, void writeItem(T x)) {
     writeUInt30(items.length);
     items.forEach(writeItem);
   }
@@ -135,19 +143,22 @@ class BinaryPrinter extends Visitor {
 
   void writeLinkTable(Program program) {
     _binaryOffsetForLinkTable = _sink.flushedLength + _sink.length;
-    List<CanonicalName> list = <CanonicalName>[];
+    writeList(_canonicalNameList, writeCanonicalNameEntry);
+  }
+
+  void indexLinkTable(Program program) {
+    _canonicalNameList = <CanonicalName>[];
     void visitCanonicalName(CanonicalName node) {
-      node.index = list.length;
-      list.add(node);
+      node.index = _canonicalNameList.length;
+      _canonicalNameList.add(node);
       node.children.forEach(visitCanonicalName);
     }
 
     for (var library in program.libraries) {
       if (!shouldWriteLibraryCanonicalNames(library)) continue;
       visitCanonicalName(library.canonicalName);
+      _knownCanonicalNameNonRootTops.add(library.canonicalName);
     }
-    addCanonicalNamesForLinkTable(list);
-    writeList(list, writeCanonicalNameEntry);
   }
 
   /// Compute canonical names for the whole program or parts of it.
@@ -157,14 +168,9 @@ class BinaryPrinter extends Visitor {
 
   /// Return `true` if all canonical names of the [library] should be written
   /// into the link table.  If some libraries of the program are skipped,
-  /// then [addCanonicalNamesForLinkTable] should append all the additional
-  /// names referenced by the libraries that are written by [writeLibraries].
+  /// then all the additional names referenced by the libraries that are written
+  /// by [writeLibraries] are automatically added.
   bool shouldWriteLibraryCanonicalNames(Library library) => true;
-
-  /// Append additional names for entities that are referenced by the
-  /// libraries that are written by [writeLibraries], but declared outside
-  /// of these libraries.
-  void addCanonicalNamesForLinkTable(List<CanonicalName> list) {}
 
   void writeCanonicalNameEntry(CanonicalName node) {
     var parent = node.parent;
@@ -179,20 +185,15 @@ class BinaryPrinter extends Visitor {
   void writeProgramFile(Program program) {
     computeCanonicalNames(program);
     writeUInt32(Tag.ProgramFile);
-    buildStringIndex(program);
-    writeStringTable(stringIndexer);
-    writeUriToSource(program);
-    writeLinkTable(program);
+    indexLinkTable(program);
+    indexUris(program);
     writeLibraries(program);
-    writeMemberReference(program.mainMethod, allowNull: true);
+    writeUriToSource(program.uriToSource);
+    writeLinkTable(program);
+    writeStringTable(stringIndexer, true);
     writeProgramIndex(program, program.libraries);
 
     _flush();
-  }
-
-  /// Fill the [stringIndexer] with all strings we are going to reference.
-  void buildStringIndex(Program program) {
-    stringIndexer.scanProgram(program);
   }
 
   /// Write all of some of the libraries of the [program].
@@ -202,8 +203,12 @@ class BinaryPrinter extends Visitor {
 
   void writeProgramIndex(Program program, List<Library> libraries) {
     // Fixed-size ints at the end used as an index.
+    assert(_binaryOffsetForSourceTable >= 0);
     writeUInt32(_binaryOffsetForSourceTable);
+    assert(_binaryOffsetForLinkTable >= 0);
     writeUInt32(_binaryOffsetForLinkTable);
+    assert(_binaryOffsetForStringTable >= 0);
+    writeUInt32(_binaryOffsetForStringTable);
 
     CanonicalName main = getCanonicalNameOfMember(program.mainMethod);
     if (main == null) {
@@ -212,21 +217,33 @@ class BinaryPrinter extends Visitor {
       writeUInt32(main.index + 1);
     }
     for (Library library in libraries) {
+      assert(library.binaryOffset >= 0);
       writeUInt32(library.binaryOffset);
     }
     writeUInt32(libraries.length);
+    writeUInt32(_sink.flushedLength + _sink.length + 4); // total size.
   }
 
-  void writeUriToSource(Program program) {
+  void indexUris(Program program) {
+    _knownSourceUri.addAll(program.uriToSource.keys);
+  }
+
+  void writeUriToSource(Map<String, Source> uriToSource) {
     _binaryOffsetForSourceTable = _sink.flushedLength + _sink.length;
-    program.uriToSource.keys.forEach((uri) {
-      _sourceUriIndexer.put(uri);
-    });
-    writeStringTable(_sourceUriIndexer);
-    for (int i = 0; i < _sourceUriIndexer.entries.length; i++) {
-      String uri = _sourceUriIndexer.entries[i].value;
+
+    int length = _sourceUriIndexer.numberOfStrings;
+    writeUInt32(length);
+    List<int> index = new List<int>(_sourceUriIndexer.entries.length);
+
+    // Write data.
+    for (int i = 0; i < length; ++i) {
+      index[i] = _sink.flushedLength + _sink.length;
+
+      StringTableEntry uri = _sourceUriIndexer.entries[i];
       Source source =
-          program.uriToSource[uri] ?? new Source(<int>[], const <int>[]);
+          uriToSource[uri.value] ?? new Source(<int>[], const <int>[]);
+
+      writeUtf8Bytes(uri.utf8Bytes);
       writeUtf8Bytes(source.source);
       List<int> lineStarts = source.lineStarts;
       writeUInt30(lineStarts.length);
@@ -235,6 +252,11 @@ class BinaryPrinter extends Visitor {
         writeUInt30(lineStart - previousLineStart);
         previousLineStart = lineStart;
       });
+    }
+
+    // Write index for random access.
+    for (int i = 0; i < index.length; ++i) {
+      writeUInt32(index[i]);
     }
   }
 
@@ -254,14 +276,27 @@ class BinaryPrinter extends Visitor {
       if (name == null) {
         throw 'Missing canonical name for $reference';
       }
+      checkCanonicalName(name);
       writeUInt30(name.index + 1);
     }
+  }
+
+  void checkCanonicalName(CanonicalName node) {
+    if (_knownCanonicalNameNonRootTops.contains(node.nonRootTop)) return;
+    if (node == null || node.isRoot) return;
+    if (_reindexedCanonicalNames.contains(node)) return;
+
+    checkCanonicalName(node.parent);
+    node.index = _canonicalNameList.length;
+    _canonicalNameList.add(node);
+    _reindexedCanonicalNames.add(node);
   }
 
   void writeCanonicalNameReference(CanonicalName name) {
     if (name == null) {
       writeByte(0);
     } else {
+      checkCanonicalName(name);
       writeUInt30(name.index + 1);
     }
   }
@@ -312,6 +347,7 @@ class BinaryPrinter extends Visitor {
     writeUriReference(node.fileUri ?? '');
     writeAnnotationList(node.annotations);
     writeLibraryDependencies(node);
+    writeAdditionalExports(node);
     writeLibraryParts(node);
     writeNodeList(node.typedefs);
     writeNodeList(node.classes);
@@ -328,6 +364,13 @@ class BinaryPrinter extends Visitor {
       var importNode = library.dependencies[i];
       _libraryDependencyIndex[importNode] = i;
       writeLibraryDependency(importNode);
+    }
+  }
+
+  void writeAdditionalExports(Library library) {
+    writeUInt30(library.additionalExports.length);
+    for (Reference ref in library.additionalExports) {
+      writeReference(ref);
     }
   }
 
@@ -380,7 +423,7 @@ class BinaryPrinter extends Visitor {
   int _encodeClassFlags(bool isAbstract, bool isEnum,
       bool isSyntheticMixinImplementation, ClassLevel level) {
     int abstractFlag = isAbstract ? 1 : 0;
-    int isEnumFlag = isSyntheticMixinImplementation ? 2 : 0;
+    int isEnumFlag = isEnum ? 2 : 0;
     int isSyntheticMixinImplementationFlag =
         isSyntheticMixinImplementation ? 4 : 0;
     int levelFlags = (level.index - 1) << 3;
@@ -969,6 +1012,7 @@ class BinaryPrinter extends Visitor {
   visitSwitchStatement(SwitchStatement node) {
     _switchCaseIndexer.enter(node);
     writeByte(Tag.SwitchStatement);
+    writeOffset(node.fileOffset);
     writeNode(node.expression);
     writeNodeList(node.cases);
     _switchCaseIndexer.exit(node);
@@ -988,6 +1032,7 @@ class BinaryPrinter extends Visitor {
 
   visitContinueSwitchStatement(ContinueSwitchStatement node) {
     writeByte(Tag.ContinueSwitchStatement);
+    writeOffset(node.fileOffset);
     writeUInt30(_switchCaseIndexer[node.target]);
   }
 
@@ -1174,35 +1219,6 @@ class BinaryPrinter extends Visitor {
 
 typedef bool LibraryFilter(Library _);
 
-/// A [LibraryFilteringBinaryPrinter] can write a subset of libraries.
-///
-/// This printer writes a Kernel binary but includes only libraries that match a
-/// predicate.
-class LibraryFilteringBinaryPrinter extends BinaryPrinter {
-  final LibraryFilter predicate;
-
-  LibraryFilteringBinaryPrinter(
-      Sink<List<int>> sink, bool predicate(Library library))
-      : predicate = predicate,
-        super(sink);
-
-  void writeProgramFile(Program program) {
-    program.computeCanonicalNames();
-    writeUInt32(Tag.ProgramFile);
-    stringIndexer.scanProgram(program);
-    writeStringTable(stringIndexer);
-    writeUriToSource(program);
-    writeLinkTable(program);
-    final List<Library> filteredLibraries =
-        program.libraries.where(predicate).toList();
-    writeList(filteredLibraries, writeNode);
-    writeMemberReference(program.mainMethod, allowNull: true);
-    writeProgramIndex(program, filteredLibraries);
-
-    _flush();
-  }
-}
-
 class VariableIndexer {
   final Map<VariableDeclaration, int> index = <VariableDeclaration, int>{};
   final List<int> scopes = <int>[];
@@ -1279,19 +1295,16 @@ class TypeParameterIndexer {
   int operator [](TypeParameter parameter) => index[parameter];
 }
 
-class StringTableEntry implements Comparable<StringTableEntry> {
+class StringTableEntry {
   final String value;
   final List<int> utf8Bytes;
-  int frequency = 0;
 
   StringTableEntry(String value)
       : value = value,
         utf8Bytes = const Utf8Encoder().convert(value);
-
-  int compareTo(StringTableEntry other) => other.frequency - frequency;
 }
 
-class StringIndexer extends RecursiveVisitor<Null> {
+class StringIndexer {
   final List<StringTableEntry> entries = <StringTableEntry>[];
   final LinkedHashMap<String, int> index = new LinkedHashMap<String, int>();
 
@@ -1301,148 +1314,14 @@ class StringIndexer extends RecursiveVisitor<Null> {
 
   int get numberOfStrings => index.length;
 
-  /// Scan all the [program] libraries and [finish] indexing.
-  void scanProgram(Program program) {
-    program.accept(this);
-    finish();
-  }
-
-  /// Scan the given library, but don't [finish] indexing yet.
-  void scanLibrary(Library library) {
-    library.accept(this);
-  }
-
-  /// Finish building of the index - sort and assign indices for entries.
-  void finish() {
-    entries.sort();
-    for (int i = 0; i < entries.length; ++i) {
-      index[entries[i].value] = i;
-    }
-  }
-
-  void visitCanonicalName(CanonicalName name) {
-    put(name.name);
-    name.children.forEach(visitCanonicalName);
-  }
-
-  void put(String string) {
-    int i = index.putIfAbsent(string, () {
+  int put(String string) {
+    return index.putIfAbsent(string, () {
       entries.add(new StringTableEntry(string));
       return index.length;
     });
-    ++entries[i].frequency;
-  }
-
-  void putOptional(String string) {
-    if (string != null) {
-      put(string);
-    }
   }
 
   int operator [](String string) => index[string];
-
-  void addLibraryImports(LibraryImportTable imports) {
-    imports.importPaths.forEach(put);
-  }
-
-  visitName(Name node) {
-    put(node.name);
-  }
-
-  visitLibrary(Library node) {
-    visitCanonicalName(node.canonicalName);
-    putOptional(node.name);
-    put('${node.importUri}');
-    node.visitChildren(this);
-  }
-
-  visitLibraryDependency(LibraryDependency node) {
-    putOptional(node.name);
-    node.visitChildren(this);
-  }
-
-  @override
-  visitLibraryPart(LibraryPart node) {
-    put(node.fileUri);
-    node.visitChildren(this);
-  }
-
-  visitCombinator(Combinator node) {
-    node.names.forEach(put);
-  }
-
-  visitTypedef(Typedef node) {
-    put(node.name);
-    node.visitChildren(this);
-  }
-
-  visitClass(Class node) {
-    putOptional(node.documentationComment);
-    putOptional(node.name);
-    node.visitChildren(this);
-  }
-
-  @override
-  visitConstructor(Constructor node) {
-    putOptional(node.documentationComment);
-    super.visitConstructor(node);
-  }
-
-  @override
-  visitField(Field node) {
-    putOptional(node.documentationComment);
-    super.visitField(node);
-  }
-
-  @override
-  visitFunctionType(FunctionType node) {
-    node.positionalParameterNames.forEach(put);
-    super.visitFunctionType(node);
-  }
-
-  visitNamedExpression(NamedExpression node) {
-    put(node.name);
-    node.visitChildren(this);
-  }
-
-  @override
-  visitProcedure(Procedure node) {
-    putOptional(node.documentationComment);
-    super.visitProcedure(node);
-  }
-
-  visitStringLiteral(StringLiteral node) {
-    put(node.value);
-  }
-
-  visitIntLiteral(IntLiteral node) {
-    if (node.value.abs() >> 30 != 0) {
-      put('${node.value}');
-    }
-  }
-
-  visitDoubleLiteral(DoubleLiteral node) {
-    put('${node.value}');
-  }
-
-  visitSymbolLiteral(SymbolLiteral node) {
-    put(node.value);
-  }
-
-  visitVariableDeclaration(VariableDeclaration node) {
-    putOptional(node.name);
-    node.visitChildren(this);
-  }
-
-  visitNamedType(NamedType node) {
-    put(node.name);
-    node.visitChildren(this);
-  }
-
-  visitTypeParameter(TypeParameter node) {
-    putOptional(node.name);
-    node.visitChildren(this);
-  }
 }
 
 /// Computes and stores the index of a library, class, or member within its

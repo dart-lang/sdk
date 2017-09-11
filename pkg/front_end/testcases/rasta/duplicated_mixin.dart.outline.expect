@@ -7,11 +7,11 @@ class Mixin extends core::Object {
   default constructor •() → void
     ;
 }
-abstract class Object&Mixin = core::Object with self::Mixin {
+abstract class _Object&Mixin = core::Object with self::Mixin {
 }
-abstract class Object&Mixin&Mixin = self::Object&Mixin with self::Mixin {
+abstract class __Object&Mixin&Mixin = self::_Object&Mixin with self::Mixin {
 }
-class A extends self::Object&Mixin&Mixin {
+class A extends self::__Object&Mixin&Mixin {
   default constructor •() → void
     ;
 }

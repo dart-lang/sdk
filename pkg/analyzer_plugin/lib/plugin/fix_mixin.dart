@@ -29,13 +29,7 @@ abstract class DartFixesMixin implements FixesMixin {
   Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters) async {
     String path = parameters.file;
     int offset = parameters.offset;
-    AnalysisDriver driver = driverForPath(path);
-    if (driver == null) {
-      // Return an error from the request.
-      throw new RequestFailure(
-          RequestErrorFactory.pluginError('Failed to analyze $path', null));
-    }
-    ResolveResult result = await driver.getResult(path);
+    ResolveResult result = await getResolveResult(path);
     return new DartFixesRequestImpl(
         resourceProvider, offset, _getErrors(offset, result), result);
   }
@@ -67,6 +61,8 @@ abstract class FixesMixin implements ServerPlugin {
   /**
    * Return the fixes request that should be passes to the contributors
    * returned from [getFixContributors].
+   *
+   * Throw a [RequestFailure] if the request could not be created.
    */
   Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters);
 

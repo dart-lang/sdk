@@ -11,11 +11,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/testing/hybrid_file_system.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';

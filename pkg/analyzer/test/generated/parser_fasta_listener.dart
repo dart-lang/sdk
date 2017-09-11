@@ -59,6 +59,9 @@ class ForwardingTestListener implements fasta.Listener {
   ForwardingTestListener(this.listener);
 
   @override
+  Uri get uri => listener.uri;
+
+  @override
   void beginArguments(Token token) {
     listener.beginArguments(token);
     begin('Arguments');
@@ -614,17 +617,24 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    expectIn('ClassDeclaration');
+    listener.handleNativeClause(nativeToken, hasName);
+  }
+
+  @override
   void endClassDeclaration(
       int interfacesCount,
       Token beginToken,
       Token classKeyword,
       Token extendsKeyword,
       Token implementsKeyword,
+      Token nativeToken,
       Token endToken) {
     end('ClassDeclaration');
     end('ClassOrNamedMixinApplication');
     listener.endClassDeclaration(interfacesCount, beginToken, classKeyword,
-        extendsKeyword, implementsKeyword, endToken);
+        extendsKeyword, implementsKeyword, nativeToken, endToken);
   }
 
   @override
@@ -1113,9 +1123,15 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void handleBinaryExpression(Token token) {
-    listener.handleBinaryExpression(token);
-    // TODO(danrubel): implement handleBinaryExpression
+  void beginBinaryExpression(Token token) {
+    listener.beginBinaryExpression(token);
+    // TODO(danrubel): implement beginBinaryExpression
+  }
+
+  @override
+  void endBinaryExpression(Token token) {
+    listener.endBinaryExpression(token);
+    // TODO(danrubel): implement endBinaryExpression
   }
 
   @override
@@ -1542,8 +1558,4 @@ class ForwardingTestListener implements fasta.Listener {
     listener.suppressParseErrors = value;
     // TODO(danrubel): implement suppressParseErrors
   }
-
-  // TODO(danrubel): implement uri
-  @override
-  Uri get uri => listener.uri;
 }

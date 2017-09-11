@@ -130,7 +130,9 @@ class DartUtils {
   static Dart_Handle SetupServiceLoadPort();
   static Dart_Handle SetupPackageRoot(const char* package_root,
                                       const char* packages_file);
-  static Dart_Handle SetupIOLibrary(const char* script_uri);
+  static Dart_Handle SetupIOLibrary(const char* namespc_path,
+                                    const char* script_uri,
+                                    bool disable_exit);
 
   static bool PostNull(Dart_Port port_id);
   static bool PostInt32(Dart_Port port_id, int32_t value);
@@ -240,7 +242,7 @@ class DartUtils {
                                            bool is_service_isolate,
                                            bool trace_loading);
   static Dart_Handle PrepareCoreLibrary(Dart_Handle core_lib,
-                                        Dart_Handle builtin_lib,
+                                        Dart_Handle io_lib,
                                         bool is_service_isolate);
   static Dart_Handle PrepareAsyncLibrary(Dart_Handle async_lib,
                                          Dart_Handle isolate_lib);

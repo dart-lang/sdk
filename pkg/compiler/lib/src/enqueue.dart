@@ -207,9 +207,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   WorldImpactVisitor _impactVisitor;
 
-  /// All declaration elements that have been processed by the resolver.
-  final Set<MemberEntity> _processedEntities = new Set<MemberEntity>();
-
   final Queue<WorkItem> _queue = new Queue<WorkItem>();
 
   /// Queue of deferred resolution actions to execute when the resolution queue
@@ -389,9 +386,9 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       while (_queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
         WorkItem work = _queue.removeLast();
-        if (!_processedEntities.contains(work.element)) {
+        if (!_worldBuilder.isMemberProcessed(work.element)) {
           strategy.processWorkItem(f, work);
-          _processedEntities.add(work.element);
+          _worldBuilder.registerProcessedMember(work.element);
         }
       }
       List<ClassEntity> recents = _recentClasses.toList(growable: false);
@@ -407,13 +404,14 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 
   void logSummary(void log(String message)) {
-    log('Resolved ${_processedEntities.length} elements.');
+    log('Resolved ${processedEntities.length} elements.');
     listener.logSummary(log);
   }
 
   String toString() => 'Enqueuer($name)';
 
-  Iterable<MemberEntity> get processedEntities => _processedEntities;
+  Iterable<MemberEntity> get processedEntities =>
+      _worldBuilder.processedMembers;
 
   ImpactUseCase get impactUse => IMPACT_USE;
 
@@ -422,13 +420,13 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   /// Registers [entity] as processed by the resolution enqueuer. Used only for
   /// testing.
   void registerProcessedElementInternal(MemberEntity entity) {
-    _processedEntities.add(entity);
+    _worldBuilder.registerProcessedMember(entity);
   }
 
   /// Create a [WorkItem] for [entity] and add it to the work list if it has not
   /// already been processed.
   void _addToWorkList(MemberEntity entity) {
-    if (_processedEntities.contains(entity)) return;
+    if (_worldBuilder.isMemberProcessed(entity)) return;
     WorkItem workItem = _workItemBuilder.createWorkItem(entity);
     if (workItem == null) return;
 

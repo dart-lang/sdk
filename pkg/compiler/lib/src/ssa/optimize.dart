@@ -9,7 +9,6 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements;
-import '../elements/elements.dart' show ClassElement, MethodElement;
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
@@ -531,7 +530,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction tryInlineNativeMethod(
-      HInvokeDynamicMethod node, MethodElement method) {
+      HInvokeDynamicMethod node, FunctionEntity method) {
     // Enable direct calls to a native method only if we don't run in checked
     // mode, where the Dart version may have type annotations on parameters and
     // return type that it should check.
@@ -544,11 +543,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     if (!node.isInterceptedCall) return null;
 
-    // TODO(sra): Check for legacy methods with bodies in the native strings.
-    //   foo() native 'return something';
-    // They should not be used.
-
-    ResolutionFunctionType type = method.type;
+    FunctionType type = _closedWorld.elementEnvironment.getFunctionType(method);
     if (type.namedParameters.isNotEmpty) return null;
 
     // Return types on native methods don't need to be checked, since the
@@ -567,7 +562,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       canInline = false;
     } else {
       int inputPosition = 1; // Skip receiver.
-      void checkParameterType(ResolutionDartType type) {
+      void checkParameterType(DartType type) {
         if (inputPosition++ < inputs.length && canInline) {
           if (type.unaliased.isFunctionType) {
             canInline = false;
@@ -1219,9 +1214,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
           if (nextSource is HThis) {
             if (source == null) {
               source = nextSource;
-              ClassElement contextClass =
+              ClassEntity contextClass =
                   nextSource.sourceElement.enclosingClass;
-              if (node.inputs.length != contextClass.typeVariables.length) {
+              if (node.inputs.length !=
+                  _closedWorld.elementEnvironment
+                      .getThisType(contextClass)
+                      .typeArguments
+                      .length) {
                 return null;
               }
               if (needsSubstitutionForTypeVariableAccess(contextClass)) {

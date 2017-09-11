@@ -7,11 +7,11 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
+import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart'
+    show UriContributor;
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -25,7 +25,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 
@@ -187,6 +186,11 @@ class Driver implements ServerStarter {
   static const String CLIENT_VERSION = "client-version";
 
   /**
+   * The name of the option used to enable DartPad specific functionality.
+   */
+  static const String DARTPAD_OPTION = "dartpad";
+
+  /**
    * The name of the option used to enable instrumentation.
    */
   static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
@@ -253,6 +257,11 @@ class Driver implements ServerStarter {
   static const String SDK_OPTION = "sdk";
 
   /**
+   * The path to the data cache.
+   */
+  static const String CACHE_FOLDER = "cache";
+
+  /**
    * The instrumentation server that is to be used by the analysis server.
    */
   InstrumentationServer instrumentationServer;
@@ -269,11 +278,6 @@ class Driver implements ServerStarter {
    */
   ResolverProvider packageResolverProvider;
 
-  /**
-   * The plugins that are defined outside the analysis_server package.
-   */
-  List<Plugin> _userDefinedPlugins = <Plugin>[];
-
   SocketServer socketServer;
 
   HttpAnalysisServer httpServer;
@@ -281,13 +285,6 @@ class Driver implements ServerStarter {
   StdioAnalysisServer stdioServer;
 
   Driver();
-
-  /**
-   * Set the [plugins] that are defined outside the analysis_server package.
-   */
-  void set userDefinedPlugins(List<Plugin> plugins) {
-    _userDefinedPlugins = plugins ?? <Plugin>[];
-  }
 
   /**
    * Use the given command-line [arguments] to start this server.
@@ -308,6 +305,7 @@ class Driver implements ServerStarter {
         results[NEW_ANALYSIS_DRIVER_LOG];
     analysisServerOptions.clientId = results[CLIENT_ID];
     analysisServerOptions.clientVersion = results[CLIENT_VERSION];
+    analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
 
     ContextBuilderOptions.flutterRepo = results[FLUTTER_REPO];
 
@@ -328,10 +326,16 @@ class Driver implements ServerStarter {
     analysisServerOptions.crashReportSender =
         new CrashReportSender('Dart_analysis_server', analytics);
 
-    if (results.wasParsed(ANALYTICS_FLAG)) {
-      analytics.enabled = results[ANALYTICS_FLAG];
-      print(telemetry.createAnalyticsStatusMessage(analytics.enabled));
-      return null;
+    if (telemetry.SHOW_ANALYTICS_UI) {
+      if (results.wasParsed(ANALYTICS_FLAG)) {
+        analytics.enabled = results[ANALYTICS_FLAG];
+        print(telemetry.createAnalyticsStatusMessage(analytics.enabled));
+        return null;
+      }
+    }
+
+    if (results[DARTPAD_OPTION]) {
+      UriContributor.suggestFilePaths = false;
     }
 
     if (results[HELP_OPTION]) {
@@ -357,14 +361,8 @@ class Driver implements ServerStarter {
     //
     // Process all of the plugins so that extensions are registered.
     //
-    ServerPlugin serverPlugin = new ServerPlugin();
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(serverPlugin);
-    plugins.add(dartCompletionPlugin);
-    plugins.addAll(_userDefinedPlugins);
     ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
+    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
     linter.registerLintRules();
 
     String defaultSdkPath;
@@ -418,12 +416,10 @@ class Driver implements ServerStarter {
         defaultSdk,
         instrumentationService,
         diagnosticServer,
-        serverPlugin,
         fileResolverProvider,
         packageResolverProvider);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
-    socketServer.userDefinedPlugins = _userDefinedPlugins;
 
     diagnosticServer.httpServer = httpServer;
     if (serve_http) {
@@ -482,6 +478,10 @@ class Driver implements ServerStarter {
     parser.addOption(CLIENT_ID,
         help: "an identifier used to identify the client");
     parser.addOption(CLIENT_VERSION, help: "the version of the client");
+    parser.addFlag(DARTPAD_OPTION,
+        help: 'enable DartPad specific functionality',
+        defaultsTo: false,
+        hide: true);
     parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
         help: "enable sending instrumentation information to a server",
         defaultsTo: false,
@@ -503,8 +503,10 @@ class Driver implements ServerStarter {
         negatable: false);
     parser.addOption(NEW_ANALYSIS_DRIVER_LOG,
         help: "set a destination for the new analysis driver's log");
-    parser.addFlag(ANALYTICS_FLAG,
-        help: 'enable or disable sending analytics information to Google');
+    if (telemetry.SHOW_ANALYTICS_UI) {
+      parser.addFlag(ANALYTICS_FLAG,
+          help: 'enable or disable sending analytics information to Google');
+    }
     parser.addFlag(SUPPRESS_ANALYTICS_FLAG,
         negatable: false, help: 'suppress analytics for this session');
     parser.addOption(PORT_OPTION,
@@ -526,6 +528,8 @@ class Driver implements ServerStarter {
               r"eol characters normalized to the single character new line ('\n')"
         },
         defaultsTo: "as-is");
+    parser.addOption(CACHE_FOLDER,
+        help: "[path] path to the location where to cache data");
 
     return parser;
   }
@@ -549,14 +553,16 @@ class Driver implements ServerStarter {
     print('Supported flags are:');
     print(parser.usage);
 
-    // Print analytics status and information.
-    if (fromHelp) {
+    if (telemetry.SHOW_ANALYTICS_UI) {
+      // Print analytics status and information.
+      if (fromHelp) {
+        print('');
+        print(telemetry.analyticsNotice);
+      }
       print('');
-      print(telemetry.analyticsNotice);
+      print(telemetry.createAnalyticsStatusMessage(analytics.enabled,
+          command: ANALYTICS_FLAG));
     }
-    print('');
-    print(telemetry.createAnalyticsStatusMessage(analytics.enabled,
-        command: ANALYTICS_FLAG));
   }
 
   /**

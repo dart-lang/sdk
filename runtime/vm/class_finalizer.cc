@@ -3468,6 +3468,12 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
 #ifdef DEBUG
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
+
+  if (isolate->obfuscate()) {
+    // Field names are obfuscated.
+    return;
+  }
+
   Zone* zone = thread->zone();
   const ClassTable& class_table = *(isolate->class_table());
   Class& cls = Class::Handle(zone);

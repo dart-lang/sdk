@@ -181,7 +181,8 @@ abstract class ChainContext {
         } else {
           future = new Future.value(null);
         }
-        future = future.then((Result currentResult) {
+        future = future.then((_currentResult) {
+          Result currentResult = _currentResult;
           if (currentResult != null) {
             logStepComplete(completed, unexpectedResults.length,
                 descriptions.length, suite, description, lastStepRun);

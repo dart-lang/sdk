@@ -4,15 +4,11 @@
 
 [ $compiler == dart2analyzer ]
 
-generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
-generic_local_functions_test: CompileTimeError # Issue 28515
-
 regress_26668_test: Fail # Issue 26678
 regress_27617_test/1: MissingCompileTimeError
 regress_29025_test: StaticWarning # Issue 29081
 regress_29405_test: StaticWarning # Issue 29421
 regress_29349_test: CompileTimeError # Issue 29744
-regress_29481_test: Crash # Issue 29755
 
 # Runtime negative test. No static errors or warnings.
 
@@ -24,8 +20,6 @@ enum_syntax_test/06: Fail # Issue 21649
 
 regress_17382_test: Skip # don't care about the static warning.
 regress_23408_test: Skip # don't care about the static warning.
-regress_25246_test: Skip
-getter_setter_in_lib_test: Fail # Issue 23286
 
 final_attempt_reinitialization_test/01: MissingCompileTimeError # Issue 29657
 final_attempt_reinitialization_test/02: MissingCompileTimeError # Issue 29657
@@ -64,17 +58,14 @@ final_syntax_test/01: Fail # Issue 11124
 final_syntax_test/04: Fail # Issue 11124
 final_syntax_test/02: Fail # Issue 11124
 final_syntax_test/03: Fail # Issue 11124
-get_set_syntax_test/none: fail # Issue 11575
 implicit_this_test/none: fail # Issue 11575
 interface_test/none: fail # Issue 11575
 syntax_test/none: fail # Issue 11575
 factory5_test/none: fail # Issue 11578
 type_variable_bounds_test/none: fail # Issue 11578
-type_variable_scope_test/none: fail # Issue 11578
 factory_implementation_test/none: fail # Issue 11578
 malbounded_redirecting_factory_test/none: fail # Issue 11578
 malbounded_redirecting_factory2_test/none: fail # Issue 11578
-getter_no_setter_test/none: fail # Issue 11579
 constructor3_negative_test: fail # Issue 11585
 constructor_call_wrong_argument_count_negative_test: fail # Issue 11585
 instance_call_wrong_argument_count_negative_test: fail # Issue 11585
@@ -90,9 +81,6 @@ prefix8_negative_test: fail # Issue 11964
 prefix11_negative_test: fail # Issue 11964
 static_call_wrong_argument_count_negative_test: fail # Issue 12156
 type_parameter_test/none: fail # Issue 12160
-type_variable_static_context_negative_test: fail # Issue 12161
-unresolved_in_factory_negative_test: fail # Issue 12163
-unresolved_top_level_var_negative_test: fail # Issue 12163
 prefix3_negative_test: fail # Issue 12191
 issue11724_test: fail # Issue 12381
 static_field_test/01: fail # Issue 12541
@@ -171,12 +159,6 @@ function_subtype_inline1_test: StaticWarning
 function_type2_test: StaticWarning
 function_type_parameter2_negative_test: CompileTimeError
 function_type_parameter_negative_test: CompileTimeError
-generic_list_checked_test: StaticWarning
-generics_test: StaticWarning
-generic_test: StaticWarning
-getter_declaration_negative_test: CompileTimeError
-getter_no_setter2_test/01: StaticWarning
-getter_no_setter_test/01: StaticWarning
 implicit_this_test/02: StaticWarning
 implied_interface_test: StaticWarning
 import_combinators_test: StaticWarning
@@ -356,17 +338,11 @@ test_negative_test: CompileTimeError
 try_catch4_test: StaticWarning
 try_catch5_test: StaticWarning
 type_argument_in_super_type_test: StaticWarning
-typed_selector2_test: StaticWarning
 type_variable_identifier_expression_test: StaticWarning
-type_variable_scope2_test: StaticWarning
 type_variable_conflict2_test/02: MissingCompileTimeError
 type_variable_conflict2_test/06: MissingCompileTimeError
 type_variable_conflict2_test/08: MissingCompileTimeError
 type_variable_conflict2_test/10: MissingCompileTimeError
-unary_plus_negative_test: CompileTimeError
-unbound_getter_test: StaticWarning
-unhandled_exception_negative_test: CompileTimeError
-unresolved_top_level_method_negative_test: StaticWarning
 vm/debug_break_vm_test/*: Skip
 vm/debug_break_enabled_vm_test: Skip
 vm/type_cast_vm_test: StaticWarning
@@ -393,7 +369,6 @@ issue13474_test: StaticWarning, OK # Issue 13474
 factory1_test/00: StaticWarning # Issue 18726
 factory1_test/01: StaticWarning # Issue 18726
 factory1_test/none: StaticWarning # Issue 18726
-generic_closure_test: StaticWarning
 local_function2_test: StaticWarning
 redirecting_factory_long_test: StaticWarning
 

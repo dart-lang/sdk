@@ -16,6 +16,7 @@ import '../js/js.dart' as js;
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_emitter/code_emitter_task.dart';
+import '../js_model/closure.dart' show JRecordField, KernelScopeInfo;
 import '../native/native.dart' as native;
 import '../types/types.dart';
 import '../universe/call_structure.dart';
@@ -75,6 +76,10 @@ abstract class KernelToElementMap {
   /// the enclosing class of [context].
   MemberEntity getSuperMember(ir.Member context, ir.Name name, ir.Member target,
       {bool setter: false});
+
+  /// Returns the `noSuchMethod` [FunctionEntity] call from a
+  /// `super.noSuchMethod` invocation within [cls].
+  FunctionEntity getSuperNoSuchMethod(ClassEntity cls);
 
   /// Returns the [Name] corresponding to [name].
   Name getName(ir.Name name);
@@ -186,11 +191,7 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
 
   /// Return the [ConstantValue] the initial value of [field] or `null` if
   /// the initializer is not a constant expression.
-  ConstantValue getFieldConstantValue(ir.Field field);
-
-  /// Returns the `noSuchMethod` [FunctionEntity] call from a
-  /// `super.noSuchMethod` invocation within [cls].
-  FunctionEntity getSuperNoSuchMethod(ClassEntity cls);
+  ConstantValue getFieldConstantValue(FieldEntity field);
 
   /// Returns a [Spannable] for a message pointing to the IR [node] in the
   /// context of [member].
@@ -203,6 +204,11 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
   // TODO(johnniwinther): Avoid this method by deriving the uri directly from
   // the node.
   String getDeferredUri(ir.LibraryDependency node);
+
+  /// Make a record to ensure variables that are are declared in one scope and
+  /// modified in another get their values updated correctly.
+  Map<Local, JRecordField> makeRecordContainer(
+      KernelScopeInfo info, MemberEntity member, KernelToLocalsMap localsMap);
 }
 
 // TODO(johnniwinther,efortuna): Add more when needed.
@@ -215,7 +221,7 @@ enum MemberKind {
   // A constructor whose body is defined by an [ir.Constructor] node.
   constructorBody,
   // A closure class `call` method whose body is defined by an
-  // [ir.FunctionExpression].
+  // [ir.FunctionExpression] or [ir.FunctionDeclaration].
   closureCall,
   // A field corresponding to a captured variable in the closure. It does not
   // have a corresponding ir.Node.
@@ -244,6 +250,9 @@ abstract class MemberDefinition {
 enum ClassKind {
   regular,
   closure,
+  // TODO(efortuna, johnniwinther): Container is not a class, but is
+  // masquerading as one currently for consistency with the old element model.
+  record,
 }
 
 /// A member directly defined by its [ir.Member] node.
@@ -389,12 +398,13 @@ abstract class KernelToLocalsMap {
   /// variables involved with a closure class.
   // TODO(efortuna, johnniwinther): convey this information without a boolean
   // parameter.
-  Local getLocalVariable(ir.VariableDeclaration node,
-      {bool isClosureCallMethod = false});
+  Local getLocalVariable(ir.VariableDeclaration node);
 
-  /// Returns the [Local] corresponding to the [node]. The node must be either
-  /// a [ir.FunctionDeclaration] or [ir.FunctionExpression].
-  Local getLocalFunction(ir.TreeNode node);
+  /// Returns the [ir.FunctionNode] that declared [parameter].
+  ir.FunctionNode getFunctionNodeForParameter(Local parameter);
+
+  /// Returns the [DartType] of [local].
+  DartType getLocalType(KernelToElementMap elementMap, Local local);
 
   /// Returns the [JumpTarget] for the break statement [node].
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node);
@@ -434,8 +444,15 @@ abstract class KernelToLocalsMap {
   JumpTarget getJumpTargetForWhile(ir.WhileStatement node);
 
   /// Returns the [CapturedLoopScope] for the loop [node] in
-  /// [closureClassMaps].
+  /// [closureLookup].
+  // TODO(johnniwinther): Remove this when [KernelAstAdapter] is deleted.
   CapturedLoopScope getCapturedLoopScope(
+      ClosureDataLookup closureLookup, ir.TreeNode node);
+
+  /// Returns the [ClosureRepresentationInfo] for the local function [node] in
+  /// [closureLookup].
+  // TODO(johnniwinther): Remove this when [KernelAstAdapter] is deleted.
+  ClosureRepresentationInfo getClosureRepresentationInfo(
       ClosureDataLookup closureLookup, ir.TreeNode node);
 }
 

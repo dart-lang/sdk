@@ -5,10 +5,6 @@
 #ifndef RUNTIME_BIN_FILE_SYSTEM_WATCHER_H_
 #define RUNTIME_BIN_FILE_SYSTEM_WATCHER_H_
 
-#if defined(DART_IO_DISABLED)
-#error "file_system_watcher.h can only be included on builds with IO enabled"
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,6 +12,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/namespace.h"
 
 namespace dart {
 namespace bin {
@@ -43,6 +40,7 @@ class FileSystemWatcher {
   static intptr_t Init();
   static void Close(intptr_t id);
   static intptr_t WatchPath(intptr_t id,
+                            Namespace* namespc,
                             const char* path,
                             int events,
                             bool recursive);

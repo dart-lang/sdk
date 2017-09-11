@@ -45,27 +45,27 @@ public class KytheEntry {
   public static final List<KytheEntry> EMPTY_LIST = Lists.newArrayList();
 
   /**
-   * The ticket of the source node (must not be empty).
+   * The ticket of the source node.
    */
   private final KytheVName source;
 
   /**
-   * An edge label (may be empty). The schema defines which labels are meaningful.
+   * An edge label. The schema defines which labels are meaningful.
    */
   private final String kind;
 
   /**
-   * The ticket of the target node (may be empty).
+   * The ticket of the target node.
    */
   private final KytheVName target;
 
   /**
-   * A fact label (must not be empty). The schema defines which fact labels are meaningful.
+   * A fact label. The schema defines which fact labels are meaningful.
    */
   private final String fact;
 
   /**
-   * The String value of the fact (may be empty).
+   * The String value of the fact.
    */
   private final int[] value;
 
@@ -96,10 +96,10 @@ public class KytheEntry {
 
   public static KytheEntry fromJson(JsonObject jsonObject) {
     KytheVName source = KytheVName.fromJson(jsonObject.get("source").getAsJsonObject());
-    String kind = jsonObject.get("kind").getAsString();
-    KytheVName target = KytheVName.fromJson(jsonObject.get("target").getAsJsonObject());
+    String kind = jsonObject.get("kind") == null ? null : jsonObject.get("kind").getAsString();
+    KytheVName target = jsonObject.get("target") == null ? null : KytheVName.fromJson(jsonObject.get("target").getAsJsonObject());
     String fact = jsonObject.get("fact").getAsString();
-    int[] value = JsonUtilities.decodeIntArray(jsonObject.get("value").getAsJsonArray());
+    int[] value = jsonObject.get("value") == null ? null : JsonUtilities.decodeIntArray(jsonObject.get("value").getAsJsonArray());
     return new KytheEntry(source, kind, target, fact, value);
   }
 
@@ -116,35 +116,35 @@ public class KytheEntry {
   }
 
   /**
-   * A fact label (must not be empty). The schema defines which fact labels are meaningful.
+   * A fact label. The schema defines which fact labels are meaningful.
    */
   public String getFact() {
     return fact;
   }
 
   /**
-   * An edge label (may be empty). The schema defines which labels are meaningful.
+   * An edge label. The schema defines which labels are meaningful.
    */
   public String getKind() {
     return kind;
   }
 
   /**
-   * The ticket of the source node (must not be empty).
+   * The ticket of the source node.
    */
   public KytheVName getSource() {
     return source;
   }
 
   /**
-   * The ticket of the target node (may be empty).
+   * The ticket of the target node.
    */
   public KytheVName getTarget() {
     return target;
   }
 
   /**
-   * The String value of the fact (may be empty).
+   * The String value of the fact.
    */
   public int[] getValue() {
     return value;
@@ -164,14 +164,20 @@ public class KytheEntry {
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     jsonObject.add("source", source.toJson());
-    jsonObject.addProperty("kind", kind);
-    jsonObject.add("target", target.toJson());
-    jsonObject.addProperty("fact", fact);
-    JsonArray jsonArrayValue = new JsonArray();
-    for (int elt : value) {
-      jsonArrayValue.add(new JsonPrimitive(elt));
+    if (kind != null) {
+      jsonObject.addProperty("kind", kind);
     }
-    jsonObject.add("value", jsonArrayValue);
+    if (target != null) {
+      jsonObject.add("target", target.toJson());
+    }
+    jsonObject.addProperty("fact", fact);
+    if (value != null) {
+      JsonArray jsonArrayValue = new JsonArray();
+      for (int elt : value) {
+        jsonArrayValue.add(new JsonPrimitive(elt));
+      }
+      jsonObject.add("value", jsonArrayValue);
+    }
     return jsonObject;
   }
 

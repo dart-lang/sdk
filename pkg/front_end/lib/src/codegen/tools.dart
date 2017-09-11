@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart';
@@ -17,7 +18,7 @@ typedef Map<String, FileContentsComputer> DirectoryContentsComputer(
  * Type of functions used to compute the contents of a generated file.
  * [pkgPath] is the path to the current package.
  */
-typedef String FileContentsComputer(String pkgPath);
+typedef Future<String> FileContentsComputer(String pkgPath);
 
 /**
  * Abstract base class representing behaviors common to generated files and
@@ -28,13 +29,13 @@ abstract class GeneratedContent {
    * Check whether the [output] has the correct contents, and return true if it
    * does.  [pkgPath] is the path to the current package.
    */
-  bool check(String pkgPath);
+  Future<bool> check(String pkgPath);
 
   /**
    * Replace the [output] with the correct contents.  [pkgPath] is the path to
    * the current package.
    */
-  void generate(String pkgPath);
+  Future<Null> generate(String pkgPath);
 
   /**
    * Get a [FileSystemEntity] representing the output file or directory.
@@ -53,11 +54,12 @@ abstract class GeneratedContent {
    * To avoid mistakes when run on Windows, [generatorRelPath] always uses
    * POSIX directory separators.
    */
-  static void checkAll(String pkgPath, String generatorRelPath,
-      Iterable<GeneratedContent> targets) {
+  static Future<Null> checkAll(String pkgPath, String generatorRelPath,
+      Iterable<GeneratedContent> targets) async {
     bool generateNeeded = false;
     for (GeneratedContent target in targets) {
-      if (!target.check(pkgPath)) {
+      bool ok = await target.check(pkgPath);
+      if (!ok) {
         print(
             '${target.output(pkgPath).absolute} does not have expected contents.');
         generateNeeded = true;
@@ -83,10 +85,11 @@ abstract class GeneratedContent {
    * Regenerate all of the [targets].  [pkgPath] is the path to the current
    * package.
    */
-  static void generateAll(String pkgPath, Iterable<GeneratedContent> targets) {
+  static Future<Null> generateAll(
+      String pkgPath, Iterable<GeneratedContent> targets) async {
     print("Generating...");
     for (GeneratedContent target in targets) {
-      target.generate(pkgPath);
+      await target.generate(pkgPath);
     }
   }
 }
@@ -109,13 +112,13 @@ class GeneratedDirectory extends GeneratedContent {
   GeneratedDirectory(this.outputDirPath, this.directoryContentsComputer);
 
   @override
-  bool check(String pkgPath) {
+  Future<bool> check(String pkgPath) async {
     Directory outputDirectory = output(pkgPath);
     Map<String, FileContentsComputer> map = directoryContentsComputer(pkgPath);
     try {
       for (String file in map.keys) {
         FileContentsComputer fileContentsComputer = map[file];
-        String expectedContents = fileContentsComputer(pkgPath);
+        String expectedContents = await fileContentsComputer(pkgPath);
         File outputFile = new File(posix.join(outputDirectory.path, file));
         String actualContents = outputFile.readAsStringSync();
         // Normalize Windows line endings to Unix line endings so that the
@@ -149,7 +152,7 @@ class GeneratedDirectory extends GeneratedContent {
   }
 
   @override
-  void generate(String pkgPath) {
+  Future<Null> generate(String pkgPath) async {
     Directory outputDirectory = output(pkgPath);
     try {
       // delete the contents of the directory (and the directory itself)
@@ -163,11 +166,13 @@ class GeneratedDirectory extends GeneratedContent {
 
     // generate all of the files in the directory
     Map<String, FileContentsComputer> map = directoryContentsComputer(pkgPath);
-    map.forEach((String file, FileContentsComputer fileContentsComputer) {
+    for (String file in map.keys) {
+      FileContentsComputer fileContentsComputer = map[file];
       File outputFile = new File(posix.join(outputDirectory.path, file));
       print('  ${outputFile.path}');
-      outputFile.writeAsStringSync(fileContentsComputer(pkgPath));
-    });
+      String contents = await fileContentsComputer(pkgPath);
+      outputFile.writeAsStringSync(contents);
+    }
   }
 
   @override
@@ -197,9 +202,9 @@ class GeneratedFile extends GeneratedContent {
   bool get isDartFile => outputPath.endsWith('.dart');
 
   @override
-  bool check(String pkgPath) {
+  Future<bool> check(String pkgPath) async {
     File outputFile = output(pkgPath);
-    String expectedContents = computeContents(pkgPath);
+    String expectedContents = await computeContents(pkgPath);
     if (isDartFile) {
       expectedContents = DartFormat.formatText(expectedContents);
     }
@@ -218,10 +223,11 @@ class GeneratedFile extends GeneratedContent {
   }
 
   @override
-  void generate(String pkgPath) {
+  Future<Null> generate(String pkgPath) async {
     File outputFile = output(pkgPath);
     print('  ${outputFile.path}');
-    outputFile.writeAsStringSync(computeContents(pkgPath));
+    String contents = await computeContents(pkgPath);
+    outputFile.writeAsStringSync(contents);
     if (isDartFile) {
       DartFormat.formatFile(outputFile);
     }

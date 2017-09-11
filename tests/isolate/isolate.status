@@ -52,6 +52,7 @@ message3_test/constMap: RuntimeError  # Issue 21817
 message3_test/constInstance: RuntimeError # Issue 21817
 browser/issue_12474_test: CompileTimeError # Issue 22529
 enum_const_test/02: RuntimeError # Issue 21817
+non_fatal_exception_in_timer_callback_test: Skip # Issue 23876
 
 [ $compiler == dart2js && $runtime != d8 ]
 error_exit_at_spawn_test: Skip # Issue 23876
@@ -213,3 +214,13 @@ isolate_import_test/01: Skip # Flutter Issue 9114
 deferred_in_isolate2_test: Skip # Deferred loading kernel issue 28335.
 deferred_in_isolate_test: Skip # Deferred loading kernel issue 28335.
 issue_21398_parent_isolate2_test/none: CompileTimeError # Deferred loading kernel issue 28335.
+
+[ $compiler == dartkp ]
+message3_test/byteBuffer: Crash
+message3_test/constInstance: Crash
+message3_test/constList: Crash
+message3_test/constList_identical: Crash
+message3_test/constMap: Crash
+message3_test/fun: Crash
+message3_test/none: Crash
+typed_message_test: Crash

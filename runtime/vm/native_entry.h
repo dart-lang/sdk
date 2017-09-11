@@ -8,7 +8,7 @@
 #include "platform/memory_sanitizer.h"
 
 #include "vm/allocation.h"
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/exceptions.h"
 #include "vm/log.h"
 #include "vm/native_arguments.h"
@@ -53,7 +53,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 #ifdef DEBUG
 #define SET_NATIVE_RETVAL(args, value)                                         \
   RawObject* retval = value;                                                   \
-  ASSERT(retval->IsDartInstance() || retval->IsTypeArguments());               \
+  ASSERT(retval->IsDartInstance());                                            \
   arguments->SetReturnUnsafe(retval);
 #else
 #define SET_NATIVE_RETVAL(arguments, value) arguments->SetReturnUnsafe(value);

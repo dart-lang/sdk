@@ -8,8 +8,7 @@ import '../common/names.dart' show Names;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../kernel/elements.dart';
-import '../kernel/element_map_impl.dart';
+import '../kernel/indexed.dart';
 import 'closure.dart' show KernelClosureClass;
 
 /// Map from 'frontend' to 'backend' elements.
@@ -91,67 +90,52 @@ abstract class JsToFrontendMapBase extends JsToFrontendMap {
 
 // TODO(johnniwinther): Merge this with [JsKernelToElementMap].
 class JsElementCreatorMixin {
-  IndexedLibrary createLibrary(
-      int libraryIndex, String name, Uri canonicalUri) {
-    return new JLibrary(libraryIndex, name, canonicalUri);
+  IndexedLibrary createLibrary(String name, Uri canonicalUri) {
+    return new JLibrary(name, canonicalUri);
   }
 
-  IndexedClass createClass(LibraryEntity library, int classIndex, String name,
+  IndexedClass createClass(LibraryEntity library, String name,
       {bool isAbstract}) {
-    return new JClass(library, classIndex, name, isAbstract: isAbstract);
+    return new JClass(library, name, isAbstract: isAbstract);
   }
 
-  IndexedTypedef createTypedef(
-      LibraryEntity library, int typedefIndex, String name) {
-    return new JTypedef(library, typedefIndex, name);
+  IndexedTypedef createTypedef(LibraryEntity library, String name) {
+    return new JTypedef(library, name);
   }
 
   TypeVariableEntity createTypeVariable(
-      int typeVariableIndex, Entity typeDeclaration, String name, int index) {
-    return new JTypeVariable(typeVariableIndex, typeDeclaration, name, index);
+      Entity typeDeclaration, String name, int index) {
+    return new JTypeVariable(typeDeclaration, name, index);
   }
 
-  IndexedConstructor createGenerativeConstructor(
-      int memberIndex,
-      ClassEntity enclosingClass,
-      Name name,
-      ParameterStructure parameterStructure,
-      {bool isExternal,
-      bool isConst}) {
-    return new JGenerativeConstructor(
-        memberIndex, enclosingClass, name, parameterStructure,
+  IndexedConstructor createGenerativeConstructor(ClassEntity enclosingClass,
+      Name name, ParameterStructure parameterStructure,
+      {bool isExternal, bool isConst}) {
+    return new JGenerativeConstructor(enclosingClass, name, parameterStructure,
         isExternal: isExternal, isConst: isConst);
   }
 
-  IndexedConstructor createFactoryConstructor(
-      int memberIndex,
-      ClassEntity enclosingClass,
-      Name name,
-      ParameterStructure parameterStructure,
-      {bool isExternal,
-      bool isConst,
-      bool isFromEnvironmentConstructor}) {
-    return new JFactoryConstructor(
-        memberIndex, enclosingClass, name, parameterStructure,
+  IndexedConstructor createFactoryConstructor(ClassEntity enclosingClass,
+      Name name, ParameterStructure parameterStructure,
+      {bool isExternal, bool isConst, bool isFromEnvironmentConstructor}) {
+    return new JFactoryConstructor(enclosingClass, name, parameterStructure,
         isExternal: isExternal,
         isConst: isConst,
         isFromEnvironmentConstructor: isFromEnvironmentConstructor);
   }
 
-  ConstructorBodyEntity createConstructorBody(
-      int memberIndex, ConstructorEntity constructor) {
-    return new JConstructorBody(memberIndex, constructor);
+  JConstructorBody createConstructorBody(ConstructorEntity constructor) {
+    return new JConstructorBody(constructor);
   }
 
-  IndexedFunction createGetter(int memberIndex, LibraryEntity library,
+  IndexedFunction createGetter(LibraryEntity library,
       ClassEntity enclosingClass, Name name, AsyncMarker asyncMarker,
       {bool isStatic, bool isExternal, bool isAbstract}) {
-    return new JGetter(memberIndex, library, enclosingClass, name, asyncMarker,
+    return new JGetter(library, enclosingClass, name, asyncMarker,
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 
   IndexedFunction createMethod(
-      int memberIndex,
       LibraryEntity library,
       ClassEntity enclosingClass,
       Name name,
@@ -160,33 +144,31 @@ class JsElementCreatorMixin {
       {bool isStatic,
       bool isExternal,
       bool isAbstract}) {
-    return new JMethod(memberIndex, library, enclosingClass, name,
-        parameterStructure, asyncMarker,
+    return new JMethod(
+        library, enclosingClass, name, parameterStructure, asyncMarker,
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 
-  IndexedFunction createSetter(int memberIndex, LibraryEntity library,
-      ClassEntity enclosingClass, Name name,
+  IndexedFunction createSetter(
+      LibraryEntity library, ClassEntity enclosingClass, Name name,
       {bool isStatic, bool isExternal, bool isAbstract}) {
-    return new JSetter(memberIndex, library, enclosingClass, name,
+    return new JSetter(library, enclosingClass, name,
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 
-  IndexedField createField(int memberIndex, LibraryEntity library,
-      ClassEntity enclosingClass, Name name,
+  IndexedField createField(
+      LibraryEntity library, ClassEntity enclosingClass, Name name,
       {bool isStatic, bool isAssignable, bool isConst}) {
-    return new JField(memberIndex, library, enclosingClass, name,
+    return new JField(library, enclosingClass, name,
         isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
   }
 
   LibraryEntity convertLibrary(IndexedLibrary library) {
-    return createLibrary(
-        library.libraryIndex, library.name, library.canonicalUri);
+    return createLibrary(library.name, library.canonicalUri);
   }
 
   ClassEntity convertClass(LibraryEntity library, IndexedClass cls) {
-    return createClass(library, cls.classIndex, cls.name,
-        isAbstract: cls.isAbstract);
+    return createClass(library, cls.name, isAbstract: cls.isAbstract);
   }
 
   MemberEntity convertMember(
@@ -195,7 +177,7 @@ class JsElementCreatorMixin {
         isSetter: member.memberName.isSetter);
     if (member.isField) {
       IndexedField field = member;
-      return createField(member.memberIndex, library, cls, memberName,
+      return createField(library, cls, memberName,
           isStatic: field.isStatic,
           isAssignable: field.isAssignable,
           isConst: field.isConst);
@@ -204,33 +186,32 @@ class JsElementCreatorMixin {
       if (constructor.isFactoryConstructor) {
         // TODO(redemption): This should be a JFunction.
         return createFactoryConstructor(
-            member.memberIndex, cls, memberName, constructor.parameterStructure,
+            cls, memberName, constructor.parameterStructure,
             isExternal: constructor.isExternal,
             isConst: constructor.isConst,
             isFromEnvironmentConstructor:
                 constructor.isFromEnvironmentConstructor);
       } else {
         return createGenerativeConstructor(
-            member.memberIndex, cls, memberName, constructor.parameterStructure,
+            cls, memberName, constructor.parameterStructure,
             isExternal: constructor.isExternal, isConst: constructor.isConst);
       }
     } else if (member.isGetter) {
       IndexedFunction getter = member;
-      return createGetter(
-          member.memberIndex, library, cls, memberName, getter.asyncMarker,
+      return createGetter(library, cls, memberName, getter.asyncMarker,
           isStatic: getter.isStatic,
           isExternal: getter.isExternal,
           isAbstract: getter.isAbstract);
     } else if (member.isSetter) {
       IndexedFunction setter = member;
-      return createSetter(member.memberIndex, library, cls, memberName,
+      return createSetter(library, cls, memberName,
           isStatic: setter.isStatic,
           isExternal: setter.isExternal,
           isAbstract: setter.isAbstract);
     } else {
       IndexedFunction function = member;
-      return createMethod(member.memberIndex, library, cls, memberName,
-          function.parameterStructure, function.asyncMarker,
+      return createMethod(library, cls, memberName, function.parameterStructure,
+          function.asyncMarker,
           isStatic: function.isStatic,
           isExternal: function.isExternal,
           isAbstract: function.isAbstract);
@@ -297,27 +278,22 @@ class TypeConverter implements DartTypeVisitor<DartType, EntityConverter> {
 
 const String jsElementPrefix = 'j:';
 
-class JLibrary implements LibraryEntity, IndexedLibrary {
-  /// Library index used for fast lookup in [JsToFrontendMapImpl].
-  final int libraryIndex;
+class JLibrary extends IndexedLibrary {
   final String name;
   final Uri canonicalUri;
 
-  JLibrary(this.libraryIndex, this.name, this.canonicalUri);
+  JLibrary(this.name, this.canonicalUri);
 
   String toString() => '${jsElementPrefix}library($name)';
 }
 
-class JClass implements ClassEntity, IndexedClass {
+class JClass extends IndexedClass {
   final JLibrary library;
-
-  /// Class index used for fast lookup in [JsToFrontendMapImpl].
-  final int classIndex;
 
   final String name;
   final bool isAbstract;
 
-  JClass(this.library, this.classIndex, this.name, {this.isAbstract});
+  JClass(this.library, this.name, {this.isAbstract});
 
   @override
   bool get isClosure => false;
@@ -325,29 +301,23 @@ class JClass implements ClassEntity, IndexedClass {
   String toString() => '${jsElementPrefix}class($name)';
 }
 
-class JTypedef implements TypedefEntity, IndexedTypedef {
+class JTypedef extends IndexedTypedef {
   final JLibrary library;
-
-  /// Typedef index used for fast lookup in [JsToFrontendMapImpl].
-  final int typedefIndex;
 
   final String name;
 
-  JTypedef(this.library, this.typedefIndex, this.name);
+  JTypedef(this.library, this.name);
 
   String toString() => '${jsElementPrefix}typedef($name)';
 }
 
-abstract class JMember implements MemberEntity, IndexedMember {
-  /// Member index used for fast lookup in [JsToFrontendMapImpl].
-  final int memberIndex;
+abstract class JMember extends IndexedMember {
   final JLibrary library;
   final JClass enclosingClass;
   final Name _name;
   final bool _isStatic;
 
-  JMember(this.memberIndex, this.library, this.enclosingClass, this._name,
-      {bool isStatic: false})
+  JMember(this.library, this.enclosingClass, this._name, {bool isStatic: false})
       : _isStatic = isStatic;
 
   String get name => _name.text;
@@ -399,20 +369,21 @@ abstract class JFunction extends JMember
   final bool isExternal;
   final AsyncMarker asyncMarker;
 
-  JFunction(int memberIndex, JLibrary library, JClass enclosingClass, Name name,
+  JFunction(JLibrary library, JClass enclosingClass, Name name,
       this.parameterStructure, this.asyncMarker,
       {bool isStatic: false, this.isExternal: false})
-      : super(memberIndex, library, enclosingClass, name, isStatic: isStatic);
+      : super(library, enclosingClass, name, isStatic: isStatic);
 }
 
 abstract class JConstructor extends JFunction
     implements ConstructorEntity, IndexedConstructor {
   final bool isConst;
 
-  JConstructor(int memberIndex, JClass enclosingClass, Name name,
-      ParameterStructure parameterStructure, {bool isExternal, this.isConst})
-      : super(memberIndex, enclosingClass.library, enclosingClass, name,
-            parameterStructure, AsyncMarker.SYNC,
+  JConstructor(
+      JClass enclosingClass, Name name, ParameterStructure parameterStructure,
+      {bool isExternal, this.isConst})
+      : super(enclosingClass.library, enclosingClass, name, parameterStructure,
+            AsyncMarker.SYNC,
             isExternal: isExternal);
 
   @override
@@ -434,9 +405,10 @@ abstract class JConstructor extends JFunction
 }
 
 class JGenerativeConstructor extends JConstructor {
-  JGenerativeConstructor(int constructorIndex, JClass enclosingClass, Name name,
-      ParameterStructure parameterStructure, {bool isExternal, bool isConst})
-      : super(constructorIndex, enclosingClass, name, parameterStructure,
+  JGenerativeConstructor(
+      JClass enclosingClass, Name name, ParameterStructure parameterStructure,
+      {bool isExternal, bool isConst})
+      : super(enclosingClass, name, parameterStructure,
             isExternal: isExternal, isConst: isConst);
 
   @override
@@ -450,10 +422,10 @@ class JFactoryConstructor extends JConstructor {
   @override
   final bool isFromEnvironmentConstructor;
 
-  JFactoryConstructor(int memberIndex, JClass enclosingClass, Name name,
-      ParameterStructure parameterStructure,
+  JFactoryConstructor(
+      JClass enclosingClass, Name name, ParameterStructure parameterStructure,
       {bool isExternal, bool isConst, this.isFromEnvironmentConstructor})
-      : super(memberIndex, enclosingClass, name, parameterStructure,
+      : super(enclosingClass, name, parameterStructure,
             isExternal: isExternal, isConst: isConst);
 
   @override
@@ -466,9 +438,8 @@ class JFactoryConstructor extends JConstructor {
 class JConstructorBody extends JFunction implements ConstructorBodyEntity {
   final ConstructorEntity constructor;
 
-  JConstructorBody(int memberIndex, this.constructor)
+  JConstructorBody(this.constructor)
       : super(
-            memberIndex,
             constructor.library,
             constructor.enclosingClass,
             constructor.memberName,
@@ -483,11 +454,10 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
 class JMethod extends JFunction {
   final bool isAbstract;
 
-  JMethod(int memberIndex, JLibrary library, JClass enclosingClass, Name name,
+  JMethod(JLibrary library, JClass enclosingClass, Name name,
       ParameterStructure parameterStructure, AsyncMarker asyncMarker,
       {bool isStatic, bool isExternal, this.isAbstract})
-      : super(memberIndex, library, enclosingClass, name, parameterStructure,
-            asyncMarker,
+      : super(library, enclosingClass, name, parameterStructure, asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
 
   @override
@@ -499,11 +469,11 @@ class JMethod extends JFunction {
 class JGetter extends JFunction {
   final bool isAbstract;
 
-  JGetter(int memberIndex, JLibrary library, JClass enclosingClass, Name name,
+  JGetter(JLibrary library, JClass enclosingClass, Name name,
       AsyncMarker asyncMarker,
       {bool isStatic, bool isExternal, this.isAbstract})
-      : super(memberIndex, library, enclosingClass, name,
-            const ParameterStructure.getter(), asyncMarker,
+      : super(library, enclosingClass, name, const ParameterStructure.getter(),
+            asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
 
   @override
@@ -515,10 +485,10 @@ class JGetter extends JFunction {
 class JSetter extends JFunction {
   final bool isAbstract;
 
-  JSetter(int memberIndex, JLibrary library, JClass enclosingClass, Name name,
+  JSetter(JLibrary library, JClass enclosingClass, Name name,
       {bool isStatic, bool isExternal, this.isAbstract})
-      : super(memberIndex, library, enclosingClass, name,
-            const ParameterStructure.setter(), AsyncMarker.SYNC,
+      : super(library, enclosingClass, name, const ParameterStructure.setter(),
+            AsyncMarker.SYNC,
             isStatic: isStatic, isExternal: isExternal);
 
   @override
@@ -534,9 +504,9 @@ class JField extends JMember implements FieldEntity, IndexedField {
   final bool isAssignable;
   final bool isConst;
 
-  JField(int memberIndex, JLibrary library, JClass enclosingClass, Name name,
+  JField(JLibrary library, JClass enclosingClass, Name name,
       {bool isStatic, this.isAssignable, this.isConst})
-      : super(memberIndex, library, enclosingClass, name, isStatic: isStatic);
+      : super(library, enclosingClass, name, isStatic: isStatic);
 
   @override
   bool get isField => true;
@@ -545,10 +515,9 @@ class JField extends JMember implements FieldEntity, IndexedField {
 }
 
 class JClosureCallMethod extends JMethod {
-  JClosureCallMethod(int memberIndex, KernelClosureClass containingClass,
+  JClosureCallMethod(KernelClosureClass containingClass,
       ParameterStructure parameterStructure, AsyncMarker asyncMarker)
       : super(
-            memberIndex,
             containingClass.closureClassEntity.library,
             containingClass.closureClassEntity,
             Names.call,
@@ -561,14 +530,12 @@ class JClosureCallMethod extends JMethod {
   String get _kind => 'closure_call';
 }
 
-class JTypeVariable implements TypeVariableEntity, IndexedTypeVariable {
-  final int typeVariableIndex;
+class JTypeVariable extends IndexedTypeVariable {
   final Entity typeDeclaration;
   final String name;
   final int index;
 
-  JTypeVariable(
-      this.typeVariableIndex, this.typeDeclaration, this.name, this.index);
+  JTypeVariable(this.typeDeclaration, this.name, this.index);
 
   String toString() =>
       '${jsElementPrefix}type_variable(${typeDeclaration.name}.$name)';

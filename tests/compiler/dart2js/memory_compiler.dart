@@ -14,6 +14,7 @@ import 'package:compiler/compiler_new.dart'
         CompilerOutput,
         Diagnostic,
         PackagesDiscoveryProvider;
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show Message;
 import 'package:compiler/src/elements/entities.dart'
     show LibraryEntity, MemberEntity;
@@ -84,11 +85,7 @@ Future<CompilationResult> runCompiler(
     PackagesDiscoveryProvider packagesDiscoveryProvider,
     void beforeRun(CompilerImpl compiler)}) async {
   if (entryPoint == null) {
-    if (options.contains('--read-dill')) {
-      entryPoint = Uri.parse('memory:main.dill');
-    } else {
-      entryPoint = Uri.parse('memory:main.dart');
-    }
+    entryPoint = Uri.parse('memory:main.dart');
   }
   CompilerImpl compiler = compilerFor(
       entryPoint: entryPoint,
@@ -122,7 +119,16 @@ CompilerImpl compilerFor(
     Uri packageRoot,
     Uri packageConfig,
     PackagesDiscoveryProvider packagesDiscoveryProvider}) {
-  Uri libraryRoot = Uri.base.resolve('sdk/');
+  Uri libraryRoot;
+  if (options.contains(Flags.useKernel)) {
+    String buildDir = Platform.isMacOS ? 'xcodebuild' : 'out';
+    String configuration =
+        Platform.environment['DART_CONFIGURATION'] ?? 'ReleaseX64';
+    libraryRoot = Uri.base.resolve('$buildDir/$configuration/dart-sdk/');
+  } else {
+    libraryRoot = Uri.base.resolve('sdk/');
+  }
+
   if (packageRoot == null &&
       packageConfig == null &&
       packagesDiscoveryProvider == null) {
@@ -255,4 +261,10 @@ DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,
     handler = (Uri uri, int begin, int end, String message, Diagnostic kind) {};
   }
   return handler;
+}
+
+main() {
+  runCompiler(
+      memorySourceFiles: {'main.dart': 'main() {}'},
+      options: [Flags.useKernel]);
 }

@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_X64) && !defined(DART_PRECOMPILED_RUNTIME)
 
-#include "vm/assembler.h"
-#include "vm/compiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
-#include "vm/flow_graph_compiler.h"
 #include "vm/heap.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
@@ -95,12 +95,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ LeaveStubFrame();
   __ ret();
 }
-
-// Print the stop message.
-DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {
-  OS::Print("Stop message: %s\n", message);
-}
-END_LEAF_RUNTIME_ENTRY
 
 // Input parameters:
 //   RSP : points to return address.
@@ -1383,7 +1377,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ leaq(R13, FieldAddress(R13, Array::data_offset()));
   // R13: points directly to the first ic data array element.
 
-  // Get argument descriptor into RCX.
+  // Get argument count as Smi into RCX.
   __ movq(RCX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   // Load first argument into R9.
   __ movq(R9, Address(RSP, RCX, TIMES_4, 0));
@@ -2049,7 +2043,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ Bind(&cid_loaded);
   __ movq(R9, FieldAddress(RBX, MegamorphicCache::mask_offset()));
   __ movq(RDI, FieldAddress(RBX, MegamorphicCache::buckets_offset()));
-  // R9: mask.
+  // R9: mask as a smi.
   // RDI: cache buckets array.
 
   // Tag cid as a smi.
@@ -2086,7 +2080,8 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 
   // Probe failed, check if it is a miss.
   __ Bind(&probe_failed);
-  __ cmpq(FieldAddress(RDI, RCX, TIMES_8, base), Immediate(kIllegalCid));
+  __ cmpq(FieldAddress(RDI, RCX, TIMES_8, base),
+          Immediate(Smi::RawValue(kIllegalCid)));
   __ j(ZERO, &load_target, Assembler::kNearJump);
 
   // Try next entry in the table.
@@ -2266,4 +2261,4 @@ void StubCode::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
 
 }  // namespace dart
 
-#endif  // defined TARGET_ARCH_X64
+#endif  // defined(TARGET_ARCH_X64) && !defined(DART_PRECOMPILED_RUNTIME)

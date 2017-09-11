@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "platform/globals.h"
 #if defined(HOST_OS_FUCHSIA)
 
@@ -19,6 +17,7 @@
 #include <magenta/syscalls/object.h>
 #include <magenta/types.h>
 #include <mxio/io.h>
+#include <mxio/namespace.h>
 #include <mxio/private.h>
 #include <mxio/util.h>
 #include <poll.h>
@@ -32,8 +31,10 @@
 #include "bin/dartutils.h"
 #include "bin/eventhandler.h"
 #include "bin/fdutils.h"
+#include "bin/file.h"
 #include "bin/lockers.h"
 #include "bin/log.h"
+#include "bin/namespace.h"
 #include "platform/signal_blocker.h"
 #include "platform/utils.h"
 
@@ -511,7 +512,8 @@ bool Process::Kill(intptr_t id, int signal) {
 
 class ProcessStarter {
  public:
-  ProcessStarter(const char* path,
+  ProcessStarter(Namespace* namespc,
+                 const char* path,
                  char* arguments[],
                  intptr_t arguments_length,
                  const char* working_directory,
@@ -524,7 +526,8 @@ class ProcessStarter {
                  intptr_t* id,
                  intptr_t* exit_event,
                  char** os_error_message)
-      : path_(path),
+      : namespc_(namespc),
+        path_(path),
         working_directory_(working_directory),
         mode_(mode),
         in_(in),
@@ -659,13 +662,17 @@ class ProcessStarter {
     launchpad_create(MX_HANDLE_INVALID, program_arguments_[0], &lp);
     launchpad_set_args(lp, program_arguments_count_, program_arguments_);
     launchpad_set_environ(lp, program_environment_);
-    launchpad_clone(lp, LP_CLONE_MXIO_NAMESPACE);
-    launchpad_clone(lp, LP_CLONE_MXIO_CWD);
+    launchpad_clone(lp, LP_CLONE_MXIO_NAMESPACE | LP_CLONE_MXIO_CWD);
     launchpad_add_pipe(lp, &write_out_, 0);
     launchpad_add_pipe(lp, &read_in_, 1);
     launchpad_add_pipe(lp, &read_err_, 2);
     launchpad_add_vdso_vmo(lp);
-    launchpad_load_from_file(lp, path_);
+
+    NamespaceScope ns(namespc_, path_);
+    const int pathfd =
+        TEMP_FAILURE_RETRY(openat64(ns.fd(), ns.path(), O_RDONLY));
+    launchpad_load_from_fd(lp, pathfd);
+    VOID_TEMP_FAILURE_RETRY(close(pathfd));
 
     // If there were any errors, grab launchpad's error message and put it in
     // the os_error_message_ field.
@@ -691,6 +698,7 @@ class ProcessStarter {
   intptr_t program_arguments_count_;
   char** program_environment_;
 
+  Namespace* namespc_;
   const char* path_;
   const char* working_directory_;
   ProcessStartMode mode_;
@@ -705,7 +713,8 @@ class ProcessStarter {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ProcessStarter);
 };
 
-int Process::Start(const char* path,
+int Process::Start(Namespace* namespc,
+                   const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
                    const char* working_directory,
@@ -723,9 +732,9 @@ int Process::Start(const char* path,
         "Only ProcessStartMode.NORMAL is supported on this platform");
     return -1;
   }
-  ProcessStarter starter(path, arguments, arguments_length, working_directory,
-                         environment, environment_length, mode, in, out, err,
-                         id, exit_event, os_error_message);
+  ProcessStarter starter(namespc, path, arguments, arguments_length,
+                         working_directory, environment, environment_length,
+                         mode, in, out, err, id, exit_event, os_error_message);
   return starter.Start();
 }
 
@@ -740,5 +749,3 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {}
 }  // namespace dart
 
 #endif  // defined(HOST_OS_FUCHSIA)
-
-#endif  // !defined(DART_IO_DISABLED)

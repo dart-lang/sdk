@@ -86,10 +86,14 @@ def _CheckDartFormat(input_api, output_api):
           unformatted_files.append(filename)
 
   if unformatted_files:
+    lineSep = " \\\n"
+    if windows:
+      lineSep = " ^\n";
     return [output_api.PresubmitError(
         'File output does not match dartfmt.\n'
         'Fix these issues with:\n'
-        '%s -w \\\n%s' % (prebuilt_dartfmt, ' \\\n'.join(unformatted_files)))]
+        '%s -w%s%s' % (prebuilt_dartfmt, lineSep,
+            lineSep.join(unformatted_files)))]
 
   return []
 
@@ -98,7 +102,6 @@ def _CheckNewTests(input_api, output_api):
       #    Dart 1 tests                DDC tests
       # =================       ==========================
       ("tests/language/",       "tests/language_2/"),
-      ("tests/corelib/",        "tests/corelib_2/"),
       ("tests/lib/",            "tests/lib_2/"),
       ("tests/html/",           "tests/lib_2/html/"),
   ]

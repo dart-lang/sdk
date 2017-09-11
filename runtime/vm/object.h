@@ -9,6 +9,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/bitmap.h"
+#include "vm/compiler/method_recognizer.h"
 #include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
@@ -17,7 +18,6 @@
 #include "vm/heap.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
-#include "vm/method_recognizer.h"
 #include "vm/os.h"
 #include "vm/raw_object.h"
 #include "vm/report.h"
@@ -1582,223 +1582,6 @@ enum Genericity {
   kFunctions,     // Consider type params of current and parent functions.
 };
 
-// A TypeArguments is an array of AbstractType.
-class TypeArguments : public Object {
- public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
-  intptr_t Length() const;
-  RawAbstractType* TypeAt(intptr_t index) const;
-  static intptr_t type_at_offset(intptr_t index) {
-    return OFFSET_OF_RETURNED_VALUE(RawTypeArguments, types) +
-           index * kWordSize;
-  }
-  void SetTypeAt(intptr_t index, const AbstractType& value) const;
-
-  // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
-  RawString* Name() const { return SubvectorName(0, Length(), kInternalName); }
-
-  // The name of this type argument vector, e.g. "<T, dynamic, List<T>, int>".
-  // Names of internal classes are mapped to their public interfaces.
-  RawString* UserVisibleName() const {
-    return SubvectorName(0, Length(), kUserVisibleName);
-  }
-
-  // Check if the subvector of length 'len' starting at 'from_index' of this
-  // type argument vector consists solely of DynamicType.
-  bool IsRaw(intptr_t from_index, intptr_t len) const {
-    return IsDynamicTypes(false, from_index, len);
-  }
-
-  // Check if this type argument vector would consist solely of DynamicType if
-  // it was instantiated from both a raw (null) instantiator typearguments and
-  // a raw (null) function type arguments, i.e. consider each class type
-  // parameter and function type parameters as it would be first instantiated
-  // from a vector of dynamic types.
-  // Consider only a prefix of length 'len'.
-  bool IsRawWhenInstantiatedFromRaw(intptr_t len) const {
-    return IsDynamicTypes(true, 0, len);
-  }
-
-  // Check the subtype relationship, considering only a subvector of length
-  // 'len' starting at 'from_index'.
-  bool IsSubtypeOf(const TypeArguments& other,
-                   intptr_t from_index,
-                   intptr_t len,
-                   Error* bound_error,
-                   TrailPtr bound_trail,
-                   Heap::Space space) const {
-    return TypeTest(kIsSubtypeOf, other, from_index, len, bound_error,
-                    bound_trail, space);
-  }
-
-  // Check the 'more specific' relationship, considering only a subvector of
-  // length 'len' starting at 'from_index'.
-  bool IsMoreSpecificThan(const TypeArguments& other,
-                          intptr_t from_index,
-                          intptr_t len,
-                          Error* bound_error,
-                          TrailPtr bound_trail,
-                          Heap::Space space) const {
-    return TypeTest(kIsMoreSpecificThan, other, from_index, len, bound_error,
-                    bound_trail, space);
-  }
-
-  // Check if the vectors are equal (they may be null).
-  bool Equals(const TypeArguments& other) const {
-    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length());
-  }
-
-  bool IsEquivalent(const TypeArguments& other, TrailPtr trail = NULL) const {
-    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(), trail);
-  }
-  bool IsSubvectorEquivalent(const TypeArguments& other,
-                             intptr_t from_index,
-                             intptr_t len,
-                             TrailPtr trail = NULL) const;
-
-  // Check if the vector is instantiated (it must not be null).
-  bool IsInstantiated(Genericity genericity = kAny,
-                      intptr_t num_free_fun_type_params = kMaxInt32,
-                      TrailPtr trail = NULL) const {
-    return IsSubvectorInstantiated(0, Length(), genericity,
-                                   num_free_fun_type_params, trail);
-  }
-  bool IsSubvectorInstantiated(intptr_t from_index,
-                               intptr_t len,
-                               Genericity genericity = kAny,
-                               intptr_t num_free_fun_type_params = kMaxInt32,
-                               TrailPtr trail = NULL) const;
-  bool IsUninstantiatedIdentity() const;
-  bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
-
-  // Return true if all types of this vector are respectively, resolved,
-  // finalized, or bounded.
-  bool IsResolved() const;
-  bool IsFinalized() const;
-  bool IsBounded() const;
-
-  // Return true if this vector contains a recursive type argument.
-  bool IsRecursive() const;
-
-  // Set the scope of this type argument vector to the given function.
-  void SetScopeFunction(const Function& function) const;
-
-  // Clone this type argument vector and clone all unfinalized type arguments.
-  // Finalized type arguments are shared.
-  RawTypeArguments* CloneUnfinalized() const;
-
-  // Clone this type argument vector and clone all uninstantiated type
-  // arguments, changing the class owner of type parameters.
-  // Instantiated type arguments are shared.
-  RawTypeArguments* CloneUninstantiated(const Class& new_owner,
-                                        TrailPtr trail = NULL) const;
-
-  // Canonicalize only if instantiated, otherwise returns 'this'.
-  RawTypeArguments* Canonicalize(TrailPtr trail = NULL) const;
-
-  // Returns a formatted list of occurring type arguments with their URI.
-  RawString* EnumerateURIs() const;
-
-  // Return 'this' if this type argument vector is instantiated, i.e. if it does
-  // not refer to type parameters. Otherwise, return a new type argument vector
-  // where each reference to a type parameter is replaced with the corresponding
-  // type from the various type argument vectors (class instantiator, function,
-  // or parent functions via the current context).
-  // If bound_error is not NULL, it may be set to reflect a bound error.
-  RawTypeArguments* InstantiateFrom(
-      const TypeArguments& instantiator_type_arguments,
-      const TypeArguments& function_type_arguments,
-      Error* bound_error,
-      TrailPtr instantiation_trail,
-      TrailPtr bound_trail,
-      Heap::Space space) const;
-
-  // Runtime instantiation with canonicalization. Not to be used during type
-  // finalization at compile time.
-  RawTypeArguments* InstantiateAndCanonicalizeFrom(
-      const TypeArguments& instantiator_type_arguments,
-      const TypeArguments& function_type_arguments,
-      Error* bound_error) const;
-
-  // Return true if this type argument vector has cached instantiations.
-  bool HasInstantiations() const;
-
-  // Return the number of cached instantiations for this type argument vector.
-  intptr_t NumInstantiations() const;
-
-  static intptr_t instantiations_offset() {
-    return OFFSET_OF(RawTypeArguments, instantiations_);
-  }
-
-  static const intptr_t kBytesPerElement = kWordSize;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
-
-  static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawTypeArguments) ==
-           OFFSET_OF_RETURNED_VALUE(RawTypeArguments, types));
-    return 0;
-  }
-
-  static intptr_t InstanceSize(intptr_t len) {
-    // Ensure that the types() is not adding to the object size, which includes
-    // 3 fields: instantiations_, length_ and hash_.
-    ASSERT(sizeof(RawTypeArguments) ==
-           (sizeof(RawObject) + (kNumFields * kWordSize)));
-    ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(sizeof(RawTypeArguments) +
-                                 (len * kBytesPerElement));
-  }
-
-  intptr_t Hash() const;
-
-  static RawTypeArguments* New(intptr_t len, Heap::Space space = Heap::kOld);
-
- private:
-  intptr_t ComputeHash() const;
-  void SetHash(intptr_t value) const;
-
-  // Check if the subvector of length 'len' starting at 'from_index' of this
-  // type argument vector consists solely of DynamicType.
-  // If raw_instantiated is true, consider each class type parameter to be first
-  // instantiated from a vector of dynamic types.
-  bool IsDynamicTypes(bool raw_instantiated,
-                      intptr_t from_index,
-                      intptr_t len) const;
-
-  // Check the subtype or 'more specific' relationship, considering only a
-  // subvector of length 'len' starting at 'from_index'.
-  bool TypeTest(TypeTestKind test_kind,
-                const TypeArguments& other,
-                intptr_t from_index,
-                intptr_t len,
-                Error* bound_error,
-                TrailPtr bound_trail,
-                Heap::Space space) const;
-
-  // Return the internal or public name of a subvector of this type argument
-  // vector, e.g. "<T, dynamic, List<T>, int>".
-  RawString* SubvectorName(intptr_t from_index,
-                           intptr_t len,
-                           NameVisibility name_visibility) const;
-
-  RawArray* instantiations() const;
-  void set_instantiations(const Array& value) const;
-  RawAbstractType* const* TypeAddr(intptr_t index) const;
-  void SetLength(intptr_t value) const;
-  // Number of fields in the raw object=3 (instantiations_, length_ and hash_).
-  static const int kNumFields = 3;
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeArguments, Object);
-  friend class AbstractType;
-  friend class Class;
-  friend class ClearTypeHashVisitor;
-  friend class Object;
-};
-
 class PatchClass : public Object {
  public:
   RawClass* patched_class() const { return raw_ptr()->patched_class_; }
@@ -1902,6 +1685,10 @@ class ICData : public Object {
   intptr_t NumArgsTested() const;
 
   intptr_t TypeArgsLen() const;
+
+  intptr_t CountWithTypeArgs() const;
+
+  intptr_t CountWithoutTypeArgs() const;
 
   intptr_t deopt_id() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -4047,10 +3834,16 @@ class Library : public Object {
 
   static RawLibrary* New();
 
+  // These methods are only used by the Precompiler to obfuscate
+  // the name and url.
+  void set_name(const String& name) const;
+  void set_url(const String& url) const;
+
   void set_num_imports(intptr_t value) const;
   bool HasExports() const;
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
   RawGrowableObjectArray* metadata() const { return raw_ptr()->metadata_; }
+  void set_metadata(const GrowableObjectArray& value) const;
   RawArray* dictionary() const { return raw_ptr()->dictionary_; }
   void InitClassDictionary() const;
 
@@ -4128,6 +3921,7 @@ class Namespace : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Namespace, Object);
   friend class Class;
+  friend class Precompiler;
 };
 
 // ObjectPool contains constants, immediates and addresses embedded in code
@@ -4963,12 +4757,14 @@ class Code : public Object {
     ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(sizeof(RawCode) + (len * kBytesPerElement));
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static RawCode* FinalizeCode(const Function& function,
                                Assembler* assembler,
                                bool optimized = false);
   static RawCode* FinalizeCode(const char* name,
                                Assembler* assembler,
                                bool optimized);
+#endif
   static RawCode* LookupCode(uword pc);
   static RawCode* LookupCodeInVmIsolate(uword pc);
   static RawCode* FindCode(uword pc, int64_t timestamp);
@@ -5660,6 +5456,7 @@ class Instance : public Object {
   friend class InstanceDeserializationCluster;
   friend class ClassDeserializationCluster;  // vtable
   friend class InstanceMorpher;
+  friend class Obfuscator;  // RawGetFieldAtOffset, RawSetFieldAtOffset
 };
 
 class LibraryPrefix : public Instance {
@@ -5716,6 +5513,223 @@ class LibraryPrefix : public Instance {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix, Instance);
   friend class Class;
+};
+
+// A TypeArguments is an array of AbstractType.
+class TypeArguments : public Instance {
+ public:
+  // We use 30 bits for the hash code so hashes in a snapshot taken on a
+  // 64-bit architecture stay in Smi range when loaded on a 32-bit
+  // architecture.
+  static const intptr_t kHashBits = 30;
+
+  intptr_t Length() const;
+  RawAbstractType* TypeAt(intptr_t index) const;
+  static intptr_t type_at_offset(intptr_t index) {
+    return OFFSET_OF_RETURNED_VALUE(RawTypeArguments, types) +
+           index * kWordSize;
+  }
+  void SetTypeAt(intptr_t index, const AbstractType& value) const;
+
+  // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
+  RawString* Name() const { return SubvectorName(0, Length(), kInternalName); }
+
+  // The name of this type argument vector, e.g. "<T, dynamic, List<T>, int>".
+  // Names of internal classes are mapped to their public interfaces.
+  RawString* UserVisibleName() const {
+    return SubvectorName(0, Length(), kUserVisibleName);
+  }
+
+  // Check if the subvector of length 'len' starting at 'from_index' of this
+  // type argument vector consists solely of DynamicType.
+  bool IsRaw(intptr_t from_index, intptr_t len) const {
+    return IsDynamicTypes(false, from_index, len);
+  }
+
+  // Check if this type argument vector would consist solely of DynamicType if
+  // it was instantiated from both a raw (null) instantiator typearguments and
+  // a raw (null) function type arguments, i.e. consider each class type
+  // parameter and function type parameters as it would be first instantiated
+  // from a vector of dynamic types.
+  // Consider only a prefix of length 'len'.
+  bool IsRawWhenInstantiatedFromRaw(intptr_t len) const {
+    return IsDynamicTypes(true, 0, len);
+  }
+
+  // Check the subtype relationship, considering only a subvector of length
+  // 'len' starting at 'from_index'.
+  bool IsSubtypeOf(const TypeArguments& other,
+                   intptr_t from_index,
+                   intptr_t len,
+                   Error* bound_error,
+                   TrailPtr bound_trail,
+                   Heap::Space space) const {
+    return TypeTest(kIsSubtypeOf, other, from_index, len, bound_error,
+                    bound_trail, space);
+  }
+
+  // Check the 'more specific' relationship, considering only a subvector of
+  // length 'len' starting at 'from_index'.
+  bool IsMoreSpecificThan(const TypeArguments& other,
+                          intptr_t from_index,
+                          intptr_t len,
+                          Error* bound_error,
+                          TrailPtr bound_trail,
+                          Heap::Space space) const {
+    return TypeTest(kIsMoreSpecificThan, other, from_index, len, bound_error,
+                    bound_trail, space);
+  }
+
+  // Check if the vectors are equal (they may be null).
+  bool Equals(const TypeArguments& other) const {
+    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length());
+  }
+
+  bool IsEquivalent(const TypeArguments& other, TrailPtr trail = NULL) const {
+    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(), trail);
+  }
+  bool IsSubvectorEquivalent(const TypeArguments& other,
+                             intptr_t from_index,
+                             intptr_t len,
+                             TrailPtr trail = NULL) const;
+
+  // Check if the vector is instantiated (it must not be null).
+  bool IsInstantiated(Genericity genericity = kAny,
+                      intptr_t num_free_fun_type_params = kMaxInt32,
+                      TrailPtr trail = NULL) const {
+    return IsSubvectorInstantiated(0, Length(), genericity,
+                                   num_free_fun_type_params, trail);
+  }
+  bool IsSubvectorInstantiated(intptr_t from_index,
+                               intptr_t len,
+                               Genericity genericity = kAny,
+                               intptr_t num_free_fun_type_params = kMaxInt32,
+                               TrailPtr trail = NULL) const;
+  bool IsUninstantiatedIdentity() const;
+  bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
+
+  // Return true if all types of this vector are respectively, resolved,
+  // finalized, or bounded.
+  bool IsResolved() const;
+  bool IsFinalized() const;
+  bool IsBounded() const;
+
+  // Return true if this vector contains a recursive type argument.
+  bool IsRecursive() const;
+
+  // Set the scope of this type argument vector to the given function.
+  void SetScopeFunction(const Function& function) const;
+
+  // Clone this type argument vector and clone all unfinalized type arguments.
+  // Finalized type arguments are shared.
+  RawTypeArguments* CloneUnfinalized() const;
+
+  // Clone this type argument vector and clone all uninstantiated type
+  // arguments, changing the class owner of type parameters.
+  // Instantiated type arguments are shared.
+  RawTypeArguments* CloneUninstantiated(const Class& new_owner,
+                                        TrailPtr trail = NULL) const;
+
+  // Canonicalize only if instantiated, otherwise returns 'this'.
+  RawTypeArguments* Canonicalize(TrailPtr trail = NULL) const;
+
+  // Returns a formatted list of occurring type arguments with their URI.
+  RawString* EnumerateURIs() const;
+
+  // Return 'this' if this type argument vector is instantiated, i.e. if it does
+  // not refer to type parameters. Otherwise, return a new type argument vector
+  // where each reference to a type parameter is replaced with the corresponding
+  // type from the various type argument vectors (class instantiator, function,
+  // or parent functions via the current context).
+  // If bound_error is not NULL, it may be set to reflect a bound error.
+  RawTypeArguments* InstantiateFrom(
+      const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
+      Error* bound_error,
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
+
+  // Runtime instantiation with canonicalization. Not to be used during type
+  // finalization at compile time.
+  RawTypeArguments* InstantiateAndCanonicalizeFrom(
+      const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
+      Error* bound_error) const;
+
+  // Return true if this type argument vector has cached instantiations.
+  bool HasInstantiations() const;
+
+  // Return the number of cached instantiations for this type argument vector.
+  intptr_t NumInstantiations() const;
+
+  static intptr_t instantiations_offset() {
+    return OFFSET_OF(RawTypeArguments, instantiations_);
+  }
+
+  static const intptr_t kBytesPerElement = kWordSize;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawTypeArguments) ==
+           OFFSET_OF_RETURNED_VALUE(RawTypeArguments, types));
+    return 0;
+  }
+
+  static intptr_t InstanceSize(intptr_t len) {
+    // Ensure that the types() is not adding to the object size, which includes
+    // 3 fields: instantiations_, length_ and hash_.
+    ASSERT(sizeof(RawTypeArguments) ==
+           (sizeof(RawObject) + (kNumFields * kWordSize)));
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(sizeof(RawTypeArguments) +
+                                 (len * kBytesPerElement));
+  }
+
+  intptr_t Hash() const;
+
+  static RawTypeArguments* New(intptr_t len, Heap::Space space = Heap::kOld);
+
+ private:
+  intptr_t ComputeHash() const;
+  void SetHash(intptr_t value) const;
+
+  // Check if the subvector of length 'len' starting at 'from_index' of this
+  // type argument vector consists solely of DynamicType.
+  // If raw_instantiated is true, consider each class type parameter to be first
+  // instantiated from a vector of dynamic types.
+  bool IsDynamicTypes(bool raw_instantiated,
+                      intptr_t from_index,
+                      intptr_t len) const;
+
+  // Check the subtype or 'more specific' relationship, considering only a
+  // subvector of length 'len' starting at 'from_index'.
+  bool TypeTest(TypeTestKind test_kind,
+                const TypeArguments& other,
+                intptr_t from_index,
+                intptr_t len,
+                Error* bound_error,
+                TrailPtr bound_trail,
+                Heap::Space space) const;
+
+  // Return the internal or public name of a subvector of this type argument
+  // vector, e.g. "<T, dynamic, List<T>, int>".
+  RawString* SubvectorName(intptr_t from_index,
+                           intptr_t len,
+                           NameVisibility name_visibility) const;
+
+  RawArray* instantiations() const;
+  void set_instantiations(const Array& value) const;
+  RawAbstractType* const* TypeAddr(intptr_t index) const;
+  void SetLength(intptr_t value) const;
+  // Number of fields in the raw object=3 (instantiations_, length_ and hash_).
+  static const int kNumFields = 3;
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeArguments, Instance);
+  friend class AbstractType;
+  friend class Class;
+  friend class ClearTypeHashVisitor;
+  friend class Object;
 };
 
 // AbstractType is an abstract superclass.

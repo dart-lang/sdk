@@ -8,12 +8,12 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   method m() → dynamic {
-    final Vector #context = MakeVector(3);
+    final dynamic #context = MakeVector(3);
     #context[2] = this;
     return MakeClosure<(dynamic) → dynamic>(self::closure#C#m#function, #context);
   }
   method f() → dynamic {
-    final Vector #context = MakeVector(3);
+    final dynamic #context = MakeVector(3);
     #context[2] = this;
     return MakeClosure<() → dynamic>(self::closure#C#f#function, #context);
   }
@@ -28,12 +28,12 @@ static method main() → dynamic {
   if(!42.==(result))
     throw "Unexpected value from c.f()()(): ${result}";
 }
-static method closure#C#m#function(Vector #contextParameter, dynamic v) → dynamic {
+static method closure#C#m#function(dynamic #contextParameter, dynamic v) → dynamic {
   return (#contextParameter[2]).x = v;
 }
-static method closure#C#f#function#function(Vector #contextParameter) → dynamic {
+static method closure#C#f#function#function(dynamic #contextParameter) → dynamic {
   return (#contextParameter[2]).x;
 }
-static method closure#C#f#function(Vector #contextParameter) → dynamic {
+static method closure#C#f#function(dynamic #contextParameter) → dynamic {
   return MakeClosure<() → dynamic>(self::closure#C#f#function#function, #contextParameter);
 }

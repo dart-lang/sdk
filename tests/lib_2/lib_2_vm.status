@@ -1,0 +1,52 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $runtime == vm && $system == fuchsia ]
+async/first_regression_test: RuntimeError
+async/future_timeout_test: RuntimeError
+async/schedule_microtask2_test: RuntimeError
+async/schedule_microtask3_test: RuntimeError
+async/schedule_microtask5_test: RuntimeError
+async/stream_controller_async_test: RuntimeError
+async/stream_transform_test: RuntimeError
+async/stream_transformation_broadcast_test: RuntimeError
+async/stream_state_test: RuntimeError
+async/stream_state_nonzero_timer_test: RuntimeError
+async/stream_single_test: RuntimeError
+async/stream_single_to_multi_subscriber_test: RuntimeError
+async/stream_subscription_as_future_test: RuntimeError
+async/stream_subscription_cancel_test: RuntimeError
+async/stream_transform_test: RuntimeError
+async/stream_transformation_broadcast_test: RuntimeError
+async/timer_test: RuntimeError
+convert/json_lib_test: RuntimeError
+math/point_test: RuntimeError
+math/rectangle_test: RuntimeError
+mirrors/invocation_fuzz_test: Crash
+mirrors/library_uri_io_test: RuntimeError
+mirrors/library_uri_package_test: RuntimeError
+
+[ $strong && $runtime == vm ]
+async/future_or_only_in_async_test/00: MissingCompileTimeError
+
+[ $runtime == vm ]
+async/stream_timeout_test: RuntimeError
+convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
+mirrors/deferred_type_test: CompileTimeError
+mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
+
+[ $runtime == vm && $mode == debug && $arch == ia32 && $system == windows ]
+convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification OOM.
+
+[ $runtime == vm && $mode == debug && $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv6 && $arch != simarmv5te ]
+convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet implemented.
+
+[ $runtime == vm && $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ]
+convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.
+
+[ $runtime == vm && ( $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ) ]
+convert/utf85_test: Skip  # Pass, Slow Issue 12644.
+
+[ $runtime == vm && $arch == simarm64 ]
+convert/utf85_test: Skip # Pass, Slow Issue 20111.

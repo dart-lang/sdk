@@ -618,6 +618,7 @@ class StandardTestSuite extends TestSuite {
     var status_paths = [
       '$directory/$name.status',
       '$directory/.status',
+      '$directory/${name}_app_jit.status',
       '$directory/${name}_analyzer.status',
       '$directory/${name}_analyzer2.status',
       '$directory/${name}_dart2js.status',
@@ -1275,6 +1276,7 @@ class StandardTestSuite extends TestSuite {
     if (configuration.compiler == Compiler.dart2analyzer) {
       args.add('--format=machine');
       args.add('--no-hints');
+      if (configuration.previewDart2) args.add("--preview-dart-2");
 
       if (filePath.filename.contains("dart2js") ||
           filePath.directoryPath.segments().last.contains('html_common')) {

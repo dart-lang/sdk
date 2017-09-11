@@ -32,7 +32,7 @@ runTests() async {
     Expect.isNotNull(main, "Could not find 'main'");
     compiler.deferredLoadTask.onResolutionComplete(
         main, compiler.resolutionWorldBuilder.closedWorldForTesting);
-    var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
+    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
 
     var lib1 = lookupLibrary(compiler, "memory:lib1.dart");
     var lib2 = lookupLibrary(compiler, "memory:lib2.dart");
@@ -42,9 +42,9 @@ runTests() async {
     var foo2 = lib2.find("foo2");
     var field2 = lib2.find("field2");
 
-    Expect.notEquals(outputUnitForElement(main), outputUnitForElement(foo1));
-    Expect.equals(outputUnitForElement(main), outputUnitForElement(sin));
-    Expect.equals(outputUnitForElement(foo2), outputUnitForElement(field2));
+    Expect.notEquals(outputUnitForEntity(main), outputUnitForEntity(foo1));
+    Expect.equals(outputUnitForEntity(main), outputUnitForEntity(sin));
+    Expect.equals(outputUnitForEntity(foo2), outputUnitForEntity(field2));
   });
   await runTest('memory:main2.dart', (compiler) {
     // Just check that the compile runs.
@@ -56,7 +56,7 @@ runTests() async {
     Expect.isNotNull(main, "Could not find 'main'");
     compiler.deferredLoadTask.onResolutionComplete(
         main, compiler.resolutionWorldBuilder.closedWorldForTesting);
-    var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
+    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
 
     Expect.isFalse(compiler.backend.mirrorsData.hasInsufficientMirrorsUsed);
     var mainLib = lookupLibrary(compiler, "memory:main3.dart");
@@ -64,15 +64,15 @@ runTests() async {
     var C = mainLib.find("C");
     var foo = lib3.find("foo");
 
-    Expect.notEquals(outputUnitForElement(main), outputUnitForElement(foo));
-    Expect.equals(outputUnitForElement(main), outputUnitForElement(C));
+    Expect.notEquals(outputUnitForEntity(main), outputUnitForEntity(foo));
+    Expect.equals(outputUnitForEntity(main), outputUnitForEntity(C));
   });
   await runTest('memory:main4.dart', (compiler) {
     var main = compiler.frontendStrategy.elementEnvironment.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
     compiler.deferredLoadTask.onResolutionComplete(
         main, compiler.resolutionWorldBuilder.closedWorldForTesting);
-    var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
+    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
 
     lookupLibrary(compiler, "memory:main4.dart");
     lookupLibrary(compiler, "memory:lib4.dart");
@@ -81,8 +81,8 @@ runTests() async {
     var foo5 = lib5.find("foo");
     var foo6 = lib6.find("foo");
 
-    Expect.notEquals(outputUnitForElement(main), outputUnitForElement(foo5));
-    Expect.equals(outputUnitForElement(foo5), outputUnitForElement(foo6));
+    Expect.notEquals(outputUnitForEntity(main), outputUnitForEntity(foo5));
+    Expect.equals(outputUnitForEntity(foo5), outputUnitForEntity(foo6));
   });
 }
 

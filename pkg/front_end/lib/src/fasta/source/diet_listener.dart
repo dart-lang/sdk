@@ -500,12 +500,18 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    debugEvent("NativeClause");
+  }
+
+  @override
   void endClassDeclaration(
       int interfacesCount,
       Token beginToken,
       Token classKeyword,
       Token extendsKeyword,
       Token implementsKeyword,
+      Token nativeToken,
       Token endToken) {
     debugEvent("ClassDeclaration");
     checkEmpty(beginToken.charOffset);
@@ -659,7 +665,7 @@ class DietListener extends StackListener {
 
   @override
   void debugEvent(String name) {
-    // printEvent(name);
+    // printEvent('DietListener: $name');
   }
 
   void parseMetadata(Builder builder, Token metadata,

@@ -1661,7 +1661,7 @@ class LocalVariableElementX extends VariableElementX
 class FieldElementX extends VariableElementX
     with AnalyzableElementX
     implements FieldElement {
-  List<FunctionElement> nestedClosures = new List<FunctionElement>();
+  List<MethodElement> nestedClosures = new List<MethodElement>();
 
   FieldElementX(
       Identifier name, Element enclosingElement, VariableList variables)
@@ -2054,7 +2054,7 @@ abstract class BaseFunctionElementX extends ElementX
   ResolutionDartType typeCache;
   final Modifiers modifiers;
 
-  List<FunctionElement> nestedClosures = new List<FunctionElement>();
+  List<MethodElement> nestedClosures = new List<MethodElement>();
 
   FunctionSignature _functionSignatureCache;
 
@@ -3413,16 +3413,21 @@ class JumpTargetX extends JumpTarget<Node> {
   MemberElement get memberContext => executableContext.memberContext;
 
   LabelDefinition<Node> addLabel(Label label, String labelName,
-      {bool isBreakTarget: false}) {
+      {bool isBreakTarget: false, bool isContinueTarget: false}) {
     LabelDefinitionX result = new LabelDefinitionX(label, labelName, this);
     labels.add(result);
     if (isBreakTarget) {
       result.setBreakTarget();
     }
+    if (isContinueTarget) {
+      result.setContinueTarget();
+    }
     return result;
   }
 
   bool get isSwitch => statement is SwitchStatement;
+
+  bool get isSwitchCase => statement is SwitchCase;
 
   String toString() => 'Target:$statement';
 }

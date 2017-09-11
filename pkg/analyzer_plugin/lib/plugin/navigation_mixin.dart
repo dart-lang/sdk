@@ -28,15 +28,15 @@ abstract class DartNavigationMixin implements NavigationMixin {
   Future<NavigationRequest> getNavigationRequest(
       AnalysisGetNavigationParams parameters) async {
     String path = parameters.file;
-    AnalysisDriver driver = driverForPath(path);
-    if (driver == null) {
-      // Return an error from the request.
-      throw new RequestFailure(
-          RequestErrorFactory.pluginError('Failed to analyze $path', null));
+    ResolveResult result = await getResolveResult(path);
+    int offset = parameters.offset;
+    int length = parameters.length;
+    if (offset < 0 && length < 0) {
+      offset = 0;
+      length = result.content.length;
     }
-    ResolveResult result = await driver.getResult(path);
     return new DartNavigationRequestImpl(
-        resourceProvider, parameters.offset, parameters.length, result);
+        resourceProvider, offset, length, result);
   }
 }
 
@@ -57,6 +57,8 @@ abstract class NavigationMixin implements ServerPlugin {
   /**
    * Return the navigation request that should be passes to the contributors
    * returned from [getNavigationContributors].
+   *
+   * Throw a [RequestFailure] if the request could not be created.
    */
   Future<NavigationRequest> getNavigationRequest(
       AnalysisGetNavigationParams parameters);
@@ -72,5 +74,24 @@ abstract class NavigationMixin implements ServerPlugin {
         await generator.generateNavigationResponse(request);
     result.sendNotifications(channel);
     return result.result;
+  }
+
+  /**
+   * Send a navigation notification for the file with the given [path] to the
+   * server.
+   */
+  @override
+  Future<Null> sendNavigationNotification(String path) async {
+    try {
+      NavigationRequest request = await getNavigationRequest(
+          new AnalysisGetNavigationParams(path, -1, -1));
+      NavigationGenerator generator =
+          new NavigationGenerator(getNavigationContributors(path));
+      GeneratorResult generatorResult =
+          await generator.generateNavigationNotification(request);
+      generatorResult.sendNotifications(channel);
+    } on RequestFailure {
+      // If we couldn't analyze the file, then don't send a notification.
+    }
   }
 }

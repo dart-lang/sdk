@@ -5,7 +5,7 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_X64)
 
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/instructions.h"
 #include "vm/stub_code.h"
 #include "vm/unit_test.h"

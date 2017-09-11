@@ -5,7 +5,7 @@
 #include "vm/dart_entry.h"
 
 #include "vm/class_finalizer.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/debugger.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
@@ -140,9 +140,8 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const ArgumentsDescriptor args_desc(arguments_descriptor);
-  const intptr_t instance_index = args_desc.TypeArgsLen() == 0 ? 0 : 1;
   Instance& instance = Instance::Handle(zone);
-  instance ^= arguments.At(instance_index);
+  instance ^= arguments.At(args_desc.FirstArgIndex());
   // Get the entrypoint corresponding to the closure function or to the call
   // method of the instance. This will result in a compilation of the function
   // if it is not already compiled.
@@ -213,7 +212,8 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
                                          const String& target_name,
                                          const Array& arguments,
                                          const Array& arguments_descriptor) {
-  ASSERT(receiver.raw() == arguments.At(0));
+  const ArgumentsDescriptor args_desc(arguments_descriptor);
+  ASSERT(receiver.raw() == arguments.At(args_desc.FirstArgIndex()));
   // Allocate an Invocation object.
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
 
@@ -241,10 +241,10 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   // Now use the invocation mirror object and invoke NoSuchMethod.
   const int kTypeArgsLen = 0;
   const int kNumArguments = 2;
-  ArgumentsDescriptor args_desc(
+  ArgumentsDescriptor nsm_args_desc(
       Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArguments)));
-  Function& function = Function::Handle(
-      Resolver::ResolveDynamic(receiver, Symbols::NoSuchMethod(), args_desc));
+  Function& function = Function::Handle(Resolver::ResolveDynamic(
+      receiver, Symbols::NoSuchMethod(), nsm_args_desc));
   if (function.IsNull()) {
     ASSERT(!FLAG_lazy_dispatchers);
     // If noSuchMethod(invocation) is not found, call Object::noSuchMethod.
@@ -252,7 +252,7 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
     function ^= Resolver::ResolveDynamicForReceiverClass(
         Class::Handle(thread->zone(),
                       thread->isolate()->object_store()->object_class()),
-        Symbols::NoSuchMethod(), args_desc);
+        Symbols::NoSuchMethod(), nsm_args_desc);
   }
   ASSERT(!function.IsNull());
   const Array& args = Array::Handle(Array::New(kNumArguments));

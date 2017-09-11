@@ -9,12 +9,10 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -62,67 +60,6 @@ Future pumpEventQueue([int times = 5000]) {
   return new Future.delayed(Duration.ZERO, () => pumpEventQueue(times - 1));
 }
 
-typedef void MockServerOperationPerformFunction(AnalysisServer server);
-
-class MockAnalysisContext extends StringTypedMock implements AnalysisContext {
-  MockAnalysisContext(String name) : super(name);
-}
-
-class MockClassElement extends Mock implements ClassElement {
-  final ElementKind kind = ElementKind.CLASS;
-}
-
-class MockCompilationUnitElement extends Mock
-    implements CompilationUnitElement {
-  final ElementKind kind = ElementKind.COMPILATION_UNIT;
-}
-
-class MockConstructorElement extends Mock implements ConstructorElement {
-  final kind = ElementKind.CONSTRUCTOR;
-}
-
-class MockElement extends StringTypedMock implements Element {
-  MockElement([String name = '<element>']) : super(name);
-
-  @override
-  String get displayName => _toString;
-
-  @override
-  String get name => _toString;
-}
-
-class MockFieldElement extends Mock implements FieldElement {
-  final ElementKind kind = ElementKind.FIELD;
-}
-
-class MockFunctionElement extends Mock implements FunctionElement {
-  final ElementKind kind = ElementKind.FUNCTION;
-}
-
-class MockFunctionTypeAliasElement extends Mock
-    implements FunctionTypeAliasElement {
-  final ElementKind kind = ElementKind.FUNCTION_TYPE_ALIAS;
-}
-
-class MockImportElement extends Mock implements ImportElement {
-  final ElementKind kind = ElementKind.IMPORT;
-}
-
-class MockLibraryElement extends Mock implements LibraryElement {
-  final ElementKind kind = ElementKind.LIBRARY;
-}
-
-class MockLocalVariableElement extends Mock implements LocalVariableElement {
-  final ElementKind kind = ElementKind.LOCAL_VARIABLE;
-}
-
-class MockLogger extends Mock implements Logger {}
-
-class MockMethodElement extends StringTypedMock implements MethodElement {
-  final kind = ElementKind.METHOD;
-  MockMethodElement([String name = 'method']) : super(name);
-}
-
 /**
  * A mock [PackageMapProvider].
  */
@@ -161,16 +98,6 @@ class MockPackageMapProvider implements PubPackageMapProvider {
     // No other methods should be called.
     return super.noSuchMethod(invocation);
   }
-}
-
-class MockParameterElement extends Mock implements ParameterElement {
-  final ElementKind kind = ElementKind.PARAMETER;
-}
-
-class MockPropertyAccessorElement extends Mock
-    implements PropertyAccessorElement {
-  final ElementKind kind;
-  MockPropertyAccessorElement(this.kind);
 }
 
 /**
@@ -290,28 +217,6 @@ class MockSocket<T> implements WebSocket {
 
 class MockSource extends StringTypedMock implements Source {
   MockSource([String name = 'mocked.dart']) : super(name);
-}
-
-class MockTopLevelVariableElement extends Mock
-    implements TopLevelVariableElement {
-  final ElementKind kind = ElementKind.TOP_LEVEL_VARIABLE;
-}
-
-class MockTypeParameterElement extends Mock implements TypeParameterElement {
-  final ElementKind kind = ElementKind.TYPE_PARAMETER;
-}
-
-class NoResponseException implements Exception {
-  /**
-   * The request that was not responded to.
-   */
-  final Request request;
-
-  NoResponseException(this.request);
-
-  String toString() {
-    return "NoResponseException after request ${request.toJson()}";
-  }
 }
 
 class StringTypedMock extends Mock {

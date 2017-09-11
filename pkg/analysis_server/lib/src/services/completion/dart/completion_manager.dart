@@ -7,19 +7,32 @@ import 'dart:async';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
+import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
+import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/inherited_reference_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/label_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/library_prefix_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/local_constructor_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/model.dart';
@@ -56,8 +69,8 @@ class DartCompletionManager implements CompletionContributor {
       return EMPTY_LIST;
     }
 
-    ReplacementRange range =
-        new ReplacementRange.compute(dartRequest.offset, dartRequest.target);
+    SourceRange range =
+        dartRequest.target.computeReplacementRange(dartRequest.offset);
     (request as CompletionRequestImpl)
       ..replacementOffset = range.offset
       ..replacementLength = range.length;
@@ -65,8 +78,29 @@ class DartCompletionManager implements CompletionContributor {
     // Request Dart specific completions from each contributor
     Map<String, CompletionSuggestion> suggestionMap =
         <String, CompletionSuggestion>{};
-    for (DartCompletionContributor contributor
-        in dartCompletionPlugin.contributors) {
+    List<DartCompletionContributor> contributors = <DartCompletionContributor>[
+      new ArgListContributor(),
+      new CombinatorContributor(),
+      new FieldFormalContributor(),
+      new ImportedReferenceContributor(),
+      new InheritedReferenceContributor(),
+      new KeywordContributor(),
+      new LabelContributor(),
+      new LibraryMemberContributor(),
+      new LibraryPrefixContributor(),
+      new LocalConstructorContributor(),
+      new LocalLibraryContributor(),
+      new LocalReferenceContributor(),
+      new NamedConstructorContributor(),
+      // Revisit this contributor and these tests
+      // once DartChangeBuilder API has solidified.
+      // new OverrideContributor(),
+      new StaticMemberContributor(),
+      new TypeMemberContributor(),
+      new UriContributor(),
+      new VariableNameContributor()
+    ];
+    for (DartCompletionContributor contributor in contributors) {
       String contributorTag =
           'DartCompletionManager - ${contributor.runtimeType}';
       performance.logStartTime(contributorTag);
@@ -240,60 +274,5 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
     performance.logElapseTime(BUILD_REQUEST_TAG);
     return dartRequest;
-  }
-}
-
-/**
- * Utility class for computing the code completion replacement range
- */
-class ReplacementRange {
-  int offset;
-  int length;
-
-  ReplacementRange(this.offset, this.length);
-
-  factory ReplacementRange.compute(int requestOffset, CompletionTarget target) {
-    bool isKeywordOrIdentifier(Token token) =>
-        token.type.isKeyword || token.type == TokenType.IDENTIFIER;
-
-    //TODO(danrubel) Ideally this needs to be pushed down into the contributors
-    // but that implies that each suggestion can have a different
-    // replacement offsent/length which would mean an API change
-
-    var entity = target.entity;
-    Token token = entity is AstNode ? entity.beginToken : entity;
-    if (token != null && requestOffset < token.offset) {
-      token = token.previous;
-    }
-    if (token != null) {
-      if (requestOffset == token.offset && !isKeywordOrIdentifier(token)) {
-        // If the insertion point is at the beginning of the current token
-        // and the current token is not an identifier
-        // then check the previous token to see if it should be replaced
-        token = token.previous;
-      }
-      if (token != null && isKeywordOrIdentifier(token)) {
-        if (token.offset <= requestOffset && requestOffset <= token.end) {
-          // Replacement range for typical identifier completion
-          return new ReplacementRange(token.offset, token.length);
-        }
-      }
-      if (token is StringToken) {
-        SimpleStringLiteral uri =
-            astFactory.simpleStringLiteral(token, token.lexeme);
-        Keyword keyword = token.previous?.keyword;
-        if (keyword == Keyword.IMPORT ||
-            keyword == Keyword.EXPORT ||
-            keyword == Keyword.PART) {
-          int start = uri.contentsOffset;
-          var end = uri.contentsEnd;
-          if (start <= requestOffset && requestOffset <= end) {
-            // Replacement range for import URI
-            return new ReplacementRange(start, end - start);
-          }
-        }
-      }
-    }
-    return new ReplacementRange(requestOffset, 0);
   }
 }

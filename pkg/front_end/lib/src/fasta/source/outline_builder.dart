@@ -279,7 +279,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginClassOrNamedMixinApplication(Token token) {
-    library.beginNestedDeclaration(null);
+    library.beginNestedDeclaration("class or mixin application");
   }
 
   @override
@@ -293,12 +293,22 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    if (hasName) {
+      // Pop the native clause which in this case is a StringLiteral.
+      pop(); // Char offset.
+      pop(); // String.
+    }
+  }
+
+  @override
   void endClassDeclaration(
       int interfacesCount,
       Token beginToken,
       Token classKeyword,
       Token extendsKeyword,
       Token implementsKeyword,
+      Token nativeToken,
       Token endToken) {
     debugEvent("endClassDeclaration");
     String documentationComment = _getDocumentationComment(beginToken);
@@ -968,6 +978,6 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void debugEvent(String name) {
-    // printEvent(name);
+    // printEvent('OutlineBuilder: $name');
   }
 }

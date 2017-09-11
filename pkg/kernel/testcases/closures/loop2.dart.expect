@@ -1,0 +1,31 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method doit(core::int x) → void {
+  final dynamic #context = MakeVector(3);
+  #context[2] = x;
+  x = null;
+  final core::int max = 10;
+  final core::double expectedSum = max.-(1).*(max)./(2);
+  core::int counter = 0;
+  dynamic calls = <dynamic>[];
+  while (counter.<(max)) {
+    final dynamic #context = MakeVector(3);
+    #context[1] = #context;
+    #context[2] = counter;
+    calls.add(MakeClosure<() → dynamic>(self::closure#doit#function, #context));
+    counter = counter.+(1);
+  }
+  core::double sum = 0.0;
+  for (dynamic c in calls)
+    sum = sum.+(c.call());
+  if(!sum.==(expectedSum))
+    throw core::Exception::•("Unexpected sum = ${sum} != ${expectedSum}");
+}
+static method main() → void {
+  self::doit(0);
+}
+static method closure#doit#function(dynamic #contextParameter) → dynamic {
+  return (#contextParameter[2]).+(#contextParameter[1][2]);
+}

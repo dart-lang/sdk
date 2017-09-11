@@ -10,7 +10,7 @@ main() {
   testSplitPattern();
 }
 
-testSplit(List expect, String string, Pattern pattern) {
+testSplit(List<String> expect, String string, Pattern pattern) {
   String patternString;
   if (pattern is String) {
     patternString = '"$pattern"';
@@ -19,8 +19,20 @@ testSplit(List expect, String string, Pattern pattern) {
   } else {
     patternString = pattern.toString();
   }
-  Expect.listEquals(
-      expect, string.split(pattern), '"$string".split($patternString)');
+  List actual = string.split(pattern);
+
+  // Check that the list is growable/mutable
+  actual
+    ..add('42')
+    ..removeLast();
+
+  // Ensure that the correct type is reified.
+  actual = actual as List<String>;
+  Expect.throws(() {
+    actual.add(42);
+  }, (e) => e is TypeError, 'List<String>.add should not accept an int');
+
+  Expect.listEquals(expect, actual, '"$string".split($patternString)');
 }
 
 /** String patterns. */

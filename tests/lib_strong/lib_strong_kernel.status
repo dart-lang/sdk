@@ -3,22 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk && $runtime == vm ]
-convert/ascii_test: DartkCompileTimeError
-convert/chunked_conversion_json_decode1_test: DartkCompileTimeError
-convert/chunked_conversion_utf82_test: DartkCompileTimeError
-convert/chunked_conversion_utf83_test: DartkCompileTimeError
-convert/chunked_conversion_utf85_test: DartkCompileTimeError
-convert/encoding_test: DartkCompileTimeError
-convert/json_toEncodable_reviver_test: Crash # Type error in constant
-convert/json_utf8_chunk_test: DartkCompileTimeError
-convert/latin1_test: DartkCompileTimeError
-convert/streamed_conversion_json_encode1_test: RuntimeError
-convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
-convert/streamed_conversion_json_utf8_encode_test: DartkCompileTimeError
-convert/streamed_conversion_utf8_decode_test: DartkCompileTimeError
-convert/streamed_conversion_utf8_encode_test: DartkCompileTimeError
-convert/utf8_encode_test: DartkCompileTimeError
-convert/utf8_test: DartkCompileTimeError
 html/async_spawnuri_test: DartkCompileTimeError
 html/async_test: DartkCompileTimeError
 html/audiobuffersourcenode_test: DartkCompileTimeError
@@ -175,21 +159,10 @@ mirrors/basic_types_in_dart_core_test: RuntimeError
 mirrors/class_mirror_location_test: RuntimeError
 mirrors/constructor_kinds_test/01: RuntimeError
 mirrors/constructor_kinds_test/none: RuntimeError
-mirrors/constructor_optional_args_test: CompileTimeError
-mirrors/constructor_private_name_test: RuntimeError
-mirrors/deferred_mirrors_metadata_test: RuntimeError
-mirrors/deferred_mirrors_metatarget_test: RuntimeError
-mirrors/deferred_mirrors_update_test: RuntimeError
-mirrors/empty_test: RuntimeError
-mirrors/equality_test: RuntimeError
 mirrors/fake_function_with_call_test: Crash
 mirrors/field_type_test: RuntimeError
 mirrors/function_type_mirror_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError
-mirrors/generic_local_function_test: RuntimeError
-mirrors/generic_mixin_applications_test: RuntimeError
-mirrors/generic_mixin_test: RuntimeError
-mirrors/generic_type_mirror_test: RuntimeError
 mirrors/generics_double_substitution_test/01: RuntimeError
 mirrors/generics_double_substitution_test/none: RuntimeError
 mirrors/generics_dynamic_test: Crash
@@ -206,11 +179,6 @@ mirrors/invocation_fuzz_test/false: Crash
 mirrors/invocation_fuzz_test/none: Crash
 mirrors/invocation_fuzz_test/smi: Crash
 mirrors/invocation_fuzz_test/string: Crash
-mirrors/invoke_import_test: RuntimeError
-mirrors/invoke_private_test: RuntimeError
-mirrors/invoke_private_wrong_library_test: RuntimeError
-mirrors/invoke_test: RuntimeError
-mirrors/invoke_throws_test: RuntimeError
 mirrors/libraries_test: RuntimeError
 mirrors/library_enumeration_deferred_loading_test: RuntimeError
 mirrors/library_metadata_test: RuntimeError
@@ -218,13 +186,7 @@ mirrors/library_uri_io_test: DartkCompileTimeError
 mirrors/library_uri_package_test: DartkCompileTimeError
 mirrors/list_constructor_test/01: RuntimeError
 mirrors/list_constructor_test/none: RuntimeError
-mirrors/metadata_constructed_constant_test: RuntimeError
 mirrors/metadata_test: RuntimeError
-mirrors/method_mirror_location_test: RuntimeError
-mirrors/method_mirror_returntype_test: RuntimeError
-mirrors/method_mirror_source_line_ending_test: Crash
-mirrors/method_mirror_source_test: Crash
-mirrors/mirrors_reader_test: Crash
 mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
 mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
 mirrors/mixin_simple_test: RuntimeError
@@ -243,16 +205,3 @@ mirrors/reflected_type_function_type_test: RuntimeError
 mirrors/reflected_type_special_types_test: RuntimeError
 mirrors/reflected_type_typedefs_test: RuntimeError
 mirrors/reflected_type_typevars_test: RuntimeError
-mirrors/regress_26187_test: RuntimeError
-mirrors/relation_assignable_test: RuntimeError
-mirrors/relation_subtype_test: RuntimeError
-mirrors/symbol_validation_test/01: RuntimeError
-mirrors/symbol_validation_test/none: RuntimeError
-mirrors/to_string_test: RuntimeError
-mirrors/type_variable_is_static_test: RuntimeError
-mirrors/type_variable_owner_test/01: RuntimeError
-mirrors/typedef_deferred_library_test: RuntimeError
-mirrors/typedef_library_test: RuntimeError
-mirrors/typedef_metadata_test: RuntimeError
-mirrors/typedef_test: RuntimeError
-mirrors/typevariable_mirror_metadata_test: RuntimeError

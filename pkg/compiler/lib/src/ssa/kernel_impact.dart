@@ -414,8 +414,15 @@ class KernelImpactBuilder extends ir.Visitor {
     FunctionEntity method = elementAdapter
         .getSuperMember(currentMember, name, target, setter: false);
     _visitArguments(arguments);
-    impactBuilder.registerStaticUse(new StaticUse.superInvoke(
-        method, elementAdapter.getCallStructure(arguments)));
+    if (method != null) {
+      impactBuilder.registerStaticUse(new StaticUse.superInvoke(
+          method, elementAdapter.getCallStructure(arguments)));
+    } else {
+      impactBuilder.registerStaticUse(new StaticUse.superInvoke(
+          elementAdapter.getSuperNoSuchMethod(
+              elementAdapter.getClass(currentMember.enclosingClass)),
+          CallStructure.ONE_ARG));
+    }
   }
 
   @override
@@ -433,10 +440,17 @@ class KernelImpactBuilder extends ir.Visitor {
   void handleSuperGet(ir.Name name, ir.Member target) {
     MemberEntity member = elementAdapter
         .getSuperMember(currentMember, name, target, setter: false);
-    if (member.isFunction) {
-      impactBuilder.registerStaticUse(new StaticUse.superTearOff(member));
+    if (member != null) {
+      if (member.isFunction) {
+        impactBuilder.registerStaticUse(new StaticUse.superTearOff(member));
+      } else {
+        impactBuilder.registerStaticUse(new StaticUse.superGet(member));
+      }
     } else {
-      impactBuilder.registerStaticUse(new StaticUse.superGet(member));
+      impactBuilder.registerStaticUse(new StaticUse.superInvoke(
+          elementAdapter.getSuperNoSuchMethod(
+              elementAdapter.getClass(currentMember.enclosingClass)),
+          CallStructure.ONE_ARG));
     }
   }
 
@@ -454,10 +468,17 @@ class KernelImpactBuilder extends ir.Visitor {
     visitNode(value);
     MemberEntity member = elementAdapter
         .getSuperMember(currentMember, name, target, setter: true);
-    if (member.isField) {
-      impactBuilder.registerStaticUse(new StaticUse.superFieldSet(member));
+    if (member != null) {
+      if (member.isField) {
+        impactBuilder.registerStaticUse(new StaticUse.superFieldSet(member));
+      } else {
+        impactBuilder.registerStaticUse(new StaticUse.superSetterSet(member));
+      }
     } else {
-      impactBuilder.registerStaticUse(new StaticUse.superSetterSet(member));
+      impactBuilder.registerStaticUse(new StaticUse.superInvoke(
+          elementAdapter.getSuperNoSuchMethod(
+              elementAdapter.getClass(currentMember.enclosingClass)),
+          CallStructure.ONE_ARG));
     }
   }
 

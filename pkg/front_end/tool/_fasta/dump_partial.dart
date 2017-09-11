@@ -13,6 +13,7 @@ main(List<String> args) {
     print('usage: pkg/front_end/tool/fasta dump_partial '
         'partial.dill [extra1.dill] ... [extraN.dill]');
     exitCode = 1;
+    return;
   }
 
   var program = _loadProgram(args);

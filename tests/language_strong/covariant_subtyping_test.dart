@@ -179,29 +179,42 @@ testMixinApplication() {
   k.add('hi');
 }
 
-abstract class GenericAdd<T> {
-  add<S extends T>(S t);
+class GenericMethodBounds<T> {
+  Type get t => T;
+  GenericMethodBounds<E> foo<E extends T>() => new GenericMethodBounds<E>();
+  GenericMethodBounds<E> bar<E extends void Function(T)>() =>
+      new GenericMethodBounds<E>();
 }
 
-class GenericAdder implements GenericAdd<num> {
-  num _t = 0;
-  add<T extends num>(T t) {
-    _t = t;
-  }
+class GenericMethodBoundsDerived extends GenericMethodBounds<num> {
+  GenericMethodBounds<E> foo<E extends num>() => new GenericMethodBounds<E>();
+  GenericMethodBounds<E> bar<E extends void Function(num)>() =>
+      new GenericMethodBounds<E>();
+}
+
+GenericMethodBounds<E> Function<E extends T>() genericFunctionWithBounds<T>() {
+  inner<E extends T>() => new GenericMethodBounds<E>();
+  return inner;
 }
 
 testGenericMethodBounds() {
-  GenericAdd<Object> i = new GenericAdder();
-  // TODO(jmesserly): should generic method bounds use a different error type?
-  // This seems wrong. Also this Error type is not exposed from dart:core.
-  Expect.throws(() {
-    i.add('hi');
-  }, (e) => '${e.runtimeType}'.startsWith('StrongModeError'));
-  Expect.throws(() {
-    i.add<String>(null);
-  }, (e) => '${e.runtimeType}'.startsWith('StrongModeError'));
-  i.add(null);
-  i.add(42);
+  test(GenericMethodBounds<Object> g) {
+    Expect.throws(() => g.foo<String>(), isTypeError);
+    Expect.throws(() => g.foo(), isTypeError);
+    Expect.equals(g.foo<Null>().t, Null);
+    Expect.equals(g.foo<int>().t, int);
+    Expect.isFalse(g.foo<int>() is GenericMethodBounds<double>);
+    g.bar<Function(Object)>();
+    dynamic d = g;
+    d.bar<Function(num)>();
+    Expect.throws(() => d.bar<Function(String)>(), isTypeError);
+    Expect.throws(() => d.bar<Function(Null)>(), isTypeError);
+  }
+
+  test(new GenericMethodBounds<num>());
+  test(new GenericMethodBounds<int>());
+  test(new GenericMethodBoundsDerived());
+  test(genericFunctionWithBounds<num>()<int>());
 }
 
 class ClassF<T> {

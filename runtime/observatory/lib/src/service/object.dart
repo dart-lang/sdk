@@ -2486,6 +2486,14 @@ class Allocations implements M.Allocations {
     current.bytes = stats[LIVE_AFTER_GC_SIZE] + stats[ALLOCATED_SINCE_GC_SIZE];
   }
 
+  void combine(Iterable<Allocations> allocations) {
+    accumulated.instances =
+        allocations.fold(0, (v, a) => v + a.accumulated.instances);
+    accumulated.bytes = allocations.fold(0, (v, a) => v + a.accumulated.bytes);
+    current.instances = allocations.fold(0, (v, a) => v + a.current.instances);
+    current.bytes = allocations.fold(0, (v, a) => v + a.current.bytes);
+  }
+
   bool get empty => accumulated.empty && current.empty;
   bool get notEmpty => accumulated.notEmpty || current.notEmpty;
 }
@@ -3012,6 +3020,8 @@ M.FunctionKind stringToFunctionKind(String value) {
       return M.FunctionKind.closure;
     case 'ImplicitClosureFunction':
       return M.FunctionKind.implicitClosure;
+    case 'ConvertedClosureFunction':
+      return M.FunctionKind.convertedClosure;
     case 'GetterFunction':
       return M.FunctionKind.getter;
     case 'SetterFunction':
@@ -4708,4 +4718,72 @@ class Service implements M.Service {
     assert(this.method != null);
     assert(this.service != null);
   }
+}
+
+class TimelineRecorder implements M.TimelineRecorder {
+  final String name;
+  const TimelineRecorder(this.name);
+}
+
+class TimelineStream implements M.TimelineStream {
+  final String name;
+  final bool isRecorded;
+  const TimelineStream(this.name, this.isRecorded);
+}
+
+class TimelineProfile implements M.TimelineProfile {
+  final String name;
+  final Iterable<TimelineStream> streams;
+  const TimelineProfile(this.name, this.streams);
+}
+
+class TimelineFlags implements M.TimelineFlags {
+  // Dart developers care about the following streams:
+  static final Set<String> _dart =
+      new Set<String>.from(const <String>['GC', 'Compiler', 'Dart']);
+
+  // VM developers care about the following streams:
+  static final Set<String> _vm = new Set<String>.from(const <String>[
+    'GC',
+    'Compiler',
+    'Dart',
+    'Debugger',
+    'Embedder',
+    'Isolate',
+    'VM',
+  ]);
+
+  final TimelineRecorder recorder;
+  final List<TimelineStream> streams;
+  final List<TimelineProfile> profiles;
+
+  factory TimelineFlags(ServiceMap response) {
+    assert(response['type'] == 'TimelineFlags');
+
+    assert(response['recorderName'] != null);
+    final TimelineRecorder recorder =
+        new TimelineRecorder(response['recorderName']);
+
+    assert(response['recordedStreams'] != null);
+    final Set<String> recorded =
+        new Set<String>.from(response['recordedStreams']);
+
+    assert(response['availableStreams'] != null);
+    final List<TimelineStream> streams = response['availableStreams']
+        .map((String name) => new TimelineStream(name, recorded.contains(name)))
+        .toList();
+
+    final List<TimelineProfile> profiles = [
+      const TimelineProfile('None', const []),
+      new TimelineProfile('Dart Developer',
+          streams.where((s) => _dart.contains(s.name)).toList()),
+      new TimelineProfile(
+          'VM Developer', streams.where((s) => _vm.contains(s.name)).toList()),
+      new TimelineProfile('All', streams),
+    ];
+
+    return new TimelineFlags._(recorder, streams, profiles);
+  }
+
+  const TimelineFlags._(this.recorder, this.streams, this.profiles);
 }

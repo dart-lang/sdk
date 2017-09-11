@@ -5,10 +5,6 @@
 #ifndef RUNTIME_BIN_SOCKET_H_
 #define RUNTIME_BIN_SOCKET_H_
 
-#if defined(DART_IO_DISABLED)
-#error "socket.h can only be included on builds with IO enabled"
-#endif
-
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/reference_counting.h"
@@ -76,10 +72,22 @@ class Socket : public ReferenceCounted<Socket> {
                                        SocketFinalizer finalizer);
   static Socket* GetSocketIdNativeField(Dart_Handle socket);
 
+  static bool short_socket_read() { return short_socket_read_; }
+  static void set_short_socket_read(bool short_socket_read) {
+    short_socket_read_ = short_socket_read;
+  }
+  static bool short_socket_write() { return short_socket_write_; }
+  static void set_short_socket_write(bool short_socket_write) {
+    short_socket_write_ = short_socket_write;
+  }
+
  private:
   ~Socket() { ASSERT(fd_ == kClosedFd); }
 
   static const int kClosedFd = -1;
+
+  static bool short_socket_read_;
+  static bool short_socket_write_;
 
   intptr_t fd_;
   Dart_Port port_;

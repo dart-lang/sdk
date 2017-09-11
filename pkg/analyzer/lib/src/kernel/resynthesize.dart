@@ -229,6 +229,19 @@ class _ExprBuilder {
       return AstTestFactory.propertyAccess(target, identifier);
     }
 
+    if (expr is kernel.VariableGet) {
+      String name = expr.variable.name;
+      Element contextConstructor = _contextElement;
+      if (contextConstructor is ConstructorElement) {
+        SimpleIdentifier identifier = AstTestFactory.identifier3(name);
+        ParameterElement parameter = contextConstructor.parameters.firstWhere(
+            (parameter) => parameter.name == name,
+            orElse: () => null);
+        identifier.staticElement = parameter;
+        return identifier;
+      }
+    }
+
     if (expr is kernel.ConditionalExpression) {
       var condition = build(expr.condition);
       var then = build(expr.then);
@@ -247,6 +260,28 @@ class _ExprBuilder {
       var left = build(expr.left);
       var right = build(expr.right);
       return AstTestFactory.binaryExpression(left, operator, right);
+    }
+
+    if (expr is kernel.Let) {
+      var body = expr.body;
+      if (body is kernel.ConditionalExpression) {
+        var condition = body.condition;
+        var otherwiseExpr = body.otherwise;
+        if (condition is kernel.MethodInvocation) {
+          var equalsReceiver = condition.receiver;
+          if (equalsReceiver is kernel.VariableGet &&
+              condition.name.name == '==' &&
+              condition.arguments.positional.length == 1 &&
+              condition.arguments.positional[0] is kernel.NullLiteral &&
+              otherwiseExpr is kernel.VariableGet &&
+              otherwiseExpr.variable == equalsReceiver.variable) {
+            var left = build(expr.variable.initializer);
+            var right = build(body.then);
+            return AstTestFactory.binaryExpression(
+                left, TokenType.QUESTION_QUESTION, right);
+          }
+        }
+      }
     }
 
     if (expr is kernel.MethodInvocation) {
@@ -321,6 +356,23 @@ class _ExprBuilder {
       return initializer;
     }
 
+    if (k is kernel.LocalInitializer) {
+      var invocation = k.variable.initializer;
+      if (invocation is kernel.MethodInvocation) {
+        var receiver = invocation.receiver;
+        if (receiver is kernel.FunctionExpression &&
+            invocation.name.name == 'call') {
+          var body = receiver.function.body;
+          if (body is kernel.AssertStatement) {
+            var condition = build(body.condition);
+            var message = body.message != null ? build(body.message) : null;
+            return AstTestFactory.assertInitializer(condition, message);
+          }
+        }
+      }
+      throw new StateError('Expected assert initializer $k');
+    }
+
     if (k is kernel.RedirectingInitializer) {
       ConstructorElementImpl redirect = _getElement(k.targetReference);
       var arguments = _toArguments(k.arguments);
@@ -393,8 +445,8 @@ class _ExprBuilder {
       List<TypeAnnotation> arguments = _buildTypeArguments(type.typeArguments);
       return AstTestFactory.typeName3(name, arguments)..type = type;
     }
-    if (type is DynamicTypeImpl) {
-      var identifier = AstTestFactory.identifier3('dynamic')
+    if (type is DynamicTypeImpl || type is TypeParameterType) {
+      var identifier = AstTestFactory.identifier3(type.name)
         ..staticElement = type.element
         ..staticType = type;
       return AstTestFactory.typeName3(identifier)..type = type;
@@ -490,6 +542,9 @@ class _KernelLibraryResynthesizerContextImpl
   LibraryElementImpl libraryElement;
 
   _KernelLibraryResynthesizerContextImpl(this.resynthesizer, this.library);
+
+  @override
+  kernel.Library get coreLibrary => resynthesizer._kernelMap['dart:core'];
 
   @override
   LibraryElementImpl getLibrary(String uriStr) {
@@ -654,8 +709,7 @@ class _KernelUnitResynthesizerContextImpl
   @override
   ConstructorInitializer getConstructorInitializer(
       ConstructorElementImpl constructor, kernel.Initializer k) {
-    if (k is kernel.LocalInitializer ||
-        k is kernel.FieldInitializer && k.isSynthetic ||
+    if (k is kernel.FieldInitializer && k.isSynthetic ||
         k is kernel.SuperInitializer && k.isSynthetic) {
       return null;
     }
@@ -691,8 +745,24 @@ class _KernelUnitResynthesizerContextImpl
   @override
   InterfaceType getInterfaceType(
       ElementImpl context, kernel.Supertype kernelType) {
+    if (kernelType.classNode.isEnum) {
+      return null;
+    }
     return _getInterfaceType(
         context, kernelType.className.canonicalName, kernelType.typeArguments);
+  }
+
+  @override
+  List<InterfaceType> getInterfaceTypes(
+      ElementImpl context, List<kernel.Supertype> types) {
+    var interfaceTypes = <InterfaceType>[];
+    for (kernel.Supertype kernelType in types) {
+      InterfaceType interfaceType = getInterfaceType(context, kernelType);
+      if (interfaceType != null) {
+        interfaceTypes.add(interfaceType);
+      }
+    }
+    return interfaceTypes;
   }
 
   @override

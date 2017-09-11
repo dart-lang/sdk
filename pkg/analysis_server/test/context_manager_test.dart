@@ -26,13 +26,12 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/summary_file_builder.dart';
 import 'package:analyzer/src/util/glob.dart';
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/avoid_as.dart';
 import 'package:path/path.dart' as path;
 import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:watcher/watcher.dart';
@@ -1769,10 +1768,8 @@ abstract class ContextManagerTest {
   }
 
   void processRequiredPlugins() {
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
     ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
+    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
 
     registerLintRules();
   }

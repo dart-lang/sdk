@@ -18,6 +18,7 @@ import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js_backend/js_backend.dart';
 import '../js_backend/native_data.dart';
+import '../js_model/closure.dart' show KernelScopeInfo, JRecordField;
 import '../kernel/element_map.dart';
 import '../kernel/element_map_mixins.dart';
 import '../kernel/kernel.dart';
@@ -110,8 +111,7 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   }
 
   @override
-  ConstantValue getFieldConstantValue(ir.Field field) {
-    FieldElement element = getField(field);
+  ConstantValue getFieldConstantValue(covariant FieldElement element) {
     if (element.constant != null) {
       return computeConstantValue(element.constant);
     }
@@ -133,13 +133,8 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
       target = kernel.functions[originTarget];
       // Closures require a lookup one level deeper in the closure class mapper.
       if (target == null) {
-        MethodElement originTargetFunction = originTarget;
-        ClosureRepresentationInfo classMap = _compiler
-            .backendStrategy.closureDataLookup
-            .getClosureRepresentationInfo(originTargetFunction);
-        if (classMap.closureEntity != null) {
-          target = kernel.localFunctions[classMap.closureEntity];
-        }
+        SynthesizedCallMethodElementX originTargetFunction = originTarget;
+        target = kernel.localFunctions[originTargetFunction.expression];
       }
     } else if (originTarget is FieldElement) {
       target = kernel.fields[originTarget];
@@ -276,6 +271,16 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   }
 
   @override
+  ir.FunctionNode getFunctionNodeForParameter(Local parameter) {
+    throw new UnsupportedError('KernelAstAdapter.getFunctionNodeForParameter');
+  }
+
+  @override
+  DartType getLocalType(KernelToElementMap elementMap, Local local) {
+    throw new UnsupportedError('KernelAstAdapter.getLocalType');
+  }
+
+  @override
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node) {
     return getJumpTarget(node.target);
   }
@@ -398,6 +403,19 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   CapturedLoopScope getCapturedLoopScope(
       ClosureDataLookup closureLookup, ir.TreeNode node) {
     return closureLookup.getCapturedLoopScope(getNode(node));
+  }
+
+  @override
+  ClosureRepresentationInfo getClosureRepresentationInfo(
+      ClosureDataLookup closureLookup, ir.TreeNode node) {
+    LocalFunctionElement localFunction = getElement(node);
+    return closureLookup.getClosureInfo(localFunction.node);
+  }
+
+  @override
+  Map<Local, JRecordField> makeRecordContainer(
+      KernelScopeInfo info, MemberEntity member, KernelToLocalsMap localsMap) {
+    throw new UnsupportedError('KernelAstAdapter.makeRecordContainer');
   }
 }
 
@@ -550,11 +568,14 @@ class KernelJumpTarget implements JumpTargetX {
 
   @override
   LabelDefinition<ast.Node> addLabel(ast.Label label, String labelName,
-      {bool isBreakTarget: false}) {
+      {bool isBreakTarget: false, bool isContinueTarget: false}) {
     LabelDefinitionX result = new LabelDefinitionX(label, labelName, this);
     labels.add(result);
     if (isBreakTarget) {
       result.setBreakTarget();
+    }
+    if (isContinueTarget) {
+      result.setContinueTarget();
     }
     return result;
   }
@@ -567,6 +588,8 @@ class KernelJumpTarget implements JumpTargetX {
 
   @override
   bool get isSwitch => targetStatement is ir.SwitchStatement;
+
+  bool get isSwitchCase => targetStatement is ir.SwitchCase;
 
   @override
   bool get isTarget => isBreakTarget || isContinueTarget;
@@ -598,10 +621,11 @@ class KernelSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
     for (ir.SwitchCase switchCase in switchStatement.cases) {
       JumpTarget continueTarget =
           localsMap.getJumpTargetForSwitchCase(switchCase);
-      assert(continueTarget is KernelJumpTarget);
-      targetIndexMap[continueTarget] = switchIndex;
-      assert(builder.jumpTargets[continueTarget] == null);
-      builder.jumpTargets[continueTarget] = this;
+      if (continueTarget != null) {
+        targetIndexMap[continueTarget] = switchIndex;
+        assert(builder.jumpTargets[continueTarget] == null);
+        builder.jumpTargets[continueTarget] = this;
+      }
       switchIndex++;
     }
   }

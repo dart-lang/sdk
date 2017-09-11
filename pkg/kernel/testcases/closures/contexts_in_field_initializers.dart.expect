@@ -15,10 +15,10 @@ class A extends core::Object {
 class B extends core::Object {
   field self::X x;
   constructor •(self::X x) → void
-    : final Vector #context = MakeVector(3), this self::B::#redir(x, #context)
+    : final dynamic #context = MakeVector(3), this self::B::#redir(x, #context)
     ;
-  constructor #redir(self::X x, final Vector #context) → void
-    : dynamic #t1 = #context[2] = x, self::B::x = #context[2], super core::Object::•() {
+  constructor #redir(self::X x, final dynamic #context) → void
+    : dynamic #t1 = #context[2] = x, dynamic #t2 = x = null, self::B::x = #context[2], super core::Object::•() {
     final () → dynamic fn = MakeClosure<() → dynamic>(self::closure#B#function#fn, #context);
     fn.call();
   }
@@ -27,6 +27,6 @@ static method main() → dynamic {
   self::A a = new self::A::•(new self::X::•());
   self::B b = new self::B::•(new self::X::•());
 }
-static method closure#B#function#fn(Vector #contextParameter) → dynamic {
+static method closure#B#function#fn(dynamic #contextParameter) → dynamic {
   core::print(#contextParameter[2]);
 }

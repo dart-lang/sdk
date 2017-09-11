@@ -8,21 +8,22 @@ import 'package:front_end/src/fasta/scanner.dart' show Token;
 
 import '../../compiler_new.dart' as api;
 import '../common.dart';
-import '../common_elements.dart';
 import '../common/backend_api.dart';
 import '../common/names.dart';
 import '../common/resolution.dart';
 import '../common/tasks.dart';
 import '../common/work.dart';
+import '../common_elements.dart';
 import '../compiler.dart';
+import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/modelx.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
-import '../environment.dart';
 import '../enqueue.dart';
+import '../environment.dart';
 import '../frontend_strategy.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
@@ -36,10 +37,10 @@ import '../library_loader.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
 import '../options.dart';
-import '../tree/tree.dart' show Node;
-import '../serialization/task.dart';
 import '../patch_parser.dart';
 import '../resolved_uri_translator.dart';
+import '../serialization/task.dart';
+import '../tree/tree.dart' show Node;
 import '../universe/call_structure.dart';
 import '../universe/use.dart';
 import '../universe/world_builder.dart';
@@ -517,10 +518,11 @@ class _CompilerElementEnvironment implements ElementEnvironment {
 
   @override
   void forEachConstructor(
-      covariant ClassElement cls, void f(ConstructorEntity constructor)) {
-    cls.ensureResolved(_resolution);
+      covariant ClassElement cls, void f(ConstructorEntity constructor),
+      {bool ensureResolved: true}) {
+    if (ensureResolved) cls.ensureResolved(_resolution);
     for (ConstructorElement constructor in cls.implementation.constructors) {
-      _resolution.ensureResolved(constructor.declaration);
+      if (ensureResolved) _resolution.ensureResolved(constructor.declaration);
       if (constructor.isRedirectingFactory) continue;
       f(constructor);
     }
@@ -530,6 +532,14 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   void forEachConstructorBody(
       covariant ClassElement cls, void f(ConstructorBodyEntity constructor)) {
     cls.forEachConstructorBody(f);
+  }
+
+  @override
+  void forEachNestedClosure(
+      covariant MemberElement member, void f(FunctionEntity closure)) {
+    for (var closure in member.nestedClosures) {
+      f(closure);
+    }
   }
 
   @override
@@ -680,6 +690,11 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  ConstantExpression getFieldConstant(covariant FieldElement field) {
+    return field.constant;
+  }
+
+  @override
   ResolutionDartType getUnaliasedType(covariant ResolutionDartType type) {
     type.computeUnaliased(_resolution);
     return type.unaliased;
@@ -732,7 +747,9 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   @override
   ResolutionFunctionType getFunctionTypeOfTypedef(
       covariant TypedefElement typedef) {
-    return typedef.alias;
+    var result = typedef.alias;
+    if (result.isMalformed) return null;
+    return result;
   }
 }
 

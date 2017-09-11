@@ -6,9 +6,7 @@ import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:front_end/src/base/source.dart';
 import 'package:path/src/context.dart';
@@ -55,37 +53,24 @@ class PluginWatcher implements DriverWatcher {
     _driverInfo[driver] = new _DriverInfo(
         contextRoot, <String>[contextRoot.root, _getSdkPath(driver)]);
     List<String> enabledPlugins = driver.analysisOptions.enabledPluginNames;
-    if (enabledPlugins.isNotEmpty) {
-      for (String package in enabledPlugins) {
+    for (String package in enabledPlugins) {
+      //
+      // Determine whether the package exists and defines a plugin.
+      //
+      Source source =
+          driver.sourceFactory.forUri('package:$package/$package.dart');
+      Context context = resourceProvider.pathContext;
+      String packageRoot = context.dirname(context.dirname(source.fullName));
+      String pluginPath = _locator.findPlugin(packageRoot);
+      if (pluginPath != null) {
         //
-        // Determine whether the package exists and defines a plugin.
+        // Add the plugin to the context root.
         //
-        Source source =
-            driver.sourceFactory.forUri('package:$package/$package.dart');
-        Context context = resourceProvider.pathContext;
-        String packageRoot = context.dirname(context.dirname(source.fullName));
-        String pluginPath = _locator.findPlugin(packageRoot);
-        if (pluginPath != null) {
-          //
-          // Add the plugin to the context root.
-          //
-          // TODO(brianwilkerson) Do we need to wait for the plugin to be added?
-          // If we don't, then tests don't have any way to know when to expect
-          // that the list of plugins has been updated.
-          manager.addPluginToContextRoot(contextRoot, pluginPath);
-        }
+        // TODO(brianwilkerson) Do we need to wait for the plugin to be added?
+        // If we don't, then tests don't have any way to know when to expect
+        // that the list of plugins has been updated.
+        manager.addPluginToContextRoot(contextRoot, pluginPath);
       }
-    } else {
-      //
-      // Remove this code after users are switched over to use an explicit list
-      // of plugins.
-      //
-      driver.fsState.knownFilesSetChanges.listen((KnownFilesSetChange change) {
-        List<String> addedPluginPaths = _checkPluginsFor(driver, change);
-        for (String pluginPath in addedPluginPaths) {
-          manager.addPluginToContextRoot(contextRoot, pluginPath);
-        }
-      });
     }
   }
 
@@ -99,59 +84,6 @@ class PluginWatcher implements DriverWatcher {
     }
     manager.removedContextRoot(info.contextRoot);
     _driverInfo.remove(driver);
-  }
-
-  /**
-   * Check all of the files that have been analyzed so far by the given [driver]
-   * to see whether any of them are in a package that had not previously been
-   * seen that defines a plugin. Return a list of the roots of all such plugins
-   * that are found.
-   */
-  List<String> _checkPluginsFor(
-      AnalysisDriver driver, KnownFilesSetChange change) {
-    _DriverInfo info = _driverInfo[driver];
-    if (info == null) {
-      // The driver must have been removed prior to getting the notification of
-      // newly analyzed files.
-      return const <String>[];
-    }
-    List<String> packageRoots = info.packageRoots;
-    FileSystemState fileSystemState = driver.fsState;
-    AbsolutePathContext context = resourceProvider.absolutePathContext;
-
-    bool isInRoot(String path) {
-      for (String root in packageRoots) {
-        if (context.isWithin(root, path)) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    String getPackageRoot(String path, Uri uri) {
-      List<String> segments = uri.pathSegments.toList();
-      segments[0] = 'lib';
-      String suffix = resourceProvider.pathContext.joinAll(segments);
-      return path.substring(0, path.length - suffix.length - 1);
-    }
-
-    List<String> addedPluginPaths = <String>[];
-    for (String path in change.added) {
-      FileState state = fileSystemState.getFileForPath(path);
-      if (!isInRoot(path)) {
-        // Found a file not in a previously known package.
-        Uri uri = state.uri;
-        if (PackageMapUriResolver.isPackageUri(uri)) {
-          String packageRoot = getPackageRoot(path, uri);
-          packageRoots.add(packageRoot);
-          String pluginPath = _locator.findPlugin(packageRoot);
-          if (pluginPath != null) {
-            addedPluginPaths.add(pluginPath);
-          }
-        }
-      }
-    }
-    return addedPluginPaths;
   }
 
   /**

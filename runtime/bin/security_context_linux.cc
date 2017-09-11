@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED) && !defined(DART_IO_SECURE_SOCKET_DISABLED)
+#if !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
 #include "platform/globals.h"
 #if defined(HOST_OS_LINUX)
@@ -29,18 +29,14 @@ namespace bin {
 const intptr_t SSLCertContext::kApproximateSize =
     sizeof(SSLCertContext) + root_certificates_pem_length;
 
-const char* commandline_root_certs_file = NULL;
-const char* commandline_root_certs_cache = NULL;
-
 void SSLCertContext::TrustBuiltinRoots() {
   // First, try to use locations specified on the command line.
-  if (commandline_root_certs_file != NULL) {
-    LoadRootCertFile(commandline_root_certs_file);
+  if (root_certs_file() != NULL) {
+    LoadRootCertFile(root_certs_file());
     return;
   }
-
-  if (commandline_root_certs_cache != NULL) {
-    LoadRootCertCache(commandline_root_certs_cache);
+  if (root_certs_cache() != NULL) {
+    LoadRootCertCache(root_certs_cache());
     return;
   }
 
@@ -51,12 +47,12 @@ void SSLCertContext::TrustBuiltinRoots() {
   // https://www.happyassassin.net/2015/01/12/a-note-about-ssltls-trusted-certificate-stores-and-platforms/
   const char* bundle = "/etc/pki/tls/certs/ca-bundle.crt";
   const char* cachedir = "/etc/ssl/certs";
-  if (File::Exists(bundle)) {
+  if (File::Exists(NULL, bundle)) {
     LoadRootCertFile(bundle);
     return;
   }
 
-  if (Directory::Exists(cachedir) == Directory::EXISTS) {
+  if (Directory::Exists(NULL, cachedir) == Directory::EXISTS) {
     LoadRootCertCache(cachedir);
     return;
   }
@@ -79,5 +75,4 @@ void SSLCertContext::RegisterCallbacks(SSL* ssl) {
 
 #endif  // defined(HOST_OS_LINUX)
 
-#endif  // !defined(DART_IO_DISABLED) &&
-        // !defined(DART_IO_SECURE_SOCKET_DISABLED)
+#endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)

@@ -32,6 +32,7 @@ final _singleTargetCacheRepository = new SingleTargetCacheRepository();
 final _stronglyReachangleInstancesRepository =
     new StronglyReachableInstancesRepository();
 final _subtypeTestCacheRepository = new SubtypeTestCacheRepository();
+final _timelineRepository = new TimelineRepository();
 final _topRetainingInstancesRepository = new TopRetainingInstancesRepository();
 final _typeArgumentsRepository = new TypeArgumentsRepository();
 final _unlinkedCallRepository = new UnlinkedCallRepository();
@@ -709,8 +710,16 @@ class MemoryDashboardPage extends MatchingPage {
       // Preload all isolates to avoid sorting problems.
       await Future.wait(vm.isolates.map((i) => i.load()));
       container.children = [
-        new MemoryDashboardElement(vm, _vmrepository, new IsolateRepository(vm),
-            editor, _allocationProfileRepository, app.events, app.notifications,
+        new MemoryDashboardElement(
+            vm,
+            _vmrepository,
+            new IsolateRepository(vm),
+            editor,
+            _allocationProfileRepository,
+            _heapSnapshotRepository,
+            _objectRepository,
+            app.events,
+            app.notifications,
             queue: app.queue)
       ];
     }).catchError((e, stack) {
@@ -962,7 +971,8 @@ class TimelinePage extends Page {
   TimelinePage(app) : super(app);
 
   void onInstall() {
-    element = new TimelinePageElement(app.vm, app.events, app.notifications,
+    element = new TimelinePageElement(
+        app.vm, _timelineRepository, app.events, app.notifications,
         queue: app.queue);
   }
 
@@ -971,4 +981,20 @@ class TimelinePage extends Page {
   }
 
   bool canVisit(Uri uri) => uri.path == 'timeline';
+}
+
+class TimelineDashboardPage extends Page {
+  TimelineDashboardPage(app) : super(app);
+
+  void onInstall() {
+    element = new TimelineDashboardElement(
+        app.vm, _timelineRepository, app.notifications,
+        queue: app.queue);
+  }
+
+  void _visit(Uri uri) {
+    assert(canVisit(uri));
+  }
+
+  bool canVisit(Uri uri) => uri.path == 'timeline-dashboard';
 }

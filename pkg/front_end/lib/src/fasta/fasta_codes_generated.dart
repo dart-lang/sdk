@@ -32,6 +32,18 @@ Message _withArgumentsAbstractClassInstantiation(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractClassMember = messageAbstractClassMember;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractClassMember = const MessageCode(
+    "AbstractClassMember",
+    analyzerCode: "ABSTRACT_CLASS_MEMBER",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message: r"""Members of classes can't be declared to be 'abstract'.""",
+    tip:
+        r"""Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAbstractNotSync = messageAbstractNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -363,6 +375,17 @@ const Code<Null> codeConflictsWithTypeVariableCause =
 const MessageCode messageConflictsWithTypeVariableCause = const MessageCode(
     "ConflictsWithTypeVariableCause",
     message: r"""This is the type variable.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstClass = messageConstClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstClass = const MessageCode("ConstClass",
+    analyzerCode: "CONST_CLASS",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message: r"""Classes can't be declared to be 'const'.""",
+    tip:
+        r"""Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s).""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstConstructorNonFinalField =
@@ -919,7 +942,7 @@ const Template<Message Function(Token token)> templateExpectedType =
 const Code<Message Function(Token token)> codeExpectedType =
     const Code<Message Function(Token token)>(
         "ExpectedType", templateExpectedType,
-        dart2jsCode: "*fatal*");
+        analyzerCode: "EXPECTED_TYPE_NAME", dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedType(Token token) {
@@ -1012,7 +1035,9 @@ const Code<Null> codeExternalMethodWithBody = messageExternalMethodWithBody;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalMethodWithBody = const MessageCode(
     "ExternalMethodWithBody",
-    message: r"""An external method can't have a body.""");
+    analyzerCode: "EXTERNAL_METHOD_WITH_BODY",
+    dart2jsCode: "*ignored*",
+    message: r"""An external or native method can't have a body.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExtraneousModifier =
@@ -1025,7 +1050,8 @@ const Template<Message Function(Token token)> templateExtraneousModifier =
 const Code<Message Function(Token token)> codeExtraneousModifier =
     const Code<Message Function(Token token)>(
         "ExtraneousModifier", templateExtraneousModifier,
-        analyzerCode: "UNEXPECTED_TOKEN", dart2jsCode: "EXTRANEOUS_MODIFIER");
+        analyzerCode: "EXTRANEOUS_MODIFIER",
+        dart2jsCode: "EXTRANEOUS_MODIFIER");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExtraneousModifier(Token token) {
@@ -1670,6 +1696,27 @@ Message _withArgumentsInternalProblemUnsupported(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Uri uri_)>
+    templateInternalProblemUriMissingScheme =
+    const Template<Message Function(Uri uri_)>(
+        messageTemplate: r"""The URI '#uri' has no scheme.""",
+        withArguments: _withArgumentsInternalProblemUriMissingScheme);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_)> codeInternalProblemUriMissingScheme =
+    const Code<Message Function(Uri uri_)>(
+  "InternalProblemUriMissingScheme",
+  templateInternalProblemUriMissingScheme,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemUriMissingScheme(Uri uri_) {
+  String uri = relativizeUri(uri_);
+  return new Message(codeInternalProblemUriMissingScheme,
+      message: """The URI '$uri' has no scheme.""", arguments: {'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)>
     templateInternalVerificationError =
     const Template<Message Function(String string)>(
@@ -1911,6 +1958,19 @@ const MessageCode messageNamedFunctionExpression = const MessageCode(
     "NamedFunctionExpression",
     dart2jsCode: "*ignored*",
     message: r"""A function expression can't have a name.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNativeClauseShouldBeAnnotation =
+    messageNativeClauseShouldBeAnnotation;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNativeClauseShouldBeAnnotation = const MessageCode(
+    "NativeClauseShouldBeAnnotation",
+    analyzerCode: "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION",
+    dart2jsCode: "*fatal*",
+    message: r"""Native clause in this form is deprecated.""",
+    tip:
+        r"""Try removing this native clause and adding @native() or @native('native-name') before the declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

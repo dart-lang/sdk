@@ -34,6 +34,19 @@ namespace dart {
     FATAL2("pthread error: %d (%s)", result, error_message);                   \
   }
 
+#if defined(PRODUCT)
+#define VALIDATE_PTHREAD_RESULT_NAMED(result) VALIDATE_PTHREAD_RESULT(result)
+#else
+#define VALIDATE_PTHREAD_RESULT_NAMED(result)                                  \
+  if (result != 0) {                                                           \
+    const int kBufferSize = 1024;                                              \
+    char error_message[kBufferSize];                                           \
+    NOT_IN_PRODUCT(Profiler::DumpStackTrace());                                \
+    Utils::StrError(result, error_message, kBufferSize);                       \
+    FATAL3("[%s] pthread error: %d (%s)", name_, result, error_message);       \
+  }
+#endif
+
 #if defined(DEBUG)
 #define ASSERT_PTHREAD_SUCCESS(result) VALIDATE_PTHREAD_RESULT(result)
 #else
@@ -197,22 +210,26 @@ bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
   return true;
 }
 
-Mutex::Mutex() {
+Mutex::Mutex(NOT_IN_PRODUCT(const char* name))
+#if !defined(PRODUCT)
+    : name_(name)
+#endif
+{
   pthread_mutexattr_t attr;
   int result = pthread_mutexattr_init(&attr);
-  VALIDATE_PTHREAD_RESULT(result);
+  VALIDATE_PTHREAD_RESULT_NAMED(result);
 
 #if defined(DEBUG)
   result = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
-  VALIDATE_PTHREAD_RESULT(result);
+  VALIDATE_PTHREAD_RESULT_NAMED(result);
 #endif  // defined(DEBUG)
 
   result = pthread_mutex_init(data_.mutex(), &attr);
   // Verify that creating a pthread_mutex succeeded.
-  VALIDATE_PTHREAD_RESULT(result);
+  VALIDATE_PTHREAD_RESULT_NAMED(result);
 
   result = pthread_mutexattr_destroy(&attr);
-  VALIDATE_PTHREAD_RESULT(result);
+  VALIDATE_PTHREAD_RESULT_NAMED(result);
 
 #if defined(DEBUG)
   // When running with assertions enabled we do track the owner.
@@ -223,7 +240,7 @@ Mutex::Mutex() {
 Mutex::~Mutex() {
   int result = pthread_mutex_destroy(data_.mutex());
   // Verify that the pthread_mutex was destroyed.
-  VALIDATE_PTHREAD_RESULT(result);
+  VALIDATE_PTHREAD_RESULT_NAMED(result);
 
 #if defined(DEBUG)
   // When running with assertions enabled we do track the owner.

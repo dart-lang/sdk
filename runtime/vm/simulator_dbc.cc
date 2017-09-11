@@ -14,13 +14,13 @@
 
 #include "vm/simulator.h"
 
-#include "vm/assembler.h"
-#include "vm/compiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/constants_dbc.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
-#include "vm/disassembler.h"
 #include "vm/lockers.h"
 #include "vm/native_arguments.h"
 #include "vm/native_entry.h"

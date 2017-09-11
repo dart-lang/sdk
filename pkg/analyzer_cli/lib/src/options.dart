@@ -114,6 +114,9 @@ class CommandLineOptions {
   /// (Or null if not enabled.)
   final String perfReport;
 
+  /// Whether to enable the Dart 2.0 Front End.
+  final bool previewDart2;
+
   /// Batch mode (for unit testing)
   final bool batchMode;
 
@@ -186,6 +189,7 @@ class CommandLineOptions {
         log = args['log'],
         machineFormat = args['format'] == 'machine',
         perfReport = args['x-perf-report'],
+        previewDart2 = args['preview-dart-2'],
         batchMode = args['batch'],
         showPackageWarnings = args['show-package-warnings'] ||
             args['package-warnings'] ||
@@ -349,8 +353,6 @@ class CommandLineOptions {
           help: 'Treat non-type warnings as fatal.',
           defaultsTo: false,
           negatable: false)
-      ..addFlag('analytics',
-          help: 'Enable or disable sending analytics information to Google.')
       ..addFlag('help',
           abbr: 'h',
           help:
@@ -362,6 +364,11 @@ class CommandLineOptions {
           defaultsTo: false,
           help: 'Verbose output.',
           negatable: false);
+
+    if (telemetry.SHOW_ANALYTICS_UI) {
+      parser.addFlag('analytics',
+          help: 'Enable or disable sending analytics information to Google.');
+    }
 
     // Build mode options.
     if (!hide) {
@@ -503,6 +510,11 @@ class CommandLineOptions {
               'of "libraryUri".',
           allowMultiple: true,
           splitCommas: false,
+          hide: hide)
+      ..addFlag('preview-dart-2',
+          help: 'Enable the Dart 2.0 Front End implementation.',
+          defaultsTo: false,
+          negatable: false,
           hide: hide);
 
     try {
@@ -534,12 +546,14 @@ class CommandLineOptions {
       }
 
       // Enable / disable analytics.
-      if (results.wasParsed('analytics')) {
-        analytics.enabled = results['analytics'];
-        outSink
-            .writeln(telemetry.createAnalyticsStatusMessage(analytics.enabled));
-        exitHandler(0);
-        return null; // Only reachable in testing.
+      if (telemetry.SHOW_ANALYTICS_UI) {
+        if (results.wasParsed('analytics')) {
+          analytics.enabled = results['analytics'];
+          outSink.writeln(
+              telemetry.createAnalyticsStatusMessage(analytics.enabled));
+          exitHandler(0);
+          return null; // Only reachable in testing.
+        }
       }
 
       // Batch mode and input files.
@@ -581,6 +595,10 @@ class CommandLineOptions {
   static _showUsage(ArgParser parser, telemetry.Analytics analytics,
       {bool fromHelp: false}) {
     void printAnalyticsInfo() {
+      if (!telemetry.SHOW_ANALYTICS_UI) {
+        return;
+      }
+
       if (fromHelp) {
         errorSink.writeln('');
         errorSink.writeln(telemetry.analyticsNotice);

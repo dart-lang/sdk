@@ -158,6 +158,8 @@ class DartFixKind {
       'INVOKE_CONSTRUCTOR_USING_NEW', 50, "Invoke constructor using 'new'");
   static const LINT_ADD_OVERRIDE =
       const FixKind('LINT_ADD_OVERRIDE', 50, "Add '@override' annotation");
+  static const LINT_ADD_REQUIRED =
+      const FixKind('LINT_ADD_REQUIRED', 50, "Add '@required' annotation");
   static const LINT_REMOVE_INTERPOLATION_BRACES = const FixKind(
       'LINT_REMOVE_INTERPOLATION_BRACES',
       50,
@@ -169,6 +171,12 @@ class DartFixKind {
   static const MAKE_FIELD_NOT_FINAL =
       const FixKind('MAKE_FIELD_NOT_FINAL', 50, "Make field '{0}' not final");
   static const REMOVE_AWAIT = const FixKind('REMOVE_AWAIT', 50, "Remove await");
+  static const REMOVE_EMPTY_CATCH =
+      const FixKind('REMOVE_EMPTY_CATCH', 50, "Remove empty catch clause");
+  static const REMOVE_EMPTY_CONSTRUCTOR_BODY = const FixKind(
+      'REMOVE_EMPTY_CONSTRUCTOR_BODY', 50, "Remove empty constructor body");
+  static const REMOVE_EMPTY_ELSE =
+      const FixKind('REMOVE_EMPTY_ELSE', 50, "Remove empty else clause");
   static const REMOVE_EMPTY_STATEMENT =
       const FixKind('REMOVE_EMPTY_STATEMENT', 50, "Remove empty statement");
   static const REMOVE_INITIALIZER =
@@ -224,6 +232,8 @@ class DartFixKind {
       "Use effective integer division ~/");
   static const USE_EQ_EQ_NULL =
       const FixKind('USE_EQ_EQ_NULL', 50, "Use == null instead of 'is Null'");
+  static const USE_IS_NOT_EMPTY = const FixKind(
+      'USE_NOT_EMPTY', 50, "Use x.isNotEmpty instead of '!x.isEmpty'");
   static const USE_NOT_EQ_NULL =
       const FixKind('USE_NOT_EQ_NULL', 50, "Use != null instead of 'is! Null'");
 }

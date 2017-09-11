@@ -20,7 +20,7 @@
 #include "bin/builtin.h"
 #include "bin/fdutils.h"
 #include "bin/log.h"
-
+#include "bin/namespace.h"
 #include "platform/signal_blocker.h"
 #include "platform/utils.h"
 
@@ -198,7 +198,7 @@ File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
   return NULL;
 }
 
-File* File::Open(const char* name, FileOpenMode mode) {
+File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   // Report errors for non-regular files.
   struct stat st;
   if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
@@ -239,7 +239,7 @@ File* File::OpenStdio(int fd) {
   return ((fd < 0) || (2 < fd)) ? NULL : new File(new FileHandle(fd));
 }
 
-bool File::Exists(const char* name) {
+bool File::Exists(Namespace* namespc, const char* name) {
   struct stat st;
   if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
     // Everything but a directory and a link is a file to Dart.
@@ -249,7 +249,7 @@ bool File::Exists(const char* name) {
   }
 }
 
-bool File::Create(const char* name) {
+bool File::Create(Namespace* namespc, const char* name) {
   int fd = TEMP_FAILURE_RETRY(open(name, O_RDONLY | O_CREAT, 0666));
   if (fd < 0) {
     return false;
@@ -272,12 +272,16 @@ bool File::Create(const char* name) {
   return is_file;
 }
 
-bool File::CreateLink(const char* name, const char* target) {
+bool File::CreateLink(Namespace* namespc,
+                      const char* name,
+                      const char* target) {
   int status = NO_RETRY_EXPECTED(symlink(target, name));
   return (status == 0);
 }
 
-File::Type File::GetType(const char* pathname, bool follow_links) {
+File::Type File::GetType(Namespace* namespc,
+                         const char* pathname,
+                         bool follow_links) {
   struct stat entry_info;
   int stat_success;
   if (follow_links) {
@@ -300,10 +304,11 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
   return File::kDoesNotExist;
 }
 
-static bool CheckTypeAndSetErrno(const char* name,
+static bool CheckTypeAndSetErrno(Namespace* namespc,
+                                 const char* name,
                                  File::Type expected,
                                  bool follow_links) {
-  File::Type actual = File::GetType(name, follow_links);
+  File::Type actual = File::GetType(namespc, name, follow_links);
   if (actual == expected) {
     return true;
   }
@@ -321,32 +326,38 @@ static bool CheckTypeAndSetErrno(const char* name,
   return false;
 }
 
-bool File::Delete(const char* name) {
-  return CheckTypeAndSetErrno(name, kIsFile, true) &&
+bool File::Delete(Namespace* namespc, const char* name) {
+  return CheckTypeAndSetErrno(namespc, name, kIsFile, true) &&
          (NO_RETRY_EXPECTED(unlink(name)) == 0);
 }
 
-bool File::DeleteLink(const char* name) {
-  return CheckTypeAndSetErrno(name, kIsLink, false) &&
+bool File::DeleteLink(Namespace* namespc, const char* name) {
+  return CheckTypeAndSetErrno(namespc, name, kIsLink, false) &&
          (NO_RETRY_EXPECTED(unlink(name)) == 0);
 }
 
-bool File::Rename(const char* old_path, const char* new_path) {
-  return CheckTypeAndSetErrno(old_path, kIsFile, true) &&
+bool File::Rename(Namespace* namespc,
+                  const char* old_path,
+                  const char* new_path) {
+  return CheckTypeAndSetErrno(namespc, old_path, kIsFile, true) &&
          (NO_RETRY_EXPECTED(rename(old_path, new_path)) == 0);
 }
 
-bool File::RenameLink(const char* old_path, const char* new_path) {
-  return CheckTypeAndSetErrno(old_path, kIsLink, false) &&
+bool File::RenameLink(Namespace* namespc,
+                      const char* old_path,
+                      const char* new_path) {
+  return CheckTypeAndSetErrno(namespc, old_path, kIsLink, false) &&
          (NO_RETRY_EXPECTED(rename(old_path, new_path)) == 0);
 }
 
-bool File::Copy(const char* old_path, const char* new_path) {
-  return CheckTypeAndSetErrno(old_path, kIsFile, true) &&
+bool File::Copy(Namespace* namespc,
+                const char* old_path,
+                const char* new_path) {
+  return CheckTypeAndSetErrno(namespc, old_path, kIsFile, true) &&
          (copyfile(old_path, new_path, NULL, COPYFILE_ALL) == 0);
 }
 
-static bool StatHelper(const char* name, struct stat* st) {
+static bool StatHelper(Namespace* namespc, const char* name, struct stat* st) {
   if (NO_RETRY_EXPECTED(stat(name, st)) != 0) {
     return false;
   }
@@ -359,9 +370,9 @@ static bool StatHelper(const char* name, struct stat* st) {
   return true;
 }
 
-int64_t File::LengthFromPath(const char* name) {
+int64_t File::LengthFromPath(Namespace* namespc, const char* name) {
   struct stat st;
-  if (!StatHelper(name, &st)) {
+  if (!StatHelper(namespc, name, &st)) {
     return -1;
   }
   return st.st_size;
@@ -372,7 +383,7 @@ static int64_t TimespecToMilliseconds(const struct timespec& t) {
          static_cast<int64_t>(t.tv_nsec) / 1000000L;
 }
 
-void File::Stat(const char* name, int64_t* data) {
+void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
   struct stat st;
   if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
     if (S_ISREG(st.st_mode)) {
@@ -397,26 +408,28 @@ void File::Stat(const char* name, int64_t* data) {
   }
 }
 
-time_t File::LastModified(const char* name) {
+time_t File::LastModified(Namespace* namespc, const char* name) {
   struct stat st;
-  if (!StatHelper(name, &st)) {
+  if (!StatHelper(namespc, name, &st)) {
     return -1;
   }
   return st.st_mtime;
 }
 
-time_t File::LastAccessed(const char* name) {
+time_t File::LastAccessed(Namespace* namespc, const char* name) {
   struct stat st;
-  if (!StatHelper(name, &st)) {
+  if (!StatHelper(namespc, name, &st)) {
     return -1;
   }
   return st.st_atime;
 }
 
-bool File::SetLastAccessed(const char* name, int64_t millis) {
+bool File::SetLastAccessed(Namespace* namespc,
+                           const char* name,
+                           int64_t millis) {
   // First get the current times.
   struct stat st;
-  if (!StatHelper(name, &st)) {
+  if (!StatHelper(namespc, name, &st)) {
     return false;
   }
 
@@ -427,10 +440,12 @@ bool File::SetLastAccessed(const char* name, int64_t millis) {
   return utime(name, &times) == 0;
 }
 
-bool File::SetLastModified(const char* name, int64_t millis) {
+bool File::SetLastModified(Namespace* namespc,
+                           const char* name,
+                           int64_t millis) {
   // First get the current times.
   struct stat st;
-  if (!StatHelper(name, &st)) {
+  if (!StatHelper(namespc, name, &st)) {
     return false;
   }
 
@@ -441,7 +456,7 @@ bool File::SetLastModified(const char* name, int64_t millis) {
   return utime(name, &times) == 0;
 }
 
-const char* File::LinkTarget(const char* pathname) {
+const char* File::LinkTarget(Namespace* namespc, const char* pathname) {
   struct stat link_stats;
   if (lstat(pathname, &link_stats) != 0) {
     return NULL;
@@ -470,7 +485,7 @@ bool File::IsAbsolutePath(const char* pathname) {
   return (pathname != NULL && pathname[0] == '/');
 }
 
-const char* File::GetCanonicalPath(const char* pathname) {
+const char* File::GetCanonicalPath(Namespace* namespc, const char* pathname) {
   char* abs_path = NULL;
   if (pathname != NULL) {
     // On some older MacOs versions the default behaviour of realpath allocating
@@ -517,7 +532,9 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   return kOther;
 }
 
-File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
+File::Identical File::AreIdentical(Namespace* namespc,
+                                   const char* file_1,
+                                   const char* file_2) {
   struct stat file_1_info;
   struct stat file_2_info;
   if ((NO_RETRY_EXPECTED(lstat(file_1, &file_1_info)) == -1) ||

@@ -32,6 +32,17 @@ import 'package:kernel/type_environment.dart';
 
 import '../problems.dart' show unhandled, unsupported;
 
+/// Indicates whether type inference involving conditional expressions should
+/// always use least upper bound.
+///
+/// A value of `true` matches the behavior of analyzer.  A value of `false`
+/// matches the informal specification in
+/// https://github.com/dart-lang/sdk/pull/29371.
+///
+/// TODO(paulberry): once compatibility with analyzer is no longer needed,
+/// change this to `false`.
+const bool _forceLub = true;
+
 /// Computes the return type of a (possibly factory) constructor.
 InterfaceType computeConstructorReturnType(Member constructor) {
   if (constructor is Constructor) {
@@ -42,7 +53,7 @@ InterfaceType computeConstructorReturnType(Member constructor) {
 }
 
 List<DartType> getExplicitTypeArguments(Arguments arguments) {
-  if (arguments is KernelArguments) {
+  if (arguments is ShadowArguments) {
     return arguments._hasExplicitTypeArguments ? arguments.types : null;
   } else {
     // This code path should only be taken in situations where there are no
@@ -53,16 +64,16 @@ List<DartType> getExplicitTypeArguments(Arguments arguments) {
 }
 
 /// Concrete shadow object representing a set of invocation arguments.
-class KernelArguments extends Arguments {
+class ShadowArguments extends Arguments {
   bool _hasExplicitTypeArguments;
 
-  KernelArguments(List<Expression> positional,
+  ShadowArguments(List<Expression> positional,
       {List<DartType> types, List<NamedExpression> named})
       : _hasExplicitTypeArguments = types != null && types.isNotEmpty,
         super(positional, types: types, named: named);
 
   static void setExplicitArgumentTypes(
-      KernelArguments arguments, List<DartType> types) {
+      ShadowArguments arguments, List<DartType> types) {
     arguments.types.clear();
     arguments.types.addAll(types);
     arguments._hasExplicitTypeArguments = true;
@@ -70,17 +81,17 @@ class KernelArguments extends Arguments {
 }
 
 /// Shadow object for [AsExpression].
-class KernelAsExpression extends AsExpression implements KernelExpression {
-  KernelAsExpression(Expression operand, DartType type) : super(operand, type);
+class ShadowAsExpression extends AsExpression implements ShadowExpression {
+  ShadowAsExpression(Expression operand, DartType type) : super(operand, type);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.asExpressionEnter(this, typeContext) || typeNeeded;
     inferrer.inferExpression(operand, null, false);
@@ -91,16 +102,16 @@ class KernelAsExpression extends AsExpression implements KernelExpression {
 }
 
 /// Concrete shadow object representing an assert initializer in kernel form.
-class KernelAssertInitializer extends LocalInitializer
-    implements KernelInitializer {
+class ShadowAssertInitializer extends LocalInitializer
+    implements ShadowInitializer {
   /// The assert statement performing the check
   AssertStatement _statement;
 
-  KernelAssertInitializer(VariableDeclaration variable, this._statement)
+  ShadowAssertInitializer(VariableDeclaration variable, this._statement)
       : super(variable);
 
   @override
-  void _inferInitializer(KernelTypeInferrer inferrer) {
+  void _inferInitializer(ShadowTypeInferrer inferrer) {
     inferrer.listener.assertInitializerEnter(this);
     inferrer.inferStatement(_statement);
     inferrer.listener.assertInitializerExit(this);
@@ -108,8 +119,8 @@ class KernelAssertInitializer extends LocalInitializer
 }
 
 /// Concrete shadow object representing an assertion statement in kernel form.
-class KernelAssertStatement extends AssertStatement implements KernelStatement {
-  KernelAssertStatement(Expression condition,
+class ShadowAssertStatement extends AssertStatement implements ShadowStatement {
+  ShadowAssertStatement(Expression condition,
       {Expression message, int conditionStartOffset, int conditionEndOffset})
       : super(condition,
             message: message,
@@ -117,7 +128,7 @@ class KernelAssertStatement extends AssertStatement implements KernelStatement {
             conditionEndOffset: conditionEndOffset);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.assertStatementEnter(this);
     inferrer.inferExpression(
         condition, inferrer.coreTypes.boolClass.rawType, false);
@@ -129,19 +140,19 @@ class KernelAssertStatement extends AssertStatement implements KernelStatement {
 }
 
 /// Shadow object for [AwaitExpression].
-class KernelAwaitExpression extends AwaitExpression
-    implements KernelExpression {
-  KernelAwaitExpression(Expression operand) : super(operand);
+class ShadowAwaitExpression extends AwaitExpression
+    implements ShadowExpression {
+  ShadowAwaitExpression(Expression operand) : super(operand);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // Inference dependencies are the dependencies of the awaited expression.
     collector.collectDependencies(operand);
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.awaitExpressionEnter(this, typeContext) || typeNeeded;
     if (!inferrer.typeSchemaEnvironment.isEmptyContext(typeContext)) {
@@ -156,11 +167,11 @@ class KernelAwaitExpression extends AwaitExpression
 }
 
 /// Concrete shadow object representing a statement block in kernel form.
-class KernelBlock extends Block implements KernelStatement {
-  KernelBlock(List<Statement> statements) : super(statements);
+class ShadowBlock extends Block implements ShadowStatement {
+  ShadowBlock(List<Statement> statements) : super(statements);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.blockEnter(this);
     for (var statement in statements) {
       inferrer.inferStatement(statement);
@@ -170,17 +181,17 @@ class KernelBlock extends Block implements KernelStatement {
 }
 
 /// Concrete shadow object representing a boolean literal in kernel form.
-class KernelBoolLiteral extends BoolLiteral implements KernelExpression {
-  KernelBoolLiteral(bool value) : super(value);
+class ShadowBoolLiteral extends BoolLiteral implements ShadowExpression {
+  ShadowBoolLiteral(bool value) : super(value);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.boolLiteralEnter(this, typeContext) || typeNeeded;
     var inferredType = typeNeeded ? inferrer.coreTypes.boolClass.rawType : null;
@@ -191,11 +202,11 @@ class KernelBoolLiteral extends BoolLiteral implements KernelExpression {
 
 /// Concrete shadow object representing a break or continue statement in kernel
 /// form.
-class KernelBreakStatement extends BreakStatement implements KernelStatement {
-  KernelBreakStatement(LabeledStatement target) : super(target);
+class ShadowBreakStatement extends BreakStatement implements ShadowStatement {
+  ShadowBreakStatement(LabeledStatement target) : super(target);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.breakStatementEnter(this);
     // No inference needs to be done.
     inferrer.listener.breakStatementExit(this);
@@ -216,19 +227,19 @@ class KernelBreakStatement extends BreakStatement implements KernelStatement {
 /// variable"--this is the variable that remembers the value of the expression
 /// preceding the first `..` while the cascades are being evaluated.
 ///
-/// After constructing a [KernelCascadeExpression], the caller should
+/// After constructing a [ShadowCascadeExpression], the caller should
 /// call [finalize] with an expression representing the expression after the
 /// `..`.  If a further `..` follows that expression, the caller should call
 /// [extend] followed by [finalize] for each subsequent cascade.
-class KernelCascadeExpression extends Let implements KernelExpression {
+class ShadowCascadeExpression extends Let implements ShadowExpression {
   /// Pointer to the last "let" expression in the cascade.
   Let nextCascade;
 
-  /// Creates a [KernelCascadeExpression] using [variable] as the cascade
+  /// Creates a [ShadowCascadeExpression] using [variable] as the cascade
   /// variable.  Caller is responsible for ensuring that [variable]'s
   /// initializer is the expression preceding the first `..` of the cascade
   /// expression.
-  KernelCascadeExpression(KernelVariableDeclaration variable)
+  ShadowCascadeExpression(ShadowVariableDeclaration variable)
       : super(
             variable,
             makeLet(new VariableDeclaration.forValue(new _UnfinishedCascade()),
@@ -256,7 +267,7 @@ class KernelCascadeExpression extends Let implements KernelExpression {
   }
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // The inference dependencies are the inference dependencies of the cascade
     // target.
     collector.collectDependencies(variable.initializer);
@@ -264,7 +275,7 @@ class KernelCascadeExpression extends Let implements KernelExpression {
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.cascadeExpressionEnter(this, typeContext) ||
         typeNeeded;
     var lhsType = inferrer.inferExpression(
@@ -290,7 +301,7 @@ class KernelCascadeExpression extends Let implements KernelExpression {
 ///
 /// TODO(paulberry): once we know exactly what constitutes a "complex
 /// assignment", document it here.
-abstract class KernelComplexAssignment extends KernelSyntheticExpression {
+abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
   /// In a compound assignment, the expression that reads the old value, or
   /// `null` if this is not a compound assignment.
   Expression read;
@@ -325,7 +336,7 @@ abstract class KernelComplexAssignment extends KernelSyntheticExpression {
   /// pre-decrement.
   bool isPreIncDec = false;
 
-  KernelComplexAssignment(this.rhs) : super(null);
+  ShadowComplexAssignment(this.rhs) : super(null);
 
   String toString() {
     var parts = _getToStringParts();
@@ -333,7 +344,7 @@ abstract class KernelComplexAssignment extends KernelSyntheticExpression {
   }
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // Assignment expressions are not immediately evident expressions.
     collector.recordNotImmediatelyEvident(fileOffset);
   }
@@ -353,15 +364,20 @@ abstract class KernelComplexAssignment extends KernelSyntheticExpression {
     return parts;
   }
 
-  DartType _inferRhs(KernelTypeInferrer inferrer, DartType writeContext) {
+  DartType _inferRhs(ShadowTypeInferrer inferrer, DartType writeContext) {
     DartType inferredType = writeContext ?? const DynamicType();
     if (nullAwareCombiner != null) {
       var rhsType = inferrer.inferExpression(rhs, writeContext, true);
+      _storeLetType(inferrer, rhs, rhsType);
       MethodInvocation equalsInvocation = nullAwareCombiner.condition;
       inferrer.findMethodInvocationMember(writeContext, equalsInvocation,
           silent: true);
-      return inferrer.typeSchemaEnvironment
+      var combinedType = inferrer.typeSchemaEnvironment
           .getLeastUpperBound(inferredType, rhsType);
+      if (inferrer.strongMode) {
+        nullAwareCombiner.staticType = combinedType;
+      }
+      return combinedType;
     } else if (combiner != null) {
       bool isOverloadedArithmeticOperator = false;
       var combinerMember = inferrer
@@ -371,8 +387,9 @@ abstract class KernelComplexAssignment extends KernelSyntheticExpression {
             .isOverloadedArithmeticOperatorAndType(
                 combinerMember, writeContext);
       }
+      DartType combinedType;
       if (isPostIncDec) {
-        return inferredType;
+        combinedType = inferredType;
       } else {
         DartType rhsType;
         if (isPreIncDec) {
@@ -381,34 +398,38 @@ abstract class KernelComplexAssignment extends KernelSyntheticExpression {
           // Analyzer uses a null context for the RHS here.
           // TODO(paulberry): improve on this.
           rhsType = inferrer.inferExpression(rhs, null, true);
+          _storeLetType(inferrer, rhs, rhsType);
         }
         if (isOverloadedArithmeticOperator) {
-          return inferrer.typeSchemaEnvironment
+          combinedType = inferrer.typeSchemaEnvironment
               .getTypeOfOverloadedArithmetic(inferredType, rhsType);
         } else {
-          return inferrer
-              .getCalleeFunctionType(
-                  combinerMember, writeContext, combiner.name, false)
+          combinedType = inferrer
+              .getCalleeFunctionType(combinerMember, writeContext, false)
               .returnType;
         }
       }
+      _storeLetType(inferrer, combiner, combinedType);
+      return combinedType;
     } else {
-      return inferrer.inferExpression(rhs, writeContext, true);
+      var rhsType = inferrer.inferExpression(rhs, writeContext, true);
+      _storeLetType(inferrer, rhs, rhsType);
+      return rhsType;
     }
   }
 }
 
 /// Abstract shadow object representing a complex assignment involving a
 /// receiver.
-abstract class KernelComplexAssignmentWithReceiver
-    extends KernelComplexAssignment {
+abstract class ShadowComplexAssignmentWithReceiver
+    extends ShadowComplexAssignment {
   /// The receiver of the assignment target (e.g. `a` in `a[b] = c`).
   final Expression receiver;
 
   /// Indicates whether this assignment uses `super`.
   final bool isSuper;
 
-  KernelComplexAssignmentWithReceiver(
+  ShadowComplexAssignmentWithReceiver(
       this.receiver, Expression rhs, this.isSuper)
       : super(rhs);
 
@@ -420,9 +441,11 @@ abstract class KernelComplexAssignmentWithReceiver
     return parts;
   }
 
-  DartType _inferReceiver(KernelTypeInferrer inferrer) {
+  DartType _inferReceiver(ShadowTypeInferrer inferrer) {
     if (receiver != null) {
-      return inferrer.inferExpression(receiver, null, true);
+      var receiverType = inferrer.inferExpression(receiver, null, true);
+      _storeLetType(inferrer, receiver, receiverType);
+      return receiverType;
     } else if (isSuper) {
       return inferrer.classHierarchy.getTypeAsInstanceOf(
           inferrer.thisType, inferrer.thisType.classNode.supertype.classNode);
@@ -434,14 +457,14 @@ abstract class KernelComplexAssignmentWithReceiver
 
 /// Concrete shadow object representing a conditional expression in kernel form.
 /// Shadow object for [ConditionalExpression].
-class KernelConditionalExpression extends ConditionalExpression
-    implements KernelExpression {
-  KernelConditionalExpression(
+class ShadowConditionalExpression extends ConditionalExpression
+    implements ShadowExpression {
+  ShadowConditionalExpression(
       Expression condition, Expression then, Expression otherwise)
       : super(condition, then, otherwise, null);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // Inference dependencies are the union of the inference dependencies of the
     // two returned sub-expressions.
     collector.collectDependencies(then);
@@ -450,7 +473,7 @@ class KernelConditionalExpression extends ConditionalExpression
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.conditionalExpressionEnter(this, typeContext) ||
             typeNeeded;
@@ -460,10 +483,13 @@ class KernelConditionalExpression extends ConditionalExpression
           condition, inferrer.coreTypes.boolClass.rawType, false);
     }
     DartType thenType = inferrer.inferExpression(then, typeContext, true);
+    bool useLub = _forceLub || typeContext == null;
     DartType otherwiseType =
-        inferrer.inferExpression(otherwise, typeContext, true);
-    DartType type = inferrer.typeSchemaEnvironment
-        .getLeastUpperBound(thenType, otherwiseType);
+        inferrer.inferExpression(otherwise, typeContext, useLub);
+    DartType type = useLub
+        ? inferrer.typeSchemaEnvironment
+            .getLeastUpperBound(thenType, otherwiseType)
+        : greatestClosure(inferrer.coreTypes, typeContext);
     if (inferrer.strongMode) {
       staticType = type;
     }
@@ -474,23 +500,23 @@ class KernelConditionalExpression extends ConditionalExpression
 }
 
 /// Shadow object for [ConstructorInvocation].
-class KernelConstructorInvocation extends ConstructorInvocation
-    implements KernelExpression {
+class ShadowConstructorInvocation extends ConstructorInvocation
+    implements ShadowExpression {
   final Member _initialTarget;
 
-  KernelConstructorInvocation(
+  ShadowConstructorInvocation(
       Constructor target, this._initialTarget, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.constructorInvocationEnter(this, typeContext) ||
             typeNeeded;
@@ -508,12 +534,12 @@ class KernelConstructorInvocation extends ConstructorInvocation
 
 /// Concrete shadow object representing a continue statement from a switch
 /// statement, in kernel form.
-class KernelContinueSwitchStatement extends ContinueSwitchStatement
-    implements KernelStatement {
-  KernelContinueSwitchStatement(SwitchCase target) : super(target);
+class ShadowContinueSwitchStatement extends ContinueSwitchStatement
+    implements ShadowStatement {
+  ShadowContinueSwitchStatement(SwitchCase target) : super(target);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.continueSwitchStatementEnter(this);
     // No inference needs to be done.
     inferrer.listener.continueSwitchStatementExit(this);
@@ -522,10 +548,10 @@ class KernelContinueSwitchStatement extends ContinueSwitchStatement
 
 /// Concrete implementation of [DependencyCollector] specialized to work with
 /// kernel objects.
-class KernelDependencyCollector extends DependencyCollectorImpl {
+class ShadowDependencyCollector extends DependencyCollectorImpl {
   @override
   void collectDependencies(Expression expression) {
-    if (expression is KernelExpression) {
+    if (expression is ShadowExpression) {
       // Use polymorphic dispatch on [KernelExpression] to perform whatever kind
       // of type inference is correct for this kind of statement.
       // TODO(paulberry): experiment to see if dynamic dispatch would be better,
@@ -544,14 +570,14 @@ class KernelDependencyCollector extends DependencyCollectorImpl {
 }
 
 /// Shadow object for [DirectMethodInvocation].
-class KernelDirectMethodInvocation extends DirectMethodInvocation
-    implements KernelExpression {
-  KernelDirectMethodInvocation(
+class ShadowDirectMethodInvocation extends DirectMethodInvocation
+    implements ShadowExpression {
+  ShadowDirectMethodInvocation(
       Expression receiver, Procedure target, Arguments arguments)
       : super(receiver, target, arguments);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // DirectMethodInvocation can only occur as a result of a use of `super`,
     // and `super` can't appear inside a field initializer.  So this code should
     // never be reached.
@@ -561,7 +587,7 @@ class KernelDirectMethodInvocation extends DirectMethodInvocation
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
         'target', new InstrumentationValueForMember(target));
     return inferrer.inferMethodInvocation(
@@ -571,13 +597,13 @@ class KernelDirectMethodInvocation extends DirectMethodInvocation
 }
 
 /// Shadow object for [DirectPropertyGet].
-class KernelDirectPropertyGet extends DirectPropertyGet
-    implements KernelExpression {
-  KernelDirectPropertyGet(Expression receiver, Member target)
+class ShadowDirectPropertyGet extends DirectPropertyGet
+    implements ShadowExpression {
+  ShadowDirectPropertyGet(Expression receiver, Member target)
       : super(receiver, target);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // DirectPropertyGet can only occur as a result of a use of `super`, and
     // `super` can't appear inside a field initializer.  So this code should
     // never be reached.
@@ -586,7 +612,7 @@ class KernelDirectPropertyGet extends DirectPropertyGet
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     return inferrer.inferPropertyGet(
         this, receiver, fileOffset, typeContext, typeNeeded,
         propertyName: target.name);
@@ -594,12 +620,12 @@ class KernelDirectPropertyGet extends DirectPropertyGet
 }
 
 /// Concrete shadow object representing a do loop in kernel form.
-class KernelDoStatement extends DoStatement implements KernelStatement {
-  KernelDoStatement(Statement body, Expression condition)
+class ShadowDoStatement extends DoStatement implements ShadowStatement {
+  ShadowDoStatement(Statement body, Expression condition)
       : super(body, condition);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.doStatementEnter(this);
     inferrer.inferStatement(body);
     inferrer.inferExpression(
@@ -609,17 +635,17 @@ class KernelDoStatement extends DoStatement implements KernelStatement {
 }
 
 /// Concrete shadow object representing a double literal in kernel form.
-class KernelDoubleLiteral extends DoubleLiteral implements KernelExpression {
-  KernelDoubleLiteral(double value) : super(value);
+class ShadowDoubleLiteral extends DoubleLiteral implements ShadowExpression {
+  ShadowDoubleLiteral(double value) : super(value);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.doubleLiteralEnter(this, typeContext) || typeNeeded;
     var inferredType =
@@ -631,24 +657,24 @@ class KernelDoubleLiteral extends DoubleLiteral implements KernelExpression {
 
 /// Common base class for shadow objects representing expressions in kernel
 /// form.
-abstract class KernelExpression implements Expression {
+abstract class ShadowExpression implements Expression {
   /// Collects any dependencies of [expression], and reports errors if the
   /// expression does not have an immediately evident type.
-  void _collectDependencies(KernelDependencyCollector collector);
+  void _collectDependencies(ShadowDependencyCollector collector);
 
   /// Calls back to [inferrer] to perform type inference for whatever concrete
-  /// type of [KernelExpression] this is.
+  /// type of [ShadowExpression] this is.
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded);
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded);
 }
 
 /// Concrete shadow object representing an expression statement in kernel form.
-class KernelExpressionStatement extends ExpressionStatement
-    implements KernelStatement {
-  KernelExpressionStatement(Expression expression) : super(expression);
+class ShadowExpressionStatement extends ExpressionStatement
+    implements ShadowStatement {
+  ShadowExpressionStatement(Expression expression) : super(expression);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.expressionStatementEnter(this);
     inferrer.inferExpression(expression, null, false);
     inferrer.listener.expressionStatementExit(this);
@@ -657,23 +683,23 @@ class KernelExpressionStatement extends ExpressionStatement
 
 /// Shadow object for [StaticInvocation] when the procedure being invoked is a
 /// factory constructor.
-class KernelFactoryConstructorInvocation extends StaticInvocation
-    implements KernelExpression {
+class ShadowFactoryConstructorInvocation extends StaticInvocation
+    implements ShadowExpression {
   final Member _initialTarget;
 
-  KernelFactoryConstructorInvocation(
+  ShadowFactoryConstructorInvocation(
       Procedure target, this._initialTarget, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.constructorInvocationEnter(this, typeContext) ||
             typeNeeded;
@@ -690,14 +716,14 @@ class KernelFactoryConstructorInvocation extends StaticInvocation
 }
 
 /// Concrete shadow object representing a field in kernel form.
-class KernelField extends Field implements KernelMember {
+class ShadowField extends Field implements ShadowMember {
   @override
   AccessorNode _accessorNode;
 
   @override
-  KernelTypeInferrer _typeInferrer;
+  ShadowTypeInferrer _typeInferrer;
 
-  KernelField(Name name, {String fileUri}) : super(name, fileUri: fileUri) {}
+  ShadowField(Name name, {String fileUri}) : super(name, fileUri: fileUri) {}
 
   @override
   void setInferredType(
@@ -709,12 +735,12 @@ class KernelField extends Field implements KernelMember {
 }
 
 /// Concrete shadow object representing a field initializer in kernel form.
-class KernelFieldInitializer extends FieldInitializer
-    implements KernelInitializer {
-  KernelFieldInitializer(Field field, Expression value) : super(field, value);
+class ShadowFieldInitializer extends FieldInitializer
+    implements ShadowInitializer {
+  ShadowFieldInitializer(Field field, Expression value) : super(field, value);
 
   @override
-  void _inferInitializer(KernelTypeInferrer inferrer) {
+  void _inferInitializer(ShadowTypeInferrer inferrer) {
     inferrer.listener.fieldInitializerEnter(this);
     inferrer.inferExpression(value, field.type, false);
     inferrer.listener.fieldInitializerExit(this);
@@ -722,23 +748,23 @@ class KernelFieldInitializer extends FieldInitializer
 }
 
 /// Concrete shadow object representing a for-in loop in kernel form.
-class KernelForInStatement extends ForInStatement implements KernelStatement {
+class ShadowForInStatement extends ForInStatement implements ShadowStatement {
   final bool _declaresVariable;
 
-  KernelForInStatement(VariableDeclaration variable, Expression iterable,
+  ShadowForInStatement(VariableDeclaration variable, Expression iterable,
       Statement body, this._declaresVariable,
       {bool isAsync: false})
       : super(variable, iterable, body, isAsync: isAsync);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.forInStatementEnter(this);
     var iterableClass = isAsync
         ? inferrer.coreTypes.streamClass
         : inferrer.coreTypes.iterableClass;
     DartType context;
     bool typeNeeded = false;
-    KernelVariableDeclaration variable;
+    ShadowVariableDeclaration variable;
     if (_declaresVariable) {
       variable = this.variable;
       if (inferrer.strongMode && variable._implicitlyTyped) {
@@ -780,13 +806,13 @@ class KernelForInStatement extends ForInStatement implements KernelStatement {
 }
 
 /// Concrete shadow object representing a classic for loop in kernel form.
-class KernelForStatement extends ForStatement implements KernelStatement {
-  KernelForStatement(List<VariableDeclaration> variables, Expression condition,
+class ShadowForStatement extends ForStatement implements ShadowStatement {
+  ShadowForStatement(List<VariableDeclaration> variables, Expression condition,
       List<Expression> updates, Statement body)
       : super(variables, condition, updates, body);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.forStatementEnter(this);
     variables.forEach(inferrer.inferStatement);
     if (condition != null) {
@@ -803,15 +829,15 @@ class KernelForStatement extends ForStatement implements KernelStatement {
 
 /// Concrete shadow object representing a local function declaration in kernel
 /// form.
-class KernelFunctionDeclaration extends FunctionDeclaration
-    implements KernelStatement {
+class ShadowFunctionDeclaration extends FunctionDeclaration
+    implements ShadowStatement {
   bool _hasImplicitReturnType = false;
 
-  KernelFunctionDeclaration(VariableDeclaration variable, FunctionNode function)
+  ShadowFunctionDeclaration(VariableDeclaration variable, FunctionNode function)
       : super(variable, function);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.functionDeclarationEnter(this);
     inferrer.inferLocalFunction(function, null, false, fileOffset,
         _hasImplicitReturnType ? null : function.returnType);
@@ -820,24 +846,24 @@ class KernelFunctionDeclaration extends FunctionDeclaration
   }
 
   static void setHasImplicitReturnType(
-      KernelFunctionDeclaration declaration, bool hasImplicitReturnType) {
+      ShadowFunctionDeclaration declaration, bool hasImplicitReturnType) {
     declaration._hasImplicitReturnType = hasImplicitReturnType;
   }
 }
 
 /// Concrete shadow object representing a function expression in kernel form.
-class KernelFunctionExpression extends FunctionExpression
-    implements KernelExpression {
-  KernelFunctionExpression(FunctionNode function) : super(function);
+class ShadowFunctionExpression extends FunctionExpression
+    implements ShadowExpression {
+  ShadowFunctionExpression(FunctionNode function) : super(function);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
-    for (KernelVariableDeclaration parameter in function.positionalParameters) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
+    for (ShadowVariableDeclaration parameter in function.positionalParameters) {
       if (parameter._implicitlyTyped) {
         collector.recordNotImmediatelyEvident(parameter.fileOffset);
       }
     }
-    for (KernelVariableDeclaration parameter in function.namedParameters) {
+    for (ShadowVariableDeclaration parameter in function.namedParameters) {
       if (parameter._implicitlyTyped) {
         collector.recordNotImmediatelyEvident(parameter.fileOffset);
       }
@@ -854,7 +880,7 @@ class KernelFunctionExpression extends FunctionExpression
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.functionExpressionEnter(this, typeContext) ||
         typeNeeded;
     var inferredType = inferrer.inferLocalFunction(
@@ -870,8 +896,8 @@ class KernelFunctionExpression extends FunctionExpression
 /// expression:
 ///
 ///     let v = a in v == null ? b : v
-class KernelIfNullExpression extends Let implements KernelExpression {
-  KernelIfNullExpression(VariableDeclaration variable, Expression body)
+class ShadowIfNullExpression extends Let implements ShadowExpression {
+  ShadowIfNullExpression(VariableDeclaration variable, Expression body)
       : super(variable, body);
 
   @override
@@ -884,14 +910,14 @@ class KernelIfNullExpression extends Let implements KernelExpression {
   Expression get _rhs => body.then;
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // If-null expressions are not immediately evident expressions.
     collector.recordNotImmediatelyEvident(fileOffset);
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.ifNullEnter(this, typeContext) || typeNeeded;
     // To infer `e0 ?? e1` in context K:
     // - Infer e0 in context K to get T0
@@ -902,12 +928,12 @@ class KernelIfNullExpression extends Let implements KernelExpression {
     // - Let J = T0 if K is `_` else K.
     var rhsContext = typeContext ?? lhsType;
     // - Infer e1 in context J to get T1
-    var rhsType =
-        inferrer.inferExpression(_rhs, rhsContext, typeContext == null);
+    bool useLub = _forceLub || typeContext == null;
+    var rhsType = inferrer.inferExpression(_rhs, rhsContext, useLub);
     // - Let T = greatest closure of K with respect to `?` if K is not `_`, else
     //   UP(t0, t1)
     // - Then the inferred type is T.
-    var inferredType = typeContext == null
+    var inferredType = useLub
         ? inferrer.typeSchemaEnvironment.getLeastUpperBound(lhsType, rhsType)
         : greatestClosure(inferrer.coreTypes, typeContext);
     if (inferrer.strongMode) {
@@ -919,12 +945,12 @@ class KernelIfNullExpression extends Let implements KernelExpression {
 }
 
 /// Concrete shadow object representing an if statement in kernel form.
-class KernelIfStatement extends IfStatement implements KernelStatement {
-  KernelIfStatement(Expression condition, Statement then, Statement otherwise)
+class ShadowIfStatement extends IfStatement implements ShadowStatement {
+  ShadowIfStatement(Expression condition, Statement then, Statement otherwise)
       : super(condition, then, otherwise);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.ifStatementEnter(this);
     inferrer.inferExpression(
         condition, inferrer.coreTypes.boolClass.rawType, false);
@@ -936,17 +962,17 @@ class KernelIfStatement extends IfStatement implements KernelStatement {
 
 /// Concrete shadow object representing an assignment to a target for which
 /// assignment is not allowed.
-class KernelIllegalAssignment extends KernelComplexAssignment {
-  KernelIllegalAssignment(Expression rhs) : super(rhs);
+class ShadowIllegalAssignment extends ShadowComplexAssignment {
+  ShadowIllegalAssignment(Expression rhs) : super(rhs);
 }
 
 /// Concrete shadow object representing an assignment to a target of the form
 /// `a[b]`.
-class KernelIndexAssign extends KernelComplexAssignmentWithReceiver {
+class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
   /// In an assignment to an index expression, the index expression.
   Expression index;
 
-  KernelIndexAssign(Expression receiver, this.index, Expression rhs,
+  ShadowIndexAssign(Expression receiver, this.index, Expression rhs,
       {bool isSuper: false})
       : super(receiver, rhs, isSuper);
 
@@ -959,32 +985,35 @@ class KernelIndexAssign extends KernelComplexAssignmentWithReceiver {
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.indexAssignEnter(desugared, typeContext) ||
         typeNeeded;
-    // TODO(paulberry): record the appropriate types on let variables and
-    // conditional expressions.
     var receiverType = _inferReceiver(inferrer);
     if (read != null) {
-      inferrer.findMethodInvocationMember(receiverType, read, silent: true);
+      var readMember =
+          inferrer.findMethodInvocationMember(receiverType, read, silent: true);
+      var calleeFunctionType =
+          inferrer.getCalleeFunctionType(readMember, receiverType, false);
+      _storeLetType(inferrer, read, calleeFunctionType.returnType);
     }
     var writeMember = inferrer.findMethodInvocationMember(receiverType, write);
     // To replicate analyzer behavior, we base type inference on the write
     // member.  TODO(paulberry): would it be better to use the read member
     // when doing compound assignment?
     var calleeType =
-        inferrer.getCalleeType(writeMember, receiverType, indexSetName);
+        inferrer.getCalleeFunctionType(writeMember, receiverType, false);
+    _storeLetType(inferrer, write, calleeType.returnType);
     DartType indexContext;
     DartType writeContext;
-    if (calleeType is FunctionType &&
-        calleeType.positionalParameters.length >= 2) {
+    if (calleeType.positionalParameters.length >= 2) {
       // TODO(paulberry): we ought to get a context for the index expression
       // from the index formal parameter, but analyzer doesn't so for now we
       // replicate its behavior.
       indexContext = null;
       writeContext = calleeType.positionalParameters[1];
     }
-    inferrer.inferExpression(index, indexContext, false);
+    var indexType = inferrer.inferExpression(index, indexContext, true);
+    _storeLetType(inferrer, index, indexType);
     var inferredType = _inferRhs(inferrer, writeContext);
     inferrer.listener.indexAssignExit(desugared, inferredType);
     return inferredType;
@@ -993,24 +1022,24 @@ class KernelIndexAssign extends KernelComplexAssignmentWithReceiver {
 
 /// Common base class for shadow objects representing initializers in kernel
 /// form.
-abstract class KernelInitializer implements Initializer {
-  /// Performs type inference for whatever concrete type of [KernelInitializer]
+abstract class ShadowInitializer implements Initializer {
+  /// Performs type inference for whatever concrete type of [ShadowInitializer]
   /// this is.
-  void _inferInitializer(KernelTypeInferrer inferrer);
+  void _inferInitializer(ShadowTypeInferrer inferrer);
 }
 
 /// Concrete shadow object representing an integer literal in kernel form.
-class KernelIntLiteral extends IntLiteral implements KernelExpression {
-  KernelIntLiteral(int value) : super(value);
+class ShadowIntLiteral extends IntLiteral implements ShadowExpression {
+  ShadowIntLiteral(int value) : super(value);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.intLiteralEnter(this, typeContext) || typeNeeded;
     var inferredType = typeNeeded ? inferrer.coreTypes.intClass.rawType : null;
@@ -1020,12 +1049,12 @@ class KernelIntLiteral extends IntLiteral implements KernelExpression {
 }
 
 /// Concrete shadow object representing an invalid initializer in kernel form.
-class KernelInvalidInitializer extends LocalInitializer
-    implements KernelInitializer {
-  KernelInvalidInitializer(VariableDeclaration variable) : super(variable);
+class ShadowInvalidInitializer extends LocalInitializer
+    implements ShadowInitializer {
+  ShadowInvalidInitializer(VariableDeclaration variable) : super(variable);
 
   @override
-  void _inferInitializer(KernelTypeInferrer inferrer) {
+  void _inferInitializer(ShadowTypeInferrer inferrer) {
     inferrer.listener.invalidInitializerEnter(this);
     inferrer.inferExpression(variable.initializer, null, false);
     inferrer.listener.invalidInitializerExit(this);
@@ -1033,17 +1062,17 @@ class KernelInvalidInitializer extends LocalInitializer
 }
 
 /// Concrete shadow object representing a non-inverted "is" test in kernel form.
-class KernelIsExpression extends IsExpression implements KernelExpression {
-  KernelIsExpression(Expression operand, DartType type) : super(operand, type);
+class ShadowIsExpression extends IsExpression implements ShadowExpression {
+  ShadowIsExpression(Expression operand, DartType type) : super(operand, type);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.isExpressionEnter(this, typeContext) || typeNeeded;
     inferrer.inferExpression(operand, null, false);
@@ -1054,18 +1083,18 @@ class KernelIsExpression extends IsExpression implements KernelExpression {
 }
 
 /// Concrete shadow object representing an inverted "is" test in kernel form.
-class KernelIsNotExpression extends Not implements KernelExpression {
-  KernelIsNotExpression(Expression operand, DartType type, int charOffset)
+class ShadowIsNotExpression extends Not implements ShadowExpression {
+  ShadowIsNotExpression(Expression operand, DartType type, int charOffset)
       : super(new IsExpression(operand, type)..fileOffset = charOffset);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     IsExpression isExpression = this.operand;
     typeNeeded =
         inferrer.listener.isNotExpressionEnter(this, typeContext) || typeNeeded;
@@ -1077,12 +1106,12 @@ class KernelIsNotExpression extends Not implements KernelExpression {
 }
 
 /// Concrete shadow object representing a labeled statement in kernel form.
-class KernelLabeledStatement extends LabeledStatement
-    implements KernelStatement {
-  KernelLabeledStatement(Statement body) : super(body);
+class ShadowLabeledStatement extends LabeledStatement
+    implements ShadowStatement {
+  ShadowLabeledStatement(Statement body) : super(body);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.labeledStatementEnter(this);
     inferrer.inferStatement(body);
     inferrer.listener.labeledStatementExit(this);
@@ -1090,10 +1119,10 @@ class KernelLabeledStatement extends LabeledStatement
 }
 
 /// Concrete shadow object representing a list literal in kernel form.
-class KernelListLiteral extends ListLiteral implements KernelExpression {
+class ShadowListLiteral extends ListLiteral implements ShadowExpression {
   final DartType _declaredTypeArgument;
 
-  KernelListLiteral(List<Expression> expressions,
+  ShadowListLiteral(List<Expression> expressions,
       {DartType typeArgument, bool isConst: false})
       : _declaredTypeArgument = typeArgument,
         super(expressions,
@@ -1101,7 +1130,7 @@ class KernelListLiteral extends ListLiteral implements KernelExpression {
             isConst: isConst);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     if (_declaredTypeArgument == null) {
       expressions.forEach(collector.collectDependencies);
     }
@@ -1109,7 +1138,7 @@ class KernelListLiteral extends ListLiteral implements KernelExpression {
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.listLiteralEnter(this, typeContext) || typeNeeded;
     var listClass = inferrer.coreTypes.listClass;
@@ -1164,19 +1193,19 @@ class KernelListLiteral extends ListLiteral implements KernelExpression {
 }
 
 /// Shadow object for [LogicalExpression].
-class KernelLogicalExpression extends LogicalExpression
-    implements KernelExpression {
-  KernelLogicalExpression(Expression left, String operator, Expression right)
+class ShadowLogicalExpression extends LogicalExpression
+    implements ShadowExpression {
+  ShadowLogicalExpression(Expression left, String operator, Expression right)
       : super(left, operator, right);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.logicalExpressionEnter(this, typeContext) ||
         typeNeeded;
     var boolType = inferrer.coreTypes.boolClass.rawType;
@@ -1189,11 +1218,11 @@ class KernelLogicalExpression extends LogicalExpression
 }
 
 /// Shadow object for [MapLiteral].
-class KernelMapLiteral extends MapLiteral implements KernelExpression {
+class ShadowMapLiteral extends MapLiteral implements ShadowExpression {
   final DartType _declaredKeyType;
   final DartType _declaredValueType;
 
-  KernelMapLiteral(List<MapEntry> entries,
+  ShadowMapLiteral(List<MapEntry> entries,
       {DartType keyType, DartType valueType, bool isConst: false})
       : _declaredKeyType = keyType,
         _declaredValueType = valueType,
@@ -1203,7 +1232,7 @@ class KernelMapLiteral extends MapLiteral implements KernelExpression {
             isConst: isConst);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     assert((_declaredKeyType == null) == (_declaredValueType == null));
     if (_declaredKeyType == null) {
       for (var entry in entries) {
@@ -1215,7 +1244,7 @@ class KernelMapLiteral extends MapLiteral implements KernelExpression {
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.mapLiteralEnter(this, typeContext) || typeNeeded;
     var mapClass = inferrer.coreTypes.mapClass;
@@ -1280,56 +1309,56 @@ class KernelMapLiteral extends MapLiteral implements KernelExpression {
 }
 
 /// Abstract shadow object representing a field or procedure in kernel form.
-abstract class KernelMember implements Member {
+abstract class ShadowMember implements Member {
   String get fileUri;
 
   AccessorNode get _accessorNode;
 
   void set _accessorNode(AccessorNode value);
 
-  KernelTypeInferrer get _typeInferrer;
+  ShadowTypeInferrer get _typeInferrer;
 
-  void set _typeInferrer(KernelTypeInferrer value);
+  void set _typeInferrer(ShadowTypeInferrer value);
 
   void setInferredType(
       TypeInferenceEngineImpl engine, String uri, DartType inferredType);
 
   static AccessorNode getAccessorNode(Member member) {
-    if (member is KernelMember) return member._accessorNode;
+    if (member is ShadowMember) return member._accessorNode;
     return null;
   }
 
   static void recordCrossOverride(
-      KernelMember member, Member overriddenMember) {
+      ShadowMember member, Member overriddenMember) {
     if (member._accessorNode != null) {
       member._accessorNode.crossOverrides.add(overriddenMember);
     }
   }
 
-  static void recordOverride(KernelMember member, Member overriddenMember) {
+  static void recordOverride(ShadowMember member, Member overriddenMember) {
     if (member._accessorNode != null) {
       member._accessorNode.overrides.add(overriddenMember);
     }
-    if (member is KernelProcedure && member._methodNode != null) {
+    if (member is ShadowProcedure && member._methodNode != null) {
       member._methodNode.overrides.add(overriddenMember);
     }
   }
 }
 
 /// Shadow object for [MethodInvocation].
-class KernelMethodInvocation extends MethodInvocation
-    implements KernelExpression {
+class ShadowMethodInvocation extends MethodInvocation
+    implements ShadowExpression {
   /// Indicates whether this method invocation is a call to a `call` method
   /// resulting from the invocation of a function expression.
   final bool _isImplicitCall;
 
-  KernelMethodInvocation(Expression receiver, Name name, Arguments arguments,
+  ShadowMethodInvocation(Expression receiver, Name name, Arguments arguments,
       {bool isImplicitCall: false, Member interfaceTarget})
       : _isImplicitCall = isImplicitCall,
         super(receiver, name, arguments, interfaceTarget);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // The inference dependencies are the inference dependencies of the
     // receiver.
     collector.collectDependencies(receiver);
@@ -1340,7 +1369,7 @@ class KernelMethodInvocation extends MethodInvocation
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     return inferrer.inferMethodInvocation(
         this, receiver, fileOffset, _isImplicitCall, typeContext, typeNeeded,
         desugaredInvocation: this);
@@ -1356,18 +1385,18 @@ class KernelMethodInvocation extends MethodInvocation
 /// kernel expression:
 ///
 ///     let f = () { ... } in f
-class KernelNamedFunctionExpression extends Let implements KernelExpression {
-  KernelNamedFunctionExpression(VariableDeclaration variable)
+class ShadowNamedFunctionExpression extends Let implements ShadowExpression {
+  ShadowNamedFunctionExpression(VariableDeclaration variable)
       : super(variable, new VariableGet(variable));
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     collector.collectDependencies(variable.initializer);
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.namedFunctionExpressionEnter(this, typeContext) ||
             typeNeeded;
@@ -1381,17 +1410,17 @@ class KernelNamedFunctionExpression extends Let implements KernelExpression {
 }
 
 /// Shadow object for [Not].
-class KernelNot extends Not implements KernelExpression {
-  KernelNot(Expression operand) : super(operand);
+class ShadowNot extends Not implements ShadowExpression {
+  ShadowNot(Expression operand) : super(operand);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     collector.collectDependencies(operand);
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.notEnter(this, typeContext) || typeNeeded;
     // First infer the receiver so we can look up the method that was invoked.
     var boolType = inferrer.coreTypes.boolClass.rawType;
@@ -1408,8 +1437,8 @@ class KernelNot extends Not implements KernelExpression {
 /// expression:
 ///
 ///     let v = a in v == null ? null : v.b(...)
-class KernelNullAwareMethodInvocation extends Let implements KernelExpression {
-  KernelNullAwareMethodInvocation(VariableDeclaration variable, Expression body)
+class ShadowNullAwareMethodInvocation extends Let implements ShadowExpression {
+  ShadowNullAwareMethodInvocation(VariableDeclaration variable, Expression body)
       : super(variable, body);
 
   @override
@@ -1418,14 +1447,14 @@ class KernelNullAwareMethodInvocation extends Let implements KernelExpression {
   MethodInvocation get _desugaredInvocation => body.otherwise;
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // Null aware expressions are not immediately evident.
     collector.recordNotImmediatelyEvident(fileOffset);
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     var inferredType = inferrer.inferMethodInvocation(
         this,
         variable.initializer,
@@ -1448,8 +1477,8 @@ class KernelNullAwareMethodInvocation extends Let implements KernelExpression {
 /// expression:
 ///
 ///     let v = a in v == null ? null : v.b
-class KernelNullAwarePropertyGet extends Let implements KernelExpression {
-  KernelNullAwarePropertyGet(
+class ShadowNullAwarePropertyGet extends Let implements ShadowExpression {
+  ShadowNullAwarePropertyGet(
       VariableDeclaration variable, ConditionalExpression body)
       : super(variable, body);
 
@@ -1459,14 +1488,14 @@ class KernelNullAwarePropertyGet extends Let implements KernelExpression {
   PropertyGet get _desugaredGet => body.otherwise;
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // Null aware expressions are not immediately evident.
     collector.recordNotImmediatelyEvident(fileOffset);
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     var inferredType = inferrer.inferPropertyGet(this, variable.initializer,
         fileOffset, typeContext, typeNeeded || inferrer.strongMode,
         receiverVariable: variable, desugaredGet: _desugaredGet);
@@ -1478,15 +1507,15 @@ class KernelNullAwarePropertyGet extends Let implements KernelExpression {
 }
 
 /// Concrete shadow object representing a null literal in kernel form.
-class KernelNullLiteral extends NullLiteral implements KernelExpression {
+class ShadowNullLiteral extends NullLiteral implements ShadowExpression {
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.nullLiteralEnter(this, typeContext) || typeNeeded;
     var inferredType = typeNeeded ? inferrer.coreTypes.nullClass.rawType : null;
@@ -1496,18 +1525,18 @@ class KernelNullLiteral extends NullLiteral implements KernelExpression {
 }
 
 /// Concrete shadow object representing a procedure in kernel form.
-class KernelProcedure extends Procedure implements KernelMember {
+class ShadowProcedure extends Procedure implements ShadowMember {
   @override
   AccessorNode _accessorNode;
 
   MethodNode _methodNode;
 
   @override
-  KernelTypeInferrer _typeInferrer;
+  ShadowTypeInferrer _typeInferrer;
 
   final bool _hasImplicitReturnType;
 
-  KernelProcedure(Name name, ProcedureKind kind, FunctionNode function,
+  ShadowProcedure(Name name, ProcedureKind kind, FunctionNode function,
       this._hasImplicitReturnType,
       {String fileUri})
       : super(name, kind, function, fileUri: fileUri);
@@ -1532,16 +1561,16 @@ class KernelProcedure extends Procedure implements KernelMember {
   }
 
   static MethodNode getMethodNode(Procedure procedure) {
-    if (procedure is KernelProcedure) return procedure._methodNode;
+    if (procedure is ShadowProcedure) return procedure._methodNode;
     return null;
   }
 
-  static bool hasImplicitReturnType(KernelProcedure procedure) {
+  static bool hasImplicitReturnType(ShadowProcedure procedure) {
     return procedure._hasImplicitReturnType;
   }
 
   static void inferSetterReturnType(
-      KernelProcedure procedure, TypeInferenceEngineImpl engine, String uri) {
+      ShadowProcedure procedure, TypeInferenceEngineImpl engine, String uri) {
     assert(procedure.isSetter);
     if (procedure._hasImplicitReturnType) {
       var inferredType = const VoidType();
@@ -1553,12 +1582,12 @@ class KernelProcedure extends Procedure implements KernelMember {
 }
 
 /// Concrete shadow object representing an assignment to a property.
-class KernelPropertyAssign extends KernelComplexAssignmentWithReceiver {
+class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
   /// If this assignment uses null-aware access (`?.`), the conditional
   /// expression that guards the access; otherwise `null`.
-  Expression nullAwareGuard;
+  ConditionalExpression nullAwareGuard;
 
-  KernelPropertyAssign(Expression receiver, Expression rhs,
+  ShadowPropertyAssign(Expression receiver, Expression rhs,
       {bool isSuper: false})
       : super(receiver, rhs, isSuper);
 
@@ -1571,15 +1600,16 @@ class KernelPropertyAssign extends KernelComplexAssignmentWithReceiver {
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.propertyAssignEnter(desugared, typeContext) ||
             typeNeeded;
-    // TODO(paulberry): record the appropriate types on let variables and
-    // conditional expressions.
     var receiverType = _inferReceiver(inferrer);
     if (read != null) {
-      inferrer.findPropertyGetMember(receiverType, read, silent: true);
+      var readMember =
+          inferrer.findPropertyGetMember(receiverType, read, silent: true);
+      var readType = inferrer.getCalleeType(readMember, receiverType);
+      _storeLetType(inferrer, read, readType);
     }
     Member writeMember;
     if (write != null) {
@@ -1589,7 +1619,7 @@ class KernelPropertyAssign extends KernelComplexAssignmentWithReceiver {
                   writeMember.kind == ProcedureKind.Setter) ||
               writeMember is Field)) {
         if (TypeInferenceEngineImpl.fullTopLevelInference) {
-          if (writeMember is KernelField && writeMember._accessorNode != null) {
+          if (writeMember is ShadowField && writeMember._accessorNode != null) {
             inferrer.engine.inferAccessorFused(
                 writeMember._accessorNode, inferrer.accessorNode);
           }
@@ -1604,23 +1634,25 @@ class KernelPropertyAssign extends KernelComplexAssignmentWithReceiver {
     // member.  TODO(paulberry): would it be better to use the read member when
     // doing compound assignment?
     var writeContext = inferrer.getSetterType(writeMember, receiverType);
+    _storeLetType(inferrer, write, writeContext);
     var inferredType = _inferRhs(inferrer, writeContext);
+    if (inferrer.strongMode) nullAwareGuard?.staticType = inferredType;
     inferrer.listener.propertyAssignExit(desugared, inferredType);
     return inferredType;
   }
 }
 
 /// Shadow object for [PropertyGet].
-class KernelPropertyGet extends PropertyGet implements KernelExpression {
-  KernelPropertyGet(Expression receiver, Name name, [Member interfaceTarget])
+class ShadowPropertyGet extends PropertyGet implements ShadowExpression {
+  ShadowPropertyGet(Expression receiver, Name name, [Member interfaceTarget])
       : super(receiver, name, interfaceTarget);
 
-  KernelPropertyGet.byReference(
+  ShadowPropertyGet.byReference(
       Expression receiver, Name name, Reference interfaceTargetReference)
       : super.byReference(receiver, name, interfaceTargetReference);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // A simple or qualified identifier referring to a top level function,
     // static variable, field, getter; or a static class variable, static getter
     // or method; or an instance method; has the inferred type of the referent.
@@ -1640,7 +1672,7 @@ class KernelPropertyGet extends PropertyGet implements KernelExpression {
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     return inferrer.inferPropertyGet(
         this, receiver, fileOffset, typeContext, typeNeeded,
         desugaredGet: this);
@@ -1649,13 +1681,13 @@ class KernelPropertyGet extends PropertyGet implements KernelExpression {
 
 /// Concrete shadow object representing a redirecting initializer in kernel
 /// form.
-class KernelRedirectingInitializer extends RedirectingInitializer
-    implements KernelInitializer {
-  KernelRedirectingInitializer(Constructor target, Arguments arguments)
+class ShadowRedirectingInitializer extends RedirectingInitializer
+    implements ShadowInitializer {
+  ShadowRedirectingInitializer(Constructor target, Arguments arguments)
       : super(target, arguments);
 
   @override
-  _inferInitializer(KernelTypeInferrer inferrer) {
+  _inferInitializer(ShadowTypeInferrer inferrer) {
     inferrer.listener.redirectingInitializerEnter(this);
     inferrer.inferInvocation(null, false, fileOffset,
         target.function.functionType, target.enclosingClass.thisType, arguments,
@@ -1665,15 +1697,15 @@ class KernelRedirectingInitializer extends RedirectingInitializer
 }
 
 /// Shadow object for [Rethrow].
-class KernelRethrow extends Rethrow implements KernelExpression {
+class ShadowRethrow extends Rethrow implements ShadowExpression {
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.rethrowEnter(this, typeContext) || typeNeeded;
     var inferredType = typeNeeded ? const BottomType() : null;
@@ -1683,11 +1715,11 @@ class KernelRethrow extends Rethrow implements KernelExpression {
 }
 
 /// Concrete shadow object representing a return statement in kernel form.
-class KernelReturnStatement extends ReturnStatement implements KernelStatement {
-  KernelReturnStatement([Expression expression]) : super(expression);
+class ShadowReturnStatement extends ReturnStatement implements ShadowStatement {
+  ShadowReturnStatement([Expression expression]) : super(expression);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.returnStatementEnter(this);
     var closureContext = inferrer.closureContext;
     var typeContext =
@@ -1707,29 +1739,32 @@ class KernelReturnStatement extends ReturnStatement implements KernelStatement {
 
 /// Common base class for shadow objects representing statements in kernel
 /// form.
-abstract class KernelStatement extends Statement {
+abstract class ShadowStatement extends Statement {
   /// Calls back to [inferrer] to perform type inference for whatever concrete
-  /// type of [KernelStatement] this is.
-  void _inferStatement(KernelTypeInferrer inferrer);
+  /// type of [ShadowStatement] this is.
+  void _inferStatement(ShadowTypeInferrer inferrer);
 }
 
 /// Concrete shadow object representing an assignment to a static variable.
-class KernelStaticAssignment extends KernelComplexAssignment {
-  KernelStaticAssignment(Expression rhs) : super(rhs);
+class ShadowStaticAssignment extends ShadowComplexAssignment {
+  ShadowStaticAssignment(Expression rhs) : super(rhs);
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.staticAssignEnter(desugared, typeContext) ||
         typeNeeded;
-    // TODO(paulberry): record the appropriate types on let variables and
-    // conditional expressions.
+    var read = this.read;
+    if (read is StaticGet) {
+      _storeLetType(inferrer, read, read.target.getterType);
+    }
     DartType writeContext;
     var write = this.write;
     if (write is StaticSet) {
       writeContext = write.target.setterType;
+      _storeLetType(inferrer, write, writeContext);
       var target = write.target;
-      if (target is KernelField && target._accessorNode != null) {
+      if (target is ShadowField && target._accessorNode != null) {
         if (inferrer.isDryRun) {
           inferrer.recordDryRunDependency(target._accessorNode);
         }
@@ -1748,11 +1783,11 @@ class KernelStaticAssignment extends KernelComplexAssignment {
 
 /// Concrete shadow object representing a read of a static variable in kernel
 /// form.
-class KernelStaticGet extends StaticGet implements KernelExpression {
-  KernelStaticGet(Member target) : super(target);
+class ShadowStaticGet extends StaticGet implements ShadowExpression {
+  ShadowStaticGet(Member target) : super(target);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // A simple or qualified identifier referring to a top level function,
     // static variable, field, getter; or a static class variable, static getter
     // or method; or an instance method; has the inferred type of the referent.
@@ -1765,18 +1800,18 @@ class KernelStaticGet extends StaticGet implements KernelExpression {
     //   inference dependencies.
     // TODO(paulberry): implement the proper error checking logic.
     var target = this.target;
-    if (target is KernelField && target._accessorNode != null) {
+    if (target is ShadowField && target._accessorNode != null) {
       collector.recordDependency(target._accessorNode);
     }
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.staticGetEnter(this, typeContext) || typeNeeded;
     var target = this.target;
-    if (target is KernelField && target._accessorNode != null) {
+    if (target is ShadowField && target._accessorNode != null) {
       if (inferrer.isDryRun) {
         inferrer.recordDryRunDependency(target._accessorNode);
       }
@@ -1793,24 +1828,24 @@ class KernelStaticGet extends StaticGet implements KernelExpression {
 }
 
 /// Shadow object for [StaticInvocation].
-class KernelStaticInvocation extends StaticInvocation
-    implements KernelExpression {
-  KernelStaticInvocation(Procedure target, Arguments arguments,
+class ShadowStaticInvocation extends StaticInvocation
+    implements ShadowExpression {
+  ShadowStaticInvocation(Procedure target, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
-  KernelStaticInvocation.byReference(
+  ShadowStaticInvocation.byReference(
       Reference targetReference, Arguments arguments)
       : super.byReference(targetReference, arguments);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.staticInvocationEnter(this, typeContext) ||
         typeNeeded;
     var calleeType = target.function.functionType;
@@ -1822,18 +1857,18 @@ class KernelStaticInvocation extends StaticInvocation
 }
 
 /// Concrete shadow object representing a string concatenation in kernel form.
-class KernelStringConcatenation extends StringConcatenation
-    implements KernelExpression {
-  KernelStringConcatenation(List<Expression> expressions) : super(expressions);
+class ShadowStringConcatenation extends StringConcatenation
+    implements ShadowExpression {
+  ShadowStringConcatenation(List<Expression> expressions) : super(expressions);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.stringConcatenationEnter(this, typeContext) ||
             typeNeeded;
@@ -1850,17 +1885,17 @@ class KernelStringConcatenation extends StringConcatenation
 }
 
 /// Concrete shadow object representing a string literal in kernel form.
-class KernelStringLiteral extends StringLiteral implements KernelExpression {
-  KernelStringLiteral(String value) : super(value);
+class ShadowStringLiteral extends StringLiteral implements ShadowExpression {
+  ShadowStringLiteral(String value) : super(value);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.stringLiteralEnter(this, typeContext) || typeNeeded;
     var inferredType =
@@ -1871,13 +1906,13 @@ class KernelStringLiteral extends StringLiteral implements KernelExpression {
 }
 
 /// Concrete shadow object representing a super initializer in kernel form.
-class KernelSuperInitializer extends SuperInitializer
-    implements KernelInitializer {
-  KernelSuperInitializer(Constructor target, Arguments arguments)
+class ShadowSuperInitializer extends SuperInitializer
+    implements ShadowInitializer {
+  ShadowSuperInitializer(Constructor target, Arguments arguments)
       : super(target, arguments);
 
   @override
-  void _inferInitializer(KernelTypeInferrer inferrer) {
+  void _inferInitializer(ShadowTypeInferrer inferrer) {
     inferrer.listener.superInitializerEnter(this);
     inferrer.inferInvocation(null, false, fileOffset,
         target.function.functionType, target.enclosingClass.thisType, arguments,
@@ -1887,14 +1922,14 @@ class KernelSuperInitializer extends SuperInitializer
 }
 
 /// Shadow object for [SuperMethodInvocation].
-class KernelSuperMethodInvocation extends SuperMethodInvocation
-    implements KernelExpression {
-  KernelSuperMethodInvocation(Name name, Arguments arguments,
+class ShadowSuperMethodInvocation extends SuperMethodInvocation
+    implements ShadowExpression {
+  ShadowSuperMethodInvocation(Name name, Arguments arguments,
       [Procedure interfaceTarget])
       : super(name, arguments, interfaceTarget);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // Super expressions should never occur in top level type inference.
     // TODO(paulberry): but could they occur due to invalid code?
     assert(false);
@@ -1902,12 +1937,12 @@ class KernelSuperMethodInvocation extends SuperMethodInvocation
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     if (interfaceTarget != null) {
       inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
           'target', new InstrumentationValueForMember(interfaceTarget));
     }
-    return inferrer.inferMethodInvocation(this, new KernelThisExpression(),
+    return inferrer.inferMethodInvocation(this, new ShadowThisExpression(),
         fileOffset, false, typeContext, typeNeeded,
         interfaceMember: interfaceTarget,
         methodName: name,
@@ -1916,13 +1951,13 @@ class KernelSuperMethodInvocation extends SuperMethodInvocation
 }
 
 /// Shadow object for [SuperPropertyGet].
-class KernelSuperPropertyGet extends SuperPropertyGet
-    implements KernelExpression {
-  KernelSuperPropertyGet(Name name, [Member interfaceTarget])
+class ShadowSuperPropertyGet extends SuperPropertyGet
+    implements ShadowExpression {
+  ShadowSuperPropertyGet(Name name, [Member interfaceTarget])
       : super(name, interfaceTarget);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // Super expressions should never occur in top level type inference.
     // TODO(paulberry): but could they occur due to invalid code?
     assert(false);
@@ -1930,20 +1965,20 @@ class KernelSuperPropertyGet extends SuperPropertyGet
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     return inferrer.inferPropertyGet(
-        this, new KernelThisExpression(), fileOffset, typeContext, typeNeeded,
+        this, new ShadowThisExpression(), fileOffset, typeContext, typeNeeded,
         propertyName: name);
   }
 }
 
 /// Concrete shadow object representing a switch statement in kernel form.
-class KernelSwitchStatement extends SwitchStatement implements KernelStatement {
-  KernelSwitchStatement(Expression expression, List<SwitchCase> cases)
+class ShadowSwitchStatement extends SwitchStatement implements ShadowStatement {
+  ShadowSwitchStatement(Expression expression, List<SwitchCase> cases)
       : super(expression, cases);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.switchStatementEnter(this);
     var expressionType = inferrer.inferExpression(expression, null, true);
     for (var switchCase in cases) {
@@ -1957,17 +1992,17 @@ class KernelSwitchStatement extends SwitchStatement implements KernelStatement {
 }
 
 /// Shadow object for [SymbolLiteral].
-class KernelSymbolLiteral extends SymbolLiteral implements KernelExpression {
-  KernelSymbolLiteral(String value) : super(value);
+class ShadowSymbolLiteral extends SymbolLiteral implements ShadowExpression {
+  ShadowSymbolLiteral(String value) : super(value);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.symbolLiteralEnter(this, typeContext) || typeNeeded;
     var inferredType =
@@ -1985,11 +2020,11 @@ class KernelSymbolLiteral extends SymbolLiteral implements KernelExpression {
 ///
 /// Visitors skip over objects of this type, so it is not included in serialized
 /// output.
-class KernelSyntheticExpression extends Expression implements KernelExpression {
+class ShadowSyntheticExpression extends Expression implements ShadowExpression {
   /// The desugared kernel representation of this synthetic expression.
   Expression desugared;
 
-  KernelSyntheticExpression(this.desugared);
+  ShadowSyntheticExpression(this.desugared);
 
   @override
   void set parent(TreeNode node) {
@@ -2014,14 +2049,45 @@ class KernelSyntheticExpression extends Expression implements KernelExpression {
   visitChildren(Visitor v) => desugared.visitChildren(v);
 
   @override
-  _collectDependencies(KernelDependencyCollector collector) {
+  _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     return typeNeeded ? const DynamicType() : null;
+  }
+
+  /// Updates any [Let] nodes in the desugared expression to account for the
+  /// fact that [expression] has the given [type].
+  void _storeLetType(
+      TypeInferrerImpl inferrer, Expression expression, DartType type) {
+    if (!inferrer.strongMode) return;
+    Expression desugared = this.desugared;
+    while (true) {
+      if (desugared is Let) {
+        Let desugaredLet = desugared;
+        var variable = desugaredLet.variable;
+        if (identical(variable.initializer, expression)) {
+          variable.type = type;
+          return;
+        }
+        desugared = desugaredLet.body;
+      } else if (desugared is ConditionalExpression) {
+        // When a null-aware assignment is desugared, often the "then" or "else"
+        // branch of the conditional expression often contains "let" nodes that
+        // need to be updated.
+        ConditionalExpression desugaredConditionalExpression = desugared;
+        if (desugaredConditionalExpression.then is Let) {
+          desugared = desugaredConditionalExpression.then;
+        } else {
+          desugared = desugaredConditionalExpression.otherwise;
+        }
+      } else {
+        break;
+      }
+    }
   }
 }
 
@@ -2033,11 +2099,11 @@ class KernelSyntheticExpression extends Expression implements KernelExpression {
 ///
 /// Visitors skip over objects of this type, so it is not included in serialized
 /// output.
-class KernelSyntheticStatement extends Statement implements KernelStatement {
+class ShadowSyntheticStatement extends Statement implements ShadowStatement {
   /// The desugared kernel representation of this synthetic statement.
   Statement desugared;
 
-  KernelSyntheticStatement(this.desugared);
+  ShadowSyntheticStatement(this.desugared);
 
   @override
   void set parent(TreeNode node) {
@@ -2058,13 +2124,13 @@ class KernelSyntheticStatement extends Statement implements KernelStatement {
   visitChildren(Visitor v) => desugared.visitChildren(v);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {}
+  void _inferStatement(ShadowTypeInferrer inferrer) {}
 }
 
 /// Shadow object for [ThisExpression].
-class KernelThisExpression extends ThisExpression implements KernelExpression {
+class ShadowThisExpression extends ThisExpression implements ShadowExpression {
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // Field initializers are not allowed to refer to [this].  But if it
     // happens, we can still proceed; no additional type inference dependencies
     // are introduced.
@@ -2072,7 +2138,7 @@ class KernelThisExpression extends ThisExpression implements KernelExpression {
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.thisExpressionEnter(this, typeContext) || typeNeeded;
     var inferredType =
@@ -2083,17 +2149,17 @@ class KernelThisExpression extends ThisExpression implements KernelExpression {
 }
 
 /// Shadow object for [Throw].
-class KernelThrow extends Throw implements KernelExpression {
-  KernelThrow(Expression expression) : super(expression);
+class ShadowThrow extends Throw implements ShadowExpression {
+  ShadowThrow(Expression expression) : super(expression);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.throwEnter(this, typeContext) || typeNeeded;
     inferrer.inferExpression(expression, null, false);
     var inferredType = typeNeeded ? const BottomType() : null;
@@ -2103,11 +2169,11 @@ class KernelThrow extends Throw implements KernelExpression {
 }
 
 /// Concrete shadow object representing a try-catch block in kernel form.
-class KernelTryCatch extends TryCatch implements KernelStatement {
-  KernelTryCatch(Statement body, List<Catch> catches) : super(body, catches);
+class ShadowTryCatch extends TryCatch implements ShadowStatement {
+  ShadowTryCatch(Statement body, List<Catch> catches) : super(body, catches);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.tryCatchEnter(this);
     inferrer.inferStatement(body);
     for (var catch_ in catches) {
@@ -2118,12 +2184,12 @@ class KernelTryCatch extends TryCatch implements KernelStatement {
 }
 
 /// Concrete shadow object representing a try-finally block in kernel form.
-class KernelTryFinally extends TryFinally implements KernelStatement {
-  KernelTryFinally(Statement body, Statement finalizer)
+class ShadowTryFinally extends TryFinally implements ShadowStatement {
+  ShadowTryFinally(Statement body, Statement finalizer)
       : super(body, finalizer);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.tryFinallyEnter(this);
     inferrer.inferStatement(body);
     inferrer.inferStatement(finalizer);
@@ -2133,12 +2199,12 @@ class KernelTryFinally extends TryFinally implements KernelStatement {
 
 /// Concrete implementation of [TypeInferenceEngine] specialized to work with
 /// kernel objects.
-class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
-  KernelTypeInferenceEngine(Instrumentation instrumentation, bool strongMode)
+class ShadowTypeInferenceEngine extends TypeInferenceEngineImpl {
+  ShadowTypeInferenceEngine(Instrumentation instrumentation, bool strongMode)
       : super(instrumentation, strongMode);
 
   @override
-  AccessorNode createAccessorNode(KernelMember member) {
+  AccessorNode createAccessorNode(ShadowMember member) {
     AccessorNode accessorNode = new AccessorNode(this, member);
     member._accessorNode = accessorNode;
     return accessorNode;
@@ -2149,40 +2215,40 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
       new TypeInferrerDisabled(typeSchemaEnvironment);
 
   @override
-  KernelTypeInferrer createLocalTypeInferrer(
+  ShadowTypeInferrer createLocalTypeInferrer(
       Uri uri, TypeInferenceListener listener, InterfaceType thisType) {
-    return new KernelTypeInferrer._(
+    return new ShadowTypeInferrer._(
         this, uri.toString(), listener, false, thisType, null);
   }
 
   @override
-  MethodNode createMethodNode(KernelProcedure procedure) {
+  MethodNode createMethodNode(ShadowProcedure procedure) {
     MethodNode methodNode = new MethodNode(procedure);
     procedure._methodNode = methodNode;
     return methodNode;
   }
 
   @override
-  KernelTypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,
-      InterfaceType thisType, KernelMember member) {
-    return member._typeInferrer = new KernelTypeInferrer._(
+  ShadowTypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,
+      InterfaceType thisType, ShadowMember member) {
+    return member._typeInferrer = new ShadowTypeInferrer._(
         this, member.fileUri, listener, true, thisType, member._accessorNode);
   }
 
   @override
-  KernelTypeInferrer getMemberTypeInferrer(KernelMember member) {
+  ShadowTypeInferrer getMemberTypeInferrer(ShadowMember member) {
     return member._typeInferrer;
   }
 }
 
 /// Concrete implementation of [TypeInferrer] specialized to work with kernel
 /// objects.
-class KernelTypeInferrer extends TypeInferrerImpl {
+class ShadowTypeInferrer extends TypeInferrerImpl {
   @override
-  final typePromoter = new KernelTypePromoter();
+  final typePromoter = new ShadowTypePromoter();
 
-  KernelTypeInferrer._(
-      KernelTypeInferenceEngine engine,
+  ShadowTypeInferrer._(
+      ShadowTypeInferenceEngine engine,
       String uri,
       TypeInferenceListener listener,
       bool topLevel,
@@ -2191,7 +2257,7 @@ class KernelTypeInferrer extends TypeInferrerImpl {
       : super(engine, uri, listener, topLevel, thisType, accessorNode);
 
   @override
-  Expression getFieldInitializer(KernelField field) {
+  Expression getFieldInitializer(ShadowField field) {
     return field.initializer;
   }
 
@@ -2203,7 +2269,7 @@ class KernelTypeInferrer extends TypeInferrerImpl {
     // those subexpressions.
     if (!typeNeeded && isTopLevel) return null;
 
-    if (expression is KernelExpression) {
+    if (expression is ShadowExpression) {
       // Use polymorphic dispatch on [KernelExpression] to perform whatever kind
       // of type inference is correct for this kind of statement.
       // TODO(paulberry): experiment to see if dynamic dispatch would be better,
@@ -2221,26 +2287,26 @@ class KernelTypeInferrer extends TypeInferrerImpl {
 
   @override
   DartType inferFieldTopLevel(
-      KernelField field, DartType type, bool typeNeeded) {
+      ShadowField field, DartType type, bool typeNeeded) {
     if (field.initializer == null) return const DynamicType();
     return inferExpression(field.initializer, type, typeNeeded);
   }
 
   @override
   void inferInitializer(Initializer initializer) {
-    assert(initializer is KernelInitializer);
+    assert(initializer is ShadowInitializer);
     // Use polymorphic dispatch on [KernelInitializer] to perform whatever
     // kind of type inference is correct for this kind of initializer.
     // TODO(paulberry): experiment to see if dynamic dispatch would be better,
     // so that the type hierarchy will be simpler (which may speed up "is"
     // checks).
-    KernelInitializer kernelInitializer = initializer;
+    ShadowInitializer kernelInitializer = initializer;
     return kernelInitializer._inferInitializer(this);
   }
 
   @override
   void inferStatement(Statement statement) {
-    if (statement is KernelStatement) {
+    if (statement is ShadowStatement) {
       // Use polymorphic dispatch on [KernelStatement] to perform whatever kind
       // of type inference is correct for this kind of statement.
       // TODO(paulberry): experiment to see if dynamic dispatch would be better,
@@ -2257,17 +2323,17 @@ class KernelTypeInferrer extends TypeInferrerImpl {
 }
 
 /// Shadow object for [TypeLiteral].
-class KernelTypeLiteral extends TypeLiteral implements KernelExpression {
-  KernelTypeLiteral(DartType type) : super(type);
+class ShadowTypeLiteral extends TypeLiteral implements ShadowExpression {
+  ShadowTypeLiteral(DartType type) : super(type);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.typeLiteralEnter(this, typeContext) || typeNeeded;
     var inferredType = typeNeeded ? inferrer.coreTypes.typeClass.rawType : null;
@@ -2278,10 +2344,10 @@ class KernelTypeLiteral extends TypeLiteral implements KernelExpression {
 
 /// Concrete implementation of [TypePromoter] specialized to work with kernel
 /// objects.
-class KernelTypePromoter extends TypePromoterImpl {
+class ShadowTypePromoter extends TypePromoterImpl {
   @override
   int getVariableFunctionNestingLevel(VariableDeclaration variable) {
-    if (variable is KernelVariableDeclaration) {
+    if (variable is ShadowVariableDeclaration) {
       return variable._functionNestingLevel;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
@@ -2294,8 +2360,8 @@ class KernelTypePromoter extends TypePromoterImpl {
 
   @override
   bool isPromotionCandidate(VariableDeclaration variable) {
-    assert(variable is KernelVariableDeclaration);
-    KernelVariableDeclaration kernelVariableDeclaration = variable;
+    assert(variable is ShadowVariableDeclaration);
+    ShadowVariableDeclaration kernelVariableDeclaration = variable;
     return !kernelVariableDeclaration._isLocalFunction;
   }
 
@@ -2306,7 +2372,7 @@ class KernelTypePromoter extends TypePromoterImpl {
 
   @override
   void setVariableMutatedAnywhere(VariableDeclaration variable) {
-    if (variable is KernelVariableDeclaration) {
+    if (variable is ShadowVariableDeclaration) {
       variable._mutatedAnywhere = true;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
@@ -2318,7 +2384,7 @@ class KernelTypePromoter extends TypePromoterImpl {
 
   @override
   void setVariableMutatedInClosure(VariableDeclaration variable) {
-    if (variable is KernelVariableDeclaration) {
+    if (variable is ShadowVariableDeclaration) {
       variable._mutatedInClosure = true;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
@@ -2330,7 +2396,7 @@ class KernelTypePromoter extends TypePromoterImpl {
 
   @override
   bool wasVariableMutatedAnywhere(VariableDeclaration variable) {
-    if (variable is KernelVariableDeclaration) {
+    if (variable is ShadowVariableDeclaration) {
       return variable._mutatedAnywhere;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
@@ -2343,21 +2409,23 @@ class KernelTypePromoter extends TypePromoterImpl {
 }
 
 /// Concrete shadow object representing an assignment to a local variable.
-class KernelVariableAssignment extends KernelComplexAssignment {
-  KernelVariableAssignment(Expression rhs) : super(rhs);
+class ShadowVariableAssignment extends ShadowComplexAssignment {
+  ShadowVariableAssignment(Expression rhs) : super(rhs);
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.variableAssignEnter(desugared, typeContext) ||
             typeNeeded;
-    // TODO(paulberry): record the appropriate types on let variables and
-    // conditional expressions.
     DartType writeContext;
     var write = this.write;
     if (write is VariableSet) {
       writeContext = write.variable.type;
+      if (read != null) {
+        _storeLetType(inferrer, read, writeContext);
+      }
+      _storeLetType(inferrer, write, writeContext);
     }
     var inferredType = _inferRhs(inferrer, writeContext);
     inferrer.listener.variableAssignExit(desugared, inferredType);
@@ -2366,8 +2434,8 @@ class KernelVariableAssignment extends KernelComplexAssignment {
 }
 
 /// Concrete shadow object representing a variable declaration in kernel form.
-class KernelVariableDeclaration extends VariableDeclaration
-    implements KernelStatement {
+class ShadowVariableDeclaration extends VariableDeclaration
+    implements ShadowStatement {
   final bool _implicitlyTyped;
 
   final int _functionNestingLevel;
@@ -2378,12 +2446,13 @@ class KernelVariableDeclaration extends VariableDeclaration
 
   final bool _isLocalFunction;
 
-  KernelVariableDeclaration(String name, this._functionNestingLevel,
+  ShadowVariableDeclaration(String name, this._functionNestingLevel,
       {Expression initializer,
       DartType type,
       bool isFinal: false,
       bool isConst: false,
       bool isFieldFormal: false,
+      bool isCovariant: false,
       bool isLocalFunction: false})
       : _implicitlyTyped = type == null,
         _isLocalFunction = isLocalFunction,
@@ -2392,16 +2461,17 @@ class KernelVariableDeclaration extends VariableDeclaration
             type: type ?? const DynamicType(),
             isFinal: isFinal,
             isConst: isConst,
-            isFieldFormal: isFieldFormal);
+            isFieldFormal: isFieldFormal,
+            isCovariant: isCovariant);
 
-  KernelVariableDeclaration.forValue(
+  ShadowVariableDeclaration.forValue(
       Expression initializer, this._functionNestingLevel)
       : _implicitlyTyped = true,
         _isLocalFunction = false,
         super.forValue(initializer);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.variableDeclarationEnter(this);
     var declaredType = _implicitlyTyped ? null : type;
     DartType inferredType;
@@ -2419,33 +2489,33 @@ class KernelVariableDeclaration extends VariableDeclaration
     inferrer.listener.variableDeclarationExit(this);
   }
 
-  /// Determine whether the given [KernelVariableDeclaration] had an implicit
+  /// Determine whether the given [ShadowVariableDeclaration] had an implicit
   /// type.
   ///
   /// This is static to avoid introducing a method that would be visible to
   /// the kernel.
-  static bool isImplicitlyTyped(KernelVariableDeclaration variable) =>
+  static bool isImplicitlyTyped(ShadowVariableDeclaration variable) =>
       variable._implicitlyTyped;
 }
 
 /// Concrete shadow object representing a read from a variable in kernel form.
-class KernelVariableGet extends VariableGet implements KernelExpression {
+class ShadowVariableGet extends VariableGet implements ShadowExpression {
   final TypePromotionFact _fact;
 
   final TypePromotionScope _scope;
 
-  KernelVariableGet(VariableDeclaration variable, this._fact, this._scope)
+  ShadowVariableGet(VariableDeclaration variable, this._fact, this._scope)
       : super(variable);
 
   @override
-  void _collectDependencies(KernelDependencyCollector collector) {
+  void _collectDependencies(ShadowDependencyCollector collector) {
     // No inference dependencies.
   }
 
   @override
   DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    var variable = this.variable as KernelVariableDeclaration;
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    var variable = this.variable as ShadowVariableDeclaration;
     bool mutatedInClosure = variable._mutatedInClosure;
     DartType declaredOrInferredType = variable.type;
     typeNeeded =
@@ -2465,12 +2535,12 @@ class KernelVariableGet extends VariableGet implements KernelExpression {
 }
 
 /// Concrete shadow object representing a while loop in kernel form.
-class KernelWhileStatement extends WhileStatement implements KernelStatement {
-  KernelWhileStatement(Expression condition, Statement body)
+class ShadowWhileStatement extends WhileStatement implements ShadowStatement {
+  ShadowWhileStatement(Expression condition, Statement body)
       : super(condition, body);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.whileStatementEnter(this);
     inferrer.inferExpression(
         condition, inferrer.coreTypes.boolClass.rawType, false);
@@ -2480,12 +2550,12 @@ class KernelWhileStatement extends WhileStatement implements KernelStatement {
 }
 
 /// Concrete shadow object representing a yield statement in kernel form.
-class KernelYieldStatement extends YieldStatement implements KernelStatement {
-  KernelYieldStatement(Expression expression, {bool isYieldStar: false})
+class ShadowYieldStatement extends YieldStatement implements ShadowStatement {
+  ShadowYieldStatement(Expression expression, {bool isYieldStar: false})
       : super(expression, isYieldStar: isYieldStar);
 
   @override
-  void _inferStatement(KernelTypeInferrer inferrer) {
+  void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.yieldStatementEnter(this);
     var closureContext = inferrer.closureContext;
     var typeContext =

@@ -392,6 +392,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
     Timer.run(() {
       var status = new _ProcessStartStatus();
       bool success = _startNative(
+          _Namespace._namespace,
           _path,
           _arguments,
           _workingDirectory,
@@ -457,6 +458,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
     var status = new _ProcessStartStatus();
     _exitCode = new Completer<int>();
     bool success = _startNative(
+        _Namespace._namespace,
         _path,
         _arguments,
         _workingDirectory,
@@ -495,6 +497,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
   }
 
   bool _startNative(
+      _Namespace namespace,
       String path,
       List<String> arguments,
       String workingDirectory,

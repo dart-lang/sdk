@@ -2,56 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
-/**
- * In-memory LRU cache for bytes.
- */
-class BytesMemoryCache<K> {
-  final int _maxSizeBytes;
-
-  final _map = new LinkedHashMap<K, List<int>>();
-  int _currentSizeBytes = 0;
-
-  BytesMemoryCache(this._maxSizeBytes);
-
-  List<int> get(K key, List<int> getNotCached()) {
-    List<int> bytes = _map.remove(key);
-    if (bytes == null) {
-      bytes = getNotCached();
-      if (bytes != null) {
-        _map[key] = bytes;
-        _currentSizeBytes += bytes.length;
-        _evict();
-      }
-    } else {
-      _map[key] = bytes;
-    }
-    return bytes;
-  }
-
-  void put(K key, List<int> bytes) {
-    _currentSizeBytes -= _map[key]?.length ?? 0;
-    _map[key] = bytes;
-    _currentSizeBytes += bytes.length;
-    _evict();
-  }
-
-  void _evict() {
-    while (_currentSizeBytes > _maxSizeBytes) {
-      if (_map.isEmpty) {
-        // Should be impossible, since _currentSizeBytes should always match
-        // _map.  But recover anyway.
-        assert(false);
-        _currentSizeBytes = 0;
-        break;
-      }
-      K key = _map.keys.first;
-      List<int> bytes = _map.remove(key);
-      _currentSizeBytes -= bytes.length;
-    }
-  }
-}
+import 'package:front_end/src/byte_store/cache.dart';
 
 /**
  * Store of bytes associated with string keys.
@@ -100,10 +51,10 @@ class MemoryByteStore implements ByteStore {
  */
 class MemoryCachingByteStore implements ByteStore {
   final ByteStore _store;
-  final BytesMemoryCache<String> _cache;
+  final Cache<String, List<int>> _cache;
 
   MemoryCachingByteStore(this._store, int maxSizeBytes)
-      : _cache = new BytesMemoryCache<String>(maxSizeBytes);
+      : _cache = new Cache<String, List<int>>(maxSizeBytes, (v) => v.length);
 
   @override
   List<int> get(String key) {

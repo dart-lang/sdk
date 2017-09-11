@@ -20,12 +20,10 @@ class A {
 
 main() {
   var o = new A();
-  Expect.isTrue(o.fun() == '|Symbol("fun")|');
-  Expect.isTrue(o.fun(1) == '|Symbol("fun")|1|');
-  Expect.isTrue(o.fun(1, 2) == '|Symbol("fun")|1|2|');
-  Expect.isTrue(o.fun(1, b: 2) == '|Symbol("fun")|1|Symbol("b")/2|');
-  Expect.isTrue(
-      o.fun(1, a: 1, b: 2) == '|Symbol("fun")|1|Symbol("a")/1|Symbol("b")/2|');
-  Expect.isTrue(
-      o.fun(1, b: 2, a: 1) == '|Symbol("fun")|1|Symbol("a")/1|Symbol("b")/2|');
+  Expect.isTrue(o.fun() == '|${#fun}|');
+  Expect.isTrue(o.fun(1) == '|${#fun}|1|');
+  Expect.isTrue(o.fun(1, 2) == '|${#fun}|1|2|');
+  Expect.isTrue(o.fun(1, b: 2) == '|${#fun}|1|${#b}/2|');
+  Expect.isTrue(o.fun(1, a: 1, b: 2) == '|${#fun}|1|${#a}/1|${#b}/2|');
+  Expect.isTrue(o.fun(1, b: 2, a: 1) == '|${#fun}|1|${#a}/1|${#b}/2|');
 }

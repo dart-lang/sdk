@@ -25,6 +25,7 @@ import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
+import '../js_emitter/js_emitter.dart' show NativeEmitter;
 import '../kernel/element_map.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
@@ -93,6 +94,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
   LoopHandler<ir.Node> loopHandler;
   TypeBuilder typeBuilder;
 
+  final NativeEmitter nativeEmitter;
+
+  // [ir.Let] and [ir.LocalInitializer] bindings.
   final Map<ir.VariableDeclaration, HInstruction> letBindings =
       <ir.VariableDeclaration, HInstruction>{};
 
@@ -111,6 +115,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       this._worldBuilder,
       this.registry,
       this.closureDataLookup,
+      this.nativeEmitter,
       // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
       this.sourceInformationBuilder,
       this.functionNode) {
@@ -219,10 +224,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   @override
   ConstantValue getFieldInitialConstantValue(FieldEntity field) {
     assert(field == targetElement);
-    MemberDefinition definition = _elementMap.getMemberDefinition(field);
-    assert(definition.kind == MemberKind.regular,
-        failedAt(field, "Unexpected member definition: $definition"));
-    return _elementMap.getFieldConstantValue(definition.node);
+    return _elementMap.getFieldConstantValue(field);
   }
 
   void buildField(ir.Field field) {
@@ -461,23 +463,28 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// Maps the instance fields of a class to their SSA values.
   Map<FieldEntity, HInstruction> _collectFieldValues(ir.Class clazz) {
     Map<FieldEntity, HInstruction> fieldValues = <FieldEntity, HInstruction>{};
-
-    for (ir.Field node in clazz.fields) {
-      if (node.isInstanceMember) {
-        FieldEntity field = _elementMap.getField(node);
-        if (node.initializer == null) {
-          fieldValues[field] = graph.addConstantNull(closedWorld);
-        } else {
-          // Gotta update the resolvedAst when we're looking at field values
-          // outside the constructor.
-          inlinedFrom(field, () {
-            node.initializer.accept(this);
-            fieldValues[field] = pop();
-          });
-        }
+    ClassEntity cls = _elementMap.getClass(clazz);
+    _worldBuilder.forEachInstanceField(cls, (_, FieldEntity field) {
+      MemberDefinition definition = _elementMap.getMemberDefinition(field);
+      ir.Field node;
+      switch (definition.kind) {
+        case MemberKind.regular:
+          node = definition.node;
+          break;
+        default:
+          failedAt(field, "Unexpected member definition $definition.");
       }
-    }
-
+      if (node.initializer == null) {
+        fieldValues[field] = graph.addConstantNull(closedWorld);
+      } else {
+        // Gotta update the current member when we're looking at field values
+        // outside the constructor.
+        inlinedFrom(field, () {
+          node.initializer.accept(this);
+          fieldValues[field] = pop();
+        });
+      }
+    });
     return fieldValues;
   }
 
@@ -493,7 +500,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
             'Expected ${localsMap.currentMember} '
             'but found ${_elementMap.getConstructor(constructor)}.'));
     constructorChain.add(constructor);
-
     var foundSuperOrRedirectCall = false;
     for (var initializer in constructor.initializers) {
       if (initializer is ir.FieldInitializer) {
@@ -510,7 +516,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _inlineRedirectingInitializer(
             initializer, constructorChain, fieldValues, constructor);
       } else if (initializer is ir.LocalInitializer) {
-        assert(false, 'ir.LocalInitializer not handled');
+        // LocalInitializer is like a let-expression that is in scope for the
+        // rest of the initializers.
+        ir.VariableDeclaration variable = initializer.variable;
+        assert(variable.isFinal);
+        variable.initializer.accept(this);
+        HInstruction value = pop();
+        // TODO(sra): Apply inferred type information.
+        letBindings[variable] = value;
       } else if (initializer is ir.InvalidInitializer) {
         assert(false, 'ir.InvalidInitializer not handled');
       }
@@ -619,16 +632,21 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _normalizeAndBuildArguments(target.function, initializer.arguments);
 
     ir.Class callerClass = caller.enclosingClass;
-    _bindSupertypeTypeParameters(callerClass.supertype);
+    ir.Supertype supertype = callerClass.supertype;
+
+    // The class of the super-constructor may not be the supertype class. In
+    // this case, we must go up the class hierarchy until we reach the class
+    // containing the super-constructor.
+    while (supertype.classNode != target.enclosingClass) {
+      _bindSupertypeTypeParameters(supertype);
+      supertype = supertype.classNode.supertype;
+    }
+    _bindSupertypeTypeParameters(supertype);
+    supertype = supertype.classNode.supertype;
+
     if (callerClass.mixedInType != null) {
       _bindSupertypeTypeParameters(callerClass.mixedInType);
     }
-
-    ir.Class cls = target.enclosingClass;
-
-    inlinedFrom(_elementMap.getConstructor(target), () {
-      fieldValues.addAll(_collectFieldValues(cls));
-    });
 
     _inlineSuperOrRedirectCommon(
         initializer, target, arguments, constructorChain, fieldValues, caller);
@@ -719,15 +737,71 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   /// Builds a SSA graph for FunctionNodes of external methods.
   void buildExternalFunctionNode(ir.FunctionNode functionNode) {
+    assert(functionNode.body == null);
     openFunction(functionNode);
     ir.TreeNode parent = functionNode.parent;
     if (parent is ir.Procedure && parent.kind == ir.ProcedureKind.Factory) {
       _addClassTypeVariablesIfNeeded(parent);
     }
-    // TODO(sra): Generate conversion of Function typed arguments to JavaScript
-    // functions.
-    // TODO(sra): Invoke native method.
-    assert(functionNode.body == null);
+
+    if (closedWorld.nativeData.isNativeMember(targetElement)) {
+      nativeEmitter.nativeMethods.add(targetElement);
+      String nativeName;
+      if (closedWorld.nativeData.hasFixedBackendName(targetElement)) {
+        nativeName = closedWorld.nativeData.getFixedBackendName(targetElement);
+      } else {
+        nativeName = targetElement.name;
+      }
+
+      String templateReceiver = '';
+      List<String> templateArguments = <String>[];
+      List<HInstruction> inputs = <HInstruction>[];
+      if (targetElement.isInstanceMember) {
+        templateReceiver = '#.';
+        inputs.add(localsHandler.readThis());
+      }
+
+      for (ir.VariableDeclaration param in functionNode.positionalParameters) {
+        templateArguments.add('#');
+        Local local = localsMap.getLocalVariable(param);
+        // Convert Dart function to JavaScript function.
+        HInstruction argument = localsHandler.readLocal(local);
+        ir.DartType type = param.type;
+        if (type is ir.FunctionType) {
+          int arity = type.positionalParameters.length;
+          _pushStaticInvocation(
+              _commonElements.closureConverter,
+              [argument, graph.addConstantInt(arity, closedWorld)],
+              commonMasks.dynamicType);
+          argument = pop();
+        }
+        inputs.add(argument);
+      }
+
+      String arguments = templateArguments.join(',');
+
+      // TODO(sra): Use declared type or NativeBehavior type.
+      TypeMask typeMask = commonMasks.dynamicType;
+      String template;
+      if (targetElement.isGetter) {
+        template = '${templateReceiver}$nativeName';
+      } else if (targetElement.isSetter) {
+        template = '${templateReceiver}$nativeName = ${arguments}';
+      } else {
+        template = '${templateReceiver}$nativeName(${arguments})';
+      }
+
+      push(new HForeignCode(
+          js.js.uncachedExpressionTemplate(template), typeMask, inputs,
+          effects: new SideEffects()));
+      // TODO(johnniwinther): Provide source information.
+      HInstruction value = pop();
+      if (targetElement.isSetter) {
+        value = graph.addConstantNull(closedWorld);
+      }
+      close(new HReturn(value, null)).addSuccessor(graph.exit);
+    }
+    // TODO(sra): Handle JS-interop methods.
     closeFunction();
   }
 
@@ -1869,6 +1943,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
       open(block);
       localsHandler = new LocalsHandler.from(savedLocals);
       buildSwitchCase(switchCase);
+      if (!isAborted() &&
+          switchCase == switchCases.last &&
+          !isDefaultCase(switchCase)) {
+        // If there is no default, we will add one later to avoid
+        // the critical edge. So we generate a break statement to make
+        // sure the last case does not fall through to the default case.
+        jumpHandler.generateBreak();
+      }
       statements.add(
           new HSubGraphBlockInformation(new SubGraph(block, lastOpenedBlock)));
     }
@@ -2181,7 +2263,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           _typeInferenceMap.getReturnTypeOf(getter));
     } else if (staticTarget is ir.Field) {
       FieldEntity field = _elementMap.getField(staticTarget);
-      ConstantValue value = _elementMap.getFieldConstantValue(staticTarget);
+      ConstantValue value = _elementMap.getFieldConstantValue(field);
       if (value != null) {
         if (!field.isAssignable) {
           stack.add(graph.addConstant(value, closedWorld));
@@ -2237,10 +2319,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    Local local = localsMap.getLocalVariable(variableGet.variable,
-        isClosureCallMethod:
-            _elementMap.getMemberDefinition(targetElement).kind ==
-                MemberKind.closureCall);
+    Local local = localsMap.getLocalVariable(variableGet.variable);
     stack.add(localsHandler.readLocal(local));
   }
 
@@ -3067,15 +3146,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   visitFunctionNode(ir.FunctionNode node) {
-    Local methodElement = localsMap.getLocalFunction(node.parent);
     ClosureRepresentationInfo closureInfo =
-        closureDataLookup.getClosureRepresentationInfo(methodElement);
+        localsMap.getClosureRepresentationInfo(closureDataLookup, node.parent);
     ClassEntity closureClassEntity = closureInfo.closureClassEntity;
 
     List<HInstruction> capturedVariables = <HInstruction>[];
-    closureInfo.createdFieldEntities.forEach((Local capturedLocal) {
-      assert(capturedLocal != null);
-      capturedVariables.add(localsHandler.readLocal(capturedLocal));
+    _worldBuilder.forEachInstanceField(closureClassEntity,
+        (_, FieldEntity field) {
+      capturedVariables
+          .add(localsHandler.readLocal(closureInfo.getLocalForField(field)));
     });
 
     TypeMask type = new TypeMask.nonNullExact(closureClassEntity, closedWorld);
@@ -3088,8 +3167,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   visitFunctionDeclaration(ir.FunctionDeclaration declaration) {
     assert(isReachable);
     declaration.function.accept(this);
-    Local localFunction = localsMap.getLocalFunction(declaration);
-    localsHandler.updateLocal(localFunction, pop());
+    Local local = localsMap.getLocalVariable(declaration.variable);
+    localsHandler.updateLocal(local, pop());
   }
 
   @override

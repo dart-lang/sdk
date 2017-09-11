@@ -5,10 +5,10 @@
 
 #include "vm/kernel_binary.h"
 #include "platform/globals.h"
+#include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/kernel.h"
-#include "vm/kernel_to_il.h"
 #include "vm/os.h"
 
 namespace dart {
@@ -23,13 +23,15 @@ Program* Program::ReadFrom(Reader* reader) {
   program->kernel_data_ = reader->buffer();
   program->kernel_data_size_ = reader->size();
 
-  program->string_table_offset_ = reader->offset();
-
   // Read backwards at the end.
-  reader->set_offset(reader->size() - 4);
+  reader->set_offset(reader->size() - (4 * LibraryCountFieldCountFromEnd));
   program->library_count_ = reader->ReadUInt32();
-  reader->set_offset(reader->size() - 4 - 4 * program->library_count_ - 2 * 4);
+  reader->set_offset(reader->size() - (4 * LibraryCountFieldCountFromEnd) -
+                     (4 * program->library_count_) -
+                     (SourceTableFieldCountFromFirstLibraryOffset * 4));
+  program->source_table_offset_ = reader->ReadUInt32();
   program->name_table_offset_ = reader->ReadUInt32();
+  program->string_table_offset_ = reader->ReadUInt32();
   program->main_method_reference_ = NameIndex(reader->ReadUInt32() - 1);
 
   return program;

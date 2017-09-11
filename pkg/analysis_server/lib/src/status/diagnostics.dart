@@ -34,7 +34,6 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:plugin/plugin.dart';
 
 final String kCustomCss = '''
 .lead, .page-title+.markdown-body>p:first-child {
@@ -1014,21 +1013,6 @@ class PluginsPage extends DiagnosticPageWithNav {
         buf.writeln('${p.data.name} ${p.pluginId} (${p.data.version})');
       });
     }
-
-    h3('Analyzer plugins');
-    void writePlugin(Plugin plugin) {
-      buf.write(plugin.uniqueIdentifier);
-      buf.write(' (');
-      buf.write(plugin.runtimeType);
-      buf.write(')');
-    }
-
-    List<Plugin> plugins = [
-      AnalysisEngine.instance.enginePlugin,
-      server.serverPlugin
-    ];
-    plugins.addAll(server.userDefinedPlugins);
-    ul(plugins, writePlugin);
   }
 }
 

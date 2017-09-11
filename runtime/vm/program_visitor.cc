@@ -150,6 +150,10 @@ void ProgramVisitor::DedupStackMaps() {
           stackmaps_(Array::Handle(zone)),
           stackmap_(StackMap::Handle(zone)) {}
 
+    void AddStackMap(const StackMap& stackmap) {
+      canonical_stackmaps_.Insert(&StackMap::ZoneHandle(zone_, stackmap.raw()));
+    }
+
     void Visit(const Function& function) {
       if (!function.HasCode()) {
         return;
@@ -168,8 +172,7 @@ void ProgramVisitor::DedupStackMaps() {
       const StackMap* canonical_stackmap =
           canonical_stackmaps_.LookupValue(&stackmap);
       if (canonical_stackmap == NULL) {
-        canonical_stackmaps_.Insert(
-            &StackMap::ZoneHandle(zone_, stackmap.raw()));
+        AddStackMap(stackmap);
         return stackmap.raw();
       } else {
         return canonical_stackmap->raw();
@@ -185,6 +188,17 @@ void ProgramVisitor::DedupStackMaps() {
   };
 
   DedupStackMapsVisitor visitor(Thread::Current()->zone());
+  if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
+    // Prefer existing objects in the VM isolate.
+    const Array& object_table = Object::vm_isolate_snapshot_object_table();
+    Object& object = Object::Handle();
+    for (intptr_t i = 0; i < object_table.Length(); i++) {
+      object = object_table.At(i);
+      if (object.IsStackMap()) {
+        visitor.AddStackMap(StackMap::Cast(object));
+      }
+    }
+  }
   ProgramVisitor::VisitFunctions(&visitor);
 }
 
@@ -217,6 +231,11 @@ void ProgramVisitor::DedupPcDescriptors() {
           code_(Code::Handle(zone)),
           pc_descriptor_(PcDescriptors::Handle(zone)) {}
 
+    void AddPcDescriptor(const PcDescriptors& pc_descriptor) {
+      canonical_pc_descriptors_.Insert(
+          &PcDescriptors::ZoneHandle(zone_, pc_descriptor.raw()));
+    }
+
     void Visit(const Function& function) {
       if (!function.HasCode()) {
         return;
@@ -232,8 +251,7 @@ void ProgramVisitor::DedupPcDescriptors() {
       const PcDescriptors* canonical_pc_descriptor =
           canonical_pc_descriptors_.LookupValue(&pc_descriptor);
       if (canonical_pc_descriptor == NULL) {
-        canonical_pc_descriptors_.Insert(
-            &PcDescriptors::ZoneHandle(zone_, pc_descriptor.raw()));
+        AddPcDescriptor(pc_descriptor);
         return pc_descriptor.raw();
       } else {
         return canonical_pc_descriptor->raw();
@@ -248,6 +266,17 @@ void ProgramVisitor::DedupPcDescriptors() {
   };
 
   DedupPcDescriptorsVisitor visitor(Thread::Current()->zone());
+  if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
+    // Prefer existing objects in the VM isolate.
+    const Array& object_table = Object::vm_isolate_snapshot_object_table();
+    Object& object = Object::Handle();
+    for (intptr_t i = 0; i < object_table.Length(); i++) {
+      object = object_table.At(i);
+      if (object.IsPcDescriptors()) {
+        visitor.AddPcDescriptor(PcDescriptors::Cast(object));
+      }
+    }
+  }
   ProgramVisitor::VisitFunctions(&visitor);
 }
 
@@ -361,6 +390,11 @@ void ProgramVisitor::DedupCodeSourceMaps() {
           code_(Code::Handle(zone)),
           code_source_map_(CodeSourceMap::Handle(zone)) {}
 
+    void AddCodeSourceMap(const CodeSourceMap& code_source_map) {
+      canonical_code_source_maps_.Insert(
+          &CodeSourceMap::ZoneHandle(zone_, code_source_map.raw()));
+    }
+
     void Visit(const Function& function) {
       if (!function.HasCode()) {
         return;
@@ -376,8 +410,7 @@ void ProgramVisitor::DedupCodeSourceMaps() {
       const CodeSourceMap* canonical_code_source_map =
           canonical_code_source_maps_.LookupValue(&code_source_map);
       if (canonical_code_source_map == NULL) {
-        canonical_code_source_maps_.Insert(
-            &CodeSourceMap::ZoneHandle(zone_, code_source_map.raw()));
+        AddCodeSourceMap(code_source_map);
         return code_source_map.raw();
       } else {
         return canonical_code_source_map->raw();
@@ -392,6 +425,17 @@ void ProgramVisitor::DedupCodeSourceMaps() {
   };
 
   DedupCodeSourceMapsVisitor visitor(Thread::Current()->zone());
+  if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
+    // Prefer existing objects in the VM isolate.
+    const Array& object_table = Object::vm_isolate_snapshot_object_table();
+    Object& object = Object::Handle();
+    for (intptr_t i = 0; i < object_table.Length(); i++) {
+      object = object_table.At(i);
+      if (object.IsCodeSourceMap()) {
+        visitor.AddCodeSourceMap(CodeSourceMap::Cast(object));
+      }
+    }
+  }
   ProgramVisitor::VisitFunctions(&visitor);
 }
 
@@ -541,13 +585,21 @@ class InstructionsKeyValueTrait {
 typedef DirectChainedHashMap<InstructionsKeyValueTrait> InstructionsSet;
 
 void ProgramVisitor::DedupInstructions() {
-  class DedupInstructionsVisitor : public FunctionVisitor {
+  class DedupInstructionsVisitor : public FunctionVisitor,
+                                   public ObjectVisitor {
    public:
     explicit DedupInstructionsVisitor(Zone* zone)
         : zone_(zone),
           canonical_instructions_set_(),
           code_(Code::Handle(zone)),
           instructions_(Instructions::Handle(zone)) {}
+
+    void VisitObject(RawObject* obj) {
+      if (obj->IsInstructions()) {
+        canonical_instructions_set_.Insert(
+            &Instructions::ZoneHandle(zone_, Instructions::RawCast(obj)));
+      }
+    }
 
     void Visit(const Function& function) {
       if (!function.HasCode()) {
@@ -581,6 +633,10 @@ void ProgramVisitor::DedupInstructions() {
   };
 
   DedupInstructionsVisitor visitor(Thread::Current()->zone());
+  if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
+    // Prefer existing objects in the VM isolate.
+    Dart::vm_isolate()->heap()->VisitObjectsImagePages(&visitor);
+  }
   ProgramVisitor::VisitFunctions(&visitor);
 }
 

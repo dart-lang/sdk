@@ -6,14 +6,12 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:plugin/plugin.dart';
 
 /**
  * Instances of the class [SocketServer] implement the common parts of
@@ -32,7 +30,6 @@ class SocketServer {
   final DartSdk defaultSdk;
   final InstrumentationService instrumentationService;
   final DiagnosticServer diagnosticServer;
-  final ServerPlugin serverPlugin;
   final ResolverProvider fileResolverProvider;
   final ResolverProvider packageResolverProvider;
 
@@ -42,18 +39,12 @@ class SocketServer {
    */
   AnalysisServer analysisServer;
 
-  /**
-   * The plugins that are defined outside the analysis_server package.
-   */
-  List<Plugin> userDefinedPlugins;
-
   SocketServer(
       this.analysisServerOptions,
       this.sdkManager,
       this.defaultSdk,
       this.instrumentationService,
       this.diagnosticServer,
-      this.serverPlugin,
       this.fileResolverProvider,
       this.packageResolverProvider);
 
@@ -74,10 +65,12 @@ class SocketServer {
 
     PhysicalResourceProvider resourceProvider;
     if (analysisServerOptions.fileReadMode == 'as-is') {
-      resourceProvider = PhysicalResourceProvider.INSTANCE;
+      resourceProvider = new PhysicalResourceProvider(null,
+          stateLocation: analysisServerOptions.cacheFolder);
     } else if (analysisServerOptions.fileReadMode == 'normalize-eol-always') {
       resourceProvider = new PhysicalResourceProvider(
-          PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS);
+          PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS,
+          stateLocation: analysisServerOptions.cacheFolder);
     } else {
       throw new Exception(
           'File read mode was set to the unknown mode: $analysisServerOptions.fileReadMode');
@@ -87,13 +80,11 @@ class SocketServer {
         serverChannel,
         resourceProvider,
         new PubPackageMapProvider(resourceProvider, defaultSdk),
-        serverPlugin,
         analysisServerOptions,
         sdkManager,
         instrumentationService,
         diagnosticServer: diagnosticServer,
         fileResolverProvider: fileResolverProvider,
         packageResolverProvider: packageResolverProvider);
-    analysisServer.userDefinedPlugins = userDefinedPlugins;
   }
 }

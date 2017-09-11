@@ -6,7 +6,7 @@
 
 #include "bin/dartutils.h"
 #include "include/dart_native_api.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/isolate.h"

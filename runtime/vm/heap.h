@@ -42,13 +42,12 @@ class Heap {
     kNumWeakSelectors
   };
 
-  enum ApiCallbacks { kIgnoreApiCallbacks, kInvokeApiCallbacks };
-
   enum GCReason {
     kNewSpace,
     kPromotion,
     kOldSpace,
     kFull,
+    kIdle,
     kGCAtAlloc,
     kGCTestCase,
   };
@@ -106,8 +105,10 @@ class Heap {
   RawObject* FindNewObject(FindObjectVisitor* visitor) const;
   RawObject* FindObject(FindObjectVisitor* visitor) const;
 
+  void NotifyIdle(int64_t deadline);
+
   void CollectGarbage(Space space);
-  void CollectGarbage(Space space, ApiCallbacks api_callbacks, GCReason reason);
+  void CollectGarbage(Space space, GCReason reason);
   void CollectAllGarbage();
   bool NeedsGarbageCollection() const {
     return old_space_.NeedsGarbageCollection();
@@ -251,10 +252,6 @@ class Heap {
     old_space_.SetupImagePage(pointer, size, is_executable);
   }
 
-  intptr_t CalculateTLABSize();
-  void MakeTLABIterable(Thread* thread);
-  void AbandonRemainingTLAB(Thread* thread);
-
  private:
   class GCStats : public ValueObject {
    public:
@@ -312,10 +309,8 @@ class Heap {
 
   // Helper functions for garbage collection.
   void CollectNewSpaceGarbage(Thread* thread,
-                              ApiCallbacks api_callbacks,
                               GCReason reason);
   void CollectOldSpaceGarbage(Thread* thread,
-                              ApiCallbacks api_callbacks,
                               GCReason reason);
   void EvacuateNewSpace(Thread* thread, GCReason reason);
 
@@ -365,6 +360,8 @@ class Heap {
   friend class IsolateReloadContext;  // VisitObjects
   friend class ClassFinalizer;        // VisitObjects
   friend class HeapIterationScope;    // VisitObjects
+  friend class ProgramVisitor;        // VisitObjectsImagePages
+  friend class Serializer;            // VisitObjectsImagePages
 
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };

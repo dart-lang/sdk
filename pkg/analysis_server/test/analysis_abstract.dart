@@ -12,8 +12,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analyzer/context/context_root.dart' as analyzer;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -25,7 +23,6 @@ import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
 import 'package:watcher/watcher.dart';
 
@@ -105,8 +102,6 @@ class AbstractAnalysisTest {
     handleSuccessfulRequest(request);
   }
 
-  void addServerPlugins(List<Plugin> plugins) {}
-
   String addTestFile(String content) {
     addFile(testFile, content);
     this.testCode = content;
@@ -115,19 +110,10 @@ class AbstractAnalysisTest {
 
   AnalysisServer createAnalysisServer() {
     //
-    // Collect plugins
-    //
-    ServerPlugin serverPlugin = new ServerPlugin();
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(serverPlugin);
-    plugins.add(dartCompletionPlugin);
-    addServerPlugins(plugins);
-    //
     // Process plugins
     //
     ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
+    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
     //
     // Create an SDK in the mock file system.
     //
@@ -142,7 +128,6 @@ class AbstractAnalysisTest {
         serverChannel,
         resourceProvider,
         packageMapProvider,
-        serverPlugin,
         options,
         new DartSdkManager(resourceProvider.convertPath('/'), true),
         InstrumentationService.NULL_SERVICE);
@@ -373,10 +358,5 @@ class TestPluginManager implements PluginManager {
   Future<List<Null>> stopAll() async {
     fail('Unexpected invocation of stopAll');
     return null;
-  }
-
-  @override
-  void whitelistEverything() {
-    fail('Unexpected invocation of whitelistEverything');
   }
 }

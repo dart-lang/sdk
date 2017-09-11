@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "platform/globals.h"
 #if defined(HOST_OS_LINUX)
 
@@ -13,6 +11,7 @@
 #include <sys/inotify.h>  // NOLINT
 
 #include "bin/fdutils.h"
+#include "bin/file.h"
 #include "bin/socket.h"
 #include "platform/signal_blocker.h"
 
@@ -40,6 +39,7 @@ void FileSystemWatcher::Close(intptr_t id) {
 }
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
+                                      Namespace* namespc,
                                       const char* path,
                                       int events,
                                       bool recursive) {
@@ -56,6 +56,8 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
   if ((events & kMove) != 0) {
     list_events |= IN_MOVE;
   }
+  const char* resolved_path = File::GetCanonicalPath(namespc, path);
+  path = resolved_path != NULL ? resolved_path : path;
   int path_id = NO_RETRY_EXPECTED(inotify_add_watch(id, path, list_events));
   if (path_id < 0) {
     return -1;
@@ -143,5 +145,3 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
 }  // namespace dart
 
 #endif  // defined(HOST_OS_LINUX)
-
-#endif  // !defined(DART_IO_DISABLED)

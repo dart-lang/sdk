@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "platform/globals.h"
 #if defined(HOST_OS_FUCHSIA)
 
@@ -39,6 +37,7 @@ void FileSystemWatcher::Close(intptr_t id) {
 }
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
+                                      Namespace* namespc,
                                       const char* path,
                                       int events,
                                       bool recursive) {
@@ -50,5 +49,3 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
 }  // namespace dart
 
 #endif  // defined(HOST_OS_FUCHSIA)
-
-#endif  // !defined(DART_IO_DISABLED)

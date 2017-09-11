@@ -12,7 +12,7 @@
 #include "platform/text_buffer.h"
 #include "platform/utils.h"
 #include "vm/class_finalizer.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_state.h"
 #include "vm/lockers.h"
 #include "vm/timeline.h"
@@ -212,15 +212,13 @@ TEST_CASE(DartAPI_DeepStackTraceInfo) {
   EXPECT(Dart_IsError(result));
 }
 
-TEST_CASE(DartAPI_StackOverflowStackTraceInfo) {
-  const char* kScriptChars =
-      "class C {\n"
-      "  static foo() => foo();\n"
-      "}\n"
-      "testMain() => C.foo();\n";
-
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle error = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+void VerifyStackOverflowStackTraceInfo(const char* script,
+                                       const char* top_frame_func_name,
+                                       const char* entry_func_name,
+                                       int expected_line_number,
+                                       int expected_column_number) {
+  Dart_Handle lib = TestCase::LoadTestScript(script, NULL);
+  Dart_Handle error = Dart_Invoke(lib, NewString(entry_func_name), 0, NULL);
 
   EXPECT(Dart_IsError(error));
 
@@ -247,17 +245,46 @@ TEST_CASE(DartAPI_StackOverflowStackTraceInfo) {
                                     &line_number, &column_number);
   EXPECT_VALID(result);
   Dart_StringToCString(function_name, &cstr);
-  EXPECT_STREQ("C.foo", cstr);
+  EXPECT_STREQ(top_frame_func_name, cstr);
   Dart_StringToCString(script_url, &cstr);
   EXPECT_STREQ("test-lib", cstr);
-  EXPECT_EQ(2, line_number);
-  EXPECT_EQ(13, column_number);
+  EXPECT_EQ(expected_line_number, line_number);
+  EXPECT_EQ(expected_column_number, column_number);
 
   // Out-of-bounds frames.
   result = Dart_GetActivationFrame(stacktrace, frame_count, &frame);
   EXPECT(Dart_IsError(result));
   result = Dart_GetActivationFrame(stacktrace, -1, &frame);
   EXPECT(Dart_IsError(result));
+}
+
+TEST_CASE(DartAPI_StackOverflowStackTraceInfoBraceFunction1) {
+  VerifyStackOverflowStackTraceInfo(
+      "class C {\n"
+      "  static foo(int i) { foo(i); }\n"
+      "}\n"
+      "testMain() => C.foo(10);\n",
+      "C.foo", "testMain", 2, 21);
+}
+
+TEST_CASE(DartAPI_StackOverflowStackTraceInfoBraceFunction2) {
+  VerifyStackOverflowStackTraceInfo(
+      "class C {\n"
+      "  static foo(int i, int j) {\n"
+      "    foo(i, j);\n"
+      "  }\n"
+      "}\n"
+      "testMain() => C.foo(10, 11);\n",
+      "C.foo", "testMain", 2, 28);
+}
+
+TEST_CASE(DartAPI_StackOverflowStackTraceInfoArrowFunction) {
+  VerifyStackOverflowStackTraceInfo(
+      "class C {\n"
+      "  static foo(int i) => foo(i);\n"
+      "}\n"
+      "testMain() => C.foo(10);\n",
+      "C.foo", "testMain", 2, 21);
 }
 
 TEST_CASE(DartAPI_OutOfMemoryStackTraceInfo) {
@@ -1204,9 +1231,8 @@ TEST_CASE(DartAPI_MalformedStringToUTF8) {
 // perturb the test.
 class GCTestHelper : public AllStatic {
  public:
-  static void CollectNewSpace(Heap::ApiCallbacks api_callbacks) {
-    bool invoke_api_callbacks = (api_callbacks == Heap::kInvokeApiCallbacks);
-    Isolate::Current()->heap()->new_space()->Scavenge(invoke_api_callbacks);
+  static void CollectNewSpace() {
+    Isolate::Current()->heap()->new_space()->Scavenge();
   }
 
   static void WaitForGCTasks() {
@@ -2658,7 +2684,7 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
     {
       TransitionNativeToVM transition(thread);
       // Garbage collect new space.
-      GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+      GCTestHelper::CollectNewSpace();
     }
 
     // Nothing should be invalidated or cleared.
@@ -2702,7 +2728,7 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
   {
     TransitionNativeToVM transition(thread);
     // Garbage collect new space again.
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::CollectNewSpace();
     GCTestHelper::WaitForGCTasks();
   }
 
@@ -2781,7 +2807,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleCallback) {
     TransitionNativeToVM transition(thread);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
     EXPECT(peer == 0);
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::CollectNewSpace();
     GCTestHelper::WaitForGCTasks();
     EXPECT(peer == 42);
   }
@@ -2807,7 +2833,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleNoCallback) {
     TransitionNativeToVM transition(thread);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
     EXPECT(peer == 0);
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::CollectNewSpace();
     GCTestHelper::WaitForGCTasks();
     EXPECT(peer == 0);
   }
@@ -2859,8 +2885,8 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSize) {
     EXPECT(heap->ExternalInWords(Heap::kNew) ==
            (kWeak1ExternalSize + kWeak2ExternalSize) / kWordSize);
     // Collect weakly referenced string, and promote strongly referenced string.
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::CollectNewSpace();
+    GCTestHelper::CollectNewSpace();
     GCTestHelper::WaitForGCTasks();
     EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
     EXPECT(heap->ExternalInWords(Heap::kOld) == kWeak2ExternalSize / kWordSize);
@@ -3051,7 +3077,7 @@ TEST_CASE(DartAPI_ImplicitReferencesOldSpace) {
 
   {
     TransitionNativeToVM transition(thread);
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::CollectNewSpace();
   }
 
   {
@@ -3126,165 +3152,6 @@ TEST_CASE(DartAPI_ImplicitReferencesNewSpace) {
     EXPECT(!Dart_IsNull(AsHandle(weak2)));
     EXPECT(!Dart_IsNull(AsHandle(weak3)));
     Dart_ExitScope();
-  }
-}
-
-static int global_prologue_callback_status;
-
-static void PrologueCallbackTimes2() {
-  global_prologue_callback_status *= 2;
-}
-
-static void PrologueCallbackTimes3() {
-  global_prologue_callback_status *= 3;
-}
-
-static int global_epilogue_callback_status;
-
-static void EpilogueCallbackNOP() {}
-
-static void EpilogueCallbackTimes4() {
-  global_epilogue_callback_status *= 4;
-}
-
-static void EpilogueCallbackTimes5() {
-  global_epilogue_callback_status *= 5;
-}
-
-TEST_CASE(DartAPI_SetGarbageCollectionCallbacks) {
-  // GC callback addition testing.
-
-  // Add GC callbacks.
-  EXPECT_VALID(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes2, &EpilogueCallbackTimes4));
-
-  // Add the same callbacks again.  This is an error.
-  EXPECT(Dart_IsError(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes2, &EpilogueCallbackTimes4)));
-
-  // Add another callback. This is an error.
-  EXPECT(Dart_IsError(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes3, &EpilogueCallbackTimes5)));
-
-  // GC callback removal testing.
-
-  // Remove GC callbacks.
-  EXPECT_VALID(Dart_SetGcCallbacks(NULL, NULL));
-
-  // Remove GC callbacks whennone exist.  This is an error.
-  EXPECT(Dart_IsError(Dart_SetGcCallbacks(NULL, NULL)));
-
-  EXPECT_VALID(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes2, &EpilogueCallbackTimes4));
-  EXPECT(Dart_IsError(Dart_SetGcCallbacks(&PrologueCallbackTimes2, NULL)));
-  EXPECT(Dart_IsError(Dart_SetGcCallbacks(NULL, &EpilogueCallbackTimes4)));
-}
-
-TEST_CASE(DartAPI_SingleGarbageCollectionCallback) {
-  // Add a prologue callback.
-  EXPECT_VALID(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes2, &EpilogueCallbackNOP));
-
-  {
-    TransitionNativeToVM transition(thread);
-
-    // Garbage collect new space ignoring callbacks.  This should not
-    // invoke the prologue callback.  No status values should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-    EXPECT_EQ(3, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-
-    // Garbage collect new space invoking callbacks.  This should
-    // invoke the prologue callback.  No status values should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
-    EXPECT_EQ(6, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-
-    // Garbage collect old space ignoring callbacks.  This should invoke
-    // the prologue callback.  The prologue status value should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    Isolate::Current()->heap()->CollectGarbage(
-        Heap::kOld, Heap::kIgnoreApiCallbacks, Heap::kGCTestCase);
-    EXPECT_EQ(3, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-
-    // Garbage collect old space.  This should invoke the prologue
-    // callback.  The prologue status value should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    EXPECT_EQ(6, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-
-    // Garbage collect old space again.  Callbacks are persistent so the
-    // prologue status value should change again.
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    EXPECT_EQ(12, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-  }
-
-  // Add an epilogue callback.
-  EXPECT_VALID(Dart_SetGcCallbacks(NULL, NULL));
-  EXPECT_VALID(
-      Dart_SetGcCallbacks(&PrologueCallbackTimes2, &EpilogueCallbackTimes4));
-
-  {
-    TransitionNativeToVM transition(thread);
-    // Garbage collect new space.  This should not invoke the prologue
-    // or the epilogue callback.  No status values should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-    EXPECT_EQ(3, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
-
-    // Garbage collect new space.  This should invoke the prologue and
-    // the epilogue callback.  The prologue and epilogue status values
-    // should change.
-    GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
-    EXPECT_EQ(6, global_prologue_callback_status);
-    EXPECT_EQ(28, global_epilogue_callback_status);
-
-    // Garbage collect old space.  This should invoke the prologue and
-    // the epilogue callbacks.  The prologue and epilogue status values
-    // should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    EXPECT_EQ(6, global_prologue_callback_status);
-    EXPECT_EQ(28, global_epilogue_callback_status);
-
-    // Garbage collect old space again without invoking callbacks.
-    // Nothing should change.
-    Isolate::Current()->heap()->CollectGarbage(
-        Heap::kOld, Heap::kIgnoreApiCallbacks, Heap::kGCTestCase);
-    EXPECT_EQ(6, global_prologue_callback_status);
-    EXPECT_EQ(28, global_epilogue_callback_status);
-
-    // Garbage collect old space again.  Callbacks are persistent so the
-    // prologue and epilogue status values should change again.
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    EXPECT_EQ(12, global_prologue_callback_status);
-    EXPECT_EQ(112, global_epilogue_callback_status);
-  }
-
-  // Remove the prologue and epilogue callbacks
-  EXPECT_VALID(Dart_SetGcCallbacks(NULL, NULL));
-
-  {
-    TransitionNativeToVM transition(thread);
-    // Garbage collect old space.  No callbacks should be invoked.  No
-    // status values should change.
-    global_prologue_callback_status = 3;
-    global_epilogue_callback_status = 7;
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    EXPECT_EQ(3, global_prologue_callback_status);
-    EXPECT_EQ(7, global_epilogue_callback_status);
   }
 }
 
@@ -9151,6 +9018,44 @@ TEST_CASE(DartAPI_LoadLibraryPatch_Error3) {
   EXPECT_VALID(result);
   result = Dart_Invoke(lib, NewString("foozoo"), 0, NULL);
   EXPECT(Dart_IsError(result));
+}
+
+void NotifyIdleNative(Dart_NativeArguments args) {
+  Dart_NotifyIdle(Dart_TimelineGetMicros() + 10 * kMicrosecondsPerMillisecond);
+}
+
+static Dart_NativeFunction NotifyIdle_native_lookup(Dart_Handle name,
+                                                    int argument_count,
+                                                    bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = true;
+  return reinterpret_cast<Dart_NativeFunction>(&NotifyIdleNative);
+}
+
+TEST_CASE(DartAPI_NotifyIdle) {
+  const char* kScriptChars =
+      "void notifyIdle() native 'Test_nativeFunc';\n"
+      "void main() {\n"
+      "  var v;\n"
+      "  for (var i = 0; i < 100; i++) {\n"
+      "    var t = new List();\n"
+      "    for (var j = 0; j < 10000; j++) {\n"
+      "      t.add(new List(100));\n"
+      "    }\n"
+      "    v = t;\n"
+      "    notifyIdle();\n"
+      "  }\n"
+      "}\n";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, &NotifyIdle_native_lookup);
+  Dart_Handle result;
+
+  // Use Dart_PropagateError to propagate the error.
+  use_throw_exception = false;
+  use_set_return = false;
+
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
 }
 
 #endif  // !PRODUCT

@@ -50,6 +50,7 @@ ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 ReadOnlyHandles* Dart::predefined_handles_ = NULL;
 Snapshot::Kind Dart::vm_snapshot_kind_ = Snapshot::kInvalid;
+const uint8_t* Dart::vm_snapshot_instructions_ = NULL;
 Dart_ThreadExitCallback Dart::thread_exit_callback_ = NULL;
 Dart_FileOpenCallback Dart::file_open_callback_ = NULL;
 Dart_FileReadCallback Dart::file_read_callback_ = NULL;
@@ -203,9 +204,6 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
         if (vm_snapshot_kind_ == Snapshot::kFullAOT) {
 #if defined(DART_PRECOMPILED_RUNTIME)
           vm_isolate_->set_compilation_allowed(false);
-          if (!FLAG_precompiled_runtime) {
-            return strdup("Flag --precompilation was not specified");
-          }
 #else
           return strdup("JIT runtime cannot run a precompiled snapshot");
 #endif

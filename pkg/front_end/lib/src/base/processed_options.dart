@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:front_end/compilation_message.dart';
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/performace_logger.dart';
@@ -14,7 +15,6 @@ import 'package:front_end/src/fasta/severity.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
-import 'package:front_end/src/byte_store/byte_store.dart';
 import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/kernel.dart'
     show Program, loadProgramFromBytes, CanonicalName;
@@ -119,11 +119,11 @@ class ProcessedOptions {
 
   bool get embedSourceText => _raw.embedSourceText;
 
-  bool get throwOnErrors => _raw.throwOnErrors;
+  bool get throwOnErrorsForDebugging => _raw.throwOnErrorsForDebugging;
 
-  bool get throwOnWarnings => _raw.throwOnWarnings;
+  bool get throwOnWarningsForDebugging => _raw.throwOnWarningsForDebugging;
 
-  bool get throwOnNits => _raw.throwOnNits;
+  bool get throwOnNitsForDebugging => _raw.throwOnNitsForDebugging;
 
   /// Like [CompilerOptions.chaseDependencies] but with the appropriate default
   /// value filled in.
@@ -548,8 +548,8 @@ class ProcessedOptions {
     writeList('Multiroots', _raw.multiRoots);
 
     sb.writeln('Modular: ${_modularApi}');
-    sb.writeln('Hermetic: ${!chaseDependencies}'
-        ' (provided: ${!_raw.chaseDependencies})');
+    sb.writeln('Hermetic: ${!chaseDependencies} (provided: '
+        '${_raw.chaseDependencies == null ? null : !_raw.chaseDependencies})');
     sb.writeln('Packages uri: ${_raw.packagesFileUri}');
     sb.writeln('Packages: ${_packages}');
 
@@ -562,9 +562,9 @@ class ProcessedOptions {
     sb.writeln('Strong: ${strongMode}');
     sb.writeln('Target: ${_target?.name} (provided: ${_raw.target?.name})');
 
-    sb.writeln('throwOnErrorsAreFatal: ${throwOnErrors}');
-    sb.writeln('throwOnWarningsAreFatal: ${throwOnWarnings}');
-    sb.writeln('throwOnNits: ${throwOnNits}');
+    sb.writeln('throwOnErrorsForDebugging: ${throwOnErrorsForDebugging}');
+    sb.writeln('throwOnWarningsForDebugging: ${throwOnWarningsForDebugging}');
+    sb.writeln('throwOnNitsForDebugging: ${throwOnNitsForDebugging}');
     sb.writeln('exit on problem: ${setExitCodeOnProblem}');
     sb.writeln('Embed sources: ${embedSourceText}');
     sb.writeln('debugDump: ${debugDump}');
@@ -613,9 +613,14 @@ class _CompilationMessage implements CompilationMessage {
 
   String get dart2jsCode => _original.code.dart2jsCode;
 
-  SourceSpan get span =>
-      new SourceLocation(_original.charOffset, sourceUrl: _original.uri)
-          .pointSpan();
+  SourceSpan get span {
+    if (_original.charOffset == -1) {
+      if (_original.uri == null) return null;
+      return new SourceLocation(0, sourceUrl: _original.uri).pointSpan();
+    }
+    return new SourceLocation(_original.charOffset, sourceUrl: _original.uri)
+        .pointSpan();
+  }
 
   _CompilationMessage(this._original, this.severity);
 

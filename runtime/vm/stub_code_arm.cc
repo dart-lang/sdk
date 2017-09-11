@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ARCH_ARM) && !defined(DART_PRECOMPILED_RUNTIME)
 
-#include "vm/assembler.h"
-#include "vm/compiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
-#include "vm/flow_graph_compiler.h"
 #include "vm/heap.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
@@ -102,12 +102,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ LeaveStubFrame();
   __ Ret();
 }
-
-// Print the stop message.
-DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {
-  OS::Print("Stop message: %s\n", message);
-}
-END_LEAF_RUNTIME_ENTRY
 
 // Input parameters:
 //   R0 : stop message (const char*).
@@ -702,7 +696,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
   NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R3, cid));
-  __ str(R7, Address(THR, Thread::top_offset()));
+  __ str(NOTFP, Address(THR, Thread::top_offset()));
   __ add(R0, R0, Operand(kHeapObjectTag));
 
   // Initialize the tags.
@@ -2061,7 +2055,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ ldr(R2, FieldAddress(R9, MegamorphicCache::buckets_offset()));
   __ ldr(R1, FieldAddress(R9, MegamorphicCache::mask_offset()));
   // R2: cache buckets array.
-  // R1: mask.
+  // R1: mask as a smi.
 
   // Compute the table index.
   ASSERT(MegamorphicCache::kSpreadFactor == 7);
@@ -2271,4 +2265,4 @@ void StubCode::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
 
 }  // namespace dart
 
-#endif  // defined TARGET_ARCH_ARM
+#endif  // defined(TARGET_ARCH_ARM) && !defined(DART_PRECOMPILED_RUNTIME)

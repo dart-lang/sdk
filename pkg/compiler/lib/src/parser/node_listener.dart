@@ -108,6 +108,7 @@ class NodeListener extends ElementListener {
       Token classKeyword,
       Token extendsKeyword,
       Token implementsKeyword,
+      Token nativeToken,
       Token endToken) {
     NodeList body = popNode();
     NodeList interfaces =
@@ -376,7 +377,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleBinaryExpression(Token token) {
+  void endBinaryExpression(Token token) {
     Node argument = popNode();
     Node receiver = popNode();
     String tokenString = token.stringValue;

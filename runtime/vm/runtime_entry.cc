@@ -4,16 +4,17 @@
 
 #include "vm/runtime_entry.h"
 
-#include "vm/assembler.h"
 #include "vm/ast.h"
 #include "vm/code_patcher.h"
-#include "vm/compiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
+#include "vm/kernel_isolate.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/object_store.h"
@@ -733,6 +734,7 @@ DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
 // Patches static call in optimized code with the target's entry point.
 // Compiles target if necessary.
 DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
@@ -758,6 +760,9 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
               target_code.is_optimized() ? "optimized" : "unoptimized");
   }
   arguments.SetReturn(target_code);
+#else
+  UNREACHABLE();
+#endif
 }
 
 // Result of an invoke may be an unhandled exception, in which case we
@@ -768,7 +773,7 @@ static void CheckResultError(const Object& result) {
   }
 }
 
-#if defined(PRODUCT)
+#if defined(PRODUCT) || defined(DART_PRECOMPILED_RUNTIME)
 DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   UNREACHABLE();
   return;
@@ -803,9 +808,8 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
 #endif  // !defined(TARGET_ARCH_DBC)
 
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
-#if defined(PRODUCT)
+#if defined(PRODUCT) || defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
-  return;
 #else
   const Error& error =
       Error::Handle(zone, isolate->debugger()->PauseStepping());
@@ -1262,7 +1266,6 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
   // We lost the original ICData when we patched to the monomorphic case.
   const String& name = String::Handle(zone, old_target.name());
   ASSERT(!old_target.HasOptionalParameters());
-  ASSERT(!old_target.IsGeneric());
   const int kTypeArgsLen = 0;
   const Array& descriptor =
       Array::Handle(zone, ArgumentsDescriptor::New(
@@ -1353,21 +1356,21 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   }
   Class& cls = Class::Handle(zone, receiver.clazz());
   ASSERT(!cls.IsNull());
-  if (FLAG_trace_ic || FLAG_trace_ic_miss_in_optimized) {
-    OS::PrintErr("Megamorphic IC miss, class=%s, function=%s\n",
-                 cls.ToCString(), name.ToCString());
-  }
-
   ArgumentsDescriptor args_desc(descriptor);
+  if (FLAG_trace_ic || FLAG_trace_ic_miss_in_optimized) {
+    OS::PrintErr("Megamorphic IC miss (%s), class=%s, function<%" Pd ">=%s\n",
+                 ic_data_or_cache.IsICData() ? "icdata" : "cache",
+                 cls.ToCString(), args_desc.TypeArgsLen(), name.ToCString());
+  }
   Function& target_function = Function::Handle(
       zone, Resolver::ResolveDynamicForReceiverClass(cls, name, args_desc));
   if (target_function.IsNull()) {
     target_function = InlineCacheMissHelper(receiver, descriptor, name);
-  }
-  if (target_function.IsNull()) {
-    ASSERT(!FLAG_lazy_dispatchers);
-    arguments.SetReturn(target_function);
-    return;
+    if (target_function.IsNull()) {
+      ASSERT(!FLAG_lazy_dispatchers);
+      arguments.SetReturn(target_function);
+      return;
+    }
   }
 
   if (ic_data_or_cache.IsICData()) {
@@ -1381,7 +1384,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
       // Note we cannot do this if the target has optional parameters because
       // the monomorphic direct call does not load the arguments descriptor.
       // We cannot do this if we are still in the middle of precompiling because
-      // the monomorphic case hides an live instance selector from the
+      // the monomorphic case hides a live instance selector from the
       // treeshaker.
 
       const Code& target_code =
@@ -1619,7 +1622,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     UNREACHABLE();
   }
 
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   // The following code is used to stress test deoptimization and
   // debugger stack tracing.
   bool do_deopt = false;
@@ -1629,18 +1632,28 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
       isolate->reload_every_n_stack_overflow_checks();
   if ((FLAG_deoptimize_every > 0) || (FLAG_stacktrace_every > 0) ||
       (isolate_reload_every > 0)) {
-    // TODO(turnidge): To make --deoptimize_every and
-    // --stacktrace-every faster we could move this increment/test to
-    // the generated code.
-    int32_t count = thread->IncrementAndGetStackOverflowCount();
-    if (FLAG_deoptimize_every > 0 && (count % FLAG_deoptimize_every) == 0) {
-      do_deopt = true;
-    }
-    if (FLAG_stacktrace_every > 0 && (count % FLAG_stacktrace_every) == 0) {
-      do_stacktrace = true;
-    }
-    if ((isolate_reload_every > 0) && (count % isolate_reload_every) == 0) {
-      do_reload = isolate->CanReload();
+    bool is_auxiliary_isolate = ServiceIsolate::IsServiceIsolate(isolate);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    // Certain flags should not effect the kernel isolate itself.  They might be
+    // used by tests via the "VMOptions=--..." annotation to test VM
+    // functionality in the main isolate.
+    is_auxiliary_isolate =
+        is_auxiliary_isolate || KernelIsolate::IsKernelIsolate(isolate);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    if (!is_auxiliary_isolate) {
+      // TODO(turnidge): To make --deoptimize_every and
+      // --stacktrace-every faster we could move this increment/test to
+      // the generated code.
+      int32_t count = thread->IncrementAndGetStackOverflowCount();
+      if (FLAG_deoptimize_every > 0 && (count % FLAG_deoptimize_every) == 0) {
+        do_deopt = true;
+      }
+      if (FLAG_stacktrace_every > 0 && (count % FLAG_stacktrace_every) == 0) {
+        do_stacktrace = true;
+      }
+      if ((isolate_reload_every > 0) && (count % isolate_reload_every) == 0) {
+        do_reload = isolate->CanReload();
+      }
     }
   }
   if ((FLAG_deoptimize_filter != NULL) || (FLAG_stacktrace_filter != NULL) ||
@@ -1704,10 +1717,11 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 #ifndef DART_PRECOMPILED_RUNTIME
       // Ensure that we have unoptimized code.
       frame->function().EnsureHasCompiledUnoptimizedCode();
-#endif
+      const int num_vars = frame->NumLocalVariables();
+#else
       // Variable locations and number are unknown when precompiling.
-      const int num_vars =
-          FLAG_precompiled_runtime ? 0 : frame->NumLocalVariables();
+      const int num_vars = 0;
+#endif
       TokenPosition unused = TokenPosition::kNoSource;
       for (intptr_t v = 0; v < num_vars; v++) {
         frame->VariableAt(v, &var_name, &unused, &unused, &unused, &var_value);
@@ -1718,7 +1732,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     }
     FLAG_stacktrace_every = saved_stacktrace_every;
   }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   const Error& error = Error::Handle(thread->HandleInterrupts());
   if (!error.IsNull()) {
@@ -1866,6 +1880,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 // The caller must be a static call in a Dart frame, or an entry frame.
 // Patch static call to point to valid code's entry point.
 DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames, thread,
                               StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
@@ -1898,6 +1913,9 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   }
   ASSERT(!current_target_code.IsDisabled());
   arguments.SetReturn(current_target_code);
+#else
+  UNREACHABLE();
+#endif
 }
 
 // The caller tried to allocate an instance via an invalidated allocation
@@ -2273,15 +2291,25 @@ double DartModulo(double left, double right) {
 //   Arg0: Field object;
 //   Arg1: Value that is being stored.
 DEFINE_RUNTIME_ENTRY(UpdateFieldCid, 2) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   const Field& field = Field::CheckedHandle(arguments.ArgAt(0));
   const Object& value = Object::Handle(arguments.ArgAt(1));
   field.RecordStore(value);
+#else
+  UNREACHABLE();
+#endif
 }
 
 DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   const Field& field = Field::CheckedHandle(arguments.ArgAt(0));
   field.EvaluateInitializer();
 }
+
+// Print the stop message.
+DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {
+  OS::Print("Stop message: %s\n", message);
+}
+END_LEAF_RUNTIME_ENTRY
 
 // Use expected function signatures to help MSVC compiler resolve overloading.
 typedef double (*UnaryMathCFunction)(double x);

@@ -4,6 +4,8 @@
 
 library fasta.kernel_library_builder;
 
+import 'dart:convert' show JSON;
+
 import 'package:front_end/src/fasta/combinator.dart' as fasta;
 import 'package:front_end/src/fasta/export.dart';
 import 'package:front_end/src/fasta/import.dart';
@@ -91,6 +93,17 @@ class KernelLibraryBuilder
   final List<KernelTypeVariableBuilder> boundlessTypeVariables =
       <KernelTypeVariableBuilder>[];
 
+  /// Exports that can't be serialized.
+  ///
+  /// The key is the name of the exported member.
+  ///
+  /// If the name is `dynamic` or `void`, this library reexports the
+  /// corresponding type from `dart:core`, and the value is null.
+  ///
+  /// Otherwise, this represents an error (an ambiguous export). In this case,
+  /// the error message is the corresponding value in the map.
+  Map<String, String> unserializableExports;
+
   KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.isPatch)
       : library = new Library(uri, fileUri: relativizeUri(fileUri)),
         super(loader, fileUri);
@@ -134,14 +147,14 @@ class KernelLibraryBuilder
     Map<String, MemberBuilder> constructors = declaration.constructors;
     Map<String, MemberBuilder> setters = declaration.setters;
 
-    Scope classScope = new Scope(
-        members, setters, scope.withTypeVariables(typeVariables),
+    Scope classScope = new Scope(members, setters,
+        scope.withTypeVariables(typeVariables), "class $className",
         isModifiable: false);
 
     // When looking up a constructor, we don't consider type variables or the
     // library scope.
-    Scope constructorScope =
-        new Scope(constructors, null, null, isModifiable: false);
+    Scope constructorScope = new Scope(constructors, null, null, "constructors",
+        isModifiable: false);
     ClassBuilder cls = new SourceClassBuilder(
         documentationComment,
         metadata,
@@ -240,7 +253,7 @@ class KernelLibraryBuilder
       if (index != -1) {
         name = name.substring(0, index);
       }
-      name = "$name&${mixin.name}$signature";
+      name = "_$name&${mixin.name}$signature";
       builder = mixinApplicationClasses[name];
     }
     if (builder == null) {
@@ -254,8 +267,9 @@ class KernelLibraryBuilder
           interfaces,
           new Scope(<String, MemberBuilder>{}, <String, MemberBuilder>{},
               scope.withTypeVariables(typeVariables),
+              "mixin $name", isModifiable: false),
+          new Scope(constructors, null, null, "constructors",
               isModifiable: false),
-          new Scope(constructors, null, null, isModifiable: false),
           this,
           <ConstructorReferenceBuilder>[],
           charOffset,
@@ -780,6 +794,14 @@ class KernelLibraryBuilder
 
     library.name = name;
     library.procedures.sort(compareProcedures);
+
+    if (unserializableExports != null) {
+      library.addMember(new Field(new Name("_exports#", library),
+          initializer: new StringLiteral(JSON.encode(unserializableExports)),
+          isStatic: true,
+          isConst: true));
+    }
+
     return library;
   }
 
@@ -949,5 +971,29 @@ class KernelLibraryBuilder
     super.includePart(part);
     nativeMethods.addAll(part.nativeMethods);
     boundlessTypeVariables.addAll(part.boundlessTypeVariables);
+  }
+
+  @override
+  void addImportsToScope() {
+    super.addImportsToScope();
+    exportScope.forEach((String name, Builder member) {
+      if (member.parent != this) {
+        switch (name) {
+          case "dynamic":
+          case "void":
+            unserializableExports ??= <String, String>{};
+            unserializableExports[name] = null;
+            break;
+
+          default:
+            if (member is InvalidTypeBuilder) {
+              unserializableExports ??= <String, String>{};
+              unserializableExports[name] = member.message.message;
+            } else {
+              library.additionalExports.add(member.target.reference);
+            }
+        }
+      }
+    });
   }
 }

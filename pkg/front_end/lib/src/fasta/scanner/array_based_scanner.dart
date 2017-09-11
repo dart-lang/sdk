@@ -7,15 +7,7 @@ library fasta.scanner.array_based_scanner;
 import 'error_token.dart' show ErrorToken, UnmatchedToken;
 
 import '../../scanner/token.dart'
-    show
-        BeginToken,
-        BeginTokenWithComment,
-        Keyword,
-        KeywordTokenWithComment,
-        SyntheticToken,
-        Token,
-        TokenType,
-        TokenWithComment;
+    show BeginToken, Keyword, KeywordToken, SyntheticToken, Token, TokenType;
 
 import '../../scanner/token.dart' as analyzer show StringToken;
 
@@ -55,7 +47,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * '=>', etc.
    */
   void appendPrecedenceToken(TokenType type) {
-    appendToken(new TokenWithComment(type, tokenStart, comments));
+    appendToken(new Token(type, tokenStart, comments));
   }
 
   /**
@@ -84,7 +76,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     if (identical(syntax, 'this')) {
       discardOpenLt();
     }
-    appendToken(new KeywordTokenWithComment(keyword, tokenStart, comments));
+    appendToken(new KeywordToken(keyword, tokenStart, comments));
   }
 
   void appendEofToken() {
@@ -125,7 +117,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * Group begin tokens are '{', '(', '[', '<' and '${'.
    */
   void appendBeginGroup(TokenType type) {
-    Token token = new BeginTokenWithComment(type, tokenStart, comments);
+    Token token = new BeginToken(type, tokenStart, comments);
     appendToken(token);
 
     // { [ ${ cannot appear inside a type parameters / arguments.

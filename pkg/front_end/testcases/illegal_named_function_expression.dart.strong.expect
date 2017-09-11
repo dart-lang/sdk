@@ -2,9 +2,9 @@ library;
 import self as self;
 import "dart:core" as core;
 
-const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/illegal_named_function_expression.dart:6:11: Error: A function expression can't have a return type.\n  var x = void f<T>(T t) {};\n          ^", "pkg/front_end/testcases/illegal_named_function_expression.dart:6:16: Error: A function expression can't have a name.\n  var x = void f<T>(T t) {};\n               ^", "pkg/front_end/testcases/illegal_named_function_expression.dart:8:9: Error: A function expression can't have a return type.\n  print(void g<T>(T t) {});\n        ^", "pkg/front_end/testcases/illegal_named_function_expression.dart:8:14: Error: A function expression can't have a name.\n  print(void g<T>(T t) {});\n             ^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/illegal_named_function_expression.dart:6:11: Error: A function expression can't have a return type.\n  var x = void f<T>(T t) {};\n          ^", "pkg/front_end/testcases/illegal_named_function_expression.dart:6:16: Error: A function expression can't have a name.\n  var x = void f<T>(T t) {};\n               ^", "pkg/front_end/testcases/illegal_named_function_expression.dart:8:9: Error: A function expression can't have a return type.\n  print(void g<T>(T t) {});\n        ^", "pkg/front_end/testcases/illegal_named_function_expression.dart:8:14: Error: A function expression can't have a name.\n  print(void g<T>(T t) {});\n             ^"]/* from null */;
 static method main() → dynamic {
   <T extends core::Object>(T) → core::Null x = let final <T extends core::Object>(T) → core::Null f = <T extends core::Object>(T t) → core::Null {} in f;
-  core::print(x.runtimeType);
+  core::print(x.{core::Object::runtimeType});
   core::print(let final <T extends core::Object>(T) → core::Null g = <T extends core::Object>(T t) → core::Null {} in g);
 }

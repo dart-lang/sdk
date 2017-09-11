@@ -63,7 +63,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       new Map<JumpTarget, List<LocalsHandler>>();
   final Map<JumpTarget, List<LocalsHandler>> continuesFor =
       new Map<JumpTarget, List<LocalsHandler>>();
-  LocalsHandler locals;
+  LocalsHandler<ast.Node> locals;
   final List<TypeInformation> cascadeReceiverStack =
       new List<TypeInformation>();
 
@@ -96,12 +96,12 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     if (resolvedAst.kind == ResolvedAstKind.PARSED) {
       node = resolvedAst.node;
     }
-    FieldInitializationScope fieldScope =
+    FieldInitializationScope<ast.Node> fieldScope =
         analyzedElement.isGenerativeConstructor
-            ? new FieldInitializationScope(types)
+            ? new FieldInitializationScope<ast.Node>(types)
             : null;
-    locals =
-        new LocalsHandler(inferrer, types, compiler.options, node, fieldScope);
+    locals = new LocalsHandler<ast.Node>(
+        inferrer, types, compiler.options, node, fieldScope);
   }
 
   ElementGraphBuilder(
@@ -219,7 +219,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   TypeInformation visitLiteralDouble(ast.LiteralDouble node) {
-    ConstantSystem constantSystem = compiler.backend.constantSystem;
+    ConstantSystem constantSystem = closedWorld.constantSystem;
     // The JavaScript backend may turn this literal into an integer at
     // runtime.
     return types.getConcreteTypeFor(
@@ -227,7 +227,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   TypeInformation visitLiteralInt(ast.LiteralInt node) {
-    ConstantSystem constantSystem = compiler.backend.constantSystem;
+    ConstantSystem constantSystem = closedWorld.constantSystem;
     // The JavaScript backend may turn this literal into a double at
     // runtime.
     return types.getConcreteTypeFor(
@@ -376,15 +376,6 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   void updateIsChecks(List<ast.Node> tests, {bool usePositive}) {
-    void narrow(Element element, ResolutionDartType type, ast.Node node) {
-      if (element is LocalElement) {
-        TypeInformation existing = locals.use(element);
-        TypeInformation newType =
-            types.narrowType(existing, type, isNullable: false);
-        locals.update(element, newType, node);
-      }
-    }
-
     if (tests == null) return;
     for (ast.Send node in tests) {
       if (node.isTypeTest) {
@@ -395,7 +386,11 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         }
         ResolutionDartType type =
             elements.getType(node.typeAnnotationFromIsCheckOrCast);
-        narrow(elements[node.receiver], type, node);
+        Element element = elements[node.receiver];
+        if (Elements.isLocal(element)) {
+          LocalElement local = element;
+          locals.narrow(local, type, node);
+        }
       } else {
         Element receiverElement = elements[node.receiver];
         Element argumentElement = elements[node.arguments.first];
@@ -404,20 +399,24 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
             (operator == '!=' && !usePositive)) {
           // Type the elements as null.
           if (Elements.isLocal(receiverElement)) {
-            locals.update(receiverElement, types.nullType, node);
+            LocalElement local = receiverElement;
+            locals.update(local, types.nullType, node, local.type);
           }
           if (Elements.isLocal(argumentElement)) {
-            locals.update(argumentElement, types.nullType, node);
+            LocalElement local = argumentElement;
+            locals.update(local, types.nullType, node, local.type);
           }
         } else {
           // Narrow the elements to a non-null type.
           ResolutionInterfaceType objectType =
               closedWorld.commonElements.objectType;
           if (Elements.isLocal(receiverElement)) {
-            narrow(receiverElement, objectType, node);
+            LocalElement local = receiverElement;
+            locals.narrow(local, objectType, node);
           }
           if (Elements.isLocal(argumentElement)) {
-            narrow(argumentElement, objectType, node);
+            LocalElement local = argumentElement;
+            locals.narrow(local, objectType, node);
           }
         }
       }
@@ -596,7 +595,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         link = link.tail) {
       ast.Node definition = link.head;
       if (definition is ast.Identifier) {
-        locals.update(elements[definition], types.nullType, node);
+        LocalElement local = elements[definition];
+        locals.update(local, types.nullType, node, local.type);
       } else {
         assert(definition.asSendSet() != null);
         handleSendSet(definition);
@@ -752,11 +752,13 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         ResolutionInterfaceType interfaceType = type;
         mask = types.nonNullSubtype(interfaceType.element);
       }
-      locals.update(elements[exception], mask, node);
+      LocalElement local = elements[exception];
+      locals.update(local, mask, node, local.type);
     }
     ast.Node trace = node.trace;
     if (trace != null) {
-      locals.update(elements[trace], types.dynamicType, node);
+      LocalElement local = elements[trace];
+      locals.update(local, types.dynamicType, node, local.type);
     }
     visit(node.block);
     return null;
@@ -923,7 +925,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // previous analysis of [outermostElement].
     ClosureRepresentationInfo closureData = compiler
         .backendStrategy.closureDataLookup
-        .getClosureRepresentationInfo(analyzedElement);
+        .getClosureInfoForMember(analyzedElement);
     closureData.forEachCapturedVariable((variable, field) {
       locals.setCaptured(variable, field);
     });
@@ -994,7 +996,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
                 initializingFormal.fieldElement, parameterType);
           }
         }
-        locals.update(element, parameterType, node);
+        locals.update(element, parameterType, node, element.type);
       });
       ClassElement cls = analyzedConstructor.enclosingClass;
       Spannable spannable = node;
@@ -1058,7 +1060,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     } else {
       signature.forEachParameter((FormalElement _element) {
         ParameterElement element = _element;
-        locals.update(element, inferrer.typeOfParameter(element), node);
+        locals.update(
+            element, inferrer.typeOfParameter(element), node, element.type);
       });
       visit(node.body);
       switch (function.asyncMarker) {
@@ -1118,9 +1121,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // Record the types of captured non-boxed variables. Types of
     // these variables may already be there, because of an analysis of
     // a previous closure.
-    ClosureRepresentationInfo nestedClosureData = compiler
-        .backendStrategy.closureDataLookup
-        .getClosureRepresentationInfo(element);
+    ClosureRepresentationInfo nestedClosureData =
+        compiler.backendStrategy.closureDataLookup.getClosureInfo(node);
     nestedClosureData.forEachCapturedVariable((variable, field) {
       if (!nestedClosureData.isVariableBoxed(variable)) {
         if (variable == nestedClosureData.thisLocal) {
@@ -1145,7 +1147,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         inferrer.concreteTypes.putIfAbsent(node.function, () {
       return types.allocateClosure(element.callMethod);
     });
-    locals.update(element, type, node);
+    locals.update(element, type, node, element.type);
     visit(node.function);
     return type;
   }
@@ -1358,7 +1360,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         handleDynamicSend(CallType.complex, node, setterSelector, setterMask,
             receiverType, new ArgumentsTypes([newType], null));
       } else if (element.isLocal) {
-        locals.update(element, newType, node);
+        LocalElement local = element;
+        locals.update(local, newType, node, local.type,
+            isSetIfNull: node.isIfNullAssignment);
       }
 
       return node.isPostfix ? getterType : newType;
@@ -2008,7 +2012,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         if (targets.length == 1) {
           MemberElement single = targets.first;
           if (single.isField) {
-            locals.updateField(single, rhsType);
+            FieldElement field = single;
+            locals.updateField(field, rhsType);
           }
         }
       }
@@ -2030,7 +2035,10 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         }
       }
     } else if (element.isLocal) {
-      locals.update(element, rhsType, node);
+      LocalElement local = element;
+      ast.SendSet sendSet = node.asSendSet();
+      bool isSetIfNull = sendSet != null && sendSet.isIfNullAssignment;
+      locals.update(local, rhsType, node, local.type, isSetIfNull: isSetIfNull);
     }
     return rhsType;
   }
@@ -2784,22 +2792,15 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         if (Elements.isLocal(element) && !capturedVariables.contains(element)) {
           TypeInformation refinedType = types.refineReceiver(
               selector, mask, receiverType, send.isConditional);
-          locals.update(element, refinedType, node);
+          LocalElement local = element;
+          locals.update(local, refinedType, node, local.type);
         }
       }
     }
 
-    return inferrer.registerCalledSelector(
-        callType,
-        node,
-        selector,
-        mask,
-        receiverType,
-        outermostElement,
-        arguments,
-        sideEffects,
-        inLoop,
-        isConditional);
+    return inferrer.registerCalledSelector(callType, node, selector, mask,
+        receiverType, outermostElement, arguments, sideEffects,
+        inLoop: inLoop, isConditional: isConditional);
   }
 
   TypeInformation handleDynamicInvoke(ast.Send node) {

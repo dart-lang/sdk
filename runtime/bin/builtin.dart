@@ -30,20 +30,6 @@ void _print(arg) {
 
 _getPrintClosure() => _print;
 
-// Corelib 'Uri.base' implementation.
-// Uri.base is susceptible to changes in the current working directory.
-_getCurrentDirectoryPath() native "Builtin_GetCurrentDirectory";
-
-Uri _uriBase() {
-  // We are not using Dircetory.current here to limit the dependency
-  // on dart:io. This code is the same as:
-  //   return new Uri.directory(Directory.current.path);
-  var path = _getCurrentDirectoryPath();
-  return new Uri.directory(path);
-}
-
-_getUriBaseClosure() => _uriBase;
-
 // Asynchronous loading of resources.
 // The embedder forwards loading requests to the service isolate.
 

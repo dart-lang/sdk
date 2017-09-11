@@ -5,7 +5,7 @@
 library dart2js.source_map_builder;
 
 import 'package:kernel/ast.dart' show Location;
-import '../../compiler_new.dart' show OutputSink, OutputType;
+import '../../compiler_new.dart' show CompilerOutput, OutputSink, OutputType;
 import '../util/uri_extras.dart' show relativize;
 import '../util/util.dart';
 import 'location_provider.dart';
@@ -194,8 +194,7 @@ class SourceMapBuilder {
       String name,
       Uri sourceMapUri,
       Uri fileUri,
-      OutputSink outputProvider(
-          String name, String extension, OutputType type)) {
+      CompilerOutput compilerOutput) {
     // Create a source file for the compilation output. This allows using
     // [:getLine:] to transform offsets to line numbers in [SourceMapBuilder].
     int index = 0;
@@ -214,7 +213,7 @@ class SourceMapBuilder {
           extension = 'js.map.${sourceLocations.name}';
         }
       }
-      outputProvider(name, extension, OutputType.sourceMap)
+      compilerOutput.createOutputSink(name, extension, OutputType.sourceMap)
         ..add(sourceMap)
         ..close();
       index++;

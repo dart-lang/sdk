@@ -36,17 +36,13 @@ ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
   ASSERT(isolate == NULL ||
          !ServiceIsolate::IsServiceIsolateDescendant(isolate_));
 
-  if ((event_kind == ServiceEvent::kPauseStart) &&
-      !isolate->message_handler()->is_paused_on_start()) {
-    // We will pause on start but the message handler lacks a valid
-    // paused timestamp because we haven't paused yet. Use the current time.
-    timestamp_ = OS::GetCurrentTimeMillis();
-  } else if ((event_kind == ServiceEvent::kPauseStart) ||
-             (event_kind == ServiceEvent::kPauseExit)) {
+  if ((event_kind == ServiceEvent::kPauseStart) ||
+      (event_kind == ServiceEvent::kPauseExit)) {
     timestamp_ = isolate->message_handler()->paused_timestamp();
   } else if (event_kind == ServiceEvent::kResume) {
     timestamp_ = isolate->last_resume_timestamp();
   }
+  ASSERT(timestamp_ > -1);
 }
 
 void ServiceEvent::UpdateTimestamp() {

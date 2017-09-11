@@ -181,11 +181,19 @@ void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
   }
 }
 
-Mutex::Mutex() {
+Mutex::Mutex(NOT_IN_PRODUCT(const char* name))
+#if !defined(PRODUCT)
+    : name_(name)
+#endif
+{
   // Allocate unnamed semaphore with initial count 1 and max count 1.
   data_.semaphore_ = CreateSemaphore(NULL, 1, 1, NULL);
   if (data_.semaphore_ == NULL) {
+#if defined(PRODUCT)
     FATAL1("Mutex allocation failed %d", GetLastError());
+#else
+    FATAL2("[%s] Mutex allocation failed %d", name_, GetLastError());
+#endif
   }
 #if defined(DEBUG)
   // When running with assertions enabled we do track the owner.

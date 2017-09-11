@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 typedef Handle = (core::String) → dynamic;
-const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/malformed_function_type.dart:5:16: Error: The typedef 'Handle' has a reference to itself.\ntypedef Handle Handle(String command);\n               ^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/malformed_function_type.dart:5:16: Error: The typedef 'Handle' has a reference to itself.\ntypedef Handle Handle(String command);\n               ^"]/* from null */;
 static method main() → dynamic {
   (core::String) → dynamic h;
 }

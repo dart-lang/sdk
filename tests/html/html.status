@@ -107,10 +107,6 @@ webgl_1_test: Pass, Fail # Issue 8219
 [ $compiler == dart2js && $minified ]
 canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue 12605
 
-[ $compiler == dart2js && $runtime == chrome ]
-css_test/supportsPointConversions: Fail # Issues 21710
-css_test/functional: Fail # Issues 21710
-
 [ $runtime == ie11 ]
 canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element

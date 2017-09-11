@@ -11,6 +11,7 @@
 #include <magenta/status.h>
 #include <magenta/syscalls.h>
 #include <string.h>
+#include <sys/utsname.h>
 #include <unistd.h>
 
 #include "bin/dartutils.h"
@@ -35,6 +36,28 @@ int Platform::NumberOfProcessors() {
 
 const char* Platform::OperatingSystem() {
   return "fuchsia";
+}
+
+const char* Platform::OperatingSystemVersion() {
+  struct utsname info;
+  int ret = uname(&info);
+  if (ret != 0) {
+    return NULL;
+  }
+  const char* kFormat = "%s %s %s";
+  int len =
+      snprintf(NULL, 0, kFormat, info.sysname, info.release, info.version);
+  if (len <= 0) {
+    return NULL;
+  }
+  char* result = DartUtils::ScopedCString(len + 1);
+  ASSERT(result != NULL);
+  len = snprintf(result, len + 1, kFormat, info.sysname, info.release,
+                 info.version);
+  if (len <= 0) {
+    return NULL;
+  }
+  return result;
 }
 
 const char* Platform::LibraryPrefix() {
@@ -92,12 +115,12 @@ const char* Platform::ResolveExecutablePath() {
   if (executable_name == NULL) {
     return NULL;
   }
-  if ((executable_name[0] == '/') && File::Exists(executable_name)) {
-    return File::GetCanonicalPath(executable_name);
+  if ((executable_name[0] == '/') && File::Exists(NULL, executable_name)) {
+    return File::GetCanonicalPath(NULL, executable_name);
   }
   if (strchr(executable_name, '/') != NULL) {
-    const char* result = File::GetCanonicalPath(executable_name);
-    if (File::Exists(result)) {
+    const char* result = File::GetCanonicalPath(NULL, executable_name);
+    if (File::Exists(NULL, result)) {
       return result;
     }
   } else {
@@ -112,8 +135,8 @@ const char* Platform::ResolveExecutablePath() {
     while ((pathcopy = strtok_r(pathcopy, ":", &save)) != NULL) {
       snprintf(result, PATH_MAX, "%s/%s", pathcopy, executable_name);
       result[PATH_MAX] = '\0';
-      if (File::Exists(result)) {
-        return File::GetCanonicalPath(result);
+      if (File::Exists(NULL, result)) {
+        return File::GetCanonicalPath(NULL, result);
       }
       pathcopy = NULL;
     }

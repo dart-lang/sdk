@@ -125,19 +125,24 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
   {
     MonitorLocker ml(&monitor_);
     if (FLAG_trace_isolates) {
-      const char* source_name = "<native code>";
       Isolate* source_isolate = Isolate::Current();
       if (source_isolate) {
-        source_name = source_isolate->name();
+        OS::Print(
+            "[>] Posting message:\n"
+            "\tlen:        %" Pd "\n\tsource:     (%" Pd64
+            ") %s\n\tdest:       %s\n"
+            "\tdest_port:  %" Pd64 "\n",
+            message->len(), static_cast<int64_t>(source_isolate->main_port()),
+            source_isolate->name(), name(), message->dest_port());
+      } else {
+        OS::Print(
+            "[>] Posting message:\n"
+            "\tlen:        %" Pd
+            "\n\tsource:     <native code>\n"
+            "\tdest:       %s\n"
+            "\tdest_port:  %" Pd64 "\n",
+            message->len(), name(), message->dest_port());
       }
-      OS::Print(
-          "[>] Posting message:\n"
-          "\tlen:        %" Pd
-          "\n"
-          "\tsource:     %s\n"
-          "\tdest:       %s\n"
-          "\tdest_port:  %" Pd64 "\n",
-          message->len(), source_name, name(), message->dest_port());
     }
 
     saved_priority = message->priority();
@@ -341,7 +346,18 @@ void MessageHandler::TaskCallback() {
         PausedOnStartLocked(&ml, false);
       }
     }
-#endif
+    if (is_paused_on_exit()) {
+      status = HandleMessages(&ml, false, false);
+      if (ShouldPauseOnExit(status)) {
+        // Still paused.
+        ASSERT(oob_queue_->IsEmpty());
+        task_ = NULL;  // No task in queue.
+        return;
+      } else {
+        PausedOnExitLocked(&ml, false);
+      }
+    }
+#endif  // !defined(PRODUCT)
 
     if (status == kOK) {
       if (start_callback_) {
@@ -368,17 +384,15 @@ void MessageHandler::TaskCallback() {
     if (status != kOK || !HasLivePorts()) {
 #if !defined(PRODUCT)
       if (ShouldPauseOnExit(status)) {
-        if (!is_paused_on_exit()) {
-          if (FLAG_trace_service_pause_events) {
-            OS::PrintErr(
-                "Isolate %s paused before exiting. "
-                "Use the Observatory to release it.\n",
-                name());
-          }
-          PausedOnExitLocked(&ml, true);
-          // More messages may have come in while we released the monitor.
-          status = HandleMessages(&ml, false, false);
+        if (FLAG_trace_service_pause_events) {
+          OS::PrintErr(
+              "Isolate %s paused before exiting. "
+              "Use the Observatory to release it.\n",
+              name());
         }
+        PausedOnExitLocked(&ml, true);
+        // More messages may have come in while we released the monitor.
+        status = HandleMessages(&ml, false, false);
         if (ShouldPauseOnExit(status)) {
           // Still paused.
           ASSERT(oob_queue_->IsEmpty());
@@ -503,14 +517,8 @@ void MessageHandler::PausedOnStart(bool paused) {
 void MessageHandler::PausedOnStartLocked(MonitorLocker* ml, bool paused) {
   if (paused) {
     ASSERT(!is_paused_on_start_);
-    is_paused_on_start_ = true;
+    ASSERT(paused_timestamp_ == -1);
     paused_timestamp_ = OS::GetCurrentTimeMillis();
-  } else {
-    ASSERT(is_paused_on_start_);
-    is_paused_on_start_ = false;
-    paused_timestamp_ = -1;
-  }
-  if (is_paused_on_start_) {
     // Temporarily release the monitor when calling out to
     // NotifyPauseOnStart.  This avoids a dead lock that can occur
     // when this message handler tries to post a message while a
@@ -518,12 +526,17 @@ void MessageHandler::PausedOnStartLocked(MonitorLocker* ml, bool paused) {
     ml->Exit();
     NotifyPauseOnStart();
     ml->Enter();
+    is_paused_on_start_ = true;
   } else {
+    ASSERT(is_paused_on_start_);
+    ASSERT(paused_timestamp_ != -1);
+    paused_timestamp_ = -1;
     // Resumed. Clear the resume request of the owning isolate.
     Isolate* owning_isolate = isolate();
     if (owning_isolate != NULL) {
       owning_isolate->GetAndClearResumeRequest();
     }
+    is_paused_on_start_ = false;
   }
 }
 
@@ -535,14 +548,8 @@ void MessageHandler::PausedOnExit(bool paused) {
 void MessageHandler::PausedOnExitLocked(MonitorLocker* ml, bool paused) {
   if (paused) {
     ASSERT(!is_paused_on_exit_);
-    is_paused_on_exit_ = true;
+    ASSERT(paused_timestamp_ == -1);
     paused_timestamp_ = OS::GetCurrentTimeMillis();
-  } else {
-    ASSERT(is_paused_on_exit_);
-    is_paused_on_exit_ = false;
-    paused_timestamp_ = -1;
-  }
-  if (is_paused_on_exit_) {
     // Temporarily release the monitor when calling out to
     // NotifyPauseOnExit.  This avoids a dead lock that can
     // occur when this message handler tries to post a message
@@ -550,12 +557,17 @@ void MessageHandler::PausedOnExitLocked(MonitorLocker* ml, bool paused) {
     ml->Exit();
     NotifyPauseOnExit();
     ml->Enter();
+    is_paused_on_exit_ = true;
   } else {
+    ASSERT(is_paused_on_exit_);
+    ASSERT(paused_timestamp_ != -1);
+    paused_timestamp_ = -1;
     // Resumed. Clear the resume request of the owning isolate.
     Isolate* owning_isolate = isolate();
     if (owning_isolate != NULL) {
       owning_isolate->GetAndClearResumeRequest();
     }
+    is_paused_on_exit_ = false;
   }
 }
 #endif  // !defined(PRODUCT)

@@ -4,7 +4,7 @@
 
 #include "vm/bootstrap_natives.h"
 
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"

@@ -27,6 +27,10 @@ abstract class AstRewriter {
   /// Inserts an expression or statement that extends the context.
   void insertExtendContext(VectorSet extender);
 
+  /// Inserts an expression that sets a parameter to NULL, so we don't have
+  /// unnecessary references to it.
+  void insertZeroOutParameter(VariableDeclaration parameter);
+
   void _createDeclaration() {
     assert(contextDeclaration == null && vectorCreation == null);
 
@@ -35,7 +39,7 @@ abstract class AstRewriter {
     // works as a link to the parent context.
     vectorCreation = new VectorCreation(2);
     contextDeclaration = new VariableDeclaration.forValue(vectorCreation,
-        type: new VectorType());
+        type: const DynamicType());
     contextDeclaration.name = "#context";
   }
 }
@@ -84,6 +88,11 @@ class BlockRewriter extends AstRewriter {
   void insertExtendContext(VectorSet extender) {
     _insertStatement(new ExpressionStatement(extender));
   }
+
+  void insertZeroOutParameter(VariableDeclaration parameter) {
+    _insertStatement(
+        new ExpressionStatement(new VariableSet(parameter, new NullLiteral())));
+  }
 }
 
 class InitializerListRewriter extends AstRewriter {
@@ -109,6 +118,14 @@ class InitializerListRewriter extends AstRewriter {
   void insertExtendContext(VectorSet extender) {
     var init = new LocalInitializer(
         new VariableDeclaration(null, initializer: extender));
+    init.parent = parentConstructor;
+    prefix.add(init);
+  }
+
+  @override
+  void insertZeroOutParameter(VariableDeclaration parameter) {
+    var init = new LocalInitializer(new VariableDeclaration(null,
+        initializer: new VariableSet(parameter, new NullLiteral())));
     init.parent = parentConstructor;
     prefix.add(init);
   }

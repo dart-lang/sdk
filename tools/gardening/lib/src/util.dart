@@ -105,3 +105,10 @@ void processArgResults(ArgResults argResults) {
     cache.base = null;
   }
 }
+
+/// Strips un-wanted characters from string [category] from CBE json.
+String sanitizeCategory(String category) {
+  var reg = new RegExp(r"^[0-9]+(.*)\|all$");
+  var match = reg.firstMatch(category);
+  return match != null ? match.group(1) : category;
+}

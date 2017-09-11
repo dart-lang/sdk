@@ -5,7 +5,11 @@
 library dart2js.js_emitter.runtime_type_generator;
 
 import '../closure.dart'
-    show ClosureRepresentationInfo, ClosureFieldElement, ClosureConversionTask;
+    show
+        ClosureRepresentationInfo,
+        ClosureFieldElement,
+        ClosureConversionTask,
+        ScopeInfo;
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
@@ -28,6 +32,7 @@ import '../js_backend/runtime_types.dart'
         TypeCheck,
         TypeChecks;
 import '../js_emitter/sorter.dart';
+import '../js_model/closure.dart' show JClosureField;
 import '../util/util.dart' show Setlet;
 import '../world.dart';
 
@@ -174,11 +179,12 @@ class RuntimeTypeGenerator {
       assert(!(method is MethodElement && !method.isImplementation));
       jsAst.Expression thisAccess = new jsAst.This();
       if (!method.isAbstract) {
-        ClosureRepresentationInfo closureData =
-            _closureDataLookup.getClosureRepresentationInfo(method);
-        if (closureData != null) {
-          ClosureFieldElement thisLocal = closureData.thisFieldEntity;
+        ScopeInfo scopeInfo = _closureDataLookup.getScopeInfo(method);
+        if (scopeInfo is ClosureRepresentationInfo) {
+          FieldEntity thisLocal = scopeInfo.thisFieldEntity;
           if (thisLocal != null) {
+            assert(
+                thisLocal is ClosureFieldElement || thisLocal is JClosureField);
             jsAst.Name thisName = _namer.instanceFieldPropertyName(thisLocal);
             thisAccess = js('this.#', thisName);
           }

@@ -2,21 +2,80 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:compiler/src/common.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/resolution/access_semantics.dart';
 import 'package:compiler/src/resolution/send_structure.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/tree/nodes.dart' as ast;
+import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 
 enum IdKind {
   element,
   node,
+  invoke,
+  update,
 }
 
 /// Id for a code point or element with type inference information.
 abstract class Id {
   IdKind get kind;
+}
+
+class IdValue {
+  final Id id;
+  final String value;
+
+  const IdValue(this.id, this.value);
+
+  int get hashCode => id.hashCode * 13 + value.hashCode * 17;
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! IdValue) return false;
+    return id == other.id && value == other.value;
+  }
+
+  String toString() {
+    switch (id.kind) {
+      case IdKind.element:
+        ElementId elementId = id;
+        return '$elementPrefix${elementId.name}:$value';
+      case IdKind.node:
+        return value;
+      case IdKind.invoke:
+        return '$invokePrefix$value';
+      case IdKind.update:
+        return '$updatePrefix$value';
+    }
+    throw new UnsupportedError("Unexpected id kind: ${id.kind}");
+  }
+
+  static const String elementPrefix = "element: ";
+  static const String invokePrefix = "invoke: ";
+  static const String updatePrefix = "update: ";
+
+  static IdValue decode(int offset, String text) {
+    Id id;
+    String expected;
+    if (text.startsWith(elementPrefix)) {
+      text = text.substring(elementPrefix.length);
+      int colonPos = text.indexOf(':');
+      id = new ElementId(text.substring(0, colonPos));
+      expected = text.substring(colonPos + 1);
+    } else if (text.startsWith(invokePrefix)) {
+      id = new NodeId(offset, IdKind.invoke);
+      expected = text.substring(invokePrefix.length);
+    } else if (text.startsWith(updatePrefix)) {
+      id = new NodeId(offset, IdKind.update);
+      expected = text.substring(updatePrefix.length);
+    } else {
+      id = new NodeId(offset, IdKind.node);
+      expected = text;
+    }
+    return new IdValue(id, expected);
+  }
 }
 
 /// Id for an element with type inference information.
@@ -47,32 +106,83 @@ class ElementId implements Id {
 
   IdKind get kind => IdKind.element;
 
-  String toString() =>
-      className != null ? '$className.$memberName' : memberName;
+  String get name => className != null ? '$className.$memberName' : memberName;
+
+  String toString() => name;
 }
 
 /// Id for a code point with type inference information.
 // TODO(johnniwinther): Create an [NodeId]-based equivalence with the kernel IR.
 class NodeId implements Id {
   final int value;
+  final IdKind kind;
 
-  const NodeId(this.value);
+  const NodeId(this.value, this.kind);
 
-  int get hashCode => value.hashCode;
+  int get hashCode => value.hashCode * 13 + kind.hashCode * 17;
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! NodeId) return false;
-    return value == other.value;
+    return value == other.value && kind == other.kind;
   }
-
-  IdKind get kind => IdKind.node;
 
   String toString() => '$kind:$value';
 }
 
-abstract class AstEnumeratorMixin {
-  TreeElements get elements;
+class ActualData {
+  final IdValue value;
+  final SourceSpan sourceSpan;
+  final Object object;
+
+  ActualData(this.value, this.sourceSpan, this.object);
+}
+
+abstract class DataRegistry {
+  DiagnosticReporter get reporter;
+  Map<Id, ActualData> get actualMap;
+
+  void registerValue(
+      SourceSpan sourceSpan, Id id, String value, Object object) {
+    if (actualMap.containsKey(id)) {
+      ActualData existingData = actualMap[id];
+      reportHere(reporter, sourceSpan,
+          "Duplicate id ${id}, value=$value, object=$object");
+      reportHere(
+          reporter,
+          sourceSpan,
+          "Duplicate id ${id}, value=${existingData.value}, "
+          "object=${existingData.object}");
+      Expect.fail("Duplicate id $id.");
+    }
+    if (value != null) {
+      actualMap[id] =
+          new ActualData(new IdValue(id, value), sourceSpan, object);
+    }
+  }
+}
+
+/// Abstract AST  visitor for computing data corresponding to a node or element,
+// and record it with a generic [Id].
+abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
+  final DiagnosticReporter reporter;
+  final Map<Id, ActualData> actualMap;
+  final ResolvedAst resolvedAst;
+
+  AstDataExtractor(this.reporter, this.actualMap, this.resolvedAst);
+
+  /// Implement this to compute the data corresponding to [element].
+  ///
+  /// If `null` is returned, [element] has no associated data.
+  String computeElementValue(Id id, AstElement element);
+
+  /// Implement this to compute the data corresponding to [node]. If [node] has
+  /// a corresponding [AstElement] this is provided in [element].
+  ///
+  /// If `null` is returned, [node] has no associated data.
+  String computeNodeValue(Id id, ast.Node node, AstElement element);
+
+  TreeElements get elements => resolvedAst.elements;
 
   ElementId computeElementId(AstElement element) {
     String memberName = element.name;
@@ -83,114 +193,209 @@ abstract class AstEnumeratorMixin {
     return new ElementId.internal(memberName, className);
   }
 
-  NodeId computeAccessId(ast.Send node, AccessSemantics access) {
+  ast.Node computeAccessPosition(ast.Send node, AccessSemantics access) {
     switch (access.kind) {
+      case AccessKind.THIS_PROPERTY:
       case AccessKind.DYNAMIC_PROPERTY:
-        return new NodeId(node.selector.getBeginToken().charOffset);
+      case AccessKind.LOCAL_VARIABLE:
+      case AccessKind.FINAL_LOCAL_VARIABLE:
+      case AccessKind.LOCAL_FUNCTION:
+      case AccessKind.PARAMETER:
+      case AccessKind.FINAL_PARAMETER:
+      case AccessKind.EXPRESSION:
+        return node.selector;
       default:
         return null;
     }
   }
 
-  NodeId computeNodeId(ast.Node node, AstElement element) {
-    if (element != null && element.isLocal) {
-      return new NodeId(node.getBeginToken().charOffset);
-    } else if (node is ast.Send) {
-      dynamic sendStructure = elements.getSendStructure(node);
-      if (sendStructure == null) return null;
-      switch (sendStructure.kind) {
-        case SendStructureKind.GET:
-        case SendStructureKind.INVOKE:
-          return computeAccessId(node, sendStructure.semantics);
-        default:
+  ast.Node computeUpdatePosition(ast.Send node, AccessSemantics access) {
+    switch (access.kind) {
+      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.LOCAL_VARIABLE:
+      case AccessKind.PARAMETER:
+        return node.selector;
+      default:
+        return null;
+    }
+  }
+
+  void computeForElement(AstElement element) {
+    ElementId id = computeElementId(element);
+    if (id == null) return;
+    String value = computeElementValue(id, element);
+    registerValue(element.sourcePosition, id, value, element);
+  }
+
+  void computeForNode(ast.Node node, NodeId id, [AstElement element]) {
+    if (id == null) return;
+    String value = computeNodeValue(id, node, element);
+    SourceSpan sourceSpan = computeSourceSpan(node);
+    registerValue(sourceSpan, id, value, element ?? node);
+  }
+
+  SourceSpan computeSourceSpan(ast.Node node) {
+    return new SourceSpan(resolvedAst.sourceUri,
+        node.getBeginToken().charOffset, node.getEndToken().charEnd);
+  }
+
+  NodeId computeDefaultNodeId(ast.Node node) {
+    return new NodeId(node.getBeginToken().charOffset, IdKind.node);
+  }
+
+  NodeId createAccessId(ast.Node node) {
+    return new NodeId(node.getBeginToken().charOffset, IdKind.node);
+  }
+
+  NodeId createInvokeId(ast.Node node) {
+    return new NodeId(node.getBeginToken().charOffset, IdKind.invoke);
+  }
+
+  NodeId createUpdateId(ast.Node node) {
+    return new NodeId(node.getBeginToken().charOffset, IdKind.update);
+  }
+
+  NodeId createLoopId(ast.Node node) => computeDefaultNodeId(node);
+
+  NodeId createGotoId(ast.Node node) => computeDefaultNodeId(node);
+
+  NodeId createSwitchId(ast.SwitchStatement node) => computeDefaultNodeId(node);
+
+  NodeId createSwitchCaseId(ast.SwitchCase node) {
+    ast.Node position;
+    for (ast.Node child in node.labelsAndCases) {
+      if (child.asCaseMatch() != null) {
+        ast.CaseMatch caseMatch = child;
+        position = caseMatch.expression;
+        break;
       }
     }
-    return null;
-  }
-}
-
-/// Visitor that finds the AST node or element corresponding to an [Id].
-class AstIdFinder extends ast.Visitor with AstEnumeratorMixin {
-  Id soughtId;
-  var /*AstElement|ast.Node*/ found;
-  final TreeElements elements;
-
-  AstIdFinder(this.elements);
-
-  /// Visits the subtree of [root] returns the [ast.Node] or [AstElement]
-  /// corresponding to [id].
-  /*AstElement|ast.Node*/ find(ast.Node root, Id id) {
-    soughtId = id;
-    root.accept(this);
-    var result = found;
-    found = null;
-    return result;
+    return computeDefaultNodeId(position);
   }
 
-  visit(ast.Node node) {
-    if (found == null) {
-      node?.accept(this);
-    }
+  void run() {
+    resolvedAst.node.accept(this);
   }
 
   visitNode(ast.Node node) {
-    if (found == null) {
-      node.visitChildren(this);
-    }
-  }
-
-  visitSend(ast.Send node) {
-    if (found == null) {
-      visitNode(node);
-      Id id = computeNodeId(node, null);
-      if (id == soughtId) {
-        found = node;
-      }
-    }
+    node.visitChildren(this);
   }
 
   visitVariableDefinitions(ast.VariableDefinitions node) {
-    if (found == null) {
-      for (ast.Node child in node.definitions) {
-        AstElement element = elements[child];
-        if (element != null) {
-          Id id;
-          if (element is FieldElement) {
-            id = computeElementId(element);
-          } else {
-            id = computeNodeId(child, element);
-          }
-          if (id == soughtId) {
-            found = element;
-            return;
-          }
-        }
+    for (ast.Node child in node.definitions) {
+      AstElement element = elements[child];
+      if (element == null) {
+        reportHere(reporter, child, 'No element for variable.');
+      } else if (!element.isLocal) {
+        computeForElement(element);
+      } else {
+        computeForNode(child, computeDefaultNodeId(child), element);
       }
-      visitNode(node);
     }
+    visitNode(node);
   }
 
   visitFunctionExpression(ast.FunctionExpression node) {
-    if (found == null) {
-      AstElement element = elements.getFunctionDefinition(node);
-      if (element != null) {
-        Id id;
-        if (element is LocalFunctionElement) {
-          id = computeNodeId(node, element);
-        } else {
-          id = computeElementId(element);
-        }
-        if (id == soughtId) {
-          found = element;
-          return;
-        }
-      }
-      visitNode(node);
+    AstElement element = elements.getFunctionDefinition(node);
+    if (!element.isLocal) {
+      computeForElement(element);
+    } else {
+      computeForNode(node, computeDefaultNodeId(node), element);
     }
+    visitNode(node);
+  }
+
+  visitSend(ast.Send node) {
+    dynamic sendStructure = elements.getSendStructure(node);
+    if (sendStructure != null) {
+      switch (sendStructure.kind) {
+        case SendStructureKind.GET:
+          ast.Node position =
+              computeAccessPosition(node, sendStructure.semantics);
+          if (position != null) {
+            computeForNode(node, computeDefaultNodeId(position));
+          }
+          break;
+        case SendStructureKind.INVOKE:
+        case SendStructureKind.BINARY:
+        case SendStructureKind.EQUALS:
+        case SendStructureKind.NOT_EQUALS:
+          ast.Node position =
+              computeAccessPosition(node, sendStructure.semantics);
+          if (position != null) {
+            computeForNode(node, createInvokeId(position));
+          }
+          break;
+        case SendStructureKind.SET:
+          break;
+        default:
+      }
+    }
+    visitNode(node);
+  }
+
+  visitSendSet(ast.SendSet node) {
+    dynamic sendStructure = elements.getSendStructure(node);
+    if (sendStructure != null) {
+      switch (sendStructure.kind) {
+        case SendStructureKind.SET:
+          ast.Node position =
+              computeUpdatePosition(node, sendStructure.semantics);
+          if (position != null) {
+            computeForNode(node, createUpdateId(position));
+          }
+          break;
+        case SendStructureKind.PREFIX:
+        case SendStructureKind.POSTFIX:
+        case SendStructureKind.COMPOUND:
+          computeForNode(node, createAccessId(node.selector));
+          computeForNode(node, createInvokeId(node.assignmentOperator));
+          computeForNode(node, createUpdateId(node.selector));
+          break;
+        default:
+      }
+    }
+    visitNode(node);
+  }
+
+  visitLoop(ast.Loop node) {
+    computeForNode(node, createLoopId(node));
+    visitNode(node);
+  }
+
+  visitGotoStatement(ast.GotoStatement node) {
+    computeForNode(node, createGotoId(node));
+    visitNode(node);
+  }
+
+  visitSwitchStatement(ast.SwitchStatement node) {
+    computeForNode(node, createSwitchId(node));
+    visitNode(node);
+  }
+
+  visitSwitchCase(ast.SwitchCase node) {
+    computeForNode(node, createSwitchCaseId(node));
+    visitNode(node);
   }
 }
 
-abstract class IrEnumeratorMixin {
+/// Abstract IR visitor for computing data corresponding to a node or element,
+/// and record it with a generic [Id]
+abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
+  final DiagnosticReporter reporter;
+  final Map<Id, ActualData> actualMap;
+
+  /// Implement this to compute the data corresponding to [member].
+  ///
+  /// If `null` is returned, [member] has no associated data.
+  String computeMemberValue(Id id, ir.Member member);
+
+  /// Implement this to compute the data corresponding to [node].
+  ///
+  /// If `null` is returned, [node] has no associated data.
+  String computeNodeValue(Id id, ir.TreeNode node);
+
+  IrDataExtractor(this.reporter, this.actualMap);
   Id computeElementId(ir.Member node) {
     String className;
     if (node.enclosingClass != null) {
@@ -203,60 +408,147 @@ abstract class IrEnumeratorMixin {
     return new ElementId.internal(memberName, className);
   }
 
-  Id computeNodeId(ir.TreeNode node) {
-    if (node is ir.MethodInvocation) {
-      assert(node.fileOffset != ir.TreeNode.noOffset);
-      return new NodeId(node.fileOffset);
-    } else if (node is ir.PropertyGet) {
-      assert(node.fileOffset != ir.TreeNode.noOffset);
-      return new NodeId(node.fileOffset);
-    } else if (node is ir.VariableDeclaration) {
-      assert(node.fileOffset != ir.TreeNode.noOffset);
-      return new NodeId(node.fileOffset);
-    } else if (node is ir.FunctionExpression) {
-      assert(node.fileOffset != ir.TreeNode.noOffset);
-      return new NodeId(node.fileOffset);
-    } else if (node is ir.FunctionDeclaration) {
-      assert(node.fileOffset != ir.TreeNode.noOffset);
-      return new NodeId(node.fileOffset);
-    }
-    return null;
+  void computeForMember(ir.Member member) {
+    ElementId id = computeElementId(member);
+    if (id == null) return;
+    String value = computeMemberValue(id, member);
+    registerValue(computeSourceSpan(member), id, value, member);
   }
-}
 
-/// Visitor that finds the IR node corresponding to an [Id].
-class IrIdFinder extends ir.Visitor with IrEnumeratorMixin {
-  Id soughtId;
-  ir.Node found;
+  void computeForNode(ir.TreeNode node, NodeId id) {
+    if (id == null) return;
+    String value = computeNodeValue(id, node);
+    registerValue(computeSourceSpan(node), id, value, node);
+  }
 
-  /// Visits the subtree of [root] returns the [ir.Node] corresponding to [id].
-  ir.Node find(ir.Node root, Id id) {
-    soughtId = id;
+  SourceSpan computeSourceSpan(ir.TreeNode node) {
+    return new SourceSpan(
+        Uri.parse(node.location.file), node.fileOffset, node.fileOffset + 1);
+  }
+
+  NodeId computeDefaultNodeId(ir.TreeNode node) {
+    assert(node.fileOffset != ir.TreeNode.noOffset,
+        "No fileOffset on $node (${node.runtimeType})");
+    return new NodeId(node.fileOffset, IdKind.node);
+  }
+
+  NodeId createInvokeId(ir.TreeNode node) {
+    assert(node.fileOffset != ir.TreeNode.noOffset,
+        "No fileOffset on ${node} (${node.runtimeType})");
+    return new NodeId(node.fileOffset, IdKind.invoke);
+  }
+
+  NodeId createUpdateId(ir.TreeNode node) {
+    assert(node.fileOffset != ir.TreeNode.noOffset,
+        "No fileOffset on ${node} (${node.runtimeType})");
+    return new NodeId(node.fileOffset, IdKind.update);
+  }
+
+  NodeId createLoopId(ir.TreeNode node) => computeDefaultNodeId(node);
+  NodeId createGotoId(ir.TreeNode node) => computeDefaultNodeId(node);
+  NodeId createSwitchId(ir.SwitchStatement node) => computeDefaultNodeId(node);
+  NodeId createSwitchCaseId(ir.SwitchCase node) =>
+      new NodeId(node.expressionOffsets.first, IdKind.node);
+
+  void run(ir.Node root) {
     root.accept(this);
-    var result = found;
-    found = null;
-    return result;
   }
 
-  defaultTreeNode(ir.TreeNode node) {
-    if (found == null) {
-      Id id = computeNodeId(node);
-      if (id == soughtId) {
-        found = node;
-        return;
-      }
-      node.visitChildren(this);
-    }
+  defaultNode(ir.Node node) {
+    node.visitChildren(this);
   }
 
   defaultMember(ir.Member node) {
-    if (found == null) {
-      Id id = computeElementId(node);
-      if (id == soughtId) {
-        found = node;
-        return;
-      }
-      defaultTreeNode(node);
+    computeForMember(node);
+    super.defaultMember(node);
+  }
+
+  visitMethodInvocation(ir.MethodInvocation node) {
+    computeForNode(node, createInvokeId(node));
+    super.visitMethodInvocation(node);
+  }
+
+  visitPropertyGet(ir.PropertyGet node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitPropertyGet(node);
+  }
+
+  visitVariableDeclaration(ir.VariableDeclaration node) {
+    if (node.name != null && node.parent is! ir.FunctionDeclaration) {
+      // Skip synthetic variables and function declaration variables.
+      computeForNode(node, computeDefaultNodeId(node));
     }
+    super.visitVariableDeclaration(node);
+  }
+
+  visitFunctionDeclaration(ir.FunctionDeclaration node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitFunctionDeclaration(node);
+  }
+
+  visitFunctionExpression(ir.FunctionExpression node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitFunctionExpression(node);
+  }
+
+  visitVariableGet(ir.VariableGet node) {
+    if (node.variable.name != null) {
+      // Skip use of synthetic variables.
+      computeForNode(node, computeDefaultNodeId(node));
+    }
+    super.visitVariableGet(node);
+  }
+
+  visitPropertySet(ir.PropertySet node) {
+    computeForNode(node, createUpdateId(node));
+    super.visitPropertySet(node);
+  }
+
+  visitVariableSet(ir.VariableSet node) {
+    if (node.variable.name != null) {
+      // Skip use of synthetic variables.
+      computeForNode(node, createUpdateId(node));
+    }
+    super.visitVariableSet(node);
+  }
+
+  visitDoStatement(ir.DoStatement node) {
+    computeForNode(node, createLoopId(node));
+    super.visitDoStatement(node);
+  }
+
+  visitForStatement(ir.ForStatement node) {
+    computeForNode(node, createLoopId(node));
+    super.visitForStatement(node);
+  }
+
+  visitForInStatement(ir.ForInStatement node) {
+    computeForNode(node, createLoopId(node));
+    super.visitForInStatement(node);
+  }
+
+  visitWhileStatement(ir.WhileStatement node) {
+    computeForNode(node, createLoopId(node));
+    super.visitWhileStatement(node);
+  }
+
+  visitBreakStatement(ir.BreakStatement node) {
+    computeForNode(node, createGotoId(node));
+    super.visitBreakStatement(node);
+  }
+
+  visitSwitchStatement(ir.SwitchStatement node) {
+    computeForNode(node, createSwitchId(node));
+    super.visitSwitchStatement(node);
+  }
+
+  visitSwitchCase(ir.SwitchCase node) {
+    computeForNode(node, createSwitchCaseId(node));
+    super.visitSwitchCase(node);
+  }
+
+  visitContinueSwitchStatement(ir.ContinueSwitchStatement node) {
+    computeForNode(node, createGotoId(node));
+    super.visitContinueSwitchStatement(node);
   }
 }

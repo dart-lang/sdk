@@ -4,9 +4,6 @@
 
 library dart2js.js_emitter.parameter_stub_generator;
 
-import '../closure.dart' show ClosureClassElement;
-import '../common.dart';
-import '../common_elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
@@ -27,7 +24,6 @@ import 'code_emitter_task.dart' show CodeEmitterTask, Emitter;
 class ParameterStubGenerator {
   static final Set<Selector> emptySelectorSet = new Set<Selector>();
 
-  final CommonElements _commonElements;
   final CodeEmitterTask _emitterTask;
   final Namer _namer;
   final NativeData _nativeData;
@@ -35,14 +31,8 @@ class ParameterStubGenerator {
   final CodegenWorldBuilder _codegenWorldBuilder;
   final ClosedWorld _closedWorld;
 
-  ParameterStubGenerator(
-      this._commonElements,
-      this._emitterTask,
-      this._namer,
-      this._nativeData,
-      this._interceptorData,
-      this._codegenWorldBuilder,
-      this._closedWorld);
+  ParameterStubGenerator(this._emitterTask, this._namer, this._nativeData,
+      this._interceptorData, this._codegenWorldBuilder, this._closedWorld);
 
   Emitter get _emitter => _emitterTask.emitter;
 
@@ -217,16 +207,6 @@ class ParameterStubGenerator {
   // (3) foo$3$d(a, b, d) => MyClass.foo$4$c$d(this, a, b, null, d);
   List<ParameterStubMethod> generateParameterStubs(FunctionEntity member,
       {bool canTearOff: true}) {
-    if (member.enclosingClass != null && member.enclosingClass.isClosure) {
-      ClosureClassElement cls = member.enclosingClass;
-      if (cls.supertype.element == _commonElements.boundClosureClass) {
-        failedAt(cls.methodElement, 'Bound closure1.');
-      }
-      if (cls.methodElement.isInstanceMember) {
-        failedAt(cls.methodElement, 'Bound closure2.');
-      }
-    }
-
     // The set of selectors that apply to `member`. For example, for
     // a member `foo(x, [y])` the following selectors may apply:
     // `foo(x)`, and `foo(x, y)`.

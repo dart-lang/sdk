@@ -7,9 +7,10 @@
 
 #include "bin/platform.h"
 
-#include <signal.h>  // NOLINT
-#include <string.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <signal.h>       // NOLINT
+#include <string.h>       // NOLINT
+#include <sys/utsname.h>  // NOLINT
+#include <unistd.h>       // NOLINT
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
@@ -73,6 +74,28 @@ const char* Platform::OperatingSystem() {
   return "android";
 }
 
+const char* Platform::OperatingSystemVersion() {
+  struct utsname info;
+  int ret = uname(&info);
+  if (ret != 0) {
+    return NULL;
+  }
+  const char* kFormat = "%s %s %s";
+  int len =
+      snprintf(NULL, 0, kFormat, info.sysname, info.release, info.version);
+  if (len <= 0) {
+    return NULL;
+  }
+  char* result = DartUtils::ScopedCString(len + 1);
+  ASSERT(result != NULL);
+  len = snprintf(result, len + 1, kFormat, info.sysname, info.release,
+                 info.version);
+  if (len <= 0) {
+    return NULL;
+  }
+  return result;
+}
+
 const char* Platform::LibraryPrefix() {
   return "lib";
 }
@@ -115,7 +138,7 @@ const char* Platform::GetExecutableName() {
 }
 
 const char* Platform::ResolveExecutablePath() {
-  return NULL;
+  return File::ReadLink("/proc/self/exe");
 }
 
 void Platform::Exit(int exit_code) {

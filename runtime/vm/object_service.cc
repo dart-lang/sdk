@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/compiler/assembler/disassembler.h"
 #include "vm/debugger.h"
-#include "vm/disassembler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/stub_code.h"
@@ -838,11 +838,13 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_objectPool", object_pool);
   {
     JSONArray jsarr(&jsobj, "_disassembly");
+#if !defined(DART_PRECOMPILED_RUNTIME)
     if (is_alive()) {
       // Only disassemble alive code objects.
       DisassembleToJSONStream formatter(jsarr);
       Disassemble(&formatter);
     }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   if (!descriptors.IsNull()) {

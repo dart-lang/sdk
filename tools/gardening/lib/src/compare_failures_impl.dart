@@ -7,6 +7,7 @@
 /// Use this to detect flakiness of failures, especially timeouts.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:gardening/src/bot.dart';
 import 'package:gardening/src/buildbot_structures.dart';
@@ -18,12 +19,22 @@ Future mainInternal(Bot bot, List<String> args, {int runCount: 10}) async {
       await loadBuildResults(bot, args, runCount: runCount), args);
 }
 
+RegExp logdogUrlRegexp =
+    new RegExp(r'https://luci-logdog.appspot.com/.*client.dart');
+
 /// Loads [BuildResult]s for the [runCount] last builds for the build(s) in
 /// [args]. [args] can be a list of [BuildGroup] names or a list of log uris.
 Future<Map<BuildUri, List<BuildResult>>> loadBuildResults(
     Bot bot, List<String> args,
     {int runCount: 10}) async {
   List<BuildUri> buildUriList = <BuildUri>[];
+  for (String arg in args) {
+    if (logdogUrlRegexp.hasMatch(arg)) {
+      print('Encountered a logdog URI ("${arg.substring(0,40)}...").');
+      print('Please use the regular log URI, even with --logdog.');
+      exit(-1);
+    }
+  }
   for (BuildGroup buildGroup in buildGroups) {
     if (args.contains(buildGroup.groupName)) {
       buildUriList.addAll(buildGroup.createUris(bot.mostRecentBuildNumber));
@@ -128,6 +139,7 @@ class Summary {
 
   Summary(this.buildUri, this.results) {
     for (BuildResult result in results) {
+      if (result == null) continue;
       timeoutIds
           .addAll(result.timeouts.map((TestFailure failure) => failure.id));
       errorIds.addAll(result.errors.map((TestFailure failure) => failure.id));

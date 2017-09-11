@@ -22,15 +22,15 @@ void main() {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
     }
 
-    var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
+    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
 
     dynamic lib1 = lookupLibrary("memory:lib1.dart");
     var inlineMeAway = lib1.find("inlineMeAway");
-    var ou_lib1 = outputUnitForElement(inlineMeAway);
+    var ou_lib1 = outputUnitForEntity(inlineMeAway);
 
     dynamic lib3 = lookupLibrary("memory:lib3.dart");
     var sameContextInline = lib3.find("sameContextInline");
-    var ou_lib3 = outputUnitForElement(sameContextInline);
+    var ou_lib3 = outputUnitForEntity(sameContextInline);
 
     // Test that we actually got different output units.
     Expect.notEquals(ou_lib1.name, ou_lib3.name);

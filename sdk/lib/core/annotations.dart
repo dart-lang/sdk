@@ -150,4 +150,5 @@ class _Proxy {
  * are known at compile time, a class can be written that implements these
  * types.
  */
+@deprecated
 const Object proxy = const _Proxy();

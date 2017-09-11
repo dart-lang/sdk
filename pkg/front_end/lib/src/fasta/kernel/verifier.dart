@@ -46,13 +46,37 @@ class FastaVerifyingVisitor extends VerifyingVisitor
     this.isOutline = isOutline;
   }
 
+  String checkLocation(TreeNode node, String name, String fileUri) {
+    if (name == null || name.contains("#")) {
+      // TODO(ahe): Investigate if these checks can be enabled:
+      // if (node.fileUri != null && node is! Library) {
+      //   problem(node, "A synthetic node shouldn't have a fileUri",
+      //       context: node);
+      // }
+      // if (node.fileOffset != -1) {
+      //   problem(node, "A synthetic node shouldn't have a fileOffset",
+      //       context: node);
+      // }
+      return fileUri;
+    } else {
+      if (fileUri == null) {
+        problem(node, "'$name' has no fileUri", context: node);
+        return fileUri;
+      }
+      if (node.fileOffset == -1 && node is! Library) {
+        problem(node, "'$name' has no fileOffset", context: node);
+      }
+      return fileUri;
+    }
+  }
+
   @override
   problem(TreeNode node, String details, {TreeNode context}) {
     node ??= (context ?? this.context);
     int offset = node?.fileOffset ?? -1;
     LocatedMessage message = templateInternalVerificationError
         .withArguments(details)
-        .withLocation(Uri.parse(fileUri), offset);
+        .withLocation(fileUri == null ? null : Uri.parse(fileUri), offset);
     CompilerContext.current.report(message, Severity.error);
     errors.add(message);
   }
@@ -68,25 +92,25 @@ class FastaVerifyingVisitor extends VerifyingVisitor
 
   @override
   visitLibrary(Library node) {
-    fileUri = node.fileUri;
+    fileUri = checkLocation(node, node.name, node.fileUri);
     super.visitLibrary(node);
   }
 
   @override
   visitClass(Class node) {
-    fileUri = node.fileUri;
+    fileUri = checkLocation(node, node.name, node.fileUri);
     super.visitClass(node);
   }
 
   @override
   visitField(Field node) {
-    fileUri = node.fileUri;
+    fileUri = checkLocation(node, node.name.name, node.fileUri);
     super.visitField(node);
   }
 
   @override
   visitProcedure(Procedure node) {
-    fileUri = node.fileUri;
+    fileUri = checkLocation(node, node.name.name, node.fileUri);
     super.visitProcedure(node);
   }
 

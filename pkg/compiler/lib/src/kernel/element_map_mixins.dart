@@ -515,6 +515,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
 
   @override
   ConstantExpression visitConstructorInvocation(ir.ConstructorInvocation node) {
+    if (!node.isConst) return null;
     return _computeConstructorInvocation(node.target, node.arguments);
   }
 

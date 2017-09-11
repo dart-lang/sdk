@@ -326,13 +326,7 @@ class BackRefNode : public ValueObject {
 
 class ImageReader : public ZoneAllocated {
  public:
-  ImageReader(const uint8_t* instructions_buffer, const uint8_t* data_buffer)
-      : instructions_buffer_(instructions_buffer), data_buffer_(data_buffer) {
-    ASSERT(instructions_buffer != NULL);
-    ASSERT(data_buffer != NULL);
-    ASSERT(Utils::IsAligned(reinterpret_cast<uword>(instructions_buffer),
-                            OS::PreferredCodeAlignment()));
-  }
+  ImageReader(const uint8_t* instructions_buffer, const uint8_t* data_buffer);
 
   RawInstructions* GetInstructionsAt(int32_t offset);
   RawObject* GetObjectAt(int32_t offset);
@@ -340,6 +334,7 @@ class ImageReader : public ZoneAllocated {
  private:
   const uint8_t* instructions_buffer_;
   const uint8_t* data_buffer_;
+  const uint8_t* vm_instructions_buffer_;
 
   DISALLOW_COPY_AND_ASSIGN(ImageReader);
 };

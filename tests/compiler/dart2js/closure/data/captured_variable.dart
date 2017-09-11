@@ -2,64 +2,73 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*readParameterInAnonymousClosure:*/
+/*element: readParameterInAnonymousClosure:*/
 readParameterInAnonymousClosure(/**/ parameter) {
-  return /*captured=[parameter],free=[parameter]*/ () => parameter;
+  return /*fields=[parameter],free=[parameter]*/ () => parameter;
 }
 
-/*readParameterInClosure:*/
+/*element: readParameterInClosure:*/
 readParameterInClosure(/**/ parameter) {
-  /*captured=[parameter],free=[parameter]*/ func() => parameter;
+  /*fields=[parameter],free=[parameter]*/ func() => parameter;
   return func;
 }
 
-/*writeParameterInAnonymousClosure:boxed=[parameter],captured=[parameter],requiresBox*/
+/*element: writeParameterInAnonymousClosure:box=(box0 which holds [parameter])*/
 writeParameterInAnonymousClosure(/*boxed*/ parameter) {
-  return /*boxed=[parameter],captured=[parameter],free=[box,parameter]*/ () {
+  return /*fields=[box0],free=[box0,parameter]*/ () {
     parameter = 42;
   };
 }
 
-/*writeParameterInClosure:boxed=[parameter],captured=[parameter],requiresBox*/
+/*element: writeParameterInClosure:box=(box0 which holds [parameter])*/
 writeParameterInClosure(/*boxed*/ parameter) {
-  /*boxed=[parameter],captured=[parameter],free=[box,parameter]*/ func() {
-    parameter = 42;
+  /*fields=[box0],free=[box0,parameter]*/ func() {
+    parameter = 43;
   }
 
   return func;
 }
 
-/*readLocalInAnonymousClosure:*/
+/*element: readLocalInAnonymousClosure:*/
 readLocalInAnonymousClosure(/**/ parameter) {
   var /**/ local = parameter;
-  return /*captured=[local],free=[local]*/ () => local;
+  return /*fields=[local],free=[local]*/ () => local;
 }
 
-/*readLocalInClosure:*/
+/*element: readLocalInClosure:*/
 readLocalInClosure(/**/ parameter) {
   var /**/ local = parameter;
-  /*captured=[local],free=[local]*/ func() => local;
+  /*fields=[local],free=[local]*/ func() => local;
   return func;
 }
 
-/*writeLocalInAnonymousClosure:boxed=[local],captured=[local],requiresBox*/
+/*element: writeLocalInAnonymousClosure:box=(box0 which holds [local])*/
 writeLocalInAnonymousClosure(/**/ parameter) {
   // ignore: UNUSED_LOCAL_VARIABLE
   var /*boxed*/ local = parameter;
-  return /*boxed=[local],captured=[local],free=[box,local]*/ () {
-    local = 42;
+  return /*fields=[box0],free=[box0,local]*/ () {
+    local = 44;
   };
 }
 
-/*writeLocalInClosure:boxed=[local],captured=[local],requiresBox*/
+/*element: writeLocalInClosure:box=(box0 which holds [local])*/
 writeLocalInClosure(/**/ parameter) {
   // ignore: UNUSED_LOCAL_VARIABLE
   var /*boxed*/ local = parameter;
-  /*boxed=[local],captured=[local],free=[box,local]*/ func() {
-    local = 42;
+  /*fields=[box0],free=[box0,local]*/ func() {
+    local = 45;
   }
 
   return func;
+}
+
+class Foo {
+  int /*element: Foo.bar:hasThis*/ bar = 4;
+
+  /*element: Foo.baz:hasThis*/ baz() {
+    /*fields=[this],free=[this],hasThis*/ func() => bar;
+    return func;
+  }
 }
 
 main() {
@@ -71,4 +80,5 @@ main() {
   readLocalInClosure(null);
   writeLocalInAnonymousClosure(null);
   writeLocalInClosure(null);
+  new Foo().baz();
 }

@@ -51,6 +51,8 @@ class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
 
   @override
   CodegenWorkItem createWorkItem(MemberEntity entity) {
+    if (entity.isAbstract) return null;
+
     // Codegen inlines field initializers. It only needs to generate
     // code for checked setters.
     if (entity.isField && entity.isInstanceMember) {
@@ -103,6 +105,7 @@ class KernelSsaBuilder implements SsaBuilder {
         _compiler.codegenWorldBuilder,
         work.registry,
         _compiler.backendStrategy.closureDataLookup,
+        _compiler.backend.emitter.nativeEmitter,
         // TODO(redemption): Support these:
         const SourceInformationBuilder(),
         null); // Function node used as capture scope id.
@@ -219,28 +222,33 @@ class KernelSorter implements Sorter {
 
   @override
   Iterable<MemberEntity> sortMembers(Iterable<MemberEntity> members) {
-    return members.toList()
-      ..sort((MemberEntity member1, MemberEntity member2) {
-        int r = _compareLibraries(member1.library, member2.library);
-        if (r != 0) return r;
-        MemberDefinition definition1 = elementMap.getMemberDefinition(member1);
-        MemberDefinition definition2 = elementMap.getMemberDefinition(member2);
-        return _compareSourceSpans(
-            member1, definition1.location, member2, definition2.location);
-      });
+    return members.toList()..sort(compareMembersByLocation);
   }
 
   @override
   Iterable<ClassEntity> sortClasses(Iterable<ClassEntity> classes) {
-    return classes.toList()
-      ..sort((ClassEntity cls1, ClassEntity cls2) {
-        int r = _compareLibraries(cls1.library, cls2.library);
-        if (r != 0) return r;
-        ClassDefinition definition1 = elementMap.getClassDefinition(cls1);
-        ClassDefinition definition2 = elementMap.getClassDefinition(cls2);
-        return _compareSourceSpans(
-            cls1, definition1.location, cls2, definition2.location);
-      });
+    List<ClassEntity> regularClasses = <ClassEntity>[];
+    List<ClassEntity> unnamedMixins = <ClassEntity>[];
+    for (ClassEntity cls in classes) {
+      if (elementMap.elementEnvironment.isUnnamedMixinApplication(cls)) {
+        unnamedMixins.add(cls);
+      } else {
+        regularClasses.add(cls);
+      }
+    }
+    List<ClassEntity> sorted = <ClassEntity>[];
+    regularClasses.sort(compareClassesByLocation);
+    sorted.addAll(regularClasses);
+    unnamedMixins.sort((a, b) {
+      int result = _compareLibraries(a.library, b.library);
+      if (result != 0) return result;
+      result = a.name.compareTo(b.name);
+      assert(result != 0,
+          failedAt(a, "Multiple mixins named ${a.name}: $a vs $b."));
+      return result;
+    });
+    sorted.addAll(unnamedMixins);
+    return sorted;
   }
 
   @override
@@ -248,5 +256,37 @@ class KernelSorter implements Sorter {
     // TODO(redemption): Support this.
     assert(typedefs.isEmpty);
     return typedefs;
+  }
+
+  @override
+  int compareLibrariesByLocation(LibraryEntity a, LibraryEntity b) {
+    return _compareLibraries(a, b);
+  }
+
+  @override
+  int compareClassesByLocation(ClassEntity a, ClassEntity b) {
+    int r = _compareLibraries(a.library, b.library);
+    if (r != 0) return r;
+    ClassDefinition definition1 = elementMap.getClassDefinition(a);
+    ClassDefinition definition2 = elementMap.getClassDefinition(b);
+    return _compareSourceSpans(
+        a, definition1.location, b, definition2.location);
+  }
+
+  @override
+  int compareTypedefsByLocation(TypedefEntity a, TypedefEntity b) {
+    // TODO(redemption): Support this.
+    failedAt(a, 'KernelSorter.compareTypedefsByLocation unimplemented');
+    return 0;
+  }
+
+  @override
+  int compareMembersByLocation(MemberEntity a, MemberEntity b) {
+    int r = _compareLibraries(a.library, b.library);
+    if (r != 0) return r;
+    MemberDefinition definition1 = elementMap.getMemberDefinition(a);
+    MemberDefinition definition2 = elementMap.getMemberDefinition(b);
+    return _compareSourceSpans(
+        a, definition1.location, b, definition2.location);
   }
 }

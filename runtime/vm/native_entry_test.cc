@@ -4,8 +4,8 @@
 
 #include "vm/native_entry_test.h"
 
-#include "vm/assembler.h"
 #include "vm/code_patcher.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"

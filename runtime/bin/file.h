@@ -13,6 +13,7 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/log.h"
+#include "bin/namespace.h"
 #include "bin/reference_counting.h"
 
 namespace dart {
@@ -172,36 +173,52 @@ class File : public ReferenceCounted<File> {
   // reading and writing. If mode contains kWrite and the file does
   // not exist the file is created. The file is truncated to length 0 if
   // mode contains kTruncate. Assumes we are in an API scope.
-  static File* Open(const char* path, FileOpenMode mode);
+  static File* Open(Namespace* namespc, const char* path, FileOpenMode mode);
 
   // Create a file object for the specified stdio file descriptor
   // (stdin, stout or stderr).
   static File* OpenStdio(int fd);
 
-  static bool Exists(const char* path);
-  static bool Create(const char* path);
-  static bool CreateLink(const char* path, const char* target);
-  static bool Delete(const char* path);
-  static bool DeleteLink(const char* path);
-  static bool Rename(const char* old_path, const char* new_path);
-  static bool RenameLink(const char* old_path, const char* new_path);
-  static bool Copy(const char* old_path, const char* new_path);
-  static int64_t LengthFromPath(const char* path);
-  static void Stat(const char* path, int64_t* data);
-  static time_t LastModified(const char* path);
-  static bool SetLastModified(const char* path, int64_t millis);
-  static time_t LastAccessed(const char* path);
-  static bool SetLastAccessed(const char* path, int64_t millis);
+  static bool Exists(Namespace* namespc, const char* path);
+  static bool Create(Namespace* namespc, const char* path);
+  static bool CreateLink(Namespace* namespc,
+                         const char* path,
+                         const char* target);
+  static bool Delete(Namespace* namespc, const char* path);
+  static bool DeleteLink(Namespace* namespc, const char* path);
+  static bool Rename(Namespace* namespc,
+                     const char* old_path,
+                     const char* new_path);
+  static bool RenameLink(Namespace* namespc,
+                         const char* old_path,
+                         const char* new_path);
+  static bool Copy(Namespace* namespc,
+                   const char* old_path,
+                   const char* new_path);
+  static int64_t LengthFromPath(Namespace* namespc, const char* path);
+  static void Stat(Namespace* namespc, const char* path, int64_t* data);
+  static time_t LastModified(Namespace* namespc, const char* path);
+  static bool SetLastModified(Namespace* namespc,
+                              const char* path,
+                              int64_t millis);
+  static time_t LastAccessed(Namespace* namespc, const char* path);
+  static bool SetLastAccessed(Namespace* namespc,
+                              const char* path,
+                              int64_t millis);
   static bool IsAbsolutePath(const char* path);
   static const char* PathSeparator();
   static const char* StringEscapedPathSeparator();
-  static Type GetType(const char* path, bool follow_links);
-  static Identical AreIdentical(const char* file_1, const char* file_2);
+  static Type GetType(Namespace* namespc, const char* path, bool follow_links);
+  static Identical AreIdentical(Namespace* namespc,
+                                const char* file_1,
+                                const char* file_2);
   static StdioHandleType GetStdioHandleType(int fd);
 
-  // LinkTarget and GetCanonicalPath may call Dart_ScopeAllocate.
-  static const char* LinkTarget(const char* pathname);
-  static const char* GetCanonicalPath(const char* path);
+  // LinkTarget, GetCanonicalPath, and ReadLink may call Dart_ScopeAllocate.
+  static const char* LinkTarget(Namespace* namespc, const char* pathname);
+  static const char* GetCanonicalPath(Namespace* namespc, const char* path);
+  // Link LinkTarget, but pathname must be absolute.
+  static const char* ReadLink(const char* pathname);
 
   static FileOpenMode DartModeToFileMode(DartFileOpenMode mode);
 

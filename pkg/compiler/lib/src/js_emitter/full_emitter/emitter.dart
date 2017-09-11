@@ -40,7 +40,7 @@ import '../../universe/selector.dart' show Selector;
 import '../../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../../util/uri_extras.dart' show relativize;
 import '../../world.dart' show ClosedWorld;
-import '../constant_ordering.dart' show deepCompareConstants;
+import '../constant_ordering.dart' show ConstantOrdering;
 import '../headers.dart';
 import '../js_emitter.dart' hide Emitter, EmitterFactory;
 import '../js_emitter.dart' as js_emitter show EmitterBase, EmitterFactory;
@@ -97,6 +97,7 @@ class Emitter extends js_emitter.EmitterBase {
   final NsmEmitter nsmEmitter;
   final InterceptorEmitter interceptorEmitter;
   final Sorter _sorter;
+  final ConstantOrdering _constantOrdering;
 
   // TODO(johnniwinther): Wrap these fields in a caching strategy.
   final List<jsAst.Statement> cachedEmittedConstantsAst = <jsAst.Statement>[];
@@ -169,10 +170,12 @@ class Emitter extends js_emitter.EmitterBase {
   final bool generateSourceMap;
 
   Emitter(this.compiler, this.namer, this._closedWorld, this.generateSourceMap,
-      this.task, this._sorter)
+      this.task, Sorter sorter)
       : classEmitter = new ClassEmitter(_closedWorld),
         interceptorEmitter = new InterceptorEmitter(_closedWorld),
-        nsmEmitter = new NsmEmitter(_closedWorld) {
+        nsmEmitter = new NsmEmitter(_closedWorld),
+        _sorter = sorter,
+        _constantOrdering = new ConstantOrdering(sorter) {
     constantEmitter = new ConstantEmitter(
         compiler.options,
         _closedWorld.commonElements,
@@ -236,7 +239,7 @@ class Emitter extends js_emitter.EmitterBase {
     if (r != 0) return r;
 
     // Resolve collisions in the long name by using a structural order.
-    return deepCompareConstants(a, b);
+    return _constantOrdering.compare(a, b);
   }
 
   @override
@@ -1074,8 +1077,8 @@ class Emitter extends js_emitter.EmitterBase {
       initializer = descriptor.toObjectInitializer();
     }
 
-    compiler.dumpInfoTask.registerElementAst(library, metadata);
-    compiler.dumpInfoTask.registerElementAst(library, initializer);
+    compiler.dumpInfoTask.registerEntityAst(library, metadata);
+    compiler.dumpInfoTask.registerEntityAst(library, initializer);
 
     List<jsAst.Expression> parts = <jsAst.Expression>[];
     parts
@@ -1534,7 +1537,8 @@ class Emitter extends js_emitter.EmitterBase {
     }
 
     CodeOutput mainOutput = new StreamCodeOutput(
-        compiler.outputProvider('', 'js', OutputType.js), codeOutputListeners);
+        compiler.outputProvider.createOutputSink('', 'js', OutputType.js),
+        codeOutputListeners);
     outputBuffers[mainOutputUnit] = mainOutput;
 
     mainOutput.addBuffer(jsAst.createCodeBuffer(
@@ -1874,7 +1878,8 @@ class Emitter extends js_emitter.EmitterBase {
       String partPrefix = compiler.deferredLoadTask
           .deferredPartFileName(outputUnit.name, addExtension: false);
       CodeOutput output = new StreamCodeOutput(
-          compiler.outputProvider(partPrefix, 'part.js', OutputType.jsPart),
+          compiler.outputProvider
+              .createOutputSink(partPrefix, 'part.js', OutputType.jsPart),
           outputListeners);
 
       outputBuffers[outputUnit] = output;
@@ -1943,7 +1948,7 @@ class Emitter extends js_emitter.EmitterBase {
     mapping["_comment"] = "This mapping shows which compiled `.js` files are "
         "needed for a given deferred library import.";
     mapping.addAll(compiler.deferredLoadTask.computeDeferredMap());
-    compiler.outputProvider(
+    compiler.outputProvider.createOutputSink(
         compiler.options.deferredMapUri.path, '', OutputType.info)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
       ..close();

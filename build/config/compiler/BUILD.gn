@@ -323,6 +323,20 @@ config("compiler") {
     }
   }
 
+  # We want to force a recompile and relink of the world whenever our toolchain
+  # changes since artifacts from an older version of the toolchain may or may
+  # not be compatible with newer ones. To achieve this, we insert a synthetic
+  # define into the compile line.
+  if (is_clang && (is_linux || is_mac)) {
+    if (is_linux) {
+      toolchain_stamp_file = "//buildtools/linux64/toolchain.stamp"
+    } else {
+      toolchain_stamp_file = "//buildtools/mac/toolchain.stamp"
+    }
+    toolchain_version = read_file(toolchain_stamp_file, "trim string")
+    defines = [ "TOOLCHAIN_VERSION=$toolchain_version" ]
+  }
+
   # Assign any flags set for the C compiler to asmflags so that they are sent
   # to the assembler. The Windows assembler takes different types of flags
   # so only do so for posix platforms.

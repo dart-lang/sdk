@@ -115,6 +115,8 @@ class StringCanonicalizer {
   }
 
   clear() {
+    _size = INITIAL_SIZE;
     _nodes = new List<Node>(_size);
+    _count = 0;
   }
 }

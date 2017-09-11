@@ -205,6 +205,7 @@ io/http_response_deadline_test: Skip
 io/http_server_close_response_after_error_test: Skip
 io/https_unauthorized_test: Skip
 io/named_pipe_script_test: Skip
+io/platform_resolved_executable_test: Skip
 io/print_sync_test: Skip
 io/process_check_arguments_test: Skip
 io/process_detached_test: Skip
@@ -239,6 +240,9 @@ io/regress_7191_test: Pass, Timeout # Issue 28374: timeout.
 
 [ $runtime == vm && $system == macos && $mode == release ]
 io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
+
+[ $system == macos && $builder_tag == swarming ]
+io/*: Skip # Issue 30618
 
 [ $runtime == vm && $system == linux && $mode == release && $arch == ia32 && $builder_tag == asan ]
 io/socket_close_test: Pass, Timeout # Issue 28502: timeout.
@@ -292,7 +296,6 @@ io/secure_unauthorized_test: Pass, RuntimeError # Issue 28719
 
 [ $system == android ]
 io/process_exit_test: RuntimeError # Issue 29578
-io/platform_resolved_executable_test: RuntimeError # Issue 26376
 io/process_path_test: RuntimeError # Issue 26376
 io/file_test: RuntimeError # Issue 26376
 io/process_path_environment_test: RuntimeError # Issue 26376
@@ -383,6 +386,7 @@ package/scenarios/invalid/same_package_twice_test: CompileTimeError
 
 [ $compiler == dartkp ]
 causal_async_stack_test: Fail
+dwarf_stack_trace_test: RuntimeError
 
 [ $runtime == flutter ]
 io/raw_datagram_socket_test: Crash # Flutter Issue 9115

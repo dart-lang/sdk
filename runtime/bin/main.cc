@@ -21,6 +21,7 @@
 #include "bin/isolate_data.h"
 #include "bin/loader.h"
 #include "bin/log.h"
+#include "bin/main_options.h"
 #include "bin/platform.h"
 #include "bin/process.h"
 #include "bin/snapshot_utils.h"
@@ -62,7 +63,7 @@ const uint8_t* core_isolate_snapshot_instructions =
 #endif
 
 /**
- * Global state used to control and store generation of application snapshots
+ * Global state used to control and store generation of application snapshots.
  * An application snapshot can be generated and run using the following
  * command
  *   dart --snapshot-kind=app-jit --snapshot=<app_snapshot_filename>
@@ -71,668 +72,15 @@ const uint8_t* core_isolate_snapshot_instructions =
  *   dart <app_snapshot_filename> [<script_options>]
  */
 static bool vm_run_app_snapshot = false;
-static const char* snapshot_filename = NULL;
-enum SnapshotKind {
-  kNone,
-  kScript,
-  kAppAOT,
-  kAppJIT,
-};
-static SnapshotKind gen_snapshot_kind = kNone;
-static const char* snapshot_deps_filename = NULL;
 #if !defined(DART_PRECOMPILED_RUNTIME)
 DFE dfe;
 #endif
-
-// Value of the --save-compilation-trace flag.
-// (This pointer points into an argv buffer and does not need to be
-// free'd.)
-static const char* save_compilation_trace_filename = NULL;
-
-// Value of the --load-compilation-trace flag.
-// (This pointer points into an argv buffer and does not need to be
-// free'd.)
-static const char* load_compilation_trace_filename = NULL;
-
-// Value of the --save-feedback flag.
-// (This pointer points into an argv buffer and does not need to be
-// free'd.)
-static const char* save_feedback_filename = NULL;
-
-// Value of the --load-feedback flag.
-// (This pointer points into an argv buffer and does not need to be
-// free'd.)
-static const char* load_feedback_filename = NULL;
-
-// Value of the --package-root flag.
-// (This pointer points into an argv buffer and does not need to be
-// free'd.)
-static const char* commandline_package_root = NULL;
-
-// Value of the --packages flag.
-// (This pointer points into an argv buffer and does not need to be
-// free'd.)
-static const char* commandline_packages_file = NULL;
-
-// Global flag that is used to indicate that we want to compile all the
-// dart functions and not run anything.
-static bool compile_all = false;
-static bool parse_all = false;
-
-// Global flag that is used to indicate that we want to use blobs/mmap instead
-// of assembly/shared libraries for precompilation.
-static bool use_blobs = false;
-
-// Global flag that is used to indicate that we want to trace resolution of
-// URIs and the loading of libraries, parts and scripts.
-static bool trace_loading = false;
 
 static char* app_script_uri = NULL;
 static const uint8_t* app_isolate_snapshot_data = NULL;
 static const uint8_t* app_isolate_snapshot_instructions = NULL;
 
 static Dart_Isolate main_isolate = NULL;
-
-static const char* DEFAULT_VM_SERVICE_SERVER_IP = "localhost";
-static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
-// VM Service options.
-static const char* vm_service_server_ip = DEFAULT_VM_SERVICE_SERVER_IP;
-// The 0 port is a magic value which results in the first available port
-// being allocated.
-static int vm_service_server_port = -1;
-// True when we are running in development mode and cross origin security
-// checks are disabled.
-static bool vm_service_dev_mode = false;
-
-// The environment provided through the command line using -D options.
-static dart::HashMap* environment = NULL;
-
-static bool IsValidFlag(const char* name,
-                        const char* prefix,
-                        intptr_t prefix_length) {
-  intptr_t name_length = strlen(name);
-  return ((name_length > prefix_length) &&
-          (strncmp(name, prefix, prefix_length) == 0));
-}
-
-static bool version_option = false;
-static bool ProcessVersionOption(const char* arg,
-                                 CommandLineOptions* vm_options) {
-  if (*arg != '\0') {
-    return false;
-  }
-  version_option = true;
-  return true;
-}
-
-static bool help_option = false;
-static bool ProcessHelpOption(const char* arg, CommandLineOptions* vm_options) {
-  if (*arg != '\0') {
-    return false;
-  }
-  help_option = true;
-  return true;
-}
-
-static bool verbose_option = false;
-static bool ProcessVerboseOption(const char* arg,
-                                 CommandLineOptions* vm_options) {
-  if (*arg != '\0') {
-    return false;
-  }
-  verbose_option = true;
-  return true;
-}
-
-static bool ProcessPackageRootOption(const char* arg,
-                                     CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg == '-') {
-    return false;
-  }
-  commandline_package_root = arg;
-  return true;
-}
-
-static bool ProcessPackagesOption(const char* arg,
-                                  CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg == '-') {
-    return false;
-  }
-  commandline_packages_file = arg;
-  return true;
-}
-
-static bool ProcessSaveCompilationTraceOption(const char* arg,
-                                              CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg == '-') {
-    return false;
-  }
-  save_compilation_trace_filename = arg;
-  return true;
-}
-
-static bool ProcessLoadCompilationTraceOption(const char* arg,
-                                              CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg == '-') {
-    return false;
-  }
-  load_compilation_trace_filename = arg;
-  return true;
-}
-
-static bool ProcessSaveFeedbackOption(const char* arg,
-                                      CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg == '-') {
-    return false;
-  }
-  save_feedback_filename = arg;
-  return true;
-}
-
-static bool ProcessLoadFeedbackOption(const char* arg,
-                                      CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg == '-') {
-    return false;
-  }
-  load_feedback_filename = arg;
-  return true;
-}
-
-static void* GetHashmapKeyFromString(char* key) {
-  return reinterpret_cast<void*>(key);
-}
-
-static bool ExtractPortAndAddress(const char* option_value,
-                                  int* out_port,
-                                  const char** out_ip,
-                                  int default_port,
-                                  const char* default_ip) {
-  // [option_value] has to be one of the following formats:
-  //   - ""
-  //   - ":8181"
-  //   - "=8181"
-  //   - ":8181/192.168.0.1"
-  //   - "=8181/192.168.0.1"
-  //   - "=8181/::1"
-
-  if (*option_value == '\0') {
-    *out_ip = default_ip;
-    *out_port = default_port;
-    return true;
-  }
-
-  if ((*option_value != '=') && (*option_value != ':')) {
-    return false;
-  }
-
-  int port = atoi(option_value + 1);
-  const char* slash = strstr(option_value, "/");
-  if (slash == NULL) {
-    *out_ip = default_ip;
-    *out_port = port;
-    return true;
-  }
-
-  *out_ip = slash + 1;
-  *out_port = port;
-  return true;
-}
-
-static bool ProcessEnvironmentOption(const char* arg,
-                                     CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg == '\0') {
-    // Ignore empty -D option.
-    Log::PrintErr("No arguments given to -D option, ignoring it\n");
-    return true;
-  }
-  // Split the name=value part of the -Dname=value argument.
-  const char* equals_pos = strchr(arg, '=');
-  if (equals_pos == NULL) {
-    // No equal sign (name without value) currently not supported.
-    Log::PrintErr("No value given in -D%s option, ignoring it\n", arg);
-    return true;
-  }
-
-  char* name;
-  char* value = NULL;
-  int name_len = equals_pos - arg;
-  if (name_len == 0) {
-    Log::PrintErr("No name given in -D%s option, ignoring it\n", arg);
-    return true;
-  }
-  // Split name=value into name and value.
-  name = reinterpret_cast<char*>(malloc(name_len + 1));
-  strncpy(name, arg, name_len);
-  name[name_len] = '\0';
-  value = strdup(equals_pos + 1);
-  if (environment == NULL) {
-    environment = new HashMap(&HashMap::SameStringValue, 4);
-  }
-  HashMap::Entry* entry = environment->Lookup(GetHashmapKeyFromString(name),
-                                              HashMap::StringHash(name), true);
-  ASSERT(entry != NULL);  // Lookup adds an entry if key not found.
-  if (entry->value != NULL) {
-    free(name);
-    free(entry->value);
-  }
-  entry->value = value;
-  return true;
-}
-
-static bool ProcessCompileAllOption(const char* arg,
-                                    CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg != '\0') {
-    return false;
-  }
-  compile_all = true;
-  return true;
-}
-
-static bool ProcessParseAllOption(const char* arg,
-                                  CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg != '\0') {
-    return false;
-  }
-  parse_all = true;
-  return true;
-}
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-static bool ProcessFrontendOption(const char* filename,
-                                  CommandLineOptions* vm_options) {
-  ASSERT(filename != NULL);
-  if (filename[0] == '\0') {
-    return false;
-  }
-  dfe.set_frontend_filename(filename);
-  return true;
-}
-
-static bool ProcessKernelBinariesOption(const char* dirname,
-                                        CommandLineOptions* vm_options) {
-  ASSERT(dirname != NULL);
-  if (dirname[0] == '\0') {
-    return false;
-  }
-  dfe.SetKernelBinaries(dirname);
-  return true;
-}
-#endif
-
-static bool ProcessUseBlobsOption(const char* arg,
-                                  CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg != '\0') {
-    return false;
-  }
-  use_blobs = true;
-  return true;
-}
-
-static bool ProcessSnapshotFilenameOption(const char* filename,
-                                          CommandLineOptions* vm_options) {
-  snapshot_filename = filename;
-  if (gen_snapshot_kind == kNone) {
-    gen_snapshot_kind = kScript;  // Default behavior.
-  }
-  return true;
-}
-
-static bool ProcessSnapshotKindOption(const char* kind,
-                                      CommandLineOptions* vm_options) {
-  if (strcmp(kind, "script") == 0) {
-    gen_snapshot_kind = kScript;
-    return true;
-  } else if (strcmp(kind, "app-aot") == 0) {
-    gen_snapshot_kind = kAppAOT;
-    return true;
-  } else if (strcmp(kind, "app-jit") == 0) {
-    gen_snapshot_kind = kAppJIT;
-    return true;
-  }
-  Log::PrintErr(
-      "Unrecognized snapshot kind: '%s'\nValid kinds are: "
-      "script, app-aot, app-jit\n",
-      kind);
-  return false;
-}
-
-static bool ProcessSnapshotDepsFilenameOption(const char* filename,
-                                              CommandLineOptions* vm_options) {
-  snapshot_deps_filename = filename;
-  return true;
-}
-
-static bool ProcessEnableVmServiceOption(const char* option_value,
-                                         CommandLineOptions* vm_options) {
-  ASSERT(option_value != NULL);
-
-  if (!ExtractPortAndAddress(
-          option_value, &vm_service_server_port, &vm_service_server_ip,
-          DEFAULT_VM_SERVICE_SERVER_PORT, DEFAULT_VM_SERVICE_SERVER_IP)) {
-    Log::PrintErr(
-        "unrecognized --enable-vm-service option syntax. "
-        "Use --enable-vm-service[=<port number>[/<bind address>]]\n");
-    return false;
-  }
-
-  return true;
-}
-
-static bool ProcessDisableServiceOriginCheckOption(
-    const char* option_value,
-    CommandLineOptions* vm_options) {
-  ASSERT(option_value != NULL);
-  Log::PrintErr(
-      "WARNING: You are running with the service protocol in an "
-      "insecure mode.\n");
-  vm_service_dev_mode = true;
-  return true;
-}
-
-static bool ProcessObserveOption(const char* option_value,
-                                 CommandLineOptions* vm_options) {
-  ASSERT(option_value != NULL);
-
-  if (!ExtractPortAndAddress(
-          option_value, &vm_service_server_port, &vm_service_server_ip,
-          DEFAULT_VM_SERVICE_SERVER_PORT, DEFAULT_VM_SERVICE_SERVER_IP)) {
-    Log::PrintErr(
-        "unrecognized --observe option syntax. "
-        "Use --observe[=<port number>[/<bind address>]]\n");
-    return false;
-  }
-
-  // These options should also be documented in the help message.
-  vm_options->AddArgument("--pause-isolates-on-exit");
-  vm_options->AddArgument("--pause-isolates-on-unhandled-exceptions");
-  vm_options->AddArgument("--profiler");
-  vm_options->AddArgument("--warn-on-pause-with-no-debugger");
-  return true;
-}
-
-static bool ProcessTraceLoadingOption(const char* arg,
-                                      CommandLineOptions* vm_options) {
-  if (*arg != '\0') {
-    return false;
-  }
-  trace_loading = true;
-  return true;
-}
-
-static bool ProcessHotReloadTestModeOption(const char* arg,
-                                           CommandLineOptions* vm_options) {
-  if (*arg != '\0') {
-    return false;
-  }
-
-  // Identity reload.
-  vm_options->AddArgument("--identity_reload");
-  // Start reloading quickly.
-  vm_options->AddArgument("--reload_every=4");
-  // Reload from optimized and unoptimized code.
-  vm_options->AddArgument("--reload_every_optimized=false");
-  // Reload less frequently as time goes on.
-  vm_options->AddArgument("--reload_every_back_off");
-  // Ensure that every isolate has reloaded once before exiting.
-  vm_options->AddArgument("--check_reloaded");
-
-  return true;
-}
-
-static bool ProcessHotReloadRollbackTestModeOption(
-    const char* arg,
-    CommandLineOptions* vm_options) {
-  // Identity reload.
-  vm_options->AddArgument("--identity_reload");
-  // Start reloading quickly.
-  vm_options->AddArgument("--reload_every=4");
-  // Reload from optimized and unoptimized code.
-  vm_options->AddArgument("--reload_every_optimized=false");
-  // Reload less frequently as time goes on.
-  vm_options->AddArgument("--reload_every_back_off");
-  // Ensure that every isolate has reloaded once before exiting.
-  vm_options->AddArgument("--check_reloaded");
-  // Force all reloads to fail and execute the rollback code.
-  vm_options->AddArgument("--reload_force_rollback");
-
-  return true;
-}
-
-extern bool short_socket_read;
-
-extern bool short_socket_write;
-
-static bool ProcessShortSocketReadOption(const char* arg,
-                                         CommandLineOptions* vm_options) {
-  short_socket_read = true;
-  return true;
-}
-
-static bool ProcessShortSocketWriteOption(const char* arg,
-                                          CommandLineOptions* vm_options) {
-  short_socket_write = true;
-  return true;
-}
-
-extern const char* commandline_root_certs_file;
-extern const char* commandline_root_certs_cache;
-
-static bool ProcessRootCertsFileOption(const char* arg,
-                                       CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg == '-') {
-    return false;
-  }
-  if (commandline_root_certs_cache != NULL) {
-    Log::PrintErr(
-        "Only one of --root-certs-file and --root-certs-cache "
-        "may be specified");
-    return false;
-  }
-  commandline_root_certs_file = arg;
-  return true;
-}
-
-static bool ProcessRootCertsCacheOption(const char* arg,
-                                        CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg == '-') {
-    return false;
-  }
-  if (commandline_root_certs_file != NULL) {
-    Log::PrintErr(
-        "Only one of --root-certs-file and --root-certs-cache "
-        "may be specified");
-    return false;
-  }
-  commandline_root_certs_cache = arg;
-  return true;
-}
-
-static struct {
-  const char* option_name;
-  bool (*process)(const char* option, CommandLineOptions* vm_options);
-} main_options[] = {
-    // Standard options shared with dart2js.
-    {"-D", ProcessEnvironmentOption},
-    {"-h", ProcessHelpOption},
-    {"--help", ProcessHelpOption},
-    {"--packages=", ProcessPackagesOption},
-    {"--package-root=", ProcessPackageRootOption},
-    {"-v", ProcessVerboseOption},
-    {"--verbose", ProcessVerboseOption},
-    {"--version", ProcessVersionOption},
-
-    // VM specific options to the standalone dart program.
-    {"--compile_all", ProcessCompileAllOption},
-    {"--parse_all", ProcessParseAllOption},
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    {"--dfe=", ProcessFrontendOption},
-    {"--kernel-binaries=", ProcessKernelBinariesOption},
-#endif
-    {"--enable-vm-service", ProcessEnableVmServiceOption},
-    {"--disable-service-origin-check", ProcessDisableServiceOriginCheckOption},
-    {"--observe", ProcessObserveOption},
-    {"--snapshot=", ProcessSnapshotFilenameOption},
-    {"--snapshot-kind=", ProcessSnapshotKindOption},
-    {"--snapshot-depfile=", ProcessSnapshotDepsFilenameOption},
-    {"--use-blobs", ProcessUseBlobsOption},
-    {"--save-compilation-trace=", ProcessSaveCompilationTraceOption},
-    {"--load-compilation-trace=", ProcessLoadCompilationTraceOption},
-    {"--save-feedback=", ProcessSaveFeedbackOption},
-    {"--load-feedback=", ProcessLoadFeedbackOption},
-    {"--trace-loading", ProcessTraceLoadingOption},
-    {"--hot-reload-test-mode", ProcessHotReloadTestModeOption},
-    {"--hot-reload-rollback-test-mode", ProcessHotReloadRollbackTestModeOption},
-    {"--short_socket_read", ProcessShortSocketReadOption},
-    {"--short_socket_write", ProcessShortSocketWriteOption},
-    {"--root-certs-file=", ProcessRootCertsFileOption},
-    {"--root-certs-cache=", ProcessRootCertsCacheOption},
-    {NULL, NULL}};
-
-static bool ProcessMainOptions(const char* option,
-                               CommandLineOptions* vm_options) {
-  int i = 0;
-  const char* name = main_options[0].option_name;
-  int option_length = strlen(option);
-  while (name != NULL) {
-    int length = strlen(name);
-    if ((option_length >= length) && (strncmp(option, name, length) == 0)) {
-      if (main_options[i].process(option + length, vm_options)) {
-        return true;
-      }
-    }
-    i += 1;
-    name = main_options[i].option_name;
-  }
-  return false;
-}
-
-// Parse out the command line arguments. Returns -1 if the arguments
-// are incorrect, 0 otherwise.
-static int ParseArguments(int argc,
-                          char** argv,
-                          CommandLineOptions* vm_options,
-                          char** script_name,
-                          CommandLineOptions* dart_options,
-                          bool* print_flags_seen,
-                          bool* verbose_debug_seen) {
-  const char* kPrefix = "--";
-  const intptr_t kPrefixLen = strlen(kPrefix);
-
-  // Store the executable name.
-  Platform::SetExecutableName(argv[0]);
-
-  // Start the rest after the executable name.
-  int i = 1;
-
-  // Parse out the vm options.
-  while (i < argc) {
-    if (ProcessMainOptions(argv[i], vm_options)) {
-      i++;
-    } else {
-      // Check if this flag is a potentially valid VM flag.
-      const char* kChecked = "-c";
-      const char* kPackageRoot = "-p";
-      if (strncmp(argv[i], kPackageRoot, strlen(kPackageRoot)) == 0) {
-        if (!ProcessPackageRootOption(argv[i] + strlen(kPackageRoot),
-                                      vm_options)) {
-          i++;
-          if ((argv[i] == NULL) ||
-              !ProcessPackageRootOption(argv[i], vm_options)) {
-            Log::PrintErr("Invalid option specification : '%s'\n", argv[i - 1]);
-            i++;
-            break;
-          }
-        }
-        i++;
-        continue;  // '-p' is not a VM flag so don't add to vm options.
-      } else if (strncmp(argv[i], kChecked, strlen(kChecked)) == 0) {
-        vm_options->AddArgument("--checked");
-        i++;
-        continue;  // '-c' is not a VM flag so don't add to vm options.
-      } else if (!IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
-        break;
-      }
-      // The following two flags are processed by both the embedder and
-      // the VM.
-      const char* kPrintFlags1 = "--print-flags";
-      const char* kPrintFlags2 = "--print_flags";
-      const char* kVerboseDebug1 = "--verbose_debug";
-      const char* kVerboseDebug2 = "--verbose-debug";
-      if ((strncmp(argv[i], kPrintFlags1, strlen(kPrintFlags1)) == 0) ||
-          (strncmp(argv[i], kPrintFlags2, strlen(kPrintFlags2)) == 0)) {
-        *print_flags_seen = true;
-      } else if ((strncmp(argv[i], kVerboseDebug1, strlen(kVerboseDebug1)) ==
-                  0) ||
-                 (strncmp(argv[i], kVerboseDebug2, strlen(kVerboseDebug2)) ==
-                  0)) {
-        *verbose_debug_seen = true;
-      }
-      vm_options->AddArgument(argv[i]);
-      i++;
-    }
-  }
-
-  // The arguments to the VM are at positions 1 through i-1 in argv.
-  Platform::SetExecutableArguments(i, argv);
-
-  // Get the script name.
-  if (i < argc) {
-    *script_name = argv[i];
-    i++;
-  } else {
-    return -1;
-  }
-
-  // Parse out options to be passed to dart main.
-  while (i < argc) {
-    dart_options->AddArgument(argv[i]);
-    i++;
-  }
-
-  // Verify consistency of arguments.
-  if ((commandline_package_root != NULL) &&
-      (commandline_packages_file != NULL)) {
-    Log::PrintErr(
-        "Specifying both a packages directory and a packages "
-        "file is invalid.\n");
-    return -1;
-  }
-  if ((commandline_package_root != NULL) &&
-      (strlen(commandline_package_root) == 0)) {
-    Log::PrintErr("Empty package root specified.\n");
-    return -1;
-  }
-  if ((commandline_packages_file != NULL) &&
-      (strlen(commandline_packages_file) == 0)) {
-    Log::PrintErr("Empty package file name specified.\n");
-    return -1;
-  }
-  if (((gen_snapshot_kind != kNone) || (snapshot_deps_filename != NULL)) &&
-      (snapshot_filename == NULL)) {
-    Log::PrintErr("Generating a snapshot requires a filename (--snapshot).\n");
-    return -1;
-  }
-  if ((gen_snapshot_kind != kNone) && vm_run_app_snapshot) {
-    Log::PrintErr(
-        "Specifying an option to generate a snapshot and"
-        " run using a snapshot is invalid.\n");
-    return -1;
-  }
-
-  return 0;
-}
 
 static Dart_Handle CreateRuntimeOptions(CommandLineOptions* options) {
   int options_count = options->count();
@@ -753,6 +101,10 @@ static Dart_Handle CreateRuntimeOptions(CommandLineOptions* options) {
   return dart_arguments;
 }
 
+static void* GetHashmapKeyFromString(char* key) {
+  return reinterpret_cast<void*>(key);
+}
+
 static Dart_Handle EnvironmentCallback(Dart_Handle name) {
   uint8_t* utf8_array;
   intptr_t utf8_len;
@@ -766,10 +118,10 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
     memmove(name_chars, utf8_array, utf8_len);
     name_chars[utf8_len] = '\0';
     const char* value = NULL;
-    if (environment != NULL) {
-      HashMap::Entry* entry =
-          environment->Lookup(GetHashmapKeyFromString(name_chars),
-                              HashMap::StringHash(name_chars), false);
+    if (Options::environment() != NULL) {
+      HashMap::Entry* entry = Options::environment()->Lookup(
+          GetHashmapKeyFromString(name_chars), HashMap::StringHash(name_chars),
+          false);
       if (entry != NULL) {
         value = reinterpret_cast<char*>(entry->value);
       }
@@ -816,7 +168,7 @@ static void SnapshotOnExitHook(int64_t exit_code) {
     Platform::Exit(kErrorExitCode);
   }
   if (exit_code == 0) {
-    Snapshot::GenerateAppJIT(snapshot_filename);
+    Snapshot::GenerateAppJIT(Options::snapshot_filename());
   }
 }
 
@@ -841,7 +193,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   // Prepare builtin and other core libraries for use to resolve URIs.
   // Set up various closures, e.g: printing, timers etc.
   // Set up 'package root' for URI resolution.
-  result = DartUtils::PrepareForScriptLoading(false, trace_loading);
+  result = DartUtils::PrepareForScriptLoading(false, Options::trace_loading());
   CHECK_RESULT(result);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -887,7 +239,8 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   CHECK_RESULT(result);
 
   if (isolate_run_app_snapshot) {
-    result = DartUtils::SetupIOLibrary(script_uri);
+    result = DartUtils::SetupIOLibrary(Options::namespc(), script_uri,
+                                       Options::exit_disabled());
     CHECK_RESULT(result);
     Loader::InitForSnapshot(script_uri);
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -923,7 +276,8 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
                        Dart_GetMainPortId(), Dart_Timeline_Event_Async_End, 0,
                        NULL, NULL);
 
-    result = DartUtils::SetupIOLibrary(script_uri);
+    result = DartUtils::SetupIOLibrary(Options::namespc(), script_uri,
+                                       Options::exit_disabled());
     CHECK_RESULT(result);
   }
 
@@ -958,7 +312,7 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* main,
   }
   const char* script_uri = dfe.frontend_filename();
   if (packages_config == NULL) {
-    packages_config = commandline_packages_file;
+    packages_config = Options::packages_file();
   }
 
   // Kernel isolate uses an app snapshot or the core libraries snapshot.
@@ -1062,13 +416,14 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   // Load embedder specific bits and return.
-  if (!VmService::Setup(vm_service_server_ip, vm_service_server_port,
-                        skip_library_load, vm_service_dev_mode,
-                        trace_loading)) {
+  if (!VmService::Setup(Options::vm_service_server_ip(),
+                        Options::vm_service_server_port(), skip_library_load,
+                        Options::vm_service_dev_mode(),
+                        Options::trace_loading())) {
     *error = strdup(VmService::GetErrorMessage());
     return NULL;
   }
-  if (compile_all) {
+  if (Options::compile_all()) {
     result = Dart_CompileAll();
     CHECK_RESULT(result);
   }
@@ -1095,7 +450,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
 
   IsolateData* isolate_data =
       new IsolateData(script_uri, package_root, packages_config, app_snapshot);
-  if (is_main_isolate && (snapshot_deps_filename != NULL)) {
+  if (is_main_isolate && (Options::snapshot_deps_filename() != NULL)) {
     isolate_data->set_dependencies(new MallocGrowableArray<char*>());
   }
 
@@ -1206,104 +561,6 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                      &exit_code);
 }
 
-static void PrintVersion() {
-  Log::PrintErr("Dart VM version: %s\n", Dart_VersionString());
-}
-
-// clang-format off
-static void PrintUsage() {
-  Log::PrintErr(
-      "Usage: dart [<vm-flags>] <dart-script-file> [<dart-options>]\n"
-      "\n"
-      "Executes the Dart script passed as <dart-script-file>.\n"
-      "\n");
-  if (!verbose_option) {
-    Log::PrintErr(
-"Common options:\n"
-"--checked or -c\n"
-"  Insert runtime type checks and enable assertions (checked mode).\n"
-"--help or -h\n"
-"  Display this message (add -v or --verbose for information about\n"
-"  all VM options).\n"
-"--package-root=<path> or -p<path>\n"
-"  Where to find packages, that is, \"package:...\" imports.\n"
-"--packages=<path>\n"
-"  Where to find a package spec file.\n"
-"--observe[=<port>[/<bind-address>]]\n"
-"  The observe flag is a convenience flag used to run a program with a\n"
-"  set of options which are often useful for debugging under Observatory.\n"
-"  These options are currently:\n"
-"      --enable-vm-service[=<port>[/<bind-address>]]\n"
-"      --pause-isolates-on-exit\n"
-"      --pause-isolates-on-unhandled-exceptions\n"
-"      --warn-on-pause-with-no-debugger\n"
-"  This set is subject to change.\n"
-"  Please see these options (--help --verbose) for further documentation.\n"
-"--snapshot-kind=<snapshot_kind>\n"
-"--snapshot=<file_name>\n"
-"  These snapshot options are used to generate a snapshot of the loaded\n"
-"  Dart script:\n"
-"    <snapshot-kind> controls the kind of snapshot, it could be\n"
-"                    script(default), app-aot or app-jit\n"
-"    <file_name> specifies the file into which the snapshot is written\n"
-"--version\n"
-"  Print the VM version.\n");
-  } else {
-    Log::PrintErr(
-"Supported options:\n"
-"--checked or -c\n"
-"  Insert runtime type checks and enable assertions (checked mode).\n"
-"--help or -h\n"
-"  Display this message (add -v or --verbose for information about\n"
-"  all VM options).\n"
-"--package-root=<path> or -p<path>\n"
-"  Where to find packages, that is, \"package:...\" imports.\n"
-"--packages=<path>\n"
-"  Where to find a package spec file.\n"
-"--observe[=<port>[/<bind-address>]]\n"
-"  The observe flag is a convenience flag used to run a program with a\n"
-"  set of options which are often useful for debugging under Observatory.\n"
-"  These options are currently:\n"
-"      --enable-vm-service[=<port>[/<bind-address>]]\n"
-"      --pause-isolates-on-exit\n"
-"      --pause-isolates-on-unhandled-exceptions\n"
-"      --warn-on-pause-with-no-debugger\n"
-"  This set is subject to change.\n"
-"  Please see these options for further documentation.\n"
-"--snapshot-kind=<snapshot_kind>\n"
-"--snapshot=<file_name>\n"
-"  These snapshot options are used to generate a snapshot of the loaded\n"
-"  Dart script:\n"
-"    <snapshot-kind> controls the kind of snapshot, it could be\n"
-"                    script(default), app-aot or app-jit\n"
-"    <file_name> specifies the file into which the snapshot is written\n"
-"--version\n"
-"  Print the VM version.\n"
-"\n"
-"--trace-loading\n"
-"  enables tracing of library and script loading\n"
-"\n"
-"--enable-vm-service[=<port>[/<bind-address>]]\n"
-"  enables the VM service and listens on specified port for connections\n"
-"  (default port number is 8181, default bind address is localhost).\n"
-#if !defined(HOST_OS_MACOS)
-"\n"
-"--root-certs-file=<path>\n"
-"  The path to a file containing the trusted root certificates to use for\n"
-"  secure socket connections.\n"
-"--root-certs-cache=<path>\n"
-"  The path to a cache directory containing the trusted root certificates to\n"
-"  use for secure socket connections.\n"
-#endif  // !defined(HOST_OS_MACOS)
-"\n"
-"The following options are only used for VM development and may\n"
-"be changed in any future version:\n");
-    const char* print_flags = "--print_flags";
-    Dart_SetVMFlags(1, &print_flags);
-  }
-}
-// clang-format on
-
 char* BuildIsolateName(const char* script_name, const char* func_name) {
   // Skip past any slashes in the script name.
   const char* last_slash = strrchr(script_name, '/');
@@ -1358,7 +615,7 @@ static bool FileModifiedCallback(const char* url, int64_t since) {
     return true;
   }
   int64_t data[File::kStatSize];
-  File::Stat(url + 7, data);
+  File::Stat(NULL, url + 7, data);
   if (data[File::kType] == File::kDoesNotExist) {
     return true;
   }
@@ -1373,10 +630,10 @@ static void EmbedderInformationCallback(Dart_EmbedderInformation* info) {
 }
 
 static void GenerateAppAOTSnapshot() {
-  if (use_blobs) {
-    Snapshot::GenerateAppAOTAsBlobs(snapshot_filename);
+  if (Options::use_blobs()) {
+    Snapshot::GenerateAppAOTAsBlobs(Options::snapshot_filename());
   } else {
-    Snapshot::GenerateAppAOTAsAssembly(snapshot_filename);
+    Snapshot::GenerateAppAOTAsAssembly(Options::snapshot_filename());
   }
 }
 
@@ -1391,7 +648,7 @@ static void GenerateAppAOTSnapshot() {
 static void WriteFile(const char* filename,
                       const uint8_t* buffer,
                       const intptr_t size) {
-  File* file = File::Open(filename, File::kWriteTruncate);
+  File* file = File::Open(NULL, filename, File::kWriteTruncate);
   if (file == NULL) {
     ErrorExit(kErrorExitCode, "Unable to open file %s\n", filename);
   }
@@ -1402,7 +659,7 @@ static void WriteFile(const char* filename,
 }
 
 static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
-  File* file = File::Open(filename, File::kRead);
+  File* file = File::Open(NULL, filename, File::kRead);
   if (file == NULL) {
     ErrorExit(kErrorExitCode, "Unable to open file %s\n", filename);
   }
@@ -1414,6 +671,61 @@ static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
   file->Release();
 }
 
+static Dart_QualifiedFunctionName standalone_entry_points[] = {
+    // Functions.
+    {"dart:_builtin", "::", "_getPrintClosure"},
+    {"dart:_builtin", "::", "_libraryFilePath"},
+    {"dart:_builtin", "::", "_resolveInWorkingDirectory"},
+    {"dart:_builtin", "::", "_setPackageRoot"},
+    {"dart:_builtin", "::", "_setPackagesMap"},
+    {"dart:_builtin", "::", "_setWorkingDirectory"},
+    {"dart:async", "::", "_setScheduleImmediateClosure"},
+    {"dart:io", "::", "_getUriBaseClosure"},
+    {"dart:io", "::", "_getWatchSignalInternal"},
+    {"dart:io", "::", "_makeDatagram"},
+    {"dart:io", "::", "_makeUint8ListView"},
+    {"dart:io", "::", "_setupHooks"},
+    {"dart:io", "_EmbedderConfig", "_mayExit"},
+    {"dart:io", "_ExternalBuffer", "get:end"},
+    {"dart:io", "_ExternalBuffer", "get:start"},
+    {"dart:io", "_ExternalBuffer", "set:data"},
+    {"dart:io", "_ExternalBuffer", "set:end"},
+    {"dart:io", "_ExternalBuffer", "set:start"},
+    {"dart:io", "_Namespace", "_setupNamespace"},
+    {"dart:io", "_Platform", "set:_nativeScript"},
+    {"dart:io", "_ProcessStartStatus", "set:_errorCode"},
+    {"dart:io", "_ProcessStartStatus", "set:_errorMessage"},
+    {"dart:io", "_SecureFilterImpl", "get:buffers"},
+    {"dart:io", "_SecureFilterImpl", "get:ENCRYPTED_SIZE"},
+    {"dart:io", "_SecureFilterImpl", "get:SIZE"},
+    {"dart:io", "CertificateException", "CertificateException."},
+    {"dart:io", "Directory", "Directory."},
+    {"dart:io", "File", "File."},
+    {"dart:io", "FileSystemException", "FileSystemException."},
+    {"dart:io", "HandshakeException", "HandshakeException."},
+    {"dart:io", "Link", "Link."},
+    {"dart:io", "OSError", "OSError."},
+    {"dart:io", "TlsException", "TlsException."},
+    {"dart:io", "X509Certificate", "X509Certificate._"},
+    {"dart:isolate", "::", "_getIsolateScheduleImmediateClosure"},
+    {"dart:isolate", "::", "_setupHooks"},
+    {"dart:isolate", "::", "_startMainIsolate"},
+    {"dart:vmservice_io", "::", "main"},
+    // Fields
+    {"dart:_builtin", "::", "_isolateId"},
+    {"dart:_builtin", "::", "_loadPort"},
+    {"dart:_internal", "::", "_printClosure"},
+    {"dart:vmservice_io", "::", "_autoStart"},
+    {"dart:vmservice_io", "::", "_ip"},
+    {"dart:vmservice_io", "::", "_isFuchsia"},
+    {"dart:vmservice_io", "::", "_isWindows"},
+    {"dart:vmservice_io", "::", "_originCheckDisabled"},
+    {"dart:vmservice_io", "::", "_port"},
+    {"dart:vmservice_io", "::", "_signalWatch"},
+    {"dart:vmservice_io", "::", "_traceLoading"},
+    {NULL, NULL, NULL}  // Must be terminated with NULL entries.
+};
+
 bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
@@ -1421,9 +733,17 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   bool is_main_isolate = true;
   int exit_code = 0;
   char* isolate_name = BuildIsolateName(script_name, "main");
+  Dart_IsolateFlags flags;
+  Dart_IsolateFlagsInitialize(&flags);
+
+  if (Options::gen_snapshot_kind() == kAppAOT) {
+    flags.obfuscate = Options::obfuscate();
+    flags.entry_points = standalone_entry_points;
+  }
+
   Dart_Isolate isolate = CreateIsolateAndSetupHelper(
-      is_main_isolate, script_name, "main", commandline_package_root,
-      commandline_packages_file, NULL, &error, &exit_code);
+      is_main_isolate, script_name, "main", Options::package_root(),
+      Options::packages_file(), &flags, &error, &exit_code);
   if (isolate == NULL) {
     delete[] isolate_name;
     Log::PrintErr("%s\n", error);
@@ -1449,8 +769,8 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
 
   Dart_EnterScope();
 
-  if (gen_snapshot_kind == kScript) {
-    Snapshot::GenerateScript(snapshot_filename);
+  if (Options::gen_snapshot_kind() == kScript) {
+    Snapshot::GenerateScript(Options::snapshot_filename());
   } else {
     // Lookup the library of the root script.
     Dart_Handle root_lib = Dart_RootLibrary();
@@ -1460,7 +780,8 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
         reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
     result = Dart_LibraryImportLibrary(isolate_data->builtin_lib(), root_lib,
                                        Dart_Null());
-    if ((gen_snapshot_kind == kAppAOT) || (gen_snapshot_kind == kAppJIT)) {
+    if ((Options::gen_snapshot_kind() == kAppAOT) ||
+        (Options::gen_snapshot_kind() == kAppJIT)) {
       // Load the embedder's portion of the VM service's Dart code so it will
       // be included in the app snapshot.
       void* kernel_vmservice_io = NULL;
@@ -1482,12 +803,12 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       }
     }
 
-    if (compile_all) {
+    if (Options::compile_all()) {
       result = Dart_CompileAll();
       CHECK_RESULT(result);
     }
 
-    if (parse_all) {
+    if (Options::parse_all()) {
       result = Dart_ParseAll();
       CHECK_RESULT(result);
       Dart_ExitScope();
@@ -1496,51 +817,12 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       return false;
     }
 
-    if (gen_snapshot_kind == kAppAOT) {
-      Dart_QualifiedFunctionName standalone_entry_points[] = {
-          {"dart:_builtin", "::", "_getPrintClosure"},
-          {"dart:_builtin", "::", "_getUriBaseClosure"},
-          {"dart:_builtin", "::", "_libraryFilePath"},
-          {"dart:_builtin", "::", "_resolveInWorkingDirectory"},
-          {"dart:_builtin", "::", "_setPackageRoot"},
-          {"dart:_builtin", "::", "_setPackagesMap"},
-          {"dart:_builtin", "::", "_setWorkingDirectory"},
-          {"dart:async", "::", "_setScheduleImmediateClosure"},
-          {"dart:io", "::", "_getWatchSignalInternal"},
-          {"dart:io", "::", "_makeDatagram"},
-          {"dart:io", "::", "_makeUint8ListView"},
-          {"dart:io", "::", "_setupHooks"},
-          {"dart:io", "CertificateException", "CertificateException."},
-          {"dart:io", "Directory", "Directory."},
-          {"dart:io", "File", "File."},
-          {"dart:io", "FileSystemException", "FileSystemException."},
-          {"dart:io", "HandshakeException", "HandshakeException."},
-          {"dart:io", "Link", "Link."},
-          {"dart:io", "OSError", "OSError."},
-          {"dart:io", "TlsException", "TlsException."},
-          {"dart:io", "X509Certificate", "X509Certificate._"},
-          {"dart:io", "_ExternalBuffer", "get:end"},
-          {"dart:io", "_ExternalBuffer", "get:start"},
-          {"dart:io", "_ExternalBuffer", "set:data"},
-          {"dart:io", "_ExternalBuffer", "set:end"},
-          {"dart:io", "_ExternalBuffer", "set:start"},
-          {"dart:io", "_Platform", "set:_nativeScript"},
-          {"dart:io", "_ProcessStartStatus", "set:_errorCode"},
-          {"dart:io", "_ProcessStartStatus", "set:_errorMessage"},
-          {"dart:io", "_SecureFilterImpl", "get:ENCRYPTED_SIZE"},
-          {"dart:io", "_SecureFilterImpl", "get:SIZE"},
-          {"dart:io", "_SecureFilterImpl", "get:buffers"},
-          {"dart:isolate", "::", "_getIsolateScheduleImmediateClosure"},
-          {"dart:isolate", "::", "_setupHooks"},
-          {"dart:isolate", "::", "_startMainIsolate"},
-          {"dart:vmservice_io", "::", "main"},
-          {NULL, NULL, NULL}  // Must be terminated with NULL entries.
-      };
-
+    if (Options::gen_snapshot_kind() == kAppAOT) {
       uint8_t* feedback_buffer = NULL;
       intptr_t feedback_length = 0;
-      if (load_feedback_filename != NULL) {
-        File* file = File::Open(load_feedback_filename, File::kRead);
+      if (Options::load_feedback_filename() != NULL) {
+        File* file =
+            File::Open(NULL, Options::load_feedback_filename(), File::kRead);
         if (file == NULL) {
           ErrorExit(kErrorExitCode, "Failed to read JIT feedback.\n");
         }
@@ -1558,9 +840,18 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
         free(feedback_buffer);
       }
       CHECK_RESULT(result);
+
+      if (Options::obfuscate() &&
+          (Options::obfuscation_map_filename() != NULL)) {
+        uint8_t* buffer = NULL;
+        intptr_t size = 0;
+        result = Dart_GetObfuscationMap(&buffer, &size);
+        CHECK_RESULT(result);
+        WriteFile(Options::obfuscation_map_filename(), buffer, size);
+      }
     }
 
-    if (gen_snapshot_kind == kAppAOT) {
+    if (Options::gen_snapshot_kind() == kAppAOT) {
       GenerateAppAOTSnapshot();
     } else {
       if (Dart_IsNull(root_lib)) {
@@ -1568,15 +859,15 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
                   script_name);
       }
 
-      if (gen_snapshot_kind == kAppJIT) {
+      if (Options::gen_snapshot_kind() == kAppJIT) {
         result = Dart_SortClasses();
         CHECK_RESULT(result);
       }
 
-      if (load_compilation_trace_filename != NULL) {
+      if (Options::load_compilation_trace_filename() != NULL) {
         uint8_t* buffer = NULL;
         intptr_t size = 0;
-        ReadFile(load_compilation_trace_filename, &buffer, &size);
+        ReadFile(Options::load_compilation_trace_filename(), &buffer, &size);
         result = Dart_LoadCompilationTrace(buffer, size);
         CHECK_RESULT(result);
       }
@@ -1609,46 +900,47 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       // Keep handling messages until the last active receive port is closed.
       result = Dart_RunLoop();
       // Generate an app snapshot after execution if specified.
-      if (gen_snapshot_kind == kAppJIT) {
+      if (Options::gen_snapshot_kind() == kAppJIT) {
         if (!Dart_IsCompilationError(result)) {
-          Snapshot::GenerateAppJIT(snapshot_filename);
+          Snapshot::GenerateAppJIT(Options::snapshot_filename());
         }
       }
       CHECK_RESULT(result);
 
-      if (save_feedback_filename != NULL) {
+      if (Options::save_feedback_filename() != NULL) {
         uint8_t* buffer = NULL;
         intptr_t size = 0;
         result = Dart_SaveJITFeedback(&buffer, &size);
         CHECK_RESULT(result);
-        WriteFile(save_feedback_filename, buffer, size);
+        WriteFile(Options::save_feedback_filename(), buffer, size);
       }
 
-      if (save_compilation_trace_filename != NULL) {
+      if (Options::save_compilation_trace_filename() != NULL) {
         uint8_t* buffer = NULL;
         intptr_t size = 0;
         result = Dart_SaveCompilationTrace(&buffer, &size);
         CHECK_RESULT(result);
-        WriteFile(save_compilation_trace_filename, buffer, size);
+        WriteFile(Options::save_compilation_trace_filename(), buffer, size);
       }
     }
   }
 
-  if (snapshot_deps_filename != NULL) {
+  if (Options::snapshot_deps_filename() != NULL) {
     Loader::ResolveDependenciesAsFilePaths();
     IsolateData* isolate_data =
         reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
     ASSERT(isolate_data != NULL);
     MallocGrowableArray<char*>* dependencies = isolate_data->dependencies();
     ASSERT(dependencies != NULL);
-    File* file = File::Open(snapshot_deps_filename, File::kWriteTruncate);
+    File* file = File::Open(NULL, Options::snapshot_deps_filename(),
+                            File::kWriteTruncate);
     if (file == NULL) {
       ErrorExit(kErrorExitCode,
                 "Error: Unable to open snapshot depfile: %s\n\n",
-                snapshot_deps_filename);
+                Options::snapshot_deps_filename());
     }
     bool success = true;
-    success &= file->Print("%s: ", snapshot_filename);
+    success &= file->Print("%s: ", Options::snapshot_filename());
     for (intptr_t i = 0; i < dependencies->length(); i++) {
       char* dep = dependencies->At(i);
       success &= file->Print("%s ", dep);
@@ -1658,7 +950,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     if (!success) {
       ErrorExit(kErrorExitCode,
                 "Error: Unable to write snapshot depfile: %s\n\n",
-                snapshot_deps_filename);
+                Options::snapshot_deps_filename());
     }
     file->Release();
     isolate_data->set_dependencies(NULL);
@@ -1714,14 +1006,20 @@ void main(int argc, char** argv) {
   // utf8. We need to convert them to utf8.
   bool argv_converted = ShellUtils::GetUtf8Argv(argc, argv);
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Processing of some command line flags directly manipulates dfe.
+  Options::set_dfe(&dfe);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   // Parse command line arguments.
-  if (ParseArguments(argc, argv, &vm_options, &script_name, &dart_options,
-                     &print_flags_seen, &verbose_debug_seen) < 0) {
-    if (help_option) {
-      PrintUsage();
+  if (Options::ParseArguments(argc, argv, vm_run_app_snapshot, &vm_options,
+                              &script_name, &dart_options, &print_flags_seen,
+                              &verbose_debug_seen) < 0) {
+    if (Options::help_option()) {
+      Options::PrintUsage();
       Platform::Exit(0);
-    } else if (version_option) {
-      PrintVersion();
+    } else if (Options::version_option()) {
+      Options::PrintVersion();
       Platform::Exit(0);
     } else if (print_flags_seen) {
       // Will set the VM flags, print them out and then we exit as no
@@ -1729,7 +1027,7 @@ void main(int argc, char** argv) {
       Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
       Platform::Exit(0);
     } else {
-      PrintUsage();
+      Options::PrintUsage();
       Platform::Exit(kErrorExitCode);
     }
   }
@@ -1754,24 +1052,24 @@ void main(int argc, char** argv) {
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   // Constant true if PRODUCT or DART_PRECOMPILED_RUNTIME.
-  if ((gen_snapshot_kind != kNone) || vm_run_app_snapshot) {
+  if ((Options::gen_snapshot_kind() != kNone) || vm_run_app_snapshot) {
     vm_options.AddArgument("--load_deferred_eagerly");
   }
 #endif
 
-  if (gen_snapshot_kind == kAppJIT) {
+  if (Options::gen_snapshot_kind() == kAppJIT) {
     vm_options.AddArgument("--fields_may_be_reset");
 #if !defined(PRODUCT)
     vm_options.AddArgument("--collect_code=false");
 #endif
   }
-  if (gen_snapshot_kind == kAppAOT) {
+  if (Options::gen_snapshot_kind() == kAppAOT) {
     vm_options.AddArgument("--precompilation");
   }
 #if defined(DART_PRECOMPILED_RUNTIME)
   vm_options.AddArgument("--precompilation");
 #endif
-  if (gen_snapshot_kind == kAppJIT) {
+  if (Options::gen_snapshot_kind() == kAppJIT) {
     Process::SetExitHook(SnapshotOnExitHook);
   }
 
@@ -1856,14 +1154,7 @@ void main(int argc, char** argv) {
   }
 
   // Free environment if any.
-  if (environment != NULL) {
-    for (HashMap::Entry* p = environment->Start(); p != NULL;
-         p = environment->Next(p)) {
-      free(p->key);
-      free(p->value);
-    }
-    delete environment;
-  }
+  Options::DestroyEnvironment();
 
   Platform::Exit(Process::GlobalExitCode());
 }

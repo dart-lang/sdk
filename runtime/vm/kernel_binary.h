@@ -9,8 +9,8 @@
 
 #include <map>
 
+#include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/kernel.h"
-#include "vm/kernel_to_il.h"
 #include "vm/object.h"
 
 namespace dart {
@@ -133,6 +133,8 @@ enum Tag {
 };
 
 static const int SpecializedIntLiteralBias = 3;
+static const int LibraryCountFieldCountFromEnd = 2;
+static const int SourceTableFieldCountFromFirstLibraryOffset = 4;
 
 class Reader {
  public:
@@ -206,7 +208,7 @@ class Reader {
 
   bool ReadBool() { return (ReadByte() & 1) == 1; }
 
-  word ReadFlags() { return ReadByte(); }
+  uint8_t ReadFlags() { return ReadByte(); }
 
   Tag ReadTag(uint8_t* payload = NULL) {
     uint8_t byte = ReadByte();

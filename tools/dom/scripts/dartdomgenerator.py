@@ -203,7 +203,8 @@ def GenerateFromDatabase(common_database,
         template_loader.Load('cpp_resolver.template'), dartium_output_dir)
     cpp_library_emitter.EmitClassIdTable(
         webkit_database, dartium_output_dir, type_registry, renamer)
-    emitters.Flush()
+
+  emitters.Flush()
 
   if blink_output_dir:
     print '\nGenerating _blink:\n'

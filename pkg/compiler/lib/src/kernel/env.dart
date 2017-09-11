@@ -258,7 +258,7 @@ class ClassEnvImpl implements ClassEnv {
         initializers: <ir.Initializer>[superInitializer]);
   }
 
-  void _ensureMaps() {
+  void _ensureMaps(KernelToElementMapBase elementMap) {
     if (_memberMap == null) {
       _memberMap = <String, ir.Member>{};
       _setterMap = <String, ir.Member>{};
@@ -302,6 +302,11 @@ class ClassEnvImpl implements ClassEnv {
       addMembers(cls, includeStatic: true);
 
       if (isUnnamedMixinApplication && _constructorMap.isEmpty) {
+        // Ensure that constructors are created for the superclass in case it
+        // is also an unnamed mixin application.
+        ClassEntity superclass = elementMap.getClass(cls.superclass);
+        elementMap.elementEnvironment.lookupConstructor(superclass, '');
+
         // Unnamed mixin applications have no constructors when read from .dill.
         // For each generative constructor in the superclass we make a
         // corresponding forwarding constructor in the subclass.
@@ -311,6 +316,7 @@ class ClassEnvImpl implements ClassEnv {
         var superclassSubstitution = getSubstitutionMap(cls.supertype);
         var superclassCloner =
             new CloneVisitor(typeSubstitution: superclassSubstitution);
+
         for (var superclassConstructor in cls.superclass.constructors) {
           var forwardingConstructor = _buildForwardingConstructor(
               superclassCloner, superclassConstructor);
@@ -327,7 +333,7 @@ class ClassEnvImpl implements ClassEnv {
   /// returned.
   MemberEntity lookupMember(KernelToElementMap elementMap, String name,
       {bool setter: false}) {
-    _ensureMaps();
+    _ensureMaps(elementMap);
     ir.Member member = setter ? _setterMap[name] : _memberMap[name];
     return member != null ? elementMap.getMember(member) : null;
   }
@@ -335,7 +341,7 @@ class ClassEnvImpl implements ClassEnv {
   /// Calls [f] for each member of [cls].
   void forEachMember(
       KernelToElementMap elementMap, void f(MemberEntity member)) {
-    _ensureMaps();
+    _ensureMaps(elementMap);
     _memberMap.values.forEach((ir.Member member) {
       f(elementMap.getMember(member));
     });
@@ -351,7 +357,7 @@ class ClassEnvImpl implements ClassEnv {
   /// Return the [ConstructorEntity] for the constructor [name] in [cls].
   ConstructorEntity lookupConstructor(
       KernelToElementMap elementMap, String name) {
-    _ensureMaps();
+    _ensureMaps(elementMap);
     ir.Member constructor = _constructorMap[name];
     return constructor != null ? elementMap.getConstructor(constructor) : null;
   }
@@ -359,7 +365,7 @@ class ClassEnvImpl implements ClassEnv {
   /// Calls [f] for each constructor of [cls].
   void forEachConstructor(
       KernelToElementMap elementMap, void f(ConstructorEntity constructor)) {
-    _ensureMaps();
+    _ensureMaps(elementMap);
     _constructorMap.values.forEach((ir.Member constructor) {
       f(elementMap.getConstructor(constructor));
     });
@@ -375,26 +381,40 @@ class ClassEnvImpl implements ClassEnv {
   }
 }
 
-class ClosureClassEnv implements ClassEnv {
+class ClosureClassEnv extends RecordEnv {
+  ClosureClassEnv(Map<String, MemberEntity> memberMap) : super(memberMap);
+
+  @override
+  MemberEntity lookupMember(KernelToElementMap elementMap, String name,
+      {bool setter: false}) {
+    if (setter) {
+      // All closure fields are final.
+      return null;
+    }
+    return super.lookupMember(elementMap, name, setter: setter);
+  }
+}
+
+class RecordEnv implements ClassEnv {
   final Map<String, MemberEntity> _memberMap;
 
-  ClosureClassEnv(this._memberMap);
+  RecordEnv(this._memberMap);
 
   @override
   void forEachConstructorBody(void f(ConstructorBodyEntity constructor)) {
-    // We do not create constructor bodies for closure classes.
+    // We do not create constructor bodies for containers.
   }
 
   @override
   void forEachConstructor(
       KernelToElementMap elementMap, void f(ConstructorEntity constructor)) {
-    // We do not create constructors for closure classes.
+    // We do not create constructors for containers.
   }
 
   @override
   ConstructorEntity lookupConstructor(
       KernelToElementMap elementMap, String name) {
-    // We do not create constructors for closure classes.
+    // We do not create constructors for containers.
     return null;
   }
 
@@ -407,10 +427,6 @@ class ClosureClassEnv implements ClassEnv {
   @override
   MemberEntity lookupMember(KernelToElementMap elementMap, String name,
       {bool setter: false}) {
-    if (setter) {
-      // All closure fields are final.
-      return null;
-    }
     return _memberMap[name];
   }
 
@@ -565,13 +581,23 @@ class ConstructorDataImpl extends FunctionDataImpl implements ConstructorData {
 abstract class FieldData extends MemberData {
   DartType getFieldType(KernelToElementMap elementMap);
 
-  ConstantExpression getFieldConstant(
-      KernelToElementMapBase elementMap, FieldEntity field);
+  ConstantExpression getFieldConstantExpression(
+      KernelToElementMapBase elementMap);
+
+  /// Return the [ConstantValue] the initial value of [field] or `null` if
+  /// the initializer is not a constant expression.
+  ConstantValue getFieldConstantValue(KernelToElementMapBase elementMap);
+
+  bool hasConstantFieldInitializer(KernelToElementMapBase elementMap);
+
+  ConstantValue getConstantFieldInitializer(KernelToElementMapBase elementMap);
 }
 
 class FieldDataImpl extends MemberDataImpl implements FieldData {
   DartType _type;
-  ConstantExpression _constant;
+  bool _isConstantComputed = false;
+  ConstantValue _constantValue;
+  ConstantExpression _constantExpression;
 
   FieldDataImpl(ir.Field node, MemberDefinition definition)
       : super(node, definition);
@@ -582,19 +608,45 @@ class FieldDataImpl extends MemberDataImpl implements FieldData {
     return _type ??= elementMap.getDartType(node.type);
   }
 
-  ConstantExpression getFieldConstant(
-      KernelToElementMapBase elementMap, FieldEntity field) {
-    if (_constant == null) {
+  ConstantExpression getFieldConstantExpression(
+      KernelToElementMapBase elementMap) {
+    if (_constantExpression == null) {
       if (node.isConst) {
-        _constant = new Constantifier(elementMap).visit(node.initializer);
+        _constantExpression =
+            new Constantifier(elementMap).visit(node.initializer);
       } else {
         failedAt(
-            field,
-            "Unexpected field $field in "
+            definition.member,
+            "Unexpected field ${definition.member} in "
             "FieldDataImpl.getFieldConstant");
       }
     }
-    return _constant;
+    return _constantExpression;
+  }
+
+  @override
+  ConstantValue getFieldConstantValue(KernelToElementMapBase elementMap) {
+    if (!_isConstantComputed) {
+      _constantValue = elementMap.getConstantValue(node.initializer,
+          requireConstant: node.isConst, implicitNull: !node.isConst);
+      _isConstantComputed = true;
+    }
+    return _constantValue;
+  }
+
+  @override
+  bool hasConstantFieldInitializer(KernelToElementMapBase elementMap) {
+    return getFieldConstantValue(elementMap) != null;
+  }
+
+  @override
+  ConstantValue getConstantFieldInitializer(KernelToElementMapBase elementMap) {
+    ConstantValue value = getFieldConstantValue(elementMap);
+    assert(
+        value != null,
+        failedAt(definition.member,
+            "Field ${definition.member} doesn't have a constant initial value."));
+    return value;
   }
 
   @override

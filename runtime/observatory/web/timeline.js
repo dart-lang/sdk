@@ -4,7 +4,11 @@
 
 // See also timeline_message_handler.js.
 
-function onModelLoaded() {
+var traceObject;
+var pendingRequests;
+var loadingOverlay;
+
+function onModelLoaded(model) {
   viewer.globalMode = true;
   viewer.model = model;
 }
@@ -13,7 +17,7 @@ function clearTimeline() {
   viewer.model = undefined;
 }
 
-function onImportFail() {
+function onImportFail(err) {
   var overlay = new tr.ui.b.Overlay();
   overlay.textContent = tr.b.normalizeException(err).message;
   overlay.title = 'Import error';
@@ -21,26 +25,32 @@ function onImportFail() {
   console.log('import failed');
 }
 
+function basicModelEventsFilter(event) {
+  return event.args && event.args.mode === 'basic'; // white-listed
+}
+
 function updateTimeline(events) {
-  model = new tr.Model();
+  if (window.location.hash === '#basic') {
+    events = {
+      'stackFrames': events['stackFrames'],
+      'traceEvents': events['traceEvents'].filter(basicModelEventsFilter)
+    };
+  }
+  var model = new tr.Model();
   var importer = new tr.importer.Import(model);
   var p = importer.importTracesWithProgressDialog([events]);
-  p.then(onModelLoaded, onImportFail);
+  p.then(onModelLoaded.bind(undefined, model), onImportFail);
 }
 
 function fetchUri(uri, onLoad, onError) {
   var xhr = new XMLHttpRequest();
   xhr.open('GET', uri, true);
   xhr.responseType = 'text';
-  xhr.addEventListener("load", onLoad);
-  xhr.addEventListener("error", onError);
+  xhr.addEventListener('load', onLoad);
+  xhr.addEventListener('error', onError);
   xhr.send();
   console.log('GET ' + uri);
 }
-
-var traceObject;
-var pendingRequests;
-var loadingOverlay;
 
 function showLoadingOverlay(msg) {
   if (!loadingOverlay) {
@@ -61,8 +71,8 @@ function hideLoadingOverlay() {
 
 function gotReponse() {
   pendingRequests--;
-  if (pendingRequests == 0) {
-    console.log("Got all timeline parts");
+  if (pendingRequests === 0) {
+    console.log('Got all timeline parts');
     updateTimeline(traceObject);
     hideLoadingOverlay();
   }
@@ -71,7 +81,7 @@ function gotReponse() {
 function processTimelineResponse(response) {
   if (response.error) {
     // Maybe profiling is disabled.
-    console.log("ERROR " + response.error.message);
+    console.log('ERROR ' + response.error.message);
   } else {
     var result = response['result'];
     var newStackFrames = result['stackFrames'];  // Map.
@@ -120,12 +130,13 @@ function fetchCPUProfile(vmAddress, isolateIds, timeOrigin, timeExtent) {
   }
 }
 
-function fetchTimeline(vmAddress, isolateIds) {
+function fetchTimeline(vmAddress, isolateIds, mode) {
   // Reset combined timeline.
   traceObject = {
     'stackFrames': {},
     'traceEvents': []
   };
+  timelineMode = mode;
   pendingRequests = 1;
 
   showLoadingOverlay('Fetching timeline from Dart VM');
@@ -150,7 +161,7 @@ function fetchTimeline(vmAddress, isolateIds) {
     // fetchCPUProfile.
     fetchCPUProfile(vmAddress, isolateIds, timeOrigin, timeExtent);
     // This must happen after 'fetchCPUProfile';
-    processTimelineResponse(response);
+    processTimelineResponse(response, mode);
   }, fetchTimelineOnError);
 }
 
@@ -165,7 +176,7 @@ function saveTimeline() {
   }
   if (!traceObject ||
       !traceObject.traceEvents ||
-      (traceObject.traceEvents.length == 0)) {
+      (traceObject.traceEvents.length === 0)) {
     var overlay = new tr.ui.b.Overlay();
     overlay.textContent = 'Cannot save an empty timeline.';
     overlay.title = 'Save error';
@@ -179,13 +190,13 @@ function saveTimeline() {
   var link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
   link.href = blobUrl;
   var now = new Date();
-  var defaultFilename = "dart-timeline-" +
+  var defaultFilename = 'dart-timeline-' +
                         now.getFullYear() +
-                        "-" +
+                        '-' +
                         now.getMonth() +
-                        "-" +
+                        '-' +
                         now.getDate() +
-                        ".json";
+                        '.json';
   var filename = window.prompt('Save as', defaultFilename);
   if (filename) {
     link.download = filename;

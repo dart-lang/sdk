@@ -172,6 +172,46 @@ class Foo {
     }
   }
 
+  void test_isModifier() {
+    var modifierKeywords = new Set<Keyword>.from([
+      Keyword.ABSTRACT,
+      Keyword.CONST,
+      Keyword.COVARIANT,
+      Keyword.FINAL,
+      Keyword.STATIC,
+    ]);
+    for (Keyword keyword in Keyword.values) {
+      var isModifier = modifierKeywords.contains(keyword);
+      var scanner = new StringScanner(keyword.lexeme, includeComments: true);
+      Token token = scanner.tokenize();
+      expect(token.isModifier, isModifier, reason: keyword.name);
+      if (isModifier) {
+        expect(token.isTopLevelKeyword, isFalse, reason: keyword.name);
+      }
+    }
+  }
+
+  void test_isTopLevelKeyword() {
+    var topLevelKeywords = new Set<Keyword>.from([
+      Keyword.CLASS,
+      Keyword.ENUM,
+      Keyword.EXPORT,
+      Keyword.IMPORT,
+      Keyword.LIBRARY,
+      Keyword.PART,
+      Keyword.TYPEDEF,
+    ]);
+    for (Keyword keyword in Keyword.values) {
+      var isTopLevelKeyword = topLevelKeywords.contains(keyword);
+      var scanner = new StringScanner(keyword.lexeme, includeComments: true);
+      Token token = scanner.tokenize();
+      expect(token.isTopLevelKeyword, isTopLevelKeyword, reason: keyword.name);
+      if (isTopLevelKeyword) {
+        expect(token.isModifier, isFalse, reason: keyword.name);
+      }
+    }
+  }
+
   void test_pseudo_keywords() {
     var pseudoKeywords = new Set<Keyword>.from([
       Keyword.ASYNC,

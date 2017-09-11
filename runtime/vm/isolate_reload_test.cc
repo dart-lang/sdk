@@ -14,7 +14,7 @@
 
 namespace dart {
 
-#ifndef PRODUCT
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 DECLARE_FLAG(bool, support_deprecated_tearoff_syntax);
 
@@ -3613,6 +3613,6 @@ TEST_CASE(IsolateReload_TypedefAddParameter) {
   EXPECT_STREQ("false", SimpleInvokeStr(lib, "main"));
 }
 
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

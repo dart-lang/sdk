@@ -405,6 +405,11 @@ class ObjectStore {
     token_objects_map_ = value.raw();
   }
 
+  RawArray* obfuscation_map() const { return obfuscation_map_; }
+  void set_obfuscation_map(const Array& value) {
+    obfuscation_map_ = value.raw();
+  }
+
   RawGrowableObjectArray* megamorphic_cache_table() const {
     return megamorphic_cache_table_;
   }
@@ -584,22 +589,21 @@ class ObjectStore {
   V(RawGrowableObjectArray*, megamorphic_cache_table_)                         \
   V(RawCode*, megamorphic_miss_code_)                                          \
   V(RawFunction*, megamorphic_miss_function_)                                  \
+  V(RawArray*, obfuscation_map_)                                               \
   // Please remember the last entry must be referred in the 'to' function below.
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&object_class_); }
 #define DECLARE_OBJECT_STORE_FIELD(type, name) type name;
   OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD)
 #undef DECLARE_OBJECT_STORE_FIELD
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&megamorphic_miss_function_);
-  }
+  RawObject** to() { return reinterpret_cast<RawObject**>(&obfuscation_map_); }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
         return reinterpret_cast<RawObject**>(&library_load_error_table_);
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
-        return to();
+        return reinterpret_cast<RawObject**>(&megamorphic_miss_function_);
       case Snapshot::kScript:
       case Snapshot::kMessage:
       case Snapshot::kNone:

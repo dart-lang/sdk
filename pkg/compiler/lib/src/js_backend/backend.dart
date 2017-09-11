@@ -616,33 +616,6 @@ class JavaScriptBackend {
         : new Namer(closedWorld, codegenWorldBuilder);
   }
 
-  /// Returns true if global optimizations such as type inferencing can apply to
-  /// the field [element].
-  ///
-  /// One category of elements that do not apply is runtime helpers that the
-  /// backend calls, but the optimizations don't see those calls.
-  bool canFieldBeUsedForGlobalOptimizations(
-      FieldEntity element, ClosedWorld closedWorld) {
-    if (closedWorld.backendUsage.isFieldUsedByBackend(element)) {
-      return false;
-    }
-    if ((element.isTopLevel || element.isStatic) && !element.isAssignable) {
-      return true;
-    }
-    return !mirrorsData.isMemberAccessibleByReflection(element);
-  }
-
-  /// Returns true if global optimizations such as type inferencing can apply to
-  /// the parameter [element].
-  ///
-  /// One category of elements that do not apply is runtime helpers that the
-  /// backend calls, but the optimizations don't see those calls.
-  bool canFunctionParametersBeUsedForGlobalOptimizations(
-      FunctionEntity function, ClosedWorld closedWorld) {
-    return !closedWorld.backendUsage.isFunctionUsedByBackend(function) &&
-        !mirrorsData.isMemberAccessibleByReflection(function);
-  }
-
   void validateInterceptorImplementsAllObjectMethods(
       ClassEntity interceptorClass) {
     if (interceptorClass == null) return;
@@ -911,8 +884,9 @@ class JavaScriptBackend {
    *
    * Invariant: [element] must be a declaration element.
    */
-  String getGeneratedCode(Element element) {
-    assert(element.isDeclaration, failedAt(element));
+  String getGeneratedCode(MemberEntity element) {
+    assert(!(element is MemberElement && !element.isDeclaration),
+        failedAt(element));
     return jsAst.prettyPrint(generatedCode[element], compiler.options);
   }
 
@@ -1019,7 +993,7 @@ class JavaScriptBackend {
     _oneShotInterceptorData = new OneShotInterceptorData(
         closedWorld.interceptorData, closedWorld.commonElements);
     _namer = determineNamer(closedWorld, codegenWorldBuilder);
-    tracer = new Tracer(closedWorld, namer, compiler);
+    tracer = new Tracer(closedWorld, namer, compiler.outputProvider);
     _rtiEncoder = _namer.rtiEncoder = new RuntimeTypesEncoderImpl(
         namer, closedWorld.elementEnvironment, closedWorld.commonElements);
     emitter.createEmitter(namer, closedWorld, codegenWorldBuilder, sorter);

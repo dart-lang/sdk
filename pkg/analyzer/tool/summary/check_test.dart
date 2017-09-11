@@ -15,8 +15,9 @@ import 'generate.dart';
  * Check that the target file has been code generated.  If it hasn't tell the
  * user to run generate.dart.
  */
-main() {
+main() async {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
   String pkgPath = normalize(join(dirname(script), '..', '..'));
-  GeneratedContent.checkAll(pkgPath, 'tool/summary/generate.dart', allTargets);
+  await GeneratedContent.checkAll(
+      pkgPath, 'tool/summary/generate.dart', allTargets);
 }

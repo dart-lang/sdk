@@ -27,7 +27,6 @@ mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
 constructor5_test: Fail # Issue 6422
 constructor6_test: Fail # Issue 6422
 
-generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 
 # Failures related to super call in ctor initializer list
 super_test: Fail, OK
@@ -60,18 +59,7 @@ multiline_strings_test: Fail # Issue 23020
 deferred_redirecting_factory_test: Fail, Crash # Issue 23408
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 
-[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
-# These generic functions tests pass for the wrong reason in checked mode,
-# because the parsed type parameters are mapped to dynamic type.
-generic_methods_function_type_test: Pass # Issue 25869
-generic_methods_test: Pass # Issue 25869
-generic_methods_new_test: Pass # Issue 25869
-generic_local_functions_test: Pass # Issue 25869
-generic_functions_test: Pass # Issue 25869
-generic_methods_generic_function_parameter_test: Pass # Issue 25869
-
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) ]
-unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
@@ -85,7 +73,6 @@ dynamic_prefix_core_test/none: Fail # Issue 12478
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $arch == arm64 ]
 large_class_declaration_test: SkipSlow # Uses too much memory.
-closure_cycles_test: Pass, Slow
 
 [ $runtime == vm || $runtime == dart_precompiled ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
@@ -156,7 +143,6 @@ deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 
 [ $runtime == dart_precompiled || $compiler == app_jit ]
 ct_const2_test: Skip # Incompatible flag: --compile_all
-hello_dart_test: Skip # Incompatible flag: --compile_all
 vm/type_vm_test: RuntimeError # Expects line and column numbers
 vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 
@@ -169,7 +155,6 @@ type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 positional_parameters_type_test/01: SkipByDesign # Requires checked mode.
 positional_parameters_type_test/02: SkipByDesign # Requires checked mode.
 list_literal4_test: SkipByDesign # Requires checked mode.
-generic_test: SkipByDesign # Requires checked mode.
 map_literal4_test: SkipByDesign # Requires checked mode.
 
 vm/type_vm_test: Fail,OK  # Expects exact type name.
@@ -254,7 +239,6 @@ config_import_corelib_test: StaticWarning, OK
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && ($compiler == none || $compiler == app_jit || $compiler == precompiler) ]
 await_for_test: RuntimeError # issue 28974
-generalized_void_syntax_test: CompileTimeError # Issue #30176.
 syntax_test/none: CompileTimeError # Issue #30176.
 
 # flutter uses --error_on_bad_type, --error_on_bad_override
@@ -274,13 +258,6 @@ method_override2_test/01: CompileTimeError
 regress_22438_test: CompileTimeError
 regress_13462_1_test: CompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
-type_variable_scope_test/none: CompileTimeError
-type_variable_scope_test/00: CompileTimeError
-type_variable_scope_test/01: CompileTimeError
-type_variable_scope_test/03: CompileTimeError
-type_variable_scope_test/02: CompileTimeError
-type_variable_scope_test/04: CompileTimeError
-type_variable_scope_test/05: CompileTimeError
 invocation_mirror_invoke_on_test: CompileTimeError
 method_override3_test/00: CompileTimeError
 method_override3_test/01: CompileTimeError
@@ -394,7 +371,6 @@ check_method_override_test/02: CompileTimeError
 malformed_inheritance_test/02: CompileTimeError
 malformed_inheritance_test/04: CompileTimeError
 malformed_inheritance_test/06: CompileTimeError
-unicode_bom_test: CompileTimeError
 prefix16_test: CompileTimeError
 deferred_not_loaded_check_test: CompileTimeError
 regress_23408_test: CompileTimeError
@@ -422,7 +398,6 @@ deferred_static_seperate_test: CompileTimeError
 default_factory_test/01: CompileTimeError
 internal_library_test/01: CompileTimeError
 internal_library_test/02: CompileTimeError
-type_variable_scope2_test: CompileTimeError
 mixin_super_bound_test: CompileTimeError
 invocation_mirror2_test: CompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: CompileTimeError
@@ -440,7 +415,6 @@ list_literal_syntax_test/02: CompileTimeError
 vm/reflect_core_vm_test: CompileTimeError
 vm/debug_break_enabled_vm_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/none: CompileTimeError
-generic_function_typedef2_test/04: CompileTimeError
 const_types_test/01: CompileTimeError
 const_types_test/02: CompileTimeError
 const_types_test/03: CompileTimeError
@@ -484,3 +458,32 @@ vm/regress_27201_test: Fail # Flutter Issue 9110
 asyncstar_yield_test: Skip # Flutter Issue 9110
 await_for_test: Skip # Flutter Issue 9110
 await_for_cancel_test: Skip # Flutter Issue 9110
+
+[ $runtime == dart_precompiled && $minified ]
+enum_duplicate_test/*: Skip  # Uses Enum.toString()
+enum_private_test/*: Skip  # Uses Enum.toString()
+enum_test: Skip  # Uses Enum.toString()
+no_such_method_dispatcher_test: Skip  # Uses new Symbol()
+# Tests below rely on Type.toString()
+cyclic_type_test/*: Skip
+f_bounded_quantification4_test: Skip
+f_bounded_quantification5_test: Skip
+mixin_generic_test: Skip
+mixin_mixin2_test: Skip
+mixin_mixin3_test: Skip
+mixin_mixin5_test: Skip
+mixin_mixin6_test: Skip
+mixin_mixin_bound2_test: Skip
+mixin_mixin_type_arguments_test: Skip
+mixin_super_2_test: Skip
+# Tests below rely on Stacktrace.toString()
+full_stacktrace1_test: Skip
+full_stacktrace2_test: Skip
+full_stacktrace3_test: Skip
+stacktrace_rethrow_error_test: Skip
+stacktrace_rethrow_nonerror_test: Skip
+vm/no_such_args_error_message_vm_test: Skip
+vm/no_such_method_error_message_callable_vm_test: Skip
+vm/no_such_method_error_message_vm_test: Skip
+vm/regress_28325_test:Skip
+
