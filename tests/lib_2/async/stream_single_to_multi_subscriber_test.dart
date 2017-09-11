@@ -7,7 +7,7 @@ library stream_single_test;
 
 import "package:expect/expect.dart";
 import 'dart:async';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'event_helper.dart';
 
 main() {

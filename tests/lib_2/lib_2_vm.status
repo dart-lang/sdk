@@ -9,7 +9,12 @@ async/schedule_microtask2_test: RuntimeError
 async/schedule_microtask3_test: RuntimeError
 async/schedule_microtask5_test: RuntimeError
 async/stream_controller_async_test: RuntimeError
+async/stream_transform_test: RuntimeError
+async/stream_transformation_broadcast_test: RuntimeError
 async/stream_state_test: RuntimeError
+async/stream_state_nonzero_timer_test: RuntimeError
+async/stream_single_test: RuntimeError
+async/stream_single_to_multi_subscriber_test: RuntimeError
 async/stream_subscription_as_future_test: RuntimeError
 async/stream_subscription_cancel_test: RuntimeError
 convert/json_lib_test: RuntimeError
@@ -18,8 +23,6 @@ math/rectangle_test: RuntimeError
 mirrors/invocation_fuzz_test: Crash
 mirrors/library_uri_io_test: RuntimeError
 mirrors/library_uri_package_test: RuntimeError
-async/stream_transform_test: RuntimeError
-async/stream_transformation_broadcast_test: RuntimeError
 
 [ $strong && $runtime == vm ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
