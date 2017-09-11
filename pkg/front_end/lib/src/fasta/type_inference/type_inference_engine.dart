@@ -428,7 +428,19 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
 
     void checkParameterSafety(ShadowVariableDeclaration declaredFormal,
-        VariableDeclaration interfaceFormal) {
+        bool declaredIsAbstract, VariableDeclaration interfaceFormal) {
+      if (interfaceFormal.isCovariant) {
+        declaredFormal.isCovariant = true;
+        if (declaredFormal.formalSafety != FormalSafety.unsafe) {
+          declaredFormal.formalSafety = FormalSafety.unsafe;
+          instrumentation?.record(
+              Uri.parse(cls.fileUri),
+              declaredFormal.fileOffset,
+              'checkFormal',
+              new InstrumentationValueLiteral('unsafe'));
+        }
+      }
+      if (declaredIsAbstract) return;
       // TODO(paulberry): once additionalIncomingTypes is available from
       // VariableDeclaration, remove this "is" check.
       if (interfaceFormal is ShadowVariableDeclaration) {
@@ -466,7 +478,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
     classHierarchy.forEachOverridePair(cls,
         (Member declaredMember, Member interfaceMember, bool isSetter) {
-      if (declaredMember.isAbstract) return;
       if (!identical(declaredMember.enclosingClass, cls)) return;
       if (declaredMember.function == null || interfaceMember.function == null) {
         // TODO(paulberry): handle the case where declaredMember or
@@ -477,22 +488,27 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
           i < declaredMember.function.positionalParameters.length &&
               i < interfaceMember.function.positionalParameters.length;
           i++) {
-        checkParameterSafety(declaredMember.function.positionalParameters[i],
+        checkParameterSafety(
+            declaredMember.function.positionalParameters[i],
+            declaredMember.isAbstract,
             interfaceMember.function.positionalParameters[i]);
       }
       for (var namedParameter in declaredMember.function.namedParameters) {
         var overriddenParameter =
             getNamedFormal(interfaceMember.function, namedParameter.name);
         if (overriddenParameter != null) {
-          checkParameterSafety(namedParameter, overriddenParameter);
+          checkParameterSafety(
+              namedParameter, declaredMember.isAbstract, overriddenParameter);
         }
       }
       for (int i = 0;
           i < declaredMember.function.typeParameters.length &&
               i < interfaceMember.function.typeParameters.length;
           i++) {
-        checkTypeParameterSafety(declaredMember.function.typeParameters[i],
-            interfaceMember.function.typeParameters[i]);
+        if (!declaredMember.isAbstract) {
+          checkTypeParameterSafety(declaredMember.function.typeParameters[i],
+              interfaceMember.function.typeParameters[i]);
+        }
       }
     });
   }

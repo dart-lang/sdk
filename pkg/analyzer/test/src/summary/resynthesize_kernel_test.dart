@@ -555,11 +555,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_parameter_covariant_inherited() async {
-    await super.test_parameter_covariant_inherited();
-  }
-
-  @failingTest
   test_parts_invalidUri() async {
     await super.test_parts_invalidUri();
   }
