@@ -169,13 +169,11 @@ regress/issue_29987: Crash # Issue 29987.
 runtime_checks/contravariant_generic_return: Fail
 runtime_checks/contravariant_generic_return_tear_off: Fail
 runtime_checks/contravariant_getter: Fail
-runtime_checks/covariant_generic_method_type_parameter: Fail
 runtime_checks/covariant_generic_parameter_in_interface_mixin: Fail
 runtime_checks/covariant_generic_parameter_in_interface_super: Fail
 runtime_checks/covariant_generic_parameter_in_interface_super_mixin: Fail
 runtime_checks/covariant_keyword: Fail
 runtime_checks/covariant_setter: Fail
-runtime_checks/dynamic_invocation_generic: Fail
 runtime_checks/dynamic_invocation_of_getter: Fail
 runtime_checks_new/derived_class_typed: Fail
 

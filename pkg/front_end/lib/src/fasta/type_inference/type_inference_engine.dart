@@ -341,65 +341,126 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
       // TODO(paulberry): also handle fields
       for (ShadowProcedure procedure in cls.procedures) {
         if (procedure.isStatic) continue;
-        void computeIncomingTypes(VariableDeclaration formal) {
-          ShadowVariableDeclaration shadowVariableDeclaration = formal;
-          var pessimisticType = pessimization.substituteType(formal.type);
+        void computeIncomingTypes(
+            int fileOffset,
+            DartType declaredType,
+            FormalSafety formalSafety,
+            void setAdditionalIncomingTypes(List<DartType> types),
+            void setInterfaceSafety(InterfaceSafety safety),
+            void setFormalSafety(FormalSafety formalSafety)) {
+          var pessimisticType = pessimization.substituteType(declaredType);
           if (!typeSchemaEnvironment.isSubtypeOf(
-              pessimisticType, formal.type)) {
-            shadowVariableDeclaration.additionalIncomingTypes = [
-              pessimisticType
-            ];
-            formal.interfaceSafety = InterfaceSafety.semiTyped;
-            instrumentation?.record(Uri.parse(cls.fileUri), formal.fileOffset,
+              pessimisticType, declaredType)) {
+            setAdditionalIncomingTypes([pessimisticType]);
+            setInterfaceSafety(InterfaceSafety.semiTyped);
+            instrumentation?.record(Uri.parse(cls.fileUri), fileOffset,
                 'checkInterface', new InstrumentationValueLiteral('semiTyped'));
-            if (!procedure.isAbstract &&
-                formal.formalSafety == FormalSafety.safe) {
-              formal.formalSafety = FormalSafety.semiSafe;
-              instrumentation?.record(Uri.parse(cls.fileUri), formal.fileOffset,
+            if (!procedure.isAbstract && formalSafety == FormalSafety.safe) {
+              formalSafety = FormalSafety.semiSafe;
+              instrumentation?.record(Uri.parse(cls.fileUri), fileOffset,
                   'checkFormal', new InstrumentationValueLiteral('semiSafe'));
             }
           }
         }
 
-        procedure.function.positionalParameters.forEach(computeIncomingTypes);
-        procedure.function.namedParameters.forEach(computeIncomingTypes);
+        void computeIncomingParameterTypes(VariableDeclaration formal) {
+          ShadowVariableDeclaration shadowVariableDeclaration = formal;
+          computeIncomingTypes(
+              formal.fileOffset, formal.type, formal.formalSafety, (types) {
+            shadowVariableDeclaration.additionalIncomingTypes = types;
+          }, (safety) {
+            formal.interfaceSafety = safety;
+          }, (safety) {
+            formal.formalSafety = safety;
+          });
+        }
+
+        void computeIncomingTypeParameterTypes(TypeParameter typeParameter) {
+          ShadowTypeParameter shadowTypeParameter = typeParameter;
+          computeIncomingTypes(typeParameter.fileOffset, typeParameter.bound,
+              typeParameter.formalSafety, (types) {
+            shadowTypeParameter.additionalIncomingTypes = types;
+          }, (safety) {
+            typeParameter.interfaceSafety = safety;
+          }, (safety) {
+            typeParameter.formalSafety = safety;
+          });
+        }
+
+        procedure.function.positionalParameters
+            .forEach(computeIncomingParameterTypes);
+        procedure.function.namedParameters
+            .forEach(computeIncomingParameterTypes);
+        procedure.function.typeParameters
+            .forEach(computeIncomingTypeParameterTypes);
       }
     }
 
     // Now, propagate additional incoming types from overrides to determine
     // whether there are additional methods requiring a semi-safe annotation.
-    void checkSafety(ShadowVariableDeclaration declaredFormal,
+    void checkSafety(
+        int fileOffset,
+        List<DartType> declaredAdditionalIncomingTypes,
+        List<DartType> interfaceAdditionalIncomingTypes,
+        DartType declaredType,
+        FormalSafety formalSafety,
+        void addDeclaredAdditionalIncomingType(DartType type),
+        void setFormalSafety(FormalSafety formalSafety)) {
+      // TODO(paulberry): add support for generic methods (need to match up
+      // method type parameters between the two methods)
+      if (interfaceAdditionalIncomingTypes == null) return;
+      for (var incomingType in interfaceAdditionalIncomingTypes) {
+        if (typeSchemaEnvironment.isSubtypeOf(incomingType, declaredType)) {
+          continue;
+        }
+        if (declaredAdditionalIncomingTypes != null &&
+            declaredAdditionalIncomingTypes.any(
+                (t) => typeSchemaEnvironment.isSubtypeOf(incomingType, t))) {
+          continue;
+        }
+        addDeclaredAdditionalIncomingType(incomingType);
+        if (formalSafety == FormalSafety.safe) {
+          setFormalSafety(FormalSafety.semiSafe);
+          instrumentation?.record(Uri.parse(cls.fileUri), fileOffset,
+              'checkFormal', new InstrumentationValueLiteral('semiSafe'));
+        }
+      }
+    }
+
+    void checkParameterSafety(ShadowVariableDeclaration declaredFormal,
         VariableDeclaration interfaceFormal) {
       // TODO(paulberry): once additionalIncomingTypes is available from
       // VariableDeclaration, remove this "is" check.
       if (interfaceFormal is ShadowVariableDeclaration) {
-        // TODO(paulberry): once we support covariant we'll have to account for
-        // pessimize(interfaceFormal.type) as well.
-        // TODO(paulberry): add support for generic methods (need to match up
-        // method type parameters between the two methods)
-        var additionalIncomingTypes = interfaceFormal.additionalIncomingTypes;
-        if (additionalIncomingTypes == null) return;
-        for (var incomingType in additionalIncomingTypes) {
-          if (typeSchemaEnvironment.isSubtypeOf(
-              incomingType, declaredFormal.type)) {
-            continue;
-          }
-          if (declaredFormal.additionalIncomingTypes != null &&
-              declaredFormal.additionalIncomingTypes.any(
-                  (t) => typeSchemaEnvironment.isSubtypeOf(incomingType, t))) {
-            continue;
-          }
-          (declaredFormal.additionalIncomingTypes ??= <DartType>[])
-              .add(incomingType);
-          if (declaredFormal.formalSafety == FormalSafety.safe) {
-            declaredFormal.formalSafety = FormalSafety.semiSafe;
-            instrumentation?.record(
-                Uri.parse(cls.fileUri),
-                declaredFormal.fileOffset,
-                'checkFormal',
-                new InstrumentationValueLiteral('semiSafe'));
-          }
-        }
+        checkSafety(
+            declaredFormal.fileOffset,
+            declaredFormal.additionalIncomingTypes,
+            interfaceFormal.additionalIncomingTypes,
+            declaredFormal.type,
+            declaredFormal.formalSafety, (type) {
+          (declaredFormal.additionalIncomingTypes ??= <DartType>[]).add(type);
+        }, (safety) {
+          declaredFormal.formalSafety = safety;
+        });
+      }
+    }
+
+    void checkTypeParameterSafety(ShadowTypeParameter declaredTypeParameter,
+        TypeParameter interfaceTypeParameter) {
+      // TODO(paulberry): once additionalIncomingTypes is available from
+      // TypeParameter, remove this "is" check.
+      if (interfaceTypeParameter is ShadowTypeParameter) {
+        checkSafety(
+            declaredTypeParameter.fileOffset,
+            declaredTypeParameter.additionalIncomingTypes,
+            interfaceTypeParameter.additionalIncomingTypes,
+            declaredTypeParameter.bound,
+            declaredTypeParameter.formalSafety, (type) {
+          (declaredTypeParameter.additionalIncomingTypes ??= <DartType>[])
+              .add(type);
+        }, (safety) {
+          declaredTypeParameter.formalSafety = safety;
+        });
       }
     }
 
@@ -416,15 +477,22 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
           i < declaredMember.function.positionalParameters.length &&
               i < interfaceMember.function.positionalParameters.length;
           i++) {
-        checkSafety(declaredMember.function.positionalParameters[i],
+        checkParameterSafety(declaredMember.function.positionalParameters[i],
             interfaceMember.function.positionalParameters[i]);
       }
       for (var namedParameter in declaredMember.function.namedParameters) {
         var overriddenParameter =
             getNamedFormal(interfaceMember.function, namedParameter.name);
         if (overriddenParameter != null) {
-          checkSafety(namedParameter, overriddenParameter);
+          checkParameterSafety(namedParameter, overriddenParameter);
         }
+      }
+      for (int i = 0;
+          i < declaredMember.function.typeParameters.length &&
+              i < interfaceMember.function.typeParameters.length;
+          i++) {
+        checkTypeParameterSafety(declaredMember.function.typeParameters[i],
+            interfaceMember.function.typeParameters[i]);
       }
     });
   }
