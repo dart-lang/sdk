@@ -276,6 +276,23 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   @override
   void computeFormalSafety(Class cls) {
+    // First mark all covariant formals as unsafe.
+    // TODO(paulberry): also handle fields
+    for (ShadowProcedure procedure in cls.procedures) {
+      if (procedure.isStatic) continue;
+      if (procedure.isAbstract) continue;
+      void setSafety(VariableDeclaration formal) {
+        if (formal.isCovariant) {
+          formal.formalSafety = FormalSafety.unsafe;
+          instrumentation?.record(Uri.parse(cls.fileUri), formal.fileOffset,
+              'checkFormal', new InstrumentationValueLiteral('unsafe'));
+        }
+      }
+
+      procedure.function.positionalParameters.forEach(setSafety);
+      procedure.function.namedParameters.forEach(setSafety);
+    }
+
     // If any method in the class has a formal parameter whose type depends on
     // one of the class's type parameters, then there may be a mismatch between
     // the type guarantee made by the caller and the type guarantee expected by
@@ -335,7 +352,8 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
             formal.interfaceSafety = InterfaceSafety.semiTyped;
             instrumentation?.record(Uri.parse(cls.fileUri), formal.fileOffset,
                 'checkInterface', new InstrumentationValueLiteral('semiTyped'));
-            if (!procedure.isAbstract) {
+            if (!procedure.isAbstract &&
+                formal.formalSafety == FormalSafety.safe) {
               formal.formalSafety = FormalSafety.semiSafe;
               instrumentation?.record(Uri.parse(cls.fileUri), formal.fileOffset,
                   'checkFormal', new InstrumentationValueLiteral('semiSafe'));
@@ -373,7 +391,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
           }
           (declaredFormal.additionalIncomingTypes ??= <DartType>[])
               .add(incomingType);
-          if (declaredFormal.formalSafety != FormalSafety.semiSafe) {
+          if (declaredFormal.formalSafety == FormalSafety.safe) {
             declaredFormal.formalSafety = FormalSafety.semiSafe;
             instrumentation?.record(
                 Uri.parse(cls.fileUri),
