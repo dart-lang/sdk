@@ -13,6 +13,7 @@ import 'package:kernel/ast.dart'
     show
         Class,
         DartType,
+        DartTypeVisitor,
         DynamicType,
         Field,
         FormalSafety,
@@ -24,6 +25,7 @@ import 'package:kernel/ast.dart'
         Procedure,
         TypeParameter,
         TypeParameterType,
+        TypedefType,
         VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -94,6 +96,55 @@ class AccessorNode extends dependencyWalker.Node<AccessorNode> {
 
   @override
   String toString() => member.toString();
+}
+
+/// Visitor to check whether a given type mentions any of a class's type
+/// parameters in a covariant fashion.
+class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
+  bool _inCovariantContext = true;
+
+  final List<TypeParameter> _typeParametersToSearchFor;
+
+  IncludesTypeParametersCovariantly(this._typeParametersToSearchFor);
+
+  @override
+  bool defaultDartType(DartType node) => false;
+
+  @override
+  bool visitFunctionType(FunctionType node) {
+    if (node.returnType.accept(this)) return true;
+    try {
+      _inCovariantContext = !_inCovariantContext;
+      for (var parameter in node.positionalParameters) {
+        if (parameter.accept(this)) return true;
+      }
+      for (var parameter in node.namedParameters) {
+        if (parameter.type.accept(this)) return true;
+      }
+      return false;
+    } finally {
+      _inCovariantContext = !_inCovariantContext;
+    }
+  }
+
+  @override
+  bool visitInterfaceType(InterfaceType node) {
+    for (var argument in node.typeArguments) {
+      if (argument.accept(this)) return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitTypedefType(TypedefType node) {
+    return node.unalias.accept(this);
+  }
+
+  @override
+  bool visitTypeParameterType(TypeParameterType node) {
+    return _inCovariantContext &&
+        _typeParametersToSearchFor.contains(node.parameter);
+  }
 }
 
 /// Enum tracking the type inference state of an accessor or method.
@@ -280,7 +331,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     // TODO(paulberry): also handle fields
     for (ShadowProcedure procedure in cls.procedures) {
       if (procedure.isStatic) continue;
-      if (procedure.isAbstract) continue;
       void setSafety(VariableDeclaration formal) {
         if (formal.isCovariant) {
           formal.formalSafety = FormalSafety.unsafe;
@@ -302,164 +352,95 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     // class B extends A<num> {
     //   foo(List<num> argument) {}
     // }
-    // void bar(A<num> a, List<num> l) {
-    //   a.foo(l);
+    // class C extends B {
+    //   foo(List<Object> argument) {}
+    // }
+    // void bar(A<Object> a) {
+    //   a.foo(<Object>[1, 2.0, 'hi']);
+    // }
+    // void baz(B b) {
+    //   b.foo(<Object>[1, 2.0, 'hi']); // Compile-time error
     // }
     //
-    // At the call site (in `bar`), the type system guarantees that the
-    // value passed to `foo` will be an instance of `List<num>`.  But since
-    // the reified type of `a` at runtime might be a subtype of `A<num>`,
-    // such as `A<int>`, this is not a sufficient guarantee to ensure
-    // soundness.  Therefore the type of the argument will have to be
-    // checked at runtime (unless the back end can prove the check is
+    //
+    // At the call site in `bar`, we know that the value passed to `foo` is an
+    // instance of `List<Object>`.  But `bar` might have been called as
+    // `bar(new A<num>())`, in which case passing `List<Object>` to `a.foo` would
+    // violate soundness.  Therefore `A.foo` will have to check the type of its
+    // argument at runtime (unless the back end can prove the check is
     // unnecessary, e.g. through whole program analysis).
     //
-    // To determine whether the check is necessary, we determine, for each
-    // formal parameter of each interface, the worst case set of types that
-    // might be passed to that interface at runtime.  So in the example above,
-    // since T has no bound, at worst case the type `List<Object>` might be
-    // passed to A.foo.  Since `List<T>` is not a supertype of `List<Object>`,
-    // we mark the formal parameter as semi-safe and semi-typed.
+    // The same check needs to be compiled into `B.foo`, since it's possible
+    // that `bar` might have been called as `bar(new B())`.
     //
-    // For the semi-safe annotation, we also have to check all of thes that
-    // might come in through interfaces that the concrete method implements. So
-    // in the example above, `B.foo` needs a semi-typed annotation, since it may
-    // be passed a `List<Object>` via the interface `A.foo`, and `List<num>` is
-    // not a supertype of `List<Object>`.
+    // However, if the call to `foo` occurs via the interface target `B.foo`,
+    // no check is needed, since the class B is not generic, so the front end is
+    // able to check the types completely at compile time and issue an error if
+    // they don't match, as illustrated in `baz`.
+    //
+    // We represent this by marking A.foo's argument as both "semi-typed" and
+    // "semi-safe", whereas B.foo's argument is simply "semi-safe".  The rule is
+    // that a check only needs to be performed if the interface target's
+    // parameter is marked as "semi-typed" AND the actual target's parameter is
+    // marked as "semi-safe".
+    //
+    // A parameter is marked as "semi-typed" if it refers to one of the class's
+    // generic parameters in a covariant position; a parameter is marked as
+    // "semi-safe" if it is semi-typed or it overrides a parameter that is
+    // semi-safe.  (In other words, the "semi-safe" annotation is inherited).
+    //
+    // Note that this a slightly conservative analysis; it mark C.foo's argument
+    // as "semi-safe" even though technically it's not necessary to do so (since
+    // every possible call to C.foo is guaranteed to pass in a subtype of
+    // List<Object>).  In principle we could improve on this, but it would
+    // require a lot of bookkeeping, and it doesn't seem worth it.
     if (cls.typeParameters.isNotEmpty) {
-      // Compute a substitution that illustrates the set of types the class
-      // might have at runtime.  We call this the "pessimization" because it
-      // substitutes the top of the class hierarchy for each type parameter, as
-      // a worst case scenario.
-      // TODO(paulberry): consider whether we could do better by substituting
-      // type parameter bounds (this would require being careful with F-bounded
-      // type parameters, so it might not be worth it)
-      var pessimization = Substitution.fromPairs(cls.typeParameters,
-          new List.filled(cls.typeParameters.length, const DynamicType()));
+      var needsCheckVisitor =
+          new IncludesTypeParametersCovariantly(cls.typeParameters);
       // TODO(paulberry): also handle fields
       for (ShadowProcedure procedure in cls.procedures) {
         if (procedure.isStatic) continue;
-        void computeIncomingTypes(
-            int fileOffset,
-            DartType declaredType,
-            FormalSafety formalSafety,
-            void setAdditionalIncomingTypes(List<DartType> types),
-            void setInterfaceSafety(InterfaceSafety safety),
-            void setFormalSafety(FormalSafety formalSafety)) {
-          var pessimisticType = pessimization.substituteType(declaredType);
-          if (!typeSchemaEnvironment.isSubtypeOf(
-              pessimisticType, declaredType)) {
-            setAdditionalIncomingTypes([pessimisticType]);
-            setInterfaceSafety(InterfaceSafety.semiTyped);
-            if (!procedure.isAbstract && formalSafety == FormalSafety.safe) {
-              setFormalSafety(FormalSafety.semiSafe);
+
+        void handleParameter(VariableDeclaration formal) {
+          if (formal.type.accept(needsCheckVisitor)) {
+            if (formal.formalSafety == FormalSafety.safe) {
+              formal.formalSafety = FormalSafety.semiSafe;
             }
+            formal.interfaceSafety = InterfaceSafety.semiTyped;
           }
         }
 
-        void computeIncomingParameterTypes(VariableDeclaration formal) {
-          ShadowVariableDeclaration shadowVariableDeclaration = formal;
-          computeIncomingTypes(
-              formal.fileOffset, formal.type, formal.formalSafety, (types) {
-            shadowVariableDeclaration.additionalIncomingTypes = types;
-          }, (safety) {
-            formal.interfaceSafety = safety;
-          }, (safety) {
-            formal.formalSafety = safety;
-          });
+        void handleTypeParameter(TypeParameter typeParameter) {
+          if (typeParameter.bound.accept(needsCheckVisitor)) {
+            typeParameter.formalSafety = FormalSafety.semiSafe;
+            typeParameter.interfaceSafety = InterfaceSafety.semiTyped;
+          }
         }
 
-        void computeIncomingTypeParameterTypes(TypeParameter typeParameter) {
-          ShadowTypeParameter shadowTypeParameter = typeParameter;
-          computeIncomingTypes(typeParameter.fileOffset, typeParameter.bound,
-              typeParameter.formalSafety, (types) {
-            shadowTypeParameter.additionalIncomingTypes = types;
-          }, (safety) {
-            typeParameter.interfaceSafety = safety;
-          }, (safety) {
-            typeParameter.formalSafety = safety;
-          });
-        }
-
-        procedure.function.positionalParameters
-            .forEach(computeIncomingParameterTypes);
-        procedure.function.namedParameters
-            .forEach(computeIncomingParameterTypes);
-        procedure.function.typeParameters
-            .forEach(computeIncomingTypeParameterTypes);
+        procedure.function.positionalParameters.forEach(handleParameter);
+        procedure.function.namedParameters.forEach(handleParameter);
+        procedure.function.typeParameters.forEach(handleTypeParameter);
       }
     }
 
-    // Now, propagate additional incoming types from overrides to determine
-    // whether there are additional methods requiring a semi-safe annotation.
-    void checkSafety(
-        int fileOffset,
-        List<DartType> declaredAdditionalIncomingTypes,
-        List<DartType> interfaceAdditionalIncomingTypes,
-        DartType declaredType,
-        FormalSafety formalSafety,
-        void addDeclaredAdditionalIncomingType(DartType type),
-        void setFormalSafety(FormalSafety formalSafety)) {
-      // TODO(paulberry): add support for generic methods (need to match up
-      // method type parameters between the two methods)
-      if (interfaceAdditionalIncomingTypes == null) return;
-      for (var incomingType in interfaceAdditionalIncomingTypes) {
-        if (typeSchemaEnvironment.isSubtypeOf(incomingType, declaredType)) {
-          continue;
-        }
-        if (declaredAdditionalIncomingTypes != null &&
-            declaredAdditionalIncomingTypes.any(
-                (t) => typeSchemaEnvironment.isSubtypeOf(incomingType, t))) {
-          continue;
-        }
-        addDeclaredAdditionalIncomingType(incomingType);
-        if (formalSafety == FormalSafety.safe) {
-          setFormalSafety(FormalSafety.semiSafe);
-        }
+    // Now, propagate formal safety from overrides.
+    void propagateParameterSafety(VariableDeclaration declaredFormal,
+        VariableDeclaration interfaceFormal) {
+      if (interfaceFormal.formalSafety.index >
+          declaredFormal.formalSafety.index) {
+        declaredFormal.formalSafety = interfaceFormal.formalSafety;
       }
-    }
-
-    void checkParameterSafety(ShadowVariableDeclaration declaredFormal,
-        bool declaredIsAbstract, VariableDeclaration interfaceFormal) {
       if (interfaceFormal.isCovariant) {
         declaredFormal.isCovariant = true;
-        if (declaredFormal.formalSafety != FormalSafety.unsafe) {
-          declaredFormal.formalSafety = FormalSafety.unsafe;
-        }
-      }
-      if (declaredIsAbstract) return;
-      // TODO(paulberry): once additionalIncomingTypes is available from
-      // VariableDeclaration, remove this "is" check.
-      if (interfaceFormal is ShadowVariableDeclaration) {
-        checkSafety(
-            declaredFormal.fileOffset,
-            declaredFormal.additionalIncomingTypes,
-            interfaceFormal.additionalIncomingTypes,
-            declaredFormal.type,
-            declaredFormal.formalSafety, (type) {
-          (declaredFormal.additionalIncomingTypes ??= <DartType>[]).add(type);
-        }, (safety) {
-          declaredFormal.formalSafety = safety;
-        });
       }
     }
 
-    void checkTypeParameterSafety(ShadowTypeParameter declaredTypeParameter,
+    void propagateTypeParameterSafety(TypeParameter declaredTypeParameter,
         TypeParameter interfaceTypeParameter) {
-      // TODO(paulberry): once additionalIncomingTypes is available from
-      // TypeParameter, remove this "is" check.
-      if (interfaceTypeParameter is ShadowTypeParameter) {
-        checkSafety(
-            declaredTypeParameter.fileOffset,
-            declaredTypeParameter.additionalIncomingTypes,
-            interfaceTypeParameter.additionalIncomingTypes,
-            declaredTypeParameter.bound,
-            declaredTypeParameter.formalSafety, (type) {
-          (declaredTypeParameter.additionalIncomingTypes ??= <DartType>[])
-              .add(type);
-        }, (safety) {
-          declaredTypeParameter.formalSafety = safety;
-        });
+      if (interfaceTypeParameter.formalSafety.index >
+          declaredTypeParameter.formalSafety.index) {
+        declaredTypeParameter.formalSafety =
+            interfaceTypeParameter.formalSafety;
       }
     }
 
@@ -475,27 +456,23 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
           i < declaredMember.function.positionalParameters.length &&
               i < interfaceMember.function.positionalParameters.length;
           i++) {
-        checkParameterSafety(
+        propagateParameterSafety(
             declaredMember.function.positionalParameters[i],
-            declaredMember.isAbstract,
             interfaceMember.function.positionalParameters[i]);
       }
       for (var namedParameter in declaredMember.function.namedParameters) {
         var overriddenParameter =
             getNamedFormal(interfaceMember.function, namedParameter.name);
         if (overriddenParameter != null) {
-          checkParameterSafety(
-              namedParameter, declaredMember.isAbstract, overriddenParameter);
+          propagateParameterSafety(namedParameter, overriddenParameter);
         }
       }
       for (int i = 0;
           i < declaredMember.function.typeParameters.length &&
               i < interfaceMember.function.typeParameters.length;
           i++) {
-        if (!declaredMember.isAbstract) {
-          checkTypeParameterSafety(declaredMember.function.typeParameters[i],
-              interfaceMember.function.typeParameters[i]);
-        }
+        propagateTypeParameterSafety(declaredMember.function.typeParameters[i],
+            interfaceMember.function.typeParameters[i]);
       }
     });
 
@@ -508,8 +485,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
             instrumentation.record(Uri.parse(cls.fileUri), formal.fileOffset,
                 'checkInterface', new InstrumentationValueLiteral('semiTyped'));
           }
-          if (!procedure.isAbstract &&
-              formal.formalSafety != FormalSafety.safe) {
+          if (formal.formalSafety != FormalSafety.safe) {
             instrumentation.record(
                 Uri.parse(cls.fileUri),
                 formal.fileOffset,
@@ -529,8 +505,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
                 'checkInterface',
                 new InstrumentationValueLiteral('semiTyped'));
           }
-          if (!procedure.isAbstract &&
-              typeParameter.formalSafety != FormalSafety.safe) {
+          if (typeParameter.formalSafety != FormalSafety.safe) {
             instrumentation.record(
                 Uri.parse(cls.fileUri),
                 typeParameter.fileOffset,

@@ -10,7 +10,7 @@ class B {
 }
 
 abstract class I<T> {
-  void f(T /*@checkInterface=semiTyped*/ x);
+  void f(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x);
 }
 
 class M {

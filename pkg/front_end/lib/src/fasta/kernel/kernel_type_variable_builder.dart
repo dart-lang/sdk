@@ -4,9 +4,6 @@
 
 library fasta.kernel_type_variable_builder;
 
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show ShadowTypeParameter;
-
 import 'package:kernel/ast.dart'
     show DartType, TypeParameter, TypeParameterType;
 
@@ -30,8 +27,7 @@ class KernelTypeVariableBuilder
   KernelTypeVariableBuilder(
       String name, KernelLibraryBuilder compilationUnit, int charOffset,
       [KernelTypeBuilder bound])
-      : parameter = new ShadowTypeParameter(name, null)
-          ..fileOffset = charOffset,
+      : parameter = new TypeParameter(name, null)..fileOffset = charOffset,
         super(name, bound, compilationUnit, charOffset);
 
   TypeParameter get target => parameter;

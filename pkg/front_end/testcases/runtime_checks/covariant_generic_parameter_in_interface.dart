@@ -6,8 +6,8 @@
 library test;
 
 abstract class I<T> {
-  void f1(T /*@checkInterface=semiTyped*/ x);
-  void f2(T /*@checkInterface=semiTyped*/ x);
+  void f1(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x);
+  void f2(T /*@checkFormal=semiSafe*/ /*@checkInterface=semiTyped*/ x);
 }
 
 class C<U> implements I<int> {

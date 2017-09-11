@@ -232,7 +232,11 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
       _recordCheckFormal(offset, 'unsafe');
     } else if (cls != null) {
       var covariantParams = getClassCovariantParameters(cls);
-      if (covariantParams != null && covariantParams.contains(element)) {
+      if (covariantParams != null && covariantParams.contains(element) ||
+          cls?.typeParameters != null &&
+              element is ParameterElement &&
+              _isFormalSemiTyped(
+                  cls.typeParameters.typeParameters, element.type)) {
         _recordCheckFormal(offset, 'semiSafe');
       }
     }

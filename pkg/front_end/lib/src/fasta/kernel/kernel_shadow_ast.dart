@@ -2342,22 +2342,6 @@ class ShadowTypeLiteral extends TypeLiteral implements ShadowExpression {
   }
 }
 
-/// Concrete shadow object representing a type parameter in kernel form.
-class ShadowTypeParameter extends TypeParameter {
-  /// If this is a generic method type parameter, and the set of types that
-  /// might be used to instantiate this type parameter at runtime is larger than
-  /// what is implied by the type parameter's bound (due to parameter
-  /// covariance), a list of additional types that might be used to instantiate
-  /// this type parameter at runtime.  This is used by the front end to compute
-  /// when a type parameter needs to be annotated as "semi-safe".
-  ///
-  /// TODO(paulberry): remove this once the data is stored in the kernel
-  /// representation.
-  List<DartType> additionalIncomingTypes = null;
-
-  ShadowTypeParameter([String name, DartType bound]) : super(name, bound);
-}
-
 /// Concrete implementation of [TypePromoter] specialized to work with kernel
 /// objects.
 class ShadowTypePromoter extends TypePromoterImpl {
@@ -2461,17 +2445,6 @@ class ShadowVariableDeclaration extends VariableDeclaration
   bool _mutatedAnywhere = false;
 
   final bool _isLocalFunction;
-
-  /// If this variable declaration represents a formal parameter, and the set of
-  /// types that might be passed into this interface at runtime is larger than
-  /// what is implied by the parameter type (due to parameter covariance), a
-  /// list of additional types that might be passed into this interface at
-  /// runtime.  This is used by the front end to compute when a parameter needs
-  /// to be annotated as "semi-safe" or "unsafe".
-  ///
-  /// TODO(paulberry): remove this once the data is stored in the kernel
-  /// representation.
-  List<DartType> additionalIncomingTypes = null;
 
   ShadowVariableDeclaration(String name, this._functionNestingLevel,
       {Expression initializer,
