@@ -273,7 +273,7 @@ class OSThreadIterator : public ValueObject {
 
 class Mutex {
  public:
-  Mutex();
+  explicit Mutex(NOT_IN_PRODUCT(const char* name = "anonymous mutex"));
   ~Mutex();
 
 #if defined(DEBUG)
@@ -293,6 +293,7 @@ class Mutex {
   void Unlock();
 
   MutexData data_;
+  NOT_IN_PRODUCT(const char* name_);
 #if defined(DEBUG)
   ThreadId owner_;
 #endif  // defined(DEBUG)

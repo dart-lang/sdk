@@ -25,6 +25,15 @@ namespace dart {
     FATAL1("pthread error: %d", result);                                       \
   }
 
+#if defined(PRODUCT)
+#define VALIDATE_PTHREAD_RESULT_NAMED(result) VALIDATE_PTHREAD_RESULT(result)
+#else
+#define VALIDATE_PTHREAD_RESULT_NAMED(result)                                  \
+  if (result != 0) {                                                           \
+    FATAL2("[%s] pthread error: %d", name_, result);                           \
+  }
+#endif
+
 #if defined(DEBUG)
 #define ASSERT_PTHREAD_SUCCESS(result) VALIDATE_PTHREAD_RESULT(result)
 #else
@@ -200,22 +209,26 @@ bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
   return false;
 }
 
-Mutex::Mutex() {
+Mutex::Mutex(NOT_IN_PRODUCT(const char* name))
+#if !defined(PRODUCT)
+    : name_(name)
+#endif
+{
   pthread_mutexattr_t attr;
   int result = pthread_mutexattr_init(&attr);
-  VALIDATE_PTHREAD_RESULT(result);
+  VALIDATE_PTHREAD_RESULT_NAMED(result);
 
 #if defined(DEBUG)
   result = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
-  VALIDATE_PTHREAD_RESULT(result);
+  VALIDATE_PTHREAD_RESULT_NAMED(result);
 #endif  // defined(DEBUG)
 
   result = pthread_mutex_init(data_.mutex(), &attr);
   // Verify that creating a pthread_mutex succeeded.
-  VALIDATE_PTHREAD_RESULT(result);
+  VALIDATE_PTHREAD_RESULT_NAMED(result);
 
   result = pthread_mutexattr_destroy(&attr);
-  VALIDATE_PTHREAD_RESULT(result);
+  VALIDATE_PTHREAD_RESULT_NAMED(result);
 
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.
@@ -226,7 +239,7 @@ Mutex::Mutex() {
 Mutex::~Mutex() {
   int result = pthread_mutex_destroy(data_.mutex());
   // Verify that the pthread_mutex was destroyed.
-  VALIDATE_PTHREAD_RESULT(result);
+  VALIDATE_PTHREAD_RESULT_NAMED(result);
 
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.

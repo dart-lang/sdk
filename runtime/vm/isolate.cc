@@ -846,11 +846,14 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       api_state_(NULL),
       random_(),
       simulator_(NULL),
-      mutex_(new Mutex()),
-      symbols_mutex_(new Mutex()),
-      type_canonicalization_mutex_(new Mutex()),
-      constant_canonicalization_mutex_(new Mutex()),
-      megamorphic_lookup_mutex_(new Mutex()),
+      mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::mutex_"))),
+      symbols_mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::symbols_mutex_"))),
+      type_canonicalization_mutex_(
+          new Mutex(NOT_IN_PRODUCT("Isolate::type_canonicalization_mutex_"))),
+      constant_canonicalization_mutex_(new Mutex(
+          NOT_IN_PRODUCT("Isolate::constant_canonicalization_mutex_"))),
+      megamorphic_lookup_mutex_(
+          new Mutex(NOT_IN_PRODUCT("Isolate::megamorphic_lookup_mutex_"))),
       message_handler_(NULL),
       spawn_state_(NULL),
       defer_finalization_count_(0),
@@ -862,7 +865,8 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       next_(NULL),
       loading_invalidation_gen_(kInvalidGen),
       top_level_parsing_count_(0),
-      field_list_mutex_(new Mutex()),
+      field_list_mutex_(
+          new Mutex(NOT_IN_PRODUCT("Isolate::field_list_mutex_"))),
       boxed_field_list_(GrowableObjectArray::null()),
       spawn_count_monitor_(new Monitor()),
       spawn_count_(0),
