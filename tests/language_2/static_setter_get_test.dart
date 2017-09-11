@@ -6,7 +6,8 @@ import 'package:expect/expect.dart';
 
 class Class {
   static set o(_) {}
-  m() => o; //# 01: static type warning
+  m() => o; //# 01: compile-time error
+
   noSuchMethod(_) => 42;
 }
 

@@ -52,6 +52,11 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
+static_field1_test: CompileTimeError
+static_field1a_test: CompileTimeError
+static_field2_test: CompileTimeError
+static_field2a_test: CompileTimeError
+string_interpolate_test: CompileTimeError
 void_type_callbacks_test/00: MissingCompileTimeError # Issue 30514
 void_type_callbacks_test/01: MissingCompileTimeError # Issue 30514
 void_type_function_types_test/none: CompileTimeError # Issue 30514

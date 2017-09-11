@@ -15,7 +15,7 @@ class B {
 }
 
 main() {
-  A.x = 2; // //# 01: static type warning, runtime error
+  A.x = 2; // //# 01: compile-time error
   new B();
   print(B.b);
   print(B.a); // //# 02: continued

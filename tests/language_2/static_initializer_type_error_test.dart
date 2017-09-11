@@ -2,6 +2,4 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// An empty library, imported by string_escape3_negative_test.dart.
-
-library empty;
+int x = "milou"; /*@compile-error=unspecified*/

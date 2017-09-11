@@ -248,7 +248,6 @@ syntax_test/none: CompileTimeError # Issue #30176.
 await_backwards_compatibility_test/none: CompileTimeError
 await_test: CompileTimeError
 async_await_test: CompileTimeError
-static_initializer_type_error_test: CompileTimeError
 new_expression_type_args_test/02: CompileTimeError
 super_getter_setter_test: CompileTimeError
 malformed_test/none: CompileTimeError

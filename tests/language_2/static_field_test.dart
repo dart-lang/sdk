@@ -62,8 +62,8 @@ class StaticFieldTest {
 }
 
 class StaticField1RunNegativeTest {
-  static // //# 01: static type warning, runtime error
-  var x;
+  static // //# 01: compile-time error
+      var x;
   testMain() {
     var foo = new StaticField1RunNegativeTest();
     print(x); // Used to compile 'x' and force any errors.
@@ -72,8 +72,8 @@ class StaticField1RunNegativeTest {
 }
 
 class StaticField1aRunNegativeTest {
-  static // //# 02: static type warning, runtime error
-  void m() {}
+  static // //# 02: compile-time error
+      void m() {}
 
   testMain() {
     var foo = new StaticField1aRunNegativeTest();
@@ -83,8 +83,8 @@ class StaticField1aRunNegativeTest {
 }
 
 class StaticField2RunNegativeTest {
-  static //# 03:  static type warning, runtime error
-  var x;
+  static //# 03:  compile-time error
+      var x;
 
   testMain() {
     var foo = new StaticField2RunNegativeTest();
@@ -94,8 +94,8 @@ class StaticField2RunNegativeTest {
 }
 
 class StaticField2aRunNegativeTest {
-  static //  //# 04: static type warning, runtime error
-  void m() {}
+  static //  //# 04: compile-time error
+      void m() {}
 
   testMain() {
     var foo = new StaticField2aRunNegativeTest();
