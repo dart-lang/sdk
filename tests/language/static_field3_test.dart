@@ -11,9 +11,9 @@ class Foo {
 
 main() {
   if (false) {
-    var x = Foo.x; // //# 01: compile-time error
-    var m = Foo.m; // //# 02: compile-time error
-    Foo.m = 1; // //# 03: compile-time error
-    Foo.x = 1; // //# 04: compile-time error
+    var x = Foo.x; // //# 01: static type warning
+    var m = Foo.m; // //# 02: static type warning
+    Foo.m = 1; // //# 03: static type warning
+    Foo.x = 1; // //# 04: static type warning
   }
 }

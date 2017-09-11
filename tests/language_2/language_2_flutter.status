@@ -20,7 +20,6 @@ call_constructor_on_unresolvable_class_test/07: CompileTimeError
 class_keyword_test/02: CompileTimeError
 class_override_test/00: CompileTimeError
 generic_function_typedef2_test/04: CompileTimeError
-static_initializer_type_error_test: CompileTimeError
 type_variable_scope_test/none: CompileTimeError
 type_variable_scope_test/00: CompileTimeError
 type_variable_scope_test/01: CompileTimeError

@@ -9,8 +9,8 @@ class WhatchamaCallIt {
   WhatchamaCallIt() {}
 
   String foo() {
-    // Test $this is defined in subclass.
-    return "$this";
+    // Test $this and Field name is defined in subclass.
+    return "$this and $name";
   }
 }
 
@@ -19,7 +19,7 @@ class ThingamaBob extends WhatchamaCallIt {
       : super(),
         name = s {}
   String name;
-  toString() => "Hansel and $name";
+  toString() => "Hansel";
 }
 
 const String A = "svin";
@@ -70,8 +70,8 @@ class Stringable {
 void testStringVariants() {
   String latin = "ab\x00\xff";
   String nonLatin = "\u2000\u{10000}\ufeff";
-  var oLatin = new Stringable(latin);
-  var oNonLatin = new Stringable(nonLatin);
+  Object oLatin = new Stringable(latin);
+  Object oNonLatin = new Stringable(nonLatin);
 
   // ASCII.
   Expect.equals(latin * 3, "$latin$latin$latin");

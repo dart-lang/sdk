@@ -402,6 +402,9 @@ regress_25246_1_test: Crash # Issue 27394
 regress_28255_test: Crash # Issue 27394
 runtime_type_function_test: Pass, RuntimeError # Issue 27394
 static_call_wrong_argument_count_negative_test: Fail # Issue 27394
+static_setter_get_test/01: Crash # Issue 27394
+static_top_level_test/00: Crash # Issue 27394
+static_top_level_test/04: Crash # Issue 27394
 super_call4_test: Crash # Issue 27394
 super_conditional_operator_test/01: Crash # Issue 27394
 super_getter_setter_test: Crash # Issue 27394
