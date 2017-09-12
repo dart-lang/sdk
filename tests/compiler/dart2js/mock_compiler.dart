@@ -18,8 +18,6 @@ import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/visitor.dart';
 import 'package:compiler/src/library_loader.dart' show LoadedLibraries;
-import 'package:compiler/src/js_backend/lookup_map_analysis.dart'
-    show LookupMapResolutionAnalysis;
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/options.dart' show CompilerOptions;
 import 'package:compiler/src/resolution/members.dart';
@@ -131,8 +129,6 @@ class MockCompiler extends Compiler {
       asyncLibrarySource.addAll(ASYNC_AWAIT_LIBRARY);
     }
     registerSource(Uris.dart_async, buildLibrarySource(asyncLibrarySource));
-    registerSource(LookupMapResolutionAnalysis.PACKAGE_LOOKUP_MAP,
-        buildLibrarySource(DEFAULT_LOOKUP_MAP_LIBRARY));
   }
 
   /// Initialize the mock compiler with an empty main library.

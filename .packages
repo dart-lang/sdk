@@ -53,7 +53,6 @@ json_rpc_2:third_party/pkg/json_rpc_2/lib
 kernel:pkg/kernel/lib
 linter:third_party/pkg/linter/lib
 logging:third_party/pkg/logging/lib
-lookup_map:pkg/lookup_map/lib
 markdown:third_party/pkg/markdown/lib
 matcher:third_party/pkg/matcher/lib
 meta:pkg/meta/lib

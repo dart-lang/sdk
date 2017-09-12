@@ -27,7 +27,6 @@ import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
 import 'custom_elements_analysis.dart';
 import 'interceptor_data.dart';
-import 'lookup_map_analysis.dart';
 import 'mirrors_data.dart';
 import 'namer.dart';
 import 'native_data.dart';
@@ -347,7 +346,6 @@ class CodegenImpactTransformer {
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
   final Namer _namer;
   final OneShotInterceptorData _oneShotInterceptorData;
-  final LookupMapAnalysis _lookupMapAnalysis;
   final RuntimeTypesChecksBuilder _rtiChecksBuilder;
 
   CodegenImpactTransformer(
@@ -362,7 +360,6 @@ class CodegenImpactTransformer {
       this._nativeCodegenEnqueuer,
       this._namer,
       this._oneShotInterceptorData,
-      this._lookupMapAnalysis,
       this._rtiChecksBuilder);
 
   void onIsCheckForCodegen(DartType type, TransformedWorldImpact transformed) {
@@ -409,14 +406,8 @@ class CodegenImpactTransformer {
 
     for (TypeUse typeUse in impact.typeUses) {
       DartType type = typeUse.type;
-      switch (typeUse.kind) {
-        case TypeUseKind.INSTANTIATION:
-          _lookupMapAnalysis.registerInstantiatedType(type);
-          break;
-        case TypeUseKind.IS_CHECK:
-          onIsCheckForCodegen(type, transformed);
-          break;
-        default:
+      if (typeUse.kind == TypeUseKind.IS_CHECK) {
+        onIsCheckForCodegen(type, transformed);
       }
     }
 
@@ -427,26 +418,19 @@ class CodegenImpactTransformer {
     }
 
     for (StaticUse staticUse in impact.staticUses) {
-      switch (staticUse.kind) {
-        case StaticUseKind.CALL_METHOD:
-          FunctionEntity callMethod = staticUse.element;
-          // TODO(johnniwinther): Remove [localFunctionNeedsRti] and use
-          // the call method instead.
-          if (_rtiNeed.methodNeedsRti(callMethod)) {
+      if (staticUse.kind == StaticUseKind.CALL_METHOD) {
+        FunctionEntity callMethod = staticUse.element;
+        // TODO(johnniwinther): Remove [localFunctionNeedsRti] and use
+        // the call method instead.
+        if (_rtiNeed.methodNeedsRti(callMethod)) {
+          _impacts.computeSignature
+              .registerImpact(transformed, _elementEnvironment);
+        } else if (callMethod is SynthesizedCallMethodElementX) {
+          if (_rtiNeed.localFunctionNeedsRti(callMethod.expression)) {
             _impacts.computeSignature
                 .registerImpact(transformed, _elementEnvironment);
-          } else if (callMethod is SynthesizedCallMethodElementX) {
-            if (_rtiNeed.localFunctionNeedsRti(callMethod.expression)) {
-              _impacts.computeSignature
-                  .registerImpact(transformed, _elementEnvironment);
-            }
           }
-          break;
-        case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-        case StaticUseKind.CONSTRUCTOR_INVOKE:
-          _lookupMapAnalysis.registerInstantiatedType(staticUse.type);
-          break;
-        default:
+        }
       }
     }
 

@@ -48,9 +48,6 @@ deferred/deferred_mirrors2_test: Fail # mirrors not supported
 inference_nsm_mirrors_test: Fail # mirrors not supported
 invalid_annotation2_test/none: Fail # mirrors not supported
 invalid_annotation2_test/01: Pass # mirrors not supported, passes for the wrong reason
-lookup_map/dead_entry_through_mirrors_test: Fail # mirrors not supported
-lookup_map/live_entry_through_mirrors_test: Fail # mirrors not supported
-lookup_map/live_entry_through_mirrors_used_test: Fail # mirrors not supported
 mirror_enqueuer_regression_test: Fail # mirrors not supported
 mirror_invalid_field_access2_test: Fail # mirrors not supported
 mirror_invalid_field_access3_test: Fail # mirrors not supported
@@ -115,7 +112,6 @@ deferred_custom_loader_test: SkipByDesign # Issue 25683
 
 [ $compiler == none && $runtime == vm ]
 invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy
-lookup_map/dead_entry_through_mirrors_test: SkipByDesign # Test for tree-shaking, vm never tree-shakes
 unconditional_dartio_import_test: SkipByDesign # dart2js only test
 new_from_env_test: SkipByDesign # dart2js only test
 
@@ -146,9 +142,6 @@ inference_super_set_call_test: RuntimeError # Issue 27394
 invalid_annotation2_test/01: Crash # Issue 27394
 invalid_annotation2_test/none: Crash # Issue 27394
 invalid_annotation_test/01: Crash # Issue 27394
-lookup_map/dead_entry_through_mirrors_test: Crash # Issue 27394
-lookup_map/live_entry_through_mirrors_test: Crash # Issue 27394
-lookup_map/live_entry_through_mirrors_used_test: Crash # Issue 27394
 many_fields_test: Crash # Issue 27394
 mirror_enqueuer_regression_test: Crash # Issue 27394
 mirror_invalid_invoke2_test: Crash # Issue 27394
@@ -218,20 +211,6 @@ invalid_annotation2_test/none: Crash
 is_check_instanceof_test: Crash
 js_dispatch_property_test: RuntimeError
 label_test/06: Crash
-lookup_map/dead_entry_single_nested_pairs_test: Crash
-lookup_map/dead_entry_test: Crash
-lookup_map/dead_entry_through_mirrors_test: Crash
-lookup_map/discovered_code_test: Crash
-lookup_map/entries_aside_test: Crash
-lookup_map/escaping_entries_test: Crash
-lookup_map/generic_type_test: Crash
-lookup_map/live_entry_single_pair_test: Crash
-lookup_map/live_entry_test: Crash
-lookup_map/live_entry_through_mirrors_test: Crash
-lookup_map/live_entry_through_mirrors_used_test: Crash
-lookup_map/reachable_data2_test: Crash
-lookup_map/reachable_data_test: Crash
-lookup_map/subclass_lookup_map_test: Crash
 many_constants_test: RuntimeError
 mirror_invalid_field_access2_test: Crash
 mirror_invalid_field_access3_test: Crash
@@ -327,20 +306,6 @@ invalid_annotation2_test/none: Crash # NoSuchMethodError: Class 'DynamicType' ha
 is_check_instanceof_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 js_dispatch_property_test: RuntimeError
 label_test/06: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-lookup_map/dead_entry_single_nested_pairs_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/dead_entry_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/dead_entry_through_mirrors_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/discovered_code_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/entries_aside_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/escaping_entries_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/generic_type_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/live_entry_single_pair_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/live_entry_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/live_entry_through_mirrors_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/live_entry_through_mirrors_used_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/reachable_data2_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/reachable_data_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
-lookup_map/subclass_lookup_map_test: Crash # NoSuchMethodError: Class 'KField' has no instance getter 'constant'.
 many_constants_test: RuntimeError
 mirror_invalid_field_access2_test: Crash # Assertion failure: Cannot find value local(main_closure.call#mirror) in (local(main#)) for j:closure_call(main_closure.call).
 mirror_invalid_field_access3_test: Crash # Assertion failure: Cannot find value local(main_closure.call#mirror) in (local(main#)) for j:closure_call(main_closure.call).

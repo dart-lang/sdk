@@ -780,7 +780,6 @@ _TODO: complete the documentation for the following files_.
 `lib/src/js_backend/js_interop_analysis.dart`
 `lib/src/js_backend/backend_impact.dart`
 `lib/src/js_backend/constant_emitter.dart`
-`lib/src/js_backend/lookup_map_analysis.dart`
 `lib/src/js_backend/namer_names.dart`
 `lib/src/js_backend/runtime_types.dart`
 `lib/src/js_backend/no_such_method_registry.dart`
