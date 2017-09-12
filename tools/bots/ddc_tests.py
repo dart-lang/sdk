@@ -38,7 +38,7 @@ if __name__ == '__main__':
       bot.RunProcess([
         'xvfb-run', sys.executable, './tools/test.py', '--strong', '-mrelease',
         '-cdartdevc', '-rchrome', '-ax64', '--report', '--time', '--checked',
-        '--progress=buildbot'] + TARGETS )
+        '--progress=buildbot', '--write-result-log'] + TARGETS )
     else:
       info = bot.BuildInfo('dartdevc', 'chrome', 'release', system,
           arch='x64', checked=True)
