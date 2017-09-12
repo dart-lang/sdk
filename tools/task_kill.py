@@ -33,7 +33,7 @@ EXECUTABLE_NAMES = {
     'gen_snapshot': 'gen_snapshot.exe',
     'git': 'git.exe',
     'iexplore': 'iexplore.exe',
-    'VCTIP': 'VCTIP.EXE',
+    'vctip': 'vctip.exe',
     'mspdbsrv': 'mspdbsrv.exe',
   },
   'linux': {
@@ -234,7 +234,7 @@ def KillVCSystems():
   return status
 
 def KillVSBuild():
-  status = Kill('VCTIP')
+  status = Kill('vctip')
   status += Kill('mspdbsrv')
   return status
 
