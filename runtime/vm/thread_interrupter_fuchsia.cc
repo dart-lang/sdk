@@ -26,10 +26,10 @@ namespace dart {
 DECLARE_FLAG(bool, thread_interrupter);
 DECLARE_FLAG(bool, trace_thread_interrupter);
 
-// TODO(MG-430): Currently, CPU profiling for Fuchsia is arranged very similarly
+// TODO(ZX-430): Currently, CPU profiling for Fuchsia is arranged very similarly
 // to our Windows profiling. That is, the interrupter thread iterates over
 // all threads, suspends them, samples various things, and then resumes them.
-// When MG-430 is resolved, the code below should be rewritten to use whatever
+// When ZX-430 is resolved, the code below should be rewritten to use whatever
 // feature is added for it.
 
 // A scope within which a target thread is suspended. When the scope is exited,

@@ -297,7 +297,7 @@ async/timer_test: RuntimeError
 convert/json_lib_test: RuntimeError
 mirrors/library_uri_io_test: RuntimeError
 mirrors/library_uri_package_test: RuntimeError
-# fstat bug, MG-479.
+# fstat bug, ZX-479.
 mirrors/invocation_fuzz_test: Crash
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]

@@ -247,7 +247,7 @@ bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
   uint32_t prot = 0;
   switch (mode) {
     case kNoAccess:
-      // MG-426: mx_vmar_protect() requires at least on permission.
+      // ZX-426: mx_vmar_protect() requires at least on permission.
       prot = MX_VM_FLAG_PERM_READ;
       break;
     case kReadOnly:
