@@ -1050,24 +1050,15 @@ class ConstantValueEquivalence
 /// Tests the equivalence of [impact1] and [impact2] using [strategy].
 bool testResolutionImpactEquivalence(
     ResolutionImpact impact1, ResolutionImpact impact2,
-    {TestStrategy strategy = const TestStrategy(),
-    Iterable<ConstantExpression> filterConstantLiterals(
-        Iterable<ConstantExpression> constants,
-        {bool fromFirstImpact})}) {
+    {TestStrategy strategy = const TestStrategy()}) {
   return strategy.testSets(impact1, impact2, 'constSymbolNames',
           impact1.constSymbolNames, impact2.constSymbolNames) &&
       strategy.testSets(
           impact1,
           impact2,
           'constantLiterals',
-          filterConstantLiterals != null
-              ? filterConstantLiterals(impact1.constantLiterals,
-                  fromFirstImpact: true)
-              : impact1.constantLiterals,
-          filterConstantLiterals != null
-              ? filterConstantLiterals(impact2.constantLiterals,
-                  fromFirstImpact: false)
-              : impact2.constantLiterals,
+          impact1.constantLiterals,
+          impact2.constantLiterals,
           areConstantsEquivalent) &&
       strategy.testSets(
           impact1,

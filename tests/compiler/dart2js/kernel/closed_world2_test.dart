@@ -197,9 +197,8 @@ Future<ResultKind> mainInternal(List<String> args,
   ClosedWorld closedWorld1 = compiler1.resolutionWorldBuilder.closeWorld();
   BackendUsage backendUsage1 = closedWorld1.backendUsage;
 
-  Pair<Compiler, Compiler> compilers = await analyzeOnly(
-      entryPoint, memorySourceFiles,
-      printSteps: true, useKernelInSsa: true);
+  Pair<Compiler, Compiler> compilers =
+      await analyzeOnly(entryPoint, memorySourceFiles, printSteps: true);
   Compiler compiler = compilers.a;
   compiler.resolutionWorldBuilder.closeWorld();
   ElementEnvironment environment1 =

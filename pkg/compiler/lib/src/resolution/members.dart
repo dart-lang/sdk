@@ -443,8 +443,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             element.constant = result.constant;
           }
         } else {
-          registry.registerConstantLiteral(
-              element.constant = new NullConstantExpression());
+          element.constant = new NullConstantExpression();
         }
       }
       VariableDefinitions variableDefinitions = parameterNodes.head;
