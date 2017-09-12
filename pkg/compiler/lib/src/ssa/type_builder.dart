@@ -6,12 +6,13 @@ import 'graph_builder.dart';
 import 'nodes.dart';
 import '../closure.dart';
 import '../common.dart';
-import '../types/types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
+import '../js_model/closure.dart';
+import '../types/types.dart';
 import '../universe/use.dart' show TypeUse;
 
 /// Functions to insert type checking, coercion, and instruction insertion
@@ -79,9 +80,13 @@ class TypeBuilder {
     }
     bool isClosure = member.enclosingClass.isClosure;
     if (isClosure) {
-      ClosureClassElement closureClass = member.enclosingClass;
-      LocalFunctionElement localFunction = closureClass.methodElement;
-      member = localFunction.memberContext;
+      ClassEntity closureClass = member.enclosingClass;
+      if (closureClass is JClosureClass) {
+        member = closureClass.closureContext;
+      } else if (closureClass is ClosureClassElement) {
+        LocalFunctionElement localFunction = closureClass.methodElement;
+        member = localFunction.memberContext;
+      }
     }
     bool isInConstructorContext =
         member.isConstructor || member is ConstructorBodyEntity;

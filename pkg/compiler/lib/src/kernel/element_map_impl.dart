@@ -2192,7 +2192,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
     SourceSpan location = computeSourceSpanFromTreeNode(node);
     Map<String, MemberEntity> memberMap = <String, MemberEntity>{};
 
-    JClass classEntity = new JClosureClass(enclosingLibrary, name);
+    JClass classEntity = new JClosureClass(enclosingLibrary, name, member);
     // Create a classData and set up the interfaces and subclass
     // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
     var closureData =

@@ -446,7 +446,10 @@ class NodeBox {
 }
 
 class JClosureClass extends JClass {
-  JClosureClass(JLibrary library, String name)
+  /// The member inside which the original closure occurred.
+  MemberEntity closureContext;
+
+  JClosureClass(JLibrary library, String name, this.closureContext)
       : super(library, name, isAbstract: false);
 
   @override
