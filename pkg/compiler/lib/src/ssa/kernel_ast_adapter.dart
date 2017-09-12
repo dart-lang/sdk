@@ -157,6 +157,10 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
     return new RegularMemberDefinition(member, node);
   }
 
+  InterfaceType getMemberThisType(MemberElement member) {
+    return member.contextClass?.thisType;
+  }
+
   ir.Node getClassNode(ClassElement cls) {
     throw new UnsupportedError('KernelAstAdapter.getClassNode');
   }

@@ -510,12 +510,18 @@ class ClosureClassDefinition implements ClassDefinition {
 
 class ClosureMemberData implements MemberData {
   final MemberDefinition definition;
+  final InterfaceType memberThisType;
 
-  ClosureMemberData(this.definition);
+  ClosureMemberData(this.definition, this.memberThisType);
 
   @override
   Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
     return const <ConstantValue>[];
+  }
+
+  @override
+  InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap) {
+    return memberThisType;
   }
 }
 
@@ -523,9 +529,9 @@ class ClosureFunctionData extends ClosureMemberData implements FunctionData {
   final FunctionType functionType;
   final ir.FunctionNode functionNode;
 
-  ClosureFunctionData(
-      ClosureMemberDefinition definition, this.functionType, this.functionNode)
-      : super(definition);
+  ClosureFunctionData(ClosureMemberDefinition definition,
+      InterfaceType memberThisType, this.functionType, this.functionNode)
+      : super(definition, memberThisType);
 
   void forEachParameter(KernelToElementMapForBuilding elementMap,
       void f(DartType type, String name, ConstantValue defaultValue)) {
@@ -559,7 +565,8 @@ class ClosureFunctionData extends ClosureMemberData implements FunctionData {
 }
 
 class ClosureFieldData extends ClosureMemberData implements FieldData {
-  ClosureFieldData(MemberDefinition definition) : super(definition);
+  ClosureFieldData(MemberDefinition definition, InterfaceType memberThisType)
+      : super(definition, memberThisType);
 
   @override
   DartType getFieldType(KernelToElementMap elementMap) {

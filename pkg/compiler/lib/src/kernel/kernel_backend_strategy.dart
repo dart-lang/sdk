@@ -96,7 +96,7 @@ class KernelSsaBuilder implements SsaBuilder {
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(work.element);
     KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
         work.element,
-        work.element.enclosingClass,
+        _elementMap.getMemberThisType(work.element),
         _compiler,
         _elementMap,
         new KernelToTypeInferenceMapImpl(

@@ -40,14 +40,14 @@ class LocalsHandler {
   final Entity executableContext;
   final MemberEntity memberContext;
 
-  /// The class that defines the current type environment or null if no type
-  /// variables are in scope.
-  final ClassEntity contextClass;
-
-  /// The type of the current instance, if concrete.
+  /// The type of the current instance. `null` if in a static context.
   ///
-  /// This allows for handling fixed type argument in case of inlining. For
-  /// instance, checking `'foo'` against `String` instead of `T` in `main`:
+  /// This is the type of `this` is the current context, and is often the
+  /// 'this type' of the enclosing class of a member.
+  ///
+  /// If the current instance is concrete, we can handle fixed type argument in
+  /// case of inlining. For instance, checking `'foo'` against `String` instead
+  /// of `T` in `main`:
   ///
   ///     class Foo<T> {
   ///       T field;
@@ -57,27 +57,14 @@ class LocalsHandler {
   ///       new Foo<String>('foo');
   ///     }
   ///
-  /// [instanceType] is not used if it contains type variables, since these
-  /// might not be in scope or from the current instance.
-  ///
   final InterfaceType instanceType;
 
   final NativeData _nativeData;
 
   final InterceptorData _interceptorData;
 
-  LocalsHandler(
-      this.builder,
-      this.executableContext,
-      this.memberContext,
-      this.contextClass,
-      InterfaceType instanceType,
-      this._nativeData,
-      this._interceptorData)
-      : this.instanceType =
-            instanceType == null || instanceType.containsTypeVariables
-                ? null
-                : instanceType;
+  LocalsHandler(this.builder, this.executableContext, this.memberContext,
+      this.instanceType, this._nativeData, this._interceptorData);
 
   ClosedWorld get closedWorld => builder.closedWorld;
 
@@ -89,19 +76,21 @@ class LocalsHandler {
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
   DartType substInContext(DartType type) {
-    if (contextClass != null) {
-      ClassEntity typeContext = DartTypes.getClassContext(type);
+    //DartType input = type;
+    DartType newType = type;
+    if (instanceType != null) {
+      ClassEntity typeContext = DartTypes.getClassContext(newType);
       if (typeContext != null) {
-        type = builder.types.substByContext(
-            type,
+        newType = builder.types.substByContext(
+            newType,
             builder.types.asInstanceOf(
-                builder.types.getThisType(contextClass), typeContext));
+                builder.types.getThisType(instanceType.element), typeContext));
+      }
+      if (!instanceType.containsTypeVariables) {
+        newType = builder.types.substByContext(newType, instanceType);
       }
     }
-    if (instanceType != null) {
-      type = builder.types.substByContext(type, instanceType);
-    }
-    return type;
+    return newType;
   }
 
   /// Creates a new [LocalsHandler] based on [other]. We only need to
@@ -112,7 +101,6 @@ class LocalsHandler {
         redirectionMapping = other.redirectionMapping,
         executableContext = other.executableContext,
         memberContext = other.memberContext,
-        contextClass = other.contextClass,
         instanceType = other.instanceType,
         builder = other.builder,
         scopeInfo = other.scopeInfo,

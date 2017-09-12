@@ -106,7 +106,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   KernelSsaGraphBuilder(
       this.targetElement,
-      ClassEntity contextClass,
+      InterfaceType instanceType,
       this.compiler,
       this._elementMap,
       this._typeInferenceMap,
@@ -125,7 +125,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
     this.localsHandler = new LocalsHandler(this, targetElement, targetElement,
-        contextClass, null, nativeData, interceptorData);
+        instanceType, nativeData, interceptorData);
     _targetStack.add(targetElement);
   }
 

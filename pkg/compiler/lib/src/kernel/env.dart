@@ -470,6 +470,8 @@ abstract class MemberData {
   MemberDefinition get definition;
 
   Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap);
+
+  InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap);
 }
 
 class MemberDataImpl implements MemberData {
@@ -486,6 +488,15 @@ class MemberDataImpl implements MemberData {
   Iterable<ConstantValue> getMetadata(
       covariant KernelToElementMapBase elementMap) {
     return _metadata ??= elementMap.getMetadata(node.annotations);
+  }
+
+  InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap) {
+    MemberEntity member = elementMap.getMember(node);
+    ClassEntity cls = member.enclosingClass;
+    if (cls != null) {
+      return elementMap.elementEnvironment.getThisType(cls);
+    }
+    return null;
   }
 
   MemberData copy() {

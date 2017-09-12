@@ -168,11 +168,11 @@ class TypeBuilder {
     ClassEntity contextClass = DartTypes.getClassContext(type);
     assert(
         contextClass == null ||
-            contextClass == builder.localsHandler.contextClass,
+            contextClass == builder.localsHandler.instanceType?.element,
         failedAt(
             spannable ?? CURRENT_ELEMENT_SPANNABLE,
             "Type '$type' is not valid context of "
-            "${builder.localsHandler.contextClass}."));
+            "${builder.localsHandler.instanceType?.element}."));
     return true;
   }
 

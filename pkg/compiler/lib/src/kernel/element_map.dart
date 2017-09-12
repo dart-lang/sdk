@@ -182,6 +182,10 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
   /// Returns the definition information for [member].
   MemberDefinition getMemberDefinition(covariant MemberEntity member);
 
+  /// Returns the type of `this` in [member], or `null` if member is defined in
+  /// a static context.
+  InterfaceType getMemberThisType(covariant MemberEntity member);
+
   /// Returns the definition information for [cls].
   ClassDefinition getClassDefinition(covariant ClassEntity cls);
 

@@ -251,8 +251,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         this,
         target,
         target.memberContext,
-        target.contextClass,
-        null,
+        target.contextClass?.thisType,
         closedWorld.nativeData,
         closedWorld.interceptorData);
     loopHandler = new SsaLoopHandler(this);
@@ -837,8 +836,13 @@ class SsaAstGraphBuilder extends ast.Visitor
       {ResolutionInterfaceType instanceType}) {
     ResolvedAst resolvedAst = function.resolvedAst;
     assert(resolvedAst != null);
-    localsHandler = new LocalsHandler(this, function, function.memberContext,
-        function.contextClass, instanceType, nativeData, interceptorData);
+    localsHandler = new LocalsHandler(
+        this,
+        function,
+        function.memberContext,
+        instanceType ?? function.contextClass?.thisType,
+        nativeData,
+        interceptorData);
     localsHandler.scopeInfo = closureDataLookup.getScopeInfo(function);
     returnLocal =
         new SyntheticLocal("result", function, function.memberContext);
