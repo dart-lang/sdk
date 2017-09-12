@@ -449,6 +449,19 @@ class InitializerResolver {
     if (!resolvedSuper) {
       constructorInvocation = resolveImplicitSuperConstructorSend();
     }
+    constructor.enclosingClass
+        .forEachInstanceField((ClassElement declarer, FieldElement field) {
+      if (declarer != constructor.enclosingClass) return;
+
+      if (!initialized.containsKey(field)) {
+        visitor.resolution.ensureResolved(field);
+        if (field.isFinal && field.initializer == null) {
+          registry.registerStaticUse(new StaticUse.fieldInit(field));
+          registry.registerConstantLiteral(new NullConstantExpression());
+        }
+      }
+    });
+
     if (isConst && isValidAsConstant) {
       constructor.enclosingClass.forEachInstanceField((_, FieldElement field) {
         if (!fieldInitializers.containsKey(field)) {

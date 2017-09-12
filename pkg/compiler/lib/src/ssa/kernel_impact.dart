@@ -121,7 +121,10 @@ class KernelImpactBuilder extends ir.Visitor {
           field.initializer is! ir.NullLiteral) {
         impactBuilder.registerFeature(Feature.LAZY_FIELD);
       }
+    } else {
+      impactBuilder.registerConstantLiteral(new NullConstantExpression());
     }
+
     if (field.isInstanceMember &&
         elementAdapter.isNativeClass(field.enclosingClass)) {
       MemberEntity member = elementAdapter.getMember(field);
@@ -427,7 +430,13 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitDirectMethodInvocation(ir.DirectMethodInvocation node) {
-    handleSuperInvocation(node.name, node.target, node.arguments);
+    _visitArguments(node.arguments);
+    // TODO(johnniwinther): Restrict the dynamic use to only match the known
+    // target.
+    impactBuilder.registerDynamicUse(new DynamicUse(
+        new Selector.call(elementAdapter.getMember(node.target).memberName,
+            elementAdapter.getCallStructure(node.arguments)),
+        null));
   }
 
   @override
@@ -456,7 +465,11 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitDirectPropertyGet(ir.DirectPropertyGet node) {
-    handleSuperGet(null, node.target);
+    // TODO(johnniwinther): Restrict the dynamic use to only match the known
+    // target.
+    impactBuilder.registerDynamicUse(new DynamicUse(
+        new Selector.getter(elementAdapter.getMember(node.target).memberName),
+        null));
   }
 
   @override
@@ -484,7 +497,12 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitDirectPropertySet(ir.DirectPropertySet node) {
-    handleSuperSet(null, node.target, node.value);
+    visitNode(node.value);
+    // TODO(johnniwinther): Restrict the dynamic use to only match the known
+    // target.
+    impactBuilder.registerDynamicUse(new DynamicUse(
+        new Selector.setter(elementAdapter.getMember(node.target).memberName),
+        null));
   }
 
   @override
@@ -551,6 +569,22 @@ class KernelImpactBuilder extends ir.Visitor {
     impactBuilder.registerStaticUse(
         new StaticUse.closure(elementAdapter.getLocalFunction(node)));
     handleSignature(node.function);
+    // TODO(johnniwinther): Remove this when #30629 is closed.
+    switch (node.function.asyncMarker) {
+      case ir.AsyncMarker.Async:
+        impactBuilder.registerTypeUse(new TypeUse.checkedModeCheck(
+            elementAdapter.commonElements.futureType()));
+        break;
+      case ir.AsyncMarker.AsyncStar:
+        impactBuilder.registerTypeUse(new TypeUse.checkedModeCheck(
+            elementAdapter.commonElements.streamType()));
+        break;
+      case ir.AsyncMarker.SyncStar:
+        impactBuilder.registerTypeUse(new TypeUse.checkedModeCheck(
+            elementAdapter.commonElements.iterableType()));
+        break;
+      default:
+    }
     handleAsyncMarker(node.function.asyncMarker);
     visitNode(node.function.body);
   }
