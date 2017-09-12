@@ -169,6 +169,15 @@ class RetainedDataBuilder extends RetainedData {
       var function = node.function;
       function.positionalParameters.forEach(markParameter);
       function.namedParameters.forEach(markParameter);
+      // We don't mark automatically all constructors of classes.
+      // So, we need transitively mark super/redirect initializers.
+      for (var initializer in node.initializers) {
+        if (initializer is SuperInitializer) {
+          markMember(initializer.target);
+        } else if (initializer is RedirectingInitializer) {
+          markMember(initializer.target);
+        }
+      }
     } else if (node is Procedure) {
       var function = node.function;
       function.typeParameters.forEach((p) => p.bound.accept(typeMarker));

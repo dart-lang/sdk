@@ -14,11 +14,23 @@ class A5 {}
 
 class A6 {}
 
-class B {
+class S1 {
+  S1();
+  S1.namedConstructor1();
+  S1.namedConstructor2();
+}
+
+class S2 extends S1 {
+  S2();
+  S2.namedConstructor1() : super.namedConstructor1();
+  S2.namedConstructor2() : super.namedConstructor2();
+}
+
+class B extends S2 {
   A1 publicField;
   A2 _privateField;
 
   B();
-  B.publicConstructor(A3 a, [A4 b]);
+  B.publicConstructor(A3 a, [A4 b]) : super.namedConstructor1();
   B._privateConstructor(A5 a);
 }

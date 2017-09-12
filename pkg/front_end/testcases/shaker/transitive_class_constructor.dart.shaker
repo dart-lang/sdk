@@ -5,6 +5,12 @@ library pkg/front_end/testcases/shaker/transitive_class_constructor_lib.dart:
   - class A1
   - class A3
   - class A4
+  - class S1
+    - (default constructor)
+    - namedConstructor1
+  - class S2
+    - (default constructor)
+    - namedConstructor1
   - class B
     - publicField
     - (default constructor)
