@@ -690,10 +690,6 @@ template("dart_executable") {
       deps += [ "//third_party/tcmalloc" ]
     }
 
-    if (is_fuchsia) {
-      deps += [ "//apps/tracing/lib/trace" ]
-    }
-
     sources = [
                 "error_exit.cc",
                 "error_exit.h",

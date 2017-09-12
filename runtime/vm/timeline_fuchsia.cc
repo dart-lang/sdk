@@ -5,8 +5,11 @@
 #include "platform/globals.h"
 #if defined(HOST_OS_FUCHSIA) && !defined(PRODUCT)
 
-#include "apps/tracing/lib/trace/cwriter.h"
-#include "apps/tracing/lib/trace/event.h"
+#include <magenta/syscalls.h>
+#include <trace-engine/context.h>
+#include <trace-engine/instrumentation.h>
+
+#include "platform/utils.h"
 #include "vm/object.h"
 #include "vm/timeline.h"
 
@@ -47,36 +50,32 @@ void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
   if (event == NULL) {
     return;
   }
-  if (!ctrace_is_enabled()) {
+  trace_string_ref_t category;
+  trace_context_t* context =
+      trace_acquire_context_for_category("dart", &category);
+  if (context == NULL) {
     ThreadBlockCompleteEvent(event);
     return;
   }
-  auto writer = ctrace_writer_acquire();
 
-  // XXX: use ctrace_register_category_string();
-  ctrace_stringref_t category;
-  ctrace_register_string(writer, "dart", &category);
+  trace_string_ref_t name = trace_context_make_registered_string_copy(
+      context, event->label(), strlen(event->label()));
 
-  ctrace_stringref_t name;
-  ctrace_register_string(writer, event->label(), &name);
+  trace_thread_ref_t thread;
+  trace_context_register_current_thread(context, &thread);
 
-  ctrace_threadref_t thread;
-  ctrace_register_current_thread(writer, &thread);
+  trace_arg_t args[TRACE_MAX_ARGS];
+  const intptr_t num_args = Utils::Minimum(
+      event->arguments_length(), static_cast<intptr_t>(TRACE_MAX_ARGS));
 
-  ctrace_argspec_t args[2];
-  ctrace_arglist_t arglist = {0, args};
-
-  if (event->arguments_length() >= 1) {
-    args[0].type = CTRACE_ARGUMENT_STRING;
-    args[0].name = event->arguments()[0].name;
-    args[0].u.s = event->arguments()[0].value;
-    arglist.n_args += 1;
-  }
-  if (event->arguments_length() >= 2) {
-    args[1].type = CTRACE_ARGUMENT_STRING;
-    args[1].name = event->arguments()[1].name;
-    args[1].u.s = event->arguments()[1].value;
-    arglist.n_args += 1;
+  for (intptr_t i = 0; i < num_args; i++) {
+    const char* name = event->arguments()[i].name;
+    const char* value = event->arguments()[i].value;
+    trace_string_ref_t arg_name =
+        trace_context_make_registered_string_literal(context, name);
+    trace_string_ref_t arg_value =
+        trace_make_inline_string_ref(value, strlen(value));
+    args[i] = trace_make_arg(arg_name, trace_make_string_arg_value(arg_value));
   }
 
   const uint64_t time_scale = mx_ticks_per_second() / kMicrosecondsPerSecond;
@@ -88,54 +87,58 @@ void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
   // the name of the timeline stream, e.g. "VM", "GC", etc.
   switch (event->event_type()) {
     case TimelineEvent::kBegin:
-      ctrace_write_duration_begin_event_record(writer, start_time, &thread,
-                                               &category, &name, &arglist);
+      trace_context_write_duration_begin_event_record(
+          context, start_time, &thread, &category, &name, args, num_args);
       break;
     case TimelineEvent::kEnd:
-      ctrace_write_duration_end_event_record(writer, end_time, &thread,
-                                             &category, &name, &arglist);
+      trace_context_write_duration_end_event_record(
+          context, start_time, &thread, &category, &name, args, num_args);
       break;
     case TimelineEvent::kInstant:
-      ctrace_write_instant_event_record(writer, start_time, &thread, &category,
-                                        &name, CTRACE_SCOPE_THREAD, &arglist);
+      trace_context_write_instant_event_record(
+          context, start_time, &thread, &category, &name, TRACE_SCOPE_THREAD,
+          args, num_args);
       break;
     case TimelineEvent::kAsyncBegin:
-      ctrace_write_async_begin_event_record(writer, start_time, &thread,
-                                            &category, &name, event->AsyncId(),
-                                            &arglist);
+      trace_context_write_async_begin_event_record(
+          context, start_time, &thread, &category, &name, event->AsyncId(),
+          args, num_args);
       break;
     case TimelineEvent::kAsyncEnd:
-      ctrace_write_async_end_event_record(writer, end_time, &thread, &category,
-                                          &name, event->AsyncId(), &arglist);
+      trace_context_write_async_end_event_record(
+          context, end_time, &thread, &category, &name, event->AsyncId(), args,
+          num_args);
       break;
     case TimelineEvent::kAsyncInstant:
-      ctrace_write_async_instant_event_record(writer, start_time, &thread,
-                                              &category, &name,
-                                              event->AsyncId(), &arglist);
+      trace_context_write_async_instant_event_record(
+          context, start_time, &thread, &category, &name, event->AsyncId(),
+          args, num_args);
       break;
     case TimelineEvent::kDuration:
-      ctrace_write_duration_event_record(writer, start_time, end_time, &thread,
-                                         &category, &name, &arglist);
+      trace_context_write_duration_event_record(context, start_time, end_time,
+                                                &thread, &category, &name, args,
+                                                num_args);
       break;
     case TimelineEvent::kFlowBegin:
-      ctrace_write_flow_begin_event_record(writer, start_time, &thread,
-                                           &category, &name, event->AsyncId(),
-                                           &arglist);
+      trace_context_write_flow_begin_event_record(
+          context, start_time, &thread, &category, &name, event->AsyncId(),
+          args, num_args);
       break;
     case TimelineEvent::kFlowStep:
-      ctrace_write_flow_step_event_record(writer, start_time, &thread,
-                                          &category, &name, event->AsyncId(),
-                                          &arglist);
+      trace_context_write_flow_step_event_record(
+          context, start_time, &thread, &category, &name, event->AsyncId(),
+          args, num_args);
       break;
     case TimelineEvent::kFlowEnd:
-      ctrace_write_flow_end_event_record(writer, start_time, &thread, &category,
-                                         &name, event->AsyncId(), &arglist);
+      trace_context_write_flow_end_event_record(
+          context, start_time, &thread, &category, &name, event->AsyncId(),
+          args, num_args);
       break;
     default:
       // TODO(zra): Figure out what to do with kCounter and kMetadata.
       break;
   }
-  ctrace_writer_release(writer);
+  trace_release_context(context);
   ThreadBlockCompleteEvent(event);
 }
 
