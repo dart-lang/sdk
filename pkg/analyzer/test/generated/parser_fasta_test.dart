@@ -3625,12 +3625,14 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseFormalParameterList_prefixedType_partial() {
+    // TODO(brianwilkerson) Does not recover.
     super.test_parseFormalParameterList_prefixedType_partial();
   }
 
   @override
   @failingTest
   void test_parseFormalParameterList_prefixedType_partial2() {
+    // TODO(brianwilkerson) Does not recover.
     super.test_parseFormalParameterList_prefixedType_partial2();
   }
 
@@ -4913,20 +4915,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class StatementParserTest_Fasta extends FastaParserTestCase
     with StatementParserTestMixin {
-  @override
-  @failingTest
-  void test_parseAssertStatement_trailingComma_message() {
-    // TODO(brianwilkerson) Does not handle optional trailing comma.
-    super.test_parseAssertStatement_trailingComma_message();
-  }
-
-  @override
-  @failingTest
-  void test_parseAssertStatement_trailingComma_noMessage() {
-    // TODO(brianwilkerson) Does not handle optional trailing comma.
-    super.test_parseAssertStatement_trailingComma_noMessage();
-  }
-
   @override
   @failingTest
   void test_parseBreakStatement_noLabel() {

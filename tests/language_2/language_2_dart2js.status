@@ -235,16 +235,17 @@ type_variable_promotion_test: Crash
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
 accessor_conflict_export2_test: Crash # Issue 25626
 accessor_conflict_export_test: Crash # Issue 25626
-assert_trailing_comma_test/none: CompileTimeError # Issue 29959
-assertion_initializer_const_error2_test/cc01: Crash
-assertion_initializer_const_error2_test/cc02: Crash
-assertion_initializer_const_error2_test/cc03: Crash
-assertion_initializer_const_error2_test/cc04: Crash
-assertion_initializer_const_error2_test/cc05: Crash
-assertion_initializer_const_error2_test/cc06: Crash
-assertion_initializer_const_error2_test/cc07: Crash
-assertion_initializer_const_error2_test/cc08: Crash
-assertion_initializer_const_error2_test/cc09: Crash
+assertion_initializer_const_error2_test/cc01: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc02: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc03: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc04: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc05: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc06: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc07: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc08: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc09: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc10: Crash # Issue 30038
+assertion_initializer_const_error2_test/cc11: Crash # Issue 30038
 assertion_initializer_const_function_error_test/01: Crash
 assertion_initializer_const_function_test/01: CompileTimeError
 assertion_initializer_test: Crash

@@ -4068,18 +4068,27 @@ class Parser {
     if (optional(',', token)) {
       commaToken = token;
       token = token.next;
-      token = parseExpression(token);
+      if (optional(')', token)) {
+        commaToken = null;
+      } else {
+        token = parseExpression(token);
+      }
     }
     if (optional(',', token)) {
       Token firstExtra = token.next;
-      while (optional(',', token)) {
-        token = token.next;
-        Token begin = token;
-        token = parseExpression(token);
-        listener.handleExtraneousExpression(
-            begin, fasta.messageAssertExtraneousArgument);
+      if (optional(')', firstExtra)) {
+        token = firstExtra;
+      } else {
+        while (optional(',', token)) {
+          token = token.next;
+          Token begin = token;
+          token = parseExpression(token);
+          listener.handleExtraneousExpression(
+              begin, fasta.messageAssertExtraneousArgument);
+        }
+        reportRecoverableError(
+            firstExtra, fasta.messageAssertExtraneousArgument);
       }
-      reportRecoverableError(firstExtra, fasta.messageAssertExtraneousArgument);
     }
     Token rightParenthesis = token;
     token = expect(')', token);
