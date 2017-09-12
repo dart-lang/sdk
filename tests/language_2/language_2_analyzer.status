@@ -135,6 +135,8 @@ static_getter_no_setter1_test/01: MissingCompileTimeError
 static_getter_no_setter2_test/01: MissingCompileTimeError
 static_getter_no_setter3_test/01: MissingCompileTimeError
 static_setter_get_test/01: MissingCompileTimeError
+static_initializer_type_error_test: MissingCompileTimeError
+string_interpolate_test: StaticWarning
 
 [ $compiler == dart2analyzer && ! $strong && $checked ]
 abstract_beats_arguments_test: MissingCompileTimeError
@@ -236,6 +238,8 @@ static_getter_no_setter1_test/01: MissingCompileTimeError
 static_getter_no_setter2_test/01: MissingCompileTimeError
 static_getter_no_setter3_test/01: MissingCompileTimeError
 static_setter_get_test/01: MissingCompileTimeError
+static_initializer_type_error_test: MissingCompileTimeError
+string_interpolate_test: StaticWarning
 
 [ $compiler == dart2analyzer ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
