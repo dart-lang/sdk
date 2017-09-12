@@ -21,25 +21,28 @@ class HybridFileSystem implements FileSystem {
   HybridFileSystem(this.memory);
 
   @override
-  FileSystemEntity entityForUri(Uri uri) => new HybridFileSystemEntity(
-      memory.entityForUri(uri), physical.entityForUri(uri));
+  FileSystemEntity entityForUri(Uri uri) =>
+      new HybridFileSystemEntity(uri, this);
 }
 
 /// Entity that delegates to an underlying memory or phisical file system
 /// entity.
 class HybridFileSystemEntity implements FileSystemEntity {
-  final FileSystemEntity memory;
-  final FileSystemEntity physical;
-
-  HybridFileSystemEntity(this.memory, this.physical);
-
+  final Uri uri;
   FileSystemEntity _delegate;
-  Future<FileSystemEntity> get delegate async {
-    return _delegate ??= (await memory.exists()) ? memory : physical;
-  }
+  final HybridFileSystem _fs;
 
-  @override
-  Uri get uri => memory.uri;
+  HybridFileSystemEntity(this.uri, this._fs);
+
+  Future<FileSystemEntity> get delegate async {
+    if (_delegate != null) return _delegate;
+    FileSystemEntity entity = _fs.memory.entityForUri(uri);
+    if (await entity.exists()) {
+      _delegate = entity;
+      return _delegate;
+    }
+    return _delegate = _fs.physical.entityForUri(uri);
+  }
 
   @override
   Future<bool> exists() async => (await delegate).exists();

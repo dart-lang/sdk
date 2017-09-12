@@ -34,12 +34,14 @@ main() {
   setUp(() async {
     outDir = Directory.systemTemp.createTempSync('hotreload_test');
     outputUri = outDir.uri.resolve('test.dill');
-    fs = new MemoryFileSystem(Uri.parse('file:///'));
+    var root = Uri.parse('org-dartlang-custom:///');
+    fs = new MemoryFileSystem(root);
+    fs.entityForUri(root).createDirectory();
     writeFile(fs, 'a.dart', sourceA);
     writeFile(fs, 'b.dart', sourceB);
     writeFile(fs, '.packages', '');
     compiler = await createIncrementalCompiler(
-        'file:///a.dart', new HybridFileSystem(fs));
+        'org-dartlang-custom:///a.dart', new HybridFileSystem(fs));
     await rebuild(compiler, outputUri); // this is a full compile.
     compiler.acceptLastDelta();
   });
@@ -177,7 +179,6 @@ Future<IncrementalKernelGenerator> createIncrementalCompiler(
   var entryUri = Uri.base.resolve(entry);
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
-    ..packagesFileUri = Uri.parse('file:///.packages')
     ..strongMode = false
     ..compileSdk = true // the incremental generator requires the sdk sources
     ..fileSystem = fs
@@ -186,8 +187,8 @@ Future<IncrementalKernelGenerator> createIncrementalCompiler(
 }
 
 Future<bool> rebuild(IncrementalKernelGenerator compiler, Uri outputUri) async {
-  compiler.invalidate(Uri.parse("file:///a.dart"));
-  compiler.invalidate(Uri.parse("file:///b.dart"));
+  compiler.invalidate(Uri.parse("org-dartlang-custom:///a.dart"));
+  compiler.invalidate(Uri.parse("org-dartlang-custom:///b.dart"));
   var program = (await compiler.computeDelta()).newProgram;
   if (program != null && !program.libraries.isEmpty) {
     await writeProgram(program, outputUri);
@@ -207,7 +208,9 @@ Future<Null> writeProgram(Program program, Uri outputUri) async {
 }
 
 void writeFile(MemoryFileSystem fs, String fileName, String contents) {
-  fs.entityForUri(Uri.parse('file:///$fileName')).writeAsStringSync(contents);
+  fs
+      .entityForUri(Uri.parse('org-dartlang-custom:///$fileName'))
+      .writeAsStringSync(contents);
 }
 
 /// This program calls a function periodically and tracks when the function
