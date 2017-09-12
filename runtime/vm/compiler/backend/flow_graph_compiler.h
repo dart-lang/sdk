@@ -715,7 +715,8 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateBoolToJump(Register bool_reg, Label* is_true, Label* is_false);
 
-  void CopyParameters();
+  void CheckTypeArgsLen(bool expect_type_args, Label* wrong_num_arguments);
+  void CopyParameters(bool expect_type_args, bool check_arguments);
 #endif  // !defined(TARGET_ARCH_DBC)
 
   void GenerateInlinedGetter(intptr_t offset);

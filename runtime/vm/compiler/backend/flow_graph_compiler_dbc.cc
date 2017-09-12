@@ -381,7 +381,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     }
   }
 
-  const bool has_type_arguments =
+  const bool expect_type_arguments =
       FLAG_reify_generic_functions && function.IsGeneric();
   if (function.IsClosureFunction()) {
     // In optimized mode the register allocator expects CurrentContext in the
@@ -392,8 +392,8 @@ void FlowGraphCompiler::EmitFrameEntry() {
     // (see FlowGraphAllocator::ProcessInitialDefinition)
     Register context_reg =
         is_optimizing()
-            ? (has_type_arguments ? flow_graph_.num_copied_params() + 1
-                                  : flow_graph_.num_copied_params())
+            ? (expect_type_arguments ? flow_graph_.num_copied_params() + 1
+                                     : flow_graph_.num_copied_params())
             : context_index;
     LocalScope* scope = parsed_function().node_sequence()->scope();
     LocalVariable* local = scope->VariableAt(0);  // Closure instance receiver.
@@ -411,16 +411,21 @@ void FlowGraphCompiler::EmitFrameEntry() {
     __ LoadConstant(context_index, Object::empty_context());
   }
 
-  // Check for a passed type argument vector if the function is generic.
-  if (has_type_arguments && !flow_graph().IsCompiledForOsr()) {
-    ASSERT(-parsed_function().first_stack_local_index() - 1 ==
-           flow_graph_.num_copied_params());
-    __ CheckFunctionTypeArgs(function.NumTypeParameters(),
-                             flow_graph_.num_copied_params());
+  if (FLAG_reify_generic_functions) {
+    // Check for a passed type argument vector if the function is generic, or
+    // check that none is passed if not generic and not already checked during
+    // resolution.
+    const bool check_arguments =
+        (function.IsClosureFunction() || function.IsConvertedClosureFunction());
+    if ((expect_type_arguments || check_arguments) &&
+        !flow_graph().IsCompiledForOsr()) {
+      ASSERT(!expect_type_arguments ||
+             (-parsed_function().first_stack_local_index() - 1 ==
+              flow_graph_.num_copied_params()));
+      __ CheckFunctionTypeArgs(function.NumTypeParameters(),
+                               flow_graph_.num_copied_params());
+    }
   }
-
-  // TODO(regis): Verify that no vector is passed if not generic, unless already
-  // checked during resolution.
 }
 
 void FlowGraphCompiler::CompileGraph() {

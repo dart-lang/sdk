@@ -703,7 +703,30 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
 
 // Input parameters:
 //   R4: arguments descriptor array.
-void FlowGraphCompiler::CopyParameters() {
+void FlowGraphCompiler::CheckTypeArgsLen(bool expect_type_args,
+                                         Label* wrong_num_arguments) {
+  __ Comment("Check type args len");
+  const Function& function = parsed_function().function();
+  Label correct_type_args_len;
+  // Type args are always optional, so length can always be zero.
+  // If expect_type_args, a non-zero length must match the declaration length.
+  __ ldr(R6, FieldAddress(R4, ArgumentsDescriptor::type_args_len_offset()));
+  __ CompareImmediate(R6, Smi::RawValue(0));
+  if (expect_type_args) {
+    __ CompareImmediate(R6, Smi::RawValue(function.NumTypeParameters()), NE);
+  }
+  __ b(wrong_num_arguments, NE);
+  __ Bind(&correct_type_args_len);
+}
+
+// Input parameters:
+//   R4: arguments descriptor array.
+void FlowGraphCompiler::CopyParameters(bool expect_type_args,
+                                       bool check_arguments) {
+  Label wrong_num_arguments;
+  if (check_arguments) {
+    CheckTypeArgsLen(expect_type_args, &wrong_num_arguments);
+  }
   __ Comment("Copy parameters");
   const Function& function = parsed_function().function();
   LocalScope* scope = parsed_function().node_sequence()->scope();
@@ -722,7 +745,6 @@ void FlowGraphCompiler::CopyParameters() {
 
   __ ldr(R6, FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
   // Check that min_num_pos_args <= num_pos_args.
-  Label wrong_num_arguments;
   __ CompareImmediate(R6, Smi::RawValue(min_num_pos_args));
   __ b(&wrong_num_arguments, LT);
   // Check that num_pos_args <= max_num_pos_args.
@@ -765,8 +787,7 @@ void FlowGraphCompiler::CopyParameters() {
 #ifdef DEBUG
   const bool check_correct_named_args = true;
 #else
-  const bool check_correct_named_args =
-      function.IsClosureFunction() || function.IsConvertedClosureFunction();
+  const bool check_correct_named_args = check_arguments;
 #endif
   if (num_opt_named_params > 0) {
     // Start by alphabetically sorting the names of the optional parameters.
@@ -874,7 +895,7 @@ void FlowGraphCompiler::CopyParameters() {
   }
 
   __ Bind(&wrong_num_arguments);
-  if (function.IsClosureFunction() || function.IsConvertedClosureFunction()) {
+  if (check_arguments) {
     __ LeaveDartFrame(kKeepCalleePP);  // The arguments are still on the stack.
     __ Branch(*StubCode::CallClosureNoSuchMethod_entry());
     // The noSuchMethod call may return to the caller, but not here.
@@ -993,18 +1014,25 @@ void FlowGraphCompiler::CompileGraph() {
   const int num_copied_params = parsed_function().num_copied_params();
   const int num_locals = parsed_function().num_stack_locals();
 
+  // The prolog of OSR functions is never executed, hence greatly simplified.
+  const bool expect_type_args = FLAG_reify_generic_functions &&
+                                function.IsGeneric() &&
+                                !flow_graph().IsCompiledForOsr();
+
+  const bool check_arguments =
+      (function.IsClosureFunction() || function.IsConvertedClosureFunction()) &&
+      !flow_graph().IsCompiledForOsr();
+
   // We check the number of passed arguments when we have to copy them due to
   // the presence of optional parameters.
   // No such checking code is generated if only fixed parameters are declared,
   // unless we are in debug mode or unless we are compiling a closure.
   if (num_copied_params == 0) {
-    const bool check_arguments = (function.IsClosureFunction() ||
-                                  function.IsConvertedClosureFunction()) &&
-                                 !flow_graph().IsCompiledForOsr();
     if (check_arguments) {
+      Label correct_num_arguments, wrong_num_arguments;
+      CheckTypeArgsLen(expect_type_args, &wrong_num_arguments);
       __ Comment("Check argument count");
       // Check that exactly num_fixed arguments are passed in.
-      Label correct_num_arguments, wrong_num_arguments;
       __ ldr(R0, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
       __ CompareImmediate(R0, Smi::RawValue(num_fixed_params));
       __ b(&wrong_num_arguments, NE);
@@ -1020,7 +1048,7 @@ void FlowGraphCompiler::CompileGraph() {
       __ Bind(&correct_num_arguments);
     }
   } else if (!flow_graph().IsCompiledForOsr()) {
-    CopyParameters();
+    CopyParameters(expect_type_args, check_arguments);
   }
 
   if (function.IsClosureFunction() && !flow_graph().IsCompiledForOsr()) {
@@ -1058,13 +1086,12 @@ void FlowGraphCompiler::CompileGraph() {
     }
   }
 
-  // Check for a passed type argument vector if the function is generic.
-  if (FLAG_reify_generic_functions && function.IsGeneric() &&
-      !flow_graph().IsCompiledForOsr()) {
-    __ Comment("Check passed-in type args");
+  // Copy passed-in type argument vector if the function is generic.
+  if (expect_type_args) {
+    __ Comment("Copy passed-in type args");
     Label store_type_args, ok;
     __ ldr(R0, FieldAddress(R4, ArgumentsDescriptor::type_args_len_offset()));
-    __ CompareImmediate(R0, 0);
+    __ CompareImmediate(R0, Smi::RawValue(0));
     if (is_optimizing()) {
       // Initialize type_args to null if none passed in.
       __ LoadObject(R0, Object::null_object(), EQ);
@@ -1072,7 +1099,6 @@ void FlowGraphCompiler::CompileGraph() {
     } else {
       __ b(&ok, EQ);  // Already initialized to null.
     }
-    // TODO(regis): Verify that type_args_len is correct.
     // Load the passed type args vector in R0 from
     // fp[kParamEndSlotFromFp + num_args + 1]; num_args (R1) is Smi.
     __ ldr(R1, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
@@ -1088,9 +1114,6 @@ void FlowGraphCompiler::CompileGraph() {
     __ str(R0, Address(FP, slot_base * kWordSize));
     __ Bind(&ok);
   }
-
-  // TODO(regis): Verify that no vector is passed if not generic, unless already
-  // checked during resolution.
 
   EndCodeSourceRange(TokenPosition::kDartCodePrologue);
   VisitBlocks();
