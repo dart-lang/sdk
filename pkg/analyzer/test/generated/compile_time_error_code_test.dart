@@ -1120,35 +1120,6 @@ const C = a.m;''');
     verify([source]);
   }
 
-  test_constEvalThrowsException_assertInitializer_false() async {
-    resetWith(
-        options: new AnalysisOptionsImpl()..enableAssertInitializer = true);
-    Source source = addSource(r'''
-class A {
-  const A(int p) : assert(p != 0);
-}
-const a = const A(0);
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_ASSERT_FALSE]);
-    verify([source]);
-  }
-
-  test_constEvalThrowsException_assertInitializer_notBool() async {
-    resetWith(
-        options: new AnalysisOptionsImpl()..enableAssertInitializer = true);
-    Source source = addSource(r'''
-class A<T> {
-  const A(T p) : assert(p);
-}
-const a = const A(0);
-''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.CONST_EVAL_THROWS_ASSERT_NOT_BOOL]);
-    verify([source]);
-  }
-
   test_constEvalThrowsException_binaryMinus_null() async {
     await _check_constEvalThrowsException_binary_null("null - 5", false);
     await _check_constEvalThrowsException_binary_null("5 - null", true);
