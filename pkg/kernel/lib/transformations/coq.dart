@@ -155,9 +155,6 @@ int getCoqAnnot(NamedNode N, List<Expression> annotations) {
               case "coqsingledef":
                 annot = coq_annot.coqsingledef;
                 break;
-              case "coqroot":
-                annot = coq_annot.coqroot;
-                break;
               default:
                 throw new Exception("ERROR: Invalid Coq annotation on ${N}!");
             }
