@@ -38,7 +38,7 @@ Module ComputationMonad.
     fun n => match x n with None => None | Some a => y a n end.
   Definition comp_unsome {A : Type} (v : option A) : comp A := fun _ => v.
 
-  Notation "[ x ]" := (comp_return x) (at level 0, x at level 99).
+  Notation "[ x ]" := (comp_return x) (at level 0, x at level 200).
   Notation "[[ x ]]" := (comp_unsome x) (at level 0, x at level 99).
   Notation "x <- m1 ; m2" := (comp_bind m1 (fun x => m2)) (at level 70, right associativity).
 
@@ -51,7 +51,41 @@ Module ComputationMonad.
   Definition Fix {A : Type} {B : Type} (f : (A -> comp B) -> (A -> comp B)) : A -> comp B :=
     fun a => fun n => comp_fix' _ _ f a n.
 
+  Module Continuity.
+
+    Definition continuous {A: Type} (f: comp A) : Prop :=
+      forall n k v, n <= k -> f n = Some v -> f k = Some v.
+
+    Lemma return_cont {A: Type} : forall a : A, continuous (comp_return a).
+      intros.
+      unfold comp_return.
+      unfold continuous.
+      auto.
+    Qed.
+
+    Lemma abort_cont {A : Type} : continuous (@abort A).
+      unfold abort.
+      unfold continuous.
+      auto.
+    Qed.
+
+  End Continuity.
+
 End ComputationMonad.
+
+Module OptionMonad.
+
+  Notation "[ x ]" := (Some x) (at level 0, x at level 200).
+
+  Definition opt_bind {A B} (x : option A) (f : A -> option B) : option B :=
+    match x with
+    | None => None
+    | Some v => f v
+    end.
+
+  Notation "x <- m1 ; m2" := (opt_bind m1 (fun x => m2)) (at level 70, right associativity).
+
+End OptionMonad.
 
 Module ListExtensions.
   Import ComputationMonad.

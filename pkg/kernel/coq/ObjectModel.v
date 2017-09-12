@@ -3,85 +3,139 @@
  * BSD-style license that can be found in the LICENSE file. *)
 
 Require Import Common.
-Import Common.ComputationMonad.
+Require Import Syntax.
+Import Common.OptionMonad.
 Module L := Common.ListExtensions.
+Require Import Coq.Strings.String.
 
-(** * Type Store. *)
+Fixpoint type_equiv (s : dart_type) (t : dart_type) : bool :=
+  match (s, t) with
+  | (DT_Interface_Type (Interface_Type s_class),
+     DT_Interface_Type (Interface_Type t_class)) =>
+    Nat.eqb s_class t_class
+  | (DT_Function_Type (Function_Type s_param s_ret),
+     DT_Function_Type (Function_Type t_param t_ret)) =>
+    type_equiv s_param t_param && type_equiv s_ret t_ret
+  | _ => false
+  end.
 
-(** Type variables are encoded with natural numbers. *)
-Definition type_variable : Set := nat.
+Notation "s ≡ t" := (type_equiv s t = true) (at level 70, no associativity).
 
-(** Locations of type variables in type Store are encoded with natural numbers.
-  Locations are typed.  It allows to have less preconditions on parts of types.
-  For example, a [function_type_location] may be used for methods instead of
-  more general [type_location].  One downside of this decision is that it adds
-  one layer of indirection, and type locations should be constructed using two
-  constructors, for example
+Lemma type_equiv_trans : forall s t r, s ≡ t /\ t ≡ r -> s ≡ r.
+Admitted.
 
-      TL_Dynamic_Location (Dynamic_Type_Location X). *)
-Inductive type_location : Set :=
-  | TL_Dynamic_Location : dynamic_type_location -> type_location
-  | TL_Function_Type_Location : function_type_location -> type_location
-  | TL_Interface_Type_Location : interface_type_location -> type_location
-  | TL_Void_Location : void_type_location -> type_location
-  | TL_Bottom_Location : bottom_type_location -> type_location
-  | TL_Vector_Location : vector_type_location -> type_location
-  | TL_Type_Parameter_Type_Location : type_parameter_type_location -> type_location
-with dynamic_type_location : Set :=
-  | Dynamic_Type_Location : nat -> dynamic_type_location
-with function_type_location : Set :=
-  | Function_Type_Location : nat -> function_type_location
-with interface_type_location : Set :=
-  | Interface_Type_Location : nat -> interface_type_location
-with void_type_location : Set :=
-  | Void_Type_Location : nat -> void_type_location
-with bottom_type_location : Set :=
-  | Bottom_Type_Location : nat -> bottom_type_location
-with vector_type_location : Set :=
-  | Vector_Type_Location : nat -> vector_type_location
-with type_parameter_type_location : Set :=
-  | Type_Parameter_Type_Location : nat -> type_parameter_type_location.
+(* Semantic Types *)
+Record procedure_desc : Type := mk_procedure_desc {
+  pr_name : string;
+  pr_ref : nat;
+  pr_type : function_type;
+}.
 
-(** Type envronment maps type variables to type locations. *)
-Definition type_environment : Type := NatMap.t type_location.
+Definition procedure_dissect (p : procedure) : procedure_desc :=
+  let (memb, _, fn) := p in
+  let (nn, _, name) := memb in
+  let (name_str) := name in
+  let (ref) := nn in
+  let (id) := ref in
+  let (param, ret_type, _) := fn in
+  let (_, param_type, _) := param in
+  mk_procedure_desc name_str id (Function_Type param_type ret_type).
 
-(** Type values represent semantic types of Kernel.
+Record interface : Type := mk_interface {
+  procedures : list procedure_desc;
+}.
 
-  TODO(dmitryas): Include detailed description of type representation.
+(** Type envronment maps class IDs to their interface type. *)
+Definition class_env : Type := NatMap.t interface.
+Definition type_env : Type := NatMap.t dart_type.
 
-  TODO(dmitryas): Include an explanation about shadowing of type parameters,
-  and why it is not something one needs to consider in either static semantics
-  or operational semantics. *)
-Inductive type_value : Type :=
-  | TV_Dynamic : type_value
-  | TV_Function_Type :
-      list type_parameter_type_location (* Type parameters. *)
-      -> list type_location (* Types of the positional parameters. *)
-      -> nat (* The number of required positional parameters. *)
-      -> StringMap.t type_location (* Types of the named parameters. *)
-      -> type_location (* Type of the return value. *)
-      -> type_value
-  | TV_Interface_Type :
-      list type_parameter_type_location (* Type parameters. *)
-      -> option type_location (* Supertype. *)
-      -> list type_location (* Interfaces. *)
-      -> StringMap.t type_location (* Getters. *)
-      -> StringMap.t type_location (* Setters. *)
-      -> StringMap.t function_type_location (* Methods. *)
-      -> type_value
-  | TV_Void : type_value
-  | TV_Bottom : type_value
-  | TV_Vector :
-      nat (* Vector types include their size. *)
-      -> type_value
-  | TV_Type_Parameter_Type :
-      type_variable (* Type parameter types include their ID. *)
-      -> option type_location (* The bound of the type parameter type. *)
-      -> type_value
-  | TV_Interface_Type_Instantiation :
-      interface_type_location (* Generic class. *)
-      -> list type_location (* Type arguments. *)
-      -> type_value.
+Fixpoint class_type (CE : class_env) (c : class) : option class_env :=
+  let (nn_data, _, procedures) := c in
+  let (ref) := nn_data in
+  let (class_id) := ref in
+  let class_interface := mk_interface (map procedure_dissect procedures) in
+  let CE' := NatMap.add class_id class_interface CE in
+  if forallb (procedure_type CE') procedures then Some CE' else None
 
-(** Type Store maps type locations to type values. *)
-Definition type_store : Type := NatMap.t type_value.
+with procedure_type (CE : class_env) (p : procedure) : bool :=
+  let (_, _, fn) := p in
+  let (param, ret_type, body) := fn in
+  let (param_var, param_type, _) := param in
+  let TE := NatMap.add param_var param_type (NatMap.empty _) in
+  match statement_type CE TE body with
+  | Some (_, Some t) => type_equiv t ret_type
+  | _ => false
+  end
+
+with statement_type (CE : class_env) (TE : type_env) (s : statement) :
+    option (type_env * option dart_type) :=
+  match s with
+  | S_Expression_Statement (Expression_Statement e) =>
+    _ <- expression_type CE TE e; [(TE, None)]
+  | S_Return_Statement (Return_Statement re) =>
+    rt <- expression_type CE TE re; [(TE, Some rt)]
+  | S_Variable_Declaration (Variable_Declaration _ _ None) => None
+  | S_Variable_Declaration (Variable_Declaration var type (Some init)) =>
+    init_type <- expression_type CE TE init;
+    if type_equiv init_type type then
+      [(NatMap.add var type TE, None)]
+    else
+      None
+  | S_Block (Block stmts) =>
+    let process_statements := fix process_statements TE stmts :=
+      match stmts with
+      | nil => [(TE, None)]
+      | (s::ss) =>
+        st <- statement_type CE TE s;
+        let (TE', s_rt) := st in
+        sst <- process_statements TE' ss;
+        let (TE'', ss_rt) := sst in
+        match (s_rt, ss_rt) with
+        | (None, ss_rt) => [(TE'', ss_rt)]
+        | (Some rt, None) => [(TE'', Some rt)]
+        | (Some rt, Some rt') =>
+          if type_equiv rt rt' then [(TE'', Some rt)] else None
+        end
+      end in
+    process_statements TE stmts
+  end
+
+with expression_type (CE : class_env) (TE : type_env) (e : expression) : option dart_type :=
+  match e with
+  | E_Variable_Get (Variable_Get v) => NatMap.find v TE
+  | E_Property_Get (Property_Get rec prop) =>
+    rec_type <- expression_type CE TE rec;
+    let (prop_name) := prop in
+    match rec_type with
+    | DT_Function_Type _ => None
+    | DT_Interface_Type (Interface_Type class) =>
+      interface <- NatMap.find class CE;
+      proc_desc <- List.find (fun P =>
+        if string_dec (pr_name P) prop_name then true else false)
+        (procedures interface);
+      [DT_Function_Type (pr_type proc_desc)]
+    end
+  | E_Invocation_Expression (IE_Constructor_Invocation (Constructor_Invocation class _)) =>
+    _ <- NatMap.find class CE;
+    [DT_Interface_Type (Interface_Type class)]
+  | E_Invocation_Expression (IE_Method_Invocation (Method_Invocation rec method args _)) =>
+    rec_type <- expression_type CE TE rec;
+    let (method_name) := method in
+    match rec_type with
+    | DT_Function_Type fn_type =>
+      if string_dec "call" method_name then [rec_type] else None
+    | DT_Interface_Type (Interface_Type class) =>
+      interface <- NatMap.find class CE;
+      proc_desc <- List.find (fun P =>
+        if string_dec (pr_name P) method_name then true else false)
+        (procedures interface);
+      [DT_Function_Type (pr_type proc_desc)]
+    end
+  end
+.
+
+Lemma type_equiv_sanity1 :
+  forall CE TE e v s t et,
+    expression_type CE (NatMap.add v s TE) e = Some et /\ s ≡ t ->
+    exists es, expression_type CE (NatMap.add v t TE) e = Some es /\ et ≡ es.
+Admitted.
