@@ -99,7 +99,8 @@ class KernelSsaBuilder implements SsaBuilder {
         work.element.enclosingClass,
         _compiler,
         _elementMap,
-        new KernelToTypeInferenceMapImpl(closedWorld),
+        new KernelToTypeInferenceMapImpl(
+            work.element, _compiler.globalInference.results),
         localsMap,
         closedWorld,
         _compiler.codegenWorldBuilder,
@@ -114,87 +115,101 @@ class KernelSsaBuilder implements SsaBuilder {
 }
 
 class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
-  final ClosedWorld _closedWorld;
+  final GlobalTypeInferenceResults _globalInferenceResults;
+  GlobalTypeInferenceElementResult _targetResults;
 
-  KernelToTypeInferenceMapImpl(this._closedWorld);
+  KernelToTypeInferenceMapImpl(
+      MemberEntity target, this._globalInferenceResults) {
+    _targetResults = _resultOf(target);
+  }
 
-  @override
+  GlobalTypeInferenceElementResult _resultOf(MemberEntity e) =>
+      _globalInferenceResults
+          .resultOfMember(e is ConstructorBodyEntity ? e.constructor : e);
+
+  TypeMask getReturnTypeOf(FunctionEntity function) {
+    return TypeMaskFactory.inferredReturnTypeForElement(
+        function, _globalInferenceResults);
+  }
+
+  TypeMask typeOfInvocation(ir.MethodInvocation node, ClosedWorld closedWorld) {
+    return _targetResults.typeOfSend(node);
+  }
+
+  TypeMask typeOfGet(ir.PropertyGet node) {
+    return _targetResults.typeOfSend(node);
+  }
+
+  TypeMask typeOfSet(ir.PropertySet node, ClosedWorld closedWorld) {
+    return closedWorld.commonMasks.dynamicType;
+  }
+
+  TypeMask typeOfListLiteral(
+      MemberEntity owner, ir.ListLiteral listLiteral, ClosedWorld closedWorld) {
+    return _resultOf(owner).typeOfListLiteral(listLiteral) ??
+        closedWorld.commonMasks.dynamicType;
+  }
+
+  TypeMask typeOfIterator(ir.ForInStatement node) {
+    return _targetResults.typeOfIterator(node);
+  }
+
+  TypeMask typeOfIteratorCurrent(ir.ForInStatement node) {
+    return _targetResults.typeOfIteratorCurrent(node);
+  }
+
+  TypeMask typeOfIteratorMoveNext(ir.ForInStatement node) {
+    return _targetResults.typeOfIteratorMoveNext(node);
+  }
+
+  bool isJsIndexableIterator(ir.ForInStatement node, ClosedWorld closedWorld) {
+    TypeMask mask = typeOfIterator(node);
+    return mask != null &&
+        mask.satisfies(
+            closedWorld.commonElements.jsIndexableClass, closedWorld) &&
+        // String is indexable but not iterable.
+        !mask.satisfies(closedWorld.commonElements.jsStringClass, closedWorld);
+  }
+
+  bool isFixedLength(TypeMask mask, ClosedWorld closedWorld) {
+    if (mask.isContainer && (mask as ContainerTypeMask).length != null) {
+      // A container on which we have inferred the length.
+      return true;
+    }
+    // TODO(sra): Recognize any combination of fixed length indexables.
+    if (mask.containsOnly(closedWorld.commonElements.jsFixedArrayClass) ||
+        mask.containsOnly(
+            closedWorld.commonElements.jsUnmodifiableArrayClass) ||
+        mask.containsOnlyString(closedWorld) ||
+        closedWorld.commonMasks.isTypedArray(mask)) {
+      return true;
+    }
+    return false;
+  }
+
+  TypeMask inferredIndexType(ir.ForInStatement node) {
+    return TypeMaskFactory.inferredTypeForSelector(
+        new Selector.index(), typeOfIterator(node), _globalInferenceResults);
+  }
+
+  TypeMask getInferredTypeOf(MemberEntity member) {
+    return TypeMaskFactory.inferredTypeForMember(
+        member, _globalInferenceResults);
+  }
+
+  TypeMask getInferredTypeOfParameter(Local parameter) {
+    return TypeMaskFactory.inferredTypeForParameter(
+        parameter, _globalInferenceResults);
+  }
+
+  TypeMask selectorTypeOf(Selector selector, TypeMask mask) {
+    return TypeMaskFactory.inferredTypeForSelector(
+        selector, mask, _globalInferenceResults);
+  }
+
   TypeMask typeFromNativeBehavior(
       NativeBehavior nativeBehavior, ClosedWorld closedWorld) {
     return TypeMaskFactory.fromNativeBehavior(nativeBehavior, closedWorld);
-  }
-
-  @override
-  TypeMask selectorTypeOf(Selector selector, TypeMask mask) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask getInferredTypeOf(MemberEntity member) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask getInferredTypeOfParameter(Local parameter) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask inferredIndexType(ir.ForInStatement forInStatement) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  bool isJsIndexableIterator(
-      ir.ForInStatement forInStatement, ClosedWorld closedWorld) {
-    return false;
-  }
-
-  @override
-  bool isFixedLength(TypeMask mask, ClosedWorld closedWorld) {
-    return false;
-  }
-
-  @override
-  TypeMask typeOfIteratorMoveNext(ir.ForInStatement forInStatement) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask typeOfIteratorCurrent(ir.ForInStatement forInStatement) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask typeOfIterator(ir.ForInStatement forInStatement) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask typeOfListLiteral(
-      MemberEntity owner, ir.ListLiteral listLiteral, ClosedWorld closedWorld) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask typeOfSet(ir.PropertySet write, ClosedWorld closedWorld) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask typeOfGet(ir.PropertyGet read) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask typeOfInvocation(
-      ir.MethodInvocation invocation, ClosedWorld closedWorld) {
-    return _closedWorld.commonMasks.dynamicType;
-  }
-
-  @override
-  TypeMask getReturnTypeOf(FunctionEntity function) {
-    return _closedWorld.commonMasks.dynamicType;
   }
 }
 

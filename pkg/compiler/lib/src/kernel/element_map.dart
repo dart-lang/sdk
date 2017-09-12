@@ -28,6 +28,9 @@ abstract class KernelToElementMap {
   /// Access to the commonly used elements and types.
   CommonElements get commonElements;
 
+  /// Access to the [DartTypes] object.
+  DartTypes get types;
+
   /// Returns the [DartType] corresponding to [type].
   DartType getDartType(ir.DartType type);
 

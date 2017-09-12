@@ -169,6 +169,9 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   CommonElements get commonElements => _compiler.resolution.commonElements;
 
   @override
+  DartTypes get types => _compiler.resolution.types;
+
+  @override
   ElementEnvironment get elementEnvironment =>
       _compiler.resolution.elementEnvironment;
 

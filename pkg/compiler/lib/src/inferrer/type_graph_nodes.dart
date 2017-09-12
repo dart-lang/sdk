@@ -8,7 +8,6 @@ import 'dart:collection' show IterableBase;
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../constants/values.dart';
 import '../elements/elements.dart'
@@ -718,6 +717,8 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   Local get parameter => _parameter;
 
+  bool get isRegularParameter => !_isInitializingFormal;
+
   String get debugName => '$parameter';
 
   void tagAsTearOffClosureParameter(InferrerEngine inferrer) {
@@ -836,7 +837,7 @@ bool validCallType(CallType callType, Object call) {
     case CallType.access:
       return call is ast.Send || call is ir.Node;
     case CallType.forIn:
-      return call is ast.ForIn;
+      return call is ast.ForIn || call is ir.ForInStatement;
   }
   throw new StateError('Unexpected call type $callType.');
 }
@@ -890,7 +891,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
 
   StaticCallSiteTypeInformation(
       MemberTypeInformation context,
-      Spannable call,
+      Object call,
       MemberEntity enclosing,
       this.calledElement,
       Selector selector,

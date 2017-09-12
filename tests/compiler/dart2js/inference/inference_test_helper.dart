@@ -92,6 +92,14 @@ class TypeMaskComputer extends AstDataExtractor
       }
     } else if (node is ast.Send) {
       return getTypeMaskValue(result.typeOfSend(node));
+    } else if (node is ast.ForIn) {
+      if (id.kind == IdKind.iterator) {
+        return getTypeMaskValue(result.typeOfIterator(node));
+      } else if (id.kind == IdKind.current) {
+        return getTypeMaskValue(result.typeOfIteratorCurrent(node));
+      } else if (id.kind == IdKind.moveNext) {
+        return getTypeMaskValue(result.typeOfIteratorMoveNext(node));
+      }
     }
     return null;
   }
@@ -154,6 +162,14 @@ class TypeMaskIrComputer extends IrDataExtractor
       return getMemberValue(info.callMethod);
     } else if (node is ir.MethodInvocation) {
       return getTypeMaskValue(result.typeOfSend(node));
+    } else if (node is ir.ForInStatement) {
+      if (id.kind == IdKind.iterator) {
+        return getTypeMaskValue(result.typeOfIterator(node));
+      } else if (id.kind == IdKind.current) {
+        return getTypeMaskValue(result.typeOfIteratorCurrent(node));
+      } else if (id.kind == IdKind.moveNext) {
+        return getTypeMaskValue(result.typeOfIteratorMoveNext(node));
+      }
     }
     return null;
   }

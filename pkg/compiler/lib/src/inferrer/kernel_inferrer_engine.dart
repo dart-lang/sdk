@@ -207,6 +207,13 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
   GlobalTypeInferenceElementData<ir.Node> createElementData() {
     return new KernelGlobalTypeInferenceElementData();
   }
+
+  @override
+  bool hasCallType(ClassEntity cls) {
+    return _elementMap.types
+            .getCallType(_elementMap.elementEnvironment.getThisType(cls)) !=
+        null;
+  }
 }
 
 class KernelTypeSystemStrategy implements TypeSystemStrategy<ir.Node> {
@@ -349,6 +356,10 @@ class KernelGlobalTypeInferenceElementData
   // TODO(johnniwinther): Rename this together with [typeOfSend].
   Map<ir.Node, TypeMask> _sendMap;
 
+  Map<ir.ForInStatement, TypeMask> _iteratorMap;
+  Map<ir.ForInStatement, TypeMask> _currentMap;
+  Map<ir.ForInStatement, TypeMask> _moveNextMap;
+
   @override
   TypeMask typeOfSend(ir.Node node) {
     if (_sendMap == null) return null;
@@ -356,39 +367,39 @@ class KernelGlobalTypeInferenceElementData
   }
 
   @override
-  void setCurrentTypeMask(ir.Node node, TypeMask mask) {
-    throw new UnsupportedError(
-        'KernelGlobalTypeInferenceElementData.setCurrentTypeMask');
+  void setCurrentTypeMask(covariant ir.ForInStatement node, TypeMask mask) {
+    _currentMap ??= <ir.ForInStatement, TypeMask>{};
+    _currentMap[node] = mask;
   }
 
   @override
-  void setMoveNextTypeMask(ir.Node node, TypeMask mask) {
-    throw new UnsupportedError(
-        'KernelGlobalTypeInferenceElementData.setMoveNextTypeMask');
+  void setMoveNextTypeMask(covariant ir.ForInStatement node, TypeMask mask) {
+    _moveNextMap ??= <ir.ForInStatement, TypeMask>{};
+    _moveNextMap[node] = mask;
   }
 
   @override
-  void setIteratorTypeMask(ir.Node node, TypeMask mask) {
-    throw new UnsupportedError(
-        'KernelGlobalTypeInferenceElementData.setIteratorTypeMask');
+  void setIteratorTypeMask(covariant ir.ForInStatement node, TypeMask mask) {
+    _iteratorMap ??= <ir.ForInStatement, TypeMask>{};
+    _iteratorMap[node] = mask;
   }
 
   @override
-  TypeMask typeOfIteratorCurrent(ir.Node node) {
-    throw new UnsupportedError(
-        'KernelGlobalTypeInferenceElementData.typeOfIteratorCurrent');
+  TypeMask typeOfIteratorCurrent(covariant ir.ForInStatement node) {
+    if (_currentMap == null) return null;
+    return _currentMap[node];
   }
 
   @override
-  TypeMask typeOfIteratorMoveNext(ir.Node node) {
-    throw new UnsupportedError(
-        'KernelGlobalTypeInferenceElementData.typeOfIteratorMoveNext');
+  TypeMask typeOfIteratorMoveNext(covariant ir.ForInStatement node) {
+    if (_moveNextMap == null) return null;
+    return _moveNextMap[node];
   }
 
   @override
-  TypeMask typeOfIterator(ir.Node node) {
-    throw new UnsupportedError(
-        'KernelGlobalTypeInferenceElementData.typeOfIterator');
+  TypeMask typeOfIterator(covariant ir.ForInStatement node) {
+    if (_iteratorMap == null) return null;
+    return _iteratorMap[node];
   }
 
   @override

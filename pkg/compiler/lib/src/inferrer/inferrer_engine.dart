@@ -11,12 +11,7 @@ import '../compiler.dart';
 import '../common_elements.dart';
 import '../constants/values.dart';
 import '../elements/elements.dart'
-    show
-        ClassElement,
-        ConstructorElement,
-        Elements,
-        MemberElement,
-        ParameterElement;
+    show ConstructorElement, Elements, MemberElement, ParameterElement;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../js_backend/annotations.dart';
@@ -169,7 +164,7 @@ abstract class InferrerEngine<T> {
   ///
   /// [inLoop] tells whether the call happens in a loop.
   TypeInformation registerCalledMember(
-      Spannable node,
+      Object node,
       Selector selector,
       TypeMask mask,
       MemberEntity caller,
@@ -759,6 +754,9 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   /// `null` if the initializer is not a constant value.
   ConstantValue getFieldConstant(FieldEntity field);
 
+  /// Returns `true` if [cls] has a 'call' method.
+  bool hasCallType(ClassEntity cls);
+
   void processLoopInformation() {
     types.allocatedCalls.forEach((dynamic info) {
       if (!info.inLoop) return;
@@ -958,7 +956,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   }
 
   TypeInformation registerCalledMember(
-      Spannable node,
+      Object node,
       Selector selector,
       TypeMask mask,
       MemberEntity caller,
@@ -984,8 +982,8 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
         selector.isCall &&
         callee is ConstructorEntity &&
         callee.isGenerativeConstructor) {
-      ClassElement cls = callee.enclosingClass;
-      if (cls.callType != null) {
+      ClassEntity cls = callee.enclosingClass;
+      if (hasCallType(cls)) {
         types.allocatedClosures.add(info);
       }
     }

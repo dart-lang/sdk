@@ -67,7 +67,7 @@ main() {
     // This is the same test as above, but by enabling type inference
     // we allow the compiler to detect that it can iterate over the
     // array using indexing.
-    return check(code, disableTypeInference: false, useKernelInSsa: true);
+    return check(code, disableTypeInference: false);
   });
 
   test('for-in loop top-level variable', () {
@@ -80,15 +80,14 @@ main() {
   }
   return sum;
 }''';
-    return check(code, disableTypeInference: false, useKernelInSsa: true);
+    return check(code, disableTypeInference: false);
   });
 
   test('for loop with break to label', () {
     String code = '''
-var a = 0;
 main() {
   var sum = 0;
-  outer: for (a in [1, 2, 3]) {
+  outer: for (var a in [1, 2, 3]) {
     for (int i = 0; i < 10; i++) {
       sum += a;
       if (a + i < 5)
@@ -97,6 +96,6 @@ main() {
   }
   return sum;
 }''';
-    return check(code, disableTypeInference: false, useKernelInSsa: true);
+    return check(code, disableTypeInference: false);
   });
 }

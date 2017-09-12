@@ -6,8 +6,10 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
 import '../common.dart';
+import '../common/names.dart';
 import '../constants/constant_system.dart';
 import '../elements/entities.dart';
+import '../elements/jumps.dart';
 import '../elements/types.dart';
 import '../kernel/element_map.dart';
 import '../options.dart';
@@ -37,10 +39,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final ir.Node _analyzedNode;
   final KernelToElementMapForBuilding _elementMap;
   final KernelToLocalsMap _localsMap;
-  LocalsHandler _locals;
   final GlobalTypeInferenceElementData<ir.Node> _memberData;
-  SideEffects _sideEffects = new SideEffects.empty();
 
+  LocalsHandler _locals;
+  SideEffects _sideEffects = new SideEffects.empty();
+  final Map<JumpTarget, List<LocalsHandler>> _breaksFor =
+      <JumpTarget, List<LocalsHandler>>{};
+  final Map<JumpTarget, List<LocalsHandler>> _continuesFor =
+      <JumpTarget, List<LocalsHandler>>{};
   TypeInformation _returnType;
 
   KernelTypeGraphBuilder(
@@ -118,42 +124,59 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitFunctionNode(ir.FunctionNode node) {
-    // TODO(redemption): Handle constructors.
     // TODO(redemption): Handle native methods.
     visitList(node.positionalParameters);
     visitList(node.namedParameters);
     visit(node.body);
-    switch (node.asyncMarker) {
-      case ir.AsyncMarker.Sync:
-        if (_returnType == null) {
-          // No return in the body.
-          _returnType = _locals.seenReturnOrThrow
-              ? _types.nonNullEmpty() // Body always throws.
-              : _types.nullType;
-        } else if (!_locals.seenReturnOrThrow) {
-          // We haven'TypeInformation seen returns on all branches. So the method may
-          // also return null.
-          recordReturnType(_types.nullType);
+    MemberEntity analyzedMember = _analyzedMember;
+    if (analyzedMember is ConstructorEntity &&
+        analyzedMember.isGenerativeConstructor) {
+      // TODO(redemption): Handle initializers.
+      ClassEntity cls = analyzedMember.enclosingClass;
+      if (cls.isAbstract) {
+        if (_closedWorld.isInstantiated(cls)) {
+          _returnType = _types.nonNullSubclass(cls);
+        } else {
+          // TODO(johnniwinther): Avoid analyzing [_analyzedMember] in this
+          // case; it's never called.
+          _returnType = _types.nonNullEmpty();
         }
-        break;
+      } else {
+        _returnType = _types.nonNullExact(cls);
+      }
+    } else {
+      switch (node.asyncMarker) {
+        case ir.AsyncMarker.Sync:
+          if (_returnType == null) {
+            // No return in the body.
+            _returnType = _locals.seenReturnOrThrow
+                ? _types.nonNullEmpty() // Body always throws.
+                : _types.nullType;
+          } else if (!_locals.seenReturnOrThrow) {
+            // We haven'TypeInformation seen returns on all branches. So the
+            // method may also return null.
+            recordReturnType(_types.nullType);
+          }
+          break;
 
-      case ir.AsyncMarker.SyncStar:
-        // TODO(asgerf): Maybe make a ContainerTypeMask for these? The type
-        //               contained is the method body's return type.
-        recordReturnType(_types.syncStarIterableType);
-        break;
+        case ir.AsyncMarker.SyncStar:
+          // TODO(asgerf): Maybe make a ContainerTypeMask for these? The type
+          //               contained is the method body's return type.
+          recordReturnType(_types.syncStarIterableType);
+          break;
 
-      case ir.AsyncMarker.Async:
-        recordReturnType(_types.asyncFutureType);
-        break;
+        case ir.AsyncMarker.Async:
+          recordReturnType(_types.asyncFutureType);
+          break;
 
-      case ir.AsyncMarker.AsyncStar:
-        recordReturnType(_types.asyncStarStreamType);
-        break;
-      case ir.AsyncMarker.SyncYielding:
-        failedAt(
-            _analyzedMember, "Unexpected async marker: ${node.asyncMarker}");
-        break;
+        case ir.AsyncMarker.AsyncStar:
+          recordReturnType(_types.asyncStarStreamType);
+          break;
+        case ir.AsyncMarker.SyncYielding:
+          failedAt(
+              _analyzedMember, "Unexpected async marker: ${node.asyncMarker}");
+          break;
+      }
     }
     return _returnType;
   }
@@ -327,5 +350,128 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitLet(ir.Let node) {
     visit(node.variable);
     return visit(node.body);
+  }
+
+  @override
+  TypeInformation visitForInStatement(ir.ForInStatement node) {
+    TypeInformation expressionType = visit(node.iterable);
+    Selector iteratorSelector = Selectors.iterator;
+    TypeMask iteratorMask = _memberData.typeOfIterator(node);
+    Selector currentSelector = Selectors.current;
+    TypeMask currentMask = _memberData.typeOfIteratorCurrent(node);
+    Selector moveNextSelector = Selectors.moveNext;
+    TypeMask moveNextMask = _memberData.typeOfIteratorMoveNext(node);
+
+    TypeInformation iteratorType = handleDynamicInvoke(
+        CallType.forIn,
+        node,
+        iteratorSelector,
+        iteratorMask,
+        expressionType,
+        new ArgumentsTypes.empty());
+
+    handleDynamicInvoke(CallType.forIn, node, moveNextSelector, moveNextMask,
+        iteratorType, new ArgumentsTypes.empty());
+    TypeInformation currentType = handleDynamicInvoke(CallType.forIn, node,
+        currentSelector, currentMask, iteratorType, new ArgumentsTypes.empty());
+
+    Local variable = _localsMap.getLocalVariable(node.variable);
+    DartType variableType = _localsMap.getLocalType(_elementMap, variable);
+    _locals.update(variable, currentType, node.variable, variableType);
+
+    JumpTarget target = _localsMap.getJumpTargetForForIn(node);
+    return handleLoop(node, target, () {
+      visit(node.body);
+    });
+  }
+
+  void _setupBreaksAndContinues(JumpTarget target) {
+    if (target == null) return;
+    if (target.isContinueTarget) _continuesFor[target] = <LocalsHandler>[];
+    if (target.isBreakTarget) _breaksFor[target] = <LocalsHandler>[];
+  }
+
+  void _clearBreaksAndContinues(JumpTarget element) {
+    _continuesFor.remove(element);
+    _breaksFor.remove(element);
+  }
+
+  List<LocalsHandler> _getBreaks(JumpTarget target) {
+    List<LocalsHandler> list = <LocalsHandler>[_locals];
+    if (target == null) return list;
+    if (!target.isBreakTarget) return list;
+    return list..addAll(_breaksFor[target]);
+  }
+
+  List<LocalsHandler> _getLoopBackEdges(JumpTarget target) {
+    List<LocalsHandler> list = <LocalsHandler>[_locals];
+    if (target == null) return list;
+    if (!target.isContinueTarget) return list;
+    return list..addAll(_continuesFor[target]);
+  }
+
+  TypeInformation handleLoop(ir.Node node, JumpTarget target, void logic()) {
+    _loopLevel++;
+    bool changed = false;
+    LocalsHandler saved = _locals;
+    saved.startLoop(node);
+    do {
+      // Setup (and clear in case of multiple iterations of the loop)
+      // the lists of breaks and continues seen in the loop.
+      _setupBreaksAndContinues(target);
+      _locals = new LocalsHandler.from(saved, node);
+      logic();
+      changed = saved.mergeAll(_getLoopBackEdges(target));
+    } while (changed);
+    _loopLevel--;
+    saved.endLoop(node);
+    bool keepOwnLocals = node is! ir.DoStatement;
+    saved.mergeAfterBreaks(_getBreaks(target), keepOwnLocals: keepOwnLocals);
+    _locals = saved;
+    _clearBreaksAndContinues(target);
+    return null;
+  }
+
+  @override
+  TypeInformation visitConstructorInvocation(ir.ConstructorInvocation node) {
+    ConstructorEntity constructor = _elementMap.getConstructor(node.target);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    // TODO(redemption): Handle initializers.
+    // TODO(redemption): Handle foreign constructors.
+    Selector selector = _elementMap.getSelector(node);
+    TypeMask mask = _memberData.typeOfSend(node);
+    TypeInformation returnType =
+        handleStaticInvoke(node, selector, mask, constructor, arguments);
+    // TODO(redemption): Special-case `List` constructors.
+    return returnType;
+  }
+
+  TypeInformation handleStaticInvoke(ir.Node node, Selector selector,
+      TypeMask mask, MemberEntity element, ArgumentsTypes arguments) {
+    return _inferrer.registerCalledMember(node, selector, mask, _analyzedMember,
+        element, arguments, _sideEffects, inLoop);
+  }
+
+  @override
+  TypeInformation visitStaticInvocation(ir.StaticInvocation node) {
+    MemberEntity member = _elementMap.getMember(node.target);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    // TODO(redemption): Handle foreign functions.
+    Selector selector = _elementMap.getSelector(node);
+    TypeMask mask = _memberData.typeOfSend(node);
+    if (member.isFunction) {
+      return handleStaticInvoke(node, selector, mask, member, arguments);
+    } else {
+      handleStaticInvoke(node, selector, mask, member, arguments);
+      return _inferrer.registerCalledClosure(
+          node,
+          selector,
+          mask,
+          _inferrer.typeOfMember(member),
+          _analyzedMember,
+          arguments,
+          _sideEffects,
+          inLoop);
+    }
   }
 }
