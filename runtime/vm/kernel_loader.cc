@@ -366,6 +366,16 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library) {
     LibraryDependencyHelper dependency_helper(&builder_);
     dependency_helper.ReadUntilExcluding(LibraryDependencyHelper::kCombinators);
 
+    // Ignore the dependency if the target library is invalid.
+    // The error will be caught during compilation.
+    if (dependency_helper.target_library_canonical_name_ < 0) {
+      const intptr_t combinator_count = builder_.ReadListLength();
+      for (intptr_t c = 0; c < combinator_count; ++c) {
+        builder_.SkipLibraryCombinator();
+      }
+      continue;
+    }
+
     // Prepare show and hide lists.
     show_list = GrowableObjectArray::New(Heap::kOld);
     hide_list = GrowableObjectArray::New(Heap::kOld);
