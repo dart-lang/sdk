@@ -82,8 +82,6 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
   CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
   CompileTimeErrorCode.CONST_DEFERRED_CLASS,
-  CompileTimeErrorCode.CONST_EVAL_THROWS_ASSERT_FALSE,
-  CompileTimeErrorCode.CONST_EVAL_THROWS_ASSERT_NOT_BOOL,
   CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
   CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE,
   CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
