@@ -210,7 +210,6 @@ deferred_fail_and_retry_worker_test: CompileTimeError
 deferred_inheritance_test: CompileTimeError
 deferred_split_test: CompileTimeError
 dummy_compiler_test: CompileTimeError
-for_in_test: Crash
 hash_code_test: Crash
 if_null_test: Crash
 inference_super_set_call_test: RuntimeError
@@ -320,7 +319,6 @@ deferred_fail_and_retry_worker_test: CompileTimeError
 deferred_inheritance_test: CompileTimeError
 deferred_split_test: CompileTimeError
 dummy_compiler_test: CompileTimeError
-for_in_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 hash_code_test: Crash # UnimplementedError: Unexpected constant expression new #lib1::Hasher::•().hash (KernelPropertyGet)
 if_null_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
 inference_super_set_call_test: RuntimeError
