@@ -384,12 +384,9 @@ class RootsMarker extends RecursiveVisitor {
       super.visitFunctionNode(node);
     } else {
       var body = node.body;
-      try {
-        node.body = null;
-        super.visitFunctionNode(node);
-      } finally {
-        node.body = body;
-      }
+      node.body = null;
+      super.visitFunctionNode(node);
+      node.body = body;
     }
   }
 
@@ -596,26 +593,22 @@ class TrimmedBinaryPrinter extends BinaryPrinter {
       var isExternal = node.isExternal;
       var dependencies = node.dependencies.toList();
       var parts = node.parts.toList();
-      try {
-        node.isExternal = true;
-        node.dependencies.clear();
-        node.parts.clear();
-        super.visitLibrary(node);
-      } finally {
-        node.isExternal = isExternal;
-        node.dependencies.addAll(dependencies);
-        node.parts.addAll(parts);
-      }
+
+      node.isExternal = true;
+      node.dependencies.clear();
+      node.parts.clear();
+      super.visitLibrary(node);
+
+      node.isExternal = isExternal;
+      node.dependencies.addAll(dependencies);
+      node.parts.addAll(parts);
     }
   }
 
   @override
   void writeAdditionalExports(List<Reference> additionalExports) {
-    if (insideIncludedLibrary) {
-      super.writeAdditionalExports(additionalExports);
-    } else {
-      super.writeAdditionalExports(const <Reference>[]);
-    }
+    super.writeAdditionalExports(
+        insideIncludedLibrary ? additionalExports : const <Reference>[]);
   }
 
   @override
@@ -658,23 +651,17 @@ class TrimmedBinaryPrinter extends BinaryPrinter {
     // TODO(scheglov): Keep initializers for constant top-level variables and
     // final fields of classes with constant constructors.
     var initializer = node.initializer;
-    try {
-      node.initializer = null;
-      super.visitField(node);
-    } finally {
-      node.initializer = initializer;
-    }
+    node.initializer = null;
+    super.visitField(node);
+    node.initializer = initializer;
   }
 
   @override
   visitFunctionNode(FunctionNode node) {
     var body = node.body;
-    try {
-      node.body = null;
-      super.visitFunctionNode(node);
-    } finally {
-      node.body = body;
-    }
+    node.body = null;
+    super.visitFunctionNode(node);
+    node.body = body;
   }
 }
 
