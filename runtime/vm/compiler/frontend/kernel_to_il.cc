@@ -1659,7 +1659,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       break;
     case MethodRecognizer::kGrowableArrayCapacity:
       body += LoadLocal(scopes_->this_variable);
-      body += LoadField(Array::data_offset(), kArrayCid);
+      body += LoadField(GrowableObjectArray::data_offset(), kArrayCid);
       body += LoadNativeField(MethodRecognizer::kObjectArrayLength,
                               Array::length_offset(),
                               Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
