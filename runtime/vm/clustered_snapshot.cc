@@ -506,7 +506,7 @@ class FunctionSerializationCluster : public SerializationCluster {
     objects_.Add(func);
 
     RawObject** from = func->from();
-    RawObject** to = func->to_snapshot();
+    RawObject** to = func->to_snapshot(s->kind());
     for (RawObject** p = from; p <= to; p++) {
       s->Push(*p);
     }
@@ -535,7 +535,7 @@ class FunctionSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       RawFunction* func = objects_[i];
       RawObject** from = func->from();
-      RawObject** to = func->to_snapshot();
+      RawObject** to = func->to_snapshot(s->kind());
       for (RawObject** p = from; p <= to; p++) {
         s->WriteRef(*p);
       }
@@ -601,7 +601,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(func, kFunctionCid,
                                      Function::InstanceSize(), is_vm_object);
       RawObject** from = func->from();
-      RawObject** to_snapshot = func->to_snapshot();
+      RawObject** to_snapshot = func->to_snapshot(d->kind());
       RawObject** to = func->to();
       for (RawObject** p = from; p <= to_snapshot; p++) {
         *p = d->ReadRef();

@@ -736,7 +736,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
     func.set_was_compiled(false);
 
     // Set all the object fields.
-    READ_OBJECT_FIELDS(func, func.raw()->from(), func.raw()->to_snapshot(),
+    READ_OBJECT_FIELDS(func, func.raw()->from(), func.raw()->to_snapshot(kind),
                        kAsReference);
     // Initialize all fields that are not part of the snapshot.
     bool is_optimized = func.usage_counter() != 0;
@@ -810,7 +810,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
 
     // Write out all the object pointer fields.
     SnapshotWriterVisitor visitor(writer, kAsReference);
-    visitor.VisitPointers(from(), to_snapshot());
+    visitor.VisitPointers(from(), to_snapshot(kind));
     if (is_optimized) {
       // Write out the ic data array as the function is optimized.
       writer->WriteObjectImpl(ptr()->ic_data_array_, kAsReference);
