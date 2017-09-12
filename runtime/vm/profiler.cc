@@ -162,7 +162,7 @@ SampleBuffer::SampleBuffer(intptr_t capacity) {
 }
 
 AllocationSampleBuffer::AllocationSampleBuffer(intptr_t capacity)
-    : SampleBuffer(capacity), mutex_(new Mutex()) {}
+    : SampleBuffer(capacity), mutex_(new Mutex()), free_sample_list_(NULL) {}
 
 SampleBuffer::~SampleBuffer() {
   delete memory_;
