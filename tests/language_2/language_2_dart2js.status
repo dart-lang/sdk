@@ -534,12 +534,14 @@ async_star_regression_23116_test: Crash # RangeError (index): Invalid value: Not
 async_star_regression_fisk_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 async_star_stream_take_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 async_star_take_reyield_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_and_ifnull_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_Completer.T) in j:constructor(_AsyncCompleter.).
 await_backwards_compatibility_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 await_exceptions_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 await_for_cancel_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 await_for_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 await_for_use_local_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 await_future_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_in_cascade_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_Completer.T) in j:constructor(_AsyncCompleter.).
 await_nonfuture_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 await_not_started_immediately_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 await_null_aware_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
@@ -615,14 +617,16 @@ import_collection_no_prefix_test: Crash # NoSuchMethodError: The getter 'typeArg
 infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 308 pos 12: 'local != null': is not true.
 infinity_test: RuntimeError
 inlined_throw_test: Crash
-instance_creation_in_function_annotation_test: Crash
-instanceof4_test/01: Crash
-instanceof4_test/none: Crash
 inlined_throw_test: Crash
 instance_creation_in_function_annotation_test: Crash
+instance_creation_in_function_annotation_test: Crash
+instanceof4_test/01: Crash
 instanceof4_test/01: Crash
 instanceof4_test/none: Crash
+instanceof4_test/none: Crash
 regress_30339_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+static_getter_no_setter1_test/01: RuntimeError
+static_getter_no_setter3_test/01: RuntimeError
 type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 unused_overridden_async_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 vm/allocation_sinking_vm_test: RuntimeError
@@ -630,8 +634,6 @@ vm/async_await_catch_stacktrace_test: Crash # RangeError (index): Invalid value:
 wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 yieldstar_pause_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-static_getter_no_setter1_test/01: RuntimeError
-static_getter_no_setter3_test/01: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assert_message_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
@@ -722,12 +724,14 @@ async_star_regression_23116_test: Crash # RangeError (index): Invalid value: Not
 async_star_regression_fisk_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 async_star_stream_take_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 async_star_take_reyield_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_and_ifnull_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_Completer.T) in j:constructor(_AsyncCompleter.).
 await_backwards_compatibility_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 await_exceptions_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 await_for_cancel_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 await_for_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 await_for_use_local_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 await_future_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_in_cascade_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(_Completer.T) in j:constructor(_AsyncCompleter.).
 await_nonfuture_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 await_not_started_immediately_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 await_null_aware_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
@@ -805,13 +809,13 @@ instance_creation_in_function_annotation_test: Crash
 instanceof4_test/01: Crash
 instanceof4_test/none: Crash
 regress_30339_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+static_getter_no_setter1_test/01: RuntimeError
+static_getter_no_setter3_test/01: RuntimeError
 type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 unused_overridden_async_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 vm/allocation_sinking_vm_test: RuntimeError
 vm/async_await_catch_stacktrace_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 yieldstar_pause_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-static_getter_no_setter1_test/01: RuntimeError
-static_getter_no_setter3_test/01: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 typedef_is_test: Crash
