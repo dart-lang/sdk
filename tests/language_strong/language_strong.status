@@ -560,8 +560,6 @@ type_variable_conflict2_test: Skip
 type_variable_conflict_test: Skip
 type_variable_function_type_test: Skip
 type_variable_identifier_expression_test: Skip
-void_type_test: Skip
-wrong_number_type_arguments_test: Skip
 
 [ $compiler == dart2analyzer && $strong ]
 # async_await_test/02: CompileTimeError # Issue 28823

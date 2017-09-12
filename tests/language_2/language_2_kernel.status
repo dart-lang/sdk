@@ -78,6 +78,8 @@ if_null_precedence_test/07: MissingCompileTimeError
 if_null_precedence_test/none: RuntimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
+wrong_number_type_arguments_test/*: MissingCompileTimeError
+void_block_return_test/00: MissingCompileTimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError

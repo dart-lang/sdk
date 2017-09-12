@@ -3,6 +3,11 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js && $runtime == jsshell ]
+async/catch_errors12_test: Fail # Timer interface not supported: Issue 7728.
+async/catch_errors13_test: Fail # Timer interface not supported: Issue 7728.
+async/catch_errors14_test: Fail # Timer interface not supported: Issue 7728.
+async/catch_errors15_test: Fail # Timer interface not supported: Issue 7728.
+async/catch_errors8_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors22_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/catch_errors18_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors19_test: Fail # Timer interface not supported: Issue 7728.

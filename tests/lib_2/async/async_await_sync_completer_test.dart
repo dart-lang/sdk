@@ -30,7 +30,7 @@ void main() {
   asyncStart();
   var asyncValueFuture = foo().then(events.add);
   var asyncErrorFuture = bar().catchError(events.add);
-  Future.wait([
+  Future.wait(<Future>[
     asyncValueFuture,
     delayedValue.future,
     asyncErrorFuture,

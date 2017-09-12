@@ -6,16 +6,16 @@ import "package:expect/expect.dart";
 
 // Map takes 2 type arguments.
 Map
-<String> //# 00: static type warning
-    foo;
+    <String> //# 00: compile-time error
+foo;
 Map
-<String> //# 02: static type warning
-    baz;
+    <String> //# 02: compile-time error
+baz;
 
 main() {
-  foo = null;
+  foo = null; //# 00: continued
   var bar = new Map
-  <String> //# 01: static type warning
-      ();
+      <String> //# 01: compile-time error
+    ();
   baz = new Map(); //# 02: continued
 }

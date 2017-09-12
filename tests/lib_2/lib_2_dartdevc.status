@@ -7,6 +7,8 @@ mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
 profiler/metrics_num_test: Skip # Because of an int / double type test.
 
 [ $compiler == dartdevc && $runtime != none ]
+async/async_await_sync_completer_test: RuntimeError # Issue 29922
+async/async_await_zones_test: RuntimeError # Issue 29922
 async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_or_bad_type_test/implements: RuntimeError # Issue 29922
 async/future_test: RuntimeError # Issue 29922

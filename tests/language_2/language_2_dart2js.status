@@ -204,6 +204,9 @@ unresolved_default_constructor_test/01: MissingCompileTimeError
 unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
+wrong_number_type_arguments_test/*: MissingCompileTimeError
+void_block_return_test/00: MissingCompileTimeError
+vm/*: SkipByDesign # VM only tests.
 
 [ $compiler == dart2js && !$dart2js_with_kernel]
 bad_constructor_test/05: CompileTimeError
@@ -585,11 +588,18 @@ inlined_throw_test: Crash
 instance_creation_in_function_annotation_test: Crash
 instanceof4_test/01: Crash
 instanceof4_test/none: Crash
+inlined_throw_test: Crash
+instance_creation_in_function_annotation_test: Crash
+instanceof4_test/01: Crash
+instanceof4_test/none: Crash
 regress_30339_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 unused_overridden_async_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 vm/allocation_sinking_vm_test: RuntimeError
 vm/async_await_catch_stacktrace_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
+yieldstar_pause_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assert_message_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
@@ -756,6 +766,7 @@ type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass
 unused_overridden_async_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 vm/allocation_sinking_vm_test: RuntimeError
 vm/async_await_catch_stacktrace_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+yieldstar_pause_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 typedef_is_test: Crash

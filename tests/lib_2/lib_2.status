@@ -18,6 +18,8 @@ async/multiple_timer_test: Pass, Fail # Timing related
 [ $runtime == chrome && $system == macos ]
 async/slow_consumer_test: Pass, Timeout # Issue 22696
 convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
+async/catch_errors11_test: Pass, Timeout # Issue 22696
+async/catch_errors11_test: Pass, Timeout # Issue 22696
 
 [ $runtime == chrome || $runtime == ff ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050

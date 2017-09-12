@@ -5,16 +5,6 @@
 
 import "package:expect/expect.dart";
 
-isCheckedMode() {
-  try {
-    var i = 1;
-    String s = i;
-    return false;
-  } catch (e) {
-    return true;
-  }
-}
-
 void f() {
   return;
 }
@@ -23,18 +13,8 @@ void f_null() {
   return null;
 }
 
-void f_1() {
-  return 1;
-}
-
 void f_dyn_null() {
-  var x = null;
-  return x;
-}
-
-void f_dyn_1() {
-  var x = 1;
-  return x;
+  return null as dynamic;
 }
 
 void f_f() {
@@ -50,12 +30,7 @@ void test(int n, void func(), bool must_get_error) {
     } on TypeError catch (error) {
       got_type_error = true;
     }
-    // Never a type error in production mode.
-    if (isCheckedMode()) {
-      Expect.isTrue(got_type_error == must_get_error);
-    } else {
-      Expect.isFalse(got_type_error);
-    }
+    Expect.isFalse(got_type_error);
   }
   // Test as direct call.
   {
@@ -70,35 +45,22 @@ void test(int n, void func(), bool must_get_error) {
           x = f_null();
           break;
         case 2:
-          x = f_1();
-          break;
-        case 3:
           x = f_dyn_null();
           break;
-        case 4:
-          x = f_dyn_1();
-          break;
-        case 5:
+        case 3:
           x = f_f();
           break;
       }
     } on TypeError catch (error) {
       got_type_error = true;
     }
-    // Never a type error in production mode.
-    if (isCheckedMode()) {
-      Expect.isTrue(got_type_error == must_get_error);
-    } else {
-      Expect.isFalse(got_type_error);
-    }
+    Expect.isFalse(got_type_error);
   }
 }
 
 main() {
   test(0, f, false);
   test(1, f_null, false);
-  test(2, f_1, true);
-  test(3, f_dyn_null, false);
-  test(4, f_dyn_1, true);
-  test(5, f_f, false);
+  test(2, f_dyn_null, false);
+  test(3, f_f, false);
 }

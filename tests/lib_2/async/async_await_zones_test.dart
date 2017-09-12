@@ -94,7 +94,8 @@ increaseDepth() {
   Expect.isTrue(depth < 20);
 }
 
-registerCallback(Zone self, ZoneDelegate parent, Zone zone, f) {
+dynamic Function() registerCallback(
+    Zone self, ZoneDelegate parent, Zone zone, f) {
   var oldDepth = depth;
   increaseDepth();
   return parent.registerCallback(zone, () {
@@ -103,7 +104,8 @@ registerCallback(Zone self, ZoneDelegate parent, Zone zone, f) {
   });
 }
 
-registerUnaryCallback(Zone self, ZoneDelegate parent, Zone zone, f) {
+dynamic Function(dynamic) registerUnaryCallback(
+    Zone self, ZoneDelegate parent, Zone zone, f) {
   var oldDepth = depth;
   increaseDepth();
   return parent.registerUnaryCallback(zone, (x) {
@@ -112,7 +114,8 @@ registerUnaryCallback(Zone self, ZoneDelegate parent, Zone zone, f) {
   });
 }
 
-registerBinaryCallback(Zone self, ZoneDelegate parent, Zone zone, f) {
+dynamic Function(dynamic, dynamic) registerBinaryCallback(
+    Zone self, ZoneDelegate parent, Zone zone, f) {
   var oldDepth = depth;
   increaseDepth();
   return parent.registerBinaryCallback(zone, (x, y) {
