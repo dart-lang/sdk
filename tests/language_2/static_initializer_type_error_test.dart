@@ -4,15 +4,13 @@
 
 import "package:expect/expect.dart";
 
-int x = "milou";
-bool inCheckedMode = false;
+int x = "milou";  /*@compile-error=unspecified*/
 
 bool readXThrows() {
   try {
     var y = x;
     return false;
   } catch (e) {
-    inCheckedMode = true;
     x = 5; // Make sure we do not throw exception a second time.
     return true;
   }
@@ -25,6 +23,5 @@ main() {
       numExceptions++;
     }
   }
-  // In checked mode throw only one exception.
-  Expect.equals(inCheckedMode ? 1 : 0, numExceptions);
+  Expect.equals(1, numExceptions);
 }

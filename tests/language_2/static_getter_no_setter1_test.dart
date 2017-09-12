@@ -5,11 +5,13 @@
 import 'package:expect/expect.dart';
 
 class Class {
-  static set o(_) {}
-  m() => o; //# 01: static type warning
-  noSuchMethod(_) => 42;
+  static int get getter => 0;
+
+  method() {
+    getter++; //# 01: compile-time error
+  }
 }
 
 main() {
-  Expect.throws(() => new Class().m()); //# 01: continued
+  new Class().method();
 }

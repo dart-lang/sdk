@@ -4,22 +4,14 @@
 
 import 'package:expect/expect.dart';
 
-bool getter_visited = false;
-
 class Class {
-  static int get getter {
-    getter_visited = true;
-  }
+  static int get getter => 0;
 
   method() {
-    try {
-      getter++; //# 01: static type warning
-    } on NoSuchMethodError catch (e) {
-      Expect.isTrue(getter_visited); //# 01: continued
-      return;
-    }
-    Expect.fail('Expected NoSuchMethodError'); //# 01: continued
+    getter++; //# 01: compile-time error
   }
+
+  noSuchMethod(i) => 42;
 }
 
 main() {

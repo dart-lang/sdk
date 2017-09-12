@@ -42,6 +42,7 @@ import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
+string_interpolate_test: CompileTimeError
 type_variable_scope_test/none: CompileTimeError
 vm/*: SkipByDesign # VM only tests.
 

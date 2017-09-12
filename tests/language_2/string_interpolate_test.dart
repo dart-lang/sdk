@@ -6,6 +6,9 @@
 import "package:expect/expect.dart";
 
 class WhatchamaCallIt {
+
+  String get name => "";
+
   WhatchamaCallIt() {}
 
   String foo() {
@@ -16,8 +19,8 @@ class WhatchamaCallIt {
 
 class ThingamaBob extends WhatchamaCallIt {
   ThingamaBob(String s)
-      : super(),
-        name = s {}
+      : name = s,
+        super() {}
   String name;
   toString() => "Hansel";
 }
