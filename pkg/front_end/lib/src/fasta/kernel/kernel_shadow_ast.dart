@@ -526,7 +526,8 @@ class ShadowConstructorInvocation extends ConstructorInvocation
         fileOffset,
         _initialTarget.function.functionType,
         computeConstructorReturnType(_initialTarget),
-        arguments);
+        arguments,
+        isConst: isConst);
     inferrer.listener.constructorInvocationExit(this, inferredType);
     return inferredType;
   }
@@ -1151,7 +1152,8 @@ class ShadowListLiteral extends ListLiteral implements ShadowExpression {
     if (inferenceNeeded) {
       inferredTypes = [const UnknownType()];
       inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(listType,
-          listClass.typeParameters, null, null, typeContext, inferredTypes);
+          listClass.typeParameters, null, null, typeContext, inferredTypes,
+          isConst: isConst);
       inferredTypeArgument = inferredTypes[0];
       formalTypes = [];
       actualTypes = [];
@@ -1259,7 +1261,8 @@ class ShadowMapLiteral extends MapLiteral implements ShadowExpression {
     if (inferenceNeeded) {
       inferredTypes = [const UnknownType(), const UnknownType()];
       inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(mapType,
-          mapClass.typeParameters, null, null, typeContext, inferredTypes);
+          mapClass.typeParameters, null, null, typeContext, inferredTypes,
+          isConst: isConst);
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
       formalTypes = [];

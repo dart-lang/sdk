@@ -643,7 +643,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       {bool isOverloadedArithmeticOperator: false,
       DartType receiverType,
       bool skipTypeArgumentInference: false,
-      bool forceArgumentInference: false}) {
+      bool forceArgumentInference: false,
+      bool isConst: false}) {
     var calleeTypeParameters = calleeType.typeParameters;
     List<DartType> explicitTypeArguments = getExplicitTypeArguments(arguments);
     bool inferenceNeeded = !skipTypeArgumentInference &&
@@ -655,6 +656,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     List<DartType> formalTypes;
     List<DartType> actualTypes;
     if (inferenceNeeded) {
+      if (isConst && typeContext != null) {
+        typeContext =
+            new TypeVariableEliminator(coreTypes).substituteType(typeContext);
+      }
       inferredTypes = new List<DartType>.filled(
           calleeTypeParameters.length, const UnknownType());
       typeSchemaEnvironment.inferGenericFunctionOrType(returnType,

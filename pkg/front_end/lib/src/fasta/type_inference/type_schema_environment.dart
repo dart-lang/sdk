@@ -258,7 +258,8 @@ class TypeSchemaEnvironment extends TypeEnvironment {
       List<DartType> formalTypes,
       List<DartType> actualTypes,
       DartType returnContextType,
-      List<DartType> inferredTypes) {
+      List<DartType> inferredTypes,
+      {bool isConst: false}) {
     if (typeParametersToInfer.isEmpty) {
       return;
     }
@@ -270,6 +271,10 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     var gatherer = new TypeConstraintGatherer(this, typeParametersToInfer);
 
     if (!isEmptyContext(returnContextType)) {
+      if (isConst) {
+        returnContextType = new TypeVariableEliminator(coreTypes)
+            .substituteType(returnContextType);
+      }
       gatherer.trySubtypeMatch(declaredReturnType, returnContextType);
     }
 
@@ -805,5 +810,18 @@ class TypeSchemaEnvironment extends TypeEnvironment {
       assert(false);
       return const DynamicType();
     }
+  }
+}
+
+class TypeVariableEliminator extends Substitution {
+  final CoreTypes _coreTypes;
+
+  TypeVariableEliminator(this._coreTypes);
+
+  @override
+  DartType getSubstitute(TypeParameter parameter, bool upperBound) {
+    return upperBound
+        ? _coreTypes.nullClass.rawType
+        : _coreTypes.objectClass.rawType;
   }
 }
