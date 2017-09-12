@@ -653,7 +653,6 @@ full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
 full_stacktrace3_test: RuntimeError
 function_malformed_result_type_test: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-function_subtype_bound_closure6_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 function_subtype_cast2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 function_subtype_cast3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
@@ -1231,7 +1230,6 @@ for_variable_capture_test: RuntimeError
 full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
 full_stacktrace3_test: RuntimeError
-function_subtype_bound_closure6_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 function_subtype_cast2_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 function_subtype_cast3_test: Crash # NoSuchMethodError: The getter 'typeArguments' was called on null.
 function_subtype_closure0_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.

@@ -621,11 +621,10 @@ static_getter_no_setter3_test/01: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assert_message_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
-assert_trailing_comma_test/none: CompileTimeError
 assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc02 (Constructor)
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib2::C::bc02 (Constructor)
-assertion_initializer_test: CompileTimeError
+assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc01 (Constructor)
 assertion_test: RuntimeError
 async_and_or_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 async_await_catch_regression_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
