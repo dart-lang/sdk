@@ -1288,8 +1288,19 @@ void IsolateReloadContext::Commit() {
     Become::ElementsForwardIdentity(before, after);
   }
 
-  // Run the initializers for new instance fields.
-  RunNewFieldInitializers();
+  // Rehash constants map for all classes. Constants are hashed by address, and
+  // addresses may change during a become operation.
+  RehashConstants();
+
+#ifdef DEBUG
+  // Verify that all canonical instances are correctly setup in the
+  // corresponding canonical tables.
+  Thread* thread = Thread::Current();
+  I->heap()->CollectAllGarbage();
+  HeapIterationScope iteration(thread);
+  VerifyCanonicalVisitor check_canonical(thread);
+  iteration.IterateObjects(&check_canonical);
+#endif  // DEBUG
 
   if (FLAG_identity_reload) {
     if (saved_num_cids_ != I->class_table()->NumCids()) {
@@ -1306,18 +1317,8 @@ void IsolateReloadContext::Commit() {
     }
   }
 
-  // Rehash constants map for all classes.
-  RehashConstants();
-
-#ifdef DEBUG
-  // Verify that all canonical instances are correctly setup in the
-  // corresponding canonical tables.
-  Thread* thread = Thread::Current();
-  I->heap()->CollectAllGarbage();
-  HeapIterationScope iteration(thread);
-  VerifyCanonicalVisitor check_canonical(thread);
-  iteration.IterateObjects(&check_canonical);
-#endif  // DEBUG
+  // Run the initializers for new instance fields.
+  RunNewFieldInitializers();
 }
 
 void IsolateReloadContext::RehashConstants() {
