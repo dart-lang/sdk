@@ -302,7 +302,7 @@ generic_methods_generic_function_parameter_test: Pass # Issue 25869
 hello_dart_test: Skip # Incompatible flag: --compile_all
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && ($compiler == none || $compiler == app_jit || $compiler == precompiler) ]
-generalized_void_syntax_test: CompileTimeError # Issue #30176.
+generalized_void_syntax_test: CompileTimeError # Issue #30176
 
 [ $compiler == precompiler ]
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path

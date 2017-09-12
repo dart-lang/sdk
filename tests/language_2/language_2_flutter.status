@@ -12,6 +12,10 @@ async_await_test: CompileTimeError
 async_await_syntax_test/a05c: CompileTimeError
 async_await_syntax_test/a05e: CompileTimeError
 async_await_syntax_test/d08c: CompileTimeError
+await_backwards_compatibility_test/none: CompileTimeError
+await_test: CompileTimeError
+await_for_test: Skip # Flutter Issue 9110
+await_for_cancel_test: Skip # Flutter Issue 9110
 bad_override_test/06: CompileTimeError
 call_constructor_on_unresolvable_class_test/01: CompileTimeError
 call_constructor_on_unresolvable_class_test/03: CompileTimeError

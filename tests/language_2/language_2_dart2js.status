@@ -317,6 +317,8 @@ async_star_pause_test: RuntimeError # Issue 27394
 async_star_regression_fisk_test: RuntimeError # Issue 27394
 async_star_stream_take_test: RuntimeError # Issue 27394
 async_star_take_reyield_test: RuntimeError # Issue 27394
+await_for_test: RuntimeError # Issue 27394
+await_for_use_local_test: RuntimeError # Issue 27394
 black_listed_test/13c: Crash # Issue 27394
 black_listed_test/14c: Crash # Issue 27394
 bootstrap_test: RuntimeError # Issue 27394
@@ -532,6 +534,18 @@ async_star_regression_23116_test: Crash # RangeError (index): Invalid value: Not
 async_star_regression_fisk_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 async_star_stream_take_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 async_star_take_reyield_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_backwards_compatibility_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_exceptions_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_for_cancel_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_for_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_for_use_local_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_future_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_nonfuture_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_not_started_immediately_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_null_aware_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_postfix_expr_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_regression_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: Crash # type 'ShadowField' is not a subtype of type 'Procedure' of 'value' where
 bad_override_test/05: MissingCompileTimeError
@@ -708,6 +722,18 @@ async_star_regression_23116_test: Crash # RangeError (index): Invalid value: Not
 async_star_regression_fisk_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 async_star_stream_take_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 async_star_take_reyield_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_backwards_compatibility_test/none: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_exceptions_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_for_cancel_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_for_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_for_use_local_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_future_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_nonfuture_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_not_started_immediately_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_null_aware_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_postfix_expr_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_regression_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+await_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
@@ -802,6 +828,7 @@ async_star_cancel_while_paused_test: RuntimeError # Issue 22853
 async_star_await_pauses_test: RuntimeError # Need triage
 async_star_no_cancel2_test: RuntimeError # Need triage
 async_star_no_cancel_test: RuntimeError # Need triage
+await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 
 [ $compiler == dart2js && $checked && ! $dart2js_with_kernel ]
 async_return_types_test/nestedFuture: Fail # Issue 26429
@@ -872,3 +899,6 @@ generic_closure_test: Fail # Issue 12605
 
 [ $compiler == dart2js && $fast_startup && ! $dart2js_with_kernel ]
 instance_creation_in_function_annotation_test: Fail # mirrors not supported
+
+[ $compiler == dart2js && $runtime == chrome && $system == macos ]
+await_future_test: Pass, Timeout # Issue 26735

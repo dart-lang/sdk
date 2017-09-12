@@ -95,10 +95,8 @@ nonAsyncFunction() => await();
 others() async {
   var a = "${globalVariable} ${await dummy()} " + await "someString";
   Expect.equals(a, "1 1 someString");
-  try {
-    var c = new C();
-    var d = c.nooooo() + await dummy();
-  } catch (e) {}
+  var c = new C();
+  var d = c.field + await dummy();
   var cnt = 2;
   var b = [1, 2, 3];
   b[cnt] = await dummy();

@@ -29,7 +29,20 @@ testNamedArguments() async {
   Expect.equals(sum, 0);
 }
 
+testSideEffects() async {
+  Future foo(int a1, int a2) {
+    Expect.equals(10, a1);
+    Expect.equals(11, a2);
+    return new Future.value();
+  }
+
+  int a = 10;
+  await foo(a++, a++);
+  Expect.equals(12, a);
+}
+
 main() async {
   testNestedFunctions();
   testNamedArguments();
+  testSideEffects();
 }

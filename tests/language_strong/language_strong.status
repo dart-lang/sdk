@@ -10,8 +10,6 @@
 [ $strong ]
 async_or_generator_return_type_stacktrace_test: Skip
 async_return_types_test: Skip
-await_backwards_compatibility_test: Skip
-await_test: Skip
 bad_constructor_test: Skip
 bad_initializer1_negative_test: Skip
 bad_initializer2_negative_test: Skip
@@ -587,7 +585,6 @@ async_star_test/04: RuntimeError # Issue 28969
 async_star_test/05: RuntimeError # Issue 28969
 async_star_test/none: RuntimeError # Issue 28969
 asyncstar_throw_in_catch_test: Timeout # Issue 29920
-await_future_test: Pass, Timeout # Issue 29920
 bit_operations_test/01: RuntimeError # No bigints on web.
 bit_operations_test/02: RuntimeError # No bigints on web.
 bit_operations_test/03: RuntimeError # No bigints on web.
