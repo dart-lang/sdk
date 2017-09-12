@@ -192,6 +192,19 @@ enum Condition {
   AL = 14,  // always (unconditional)
   NV = 15,  // special condition (refer to section C1.2.3)
   kNumberOfConditions = 16,
+
+  // Platform-independent variants declared for all platforms
+  EQUAL = EQ,
+  NOT_EQUAL = NE,
+  LESS = LT,
+  LESS_EQUAL = LE,
+  GREATER_EQUAL = GE,
+  GREATER = GT,
+  UNSIGNED_LESS = CC,
+  UNSIGNED_LESS_EQUAL = LS,
+  UNSIGNED_GREATER = HI,
+  UNSIGNED_GREATER_EQUAL = CS,
+
   kInvalidCondition = 16
 };
 

@@ -30,6 +30,7 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   virtual void VisitCheckArrayBound(CheckArrayBoundInstr* instr);
   virtual void VisitCheckClass(CheckClassInstr* instr);
   virtual void VisitCheckClassId(CheckClassIdInstr* instr);
+  virtual void VisitCheckNull(CheckNullInstr* instr);
   virtual void VisitGuardFieldClass(GuardFieldClassInstr* instr);
   virtual void VisitAssertAssignable(AssertAssignableInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
@@ -50,6 +51,12 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
 
   // Mark definition as having given class id in all dominated instructions.
   void SetCid(Definition* value, intptr_t cid);
+
+  // Ensures that redefinition with more accurate type is inserted after given
+  // instruction.
+  void EnsureMoreAccurateRedefinition(Instruction* prev,
+                                      Definition* original,
+                                      CompileType new_type);
 
   void AddToWorklist(Definition* defn);
   Definition* RemoveLastFromWorklist();

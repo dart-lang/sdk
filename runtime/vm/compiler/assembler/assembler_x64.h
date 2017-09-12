@@ -715,9 +715,11 @@ class Assembler : public ValueObject {
    */
 
   void CompareRegisters(Register a, Register b);
+  void BranchIf(Condition condition, Label* label) { j(condition, label); }
 
   // Issues a move instruction if 'to' is not the same as 'from'.
   void MoveRegister(Register to, Register from);
+  void PushRegister(Register r);
   void PopRegister(Register r);
 
   // Macros for adding/subtracting an immediate value that may be loaded from
@@ -963,6 +965,7 @@ class Assembler : public ValueObject {
                         Register temp);
 
   // Debugging and bringup support.
+  void Breakpoint() { int3(); }
   void Stop(const char* message, bool fixed_length_encoding = false);
   void Unimplemented(const char* message);
   void Untested(const char* message);

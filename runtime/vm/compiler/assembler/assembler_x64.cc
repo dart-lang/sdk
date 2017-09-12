@@ -2378,6 +2378,10 @@ void Assembler::MoveRegister(Register to, Register from) {
   }
 }
 
+void Assembler::PushRegister(Register r) {
+  pushq(r);
+}
+
 void Assembler::PopRegister(Register r) {
   popq(r);
 }

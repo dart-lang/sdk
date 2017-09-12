@@ -5622,18 +5622,6 @@ void CheckClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
-                                                             bool opt) const {
-  // Only needed for AOT.
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Only needed for AOT.
-  UNIMPLEMENTED();
-}
-
 // Length: register or constant.
 // Index: register, constant or stack slot.
 LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Zone* zone,

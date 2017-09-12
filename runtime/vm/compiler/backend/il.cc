@@ -2674,6 +2674,10 @@ Instruction* CheckEitherNonSmiInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
+Instruction* CheckNullInstr::Canonicalize(FlowGraph* flow_graph) {
+  return (!value()->Type()->is_nullable()) ? NULL : this;
+}
+
 BoxInstr* BoxInstr::Create(Representation from, Value* value) {
   switch (from) {
     case kUnboxedInt32:
@@ -3500,6 +3504,7 @@ void DeoptimizeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 #if !defined(TARGET_ARCH_DBC)
+
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass,
                                         licm_hoisted_ ? ICData::kHoisted : 0);
@@ -3543,7 +3548,119 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ Bind(&is_ok);
 }
-#endif
+
+LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
+                                                             bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  locs->set_in(kLengthPos, Location::RequiresRegister());
+  locs->set_in(kIndexPos, Location::RequiresRegister());
+  return locs;
+}
+
+class ThrowErrorSlowPathCode : public SlowPathCode {
+ public:
+  ThrowErrorSlowPathCode(Instruction* instruction,
+                         const RuntimeEntry& runtime_entry,
+                         intptr_t num_args,
+                         intptr_t try_index)
+      : instruction_(instruction),
+        runtime_entry_(runtime_entry),
+        num_args_(num_args),
+        try_index_(try_index) {}
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    if (Assembler::EmittingComments()) {
+      __ Comment("slow path check bound operation");
+    }
+    __ Bind(entry_label());
+    LocationSummary* locs = instruction_->locs();
+    // Save registers as they are needed for lazy deopt / exception handling.
+    compiler->SaveLiveRegisters(locs);
+    for (intptr_t i = 0; i < num_args_; ++i) {
+      __ PushRegister(locs->in(i).reg());
+    }
+    __ CallRuntime(runtime_entry_, num_args_);
+    compiler->AddDescriptor(
+        RawPcDescriptors::kOther, compiler->assembler()->CodeSize(),
+        instruction_->deopt_id(), instruction_->token_pos(), try_index_);
+    compiler->RecordSafepoint(locs, num_args_);
+    Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
+    compiler->EmitCatchEntryState(env, try_index_);
+    __ Breakpoint();
+  }
+
+ private:
+  Instruction* instruction_;
+  const RuntimeEntry& runtime_entry_;
+  const intptr_t num_args_;
+  const intptr_t try_index_;
+};
+
+class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  static const intptr_t kNumberOfArguments = 2;
+
+  RangeErrorSlowPath(GenericCheckBoundInstr* instruction, intptr_t try_index)
+      : ThrowErrorSlowPathCode(instruction,
+                               kRangeErrorRuntimeEntry,
+                               kNumberOfArguments,
+                               try_index) {}
+};
+
+void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  RangeErrorSlowPath* slow_path =
+      new RangeErrorSlowPath(this, compiler->CurrentTryIndex());
+  compiler->AddSlowPathCode(slow_path);
+  Location length_loc = locs()->in(kLengthPos);
+  Location index_loc = locs()->in(kIndexPos);
+  Register length = length_loc.reg();
+  Register index = index_loc.reg();
+  const intptr_t index_cid = this->index()->Type()->ToCid();
+  if (index_cid != kSmiCid) {
+    __ BranchIfNotSmi(index, slow_path->entry_label());
+  }
+  __ CompareRegisters(index, length);
+  __ BranchIf(UNSIGNED_GREATER_EQUAL, slow_path->entry_label());
+}
+
+LocationSummary* CheckNullInstr::MakeLocationSummary(Zone* zone,
+                                                     bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  locs->set_in(0, Location::RequiresRegister());
+  return locs;
+}
+
+class NullErrorSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  // TODO(dartbug.com/30480): Pass arguments for NoSuchMethodError.
+  static const intptr_t kNumberOfArguments = 0;
+
+  NullErrorSlowPath(CheckNullInstr* instruction, intptr_t try_index)
+      : ThrowErrorSlowPathCode(instruction,
+                               kNullErrorRuntimeEntry,
+                               kNumberOfArguments,
+                               try_index) {}
+};
+
+void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  NullErrorSlowPath* slow_path =
+      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  compiler->AddSlowPathCode(slow_path);
+
+  Register value_reg = locs()->in(0).reg();
+  // TODO(dartbug.com/30480): Consider passing `null` literal as an argument
+  // in order to be able to allocate it on register.
+  __ CompareObject(value_reg, Object::null_object());
+  __ BranchIf(EQUAL, slow_path->entry_label());
+}
+
+#endif  // !defined(TARGET_ARCH_DBC)
 
 Environment* Environment::From(Zone* zone,
                                const GrowableArray<Definition*>& definitions,

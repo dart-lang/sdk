@@ -171,7 +171,7 @@ class CompileType : public ZoneAllocated {
              (type_->Equals(Type::Handle(Type::Int64Type())))));
   }
 
-  /// Returns true if value of this type is either int or null.
+  // Returns true if value of this type is either int or null.
   bool IsNullableInt() {
     if ((cid_ == kSmiCid) || (cid_ == kMintCid) || (cid_ == kBigintCid)) {
       return true;
@@ -183,7 +183,7 @@ class CompileType : public ZoneAllocated {
     return false;
   }
 
-  /// Returns true if value of this type is either double or null.
+  // Returns true if value of this type is either double or null.
   bool IsNullableDouble() {
     if (cid_ == kDoubleCid) {
       return true;
@@ -430,6 +430,7 @@ class EmbeddedArray<T, 0> {
   M(CheckClass)                                                                \
   M(CheckClassId)                                                              \
   M(CheckSmi)                                                                  \
+  M(CheckNull)                                                                 \
   M(Constant)                                                                  \
   M(UnboxedConstant)                                                           \
   M(CheckEitherNonSmi)                                                         \
@@ -7687,6 +7688,37 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(CheckSmiInstr);
 };
 
+// CheckNull instruction takes one input (`value`) and tests it for `null`.
+// If `value` is `null`, then `NoSuchMethodError` is thrown. Otherwise,
+// execution proceeds to the next instruction.
+class CheckNullInstr : public TemplateInstruction<1, Throws, NoCSE> {
+ public:
+  CheckNullInstr(Value* value, intptr_t deopt_id, TokenPosition token_pos)
+      : TemplateInstruction(deopt_id), token_pos_(token_pos) {
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
+
+  DECLARE_INSTRUCTION(CheckNull)
+
+  // CheckNull can implicitly call Dart code (NoSuchMethodError constructor),
+  // so it can lazily deopt.
+  virtual bool ComputeCanDeoptimize() const { return true; }
+
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+ private:
+  const TokenPosition token_pos_;
+
+  DISALLOW_COPY_AND_ASSIGN(CheckNullInstr);
+};
+
 class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
  public:
   CheckClassIdInstr(Value* value, CidRange cids, intptr_t deopt_id)
@@ -7775,6 +7807,8 @@ class GenericCheckBoundInstr : public TemplateInstruction<2, Throws, NoCSE> {
 
   DECLARE_INSTRUCTION(GenericCheckBound)
 
+  // GenericCheckBound can implicitly call Dart code (RangeError or
+  // ArgumentError constructor), so it can lazily deopt.
   virtual bool ComputeCanDeoptimize() const { return true; }
 
   // Give a name to the location/input indices.
