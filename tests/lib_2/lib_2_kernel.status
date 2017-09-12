@@ -2,11 +2,16 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dartkp ]
+mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
+
 [ $compiler == dartk || $compiler == dartkp ]
 async/future_or_strong_test: RuntimeError
 async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
 async/schedule_microtask2_test: RuntimeError
+
+[ $compiler == dartk ]
 mirrors/abstract_class_test: RuntimeError
 mirrors/class_declarations_test/01: RuntimeError
 mirrors/class_declarations_test/none: RuntimeError
@@ -146,10 +151,7 @@ mirrors/typevariable_mirror_metadata_test: RuntimeError
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 mirrors/variable_is_const_test/01: Crash
 
-[ $compiler == dartkp && $mode == debug ]
-mirrors/variable_is_const_test/01: Crash
-
-[ $checked && ($compiler == dartk || $compiler == dartkp) ]
+[ $checked && ($compiler == dartk) ]
 mirrors/invocation_fuzz_test/smi: Crash
 
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
