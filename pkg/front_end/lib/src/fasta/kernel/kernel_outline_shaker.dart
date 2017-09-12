@@ -7,6 +7,7 @@
 library fasta.kernel.kernel_outline_shaker;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/core_types.dart';
 
 import '../problems.dart' show unimplemented, unsupported;
@@ -27,8 +28,19 @@ import '../problems.dart' show unimplemented, unsupported;
 /// any members of those libraries.
 void trimProgram(Program program, bool isIncluded(Uri uri)) {
   var data = new RetainedDataBuilder();
-  new RootsMarker(new CoreTypes(program), data).run(program, isIncluded);
+  new RootsMarker(new CoreTypes(program), data, true).run(program, isIncluded);
   new KernelOutlineShaker(data, isIncluded).transform(program);
+}
+
+/// Serialize outlines of the nodes in libraries whose URI match [isIncluded],
+/// and outlines of members and classes which are transitively referenced from
+/// the included libraries. Only outlines are serialized, even for included
+/// libraries, all function bodies are ignored.
+void serializeTrimmedOutline(
+    Sink<List<int>> sink, Program program, bool isIncluded(Uri uri)) {
+  var data = new RetainedDataBuilder();
+  new RootsMarker(new CoreTypes(program), data, false).run(program, isIncluded);
+  new TrimmedBinaryPrinter(sink, isIncluded, data).writeProgramFile(program);
 }
 
 /// Informs about which libraries, classes, and members should be retained by
@@ -231,8 +243,9 @@ class TypeMarker extends DartTypeVisitor {
 class RootsMarker extends RecursiveVisitor {
   final CoreTypes coreTypes;
   final RetainedDataBuilder data;
+  final bool includeFunctionBodies;
 
-  RootsMarker(this.coreTypes, this.data);
+  RootsMarker(this.coreTypes, this.data, this.includeFunctionBodies);
 
   void run(Program program, bool isIncluded(Uri uri)) {
     markRequired(program);
@@ -292,6 +305,7 @@ class RootsMarker extends RecursiveVisitor {
     data.markMember(coreTypes.listFromConstructor);
   }
 
+  @override
   visitConstructor(Constructor node) {
     if (!node.initializers.any((i) => i is SuperInitializer)) {
       // super() is currently implicit.
@@ -338,6 +352,28 @@ class RootsMarker extends RecursiveVisitor {
   visitConstructorInvocation(ConstructorInvocation node) {
     data.markMember(node.target);
     node.visitChildren(this);
+  }
+
+  @override
+  visitField(Field node) {
+    // TODO(scheglov): Keep initializers for constant top-level variables and
+    // final fields of classes with constant constructors.
+    super.visitField(node);
+  }
+
+  @override
+  visitFunctionNode(FunctionNode node) {
+    if (includeFunctionBodies) {
+      super.visitFunctionNode(node);
+    } else {
+      var body = node.body;
+      try {
+        node.body = null;
+        super.visitFunctionNode(node);
+      } finally {
+        node.body = body;
+      }
+    }
   }
 
   @override
@@ -497,6 +533,115 @@ class KernelOutlineShaker extends Transformer {
   }
 
   TreeNode defaultTreeNode(TreeNode node) => node;
+}
+
+/// [BinaryPrinter] that serializes outlines of all nodes in included
+/// libraries, and outlines of nodes that are marked in the [RetainedData].
+class TrimmedBinaryPrinter extends BinaryPrinter {
+  final bool Function(Uri uri) isIncluded;
+  final RetainedData data;
+  List<Library> librariesToWrite = <Library>[];
+  bool insideIncludedLibrary = false;
+
+  TrimmedBinaryPrinter(Sink<List<int>> sink, this.isIncluded, this.data)
+      : super(sink);
+
+  @override
+  void writeLibraries(Program program) {
+    for (var library in program.libraries) {
+      if (isIncluded(library.importUri) || data.isLibraryUsed(library)) {
+        librariesToWrite.add(library);
+      }
+    }
+    writeList(librariesToWrite, writeNode);
+  }
+
+  @override
+  void writeProgramIndex(Program program, List<Library> libraries) {
+    super.writeProgramIndex(program, librariesToWrite);
+  }
+
+  @override
+  visitLibrary(Library node) {
+    insideIncludedLibrary = isIncluded(node.importUri);
+    if (insideIncludedLibrary) {
+      super.visitLibrary(node);
+    } else {
+      var isExternal = node.isExternal;
+      var dependencies = node.dependencies.toList();
+      var parts = node.parts.toList();
+      try {
+        node.isExternal = true;
+        node.dependencies.clear();
+        node.parts.clear();
+        super.visitLibrary(node);
+      } finally {
+        node.isExternal = isExternal;
+        node.dependencies.addAll(dependencies);
+        node.parts.addAll(parts);
+      }
+    }
+  }
+
+  @override
+  void writeAdditionalExports(List<Reference> additionalExports) {
+    if (insideIncludedLibrary) {
+      super.writeAdditionalExports(additionalExports);
+    } else {
+      super.writeAdditionalExports(const <Reference>[]);
+    }
+  }
+
+  @override
+  void writeNodeList(List<Node> nodes) {
+    if (insideIncludedLibrary || nodes.isEmpty) {
+      super.writeNodeList(nodes);
+    } else {
+      var newNodes = <Node>[];
+      for (var node in nodes) {
+        if (node is Class) {
+          if (data.isClassUsed(node)) {
+            newNodes.add(node);
+          }
+        } else if (node is Member) {
+          if (data.isMemberUsed(node)) {
+            newNodes.add(node);
+          }
+        } else if (node is Typedef) {
+          if (data.isTypedefUsed(node)) {
+            newNodes.add(node);
+          }
+        } else {
+          newNodes.add(node);
+        }
+      }
+      super.writeNodeList(newNodes);
+    }
+  }
+
+  @override
+  visitField(Field node) {
+    // TODO(scheglov): Keep initializers for constant top-level variables and
+    // final fields of classes with constant constructors.
+    var initializer = node.initializer;
+    try {
+      node.initializer = null;
+      super.visitField(node);
+    } finally {
+      node.initializer = initializer;
+    }
+  }
+
+  @override
+  visitFunctionNode(FunctionNode node) {
+    var body = node.body;
+    try {
+      node.body = null;
+      super.visitFunctionNode(node);
+    } finally {
+      node.body = body;
+    }
+  }
 }
 
 typedef bool Filter(Uri uri);

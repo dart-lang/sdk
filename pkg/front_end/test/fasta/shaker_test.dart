@@ -30,13 +30,16 @@ import 'package:front_end/src/fasta/kernel/kernel_outline_shaker.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyProgram;
-import 'package:front_end/src/fasta/testing/kernel_chain.dart' show runDiff;
+import 'package:front_end/src/fasta/testing/kernel_chain.dart'
+    show BytesCollector, runDiff;
 import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
 import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 import 'package:kernel/ast.dart' show Program;
+import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/kernel.dart' show loadProgramFromBytes;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
+import 'package:kernel/text/ast_to_text.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
 import 'testing/suite.dart';
@@ -64,6 +67,7 @@ class TreeShakerContext extends ChainContext {
       : steps = <Step>[
           const BuildProgram(),
           new CheckShaker(updateExpectations: updateExpectations),
+          new CheckOutline(updateExpectations: updateExpectations),
         ];
 
   Program loadPlatformOutline() {
@@ -111,12 +115,25 @@ class BuildProgram
         sourceTarget.read(inputUri);
         var contents = new File.fromUri(inputUri).readAsStringSync();
         var showCoreLibraries = contents.contains("@@SHOW_CORE_LIBRARIES@@");
+
         await sourceTarget.buildOutlines();
         var program = await sourceTarget.buildProgram();
+
         bool isIncluded(Uri uri) => uri == inputUri;
+
+        Program outline;
+        {
+          var bytesCollector = new BytesCollector();
+          serializeTrimmedOutline(bytesCollector, program, isIncluded);
+          var bytes = bytesCollector.collect();
+          outline = new Program();
+          new BinaryBuilder(bytes).readProgram(outline);
+        }
+
         trimProgram(program, isIncluded);
-        return pass(
-            new _IntermediateData(inputUri, program, showCoreLibraries));
+
+        return pass(new _IntermediateData(
+            inputUri, program, outline, showCoreLibraries));
       } on deprecated_InputError catch (e, s) {
         return fail(null, e.error, s);
       }
@@ -132,23 +149,28 @@ class _IntermediateData {
   /// Program built by [BuildProgram].
   final Program program;
 
+  /// Shaken outline of [program].
+  final Program outline;
+
   /// Whether the output should include tree-shaking information about the core
   /// libraries. This is specified in a comment on individual test files where
   /// we believe that information is relevant.
   final bool showCoreLibraries;
 
-  _IntermediateData(this.uri, this.program, this.showCoreLibraries);
+  _IntermediateData(
+      this.uri, this.program, this.outline, this.showCoreLibraries);
 }
 
-/// A step that runs the tree-shaker and checks againt an expectation file for
+/// A step that runs the tree-shaker and checks against an expectation file for
 /// the list of members and classes that should be preserved by the tree-shaker.
-class CheckShaker extends Step<_IntermediateData, String, ChainContext> {
+class CheckShaker
+    extends Step<_IntermediateData, _IntermediateData, ChainContext> {
   final bool updateExpectations;
   const CheckShaker({this.updateExpectations: false});
 
   String get name => "match shaker expectation";
 
-  Future<Result<String>> run(
+  Future<Result<_IntermediateData>> run(
       _IntermediateData data, ChainContext context) async {
     String actualResult;
     var entryUri = data.uri;
@@ -156,8 +178,8 @@ class CheckShaker extends Step<_IntermediateData, String, ChainContext> {
 
     var errors = verifyProgram(program, isOutline: false);
     if (!errors.isEmpty) {
-      return new Result<String>(
-          null, context.expectationSet["VerificationError"], errors, null);
+      return new Result<_IntermediateData>(
+          data, context.expectationSet["VerificationError"], errors, null);
     }
 
     // Build a text representation of what we expect to be retained.
@@ -202,6 +224,82 @@ class CheckShaker extends Step<_IntermediateData, String, ChainContext> {
               null, "$entryUri doesn't match ${expectedFile.uri}\n$diff");
         }
       } else {
+        return pass(data);
+      }
+    }
+    if (updateExpectations) {
+      expectedFile.writeAsStringSync(actualResult);
+      return pass(data);
+    } else {
+      return fail(data, """
+Please create file ${expectedFile.path} with this content:
+$buffer""");
+    }
+  }
+}
+
+/// A step that checks outline against an expectation file.
+class CheckOutline extends Step<_IntermediateData, String, ChainContext> {
+  final bool updateExpectations;
+
+  const CheckOutline({this.updateExpectations: false});
+
+  String get name => "match outline expectation";
+
+  Future<Result<String>> run(
+      _IntermediateData data, ChainContext context) async {
+    var entryUri = data.uri;
+    var outline = data.outline;
+
+    var errors = verifyProgram(outline, isOutline: true);
+    if (!errors.isEmpty) {
+      return new Result<String>(
+          null, context.expectationSet["VerificationError"], errors, null);
+    }
+
+    String actualResult;
+    {
+      StringBuffer buffer = new StringBuffer();
+      buffer.writeln('DO NOT EDIT -- this file is autogenerated ---');
+      for (var library in outline.libraries) {
+        if (library.importUri.isScheme('dart') && !data.showCoreLibraries) {
+          continue;
+        }
+        String uri = relativizeUri(library.importUri);
+
+        if (library.isExternal) {
+          if (library.dependencies.isNotEmpty) {
+            return fail(
+                null, 'External library $uri should not have dependencies');
+          }
+          if (library.parts.isNotEmpty) {
+            return fail(null, 'External library $uri should not have parts');
+          }
+        }
+
+        var printer = new Printer(buffer, syntheticNames: new NameSystem());
+        buffer.write('----- ');
+        if (library.isExternal) {
+          buffer.write('external ');
+        }
+        buffer.writeln(uri);
+        printer.writeLibraryFile(library);
+        buffer.writeln();
+      }
+      actualResult = buffer.toString();
+    }
+
+    // Compare against expectations using the text representation.
+    File expectedFile = new File("${entryUri.toFilePath()}.outline");
+    if (await expectedFile.exists()) {
+      String expected = await expectedFile.readAsString();
+      if (expected.trim() != actualResult.trim()) {
+        if (!updateExpectations) {
+          String diff = await runDiff(expectedFile.uri, actualResult);
+          return fail(
+              null, "$entryUri doesn't match ${expectedFile.uri}\n$diff");
+        }
+      } else {
         return pass(actualResult);
       }
     }
@@ -211,7 +309,7 @@ class CheckShaker extends Step<_IntermediateData, String, ChainContext> {
     } else {
       return fail(actualResult, """
 Please create file ${expectedFile.path} with this content:
-$buffer""");
+$actualResult""");
     }
   }
 }
