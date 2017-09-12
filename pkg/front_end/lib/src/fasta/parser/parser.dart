@@ -390,6 +390,7 @@ class Parser {
     listener.beginConditionalUri(token);
     Token ifKeyword = token;
     token = expect('if', token);
+    Token leftParen = token;
     token = expect('(', token);
     token = parseDottedName(token);
     Token equalitySign;
@@ -397,9 +398,10 @@ class Parser {
       equalitySign = token;
       token = parseLiteralStringOrRecoverExpression(token.next);
     }
+    Token rightParen = token;
     token = expect(')', token);
     token = parseLiteralStringOrRecoverExpression(token);
-    listener.endConditionalUri(ifKeyword, equalitySign);
+    listener.endConditionalUri(ifKeyword, leftParen, equalitySign, rightParen);
     return token;
   }
 

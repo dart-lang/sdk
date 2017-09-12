@@ -178,7 +178,8 @@ class ElementListener extends Listener {
   }
 
   @override
-  void endConditionalUri(Token ifToken, Token equalSign) {
+  void endConditionalUri(
+      Token ifToken, Token leftParen, Token equalSign, Token rightParen) {
     StringNode uri = popNode();
     LiteralString conditionValue = (equalSign != null) ? popNode() : null;
     DottedName identifier = popNode();

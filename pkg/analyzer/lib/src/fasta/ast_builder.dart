@@ -1241,22 +1241,14 @@ class AstBuilder extends ScopeListener {
         semicolon));
   }
 
-  void endConditionalUri(Token ifKeyword, Token equalitySign) {
+  void endConditionalUri(
+      Token ifKeyword, Token leftParen, Token equalSign, Token rightParen) {
     debugEvent("ConditionalUri");
     StringLiteral libraryUri = pop();
-    StringLiteral value = popIfNotNull(equalitySign);
+    StringLiteral value = popIfNotNull(equalSign);
     DottedName name = pop();
-    // TODO(paulberry,ahe): what if there is no `(` token due to an error in the
-    // file being parsed?  It seems like we need the parser to do adequate error
-    // recovery and then report both the ifKeyword and leftParen tokens to the
-    // listener.
-    Token leftParen = unsafeToken(ifKeyword.next, TokenType.OPEN_PAREN);
-    // TODO(paulberry,ahe): the parser should report the right paren token to
-    // the listener.
-    Token lastToken = value?.endToken ?? equalitySign ?? name?.endToken;
-    Token rightParen = unsafeToken(lastToken.next, TokenType.CLOSE_PAREN);
-    push(ast.configuration(ifKeyword, leftParen, name, equalitySign, value,
-        rightParen, libraryUri));
+    push(ast.configuration(
+        ifKeyword, leftParen, name, equalSign, value, rightParen, libraryUri));
   }
 
   @override

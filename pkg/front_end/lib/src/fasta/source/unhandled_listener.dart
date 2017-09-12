@@ -30,12 +30,13 @@ abstract class UnhandledListener extends StackListener {
   List<String> popIdentifierList(int count) => popList(count);
 
   @override
-  void endConditionalUri(Token ifKeyword, Token equalitySign) {
+  void endConditionalUri(
+      Token ifKeyword, Token leftParen, Token equalSign, Token rightParen) {
     debugEvent("ConditionalUri");
     popCharOffset();
     pop(); // URI.
-    if (equalitySign != null) popCharOffset();
-    popIfNotNull(equalitySign); // String.
+    if (equalSign != null) popCharOffset();
+    popIfNotNull(equalSign); // String.
     pop(); // DottedName.
     push(Unhandled.ConditionalUri);
   }

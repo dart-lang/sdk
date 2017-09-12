@@ -651,9 +651,10 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void endConditionalUri(Token ifKeyword, Token equalitySign) {
+  void endConditionalUri(
+      Token ifKeyword, Token leftParen, Token equalSign, Token rightParen) {
     end('ConditionalUri');
-    listener.endConditionalUri(ifKeyword, equalitySign);
+    listener.endConditionalUri(ifKeyword, leftParen, equalSign, rightParen);
   }
 
   @override
