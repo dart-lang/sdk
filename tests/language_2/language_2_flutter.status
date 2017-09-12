@@ -30,13 +30,8 @@ type_variable_scope_test/05: CompileTimeError
 unicode_bom_test: CompileTimeError
 type_variable_scope2_test: CompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
-issue_25671b_test/01: CompileTimeError
-issue_25671a_test/01: CompileTimeError
 
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.
 [ $runtime == flutter && $compiler == none && $checked ]
 assert_initializer_test/4*: MissingCompileTimeError # Issue 392.
-
-[ $runtime == flutter && $arch == arm64 ]
-large_class_declaration_test: SkipSlow # Uses too much memory.

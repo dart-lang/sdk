@@ -291,6 +291,3 @@ generalized_void_syntax_test: CompileTimeError # Issue #30176.
 
 [ $compiler == precompiler ]
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
-
-[ $runtime == dart_precompiled && $arch == arm64 ]
-large_class_declaration_test: SkipSlow # Uses too much memory.

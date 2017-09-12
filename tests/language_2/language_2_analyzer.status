@@ -244,11 +244,6 @@ instance_call_wrong_argument_count_negative_test: fail # Issue 11585
 instance_method2_negative_test: CompileTimeError
 instance_method_negative_test: CompileTimeError
 inst_field_initializer1_negative_test: CompileTimeError
-label2_negative_test: CompileTimeError
-label3_negative_test: CompileTimeError
-label5_negative_test: CompileTimeError
-label6_negative_test: CompileTimeError
-label8_negative_test: CompileTimeError
 
 [ $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626

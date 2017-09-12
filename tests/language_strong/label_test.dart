@@ -209,8 +209,6 @@ class Helper {
           while (doAgain()) {
             break L;
           }
-          i--;
-          break;
         default:
           i--;
       }
@@ -339,7 +337,7 @@ class LabelTest {
     Expect.equals(111, Helper.test4());
     Expect.equals(111, Helper.test5());
     Expect.equals(111, Helper.test6());
-    Expect.equals(111, Helper.test7()); //# 01: ok
+    Expect.equals(111, Helper.test7());
     Expect.equals(111, Helper.test8());
     Expect.equals(111, Helper.test9());
     Expect.equals(111, Helper.test10());
