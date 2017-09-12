@@ -945,10 +945,20 @@ class Parser {
     return token.next;
   }
 
+  /// Parse an identifier at the given [token], based on the given [context].
+  ///
+  /// If the token is not an identifier, or is not appropriate in the given
+  /// context, report an error. In addition, if [template] is not `null`, create
+  /// a synthetic identifier and use the template to report the error.
   Token parseIdentifier(Token token, IdentifierContext context) {
     if (!token.isIdentifier) {
       if (optional("void", token)) {
         reportRecoverableError(token, fasta.messageInvalidVoid);
+      } else if (context.recoveryTemplate != null) {
+        Message message = context.recoveryTemplate.withArguments(token);
+        Token identifier = new SyntheticStringToken(
+            TokenType.IDENTIFIER, '', token.charOffset, 0);
+        token = rewriteAndRecover(token, message, identifier);
       } else {
         token = reportUnrecoverableErrorWithToken(
                 token, fasta.templateExpectedIdentifier)

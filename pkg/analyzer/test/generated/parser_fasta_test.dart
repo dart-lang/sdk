@@ -707,14 +707,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_expectedTypeName_as() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXPECTED_TYPE_NAME, found 0
-    super.test_expectedTypeName_as();
-  }
-
-  @override
-  @failingTest
   void test_expectedTypeName_as_void() {
     // TODO(brianwilkerson) Does not recover.
     //   Expected: true
@@ -724,14 +716,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   test/generated/parser_fasta_test.dart 2974:5                       ParserProxy._run
     //   test/generated/parser_fasta_test.dart 2661:34                      FastaParserTestCase._runParser
     super.test_expectedTypeName_as_void();
-  }
-
-  @override
-  @failingTest
-  void test_expectedTypeName_is() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXPECTED_TYPE_NAME, found 0
-    super.test_expectedTypeName_is();
   }
 
   @override
@@ -4712,13 +4696,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_relationalExpression_missing_RHS() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_relationalExpression_missing_RHS();
-  }
-
-  @override
-  @failingTest
   void test_relationalExpression_precedence_shift_right() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_relationalExpression_precedence_shift_right();
@@ -4864,13 +4841,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
   void test_parseReturnType_void() {
     // TODO(brianwilkerson) Passes, but ought to fail.
     super.test_parseReturnType_void();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeArgumentList_empty() {
-    // TODO(brianwilkerson) Does not recover from an empty list.
-    super.test_parseTypeArgumentList_empty();
   }
 
   @override
