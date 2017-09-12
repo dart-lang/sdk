@@ -10,8 +10,8 @@ class C extends core::Object {
   field dynamic f2;
   default constructor •() → void
     : super core::Object::•();
-  method m1(sou::A4 a, [sou::A5 b = null]) → sou::A3;
-  method m2(sou::A4 a, {sou::A6 b = null}) → sou::A3;
+  method m1(sou::A4 a, [sou::A5 b]) → sou::A3;
+  method m2(sou::A4 a, {sou::A6 b}) → sou::A3;
   get getter() → sou::A7;
   set setter(sou::A8 v) → void;
 }

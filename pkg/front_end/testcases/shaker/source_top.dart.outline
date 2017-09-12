@@ -35,8 +35,8 @@ class Meta extends core::Object {
 }
 static field sou::A8 topLevelVariable1;
 static field dynamic topLevelVariable2;
-static method topLevelFunction1(sou::A11 a, [sou::A12 b = null]) → sou::A10;
-static method topLevelFunction2(sou::A11 a, {sou::A13 b = null}) → sou::A10;
+static method topLevelFunction1(sou::A11 a, [sou::A12 b]) → sou::A10;
+static method topLevelFunction2(sou::A11 a, {sou::A13 b}) → sou::A10;
 
 ----- external pkg/front_end/testcases/shaker/lib/sources.dart
 library;

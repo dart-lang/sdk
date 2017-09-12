@@ -28,7 +28,7 @@ import '../problems.dart' show unimplemented, unsupported;
 /// any members of those libraries.
 void trimProgram(Program program, bool isIncluded(Uri uri)) {
   var data = new RetainedDataBuilder();
-  new RootsMarker(new CoreTypes(program), data, true).run(program, isIncluded);
+  new RootsMarker(new CoreTypes(program), data, false).run(program, isIncluded);
   new KernelOutlineShaker(data, isIncluded).transform(program);
 }
 
@@ -39,7 +39,7 @@ void trimProgram(Program program, bool isIncluded(Uri uri)) {
 void serializeTrimmedOutline(
     Sink<List<int>> sink, Program program, bool isIncluded(Uri uri)) {
   var data = new RetainedDataBuilder();
-  new RootsMarker(new CoreTypes(program), data, false).run(program, isIncluded);
+  new RootsMarker(new CoreTypes(program), data, true).run(program, isIncluded);
   new TrimmedBinaryPrinter(sink, isIncluded, data).writeProgramFile(program);
 }
 
@@ -243,9 +243,9 @@ class TypeMarker extends DartTypeVisitor {
 class RootsMarker extends RecursiveVisitor {
   final CoreTypes coreTypes;
   final RetainedDataBuilder data;
-  final bool includeFunctionBodies;
+  final bool forOutline;
 
-  RootsMarker(this.coreTypes, this.data, this.includeFunctionBodies);
+  RootsMarker(this.coreTypes, this.data, this.forOutline);
 
   void run(Program program, bool isIncluded(Uri uri)) {
     markRequired(program);
@@ -306,7 +306,20 @@ class RootsMarker extends RecursiveVisitor {
   }
 
   @override
+  visitClass(Class node) {
+    if (forOutline) {
+      if (node.name.startsWith('_')) return;
+      data.markClass(node);
+    }
+    super.visitClass(node);
+  }
+
+  @override
   visitConstructor(Constructor node) {
+    if (forOutline) {
+      if (node.name.isPrivate) return;
+      data.markMember(node);
+    }
     if (!node.initializers.any((i) => i is SuperInitializer)) {
       // super() is currently implicit.
       var supertype = node.enclosingClass.supertype;
@@ -356,6 +369,10 @@ class RootsMarker extends RecursiveVisitor {
 
   @override
   visitField(Field node) {
+    if (forOutline) {
+      if (node.name.isPrivate) return;
+      data.markMember(node);
+    }
     // TODO(scheglov): Keep initializers for constant top-level variables and
     // final fields of classes with constant constructors.
     super.visitField(node);
@@ -363,7 +380,7 @@ class RootsMarker extends RecursiveVisitor {
 
   @override
   visitFunctionNode(FunctionNode node) {
-    if (includeFunctionBodies) {
+    if (!forOutline) {
       super.visitFunctionNode(node);
     } else {
       var body = node.body;
@@ -374,6 +391,15 @@ class RootsMarker extends RecursiveVisitor {
         node.body = body;
       }
     }
+  }
+
+  @override
+  visitProcedure(Procedure node) {
+    if (forOutline) {
+      if (node.name.isPrivate) return;
+      data.markMember(node);
+    }
+    super.visitProcedure(node);
   }
 
   @override
@@ -594,7 +620,7 @@ class TrimmedBinaryPrinter extends BinaryPrinter {
 
   @override
   void writeNodeList(List<Node> nodes) {
-    if (insideIncludedLibrary || nodes.isEmpty) {
+    if (nodes.isEmpty) {
       super.writeNodeList(nodes);
     } else {
       var newNodes = <Node>[];
@@ -617,6 +643,14 @@ class TrimmedBinaryPrinter extends BinaryPrinter {
       }
       super.writeNodeList(newNodes);
     }
+  }
+
+  @override
+  visitClass(Class node) {
+    var level = node.level;
+    node.level = ClassLevel.Hierarchy;
+    super.visitClass(node);
+    node.level = level;
   }
 
   @override
