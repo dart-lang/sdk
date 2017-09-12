@@ -40,12 +40,9 @@ void SSLCertContext::TrustBuiltinRoots() {
     return;
   }
 
-  const char* bundle = "/system/data/boringssl/cert.pem";
-  if (!File::Exists(NULL, bundle)) {
-    FATAL1("Failed to find trusted certs at %s\n", bundle);
-  }
-
-  LoadRootCertFile(bundle);
+  int status = SSL_CTX_set_default_verify_paths(context());
+  SecureSocketUtils::CheckStatus(status, "TlsException",
+                                 "Failure trusting builtin roots");
 }
 
 void SSLCertContext::RegisterCallbacks(SSL* ssl) {
