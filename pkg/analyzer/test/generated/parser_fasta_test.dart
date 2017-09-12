@@ -4908,13 +4908,6 @@ class StatementParserTest_Fasta extends FastaParserTestCase
     // Expected 1 errors of type ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, found 0
     super.test_parseContinueStatement_noLabel();
   }
-
-  @override
-  @failingTest
-  void test_parseStatement_emptyTypeArgumentList() {
-    // TODO(brianwilkerson) Does not recover from empty list.
-    super.test_parseStatement_emptyTypeArgumentList();
-  }
 }
 
 /**
