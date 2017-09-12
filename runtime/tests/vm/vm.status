@@ -287,7 +287,6 @@ cc/DartAPI_StackOverflowStackTraceInfoArrowFunction: Fail
 cc/DartAPI_TestNativeFieldsAccess: Crash
 cc/DartAPI_TypeGetParameterizedTypes: Crash
 cc/DebuggerAPI_BreakpointStubPatching: Fail
-cc/DebuggerAPI_EvaluateExpr: Fail
 cc/DebuggerAPI_GetClosureInfo: Fail
 cc/DebuggerAPI_InterruptIsolate: SkipSlow
 cc/DebuggerAPI_IsolateID: Fail

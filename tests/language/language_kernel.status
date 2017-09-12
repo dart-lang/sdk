@@ -149,9 +149,6 @@ constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer r
 
 malformed_test/none: RuntimeError # Fasta bug: Leads to assertion error in Fasta.
 
-export_double_same_main_test: RuntimeError # Issue 29989
-export_main_test: RuntimeError # Issue 29989
-
 const_constructor_nonconst_field_test/01: MissingCompileTimeError # Fasta bug: Non-const expression in field initializer.
 
 method_name_test: CompileTimeError # Fasta bug: Parser bug.

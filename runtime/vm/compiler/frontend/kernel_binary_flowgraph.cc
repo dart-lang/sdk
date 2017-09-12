@@ -485,6 +485,42 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
   }
 }
 
+void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
+  if (field <= next_read_) return;
+
+  // Ordered with fall-through.
+  switch (next_read_) {
+    case kFlags: {
+      flags_ = builder_->ReadFlags();
+      if (++next_read_ == field) return;
+    }
+    case kAnnotations: {
+      builder_->SkipListOfExpressions();
+      if (++next_read_ == field) return;
+    }
+    case kTargetLibrary: {
+      target_library_canonical_name_ = builder_->ReadCanonicalNameReference();
+      if (++next_read_ == field) return;
+    }
+    case kName: {
+      name_index_ = builder_->ReadStringReference();
+      if (++next_read_ == field) return;
+    }
+    case kCombinators: {
+      intptr_t count = builder_->ReadListLength();
+      for (intptr_t i = 0; i < count; ++i) {
+        // Skip flags
+        builder_->SkipBytes(1);
+        // Skip list of names.
+        builder_->SkipListOfStrings();
+      }
+      if (++next_read_ == field) return;
+    }
+    case kEnd:
+      return;
+  }
+}
+
 StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function,
                                              intptr_t relative_kernel_offset,
                                              const TypedData& data)

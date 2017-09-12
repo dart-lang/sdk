@@ -198,7 +198,6 @@ message3_test/int32x4: Crash
 message_test: RuntimeError
 ping_pause_test: Pass, Timeout
 spawn_function_custom_class_test: Pass, Timeout
-spawn_uri_exported_main_test: RuntimeError
 spawn_uri_nested_vm_test: Pass, Timeout
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]

@@ -441,6 +441,46 @@ class LibraryHelper {
   intptr_t next_read_;
 };
 
+class LibraryDependencyHelper {
+ public:
+  enum Field {
+    kFlags,
+    kAnnotations,
+    kTargetLibrary,
+    kName,
+    kCombinators,
+    kEnd,
+  };
+
+  enum Flag {
+    Export = 1 << 0,
+    Deferred = 1 << 1,
+  };
+
+  enum CombinatorFlag {
+    Show = 1 << 0,
+  };
+
+  explicit LibraryDependencyHelper(StreamingFlowGraphBuilder* builder) {
+    builder_ = builder;
+    next_read_ = kFlags;
+  }
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field);
+
+  uint8_t flags_;
+  StringIndex name_index_;
+  NameIndex target_library_canonical_name_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
+};
+
 class StreamingDartTypeTranslator {
  public:
   StreamingDartTypeTranslator(StreamingFlowGraphBuilder* builder,
@@ -1078,6 +1118,7 @@ class StreamingFlowGraphBuilder {
   friend class ProcedureHelper;
   friend class ClassHelper;
   friend class LibraryHelper;
+  friend class LibraryDependencyHelper;
   friend class ConstructorHelper;
   friend class SimpleExpressionConverter;
   friend class KernelLoader;

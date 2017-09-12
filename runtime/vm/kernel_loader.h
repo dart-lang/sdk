@@ -130,6 +130,8 @@ class KernelLoader {
 
   void SetupFieldAccessorFunction(const Class& klass, const Function& function);
 
+  void LoadLibraryImportsAndExports(Library* library);
+
   Library& LookupLibrary(NameIndex library);
   Class& LookupClass(NameIndex klass);
 

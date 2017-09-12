@@ -9058,6 +9058,40 @@ TEST_CASE(DartAPI_NotifyIdle) {
   EXPECT_VALID(result);
 }
 
+// There exists another test by name DartAPI_Invoke_CrossLibrary.
+// However, that currently fails for the dartk configuration as it
+// uses Dart_LoadLibray. This test here effectively tests the same
+// functionality but invokes a function from an imported standard
+// library.
+TEST_CASE(DartAPI_InvokeImportedFunction) {
+  const char* kScriptChars =
+      "import 'dart:math';\n"
+      "import 'dart:profiler';\n"
+      "main() {}";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+
+  Dart_Handle max = Dart_NewStringFromCString("max");
+
+  Dart_Handle args[2] = {Dart_NewInteger(123), Dart_NewInteger(321)};
+  Dart_Handle result = Dart_Invoke(lib, max, 2, args);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsNumber(result));
+
+  int64_t result_value;
+  EXPECT_VALID(Dart_IntegerToInt64(result, &result_value));
+  EXPECT(result_value == 321);
+
+  // The function 'getCurrentTag' is actually defined in the library
+  // dart:developer. However, the library dart:profiler exports dart:developer
+  // and exposes the function 'getCurrentTag'.
+  // NOTE: dart:profiler is deprecated. So, its use in this test is only
+  // an interim solution until we fix DartAPI_Invoke_CrossLibrary.
+  Dart_Handle getCurrentTag = Dart_NewStringFromCString("getCurrentTag");
+  result = Dart_Invoke(lib, getCurrentTag, 0, NULL);
+  EXPECT_VALID(result);
+}
+
 #endif  // !PRODUCT
 
 }  // namespace dart

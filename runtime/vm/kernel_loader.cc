@@ -275,6 +275,10 @@ void KernelLoader::LoadLibrary(intptr_t kernel_offset) {
   library_helper.ReadUntilIncluding(LibraryHelper::kSourceUriIndex);
   Script& script = ScriptAt(library_helper.source_uri_index_, import_uri_index);
 
+  library_helper.ReadUntilExcluding(LibraryHelper::kDependencies);
+  LoadLibraryImportsAndExports(&library);
+  library_helper.SetJustRead(LibraryHelper::kDependencies);
+
   Class& toplevel_class =
       Class::Handle(Z, Class::New(library, Symbols::TopLevel(), script,
                                   TokenPosition::kNoSource));
@@ -347,6 +351,68 @@ void KernelLoader::LoadLibrary(intptr_t kernel_offset) {
   toplevel_class.SetFunctions(Array::Handle(MakeFunctionsArray()));
 
   classes.Add(toplevel_class, Heap::kOld);
+}
+
+void KernelLoader::LoadLibraryImportsAndExports(Library* library) {
+  GrowableObjectArray& show_list = GrowableObjectArray::Handle(Z);
+  GrowableObjectArray& hide_list = GrowableObjectArray::Handle(Z);
+  Array& show_names = Array::Handle(Z);
+  Array& hide_names = Array::Handle(Z);
+  Namespace& ns = Namespace::Handle(Z);
+  LibraryPrefix& library_prefix = LibraryPrefix::Handle(Z);
+
+  const intptr_t deps_count = builder_.ReadListLength();
+  for (intptr_t dep = 0; dep < deps_count; ++dep) {
+    LibraryDependencyHelper dependency_helper(&builder_);
+    dependency_helper.ReadUntilExcluding(LibraryDependencyHelper::kCombinators);
+
+    // Prepare show and hide lists.
+    show_list = GrowableObjectArray::New(Heap::kOld);
+    hide_list = GrowableObjectArray::New(Heap::kOld);
+    const intptr_t combinator_count = builder_.ReadListLength();
+    for (intptr_t c = 0; c < combinator_count; ++c) {
+      uint8_t flags = builder_.ReadFlags();
+      intptr_t name_count = builder_.ReadListLength();
+      for (intptr_t n = 0; n < name_count; ++n) {
+        String& show_hide_name = H.DartSymbol(builder_.ReadStringReference());
+        if (flags & LibraryDependencyHelper::Show) {
+          show_list.Add(show_hide_name, Heap::kOld);
+        } else {
+          hide_list.Add(show_hide_name, Heap::kOld);
+        }
+      }
+    }
+
+    if (show_list.Length() > 0) {
+      show_names = Array::MakeFixedLength(show_list);
+    }
+    if (hide_list.Length() > 0) {
+      hide_names = Array::MakeFixedLength(hide_list);
+    }
+
+    Library& target_library =
+        LookupLibrary(dependency_helper.target_library_canonical_name_);
+    String& prefix = H.DartSymbol(dependency_helper.name_index_);
+    ns = Namespace::New(target_library, show_names, hide_names);
+    if (dependency_helper.flags_ & LibraryDependencyHelper::Export) {
+      library->AddExport(ns);
+    } else {
+      if (prefix.IsNull() || prefix.Length() == 0) {
+        library->AddImport(ns);
+      } else {
+        library_prefix = library->LookupLocalLibraryPrefix(prefix);
+        if (!library_prefix.IsNull()) {
+          library_prefix.AddImport(ns);
+        } else {
+          library_prefix = LibraryPrefix::New(
+              prefix, ns,
+              dependency_helper.flags_ & LibraryDependencyHelper::Deferred,
+              *library);
+          library->AddObject(library_prefix, prefix);
+        }
+      }
+    }
+  }
 }
 
 void KernelLoader::LoadPreliminaryClass(Class* klass,
@@ -939,7 +1005,7 @@ Class& KernelLoader::LookupClass(NameIndex klass) {
   if (!classes_.Lookup(klass, &handle)) {
     Library& library = LookupLibrary(H.CanonicalNameParent(klass));
     const String& name = H.DartClassName(klass);
-    handle = &Class::Handle(Z, library.LookupClass(name));
+    handle = &Class::Handle(Z, library.LookupLocalClass(name));
     if (handle->IsNull()) {
       *handle = Class::New(library, name, Script::Handle(Z),
                            TokenPosition::kNoSource);
