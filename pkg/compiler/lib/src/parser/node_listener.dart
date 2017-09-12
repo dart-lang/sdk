@@ -852,7 +852,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleCatchBlock(Token onKeyword, Token catchKeyword) {
+  void handleCatchBlock(Token onKeyword, Token catchKeyword, Token comma) {
     Block block = popNode();
     NodeList formals = catchKeyword != null ? popNode() : null;
     TypeAnnotation type = onKeyword != null ? popNode() : null;

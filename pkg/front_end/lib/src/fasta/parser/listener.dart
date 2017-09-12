@@ -777,7 +777,7 @@ class Listener {
     logEvent("CatchClause");
   }
 
-  void handleCatchBlock(Token onKeyword, Token catchKeyword) {
+  void handleCatchBlock(Token onKeyword, Token catchKeyword, Token comma) {
     logEvent("CatchBlock");
   }
 

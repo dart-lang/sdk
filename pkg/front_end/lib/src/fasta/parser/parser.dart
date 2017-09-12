@@ -3908,6 +3908,7 @@ class Parser {
         value = token.stringValue;
       }
       Token catchKeyword = null;
+      Token comma = null;
       if (identical(value, 'catch')) {
         catchKeyword = token;
         Token openParens = catchKeyword.next;
@@ -3923,17 +3924,20 @@ class Parser {
           // OK: `catch (identifier)`.
         } else if (!optional(",", commaOrCloseParens)) {
           reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
-        } else if (!traceName.isIdentifier) {
-          reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
-        } else if (!optional(")", closeParens)) {
-          reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
+        } else {
+          comma = commaOrCloseParens;
+          if (!traceName.isIdentifier) {
+            reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
+          } else if (!optional(")", closeParens)) {
+            reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
+          }
         }
         token = parseFormalParameters(token.next, MemberKind.Catch);
       }
       listener.endCatchClause(token);
       token = parseBlock(token);
       ++catchCount;
-      listener.handleCatchBlock(onKeyword, catchKeyword);
+      listener.handleCatchBlock(onKeyword, catchKeyword, comma);
       value = token.stringValue; // while condition
     }
 

@@ -987,7 +987,7 @@ class AstBuilder extends ScopeListener {
         rightBracket));
   }
 
-  void handleCatchBlock(Token onKeyword, Token catchKeyword) {
+  void handleCatchBlock(Token onKeyword, Token catchKeyword, Token comma) {
     debugEvent("CatchBlock");
     Block body = pop();
     FormalParameterList catchParameterList = popIfNotNull(catchKeyword);
@@ -1010,7 +1010,7 @@ class AstBuilder extends ScopeListener {
         catchKeyword,
         catchParameterList?.leftParenthesis,
         exception,
-        stackTrace == null ? null : stackTrace.token.previous,
+        comma,
         stackTrace,
         catchParameterList?.rightParenthesis,
         body));

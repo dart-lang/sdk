@@ -1149,8 +1149,8 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void handleCatchBlock(Token onKeyword, Token catchKeyword) {
-    listener.handleCatchBlock(onKeyword, catchKeyword);
+  void handleCatchBlock(Token onKeyword, Token catchKeyword, Token comma) {
+    listener.handleCatchBlock(onKeyword, catchKeyword, comma);
     // TODO(danrubel): implement handleCatchBlock
   }
 
