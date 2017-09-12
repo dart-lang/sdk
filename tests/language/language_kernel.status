@@ -272,3 +272,6 @@ regress_26133_test: RuntimeError
 type_parameter_test/05: MissingCompileTimeError
 type_parameter_test/none: RuntimeError
 type_variable_bounds4_test/01: RuntimeError
+
+[ $compiler == dartkp ]
+export_double_same_main_test: Crash # Issue 29895

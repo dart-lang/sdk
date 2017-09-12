@@ -280,3 +280,8 @@ generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 
 [ $compiler == dartkp ]
 implicit_closure1_test: Crash
+generic_function_dcall_test: CompileTimeError
+generic_function_bounds_test: CompileTimeError
+
+[ ($compiler == dartkp) && !$checked ]
+generic_field_mixin6_test/none: RuntimeError
