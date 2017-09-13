@@ -6,6 +6,7 @@ import 'dart:core';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -24,9 +25,9 @@ class ErrorCodeValuesTest extends ParserTestCase {
 
   List<String> get rootComponents {
     if (_rootComponents == null) {
-      List<String> components = path.split(Platform.script.toFilePath());
-      _rootComponents =
-          components.sublist(0, components.indexOf('analyzer') + 1);
+      List<String> components = path.split(package_root.packageRoot);
+      components.add('analyzer');
+      _rootComponents = components;
     }
     return _rootComponents;
   }
