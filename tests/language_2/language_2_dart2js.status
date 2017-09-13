@@ -111,19 +111,6 @@ covariant_subtyping_with_substitution_test: RuntimeError
 covariant_tear_off_type_test: RuntimeError
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
-deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
-deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
-deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
-deferred_constraints_type_annotation_test/new_before_load: MissingCompileTimeError
-deferred_constraints_type_annotation_test/new_generic2: MissingCompileTimeError
-deferred_constraints_type_annotation_test/new_generic3: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation1: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
@@ -252,6 +239,19 @@ vm/*: SkipByDesign # VM only tests.
 
 [ $compiler == dart2js && !$dart2js_with_kernel ]
 bad_constructor_test/05: CompileTimeError
+deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
+deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
+deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_before_load: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_generic2: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_generic3: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation1: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 generic_methods_local_variable_declaration_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
@@ -483,8 +483,8 @@ function_type/function_type9_test: RuntimeError # Issue 30476
 assert_message_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc02 (Constructor)
 assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C::bc02 (Constructor)
-assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc01 (Constructor)
+assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib2::C::bc02 (Constructor)
+assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib2::C::cc01 (Constructor)
 assertion_test: RuntimeError
 async_and_or_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 async_await_catch_regression_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
@@ -585,6 +585,7 @@ await_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed 
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: Crash # type 'ShadowField' is not a subtype of type 'Procedure' of 'value' where
 bad_override_test/05: MissingCompileTimeError
+bit_operations_test/none: RuntimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 bool_test: RuntimeError
@@ -627,16 +628,13 @@ deferred_constraints_type_annotation_test/new_generic1: CompileTimeError
 deferred_constraints_type_annotation_test/none: CompileTimeError
 deferred_constraints_type_annotation_test/static_method: CompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_non_deferred: CompileTimeError
-bit_operations_test/none: RuntimeError
 deferred_function_type_test: CompileTimeError
 deferred_global_test: CompileTimeError
 deferred_import_core_test: CompileTimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
-deferred_inheritance_constraints_test/redirecting_constructor: RuntimeError
 deferred_inlined_test: CompileTimeError
-deferred_load_constants_test/none: CompileTimeError
 deferred_load_constants_test/none: CompileTimeError
 deferred_load_inval_code_test: CompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
@@ -704,14 +702,14 @@ typevariable_substitution2_test/02: RuntimeError
 unused_overridden_async_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 wrong_number_type_arguments_test/00: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
 wrong_number_type_arguments_test/02: Crash # 'package:front_end/src/fasta/kernel/kernel_class_builder.dart': Failed assertion: line 83 pos 12: 'arguments == null || cls.typeParameters.length == arguments.length': is not true.
-yieldstar_pause_test: Crash # RangeError (index): Invalid value: Not in range 0..2, inclusive: 3
+yieldstar_pause_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 assert_message_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 assertion_initializer_const_error2_test/cc02: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc02 (Constructor)
 assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib2::C::bc02 (Constructor)
-assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib1::C::cc01 (Constructor)
+assertion_initializer_const_function_error_test/01: Crash # Unsupported operation: Unexpected initializer #lib1::C::bc02 (Constructor)
+assertion_initializer_test: Crash # Unsupported operation: Unexpected initializer #lib2::C::cc01 (Constructor)
 assertion_test: RuntimeError
 async_and_or_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 async_await_catch_regression_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
@@ -812,6 +810,7 @@ await_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal'
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
+bit_operations_test/none: RuntimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 bool_test: RuntimeError
@@ -854,16 +853,13 @@ deferred_constraints_type_annotation_test/new_generic1: CompileTimeError
 deferred_constraints_type_annotation_test/none: CompileTimeError
 deferred_constraints_type_annotation_test/static_method: CompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_non_deferred: CompileTimeError
-bit_operations_test/none: RuntimeError
 deferred_function_type_test: CompileTimeError
 deferred_global_test: CompileTimeError
 deferred_import_core_test: CompileTimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
-deferred_inheritance_constraints_test/redirecting_constructor: RuntimeError
 deferred_inlined_test: CompileTimeError
-deferred_load_constants_test/none: CompileTimeError
 deferred_load_constants_test/none: CompileTimeError
 deferred_load_inval_code_test: CompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
@@ -927,9 +923,6 @@ named_parameters_test/none: RuntimeError
 named_parameters_with_conversions_test: RuntimeError
 named_parameters_with_dollars_test: RuntimeError
 regress_30339_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
-static_getter_no_setter1_test/01: RuntimeError
-static_getter_no_setter3_test/01: RuntimeError
-type_variable_nested_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 typevariable_substitution2_test/02: RuntimeError
 unused_overridden_async_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 yieldstar_pause_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
