@@ -105,6 +105,22 @@ closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 covariant_subtyping_with_substitution_test: RuntimeError
 covariant_tear_off_type_test: RuntimeError
+default_factory2_test/01: MissingCompileTimeError
+default_factory_test/01: MissingCompileTimeError
+deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
+deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
+deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_before_load: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_generic2: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_generic3: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation1: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
+deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
 generic_closure_test: RuntimeError
 generic_field_mixin6_test/01: MissingCompileTimeError
 generic_function_bounds_test: RuntimeError
@@ -232,6 +248,7 @@ unresolved_top_level_var_test: MissingCompileTimeError
 instance_creation_in_function_annotation_test: SkipByDesign
 wrong_number_type_arguments_test/*: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
+deferred_constraints_constants_test: SkipByDesign
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError
@@ -321,3 +338,12 @@ generalized_void_syntax_test: CompileTimeError # Issue #30176
 
 [ $compiler == precompiler ]
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
+deferred_global_test: Fail
+
+[ $mode == product || $compiler == app_jit || $compiler == precompiler ]
+deferred_load_constants_test/02: Fail
+deferred_load_constants_test/02: Fail
+deferred_load_constants_test/03: Fail
+deferred_load_constants_test/03: Fail
+deferred_load_constants_test/05: Fail
+deferred_load_constants_test/05: Fail

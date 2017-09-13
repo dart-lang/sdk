@@ -18,6 +18,25 @@ assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 cha_deopt1_test: RuntimeError
 cha_deopt2_test: RuntimeError
 cha_deopt3_test: RuntimeError
+default_factory2_test/01: MissingCompileTimeError
+deferred_constraints_type_annotation_test/as_operation: Pass
+deferred_constraints_type_annotation_test/catch_check: Pass
+deferred_constraints_type_annotation_test/is_check: Pass
+deferred_constraints_type_annotation_test/new: CompileTimeError
+deferred_constraints_type_annotation_test/new_before_load: Pass
+deferred_constraints_type_annotation_test/new_generic1: CompileTimeError
+deferred_constraints_type_annotation_test/new_generic2: Pass
+deferred_constraints_type_annotation_test/new_generic3: Pass
+deferred_constraints_type_annotation_test/none: CompileTimeError
+deferred_constraints_type_annotation_test/static_method: CompileTimeError
+deferred_constraints_type_annotation_test/type_annotation1: Pass
+deferred_constraints_type_annotation_test/type_annotation_generic1: Pass
+deferred_constraints_type_annotation_test/type_annotation_generic2: Pass
+deferred_constraints_type_annotation_test/type_annotation_generic3: Pass
+deferred_constraints_type_annotation_test/type_annotation_generic4: Pass
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: CompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_null: Pass
+deferred_constraints_type_annotation_test/type_annotation_top_level: Pass
 generic_function_dcall_test: CompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
@@ -82,6 +101,14 @@ initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
+deferred_call_empty_before_load_test: RuntimeError
+deferred_closurize_load_library_test: DartkCrash
+deferred_constant_list_test: RuntimeError
+deferred_function_type_test: RuntimeError
+deferred_inlined_test: RuntimeError
+deferred_load_inval_code_test: RuntimeError
+deferred_load_library_wrong_args_test/none: RuntimeError
+deferred_mixin_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
@@ -156,8 +183,28 @@ assert_initializer_test/47: MissingCompileTimeError # KernelVM bug: Constant eva
 assert_initializer_test/48: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 assert_initializer_test/none: RuntimeError # KernelVM bug: Constant evaluation.
 compile_time_constant_checked_test/02: MissingCompileTimeError
+default_factory2_test/01: Fail
 
 [ $compiler == dartk || $compiler == dartkp ]
+deferred_call_empty_before_load_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_closurize_load_library_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constant_list_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_constants_test/none: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_constants_test/reference_after_load: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_function_type_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_global_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_import_core_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_inheritance_constraints_test/extends: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_inheritance_constraints_test/implements: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_inheritance_constraints_test/mixin: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_inheritance_constraints_test/redirecting_constructor: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_inlined_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_load_constants_test/none: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_load_constants_test/none: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_load_inval_code_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_load_library_wrong_args_test/none: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_mixin_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_no_prefix_test/01: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 function_type/function_type0_test: RuntimeError
 function_type/function_type10_test: RuntimeError
 function_type/function_type11_test: RuntimeError
@@ -292,3 +339,8 @@ named_parameters_type_test/none: Crash
 
 [ ($compiler == dartkp) && !$checked ]
 generic_field_mixin6_test/none: RuntimeError
+
+[ !$checked && ($compiler == dartk || $compiler == dartkp) ]
+deferred_constraints_type_annotation_test/type_annotation1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_generic1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.

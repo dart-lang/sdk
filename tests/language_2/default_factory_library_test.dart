@@ -27,7 +27,7 @@ abstract class C implements lib.A {
 }
 
 main() {
-  var val = new lib.A();
+  dynamic val = new lib.A();
   Expect.equals(true, (val is B));
   Expect.equals(1, val.methodA());
   Expect.equals(2, val.methodB());

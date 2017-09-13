@@ -48,12 +48,12 @@ void main() {
     Expect.equals("lazyNonConstGlobal_mutated2", lib.readLazyNonConstGlobal());
 
     Expect.mapEquals({}, lib.lazyConstGlobal2);
-    lib.const1Global = 0;
+    lib.const1Global = const {'foo': 'bar'};
     Expect.equals(2, lib.sideEffectCounter);
-    Expect.equals(0, lib.const1Global);
+    Expect.equals(const {'foo': 'bar'}['foo'], lib.const1Global['foo']);
     // Try loading the deferred library again, should not reset the globals.
     lib.loadLibrary().then((_) {
-      Expect.equals(0, lib.const1Global);
+      Expect.equals(const {'foo': 'bar'}['foo'], lib.const1Global['foo']);
       asyncEnd();
     });
   });

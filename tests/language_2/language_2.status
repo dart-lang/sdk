@@ -21,6 +21,21 @@ function_type/*: Skip # Needs checked mode.
 cha_deopt1_test: Crash # Requires deferred libraries
 cha_deopt2_test: Crash # Requires deferred libraries
 cha_deopt3_test: Crash # Requires deferred libraries
+deferred_call_empty_before_load_test: Crash # Requires deferred libraries
+deferred_closurize_load_library_test: Crash # Requires deferred libraries
+deferred_constant_list_test: Crash # Requires deferred libraries
+deferred_constraints_constants_test: Crash # Requires deferred libraries
+deferred_constraints_type_annotation_test: Crash # Requires deferred libraries
+deferred_function_type_test: Crash # Requires deferred libraries
+deferred_global_test: Crash # Requires deferred libraries
+deferred_import_core_test: Crash # Requires deferred libraries
+deferred_inlined_test: Crash # Requires deferred libraries
+deferred_inheritance_constraints_test: Crash # Requires deferred libraries
+deferred_load_constants_test: Crash # Requires deferred libraries
+deferred_load_constants_test: Crash # Requires deferred libraries
+deferred_load_inval_code_test: Crash # Requires deferred libraries
+deferred_load_library_wrong_args_test: Crash # Requires deferred libraries
+deferred_mixin_test: Crash # Requires deferred libraries
 
 [ ! $checked && ! $strong ]
 closure_type_test: RuntimeError
@@ -57,3 +72,6 @@ compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
 [ $compiler == dartdevc ]
 compile_time_constant_e_test: RuntimeError # Issue 30466
 compile_time_constant_k_test/none: RuntimeError # Issue 30466
+
+[ $compiler == app_jit ]
+deferred_inheritance_constraints_test/redirecting_constructor: Crash

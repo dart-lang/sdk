@@ -89,21 +89,6 @@ cyclic_default_values_test: Skip
 cyclic_import_test: Skip
 cyclic_type_variable_test: Skip
 cyclic_typedef_test: Skip
-default_factory2_test: Skip
-default_factory_library_test: Skip
-default_factory_test: Skip
-deferred_constraints_constants_test: Skip
-deferred_constraints_constants_test_default: Skip
-deferred_constraints_constants_test: Skip
-deferred_constraints_type_annotation_test: Skip
-deferred_duplicate_prefix1_test: Skip
-deferred_duplicate_prefix2_test: Skip
-deferred_duplicate_prefix3_test: Skip
-deferred_global_test: Skip
-deferred_inheritance_constraints_test: Skip
-deferred_inheritance_constraints_test_redirecting: Skip
-deferred_load_constants_test: Skip
-deferred_no_prefix_test: Skip
 deopt_inlined_function_test: Skip
 double_to_string_as_exponential2_test: Skip
 double_to_string_as_fixed2_test: Skip
@@ -600,8 +585,6 @@ cyclic_type2_test: RuntimeError # Issue 29920
 cyclic_type_test/02: RuntimeError # Issue 29920
 cyclic_type_test/03: RuntimeError # Issue 29920
 cyclic_type_test/04: RuntimeError # Issue 29920
-deferred_call_empty_before_load_test: RuntimeError # Issue 27777
-deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 deferred_not_loaded_check_test: RuntimeError # Issue 27777
 deferred_redirecting_factory_test: RuntimeError # Issue 27777
 deferred_static_seperate_test: RuntimeError # Issue 27777
