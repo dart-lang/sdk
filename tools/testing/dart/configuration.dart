@@ -39,6 +39,7 @@ class Configuration {
       this.isMinified,
       this.isVerbose,
       this.listTests,
+      this.listStatusFiles,
       this.previewDart2,
       this.printTiming,
       this.printReport,
@@ -105,6 +106,7 @@ class Configuration {
   final bool isMinified;
   final bool isVerbose;
   final bool listTests;
+  final bool listStatusFiles;
   final bool previewDart2;
   final bool printTiming;
   final bool printReport;
