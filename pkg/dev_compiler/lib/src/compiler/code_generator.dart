@@ -2940,14 +2940,11 @@ class CodeGenerator extends Object
     } else {
       declareFn = new JS.FunctionDeclaration(name, fn);
     }
-    declareFn = annotate(declareFn, node, node.functionDeclaration.element);
+    var element = func.element;
+    declareFn = annotate(declareFn, node, element);
 
-    return new JS.Block([
-      declareFn,
-      _emitFunctionTagged(name,
-              resolutionMap.elementDeclaredByFunctionDeclaration(func).type)
-          .toStatement()
-    ]);
+    return new JS.Block(
+        [declareFn, _emitFunctionTagged(name, element.type).toStatement()]);
   }
 
   /// Emits a simple identifier, including handling an inferred generic
@@ -4139,12 +4136,33 @@ class CodeGenerator extends Object
     //     var result = []..add(1)..add(2);
     var variables = node.variables.variables;
     if (variables.length == 1) {
-      var v = variables[0];
-      if (v.initializer != null) {
-        var name = new JS.Identifier(v.name.name);
-        var value = _annotatedNullCheck(v.element)
-            ? notNull(v.initializer)
-            : _visit<JS.Expression>(v.initializer);
+      var variable = variables[0];
+      var initializer = variable.initializer;
+      if (initializer != null) {
+        var name = new JS.Identifier(variable.name.name);
+        JS.Expression value;
+        if (_annotatedNullCheck(variable.element)) {
+          value = notNull(initializer);
+        } else if (initializer is FunctionExpression) {
+          // This improve stack traces for the pattern:
+          //
+          //     var f = (y) => y.doesNotExist();
+          //
+          // ... by moving the type tagging after of the variable declaration:
+          //
+          //     let f = (y) => y.doesNotExist();
+          //     dart.fn(f, typeOfF);
+          //
+          value = _emitArrowFunction(initializer);
+          return new JS.Block([
+            value.toVariableDeclaration(name),
+            _emitFunctionTagged(name, getStaticType(initializer),
+                    topLevel: _executesAtTopLevel(node))
+                .toStatement()
+          ]);
+        } else {
+          value = _visit(initializer);
+        }
         return value.toVariableDeclaration(name);
       }
     }
