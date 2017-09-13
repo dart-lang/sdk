@@ -32,7 +32,7 @@ vars = {
   # on github and add the label 'area-infrastructure'.
   # "github_dartlang": "https://github.com/dart-lang/%s.git",
 
-  "co19_rev": "@dec2b67aaab3bb7339b9764049707e71e601da3d",
+  "co19_rev": "@b3cf69d1792fbf7ec2a0d0ed116d7b9ef626ac45",
 
   # Revisions of GN related dependencies. This should match the revision
   # pulled by Flutter.
