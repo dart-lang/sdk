@@ -206,7 +206,7 @@ if_null_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Faile
 inference_super_set_call_test: RuntimeError
 interceptor_named_arguments_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 invalid_annotation2_test/none: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-is_check_instanceof_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+is_check_instanceof_test: RuntimeError
 label_test/06: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 many_constants_test: RuntimeError
 mirror_invalid_field_access2_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
@@ -295,7 +295,7 @@ if_null_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLoca
 inference_super_set_call_test: RuntimeError
 interceptor_named_arguments_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 invalid_annotation2_test/none: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-is_check_instanceof_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+is_check_instanceof_test: RuntimeError
 label_test/06: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 many_constants_test: RuntimeError
 mirror_invalid_field_access2_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0

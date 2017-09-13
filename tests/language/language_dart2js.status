@@ -660,8 +660,6 @@ function_subtype_inline0_test: RuntimeError
 function_subtype_local3_test: RuntimeError
 function_subtype_local4_test: RuntimeError
 function_subtype_not3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#local)) for j:closure_call(Class_test_closure.call).
-function_subtype_typearg2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-function_subtype_typearg3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_syntax_test/none: RuntimeError
 function_test: RuntimeError
 function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
@@ -811,7 +809,6 @@ mixin_of_mixin_test/20: CompileTimeError
 mixin_of_mixin_test/21: CompileTimeError
 mixin_of_mixin_test/22: CompileTimeError
 mixin_of_mixin_test/none: CompileTimeError
-mixin_only_for_rti_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 mixin_super_2_test: CompileTimeError
 mixin_super_bound2_test/01: CompileTimeError
 mixin_super_bound2_test/none: CompileTimeError
@@ -1235,8 +1232,6 @@ function_subtype_inline0_test: RuntimeError
 function_subtype_local3_test: RuntimeError
 function_subtype_local4_test: RuntimeError
 function_subtype_not3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Class.test#local)) for j:closure_call(Class_test_closure.call).
-function_subtype_typearg2_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-function_subtype_typearg3_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 function_syntax_test/none: RuntimeError
 function_test: RuntimeError
 function_type_parameter2_negative_test: Crash # UnimplementedError: Unimplemented constant expression (dynamic i) → dynamic => "${i}" (ShadowFunctionExpression)
@@ -1382,7 +1377,6 @@ mixin_of_mixin_test/20: CompileTimeError
 mixin_of_mixin_test/21: CompileTimeError
 mixin_of_mixin_test/22: CompileTimeError
 mixin_of_mixin_test/none: CompileTimeError
-mixin_only_for_rti_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 mixin_super_2_test: CompileTimeError
 mixin_super_bound2_test/01: CompileTimeError
 mixin_super_bound2_test/none: CompileTimeError

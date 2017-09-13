@@ -949,6 +949,8 @@ abstract class ResolutionWorldBuilderBase
     forEachInstantiatedClass(addSubtypes);
 
     instantiatedTypes.forEach((type) {
+      _classEnsurer.ensureClassesInType(type);
+
       var callType = _dartTypes.getCallType(type);
       if (callType != null) {
         _classEnsurer.ensureClassesInType(callType);
