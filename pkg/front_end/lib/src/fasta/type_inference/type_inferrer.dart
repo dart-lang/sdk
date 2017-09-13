@@ -909,7 +909,18 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       int offset = arguments.fileOffset == -1
           ? expression.fileOffset
           : arguments.fileOffset;
-      if (receiver is ThisExpression) {
+      if (interfaceMember is Field ||
+          interfaceMember is Procedure &&
+              interfaceMember.kind == ProcedureKind.Getter) {
+        var getType = getCalleeType(interfaceMember, receiverType);
+        if (getType is DynamicType) {
+          instrumentation.record(Uri.parse(uri), offset, 'callKind',
+              new InstrumentationValueLiteral('dynamic'));
+        } else {
+          instrumentation.record(Uri.parse(uri), offset, 'callKind',
+              new InstrumentationValueLiteral('closure'));
+        }
+      } else if (receiver is ThisExpression) {
         instrumentation.record(Uri.parse(uri), offset, 'callKind',
             new InstrumentationValueLiteral('this'));
       } else if (identical(interfaceMember, 'call')) {

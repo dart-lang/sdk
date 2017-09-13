@@ -1,0 +1,23 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field dynamic y = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  set x(dynamic value) → void {}
+  method test() → void {
+    this.{self::C::x} = null;
+    this.{self::C::x} = null;
+    this.{self::C::y} = null;
+    this.{self::C::y} = null;
+  }
+}
+static method test(self::C c, dynamic d) → void {
+  c.{self::C::x} = null;
+  c.{self::C::y} = null;
+  d.x = null;
+}
+static method main() → dynamic {}

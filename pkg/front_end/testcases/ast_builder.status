@@ -436,6 +436,9 @@ regress/issue_29984: Crash
 regress/issue_29985: Crash
 regress/issue_29987: Crash
 reorder_super: Crash
+runtime_checks/call_kinds: Crash
+runtime_checks/call_kinds_get: Crash
+runtime_checks/call_kinds_set: Crash
 runtime_checks/call_through_this: Crash
 runtime_checks/contravariant_generic_method_type_parameter: Crash
 runtime_checks/contravariant_generic_return: Crash

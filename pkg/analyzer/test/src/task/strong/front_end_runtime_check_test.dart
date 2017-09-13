@@ -70,6 +70,7 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
             target is ThisExpression,
             isDynamicInvoke(leftHandSide.identifier),
             target.staticType,
+            null,
             leftHandSide.identifier.offset);
       }
     }
@@ -112,11 +113,16 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
       _annotateCheckReturn(
           getImplicitOperationCast(node), node.methodName.offset);
       _annotateCallKind(null, isThis, isDynamicInvoke(node.methodName), null,
-          node.argumentList.offset);
+          null, node.argumentList.offset);
     } else {
       _annotateCheckReturn(getImplicitCast(node), node.argumentList.offset);
-      _annotateCallKind(staticElement, isThis, isDynamicInvoke(node.methodName),
-          target?.staticType, node.argumentList.offset);
+      _annotateCallKind(
+          staticElement,
+          isThis,
+          isDynamicInvoke(node.methodName),
+          target?.staticType,
+          node.methodName.staticType,
+          node.argumentList.offset);
     }
   }
 
@@ -164,7 +170,7 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
   /// depends on the `@checkInterface` annotations on the static target of the
   /// call.
   void _annotateCallKind(Element staticElement, bool isThis, bool isDynamic,
-      DartType targetType, int offset) {
+      DartType targetType, DartType methodType, int offset) {
     if (staticElement is FunctionElement &&
         staticElement.enclosingElement is CompilationUnitElement) {
       // Invocation of a top level function; no annotation needed.
@@ -173,7 +179,8 @@ class _InstrumentationVisitor extends GeneralizingAstVisitor<Null> {
     if (isDynamic) {
       if (targetType == null &&
           staticElement != null &&
-          staticElement is! MethodElement) {
+          staticElement is! MethodElement &&
+          methodType is FunctionType) {
         // Sometimes analyzer annotates invocations of function objects as
         // dynamic (presumably due to "dynamic is bottom" behavior).  Ignore
         // this.
