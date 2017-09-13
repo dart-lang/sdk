@@ -6,6 +6,8 @@
 # "$compiler == dartkp".
 
 [ $compiler == dartk ]
+closure_invoked_through_interface_target_field_test: MissingCompileTimeError
+closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
 generic_no_such_method_dispatcher_test: CompileTimeError
 hello_dart_test: Crash # error: expected: cls.is_type_finalized()
