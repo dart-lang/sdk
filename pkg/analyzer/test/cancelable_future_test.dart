@@ -179,10 +179,10 @@ class CancelableCompleterTests {
     completer.complete();
     expect(() {
       completer.complete();
-    }, throws);
+    }, throwsA(new isInstanceOf<StateError>()));
     expect(() {
       completer.completeError(new Object());
-    }, throws);
+    }, throwsA(new isInstanceOf<StateError>()));
   }
 
   void test_complete_after_completeError() {
@@ -191,10 +191,10 @@ class CancelableCompleterTests {
     completer.completeError(new Object());
     expect(() {
       completer.complete();
-    }, throws);
+    }, throwsA(new isInstanceOf<StateError>()));
     expect(() {
       completer.completeError(new Object());
-    }, throws);
+    }, throwsA(new isInstanceOf<StateError>()));
     // Now absorb the error that's in the completer's future.
     completer.future.catchError((_) => null);
   }

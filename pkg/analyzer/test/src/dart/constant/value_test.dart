@@ -18,11 +18,10 @@ main() {
   });
 }
 
-const Matcher isEvaluationException = const isInstanceOf<EvaluationException>();
-
 const int LONG_MAX_VALUE = 0x7fffffffffffffff;
 
-const Matcher throwsEvaluationException = const Throws(isEvaluationException);
+final Matcher throwsEvaluationException =
+    throwsA(new isInstanceOf<EvaluationException>());
 
 @reflectiveTest
 class DartObjectImplTest extends EngineTestCase {
