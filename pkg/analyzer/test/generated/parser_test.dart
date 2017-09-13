@@ -13571,7 +13571,51 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
 }
 
 @reflectiveTest
-class TopLevelParserTest extends ParserTestCase with TopLevelParserTestMixin {}
+class TopLevelParserTest extends ParserTestCase with TopLevelParserTestMixin {
+  void test_parseDirectives_complete() {
+    CompilationUnit unit =
+        parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}");
+    expect(unit.scriptTag, isNotNull);
+    expect(unit.directives, hasLength(1));
+  }
+
+  void test_parseDirectives_empty() {
+    CompilationUnit unit = parseDirectives("");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(0));
+  }
+
+  void test_parseDirectives_mixed() {
+    CompilationUnit unit =
+        parseDirectives("library l; class A {} part 'foo.dart';");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(1));
+  }
+
+  void test_parseDirectives_multiple() {
+    CompilationUnit unit = parseDirectives("library l;\npart 'a.dart';");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(2));
+  }
+
+  void test_parseDirectives_script() {
+    CompilationUnit unit = parseDirectives("#! /bin/dart");
+    expect(unit.scriptTag, isNotNull);
+    expect(unit.directives, hasLength(0));
+  }
+
+  void test_parseDirectives_single() {
+    CompilationUnit unit = parseDirectives("library l;");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(1));
+  }
+
+  void test_parseDirectives_topLevelDeclaration() {
+    CompilationUnit unit = parseDirectives("class A {}");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(0));
+  }
+}
 
 /**
  * Tests which exercise the parser using a complete compilation unit or
@@ -14657,50 +14701,6 @@ Function(int, String) v;
     expect(partOfDirective.ofKeyword, isNotNull);
     expect(partOfDirective.libraryName, isNotNull);
     expect(partOfDirective.semicolon, isNotNull);
-  }
-
-  void test_parseDirectives_complete() {
-    CompilationUnit unit =
-        parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}");
-    expect(unit.scriptTag, isNotNull);
-    expect(unit.directives, hasLength(1));
-  }
-
-  void test_parseDirectives_empty() {
-    CompilationUnit unit = parseDirectives("");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(0));
-  }
-
-  void test_parseDirectives_mixed() {
-    CompilationUnit unit =
-        parseDirectives("library l; class A {} part 'foo.dart';");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(1));
-  }
-
-  void test_parseDirectives_multiple() {
-    CompilationUnit unit = parseDirectives("library l;\npart 'a.dart';");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(2));
-  }
-
-  void test_parseDirectives_script() {
-    CompilationUnit unit = parseDirectives("#! /bin/dart");
-    expect(unit.scriptTag, isNotNull);
-    expect(unit.directives, hasLength(0));
-  }
-
-  void test_parseDirectives_single() {
-    CompilationUnit unit = parseDirectives("library l;");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(1));
-  }
-
-  void test_parseDirectives_topLevelDeclaration() {
-    CompilationUnit unit = parseDirectives("class A {}");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(0));
   }
 
   void test_parseEnumDeclaration_one() {

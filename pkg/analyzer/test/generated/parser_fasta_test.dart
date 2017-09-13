@@ -3340,7 +3340,12 @@ class FastaParserTestCase extends Object
   @override
   CompilationUnit parseDirectives(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    return _runParser(source, null, errorCodes);
+    // TODO(paulberry,ahe,danrubel): analyzer parser has the ability to
+    // stop parsing as soon as the first non-directive is encountered; this is
+    // useful for quickly traversing an import graph.  Consider adding a similar
+    // ability to Fasta's parser.
+    throw 'fasta parser does not have a method that just parses directives'
+        ' and stops when it finds the first declaration or EOF.';
   }
 
   @override
@@ -5028,15 +5033,5 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     // TODO(danrubel): should not be generating an error
     super.test_parseCompilationUnitMember_abstractAsPrefix();
     assertNoErrors();
-  }
-
-  @override
-  @failingTest
-  void test_parseDirectives_mixed() {
-    // TODO(paulberry,ahe): This test verifies the analyzer parser's ability to
-    // stop parsing as soon as the first non-directive is encountered; this is
-    // useful for quickly traversing an import graph.  Consider adding a similar
-    // ability to Fasta's parser.
-    super.test_parseDirectives_mixed();
   }
 }
