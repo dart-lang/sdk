@@ -1,7 +1,6 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--checked
 //
 // Dart test program for testing optional named parameters in type tests.
 
@@ -22,7 +21,7 @@ main() {
   anyFunction = funNumOptBool;
   anyFunction = funNumOptBoolX;
   acceptFunNumOptBool(funNumOptBool);
-  acceptFunNumOptBool(funNum); // //# 01: runtime error
-  acceptFunNumOptBool(funNumBool); // //# 02: static type warning, runtime error
-  acceptFunNumOptBool(funNumOptBoolX); // //# 03: static type warning, runtime error
+  acceptFunNumOptBool(funNum); // //# 01: compile-time error
+  acceptFunNumOptBool(funNumBool); // //# 02: compile-time error
+  acceptFunNumOptBool(funNumOptBoolX); // //# 03: compile-time error
 }

@@ -64,28 +64,28 @@ class NamedParametersTest {
     Expect.equals(20, np.f21());
     Expect.equals(20, F10(20));
     Expect.equals(20, np.f21(20));
-    Expect.equals(20, F10(b:20)); // //# 01: runtime error
-    Expect.equals(20, np.f21(b:20)); // //# 02: runtime error
+    Expect.equals(20, F10(b:20)); // //# 01: compile-time error
+    Expect.equals(20, np.f21(b:20)); // //# 02: compile-time error
     Expect.equals(1020, F21(10));
     Expect.equals(1020, np.f32(10));
     Expect.equals(1025, F21(10, 25));
     Expect.equals(1025, np.f32(10, 25));
-    Expect.equals(1025, F21(10, b:25)); // //# 03: runtime error
-    Expect.equals(1025, np.f32(10, b:25)); // //# 04: runtime error
+    Expect.equals(1025, F21(10, b:25)); // //# 03: compile-time error
+    Expect.equals(1025, np.f32(10, b:25)); // //# 04: compile-time error
     Expect.equals(102030, F31(10));
     Expect.equals(102030, np.f42(10));
     Expect.equals(102530, F31(10, 25));
     Expect.equals(102530, np.f42(10, 25));
-    Expect.equals(102035, F31(10, c:35)); // //# 05: runtime error
-    Expect.equals(102035, np.f42(10, c:35)); // //# 06: runtime error
+    Expect.equals(102035, F31(10, c:35)); // //# 05: compile-time error
+    Expect.equals(102035, np.f42(10, c:35)); // //# 06: compile-time error
     Expect.equals(102535, F31(10, 25, 35));
     Expect.equals(102535, np.f42(10, 25, 35));
-    Expect.equals(102535, F31(10, 25, c:35)); // //# 07: runtime error
-    Expect.equals(102535, np.f42(10, 25, c:35)); // //# 08: runtime error
+    Expect.equals(102535, F31(10, 25, c:35)); // //# 07: compile-time error
+    Expect.equals(102535, np.f42(10, 25, c:35)); // //# 08: compile-time error
     Expect.equals(10200040, F41(10));
     Expect.equals(10200040, np.f52(10));
-    Expect.equals(10203540, F41(10, c:35)); // //# 09: runtime error
-    Expect.equals(10203540, np.f52(10, c:35)); // //# 10: runtime error
+    Expect.equals(10203540, F41(10, c:35)); // //# 09: compile-time error
+    Expect.equals(10203540, np.f52(10, c:35)); // //# 10: compile-time error
   }
 }
 

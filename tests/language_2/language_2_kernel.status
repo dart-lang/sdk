@@ -261,6 +261,7 @@ cha_deopt2_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel 
 cha_deopt3_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 compile_time_constant_c_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
+named_parameters_default_eq_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
 
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 assign_static_type_test/02: MissingCompileTimeError
@@ -282,6 +283,10 @@ generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 implicit_closure1_test: Crash
 generic_function_dcall_test: CompileTimeError
 generic_function_bounds_test: CompileTimeError
+named_parameters_type_test/01: Crash
+named_parameters_type_test/02: Crash
+named_parameters_type_test/03: Crash
+named_parameters_type_test/none: Crash
 
 [ ($compiler == dartkp) && !$checked ]
 generic_field_mixin6_test/none: RuntimeError

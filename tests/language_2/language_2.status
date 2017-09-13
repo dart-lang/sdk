@@ -5,6 +5,9 @@
 [ $mode == product ]
 assertion_test: SkipByDesign # Requires checked mode.
 generic_test: SkipByDesign # Requires checked mode.
+named_parameters_type_test/01: SkipByDesign # Requires checked mode.
+named_parameters_type_test/02: SkipByDesign # Requires checked mode.
+named_parameters_type_test/03: SkipByDesign # Requires checked mode.
 
 [ $compiler == none && $runtime == drt && !$checked ]
 assertion_initializer_const_error2_test/cc02: Fail
