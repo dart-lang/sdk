@@ -84,6 +84,7 @@ class RetainedDataBuilder extends RetainedData {
   final Set<Member> members = new Set<Member>();
 
   TypeMarker typeMarker;
+  RootsMarker rootsMarker;
 
   @override
   bool isLibraryUsed(Library library) => libraries.contains(library);
@@ -106,12 +107,17 @@ class RetainedDataBuilder extends RetainedData {
     libraries.add(lib);
   }
 
+  void markAnnotations(List<Expression> annotations) {
+    for (var annotation in annotations) {
+      annotation.accept(rootsMarker);
+    }
+  }
+
   /// Mark a class and it's supertypes as used.
   void markClass(Class cls) {
     if (cls == null || !classes.add(cls)) return;
     markLibrary(cls.parent);
-    // TODO(sigmund): retain annotations?
-    // visitList(cls.annotations, this);
+    markAnnotations(cls.annotations);
     cls.typeParameters.forEach((t) => t.bound.accept(typeMarker));
     markSupertype(cls.supertype);
     markSupertype(cls.mixedInType);
@@ -153,6 +159,7 @@ class RetainedDataBuilder extends RetainedData {
   void markTypedef(Typedef node) {
     if (node == null || !typedefs.add(node)) return;
     markLibrary(node.parent);
+    markAnnotations(node.annotations);
   }
 
   /// Mark the class and type arguments of [node].
@@ -172,6 +179,7 @@ class RetainedDataBuilder extends RetainedData {
     } else if (parent is Class) {
       markClass(parent);
     }
+    markAnnotations(m.annotations);
   }
 
   void markMemberInterface(Member node) {
@@ -245,7 +253,9 @@ class RootsMarker extends RecursiveVisitor {
   final RetainedDataBuilder data;
   final bool forOutline;
 
-  RootsMarker(this.coreTypes, this.data, this.forOutline);
+  RootsMarker(this.coreTypes, this.data, this.forOutline) {
+    data.rootsMarker = this;
+  }
 
   void run(Program program, bool isIncluded(Uri uri)) {
     markRequired(program);
